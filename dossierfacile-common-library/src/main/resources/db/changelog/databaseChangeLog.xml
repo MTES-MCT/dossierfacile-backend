@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+	  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+    <include file="db/migration/202103111400-init-database.xml"/>
+    <include file="db/migration/202103181917-droping-columns-in-tenant.xml"/>
+    <include file="db/migration/202103190944-setting-null-values-of-honor-declaration-to-false.xml"/>
+    <include file="db/migration/202103191037-setting-default-false-on-honor-declaration.xml"/>
+    <include file="db/migration/202103220216-add-column-tax-process-result.xml"/>
+    <include file="db/migration/202103250235-create-table-log.xml"/>
+    <include file="db/migration/202103261921-adding-table-linklog.xml"/>
+    <include file="db/migration/202103262136-adding-version-to-json-partner-link.xml"/>
+    <include file="db/migration/202103262145-dropping-columns-username-and-password-for-userapi.xml"/>
+    <include file="db/migration/202104221241-create-table-logcallback.xml"/>
+    <include file="db/migration/202104221626-create-table-operator_log.xml"/>
+</databaseChangeLog>

@@ -1,0 +1,14 @@
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+    <changeSet id="202103191037" author="harlow">
+        <sql>
+            ALTER TABLE tenant
+            ALTER COLUMN honor_declaration SET DEFAULT FALSE;
+
+            ALTER TABLE tenant
+            ALTER COLUMN honor_declaration SET NOT NULL;
+        </sql>
+    </changeSet>
+</databaseChangeLog>
