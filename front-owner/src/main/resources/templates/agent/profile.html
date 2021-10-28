@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en"
+      layout:decorator="agent/layout"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>DossierFacile</title>
+</head>
+<body>
+<div layout:fragment="sidebar" th:remove="tag">
+    <div th:replace="agent/sidebar:: sidebar"></div>
+</div>
+<div layout:fragment="content" th:remove="tag">
+    <section class="pb-5">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-8 col-lg-6">
+                    <h2 class="col-md-12 text-left"> Modifier vos informations </h2>
+                    <div class="col-md-12">
+                        <hr class="short"/>
+                    </div>
+
+                    <form method="post" onsubmit="return validateFormByClass('update-agent')"
+                          th:action="@{/agent/profile}"
+                          th:object="${agentDTO}">
+
+                        <div class="col-md-12 text-left">
+                            <span> Prénom : </span>
+                            <input autocomplete="true" class="small validate-required update-agent"
+                                   placeholder="Ex : Jean-Michel"
+                                   th:field="*{firstName}" type="text"/>
+                            <span class="color--error" th:errors="*{firstName}"
+                                  th:if="${#fields.hasErrors('firstName')}"></span>
+                        </div>
+
+                        <div class="col-md-12 text-left">
+                            <span class="font"> Nom : </span>
+                            <input autocomplete="true" class="small validate-required update-agent"
+                                   placeholder="Ex : Dupont"
+                                   th:field="*{lastName}" type="text"/>
+                            <span class="color--error" th:errors="*{lastName}"
+                                  th:if="${#fields.hasErrors('lastName')}"></span>
+                        </div>
+
+                        <div class="col-md-12 text-left">
+                            <span> Email : </span>
+                            <input class="small" disabled="disabled" th:field="*{email}" type="email"/>
+                        </div>
+                        <div class="col-md-12 text-left">
+                            <div class="input-checkbox input-checkbox--switch">
+                                <input class="hidden" id="notificationDemandsVisit"
+                                       th:field="*{notificationDemandsVisit}" type="checkbox"/>
+                                <input id="notificationDemandsVisitUtility" type="checkbox"/>
+                                <label for="notificationDemandsVisit"></label>
+                            </div>
+                            <span>Notifications demandes de visites</span>
+                        </div>
+                        <div class="col-md-12 text-left">
+                            <div class="input-checkbox input-checkbox--switch">
+                                <input id="notificationAfterVisit" th:field="*{notificationAfterVisit}"
+                                       type="checkbox"/>
+                                <input id="notificationAfterVisitUtility" type="checkbox"/>
+                                <label for="notificationAfterVisit"></label>
+                            </div>
+                            <span>Notifications traitement après visite</span>
+                        </div>
+
+                        <div class="col-12 text-left" id="errors">
+                        </div>
+
+                        <div class="col-md-12 mt-4 justify-content-center align-content-center">
+                            <button class="btn btn--primary border-0 bg-orange w-100 text-uppercase" id="save-button"
+                                    type="submit">
+                                Modifier mes informations
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+</body>
+</html>

@@ -4,13 +4,15 @@ import fr.dossierfacile.api.front.exception.FileNotFoundException;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.repository.FileRepository;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
+import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.FileService;
+import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentStatus;
-import fr.dossierfacile.common.enums.TenantFileStatus;
+import fr.dossierfacile.common.service.interfaces.OvhService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,27 +28,31 @@ public class FileServiceImpl implements FileService {
     private final DocumentRepository documentRepository;
     private final AuthenticationFacade authenticationFacade;
     private final DocumentService documentService;
+    private final TenantService tenantService;
+    private final ApartmentSharingService apartmentSharingService;
 
     @Override
     @Transactional
-    public void delete(Long id) {
-        Tenant tenant = authenticationFacade.getPrincipalAuthTenant();
+    public Document delete(Long id, Tenant tenant) {
         File file = fileRepository.findByIdAndTenant(id, tenant.getId()).orElseThrow(() -> new FileNotFoundException(id, tenant));
 
-        documentService.updateOthersDocumentsStatus(tenant);
+        documentService.resetValidatedDocumentsStatusToToProcess(tenant);
 
         Document document = file.getDocument();
 
         ovhService.delete(file.getPath());
         fileRepository.delete(file);
-        fileRepository.flush();
+        document.getFiles().remove(file);
 
         if (document.getFiles().isEmpty()) {
-            documentService.delete(document.getId());
+            documentService.delete(document.getId(), tenant);
+            return null;
         } else {
             document.setDocumentStatus(DocumentStatus.TO_PROCESS);
-            documentRepository.save(document);
-            documentService.generatePdfByFilesOfDocument(document);
+            Document documentSaved = documentRepository.saveAndFlush(document);
+            tenantService.updateTenantStatus(tenant);
+            apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
+            return documentSaved;
         }
     }
 }

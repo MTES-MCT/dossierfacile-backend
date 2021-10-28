@@ -48,9 +48,9 @@ public class RequestServiceImpl implements RequestService {
         HttpEntity<LightAPIInfoModel> request =
                 new HttpEntity<>(lightAPIInfo, headers);
 
-        ResponseEntity<LightAPIInfoModel> response;
+        ResponseEntity<Object> response;
         try {
-            response = restTemplate.exchange(urlCallback, HttpMethod.POST, request, LightAPIInfoModel.class);
+            response = restTemplate.exchange(urlCallback, HttpMethod.POST, request, Object.class);
             log.info(CALL_BACK_RESPONSE, response.getStatusCode().toString());
         } catch (RestClientException e) {
             log.error(EXCEPTION + Sentry.captureException(e));
@@ -59,7 +59,7 @@ public class RequestServiceImpl implements RequestService {
                 try {
                     log.warn("Trying to send the request again without SSL Verification, to the urlCallBack: " + urlCallback);
                     addExceptionOfSecurity();
-                    response = restTemplate.exchange(urlCallback, HttpMethod.POST, request, LightAPIInfoModel.class);
+                    response = restTemplate.exchange(urlCallback, HttpMethod.POST, request, Object.class);
                     log.info(CALL_BACK_RESPONSE, response.getStatusCode().toString());
                 } catch (GeneralSecurityException | ResourceAccessException e1) {
                     log.error(EXCEPTION + Sentry.captureException(e1));
@@ -79,9 +79,9 @@ public class RequestServiceImpl implements RequestService {
         HttpEntity<ApplicationModel> request =
                 new HttpEntity<>(applicationModel, headers);
 
-        ResponseEntity<ApplicationModel> response;
+        ResponseEntity<Object> response;
         try {
-            response = restTemplate.exchange(urlCallback, HttpMethod.POST, request, ApplicationModel.class);
+            response = restTemplate.exchange(urlCallback, HttpMethod.POST, request, Object.class);
             log.info(CALL_BACK_RESPONSE, response.getStatusCode().toString());
         } catch (RestClientException e) {
             log.error(EXCEPTION + Sentry.captureException(e));
@@ -90,7 +90,7 @@ public class RequestServiceImpl implements RequestService {
                 try {
                     log.warn("Trying to send the request again without SSL Verification, to the urlCallBack: " + urlCallback);
                     addExceptionOfSecurity();
-                    response = restTemplate.exchange(urlCallback, HttpMethod.POST, request, ApplicationModel.class);
+                    response = restTemplate.exchange(urlCallback, HttpMethod.POST, request, Object.class);
                     log.info(CALL_BACK_RESPONSE, response.getStatusCode().toString());
                 } catch (GeneralSecurityException | ResourceAccessException e1) {
                     log.error(EXCEPTION + Sentry.captureException(e1));

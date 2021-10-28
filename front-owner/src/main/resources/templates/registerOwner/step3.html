@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en"
+      layout:decorator="registerTenant/layout"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>DossierFacile</title>
+</head>
+<body>
+<div layout:fragment="sidebar" th:remove="tag">
+    <div th:replace="registerOwner/sidebar :: sidebar(step = 'INFORMATIONS_PROPERTY', currentStep = 3)"></div>
+</div>
+<div layout:fragment="content" th:remove="tag">
+    <section>
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-6 col-lg-5">
+                    <h3> Pour gérer vos dossiers simplement, commencez par ajouter un bien en rentrant son adresse
+                        ! </h3>
+
+                    <form method="post"
+                          onsubmit="return validate_form()"
+                          th:action="@{/registerOwner/step3/} + ${ownerDTO.getSlug()}" th:object="${ownerDTO}">
+                        <div class="row">
+                            <div class="col-md-12 text-left">
+                                <span> Adresse : </span>
+                                <input autocomplete="off" class="small validate-required" id="email" name="email"
+                                       placeholder="Ex : Paris 12"
+                                       th:field="*{address}" type="text"/>
+                                <span class="color--error" th:errors="*{address}"
+                                      th:if="${#fields.hasErrors('address')}"></span>
+                            </div>
+
+                            <div class="col-md-12 text-left">
+                                <span class="font"> Loyer : </span>
+                                <input autocomplete="off" class="small validate-required" placeholder="Ex : 500"
+                                       th:field="*{cost}" type="number"/>
+                                <span class="color--error" id="password-error"
+                                      th:errors="*{cost}"
+                                      th:if="${#fields.hasErrors('cost')}"></span>
+                            </div>
+
+                            <div class="col-12 text-left" id="errors">
+                            </div>
+
+                            <div class="col-md-3">
+                                <button class="btn btn--primary text-uppercase" th:text="#{tenant.form.button.next}"
+                                        type="submit">
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+</body>
+</html>

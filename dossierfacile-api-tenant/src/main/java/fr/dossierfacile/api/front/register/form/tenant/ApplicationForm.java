@@ -6,6 +6,8 @@ import fr.dossierfacile.api.front.validator.anotation.tenant.application.DeniedJ
 import fr.dossierfacile.api.front.validator.anotation.tenant.application.DistinctEmailList;
 import fr.dossierfacile.api.front.validator.anotation.tenant.application.DistinctTenantPrincipalEmailListCoTenant;
 import fr.dossierfacile.api.front.validator.anotation.tenant.application.UniqueEmailListCoTenant;
+import fr.dossierfacile.api.front.validator.group.ApiPartner;
+import fr.dossierfacile.api.front.validator.group.Dossier;
 import fr.dossierfacile.common.enums.ApplicationType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,6 +15,7 @@ import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Null;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,14 +25,18 @@ import java.util.List;
 @CheckTenantTypeCountListCoTenant
 @CheckTenantTypeAcceptAccess
 @DeniedJoinTenant
+@UniqueEmailListCoTenant
+@DistinctTenantPrincipalEmailListCoTenant
 public class ApplicationForm {
+
+    @Null(groups = Dossier.class)
+    @NotNull(groups = ApiPartner.class)
+    private Long tenantId;
 
     @NotNull
     private ApplicationType applicationType;
 
     @DistinctEmailList
-    @UniqueEmailListCoTenant
-    @DistinctTenantPrincipalEmailListCoTenant
     private List<@Email String> coTenantEmail = new ArrayList<>();
 
     private Boolean acceptAccess;

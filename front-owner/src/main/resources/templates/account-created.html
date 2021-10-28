@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en"
+      layout:decorator="layout"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>DossierFacile</title>
+</head>
+<body>
+
+<div layout:fragment="content" th:remove="tag">
+
+    <div class="main-container">
+
+        <section class="text-center py-5">
+            <div class="text-left col-lg-8 col-md-10">
+
+                <div class="container">
+                    <div class="row">
+                        <div class="pb-5 col-lg-8 col-md-10">
+
+                            <h3> Compte créé </h3>
+                            <h5 class="text-lead-color">
+                                Merci d'avoir fait confiance à DossierFacile, un email vous a été envoyé pour finaliser
+                                votre
+                                compte, vous en recevrez un second dès que les pièces de votre dossier auront été
+                                validées.
+                                Pour toute question, vous pouvez nous écrire à
+                                <a href="mailto:contact@dossierfacile.fr">contact@dossierfacile.fr</a>
+                            </h5>
+
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="mt-5 col-lg-8 col-md-10">
+                            <a class="btn btn--primary type--uppercase" th:href="@{/locataire/mon-compte}">
+                                <span class="btn__text"> Mon compte </span>
+                            </a>
+                            <a class="btn btn--primary type--uppercase" th:href="${userApi.getSite()}"
+                               th:if="${userApi!=null}">
+                                <span class="btn__text"
+                                      th:text="'Retour à '+${userApi.getName2()!=null?userApi.getName2():'partenaire'}"></span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+</body>
+</html>

@@ -10,6 +10,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Convert;
@@ -23,7 +24,9 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,6 +53,10 @@ public class Document implements Serializable {
     @JoinColumn(name = "tenant_id")
     private Tenant tenant;
 
+    @Builder.Default
+    @Column(name = "creation_date")
+    private LocalDateTime creationDateTime = LocalDateTime.now();
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "guarantor_id")
     private Guarantor guarantor;
@@ -72,4 +79,33 @@ public class Document implements Serializable {
     @Column(columnDefinition = "text")
     @Convert(converter = TaxDocumentConverter.class)
     private TaxDocument taxProcessResult;
+
+
+    @Column(name = "processing_start_time")
+    private LocalDateTime processingStartTime;
+
+
+    @Column(name = "processing_end_time")
+    private LocalDateTime processingEndTime;
+
+    @Builder.Default
+    private int retries = 0;
+
+    private boolean locked;
+
+    private String lockedBy;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "document_denied_reasons_id")
+    private DocumentDeniedReasons documentDeniedReasons;
+
+    @Basic(fetch = FetchType.LAZY)
+    public boolean isLocked() {
+        return locked;
+    }
+
+    @Basic(fetch = FetchType.LAZY)
+    public String getLockedBy() {
+        return lockedBy;
+    }
 }

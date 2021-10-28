@@ -9,7 +9,7 @@ import java.util.Optional;
 
 public interface GuarantorRepository extends JpaRepository<Guarantor, Long> {
 
-    Optional<Guarantor> findByTenantAndTypeGuarantor(Tenant tenant, TypeGuarantor typeGuarantor);
+    Optional<Guarantor> findFirstByTenantAndTypeGuarantor(Tenant tenant, TypeGuarantor typeGuarantor);
 
     Optional<Guarantor> findByTenantAndTypeGuarantorAndId(Tenant tenant, TypeGuarantor typeGuarantor, Long id);
 

@@ -1,9 +1,9 @@
 package fr.dossierfacile.api.front.validator.tenant.type_guarantor;
 
+import fr.dossierfacile.api.front.register.form.tenant.GuarantorTypeForm;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.validator.anotation.tenant.type_guarantor.MaxGuarantor;
 import fr.dossierfacile.common.entity.Guarantor;
-import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.TypeGuarantor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -14,7 +14,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class MaxGuarantorValidator implements ConstraintValidator<MaxGuarantor, TypeGuarantor> {
+public class MaxGuarantorValidator implements ConstraintValidator<MaxGuarantor, GuarantorTypeForm> {
 
     private final AuthenticationFacade authenticationFacade;
 
@@ -24,8 +24,12 @@ public class MaxGuarantorValidator implements ConstraintValidator<MaxGuarantor, 
     }
 
     @Override
-    public boolean isValid(TypeGuarantor typeGuarantor, ConstraintValidatorContext constraintValidatorContext) {
-        Tenant tenant = authenticationFacade.getPrincipalAuthTenant();
+    public boolean isValid(GuarantorTypeForm guarantorTypeForm, ConstraintValidatorContext constraintValidatorContext) {
+        var tenant = authenticationFacade.getTenant(guarantorTypeForm.getTenantId());
+        if (tenant == null) {
+            return true;
+        }
+        var typeGuarantor = guarantorTypeForm.getTypeGuarantor();
         List<Guarantor> guarantors = tenant.getGuarantors();
         int cantGuarantor = guarantors.size();
         if (typeGuarantor == TypeGuarantor.LEGAL_PERSON && cantGuarantor == 0) {
@@ -34,7 +38,14 @@ public class MaxGuarantorValidator implements ConstraintValidator<MaxGuarantor, 
         if (typeGuarantor == TypeGuarantor.ORGANISM && cantGuarantor == 0) {
             return true;
         }
-        return typeGuarantor == TypeGuarantor.NATURAL_PERSON && cantGuarantor <= 1 && isAllGuarantorLegalPerson(guarantors);
+        var isValid = typeGuarantor == TypeGuarantor.NATURAL_PERSON && cantGuarantor <= 1 && isAllGuarantorLegalPerson(guarantors);
+        if (!isValid) {
+            constraintValidatorContext.disableDefaultConstraintViolation();
+            constraintValidatorContext
+                    .buildConstraintViolationWithTemplate(constraintValidatorContext.getDefaultConstraintMessageTemplate())
+                    .addPropertyNode("typeGuarantor").addConstraintViolation();
+        }
+        return isValid;
     }
 
     private boolean isAllGuarantorLegalPerson(List<Guarantor> guarantors) {

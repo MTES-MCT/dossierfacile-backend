@@ -1,0 +1,60 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body>
+
+<div th:fragment="file-with-error" th:remove="tag">
+
+    <div class="panel-group">
+
+        <div th:if="${fileNumber == 1}">
+            <div th:replace="include/files/file1:: file1"></div>
+        </div>
+
+        <div th:if="${fileNumber == 2}">
+            <div th:replace="include/files/file2:: file2"></div>
+        </div>
+
+        <div th:if="${fileNumber == 3}">
+            <div th:replace="include/files/file3:: file3"></div>
+        </div>
+
+        <div th:if="${fileNumber == 4}">
+            <div th:replace="include/files/file4:: file4"></div>
+        </div>
+
+        <div th:if="${fileNumber == 5}">
+            <div th:replace="include/files/file5:: file5"></div>
+        </div>
+
+        <div class="medium-space-separator"></div>
+
+        <div th:if="${tenant.getGuarantor() != null}" th:remove="tag">
+
+            <div th:if="${fileNumber == 6}">
+                <div th:replace="include/files/file1Guarantor:: file1Guarantor"></div>
+            </div>
+
+            <div th:if="${fileNumber == 7}">
+                <div th:replace="include/files/file2Guarantor:: file2Guarantor"></div>
+            </div>
+
+            <div th:if="${fileNumber == 8}">
+                <div th:replace="include/files/file3Guarantor:: file3Guarantor"></div>
+            </div>
+
+            <div th:if="${fileNumber == 9}">
+                <div th:replace="include/files/file4Guarantor:: file4Guarantor"></div>
+            </div>
+
+            <div th:if="${fileNumber == 10}">
+                <div th:replace="include/files/file5Guarantor:: file5Guarantor"></div>
+            </div>
+
+        </div>
+    </div>
+</div>
+</body>
+
+</html>
+

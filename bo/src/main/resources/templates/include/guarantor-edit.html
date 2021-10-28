@@ -1,0 +1,195 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+</head>
+<body>
+
+<div th:fragment="guarantor-edit" th:remove="tag">
+    <p class="little-title text-center padding border-bottom border-primary text-primary text-primary1 medium-margin-bottom">
+        Mon garant</p>
+    <!--<hr style="border-top: 1px solid #3c5fbc" />-->
+    <div th:if="*{guarantorType.name()=='VISALE'}">
+        <div class="form-group file11">
+            <div class="input-icon info-icon input-file-container">
+                <a class="link-file"
+                   th:href="${tenantEntity.getGuarantor().getUpload1Route()}" target="_blank">
+                    Visa
+                </a>
+                <span class="change-link-input img info-icon text-alter" data-id="11" data-toggle="tooltip"
+                      data-placement="bottom" title="" data-original-title="modify">
+                                        <span class="fa fa-pencil icono-edit-file"></span>
+                                    </span>
+            </div>
+        </div>
+        <div class="form-group file11" style="display: none;">
+            <label for="identity_card" class="text-primary1 formatted-label space-separator">Visa</label>
+            <div class="input-icon text-center info-icon input-file-container">
+                <input type="text"
+                       class="form-control form-control-formatted form-control-untouched input-file"
+                       placeholder="Ajouter un document" readonly=""/>
+                <input type="file" class="hidden file-reader" accept="image/*, .pdf" th:field="*{guarantor.files[0]}"/>
+            </div>
+        </div>
+    </div>
+    <div th:if="*{guarantorType.name()=='LOCATIO'}">
+        <div class="form-group">
+            <label for="lastName" class="text-primary1 formatted-label  medium-space-separator"
+                   th:text="#{tenant.garant.title}"></label>
+            <input type="text" autocomplete="true" required="required" th:field="*{guarantor.lastName}"
+                   class="form-control form-control-formatted form-control-untouched " placeholder="Nom"
+                   id="lastName"/>
+            <span id="lastName-error" class="d-none color--error"></span>
+        </div>
+        <div class="form-group">
+            <input type="text" required="required" autocomplete="true" th:field="*{guarantor.firstName}"
+                   class="form-control form-control-formatted form-control-untouched" placeholder="Prenom"
+                   id="firstName"/>
+            <span id="firstName-error" class="d-none color--error"></span>
+        </div>
+
+
+        <div class="form-group file6">
+            <div class="input-icon info-icon input-file-container">
+                <a class="link-file" th:text="#{tenant.profile.link1}"
+                   th:href="${tenantEntity.getGuarantor().getUpload1Route()}" target="_blank">
+                </a>
+                <span class="change-link-input img info-icon text-alter" data-id="6" data-toggle="tooltip"
+                      data-placement="bottom" title="" data-original-title="carte d'identité OU passeport OU permis de conduire OU carte de séjour OU carte de résident">
+                                        <span class="fa fa-pencil icono-edit-file"></span>
+                                    </span>
+            </div>
+        </div>
+        <div class="form-group file6" style="display: none;">
+            <label for="identity_card" class="text-primary1 formatted-label space-separator">Pièce
+                d'identité en cours de validité :</label>
+            <div class="input-icon text-center info-icon input-file-container">
+                <input type="text"
+                       class="form-control form-control-formatted form-control-untouched input-file"
+                       placeholder="Ajouter un document" id="identity_card" readonly=""/>
+                <input type="file" class="hidden file-reader" accept="image/*, .pdf" th:field="*{guarantor.files[0]}"
+                       name="identity_card"/>
+                <span class="img info-icon text-alter" data-toggle="tooltip" data-placement="bottom"
+                      title=""
+                      data-original-title="carte d'identité OU passeport OU permis de conduire OU carte de séjour OU carte de résident">
+                                    <span>?</span>
+                                  </span>
+            </div>
+        </div>
+
+        <div class="form-group file7">
+            <div class="input-icon info-icon input-file-container">
+                <a class="link-file" th:text="#{tenant.profile.link2}"
+                   th:href="${tenantEntity.getGuarantor().getUpload2Route()}" target="_blank">
+                </a>
+                <span class="change-link-input img info-icon text-alter" data-id="7" data-toggle="tooltip"
+                      data-placement="bottom" title="" data-original-title="3 dernières quittances de loyer OU, à défaut, une attestation du précédent bailleur OU attestation sur l'honneur de l'hébergeant">
+                                        <span class="fa fa-pencil icono-edit-file"></span>
+                                    </span>
+            </div>
+        </div>
+        <div class="form-group file7" style="display: none;">
+            <label for="identity_card" class="text-primary1 formatted-label space-separator">Justificatif de
+                domicile :</label>
+            <div class="input-icon text-center info-icon input-file-container">
+                <input type="text"
+                       class="form-control form-control-formatted form-control-untouched input-file"
+                       placeholder="Ajouter un document" id="identity_card" readonly=""/>
+                <input type="file" class="hidden file-reader" accept="image/*, .pdf" th:field="*{guarantor.files[1]}"
+                       name="identity_card"/>
+                <span class="img info-icon text-alter" data-toggle="tooltip" data-placement="bottom"
+                      title=""
+                      data-original-title="3 dernières quittances de loyer OU, à défaut, une attestation du précédent bailleur OU attestation sur l'honneur de l'hébergeant">
+                                    <span>?</span>
+                                  </span>
+            </div>
+        </div>
+        <div class="form-group file8">
+            <div class="input-icon info-icon input-file-container">
+                <a class="link-file" th:text="#{tenant.profile.link3}"
+                   th:href="${tenantEntity.getGuarantor().getUpload3Route()}" target="_blank">
+                </a>
+                <span class="change-link-input img info-icon text-alter" data-id="8" data-toggle="tooltip"
+                      data-placement="bottom" title="" data-original-title="contrat de travail OU de stage OU, à défaut, attestation de l'employeur OU carte d'étudiant OU certificat de scolarité OU copie de la carte professionnelle (profession libérale) OU autre">
+                                        <span class="fa fa-pencil icono-edit-file"></span>
+                                    </span>
+            </div>
+        </div>
+        <div class="form-group file8" style="display: none;">
+            <label for="identity_card" class="text-primary1 formatted-label space-separator">Justificatif de
+                situation professionnelle :</label>
+            <div class="input-icon text-center info-icon input-file-container">
+                <input type="text"
+                       class="form-control form-control-formatted form-control-untouched input-file"
+                       placeholder="Ajouter un document" id="identity_card" readonly=""/>
+                <input type="file" class="hidden file-reader" accept="image/*, .pdf" th:field="*{guarantor.files[2]}"
+                       name="identity_card"/>
+                <span class="img info-icon text-alter" data-toggle="tooltip" data-placement="bottom"
+                      title=""
+                      data-original-title="contrat de travail OU de stage OU, à défaut, attestation de l'employeur OU carte d'étudiant OU certificat de scolarité OU copie de la carte professionnelle (profession libérale) OU autre">
+                                    <span>?</span>
+                                  </span>
+            </div>
+        </div>
+
+        <div class="form-group file9">
+            <div class="input-icon info-icon input-file-container">
+                <a class="link-file" th:text="#{tenant.profile.link4}"
+                   th:href="${tenantEntity.getGuarantor().getUpload4Route()}" target="_blank">
+                </a>
+                <span class="change-link-input img info-icon text-alter" data-id="9" data-toggle="tooltip"
+                      data-placement="bottom" title="" data-original-title="avis d'imposition OU de non-imposition">
+                                        <span class="fa fa-pencil icono-edit-file"></span>
+                                    </span>
+            </div>
+        </div>
+        <div class="form-group file9" style="display: none;">
+            <label for="identity_card" class="text-primary1 formatted-label space-separator">Avis d'imposition
+                :</label>
+            <div class="input-icon text-center info-icon input-file-container">
+                <input type="text"
+                       class="form-control form-control-formatted form-control-untouched input-file"
+                       placeholder="Ajouter un document" id="identity_card" readonly=""/>
+                <input type="file" class="hidden file-reader" accept="image/*, .pdf" th:field="*{guarantor.files[3]}"
+                       name="identity_card"/>
+                <span class="img info-icon text-alter" data-toggle="tooltip" data-placement="bottom"
+                      title=""
+                      data-original-title="avis d'imposition OU de non-imposition">
+                                    <span>?</span>
+                                  </span>
+            </div>
+        </div>
+
+        <div class="form-group file10">
+            <div class="input-icon info-icon input-file-container">
+                <a class="link-file" th:text="#{tenant.profile.link5}"
+                   th:href="${tenantEntity.getGuarantor().getUpload5Route()}" target="_blank">
+                </a>
+                <span class="change-link-input img info-icon text-alter" data-id="10" data-toggle="tooltip"
+                      data-placement="bottom" title="" data-original-title="3 derniers bulletins de salaires OU justificatif de versement des indemnités de stage OU 2 derniers bilans comptables OU, à défaut attestation des ressources délivrée par un comptable (non-salariés)">
+                                        <span class="fa fa-pencil icono-edit-file"></span>
+                                    </span>
+            </div>
+        </div>
+        <div class="form-group file10" style="display: none;">
+            <label for="identity_card" class="text-primary1 formatted-label space-separator">Justificatif
+                de ressources :</label>
+            <div class="input-icon text-center info-icon input-file-container">
+                <input type="text"
+                       class="form-control form-control-formatted form-control-untouched input-file"
+                       placeholder="Ajouter un document" id="identity_card" readonly=""/>
+                <input type="file" class="hidden file-reader" accept="image/*, .pdf" th:field="*{guarantor.files[4]}"
+                       name="identity_card"/>
+                <span class="img info-icon text-alter" data-toggle="tooltip" data-placement="bottom"
+                      title=""
+                      data-original-title="3 derniers bulletins de salaires OU justificatif de versement des indemnités de stage OU 2 derniers bilans comptables OU, à défaut attestation des ressources délivrée par un comptable (non-salariés)">
+                                    <span>?</span>
+                                  </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
+
+

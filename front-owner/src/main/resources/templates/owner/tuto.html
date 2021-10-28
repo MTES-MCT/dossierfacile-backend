@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en"
+      layout:decorator="owner/layout"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>DossierFacile</title>
+</head>
+<body>
+
+<div layout:fragment="sidebar" th:remove="tag">
+    <div th:replace="owner/sidebar:: sidebar"></div>
+</div>
+<div layout:fragment="content" th:remove="tag">
+    <section>
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="process-1">
+                        <div class="process__item">
+                            <h4>Créez votre compte et votre propriété</h4>
+                            <p> C'est gratuit et vous n'avez besoin que d'un mail et de l'adresse du bien que vous
+                                mettez en location </p>
+                        </div>
+                        <div class="process__item">
+                            <h4>Ajoutez autant de candidats locataires que vous le souhaitez </h4>
+                            <p> Envoyez votre lien propriétaire aux candidats avec la méthode de votre choix (par mail...) </p>
+                        </div>
+                        <div class="process__item">
+                            <h4>DossierFacile s’occupe de récupérer les pièces du dossier et de réunir vos demandes
+                                de
+                                candidature directement dans votre espace propriétaire</h4>
+                            <p> Lorsque les dossiers sont clairs, complets et cohérents, consultez-les en un clic et
+                                arrêtez de perdre du temps avec des dossiers incomplets.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+</body>
+</html>

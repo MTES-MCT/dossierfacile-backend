@@ -84,6 +84,13 @@ public class User implements Serializable {
     private String providerId;
     private String imageUrl;
 
+    private String keycloakId;
+    private Boolean franceConnect = false;
+    private String franceConnectSub;
+    private String franceConnectBirthDate;
+    private String franceConnectBirthPlace;
+    private String franceConnectBirthCountry;
+
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private ConfirmationToken confirmationToken;
 
@@ -98,6 +105,6 @@ public class User implements Serializable {
     }
 
     public String getFullName() {
-        return String.join(" ", firstName, lastName);
+        return firstName!=null && lastName!=null? String.join(" ", firstName, lastName):"";
     }
 }

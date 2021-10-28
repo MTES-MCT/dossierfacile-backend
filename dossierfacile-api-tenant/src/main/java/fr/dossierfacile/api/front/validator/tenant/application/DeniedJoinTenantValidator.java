@@ -22,6 +22,10 @@ public class DeniedJoinTenantValidator implements ConstraintValidator<DeniedJoin
 
     @Override
     public boolean isValid(ApplicationForm applicationForm, ConstraintValidatorContext constraintValidatorContext) {
-        return authenticationFacade.getPrincipalAuthTenant().getTenantType() != TenantType.JOIN;
+        var tenant = authenticationFacade.getTenant(applicationForm.getTenantId());
+        if (tenant == null) {
+            return true;
+        }
+        return tenant.getTenantType() != TenantType.JOIN;
     }
 }

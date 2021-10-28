@@ -1,0 +1,35 @@
+<!DOCTYPE HTML>
+<html layout:decorator="layout"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body>
+
+<div th:fragment="sidebar(step, currentStep)" th:remove="tag">
+    <div class="nav-container nav-container--sidebar">
+        <div class="d-flex nav-sidebar-column bg-orange">
+            <div class="text-block my-auto text-white">
+                <ul class="menu-vertical">
+                    <li>
+                        <span data-id="1"
+                              th:classappend="|${'INFORMATIONS_OWNER' == step ? 'active-label' : ''} ${currentStep > 2 ? 'verified-item' : ''}|"> Informations du propriétaire </span>
+                    </li>
+                    <li>
+                        <span data-id="2"
+                              th:classappend="|${'INFORMATIONS_PROPERTY' == step ? 'active-label' : ''} ${currentStep > 3 ? 'verified-item' : ''}|"> Informations de la propriété </span>
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+
+        <div class="nav-sidebar-column-toggle visible-xs visible-sm" data-toggle-class=".nav-sidebar-column;active">
+            <i class="stack-menu"></i>
+        </div>
+    </div>
+
+    <!--end of Register Tenant Sidebar-->
+</div>
+
+</body>
+</html>

@@ -8,6 +8,7 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
@@ -25,9 +26,15 @@ public class NumberOfDocumentFinancialValidator implements ConstraintValidator<N
 
     @Override
     public boolean isValid(DocumentFinancialForm documentFinancialForm, ConstraintValidatorContext constraintValidatorContext) {
-        Tenant tenant = authenticationFacade.getPrincipalAuthTenant();
+        Tenant tenant = authenticationFacade.getTenant(documentFinancialForm.getTenantId());
+        long sizeOldDoc = 0;
         long countOld = fileRepository.countFileByDocumentCategoryTenantDocumentId(DocumentCategory.FINANCIAL, tenant, documentFinancialForm.getId());
         long countNew = documentFinancialForm.getDocuments().stream().filter(f -> !f.isEmpty()).count();
+
+        if (countOld > 0) {
+            sizeOldDoc = fileRepository.sumSizeOfAllFilesForDocumentId(DocumentCategory.FINANCIAL, tenant, documentFinancialForm.getId());
+        }
+        long sizeNewDoc = documentFinancialForm.getDocuments().stream().filter(o -> o.getSize() >= 0).mapToLong(MultipartFile::getSize).sum();
 
         if (documentFinancialForm.getNoDocument() == null) {
             return true;
@@ -44,11 +51,11 @@ public class NumberOfDocumentFinancialValidator implements ConstraintValidator<N
             }
 
         } else {
-            isValid = 1 <= countNew + countOld && countNew + countOld <= 15;
+            isValid = 1 <= countNew + countOld && countNew + countOld <= 10 && sizeNewDoc + sizeOldDoc <= 52428800;
             if (!isValid) {
                 constraintValidatorContext.disableDefaultConstraintViolation();
                 constraintValidatorContext
-                        .buildConstraintViolationWithTemplate("number of document must be between 1 and 15")
+                        .buildConstraintViolationWithTemplate("number of document must be between 1 and 10 and not exceed 50Mb in total")
                         .addPropertyNode("documents").addConstraintViolation();
             }
         }

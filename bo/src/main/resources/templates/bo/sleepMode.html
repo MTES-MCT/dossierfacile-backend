@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en"
+      layout:decorator="bo/layout-bo"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>DossierFacile</title>
+</head>
+<body>
+<div layout:fragment="content" th:remove="tag">
+    <div th:replace="bo/menu :: menu">...</div>
+
+    <div class="container">
+        <div class="medium-space-separator">
+            <div class="row">
+                <form th:action="@{/bo/sleepMode}" th:method="post" th:object="${configDTO}">
+                    <div class="col-md-offset-4 col-md-2">
+                        <div class="checkbox">
+                            <label><input th:field="*{value}" type="checkbox" value=""/>Sleep Mode</label>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-danger bo-btn" name="action" type="submit">
+                            Save
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
+

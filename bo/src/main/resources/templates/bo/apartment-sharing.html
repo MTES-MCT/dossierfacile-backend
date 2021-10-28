@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="bo/layout-bo">
+<head>
+    <title>DossierFacile</title>
+</head>
+<body>
+
+<div layout:fragment="content" th:remove="tag">
+
+    <div th:replace="bo/menu :: menu">...</div>
+    <div class="container">
+
+
+        <table class="display" id="apartmentSharingTable">
+            <thead>
+            <tr>
+                <th>Id</th>
+                <th>Creation date</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Tenants</th>
+                <th>Complete register</th>
+                <th>Status</th>
+                <th>See</th>
+            </tr>
+            </thead>
+            <tfoot>
+            <tr>
+                <th>Id</th>
+                <th>Creation date</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Tenants</th>
+                <th>Complete register</th>
+                <th>Status</th>
+                <th>See</th>
+            </tr>
+            </tfoot>
+        </table>
+
+    </div>
+</div>
+</body>
+</html>
+

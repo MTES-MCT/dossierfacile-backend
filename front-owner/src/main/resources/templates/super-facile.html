@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en"
+      layout:decorator="layout"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>DossierFacile</title>
+</head>
+<body>
+
+<div layout:fragment="content" th:remove="tag">
+
+    <div class="main-container">
+        <section class="pt-5">
+            <div class="container pt-4">
+                <div class="row justify-content-center">
+                    <div class="col-md-6 col-lg-5">
+                        <div class="pricing pricing-1 boxed boxed--lg boxed--border">
+                            <h2 class="text-orange"><b>DossierFacile</b></h2>
+                            <hr/>
+                            <ul>
+                                <li>
+                                    <span class="checkmark bg-orange"></span>
+                                    <span>Votre lien DossierFacile personnel labélisé</span>
+                                </li>
+                                <li>
+                                    <span class="checkmark bg-orange"></span>
+                                    <span>Votre lien DossierFacile de collocation labélisé</span>
+                                </li>
+                                <li>
+                                    <span class="checkmark bg-orange"></span>
+                                    <span>Un contact humain tout au long de la validation de votre dossier.</span>
+                                </li>
+                                <li>
+                                    <span class="checkmark bg-orange"></span>
+                                    <span>Vos chances de réponse des propriétaire sont augmentées de 24%</span>
+                                </li>
+                            </ul>
+                            <a class="btn btn--primary bg-orange border-0"
+                               th:href="@{/locataire/super-facile/mon-compte/1}">
+                                    <span class="btn__text text-uppercase">
+                                        choisir
+                                    </span>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-5">
+                        <div class="pricing pricing-1 boxed boxed--lg boxed--border">
+                            <span class="text-primary">Offre réservée aux employés de nos entreprises partenaires</span>
+                            <h2 class="text-primary"><b>DossierSuperFacile</b></h2>
+                            <hr/>
+                            <ul>
+                                <li>
+                                    <span class="checkmark bg--primary"></span>
+                                    <span>Votre lien DossierFacile personnel labélisé </span>
+                                </li>
+                                <li>
+                                    <span class="checkmark bg--primary"></span>
+                                    <span>Votre lien DossierFacile de collocation labélisé</span>
+                                </li>
+                                <li>
+                                    <span class="checkmark bg--primary"></span>
+                                    <span>Un contact humain tout au long de la validation de votre dossier</span>
+                                </li>
+                                <li>
+                                    <span class="checkmark bg--primary"></span>
+                                    <span>Votre lien DossierFacile personnel labélisé</span>
+                                </li>
+
+                                <li>
+                                    <span class="checkmark bg--success"></span>
+                                    <span>Un traitement encore plus rapide de votre dossier</span>
+                                </li>
+                                <li>
+                                    <span class="checkmark bg--success"></span>
+                                    <span>Un accompagnement sur mesure adapté à votre situation</span>
+                                </li>
+                                <li>
+                                    <span class="checkmark bg--success"></span>
+                                    <span>Encore plus de chances de réponse de la part des propriétaires !</span>
+                                </li>
+                            </ul>
+                            <a class="btn btn--primary bg--primary"
+                               th:href="@{/locataire/super-facile/nom-entreprise}">
+                                    <span class="btn__text text-uppercase">
+                                        choisir
+                                    </span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+<div layout:fragment="javascripts" th:remove="tag">
+
+</div>
+</body>
+</html>

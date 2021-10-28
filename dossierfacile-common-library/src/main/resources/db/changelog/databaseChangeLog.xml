@@ -15,4 +15,22 @@
     <include file="db/migration/202103262145-dropping-columns-username-and-password-for-userapi.xml"/>
     <include file="db/migration/202104221241-create-table-logcallback.xml"/>
     <include file="db/migration/202104221626-create-table-operator_log.xml"/>
+    <include file="db/migration/202106030216-add-column-creation-date-document.xml"/>
+    <include file="db/migration/202106030416-add-column-creation-date-file.xml"/>
+    <include file="db/migration/202106180416-add-column-keycloak-id.xml"/>
+    <include file="db/migration/202106251448-add-column-status-tenant.xml"/>
+    <include file="db/migration/202106300416-add-column-france-connect.xml"/>
+    <include file="db/migration/202107151023-alter-size-of-column-clarification-of-tenant.xml"/>
+    <include file="db/migration/202107191023-add-new-column-partner-api-id.xml"/>
+    <include file="db/migration/202108021238-add-columns-processing_start_and_end_time.xml"/>
+    <include file="db/migration/202108081803-add-column-urlDossierPdfDocument_to_apartmentsharing.xml"/>
+    <include file="db/migration/202108121220-droping-column-in-guarantor.xml"/>
+    <include file="db/migration/202108130934-droping-columns-in-property_apartment_sharing.xml"/>
+    <include file="db/migration/202108270934-add-new-columns-user-table.xml"/>
+    <include file="db/migration/202109011450-add-column-operator_date-tenant.xml"/>
+    <include file="db/migration/202109141107-add-column-number_of_pages-file.xml"/>
+    <include file="db/migration/202109161828-add-columns-locked-and-retries-to-document.xml"/>
+    <include file="db/migration/202110020137-rename-column-api_partner_id-in-table-tenant.xml"/>
+    <include file="db/migration/202110070904-increasing-the-length-of-clarification-in-table-tenant.xml"/>
+    <include file="db/migration/202110111929-creating-new-table-document_denied_reasons.xml"/>
 </databaseChangeLog>

@@ -1,0 +1,241 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body>
+
+<div th:fragment="file3" th:remove="tag">
+    <div class="panel panel-primary" th:if="${tenant.getUpload3Route()}!=null">
+        <div class="panel-heading"
+             th:attrprepend="data-target='#question2'+${tenant.id}">
+            <h4 class="panel-title">
+                <span class="ing" th:text="#{tenant.profile.link3.v2}"></span>
+                <a th:href="${tenant.getUpload3Route()}" target="_blank"><i class="fa fa-eye"></i></a>
+                <div th:if="${tenant.getFileStatus()!=null}" th:remove="tag">
+                        <span th:if="${tenant.getFileStatus().getFile3().name()=='ACCEPTED'}"
+                              class="ing label label-success" th:text="#{file.process.accepted}"></span>
+                    <span th:if="${tenant.getFileStatus().getFile3().name()=='DECLINED'}"
+                          class="ing label label-danger" th:text="#{file.process.declined}"></span>
+                    <span th:if="${tenant.getFileStatus().getFile3().name()=='MODIFIED'}"
+                          class="ing label label-warning" th:text="#{file.process.modified}"></span>
+                </div>
+                <div th:if="${tenant.getProcessFileStatus()=='processing'}" th:remove="tag">
+                    <i class="fa fa-refresh fa-spin pull-right"></i>
+                </div>
+
+                <div th:if="${tenant.getProcessFileStatus()=='no-processed'}" th:remove="tag">
+                    <i class="fa fa fa-warning pull-right text-warning"></i>
+                </div>
+
+                <span class="label label-check pull-right">
+                    <a th:href="${'/bo/tenant/' + tenant.getId() + '/check-file/3'}"
+                       th:text="#{file.process.check}"></a>
+                </span>
+            </h4>
+
+        </div>
+        <div class="panel-body">
+            <div th:if="${tenant.getProcessFileStatus()=='processing'}" th:remove="tag">
+                <div>
+                    This file is processing...
+                    <span class="label label-default pull-right">Processing...</span>
+                </div>
+            </div>
+            <div th:if="${tenant.getProcessFileStatus()=='processed'}" th:remove="tag"
+                 th:with="result=${tenant.getProcessFileResponse()}">
+                <div th:if="${result}==null or ${result.getFile3()}==null" th:remove="tag">
+                    <div>
+                        No test defined for this file
+                        <span class="label label-primary pull-right">No test</span>
+                    </div>
+                </div>
+                <table class="table table-striped table-bordered table-hover margin-bottom">
+                    <tr>
+                        <th th:text="${tenant.getInfoTest().get('file3').get('test1')}"></th>
+                        <td>
+                            <span class="label label-success pull-left" th:if="${result} and ${result.getFile3()}"
+                                  th:text="${result.getFile3().getTest1()}"></span>
+                        </td>
+                    </tr>
+                    <th:block th:if="${tenant.tenantSituation.name()=='UNEMPLOYED'}">
+                        <th:block
+                                th:if="${result} and ${result.file3} and ${result.file3.unemploymentAttestation == null}">
+                            <tr>
+                                <th th:text="${tenant.getInfoTest().get('file3').get('test2')}"></th>
+                                <td>
+                                    <span class="fa fa-remove text-danger">attestation non reconnue</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th th:text="${tenant.getInfoTest().get('file3').get('test3')}"></th>
+                                <td>
+                                    <span class="fa fa-remove text-danger">attestation non reconnue</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th th:text="${tenant.getInfoTest().get('file3').get('test4')}"></th>
+                                <td>
+                                    <span class="fa fa-remove text-danger">attestation non reconnue</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Résultat OCR</th>
+                                <td>
+                                    <span class="fa fa-remove text-danger">attestation non reconnue</span>
+                                </td>
+                            </tr>
+                        </th:block>
+                        <th:block
+                                th:if="${result} and ${result.file3} and  ${result.file3.unemploymentAttestation != null}">
+                            <tr>
+                                <th th:text="${tenant.getInfoTest().get('file3').get('test2')}"></th>
+                                <td>
+                                    <span th:if="${result.file3.unemploymentAttestation.firstName != null}"
+                                          class="fa fa-check text-success"></span>
+                                    <span th:if="${result.file3.unemploymentAttestation.firstName == null}"
+                                          class="fa fa-remove text-danger"></span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th th:text="${tenant.getInfoTest().get('file3').get('test3')}"></th>
+                                <td>
+                                    <span th:if="${result.file3.unemploymentAttestation.lastName != null}"
+                                          class="fa fa-check text-success"></span>
+                                    <span th:if="${result.file3.unemploymentAttestation.lastName == null}"
+                                          class="fa fa-remove text-danger"></span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th th:text="${tenant.getInfoTest().get('file3').get('test4')}"></th>
+                                <td>
+                                    <span th:if="${result.file3.unemploymentAttestation.lectureOk == true }"
+                                          class="fa fa-check text-success"></span>
+                                    <span th:if="${result.file3.unemploymentAttestation.lectureOk == false }"
+                                          class="fa fa-remove text-danger"
+                                          th:text="${result.file3.unemploymentAttestation.lecture }"></span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Résultat OCR</th>
+                                <td>
+                                    <span class="ocr-result" th:if="${result.file3.unemploymentAttestation != null}"
+                                          th:text="${result.file3.unemploymentAttestation.fullText}"> </span>
+                                    <span th:if="${result.file3.unemploymentAttestation == null}"
+                                          class="fa fa-remove text-danger">aucun résultat </span>
+                                </td>
+                            </tr>
+                        </th:block>
+                    </th:block>
+                    <th:block th:if="${tenant.tenantSituation.name()=='CTT'}">
+                        <th:block th:if="${result} and ${result.file3} and ${result.file3.cttAttestation == null}">
+                            <tr>
+                                <th th:text="${tenant.getInfoTest().get('file3').get('test2')}"></th>
+                                <td>
+                                    <span class="fa fa-remove text-danger">attestation non reconnue</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th th:text="${tenant.getInfoTest().get('file3').get('test3')}"></th>
+                                <td>
+                                    <span class="fa fa-remove text-danger">attestation non reconnue</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th th:text="${tenant.getInfoTest().get('file3').get('test4')}"></th>
+                                <td>
+                                    <span class="fa fa-remove text-danger">attestation non reconnue</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Résultat OCR</th>
+                                <td>
+                                    <span class="fa fa-remove text-danger">attestation non reconnue</span>
+                                </td>
+                            </tr>
+                        </th:block>
+                        <th:block th:if="${result} and ${result.file3} and ${result.file3.cttAttestation != null}">
+                            <tr>
+                                <th th:text="${tenant.getInfoTest().get('file3').get('test2')}"></th>
+                                <td>
+                                    <span th:if="${result.file3.cttAttestation.firstName != null}"
+                                          class="fa fa-check text-success"></span>
+                                    <span th:if="${result.file3.cttAttestation.firstName == null}"
+                                          class="fa fa-remove text-danger"></span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th th:text="${tenant.getInfoTest().get('file3').get('test3')}"></th>
+                                <td>
+                                    <span th:if="${result.file3.cttAttestation.lastName != null}"
+                                          class="fa fa-check text-success"></span>
+                                    <span th:if="${result.file3.cttAttestation.lastName == null}"
+                                          class="fa fa-remove text-danger"></span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th th:text="${tenant.getInfoTest().get('file3').get('test4')}"></th>
+                                <td>
+                                    <span th:if="${result.file3.cttAttestation.lectureOk == true }"
+                                          class="fa fa-check text-success"></span>
+                                    <span th:if="${result.file3.cttAttestation.lectureOk == false }"
+                                          class="fa fa-remove text-danger"
+                                          th:text="${result.file3.cttAttestation.lecture }"></span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th th:text="${tenant.getInfoTest().get('file3').get('test5')}"></th>
+                                <td>
+                                    <span th:if="${result.file3.cttAttestation.company != null }"
+                                          class="fa fa-check text-success"
+                                          th:text="${result.file3.cttAttestation.company}"></span>
+                                    <span th:if="${result.file3.cttAttestation.company == null }"
+                                          class="fa fa-remove text-danger"></span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th th:text="${tenant.getInfoTest().get('file3').get('test6')}"></th>
+                                <td>
+                                    <span th:if="${result.file3.cttAttestation.missionDate.empty == false }"
+                                          class="fa fa-check text-success"
+                                          th:text="${result.file3.cttAttestation.missionDate}"></span>
+                                    <span th:if="${result.file3.cttAttestation.missionDate.empty == true and result.file3.cttAttestation.guessedMissionDate.empty == false }"
+                                          class="fa fa-remove text-danger"> Aucune pattern connue trouvée, correspondance éventuelle :<br/> <th:block
+                                            th:text="${result.file3.cttAttestation.guessedMissionDate}"/></span>
+                                    <span th:if="${result.file3.cttAttestation.missionDate.empty == true and result.file3.cttAttestation.guessedMissionDate.empty == true }"
+                                          class="fa fa-remove text-danger"> Aucune pattern connue trouvée, aucune correspondance éventuelle</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Résultat OCR</th>
+                                <td>
+                                    <span class="ocr-result" th:if="${result.file3.cttAttestation != null}"
+                                          th:text="${result.file3.cttAttestation.fullText}"> </span>
+                                    <span th:if="${result.file3.cttAttestation == null}"
+                                          class="fa fa-remove text-danger">aucun résultat </span>
+                                </td>
+                            </tr>
+                        </th:block>
+                    </th:block>
+                </table>
+                <table th:if="${result.file3!=null}"
+                       class="table table-striped table-bordered tabla-hover margin-bottom">
+                    <tr th:each="sentence : ${result.file3.sentences}">
+                        <td th:text="${sentence.keyword}"></td>
+                        <td>
+                            <th:block th:each="line : ${sentence.relatedSentence}">
+                                <span th:text="${line}"></span>
+                                <br/>
+                                <br/>
+                            </th:block>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+</body>
+
+</html>
+

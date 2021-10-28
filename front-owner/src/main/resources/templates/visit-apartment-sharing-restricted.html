@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en"
+      layout:decorator="layout"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>DossierFacile</title>
+    <meta content="noindex, nofollow" name="robots"/>
+</head>
+<body>
+
+<div layout:fragment="content" th:remove="tag">
+    <div class="main-container">
+        <section class="text-center">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-10 col-lg-8">
+                        <h2><b>DossierFacile, le dossier de location intelligent</b></h2>
+                        <p class="lead">
+                            <b th:if="${tenant.couple==null or not tenant.couple}"
+                               th:text="#{colocatio.profile.restricted.subtitle(${tenants.size()},${totalSalary})}"></b>
+                            <b th:if="${tenant.couple!=null and tenant.couple}"
+                               th:text="#{couple.profile.restricted.subtitle(${totalSalary})}"></b>
+                        </p>
+
+                        <p class="lead"
+                           th:if="${status.name() == 'TO_PROCESS' or status.name() == 'DECLINED'}">
+                            <b>Ce dossier est complet mais n’a pas encore été validé</b>
+                        </p>
+                        <p class="lead"
+                           th:if="${status.name() == 'TO_PROCESS' or status.name() == 'DECLINED'}">
+                            <b class="text-danger">Attention : Ce dossier est complet mais une modification a été
+                                demandée par nos équipes, il n’est pas encore validé</b>
+                        </p>
+                        <p class="lead" th:if="${status.name()=='VALIDATED'}">
+                            <b>Tous les dossiers sont <span class="text-success">Clairs</span>, <span
+                                    class="text-success"> Complets</span> et <span class="text-success">Cohérents</span>
+                                !</b>
+                        </p>
+                        <p class="lead" th:if="${status.name()=='INCOMPLETE'}">
+                            <b>Attention : tous les dossiers ne sont </b><b class="text-danger">pas complets</b>
+                        </p>
+
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section>
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-md-12">
+                        <div class="tabs-container tabs--vertical">
+                            <ul class="tabs">
+                                <div th:each="tenant, iter : ${tenants}" th:remove="tag">
+                                    <li th:class="${iter.index==0?'active':''}">
+                                        <div class="tab__title">
+                                            <span class="h5" th:text="${tenant.getFullName()}"></span>
+                                        </div>
+                                        <div class="tab__content">
+                                            <div class="container">
+                                                <div class="row">
+                                                    <div class="col-md-4">
+                                                        <div class="feature feature--featured feature-1 boxed boxed--border">
+                                                            <h5 th:text="#{tenant.profile.link1.v2}"></h5>
+                                                            <br/>
+                                                            <i class="icon icon-Male add-icon"></i>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <div class="feature feature--featured feature-1 boxed boxed--border">
+                                                            <h5 th:text="#{tenant.profile.link2.v2}"></h5>
+                                                            <br/>
+                                                            <i class="icon icon-Warehouse add-icon"></i>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <div class="feature feature--featured feature-1 boxed boxed--border">
+                                                            <h5 th:text="#{tenant.profile.link3.v2}"></h5>
+                                                            <br/>
+                                                            <i class="icon icon-File add-icon"></i>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <div class="feature feature--featured feature-1 boxed boxed--border">
+                                                            <h5 th:text="#{tenant.profile.link4.v2}"></h5>
+                                                            <br/>
+                                                            <i class="icon icon-Folder-WithDocument add-icon"></i>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <div class="feature feature--featured feature-1 boxed boxed--border">
+                                                            <h5 th:text="#{tenant.profile.link5.v2}"></h5>
+                                                            <br/>
+                                                            <i class="icon icon-Money-Bag add-icon"></i>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li th:if="${tenant.getGuarantor()!=null}">
+                                        <div th:if="${tenant.getGuarantor().getGuarantorType().name()=='VISALE'}"
+                                             th:remove="tag">
+                                            <div class="tab__title">
+                                                <span class="h5">Garant visale</span>
+                                            </div>
+                                            <div class="tab__content">
+                                                <div class="container">
+                                                    <div class="row">
+                                                        <div class="col-md-4">
+                                                            <div class="feature feature--featured feature-1 boxed boxed--border">
+                                                                <h5>Visa</h5>
+                                                                <br/>
+                                                                <i class="icon icon-Male add-icon"></i>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div th:if="${tenant.getGuarantor().getGuarantorType().name()=='LOCATIO'}"
+                                             th:remove="tag">
+                                            <div class="tab__title">
+                                                <span class="h5"
+                                                      th:text="${tenant.getGuarantor().getFullName() + ' (Garant)'}"></span>
+                                            </div>
+                                            <div class="tab__content">
+                                                <div class="container">
+                                                    <div class="row">
+                                                        <div class="col-md-4">
+                                                            <div class="feature feature--featured feature-1 boxed boxed--border">
+                                                                <h5 th:text="#{tenant.profile.link1.v2}"></h5>
+                                                                <br/>
+                                                                <i class="icon icon-Male add-icon"></i>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <div class="feature feature--featured feature-1 boxed boxed--border">
+                                                                <h5 th:text="#{tenant.profile.link2.v2}"></h5>
+                                                                <br/>
+                                                                <i class="icon icon-Warehouse add-icon"></i>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <div class="feature feature--featured feature-1 boxed boxed--border">
+                                                                <h5 th:text="#{tenant.profile.link3.v2}"></h5>
+                                                                <br/>
+                                                                <i class="icon icon-File add-icon"></i>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <div class="feature feature--featured feature-1 boxed boxed--border">
+                                                                <h5 th:text="#{tenant.profile.link4.v2}"></h5>
+                                                                <br/>
+                                                                <i class="icon icon-Folder-WithDocument add-icon"></i>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <div class="feature feature--featured feature-1 boxed boxed--border">
+                                                                <h5 th:text="#{tenant.profile.link5.v2}"></h5>
+                                                                <br/>
+                                                                <i class="icon icon-Money-Bag add-icon"></i>
+                                                            </div>
+                                                        </div>
+
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </li>
+                                </div>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="text-center">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-6 col-md-6">
+                        <div class="modal-instance" th:unless="${#authorization.expression('hasRole(''ROLE_OWNER'')')}">
+                            <a class="btn btn--primary type--uppercase modal-trigger"
+                               href="#">
+                                <span class="btn__text">en savoir plus sur DossierFacile</span>
+                            </a>
+                            <div class="modal-container">
+                                <div class="modal-content text-center">
+                                    <div class="boxed boxed--lg">
+                                        <div class="text-block">
+                                            <h2>Etes-vous :</h2>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <a class="btn btn--primary btn-block type--uppercase mb-2"
+                                                   th:href="@{/info-proprietaire(token=${token})}">
+                                                    <span class="btn__text">un particulier</span>
+                                                </a>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <a class="btn btn--primary btn-block type--uppercase" href="/launch">
+                                                    <span class="btn__text">un professionnel</span>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-close modal-close-cross"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <a class="btn btn--primary type--uppercase"
+                           th:href="@{/proprietaire/mon-compte}"
+                           th:if="${#authorization.expression('hasRole(''ROLE_OWNER'')')}">
+                            <span class="btn__text">retourner à mon compte</span>
+                        </a>
+                        <p class="type--fine-print"><b>Vous pourrez consulter les pièces du dossier sur DossierFacile
+                            dès
+                            que les colocataires<br/> vous auront donné l'accès.</b><br/></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+</body>
+</html>

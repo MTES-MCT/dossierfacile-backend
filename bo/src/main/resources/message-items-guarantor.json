@@ -1,0 +1,274 @@
+{
+  "checkBoxValues": {
+    "OTHER": [
+      "Veuillez fournir un justificatif de situation professionnelle.",
+      "Le(s) document(s) fourni(s) ne sont pas acceptés comme justificatif de situation professionnelle.",
+      "Votre document est flou, illisible ou tronqué : veuillez ajouter une copie complète ou de meilleure qualité.",
+      "Votre nom ne figure pas sur ce document ou le nom indiqué ne semble pas correspondre à votre nom.",
+      "Vous ne pouvez pas ajouter tous vos documents dans chaque emplacement (cela nuit à la clarté de votre dossier pour votre futur propriétaire)."
+    ],
+    "FRENCH_IDENTITY_CARD": [
+      "Veuillez fournir une copie recto-verso de la carte d'identité du garant.",
+      "La pièce d’identité du garant n’est plus valide car elle a expiré.",
+      "Le document est flou, illisible ou tronqué : veuillez ajouter une copie complète ou de meilleure qualité.",
+      "Le nom sur ce document ne semble pas correspondre à celui du garant.",
+      "Vous ne pouvez pas ajouter tous vos documents dans chaque emplacement (cela nuit à la clarté de votre dossier pour votre futur propriétaire).",
+      "Veuillez changer la nature de votre garant."
+    ],
+    "FRENCH_PASSPORT": [
+      "Veuillez fournir une copie des pages 2 et 3 du passeport du garant.",
+      "La pièce d’identité du garant n’est plus valide car elle a expiré.",
+      "Le document est flou, illisible ou tronqué : veuillez ajouter une copie complète ou de meilleure qualité.",
+      "Le nom sur ce document ne semble pas correspondre à celui du garant.",
+      "Vous ne pouvez pas ajouter tous vos documents dans chaque emplacement (cela nuit à la clarté de votre dossier pour votre futur propriétaire).",
+      "Veuillez changer la nature de votre garant."
+    ],
+    "TENANT": [
+      "Veuillez fournir une quittance de loyer, une attestation d’assurance habitation, une facture ou une attestation de bon paiement de loyers de moins de 3 mois au nom de votre garant.",
+      "Le(s) document(s) fourni(s) ne sont pas acceptés comme justificatif de domicile.",
+      "Votre document est flou, illisible ou tronqué : veuillez ajouter une copie complète ou de meilleure qualité.",
+      "Le nom du garant ne figure pas sur ce document ou le nom indiqué ne semble pas correspondre à celui du garant.",
+      "Vous ne pouvez pas ajouter tous vos documents dans chaque emplacement (cela nuit à la clarté de votre dossier pour votre futur propriétaire)."
+    ],
+    "OWNER": [
+      "Veuillez fournir un avis de taxe foncière ou un titre de propriété de votre garant.",
+      "Le(s) document(s) fourni(s) ne sont pas acceptés comme justificatif de domicile.",
+      "Votre document est flou, illisible ou tronqué : veuillez ajouter une copie complète ou de meilleure qualité.",
+      "Le nom du garant ne figure pas sur ce document ou le nom indiqué ne semble pas correspondre à celui du garant.",
+      "Vous ne pouvez pas ajouter tous vos documents dans chaque emplacement (cela nuit à la clarté de votre dossier pour votre futur propriétaire)."
+    ],
+    "GUEST": [
+      "Veuillez fournir une attestation d’hébergement signée et datée de moins de 3 mois.",
+      "Le(s) document(s) fourni(s) ne sont pas acceptés comme justificatif de domicile.",
+      "L’attestation n’est pas signée.",
+      "Veuillez fournir une attestation plus récente (de moins de 3 mois).",
+      "Votre document est flou, illisible ou tronqué : veuillez ajouter une copie complète ou de meilleure qualité.",
+      "Le nom du garant ne figure pas sur ce document ou le nom indiqué ne semble pas correspondre à celui du garant.",
+      "Vous ne pouvez pas ajouter tous vos documents dans chaque emplacement (cela nuit à la clarté de votre dossier pour votre futur propriétaire)."
+    ],
+    "GUEST_PARENTS": [
+      "Veuillez fournir une attestation d’hébergement de votre garant chez ses parents signée et datée de moins de 3 mois.",
+      "Le(s) document(s) fourni(s) ne sont pas acceptés comme justificatif de domicile.",
+      "L’attestation n’est pas signée.",
+      "Veuillez fournir une attestation plus récente (de moins de 3 mois).",
+      "Votre document est flou, illisible ou tronqué : veuillez ajouter une copie complète ou de meilleure qualité.",
+      "Le nom du garant ne figure pas sur ce document ou le nom indiqué ne semble pas correspondre à celui du garant.",
+      "Vous ne pouvez pas ajouter tous vos documents dans chaque emplacement (cela nuit à la clarté de votre dossier pour votre futur propriétaire)."
+    ],
+    "CDI": [
+      "Veuillez fournir une copie complète de toutes les pages du contrat de travail de votre garant daté et signé ou une attestation de son employeur datée de moins de 3 mois.",
+      "Le(s) document(s) fourni(s) ne sont pas acceptés comme justificatif de situation professionnelle.",
+      "Le document fourni n’est pas signé.",
+      "Veuillez fournir une attestation plus récente (de moins de 3 mois).",
+      "Votre document est flou, illisible ou tronqué : veuillez ajouter une copie complète ou de meilleure qualité.",
+      "Aucun nom ne figure sur le document ou le nom indiqué ne semble pas correspondre à celui du garant.",
+      "Vous ne pouvez pas ajouter tous vos documents dans chaque emplacement (cela nuit à la clarté de votre dossier pour votre futur propriétaire)."
+    ],
+    "CDI_TRIAL": [
+      "Veuillez fournir une copie complète de toutes les pages du contrat de travail de votre garant daté et signé ou une attestation de son employeur datée de moins de 3 mois.",
+      "Le(s) document(s) fourni(s) ne sont pas acceptés comme justificatif de situation professionnelle.",
+      "Le document fourni n’est pas signé.",
+      "Veuillez fournir une attestation plus récente (de moins de 3 mois).",
+      "Votre document est flou, illisible ou tronqué : veuillez ajouter une copie complète ou de meilleure qualité.",
+      "Aucun nom ne figure sur le document ou le nom indiqué ne semble pas correspondre à celui du garant.",
+      "Vous ne pouvez pas ajouter tous vos documents dans chaque emplacement (cela nuit à la clarté de votre dossier pour votre futur propriétaire)."
+    ],
+    "CDD": [
+      "Veuillez fournir une copie complète de toutes les pages du contrat de travail de votre garant daté et signé ou une attestation de son employeur datée de moins de 3 mois.",
+      "Le(s) document(s) fourni(s) ne sont pas acceptés comme justificatif de situation professionnelle.",
+      "L’activité justifiée n’a plus lieu, merci de fournir un justificatif de l’activité actuelle de votre garant.",
+      "Le document fourni n’est pas signé.",
+      "Veuillez fournir une attestation plus récente (de moins de 3 mois).",
+      "Votre document est flou, illisible ou tronqué : veuillez ajouter une copie complète ou de meilleure qualité.",
+      "Aucun nom ne figure sur le document ou le nom indiqué ne semble pas correspondre à celui du garant.",
+      "Vous ne pouvez pas ajouter tous vos documents dans chaque emplacement (cela nuit à la clarté de votre dossier pour votre futur propriétaire)."
+    ],
+    "CTT": [
+      "Veuillez fournir une copie complète de toutes les pages du contrat de travail de votre garant daté et signé ou une attestation de son employeur datée de moins de 3 mois.",
+      "Le(s) document(s) fourni(s) ne sont pas acceptés comme justificatif de situation professionnelle.",
+      "L’activité justifiée n’a plus lieu, merci de fournir un justificatif de l’activité actuelle de votre garant.",
+      "Le document fourni n’est pas signé.",
+      "Veuillez fournir une attestation plus récente (de moins de 3 mois).",
+      "Votre document est flou, illisible ou tronqué : veuillez ajouter une copie complète ou de meilleure qualité.",
+      "Aucun nom ne figure sur le document ou le nom indiqué ne semble pas correspondre à celui du garant.",
+      "Vous ne pouvez pas ajouter tous vos documents dans chaque emplacement (cela nuit à la clarté de votre dossier pour votre futur propriétaire)."
+    ],
+    "ALTERNATION": [
+      "Veuillez fournir une copie complète de toutes les pages du contrat d’alternance ou de professionnalisation de votre garant daté et signé ou une attestation de son employeur datée de moins de 3 mois.",
+      "Le(s) document(s) fourni(s) ne sont pas acceptés comme justificatif de situation professionnelle.",
+      "L’activité justifiée n’a plus lieu, merci de fournir un justificatif de l’activité actuelle de votre garant.",
+      "Le document fourni n’est pas signé.",
+      "Veuillez fournir une attestation plus récente (de moins de 3 mois).",
+      "Votre document est flou, illisible ou tronqué : veuillez ajouter une copie complète ou de meilleure qualité.",
+      "Aucun nom ne figure sur le document ou le nom indiqué ne semble pas correspondre à celui du garant.",
+      "Vous ne pouvez pas ajouter tous vos documents dans chaque emplacement (cela nuit à la clarté de votre dossier pour votre futur propriétaire)."
+    ],
+    "INTERNSHIP": [
+      "Veuillez fournir une copie complète de toutes les pages de la convention de stage de votre garant datée et signée ou une attestation de son employeur datée de moins de 3 mois.",
+      "Le(s) document(s) fourni(s) ne sont pas acceptés comme justificatif de situation professionnelle.",
+      "L’activité justifiée n’a plus lieu, merci de fournir un justificatif de l’activité actuelle de votre garant.",
+      "Le document fourni n’est pas signé.",
+      "Veuillez fournir une attestation plus récente (de moins de 3 mois).",
+      "Votre document est flou, illisible ou tronqué : veuillez ajouter une copie complète ou de meilleure qualité.",
+      "Aucun nom ne figure sur le document ou le nom indiqué ne semble pas correspondre à celui du garant.",
+      "Vous ne pouvez pas ajouter tous vos documents dans chaque emplacement (cela nuit à la clarté de votre dossier pour votre futur propriétaire)."
+    ],
+    "STUDENT": [
+      "Veuillez fournir une copie de la carte d'étudiant ou certificat de scolarité pour l'année scolaire en cours de votre garant.",
+      "Le(s) document(s) fourni(s) ne sont pas acceptés comme justificatif de situation professionnelle.",
+      "Le justificatif de votre garant ne concerne pas l’année scolaire en cours.",
+      "Votre document est flou, illisible ou tronqué : veuillez ajouter une copie complète ou de meilleure qualité.",
+      "Aucun nom ne figure sur le document ou le nom indiqué ne semble pas correspondre à celui du garant.",
+      "Vous ne pouvez pas ajouter tous vos documents dans chaque emplacement (cela nuit à la clarté de votre dossier pour votre futur propriétaire)."
+    ],
+    "PUBLIC": [
+      "Veuillez fournir une copie de l’arrêté de nomination de votre garant ou une attestation de son employeur datée de moins de 3 mois.",
+      "Le(s) document(s) fourni(s) ne sont pas acceptés comme justificatif de situation professionnelle.",
+      "Veuillez fournir une attestation plus récente (de moins de 3 mois).",
+      "Le document fourni n’est pas signé.",
+      "Votre document est flou, illisible ou tronqué : veuillez ajouter une copie complète ou de meilleure qualité.",
+      "Aucun nom ne figure sur le document ou le nom indiqué ne semble pas correspondre à celui du garant.",
+      "Vous ne pouvez pas ajouter tous vos documents dans chaque emplacement (cela nuit à la clarté de votre dossier pour votre futur propriétaire)."
+    ],
+    "RETIRED": [
+      "Veuillez fournir un bulletin de pension retraite, une attestation de droit à une pension, un titre de pension de retraite ou un avis d’imposition complet de moins de 2 ans de votre garant.",
+      "Le(s) document(s) fourni(s) ne sont pas acceptés comme justificatif de situation professionnelle.",
+      "Votre document est flou, illisible ou tronqué : veuillez ajouter une copie complète ou de meilleure qualité.",
+      "Aucun nom ne figure sur le document ou le nom indiqué ne semble pas correspondre à celui du garant.",
+      "Vous ne pouvez pas ajouter tous vos documents dans chaque emplacement (cela nuit à la clarté de votre dossier pour votre futur propriétaire)."
+    ],
+    "UNEMPLOYED": [
+      "Veuillez fournir une attestation d’ouverture de droits à l’ARE ou avis de situation Pôle Emploi de moins de 3 mois de votre garant.",
+      "Le(s) document(s) fourni(s) ne sont pas acceptés comme justificatif de situation professionnelle.",
+      "Veuillez fournir un justificatif plus récent (de moins de 3 mois).",
+      "Votre document est flou, illisible ou tronqué : veuillez ajouter une copie complète ou de meilleure qualité.",
+      "Aucun nom ne figure sur le document ou le nom indiqué ne semble pas correspondre à celui du garant.",
+      "Vous ne pouvez pas ajouter tous vos documents dans chaque emplacement (cela nuit à la clarté de votre dossier pour votre futur propriétaire)."
+    ],
+    "INDEPENDENT": [
+      "Veuillez fournir un certificat d'identification Insee, une attestation d’auto-entrepreneur, une carte professionnelle, un extrait D1 ou un K/Kbis de moins de 3 mois du garant.",
+      "Le(s) document(s) fourni(s) ne sont pas acceptés comme justificatif de situation professionnelle.",
+      "Veuillez fournir un justificatif plus récent (de moins de 3 mois).",
+      "Votre document est flou, illisible ou tronqué : veuillez ajouter une copie complète ou de meilleure qualité.",
+      "Aucun nom ne figure sur le document ou le nom indiqué ne semble pas correspondre à celui du garant.",
+      "Vous ne pouvez pas ajouter tous vos documents dans chaque emplacement (cela nuit à la clarté de votre dossier pour votre futur propriétaire)."
+    ],
+    "OTHER_PROFESSION_GUARANTOR": [
+      "Veuillez fournir un justificatif de situation professionnelle.",
+      "Le(s) document(s) fourni(s) ne sont pas acceptés comme justificatif de situation professionnelle.",
+      "Votre document est flou, illisible ou tronqué : veuillez ajouter une copie complète ou de meilleure qualité.",
+      "Aucun nom ne figure sur le document ou le nom indiqué ne semble pas correspondre à celui du garant.",
+      "Vous ne pouvez pas ajouter tous vos documents dans chaque emplacement (cela nuit à la clarté de votre dossier pour votre futur propriétaire)."
+    ],
+    "SALARY": [
+      "Veuillez fournir une copie des fiches de paie des 3 derniers mois, un justificatif des indemnités de stage, une attestation de versement URSSAF (indépendants) ou deux derniers bilans comptables (non-salariés) du garant.",
+      "Le(s) document(s) fourni(s) ne sont pas acceptés comme justificatif de ressources.",
+      "Veuillez fournir des fiches de paie plus récentes (de moins de 3 mois).",
+      "Votre document est flou, illisible ou tronqué : veuillez ajouter une copie complète ou de meilleure qualité.",
+      "Aucun nom ne figure sur ce document ou le nom indiqué ne semble pas correspondre à celui du garant.",
+      "Vous ne pouvez pas ajouter tous vos documents dans chaque emplacement (cela nuit à la clarté de votre dossier pour votre futur propriétaire).",
+      "Veuillez expliquer la différence constatée entre le revenu mensuel net que vous avez déclaré et les informations figurant sur vos justificatifs."
+    ],
+    "SOCIAL_SERVICE": [
+      "Veuillez fournir trois derniers justificatifs de versement de prestations sociales (ARE, CAF, Crous…), un justificatif d’ouverture des droits, ou une attestation de simulation pour les aides au logement du garant.",
+      "Le(s) document(s) fourni(s) ne sont pas acceptés comme justificatif de ressources.",
+      "Veuillez fournir un justificatif plus récent (de moins de 3 mois).",
+      "Votre document est flou, illisible ou tronqué : veuillez ajouter une copie complète ou de meilleure qualité.",
+      "Aucun nom ne figure sur ce document ou le nom indiqué ne semble pas correspondre à celui du garant.",
+      "Vous ne pouvez pas ajouter tous vos documents dans chaque emplacement (cela nuit à la clarté de votre dossier pour votre futur propriétaire)."
+    ],
+    "RENT": [
+      "Veuillez fournir un justificatif de paiement de rente, ou un avis d’imposition avec noms et revenus de la rente visibles du garant.",
+      "Le(s) document(s) fourni(s) ne sont pas acceptés comme justificatif de ressources.",
+      "Veuillez fournir un justificatif plus récent.",
+      "Votre document est flou, illisible ou tronqué : veuillez ajouter une copie complète ou de meilleure qualité.",
+      "Aucun nom ne figure sur ce document ou le nom indiqué ne semble pas correspondre à celui du garant.",
+      "Vous ne pouvez pas ajouter tous vos documents dans chaque emplacement (cela nuit à la clarté de votre dossier pour votre futur propriétaire)."
+    ],
+    "PENSION": [
+      "Veuillez fournir un bulletin de pension retraite, une attestation de droit à une pension, ou un titre de pension de retraite du garant.",
+      "Le(s) document(s) fourni(s) ne sont pas acceptés comme justificatif de vos ressources.",
+      "Votre document est flou, illisible ou tronqué : veuillez ajouter une copie complète ou de meilleure qualité.",
+      "Aucun nom ne figure sur ce document ou le nom indiqué ne semble pas correspondre à celui du garant.",
+      "Vous ne pouvez pas ajouter tous vos documents dans chaque emplacement (cela nuit à la clarté de votre dossier pour votre futur propriétaire)."
+    ],
+    "SCHOLARSHIP": [
+      "Veuillez fournir une copie de l’avis d’attribution de bourse du garant pour l’année scolaire en cours.",
+      "Le(s) document(s) fourni(s) ne sont pas acceptés comme justificatif de ressources.",
+      "L’avis d’attribution du garant ne concerne pas l’année scolaire en cours.",
+      "Votre document est flou, illisible ou tronqué : veuillez ajouter une copie complète ou de meilleure qualité.",
+      "Aucun nom ne figure sur ce document ou le nom indiqué ne semble pas correspondre à celui du garant.",
+      "Vous ne pouvez pas ajouter tous vos documents dans chaque emplacement (cela nuit à la clarté de votre dossier pour votre futur propriétaire)."
+    ],
+    "NO_INCOME": [
+      "Le(s) document(s) fourni(s) ne sont pas acceptés comme justificatif de ressources."
+    ],
+    "MY_NAME": [
+      "Veuillez fournir un avis d'imposition au nom du garant tel que téléchargeable directement sur le site des impôts.",
+      "Le(s) document(s) fourni(s) ne constitue(nt) l’avis d’imposition du garant.",
+      "Votre document est flou, illisible ou tronqué : veuillez ajouter une copie complète ou de meilleure qualité.",
+      "Aucun nom ne figure sur ce document ou le nom indiqué ne semble pas correspondre à celui du garant.",
+      "Vous ne pouvez pas ajouter tous vos documents dans chaque emplacement (cela nuit à la clarté de votre dossier pour votre futur propriétaire).",
+      "L'avis de situation déclarative n'est pas accepté. Joindre un avis d'imposition de l'année précédente",
+      "L’avis de taxe d’habitation ou de taxe foncière n’est pas accepté."
+    ],
+    "MY_PARENTS": [
+      "Veuillez fournir un avis d'imposition au nom du garant tel que téléchargeable directement sur le site des impôts.",
+      "Le(s) document(s) fourni(s) ne constitue(nt) l’avis d’imposition du garant.",
+      "Votre document est flou, illisible ou tronqué : veuillez ajouter une copie complète ou de meilleure qualité.",
+      "Aucun nom ne figure sur ce document ou le nom indiqué ne semble pas correspondre à celui du garant.",
+      "Vous ne pouvez pas ajouter tous vos documents dans chaque emplacement (cela nuit à la clarté de votre dossier pour votre futur propriétaire).",
+      "L'avis de situation déclarative n'est pas accepté. Joindre un avis d'imposition de l'année précédente",
+      "L’avis de taxe d’habitation ou de taxe foncière n’est pas accepté."
+    ],
+    "LESS_THAN_YEAR": [
+      "Veuillez fournir un avis d'imposition au nom du garant tel que téléchargeable directement sur le site des impôts.",
+      "Le(s) document(s) fourni(s) ne constitue(nt) l’avis d’imposition du garant.",
+      "Votre document est flou, illisible ou tronqué : veuillez ajouter une copie complète ou de meilleure qualité.",
+      "Aucun nom ne figure sur ce document ou le nom indiqué ne semble pas correspondre à celui du garant.",
+      "Vous ne pouvez pas ajouter tous vos documents dans chaque emplacement (cela nuit à la clarté de votre dossier pour votre futur propriétaire).",
+      "L'avis de situation déclarative n'est pas accepté. Joindre un avis d'imposition de l'année précédente",
+      "L’avis de taxe d’habitation ou de taxe foncière n’est pas accepté."
+    ],
+    "OTHER_TAX": [
+      "Veuillez fournir un avis d'imposition au nom du garant tel que téléchargeable directement sur le site des impôts.",
+      "Le(s) document(s) fourni(s) ne constitue(nt) l’avis d’imposition du garant.",
+      "Votre document est flou, illisible ou tronqué : veuillez ajouter une copie complète ou de meilleure qualité.",
+      "Aucun nom ne figure sur ce document ou le nom indiqué ne semble pas correspondre à celui du garant.",
+      "Vous ne pouvez pas ajouter tous vos documents dans chaque emplacement (cela nuit à la clarté de votre dossier pour votre futur propriétaire).",
+      "L'avis de situation déclarative n'est pas accepté. Joindre un avis d'imposition de l'année précédente",
+      "L’avis de taxe d’habitation ou de taxe foncière n’est pas accepté."
+    ],
+    "FRENCH_RESIDENCE_PERMIT": [
+      "Veuillez fournir une copie du titre de séjour. Si celui-ci est expiré, fournir également le récépissé de la demande de renouvellement.",
+      "Votre titre de séjour n’est plus valide car elle a expiré.",
+      "Votre document est flou, illisible ou tronqué : veuillez ajouter une copie complète ou de meilleure qualité.",
+      "Le nom sur ce document ne semble pas correspondre à celui du garant.",
+      "Vous ne pouvez pas ajouter tous vos documents dans chaque emplacement (cela nuit à la clarté de votre dossier pour votre futur propriétaire).",
+      "Veuillez changer la nature de votre garant."
+    ],
+    "OTHER_IDENTIFICATION": [
+      "Veuillez fournir une copie du titre de séjour. Si celui-ci est expiré, fournir également le récépissé de la demande de renouvellement.",
+      "Votre titre de séjour n’est plus valide car elle a expiré.",
+      "Votre document est flou, illisible ou tronqué : veuillez ajouter une copie complète ou de meilleure qualité.",
+      "Le nom sur ce document ne semble pas correspondre à celui du garant.",
+      "Vous ne pouvez pas ajouter tous vos documents dans chaque emplacement (cela nuit à la clarté de votre dossier pour votre futur propriétaire).",
+      "Veuillez changer la nature de votre garant."
+    ],
+    "CERTIFICATE_VISA": [
+      "Veuillez fournir un certificat ou un visa délivré par l’organisme qui se porte garant de moins de 3 mois.",
+      "Veuillez fournir un justificatif plus récent (moins de 3 mois).",
+      "Le document est flou, illisible ou tronqué : veuillez ajouter une copie complète ou de meilleure qualité.",
+      "Le nom sur ce document ne semble pas correspondre à celui du garant.",
+      "Vous ne pouvez pas ajouter tous vos documents dans chaque emplacement (cela nuit à la clarté de votre dossier pour votre futur propriétaire)."
+    ],
+    "LEGAL_PERSON": [
+      "Veuillez fournir un extrait K bis de la société, ou toute autre pièce justifiant de l'existence légale de la personne morale.",
+      "Veuillez fournir un justificatif plus récent.",
+      "Le document est flou, illisible ou tronqué : veuillez ajouter une copie complète ou de meilleure qualité.",
+      "Le nom sur ce document ne semble pas correspondre à celui du garant.",
+      "Vous ne pouvez pas ajouter tous vos documents dans chaque emplacement (cela nuit à la clarté de votre dossier pour votre futur propriétaire).",
+      "Veuillez fournir l’attestation de garantie dès que vous l’aurez."
+    ]
+  }
+}

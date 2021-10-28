@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en"
+      layout:decorator="agent/layout"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>DossierFacile</title>
+</head>
+<body>
+<div layout:fragment="sidebar" th:remove="tag">
+    <div th:replace="agent/sidebar:: sidebar"></div>
+</div>
+<div layout:fragment="content" th:remove="tag">
+    <section class="pb-5">
+        <div class="container">
+            <div class="row justify-content-center">
+                <a class="btn btn--primary" href="#" id="button-create-agent-operator">
+                    <span class="btn__text">
+			            Créer un agent
+		            </span>
+                </a>
+            </div>
+        </div>
+    </section>
+    <section class="pb-5">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <table class="border--round table--alternate-row">
+                        <thead>
+                        <tr>
+                            <th>Prénom</th>
+                            <th>Nom</th>
+                            <th>Adresse mail</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="agentOperator : ${agentOperatorList}">
+                            <td th:text="${agentOperator.firstName}"></td>
+                            <td th:text="${agentOperator.lastName}"></td>
+                            <td th:text="${agentOperator.email}">></td>
+                            <td>
+                                <a class="button-delete-agent-operator" href="#"
+                                   th:attr="data-id=${agentOperator.id}">
+                                    <i class="icon icon-Close icon--sm"></i>
+                                </a>
+                                <a class="button-edit-agent-operator" href="#"
+                                   th:attr="data-id=${agentOperator.id},data-firstName=${agentOperator.firstName},
+                                   data-lastName=${agentOperator.lastName},data-email=${agentOperator.email}">
+                                    <i class="icon icon-Pencil icon--sm"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+    <div class="modal-container" id="deleteAgentOperatorModal">
+        <div class="modal-content section-modal">
+            <section class="unpad ">
+                <div class="container">
+                    <div class="row justify-content-center">
+                        <div class="col-md-6 col-12">
+                            <div class="feature feature-1">
+                                <div class="feature__body boxed boxed--lg boxed--border text-center">
+                                    <div class="modal-close modal-close-cross"></div>
+                                    <div class="text-block">
+                                        <h3>Attention ! Cette action est définitive</h3>
+                                        <p>Souhaitez-vous vraiment supprimer cet agent ? Vous ne pourrez plus prendre de
+                                            visite pour lui.</p>
+                                    </div>
+                                    <form id="delete-form-agent-operator" th:action="@{/agent/property}"
+                                          th:method="post">
+                                        <br/>
+                                        <div class="row justify-content-center">
+                                            <div class="col-md-4">
+                                                <button class="btn btn--primary dialog-button"
+                                                        type="submit">
+                                                    Supprimer l'agent
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                            <!--end feature-->
+                        </div>
+                    </div>
+                    <!--end of row-->
+                </div>
+                <!--end of container-->
+            </section>
+        </div>
+    </div>
+    <div class="modal-container" id="modalCreateEditAgentOperator">
+        <div class="modal-content section-modal">
+            <section class="unpad ">
+                <div class="container">
+                    <div class="row justify-content-center">
+                        <div class="col-md-6 col-12">
+                            <div class="feature feature-1">
+                                <div class="feature__body boxed boxed--lg boxed--border text-center">
+                                    <div class="modal-close modal-close-cross"></div>
+                                    <form id="formCreateEditAgentOperator" th:action="@{/agent/mes-agents}"
+                                          th:method="post" th:object="${agentOperatorDTO}">
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <input placeholder="Prénom" required="required"
+                                                       th:field="*{firstName}"
+                                                       type="text"/>
+                                            </div>
+                                            <div class="col-md-12">
+                                                <input placeholder="Nom" required="required"
+                                                       th:field="*{lastName}"
+                                                       type="text"/>
+                                            </div>
+                                            <div class="col-md-12">
+                                                <input placeholder="Adresse e-mail" required="required"
+                                                       th:field="*{email}"
+                                                       type="email"/>
+                                            </div>
+                                            <div class="col-md-12">
+                                                <button class="btn btn--primary type--uppercase"
+                                                        type="submit">Confirmer
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <!--end of row-->
+                                    </form>
+                                </div>
+                            </div>
+                            <!--end feature-->
+                        </div>
+                    </div>
+                    <!--end of row-->
+                </div>
+                <!--end of container-->
+            </section>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

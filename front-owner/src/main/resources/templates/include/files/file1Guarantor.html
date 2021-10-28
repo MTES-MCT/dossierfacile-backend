@@ -1,0 +1,63 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body>
+
+<div th:fragment="file1Guarantor" th:remove="tag">
+    <div class="panel panel-info" th:if="${tenant.getGuarantor().getUpload1Route()}!=null">
+        <div class="panel-heading">
+            <h4 class="panel-title">
+                <span class="ing" th:text="#{tenant.profile.link1.v2}+' (Guarantor)'"></span>
+                <a target="_blank" th:href="${tenant.getGuarantor().getUpload1Route()}"><i class="fa fa-eye"></i></a>
+                <div th:if="${tenant.getFileStatus()!=null}" th:remove="tag">
+                                <span class="ing label label-success"
+                                      th:if="${tenant.getFileStatus().getFile6().name()=='ACCEPTED'}"
+                                      th:text="#{file.process.accepted}"></span>
+                    <span class="ing label label-danger"
+                          th:if="${tenant.getFileStatus().getFile6().name()=='DECLINED'}"
+                          th:text="#{file.process.declined}"></span>
+                    <span class="ing label label-warning"
+                          th:if="${tenant.getFileStatus().getFile6().name()=='MODIFIED'}"
+                          th:text="#{file.process.modified}"></span>
+                </div>
+                <div th:if="${tenant.getProcessFileStatus()=='processing'}" th:remove="tag">
+                    <i class="fa fa-refresh fa-spin pull-right"></i>
+                </div>
+
+                <div th:if="${tenant.getProcessFileStatus()=='no-processed'}" th:remove="tag">
+                    <i class="fa fa fa-warning pull-right text-warning"></i>
+                </div>
+
+                <span class="label label-check pull-right">
+                    <a th:href="${'/bo/tenant/' + tenant.getId() + '/check-file/6'}"
+                       th:text="#{file.process.check}"></a>
+                </span>
+            </h4>
+
+        </div>
+        <div class="panel-body">
+            <div th:if="${tenant.getProcessFileStatus()=='processing'}" th:remove="tag">
+                <div>
+                    This file is processing...
+                    <span class="label label-default pull-right">Processing...</span>
+                </div>
+            </div>
+            <div th:if="${tenant.getProcessFileStatus()=='processed'}" th:remove="tag"
+                 th:with="result=${tenant.getProcessFileResponse()}">
+                <div th:if="${result}==null or ${result.getFile1()}==null" th:remove="tag">
+                    <div>
+                        No test defined for this file
+                        <span class="label label-primary pull-right">No test</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+</body>
+
+</html>
+

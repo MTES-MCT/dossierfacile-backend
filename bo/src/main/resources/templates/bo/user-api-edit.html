@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      lang="en"
+      layout:decorator="bo/layout-bo">
+<head>
+    <title>DossierFacile</title>
+</head>
+<body>
+
+<div layout:fragment="content" th:remove="tag">
+
+    <div th:replace="bo/menu :: menu">...</div>
+    <br/><br/><br/>
+    <div class="container">
+        <div class="medium-space-separator">
+            <form enctype="multipart/form-data" th:action="@{/bo/userApi/} + ${userApiDTO.getId()}" th:method="post"
+                  th:object="${userApiDTO}">
+                <div class="row">
+                    <div class="col-md-offset-4 col-md-4 margin-bottom img-responsive" th:if="${userApi.isLogo()}">
+                        <img alt="The logo can no be loaded" th:src="'/logoApi/'+${userApi.getUsername()}"/>
+                    </div>
+                    <div class="col-md-offset-4 col-md-4 margin-bottom" th:unless="${userApi.isLogo()}">
+                        <span>You dont have logo yet</span>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <input required="required" type="text" id="name"
+                               th:field="*{name}" readonly="readonly"
+                               class="form-control form-control-formatted form-control-untouched"
+                               placeholder="source"/>
+                        <span class="help-block color--error" th:errors="*{name}"
+                              th:if="${#fields.hasErrors('name')}"></span>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <input required="required" type="url" id="urlCallback" autocomplete="off"
+                               th:field="*{urlCallback}"
+                               class="form-control form-control-formatted form-control-untouched"
+                               placeholder="urlCallback"/>
+                        <span class="help-block color--error" th:errors="*{urlCallback}"
+                              th:if="${#fields.hasErrors('urlCallback')}"></span>
+                    </div>
+
+                    <div class="form-group col-md-6">
+                        <input type="url" autocomplete="off"
+                               th:field="*{site}"
+                               class="form-control form-control-formatted form-control-untouched"
+                               placeholder="site"/>
+                        <span class="help-block color--error" th:errors="*{site}"
+                              th:if="${#fields.hasErrors('site')}"></span>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <input type="text" autocomplete="off"
+                               th:field="*{name2}"
+                               class="form-control form-control-formatted form-control-untouched"
+                               placeholder="name"/>
+                        <span class="help-block color--error" th:errors="*{name2}"
+                              th:if="${#fields.hasErrors('name2')}"></span>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <input autocomplete="off" class="form-control form-control-formatted form-control-untouched"
+                               placeholder="textModal"
+                               th:field="*{textModal}"
+                               type="text"/>
+                        <span class="help-block color--error" th:errors="*{textModal}"
+                              th:if="${#fields.hasErrors('textModal')}"></span>
+                    </div>
+                    <div class="form-group col-md-4">
+                        <div class="input-icon text-center info-icon input-file-container">
+                            <input class="form-control form-control-formatted form-control-untouched input-file"
+                                   id="identity_card"
+                                   placeholder="logo" readonly="" type="text"/>
+                            <input accept="image/png" class="hidden file-reader" name="identity_card" th:field="*{logo}"
+                                   type="file"/>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-primary bo-btn" type="submit">Update</button>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <input autocomplete="off" class="form-control form-control-formatted form-control-untouched"
+                               placeholder="partnerApiKeyCallback"
+                               th:field="*{partnerApiKeyCallback}"
+                               type="text"/>
+                        <span class="help-block color--error" th:errors="*{partnerApiKeyCallback}"
+                              th:if="${#fields.hasErrors('partnerApiKeyCallback')}"></span>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+

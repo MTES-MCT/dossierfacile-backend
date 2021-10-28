@@ -17,7 +17,7 @@ import java.lang.annotation.Target;
 )
 
 public @interface NumberOfDocumentIdentificationGuarantorNaturalPerson {
-    String message() default "number of document must be between 1 and 15";
+    String message() default "number of document must be between 1 and 5";
 
     Class<?>[] groups() default {};
 

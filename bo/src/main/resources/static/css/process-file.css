@@ -1,0 +1,257 @@
+html {
+    height: 100% !important;
+    overflow: hidden !important;
+}
+
+body {
+    margin-top: 0px !important;
+}
+
+.align-items-center {
+    align-items: center !important;
+    padding-bottom: 20px;
+    margin-bottom: 10px;
+}
+
+.display-flex {
+    display: flex !important;
+}
+
+.flex-grow-1 {
+    flex-grow: 1 !important;
+}
+
+.flex-direction-column {
+    flex-direction: column !important;
+}
+
+.height-100pct {
+    height: 100% !important;
+}
+
+.height-75pct {
+    height: 75% !important;
+}
+
+.height-50px {
+    height: 50px !important;
+}
+
+.margin-bottom-10px {
+    margin-bottom: 10px !important;
+}
+
+.margin-top-10px {
+    margin-top: 10px !important;
+}
+
+.margin-top-25px {
+    margin-top: 2px !important;
+}
+
+.overflow-auto {
+    overflow: auto !important;
+}
+
+.padding-right-0px {
+    padding-right: 0px !important;
+}
+
+.padding-right-5px {
+    padding-right: 5px !important;
+}
+
+.process-file-button {
+    background-color: #f0ad4e;
+    border-radius: 5px !important;
+    color: white;
+}
+
+.process-file-messages {
+    padding: 5px !important;
+    border: 1px solid !important;
+}
+
+.width-100pct {
+    width: 100% !important;
+}
+
+.file1-background-color {
+    background-color: rgb(179, 179, 179) !important;
+    text-align: left;
+}
+
+.file1-border-color {
+    border-color: rgb(232, 237, 241) !important;
+}
+
+.file2-background-color {
+    background-color: rgb(241, 229, 229) !important;
+    text-align: center;
+}
+
+.file2-border-color {
+    border-color: rgb(241, 229, 229) !important;
+}
+
+.file3-background-color {
+    background-color: rgb(226, 246, 231) !important;
+    text-align: center;
+}
+
+.file3-border-color {
+    border-color: rgb(226, 246, 231) !important;
+}
+
+.file4-background-color {
+    background-color: rgb(222, 243, 246) !important;
+    text-align: center;
+}
+
+.file4-border-color {
+    border-color: rgb(222, 243, 246) !important;
+}
+
+.file5-background-color {
+    background-color: rgb(255, 250, 185) !important;
+    text-align: center;
+}
+
+.file5-border-color {
+    border-color: rgb(255, 250, 185) !important;
+}
+
+.back-guarantor {
+    background-color: rgb(228, 239, 240);
+}
+.back-color {
+    background: #dedfdd;
+}
+.back-color1 {
+    background: #b1b7b1;
+}
+
+.letter{
+    font-family: 'Segoe UI', sans-serif;
+    color: #5b5b4e;
+}
+
+
+.check-distance{
+    margin-top: 10px;
+    margin-bottom: 20px;
+}
+textarea {
+
+    width: 100%;
+    height: 80px;
+    -moz-border-bottom-colors: none;
+    -moz-border-left-colors: none;
+    -moz-border-right-colors: none;
+    -moz-border-top-colors: none;
+    background: none repeat scroll 0 0 rgba(0, 0, 0, 0.07);
+    border-color: -moz-use-text-color #FFFFFF #FFFFFF -moz-use-text-color;
+    border-image: none;
+    border-radius: 6px 6px 6px 6px;
+    border-style: none solid solid none;
+    border-width: medium 1px 1px medium;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12) inset;
+    color: #555555;
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 1em;
+    line-height: 1.4em;
+    padding: 5px 8px;
+    transition: background-color 0.2s ease 0s;
+}
+
+
+textarea:focus {
+    background: none repeat scroll 0 0 #FFFFFF;
+    outline-width: 0;
+}
+
+
+input[type="checkbox"] {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+
+    /* Styling checkbox */
+    width: 20px;
+    height: 20px;
+    background-color: #e7e7e7;
+    border-color: #020202;
+    box-shadow: inset 0 2px 5px #5b5b4e
+
+}
+
+input[type="checkbox"]:checked {
+    background-color: #fd0f0f;
+}
+
+.span1{
+    padding-left: 10px;
+    display: flex;
+    justify-content: center;
+    line-height: 18pt;
+    color: #0a0808;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.name-title{
+    margin-top: 25px;
+    margin-bottom: 30px;
+}
+
+.full-size-div{
+    height:100%;
+    width:100%;
+}
+
+.card-div{
+    height:90%;
+    width:100%;
+    box-shadow: 2px 3px 10px #5b5b4e, 0 0 60px #f6f6f6 inset;
+    background: #f6f6f6;
+    margin-top: 10px
+}
+
+.h3-style{
+    padding-top:10px;
+    padding-left:20px
+}
+
+.p-style{
+    padding-top:10px;
+    padding-left:30px;
+    padding-right:10px
+}
+
+.span-style{
+    display: flex;
+    line-height: 20pt;
+    font-family: 'Segoe UI', sans-serif;
+    color: #11436e;
+}
+hr.new1 {
+    border-top: 3px solid #3c3737;
+}
+div.scrollmenu {
+    background-color: #333;
+    overflow: auto;
+    white-space: nowrap;
+}
+div.scrollmenu a {
+    display: inline-block;
+    color: white;
+    text-align: center;
+    padding: 14px;
+    text-decoration: none;
+}
+
+div.scrollmenu a:hover {
+    background-color: #777;
+}
+
+
+

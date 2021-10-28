@@ -1,7 +1,6 @@
 package fr.dossierfacile.api.front.validator.anotation.guarantor.natural_person;
 
 import fr.dossierfacile.api.front.validator.guarantor.ExistGuarantorValidator;
-import fr.dossierfacile.common.enums.TypeGuarantor;
 
 import javax.validation.Constraint;
 import javax.validation.Payload;
@@ -10,7 +9,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Target({ElementType.TYPE, ElementType.FIELD})
+@Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 
 @Constraint(
@@ -23,6 +22,4 @@ public @interface ExistGuarantor {
     Class<?>[] groups() default {};
 
     Class<? extends Payload>[] payload() default {};
-
-    TypeGuarantor typeGuarantor();
 }

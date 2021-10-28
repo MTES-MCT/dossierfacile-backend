@@ -15,4 +15,14 @@ public interface MailService {
     void sendEmailAccountDeleted(User user);
 
     void sendEmailAccountCompleted(User user);
+
+    void sendEmailWhenEmailAccountNotYetValidated(User user, ConfirmationToken confirmationToken);
+
+    void sendEmailWhenAccountNotYetCompleted(User user);
+
+    void sendEmailWhenAccountIsStillDeclined(User user);
+
+    void sendEmailWhenTenantNOTAssociatedToPartnersAndValidatedXDaysAgo(User user);
+
+    void sendEmailWhenTenantYESAssociatedToPartnersAndValidatedXDaysAgo(User user);
 }

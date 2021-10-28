@@ -1,20 +1,17 @@
 package fr.dossierfacile.api.front.register.form.tenant;
 
+import fr.dossierfacile.api.front.register.form.DocumentForm;
 import fr.dossierfacile.api.front.validator.anotation.DocumentSubcategorySubset;
-import fr.dossierfacile.api.front.validator.anotation.Extension;
-import fr.dossierfacile.api.front.validator.anotation.SizeFile;
-import fr.dossierfacile.api.front.validator.anotation.tenant.NumberOfDocument;
-import fr.dossierfacile.api.front.validator.enums.TypeDocumentValidation;
+import fr.dossierfacile.api.front.validator.anotation.NumberOfPages;
+import fr.dossierfacile.api.front.validator.anotation.tenant.profesional.NumberOfDocumentProfesional;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.List;
 
 import static fr.dossierfacile.common.enums.DocumentSubCategory.ALTERNATION;
 import static fr.dossierfacile.common.enums.DocumentSubCategory.CDD;
@@ -29,17 +26,16 @@ import static fr.dossierfacile.common.enums.DocumentSubCategory.RETIRED;
 import static fr.dossierfacile.common.enums.DocumentSubCategory.STUDENT;
 import static fr.dossierfacile.common.enums.DocumentSubCategory.UNEMPLOYED;
 
-
+@EqualsAndHashCode(callSuper = true)
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class DocumentProfessionalForm {
+@NumberOfDocumentProfesional(max = 20)
+@NumberOfPages(category = DocumentCategory.PROFESSIONAL, max = 50)
+public class DocumentProfessionalForm extends DocumentForm {
+
     @NotNull
     @DocumentSubcategorySubset(anyOf =
             {CDI, CDI_TRIAL, CDD, ALTERNATION, INTERNSHIP, STUDENT, PUBLIC, CTT, RETIRED, UNEMPLOYED, INDEPENDENT, OTHER})
     private DocumentSubCategory typeDocumentProfessional;
-
-    @NumberOfDocument(max = 15, documentCategory = DocumentCategory.PROFESSIONAL)
-    @SizeFile(max = 5, typeDocumentValidation = TypeDocumentValidation.PER_DOCUMENT)
-    private List<@Extension MultipartFile> documents = new ArrayList<>();
 }

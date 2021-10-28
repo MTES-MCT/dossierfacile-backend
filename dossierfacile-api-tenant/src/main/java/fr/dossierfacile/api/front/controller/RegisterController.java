@@ -16,6 +16,7 @@ import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.LogService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.service.interfaces.UserService;
+import fr.dossierfacile.api.front.validator.group.Dossier;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.LogType;
 import lombok.AllArgsConstructor;
@@ -41,87 +42,88 @@ public class RegisterController {
     private final LogService logService;
 
     @PostMapping("/account")
-    public ResponseEntity<TenantModel> account(@Validated @RequestBody AccountForm accountForm) {
+    public ResponseEntity<TenantModel> account(@Validated(Dossier.class) @RequestBody AccountForm accountForm) {
         TenantModel tenantModel = tenantService.saveStepRegister(null, accountForm, StepRegister.ACCOUNT);
-        logService.saveLog(LogType.ACCOUNT_CREATED,tenantModel.getId());
+        logService.saveLog(LogType.ACCOUNT_CREATED, tenantModel.getId());
         return ok(tenantModel);
     }
 
     @GetMapping("/confirmAccount/{token}")
     public ResponseEntity<Void> confirmAccount(@PathVariable String token) {
-        userService.confirmAccount(token);
+        long tenantId = userService.confirmAccount(token);
+        logService.saveLog(LogType.EMAIL_ACCOUNT_VALIDATED, tenantId);
         return ok().build();
     }
 
     @PostMapping("/names")
-    public ResponseEntity<TenantModel> names(@Validated @RequestBody NamesForm namesForm) {
-        Tenant tenant = authenticationFacade.getPrincipalAuthTenant();
+    public ResponseEntity<TenantModel> names(@Validated(Dossier.class) @RequestBody NamesForm namesForm) {
+        Tenant tenant = authenticationFacade.getTenant(namesForm.getTenantId());
         TenantModel tenantModel = tenantService.saveStepRegister(tenant, namesForm, StepRegister.NAMES);
-        logService.saveLog(LogType.ACCOUNT_EDITED,tenantModel.getId());
+        logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
         return ok(tenantModel);
     }
 
     @PostMapping("/application")
-    public ResponseEntity<TenantModel> application(@Validated @RequestBody ApplicationForm applicationForm) {
-        Tenant tenant = authenticationFacade.getPrincipalAuthTenant();
+    public ResponseEntity<TenantModel> application(@Validated(Dossier.class) @RequestBody ApplicationForm applicationForm) {
+        Tenant tenant = authenticationFacade.getTenant(applicationForm.getTenantId());
         TenantModel tenantModel = tenantService.saveStepRegister(tenant, applicationForm, StepRegister.APPLICATION);
-        logService.saveLog(LogType.ACCOUNT_EDITED,tenantModel.getId());
+        logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
         return ok(tenantModel);
     }
 
     @PostMapping("/honorDeclaration")
-    public ResponseEntity<TenantModel> honorDeclaration(@Validated @RequestBody HonorDeclarationForm honorDeclarationForm) {
-        Tenant tenant = authenticationFacade.getPrincipalAuthTenant();
+    public ResponseEntity<TenantModel> honorDeclaration(@Validated(Dossier.class) @RequestBody HonorDeclarationForm honorDeclarationForm) {
+        Tenant tenant = authenticationFacade.getTenant(honorDeclarationForm.getTenantId());
         TenantModel tenantModel = tenantService.saveStepRegister(tenant, honorDeclarationForm, StepRegister.HONOR_DECLARATION);
-        logService.saveLog(LogType.ACCOUNT_COMPLETED,tenantModel.getId());
+        logService.saveLog(LogType.ACCOUNT_COMPLETED, tenantModel.getId());
         return ok(tenantModel);
     }
 
     @PostMapping("/documentIdentification")
-    public ResponseEntity<TenantModel> documentIdentification(@Validated DocumentIdentificationForm documentIdentificationForm) {
-        Tenant tenant = authenticationFacade.getPrincipalAuthTenant();
+    public ResponseEntity<TenantModel> documentIdentification(@Validated(Dossier.class) DocumentIdentificationForm documentIdentificationForm) {
+        Tenant tenant = authenticationFacade.getTenant(documentIdentificationForm.getTenantId());
         TenantModel tenantModel = tenantService.saveStepRegister(tenant, documentIdentificationForm, StepRegister.DOCUMENT_IDENTIFICATION);
-        logService.saveLog(LogType.ACCOUNT_EDITED,tenantModel.getId());
+        logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
         return ok(tenantModel);
     }
 
     @PostMapping("/documentResidency")
-    public ResponseEntity<TenantModel> documentResidency(@Validated DocumentResidencyForm documentResidencyForm) {
-        Tenant tenant = authenticationFacade.getPrincipalAuthTenant();
+    public ResponseEntity<TenantModel> documentResidency(@Validated(Dossier.class) DocumentResidencyForm documentResidencyForm) {
+        Tenant tenant = authenticationFacade.getTenant(documentResidencyForm.getTenantId());
         TenantModel tenantModel = tenantService.saveStepRegister(tenant, documentResidencyForm, StepRegister.DOCUMENT_RESIDENCY);
-        logService.saveLog(LogType.ACCOUNT_EDITED,tenantModel.getId());
+        logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
         return ok(tenantModel);
     }
 
     @PostMapping("/documentProfessional")
-    public ResponseEntity<TenantModel> step4DocumentProfessional(@Validated DocumentProfessionalForm documentProfessionalForm) {
-        Tenant tenant = authenticationFacade.getPrincipalAuthTenant();
+    public ResponseEntity<TenantModel> documentProfessional(@Validated(Dossier.class) DocumentProfessionalForm documentProfessionalForm) {
+        Tenant tenant = authenticationFacade.getTenant(documentProfessionalForm.getTenantId());
         TenantModel tenantModel = tenantService.saveStepRegister(tenant, documentProfessionalForm, StepRegister.DOCUMENT_PROFESSIONAL);
-        logService.saveLog(LogType.ACCOUNT_EDITED,tenantModel.getId());
+        logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
         return ok(tenantModel);
     }
 
     @PostMapping("/documentFinancial")
-    public ResponseEntity<TenantModel> documentFinancial(@Validated DocumentFinancialForm documentFinancialForm) {
-        Tenant tenant = authenticationFacade.getPrincipalAuthTenant();
+    public ResponseEntity<TenantModel> documentFinancial(@Validated(Dossier.class) DocumentFinancialForm documentFinancialForm) {
+        Tenant tenant = authenticationFacade.getTenant(documentFinancialForm.getTenantId());
         TenantModel tenantModel = tenantService.saveStepRegister(tenant, documentFinancialForm, StepRegister.DOCUMENT_FINANCIAL);
-        logService.saveLog(LogType.ACCOUNT_EDITED,tenantModel.getId());
+        logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
         return ok(tenantModel);
     }
 
     @PostMapping("/documentTax")
-    public ResponseEntity<TenantModel> documentTax(@Validated DocumentTaxForm documentTaxForm) {
-        Tenant tenant = authenticationFacade.getPrincipalAuthTenant();
+    public ResponseEntity<TenantModel> documentTax(@Validated(Dossier.class) DocumentTaxForm documentTaxForm) {
+        Tenant tenant = authenticationFacade.getTenant(documentTaxForm.getTenantId());
         TenantModel tenantModel = tenantService.saveStepRegister(tenant, documentTaxForm, StepRegister.DOCUMENT_TAX);
-        logService.saveLog(LogType.ACCOUNT_EDITED,tenantModel.getId());
+        logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
         return ok(tenantModel);
     }
 
     @PostMapping("/guarantorType")
-    public ResponseEntity<TenantModel> guarantor(@Validated @RequestBody GuarantorTypeForm guarantorTypeForm) {
-        Tenant tenant = authenticationFacade.getPrincipalAuthTenant();
+    public ResponseEntity<TenantModel> guarantor(@Validated(Dossier.class) @RequestBody GuarantorTypeForm guarantorTypeForm) {
+        Tenant tenant = authenticationFacade.getTenant(guarantorTypeForm.getTenantId());
         TenantModel tenantModel = tenantService.saveStepRegister(tenant, guarantorTypeForm, StepRegister.GUARANTOR_TYPE);
-        logService.saveLog(LogType.ACCOUNT_EDITED,tenantModel.getId());
+        logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
         return ok(tenantModel);
     }
 }

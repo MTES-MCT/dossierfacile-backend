@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en"
+      layout:decorator="layout"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>DossierFacile</title>
+</head>
+<body>
+
+<div layout:fragment="content" th:remove="tag">
+
+    <div class="main-container">
+        <section class="text-center">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-8 col-lg-6">
+                        <h2>Connexion à mon compte DossierFacile</h2>
+                        <form th:action="@{/login}" th:method="post">
+                            <input autocomplete="true" id="token" required="required"
+                                   th:name="token" th:value="*{token}" type="hidden"/>
+
+                            <div class="col-md-12 text-left">
+                                <span>Email :</span>
+                                <input autocomplete="true" class="validate-required" id="email" name="username"
+                                       placeholder="Ex : exemple@exemple.fr"
+                                       required="required" th:classappend="${param.error} ? 'invalid' : ''"
+                                       type="email"/>
+                            </div>
+                            <div class="col-md-12 text-left">
+                                <span class="font">Mot de passe :</span>
+                                <input class="validate-required" id="pas" name="password"
+                                       placeholder="Ex : 12345679" th:classappend="${param.error} ? 'invalid' : ''"
+                                       type="password"/>
+                            </div>
+
+                            <div class="col-md-12 text-left mt-3" th:if="${param.error}">
+                                <span>Merci de vérifier vos informations de connexion</span>
+                            </div>
+
+                            <div class="col-md-12 mt-4 justify-content-center align-content-center">
+                                <button class="btn btn--primary w-25 text-uppercase" type="submit">valider</button>
+                                <a class="mt-4 d-block" href="/mot-de-passe-oublie">mot de passe oublié</a>
+                                <a class="mt-4 d-block link-modal-connect" href="#">je n'ai pas encore de compte</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+</body>
+</html>

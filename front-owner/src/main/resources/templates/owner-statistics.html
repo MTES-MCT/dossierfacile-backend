@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en"
+      layout:decorator="layout"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>DossierFacile</title>
+</head>
+<body>
+<div layout:fragment="content" th:remove="tag">
+    <div class="container">
+        <div class="row">
+            <h3>Mes Statistiques</h3>
+            <div class="table-responsive col-md-12"
+                 th:each="statistics : ${ownerStatistics.entrySet()}">
+                <table class="table table-striped table-bordered table-hover">
+                    <thead>
+                    <td class="width-50pct" th:text="${statistics.getKey()}">
+                    </td>
+                    <td class="width-50pct">
+                        subscriptions
+                    </td>
+                    </thead>
+                    <tbody th:each="statistic : ${statistics.getValue()}">
+                    <tr>
+                        <td>
+                            <a th:text="${statistic.get(0)}"></a>
+                        </td>
+                        <td>
+                            <a th:text="${statistic.get(1)}"></a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

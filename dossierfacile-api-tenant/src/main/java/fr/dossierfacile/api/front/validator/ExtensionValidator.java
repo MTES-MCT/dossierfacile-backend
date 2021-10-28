@@ -1,14 +1,14 @@
 package fr.dossierfacile.api.front.validator;
 
+import fr.dossierfacile.api.front.register.form.DocumentForm;
 import fr.dossierfacile.api.front.validator.anotation.Extension;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 import java.util.Arrays;
 import java.util.List;
 
-public class ExtensionValidator implements ConstraintValidator<Extension, MultipartFile> {
+public class ExtensionValidator implements ConstraintValidator<Extension, DocumentForm> {
     private static final List<String> contentTypes = Arrays.asList(
             "image/png",
             "image/jpeg",
@@ -21,10 +21,7 @@ public class ExtensionValidator implements ConstraintValidator<Extension, Multip
     }
 
     @Override
-    public boolean isValid(MultipartFile file, ConstraintValidatorContext constraintValidatorContext) {
-        if (file == null || file.isEmpty()) {
-            return true;
-        }
-        return contentTypes.contains(file.getContentType());
+    public boolean isValid(DocumentForm documentForm, ConstraintValidatorContext constraintValidatorContext) {
+        return documentForm.getDocuments().stream().allMatch(f -> contentTypes.contains(f.getContentType()));
     }
 }

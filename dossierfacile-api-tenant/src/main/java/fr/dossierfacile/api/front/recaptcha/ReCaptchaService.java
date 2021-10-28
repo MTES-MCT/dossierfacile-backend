@@ -21,7 +21,13 @@ public class ReCaptchaService {
 
     private final HttpServletRequest request;
 
+    @Value("${spring.profiles.active}")
+    private String activeProfile;
+
     boolean validate(String reCaptchaResponse) {
+        if (activeProfile.equals("dev") || activeProfile.equals("preprod")) {
+            return true;
+        }
         URI verifyUri = URI.create(String.format(
                 "%s?secret=%s&response=%s&remoteip=%s",
                 captchaSettings.getUrl(),

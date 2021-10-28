@@ -31,7 +31,7 @@ public class NumberOfDocumentTaxGuarantorNaturalPersonValidator implements Const
 
     @Override
     public boolean isValid(DocumentTaxGuarantorNaturalPersonForm documentTaxGuarantorNaturalPersonForm, ConstraintValidatorContext constraintValidatorContext) {
-        Tenant tenant = authenticationFacade.getPrincipalAuthTenant();
+        Tenant tenant = authenticationFacade.getTenant(documentTaxGuarantorNaturalPersonForm.getTenantId());
         long countOld = fileRepository.countFileByDocumentCategoryGuarantorIdTypeGuarantorTenant(
                 DocumentCategory.TAX,
                 documentTaxGuarantorNaturalPersonForm.getGuarantorId(),
@@ -42,7 +42,7 @@ public class NumberOfDocumentTaxGuarantorNaturalPersonValidator implements Const
 
         boolean isValid;
         if (documentTaxGuarantorNaturalPersonForm.getTypeDocumentTax() == DocumentSubCategory.MY_NAME) {
-            isValid = 1 <= countNew + countOld && countNew + countOld <= 15;
+            isValid = 1 <= countNew + countOld && countNew + countOld <= 5;
             if (!isValid) {
                 constraintValidatorContext.disableDefaultConstraintViolation();
                 constraintValidatorContext
@@ -51,7 +51,7 @@ public class NumberOfDocumentTaxGuarantorNaturalPersonValidator implements Const
             }
         } else if (documentTaxGuarantorNaturalPersonForm.getTypeDocumentTax() == DocumentSubCategory.OTHER_TAX
                 && !documentTaxGuarantorNaturalPersonForm.getNoDocument()) {
-            isValid = 1 <= countNew + countOld && countNew + countOld <= 15;
+            isValid = 1 <= countNew + countOld && countNew + countOld <= 5;
             if (!isValid) {
                 constraintValidatorContext.disableDefaultConstraintViolation();
                 constraintValidatorContext

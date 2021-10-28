@@ -6,7 +6,7 @@ import fr.dossierfacile.api.front.register.form.guarantor.organism.DocumentIdent
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.LogService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
-import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.api.front.validator.group.Dossier;
 import fr.dossierfacile.common.enums.LogType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -26,10 +26,10 @@ public class RegisterGuarantorOrganismController {
     private final LogService logService;
 
     @PostMapping("/documentIdentification")
-    public ResponseEntity<TenantModel> documentIdentification(@Validated DocumentIdentificationGuarantorOrganismForm documentIdentificationGuarantorOrganismForm) {
-        Tenant tenant = authenticationFacade.getPrincipalAuthTenant();
-        TenantModel tenantModel = tenantService.saveStepRegister(tenant, documentIdentificationGuarantorOrganismForm, StepRegister.DOCUMENT_IDENTIFICATION_GUARANTOR_ORGANISM);
-        logService.saveLog(LogType.ACCOUNT_EDITED,tenantModel.getId());
+    public ResponseEntity<TenantModel> documentIdentification(@Validated(Dossier.class) DocumentIdentificationGuarantorOrganismForm documentIdentificationGuarantorOrganismForm) {
+        var tenant = authenticationFacade.getTenant(documentIdentificationGuarantorOrganismForm.getTenantId());
+        var tenantModel = tenantService.saveStepRegister(tenant, documentIdentificationGuarantorOrganismForm, StepRegister.DOCUMENT_IDENTIFICATION_GUARANTOR_ORGANISM);
+        logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
         return ok(tenantModel);
     }
 }

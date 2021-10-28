@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en"
+      layout:decorator="registerTenant/layout"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>DossierFacile</title>
+</head>
+<body>
+<div layout:fragment="sidebar" th:remove="tag">
+    <div th:replace="registerTenant/sidebar :: sidebar(step = 'GARANT', currentStep = ${currentStep}, fileDTO = ${fileDTO}, slug = ${tenantDTO.getSlug()})">
+    </div>
+</div>
+<div layout:fragment="content" th:remove="tag">
+    <link href="/css/register-tenant/step6.css" rel="stylesheet"/>
+    <section class="register-guarantor">
+        <div class="container ">
+            <div class="row justify-content-center">
+                <div class="col-md-6 col-lg-5">
+                    <h3 class="register-guarantor-title"> Choisir un garant c’est solidifier mon dossier </h3>
+                    <a href="/faq#quelles_pieces_sont_demandees_aux_garants" target="_blank">Quelles pièces sont
+                        demandées aux garants ?</a>
+                    <form method="post"
+                          onsubmit="return validate_form()"
+                          th:action="@{/registerTenant/step6/} + ${tenantDTO.getSlug()}"
+                          th:object="${tenantDTO}">
+                        <div class="row">
+                            <div class="col-md-4 col-xl-4">
+                                <div class="input-radio "
+                                     th:if="${tenants==null or (tenants!=null and tenants.size()==1)}">
+                                    <input th:field="*{guarantorType}"
+                                           th:value="${T(fr.gouv.common.enums.GuarantorType).NONE}"
+                                           type="radio"/>
+                                    <label></label>
+                                    <span class="input__label">Je n'ai pas de garant</span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4 col-xl-4">
+                                <div class="input-radio">
+                                    <input th:field="*{guarantorType}"
+                                           th:value="${T(fr.gouv.common.enums.GuarantorType).LOCATIO}"
+                                           type="radio"/>
+                                    <label></label>
+                                    <span class="input__label">J’ai un garant classique</span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4 col-xl-4">
+                                <div class="input-radio">
+                                    <input id="guarantorType" th:field="*{guarantorType}"
+                                           th:value="${T(fr.gouv.common.enums.GuarantorType).VISALE}"
+                                           type="radio"/>
+                                    <label></label>
+                                    <span class="input__label" style="width: 130%">J’ai un autre type de garant <span
+                                            class="icon-Information more_info"
+                                            title="Un garant VISALE ou autres garants institutionnels, une garantie de votre banque, etc."></span></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-12 d-flex align-items-start hidden" id="guarantorTypeConfirm">
+                                <div class="input-checkbox mr-3">
+                                    <input class="form-check-input hidden" id="guarantorTypeCheckBoxConfirme"
+                                           th:field="*{acceptVerificationGuarantorType}"
+                                           type="checkbox"/>
+                                    <input id="guarantorTypeCheckBoxConfirmeUtility" type="checkbox"/>
+                                    <label></label>
+                                </div>
+                                <div>
+                                        <span>  En sélectionnant cette option je déclare sur l’honneur avoir reçu le
+                                            consentement de mon garant pour que ses données soient traitées dans
+                                            le cadre du processus de location.
+                                        </span>
+                                </div>
+                            </div>
+                            <div class="color--error col-11"
+                                 th:errors="*{acceptVerificationGuarantorType}"
+                                 th:if="${#fields.hasErrors('acceptVerificationGuarantorType')}"></div>
+
+                            <div class="col-12 text-left" id="errors">
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn--sm btn--secondary type--uppercase mt-0 px-3"
+                                        onclick="history.back()"
+                                        type="button">précédent
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn--primary text-uppercase" id="create-tenant"
+                                        th:text="#{tenant.form.button.next}"
+                                        type="submit">
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    <div th:replace="include/modal-api:: modal-api">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </section>
+    <div th:replace="include/register-tenant-help :: register-tenant-help"></div>
+
+    <div th:replace="include/modal-account:: modal-account">
+    </div>
+</div>
+
+
+<div layout:fragment="javascripts" th:remove="tag">
+    <script src="/js/registerTenant/step6.js"></script>
+    <script src="/js/registerTenant/registerTenant.js"></script>
+</div>
+</body>
+</html>

@@ -1,30 +1,35 @@
 package fr.dossierfacile.api.front.register.form.tenant;
 
+import fr.dossierfacile.api.front.register.form.DocumentForm;
 import fr.dossierfacile.api.front.validator.anotation.DocumentSubcategorySubset;
-import fr.dossierfacile.api.front.validator.anotation.Extension;
 import fr.dossierfacile.api.front.validator.anotation.LengthOfText;
-import fr.dossierfacile.api.front.validator.anotation.SizeFile;
+import fr.dossierfacile.api.front.validator.anotation.NumberOfPages;
 import fr.dossierfacile.api.front.validator.anotation.tenant.financial.NoDocumentCustomTextFinancial;
 import fr.dossierfacile.api.front.validator.anotation.tenant.financial.NumberOfDocumentFinancial;
-import fr.dossierfacile.api.front.validator.enums.TypeDocumentValidation;
+import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.List;
 
-import static fr.dossierfacile.common.enums.DocumentSubCategory.*;
+import static fr.dossierfacile.common.enums.DocumentSubCategory.NO_INCOME;
+import static fr.dossierfacile.common.enums.DocumentSubCategory.PENSION;
+import static fr.dossierfacile.common.enums.DocumentSubCategory.RENT;
+import static fr.dossierfacile.common.enums.DocumentSubCategory.SALARY;
+import static fr.dossierfacile.common.enums.DocumentSubCategory.SCHOLARSHIP;
+import static fr.dossierfacile.common.enums.DocumentSubCategory.SOCIAL_SERVICE;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @NoDocumentCustomTextFinancial
 @NumberOfDocumentFinancial
-public class DocumentFinancialForm {
+@NumberOfPages(category = DocumentCategory.FINANCIAL, max = 50)
+public class DocumentFinancialForm extends DocumentForm {
 
     private Long id;
 
@@ -38,9 +43,6 @@ public class DocumentFinancialForm {
     @NotNull
     private Boolean noDocument;
 
-    @LengthOfText(max = 1355)
+    @LengthOfText(max = 2000)
     private String customText;
-
-    @SizeFile(max = 5, typeDocumentValidation = TypeDocumentValidation.PER_DOCUMENT)
-    private List<@Extension MultipartFile> documents = new ArrayList<>();
 }

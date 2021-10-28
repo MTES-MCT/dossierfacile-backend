@@ -23,11 +23,34 @@ public class SwaggerConfig {
     @Bean
     public Docket api() {
         return new Docket(DocumentationType.SWAGGER_2)
+                .groupName("API")
                 .select()
                 .apis(RequestHandlerSelectors.basePackage("fr.dossierfacile.api.front.controller"))
                 .paths(PathSelectors.ant("/api/**"))
                 .build()
                 .apiInfo(apiInfo());
+    }
+
+    @Bean
+    public Docket apiDossierFacileConnect() {
+        return new Docket(DocumentationType.SWAGGER_2)
+                .groupName("API DFC")
+                .select()
+                .apis(RequestHandlerSelectors.basePackage("fr.dossierfacile.api.front.dfc.controller"))
+                .paths(PathSelectors.ant("/dfc/**"))
+                .build()
+                .apiInfo(apiDossierFacileConnectInfo());
+    }
+
+    @Bean
+    public Docket apiPartner() {
+        return new Docket(DocumentationType.SWAGGER_2)
+                .groupName("API Partner")
+                .select()
+                .apis(RequestHandlerSelectors.basePackage("fr.dossierfacile.api.front.partner.controller"))
+                .paths(PathSelectors.ant("/api-partner/**"))
+                .build()
+                .apiInfo(apiPartnerInfo());
     }
 
     private ApiInfo apiInfo() {
@@ -42,9 +65,42 @@ public class SwaggerConfig {
                         "    </ul>\n" +
                         "</div>",
                 "1.0",
-                URL,
-                new Contact("Harlow Fres", URL, "contact@example.com"),
-                "License of API", URL, Collections.emptyList());
+                "",
+                ApiInfo.DEFAULT_CONTACT,
+                "", "", Collections.emptyList());
     }
 
+    private ApiInfo apiDossierFacileConnectInfo() {
+        return new ApiInfo(
+                "DossierFacile REST API DossierFacileConnect (DFC)",
+                "<h3>Description of the api</h3>\n" +
+                        "<div>\n" +
+                        "    <ul>\n" +
+                        LI + "\n" +
+                        "       TODO: (PUT HERE YOUR DESCRIPTION).\n" +
+                        LI_CLOSE + "\n" +
+                        "    </ul>\n" +
+                        "</div>",
+                "1.0",
+                "",
+                ApiInfo.DEFAULT_CONTACT,
+                "", "", Collections.emptyList());
+    }
+
+    private ApiInfo apiPartnerInfo() {
+        return new ApiInfo(
+                "DossierFacile REST API Partner",
+                "<h3>Description of the api</h3>\n" +
+                        "<div>\n" +
+                        "    <ul>\n" +
+                        LI + "\n" +
+                        "       TODO: (PUT HERE YOUR DESCRIPTION).\n" +
+                        LI_CLOSE + "\n" +
+                        "    </ul>\n" +
+                        "</div>",
+                "1.0",
+                "",
+                ApiInfo.DEFAULT_CONTACT,
+                "", "", Collections.emptyList());
+    }
 }

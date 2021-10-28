@@ -1,0 +1,28 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+</head>
+<body>
+
+<div th:fragment="guarantor2" th:remove="tag">
+    <p class="little-title text-center padding border-bottom border-primary text-primary text-primary1 medium-margin-bottom">
+        Mon garant</p>
+
+
+    <div class="form-group">
+        <label for="identity_card" class="text-primary1 formatted-label space-separator">Visa</label>
+        <div class="input-icon text-center info-icon input-file-container">
+            <input type="text"
+                   class="form-control form-control-formatted form-control-untouched input-file guarantor"
+                   placeholder="Ajouter un document" id="identity_card" readonly="" data-id="0"/>
+            <input type="file" class="hidden file-reader guarantor-file" accept="image/*, .pdf"
+                   th:field="*{guarantor.files[0]}"
+                   name="identity_card"/>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
+
+

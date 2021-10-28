@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en"
+      layout:decorator="bo/layout-bo"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>DossierFacile</title>
+</head>
+<body>
+<div layout:fragment="content" th:remove="tag">
+    <div th:replace="bo/menu :: menu">...</div>
+    <div class="container">
+        <div class="row">
+            <div class="table-responsive col-md-12">
+                <h3>Tenants statistics</h3>
+                <table class="table table-striped table-bordered table-hover">
+                    <thead>
+                    <tr>
+                        <th>Number</th>
+                        <th style="min-width: 250px">Week/File</th>
+                        <th>Total tenant</th>
+                        <th>No files</th>
+                        <th th:text="#{tenant.profile.link1.v2}"></th>
+                        <th th:text="#{tenant.profile.link2.v2}"></th>
+                        <th th:text="#{tenant.profile.link3.v2}"></th>
+                        <th th:text="#{tenant.profile.link4.v2}"></th>
+                        <th th:text="#{tenant.profile.link5.v2}"></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="date, iter : ${sortedDatesTenant}">
+                        <td th:text="${iter.index}"></td>
+                        <td th:text="${date.transform()}"></td>
+                        <td th:text="${tenantStatistics.get(date).get('tenant')}?${tenantStatistics.get(date).get('tenant')}:0"></td>
+                        <td th:text="${tenantStatistics.get(date).get('notUpload')}?${tenantStatistics.get(date).get('notUpload')}:0"></td>
+                        <td th:text="${tenantStatistics.get(date).get('file1')}?${tenantStatistics.get(date).get('file1')}:0"></td>
+                        <td th:text="${tenantStatistics.get(date).get('file2')}?${tenantStatistics.get(date).get('file2')}:0"></td>
+                        <td th:text="${tenantStatistics.get(date).get('file3')}?${tenantStatistics.get(date).get('file3')}:0"></td>
+                        <td th:text="${tenantStatistics.get(date).get('file4')}?${tenantStatistics.get(date).get('file4')}:0"></td>
+                        <td th:text="${tenantStatistics.get(date).get('file5')}?${tenantStatistics.get(date).get('file5')}:0"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,136 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body>
+
+<div th:fragment="file1GuarantorVisale" th:remove="tag">
+    <div class="panel panel-info" th:if="${tenant.getGuarantor().getUpload1Route()}!=null">
+        <div class="panel-heading">
+            <h4 class="panel-title">
+                <span class="ing">Visa</span>
+                <a th:href="${tenant.getGuarantor().getUpload1Route()}" target="_blank"><i class="fa fa-eye"></i></a>
+                <div th:if="${tenant.getFileStatus()!=null}" th:remove="tag">
+                                <span th:if="${tenant.getFileStatus().getFile6().name()=='ACCEPTED'}"
+                                      class="ing label label-success" th:text="#{file.process.accepted}"></span>
+                    <span th:if="${tenant.getFileStatus().getFile6().name()=='DECLINED'}"
+                          class="ing label label-danger" th:text="#{file.process.declined}"></span>
+                    <span th:if="${tenant.getFileStatus().getFile6().name()=='MODIFIED'}"
+                          class="ing label label-warning" th:text="#{file.process.modified}"></span>
+                </div>
+                <div th:if="${tenant.getProcessFileStatus()=='processing'}" th:remove="tag">
+                    <i class="fa fa-refresh fa-spin pull-right"></i>
+                </div>
+
+                <div th:if="${tenant.getProcessFileStatus()=='no-processed'}" th:remove="tag">
+                    <i class="fa fa fa-warning pull-right text-warning"></i>
+                </div>
+
+                <span class="label label-check pull-right">
+                    <a th:href="${'/bo/tenant/' + tenant.getId() + '/check-file/6'}" th:text="#{file.process.check}"></a>
+                </span>
+            </h4>
+
+        </div>
+        <div class="panel-body"
+             th:if="${tenant.getProcessFileResponse()!=null and tenant.getProcessFileResponse().getVisaleGuarantor() != null}"
+             th:with="result=${tenant.getProcessFileResponse().getVisaleGuarantor()}">
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered table-hover">
+                    <thead>
+                    <tr>
+                        <th></th>
+                        <th>File</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>Le(s) locataires certifié(s) bénéficie(nt) de la garantie Visale</td>
+                        <td>
+                            <span th:if="${result}">
+                                <span class="fa fa-check text-success"
+                                      th:if="${result.isText1()}">
+                                </span>
+                                <span class="fa fa-times text-danger"
+                                      th:unless="${result.isText1()}">
+                                </span>
+                            </span>
+                        </td>
+
+                    </tr>
+                    <tr>
+                        <td>a été délivré par Action Logement Services</td>
+                        <td>
+                            <span class="fa fa-check text-success"
+                                  th:if="${result.isText2()}">
+                            </span>
+                            <span class="fa fa-times text-danger"
+                                  th:unless="${result.isText2()}">
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Name</td>
+                        <td>
+                            <span class="fa fa-check text-success"
+                                  th:if="${result.isName()}">
+                            </span>
+                            <span class="fa fa-times text-danger"
+                                  th:unless="${result.isName()}">
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>LastName</td>
+                        <td>
+                            <span class="fa fa-check text-success"
+                                  th:if="${result.isLastName()}">
+                            </span>
+                            <span class="fa fa-times text-danger"
+                                  th:unless="${result.isLastName()}">
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>4 Pages</td>
+                        <td>
+                            <span class="fa fa-check text-success"
+                                  th:if="${result.getNumberPages()}==4">
+                            </span>
+                            <span class="fa fa-times text-danger"
+                                  th:unless="${result.getNumberPages()}==4">
+                            </span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+
+                <table class="table table-striped table-bordered table-hover">
+                    <thead>
+                    <tr>
+                        <th></th>
+                        <th>Résultat</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <th>Test Global</th>
+                        <td>
+                            <span class="fa fa-check text-success"
+                                  th:if="${result.isText1()} and ${result.isText2()} and ${result.isName()} and ${result.isLastName()} and ${result.getNumberPages()}==4">OK
+                            </span>
+                            <span class="fa fa-times text-danger"
+                                  th:unless="${result.isText1()} and ${result.isText2()} and ${result.isName()} and ${result.isLastName()} and ${result.getNumberPages()}==4">
+                            </span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+
+</html>
+

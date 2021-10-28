@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <head th:replace="include/head :: head"></head>
+</head>
+<body>
+<div layout:fragment="header">
+    <div th:replace="include/fixed-header :: fixed-header">...</div>
+</div>
+
+<div class="d-flex flex-column h-87vh">
+    <div class="position-relative mb-10 " layout:fragment="content"></div>
+
+    <div layout:fragment="footer">
+        <div class="mt-auto">
+            <div th:replace="include/footer :: footer">...</div>
+        </div>
+    </div>
+</div>
+
+<div class="boxed boxed--border  bg--secondary boxed--lg box-shadow fixed-bottom position-fixed mx-3 mb-2"
+     id="cookie">
+    <p>
+        DossierFacile utilise des cookies contribuant à la réalisation de statistiques et à l'amélioration de notre service, dans le respect de notre politique de protection de votre vie privée. <a href="https://www.dossierfacile.fr/securite-des-donnees">En savoir plus.</a>
+    </p>
+    <button class="fr-btn fr-btn--sm" id="allowCookie"> Accepter </button>
+    <button class="fr-btn fr-btn--secondary fr-btn--sm" id="hideCookie"> Refuser </button>
+</div>
+<div class="modal-container modal-connect">
+    <div class="modal-content section-modal">
+        <section class="unpad ">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-md-8 col-12">
+                        <div class="feature feature-1">
+                            <div class="feature__body boxed boxed--lg boxed--border">
+                                <div class="modal-close modal-close-cross"></div>
+                                <div class="text-block">
+                                    <h3>Afin de créer votre compte, nous avons besoin de quelques informations.
+                                        Vous êtes…</h3>
+                                </div>
+                                <div class="row justify-content-center">
+                                    <div class="col-md-6">
+                                        <a class="btn btn--primary btn-block modal-close"
+                                           href="/registerOwner/step1">
+                                            <span class="btn__text">Propriétaire</span>
+                                        </a>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+<div th:replace="include/scripts :: script">...</div>
+<div layout:fragment="javascripts">
+</div>
+</body>
+</html>

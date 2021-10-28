@@ -6,9 +6,15 @@ import fr.dossierfacile.api.front.model.TenantLightAPIInfoModel;
 import fr.dossierfacile.api.front.repository.TenantRepository;
 import fr.dossierfacile.api.front.repository.TenantUserApiRepository;
 import fr.dossierfacile.api.front.service.interfaces.CallbackLogService;
-import fr.dossierfacile.api.front.service.interfaces.RequestService;
 import fr.dossierfacile.api.front.service.interfaces.PartnerCallBackService;
-import fr.dossierfacile.common.entity.*;
+import fr.dossierfacile.api.front.service.interfaces.RequestService;
+import fr.dossierfacile.common.entity.ApartmentSharing;
+import fr.dossierfacile.common.entity.Document;
+import fr.dossierfacile.common.entity.Guarantor;
+import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.entity.TenantUserApi;
+import fr.dossierfacile.common.entity.TenantUserApiKey;
+import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
@@ -165,13 +171,12 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
                 }
 
                 requestService.send(lightAPIInfoModel, userApi.getUrlCallback(), userApi.getPartnerApiKeyCallback());
-                callbackLogService.createCallbackLogForInternalPartnerLight(tenant, userApi.getId(), tenant.getStatus(),lightAPIInfoModel);
+                callbackLogService.createCallbackLogForInternalPartnerLight(tenant, userApi.getId(), tenant.getStatus(), lightAPIInfoModel);
                 break;
             }
             case 2: {
                 requestService.send(applicationFullMapper.toApplicationModel(apartmentSharing), userApi.getUrlCallback(), userApi.getPartnerApiKeyCallback());
-                callbackLogService.createCallbackLogForPartnerModel(tenant, userApi.getId(), tenant.getStatus(),applicationFullMapper.toApplicationModel(apartmentSharing));
-
+                callbackLogService.createCallbackLogForPartnerModel(tenant, userApi.getId(), tenant.getStatus(), applicationFullMapper.toApplicationModel(apartmentSharing));
                 break;
             }
             default:

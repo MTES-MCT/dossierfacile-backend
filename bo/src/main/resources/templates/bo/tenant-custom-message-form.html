@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      lang="en"
+      layout:decorator="bo/layout-bo">
+<head>
+    <title>DossierFacile</title>
+</head>
+<body>
+
+<div layout:fragment="content" th:remove="tag">
+
+    <!--    <div th:replace="bo/menu :: menu">...</div>-->
+
+    <br/><br/><br/>
+    <div class="container">
+        <div class="row" style="margin-bottom: 30px">
+            <div class="col-md-12">
+                <div th:text="'FirstName: '+${tenant.getFirstName()}"></div>
+            </div>
+            <div class="col-md-12">
+                <div th:text="'LastName: '+${tenant.getLastName()}"></div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <form th:action="@{/bo/tenant/} + ${tenant.getId()} + '/customMessage'" th:method="post"
+                      th:object="${customMessage}">
+
+                    <div>
+                        <p th:text="#{bo.tenant.custom.email.head1}"></p>
+                        <p th:text="#{bo.tenant.custom.email.head2}"></p>
+                    </div>
+
+                    <div class="display-flex" th:each="messageItem, i:${customMessage.getMessageItems()}">
+                        <div class="col-md-12">
+                            <span th:text="${messageItem.getDocumentCategory().name()}+'('+ #{${messageItem.getDocumentCategory().getLabel()}} +')'"></span>
+                            <input th:field="*{messageItems[__${i.index}__].documentCategory}"
+                                   th:value="${messageItem.getDocumentCategory()}" type="hidden"/>
+                            <input th:field="*{messageItems[__${i.index}__].documentId}"
+                                   th:value="${messageItem.getDocumentId()}" type="hidden"/>
+                            <div class="checkbox" th:each="itemDetail,j : ${messageItem.getItemDetailList()}">
+                                <label>
+                                    <input th:field="*{messageItems[__${i.index}__].itemDetailList[__${j.index}__].check}"
+                                           type="checkbox"/>
+                                    <input th:field="*{messageItems[__${i.index}__].itemDetailList[__${j.index}__].message}"
+                                           th:value="${itemDetail.getMessage()}" type="hidden"/>
+                                    <span th:text="#{${itemDetail.getMessage()}}"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div th:each="guarantorItem,k : ${customMessage.getGuarantorItems()}">
+                        <div class="display-flex medium-space-separator">
+                            <div class="col-md-12">
+                                <span th:text="${guarantorItem.getTypeGuarantor().name()}"></span>
+                                <span th:text="${guarantorItem.getFirstName()}"></span>
+                                <span th:text="${guarantorItem.getLastName()}"></span>
+                                <span th:text="${guarantorItem.getLegalPersonName()}"></span>
+                                <input th:field="*{guarantorItems[__${k.index}__].guarantorId}"
+                                       th:value="${guarantorItem.getGuarantorId()}" type="hidden"/>
+                            </div>
+                        </div>
+                        <div class="display-flex" th:each="messageItem, i:${guarantorItem.getMessageItems()}">
+                            <div class="col-md-12">
+                                <span th:text="${messageItem.getDocumentCategory().name()}+'('+ #{${messageItem.getDocumentCategory().getLabel()}} +')'"></span>
+                                <input th:field="*{guarantorItems[__${k.index}__].messageItems[__${i.index}__].documentCategory}"
+                                       th:value="${messageItem.getDocumentCategory()}" type="hidden"/>
+                                <input th:field="*{guarantorItems[__${k.index}__].messageItems[__${i.index}__].documentId}"
+                                       th:value="${messageItem.getDocumentId()}" type="hidden"/>
+                                <div class="checkbox" th:each="itemDetail,j : ${messageItem.getItemDetailList()}">
+                                    <label>
+                                        <input th:field="*{guarantorItems[__${k.index}__].messageItems[__${i.index}__].itemDetailList[__${j.index}__].check}"
+                                               type="checkbox"/>
+                                        <input th:field="*{guarantorItems[__${k.index}__].messageItems[__${i.index}__].itemDetailList[__${j.index}__].message}"
+                                               th:value="${itemDetail.getMessage()}" type="hidden"/>
+                                        <span th:text="#{${itemDetail.getMessage()}}"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <p th:text="#{bo.tenant.custom.email.footer1}"></p>
+
+                        <p th:text="#{bo.tenant.custom.email.footer2}"></p>
+
+                        <div>
+                            <span th:text="#{bo.tenant.custom.email.footer3}"></span><br/>
+                            <span th:text="#{bo.tenant.custom.email.footer4}"></span>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary bo-btn hidden-xs" id="customMessageButton"
+                            style="float: right; margin-top: 10px;"
+                            type="submit">
+                        Envoyer
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<div layout:fragment="javascripts" th:remove="tag">
+    <script src="/js/bo/tenant-custom-message.js"></script>
+</div>
+</body>
+</html>
+

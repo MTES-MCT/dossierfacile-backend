@@ -4,11 +4,11 @@ import fr.dossierfacile.api.front.register.form.guarantor.natural_person.Documen
 import fr.dossierfacile.api.front.repository.FileRepository;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.validator.anotation.guarantor.natural_person.financial.NumberOfDocumentFinancialGuarantorNaturalPerson;
-import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.TypeGuarantor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
@@ -26,7 +26,8 @@ public class NumberOfDocumentFinancialGuarantorNaturalPersonValidator implements
 
     @Override
     public boolean isValid(DocumentFinancialGuarantorNaturalPersonForm documentFinancialGuarantorNaturalPersonForm, ConstraintValidatorContext constraintValidatorContext) {
-        Tenant tenant = authenticationFacade.getPrincipalAuthTenant();
+        var tenant = authenticationFacade.getTenant(documentFinancialGuarantorNaturalPersonForm.getTenantId());
+        long sizeOldDoc = 0;
         long countOld = fileRepository.countFileByDocumentCategoryGuarantorIdTypeGuarantorTenantDocumentId(
                 DocumentCategory.FINANCIAL,
                 documentFinancialGuarantorNaturalPersonForm.getGuarantorId(),
@@ -35,6 +36,18 @@ public class NumberOfDocumentFinancialGuarantorNaturalPersonValidator implements
                 documentFinancialGuarantorNaturalPersonForm.getDocumentId()
         );
         long countNew = documentFinancialGuarantorNaturalPersonForm.getDocuments().stream().filter(f -> !f.isEmpty()).count();
+
+        long sizeNewDoc = documentFinancialGuarantorNaturalPersonForm.getDocuments().stream().filter(o -> o.getSize() >= 0).mapToLong(MultipartFile::getSize).sum();
+        if(countOld > 0){
+            sizeOldDoc = fileRepository.sumSizeOfAllFilesInDocumentForGuarantorTenantId(
+                    DocumentCategory.FINANCIAL,
+                    documentFinancialGuarantorNaturalPersonForm.getGuarantorId(),
+                    TypeGuarantor.NATURAL_PERSON,
+                    tenant,
+                    documentFinancialGuarantorNaturalPersonForm.getDocumentId()
+            );
+        }
+
 
         if (documentFinancialGuarantorNaturalPersonForm.getNoDocument() == null) {
             return true;
@@ -52,11 +65,11 @@ public class NumberOfDocumentFinancialGuarantorNaturalPersonValidator implements
             }
 
         } else {
-            isValid = 1 <= countNew + countOld && countNew + countOld <= 15;
+            isValid = 1 <= countNew + countOld && countNew + countOld <= 10 && sizeNewDoc + sizeOldDoc <= 52428800;
             if (!isValid) {
                 constraintValidatorContext.disableDefaultConstraintViolation();
                 constraintValidatorContext
-                        .buildConstraintViolationWithTemplate("number of document must be between 1 and 15")
+                        .buildConstraintViolationWithTemplate("number of document must be between 1 and 10 and not exceed 50Mb in total")
                         .addPropertyNode("documents").addConstraintViolation();
             }
         }

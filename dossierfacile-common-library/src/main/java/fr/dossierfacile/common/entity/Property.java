@@ -69,6 +69,9 @@ public class Property implements Serializable {
     @Column(name = "rent_cost", columnDefinition = "Decimal(10,2) default '0.00'")
     private Double rentCost;
 
+    @OneToMany(mappedBy = "property", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    private List<PropertyApartmentSharing> propertiesApartmentSharing;
+
     @OneToMany(mappedBy = "property", cascade = CascadeType.ALL)
     @JsonIgnore
     private List<Prospect> prospects;
@@ -95,7 +98,6 @@ public class Property implements Serializable {
         this.propertyId = propertyId;
         this.rentCost = 0.0;
         this.creationDateTime = LocalDateTime.now();
-        this.token = RandomStringUtils.randomAlphanumeric(20);
     }
 
     public Property(Owner owner, String name, String propertyId, double rentCost) {
@@ -104,7 +106,6 @@ public class Property implements Serializable {
         this.propertyId = propertyId;
         this.rentCost = rentCost;
         this.creationDateTime = LocalDateTime.now();
-        this.token = RandomStringUtils.randomAlphanumeric(20);
     }
 
     public Property(String name, String id, Double rentCost) {
@@ -112,7 +113,6 @@ public class Property implements Serializable {
         this.propertyId = id;
         this.rentCost = rentCost;
         this.creationDateTime = LocalDateTime.now();
-        this.token = RandomStringUtils.randomAlphanumeric(20);
         this.displayed = true;
     }
 

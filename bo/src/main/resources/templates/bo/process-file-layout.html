@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <head th:replace="include/process-file-layout-head :: head"></head>
+</head>
+<div layout:fragment="header">
+    <div th:replace="include/fixed-header-bo :: fixed-header-bo">...</div>
+</div>
+<body class="">
+<div layout:fragment="content"></div>
+<div th:replace="include/scripts-bo :: script-bo">...</div>
+<div layout:fragment="javascripts">
+</div>
+</body>
+</html>
