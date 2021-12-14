@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 @Mapper(componentModel = "spring")
 public abstract class PropertyOMapper {
 
-    public abstract PropertyOModel toTenantModel(Property property);
+    public abstract PropertyOModel toPropertyModel(Property property);
 
 
 }

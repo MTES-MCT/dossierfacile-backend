@@ -6,6 +6,7 @@ import fr.dossierfacile.api.front.model.MessageModel;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.repository.MessageRepository;
 import fr.dossierfacile.api.front.service.interfaces.MessageService;
+import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.common.entity.Message;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentStatus;
@@ -14,7 +15,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +25,7 @@ public class MessageServiceImpl implements MessageService {
     private final MessageRepository messageRepository;
     private final MessageMapper messageMapper;
     private final DocumentRepository documentRepository;
+    private final TenantService tenantService;
 
     @Override
     public List<MessageModel> findAll(Tenant tenant) {
@@ -48,22 +52,24 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     public void updateStatusOfDeniedDocuments(Tenant principalAuthTenant) {
-
-        principalAuthTenant.getDocuments().forEach(document -> {
-            if (document.getDocumentStatus().equals(DocumentStatus.DECLINED)) {
-                document.setDocumentStatus(DocumentStatus.TO_PROCESS);
-                documentRepository.save(document);
-            }
-            principalAuthTenant.getGuarantors().forEach(guarantor -> {
-                guarantor.getDocuments().forEach(document1 -> {
-                    if (document1.getDocumentStatus().equals(DocumentStatus.DECLINED)) {
-                        document1.setDocumentStatus(DocumentStatus.TO_PROCESS);
-                        documentRepository.save(document1);
+        Optional.ofNullable(principalAuthTenant.getDocuments())
+                .orElse(new ArrayList<>())
+                .forEach(document -> {
+                    if (document.getDocumentStatus().equals(DocumentStatus.DECLINED)) {
+                        document.setDocumentStatus(DocumentStatus.TO_PROCESS);
+                        documentRepository.save(document);
                     }
-
                 });
-            });
-
-        });
+        Optional.ofNullable(principalAuthTenant.getGuarantors())
+                .orElse(new ArrayList<>())
+                .forEach(guarantor -> Optional.ofNullable(guarantor.getDocuments())
+                        .orElse(new ArrayList<>())
+                        .forEach(document -> {
+                            if (document.getDocumentStatus().equals(DocumentStatus.DECLINED)) {
+                                document.setDocumentStatus(DocumentStatus.TO_PROCESS);
+                                documentRepository.save(document);
+                            }
+                        }));
+        tenantService.updateTenantStatus(principalAuthTenant);
     }
 }

@@ -1,0 +1,14 @@
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
+
+# file: ~/.gitignore_global
+.DS_Store
+.idea
+
+error.log
+
+venv
+/venv/

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="bo/layout-bo">
+<head>
+    <title>DossierFacile</title>
+</head>
+<body>
+
+<div layout:fragment="content" th:remove="tag">
+
+    <div class="col-md-12">
+        <div class="col-md-12" style="margin-bottom: 8px;">
+            <div id="hideDiv" th:if="${message}" th:text="${message}" th:class="${'alert ' + alertClass}" style="padding: 10px;margin-bottom: auto;border-radius: 8px; text-align:center;">
+            </div>
+        </div>
+
+    </div>
+    <div class="container">
+        <div class="text-center margin-bottom">
+            <span th:text="'TOTAL TENANTS FOUND : ' + ${matchList.size()}"></span>
+        </div>
+        <div class="clearfix"></div>
+        <div class="table-responsive">
+            <table th:object="${matchList}" id="userTable" class="table table-striped table-bordered table-hover">
+                <thead>
+                <tr>
+                    <td></td>
+                    <td>Id</td>
+                    <td>Creation date</td>
+                    <td>First name</td>
+                    <td>Last Name</td>
+                    <td>Email</td>
+                </tr>
+                </thead>
+                <tr th:each="tenant : ${matchList}">
+                    <td><a class="btn btn-warning bo-btn" th:href="'/bo/nextApplication?tenant_id='+${tenant.getId()}">
+                        voir le compte
+                    </a></td>
+                    <td>
+                        <span th:text="${tenant.getId()}"></span>
+                    </td>
+                    <td th:text="${#temporals.format(tenant.getCreationDateTime(), 'yyyy-MM-dd HH:mm:ss')}"></td>
+                    <td th:style="${tenant.getFirstName().toLowerCase().contains(keySearch.toLowerCase())
+                     or keySearch.toLowerCase().contains(tenant.getFirstName().toLowerCase())?'background: #c9c9c9;':'background:#f9f9f9'}"
+                        th:text="${tenant.getFirstName()}"></td>
+                    <td th:style="${tenant.getLastName().toLowerCase().contains(keySearch.toLowerCase())
+                    or keySearch.toLowerCase().contains(tenant.getLastName().toLowerCase())?'background: #c9c9c9;':'background:#f9f9f9'}"
+                        th:text="${tenant.getLastName()}"></td>
+                    <td th:text="${tenant.getEmail()}"></td>
+                </tr>
+            </table>
+        </div>
+
+    </div>
+</div>
+<div layout:fragment="javascripts" th:remove="tag">
+    <script src="/js/bo/index.js"></script>
+</div>
+</body>
+</html>

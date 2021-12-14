@@ -23,7 +23,7 @@ import static org.springframework.http.ResponseEntity.ok;
 @RequiredArgsConstructor
 @Slf4j
 public class ApplicationController {
-
+    private static final String DOCUMENT_NOT_EXIST = "The document does not exist";
     private final ApartmentSharingService apartmentSharingService;
 
     @GetMapping("/full/{token}")
@@ -42,9 +42,14 @@ public class ApplicationController {
     public void downloadFullPdf(@PathVariable("token") String token, HttpServletResponse response) {
         try {
             ByteArrayOutputStream byteArrayOutputStream = apartmentSharingService.fullPdf(token);
-            response.setHeader("Content-Disposition", "attachment; filename=" + UUID.randomUUID().toString() + ".pdf");
-            response.setHeader("Content-Type", MediaType.APPLICATION_PDF_VALUE);
-            response.getOutputStream().write(byteArrayOutputStream.toByteArray());
+            if (byteArrayOutputStream.size() > 0) {
+                response.setHeader("Content-Disposition", "attachment; filename=" + UUID.randomUUID() + ".pdf");
+                response.setHeader("Content-Type", MediaType.APPLICATION_PDF_VALUE);
+                response.getOutputStream().write(byteArrayOutputStream.toByteArray());
+            } else {
+                log.error(DOCUMENT_NOT_EXIST);
+                response.setStatus(404);
+            }
         } catch (IOException e) {
             log.error(e.getMessage(), e.getCause());
         }

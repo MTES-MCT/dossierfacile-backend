@@ -1,21 +1,19 @@
 package fr.dossierfacile.api.front.validator.tenant.application;
 
+import fr.dossierfacile.api.front.register.form.tenant.ApplicationForm;
 import fr.dossierfacile.api.front.repository.TenantRepository;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.validator.anotation.tenant.application.UniqueEmailListCoTenant;
-import fr.dossierfacile.common.entity.ApartmentSharing;
-import fr.dossierfacile.common.entity.Tenant;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
-import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
 @AllArgsConstructor
-public class UniqueEmailListCoTenantValidator implements ConstraintValidator<UniqueEmailListCoTenant, List<String>> {
+public class UniqueEmailListCoTenantValidator implements ConstraintValidator<UniqueEmailListCoTenant, ApplicationForm> {
 
     private final TenantRepository tenantRepository;
     private final AuthenticationFacade authenticationFacade;
@@ -26,13 +24,23 @@ public class UniqueEmailListCoTenantValidator implements ConstraintValidator<Uni
     }
 
     @Override
-    public boolean isValid(List<String> emails, ConstraintValidatorContext constraintValidatorContext) {
-        Tenant tenant = authenticationFacade.getPrincipalAuthTenant();
-        ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
-        emails = emails.stream().map(String::toLowerCase).collect(Collectors.toList());
-        List<Tenant> tenants = tenantRepository.findByListEmail(emails)
+    public boolean isValid(ApplicationForm applicationForm, ConstraintValidatorContext constraintValidatorContext) {
+        var tenant = authenticationFacade.getTenant(applicationForm.getTenantId());
+        if (tenant == null) {
+            return true;
+        }
+        var apartmentSharing = tenant.getApartmentSharing();
+        var emails = applicationForm.getCoTenantEmail().stream().map(String::toLowerCase).collect(Collectors.toList());
+        var tenants = tenantRepository.findByListEmail(emails)
                 .stream()
                 .filter(t -> t.getApartmentSharing() != null && !t.getApartmentSharing().equals(apartmentSharing)).collect(Collectors.toList());
-        return tenants.isEmpty();
+        boolean isValid = tenants.isEmpty();
+        if (!isValid) {
+            constraintValidatorContext.disableDefaultConstraintViolation();
+            constraintValidatorContext
+                    .buildConstraintViolationWithTemplate(constraintValidatorContext.getDefaultConstraintMessageTemplate())
+                    .addPropertyNode("coTenantEmail").addConstraintViolation();
+        }
+        return isValid;
     }
 }

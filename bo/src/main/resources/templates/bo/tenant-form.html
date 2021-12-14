@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="bo/layout-bo">
+<head>
+    <title>DossierFacile</title>
+</head>
+<body>
+<div layout:fragment="content" th:remove="tag">
+    <div th:replace="bo/menu :: menu">...</div>
+    <div class="container big-space-separator">
+
+        <div class="row">
+            <div class="col-md-3 col-sm-2 col-xs-1"></div>
+            <div class="col-md-6 col-sm-8 col-xs-10">
+
+                <form class="form" th:action="@{/bo/tenant/}+${tenantEntity.getId()}+'/edit'" method="post"
+                      th:object="${tenant}"
+                      enctype="multipart/form-data" id="formLocataire">
+                    <input type="hidden" th:name="redirectURL"
+                           th:value="'/bo/colocation/'+${apartmentSharing.getId()}"/>
+                    <div class="form-group">
+                        <label for="lastName" class="text-primary1 formatted-label  medium-space-separator">Edit
+                            tenant:</label>
+                        <!--Add or remove the class (invalid) for validations-->
+                        <input type="text" autocomplete="true" required="required" th:field="*{lastName}"
+                               class="form-control form-control-formatted form-control-untouched " placeholder="Nom"
+                               id="lastName"/>
+                        <span id="lastName-error" class="d-none color--error"></span>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" required="required" autocomplete="true" th:field="*{firstName}"
+                               class="form-control form-control-formatted form-control-untouched" placeholder="Prenom"
+                               id="firstName"/>
+                        <span id="firstName-error" class="d-none color--error"></span>
+                    </div>
+                    <div class="form-group">
+                        <input type="email" id="email" disabled="disabled" autocomplete="true" th:field="*{email}"
+                               class="form-control form-control-formatted form-control-untouched" placeholder="Email"/>
+                        <span id="email-error" class="d-none color--error"></span>
+                        <input type="hidden" th:value="*{email}" th:field="*{email}"/>
+                    </div>
+                    <div class="form-group">
+                        <select th:field="*{situation}"
+                                class="rounded-select form-control form-control-formatted form-control-untouched"
+                                placeholder="Situation">
+                            <option th:each="tenantSituation, iter: ${T(fr.gouv.common.enums.TenantSituation).values()}"
+                                    th:value="${iter.index}" th:text="#{${tenantSituation.getLabel()}}">
+                            </option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <input type="number" id="salary" required="required" autocomplete="true" th:field="*{salary}"
+                               class="form-control form-control-formatted form-control-untouched"
+                               placeholder="Salaire net mensuel"/>
+                        <!--<span id="email-error" style="display: none; color: red"></span>-->
+                    </div>
+
+
+                    <div class="form-group file1">
+                        <div class="input-icon info-icon input-file-container">
+                            <a class="link-file" th:text="#{tenant.profile.link1}"
+                               th:href="${tenantEntity.getUpload1Route()}" target="_blank">
+                            </a>
+                            <span class="change-link-input img info-icon text-alter" data-id="1" data-toggle="tooltip"
+                                  data-placement="bottom" title="" data-original-title="modify">
+                                        <span class="fa fa-pencil icono-edit-file"></span>
+                                    </span>
+                        </div>
+                    </div>
+                    <div class="form-group file1" style="display: none;">
+                        <label for="identity_card" class="text-primary1 formatted-label space-separator">Pièce
+                            d'identité en cours de validité :</label>
+                        <div class="input-icon text-center info-icon input-file-container">
+                            <input type="text"
+                                   class="form-control form-control-formatted form-control-untouched input-file"
+                                   placeholder="Ajouter un document" id="identity_card" readonly=""/>
+                            <input type="file" class="hidden file-reader" accept="image/*, .pdf" th:field="*{files}"
+                                   name="identity_card"/>
+                            <span class="img info-icon text-alter" data-toggle="tooltip" data-placement="bottom"
+                                  title=""
+                                  data-original-title="carte d'identité OU passeport OU permis de conduire OU carte de séjour OU carte de résident">
+                                    <span>?</span>
+                                  </span>
+                        </div>
+                    </div>
+
+                    <div class="form-group file2">
+                        <div class="input-icon info-icon input-file-container">
+                            <a class="link-file" th:text="#{tenant.profile.link2}"
+                               th:href="${tenantEntity.getUpload2Route()}"
+                               target="_blank"></a>
+                            <span class="change-link-input img info-icon text-alter" data-id="2" data-toggle="tooltip"
+                                  data-placement="bottom" title="" data-original-title="modify">
+                                        <span class="fa fa-pencil icono-edit-file"></span>
+                                    </span>
+                        </div>
+                    </div>
+                    <div class="form-group file2" style="display: none;">
+                        <label for="domicile" class="text-primary1 formatted-label space-separator">Justificatif de
+                            domicile :</label>
+                        <div class="input-icon text-center info-icon input-file-container">
+                            <input type="text"
+                                   class="form-control form-control-formatted form-control-untouched input-file"
+                                   placeholder="Ajouter un document" id="domicile" readonly=""/>
+                            <input type="file" class="hidden file-reader" accept="image/*, .pdf" th:field="*{files}"
+                                   name="domicile"/>
+                            <span class="img info-icon text-alter" data-toggle="tooltip" data-placement="bottom"
+                                  title=""
+                                  data-original-title="3 dernières quittances de loyer ou, à défaut, une attestation du précédent bailleur OU attestation sur l'honneur de l'hébergeant">
+                                        <span>?</span>
+                                        </span>
+                        </div>
+                    </div>
+
+                    <div class="form-group file3">
+                        <div class="input-icon info-icon input-file-container">
+                            <a class="link-file" th:text="#{tenant.profile.link3}"
+                               th:href="${tenantEntity.getUpload3Route()}"
+                               target="_blank"></a>
+                            <span class="change-link-input img info-icon text-alter" data-id="3" data-toggle="tooltip"
+                                  data-placement="bottom" title="" data-original-title="modify">
+                                        <span class="fa fa-pencil icono-edit-file"></span>
+                                    </span>
+                        </div>
+                    </div>
+                    <div class="form-group file3" style="display: none">
+                        <label for="work_status" class="text-primary1 formatted-label space-separator">Justificatif de
+                            situation professionnelle :</label>
+                        <div class="input-icon text-center info-icon input-file-container">
+                            <input type="text"
+                                   class="form-control form-control-formatted form-control-untouched input-file"
+                                   placeholder="Ajouter un document" id="work_status" readonly=""/>
+                            <input type="file" class="hidden file-reader" accept="image/*, .pdf" th:field="*{files}"
+                                   name="work_status"/>
+                            <span class="img info-icon text-alter" data-toggle="tooltip" data-placement="bottom"
+                                  title=""
+                                  data-original-title="contrat de travail ou de stage ou, à défaut, attestation de l'employeur OU carte d'étudiant OU certificat de scolarité OU copie de la carte professionnelle (profession libérale) OU autre">
+                                    <span>?</span>
+                                  </span>
+                        </div>
+                    </div>
+                    <div id="inputFile4">
+                        <div class="form-group file4">
+                            <div class="input-icon info-icon input-file-container">
+                                <a class="link-file" th:text="#{tenant.profile.link4}"
+                                   th:href="${tenantEntity.getUpload4Route()}"
+                                   target="_blank"></a>
+                                <span class="change-link-input img info-icon text-alter" data-id="4"
+                                      data-toggle="tooltip"
+                                      data-placement="bottom" title="" data-original-title="modify">
+                                        <span class="fa fa-pencil icono-edit-file"></span>
+                                    </span>
+                            </div>
+                        </div>
+                        <div class="form-group file4" style="display: none;">
+                            <label for="impots" class="text-primary1 formatted-label space-separator">Avis d'imposition
+                                :</label>
+                            <div class="input-icon text-center info-icon input-file-container">
+                                <input type="text"
+                                       class="form-control form-control-formatted form-control-untouched input-file"
+                                       placeholder="Ajouter un document" id="impots" readonly=""/>
+                                <input type="file" class="hidden file-reader" accept="image/*, .pdf" th:field="*{files}"
+                                       name="justificatif_res"/>
+                                <span class="img info-icon text-alter" data-toggle="tooltip" data-placement="bottom"
+                                      title="" data-original-title="dernier avis d'imposition ou de non-imposition">
+                                    <span>?</span>
+                                  </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="checkbox">
+                        <label class="form-check-label text-primary1 " for="file4Generated">
+                            <input type="checkbox"
+                                   th:field="*{file4Generated}" class="form-check-input" id="file4Generated"/>
+                            <span>Vous ne disposez pas d'avis d'imposition en votre nom</span>
+                        </label>
+                    </div>
+
+
+                    <div id="causeFile4Generated" style="display: none">
+                        <div class="radio">
+                            <label><input type="radio" th:field="*{causeFile4Generated}"
+                                          th:value="${T(fr.gouv.common.enums.CauseFile4Generated).CHILD}"/>
+                                je suis encore rattaché au foyer fiscal de mes parents
+                            </label>
+                        </div>
+                        <div class="radio">
+                            <label><input type="radio" th:field="*{causeFile4Generated}"
+                                          th:value="${T(fr.gouv.common.enums.CauseFile4Generated).FOREIGNER}"/>
+                                je suis sur le territoire français depuis moins d'un an
+                            </label>
+                        </div>
+                        <div class="radio">
+                            <label><input th:field="*{causeFile4Generated}"
+                                          th:value="${T(fr.gouv.common.enums.CauseFile4Generated).OTHER}"
+                                          type="radio"/>
+                                autre
+                            </label>
+                        </div>
+                        <div class="radio">
+                            <label><input th:field="*{causeFile4Generated}"
+                                          th:value="${T(fr.gouv.common.enums.CauseFile4Generated).STUDENT}"
+                                          type="radio"/>
+                                student
+                            </label>
+                        </div>
+                    </div>
+                    <div id="inputFile5">
+                        <div class="form-group file5">
+                            <div class="input-icon info-icon input-file-container">
+                                <a class="link-file" th:text="#{tenant.profile.link5}"
+                                   th:href="${tenantEntity.getUpload5Route()}"
+                                   target="_blank"></a>
+                                <span class="change-link-input img info-icon text-alter" data-id="5"
+                                      data-toggle="tooltip"
+                                      data-placement="bottom" title="" data-original-title="modify">
+                                        <span class="fa fa-pencil icono-edit-file"></span>
+                                    </span>
+                            </div>
+                        </div>
+                        <div class="form-group file5" style="display: none;">
+                            <label for="justificatif_res" class="text-primary1 formatted-label space-separator">Justificatif
+                                de ressources :</label>
+                            <div class="input-icon text-center info-icon input-file-container">
+                                <input type="text"
+                                       class="form-control form-control-formatted form-control-untouched input-file"
+                                       placeholder="Ajouter un document" id="justificatif_res" readonly=""/>
+                                <input type="file" class="hidden file-reader" accept="image/*, .pdf" th:field="*{files}"
+                                       name="justificatif_res"/>
+                                <span class="img info-icon text-alter" data-toggle="tooltip" data-placement="bottom"
+                                      title=""
+                                      data-original-title="3 derniers bulletins de salaires OU justificatif de versement des indemnités de stage OU 2 derniers bilans comptables ou, à défaut attestation des ressources délivrée par un comptable (non-salariés)">
+                                    <span>?</span>
+                                  </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="checkbox">
+                        <label class="form-check-label text-primary1 " for="file5GeneratedM">
+                            <input type="checkbox"
+                                   th:field="*{file5Generated}" class="form-check-input" id="file5GeneratedM"/>
+                            <span>Je n'ai pas encore de fiche de paie pour mon nouvel emploi</span>
+                        </label>
+                    </div>
+
+
+                    <div class="radio">
+                        <label><input type="radio" th:field="*{guarantorType}"
+                                      th:value="${T(fr.gouv.common.enums.GuarantorType).NONE}"/>Je n'ai pas de
+                            garant</label>
+                    </div>
+                    <div class="radio">
+                        <label><input type="radio" th:field="*{guarantorType}"
+                                      th:value="${T(fr.gouv.common.enums.GuarantorType).VISALE}"/>Visale est mon garant</label>
+                        <img alt="" class="" src="/assets/images/AL_APAGL.png" style="width: 50px"/>
+                    </div>
+                    <div class="radio">
+                        <label><input type="radio" th:field="*{guarantorType}"
+                                      th:value="${T(fr.gouv.common.enums.GuarantorType).LOCATIO}"/>J'ai garant
+                            classique</label>
+                    </div>
+
+                    <!--guarantor-->
+                    <div id="guarantorFormEdit" style="display: none">
+                        <div th:replace="include/guarantor-edit:: guarantor-edit">
+                        </div>
+                    </div>
+                    <div id="guarantorFormNew" style="display: none">
+                        <div th:replace="include/guarantor-new:: guarantor">
+                        </div>
+                    </div>
+                    <div id="guarantorFormNew2" style="display: none">
+                        <div th:replace="include/guarantor-new2:: guarantor2">
+                        </div>
+
+                    </div>
+
+                    <div class="text-center medium-space-separator">
+                        <button type="submit" data-loading-text="Création en cours..."
+                                class="btn btn-primary btn-responsive animated subtitle1 modify">Modifier
+                        </button>
+                    </div>
+
+
+                </form>
+                <div class="modal fade" id="confirmFile4Generated" tabindex="-1" role="dialog"
+                     aria-labelledby="confirmFile4Generated">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content text-primary">
+                            <div class="modal-body text-center">
+                                <div class="text-primary little-title space-separator border-bottom border-primary">
+                                    <p id="textGeneratedFile4" style="display: none"
+                                       class="">
+                                        Generated file4?</p>
+                                    <p id="textGeneratedFile5" style="display: none"
+                                       class="">
+                                        Generated file5?</p>
+                                </div>
+
+                                <div class="medium-space-separator-top">
+                                    <a href="" id="confirmFile4GeneratedYES"
+                                       class="btn btn-primary btn-responsive">Oui</a>
+                                    <a href="" data-toggle="modal" data-target="#confirmFile4Generated"
+                                       id="confirmFile4GeneratedNO"
+                                       class="btn btn-default btn-responsive subtitle1 closebtnaction">Non</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+<div layout:fragment="javascripts" th:remove="tag">
+    <script src="/js/modify-profile-bo.js"></script>
+</div>
+</body>
+</html>

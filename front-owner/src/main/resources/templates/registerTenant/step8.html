@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en"
+      layout:decorator="registerTenant/layout"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>DossierFacile</title>
+</head>
+<body>
+<div layout:fragment="sidebar" th:remove="tag">
+    <div th:replace="registerTenant/sidebar :: sidebar(step = 'GARANT', currentStep = ${currentStep}, fileDTO = ${fileDTO}, slug = ${tenantDTO.getSlug()})">
+    </div>
+</div>
+<div layout:fragment="content" th:remove="tag">
+    <section class="register-guarantor">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-6 col-lg-5">
+                    <h3 class="register-guarantor-title"> Constituez votre dossier : seules les pièces autorisées par la
+                        loi vous sont
+                        demandées </h3>
+
+                    <th:block th:if="${fileNumber}==1">
+                        <h5 class="text-lead-color" th:if="${typeGuarantor.name() =='LOCATIO'}">
+                            Pièce d’identité du garant en cours de validité : </h5>
+                        <h5 class="text-lead-color" th:if="${typeGuarantor.name() =='VISALE'}">
+                            Ajoutez un certificat ou un visa délivré par l’organisme qui se porte garant pour vous </h5>
+                    </th:block>
+
+                    <h5 class="text-lead-color" th:if="${fileNumber}==2">
+                        Justificatif de domicile du garant : (une facture peut suffire)
+                    </h5>
+
+                    <h5 class="text-lead-color" th:if="${fileNumber}==3">
+                        Justificatif de situation professionnelle du garant : (contrat, fiche de paie, bulletin de
+                        retraite par exemple)
+                        <!--                        <span th:text="#{tenant.profile.help}"></span>-->
+                    </h5>
+
+                    <h5 class="text-lead-color" th:if="${fileNumber}==4">
+                        <span id="titleFile4Type1">Avis d’imposition du garant : (la première page de l’avis d’imposition, avec le nom lisible, doit figurer)</span>
+                        <span id="titleFile4Type2" style="display: none">Afin d'améliorer votre dossier, veuillez expliquer ci-dessous pourquoi votre garant ne reçoit pas d’avis d’imposition. Votre explication sera ajoutée à votre dossier</span>
+                    </h5>
+
+                    <h5 class="text-lead-color" th:if="${fileNumber}==5">
+                        Justificatifs de ressources du garant :
+                        <span th:text="#{tenant.profile.help}"></span>
+                    </h5>
+
+
+                    <form enctype="multipart/form-data"
+                          id="formLocataire" method="post"
+                          th:action="@{/registerTenant/step8/} + ${tenantDTO.getSlug()}"
+                          th:object="${tenantDTO.guarantor}"
+                          th:onsubmit="${fileNumber==1 || fileNumber==3 || fileNumber==4 || fileNumber==5} ? 'return validateFormStep2And5();' : 'return validate_form();'">
+
+                        <input name="fileNumber" th:value="${fileNumber}" type="hidden"/>
+
+                        <div class="row" th:if="${fileNumber}==1">
+                            <div class="col-md-12"></div>
+                            <div class="col-md-12">
+                                <input accept="image/*, .pdf" class="hidden" data-id="0" id="identity_card"
+                                       name="identity_card" th:field="*{files[0]}" type="file"/>
+                                <a class="btn btn--primary btn--icon" href="#" id="identity_card_button">
+                                    <span class="btn__text">
+                                        <i class="icon-Add-File"></i> Ajouter un document
+                                    </span>
+                                </a>
+
+                                <span class="ml-3 my-auto" id="identity_card_filename"></span>
+                            </div>
+                            <div class="col-md-12">
+                                <input accept="image/*, .pdf" class="hidden" data-id="0" id="identity_card2"
+                                       name="identity_card" th:field="*{files[0]}" type="file"/>
+                                <a class="btn btn--primary btn--icon" href="#" id="identity_card_button2">
+                                    <span class="btn__text">
+                                        <i class="icon-Add-File"></i> Ajouter un document
+                                    </span>
+                                </a>
+
+                                <span class="ml-3 my-auto" id="identity_card_filename2"></span>
+                            </div>
+                        </div>
+                        <div class="row" th:if="${fileNumber}==2">
+                            <div class="col-md-12 ">
+                                <input accept="image/*, .pdf" class="hidden" data-id="0" id="domicile"
+                                       name="domicile" th:field="*{files[0]}" type="file"/>
+                                <a class="btn btn--primary btn--icon" href="#" id="domicile_button">
+                                    <span class="btn__text">
+                                        <i class="icon-Add-File"></i> Ajouter un document
+                                    </span>
+                                </a>
+
+                                <span class="ml-3 my-auto" id="domicile_filename"></span>
+                            </div>
+                        </div>
+
+                        <div class="row" th:if="${fileNumber}==3">
+
+                            <div class="col-md-12">
+                                <input accept="image/*, .pdf" class="hidden" data-id="0" id="file0"
+                                       th:field="*{files[0]}" type="file"/>
+                                <a class="btn btn--primary btn--icon mr-3" href="#" id="file_button0"
+                                   onclick="return clickedFileButton(0);">
+                                        <span class="btn__text">
+                                            <i class="icon-Add-File"></i> Ajouter un document
+                                        </span>
+                                </a>
+
+                                <span class="ml-3 my-auto" id="file0_filename"></span>
+                            </div>
+
+                            <div class="col-md-12">
+                                <input accept="image/*, .pdf" class="hidden" data-id="0" id="file1"
+                                       th:field="*{files[1]}"
+                                       type="file"/>
+                                <a class="btn btn--primary btn--icon mr-3" href="#" id="file_button1"
+                                   onclick="return clickedFileButton(1);">
+                                        <span class="btn__text">
+                                            <i class="icon-Add-File"></i> Ajouter un document
+                                        </span>
+                                </a>
+
+                                <span class="ml-3 my-auto" id="file1_filename"></span>
+                            </div>
+
+                            <div class="col-md-12">
+                                <input accept="image/*, .pdf" class="hidden" id="file2" th:field="*{files[2]}"
+                                       type="file"/>
+                                <a class="btn btn--primary btn--icon mr-3" href="#" id="file_button2"
+                                   onclick="return clickedFileButton(2);">
+                                        <span class="btn__text">
+                                            <i class="icon-Add-File"></i> Ajouter un document
+                                        </span>
+                                </a>
+
+                                <span class="ml-3 my-auto" id="file2_filename"></span>
+                            </div>
+                        </div>
+
+                        <div class="row" th:if="${fileNumber}==4">
+                            <div class="col-md-12">
+                                <div class="input-radio d-flex">
+                                    <input id="radioType1" th:field="*{typeFile4Guarantor}"
+                                           type="radio" value="TYPE1"/>
+                                    <label for="radioType1"></label>
+                                    <span class="input__label radio-step5file5">Je peux fournir l’avis d’imposition de mon garant</span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-12">
+                                <div class="input-radio d-flex">
+                                    <input id="radioType2" th:field="*{typeFile4Guarantor}"
+                                           type="radio" value="TYPE2"/>
+                                    <label for="radioType2"></label>
+                                    <span class="input__label radio-step5file5">Je ne peux pas fournir l’avis d’imposition de mon garant</span>
+                                </div>
+                            </div>
+                            <div class="col-md-12" id="divTextFile5" style="display: none">
+                                <textarea id="textFile5" maxlength="500" placeholder="" rows="4"
+                                          th:field="*{file4Text}"></textarea>
+                            </div>
+                            <div class="col-md-12 file4guarantor">
+                                <input accept="image/*, .pdf" class="hidden" data-id="0" id="impots0"
+                                       name="impots" th:field="*{files[0]}" type="file"/>
+                                <a class="btn btn--primary btn--icon" href="#" id="impots_button0">
+                                    <span class="btn__text">
+                                        <i class="icon-Add-File"></i> Ajouter un document
+                                    </span>
+                                </a>
+
+                                <span class="ml-3 my-auto" id="impots_filename0"></span>
+                            </div>
+                            <div class="col-md-12 file4guarantor">
+                                <input accept="image/*, .pdf" class="hidden" data-id="0" id="impots1"
+                                       name="impots" th:field="*{files[0]}" type="file"/>
+                                <a class="btn btn--primary btn--icon" href="#" id="impots_button1">
+                                    <span class="btn__text">
+                                        <i class="icon-Add-File"></i> Ajouter un document
+                                    </span>
+                                </a>
+
+                                <span class="ml-3 my-auto" id="impots_filename1"></span>
+                            </div>
+                            <div class="col-md-12 file4guarantor">
+                                <input accept="image/*, .pdf" class="hidden" data-id="0" id="impots2"
+                                       name="impots" th:field="*{files[0]}" type="file"/>
+                                <a class="btn btn--primary btn--icon" href="#" id="impots_button2">
+                                    <span class="btn__text">
+                                        <i class="icon-Add-File"></i> Ajouter un document
+                                    </span>
+                                </a>
+
+                                <span class="ml-3 my-auto" id="impots_filename2"></span>
+                            </div>
+                            <div class="col-md-12 file4guarantor">
+                                <input accept="image/*, .pdf" class="hidden" data-id="0" id="impots3"
+                                       name="impots" th:field="*{files[0]}" type="file"/>
+                                <a class="btn btn--primary btn--icon" href="#" id="impots_button3">
+                                    <span class="btn__text">
+                                        <i class="icon-Add-File"></i> Ajouter un document
+                                    </span>
+                                </a>
+
+                                <span class="ml-3 my-auto" id="impots_filename3"></span>
+                            </div>
+                        </div>
+
+                        <div class="row" th:if="${fileNumber}==5">
+                            <div class="col-md-12">
+                                <input accept="image/*, .pdf" class="hidden" data-id="0" id="file0"
+                                       th:field="*{files[0]}" type="file"/>
+                                <a class="btn btn--primary btn--icon mr-3" href="#" id="file_button0"
+                                   onclick="return clickedFileButton(0);">
+                                        <span class="btn__text">
+                                            <i class="icon-Add-File"></i> Ajouter un document
+                                        </span>
+                                </a>
+
+                                <span class="ml-3 my-auto" id="file0_filename"></span>
+                            </div>
+
+                            <div class="col-md-12">
+                                <input accept="image/*, .pdf" class="hidden" data-id="0" id="file1"
+                                       th:field="*{files[1]}"
+                                       type="file"/>
+                                <a class="btn btn--primary btn--icon mr-3" href="#" id="file_button1"
+                                   onclick="return clickedFileButton(1);">
+                                        <span class="btn__text">
+                                            <i class="icon-Add-File"></i> Ajouter un document
+                                        </span>
+                                </a>
+
+                                <span class="ml-3 my-auto" id="file1_filename"></span>
+                            </div>
+
+                            <div class="col-md-12">
+                                <input accept="image/*, .pdf" class="hidden" id="file2" th:field="*{files[2]}"
+                                       type="file"/>
+                                <a class="btn btn--primary btn--icon mr-3" href="#" id="file_button2"
+                                   onclick="return clickedFileButton(2);">
+                                        <span class="btn__text">
+                                            <i class="icon-Add-File"></i> Ajouter un document
+                                        </span>
+                                </a>
+
+                                <span class="ml-3 my-auto" id="file2_filename"></span>
+                            </div>
+                        </div>
+
+                        <!-- The global progress bar -->
+                        <div class="row">
+                            <div class="progress-horizontal progress-horizontal--sm col-12 mt-4 hidden"
+                                 id="progress">
+                                <div class="progress-horizontal__bar" data-value="0" id="progressBar"></div>
+                                <!--<span class="progress-horizontal__label h5" id="progress-label">[Filename]</span>-->
+                            </div>
+
+                            <div class="col-12 text-left" id="errors">
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn--sm btn--secondary type--uppercase mt-0 px-3"
+                                        onclick="history.back()"
+                                        type="button">précédent
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn--primary text-uppercase" th:text="#{tenant.form.button.next}"
+                                        type="submit">
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    <div th:replace="include/modal-api:: modal-api">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <div th:replace="include/register-tenant-help :: register-tenant-help"></div>
+
+    <div th:replace="include/modal-account:: modal-account">
+    </div>
+</div>
+<div layout:fragment="javascripts" th:remove="tag">
+    <script src="/js/registerTenant/step8.js"></script>
+    <script src="/js/registerTenant/registerTenant.js"></script>
+</div>
+</body>
+</html>

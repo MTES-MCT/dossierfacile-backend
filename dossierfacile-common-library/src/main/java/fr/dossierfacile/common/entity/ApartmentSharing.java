@@ -45,6 +45,9 @@ public class ApartmentSharing implements Serializable {
     @OneToMany(mappedBy = "apartmentSharing", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     private List<Prospect> prospects = new ArrayList<>();
 
+    @OneToMany(mappedBy = "apartmentSharing", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    private List<PropertyApartmentSharing> propertiesApartmentSharing = new ArrayList<>();
+
     @Column
     private String token;
 
@@ -57,6 +60,8 @@ public class ApartmentSharing implements Serializable {
     @Column
     @Enumerated(EnumType.STRING)
     private ApplicationType applicationType;
+
+    private String urlDossierPdfDocument;
 
     public ApartmentSharing(Tenant tenant) {
         tenants.add(tenant);
@@ -88,13 +93,7 @@ public class ApartmentSharing implements Serializable {
     }
 
     public int getNumberOfCompleteRegister() {
-        int numberOfCompleteRegister = getNumberOfTenants();
-        for (Tenant tenant : tenants) {
-            if (tenant.getStatus() == TenantFileStatus.INCOMPLETE) {
-                numberOfCompleteRegister--;
-            }
-        }
-        return numberOfCompleteRegister;
+        return (int) tenants.stream().filter(t -> t.getStatus() != TenantFileStatus.INCOMPLETE).count();
     }
 
     public void addProspect(Prospect prospect) {

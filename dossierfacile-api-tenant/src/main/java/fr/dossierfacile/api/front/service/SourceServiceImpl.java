@@ -7,6 +7,7 @@ import fr.dossierfacile.common.enums.TypeUserApi;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -25,5 +26,10 @@ public class SourceServiceImpl implements SourceService {
                         .build()
         );
         return userApiRepository.save(userApi);
+    }
+
+    @Override
+    public Optional<UserApi> findByName(String partner) {
+        return userApiRepository.findByName(partner);
     }
 }

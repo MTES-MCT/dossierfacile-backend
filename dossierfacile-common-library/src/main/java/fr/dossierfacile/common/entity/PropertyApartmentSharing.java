@@ -35,9 +35,6 @@ public class PropertyApartmentSharing implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column()
-    private LocalDateTime createdAt = LocalDateTime.now();
-
     @NotFound(action = NotFoundAction.IGNORE)
     @ManyToOne
     @JoinColumn(name = "property_id")

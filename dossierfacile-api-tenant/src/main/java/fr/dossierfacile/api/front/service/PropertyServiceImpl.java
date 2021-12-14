@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.front.service;
 
+import fr.dossierfacile.api.front.exception.PropertyNotFoundException;
 import fr.dossierfacile.api.front.repository.PropertyRepository;
 import fr.dossierfacile.api.front.service.interfaces.PropertyService;
 import fr.dossierfacile.common.entity.Property;
@@ -14,6 +15,6 @@ public class PropertyServiceImpl implements PropertyService {
 
     @Override
     public Property getPropertyByToken(String token) {
-        return propertyRepository.findFirstByToken(token).orElseThrow(null);
+        return propertyRepository.findFirstByToken(token).orElseThrow(() -> new PropertyNotFoundException(token));
     }
 }

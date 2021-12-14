@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en"
+      layout:decorator="registerTenant/layout"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>DossierFacile</title>
+    <link href="/css/recap.css" rel="stylesheet"/>
+</head>
+<body>
+<div layout:fragment="sidebar" th:remove="tag">
+    <div th:replace="registerTenant/sidebar :: sidebar(step = 'RECAP', currentStep = ${currentStep}, fileDTO = null, slug = '')"></div>
+</div>
+<div layout:fragment="content" th:remove="tag">
+    <section>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="process-1">
+                        <div class="process__item">
+                            <h4>Mon Recap </h4>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <span>Nom : </span>
+                                    <div class="input-icon input-icon--right">
+                                        <i class="material-icons md-18 cursor-pointer edit-button" data-id="lastName">edit</i>
+                                        <input class="small" disabled="disabled" placeholder="Ex : Dupont"
+                                               th:value="${tenant.lastName}" type="text"/>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <span>Mail : </span>
+                                    <div class="input-icon input-icon--right">
+                                        <input class="small" disabled="disabled"
+                                               placeholder="Ex : Jean-Michel@exemple.fr"
+                                               th:value="${tenant.email}" type="email"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 text-left">
+                                    <span> Prénom : </span>
+                                    <div class="input-icon input-icon--right">
+                                        <i class="material-icons md-18 cursor-pointer edit-button" data-id="firstName">edit</i>
+                                        <input class="small" disabled="disabled" placeholder="Ex : Jean-Michel"
+                                               th:value="${tenant.firstName}" type="text"/>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <span>Téléphone :</span>
+                                    <div class="input-icon input-icon--right">
+                                        <i class="material-icons md-18 cursor-pointer edit-button" data-id="telephone">edit</i>
+                                        <input class="small" disabled="disabled" placeholder="06 07 08 09 10"
+                                               th:value="${tenant.telephone}" type="tel"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <span> Situation : </span>
+                                    <div class="input-icon input-icon--right">
+                                        <i class="material-icons md-18 cursor-pointer edit-button" data-id="situation">edit</i>
+                                        <input class="small" disabled="disabled"
+                                               placeholder="Ex : CDD" th:value="#{${tenant.getTenantSituation().getLabel()}}"
+                                               type="text"/>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <span> Revenus : </span>
+                                    <div class="input-icon input-icon--right">
+                                        <i class="material-icons md-18 cursor-pointer edit-button"
+                                           data-id="salary">edit</i>
+                                        <input class="small" disabled="disabled" placeholder="Ex : 1000&euro;"
+                                               th:value="${tenant.getTotalSalary()}+' &euro;'" type="text"/>
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="modal-instance pull-right mt-2"
+                                         th:if="${tenant.getEmail() == tenantCreate.getEmail()}">
+                                        <a class="btn modal-trigger" href="#"
+                                           id="buttonJoinTenant" style="border-color: #3483de !important"
+                                           th:attr="data-slug=${tenantDTO.getSlug()}">
+                                            <span class="btn__text color--primary">Ajouter un colocataire</span>
+                                        </a>
+                                        <div class="modal-container" id="modalJoinTenant"
+                                             th:attrappend="data-autoshow = ${showModalWithError!=null?'1':''}">
+                                            <div class="modal-content section-modal">
+                                                <section class="unpad ">
+                                                    <div class="container">
+                                                        <div class="row justify-content-center">
+                                                            <div class="col-md-9 col-lg-7">
+                                                                <div class="feature feature-1">
+                                                                    <div class="feature__body boxed boxed--lg boxed--border">
+                                                                        <div class="modal-close modal-close-cross"></div>
+                                                                        <div class="text-block">
+                                                                            <h3 id="titleModalJoinTenant">Rentrez les
+                                                                                informations de votre
+                                                                                nouveau colocataire </h3>
+                                                                        </div>
+                                                                        <form onsubmit="return validate_form()"
+                                                                              th:action="@{/locataire/addTenant/} + ${tenantDTO.getSlug()}"
+                                                                              th:method="post"
+                                                                              th:object="${tenantDTO2}">
+                                                                            <div class="row">
+                                                                                <div class="col-md-4">Nom :</div>
+                                                                                <div class="col-md-8">
+                                                                                    <input id="lastNameJoinTenant"
+                                                                                           placeholder="Nom"
+                                                                                           th:field="*{lastName}"
+                                                                                           type="text"/>
+                                                                                </div>
+                                                                                <div class="col-md-4">Prénom :</div>
+                                                                                <div class="col-md-8">
+                                                                                    <input id="firstNameJoinTenant"
+                                                                                           placeholder="Prénom"
+                                                                                           th:field="*{firstName}"
+                                                                                           type="text"/>
+                                                                                </div>
+                                                                                <div class="col-md-4">Adresse e-mail :
+                                                                                </div>
+                                                                                <div class="col-md-8">
+                                                                                    <input id="emailJoinTenant"
+                                                                                           placeholder="E-mail"
+                                                                                           th:field="*{email}"
+                                                                                           type="text"/>
+                                                                                    <span class="color--error"
+                                                                                          th:if="${errorMessage!=null}"
+                                                                                          th:text="${errorMessage}"></span>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="row justify-content-center">
+                                                                                <div class="col-md-6">
+                                                                                    <button class="btn btn-block btn--primary"
+                                                                                            type="submit">
+                                                                                        Enregistrer les modifications
+                                                                                    </button>
+                                                                                </div>
+                                                                            </div>
+                                                                        </form>
+                                                                    </div>
+                                                                </div>
+
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </section>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="process__item" th:if="${tenants.size() > 1}">
+                            <h4>Ma colocation </h4>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="feature feature-2 boxed boxed--border"
+                                         style="background-color: rgb(229,229,229)">
+                                        <i class="icon icon-Male color--primary"></i>
+                                        <div class="feature__body">
+                                            <h4>Créateur collocation</h4>
+                                            <p>
+                                                <span th:text="${tenantCreate.getLastName()}"></span>
+                                                <br/>
+                                                <span th:text="${tenantCreate.getFirstName()}"></span>
+                                                <br/>
+                                                <span th:text="${tenantCreate.getEmail()}"></span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <!--end feature-->
+                                </div>
+                                <div class="col-md-4" th:each="joinTenant: ${tenants}"
+                                     th:if="${joinTenant.getEmail() != tenantCreate.getEmail()}">
+                                    <div class="feature feature-2 boxed boxed--border">
+                                        <i class="icon icon-Male color--primary"></i>
+                                        <div class="feature__body">
+                                            <p>
+                                                <span th:text="${joinTenant.getLastName()}"></span>
+                                                <br/>
+                                                <span th:text="${joinTenant.getFirstName()}"></span>
+                                                <br/>
+                                                <span th:text="${joinTenant.getEmail()}"></span>
+                                            </p>
+                                        </div>
+                                        <div class="d-inline-flex links-roommate"
+                                             th:if="${tenant.getEmail() == tenantCreate.getEmail()}">
+                                            <div class="modal-instance links-roommate-delete">
+                                                <a class="modal-trigger" href="#">
+                                                    <span style="text-decoration: underline">Supprimer</span>
+                                                </a>
+                                                <div class="modal-container">
+                                                    <div class="modal-content section-modal">
+                                                        <section class="unpad ">
+                                                            <div class="container">
+                                                                <div class="row justify-content-center">
+                                                                    <div class="col-md-10 col-lg-8">
+                                                                        <div class="feature feature-1">
+                                                                            <div class="feature__body boxed boxed--lg boxed--border text-center">
+                                                                                <div class="modal-close modal-close-cross"></div>
+                                                                                <div class="text-block">
+                                                                                    <h3>Êtes vous sûr de vouloir retirer
+                                                                                        <span
+                                                                                                th:text="${joinTenant.getFullName()}"></span>
+                                                                                        de votre colocation ?</h3>
+                                                                                </div>
+                                                                                <form th:action="@{/locataire/join/}+${joinTenant.id}+'/'+${tenantDTO.getSlug()}+'/delete'"
+                                                                                      th:method="post">
+                                                                                    <div class="row justify-content-center">
+                                                                                        <div class="col-md-6">
+                                                                                            <button class="btn btn-block btn--primary"
+                                                                                                    type="submit">
+                                                                                                VALIDER
+                                                                                            </button>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </form>
+                                                                            </div>
+                                                                        </div>
+
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </section>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="modal-instance">
+                                                <a class="btn btn--primary links-roommate-delete modifier-button"
+                                                   href="#"
+                                                   th:attr="data-id=${joinTenant.id},data-slug=${tenantDTO.getSlug()},data-firstName=${joinTenant.firstName},data-lastName=${joinTenant.lastName},data-email=${joinTenant.email}">
+                                                    <span class="btn__text">
+                                                        Modifier
+                                                    </span>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!--end feature-->
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="process__item">
+                            <h4>Mes pièces
+                                <br/><i> Cliquez sur les pièces pour les modifier</i></h4>
+
+                            <div class="d-inline-flex">
+                                <div class="box-mon-recap">
+                                    <div class="feature feature-4 boxed boxed--lg boxed--border text-center same-height">
+                                        <div class="cursor-pointer"
+                                             onclick="window.open(this.getAttribute('data-url'),'mywindow')"
+                                             th:data-url="${tenant.getUpload1Route()}">
+                                            <i class="icon icon-Male icon--sm"></i>
+                                            <h4>Pièce d’identité</h4>
+                                        </div>
+                                        <a class="btn btn--primary modal-file-button" data-id="1" href="#">
+                                                    <span class="btn__text">
+                                                        Modifier
+                                                    </span>
+                                        </a>
+                                    </div>
+                                    <!--end feature-->
+                                </div>
+                                <div class="box-mon-recap">
+                                    <div class="feature feature-4 boxed boxed--lg boxed--border text-center same-height">
+                                        <div class="cursor-pointer"
+                                             onclick="window.open(this.getAttribute('data-url'),'mywindow')"
+                                             th:data-url="${tenant.getUpload2Route()}">
+                                            <i class="icon icon-Warehouse icon--sm"></i>
+                                            <h4>Justificatif de domicile</h4>
+                                        </div>
+                                        <a class="btn btn--primary modal-file-button" data-id="2" href="#">
+                                                    <span class="btn__text">
+                                                        Modifier
+                                                    </span>
+                                        </a>
+                                    </div>
+                                    <!--end feature-->
+                                </div>
+                                <div class="box-mon-recap">
+                                    <div class="feature feature-4 boxed boxed--lg boxed--border text-center same-height">
+                                        <div class="cursor-pointer"
+                                             onclick="window.open(this.getAttribute('data-url'),'mywindow')"
+                                             th:data-url="${tenant.getUpload3Route()}">
+                                            <i class="icon icon-File icon--sm"></i>
+                                            <h4>Justificatif de situation professionnelle</h4>
+                                        </div>
+                                        <a class="btn btn--primary modal-file-button" data-id="3" href="#">
+                                                    <span class="btn__text">
+                                                        Modifier
+                                                    </span>
+                                        </a>
+                                    </div>
+                                    <!--end feature-->
+                                </div>
+                                <div class="box-mon-recap" th:if="${tenant.getTenantSituation().name()!='STUDENT'}">
+                                    <div class="feature feature-4 boxed boxed--lg boxed--border text-center same-height">
+                                        <div class="cursor-pointer"
+                                             onclick="window.open(this.getAttribute('data-url'),'mywindow')"
+                                             th:data-url="${tenant.getUpload4Route()}">
+                                            <i class="icon icon-Folder-WithDocument icon--sm"></i>
+                                            <h4>Avis d’imposition</h4>
+                                        </div>
+                                        <a class="btn btn--primary modal-file-button" data-id="4" href="#">
+                                                    <span class="btn__text">
+                                                        Modifier
+                                                    </span>
+                                        </a>
+                                    </div>
+                                    <!--end feature-->
+                                </div>
+                                <div class="box-mon-recap">
+                                    <div class="feature feature-4 boxed boxed--lg boxed--border text-center same-height">
+                                        <div class="cursor-pointer"
+                                             onclick="window.open(this.getAttribute('data-url'),'mywindow')"
+                                             th:data-url="${tenant.getUpload5Route()}">
+                                            <i class="icon icon-Money-Bag icon--sm"></i>
+                                            <h4>Justificatif de ressources</h4>
+                                        </div>
+                                        <a class="btn btn--primary modal-file-button" data-id="5" href="#">
+                                                    <span class="btn__text">
+                                                        Modifier
+                                                    </span>
+                                        </a>
+                                    </div>
+                                    <!--end feature-->
+                                </div>
+                            </div>
+                        </div>
+                        <div class="process__item" th:if="${tenant.getGuarantor()!=null}">
+                            <h4>Les pièces de mon garant
+                                <br/><i>Cliquez sur les pièces pour les modifie</i></h4>
+                            <div class="d-flex"
+                                 th:if="${tenant.getGuarantor().getGuarantorType().name()=='VISALE'}">
+                                <div class="box-mon-recap">
+                                    <div class="feature feature-4 boxed boxed--lg boxed--border text-center same-height">
+                                        <div class="cursor-pointer"
+                                             onclick="window.open(this.getAttribute('data-url'),'mywindow')"
+                                             th:data-url="${tenant.getGuarantor().getUpload1Route()}">
+                                            <i class="icon icon-Male icon--sm"></i>
+                                            <h4>Visa</h4>
+                                        </div>
+                                        <a class="btn btn--primary modal-file-button" data-id="6" href="#">
+                                                    <span class="btn__text">
+                                                        Modifier
+                                                    </span>
+                                        </a>
+                                    </div>
+                                    <!--end feature-->
+                                </div>
+                            </div>
+                            <div class="d-inline-flex"
+                                 th:if="${tenant.getGuarantor().getGuarantorType().name()=='LOCATIO'}">
+                                <div class="box-mon-recap">
+                                    <div class="feature feature-4 boxed boxed--lg boxed--border text-center same-height">
+                                        <div class="cursor-pointer"
+                                             onclick="window.open(this.getAttribute('data-url'),'mywindow')"
+                                             th:data-url="${tenant.getGuarantor().getUpload1Route()}">
+                                            <i class="icon icon-Male icon--sm"></i>
+                                            <h4>Pièce d’identité</h4>
+                                        </div>
+                                        <a class="btn btn--primary modal-file-button" data-id="6" href="#">
+                                                    <span class="btn__text">
+                                                        Modifier
+                                                    </span>
+                                        </a>
+                                    </div>
+                                    <!--end feature-->
+                                </div>
+                                <div class="box-mon-recap">
+                                    <div class="feature feature-4 boxed boxed--lg boxed--border text-center same-height">
+                                        <div class="cursor-pointer"
+                                             onclick="window.open(this.getAttribute('data-url'),'mywindow')"
+                                             th:data-url="${tenant.getGuarantor().getUpload2Route()}">
+                                            <i class="icon icon-Warehouse icon--sm"></i>
+                                            <h4>Justificatif de domicile</h4>
+                                        </div>
+                                        <a class="btn btn--primary modal-file-button" data-id="7" href="#">
+                                                    <span class="btn__text">
+                                                        Modifier
+                                                    </span>
+                                        </a>
+                                    </div>
+                                    <!--end feature-->
+                                </div>
+                                <div class="box-mon-recap">
+                                    <div class="feature feature-4 boxed boxed--lg boxed--border text-center same-height">
+                                        <div class="cursor-pointer"
+                                             onclick="window.open(this.getAttribute('data-url'),'mywindow')"
+                                             th:data-url="${tenant.getGuarantor().getUpload3Route()}">
+                                            <i class="icon icon-File icon--sm"></i>
+                                            <h4>Justificatif de situation professionnelle</h4>
+                                        </div>
+                                        <a class="btn btn--primary modal-file-button" data-id="8" href="#">
+                                                    <span class="btn__text">
+                                                        Modifier
+                                                    </span>
+                                        </a>
+                                    </div>
+                                    <!--end feature-->
+                                </div>
+                                <div class="box-mon-recap">
+                                    <div class="feature feature-4 boxed boxed--lg boxed--border text-center same-height">
+                                        <div class="cursor-pointer"
+                                             onclick="window.open(this.getAttribute('data-url'),'mywindow')"
+                                             th:data-url="${tenant.getGuarantor().getUpload4Route()}">
+                                            <i class="icon icon-Folder-WithDocument icon--sm"></i>
+                                            <h4>Avis d’imposition</h4>
+                                        </div>
+                                        <a class="btn btn--primary modal-file-button" data-id="9" href="#">
+                                                    <span class="btn__text">
+                                                        Modifier
+                                                    </span>
+                                        </a>
+                                    </div>
+                                    <!--end feature-->
+                                </div>
+                                <div class="box-mon-recap">
+                                    <div class="feature feature-4 boxed boxed--lg boxed--border text-center same-height">
+                                        <div class="cursor-pointer"
+                                             onclick="window.open(this.getAttribute('data-url'),'mywindow')"
+                                             th:data-url="${tenant.getGuarantor().getUpload5Route()}">
+                                            <i class="icon icon-Money-Bag icon--sm"></i>
+                                            <h4>Justificatif de ressources</h4>
+                                        </div>
+                                        <a class="btn btn--primary modal-file-button" data-id="10" href="#">
+                                                    <span class="btn__text">
+                                                        Modifier
+                                                    </span>
+                                        </a>
+                                    </div>
+                                    <!--end feature-->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!--end process-->
+                </div>
+            </div>
+            <div class="row justify-content-center ">
+                <div class="col-md-8">
+                    <h4>Une fois que vous avez fini de vérifier vos pièces, cliquez sur « suivant » !</h4>
+                    <i>Ne vous inquiétez pas, vous pourrez de nouveau modifier vos pièces à tout moment </i>
+                </div>
+                <div class="col-md-2">
+                    <form th:action="@{/registerTenant/step10/}+${tenantDTO.getSlug()}" th:method="post"
+                          th:object="${tenantDTO}">
+                        <button class="btn btn--primary text-uppercase"
+                                th:text="#{tenant.form.button.next}"
+                                type="submit">
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!--end of container-->
+    </section>
+    <div class="modal-container" id="modalInformation">
+        <div class="modal-content section-modal">
+            <section class="unpad ">
+                <div class="container">
+                    <div class="row justify-content-center">
+                        <div class="col-md-6 col-12">
+                            <div class="feature feature-1">
+                                <div class="feature__body boxed boxed--lg boxed--border">
+                                    <h2>Modifier mes informations</h2>
+                                    <div class="modal-close modal-close-cross"></div>
+                                    <form th:action="@{/registerTenant/step10/}+${tenantDTO.getSlug()}+'/information'"
+                                          th:method="post"
+                                          th:object="${tenantDTO}">
+                                        <div class="row">
+                                            <div class="col-md-12 input">
+                                                <span>Nom :</span>
+                                                <input class="small" placeholder="Ex : Dupont" required="required"
+                                                       th:field="*{lastName}"
+                                                       type="text"/>
+                                            </div>
+                                            <div class="col-md-12 input">
+                                                <label>Prénom :</label>
+                                                <input class="small" placeholder="Ex : Jean-Michel" required="required"
+                                                       th:field="*{firstName}"
+                                                       type="text"/>
+                                            </div>
+                                            <div class="col-md-12 input">
+                                                <label>Téléphone :</label>
+                                                <input class="small" placeholder="06 07 08 09 10" required="required"
+                                                       th:field="*{telephone}"
+                                                       type="tel"/>
+                                            </div>
+                                            <div class="col-md-12 input">
+                                                <label>Situation :</label>
+                                                <div class="input-select">
+                                                    <select class="small" required="required" th:field="*{situation}">
+                                                        <option th:each="tenantSituation, iter: ${T(fr.gouv.common.enums.TenantSituation).values()}"
+                                                                th:text="#{${tenantSituation.getLabel()}}"
+                                                                th:value="${iter.index}">
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-12 input">
+                                                <label>Revenus :</label>
+                                                <input class="small" placeholder="Ex : 2000" required="required"
+                                                       th:field="*{salary}"
+                                                       type="number"/>
+                                            </div>
+                                            <div class="col-md-12">
+                                                <button class="btn btn--primary type--uppercase" type="submit">
+                                                    Enregistrer les modifications
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                            <!--end feature-->
+                        </div>
+                    </div>
+                    <!--end of row-->
+                </div>
+                <!--end of container-->
+            </section>
+        </div>
+    </div>
+    <div th:replace="include/modal-account:: modal-account">
+    </div>
+    <div class="hidden">
+        <form enctype="multipart/form-data" id="form-file" method="post"
+              th:action="@{/file}"
+              th:object="${fileDTO}">
+            <input accept="image/*, .pdf" class="hidden"
+                   th:field="*{file}"
+                   type="file"/>
+            <input th:field="*{number}" type="hidden"/>
+            <input th:field="*{fileActionUploadType}" type="hidden"/>
+        </form>
+    </div>
+    <div class="modal-container modal-file">
+        <div class="modal-content section-modal">
+            <section class="unpad ">
+                <div class="container">
+                    <div class="row justify-content-center">
+                        <div class="col-md-8 col-12">
+                            <div class="feature feature-1">
+                                <div class="feature__body boxed boxed--lg boxed--border text-center">
+                                    <div class="modal-close modal-close-cross"></div>
+                                    <div class="text-block">
+                                        <h3>Je modifie mon document</h3>
+                                        <div class="text-center">
+                                            <p>Vous pouvez ajouter un document
+                                                ou modifier le document
+                                                actuel</p>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="btn btn--primary btn-block modal-close file-modal mb-2"
+                                                 data-action="ADD" data-id="1">
+                                                <span class="btn__text">Ajouter un document</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="btn btn--primary btn-block modal-close file-modal"
+                                                 data-action="EDIT" data-id="1">
+                                                <span class="btn__text">Remplacer le document</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+    <div class="notification success-notification pos-right pos-top col-md-4 col-lg-3" data-animation="from-top"
+         data-autohide="2000"
+         id="success">
+        <div class="boxed boxed--border border--round box-shadow">
+            <div class="text-block">
+                <h5>Modifications enregistrées !</h5>
+                <p>Vos modifications ont bien été prises en compte et sont désormais appliquées.</p>
+            </div>
+        </div>
+        <div class="notification-close-cross notification-close"></div>
+    </div>
+    <div class="notification pos-right pos-top col-md-4 col-lg-3" data-animation="from-top" data-autohide="2000"
+         id="error">
+        <div class="boxed boxed--border border--round box-shadow">
+            <div class="text-block">
+                <h5>Modifications annulées !</h5>
+                <p>Un problème est survenu et nous n'avons pas pu prendre en compte vos modifications. Merci de
+                    réessayer.</p>
+            </div>
+        </div>
+        <div class="notification-close-cross notification-close"></div>
+    </div>
+</div>
+
+
+<div layout:fragment="javascripts" th:remove="tag">
+    <script src="/js/registerTenant/registerTenant.js"></script>
+</div>
+
+</body>
+</html>

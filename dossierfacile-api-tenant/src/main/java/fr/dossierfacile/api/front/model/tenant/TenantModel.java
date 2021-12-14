@@ -30,4 +30,5 @@ public class TenantModel {
     private ApartmentSharingModel apartmentSharing;
     private List<DocumentModel> documents;
     private List<GuarantorModel> guarantors;
+    private boolean franceConnect;
 }

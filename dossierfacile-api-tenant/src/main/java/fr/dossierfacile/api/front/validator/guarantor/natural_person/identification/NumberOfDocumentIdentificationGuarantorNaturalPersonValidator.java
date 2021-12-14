@@ -27,7 +27,7 @@ public class NumberOfDocumentIdentificationGuarantorNaturalPersonValidator imple
 
     @Override
     public boolean isValid(DocumentIdentificationGuarantorNaturalPersonForm documentIdentificationGuarantorNaturalPersonForm, ConstraintValidatorContext constraintValidatorContext) {
-        Tenant tenant = authenticationFacade.getPrincipalAuthTenant();
+        Tenant tenant = authenticationFacade.getTenant(documentIdentificationGuarantorNaturalPersonForm.getTenantId());
         long countOld = fileRepository.countFileByDocumentCategoryGuarantorIdTypeGuarantorTenant(
                 DocumentCategory.IDENTIFICATION,
                 documentIdentificationGuarantorNaturalPersonForm.getGuarantorId(),
@@ -38,6 +38,6 @@ public class NumberOfDocumentIdentificationGuarantorNaturalPersonValidator imple
                 .stream()
                 .filter(f -> !f.isEmpty())
                 .count();
-        return 1 <= countNew + countOld && countNew + countOld <= 15;
+        return 1 <= countNew + countOld && countNew + countOld <= 5;
     }
 }

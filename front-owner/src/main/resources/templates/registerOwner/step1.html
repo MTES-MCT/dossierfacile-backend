@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en"
+      layout:decorator="registerOwner/layout"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>DossierFacile</title>
+</head>
+<body>
+<div layout:fragment="sidebar" th:remove="tag">
+    <div th:replace="registerOwner/sidebar :: sidebar(step = 'INFORMATIONS_OWNER', currentStep = 1)"></div>
+</div>
+
+<div layout:fragment="content" th:remove="tag">
+    <section>
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-6 col-lg-5">
+                    <h3> Créez votre propriété pour gérer plus efficacement la mise en location de votre bien
+                        ! </h3>
+                    <h5 class="text-lead-color"> Notre objectif ? Vous faciliter la vie ! On vous aide à gérer plus
+                        simplement tous vos candidats... tout en les aidant eux-mêmes à vous fournir un dossier
+                        Clair, Complet et Cohérent ! </h5>
+                    <h5 class="text-lead-color">Si vous avez déja un compte, connectez vous directement </h5>
+                    <form onsubmit="return validate_form()" th:action="@{/registerOwner/step1}"
+                          th:method="post" th:object="${ownerDTO}">
+                        <div class="row">
+                            <div class="col-md-12 text-left">
+                                <span> Prénom du propriétaire : </span>
+                                <input autocomplete="true" class="small validate-required" id="firstName"
+                                       placeholder="Ex : Jean-Michel"
+                                       th:field="*{firstName}" type="text"/>
+                                <span class="color--error" th:errors="*{firstName}"
+                                      th:if="${#fields.hasErrors('firstName')}"></span>
+                            </div>
+
+                            <div class="col-md-12 text-left">
+                                <span class="font"> Nom du propriétaire: : </span>
+                                <input autocomplete="true" class="small validate-required" id="lastName"
+                                       placeholder="Ex : Dupont"
+                                       th:field="*{lastName}" type="text"/>
+                                <span class="color--error" th:errors="*{lastName}"
+                                      th:if="${#fields.hasErrors('lastName')}"></span>
+                            </div>
+
+                            <div class="col-12 text-left" id="errors">
+                            </div>
+
+                            <div class="col-md-3">
+                                <button class="btn btn--primary text-uppercase"
+                                        th:text="#{tenant.form.button.next}"
+                                        type="submit">
+                                </button>
+                            </div>
+                            <div class="col-md-6">
+                                <a class="btn btn--sm btn--primary type--uppercase bg-orange border-orange"
+                                   href="/login"> <span
+                                        class="btn__text">
+                                                 j'ai déjà un compte</span>
+                                </a>
+                            </div>
+                        </div>
+                        <!--end row-->
+                    </form>
+                </div>
+            </div>
+            <!--end of row-->
+        </div>
+        <!--end of container-->
+    </section>
+
+</div>
+
+</body>
+</html>

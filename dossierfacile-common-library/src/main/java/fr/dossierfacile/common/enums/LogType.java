@@ -14,7 +14,8 @@ public enum LogType {
     ADD_PROPERTY_OWNER(null),
     VISIT_PROPERTY_OWNER(null),
     REMOVE_PROPERTY_APARTMENT_SHARING_OWNER(null),
-    REMOVE_PROPERTY_OWNER(null);
+    REMOVE_PROPERTY_OWNER(null),
+    EMAIL_ACCOUNT_VALIDATED(null);
 
     String associateTab;
 

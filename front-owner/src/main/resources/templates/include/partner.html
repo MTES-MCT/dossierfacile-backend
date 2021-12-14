@@ -1,0 +1,19 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body>
+
+<div th:fragment="partner" th:remove="tag">
+    <div class="text-center text-primary top-buffer">
+        <p th:text="#{tenant.profile.visa.label}"></p>
+    </div>
+    <div class="text-center text-primary top-buffer bottom-buffer">
+        <a class="btn btn-primary btn-responsive subtitle1" href="https://www.visale.fr/#!/" target="_blank"
+           th:text="#{tenant.profile.visa.button}"></a>
+        <img alt="" class="" src="/assets/images/partners/AL_APAGL.png" style="width: 100px"/>
+    </div>
+</div>
+
+</body>
+
+</html>

@@ -31,13 +31,13 @@ public class NumberOfDocumentTaxValidator implements ConstraintValidator<NumberO
     @Override
     public boolean isValid(DocumentTaxForm documentTaxForm, ConstraintValidatorContext constraintValidatorContext) {
 
-        Tenant tenant = authenticationFacade.getPrincipalAuthTenant();
+        Tenant tenant = authenticationFacade.getTenant(documentTaxForm.getTenantId());
         long countOld = fileRepository.countFileByDocumentCategoryTenant(DocumentCategory.TAX, tenant);
         long countNew = documentTaxForm.getDocuments().stream().filter(f -> !f.isEmpty()).count();
 
         boolean isValid;
         if (documentTaxForm.getTypeDocumentTax() == DocumentSubCategory.MY_NAME) {
-            isValid = countNew + countOld >= 1 && countNew + countOld <= 15;
+            isValid = countNew + countOld >= 1 && countNew + countOld <= 5;
             if (!isValid) {
                 constraintValidatorContext.disableDefaultConstraintViolation();
                 constraintValidatorContext
@@ -45,7 +45,7 @@ public class NumberOfDocumentTaxValidator implements ConstraintValidator<NumberO
                         .addPropertyNode(DOCUMENTS).addConstraintViolation();
             }
         } else if (documentTaxForm.getTypeDocumentTax() == DocumentSubCategory.OTHER_TAX && !documentTaxForm.getNoDocument()) {
-            isValid = countNew + countOld >= 1 && countNew + countOld <= 15;
+            isValid = countNew + countOld >= 1 && countNew + countOld <= 5;
             if (!isValid) {
                 constraintValidatorContext.disableDefaultConstraintViolation();
                 constraintValidatorContext

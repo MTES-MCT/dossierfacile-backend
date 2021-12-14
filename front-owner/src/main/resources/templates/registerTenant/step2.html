@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en"
+      layout:decorator="registerTenant/layout"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>DossierFacile</title>
+</head>
+<body>
+<div layout:fragment="sidebar" th:remove="tag">
+    <div th:replace="registerTenant/sidebar :: sidebar(step = 'INFORMATIONS', currentStep = ${currentStep}, fileDTO = null, slug = ${tenantDTO.getSlug()})"></div>
+</div>
+<div layout:fragment="content" th:remove="tag">
+    <section>
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-6 col-lg-5">
+                    <h3> La création du compte ne vous prendra que quelques minutes ! </h3>
+                    <h5 class="text-lead-color"> Cliquer c’est créer ! On vous laisse ajouter les pièces à votre
+                        rythme ! </h5>
+
+                    <form method="post"
+                          onsubmit="return validate_form()"
+                          th:action="@{/registerTenant/step2/} + ${tenantDTO.getSlug()}" th:object="${tenantDTO}">
+                        <div class="row">
+                            <div class="col-md-12 text-left">
+                                <span> Email : </span>
+                                <input autocomplete="off" class="small validate-required" id="email" name="email"
+                                       placeholder="Ex : Jean-Michel@exemple.fr"
+                                       th:field="*{email}" type="email"/>
+                                <span class="color--error" th:errors="*{email}"
+                                      th:if="${#fields.hasErrors('email')}"></span>
+                            </div>
+
+                            <div class="col-md-12 text-left">
+                                <span class="font"> Password : </span>
+                                <input autocomplete="off" class="small validate-required" placeholder="Ex : 1234567"
+                                       th:field="*{password}" type="password"/>
+                                <span class="color--error" id="password-error"
+                                      th:errors="*{password}"
+                                      th:if="${#fields.hasErrors('password')}"></span>
+                            </div>
+
+                            <div class="col-12 text-left" id="errors">
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn--sm btn--secondary type--uppercase mt-0 px-3"
+                                        onclick="history.back()"
+                                        type="button">précédent
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn--primary text-uppercase" th:text="#{tenant.form.button.next}"
+                                        type="submit">
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    <div th:replace="include/modal-api:: modal-api">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <div th:replace="include/register-tenant-help :: register-tenant-help"></div>
+
+    <div th:replace="include/modal-account:: modal-account">
+    </div>
+</div>
+
+<div layout:fragment="javascripts" th:remove="tag">
+    <script src="/js/registerTenant/registerTenant.js"></script>
+</div>
+
+</body>
+</html>

@@ -1,26 +1,29 @@
 package fr.dossierfacile.api.front.service;
 
-import fr.dossierfacile.api.front.exception.PropertyNotFoundException;
-import fr.dossierfacile.api.front.form.SubscriptionTenantForm;
+import fr.dossierfacile.api.front.form.SubscriptionApartmentSharingOfTenantForm;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.RegisterFactory;
 import fr.dossierfacile.api.front.register.enums.StepRegister;
 import fr.dossierfacile.api.front.repository.PropertyApartmentSharingRepository;
-import fr.dossierfacile.api.front.repository.PropertyRepository;
+import fr.dossierfacile.api.front.repository.TenantRepository;
+import fr.dossierfacile.api.front.service.interfaces.PropertyService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.common.entity.Property;
 import fr.dossierfacile.common.entity.PropertyApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.TenantType;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @AllArgsConstructor
 public class TenantServiceImpl implements TenantService {
     private final RegisterFactory registerFactory;
-    private final PropertyRepository propertyRepository;
+    private final PropertyService propertyService;
     private final PropertyApartmentSharingRepository propertyApartmentSharingRepository;
+    private final TenantRepository tenantRepository;
 
     @Override
     public <T> TenantModel saveStepRegister(Tenant tenant, T formStep, StepRegister step) {
@@ -28,18 +31,25 @@ public class TenantServiceImpl implements TenantService {
     }
 
     @Override
-    public void subscribeTenant(String propertyToken, SubscriptionTenantForm subscriptionTenantForm, Tenant tenant) {
-        if(tenant.getTenantType() == TenantType.CREATE) {
-            Property property = propertyRepository.findFirstByToken(propertyToken).orElseThrow(() -> new PropertyNotFoundException(propertyToken));
+    public void subscribeApartmentSharingOfTenantToPropertyOfOwner(String propertyToken, SubscriptionApartmentSharingOfTenantForm subscriptionApartmentSharingOfTenantForm, Tenant tenant) {
+        if (tenant.getTenantType() == TenantType.CREATE) {
+            Property property = propertyService.getPropertyByToken(propertyToken);
             PropertyApartmentSharing propertyApartmentSharing = propertyApartmentSharingRepository.findByPropertyAndApartmentSharing(property, tenant.getApartmentSharing()).orElse(
                     PropertyApartmentSharing.builder()
-                            .accessFull(subscriptionTenantForm.getAccess())
-                            .token(subscriptionTenantForm.getAccess() ? tenant.getApartmentSharing().getToken() : tenant.getApartmentSharing().getTokenPublic())
+                            .accessFull(subscriptionApartmentSharingOfTenantForm.getAccess())
+                            .token(subscriptionApartmentSharingOfTenantForm.getAccess() ? tenant.getApartmentSharing().getToken() : tenant.getApartmentSharing().getTokenPublic())
                             .property(property)
                             .apartmentSharing(tenant.getApartmentSharing())
                             .build()
             );
             propertyApartmentSharingRepository.save(propertyApartmentSharing);
         }
+    }
+
+    @Override
+    public void updateTenantStatus(Tenant tenant) {
+        tenant.setStatus(tenant.computeStatus());
+        log.info("Updating status of tenant with ID [" + tenant.getId() + "] to [" + tenant.getStatus() + "]");
+        tenantRepository.save(tenant);
     }
 }

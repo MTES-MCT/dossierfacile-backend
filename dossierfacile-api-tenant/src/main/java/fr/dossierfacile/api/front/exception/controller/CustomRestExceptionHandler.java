@@ -1,6 +1,7 @@
 package fr.dossierfacile.api.front.exception.controller;
 
 import fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException;
+import fr.dossierfacile.api.front.exception.ApartmentSharingUnexpectedException;
 import fr.dossierfacile.api.front.exception.ConfirmationTokenNotFoundException;
 import fr.dossierfacile.api.front.exception.DocumentNotFoundException;
 import fr.dossierfacile.api.front.exception.FileNotFoundException;
@@ -193,6 +194,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
         logger.error(ex.getClass().getName());
 
         final ApiError apiError = new ApiError(HttpStatus.NOT_FOUND, ex.getLocalizedMessage());
+        ex.printStackTrace();
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
     }
 
@@ -247,6 +249,15 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
         logger.error(ex.getClass().getName());
 
         final ApiError apiError = new ApiError(HttpStatus.NOT_FOUND, ex.getLocalizedMessage());
+        return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
+    }
+
+    @ExceptionHandler({ApartmentSharingUnexpectedException.class})
+    public ResponseEntity<Object> handleApartmentSharingUnexpectedException(final ApartmentSharingUnexpectedException ex) {
+        logger.error(MESSAGE + Sentry.captureException(ex));
+        logger.error(ex.getClass().getName());
+
+        final ApiError apiError = new ApiError(HttpStatus.EXPECTATION_FAILED, ex.getLocalizedMessage());
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
     }
 

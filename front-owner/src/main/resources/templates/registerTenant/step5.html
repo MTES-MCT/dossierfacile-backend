@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="en"
+      layout:decorator="registerTenant/layout"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>DossierFacile</title>
+    <link href="/css/progress.css" rel="stylesheet"/>
+</head>
+<body>
+<div layout:fragment="sidebar" th:remove="tag">
+    <th:block th:switch="${fileNumber}">
+        <th:block th:case="1">
+            <div th:replace="registerTenant/sidebar :: sidebar(step = 'IDENTITE', currentStep = ${currentStep}, fileDTO = ${fileDTO}, slug = ${tenantDTO.getSlug()})">
+                ...
+            </div>
+        </th:block>
+        <th:block th:case="2">
+            <div th:replace="registerTenant/sidebar :: sidebar(step = 'DOMICILE', currentStep = ${currentStep}, fileDTO = ${fileDTO}, slug = ${tenantDTO.getSlug()})">
+                ...
+            </div>
+        </th:block>
+        <th:block th:case="3">
+            <div th:replace="registerTenant/sidebar :: sidebar(step = 'PROFESSIONEL', currentStep = ${currentStep}, fileDTO = ${fileDTO}, slug = ${tenantDTO.getSlug()})">
+                ...
+            </div>
+        </th:block>
+        <th:block th:case="4">
+            <div th:replace="registerTenant/sidebar :: sidebar(step = 'IMPOSITION', currentStep = ${currentStep}, fileDTO = ${fileDTO}, slug = ${tenantDTO.getSlug()})">
+                ...
+            </div>
+        </th:block>
+        <th:block th:case="5">
+            <div th:replace="registerTenant/sidebar :: sidebar(step = 'FICHESDEPAIE', currentStep = ${currentStep}, fileDTO = ${fileDTO}, slug = ${tenantDTO.getSlug()})">
+                ...
+            </div>
+        </th:block>
+    </th:block>
+</div>
+<div layout:fragment="content" th:remove="tag">
+    <section>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 col-lg-4">
+                    <th:block th:if="${fileNumber}==1">
+                        <div class="pricing pricing-1 boxed boxed--lg boxed--border register-tenant-info">
+
+                            <h4 class="text-primary"><b>Les pièces acceptées et refusées</b></h4>
+                            <hr/>
+                            <ul>
+                                <li>
+                                    <span class="checkmark bg--success"></span>
+                                    <span>Une carte d’identité recto-verso </span>
+                                </li>
+                                <li>
+                                    <span class="checkmark bg--success"></span>
+                                    <span>Un passeport (toutes nationalités acceptées)</span>
+                                </li>
+                                <li>
+                                    <span class="checkmark bg--success"></span>
+                                    <span>Un titre de séjour recto-verso</span>
+                                </li>
+                                <li>
+                                    <span class="checkmark bg--success"></span>
+                                    <span>Un récépissé de renouvellement de titre de séjour accompagné de l’ancien titre recto-verso</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </th:block>
+                    <th:block th:if="${fileNumber}==2">
+                        <th:block th:if="${tenant.getTypeFile2().name()=='TYPE1'}">
+                            <div class="pricing pricing-1 boxed boxed--lg boxed--border register-tenant-info">
+
+                                <h4 class="text-primary"><b>Les pièces acceptées et refusées</b></h4>
+                                <hr/>
+                                <ul>
+                                    <li>
+                                        <span class="checkmark bg--success"></span>
+                                        <span>Les quittances de loyer <b>des trois derniers mois</b></span>
+                                    </li>
+                                    <li>
+                                        <span class="checkmark bg--success"></span>
+                                        <span>Les avis d’échéance <b> des trois derniers mois</b></span>
+                                    </li>
+                                    <li>
+                                        <span class="checkmark checkmark--cross bg--error"></span>
+                                        <span>Les factures</span>
+                                    </li>
+                                    <li>
+                                        <span class="checkmark checkmark--cross bg--error"></span>
+                                        <span>Les avis de taxe d’habitation</span>
+                                    </li>
+                                    <li>
+                                        <span class="checkmark checkmark--cross bg--error"></span>
+                                        <span>Les relevés de comptes bancaire</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </th:block>
+
+                        <th:block th:if="${tenant.getTypeFile2().name()=='TYPE2'}">
+                            <div class="pricing pricing-1 boxed boxed--lg boxed--border register-tenant-info">
+
+                                <h4 class="text-primary"><b>Les pièces acceptées et refusées</b></h4>
+                                <hr/>
+                                <ul>
+                                    <li>
+                                        <span class="checkmark bg--success"></span>
+                                        <span>Un avis de taxes foncières</span>
+                                    </li>
+                                    <li>
+                                        <span class="checkmark checkmark--cross bg--error"></span>
+                                        <span>Les factures</span>
+                                    </li>
+                                    <li>
+                                        <span class="checkmark checkmark--cross bg--error"></span>
+                                        <span>Les avis de taxe d’habitation</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </th:block>
+
+                        <th:block th:if="${tenant.getTypeFile2().name()=='TYPE3'}">
+                            <div class="pricing pricing-1 boxed boxed--lg boxed--border register-tenant-info">
+
+                                <h4 class="text-primary"><b>Les pièces acceptées et refusées</b></h4>
+                                <hr/>
+                                <ul>
+                                    <li>
+                                        <span class="checkmark bg--success"></span>
+                                        <span>Une attestation sur l’honneur d’hébergement, récente (<b>moins de 3 mois</b>) <b>datée</b> et <b>signée</b>,  de la part de votre hébergeant</span>
+                                    </li>
+                                    <li>
+                                        <span class="checkmark checkmark--cross bg--error"></span>
+                                        <span>Les factures en votre nom</span>
+                                    </li>
+                                    <li>
+                                        <span class="checkmark checkmark--cross bg--error"></span>
+                                        <span>Les avis de taxe d’habitation</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </th:block>
+                    </th:block>
+                    <th:block th:if="${fileNumber}==3">
+                        <th:block th:if="${tenant.getTenantSituation().name() == 'CDD' or
+                                                   tenant.getTenantSituation().name() == 'CDI' or
+                                                   tenant.getTenantSituation().name() == 'CDI_TRIAL'}">
+                            <div class="pricing pricing-1 boxed boxed--lg boxed--border register-tenant-info">
+
+                                <h4 class="text-primary"><b>Les pièces acceptées et refusées</b></h4>
+                                <hr/>
+                                <ul>
+                                    <li>
+                                        <span class="checkmark bg--success"></span>
+                                        <span><b>Toutes les pages</b>  de votre contrat de travail <b>signé</b> </span>
+                                    </li>
+                                    <li>
+                                        <span class="checkmark bg--success"></span>
+                                        <span>Une attestation de votre employeur <b>datant de moins de 3 mois</b></span>
+                                    </li>
+                                    <li>
+                                        <span class="checkmark checkmark--cross bg--error"></span>
+                                        <span>Les fiches de paie</span>
+                                    </li>
+                                    <li>
+                                        <span class="checkmark checkmark--cross bg--error"></span>
+                                        <span>Les relevés de comptes bancaires</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </th:block>
+                        <th:block th:if="${tenant.getTenantSituation().name() == 'CTT'}">
+                            <div class="pricing pricing-1 boxed boxed--lg boxed--border register-tenant-info">
+
+                                <h4 class="text-primary"><b>Les pièces acceptées et refusées</b></h4>
+                                <hr/>
+                                <ul>
+                                    <li>
+                                        <span class="checkmark bg--success"></span>
+                                        <span><b>Toutes les pages</b> de votre contrat de travail  <b>signé</b> </span>
+                                    </li>
+                                    <li>
+                                        <span class="checkmark bg--success"></span>
+                                        <span>Une attestation de travail</span>
+                                    </li>
+                                    <li>
+                                        <span class="checkmark checkmark--cross bg--error"></span>
+                                        <span>Les fiches de paie</span>
+                                    </li>
+                                    <li>
+                                        <span class="checkmark checkmark--cross bg--error"></span>
+                                        <span>Les relevés de comptes bancaires</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </th:block>
+                        <th:block th:if="${tenant.getTenantSituation().name() == 'PUBLIC'}">
+                            <div class="pricing pricing-1 boxed boxed--lg boxed--border register-tenant-info">
+                                <h4 class="text-primary"><b>Les pièces acceptées et refusées</b></h4>
+                                <hr/>
+                                <ul>
+                                    <li>
+                                        <span class="checkmark bg--success"></span>
+                                        <span><b>Toutes les pages</b> de votre arrêté de nomination</span>
+                                    </li>
+                                    <li>
+                                        <span class="checkmark bg--success"></span>
+                                        <span>Une attestation de votre employeur <b>datant de moins de 3 mois</b></span>
+                                    </li>
+                                    <li>
+                                        <span class="checkmark checkmark--cross bg--error"></span>
+                                        <span>Les fiches de paie</span>
+                                    </li>
+                                    <li>
+                                        <span class="checkmark checkmark--cross bg--error"></span>
+                                        <span>Les relevés de comptes bancaires</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </th:block>
+                        <th:block th:if="${tenant.getTenantSituation().name() == 'RETIRED'}">
+                            <div class="pricing pricing-1 boxed boxed--lg boxed--border register-tenant-info">
+                                <h4 class="text-primary"><b>Les pièces acceptées et refusées</b></h4>
+                                <hr/>
+                                <ul>
+                                    <li>
+                                        <span class="checkmark bg--success"></span>
+                                        <span>Un bulletin de retraite</span>
+                                    </li>
+                                    <li>
+                                        <span class="checkmark checkmark--cross bg--error"></span>
+                                        <span>Les relevés de comptes bancaires</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </th:block>
+                        <th:block th:if="${tenant.getTenantSituation().name() == 'UNEMPLOYED'}">
+                            <div class="pricing pricing-1 boxed boxed--lg boxed--border register-tenant-info">
+                                <h4 class="text-primary"><b>Les pièces acceptées et refusées</b></h4>
+                                <hr/>
+                                <ul>
+                                    <li>
+                                        <span class="checkmark bg--success"></span>
+                                        <span>De votre ouverture de droits ARE</span>
+                                    </li>
+                                    <li>
+                                        <span class="checkmark bg--success"></span>
+                                        <span>D’une attestation de versement ASS</span>
+                                    </li>
+                                    <li>
+                                        <span class="checkmark bg--success"></span>
+                                        <span>D’une attestation de versement CAF du RSA</span>
+                                    </li>
+                                    <li>
+                                        <span class="checkmark checkmark--cross bg--error"></span>
+                                        <span>Les relevés de comptes bancaires</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </th:block>
+                    </th:block>
+                    <th:block th:if="${fileNumber}==5">
+                        <th:block th:if="${tenant.getTenantSituation().name() == 'CDD' or
+                                                   tenant.getTenantSituation().name() == 'CDI' or
+                                                   tenant.getTenantSituation().name() == 'CTT'}">
+                            <div class="pricing pricing-1 boxed boxed--lg boxed--border register-tenant-info">
+
+                                <h4 class="text-primary"><b>Les pièces acceptées et refusées</b></h4>
+                                <hr/>
+                                <ul>
+                                    <li>
+                                        <span class="checkmark bg--success"></span>
+                                        <span>Vos fiches de paie <b>pour les 3 derniers mois</b>  </span>
+                                    </li>
+                                    <li>
+                                        <span class="checkmark bg--success"></span>
+                                        <span>Vos attestations de versements CAF ou CPAM en cas de situations particulières (arrêt maladie, etc.)</span>
+                                    </li>
+                                    <li>
+                                        <span class="checkmark checkmark--cross bg--error"></span>
+                                        <span>Les relevés de comptes bancaires</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </th:block>
+                        <th:block th:if="${tenant.getTenantSituation().name() == 'RETIRED'}">
+                            <div class="pricing pricing-1 boxed boxed--lg boxed--border register-tenant-info">
+                                <h4 class="text-primary"><b>Les pièces acceptées et refusées</b></h4>
+                                <hr/>
+                                <ul>
+                                    <li>
+                                        <span class="checkmark bg--success"></span>
+                                        <span>Vos bulletins de retraite principale et complémentaire</span>
+                                    </li>
+                                    <li>
+                                        <span class="checkmark checkmark--cross bg--error"></span>
+                                        <span>Les relevés de comptes bancaires</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </th:block>
+                        <th:block th:if="${tenant.getTenantSituation().name() == 'INDEPENDENT'}">
+                            <div class="pricing pricing-1 boxed boxed--lg boxed--border register-tenant-info">
+                                <h4 class="text-primary"><b>Les pièces acceptées et refusées</b></h4>
+                                <hr/>
+                                <ul>
+                                    <li>
+                                        <span class="checkmark bg--success"></span>
+                                        <span>Vos déclarations d’activité à l’URSSAF <b>pour les 3 derniers mois</b></span>
+                                    </li>
+                                    <li>
+                                        <span class="checkmark bg--success"></span>
+                                        <span>Du dernier compte de résultat de votre entreprise</span>
+                                    </li>
+                                    <li>
+                                        <span class="checkmark bg--success"></span>
+                                        <span>Vos attestations de versements CAF ou CPAM en cas de situations particulières (arrêt maladie, etc.)</span>
+                                    </li>
+                                    <li>
+                                        <span class="checkmark checkmark--cross bg--error"></span>
+                                        <span>Les relevés de comptes bancaires</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </th:block>
+
+                    </th:block>
+
+                </div>
+
+                <div class="col-md-6 col-lg-5">
+                    <th:block th:if="${fileNumber}==1">
+                        <h3> J'ajoute une pièce d'identité en cours de validité </h3>
+                        <h5 class="text-lead-color"> Attention, veillez à ajouter votre pièce recto-verso
+                            ! </h5>
+                        <h5 class="text-lead-color" th:if="${tenant.getTenantSituation().name()=='STUDENT'}"> Attention,
+                            si vous effectuez les démarches pour votre enfant,
+                            veillez à ajouter ses pièces dans la section locataire et non les vôtres. Vous pourrez
+                            ajouter toutes vos pièces justificatives dans la section « garant » juste après ! </h5>
+                    </th:block>
+
+                    <th:block th:if="${fileNumber}==2 and ${tenant.getTypeFile2().name()=='TYPE1'}">
+                        <h3> J’ajoute un justificatif de domicile </h3>
+                        <h5 class="text-lead-color font-weight-normal">
+                            Veuillez fournir les quittances de loyer des trois derniers mois.
+                        </h5>
+                    </th:block>
+
+                    <th:block th:if="${fileNumber}==2 and ${tenant.getTypeFile2().name()=='TYPE2'}">
+                        <h3> J’ajoute un justificatif de domicile </h3>
+                        <h5 class="text-lead-color font-weight-normal">
+                            Veuillez fournir un avis de taxes foncières récent
+                        </h5>
+                        <h6 class="text-lead-color font-weight-normal">
+                            Attention, vous ne pouvez pas fournir la taxe d’habitation
+                        </h6>
+                    </th:block>
+
+                    <th:block th:if="${fileNumber}==2 and ${tenant.getTypeFile2().name()=='TYPE3'}">
+                        <h3> J’ajoute un justificatif de domicile </h3>
+                        <h5 class="text-lead-color font-weight-normal">
+                            Veuillez fournir une attestation sur l’honneur d’hébergement à titre gratuit.
+                        </h5>
+                    </th:block>
+
+                    <th:block th:if="${fileNumber}==3">
+                        <th:block th:if="${tenant.getTenantSituation().name() == 'CDD' or
+                                                   tenant.getTenantSituation().name() == 'CDI' or
+                                                   tenant.getTenantSituation().name() == 'CDI_TRIAL'}">
+                            <h3> J'ajoute mon contrat de travail </h3>
+                            <h5 class="text-lead-color font-weight-normal">
+                                <b> Un seul objectif : efficacité ! </b>
+                                Pour rassurer votre futur propriétaire en un clic, assurez-vous que votre
+                                contrat de travail est bien :
+
+                                <ul class="bullets">
+                                    <li> complet (toutes les pages)</li>
+                                    <li> signé (par toutes les parties)</li>
+                                </ul>
+                            </h5>
+                            <h5 class="text-lead-color font-weight-normal">
+                                <b> Et si vous n’avez pas de contrat de travail ? </b>
+                                Vous pouvez joindre une attestation de votre employeur signée et datée de moins de 3
+                                mois
+                            </h5>
+                        </th:block>
+
+                        <th:block th:if="${tenant.getTenantSituation().name() == 'INTERNSHIP'}">
+                            <h3> J’ajoute ma convention de stage </h3>
+                            <h5 class="text-lead-color font-weight-normal">
+                                <b> Un seul objectif : efficacité ! </b>
+                                Pour rassurer votre futur propriétaire en un clic, assurez-vous que votre
+                                convention de stage est bien :
+                                <ul class="bullets">
+                                    <li> complet (toutes les pages)</li>
+                                    <li> signé (par toutes les parties)</li>
+                                    <li> datée</li>
+                                </ul>
+                            </h5>
+                        </th:block>
+
+                        <th:block th:if="${tenant.getTenantSituation().name() == 'STUDENT'}">
+                            <h3> J’ajoute ma carte étudiante ou mon certificat de scolarité </h3>
+                            <h5 class="text-lead-color font-weight-normal">
+                                <b> Un seul objectif : efficacité ! </b>
+                                Pour rassurer votre futur propriétaire en un clic, assurez-vous que votre
+                                document est bien :
+                                <ul class="bullets">
+                                    <li> complet (toutes les pages)</li>
+                                    <li> valide (année en cours)</li>
+                                </ul>
+                            </h5>
+                            <h5 class="text-lead-color font-weight-normal">
+                                Si vous n'avez pas encore le certificat de scolarité de votre nouvel établissement,
+                                veuillez fournir une preuve quelconque de votre admission ou inscription. N’oubliez pas
+                                de mettre à jour votre dossier lorsque vous en disposerez
+                            </h5>
+                        </th:block>
+
+                        <th:block th:if="${tenant.getTenantSituation().name() == 'PUBLIC'}">
+                            <h3> J’ajoute mon arrêté de nomination ou une attestation de mon employeur </h3>
+                            <h5 class="text-lead-color font-weight-normal">
+                                <b> Un seul objectif : efficacité ! </b>
+                                Pour rassurer votre futur propriétaire en un clic, assurez-vous que votre
+                                document est bien :
+                                <ul class="bullets">
+                                    <li> complet (toutes les pages)</li>
+                                    <li> signé (par toutes les parties)</li>
+                                </ul>
+                            </h5>
+                        </th:block>
+
+                        <th:block th:if="${tenant.getTenantSituation().name() == 'CTT'}">
+                            <h3> J’ajoute mon contrat de mission temporaire </h3>
+                            <h5 class="text-lead-color font-weight-normal">
+                                <b> Un seul objectif : efficacité ! </b>
+                                Pour rassurer votre futur propriétaire en un clic, assurez-vous que votre
+                                document est bien :
+                                <ul class="bullets">
+                                    <li> complet (toutes les pages)</li>
+                                    <li> signé (par toutes les parties)</li>
+                                    <li> récent (+ ou - un mois par rapport à aujd)</li>
+                                </ul>
+                            </h5>
+                        </th:block>
+
+                        <th:block th:if="${tenant.getTenantSituation().name() == 'RETIRED'}">
+                            <h3> J’ajoute mon attestation de droit à une pension ou mes bulletins de pension </h3>
+                        </th:block>
+
+                        <th:block th:if="${tenant.getTenantSituation().name() == 'UNEMPLOYED'}">
+                            <h3> J’ajoute mon attestation d’ouverture de droit à l'ARE </h3>
+                            <h5 class="text-lead-color font-weight-normal">
+                                <b> Un seul objectif : efficacité ! </b>
+                                Pour rassurer votre futur propriétaire en un clic, assurez-vous que votre
+                                document est bien :
+                                <ul class="bullets">
+                                    <li> complète (toutes les pages)</li>
+                                    <li> signé (par toutes les parties)</li>
+                                </ul>
+                            </h5>
+                        </th:block>
+
+                        <th:block th:if="${tenant.getTenantSituation().name() == 'INDEPENDENT'}">
+                            <h3> J’ajoute un document justifiant de mon activité </h3>
+                            <h5 class="text-lead-color font-weight-normal">
+                                <b> Un seul objectif : efficacité ! </b>
+                                Pour rassurer votre futur propriétaire en un clic, merci de joindre au choix :
+                                <ul class="bullets">
+                                    <li> Une attestation d’emploi couvrant les trois derniers mois</li>
+                                    <li> Un extrait kbis de votre société</li>
+                                    <li> Une attestation d’inscription au statut d’auto entrepreneur</li>
+                                </ul>
+                            </h5>
+                        </th:block>
+
+                        <th:block th:if="${tenant.getTenantSituation().name() == 'OTHER'}">
+                            <h3> J’ajoute un document justifiant de mon activité </h3>
+                            <h5 class="text-lead-color font-weight-normal">
+                                <b> Un seul objectif : efficacité ! </b>
+                                Pour rassurer votre futur propriétaire en un clic, merci de joindre une
+                                attestation couvrant les 3 derniers mois
+                            </h5>
+                        </th:block>
+                    </th:block>
+
+                    <th:block th:if="${fileNumber}==4">
+                        <h3> Avis d’imposition </h3>
+                        <h5 class="text-lead-color"> Veuillez ajouter votre dernier avis d’imposition (<b>la première
+                            page</b> de l’avis d’imposition, avec le nom lisible, doit impérativement figurer) ou avis
+                            de non-imposition <br/>
+                            <b>Attention</b> : si le futur locataire est rattaché au foyer fiscal,
+                            merci de cocher « je ne dispose pas d’un avis d’imposition en mon nom »
+                        </h5>
+                    </th:block>
+
+                    <th:block th:if="${fileNumber}==5">
+                        <th:block th:if="${tenant.getTenantSituation().name() == 'CDD' or
+                                                   tenant.getTenantSituation().name() == 'CDI' or
+                                                   tenant.getTenantSituation().name() == 'CDI_TRIAL' or
+                                                   tenant.getTenantSituation().name() == 'INTERNSHIP' or
+                                                   tenant.getTenantSituation().name() == 'PUBLIC'}">
+                            <h3> J'ajoute mes fiches de paie </h3>
+                            <h5 class="text-lead-color"> Veuillez ajouter vos trois derniers bulletins de
+                                salaire. </h5>
+                        </th:block>
+
+                        <th:block th:if="${tenant.getTenantSituation().name() == 'STUDENT'}">
+                            <h3> J’ajoute un justificatif de ressources </h3>
+                            <h5 class="text-lead-color" th:unless="${studentWithOtherSalaries}"> Veuillez ajouter vos
+                                trois derniers bulletins de salaire ou attestation de bourse le cas échéant
+                            </h5>
+                            <h5 class="text-lead-color" th:if="${studentWithOtherSalaries}">
+                                Veuillez ajouter vos justificatifs de ressources pour les trois derniers mois (fiches de
+                                paie, attestation de bourses par exemple)
+                            </h5>
+                        </th:block>
+
+                        <th:block th:if="${tenant.getTenantSituation().name() == 'CTT'}">
+                            <h3> J'ajoute mes fiches de paie </h3>
+                            <h5 class="text-lead-color"> Veuillez ajouter vos trois derniers bulletins de
+                                salaire. </h5>
+                        </th:block>
+
+                        <th:block th:if="${tenant.getTenantSituation().name() == 'RETIRED'}">
+                            <h3> J’ajoute mes attestations de versement de pension </h3>
+                            <h5 class="text-lead-color"> Veuillez ajouter vos trois dernières attestations : </h5>
+                        </th:block>
+
+                        <th:block th:if="${tenant.getTenantSituation().name() == 'UNEMPLOYED'}">
+                            <h3> J’ajoute mes attestations de versement d’ARE </h3>
+                            <h5 class="text-lead-color"> Veuillez ajouter vos trois dernières attestations
+                                d’allocation chômage d’aide au retour à l’emploi </h5>
+                        </th:block>
+
+                        <th:block th:if="${tenant.getTenantSituation().name() == 'INDEPENDENT'}">
+                            <h3> J’ajoute un justificatif de ressources </h3>
+                            <h5 class="text-lead-color"> Veuillez ajouter un document justifiant vos revenus
+                                (fiches de paie, bilan comptable ou attestation comptable) </h5>
+                        </th:block>
+
+                        <th:block th:if="${tenant.getTenantSituation().name() == 'OTHER'}">
+                            <h3> J'ajoute mes fiches de paie </h3>
+                            <h5 class="text-lead-color"> Veuillez ajouter une attestation justifiant vos
+                                revenus sur les 3 derniers mois </h5>
+                        </th:block>
+                    </th:block>
+
+
+                    <form enctype="multipart/form-data"
+                          id="formLocataire" method="post"
+                          th:action="@{/registerTenant/step5/} + ${tenantDTO.getSlug()}"
+                          th:object="${tenantDTO}"
+                          th:onsubmit="${fileNumber==1 || fileNumber==2 || fileNumber==4 || fileNumber==5} ? 'return validateFormStep2And5();' : 'return validate_form();'">
+
+                        <input name="fileNumber" th:value="${fileNumber}" type="hidden"/>
+
+                        <div class="row" th:if="${fileNumber}==1">
+                            <div class="col-md-12"></div>
+                            <div class="col-md-12">
+                                <input accept="image/*, .pdf" class="input-file hidden" id="step1_input_1"
+                                       th:field="*{files[0]}"
+                                       th:value="${valInput}"
+                                       type="file"/>
+                                <a class="btn btn--primary btn--icon mb-2" href="#" id="step1_button_1">
+                                    <span class="btn__text">
+                                        <i class="icon-Add-File"></i> Ajouter un document</span>
+                                </a>
+
+                                <span class="ml-3 my-auto" id="step1_input_1_filename" th:text="${valInput}"></span>
+                            </div>
+
+                            <div class="col-md-12">
+                                <input accept="image/*, .pdf" class="input-file hidden" id="step1_input_2"
+                                       th:field="*{files[0]}"
+                                       type="file"/>
+                                <a class="btn btn--primary btn--icon mb-2" href="#" id="step1_button_2">
+                                    <span class="btn__text">
+                                        <i class="icon-Add-File"></i> Ajouter un document</span>
+                                </a>
+
+                                <span class="ml-3 my-auto" id="step1_input_2_filename"></span>
+                            </div>
+                        </div>
+
+                        <div class="row" th:if="${fileNumber}==2 and ${tenant.getTypeFile2().name()=='TYPE1'}">
+                            <div class="col-md-12">
+                                <input accept="image/*, .pdf" class="input-file hidden" id="step2_input_1"
+                                       th:field="*{files[0]}"
+                                       th:value="${valInput}"
+                                       type="file"/>
+                                <a class="btn btn--primary btn--icon mb-2" href="#" id="step2_button_1">
+                                    <span class="btn__text">
+                                        <i class="icon-Add-File"></i> Ajouter un document</span>
+                                </a>
+
+                                <span class="ml-3 my-auto" id="step2_input_1_filename" th:text="${valInput}"></span>
+                            </div>
+
+                            <div class="col-md-12">
+                                <input accept="image/*, .pdf" class="input-file hidden" id="step2_input_2"
+                                       th:field="*{files[0]}"
+                                       type="file"/>
+                                <a class="btn btn--primary btn--icon mb-2" href="#" id="step2_button_2">
+                                    <span class="btn__text">
+                                        <i class="icon-Add-File"></i> Ajouter un document</span>
+                                </a>
+
+                                <span class="ml-3 my-auto" id="step2_input_2_filename"></span>
+                            </div>
+
+                            <div class="col-md-12">
+                                <input accept="image/*, .pdf" class="input-file hidden" id="step2_input_3"
+                                       th:field="*{files[0]}"
+                                       type="file"/>
+                                <a class="btn btn--primary btn--icon" href="#" id="step2_button_3">
+                                    <span class="btn__text">
+                                        <i class="icon-Add-File"></i> Ajouter un document</span>
+                                </a>
+
+                                <span class="ml-3 my-auto" id="step2_input_3_filename"></span>
+                            </div>
+                        </div>
+                        <div class="row" th:if="${fileNumber}==2 and ${tenant.getTypeFile2().name()=='TYPE2'}">
+                            <div class="col-md-12">
+                                <input accept="image/*, .pdf" class="input-file hidden" id="step2_input_1"
+                                       th:field="*{files[0]}"
+                                       th:value="${valInput}"
+                                       type="file"/>
+                                <a class="btn btn--primary btn--icon mb-2" href="#" id="step2_button_1">
+                                    <span class="btn__text">
+                                        <i class="icon-Add-File"></i> Ajouter un document</span>
+                                </a>
+
+                                <span class="ml-3 my-auto" id="step2_input_1_filename" th:text="${valInput}"></span>
+                            </div>
+                        </div>
+                        <div class="row" th:if="${fileNumber}==2 and ${tenant.getTypeFile2().name()=='TYPE3'}">
+                            <div class="col-md-12">
+                                <input accept="image/*, .pdf" class="input-file hidden" id="step2_input_1"
+                                       th:field="*{files[0]}"
+                                       th:value="${valInput}"
+                                       type="file"/>
+                                <a class="btn btn--primary btn--icon mb-2" href="#" id="step2_button_1">
+                                    <span class="btn__text">
+                                        <i class="icon-Add-File"></i> Ajouter un document</span>
+                                </a>
+
+                                <span class="ml-3 my-auto" id="step2_input_1_filename" th:text="${valInput}"></span>
+                            </div>
+                        </div>
+                        <div class="row" th:if="${fileNumber}==3">
+
+                            <div class="col-md-12">
+                                <div id="work-document-container">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <input accept="image/*, .pdf" class="input-file hidden"
+                                                   id="step3_input_0" onchange="return changeFile(0);"
+                                                   th:field="*{files[0]}"
+                                                   th:value="${valInput}" type="file"/>
+                                            <a class="btn btn--primary btn--icon" href="#"
+                                               onclick="return pickFile(0);">
+                                                <span class="btn__text">
+                                                    <i class="icon-Add-File"></i> Ajouter un document</span>
+                                            </a>
+                                            <span class="ml-3 my-auto" id="step3_filename_0"
+                                                  th:text="${valInput}"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-12">
+                                <a class="font-weight-normal text-primary float-right" href="#"
+                                   id="add-work-document">
+                                    + j’ajoute un document
+                                </a>
+                            </div>
+                        </div>
+                        <th:block th:if="${fileNumber}==4">
+                            <div class="row">
+                                <div class="col-md-12"></div>
+                                <div class="col-md-12 inputFile4">
+                                    <input accept="image/*, .pdf" class="input-file hidden" id="step4_input"
+                                           th:field="*{files[0]}"
+                                           th:value="${valInput}"
+                                           type="file"/>
+                                    <a class="btn btn--primary btn--icon mb-2" href="#" id="step4_button">
+                                    <span class="btn__text">
+                                        <i class="icon-Add-File"></i> Ajouter un document</span>
+                                    </a>
+                                    <span class="ml-3 my-auto" id="step4_filename" th:text="${valInput}"></span>
+                                </div>
+                                <div class="col-md-12 inputFile4">
+                                    <input accept="image/*, .pdf" class="input-file hidden" id="step4_input0"
+                                           th:field="*{files[0]}"
+                                           type="file"/>
+                                    <a class="btn btn--primary btn--icon mb-2" href="#" id="step4_button0">
+                                    <span class="btn__text">
+                                        <i class="icon-Add-File"></i> Ajouter un document</span>
+                                    </a>
+                                    <span class="ml-3 my-auto" id="step4_filename0"></span>
+                                </div>
+                                <div class="col-md-12 inputFile4">
+                                    <input accept="image/*, .pdf" class="input-file hidden" id="step4_input1"
+                                           th:field="*{files[0]}"
+                                           type="file"/>
+                                    <a class="btn btn--primary btn--icon mb-2" href="#" id="step4_button1">
+                                    <span class="btn__text">
+                                        <i class="icon-Add-File"></i> Ajouter un document</span>
+                                    </a>
+                                    <span class="ml-3 my-auto" id="step4_filename1"></span>
+                                </div>
+                                <div class="col-md-12 inputFile4">
+                                    <input accept="image/*, .pdf" class="input-file hidden" id="step4_input2"
+                                           th:field="*{files[0]}"
+                                           type="file"/>
+                                    <a class="btn btn--primary btn--icon mb-2" href="#" id="step4_button2">
+                                    <span class="btn__text">
+                                        <i class="icon-Add-File"></i> Ajouter un document</span>
+                                    </a>
+                                    <span class="ml-3 my-auto" id="step4_filename2"></span>
+                                </div>
+
+                                <div class="col-md-12 d-flex align-items-start">
+                                    <div class="input-checkbox mr-3" id="checkboxAcceptVerification">
+                                        <input class="form-check-input hidden" id="acceptVerification"
+                                               th:field="*{acceptVerification}"
+                                               type="checkbox"/>
+                                        <!-- This one below is for showing when it's marked because it doesn't work with th:field.
+                                        Sorry for hard solution. -->
+                                        <input id="acceptVerificationUtility" type="checkbox"/>
+                                        <label class="input-label" for="acceptVerification"></label>
+                                    </div>
+                                    <div>
+                                            <span> J'accepte que DossierFacile procède à une vérification automatisée de
+                                                ma fiche d'imposition auprès des services des impôts
+                                            </span>
+                                    </div>
+                                </div>
+
+                                <div class="mt-2 col-12 color--error"
+                                     th:errors="*{acceptVerification}"
+                                     th:if="${#fields.hasErrors('acceptVerification')}"></div>
+                            </div>
+
+                            <div class="row col-md-12 pt-4" id="causeFile4Generated">
+                                <div class="input-radio col-1">
+                                    <input class="col-1" th:field="*{causeFile4Generated}"
+                                           th:value="${T(fr.gouv.common.enums.CauseFile4Generated).FOREIGNER}"
+                                           type="radio"/>
+                                    <label></label>
+                                </div>
+                                <div class="col-11"> je suis sur le territoire français depuis moins d'un an
+                                </div>
+
+                                <div class="input-radio col-1">
+                                    <input th:field="*{causeFile4Generated}"
+                                           th:value="${T(fr.gouv.common.enums.CauseFile4Generated).CHILD}"
+                                           type="radio"/>
+                                    <label></label>
+                                </div>
+                                <div class="col-11"> je suis encore rattaché au foyer fiscal de mes parents
+                                </div>
+
+                                <div class="input-radio col-1">
+                                    <input th:field="*{causeFile4Generated}"
+                                           th:value="${T(fr.gouv.common.enums.CauseFile4Generated).OTHER}"
+                                           type="radio"/>
+                                    <label></label>
+                                </div>
+                                <div class="col-11"> autre
+                                </div>
+                                <div class="col-md-12" id="divTextFile4" style="display: none">
+                                    <span class="text-lead-color">Afin d'améliorer votre dossier, veuillez expliquer ci-dessous pourquoi vous ne recevez pas d’avis d’imposition. Votre explication sera ajoutée à votre dossier</span>
+                                    <textarea id="textFile4" maxlength="500" placeholder="" rows="4"
+                                              th:field="*{file4Text}"></textarea>
+                                </div>
+                            </div>
+                        </th:block>
+
+                        <div class="row" id="inputFile5" th:if="${fileNumber}==5">
+                            <div class="col-md-12" th:unless="${studentWithOtherSalaries}">
+                                <div class="input-radio d-flex">
+                                    <input id="type1" th:field="*{typeFile5}"
+                                           th:value="${T(fr.gouv.common.enums.TypeFile5).TYPE1}" type="radio"/>
+                                    <label for="type1"></label>
+                                    <span class="input__label radio-step5file5">Je peux fournir mes trois derniers bulletins de salaire</span>
+                                </div>
+                            </div>
+                            <div class="col-md-12" th:unless="${studentWithOtherSalaries}">
+                                <div class="input-radio d-flex">
+                                    <input id="type2" th:field="*{typeFile5}"
+                                           th:value="${T(fr.gouv.common.enums.TypeFile5).TYPE2}" type="radio"/>
+                                    <label for="type2"></label>
+                                    <span class="input__label radio-step5file5">Je ne peux pas fournir mes trois derniers bulletins de salaire</span>
+
+                                </div>
+                            </div>
+                            <div class="col-md-12" id="divTextFile5" style="display: none"
+                                 th:unless="${studentWithOtherSalaries}">
+                                <span class="text-lead-color">Afin d'ameliorer votre dossier, expliquez-nous pourquoi vous ne pouvez pas fournir vos trois derniers bulletins de salaire</span>
+                                <textarea id="textFile5" maxlength="500" placeholder="" rows="4"
+                                          th:field="*{file5Text}"></textarea>
+                            </div>
+                            <div class="col-md-12">
+                                <input accept="image/*, .pdf" class="input-file hidden" id="step5_input_1"
+                                       th:field="*{files[0]}"
+                                       th:value="${valInput}"
+                                       type="file"/>
+                                <a class="btn btn--primary btn--icon mb-2" href="#" id="step5_button_1">
+                                    <span class="btn__text">
+                                        <i class="icon-Add-File"></i> Ajouter un document</span>
+                                </a>
+
+                                <span class="ml-3 my-auto" id="step5_input_1_filename" th:text="${valInput}"></span>
+                            </div>
+
+                            <div class="col-md-12">
+                                <input accept="image/*, .pdf" class="input-file hidden" id="step5_input_2"
+                                       th:field="*{files[0]}"
+                                       type="file"/>
+                                <a class="btn btn--primary btn--icon mb-2" href="#" id="step5_button_2">
+                                    <span class="btn__text">
+                                        <i class="icon-Add-File"></i> Ajouter un document</span>
+                                </a>
+
+                                <span class="ml-3 my-auto" id="step5_input_2_filename"></span>
+                            </div>
+
+                            <div class="col-md-12" id="file5file3">
+                                <input accept="image/*, .pdf" class="input-file hidden" id="step5_input_3"
+                                       th:field="*{files[0]}"
+                                       type="file"/>
+                                <a class="btn btn--primary btn--icon" href="#" id="step5_button_3">
+                                    <span class="btn__text">
+                                        <i class="icon-Add-File"></i> Ajouter un document</span>
+                                </a>
+
+                                <span class="ml-3 my-auto" id="step5_input_3_filename"></span>
+                            </div>
+                        </div>
+
+                        <!-- The global progress bar -->
+                        <div class="row">
+                            <div class="progress-horizontal progress-horizontal--sm col-md-12 mt-4 hidden"
+                                 id="progress">
+                                <div class="progress-horizontal__bar" data-value="0" id="progressBar"></div>
+                                <!--<span class="progress-horizontal__label h5" id="progress-label">[Filename]</span>-->
+                            </div>
+
+                            <div class="col-md-12 text-left" id="errors">
+                                <span class='color--error' th:if="${uploadError}">Nous ne pouvons télécharger votre fichier pour le moment. Veuillez contacter le support.</span>
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn--primary text-uppercase mb-5" id="step5SubmitButton"
+                                        th:text="#{tenant.form.button.next}"
+                                        type="submit">
+                                </button>
+                                <i class="fa fa-spinner fa-spin fa-4x" id="loading" style="display: none"></i>
+                            </div>
+
+                            <div class="col-md-12" th:if="${fileNumber}==4">
+                                <div class="input-checkbox input-checkbox--switch">
+                                    <input class="hidden"
+                                           id="file4Generated" th:field="*{file4Generated}" type="checkbox"/>
+                                    <!-- This one below is for showing when it's marked because it doesn't work with th:field.
+                                            Sorry for hard solution. -->
+                                    <input class="no-validate" id="file4GeneratedUtility" type="checkbox"/>
+                                    <label></label>
+                                </div>
+                                <span> Je ne dispose pas d'un avis d'imposition en mon nom </span>
+                            </div>
+                        </div>
+                    </form>
+
+
+                    <th:block th:if="${fileNumber}==2">
+                        <h5 class="text-lead-color"> Quel intérêt ? Rassurer votre futur propriétaire !
+                            Attester que vous avez bien payé vos précédents loyers c'est montrer qu'on
+                            peut vous faire confiance. </h5>
+                    </th:block>
+                    <th:block th:if="${fileNumber}==2 and ${tenant.getTypeFile2().name()=='TYPE3'}">
+                        <h3>Qu’est-ce qu’une attestation d’hébergement ? </h3>
+                        <a class="btn"
+                           href="https://www.service-public.fr/simulateur/calcul/AttestationHebergement"
+                           style="border-color: #3483de !important"
+                           target="_blank">
+                            <span class="btn__text color--primary">Je remplis mon attestation d’hébergement</span>
+                        </a>
+                    </th:block>
+
+                    <th:block th:if="${fileNumber}==5">
+                        <h5 class="text-lead-color" th:unless="${studentWithOtherSalaries}"><b> Le lien de confiance
+                            avec votre propriétaire est notre
+                            priorité ! </b>
+                            Lui communiquer vos dernières fiches de paie c'est le rassurer :
+                            cela montre que vous êtes bien en mesure de payer votre (futur) loyer. </h5>
+                    </th:block>
+
+                    <div class="col-md-12 text-center mb-5" id="impot-image" th:if="${fileNumber} == 4">
+                        <img class="zoom col-12 col-md-6 img-fluid" src="/assets/images/impot_image.png"/>
+                    </div>
+                    <div th:replace="include/modal-api:: modal-api">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <div class="notification pos-right pos-top notification--reveal" data-animation="from-top" data-autoshow="200"
+         th:if="${notificationModifyFile}">
+        <div class="boxed boxed--border border--round box-shadow">
+            <div class="text-block">
+                <h5>Modifications enregistrées !</h5>
+                <p>
+                    Vos modifications ont bien été prises en compte et sont désormais appliquées.
+                </p>
+            </div>
+        </div>
+        <div class="notification-close-cross notification-close"></div>
+    </div>
+    <div th:replace="include/register-tenant-help :: register-tenant-help"></div>
+
+    <div th:replace="include/modal-account:: modal-account">
+    </div>
+    <div class="modal-container" data-autoshow="1" id="modalErrorNumberPages" th:if="${modalErrorNumberPages}">
+        <div class="modal-content section-modal">
+            <section class="unpad ">
+                <div class="container">
+                    <div class="row justify-content-center">
+                        <div class="col-md-8 col-12">
+                            <div class="feature feature-1">
+                                <div class="feature__body boxed boxed--lg boxed--border text-center">
+                                    <div class="modal-close modal-close-cross"></div>
+                                    <div class="text-block">
+                                        <h3>Attention, le document téléchargé dépasse la taille maximale autorisée</h3>
+                                        <p>Il semblerait que votre document contienne plus de
+                                            pages que nécessaire au
+                                            regard du type de pièce demandé.</p>
+                                        <p><b>Un document trop volumineux nuit à la clarté de
+                                            votre dossier.</b></p>
+                                        <p th:text="${errorNumberPages}"></p>
+                                    </div>
+                                </div>
+                            </div>
+                            <!--end feature-->
+                        </div>
+                    </div>
+                    <!--end of row-->
+                </div>
+                <!--end of container-->
+            </section>
+        </div>
+    </div>
+    <div class="modal-container" data-autoshow="1" id="modalErrorSize" th:if="${modalErrorSize}">
+        <div class="modal-content section-modal">
+            <section class="unpad ">
+                <div class="container">
+                    <div class="row justify-content-center">
+                        <div class="col-md-8 col-12">
+                            <div class="feature feature-1">
+                                <div class="feature__body boxed boxed--lg boxed--border text-center">
+                                    <div class="modal-close modal-close-cross"></div>
+                                    <div class="text-block">
+                                        <h3>Attention, le document téléchargé dépasse la taille maximale autorisée</h3>
+                                        <p>Il semblerait que votre document soit trop lourd</p>
+                                        <p><b>Un document trop volumineux nuit à la clarté de votre dossier.</b></p>
+                                        <p th:text="${errorSize}"></p>
+                                    </div>
+                                </div>
+                            </div>
+                            <!--end feature-->
+                        </div>
+                    </div>
+                    <!--end of row-->
+                </div>
+                <!--end of container-->
+            </section>
+        </div>
+    </div>
+</div>
+
+<div layout:fragment="javascripts" th:remove="tag">
+    <script src="/js/registerTenant/step5.js"></script>
+    <script src="/js/registerTenant/registerTenant.js"></script>
+</div>
+
+</body>
+</html>

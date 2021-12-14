@@ -1,0 +1,9 @@
+#radio-image {
+    top: -0.7rem;
+    position: relative;
+}
+
+.input-radio label {
+    margin-top: 1rem !important;
+    display: inline-block !important;
+}

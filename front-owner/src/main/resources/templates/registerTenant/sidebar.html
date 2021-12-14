@@ -1,0 +1,136 @@
+<!DOCTYPE HTML>
+<html layout:decorator="layout"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body>
+
+<div th:fragment="sidebar(step, currentStep, fileDTO, slug)" th:remove="tag">
+    <div class="nav-container nav-container--sidebar">
+        <div class="d-flex nav-sidebar-column bg-orange">
+
+            <div class="text-block my-auto text-white">
+                <ul class="menu-vertical">
+                    <li>
+                        <span data-id="1"
+                              th:classappend="|${'INFORMATIONS' == step ? 'active-label' : ''} ${currentStep > 1 ? 'verified-item' : ''}|"> Informations </span>
+                    </li>
+                    <li>
+                        <span data-id="2"
+                              th:classappend="|${'IDENTITE' == step ? 'active-label' : ''} ${currentStep > 2 ? 'verified-item' : ''}|"> Identité </span>
+                    </li>
+                    <li>
+                        <span data-id="3"
+                              th:classappend="|${'DOMICILE' == step ? 'active-label' : ''} ${currentStep > 3 ? 'verified-item' : ''}|"> Domicile </span>
+                    </li>
+                    <li>
+                        <span data-id="4"
+                              th:classappend="|${'PROFESSIONEL' == step ? 'active-label' : ''} ${currentStep > 4 ? 'verified-item' : ''}|"> Professionel </span>
+                    </li>
+                    <li>
+                        <span data-id="5"
+                              th:classappend="|${'IMPOSITION' == step ? 'active-label' : ''} ${currentStep > 5 ? 'verified-item' : ''}|"> Avis d'imposition </span>
+                    </li>
+                    <li>
+                        <span data-id="6"
+                              th:classappend="|${'FICHESDEPAIE' == step ? 'active-label' : ''} ${currentStep > 6 ? 'verified-item' : ''}|"> Fiches de paie </span>
+                    </li>
+                    <li>
+                        <span th:classappend="${'GARANT' == step ? 'active-label' : ''} "> Garant <span
+                                th:if="${currentStep > 7}">&#10004;</span></span>
+                    </li>
+                    <li>
+                        <span data-id="8"
+                              th:classappend="|${'RGPD' == step ? 'active-label' : ''} ${currentStep > 8 ? 'verified-item' : ''}|"> RGPD </span>
+                    </li>
+                    <li>
+                        <span data-id="9"
+                              th:classappend="|${'RECAP' == step ? 'active-label' : ''} ${currentStep > 9 ? 'verified-item' : ''}|"> Mon Recap</span>
+                    </li>
+
+                    <li>
+                        <div class="modal-instance">
+                            <a class="text-white modal-trigger" href="#">
+                                <span class="type--underline"> Terminer plus tard </span>
+                            </a>
+
+                            <div class="modal-container" id="finish-account-create">
+                                <div class="modal-content">
+                                    <div class="boxed boxed--lg">
+                                        <h2> Tout est enregistré ! </h2>
+                                        <hr class="short"/>
+                                        <p class="lead">
+                                            Vous pouvez quitter cette page et vous reconnecter à n'importe quel
+                                            moment : vos informations ont été enregistrées. A la prochaine connexion
+                                            vous reprendrez automatiquement à l'étape à laquelle vous vous êtes arrêté.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+
+        <div class="nav-sidebar-column-toggle visible-xs visible-sm" data-toggle-class=".nav-sidebar-column;active">
+            <span class="stack-menu stack-sidebar-register-tenant">RECAP</span>
+        </div>
+        <div class="modal-container" id="informationAction">
+            <div class="modal-content section-modal">
+                <section class="unpad ">
+                    <div class="container">
+                        <div class="row justify-content-center">
+                            <div class="col-md-8 col-12">
+                                <div class="feature feature-1">
+                                    <div class="feature__body boxed boxed--lg boxed--border text-center">
+                                        <div class="modal-close modal-close-cross"></div>
+                                        <div class="text-block">
+                                            <div class="text-center">
+                                                <h4>
+                                                    Finissez votre inscription : vous pourrez modifier toutes vos
+                                                    informations et documents par la suite !
+                                                </h4>
+                                            </div>
+                                            <br/>
+                                            <div class="text-center">
+                                                <h4>
+                                                    Attention : vous pouvez aussi recommencer depuis le début, cela
+                                                    entraînera la surpression de toutes les informations déjà fournies.
+                                                </h4>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <!--                                                <div class="btn btn&#45;&#45;default btn-block modal-close reset-tenant" id="help-button">-->
+                                                <!--                                                    <span class="btn__text">RECOMMENCER</span>-->
+                                                <!--                                                </div>-->
+                                                <form th:action="@{/registerTenant/deleteTenant/} + ${slug}"
+                                                      th:method="post">
+                                                    <button class="btn btn-default" type="submit">RECOMMENCER</button>
+                                                </form>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="btn btn--primary btn-block modal-close">
+                                                    <span class="btn__text">ANNULER</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <!--end of Register Tenant Sidebar-->
+</div>
+
+</body>
+</html>

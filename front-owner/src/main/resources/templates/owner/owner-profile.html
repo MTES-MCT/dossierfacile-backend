@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en"
+      layout:decorator="owner/layout"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>DossierFacile</title>
+</head>
+<body>
+<div layout:fragment="sidebar" th:remove="tag">
+    <div th:replace="owner/sidebar:: sidebar"></div>
+</div>
+<div layout:fragment="content" th:remove="tag">
+
+    <input id="saved" th:value="${saved}" type="hidden"/>
+    <div class="boxed boxed--border bg--secondary boxed--lg box-shadow"
+         id="modify-owner-compte-notification">
+        <h3> Modifications enregistrées ! </h3>
+        <p>
+            Vos modifications ont bien été prises en compte et sont désormais appliquées.
+        </p>
+    </div>
+    <section class="text-center">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-8 col-lg-6">
+                    <h2 class="col-md-12 text-left"> Modifier vos informations </h2>
+                    <div class="col-md-12">
+                        <hr class="short"/>
+                    </div>
+
+                    <form method="post" onsubmit="return validate_form2()" th:action="@{/proprietaire/mon-compte}"
+                          th:object="${owner}">
+
+                        <div class="col-md-12 text-left">
+                            <span> Prénom : </span>
+                            <input autocomplete="true" class="small validate-required" placeholder="Ex : Jean-Michel"
+                                   th:field="*{firstName}" type="text"/>
+                            <span class="color--error" th:errors="*{firstName}"
+                                  th:if="${#fields.hasErrors('firstName')}"></span>
+                        </div>
+
+                        <div class="col-md-12 text-left">
+                            <span class="font"> Nom : </span>
+                            <input autocomplete="true" class="small validate-required" placeholder="Ex : Dupont"
+                                   th:field="*{lastName}" type="text"/>
+                            <span class="color--error" th:errors="*{lastName}"
+                                  th:if="${#fields.hasErrors('lastName')}"></span>
+                        </div>
+
+                        <div class="col-md-12 text-left">
+                            <span> Email : </span>
+                            <input autocomplete="off" class="small" disabled="disabled" id="email" name="email"
+                                   th:field="*{email}" type="email"/>
+                        </div>
+
+                        <div class="col-12 text-left" id="errors">
+                        </div>
+
+                        <div class="col-md-12 mt-4 justify-content-center align-content-center">
+                            <button class="btn btn--primary border-0 bg-orange w-100 text-uppercase" id="save-button"
+                                    type="submit">
+                                Modifier mes informations
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="modal-instance">
+                        <a class="mt-4 d-block text-danger modal-trigger" href="#">
+                            Supprimer mon compte
+                        </a>
+
+                        <div class="modal-container" data-modal-id="confirm-delete">
+                            <div class="modal-content" data-width="80%">
+                                <div class="boxed boxed--lg">
+                                    <h2 class="text-center"> Attention! </h2>
+
+                                    <p class="mx-5 px-5"> Vous êtes sur le point de supprimer votre compte. </p>
+
+                                    <p class="mx-5 px-5"> Cette action est irréversible et toutes vos données seront
+                                        supprimées (dossiers, locataires, biens) </p>
+
+                                    <div class="text-center">
+                                        <div class="d-flex justify-content-center pt-4 mt-5">
+                                            <button class="btn btn--primary w-25 mx-5 my-auto modal-close"
+                                                    href="#"
+                                                    type="button">
+                                                <span class="btn__text"> Annuler </span>
+                                            </button>
+
+                                            <div class="w-25 mx-5 my-auto">
+                                                <form id="deleteOwnerForm" method="post"
+                                                      th:action="@{/proprietaire/supprimer-mon-compte}">
+                                                    <button class="btn btn--secondary w-100 mt-0"
+                                                            type="submit">
+                                                        <span class="btn__text"> Supprimer </span>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-close modal-close-cross"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+<div layout:fragment="javascripts" th:remove="tag">
+    <script src="/js/sidebar2.js"></script>
+    <script src="/js/owner-profile.js"></script>
+</div>
+</body>
+</html>

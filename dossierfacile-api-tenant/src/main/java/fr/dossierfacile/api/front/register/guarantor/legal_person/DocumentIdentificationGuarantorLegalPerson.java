@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.front.register.guarantor.legal_person;
 
+import fr.dossierfacile.api.front.amqp.Producer;
 import fr.dossierfacile.api.front.exception.GuarantorNotFoundException;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
@@ -9,8 +10,10 @@ import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.repository.FileRepository;
 import fr.dossierfacile.api.front.repository.GuarantorRepository;
 import fr.dossierfacile.api.front.repository.TenantRepository;
-import fr.dossierfacile.api.front.service.OvhService;
+import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
+import fr.dossierfacile.api.front.service.interfaces.TenantService;
+import fr.dossierfacile.api.front.util.Utility;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Guarantor;
@@ -19,6 +22,7 @@ import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.TypeGuarantor;
+import fr.dossierfacile.common.service.interfaces.OvhService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,11 +43,20 @@ public class DocumentIdentificationGuarantorLegalPerson implements SaveStep<Docu
     private final GuarantorRepository guarantorRepository;
     private final FileRepository fileRepository;
     private final DocumentService documentService;
+    private final TenantService tenantService;
+    private final Producer producer;
+    private final ApartmentSharingService apartmentSharingService;
 
     @Override
-    @Transactional
     public TenantModel saveStep(Tenant tenant, DocumentIdentificationGuarantorLegalPersonForm documentIdentificationGuarantorLegalPersonForm) {
-        documentService.updateOthersDocumentsStatus(tenant);
+        Document document = saveDocument(tenant, documentIdentificationGuarantorLegalPersonForm);
+        producer.generatePdf(document.getId());
+        return tenantMapper.toTenantModel(document.getGuarantor().getTenant());
+    }
+
+    @Transactional
+    Document saveDocument(Tenant tenant, DocumentIdentificationGuarantorLegalPersonForm documentIdentificationGuarantorLegalPersonForm) {
+        documentService.resetValidatedDocumentsStatusToToProcess(tenant);
         Guarantor guarantor = guarantorRepository.findByTenantAndTypeGuarantorAndId(tenant, TypeGuarantor.LEGAL_PERSON, documentIdentificationGuarantorLegalPersonForm.getGuarantorId())
                 .orElseThrow(() -> new GuarantorNotFoundException(documentIdentificationGuarantorLegalPersonForm.getGuarantorId()));
         guarantor.setLegalPersonName(documentIdentificationGuarantorLegalPersonForm.getLegalPersonName());
@@ -51,7 +64,7 @@ public class DocumentIdentificationGuarantorLegalPerson implements SaveStep<Docu
         guarantorRepository.save(guarantor);
 
         DocumentSubCategory documentSubCategory = DocumentSubCategory.LEGAL_PERSON;
-        Document document = documentRepository.findByDocumentCategoryAndGuarantor(DocumentCategory.IDENTIFICATION_LEGAL_PERSON, guarantor)
+        Document document = documentRepository.findFirstByDocumentCategoryAndGuarantor(DocumentCategory.IDENTIFICATION_LEGAL_PERSON, guarantor)
                 .orElse(Document.builder()
                         .documentCategory(DocumentCategory.IDENTIFICATION_LEGAL_PERSON)
                         .guarantor(guarantor)
@@ -70,11 +83,15 @@ public class DocumentIdentificationGuarantorLegalPerson implements SaveStep<Docu
                     .document(document)
                     .originalName(originalName)
                     .size(size)
+                    .numberOfPages(Utility.countNumberOfPagesOfPdfDocument(multipartFile))
                     .build();
             fileRepository.save(file);
         }
-        documentService.generatePdfByFilesOfDocument(document);
+        documentService.initializeFieldsToProcessPdfGeneration(document);
         tenant.lastUpdateDateProfile(LocalDateTime.now(), DocumentCategory.IDENTIFICATION_LEGAL_PERSON);
-        return tenantMapper.toTenantModel(tenantRepository.save(tenant));
+        tenantService.updateTenantStatus(tenant);
+        apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
+        tenantRepository.save(tenant);
+        return document;
     }
 }

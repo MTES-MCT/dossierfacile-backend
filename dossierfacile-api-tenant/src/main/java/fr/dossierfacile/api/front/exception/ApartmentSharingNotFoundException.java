@@ -6,6 +6,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ResponseStatus(HttpStatus.NOT_FOUND)
 public class ApartmentSharingNotFoundException extends RuntimeException {
     public ApartmentSharingNotFoundException(String token) {
-        super("Could not find the application with token " + token);
+        super("Could not find apartment sharing with token " + token);
     }
 }

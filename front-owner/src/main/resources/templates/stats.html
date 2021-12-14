@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en"
+      layout:decorator="layout"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>DossierFacile</title>
+</head>
+<body>
+
+<div class="container-fluid" layout:fragment="content">
+
+    <section class="text-center pb-0">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-10 col-lg-8">
+                    <h1>DossierFacile en chiffres</h1>
+                    <p class="lead"> La transparence est une de nos valeur, nous avons choisi de la promouvoir. </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <a class="in-page-link" id="process-radial-1"></a>
+    <section class="text-center">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 col-12">
+                    <div class="feature">
+                        <div class="radial" data-bar-width="8" data-color="#4a90e2" data-size="208" data-value="33">
+                            <span class="h3 radial__label"><p th:text="${nb_docs_uploaded}"></p></span></div>
+                        <p> nombre de documents déposés sur locatio </p>
+                    </div>
+                </div>
+                <div class="col-md-4 col-12">
+                    <div class="feature">
+                        <div class="radial" data-bar-width="8" data-color="#4a90e2" data-size="208"
+                             th:attr="data-value=${pct_satisfaction}">
+                            <span class="h3 radial__label"><p th:text="${pct_satisfaction} + ' %'"></p></span></div>
+                        <p> pourcentage d'utilisateurs satisfaits </p>
+                    </div>
+                </div>
+                <div class="col-md-4 col-12">
+                    <div class="feature">
+                        <div class="radial" data-bar-width="8" data-color="#4a90e2" data-size="208"
+                             data-value="100">
+                            <span class="h3 radial__label"><p th:text="${nb_accounts_created}"></p></span></div>
+                        <p> nombre de dossiers locatio créés </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+</body>
+</html>

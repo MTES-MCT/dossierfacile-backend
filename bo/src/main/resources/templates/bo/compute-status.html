@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="bo/layout-bo">
+<head>
+    <title>DossierFacile</title>
+</head>
+<body>
+
+<div layout:fragment="content" th:remove="tag">
+
+    <div class="col-md-12">
+        <div class="col-md-12" style="margin-bottom: 8px;">
+            <div id="hideDiv" style="padding: 10px;margin-bottom: auto;border-radius: 8px; text-align:center;">
+            </div>
+        </div>
+
+    </div>
+    <div class="container">
+        <div class="text-center margin-bottom">
+            <span th:text="'Enter the tenants Id : '"></span>
+        </div>
+        <div class="clearfix"></div>
+        <div class="table-responsive">
+            <form class="form" th:action="@{/bo/regenerateStatusOfTenants}" method="post" th:object="${tenantList}"
+                  >
+                <div style="text-align: -webkit-center;">
+                    <input type="text" autocomplete="true" th:field="*{email}" placeholder="Id: 2, 51, 8, ..." style="width: 50%"/>
+                </div>
+
+                <div class="text-center medium-space-separator">
+                    <button  name="action" type="submit"
+                             class="btn btn-default btn-responsive subtitle1">
+                        Regenerate Status</button>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+<div layout:fragment="javascripts" th:remove="tag">
+    <script src="/js/bo/index.js"></script>
+</div>
+</body>
+</html>

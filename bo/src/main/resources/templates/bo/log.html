@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="bo/layout-bo">
+<head>
+    <title>DossierFacile</title>
+</head>
+<body>
+<div layout:fragment="content" th:remove="tag">
+    <div th:replace="bo/menu :: menu">...</div>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered table-hover">
+            <thead>
+            <tr>
+                <th>Creation date</th>
+                <th>See</th>
+                <th>Log type</th>
+                <th>Message</th>
+            </tr>
+            </thead>
+            <tbody>
+
+            <tr th:each="log : ${logs}">
+                <td th:utext="${log.getCreationDateTime()}"></td>
+                <td>
+                    <a th:href="@{/bo/colocation/}+${log.getApartmentSharingId()}"
+                       th:if="${map.get(log.getApartmentSharingId())}">
+                        <span class="fa fa-eye"></span>
+                    </a>
+                    <span th:unless="${map.get(log.getApartmentSharingId())}">
+                        <span class="fa fa-eye-slash"></span>
+                    </span>
+                </td>
+                <td th:if="${log.getLogType().name()=='ACCOUNT_VALIDATED'}">
+                    <span class="label label-success" th:text="${log.getLogType()}"></span>
+                </td>
+                <td th:unless="${log.getLogType().name()=='ACCOUNT_VALIDATED'}">
+                    <span th:text="${log.getLogType()}"></span>
+                </td>
+                <td th:class="${log.getLogType().name()=='ACCOUNT_VALIDATED'}?'bold':''"
+                    th:text="${log.getMessage()}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="row">
+        <div class="form-group col-md-1">
+            <select class="form-control pagination pageSizeSelect" data-url="/bo/log">
+                <option th:each="pageSize : ${pageSizes}" th:text="${pageSize}" th:value="${pageSize}"
+                        th:selected="${pageSize} == ${selectedPageSize}"></option>
+            </select>
+        </div>
+        <div th:if="${logs.totalPages != 1}" class="form-group col-md-11 pagination-centered">
+            <ul class="pagination">
+                <li th:class="${logs.number == 0} ? disabled">
+                    <a class="pageLink" th:href="@{/bo/log(pageSize=${selectedPageSize}, page=1)}">&laquo;</a>
+                </li>
+                <li th:class="${logs.number == 0} ? disabled">
+                    <a class="pageLink"
+                       th:href="@{/bo/log(pageSize=${selectedPageSize}, page=${logs.number})}">&larr;</a>
+                </li>
+                <li th:class="${logs.number == (page - 1)} ? 'active pointer-disabled'"
+                    th:each="page : ${#numbers.sequence(pager.startPage, pager.endPage)}">
+                    <a class="pageLink" th:href="@{/bo/log(pageSize=${selectedPageSize}, page=${page})}"
+                       th:text="${page}"></a>
+                </li>
+                <li th:class="${logs.number + 1 == logs.totalPages} ? disabled">
+                    <a class="pageLink"
+                       th:href="@{/bo/log(pageSize=${selectedPageSize}, page=${logs.number + 2})}">&rarr;</a>
+                </li>
+                <li th:class="${logs.number + 1 == logs.totalPages} ? disabled">
+                    <a class="pageLink"
+                       th:href="@{/bo/log(pageSize=${selectedPageSize}, page=${logs.totalPages})}">&raquo;</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

@@ -31,7 +31,7 @@ public class SizeFileValidator implements ConstraintValidator<SizeFile, List<Mul
 
     @Override
     public boolean isValid(List<MultipartFile> files, ConstraintValidatorContext constraintValidatorContext) {
-        if (typeDocumentValidation == TypeDocumentValidation.ALL_DOCUMENTS) {
+        if (typeDocumentValidation == TypeDocumentValidation.ALL_FILES) {
             ByteArrayOutputStream byteArrayOutputStream = Utility.mergeMultipartFiles(files.stream().filter(f -> !f.isEmpty()).collect(Collectors.toList()));
             double length = byteArrayOutputStream.size() / (1024.0 * 1024.0);
             return length <= max;

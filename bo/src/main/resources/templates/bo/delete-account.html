@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="bo/layout-bo">
+<head>
+    <title>DossierFacile</title>
+</head>
+<body>
+
+<div layout:fragment="content" th:remove="tag">
+
+    <div th:replace="bo/menu :: menu">...</div>
+    <br/><br/><br/>
+    <div class="container">
+        <div class="row">
+            <div class="container">
+                <div class="medium-space-separator">
+                    <form id="deleteUser" class="form" th:action="@{/bo/deleteAccount}" method="post"
+                          th:object="${deleteUser}">
+                        <div class="form-group col-md-6">
+                            <input type="email" id="email" required="required" autocomplete="true"
+                                   th:field="*{email}"
+                                   class="form-control form-control-formatted form-control-untouched"
+                                   placeholder="Email"/>
+                            <span id="email-error" class="d-none color--error"></span>
+                            <span th:if="${#fields.hasErrors('email')}" class="help-block color--error" th:errors="*{email}"></span>
+                        </div>
+                        <div class="col-md-2">
+                            <a type="buttom" data-loading-text="Création en cours..."
+                                    class="btn btn-primary btn-responsive animated subtitle1" data-toggle="modal" data-target="#deleteUserModal">Delete Account
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal -->
+
+    <div class="modal fade" id="deleteUserModal" tabindex="-1" role="dialog"
+         aria-labelledby="deleteUserModal">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content text-primary">
+                <div class="modal-body text-center">
+                    <p class="text-primary little-title space-separator border-bottom border-primary">Are you sure you
+                        want to delete this Account?</p>
+                    <div class="medium-space-separator-top">
+                            <button class="btn btn-danger btn-responsive subtitle1" type="buttom" onclick="$('#deleteUser').submit()">Oui</button>
+                            <a href="" data-toggle="modal" data-target="#deleteUserModal"
+                               class="btn btn-default btn-responsive subtitle1 closebtnaction">Non</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>
+

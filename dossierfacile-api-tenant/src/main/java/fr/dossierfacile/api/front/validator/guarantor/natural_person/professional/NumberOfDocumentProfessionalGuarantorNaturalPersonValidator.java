@@ -9,6 +9,7 @@ import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.TypeGuarantor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
@@ -27,7 +28,8 @@ public class NumberOfDocumentProfessionalGuarantorNaturalPersonValidator impleme
 
     @Override
     public boolean isValid(DocumentProfessionalGuarantorNaturalPersonForm documentProfessionalGuarantorNaturalPersonForm, ConstraintValidatorContext constraintValidatorContext) {
-        Tenant tenant = authenticationFacade.getPrincipalAuthTenant();
+        Tenant tenant = authenticationFacade.getTenant(documentProfessionalGuarantorNaturalPersonForm.getTenantId());
+        long sizeOldDoc = 0;
         long countOld = fileRepository.countFileByDocumentCategoryGuarantorIdTypeGuarantorTenant(
                 DocumentCategory.PROFESSIONAL,
                 documentProfessionalGuarantorNaturalPersonForm.getGuarantorId(),
@@ -38,6 +40,16 @@ public class NumberOfDocumentProfessionalGuarantorNaturalPersonValidator impleme
                 .stream()
                 .filter(f -> !f.isEmpty())
                 .count();
-        return 1 <= countNew + countOld && countNew + countOld <= 15;
+        if(countOld > 0){
+            sizeOldDoc = fileRepository.sumSizeOfAllFilesInDocumentForGuarantorTenantId(
+                    DocumentCategory.PROFESSIONAL,
+                    documentProfessionalGuarantorNaturalPersonForm.getGuarantorId(),
+                    TypeGuarantor.NATURAL_PERSON,
+                    tenant
+            );
+        }
+        long sizeNewDoc = documentProfessionalGuarantorNaturalPersonForm.getDocuments().stream().filter(o -> o.getSize() >= 0).mapToLong(MultipartFile::getSize).sum();
+
+        return 1 <= countNew + countOld && countNew + countOld <= 20 && sizeNewDoc + sizeOldDoc <= 52428800;
     }
 }

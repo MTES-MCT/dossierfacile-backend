@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en"
+      layout:decorator="bo/layout-bo"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>DossierFacile</title>
+</head>
+<body>
+<div layout:fragment="content" th:remove="tag">
+    <div th:replace="bo/menu :: menu">...</div>
+    <div class="container">
+        <div class="row">
+            <div class="form-group col-md-4">
+                <label class="control-label" for="agent-id">Agent</label>
+                <select class="form-control" id="agent-id"
+                        required="required">
+                    <option value="0">total</option>
+                    <option th:each="agent:${agentList}" th:selected="${selected==agent.id}"
+                            th:text="${agent.email}"
+                            th:value="${agent.id}">
+                    </option>
+                </select>
+            </div>
+            <div class="table-responsive col-md-12">
+                <h3>Stats from prospects</h3>
+                <table class="table table-striped table-bordered table-hover">
+                    <thead>
+                    <tr>
+                        <th style="min-width: 250px">Week/File</th>
+                        <th>Number of prospects created (A)</th>
+                        <th>Number of automatically created prospects (% vs A)</th>
+                        <th>Number of actions</th>
+                        <th>Number of links tenant-agent (% vs A)</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="logActionAgent : ${list}">
+                        <td th:text="${logActionAgent.date()}"></td>
+                        <td th:text="${logActionAgent.getTotal()}"></td>
+                        <td th:text="${logActionAgent.column3()}"></td>
+                        <td th:text="${logActionAgent.getActions()}"></td>
+                        <td th:text="${logActionAgent.column5()}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

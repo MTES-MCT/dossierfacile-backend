@@ -14,11 +14,11 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
 
     long countByDocumentCategoryAndGuarantor(DocumentCategory documentCategory, Guarantor guarantor);
 
-    Optional<Document> findByDocumentCategoryAndTenant(DocumentCategory identification, Tenant tenant);
+    Optional<Document> findFirstByDocumentCategoryAndTenant(DocumentCategory documentCategory, Tenant tenant);
 
     Optional<Document> findByDocumentCategoryAndTenantAndId(DocumentCategory financial, Tenant tenant, Long id);
 
-    Optional<Document> findByDocumentCategoryAndGuarantor(DocumentCategory identification, Guarantor guarantor);
+    Optional<Document> findFirstByDocumentCategoryAndGuarantor(DocumentCategory documentCategory, Guarantor guarantor);
 
     Optional<Document> findByDocumentCategoryAndGuarantorAndId(DocumentCategory financial, Guarantor guarantor, Long documentId);
 
@@ -34,5 +34,5 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
             "  and d2.id = :documentId", nativeQuery = true)
     Optional<Document> findByIdAssociatedToTenantId(@Param("documentId") Long documentId, @Param("tenantId") Long tenantId);
 
-    Optional<Document> findByName(String documentName);
+    Optional<Document> findFirstByName(String documentName);
 }

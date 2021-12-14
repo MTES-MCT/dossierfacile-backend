@@ -1,0 +1,11 @@
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+    <changeSet id="202106300416" author="">
+        <sql>
+            ALTER TABLE public."user_account" ADD france_connect bool NOT NULL default false;
+            ALTER TABLE public."user_account" ADD france_connect_sub varchar NULL;
+        </sql>
+    </changeSet>
+</databaseChangeLog>

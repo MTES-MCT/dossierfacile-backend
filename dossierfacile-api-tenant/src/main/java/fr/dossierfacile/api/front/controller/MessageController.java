@@ -24,12 +24,13 @@ public class MessageController {
 
     @GetMapping("")
     public ResponseEntity<List<MessageModel>> all() {
-        return ResponseEntity.ok(messageService.findAll(authenticationFacade.getPrincipalAuthTenant()));
+        return ResponseEntity.ok(messageService.findAll(authenticationFacade.getTenant(null)));
     }
 
     @PostMapping("")
     public ResponseEntity<MessageModel> create(@Validated @RequestBody MessageForm messageForm) {
-        messageService.updateStatusOfDeniedDocuments(authenticationFacade.getPrincipalAuthTenant());
-        return ResponseEntity.ok(messageService.create(authenticationFacade.getPrincipalAuthTenant(), messageForm, false));
+        var tenant = authenticationFacade.getTenant(null);
+        messageService.updateStatusOfDeniedDocuments(tenant);
+        return ResponseEntity.ok(messageService.create(tenant, messageForm, false));
     }
 }

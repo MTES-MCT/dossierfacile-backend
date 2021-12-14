@@ -17,7 +17,7 @@ import java.lang.annotation.Target;
 )
 
 public @interface NumberOfDocumentResidencyGuarantorNaturalPerson {
-    String message() default "number of document must be between 1 and 3";
+    String message() default "number of document must be between 1 and 10 and not exceed 50Mb in total";
 
     Class<?>[] groups() default {};
 

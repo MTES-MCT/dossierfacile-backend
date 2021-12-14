@@ -1,6 +1,5 @@
 package fr.dossierfacile.api.front.controller;
 
-import fr.dossierfacile.api.front.form.DeleteAccountForm;
 import fr.dossierfacile.api.front.form.EmailResetForm;
 import fr.dossierfacile.api.front.form.PasswordForm;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
@@ -8,7 +7,6 @@ import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.UserService;
 import fr.dossierfacile.common.entity.Tenant;
 import lombok.AllArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -19,7 +17,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import static org.springframework.http.ResponseEntity.ok;
-import static org.springframework.http.ResponseEntity.status;
 
 @RestController
 @AllArgsConstructor
@@ -43,8 +40,16 @@ public class UserController {
     }
 
     @DeleteMapping("/deleteAccount")
-    public ResponseEntity deleteAccount(@Validated DeleteAccountForm deleteAccountForm) {
-        Tenant tenant = authenticationFacade.getPrincipalAuthTenant();
-        return (userService.deleteAccount(tenant, deleteAccountForm) ? ok() : status(HttpStatus.UNAUTHORIZED)).build();
+    public ResponseEntity<Void> deleteAccount() {
+        Tenant tenant = authenticationFacade.getTenant(null);
+        userService.deleteAccount(tenant);
+        return ok().build();
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout() {
+        Tenant tenant = authenticationFacade.getTenant(null);
+        userService.logout(tenant);
+        return ok().build();
     }
 }

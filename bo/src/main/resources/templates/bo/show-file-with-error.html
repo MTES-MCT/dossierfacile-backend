@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      lang="en"
+      layout:decorator="process-file-layout">
+<head>
+    <title>DossierFacile</title>
+</head>
+<body>
+
+<div layout:fragment="content" th:remove="tag">
+
+    <div class="height-100pct">
+        <div class="col-md-8 height-100pct">
+            <embed class="document-embed" th:if="${fileNumber==1}" th:src="${tenant.getUpload1Route()}" width="100%"
+                   height="100%"/>
+            <embed class="document-embed" th:if="${fileNumber==2}" th:src="${tenant.getUpload2Route()}" width="100%"
+                   height="100%"/>
+            <embed class="document-embed" th:if="${fileNumber==3}" th:src="${tenant.getUpload3Route()}" width="100%"
+                   height="100%"/>
+            <embed class="document-embed" th:if="${fileNumber==4}" th:src="${tenant.getUpload4Route()}" width="100%"
+                   height="100%"/>
+            <embed class="document-embed" th:if="${fileNumber==5}" th:src="${tenant.getUpload5Route()}" width="100%"
+                   height="100%"/>
+            <embed class="document-embed" th:if="${fileNumber==6}" th:src="${tenant.getGuarantor().getUpload1Route()}"
+                   width="100%" height="100%"/>
+            <embed class="document-embed" th:if="${fileNumber==7}" th:src="${tenant.getGuarantor().getUpload2Route()}"
+                   width="100%" height="100%"/>
+            <embed class="document-embed" th:if="${fileNumber==8}" th:src="${tenant.getGuarantor().getUpload3Route()}"
+                   width="100%" height="100%"/>
+            <embed class="document-embed" th:if="${fileNumber==9}" th:src="${tenant.getGuarantor().getUpload4Route()}"
+                   width="100%" height="100%"/>
+            <embed class="document-embed" th:if="${fileNumber==10}" th:src="${tenant.getGuarantor().getUpload5Route()}"
+                   width="100%" height="100%"/>
+        </div>
+        <div class="align-items-center col-md-4 display-flex height-100pct flex-direction-column">
+            <div class="display-flex flex-grow-1 margin-top-25px overflow-auto padding-right-0px">
+                <div class="padding-right-5px">
+                    <div th:replace="include/file-with-error:: file-with-error">
+                    </div>
+                </div>
+            </div>
+            <div class="height-50px margin-bottom-10px margin-top-10px width-100pct">
+                <span class="display-flex flex-grow-1"></span>
+                <a href="/bo" class="pull-right">
+                    <button type="buttom" class="btn process-file-button">BO</button>
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="clearfix">
+    </div>
+
+</div>
+<div layout:fragment="javascripts" th:remove="tag">
+    <script src="/js/process-file.js"></script>
+</div>
+</body>
+</html>

@@ -1,5 +1,8 @@
 package fr.dossierfacile.api.front.service.interfaces;
 
+import fr.dossierfacile.common.entity.Document;
+import fr.dossierfacile.common.entity.Tenant;
+
 public interface FileService {
-    void delete(Long id);
+    Document delete(Long id, Tenant tenant);
 }

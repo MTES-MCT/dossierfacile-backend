@@ -1,0 +1,100 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+</head>
+<body>
+
+<div th:fragment="message" th:remove="tag">
+    <div class="container">
+        <div id="chat-page">
+            <div class="chat-container" style="background: aliceblue;">
+                <div class="row hidden-xs">
+                    <div class="col-md-12">
+                        <ul th:id="'messageArea' + ${tenant.getId()}" style="height: 500px;margin-top:10px;
+                            margin-bottom:5px;border-radius: 5px;">
+                            <li class="chat-message"
+                                th:each="message: ${messages}" th:style="${message.getFromUser()==null}?'background: #f8f8f8;border-radius: 10px;margin-top:10px;margin-bottom:10px;' : 'background: #77777738;border-radius: 10px;margin-top:10px;margin-bottom:10px;'"
+                            >
+                                <div th:if="${message.getFromUser()==null}" class="message-you" >
+                                    <div class="avatar">
+                                        <i style="background-color: rgb(87 91 95);">Y</i>
+                                    </div>
+                                    <div class="container-message-you">
+                                        <div class="title-header-you col-md-10">
+                                            <span th:text="${name}"></span>
+                                        </div>
+                                        <div class="date-you"
+                                             th:text="${#temporals.format(message.getCreationDateTime(), 'dd/MM HH:mm')}">
+                                        </div>
+                                        <div class="content-you letter-bo bold">
+                                            <p style="margin-top: 20px;margin-bottom: 5px" th:utext="${message.getMessageBody()}"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div th:if="${message.getFromUser()!=null}" class="message">
+                                    <div class="avatar">
+                                        <i style="background-color: rgb(183 175 175);">U</i>
+                                    </div>
+                                    <div class="container-message">
+                                        <div class="title-header col-md-10">
+                                            <span th:text="${tenant.getFullName()}">User</span>
+                                        </div>
+                                        <div class="date-you-two"
+                                             th:text="${#temporals.format(message.getCreationDateTime(), 'dd/MM HH:mm')}">
+                                        </div>
+                                        <div class="content letter-bo bold">
+                                            <p style="margin-top: 20px;margin-bottom: 5px" th:utext="${message.getMessageBody()}"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="hidden-xs">
+                    <form th:object="${message}" th:action="@{/message/new/} + ${tenant.id}"
+                          th:id="'messageForm'+${tenant.id}" th:method="post"
+                          th:attr="data-id=${aptSharingId}"
+                    >
+                        <div style="display: flex;">
+                            <div class="col-md-12 col-sm-12 col-xs-12">
+                                <textarea type="text" rows="10"
+                                          th:id="'message'+${tenant.id}"
+                                          th:field="*{message}"
+                                          class="form-control text-area-bo" style="height: 170px;">
+                                </textarea>
+                            </div>
+                            <div>
+                                <button id="formChat" type="submit" class="btn btn-primary bo-btn" >Envoyer</button>
+                                <script>
+                                    function reloadThePage(){
+                                        window.location.reload(true);
+                                    }
+                                </script>
+
+                            </div>
+                        </div>
+                    </form>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <form class="form-inline" style="float: left"
+                                  th:action="@{/bo/message/mistake/}+${tenant.id}" th:method="post">
+                                <button class="btn btn-success bo-btn"
+                                        style="margin-top: 10px;margin-left: 15px;margin-bottom: 10px;">
+                                    Valider &amp; répondre
+                                </button>
+                            </form>
+                            <button class="btn btn-primary bo-btn"
+                                    style="margin-top: 10px;margin-left: 15px;margin-bottom: 10px;"
+                                    th:id="'manuscrit'+${tenant.id}">
+                                manuscrit
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

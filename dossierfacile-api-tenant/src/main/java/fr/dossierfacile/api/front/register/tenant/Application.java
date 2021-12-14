@@ -6,14 +6,16 @@ import fr.dossierfacile.api.front.register.SaveStep;
 import fr.dossierfacile.api.front.register.form.tenant.ApplicationForm;
 import fr.dossierfacile.api.front.repository.ApartmentSharingRepository;
 import fr.dossierfacile.api.front.repository.TenantRepository;
-import fr.dossierfacile.api.front.service.interfaces.DocumentService;
+import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
+import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
+import fr.dossierfacile.api.front.service.interfaces.LogService;
 import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.api.front.service.interfaces.PasswordRecoveryTokenService;
 import fr.dossierfacile.api.front.service.interfaces.UserRoleService;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.PasswordRecoveryToken;
 import fr.dossierfacile.common.entity.Tenant;
-import fr.dossierfacile.common.enums.TenantType;
+import fr.dossierfacile.common.enums.LogType;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,12 +34,13 @@ public class Application implements SaveStep<ApplicationForm> {
     private final MailService mailService;
     private final PasswordRecoveryTokenService passwordRecoveryTokenService;
     private final ApartmentSharingRepository apartmentSharingRepository;
-    private final DocumentService documentService;
+    private final LogService logService;
+    private final KeycloakService keycloakService;
+    private final ApartmentSharingService apartmentSharingService;
 
     @Override
     @Transactional
     public TenantModel saveStep(Tenant tenant, ApplicationForm applicationForm) {
-        tenant.setTenantType(TenantType.CREATE);
         List<String> oldCoTenant = tenantRepository.findAllByApartmentSharing(tenant.getApartmentSharing())
                 .stream()
                 .filter(t -> !t.getId().equals(tenant.getId()))
@@ -56,7 +59,10 @@ public class Application implements SaveStep<ApplicationForm> {
         ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
         apartmentSharing.setApplicationType(applicationForm.getApplicationType());
         apartmentSharingRepository.save(apartmentSharing);
-        tenantRepository.deleteAll(tenantRepository.findByListEmail(tenantToDelete));
+        apartmentSharingService.resetDossierPdfGenerated(apartmentSharing);
+        var tenantEntityToDelete = tenantRepository.findByListEmail(tenantToDelete);
+        keycloakService.deleteKeycloakUsers(tenantEntityToDelete);
+        tenantRepository.deleteAll(tenantEntityToDelete);
 
         LocalDateTime now = LocalDateTime.now();
         tenant.lastUpdateDateProfile(now, null);
@@ -65,12 +71,14 @@ public class Application implements SaveStep<ApplicationForm> {
         tenantToCreate.forEach(email -> {
             Tenant joinTenant = new Tenant(email, apartmentSharing);
             joinTenant.lastUpdateDateProfile(now, null);
+            String id = keycloakService.createKeycloakUser(email);
+            joinTenant.setKeycloakId(id);
             tenantRepository.save(joinTenant);
             userRoleService.createRole(joinTenant);
             PasswordRecoveryToken passwordRecoveryToken = passwordRecoveryTokenService.create(joinTenant);
             mailService.sendEmailForFlatmates(tenant, joinTenant, passwordRecoveryToken, applicationForm.getApplicationType());
+            logService.saveLog(LogType.ACCOUNT_CREATED, joinTenant.getId());
         });
-        documentService.updateOthersDocumentsStatus(tenant);
         return tenantMapper.toTenantModel(tenant);
     }
 }

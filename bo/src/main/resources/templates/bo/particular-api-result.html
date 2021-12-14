@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="bo/layout-bo">
+<head>
+    <title>DossierFacile</title>
+</head>
+<body>
+
+<div layout:fragment="content" th:remove="tag">
+
+    <div th:replace="bo/menu :: menu">...</div>
+    <div class="container">
+        <div class="top-buffer">
+            <span th:if="${result.get('test1')}" class="fa fa-check text-success"></span>
+            <span th:unless="${result.get('test1')}" class="fa fa-times text-danger"></span>
+            check if the name is OK
+        </div>
+
+        <div class="top-buffer">
+            <span th:if="${result.get('test2')}" class="fa fa-check text-success"></span>
+            <span th:unless="${result.get('test2')}" class="fa fa-times text-danger"></span>
+            check if the amount "montant fiscal de référence" is equals to 12*salary with an acceptable error of 10%
+            (value in parameter)
+        </div>
+        <div class="top-buffer">
+            <pre th:text="${result.get('result')}">
+
+            </pre>
+        </div>
+
+    </div>
+</div>
+</body>
+</html>
+

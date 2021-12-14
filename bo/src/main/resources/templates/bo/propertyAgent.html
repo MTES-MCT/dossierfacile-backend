@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      lang="en"
+      layout:decorator="bo/layout-bo">
+<head>
+    <title>DossierFacile</title>
+</head>
+<body>
+
+<div layout:fragment="content" th:remove="tag">
+
+    <div th:replace="bo/menu :: menu">...</div>
+    <div class="container">
+        <div class="medium-space-separator">
+            <form th:method="post" th:action="@{/bo/properties-pro}" th:object="${propertyAgentDTO}">
+                <div class="row">
+                    <div class="form-group col-md-6">
+                        <input th:field="*{name}" required="required" type="text"
+                               class="form-control form-control-formatted form-control-untouched"
+                               placeholder="Name of the property" autocomplete="off"/>
+                        <span th:if="${#fields.hasErrors('name')}" th:errors="*{name}"
+                              class="color--error"></span>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <input th:field="*{rentCost}" required="required" type="number"
+                               class="form-control form-control-formatted form-control-untouched"
+                               placeholder="Rent of the property" autocomplete="off"/>
+                        <span th:if="${#fields.hasErrors('rentCost')}" th:errors="*{rentCost}"
+                              class="color--error"></span>
+                    </div>
+
+                    <div class="form-group col-md-6">
+                        <input th:field="*{propertyId}" required="required" type="text"
+                               class="form-control form-control-formatted form-control-untouched"
+                               placeholder="ID of the property" autocomplete="off"/>
+                        <span th:if="${#fields.hasErrors('propertyId')}" th:errors="*{propertyId}"
+                              class="color--error"></span>
+                    </div>
+                    <div class="form-group col-md-4">
+                        <select th:field="*{agentId}"
+                                class="form-control form-control-formatted form-control-untouched">
+                            <option th:each="agent:${agents}"
+                                    th:value="${agent.id}"
+                                    th:text="${agent.email}">
+                            </option>
+                        </select>
+                        <span th:if="${#fields.hasErrors('agentId')}" th:errors="*{agentId}"
+                              class="color--error"></span>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-primary bo-btn" type="submit">Add</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <table id="propertiesTable" class="display">
+            <!-- Header Table -->
+            <thead>
+            <tr>
+                <th></th>
+                <th>Name</th>
+                <th>ID</th>
+                <th>Rent</th>
+                <th>Agent</th>
+                <th>Date of creation</th>
+                <th>Prospect Number</th>
+                <th>Action</th>
+            </tr>
+            </thead>
+            <!-- Footer Table -->
+            <tfoot>
+            <tr>
+                <th></th>
+                <th>Name</th>
+                <th>ID</th>
+                <th>Rent</th>
+                <th>Agent</th>
+                <th>Date of creation</th>
+                <th>Prospect Number</th>
+                <th>Action</th>
+            </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <div class="modal fade" id="editProperty" tabindex="-1" role="dialog" aria-labelledby="editPropertyLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="editPropertyLabel">Edit property</h4>
+                </div>
+                <form id="editPropertyForm" th:object="${propertyAgentDTO}" th:method="put"
+                      th:action="@{/bo/properties-pro}">
+                    <div class="modal-body">
+                        <div class="content">
+                            <div class="row">
+                                <div class="form-group col-md-6">
+                                    <label for="name" class="control-label">Name of the property</label>
+                                    <input required="required" type="text" class="form-control" th:field="*{name}"
+                                           id="name"/>
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label for="agentId" class="control-label">Agent</label>
+                                    <select required="required" th:field="*{agentId}" id="agentId"
+                                            class="form-control">
+                                        <option th:each="agent:${agents}"
+                                                th:value="${agent.id}"
+                                                th:text="${agent.email}">
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="form-group col-md-6">
+                                    <label for="propertyId" class="control-label">ID of the property</label>
+                                    <input required="required" type="text" class="form-control" th:field="*{propertyId}"
+                                           id="propertyId"/>
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label for="rentCost" class="control-label">Rent of the property</label>
+                                    <input required="required" type="number" class="form-control" th:field="*{rentCost}"
+                                           id="rentCost"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <div class="content">
+                            <div class="row">
+                                <div class="col-md-6 text-center">
+                                    <a id="buttonMerge" href="#" class="btn btn-primary" data-dismiss="modal"
+                                       data-toggle="modal" data-target="#mergeProperty">Fusionner
+                                    </a>
+                                </div>
+                                <div class="col-md-6 text-center">
+                                    <button type="submit" class="btn btn-primary">Modifier</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="mergeProperty" tabindex="-1" role="dialog" aria-labelledby="mergePropertyLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="mergePropertyLabel">Fusionner</h4>
+                </div>
+                <form id="mergePropertyForm" th:method="post" th:action="@{/bo/properties-pro/merge/0}">
+                    <div class="modal-body">
+                        <div class="form-group col-md-12">
+                            <label for="agentId" class="control-label">Property Id</label>
+                            <select required="required" name="propertyIdDestiny" id="propertyIdDestiny"
+                                    class="form-control">
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <div class="content">
+                            <div class="row">
+                                <div class="col-md-6 text-center">
+                                    <button type="submit" class="btn btn-primary">Modifier</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div aria-labelledby="deletePropertyLabel" class="modal fade" id="deleteProperty" role="dialog" tabindex="-1">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header text-center">
+                    <button aria-label="Close" class="close" data-dismiss="modal" type="button"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="deletePropertyLabel">ATTENTION ! Cette action est définitive</h4>
+                </div>
+                <form id="deletePropertyForm" th:action="@{/bo/properties-pro}" th:method="post"
+                      th:object="${propertyAgentDTO}">
+                    <div class="modal-body">
+                        <div class="content">
+                            Souhaitez-vous supprimer définitivement cette propriété ? Vous n'aurez plus accès aux
+                            dossiers du prospect que vous avez choisi et tous les prospects de la propriété
+                            recevront un e-mail leur indiquant qu'ils n'ont pas été retenus pour la location.
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <div class="content">
+                            <div class="row">
+                                <div class="text-center">
+                                    <button class="btn btn-primary" type="submit">J'ai compris !</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>
+

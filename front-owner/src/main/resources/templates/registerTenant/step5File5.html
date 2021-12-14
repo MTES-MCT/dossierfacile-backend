@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en"
+      layout:decorator="registerTenant/layout"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>DossierFacile</title>
+</head>
+<body>
+<div layout:fragment="sidebar" th:remove="tag">
+    <div th:replace="registerTenant/sidebar :: sidebar(step = 'FICHESDEPAIE', currentStep = ${currentStep}, fileDTO = null, slug = ${tenantDTO != null ? tenantDTO.getSlug() : ''})">
+    </div>
+</div>
+<div layout:fragment="content" th:remove="tag">
+    <section>
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-6 col-lg-5">
+                    <h3> J’ajoute un justificatif de ressources </h3>
+                    <form method="post"
+                          onsubmit="return validate_form()"
+                          th:action="@{/registerTenant/step5File5/} + ${tenantDTO.getSlug()}" th:object="${tenantDTO}">
+                        <div class="row">
+                            <div class="col-md-12">
+                            </div>
+                            <div class="col-md-12 d-flex align-items-start">
+                                <div class="input-checkbox mr-3" id="checkboxPension">
+                                    <input class="form-check-input hidden" id="pension"
+                                           th:field="*{pension}"
+                                           type="checkbox"/>
+                                    <!-- This one below is for showing when it's marked because it doesn't work with th:field.
+                                    Sorry for hard solution. -->
+                                    <input id="pensionUtility" type="checkbox"/>
+                                    <label class="input-label" for="pension"></label>
+                                </div>
+                                <div>
+                                            <span> Je perçois une pension
+                                            </span>
+                                </div>
+                            </div>
+                            <div class="col-md-12 d-flex align-items-start">
+                                <div class="input-checkbox mr-3" id="checkboxotherSalaries">
+                                    <input class="form-check-input hidden" id="otherSalaries"
+                                           th:field="*{otherSalaries}"
+                                           type="checkbox"/>
+                                    <!-- This one below is for showing when it's marked because it doesn't work with th:field.
+                                    Sorry for hard solution. -->
+                                    <input id="otherSalariesUtility" type="checkbox"/>
+                                    <label class="input-label" for="otherSalaries"></label>
+                                </div>
+                                <div>
+                                            <span> J'ai mes propres revenus (salaires, bourses, APL etc.)
+                                            </span>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                            <span class="color--error" th:if="${oneCheck}"
+                                  th:text="${oneCheck}"></span>
+                            </div>
+                            <div class="col-md-12">
+                                <h5 class="text-lead-color">Evaluez vos droits aux APL en moins de 7 minutes grâce à
+                                    <a href="https://www.mesdroitssociaux.gouv.fr">https://www.mesdroitssociaux.gouv.fr</a>
+                                </h5>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12"></div>
+                            <div class="col-md-3">
+                                <button class="btn btn--sm btn--secondary type--uppercase mt-0 px-3"
+                                        onclick="history.back()"
+                                        type="button">précédent
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn--primary text-uppercase"
+                                        th:text="#{tenant.form.button.next}"
+                                        type="submit">
+                                </button>
+                            </div>
+
+
+                        </div>
+
+                    </form>
+                    <div th:replace="include/modal-api:: modal-api">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <div th:replace="include/register-tenant-help :: register-tenant-help"></div>
+
+    <div th:replace="include/modal-account:: modal-account">
+    </div>
+</div>
+<div layout:fragment="javascripts" th:remove="tag">
+    <script src="/js/registerTenant/registerTenant.js"></script>
+</div>
+
+</body>
+</html>

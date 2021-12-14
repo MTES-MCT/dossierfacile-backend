@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en"
+      layout:decorator="layout"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>DossierFacile</title>
+</head>
+<body>
+
+<div layout:fragment="content" th:remove="tag">
+
+    <div class="main-container">
+        <section class="text-center">
+            <div class="col-lg-8 col-md-10">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-lg-7 col-md-9">
+                            <h3> Réservez votre visite pour le <span th:text="${propertyName}"></span></h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="col-md-6">
+                        <h5 class="text-lead-color">
+                            DossierFacile est une startup d'état qui vous permet de créer votre dossier de location
+                            intelligent et de réserver une visite en ligne !
+                        </h5>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <a class="btn btn--primary type--uppercase" th:href="@{/registerTenant/step1}">
+                        <span class="btn__text">C'est parti !</span>
+                    </a>
+                </div>
+                <div class="">
+                    <a th:href="@{/login}">Me connecter</a>
+                </div>
+                <div class="col-md-12 mt-5">
+                    <div class="col-md-6">
+                        <h5 class="text-lead-color">
+                            Notre dossier est facile à remplir (en moins de 3minutes c'est promis) et en plus il est
+                            conforme à la loi
+
+                            <div class="modal-instance">
+                                <a class="modal-trigger" href="#">
+		                        <span class="btn__text">
+			                        et réutilisable pour toutes vos autres visites
+		                        </span>
+                                </a>
+                                <div class="modal-container">
+                                    <div class="modal-content">
+                                        <div class="boxed boxed--lg">
+                                            <h3>DossierFacile c’est un moyen de :</h3>
+                                            <h4>Vous simplifier la vie !</h4>
+                                            <h5>En un seul clic envoyez votre dossier à tous les propriétaires dont les
+                                                biens
+                                                vous intéressent : le dossier DossierFacile est compatible avec tout le
+                                                monde
+                                                !</h5>
+                                            <h4>Vous démarquer !</h4>
+                                            <h5>Grâce à DossierFacile et la série de tests effectués sur votre dossier :
+                                                rassurez
+                                                votre futur propriétaire et augmentez de 24% la probabilité d'obtenir
+                                                une visite pour
+                                                l'appartement de vos rêves !</h5>
+                                            <h4>Vous protéger des abus !</h4>
+                                            <h5>Avec DossierFacile ne fournissez que les pièces autorisées par la loi et
+                                                rien
+                                                de plus !</h5>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </h5>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+</body>
+</html>

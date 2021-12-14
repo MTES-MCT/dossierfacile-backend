@@ -44,6 +44,16 @@ public class MailServiceImpl implements MailService {
     private Integer templateIdAccountDeleted;
     @Value("${mailjet.template.id.account.completed}")
     private Integer templateIdAccountCompleted;
+    @Value("${mailjet.template.id.account.email_validation_reminder}")
+    private Integer templateEmailWhenEmailAccountNotYetValidated;
+    @Value("${mailjet.template.id.account.incomplete_reminder}")
+    private Integer templateEmailWhenAccountNotYetCompleted;
+    @Value("${mailjet.template.id.account.declined_reminder}")
+    private Integer templateEmailWhenAccountIsStillDeclined;
+    @Value("${mailjet.template.id.account.satisfaction_email_to_tenants_NOT_associated_to_partners}")
+    private Integer templateEmailWhenTenantNOTAssociatedToPartnersAndValidated;
+    @Value("${mailjet.template.id.account.satisfaction_email_to_tenants_YES_associated_to_partners}")
+    private Integer templateEmailWhenTenantYESAssociatedToPartnersAndValidated;
 
     @Async
     @Override
@@ -53,7 +63,6 @@ public class MailServiceImpl implements MailService {
         MailJetModel mailjetModel = MailJetModel.builder()
                 .fromEmail(emailFrom)
                 .toEmail(user.getEmail())
-                .toName(user.getFullName())
                 .variables(variables)
                 .templateID(templateIDWelcome)
                 .build();
@@ -126,6 +135,77 @@ public class MailServiceImpl implements MailService {
                 .toName(user.getFullName())
                 .variables(variables)
                 .templateID(templateIdAccountCompleted)
+                .build();
+        sendMailJetApi(mailjetModel);
+    }
+
+    @Async
+    @Override
+    public void sendEmailWhenEmailAccountNotYetValidated(User user, ConfirmationToken confirmationToken) {
+        Map<String, String> variables = new HashMap<>();
+        variables.put("firstName", user.getFirstName());
+        variables.put("lastName", user.getLastName());
+        variables.put("confirmToken", confirmationToken.getToken());
+        MailJetModel mailjetModel = MailJetModel.builder()
+                .fromEmail(emailFrom)
+                .toEmail(user.getEmail())
+                .toName(user.getFullName())
+                .variables(variables)
+                .templateID(templateEmailWhenEmailAccountNotYetValidated)
+                .build();
+        sendMailJetApi(mailjetModel);
+    }
+
+    @Async
+    @Override
+    public void sendEmailWhenAccountNotYetCompleted(User user) {
+        Map<String, String> variables = new HashMap<>();
+        variables.put("firstName", user.getFirstName());
+        variables.put("lastName", user.getLastName());
+        MailJetModel mailjetModel = MailJetModel.builder()
+                .fromEmail(emailFrom)
+                .toEmail(user.getEmail())
+                .toName(user.getFullName())
+                .variables(variables)
+                .templateID(templateEmailWhenAccountNotYetCompleted)
+                .build();
+        sendMailJetApi(mailjetModel);
+    }
+
+    @Async
+    @Override
+    public void sendEmailWhenAccountIsStillDeclined(User user) {
+        Map<String, String> variables = new HashMap<>();
+        variables.put("firstName", user.getFirstName());
+        variables.put("lastName", user.getLastName());
+        MailJetModel mailjetModel = MailJetModel.builder()
+                .fromEmail(emailFrom)
+                .toEmail(user.getEmail())
+                .toName(user.getFullName())
+                .variables(variables)
+                .templateID(templateEmailWhenAccountIsStillDeclined)
+                .build();
+        sendMailJetApi(mailjetModel);
+    }
+
+    @Override
+    public void sendEmailWhenTenantNOTAssociatedToPartnersAndValidatedXDaysAgo(User user) {
+        MailJetModel mailjetModel = MailJetModel.builder()
+                .fromEmail(emailFrom)
+                .toEmail(user.getEmail())
+                .toName(user.getFullName())
+                .templateID(templateEmailWhenTenantNOTAssociatedToPartnersAndValidated)
+                .build();
+        sendMailJetApi(mailjetModel);
+    }
+
+    @Override
+    public void sendEmailWhenTenantYESAssociatedToPartnersAndValidatedXDaysAgo(User user) {
+        MailJetModel mailjetModel = MailJetModel.builder()
+                .fromEmail(emailFrom)
+                .toEmail(user.getEmail())
+                .toName(user.getFullName())
+                .templateID(templateEmailWhenTenantYESAssociatedToPartnersAndValidated)
                 .build();
         sendMailJetApi(mailjetModel);
     }

@@ -4,6 +4,7 @@ import lombok.Getter;
 
 @Getter
 public enum StepRegister {
+    ACCOUNT_PARTNER_API("accountApiPartner"),
     ACCOUNT("account"),
     NAMES("names"),
     APPLICATION("application"),
@@ -13,6 +14,8 @@ public enum StepRegister {
     DOCUMENT_PROFESSIONAL("documentProfessional"),
     DOCUMENT_FINANCIAL("documentFinancial"),
     DOCUMENT_TAX("documentTax"),
+    NAME_GUARANTOR_NATURAL_PERSON("nameGuarantorNaturalPerson"),
+    DOCUMENT_IDENTIFICATION_GUARANTOR_NATURAL_PERSON_FILE("documentIdentificationGuarantorNaturalPersonFile"),
     DOCUMENT_IDENTIFICATION_GUARANTOR_NATURAL_PERSON("documentIdentificationGuarantorNaturalPerson"),
     DOCUMENT_RESIDENCY_GUARANTOR_NATURAL_PERSON("documentResidencyGuarantorNaturalPerson"),
     DOCUMENT_PROFESSIONAL_GUARANTOR_NATURAL_PERSON("documentProfessionalGuarantorNaturalPerson"),

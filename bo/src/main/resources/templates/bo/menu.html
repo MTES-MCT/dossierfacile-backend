@@ -1,0 +1,141 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4">
+<head></head>
+<body>
+
+<div th:fragment="menu" th:remove="tag">
+    <div class="hidden-xs">
+        <a href="/bo/property">Properties</a>
+        <br/>
+        <a href="/bo/colocation">Dossiers colocations</a>
+        <br/>
+        <a href="/bo/log">Logs</a>
+        <br/>
+        <a href="/bo/statistic">Statistics</a>
+        <br/>
+        <a href="/bo/statistic/dsf">DossierSuperFacile Statistics</a>
+        <br/>
+        <a href="/bo/statistic/prospect">Prospects Statistics</a>
+        <br/>
+        <a href="/bo/statistic/contract-migration">Contract migration statistics</a>
+        <br/>
+        <a href="/bo/statistic/operator">File statistics</a>
+        <br/>
+        <a href="/bo/statistic/files-with-error">Files With Error</a>
+        <br/>
+        <a href="/bo/agent">Agents
+            <span class="badge custom-badge-dange-bo" th:if="${floatingAgentAuthKO}>0"
+                  th:text="${floatingAgentAuthKO}"></span></a>
+        <br sec:authorize="hasRole('ROLE_ADMIN')"/>
+        <a sec:authorize="hasRole('ROLE_ADMIN')" href="/bo/userApi">User API</a>
+        <br sec:authorize="hasRole('ROLE_ADMIN')"/>
+        <a sec:authorize="hasRole('ROLE_ADMIN')" href="/bo/deleteAccount">Delete Account</a>
+        <br sec:authorize="hasRole('ROLE_ADMIN')"/>
+        <a sec:authorize="hasRole('ROLE_ADMIN')" href="/bo/timeServeTenant">TimeServeTenant</a>
+        <br sec:authorize="hasRole('ROLE_ADMIN')"/>
+        <a sec:authorize="hasRole('ROLE_ADMIN')" href="/bo/admin">Admins</a>
+        <br sec:authorize="hasRole('ROLE_ADMIN')"/>
+        <a sec:authorize="hasRole('ROLE_ADMIN')"
+           th:href="@{/bo/statistic/admin(date=${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}, days=7)}">Statistics
+            operators</a>
+        <br/>
+        <a href="/bo/feedback">Feedback</a>
+        <br/>
+        <a href="/bo/properties-pro">Properties-pro <span class="badge custom-badge-dange-bo"
+                                                          th:if="${floatingProperties}>0"
+                                                          th:text="${floatingProperties}"></span></a>
+        <br/>
+        <a href="#" data-toggle="modal" data-target="#addProspect">Add a prospect</a>
+        <br sec:authorize="hasRole('ROLE_ADMIN')"/>
+        <a href="/bo/sleepMode" sec:authorize="hasRole('ROLE_ADMIN')">Sleep mode</a>
+        <br/>
+        <a href="/bo/callback">Send callback</a>
+        <br/>
+        <a href="/bo/statistic/blurStatistic">Blur statistics</a>
+        <br/>
+        <a href="/bo/deleteFile">Delete file</a>
+        <br/>
+        <a href="/bo/statistic/tenant">Tenant statistics</a>
+        <br/><br/><br/>
+    </div>
+    <div class="modal fade" id="addProspect" tabindex="-1" role="dialog" aria-labelledby="addProspectLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="exampleModalLabel">Add prospect</h4>
+                </div>
+                <form id="addProspectForm" th:object="${prospectBoDTO}" th:method="post"
+                      th:action="@{/bo/prospect}">
+                    <div class="modal-body">
+                        <div class="content">
+                            <div class="row">
+                                <div class="form-group col-md-6">
+                                    <label for="firstName" class="control-label">Prénom *</label>
+                                    <input placeholder="Ex : Coralie" required="required" type="text"
+                                           class="form-control" th:field="*{firstName}" id="firstName"/>
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label for="lastName" class="control-label">Nom </label>
+                                    <input placeholder="Ex : Durand" type="text" class="form-control"
+                                           th:field="*{lastName}" id="lastName"/>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="form-group col-md-6">
+                                    <label for="email" class="control-label">Mail *</label>
+                                    <input placeholder="Ex : coralie-durand@example.fr" required="required" type="text"
+                                           class="form-control" th:field="*{email}" id="email"/>
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label for="phone" class="control-label">Téléphone</label>
+                                    <input type="text" class="form-control" th:field="*{phone}" id="phone"/>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="form-group col-md-6">
+                                    <label for="situation" class="control-label">Situation</label>
+                                    <select th:field="*{situation}" class="form-control"
+                                            id="situation">
+                                        <option th:each="situation, iter: ${T(fr.gouv.common.enums.TenantSituation).values()}"
+                                                th:value="${iter.index}"
+                                                th:text="#{${situation.getLabel()}}">
+                                        </option>
+                                    </select>
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label for="salary" class="control-label">Salary net mensuel</label>
+                                    <input type="number" class="form-control" th:field="*{salary}" id="salary"/>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="form-group col-md-6">
+                                    <label for="agentId" class="control-label">Agent *</label>
+                                    <select required="required" th:field="*{agentId}" id="agentId"
+                                            class="form-control">
+                                        <option th:each="agent:${agents}"
+                                                th:value="${agent.id}"
+                                                th:text="${agent.email}">
+                                        </option>
+                                    </select>
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label for="propertyId" class="control-label">ID de la propriété</label>
+                                    <input type="text" class="form-control" th:field="*{propertyId}" id="propertyId"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Ajouster le prospect</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+
+</html>

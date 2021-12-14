@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en"
+      layout:decorator="agent/layout"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>DossierFacile</title>
+</head>
+<body>
+<div layout:fragment="sidebar" th:remove="tag">
+    <div th:replace="agent/sidebar:: sidebar"></div>
+</div>
+<div layout:fragment="content" th:remove="tag">
+    <section class="pb-5">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <table class="border--round table--alternate-row">
+                        <thead>
+                        <tr>
+                            <th class="w-40"> Nom</th>
+                            <th class="w-20"> Date de création</th>
+                            <th class="w-10"> Dossiers</th>
+                            <th class="w-20"> Rent cost</th>
+                            <th class="w-20"></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr class="tr-property" th:attr="data-id=${property.getId()}"
+                            th:each="property : ${propertyList}">
+                            <td th:text="${property.name}"></td>
+                            <td th:text="${ #temporals.format(property.getCreationDateTime(),'dd/MMM HH:mm')}"></td>
+                            <td class="text-center" th:text="${property.getProspects().size()}"></td>
+                            <td th:text="${(#numbers.formatDecimal(property.getRentCost(), 1, 2)) + ' €/month'}"></td>
+                            <td><a class="button-delete-property" href="#"
+                                   th:attr="data-id=${property.id}">
+                                <i class="icon icon-Close icon--sm"></i>
+                            </a></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+    <div class="modal-container" id="deletePropertyModal">
+        <div class="modal-content section-modal">
+            <section class="unpad ">
+                <div class="container">
+                    <div class="row justify-content-center">
+                        <div class="col-md-6 col-12">
+                            <div class="feature feature-1">
+                                <div class="feature__body boxed boxed--lg boxed--border text-center">
+                                    <div class="modal-close modal-close-cross"></div>
+                                    <div class="text-block">
+                                        <h3>ATTENTION ! Cette action est définitive</h3>
+                                        <p>Souhaitez-vous supprimer définitivement cette propriété ? Vous n'aurez plus
+                                            accès aux dossiers du prospect que vous avez choisi et tous les prospects de
+                                            la propriété recevront un e-mail leur indiquant qu'ils n'ont pas été retenus
+                                            pour la location.</p>
+                                    </div>
+                                    <form id="delete-form-property" th:action="@{/agent/property}" th:method="post">
+                                        <br/>
+                                        <div class="row justify-content-center">
+                                            <div class="col-md-4">
+                                                <button class="btn btn--primary dialog-button"
+                                                        type="submit">
+                                                    J'ai compris !
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                            <!--end feature-->
+                        </div>
+                    </div>
+                    <!--end of row-->
+                </div>
+                <!--end of container-->
+            </section>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
