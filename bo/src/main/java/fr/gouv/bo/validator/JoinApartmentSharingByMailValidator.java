@@ -2,7 +2,7 @@ package fr.gouv.bo.validator;
 
 
 import fr.dossierfacile.common.entity.Tenant;
-import fr.gouv.bo.repository.TenantRepository;
+import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.gouv.bo.validator.annotation.JoinApartmentSharingByMail;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -14,7 +14,7 @@ import javax.validation.ConstraintValidatorContext;
 public class JoinApartmentSharingByMailValidator implements ConstraintValidator<JoinApartmentSharingByMail, String> {
 
     @Autowired
-    TenantRepository tenantRepository;
+    TenantCommonRepository tenantRepository;
 
     @Override
     public void initialize(JoinApartmentSharingByMail joinApartmentSharingByMail) {

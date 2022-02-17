@@ -5,7 +5,6 @@ import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.SaveStep;
 import fr.dossierfacile.api.front.register.form.tenant.ApplicationForm;
 import fr.dossierfacile.api.front.repository.ApartmentSharingRepository;
-import fr.dossierfacile.api.front.repository.TenantRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
 import fr.dossierfacile.api.front.service.interfaces.LogService;
@@ -16,6 +15,7 @@ import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.PasswordRecoveryToken;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.LogType;
+import fr.dossierfacile.common.repository.TenantCommonRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class Application implements SaveStep<ApplicationForm> {
 
-    private final TenantRepository tenantRepository;
+    private final TenantCommonRepository tenantRepository;
     private final UserRoleService userRoleService;
     private final TenantMapper tenantMapper;
     private final MailService mailService;

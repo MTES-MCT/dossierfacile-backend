@@ -2,6 +2,7 @@ package fr.gouv.bo.service;
 
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Document;
+import fr.dossierfacile.common.entity.DocumentDeniedOptions;
 import fr.dossierfacile.common.entity.DocumentDeniedReasons;
 import fr.dossierfacile.common.entity.Guarantor;
 import fr.dossierfacile.common.entity.Log;
@@ -19,22 +20,22 @@ import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.enums.TenantType;
-import fr.gouv.bo.dto.CountDTO;
+import fr.dossierfacile.common.repository.TenantCommonRepository;
+import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.gouv.bo.dto.CustomMessage;
 import fr.gouv.bo.dto.EmailDTO;
 import fr.gouv.bo.dto.GuarantorItem;
 import fr.gouv.bo.dto.ItemDetail;
-import fr.gouv.bo.dto.KeyStatistics;
 import fr.gouv.bo.dto.MessageDTO;
 import fr.gouv.bo.dto.MessageItem;
 import fr.gouv.bo.exception.DocumentNotFoundException;
 import fr.gouv.bo.lambda_interfaces.StringCustomMessage;
 import fr.gouv.bo.lambda_interfaces.StringCustomMessageGuarantor;
 import fr.gouv.bo.repository.ApartmentSharingRepository;
+import fr.gouv.bo.repository.DocumentDeniedOptionsRepository;
 import fr.gouv.bo.repository.DocumentDeniedReasonsRepository;
 import fr.gouv.bo.repository.DocumentRepository;
 import fr.gouv.bo.repository.OperatorLogRepository;
-import fr.gouv.bo.repository.TenantRepository;
 import fr.gouv.bo.repository.UserApiRepository;
 import fr.gouv.bo.utils.UtilsLocatio;
 import lombok.RequiredArgsConstructor;
@@ -51,15 +52,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.Principal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -68,22 +66,26 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TenantService {
 
-    private static final String FIRST_NAME = "firstName";
-    private static final String LAST_NAME = "lastName";
+    private static final String USER_TYPE_TENANT = "tenant";
+    private static final String USER_TYPE_GUARANTOR = "guarantor";
     private static final String LI_P = "<li><p>";
     private static final String P_LI = "</p></li>";
     private static final String BOLD_CLOSE = "</b> ";
     private static final String IDENTITY_KEY = "documentation";
     private static final String IDENTITY_REPLACE = "<a style=\"color: black;font-weight: bolder\" rel=\"nofollow\" href=\"https://docs.dossierfacile.fr/guide-dutilisation-de-dossierfacile/ajouter-un.e-conjoint.e\">documentation</a>";
+    private static final String IDENTITY_REPLACE_DB = "<a  class=\"bold\" style=\"color: black;\" rel=\"nofollow\" href=\"https://docs.dossierfacile.fr/guide-dutilisation-de-dossierfacile/ajouter-un.e-conjoint.e\">documentation</a>";
     private static final String TENANT_KEY = "pour les trois derniers mois";
     private static final String TENANT_REPLACE = "<mark style=\"font-weight: bolder; background:none\">pour les trois derniers mois</mark>";
+    private static final String TENANT_REPLACE_DB = "<mark class=\"bold\" style=\"background: #dedfdd\">pour les trois derniers mois</mark>";
     private static final String SOCIAL_KEY = "vos trois derniers justificatifs";
     private static final String SOCIAL_REPLACE = "<mark style=\"font-weight: bolder; background:none\">vos trois derniers justificatifs</mark>";
+    private static final String SOCIAL_REPLACE_DB = "<mark class=\"bold\" style=\"background: #dedfdd\">vos trois derniers justificatifs</mark>";
     private static final String SALARY_KEY = "des 3 derniers mois";
     private static final String SALARY_REPLACE = "<mark style=\"font-weight: bolder; background:none\">des 3 derniers mois</mark>";
+    private static final String SALARY_REPLACE_DB = "<mark class=\"bold\" style=\"background: #dedfdd\">des 3 derniers mois</mark>";
 
     private final Locale locale = LocaleContextHolder.getLocale();
-    private final TenantRepository tenantRepository;
+    private final TenantCommonRepository tenantRepository;
     private final MailService mailService;
     private final PartnerCallBackService partnerCallBackService;
     private final UserService userService;
@@ -97,15 +99,9 @@ public class TenantService {
     private final LogActionTenantStatusService logService;
     private final DocumentDeniedReasonsService documentDeniedReasonsService;
     private final DocumentService documentService;
+    private final DocumentDeniedOptionsRepository documentDeniedOptionsRepository;
 
     private int forTenant = 0;
-
-    @Value("${email.from}")
-    private String emailFrom;
-    @Value("${mailjet.template.id.3.days.before.delete}")
-    private Integer templateID3DaysBeforeDelete;
-    @Value("${mailjet.template.id.dossier.validated}")
-    private Integer templateIDDossierValidated;
     @Value("${time.reprocess.application.minutes}")
     private int timeReprocessApplicationMinutes;
 
@@ -131,10 +127,6 @@ public class TenantService {
         return tenantRepository.findAllByApartmentSharingId(id).stream().filter(c -> c.getTenantType().equals(TenantType.CREATE)).findFirst().orElse(null);
     }
 
-    public void deleteTenantByApartmentSharing(ApartmentSharing apartmentSharing) {
-        apartmentSharingRepository.delete(apartmentSharing);
-    }
-
     public Tenant findTenantById(Long id) {
         return tenantRepository.findOneById(id);
     }
@@ -147,10 +139,6 @@ public class TenantService {
         return tenantRepository.findOneById(id);
     }
 
-    public Tenant findTenantByEmail(String email) {
-        return tenantRepository.findOneByEmail(email);
-    }
-
     public Page<Tenant> listTenantsToProcess(Pageable pageable) {
         LocalDateTime localDateTime = LocalDateTime.now().minusMinutes(timeReprocessApplicationMinutes);
         return new PageImpl<>(tenantRepository.findTenantsToProcess(localDateTime, pageable).toList());
@@ -158,6 +146,19 @@ public class TenantService {
 
     public Page<Tenant> listTenantsFilter(Pageable pageable, String q) {
         return tenantRepository.findByFirstNameContainingOrLastNameContainingOrEmailContaining(q, q, q, pageable);
+    }
+
+    public void partnerCallBackServiceWhenAccountIsDeclined(Tenant tenant) {
+        List<TenantUserApi> tenantUserApis = tenant.getTenantsUserApi();
+        if (tenantUserApis != null && !tenantUserApis.isEmpty()) {
+            for (TenantUserApi tenantUserApi : tenantUserApis
+            ) {
+                UserApi userApi = tenantUserApi.getUserApi();
+                if (userApi.getVersion() != null && userApi.getUrlCallback() != null) {
+                    partnerCallBackService.sendCallBack(tenant, tenantUserApi.getUserApi(), PartnerCallBackType.DENIED_ACCOUNT);
+                }
+            }
+        }
     }
 
     public void partnerCallBackServiceWhenDeleteTenant(Tenant tenant) {
@@ -192,74 +193,6 @@ public class TenantService {
 
     public Tenant save(Tenant tenant) {
         return tenantRepository.save(tenant);
-    }
-
-    public void sendMailBeforeDeleteOldAccounts() {
-        LocalDateTime initDate = LocalDate.now().atTime(0, 0, 0, 0).minusWeeks(9);//this was 4 weeks plus 3 days, now 9 weeks
-        LocalDateTime endDate = initDate.plusDays(1);
-        List<Tenant> tenantList = tenantRepository.findByLastLoginDateBetween(initDate, endDate);
-        sendEmailToTenantList(tenantList, templateID3DaysBeforeDelete);
-    }
-
-    public void sendEmailToTenantList(List<Tenant> tenantList, Integer emailTemplate) {
-        for (Tenant user : tenantList) {
-            Map<String, String> variables = new HashMap<>();
-            variables.put(FIRST_NAME, user.getFirstName());
-            variables.put(LAST_NAME, user.getLastName());
-            List<TenantUserApi> tenantUserApis = user.getTenantsUserApi();
-            if (tenantUserApis != null && !tenantUserApis.isEmpty()) {
-                mailService.sendMailJetApi(emailFrom, null, user.getEmail(), user.getFullName(), null, null, null, null, null, null, null, variables, emailTemplate);
-            }
-        }
-    }
-
-    public void sendEmailOnAllDocumentsValidated(Tenant tenant) {
-        sendEmailToTenant(tenant, templateIDDossierValidated);
-    }
-
-    public Map<KeyStatistics, Map<String, Long>> acountCreationStatistics() {
-        Map<KeyStatistics, Map<String, Long>> map = new HashMap<>();
-        List<CountDTO> count = tenantRepository.countAllRegisteredTenant();
-        UtilsLocatio.extractStatistics(map, count, "creation");
-        return map;
-    }
-
-    public Map<KeyStatistics, Map<String, Long>> boStatistics() {
-        Map<KeyStatistics, Map<String, Long>> map = new HashMap<>();
-        List<CountDTO> count = tenantRepository.countByUpload1IsNotNull();
-        UtilsLocatio.extractStatistics(map, count, "file1");
-        count = tenantRepository.countByUpload2IsNotNull();
-        UtilsLocatio.extractStatistics(map, count, "file2");
-        count = tenantRepository.countByUpload3IsNotNull();
-        UtilsLocatio.extractStatistics(map, count, "file3");
-        count = tenantRepository.countByUpload4IsNotNull();
-        UtilsLocatio.extractStatistics(map, count, "file4");
-        count = tenantRepository.countByUpload5IsNotNull();
-        UtilsLocatio.extractStatistics(map, count, "file5");
-        count = tenantRepository.countByFilesNotUploaded();
-        UtilsLocatio.extractStatistics(map, count, "notUpload");
-        count = tenantRepository.countByCreatedTenant();
-        UtilsLocatio.extractStatistics(map, count, "tenant");
-
-        return map;
-    }
-
-    public Map<KeyStatistics, Map<String, Long>> statistics() {
-        Map<KeyStatistics, Map<String, Long>> map = new HashMap<>();
-        List<CountDTO> count = tenantRepository.countByUpload1IsNotNullTenantGuarantor();
-        UtilsLocatio.extractStatistics(map, count, "file1");
-        count = tenantRepository.countByUpload2IsNotNullTenantGuarantor();
-        UtilsLocatio.extractStatistics(map, count, "file2");
-        count = tenantRepository.countByUpload3IsNotNullTenantGuarantor();
-        UtilsLocatio.extractStatistics(map, count, "file3");
-        count = tenantRepository.countByUpload4IsNotNullTenantGuarantor();
-        UtilsLocatio.extractStatistics(map, count, "file4");
-        count = tenantRepository.countByUpload5IsNotNullTenantGuarantor();
-        UtilsLocatio.extractStatistics(map, count, "file5");
-        count = tenantRepository.countByFilesNotUploadedTenantGuarantor();
-        UtilsLocatio.extractStatistics(map, count, "notUpload");
-
-        return map;
     }
 
     public synchronized String redirectToApplication(Principal principal, Long tenantId) {
@@ -308,6 +241,7 @@ public class TenantService {
                 .orElse(new ArrayList<>())
                 .forEach(document -> {
                     document.setDocumentStatus(DocumentStatus.VALIDATED);
+                    document.setDocumentDeniedReasons(null);
                     documentRepository.save(document);
                 });
         Optional.ofNullable(tenant.getGuarantors())
@@ -316,11 +250,12 @@ public class TenantService {
                         .orElse(new ArrayList<>())
                         .forEach(document -> {
                             document.setDocumentStatus(DocumentStatus.VALIDATED);
+                            document.setDocumentDeniedReasons(null);
                             documentRepository.save(document);
                         }));
         changeTenantStatusToValidated(tenant);
 
-        sendEmailOnAllDocumentsValidated(tenant);
+        mailService.sendEmailToTenantAfterValidateAllDocuments(tenant);
         partnerCallBackServiceWhenValidated(tenant);
         operatorLogRepository.save(new OperatorLog(
                 tenant, operator, tenant.getStatus(), ActionOperatorType.STOP_PROCESS
@@ -328,7 +263,7 @@ public class TenantService {
         logService.saveByLog(new Log(LogType.ACCOUNT_VALIDATED, tenant.getId(), operator.getId()));
     }
 
-    public boolean updateFileStatus(CustomMessage customMessage) {
+    private boolean updateFileStatus(CustomMessage customMessage) {
         List<MessageItem> messageItems = customMessage.getMessageItems();
 
         boolean areAllDocumentsValid = true;
@@ -339,15 +274,14 @@ public class TenantService {
             if (messageItem1 == null && messageItem.getCommentDoc().isEmpty()) {
                 documentRepository.findById(messageItem.getDocumentId()).
                         ifPresent(d -> {
-
                             d.setDocumentStatus(DocumentStatus.VALIDATED);
+                            d.setDocumentDeniedReasons(null);
                             documentRepository.save(d);
                         });
             } else {
                 areAllDocumentsValid = false;
                 documentRepository.findById(messageItem.getDocumentId()).
                         ifPresent(d -> {
-
                             d.setDocumentStatus(DocumentStatus.DECLINED);
                             documentRepository.save(d);
                         });
@@ -364,15 +298,14 @@ public class TenantService {
                 if (messageItem1 == null && messageItem.getCommentDoc().isEmpty()) {
                     documentRepository.findById(messageItem.getDocumentId()).
                             ifPresent(d -> {
-
                                 d.setDocumentStatus(DocumentStatus.VALIDATED);
+                                d.setDocumentDeniedReasons(null);
                                 documentRepository.save(d);
                             });
                 } else {
                     areAllDocumentsValid = false;
                     documentRepository.findById(messageItem.getDocumentId()).
                             ifPresent(d -> {
-
                                 d.setDocumentStatus(DocumentStatus.DECLINED);
                                 documentRepository.save(d);
                             });
@@ -382,7 +315,7 @@ public class TenantService {
         return areAllDocumentsValid;
     }
 
-    public void sendCustomMessage(Tenant tenant, CustomMessage customMessage, int messageFrom) {
+    public Message sendCustomMessage(Tenant tenant, CustomMessage customMessage, int messageFrom) {
 
         createStylesInMessages(customMessage);
         StringCustomMessage fileNameWithBold = str -> "<b>" + messageSource.getMessage(str, null, locale) + BOLD_CLOSE;
@@ -405,7 +338,8 @@ public class TenantService {
                         mailMessage.append(fileNameWithBold.getFileNameWithBold(messageItem.getDocumentCategory().getLabel()));
                         mailMessage.append(itemDetail.getMessage());
                         mailMessage.append(P_LI);
-                        documentDeniedReasons.getCheckedOptions().add(itemDetail.getMessage());
+                        DocumentDeniedOptions documentDeniedOptions = setCheckedOptionsId(messageItem.getDocumentId(), USER_TYPE_TENANT, itemDetail.getMessage());
+                        documentDeniedReasons.getCheckedOptionsId().add(documentDeniedOptions.getId());
                     }
                 }
 
@@ -417,7 +351,7 @@ public class TenantService {
                     documentDeniedReasons.setComment(messageItem.getCommentDoc());
                 }
 
-                if (!documentDeniedReasons.getCheckedOptions().isEmpty() || (documentDeniedReasons.getComment() != null && !documentDeniedReasons.getComment().isBlank())) {
+                if (!documentDeniedReasons.getCheckedOptionsId().isEmpty() || (documentDeniedReasons.getComment() != null && !documentDeniedReasons.getComment().isBlank())) {
                     documentDeniedReasonsRepository.save(documentDeniedReasons);
                     Document document = documentRepository.findById(messageItem.getDocumentId()).orElseThrow(() -> new DocumentNotFoundException(messageItem.getDocumentId()));
                     DocumentDeniedReasons documentDeniedReasonsToDelete = document.getDocumentDeniedReasons();
@@ -444,7 +378,8 @@ public class TenantService {
                             mailMessage.append(fileNameWithBoldGuarantor.getFileNameWithBold(messageItem.getDocumentCategory().getLabel()));
                             mailMessage.append(itemDetail.getMessage());
                             mailMessage.append(P_LI);
-                            documentDeniedReasons.getCheckedOptions().add(itemDetail.getMessage());
+                            DocumentDeniedOptions documentDeniedOptions = setCheckedOptionsId(messageItem.getDocumentId(), USER_TYPE_GUARANTOR, itemDetail.getMessage());
+                            documentDeniedReasons.getCheckedOptionsId().add(documentDeniedOptions.getId());
                         }
                     }
 
@@ -456,7 +391,7 @@ public class TenantService {
                         documentDeniedReasons.setComment(messageItem.getCommentDoc());
                     }
 
-                    if (!documentDeniedReasons.getCheckedOptions().isEmpty() || (documentDeniedReasons.getComment() != null && !documentDeniedReasons.getComment().isBlank())) {
+                    if (!documentDeniedReasons.getCheckedOptionsId().isEmpty() || (documentDeniedReasons.getComment() != null && !documentDeniedReasons.getComment().isBlank())) {
                         documentDeniedReasonsRepository.save(documentDeniedReasons);
                         Document document = documentRepository.findById(messageItem.getDocumentId()).orElseThrow(() -> new DocumentNotFoundException(messageItem.getDocumentId()));
                         DocumentDeniedReasons documentDeniedReasonsToDelete = document.getDocumentDeniedReasons();
@@ -484,8 +419,30 @@ public class TenantService {
             if (!documentDeniedReasonsIds.isEmpty()) {
                 documentDeniedReasonsService.updateDocumentDeniedReasonsWithMessage(message, documentDeniedReasonsIds);
             }
+            return message;
+        }
+        return null;
+    }
+
+    private DocumentDeniedOptions setCheckedOptionsId(Long documentId, String userType, String message) {
+        Document document = documentRepository.findById(documentId).orElse(null);
+        assert document != null;
+        if (userType.equals(USER_TYPE_TENANT)) {
+            if (message.contains(IDENTITY_REPLACE)) {
+                message = message.replace(IDENTITY_REPLACE, IDENTITY_REPLACE_DB);
+            }
+            if (message.contains(SOCIAL_REPLACE)) {
+                message = message.replace(SOCIAL_REPLACE, SOCIAL_REPLACE_DB);
+            }
+            if (message.contains(TENANT_REPLACE)) {
+                message = message.replace(TENANT_REPLACE, TENANT_REPLACE_DB);
+            }
+            if (message.contains(SALARY_REPLACE)) {
+                message = message.replace(SALARY_REPLACE, SALARY_REPLACE_DB);
+            }
         }
 
+        return documentDeniedOptionsRepository.findOneDocumentDeniedOptions(document.getDocumentSubCategory().toString(), userType, message);
     }
 
     public void createStylesInMessages(CustomMessage customMessage) {
@@ -506,17 +463,9 @@ public class TenantService {
         }));
     }
 
-    private void sendEmailToTenant(Tenant tenant, Integer emailTemplate) {
-        Map<String, String> variables = new HashMap<>();
-        variables.put(FIRST_NAME, tenant.getFirstName());
-        variables.put(LAST_NAME, tenant.getLastName());
-
-        mailService.sendMailJetApi(emailFrom, null, tenant.getEmail(), tenant.getFullName(), null, null, null, null, null, null, null, variables, emailTemplate);
-
-    }
-
     public void declineTenant(Principal principal, Long tenantId) {
         Tenant tenant = find(tenantId);
+        partnerCallBackServiceWhenAccountIsDeclined(tenant);
         User operator = userService.findUserByEmail(principal.getName());
 
         Optional.ofNullable(tenant.getDocuments())
@@ -561,7 +510,8 @@ public class TenantService {
                         log.info("Waiting 50ms for the next call...");
                         this.wait(50); //It will wait 3 minutes to send the next callback
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        log.error("InterruptedException sendCallBacksManually ", e);
+                        Thread.currentThread().interrupt();
                     }
                 }
             }
@@ -590,13 +540,15 @@ public class TenantService {
 
                         this.wait(50);
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        log.error("InterruptedException callBackManually ",e);
+                        Thread.currentThread().interrupt();
                     }
                 }
             }
         }
     }
 
+    @Transactional
     public void computeStatusOfAllTenants() {
         int numberOfUpdate = 1;
         int lengthOfPage = 1000;
@@ -613,8 +565,8 @@ public class TenantService {
         log.info("Update for [" + allTenants.getTotalElements() + "] tenants finished");
     }
 
-    @Transactional
-    protected void updatePage(int numberOfUpdate, Page<Tenant> allTenants) {
+
+    private void updatePage(int numberOfUpdate, Page<Tenant> allTenants) {
         List<Tenant> tenantsToChange = new ArrayList<>();
         allTenants.forEach(tenant -> {
             tenant.setStatus(tenant.computeStatus());
@@ -667,13 +619,16 @@ public class TenantService {
         }
         updateFileStatus(customMessage);
         changeTenantStatusToDeclined(tenant);
-        sendCustomMessage(tenant, customMessage, checkValueOfCustomMessage(customMessage));
+        Message message = sendCustomMessage(tenant, customMessage, checkValueOfCustomMessage(customMessage));
         mailService.sendMailNotificationAfterDeny(tenant);
 
         User operator = userService.findUserByEmail(principal.getName());
         operatorLogRepository.save(new OperatorLog(
                 tenant, operator, tenant.getStatus(), ActionOperatorType.STOP_PROCESS
         ));
+        if (message != null) {
+            logService.saveByLog(new Log(LogType.ACCOUNT_DENIED, tenant.getId(), operator.getId(), message.getId()));
+        }
         return "redirect:/bo";
     }
 
@@ -693,15 +648,18 @@ public class TenantService {
             return "redirect:/error";
         }
         boolean allDocumentsValid = updateFileStatus(customMessage);
-        sendCustomMessage(tenant, customMessage, checkValueOfCustomMessage(customMessage));
+        Message message = sendCustomMessage(tenant, customMessage, checkValueOfCustomMessage(customMessage));
         if (allDocumentsValid) {
             changeTenantStatusToValidated(tenant);
             logService.saveByLog(new Log(LogType.ACCOUNT_VALIDATED, tenant.getId(), operator.getId()));
-            sendEmailOnAllDocumentsValidated(tenant);
+            mailService.sendEmailToTenantAfterValidateAllDocuments(tenant);
             partnerCallBackServiceWhenValidated(tenant);
         } else {
             changeTenantStatusToDeclined(tenant);
-            logService.saveByLog(new Log(LogType.ACCOUNT_DENIED, tenant.getId(), operator.getId()));
+            partnerCallBackServiceWhenAccountIsDeclined(tenant);
+            if (message != null) {
+                logService.saveByLog(new Log(LogType.ACCOUNT_DENIED, tenant.getId(), operator.getId(), message.getId()));
+            }
             mailService.sendMailNotificationAfterDeny(tenant);
         }
         operatorLogRepository.save(new OperatorLog(
@@ -714,6 +672,7 @@ public class TenantService {
     public String updateStatusOfTenantFromAdmin(Principal principal, MessageDTO messageDTO, Long tenantId) {
         User operator = userService.findUserByEmail(principal.getName());
         Tenant tenant = tenantRepository.findOneById(tenantId);
+        TenantFileStatus tenantFileStatusBefore = tenant.getStatus();
         messageService.create(messageDTO, tenant, false, false);
 
         Optional.ofNullable(tenant.getDocuments())
@@ -735,6 +694,9 @@ public class TenantService {
                             }
                         }));
         changeTenantStatusToDeclined(tenant);
+        if (tenantFileStatusBefore.equals(TenantFileStatus.TO_PROCESS) && tenant.getStatus().equals(TenantFileStatus.DECLINED)) {
+            partnerCallBackServiceWhenAccountIsDeclined(tenant);
+        }
         mailService.sendMailNotificationAfterDeny(tenant);
         operatorLogRepository.save(new OperatorLog(
                 tenant, operator, tenant.getStatus(), ActionOperatorType.STOP_PROCESS
@@ -857,6 +819,7 @@ public class TenantService {
         return documentList;
     }
 
+    @Transactional
     public void deleteAccountsNotProperlyDeleted() {
         int numberOfDeletionPage = 1;
         int lengthOfPage = 100;
@@ -874,12 +837,13 @@ public class TenantService {
         log.info("Deletion for [" + totalToDelete + "] apartments sharing finished");
     }
 
-    @Transactional
-    protected void deletePageOfApartmentSharing(int numberOfDeletionPage, Page<ApartmentSharing> apartmentSharingPage) {
+
+    private void deletePageOfApartmentSharing(int numberOfDeletionPage, Page<ApartmentSharing> apartmentSharingPage) {
         apartmentSharingRepository.deleteAll(apartmentSharingPage);
         log.info("Deletion page number [" + numberOfDeletionPage + "] for " + apartmentSharingPage.getNumberOfElements() + " apartment_sharing finished");
     }
 
+    @Transactional
     public void updateDocumentsWithNullCreationDateTime() {
         int numberOfUpdate = 1;
         int lengthOfPage = 1000;
@@ -890,7 +854,7 @@ public class TenantService {
         while (!documents.isEmpty()) {
             page = page.next();
 
-            updatePageOfDocumentsWithNullCreationDateTime(numberOfUpdate, documents);
+            updatePageOfDocumentsWithNullCreationDateTime(documents);
             log.info("Update number [" + numberOfUpdate++ + "] for " + documents.getNumberOfElements() + " documents finished");
 
             documents = documentRepository.findDocumentsByCreationDateTimeIsNull(page);
@@ -898,9 +862,7 @@ public class TenantService {
         log.info("[" + totalElements + "] documents updated with [creation_date=null] finished");
     }
 
-    @Transactional
-    protected void updatePageOfDocumentsWithNullCreationDateTime(int numberOfUpdate, Page<Document> documents) {
-        List<Document> documentsToChange = new ArrayList<>();
+    private void updatePageOfDocumentsWithNullCreationDateTime(Page<Document> documents) {
         documents.forEach(document -> {
             if (document.getCreationDateTime() == null) {
                 if (document.getTenant() != null) {
@@ -917,7 +879,11 @@ public class TenantService {
         return tenantRepository.countAllTenantsWithFailedGeneratedPdfDocument();
     }
 
-    public long getTenantsWithStatusInToProcess(){
+    public Page<Tenant> getAllTenantsWithFailedGeneratedPdfDocument(Pageable pageable) {
+        return new PageImpl<>(tenantRepository.findAllTenantsWithFailedGeneratedPdfDocument(pageable).toList());
+    }
+
+    public long getTenantsWithStatusInToProcess() {
         return tenantRepository.getTenantsByStatus(TenantFileStatus.TO_PROCESS).size();
     }
 }

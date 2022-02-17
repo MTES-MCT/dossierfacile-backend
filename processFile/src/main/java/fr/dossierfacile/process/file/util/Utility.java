@@ -21,8 +21,8 @@ import java.util.regex.Pattern;
 @Slf4j
 @RequiredArgsConstructor
 public class Utility {
-
-    private static final String EXCEPTION_MESSAGE2 = "Exception white trying extract text to pdf";
+    private static final String EXCEPTION = "Sentry ID Exception: ";
+    private static final String EXCEPTION_MESSAGE2 = "Exception while trying extract text to pdf";
     private final OvhService ovhService;
 
     public static String normalize(String s) {
@@ -101,7 +101,8 @@ public class Utility {
                 }
             } catch (IOException e) {
                 log.error(EXCEPTION_MESSAGE2, e);
-                Sentry.capture(e);
+                log.error(EXCEPTION + Sentry.captureException(e));
+                log.error(e.getMessage(), e.getCause());
             }
         }
         return pdfFileInText;

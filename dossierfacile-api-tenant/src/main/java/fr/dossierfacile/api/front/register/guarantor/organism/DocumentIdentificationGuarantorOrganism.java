@@ -9,12 +9,12 @@ import fr.dossierfacile.api.front.register.form.guarantor.organism.DocumentIdent
 import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.repository.FileRepository;
 import fr.dossierfacile.api.front.repository.GuarantorRepository;
-import fr.dossierfacile.api.front.repository.TenantRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.util.Utility;
 import fr.dossierfacile.common.entity.Document;
+import fr.dossierfacile.common.entity.DocumentPdfGenerationLog;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Guarantor;
 import fr.dossierfacile.common.entity.Tenant;
@@ -22,8 +22,10 @@ import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.TypeGuarantor;
+import fr.dossierfacile.common.repository.DocumentPdfGenerationLogRepository;
+import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.OvhService;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -33,11 +35,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DocumentIdentificationGuarantorOrganism implements SaveStep<DocumentIdentificationGuarantorOrganismForm> {
 
     private final OvhService ovhService;
-    private final TenantRepository tenantRepository;
+    private final TenantCommonRepository tenantRepository;
     private final DocumentRepository documentRepository;
     private final TenantMapper tenantMapper;
     private final GuarantorRepository guarantorRepository;
@@ -46,11 +48,15 @@ public class DocumentIdentificationGuarantorOrganism implements SaveStep<Documen
     private final TenantService tenantService;
     private final Producer producer;
     private final ApartmentSharingService apartmentSharingService;
+    private final DocumentPdfGenerationLogRepository documentPdfGenerationLogRepository;
 
     @Override
     public TenantModel saveStep(Tenant tenant, DocumentIdentificationGuarantorOrganismForm documentIdentificationGuarantorOrganismForm) {
         Document document = saveDocument(tenant, documentIdentificationGuarantorOrganismForm);
-        producer.generatePdf(document.getId());
+        producer.generatePdf(document.getId(),
+                documentPdfGenerationLogRepository.save(DocumentPdfGenerationLog.builder()
+                        .documentId(document.getId())
+                        .build()).getId());
         return tenantMapper.toTenantModel(document.getGuarantor().getTenant());
     }
 
@@ -66,6 +72,7 @@ public class DocumentIdentificationGuarantorOrganism implements SaveStep<Documen
                         .guarantor(guarantor)
                         .build());
         document.setDocumentStatus(DocumentStatus.TO_PROCESS);
+        document.setDocumentDeniedReasons(null);
         document.setDocumentSubCategory(DocumentSubCategory.CERTIFICATE_VISA);
         documentRepository.save(document);
 
@@ -81,7 +88,7 @@ public class DocumentIdentificationGuarantorOrganism implements SaveStep<Documen
                     .size(size)
                     .numberOfPages(Utility.countNumberOfPagesOfPdfDocument(multipartFile))
                     .build();
-            fileRepository.save(file);
+            document.getFiles().add(fileRepository.save(file));
         }
         documentService.initializeFieldsToProcessPdfGeneration(document);
         tenant.lastUpdateDateProfile(LocalDateTime.now(), DocumentCategory.IDENTIFICATION);

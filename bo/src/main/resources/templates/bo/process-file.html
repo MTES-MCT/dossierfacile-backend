@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
+<html lang="en"
+      layout:decorator="bo/process-file-layout"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      lang="en"
-      layout:decorator="bo/process-file-layout">
+      xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>DossierFacile</title>
 </head>
@@ -19,8 +19,9 @@
                     <span class="panel-heading file1-background-color bold letter col-md-8"
                           style="display: block ruby; overflow-x: auto"
                           th:text="'Name: ' + ${tenant.getFullName()}"></span>
-                    <span th:if="${!partnerList.isEmpty()}" class="col-md-4 bold letter panel-title"
-                          style="text-align: right;float: right;margin-right: -37px; margin-top: 10px">Partenaires:</span>
+                    <span class="col-md-4 bold letter panel-title"
+                          style="text-align: right;float: right;margin-right: -37px; margin-top: 10px"
+                          th:if="${!partnerList.isEmpty()}">Partenaires:</span>
                 </div>
                 <div class=" col-md-4" style="margin-top:19px">
                     <div class="scrollmenu" th:style="${partnerList.isEmpty()}?'display:none':''">
@@ -35,9 +36,9 @@
                         Voir le Dossier
                     </a>
                     <a class="btn btn-success bo-btn"
-                       th:style="${newMessage} ? 'visibility: visible; float: left; margin-right: 10px' : 'display: none'"
+                       th:href="@{/bo/colocation/} + ${tenant.getApartmentSharing().getId()} + '#tenant-message' + ${tenant.getId()}"
 
-                       th:href="@{/bo/colocation/} + ${tenant.getApartmentSharing().getId()} + '#tenant-message' + ${tenant.getId()}">
+                       th:style="${newMessage} ? 'visibility: visible; float: left; margin-right: 10px' : 'display: none'">
                         Voir les messages
                     </a>
                 </div>
@@ -180,20 +181,24 @@
                                 <div class="checkbox check-distance"
                                      th:each="itemDetail,j : ${messageItem.getItemDetailList()}">
                                     <label>
-                                        <input th:field="*{messageItems[__${i.index}__].itemDetailList[__${j.index}__].check}"
-                                               type="checkbox" style="padding-left: 10px;"/>
-                                        <input th:field="*{messageItems[__${i.index}__].itemDetailList[__${j.index}__].message}"
-                                               th:value="${itemDetail.getMessage()}" type="hidden"
-                                               style="padding-left: 10px;"/>
-                                        <p class="span1" style="display:block;" th:utext="${itemDetail.getMessage()}"></p>
+                                        <input style="padding-left: 10px;"
+                                               th:field="*{messageItems[__${i.index}__].itemDetailList[__${j.index}__].check}"
+                                               type="checkbox"/>
+                                        <input style="padding-left: 10px;"
+                                               th:field="*{messageItems[__${i.index}__].itemDetailList[__${j.index}__].message}"
+                                               th:value="${itemDetail.getMessage()}"
+                                               type="hidden"/>
+                                        <p class="span1" style="display:block;"
+                                           th:utext="${itemDetail.getMessage()}"></p>
                                     </label>
                                 </div>
                             </div>
                             <div>
-                                <textarea th:field="*{messageItems[__${i.index}__].commentDoc}"
-                                          placeholder="commentaire ..." rows="20" name="comment[text]" cols="40"
-                                          class="ui-autocomplete-input" autocomplete="off" role="textbox"
-                                          aria-autocomplete="list" aria-haspopup="true"></textarea>
+                                <textarea aria-autocomplete="list"
+                                          aria-haspopup="true" autocomplete="off" class="ui-autocomplete-input"
+                                          cols="40"
+                                          name="comment[text]" placeholder="commentaire ..." role="textbox"
+                                          rows="20" th:field="*{messageItems[__${i.index}__].commentDoc}"></textarea>
                             </div>
                         </div>
                     </div>
@@ -354,21 +359,25 @@
                                     <div class="checkbox check-distance"
                                          th:each="itemDetail,j : ${messageItem.getItemDetailList()}">
                                         <label>
-                                            <input th:field="*{guarantorItems[__${k.index}__].messageItems[__${i.index}__].itemDetailList[__${j.index}__].check}"
-                                                   type="checkbox" style="padding-left: 10px;"/>
-                                            <input th:field="*{guarantorItems[__${k.index}__].messageItems[__${i.index}__].itemDetailList[__${j.index}__].message}"
-                                                   th:value="${itemDetail.getMessage()}" type="hidden"
-                                                   style="padding-left: 10px;"/>
+                                            <input style="padding-left: 10px;"
+                                                   th:field="*{guarantorItems[__${k.index}__].messageItems[__${i.index}__].itemDetailList[__${j.index}__].check}"
+                                                   type="checkbox"/>
+                                            <input style="padding-left: 10px;"
+                                                   th:field="*{guarantorItems[__${k.index}__].messageItems[__${i.index}__].itemDetailList[__${j.index}__].message}"
+                                                   th:value="${itemDetail.getMessage()}"
+                                                   type="hidden"/>
                                             <span class="span1" th:text="${itemDetail.getMessage()}"></span>
                                         </label>
                                     </div>
                                 </div>
                                 <div>
                                     <textarea
-                                            th:field="*{guarantorItems[__${k.index}__].messageItems[__${i.index}__].commentDoc}"
-                                            placeholder="commentaire ..." rows="20" name="comment[text]" cols="40"
-                                            class="ui-autocomplete-input" autocomplete="off" role="textbox"
-                                            aria-autocomplete="list" aria-haspopup="true"></textarea>
+                                            aria-autocomplete="list"
+                                            aria-haspopup="true" autocomplete="off" class="ui-autocomplete-input"
+                                            cols="40"
+                                            name="comment[text]" placeholder="commentaire ..." role="textbox"
+                                            rows="20"
+                                            th:field="*{guarantorItems[__${k.index}__].messageItems[__${i.index}__].commentDoc}"></textarea>
                                 </div>
                             </div>
                         </div>

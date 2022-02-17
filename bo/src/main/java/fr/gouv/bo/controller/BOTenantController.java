@@ -1,30 +1,30 @@
 package fr.gouv.bo.controller;
 
-import com.google.gson.Gson;
 import fr.dossierfacile.common.entity.Document;
+import fr.dossierfacile.common.entity.DocumentDeniedOptions;
 import fr.dossierfacile.common.entity.Guarantor;
 import fr.dossierfacile.common.entity.Message;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.User;
 import fr.dossierfacile.common.entity.UserApi;
+import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.MessageStatus;
 import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
+import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.gouv.bo.dto.CustomMessage;
 import fr.gouv.bo.dto.EmailDTO;
 import fr.gouv.bo.dto.GuarantorItem;
 import fr.gouv.bo.dto.ItemDetail;
 import fr.gouv.bo.dto.MessageDTO;
 import fr.gouv.bo.dto.MessageItem;
-import fr.gouv.bo.dto.MessageItems;
 import fr.gouv.bo.dto.PartnerDTO;
 import fr.gouv.bo.service.ApartmentSharingService;
 import fr.gouv.bo.service.DocumentService;
 import fr.gouv.bo.service.GuarantorService;
 import fr.gouv.bo.service.MessageService;
-import fr.gouv.bo.service.PartnerCallBackService;
 import fr.gouv.bo.service.TenantService;
 import fr.gouv.bo.service.TenantUserApiService;
 import fr.gouv.bo.service.UserApiService;
@@ -32,20 +32,18 @@ import fr.gouv.bo.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -155,12 +153,18 @@ public class BOTenantController {
         Tenant tenant = documentService.deleteDocument(id);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         tenantService.updateTenantStatus(tenant);
+        if (tenant.getStatus().equals(TenantFileStatus.DECLINED)) {
+            tenantService.partnerCallBackServiceWhenAccountIsDeclined(tenant);
+        }
         return "redirect:/bo/colocation/" + tenant.getApartmentSharing().getId() + "#tenant" + tenant.getId();
     }
 
     @GetMapping("/status/{id}")
     public String changeStatusOfDocument(@PathVariable("id") Long id, MessageDTO messageDTO) {
         Tenant tenant = documentService.changeStatusOfDocument(id, messageDTO);
+        if (DocumentStatus.valueOf(messageDTO.getMessage()).equals(DocumentStatus.DECLINED)) {
+            tenantService.partnerCallBackServiceWhenAccountIsDeclined(tenant);
+        }
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         tenantService.updateTenantStatus(tenant);
         return "redirect:/bo/colocation/" + tenant.getApartmentSharing().getId() + "#tenant" + tenant.getId();
@@ -213,34 +217,17 @@ public class BOTenantController {
         return tenantService.redirectToApplication(principal, null);
     }
 
-    private List<ItemDetail> getItemDetailForSubcategoryOfDocument(DocumentSubCategory documentSubCategory, Boolean typeMessage) throws IOException {
+    private List<ItemDetail> getItemDetailForSubcategoryOfDocument(DocumentSubCategory documentSubCategory, Boolean typeMessage) {
 
         List<ItemDetail> itemDetails = new ArrayList<>();
-        Gson gson = new Gson();
-        String route;
-
-        if (Boolean.TRUE.equals(typeMessage)) {
-            route = locationMessageTenant;
-        } else route = locationMessageGuarantor;
-
-        ClassPathResource classPathResource = new ClassPathResource(route);
-
-        byte[] bdata = FileCopyUtils.copyToByteArray(classPathResource.getInputStream());
-
-        String result = new String(bdata, StandardCharsets.UTF_8);
-
-        MessageItems messageItems = gson.fromJson(result, MessageItems.class);
-
-        List<String> checklist = messageItems.getCheckBoxValues().get(documentSubCategory.toString());
-        checklist.forEach(check -> {
-            ItemDetail itemDetail1 = ItemDetail.builder().check(false).message(check).build();
+        for (DocumentDeniedOptions documentDeniedOptions : documentService.getAllDocumentDeniedOptions(documentSubCategory, typeMessage)) {
+            ItemDetail itemDetail1 = ItemDetail.builder().check(false).message(documentDeniedOptions.getMessageValue()).build();
             itemDetails.add(itemDetail1);
-        });
-
+        }
         return itemDetails;
     }
 
-    private CustomMessage getCustomMessage(Tenant tenant) throws IOException {
+    private CustomMessage getCustomMessage(Tenant tenant) {
 
         CustomMessage customMessage = new CustomMessage();
 
@@ -257,6 +244,7 @@ public class BOTenantController {
                         .itemDetailList(getItemDetailForSubcategoryOfDocument(document.getDocumentSubCategory(), true))
                         .documentId(document.getId())
                         .documentName(document.getName())
+                        .files(document.getDocumentCategory() == DocumentCategory.IDENTIFICATION ? document.getFiles() : Collections.emptyList())
                         .build());
             }
         }

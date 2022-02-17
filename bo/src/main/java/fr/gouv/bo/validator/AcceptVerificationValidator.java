@@ -1,7 +1,7 @@
 package fr.gouv.bo.validator;
 
 
-import fr.gouv.bo.repository.TenantRepository;
+import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.gouv.bo.validator.annotation.AcceptVerification;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -13,7 +13,7 @@ import javax.validation.ConstraintValidatorContext;
 public class AcceptVerificationValidator implements ConstraintValidator<AcceptVerification, Boolean> {
 
     @Autowired
-    TenantRepository tenantRepository;
+    TenantCommonRepository tenantRepository;
 
     @Override
     public void initialize(AcceptVerification acceptVerification) {

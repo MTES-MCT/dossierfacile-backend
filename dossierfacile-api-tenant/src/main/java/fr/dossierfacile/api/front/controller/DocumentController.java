@@ -39,7 +39,7 @@ public class DocumentController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/resource/{documentName:.+}")
+    @GetMapping(value = "/resource/{documentName:.+}", produces = MediaType.APPLICATION_JSON_VALUE)
     public void getPdfWatermarkedAsByteArray(HttpServletResponse response, @PathVariable String documentName) {
         documentRepository.findFirstByName(documentName).orElseThrow(() -> new DocumentNotFoundException(documentName));
         SwiftObject object = ovhService.get(documentName);

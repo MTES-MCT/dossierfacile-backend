@@ -15,4 +15,6 @@ public interface DocumentService {
     void resetValidatedDocumentsStatusToToProcess(Tenant tenant);
 
     void resetValidatedAndDeniedDocumentsStatusToToProcess(List<Document> documentList);
+
+    void deleteAllDocumentsAssociatedToTenant(Tenant tenant);
 }

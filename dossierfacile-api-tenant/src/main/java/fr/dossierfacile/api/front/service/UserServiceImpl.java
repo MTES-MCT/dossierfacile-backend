@@ -11,13 +11,11 @@ import fr.dossierfacile.api.front.repository.AccountDeleteLogRepository;
 import fr.dossierfacile.api.front.repository.ApartmentSharingRepository;
 import fr.dossierfacile.api.front.repository.ConfirmationTokenRepository;
 import fr.dossierfacile.api.front.repository.PasswordRecoveryTokenRepository;
-import fr.dossierfacile.api.front.repository.TenantRepository;
 import fr.dossierfacile.api.front.repository.UserRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
 import fr.dossierfacile.api.front.service.interfaces.LogService;
 import fr.dossierfacile.api.front.service.interfaces.MailService;
-import fr.dossierfacile.api.front.service.interfaces.PartnerCallBackService;
 import fr.dossierfacile.api.front.service.interfaces.PasswordRecoveryTokenService;
 import fr.dossierfacile.api.front.service.interfaces.SourceService;
 import fr.dossierfacile.api.front.service.interfaces.UserService;
@@ -33,11 +31,14 @@ import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.enums.TenantType;
+import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.OvhService;
+import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -59,7 +60,7 @@ public class UserServiceImpl implements UserService {
     private final ApartmentSharingRepository apartmentSharingRepository;
     private final AccountDeleteLogRepository accountDeleteLogRepository;
     private final TenantMapper tenantMapper;
-    private final TenantRepository tenantRepository;
+    private final TenantCommonRepository tenantRepository;
     private final LogService logService;
     private final Gson gson = new Gson();
     private final KeycloakService keycloakService;
@@ -68,14 +69,17 @@ public class UserServiceImpl implements UserService {
     private final ApartmentSharingService apartmentSharingService;
 
     @Override
+    @Transactional
     public long confirmAccount(String token) {
         ConfirmationToken confirmationToken = confirmationTokenRepository.findByToken(token).orElseThrow(() -> new ConfirmationTokenNotFoundException(token));
         User user = confirmationToken.getUser();
         user.setEnabled(true);
         user.setConfirmationToken(null);
+        user.setLastLoginDate(LocalDateTime.now());
         userRepository.save(user);
         confirmationTokenRepository.delete(confirmationToken);
         keycloakService.confirmKeycloakUser(user.getKeycloakId());
+        tenantRepository.resetWarnings(user.getId());
         return user.getId();
     }
 

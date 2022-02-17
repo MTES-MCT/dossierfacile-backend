@@ -7,6 +7,21 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.mapstruct</groupId>
+                            <artifactId>mapstruct-processor</artifactId>
+                            <version>${org.mapstruct.version}</version>
+                        </path>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>1.18.12</version>
+                        </path>
+                        <!-- other annotation processors -->
+                    </annotationProcessorPaths>
+                </configuration>
             </plugin>
         </plugins>
     </build>
@@ -23,9 +38,14 @@
     <description>Common library with all entities</description>
 
     <properties>
+        <log4j2.version>2.17.1</log4j2.version>
         <java.version>15</java.version>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
+        <org.mapstruct.version>1.4.0.Final</org.mapstruct.version>
+
+        <!--Libraries needed for OVH storage-->
+        <openstack4j.version>3.2.0</openstack4j.version>
     </properties>
 
     <dependencies>
@@ -55,6 +75,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+            <version>1.18.12</version>
             <optional>true</optional>
         </dependency>
         <dependency>
@@ -65,6 +86,11 @@
         <dependency>
             <groupId>org.liquibase</groupId>
             <artifactId>liquibase-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.blagerweij</groupId>
+            <artifactId>liquibase-sessionlock</artifactId>
+            <version>1.5.0</version>
         </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>
@@ -94,16 +120,19 @@
             <version>2.0.1.Final</version>
             <scope>compile</scope>
         </dependency>
+
+        <!--Libraries needed for OVH storage-->
         <dependency>
             <groupId>org.pacesys</groupId>
             <artifactId>openstack4j</artifactId>
-            <version>3.2.0</version>
+            <version>${openstack4j.version}</version>
         </dependency>
         <dependency>
             <groupId>org.pacesys.openstack4j.connectors</groupId>
             <artifactId>openstack4j-okhttp</artifactId>
-            <version>3.2.0</version>
+            <version>${openstack4j.version}</version>
         </dependency>
+
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
@@ -119,27 +148,27 @@
         <dependency>
             <groupId>com.twelvemonkeys.imageio</groupId>
             <artifactId>imageio-core</artifactId>
-            <version>3.7.0</version>
+            <version>3.8.1</version>
         </dependency>
         <dependency>
             <groupId>com.twelvemonkeys.imageio</groupId>
             <artifactId>imageio-jpeg</artifactId>
-            <version>3.7.0</version>
+            <version>3.8.1</version>
         </dependency>
         <dependency>
             <groupId>com.twelvemonkeys.imageio</groupId>
             <artifactId>imageio-tiff</artifactId>
-            <version>3.7.0</version>
+            <version>3.8.1</version>
         </dependency>
         <dependency>
             <groupId>com.twelvemonkeys.imageio</groupId>
             <artifactId>imageio-metadata</artifactId>
-            <version>3.7.0</version>
+            <version>3.8.1</version>
         </dependency>
         <dependency>
             <groupId>com.twelvemonkeys.imageio</groupId>
             <artifactId>imageio-bmp</artifactId>
-            <version>3.7.0</version>
+            <version>3.8.1</version>
         </dependency>
         <dependency>
             <groupId>com.twelvemonkeys.imageio</groupId>
@@ -149,12 +178,12 @@
         <dependency>
             <groupId>com.twelvemonkeys.imageio</groupId>
             <artifactId>imageio-webp</artifactId>
-            <version>3.7.0</version>
+            <version>3.8.1</version>
         </dependency>
         <dependency>
             <groupId>com.twelvemonkeys.imageio</groupId>
             <artifactId>imageio</artifactId>
-            <version>3.7.0</version>
+            <version>3.8.1</version>
             <type>pom</type>
         </dependency>
         <!--END - Dependencies to avoid error when rendering some kind of format of pictures in pdf, when converting the page to image-->
@@ -163,6 +192,33 @@
             <groupId>com.vladmihalcea</groupId>
             <artifactId>hibernate-types-52</artifactId>
             <version>2.13.0</version>
+        </dependency>
+
+        <!--INICIO Swagger-->
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-boot-starter</artifactId>
+            <version>3.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.swagger</groupId>
+            <artifactId>swagger-annotations</artifactId>
+            <version>1.6.3</version>
+            <scope>compile</scope>
+        </dependency>
+        <!--FIN Swagger-->
+
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+            <version>${org.mapstruct.version}</version>
+        </dependency>
+
+        <!--Updating version of HikariCP-->
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <version>5.0.1</version>
         </dependency>
     </dependencies>
 </project>

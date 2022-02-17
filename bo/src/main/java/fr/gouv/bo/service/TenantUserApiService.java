@@ -4,7 +4,7 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.TenantUserApi;
 import fr.dossierfacile.common.entity.TenantUserApiKey;
 import fr.dossierfacile.common.entity.UserApi;
-import fr.gouv.bo.repository.TenantUserApiRepository;
+import fr.dossierfacile.common.repository.TenantUserApiRepository;
 import fr.gouv.bo.repository.UserApiRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -57,6 +57,7 @@ public class MessageServiceImpl implements MessageService {
                 .forEach(document -> {
                     if (document.getDocumentStatus().equals(DocumentStatus.DECLINED)) {
                         document.setDocumentStatus(DocumentStatus.TO_PROCESS);
+                        document.setDocumentDeniedReasons(null);
                         documentRepository.save(document);
                     }
                 });
@@ -67,6 +68,7 @@ public class MessageServiceImpl implements MessageService {
                         .forEach(document -> {
                             if (document.getDocumentStatus().equals(DocumentStatus.DECLINED)) {
                                 document.setDocumentStatus(DocumentStatus.TO_PROCESS);
+                                document.setDocumentDeniedReasons(null);
                                 documentRepository.save(document);
                             }
                         }));

@@ -6,12 +6,16 @@ import org.springframework.context.annotation.Configuration;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.service.ApiInfo;
-import springfox.documentation.service.Contact;
+import springfox.documentation.service.ApiKey;
+import springfox.documentation.service.AuthorizationScope;
+import springfox.documentation.service.SecurityReference;
 import springfox.documentation.spi.DocumentationType;
+import springfox.documentation.spi.service.contexts.SecurityContext;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import java.util.Collections;
+import java.util.List;
 
 @Configuration
 @EnableSwagger2
@@ -24,6 +28,8 @@ public class SwaggerConfig {
     public Docket api() {
         return new Docket(DocumentationType.SWAGGER_2)
                 .groupName("API")
+                .securityContexts(List.of(securityContextForClassicAPI()))
+                .securitySchemes(List.of(apiKey()))
                 .select()
                 .apis(RequestHandlerSelectors.basePackage("fr.dossierfacile.api.front.controller"))
                 .paths(PathSelectors.ant("/api/**"))
@@ -35,6 +41,8 @@ public class SwaggerConfig {
     public Docket apiDossierFacileConnect() {
         return new Docket(DocumentationType.SWAGGER_2)
                 .groupName("API DFC")
+                .securityContexts(List.of(securityContextForDFCAPI()))
+                .securitySchemes(List.of(apiKey()))
                 .select()
                 .apis(RequestHandlerSelectors.basePackage("fr.dossierfacile.api.front.dfc.controller"))
                 .paths(PathSelectors.ant("/dfc/**"))
@@ -46,6 +54,8 @@ public class SwaggerConfig {
     public Docket apiPartner() {
         return new Docket(DocumentationType.SWAGGER_2)
                 .groupName("API Partner")
+                .securityContexts(List.of(securityContextForPartnerAPI()))
+                .securitySchemes(List.of(apiKey()))
                 .select()
                 .apis(RequestHandlerSelectors.basePackage("fr.dossierfacile.api.front.partner.controller"))
                 .paths(PathSelectors.ant("/api-partner/**"))
@@ -102,5 +112,39 @@ public class SwaggerConfig {
                 "",
                 ApiInfo.DEFAULT_CONTACT,
                 "", "", Collections.emptyList());
+    }
+
+    private ApiKey apiKey() {
+        return new ApiKey("Bearer", "Authorization", "header");
+    }
+
+    private SecurityContext securityContextForClassicAPI() {
+        return SecurityContext.builder().securityReferences(classicAPIAuth()).forPaths(PathSelectors.ant("/api/**")).build();
+    }
+
+    private List<SecurityReference> classicAPIAuth() {
+        AuthorizationScope authorizationScope = new AuthorizationScope("SCOPE_dossier", "Access to Classic API");
+        AuthorizationScope[] authorizationScopes = new AuthorizationScope[]{authorizationScope};
+        return List.of(new SecurityReference("Bearer", authorizationScopes));
+    }
+
+    private SecurityContext securityContextForDFCAPI() {
+        return SecurityContext.builder().securityReferences(dfcAPIAuth()).forPaths(PathSelectors.ant("/dfc/tenant/profile")).build();
+    }
+
+    private List<SecurityReference> dfcAPIAuth() {
+        AuthorizationScope authorizationScope = new AuthorizationScope("SCOPE_dfc", "Access to DFC API");
+        AuthorizationScope[] authorizationScopes = new AuthorizationScope[]{authorizationScope};
+        return List.of(new SecurityReference("Bearer", authorizationScopes));
+    }
+
+    private SecurityContext securityContextForPartnerAPI() {
+        return SecurityContext.builder().securityReferences(partnerAPIAuth()).forPaths(PathSelectors.ant("/api-partner/**")).build();
+    }
+
+    private List<SecurityReference> partnerAPIAuth() {
+        AuthorizationScope authorizationScope = new AuthorizationScope("SCOPE_api-partner", "Access to Partner API");
+        AuthorizationScope[] authorizationScopes = new AuthorizationScope[]{authorizationScope};
+        return List.of(new SecurityReference("Bearer", authorizationScopes));
     }
 }

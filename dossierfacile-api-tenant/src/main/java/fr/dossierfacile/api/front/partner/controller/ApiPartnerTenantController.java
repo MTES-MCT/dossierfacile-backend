@@ -9,6 +9,7 @@ import fr.dossierfacile.api.front.service.interfaces.UserService;
 import fr.dossierfacile.common.entity.Tenant;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -32,13 +33,13 @@ public class ApiPartnerTenantController {
     private final TenantMapper tenantMapper;
     private final UserService userService;
 
-    @GetMapping(value = {"/profile", "/{tenantId}/profile"})
+    @GetMapping(value = {"/profile", "/{tenantId}/profile"}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TenantModel> profile(@PathVariable(required = false) Long tenantId) {
         Tenant tenant = authenticationFacade.getTenant(tenantId);
         return ok(tenantMapper.toTenantModel(tenant));
     }
 
-    @PostMapping("/{tenantId}/subscribe/{token}")
+    @PostMapping(value = "/{tenantId}/subscribe/{token}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> subscribeTenant(@PathVariable("token") String propertyToken,
                                                 @Validated @RequestBody SubscriptionApartmentSharingOfTenantForm subscriptionApartmentSharingOfTenantForm,
                                                 @PathVariable Long tenantId) {

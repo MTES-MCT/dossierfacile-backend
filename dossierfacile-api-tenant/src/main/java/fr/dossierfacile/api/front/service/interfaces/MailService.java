@@ -25,4 +25,8 @@ public interface MailService {
     void sendEmailWhenTenantNOTAssociatedToPartnersAndValidatedXDaysAgo(User user);
 
     void sendEmailWhenTenantYESAssociatedToPartnersAndValidatedXDaysAgo(User user);
+
+    void sendEmailFirstWarningForDeletionOfDocuments(User user, ConfirmationToken confirmationToken);
+
+    void sendEmailSecondWarningForDeletionOfDocuments(User user, ConfirmationToken confirmationToken);
 }

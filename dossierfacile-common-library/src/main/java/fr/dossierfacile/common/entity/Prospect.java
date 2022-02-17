@@ -63,6 +63,7 @@ public class Prospect implements Serializable {
     private Property property;
     @Column
     private TenantSituation tenantSituation;
+    @Builder.Default
     @Column
     private Integer salary = 0;
     @Column
@@ -83,6 +84,7 @@ public class Prospect implements Serializable {
     private Tenant tenant;
     @Column(name = "visit_date")
     private LocalDateTime visitDate;
+    @Builder.Default
     @Column(name = "visit_duration")
     private Integer visitDuration = 0;
     @Column(name = "event_id")
@@ -90,19 +92,25 @@ public class Prospect implements Serializable {
     @Column(name = "attendre_date")
     @JsonIgnore
     private LocalDateTime attendreDate;
+    @Builder.Default
     @Column(columnDefinition = "boolean default false")
     private boolean interested = false;
+    @Builder.Default
     @Column(nullable = false, columnDefinition = "boolean default false")
     private boolean accessFull = false;
     @Column(name = "subscription_date")
     @JsonIgnore
     private LocalDateTime subscriptionDate;
+    @Builder.Default
     @Column(nullable = false, columnDefinition = "boolean default false")
     private boolean createAuto = false;
+    @Builder.Default
     @Column(nullable = false, columnDefinition = "boolean default false")
     private boolean killNotification = false;
+    @Builder.Default
     @Column(nullable = false, columnDefinition = "boolean default false")
     private boolean reminderEmailVisit = false;
+    @Builder.Default
     @Column(nullable = false, columnDefinition = "boolean default false")
     private boolean reminderWelcome = false;
 

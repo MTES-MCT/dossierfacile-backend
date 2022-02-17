@@ -53,6 +53,7 @@ public class Guarantor implements Serializable {
     @JoinColumn(name = "tenant_id")
     private Tenant tenant;
 
+    @Builder.Default
     @OneToMany(mappedBy = "guarantor", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     private List<Document> documents = new ArrayList<>();
 

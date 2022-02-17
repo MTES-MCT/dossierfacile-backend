@@ -16,24 +16,22 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.List;
-
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class ApiTesseractImpl implements ApiTesseract {
+    private static final String EXCEPTION = "Sentry ID Exception: ";
+
     private final Gson gson;
     private final RestTemplate restTemplate;
     @Value("${tesseract.api.url}")
     private String url;
-    @Value("${domain.url}")
-    private String domainUrl;
     @Value("${tesseract.api.key}")
     private String tesseractApiKey;
 
     @Override
-    public String apiTesseract(List<String> path, int[] pages, int dpi) {
+    public String apiTesseract(String path, int[] pages, int dpi) {
         String result = "";
         try {
             HttpHeaders headers = new HttpHeaders();
@@ -51,9 +49,9 @@ public class ApiTesseractImpl implements ApiTesseract {
                 result = String.join(" ", response.getBody().getOutput());
             }
         } catch (Exception e) {
-            log.error(e.getMessage(), e.getCause());
             log.error("Error in api tesseract");
-            Sentry.capture(e);
+            log.error(EXCEPTION + Sentry.captureException(e));
+            log.error(e.getMessage(), e.getCause());
         }
         return result;
     }

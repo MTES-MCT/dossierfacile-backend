@@ -8,4 +8,7 @@ public class ConfirmationTokenNotFoundException extends RuntimeException {
     public ConfirmationTokenNotFoundException(String token) {
         super("Could not find confirmation token " + token);
     }
+    public ConfirmationTokenNotFoundException(long userId) {
+        super("Could not find confirmation token for user with ID [" + userId + "]");
+    }
 }

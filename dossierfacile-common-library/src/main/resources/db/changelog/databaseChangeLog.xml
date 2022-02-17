@@ -33,4 +33,14 @@
     <include file="db/migration/202110020137-rename-column-api_partner_id-in-table-tenant.xml"/>
     <include file="db/migration/202110070904-increasing-the-length-of-clarification-in-table-tenant.xml"/>
     <include file="db/migration/202110111929-creating-new-table-document_denied_reasons.xml"/>
+    <include file="db/migration/202110242207-add-column-file_shareid_identification.xml"/>
+    <include file="db/migration/202110311128-add-column-for-warnings-to-tenants.xml"/>
+    <include file="db/migration/202111081350-modifying-contraints-from-table-document-related-to-document_denied_reasons.xml"/>
+    <include file="db/migration/202111081516-add-column-message_id-to-table-tenant_log.xml"/>
+    <include file="db/migration/202111091318-add-column-discard_shareid_warning.xml"/>
+    <include file="db/migration/202111221454-droping-shareid-columns-in-file-and-document.xml"/>
+    <include file="db/migration/202111301002-create-table-document_pdf_generation_log.xml"/>
+    <include file="db/migration/202112151400-create-table-message-items-tenant.xml"/>
+    <include file="db/migration/202201061620-rename-column-document-category-in-table-document_denied_options.xml"/>
+    <include file="db/migration/202201070211-add-column-checked_options_id.xml"/>
 </databaseChangeLog>

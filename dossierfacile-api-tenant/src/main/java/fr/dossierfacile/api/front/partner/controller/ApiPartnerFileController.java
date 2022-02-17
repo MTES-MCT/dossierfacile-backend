@@ -7,8 +7,10 @@ import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.FileService;
 import fr.dossierfacile.common.entity.Document;
+import fr.dossierfacile.common.entity.DocumentPdfGenerationLog;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.repository.DocumentPdfGenerationLogRepository;
 import fr.dossierfacile.common.service.interfaces.OvhService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +40,7 @@ public class ApiPartnerFileController {
     private final AuthenticationFacade authenticationFacade;
     private final FileRepository fileRepository;
     private final OvhService ovhService;
+    private final DocumentPdfGenerationLogRepository documentPdfGenerationLogRepository;
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id, @PathVariable Long tenantId) {
@@ -45,12 +48,15 @@ public class ApiPartnerFileController {
         Document document = fileService.delete(id, tenant);
         if (document != null) {
             documentService.initializeFieldsToProcessPdfGeneration(document);
-            producer.generatePdf(document.getId());
+            producer.generatePdf(document.getId(),
+                    documentPdfGenerationLogRepository.save(DocumentPdfGenerationLog.builder()
+                            .documentId(document.getId())
+                            .build()).getId());
         }
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/resource/{id}")
+    @GetMapping(value = "/resource/{id}", produces = {MediaType.APPLICATION_PDF_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
     public void getPrivateFileAsByteArray(HttpServletResponse response, @PathVariable Long id, @PathVariable Long tenantId) {
         Tenant tenant = authenticationFacade.getTenant(tenantId);
         File file = fileRepository.findByIdAndTenant(id, tenant.getId()).orElseThrow(() -> new FileNotFoundException(id));

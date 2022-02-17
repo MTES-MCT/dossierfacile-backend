@@ -1,8 +1,8 @@
 package fr.dossierfacile.api.front.service.interfaces;
 
-import fr.dossierfacile.api.front.model.apartment_sharing.ApplicationModel;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

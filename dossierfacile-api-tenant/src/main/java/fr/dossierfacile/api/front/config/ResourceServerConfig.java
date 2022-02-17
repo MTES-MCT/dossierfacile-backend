@@ -22,8 +22,26 @@ public class ResourceServerConfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .httpBasic().disable()
-                .csrf().disable()
+                .headers()
+                .contentTypeOptions()
+                .and()
+                .xssProtection()
+                .and()
+                .cacheControl()
+                .and()
+                .httpStrictTransportSecurity()
+                .maxAgeInSeconds(31536000)
+                .includeSubDomains(true)
+                .and()
+                .contentSecurityPolicy("script-src 'self'")
+                .and()
+                .and()
+                .formLogin()
+                .disable()
+                .httpBasic()
+                .disable()
+                .csrf()
+                .disable()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .cors()
@@ -31,7 +49,7 @@ public class ResourceServerConfig {
                 .authorizeRequests()
                 .antMatchers("/swagger-ui/**", "/swagger-resources/**", "/v2/api-docs", "/api/register/account", "/api/register/confirmAccount/**",
                         "/api/auth/**", "/api/user/forgotPassword", "/api/user/createPassword/**",
-                        "/api/document/**", "/api/application/full/**", "/api/application/light/**", "/api/application/fullPdf/**", "/api/tenant/property/**","/actuator/health")
+                        "/api/document/**", "/api/file/download/**", "/api/application/full/**", "/api/application/light/**", "/api/application/fullPdf/**", "/api/tenant/property/**","/actuator/health")
                 .permitAll()
                 .antMatchers("/api-partner/**").hasAuthority("SCOPE_api-partner")
                 .antMatchers("/dfc/tenant/profile").hasAuthority("SCOPE_dfc")

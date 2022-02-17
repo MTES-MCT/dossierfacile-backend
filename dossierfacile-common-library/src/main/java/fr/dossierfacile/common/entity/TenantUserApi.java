@@ -44,6 +44,7 @@ public class TenantUserApi implements Serializable {
     @JoinColumn(name = "userapi_id")
     UserApi userApi;
 
+    @Builder.Default
     @Column(columnDefinition = "text")
     @Convert(converter = ListStringConverter.class)
     private List<String> allInternalPartnerId = new ArrayList<>();

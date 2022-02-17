@@ -24,6 +24,7 @@ public class DocumentModel {
     private String customText;
     private Integer monthlySum;
     private DocumentStatus documentStatus;
-    private List<FileModel> files;
+    private DocumentDeniedReasonsModel documentDeniedReasons;
     private String name;
+    private List<FileModel> files;
 }

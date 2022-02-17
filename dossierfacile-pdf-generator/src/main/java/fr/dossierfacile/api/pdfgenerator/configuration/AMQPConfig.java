@@ -27,6 +27,9 @@ public class AMQPConfig {
     @Value("${rabbitmq.routing.key}")
     private String routingKey;
 
+    @Value("${rabbitmq.prefetch}")
+    private Integer prefetch;
+
     @Bean
     TopicExchange exchangePdfGenerator() {
         return new TopicExchange(exchangeName);
@@ -49,7 +52,7 @@ public class AMQPConfig {
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
         container.setQueueNames(queueName);
-        container.setPrefetchCount(10);
+        container.setPrefetchCount(prefetch);
         container.setMessageListener(listenerAdapter);
         return container;
     }

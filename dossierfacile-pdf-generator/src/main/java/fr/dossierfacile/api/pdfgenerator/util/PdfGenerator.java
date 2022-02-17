@@ -70,8 +70,8 @@ public class PdfGenerator {
             createWatermarkedPdfPageFromImage(imageBytes, pdfMergeModels, false);
         } catch (IOException e) {
             log.error("Problem watermarking image");
-            log.error(e.getMessage(), e.getCause());
             log.error(EXCEPTION + Sentry.captureException(e));
+            log.error(e.getMessage(), e.getCause());
         }
     }
 
@@ -132,8 +132,8 @@ public class PdfGenerator {
                     .build());
         } catch (IOException e) {
             log.error("Problem watermarking image");
-            log.error(e.getMessage(), e.getCause());
             log.error(EXCEPTION + Sentry.captureException(e));
+            log.error(e.getMessage(), e.getCause());
         }
     }
 
@@ -158,8 +158,8 @@ public class PdfGenerator {
             ImageIO.write(finalImage, "png", outputStream);
         } catch (IOException e) {
             log.error("Problem creating the merged image");
-            log.error(e.getMessage(), e.getCause());
             log.error(EXCEPTION + Sentry.captureException(e));
+            log.error(e.getMessage(), e.getCause());
         }
         return outputStream.toByteArray();
     }
@@ -190,8 +190,8 @@ public class PdfGenerator {
             ImageIO.write(finalImage, "png", bo);
         } catch (IOException e) {
             log.error("Problem creating image with white space for smaller image than base.");
-            log.error(e.getMessage(), e.getCause());
             log.error(EXCEPTION + Sentry.captureException(e));
+            log.error(e.getMessage(), e.getCause());
         }
 
         return bo;
@@ -223,8 +223,8 @@ public class PdfGenerator {
             ImageIO.write(finalImage, "png", bo);
         } catch (IOException e) {
             log.error("Problem creating image with white space for larger image than base.");
-            log.error(e.getMessage(), e.getCause());
             log.error(EXCEPTION + Sentry.captureException(e));
+            log.error(e.getMessage(), e.getCause());
         }
 
         return bo;
@@ -246,6 +246,7 @@ public class PdfGenerator {
         } catch (IOException e) {
             log.error("Exception while trying to merge documents", e);
             log.error(EXCEPTION + Sentry.captureException(e));
+            log.error(e.getMessage(), e.getCause());
         }
         return outputStream;
     }
@@ -269,6 +270,7 @@ public class PdfGenerator {
         } catch (IOException e) {
             log.error("Exception while trying to merge documents", e);
             log.error(EXCEPTION + Sentry.captureException(e));
+            log.error(e.getMessage(), e.getCause());
         }
         return outputStream;
     }
@@ -297,6 +299,7 @@ public class PdfGenerator {
         } catch (IOException e) {
             log.error("Exception while trying to convert image to pdf", e);
             log.error(EXCEPTION + Sentry.captureException(e));
+            log.error(e.getMessage(), e.getCause());
         }
         return baos.toByteArray();
     }
@@ -337,6 +340,7 @@ public class PdfGenerator {
         } catch (IOException e) {
             log.error("Exception while trying convert image to pdf", e);
             log.error(EXCEPTION + Sentry.captureException(e));
+            log.error(e.getMessage(), e.getCause());
         }
         return baos.toByteArray();
     }
@@ -366,8 +370,8 @@ public class PdfGenerator {
             document.close();
         } catch (IOException e) {
             log.error("Problem converting the pdf pages to images");
-            log.error(e.getMessage(), e.getCause());
             log.error(EXCEPTION + Sentry.captureException(e));
+            log.error(e.getMessage(), e.getCause());
         }
         return outputStreamList;
     }
@@ -439,8 +443,8 @@ public class PdfGenerator {
             }
         } catch (ImageProcessingException | IOException e) {
             log.error("Problem extracting metadata information of stream");
-            log.error(e.getMessage(), e.getCause());
             log.error(EXCEPTION + Sentry.captureException(e));
+            log.error(e.getMessage(), e.getCause());
         }
         return orientation;
     }

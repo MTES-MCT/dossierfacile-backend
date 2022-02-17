@@ -5,6 +5,7 @@ import fr.dossierfacile.api.front.model.dfc.tenant.ConnectedTenantModel;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.UserService;
 import lombok.AllArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,7 +22,7 @@ public class DfcTenantController {
     private final TenantMapper tenantMapper;
     private final UserService userService;
 
-    @GetMapping("/profile")
+    @GetMapping(value = "/profile", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ConnectedTenantModel> profilePartner() {
         var tenant = authenticationFacade.getTenant(null);
         var partner = authenticationFacade.getKeycloakClientId();

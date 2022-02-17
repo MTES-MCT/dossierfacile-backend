@@ -57,8 +57,10 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
 
         StringBuilder result = new StringBuilder();
         List<File> pdfs = files.stream().filter(file -> FilenameUtils.getExtension(file.getPath()).equals("pdf")).collect(Collectors.toList());
-        for (File pdf : pdfs) {
-            result.append(utility.extractTextPDFFirstPage(pdf.getPath()));
+        if (!pdfs.isEmpty()) {
+            for (File pdf : pdfs) {
+                result.append(utility.extractTextPDFFirstPage(pdf.getPath()));
+            }
         }
         String fiscalNumber = Utility.extractFiscalNumber(result.toString());
         String referenceNumber = Utility.extractReferenceNumber(result.toString());
@@ -66,7 +68,11 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
         if (fiscalNumber.equals("") || referenceNumber.equals("")) {
             result = new StringBuilder();
             List<String> paths = files.stream().map(file -> applicationDomain + URL_DELIMITER + applicationFilePath + URL_DELIMITER + file.getPath()).collect(Collectors.toList());
-            result.append(apiTesseract.apiTesseract(paths, new int[]{1}, tesseractApiOcrDpiTax));
+            if (!paths.isEmpty()) {
+                for (String path : paths) {
+                    result.append(apiTesseract.apiTesseract(path, new int[]{1}, tesseractApiOcrDpiTax));
+                }
+            }
             if (fiscalNumber.equals("")) {
                 fiscalNumber = Utility.extractFiscalNumber(result.toString());
             }

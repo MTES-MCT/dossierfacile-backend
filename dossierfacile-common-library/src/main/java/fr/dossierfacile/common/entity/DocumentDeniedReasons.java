@@ -3,8 +3,11 @@ package fr.dossierfacile.common.entity;
 import com.vladmihalcea.hibernate.type.array.ListArrayType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import org.hibernate.Hibernate;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.hibernate.annotations.TypeDefs;
@@ -16,10 +19,11 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.OneToOne;
+import javax.persistence.ManyToOne;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @TypeDefs({
         @TypeDef(
@@ -30,7 +34,9 @@ import java.util.List;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
+@Getter
+@Setter
+@ToString
 @Builder
 public class DocumentDeniedReasons implements Serializable {
 
@@ -48,9 +54,33 @@ public class DocumentDeniedReasons implements Serializable {
     )
     private List<String> checkedOptions = new ArrayList<>();
 
+    @Type(type = "list-type")
+    @Column(
+            name = "checked_options_id",
+            columnDefinition = "character integer[]"
+    )
+    private List<Integer> checkedOptionsId = new ArrayList<>();
+
+    @Builder.Default
+    private boolean messageData = true;
+
     private String comment;
 
-    @OneToOne(targetEntity = Message.class, fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "message_id")
+    @ToString.Exclude
     private Message message;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        DocumentDeniedReasons that = (DocumentDeniedReasons) o;
+        return id != null && Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }

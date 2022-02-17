@@ -2,7 +2,6 @@ package fr.gouv.bo.configuration;
 
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Whitelist;
-import org.owasp.esapi.ESAPI;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
@@ -15,9 +14,6 @@ public class XSSRequestWrapper extends HttpServletRequestWrapper {
 
     private static String stripXSS(String value) {
         if (value != null) {
-            value = ESAPI.encoder()
-                    .canonicalize(value)
-                    .replaceAll("\0", "");
             return Jsoup.clean(value, Whitelist.none());
         }
         return value;

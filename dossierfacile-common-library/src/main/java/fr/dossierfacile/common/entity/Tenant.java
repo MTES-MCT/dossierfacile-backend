@@ -86,6 +86,8 @@ public class Tenant extends User implements Serializable {
     @Column(name = "operator_date_time")
     private LocalDateTime operatorDateTime;
 
+    private int warnings;
+
     public Tenant(String email) {
         super(email);
         this.tenantType = TenantType.CREATE;

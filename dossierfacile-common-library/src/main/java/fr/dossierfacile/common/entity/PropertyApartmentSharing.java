@@ -45,9 +45,11 @@ public class PropertyApartmentSharing implements Serializable {
     @JoinColumn(name = "apartment_sharing_id")
     private ApartmentSharing apartmentSharing;
 
+    @Builder.Default
     @Column(nullable = false)
     private boolean accessFull = false;
 
+    @Builder.Default
     @Column
     private String token = RandomStringUtils.randomAlphanumeric(20);
 }
