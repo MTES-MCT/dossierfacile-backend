@@ -23,7 +23,7 @@ public enum StepRegister {
     DOCUMENT_TAX_GUARANTOR_NATURAL_PERSON("documentTaxGuarantorNaturalPerson"),
     DOCUMENT_IDENTIFICATION_GUARANTOR_ORGANISM("documentIdentificationGuarantorOrganism"),
     DOCUMENT_IDENTIFICATION_GUARANTOR_LEGAL_PERSON("documentIdentificationGuarantorLegalPerson"),
-    DOCUMENT_IDENTIFICATION_REPRESENTAN_GUARANTOR_LEGAL_PERSON("documentIdentificationRepresentanGuarantorLegalPerson"),
+    DOCUMENT_IDENTIFICATION_REPRESENTANT_GUARANTOR_LEGAL_PERSON("documentIdentificationRepresentanGuarantorLegalPerson"),
     GUARANTOR_TYPE("guarantorType");
     private final String label;
 

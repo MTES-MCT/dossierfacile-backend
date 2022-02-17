@@ -7,17 +7,19 @@ import fr.dossierfacile.api.front.register.SaveStep;
 import fr.dossierfacile.api.front.register.form.tenant.DocumentFinancialForm;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.repository.FileRepository;
-import fr.dossierfacile.api.front.repository.TenantRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.util.Utility;
 import fr.dossierfacile.common.entity.Document;
+import fr.dossierfacile.common.entity.DocumentPdfGenerationLog;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
+import fr.dossierfacile.common.repository.DocumentPdfGenerationLogRepository;
+import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.OvhService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -35,7 +38,7 @@ import java.util.stream.Collectors;
 public class DocumentFinancial implements SaveStep<DocumentFinancialForm> {
 
     private final OvhService ovhService;
-    private final TenantRepository tenantRepository;
+    private final TenantCommonRepository tenantRepository;
     private final DocumentRepository documentRepository;
     private final TenantMapper tenantMapper;
     private final FileRepository fileRepository;
@@ -43,11 +46,15 @@ public class DocumentFinancial implements SaveStep<DocumentFinancialForm> {
     private final TenantService tenantService;
     private final Producer producer;
     private final ApartmentSharingService apartmentSharingService;
+    private final DocumentPdfGenerationLogRepository documentPdfGenerationLogRepository;
 
     @Override
     public TenantModel saveStep(Tenant tenant, DocumentFinancialForm documentFinancialForm) {
         Document document = saveDocument(tenant, documentFinancialForm);
-        producer.generatePdf(document.getId());
+        producer.generatePdf(document.getId(),
+                documentPdfGenerationLogRepository.save(DocumentPdfGenerationLog.builder()
+                        .documentId(document.getId())
+                        .build()).getId());
         return tenantMapper.toTenantModel(document.getTenant());
     }
 
@@ -60,6 +67,7 @@ public class DocumentFinancial implements SaveStep<DocumentFinancialForm> {
                         .tenant(tenant)
                         .build());
         document.setDocumentStatus(DocumentStatus.TO_PROCESS);
+        document.setDocumentDeniedReasons(null);
         document.setDocumentSubCategory(documentSubCategory);
         document.setMonthlySum(documentFinancialForm.getMonthlySum());
         if (document.getNoDocument() != null && !document.getNoDocument() && documentFinancialForm.getNoDocument()) {
@@ -82,7 +90,7 @@ public class DocumentFinancial implements SaveStep<DocumentFinancialForm> {
                             .size(size)
                             .numberOfPages(Utility.countNumberOfPagesOfPdfDocument(multipartFile))
                             .build();
-                    fileRepository.save(file);
+                    document.getFiles().add(fileRepository.save(file));
                 }
                 document.setCustomText(null);
             } else {

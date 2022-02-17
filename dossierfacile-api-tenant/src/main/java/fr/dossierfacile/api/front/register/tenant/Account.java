@@ -4,16 +4,16 @@ import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.SaveStep;
 import fr.dossierfacile.api.front.register.form.tenant.AccountForm;
-import fr.dossierfacile.api.front.repository.TenantRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.ConfirmationTokenService;
 import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
 import fr.dossierfacile.api.front.service.interfaces.MailService;
-import fr.dossierfacile.api.front.service.interfaces.PartnerCallBackService;
 import fr.dossierfacile.api.front.service.interfaces.SourceService;
 import fr.dossierfacile.api.front.service.interfaces.UserRoleService;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
+import fr.dossierfacile.common.repository.TenantCommonRepository;
+import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -27,7 +27,7 @@ import java.time.LocalDateTime;
 @Slf4j
 public class Account implements SaveStep<AccountForm> {
 
-    private final TenantRepository tenantRepository;
+    private final TenantCommonRepository tenantRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final UserRoleService userRoleService;
     private final TenantMapper tenantMapper;

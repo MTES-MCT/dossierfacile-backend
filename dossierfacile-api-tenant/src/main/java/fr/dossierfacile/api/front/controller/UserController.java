@@ -7,6 +7,7 @@ import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.UserService;
 import fr.dossierfacile.common.entity.Tenant;
 import lombok.AllArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -27,13 +28,13 @@ public class UserController {
     private final UserService userService;
     private final AuthenticationFacade authenticationFacade;
 
-    @PostMapping("/forgotPassword")
+    @PostMapping(value = "/forgotPassword", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> forgotPassword(@Validated @RequestBody EmailResetForm email) {
         userService.forgotPassword(email.getEmail());
         return ok().build();
     }
 
-    @PostMapping("/createPassword/{token}")
+    @PostMapping(value = "/createPassword/{token}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TenantModel> createPassword(@PathVariable String token, @Validated @RequestBody PasswordForm password) {
         TenantModel tenantModel = userService.createPassword(token, password.getPassword());
         return ok(tenantModel);

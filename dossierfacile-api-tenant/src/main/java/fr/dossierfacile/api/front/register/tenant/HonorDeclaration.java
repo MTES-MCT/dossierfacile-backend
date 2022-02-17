@@ -5,13 +5,13 @@ import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.SaveStep;
 import fr.dossierfacile.api.front.register.form.tenant.HonorDeclarationForm;
-import fr.dossierfacile.api.front.repository.TenantRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.MailService;
-import fr.dossierfacile.api.front.service.interfaces.PartnerCallBackService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.repository.TenantCommonRepository;
+import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +22,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class HonorDeclaration implements SaveStep<HonorDeclarationForm> {
 
-    private final TenantRepository tenantRepository;
+    private final TenantCommonRepository tenantRepository;
     private final TenantMapper tenantMapper;
     private final PartnerCallBackService partnerCallBackService;
     private final Producer producer;
@@ -36,7 +36,6 @@ public class HonorDeclaration implements SaveStep<HonorDeclarationForm> {
     public TenantModel saveStep(Tenant tenant, HonorDeclarationForm honorDeclarationForm) {
         tenant.setHonorDeclaration(honorDeclarationForm.isHonorDeclaration());
         tenant.setClarification(honorDeclarationForm.getClarification());
-        partnerCallBackService.sendCallBack(tenant);
         tenant.lastUpdateDateProfile(LocalDateTime.now(), null);
         producer.processFileOcr(tenant.getId());
         documentService.resetValidatedDocumentsStatusToToProcess(tenant);
@@ -44,6 +43,7 @@ public class HonorDeclaration implements SaveStep<HonorDeclarationForm> {
         Tenant tenantSaved = tenantRepository.save(tenant);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         mailService.sendEmailAccountCompleted(tenantSaved);
+        partnerCallBackService.sendCallBack(tenantSaved);
         return tenantMapper.toTenantModel(tenantSaved);
     }
 }

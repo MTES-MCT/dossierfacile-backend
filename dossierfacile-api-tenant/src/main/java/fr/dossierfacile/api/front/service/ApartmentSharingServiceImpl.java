@@ -4,13 +4,12 @@ import fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException;
 import fr.dossierfacile.api.front.exception.ApartmentSharingUnexpectedException;
 import fr.dossierfacile.api.front.exception.DocumentNotFoundException;
 import fr.dossierfacile.api.front.exception.TenantNotFoundException;
-import fr.dossierfacile.api.front.mapper.ApplicationFullMapper;
-import fr.dossierfacile.api.front.mapper.ApplicationLightMapper;
 import fr.dossierfacile.api.front.model.TargetImageData;
-import fr.dossierfacile.api.front.model.apartment_sharing.ApplicationModel;
+import fr.dossierfacile.common.mapper.ApplicationFullMapper;
+import fr.dossierfacile.common.mapper.ApplicationLightMapper;
+import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
 import fr.dossierfacile.api.front.repository.ApartmentSharingRepository;
 import fr.dossierfacile.api.front.repository.LinkLogRepository;
-import fr.dossierfacile.api.front.repository.TenantRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.util.Utility;
 import fr.dossierfacile.common.entity.ApartmentSharing;
@@ -23,8 +22,8 @@ import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.LinkType;
 import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.enums.TypeGuarantor;
+import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.OvhService;
-import io.sentry.Sentry;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -44,6 +43,8 @@ import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDBorderStyleDictionary;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageFitWidthDestination;
+import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDDocumentOutline;
+import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineItem;
 import org.apache.pdfbox.util.Matrix;
 import org.openstack4j.model.common.DLPayload;
 import org.openstack4j.model.storage.object.SwiftObject;
@@ -65,7 +66,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
-import java.rmi.UnexpectedException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -127,6 +127,8 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
     private static final String ORGANISME_GARANT = " organisme garant";
     private static final String GARANTS_MORAUX = " garants moraux";
     private static final String GARANT_MORAL = " garant moral";
+    private static final String TITLE_FOR_GUARANTOR_LEGAL_PERSON = "Garant personne morale";
+    private static final String TITLE_FOR_GUARANTOR_ORGANISM = "Organisme garant";
     //endregion
 
     //region Sentences for Type of Flatsharing
@@ -135,7 +137,6 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
     private static final String DOSSIER_EN_COLOCATION = "Dossier en colocation";
     //endregion
 
-    private static final String EXCEPTION = "Sentry ID Exception: ";
     //region Loading FONTS
     private static final Resource FONT_MARIANNE_LIGHT = new ClassPathResource("static/fonts/Marianne-Light.ttf");
     private static final Resource FONT_MARIANNE_REGULAR = new ClassPathResource("static/fonts/Marianne-Regular.ttf");
@@ -231,9 +232,17 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
     private static final float FONT_SIZE_FOR_INCOMING_NEXT_TO_INDEX_OF_FINANCIAL_DOCUMENTS = FONT_SIZE_FOR_TITLE_OF_FIRST_RECTANGULE_IN_FIRST_INDEXPAGES;
     //endregion
 
+    //region Bookmark's titles
+    private static final String TITLE_0_DOSSIER_PDF = "Dossier PDF";
+    private static final String TITLE_1_INDEX = "Index";
+    private static final String TITLE_2_CLARIFICATION = "Clarification";
+    private static final String TITLE_3_TENANT = "Tenant";
+    private static final String TITLE_3_1_GUARANTOR = "Guarantor";
+    //endregion
+
     private final Locale locale = LocaleContextHolder.getLocale();
     private final ApartmentSharingRepository apartmentSharingRepository;
-    private final TenantRepository tenantRepository;
+    private final TenantCommonRepository tenantRepository;
     private final ApplicationFullMapper applicationFullMapper;
     private final ApplicationLightMapper applicationLightMapper;
     private final OvhService ovhService;
@@ -245,7 +254,8 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
         return t -> seen.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
     }
 
-    private static void addPaginate(PDDocument doc) {
+    private static void addPaginate(PDDocument doc) throws IOException {
+
         PDFont font = PDType1Font.HELVETICA_BOLD;
         int numberPage = 1;
         int totalPages = doc.getNumberOfPages();
@@ -259,7 +269,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
             try (PDPageContentStream contentStream = new PDPageContentStream(doc, page, PDPageContentStream.AppendMode.APPEND, true, true)) {
                 contentStream.beginText();
                 contentStream.setNonStrokingColor(Color.DARK_GRAY);
-                contentStream.setFont(font, FONT_SIZE_FOR_PAGINATION/1.2f);
+                contentStream.setFont(font, FONT_SIZE_FOR_PAGINATION / 1.2f);
                 contentStream.setTextMatrix(Matrix.getTranslateInstance(centerX, centerY));
                 contentStream.showText(numberPage++ + "/" + totalPages);
                 contentStream.endText();
@@ -533,7 +543,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
         return result;
     }
 
-    private static void createFirstsPages(PDFMergerUtility ut, int numberOfTenants, List<Integer> indexPagesForDocuments) {
+    private static void createFirstsPages(PDFMergerUtility ut, int numberOfTenants, List<Integer> indexPagesForDocuments, PDOutlineItem pdOutlineItem) {
         try {
             int numberOfPagesAdded = 0;
             for (int i = 0; i < numberOfTenants; i += 2) {
@@ -546,6 +556,18 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
             }
             log.info("Number of first pages added [" + numberOfPagesAdded + "]");
             indexPagesForDocuments.add(numberOfPagesAdded);
+
+            //region Adding bookmark
+            PDPageFitWidthDestination destination = new PDPageFitWidthDestination();
+            destination.setPageNumber(0);
+            destination.setTop((int) B_HEIGHT_TEMPLATE);
+
+            PDOutlineItem pdO = new PDOutlineItem();
+            pdO.setTitle(TITLE_1_INDEX);
+            pdO.setDestination(destination);
+
+            pdOutlineItem.addLast(pdO);
+            //endregion
         } catch (IOException e) {
             log.error("Problem creating first pages");
             log.error(e.getMessage(), e.getCause());
@@ -569,7 +591,19 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
         }
     }
 
-    private static void addDocumentOfClarification(PDFMergerUtility ut, List<Tenant> tenantList, Tenant mainTenant, List<Integer> indexPagesForDocuments) {
+    private static void addDocumentOfClarification(PDFMergerUtility ut, List<Tenant> tenantList, Tenant mainTenant, List<Integer> indexPagesForDocuments, PDOutlineItem pdOutlineItem) {
+        //region Adding bookmark
+        PDPageFitWidthDestination destination = new PDPageFitWidthDestination();
+        destination.setPageNumber(indexPagesForDocuments.get(indexPagesForDocuments.size() - 1));
+        destination.setTop((int) B_HEIGHT_TEMPLATE);
+
+        PDOutlineItem pdO = new PDOutlineItem();
+        pdO.setTitle(TITLE_2_CLARIFICATION);
+        pdO.setDestination(destination);
+
+        pdOutlineItem.addLast(pdO);
+        //endregion
+
         ByteArrayOutputStream outputStream = addTextHeaderAndTextBodyToTheCopyOfAttachmentsAndClarificationTemplate(tenantList, LE_MOT_DU_LOCATAIRE, mainTenant.getClarification());
         ut.addSource(new ByteArrayInputStream(outputStream.toByteArray()));
         indexPagesForDocuments.add(indexPagesForDocuments.get(indexPagesForDocuments.size() - 1) + 1);
@@ -594,6 +628,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
         PDPageContentStream contentStream1 = new PDPageContentStream(doc, doc.getPage(indexPage), PDPageContentStream.AppendMode.APPEND, true);
         contentStream1.setNonStrokingColor(56 / 255.0F, 56 / 255.0F, 56 / 255.0F);
         contentStream1.beginText();
+
         float fontSize = FONT_SIZE_FOR_FIRST_NAMES_OF_TENANTS_IN_HEADER_OF_INDEXPAGES;
         contentStream1.setFont(font, fontSize);
         String concatenatedNames = concatenateTheFirstTenantNames(tenantList);
@@ -850,13 +885,26 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
 
         List<Integer> indexPagesForDocuments = new ArrayList<>();
 
-        createFirstsPages(ut, numberOfTenants, indexPagesForDocuments);
+        //region Adding bookmarks
+        PDDocumentOutline pdDocumentOutline = new PDDocumentOutline();
+
+        PDOutlineItem pdOutlineItem = new PDOutlineItem();
+        pdOutlineItem.setTitle(TITLE_0_DOSSIER_PDF);
+
+        PDPageFitWidthDestination destination_title = new PDPageFitWidthDestination();
+        destination_title.setPageNumber(0);
+        destination_title.setTop((int) B_HEIGHT_TEMPLATE);
+        pdOutlineItem.setDestination(destination_title);
+        pdDocumentOutline.addLast(pdOutlineItem);
+        //endregion
+
+        createFirstsPages(ut, numberOfTenants, indexPagesForDocuments, pdOutlineItem);
 
         Tenant mainTenant = tenantList.stream().filter(t -> t.getTenantType() == TenantType.CREATE).findFirst().orElseThrow(() -> new TenantNotFoundException(TenantType.CREATE));
-        addDocumentOfClarification(ut, tenantList, mainTenant, indexPagesForDocuments);
+        addDocumentOfClarification(ut, tenantList, mainTenant, indexPagesForDocuments, pdOutlineItem);
 
         //region Add files of documents to Dossier PDF
-        addFilesOfDocumentsToDossierPDF(ut, tenantList, indexPagesForDocuments);
+        addFilesOfDocumentsToDossierPDF(ut, tenantList, indexPagesForDocuments, pdOutlineItem);
         //endregion
 
         ByteArrayOutputStream merge = new ByteArrayOutputStream();
@@ -869,6 +917,11 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
         }
         ByteArrayOutputStream result = new ByteArrayOutputStream();
         try (PDDocument doc = PDDocument.load(new ByteArrayInputStream(merge.toByteArray()))) {
+
+            doc.getDocumentCatalog().setDocumentOutline(pdDocumentOutline);
+            pdOutlineItem.openNode();
+            pdDocumentOutline.openNode();
+
             addPaginate(doc);
 
             //region Adding content to First pages
@@ -883,9 +936,9 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
             -              ------> indexPagesForDocuments[1] + 1 = page number of the first attachment page.
             - (last position) ---> indexPagesForDocuments[indexPagesForDocuments.size() - 1] = doc.getNumberOfPages() */
             AtomicInteger iteratorInIndexPagesForDocuments = new AtomicInteger(2);
+
             int indexTenant = 0;
             int totalPages = doc.getNumberOfPages();
-            //This is to only iterate over the index pages
             for (int indexPage = 0; indexPage < totalPages && indexTenant < numberOfTenants; indexPage++) {
 
                 addFirstNamesOfTenantsInTheHeaderOfCurrentIndexPage(indexPage, doc, tenantList, fontSpectralExtraBold);
@@ -955,8 +1008,16 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
         return result;
     }
 
-    private void addFilesOfDocumentsToDossierPDF(PDFMergerUtility ut, List<Tenant> tenantList, List<Integer> indexPagesForDocuments) {
+    private void addFilesOfDocumentsToDossierPDF(PDFMergerUtility ut, List<Tenant> tenantList, List<Integer> indexPagesForDocuments, PDOutlineItem pdOutlineItem) {
         for (Tenant tenant1 : tenantList) {
+
+            boolean firstDocumentTenant = true;
+            //region Adding bookmark
+            PDOutlineItem pdOTenant = new PDOutlineItem();
+            pdOTenant.setTitle(tenant1.getFullName());
+            pdOutlineItem.addLast(pdOTenant);
+            //endregion
+
             List<Document> documentsOrderedByCategory = tenant1.getDocuments().stream()
                     .sorted(Comparator.comparing(Document::getCreationDateTime)) // Sorted firstly by creation_date_time in order the financial documents are ordered ASC
                     .sorted(Comparator.comparing(Document::getDocumentCategory))
@@ -965,7 +1026,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
             boolean firstDocumentSubject = true;
             int count = 0;
             for (Document document : documentsOrderedByCategory) {
-                if(document.getDocumentCategory().equals(DocumentCategory.FINANCIAL)){
+                if (document.getDocumentCategory().equals(DocumentCategory.FINANCIAL)) {
                     ++count;
                 }
                 DocumentCategory currentCategory = document.getDocumentCategory();
@@ -976,6 +1037,26 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
                     if (swiftObject != null) {
                         DLPayload dlPayload = swiftObject.download();
                         if (dlPayload.getHttpResponse().getStatus() == HttpStatus.OK.value()) {
+
+                            //region Adding bookmark
+                            if (firstDocumentSubject || previousCategory != currentCategory) {
+                                PDPageFitWidthDestination destination = new PDPageFitWidthDestination();
+                                destination.setPageNumber(indexPagesForDocuments.get(indexPagesForDocuments.size() - 1));
+                                destination.setTop((int) B_HEIGHT_TEMPLATE);
+
+                                PDOutlineItem pdODocument = new PDOutlineItem();
+                                pdODocument.setTitle(messageSource.getMessage(currentCategory.getLabel(), null, locale));
+                                pdODocument.setDestination(destination);
+
+
+                                if(firstDocumentTenant){
+                                    pdOTenant.setDestination(destination);
+                                    firstDocumentTenant = false;
+                                }
+                                pdOTenant.addLast(pdODocument);
+                            }
+                            //endregion
+
                             //We get here the second sentence located in the header of attachment pages for the current tenant
                             String sentence = getSentenceForTenantFromDocumentCategory(tenant1, currentCategory, count);
                             addDocument(ut, dlPayload.getInputStream(), indexPagesForDocuments, firstDocumentSubject || previousCategory != currentCategory, tenantList, sentence);
@@ -993,6 +1074,21 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
             List<Guarantor> guarantorsOrderedByType = tenant1.getGuarantors().stream().sorted(Comparator.comparing(Guarantor::getTypeGuarantor)).collect(Collectors.toList());
             int counterOfGuarantor = guarantorsOrderedByType.size() > 1 ? 1 : 0;
             for (Guarantor guarantor1 : guarantorsOrderedByType) {
+
+                boolean firstDocument = true;
+                //region Adding bookmark
+                PDOutlineItem pdOGuarantor = new PDOutlineItem();
+                if(guarantor1.getTypeGuarantor().equals(TypeGuarantor.NATURAL_PERSON)){
+                    pdOGuarantor.setTitle(guarantor1.getFirstName() + ' ' + guarantor1.getLastName());
+                } else if(guarantor1.getTypeGuarantor().equals(TypeGuarantor.LEGAL_PERSON)){
+                    pdOGuarantor.setTitle(TITLE_FOR_GUARANTOR_LEGAL_PERSON);
+                } else {
+                    pdOGuarantor.setTitle(TITLE_FOR_GUARANTOR_ORGANISM);
+                }
+
+                pdOTenant.addLast(pdOGuarantor);
+                //endregion
+
                 documentsOrderedByCategory = guarantor1.getDocuments().stream()
                         .sorted(Comparator.comparing(Document::getCreationDateTime)) // Sorted firstly by creation_date_time in order the financial documents are ordered ASC
                         .sorted(Comparator.comparing(Document::getDocumentCategory))
@@ -1001,7 +1097,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
                 firstDocumentSubject = true;
                 int counter = 0;
                 for (Document document : documentsOrderedByCategory) {
-                    if(document.getDocumentCategory().equals(DocumentCategory.FINANCIAL)){
+                    if (document.getDocumentCategory().equals(DocumentCategory.FINANCIAL)) {
                         ++counter;
                     }
                     DocumentCategory currentCategory = document.getDocumentCategory();
@@ -1012,6 +1108,36 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
                         if (swiftObject != null) {
                             DLPayload dlPayload = swiftObject.download();
                             if (dlPayload.getHttpResponse().getStatus() == HttpStatus.OK.value()) {
+
+                                //region Adding bookmark
+                                if (firstDocumentSubject || previousCategory != currentCategory) {
+                                    PDPageFitWidthDestination destination = new PDPageFitWidthDestination();
+                                    destination.setPageNumber(indexPagesForDocuments.get(indexPagesForDocuments.size() - 1));
+                                    destination.setTop((int) B_HEIGHT_TEMPLATE);
+
+                                    PDOutlineItem pdODocument = new PDOutlineItem();
+                                    if (guarantor1.getTypeGuarantor() == TypeGuarantor.ORGANISM && currentCategory == DocumentCategory.IDENTIFICATION) {
+                                        pdODocument.setTitle(messageSource.getMessage("tenant.profile.link6.v2", null, locale));
+                                    } else if (guarantor1.getTypeGuarantor() == TypeGuarantor.LEGAL_PERSON) {
+                                        if (currentCategory == DocumentCategory.IDENTIFICATION) {
+                                            pdODocument.setTitle(messageSource.getMessage("tenant.profile.link7.v2", null, locale));
+                                        } else { //DocumentCategory.IDENTIFICATION_LEGAL_PERSON
+                                            pdODocument.setTitle(messageSource.getMessage("tenant.profile.link8.v2", null, locale));
+                                        }
+                                    } else {
+                                        pdODocument.setTitle(messageSource.getMessage(currentCategory.getLabel(), null, locale));
+                                    }
+                                    pdODocument.setDestination(destination);
+
+                                    if(firstDocument){
+                                        pdOGuarantor.setDestination(destination);
+                                        firstDocument = false;
+                                    }
+
+                                    pdOGuarantor.addLast(pdODocument);
+                                }
+                                //endregion
+
                                 //We get here the second sentence located in the header of attachment pages for the current guarantor
                                 String sentence = getSentenceForGuarantorFromDocumentCategory(counterOfGuarantor, guarantor1.getTypeGuarantor(), currentCategory, tenant1.getFirstName(), counter);
                                 addDocument(ut, dlPayload.getInputStream(), indexPagesForDocuments, firstDocumentSubject || previousCategory != currentCategory, tenantList, sentence);

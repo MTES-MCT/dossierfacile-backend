@@ -10,9 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -28,7 +25,6 @@ import org.springframework.security.web.header.writers.StaticHeadersWriter;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.RequestContextListener;
 
-import java.util.Properties;
 import java.util.concurrent.Executor;
 
 @Configuration
@@ -122,31 +118,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public MailjetClient mailjetClient() {
         return new MailjetClient(username, password, new ClientOptions("v3.1"));
-    }
-
-    @Bean
-    @Profile({"prod", "preprod"})
-    public JavaMailSender mailSenderProd() {
-        return config("in-v3.mailjet.com");
-    }
-
-    @Bean
-    @Profile("dev")
-    public JavaMailSender mailSenderDev() {
-        return config("in-v3.mailjet.com");
-    }
-
-    private JavaMailSender config(String host) {
-        JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
-        mailSender.setDefaultEncoding("UTF-8");
-        mailSender.setHost(host);
-        mailSender.setUsername(username);
-        mailSender.setPassword(password);
-        Properties properties = new Properties();
-        properties.put("mail.smtp.auth", true);
-        properties.put("mail.smtp.starttls.enable", true);
-        mailSender.setJavaMailProperties(properties);
-        return mailSender;
     }
 
     @Bean

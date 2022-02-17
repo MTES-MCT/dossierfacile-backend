@@ -23,8 +23,8 @@ public class Producer {
     private String routingKeyPdfGenerator;
 
     @Async
-    public void generatePdf(Long documentId) {
-        DocumentModel documentModel = DocumentModel.builder().id(documentId).build();
+    public void generatePdf(Long documentId, Long logId) {
+        DocumentModel documentModel = DocumentModel.builder().id(documentId).logId(logId).build();
         log.info("Sending document with ID [" + documentId + "] for pdf generation");
         amqpTemplate.convertAndSend(exchangePdfGenerator, routingKeyPdfGenerator, gson.toJson(documentModel));
     }

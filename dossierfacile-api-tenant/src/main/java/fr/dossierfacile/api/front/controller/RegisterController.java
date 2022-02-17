@@ -20,6 +20,7 @@ import fr.dossierfacile.api.front.validator.group.Dossier;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.LogType;
 import lombok.AllArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,7 +42,7 @@ public class RegisterController {
     private final AuthenticationFacade authenticationFacade;
     private final LogService logService;
 
-    @PostMapping("/account")
+    @PostMapping(value = "/account", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TenantModel> account(@Validated(Dossier.class) @RequestBody AccountForm accountForm) {
         TenantModel tenantModel = tenantService.saveStepRegister(null, accountForm, StepRegister.ACCOUNT);
         logService.saveLog(LogType.ACCOUNT_CREATED, tenantModel.getId());
@@ -55,7 +56,7 @@ public class RegisterController {
         return ok().build();
     }
 
-    @PostMapping("/names")
+    @PostMapping(value = "/names", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TenantModel> names(@Validated(Dossier.class) @RequestBody NamesForm namesForm) {
         Tenant tenant = authenticationFacade.getTenant(namesForm.getTenantId());
         TenantModel tenantModel = tenantService.saveStepRegister(tenant, namesForm, StepRegister.NAMES);
@@ -63,7 +64,7 @@ public class RegisterController {
         return ok(tenantModel);
     }
 
-    @PostMapping("/application")
+    @PostMapping(value = "/application", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TenantModel> application(@Validated(Dossier.class) @RequestBody ApplicationForm applicationForm) {
         Tenant tenant = authenticationFacade.getTenant(applicationForm.getTenantId());
         TenantModel tenantModel = tenantService.saveStepRegister(tenant, applicationForm, StepRegister.APPLICATION);
@@ -71,7 +72,7 @@ public class RegisterController {
         return ok(tenantModel);
     }
 
-    @PostMapping("/honorDeclaration")
+    @PostMapping(value = "/honorDeclaration", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TenantModel> honorDeclaration(@Validated(Dossier.class) @RequestBody HonorDeclarationForm honorDeclarationForm) {
         Tenant tenant = authenticationFacade.getTenant(honorDeclarationForm.getTenantId());
         TenantModel tenantModel = tenantService.saveStepRegister(tenant, honorDeclarationForm, StepRegister.HONOR_DECLARATION);
@@ -79,7 +80,7 @@ public class RegisterController {
         return ok(tenantModel);
     }
 
-    @PostMapping("/documentIdentification")
+    @PostMapping(value = "/documentIdentification", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TenantModel> documentIdentification(@Validated(Dossier.class) DocumentIdentificationForm documentIdentificationForm) {
         Tenant tenant = authenticationFacade.getTenant(documentIdentificationForm.getTenantId());
         TenantModel tenantModel = tenantService.saveStepRegister(tenant, documentIdentificationForm, StepRegister.DOCUMENT_IDENTIFICATION);
@@ -87,7 +88,7 @@ public class RegisterController {
         return ok(tenantModel);
     }
 
-    @PostMapping("/documentResidency")
+    @PostMapping(value = "/documentResidency", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TenantModel> documentResidency(@Validated(Dossier.class) DocumentResidencyForm documentResidencyForm) {
         Tenant tenant = authenticationFacade.getTenant(documentResidencyForm.getTenantId());
         TenantModel tenantModel = tenantService.saveStepRegister(tenant, documentResidencyForm, StepRegister.DOCUMENT_RESIDENCY);
@@ -95,7 +96,7 @@ public class RegisterController {
         return ok(tenantModel);
     }
 
-    @PostMapping("/documentProfessional")
+    @PostMapping(value = "/documentProfessional", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TenantModel> documentProfessional(@Validated(Dossier.class) DocumentProfessionalForm documentProfessionalForm) {
         Tenant tenant = authenticationFacade.getTenant(documentProfessionalForm.getTenantId());
         TenantModel tenantModel = tenantService.saveStepRegister(tenant, documentProfessionalForm, StepRegister.DOCUMENT_PROFESSIONAL);
@@ -103,7 +104,7 @@ public class RegisterController {
         return ok(tenantModel);
     }
 
-    @PostMapping("/documentFinancial")
+    @PostMapping(value = "/documentFinancial", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TenantModel> documentFinancial(@Validated(Dossier.class) DocumentFinancialForm documentFinancialForm) {
         Tenant tenant = authenticationFacade.getTenant(documentFinancialForm.getTenantId());
         TenantModel tenantModel = tenantService.saveStepRegister(tenant, documentFinancialForm, StepRegister.DOCUMENT_FINANCIAL);
@@ -111,7 +112,7 @@ public class RegisterController {
         return ok(tenantModel);
     }
 
-    @PostMapping("/documentTax")
+    @PostMapping(value = "/documentTax", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TenantModel> documentTax(@Validated(Dossier.class) DocumentTaxForm documentTaxForm) {
         Tenant tenant = authenticationFacade.getTenant(documentTaxForm.getTenantId());
         TenantModel tenantModel = tenantService.saveStepRegister(tenant, documentTaxForm, StepRegister.DOCUMENT_TAX);
@@ -119,7 +120,7 @@ public class RegisterController {
         return ok(tenantModel);
     }
 
-    @PostMapping("/guarantorType")
+    @PostMapping(value = "/guarantorType", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TenantModel> guarantor(@Validated(Dossier.class) @RequestBody GuarantorTypeForm guarantorTypeForm) {
         Tenant tenant = authenticationFacade.getTenant(guarantorTypeForm.getTenantId());
         TenantModel tenantModel = tenantService.saveStepRegister(tenant, guarantorTypeForm, StepRegister.GUARANTOR_TYPE);

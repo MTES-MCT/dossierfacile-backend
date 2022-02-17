@@ -5,7 +5,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
 
-
 @Configuration
 public class Config {
     @Bean
@@ -17,7 +16,6 @@ public class Config {
     public String configPDFBox() {
         return System.setProperty("sun.java2d.cmm", "sun.java2d.cmm.kcms.KcmsServiceProvider");
     }
-
 
     @Bean
     public RestTemplate restTemplate() {

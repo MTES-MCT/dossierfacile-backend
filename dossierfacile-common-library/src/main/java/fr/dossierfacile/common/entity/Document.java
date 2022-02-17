@@ -7,8 +7,11 @@ import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.type.TaxDocument;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import org.hibernate.Hibernate;
 
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
@@ -29,11 +32,14 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
+@Getter
+@Setter
+@ToString
 @Builder
 public class Document implements Serializable {
 
@@ -51,6 +57,7 @@ public class Document implements Serializable {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tenant_id")
+    @ToString.Exclude
     private Tenant tenant;
 
     @Builder.Default
@@ -59,6 +66,7 @@ public class Document implements Serializable {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "guarantor_id")
+    @ToString.Exclude
     private Guarantor guarantor;
 
     private String customText;
@@ -67,7 +75,9 @@ public class Document implements Serializable {
 
     private Integer monthlySum;
 
+    @Builder.Default
     @OneToMany(mappedBy = "document", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @ToString.Exclude
     private List<File> files = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
@@ -97,6 +107,7 @@ public class Document implements Serializable {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "document_denied_reasons_id")
+    @ToString.Exclude
     private DocumentDeniedReasons documentDeniedReasons;
 
     @Basic(fetch = FetchType.LAZY)
@@ -107,5 +118,18 @@ public class Document implements Serializable {
     @Basic(fetch = FetchType.LAZY)
     public String getLockedBy() {
         return lockedBy;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        Document document = (Document) o;
+        return id != null && Objects.equals(id, document.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
     }
 }

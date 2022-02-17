@@ -49,6 +49,7 @@ public class FileServiceImpl implements FileService {
             return null;
         } else {
             document.setDocumentStatus(DocumentStatus.TO_PROCESS);
+            document.setDocumentDeniedReasons(null);
             Document documentSaved = documentRepository.saveAndFlush(document);
             tenantService.updateTenantStatus(tenant);
             apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());

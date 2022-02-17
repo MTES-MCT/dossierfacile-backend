@@ -1,6 +1,6 @@
 package fr.dossierfacile.process.file.configuration;
 
-import fr.dossierfacile.process.file.amqp.ReceiverOcr;
+import fr.dossierfacile.process.file.amqp.Receiver;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.Queue;
@@ -14,45 +14,46 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class AMQPConfig {
-
     @Value("${rabbitmq.exchange.file.process}")
-    private String exchangeFileProcess;
+    private String exchangeName;
 
     @Value("${rabbitmq.queue.file.process.ocr}")
-    private String queueFileProcessOcr;
+    private String queueName;
 
     @Value("${rabbitmq.routing.key.ocr}")
-    private String routingKeyOcr;
+    private String routingKey;
 
-    @Bean
-    Queue queueFileProcessOcr() {
-        return new Queue(queueFileProcessOcr, true);
-    }
+    @Value("${rabbitmq.prefetch}")
+    private Integer prefetch;
 
     @Bean
     TopicExchange exchangeFileProcess() {
-        return new TopicExchange(exchangeFileProcess);
+        return new TopicExchange(exchangeName);
     }
 
+    @Bean
+    Queue queueFileProcessOcr() {
+        return new Queue(queueName, true);
+    }
 
     @Bean
     Binding bindingQueueProcessFilesOcrExchangeFileProcess(Queue queueFileProcessOcr, TopicExchange exchangeFileProcess) {
-        return BindingBuilder.bind(queueFileProcessOcr).to(exchangeFileProcess).with(routingKeyOcr);
+        return BindingBuilder.bind(queueFileProcessOcr).to(exchangeFileProcess).with(routingKey);
     }
-
 
     @Bean
     SimpleMessageListenerContainer containerOcr(ConnectionFactory connectionFactory,
                                                 MessageListenerAdapter listenerAdapterOcr) {
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
-        container.setQueueNames(queueFileProcessOcr);
+        container.setQueueNames(queueName);
+        container.setPrefetchCount(prefetch);
         container.setMessageListener(listenerAdapterOcr);
         return container;
     }
 
     @Bean
-    MessageListenerAdapter listenerAdapterOcr(ReceiverOcr receiver) {
+    MessageListenerAdapter listenerAdapterOcr(Receiver receiver) {
         return new MessageListenerAdapter(receiver, "receiveMessage");
     }
 }

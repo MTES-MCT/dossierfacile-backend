@@ -55,6 +55,7 @@ public class UserApi implements Serializable {
 
     private String textModal;
 
+    @Builder.Default
     @Column(columnDefinition = "boolean default false")
     private boolean logo = false;
 
@@ -62,6 +63,7 @@ public class UserApi implements Serializable {
 
     private Integer version;
 
+    @Builder.Default
     @OneToMany(mappedBy = "userApi", fetch = FetchType.LAZY)
     private List<TenantUserApi> tenantsUserApi = new ArrayList<>();
 

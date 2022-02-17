@@ -7,4 +7,5 @@ import lombok.Value;
 @Builder
 public class DocumentModel {
     Long id;
+    Long logId;
 }

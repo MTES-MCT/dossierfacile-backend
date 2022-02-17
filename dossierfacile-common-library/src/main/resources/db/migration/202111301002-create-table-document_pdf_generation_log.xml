@@ -1,0 +1,17 @@
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+    <changeSet id="202111301002" author="">
+        <sql>
+            CREATE TABLE public.document_pdf_generation_log
+            (
+            id bigserial NOT NULL,
+            document_id bigint NOT NULL,
+            creation_date_time timestamp NOT NULL,
+            deactivated bool NOT NULL,
+            CONSTRAINT document_pdf_generation_log_pkey PRIMARY KEY (id)
+            );
+        </sql>
+    </changeSet>
+</databaseChangeLog>

@@ -5,16 +5,18 @@ import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.RegisterFactory;
 import fr.dossierfacile.api.front.register.enums.StepRegister;
 import fr.dossierfacile.api.front.repository.PropertyApartmentSharingRepository;
-import fr.dossierfacile.api.front.repository.TenantRepository;
 import fr.dossierfacile.api.front.service.interfaces.PropertyService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.common.entity.Property;
 import fr.dossierfacile.common.entity.PropertyApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.TenantType;
+import fr.dossierfacile.common.repository.TenantCommonRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 
 @Slf4j
 @Service
@@ -23,7 +25,7 @@ public class TenantServiceImpl implements TenantService {
     private final RegisterFactory registerFactory;
     private final PropertyService propertyService;
     private final PropertyApartmentSharingRepository propertyApartmentSharingRepository;
-    private final TenantRepository tenantRepository;
+    private final TenantCommonRepository tenantRepository;
 
     @Override
     public <T> TenantModel saveStepRegister(Tenant tenant, T formStep, StepRegister step) {
@@ -50,6 +52,13 @@ public class TenantServiceImpl implements TenantService {
     public void updateTenantStatus(Tenant tenant) {
         tenant.setStatus(tenant.computeStatus());
         log.info("Updating status of tenant with ID [" + tenant.getId() + "] to [" + tenant.getStatus() + "]");
+        tenantRepository.save(tenant);
+    }
+
+    @Override
+    public void updateLastLoginDate(Tenant tenant) {
+        tenant.setLastLoginDate(LocalDateTime.now());
+        log.info("Updating last_login_date of tenant with ID [" + tenant.getId() + "]");
         tenantRepository.save(tenant);
     }
 }

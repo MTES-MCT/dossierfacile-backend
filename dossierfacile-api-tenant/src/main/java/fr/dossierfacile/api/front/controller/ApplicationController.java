@@ -1,7 +1,7 @@
 package fr.dossierfacile.api.front.controller;
 
-import fr.dossierfacile.api.front.model.apartment_sharing.ApplicationModel;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
+import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -26,13 +26,13 @@ public class ApplicationController {
     private static final String DOCUMENT_NOT_EXIST = "The document does not exist";
     private final ApartmentSharingService apartmentSharingService;
 
-    @GetMapping("/full/{token}")
+    @GetMapping(value = "/full/{token}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ApplicationModel> full(@PathVariable String token) {
         ApplicationModel applicationModel = apartmentSharingService.full(token);
         return ok(applicationModel);
     }
 
-    @GetMapping("/light/{token}")
+    @GetMapping(value = "/light/{token}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ApplicationModel> light(@PathVariable String token) {
         ApplicationModel applicationModel = apartmentSharingService.light(token);
         return ok(applicationModel);

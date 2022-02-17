@@ -30,6 +30,7 @@ public class Owner extends User implements Serializable {
 
     private static final long serialVersionUID = -4711959104392579912L;
 
+    @Builder.Default
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Property> properties = new ArrayList<>();
 

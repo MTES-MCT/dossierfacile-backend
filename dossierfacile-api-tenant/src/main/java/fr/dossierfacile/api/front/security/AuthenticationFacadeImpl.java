@@ -1,11 +1,11 @@
 package fr.dossierfacile.api.front.security;
 
 import fr.dossierfacile.api.front.exception.TenantNotFoundException;
-import fr.dossierfacile.api.front.repository.TenantRepository;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.repository.TenantCommonRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -19,7 +19,7 @@ import java.util.Optional;
 @AllArgsConstructor
 public class AuthenticationFacadeImpl implements AuthenticationFacade {
 
-    private final TenantRepository tenantRepository;
+    private final TenantCommonRepository tenantRepository;
     private final ApartmentSharingService apartmentSharingService;
     private final KeycloakService keycloakService;
 

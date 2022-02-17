@@ -13,6 +13,7 @@ import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.AuthProvider;
 import fr.dossierfacile.common.enums.Role;
 import fr.dossierfacile.common.enums.TenantType;
+import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.OvhService;
 import fr.gouv.bo.dto.UserDTO;
 import fr.gouv.bo.mapper.TenantMapper;
@@ -20,7 +21,6 @@ import fr.gouv.bo.model.tenant.TenantModel;
 import fr.gouv.bo.repository.AccountDeleteLogRepository;
 import fr.gouv.bo.repository.ApartmentSharingRepository;
 import fr.gouv.bo.repository.PropertyApartmentSharingRepository;
-import fr.gouv.bo.repository.TenantRepository;
 import fr.gouv.bo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +43,7 @@ public class UserService {
 
     private final Gson gson;
     private final UserRepository userRepository;
-    private final TenantRepository tenantRepository;
+    private final TenantCommonRepository tenantRepository;
     private final ModelMapper modelMapper;
     private final MailService mailService;
     private final OvhService ovhService;

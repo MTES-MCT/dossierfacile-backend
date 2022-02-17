@@ -1,9 +1,9 @@
 package fr.dossierfacile.api.front.validator.tenant.application;
 
 import fr.dossierfacile.api.front.register.form.tenant.ApplicationForm;
-import fr.dossierfacile.api.front.repository.TenantRepository;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.validator.anotation.tenant.application.UniqueEmailListCoTenant;
+import fr.dossierfacile.common.repository.TenantCommonRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class UniqueEmailListCoTenantValidator implements ConstraintValidator<UniqueEmailListCoTenant, ApplicationForm> {
 
-    private final TenantRepository tenantRepository;
+    private final TenantCommonRepository tenantRepository;
     private final AuthenticationFacade authenticationFacade;
 
     @Override

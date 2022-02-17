@@ -23,4 +23,5 @@ public class TenantModel {
     private TenantType tenantType;
     private List<DocumentModel> documents;
     private List<GuarantorModel> guarantors;
+    private List<String> allInternalPartnerId;
 }

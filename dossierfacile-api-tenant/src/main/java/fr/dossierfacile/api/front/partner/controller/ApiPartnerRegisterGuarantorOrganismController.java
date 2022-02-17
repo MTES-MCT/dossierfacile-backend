@@ -10,6 +10,7 @@ import fr.dossierfacile.api.front.validator.group.ApiPartner;
 import fr.dossierfacile.api.front.validator.group.DocumentIdentificationGuarantor;
 import fr.dossierfacile.common.enums.LogType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,7 +21,7 @@ import static org.springframework.http.ResponseEntity.ok;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api-partner/register/guarantorOrganism")
+@RequestMapping(value = "/api-partner/register/guarantorOrganism", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 public class ApiPartnerRegisterGuarantorOrganismController {
     private final TenantService tenantService;
     private final AuthenticationFacade authenticationFacade;

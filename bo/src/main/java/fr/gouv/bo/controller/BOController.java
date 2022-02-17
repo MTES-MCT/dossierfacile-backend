@@ -1,15 +1,23 @@
 package fr.gouv.bo.controller;
 
+import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Document;
+import fr.dossierfacile.common.entity.DocumentPdfGenerationLog;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.User;
 import fr.dossierfacile.common.entity.UserRole;
+import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.Role;
+import fr.dossierfacile.common.enums.TenantType;
+import fr.dossierfacile.common.repository.DocumentPdfGenerationLogRepository;
 import fr.dossierfacile.common.service.interfaces.OvhService;
 import fr.gouv.bo.amqp.Producer;
+import fr.gouv.bo.dto.BooleanDTO;
 import fr.gouv.bo.dto.DeleteUserDTO;
 import fr.gouv.bo.dto.EmailDTO;
 import fr.gouv.bo.dto.Pager;
+import fr.gouv.bo.dto.ReGroupDTO;
+import fr.gouv.bo.dto.ResultDTO;
 import fr.gouv.bo.dto.UserDTO;
 import fr.gouv.bo.model.FileForm;
 import fr.gouv.bo.service.ApartmentSharingService;
@@ -36,6 +44,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.validation.Valid;
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -45,6 +54,13 @@ import java.util.Optional;
 public class BOController {
 
     private static final int BUTTONS_TO_SHOW = 5;
+    private static final String EMAIL = "email";
+    private static final String PAGER = "pager";
+    private static final String PAGE_SIZES_STRING = "pageSizes";
+    private static final String SELECTED_PAGE_SIZE = "selectedPageSize";
+    private static final String REDIRECT_BO_COLOCATION = "redirect:/bo/colocation/";
+    private static final String SHOW_ALERT = "showAlert";
+
     private static final int INITIAL_PAGE = 0;
     private static final int INITIAL_PAGE_SIZE = 100;
     private static final int[] PAGE_SIZES = {100, 200};
@@ -57,6 +73,7 @@ public class BOController {
     private final DocumentService documentService;
     private final Producer producer;
     private final UserRoleService userRoleService;
+    private final DocumentPdfGenerationLogRepository documentPdfGenerationLogRepository;
 
     @GetMapping("/")
     public String index(Principal principal) {
@@ -85,8 +102,27 @@ public class BOController {
         return REDIRECT_BO;
     }
 
+    @GetMapping("/bo/documentFailedList")
+    public String documentFailedList(Model model ,@RequestParam("pageSize") Optional<Integer> pageSize, @RequestParam("page") Optional<Integer> page){
+        EmailDTO emailDTO = new EmailDTO();
+        int evalPageSize = pageSize.orElse(INITIAL_PAGE_SIZE);
+        int val = 0;
+        if (page.isPresent()) {
+            val = page.get() - 1;
+        }
+        int evalPage = (page.orElse(0) < 1) ? INITIAL_PAGE : val;
+        Page<Tenant> tenants = tenantService.getAllTenantsWithFailedGeneratedPdfDocument(PageRequest.of(evalPage, evalPageSize));
+        Pager pager = new Pager(tenants.getTotalPages(), tenants.getNumber(), BUTTONS_TO_SHOW);
+        model.addAttribute(EMAIL, emailDTO);
+        model.addAttribute(PAGER, pager);
+        model.addAttribute(PAGE_SIZES_STRING, PAGE_SIZES);
+        model.addAttribute(SELECTED_PAGE_SIZE, evalPageSize);
+        model.addAttribute("tenantList",tenants);
+        return "bo/failed-pdf-tenant";
+    }
+
     @GetMapping("/bo")
-    public String bo(Model model, @RequestParam("pageSize") Optional<Integer> pageSize, @RequestParam("page") Optional<Integer> page, Principal principal) {
+    public String bo(@ModelAttribute("numberOfDocumentsToProcess") ResultDTO numberOfDocumentsToProcess, Model model, @RequestParam("pageSize") Optional<Integer> pageSize, @RequestParam("page") Optional<Integer> page, Principal principal) {
         int evalPageSize = pageSize.orElse(INITIAL_PAGE_SIZE);
         int val = 0;
         if (page.isPresent()) {
@@ -98,23 +134,80 @@ public class BOController {
         Pager pager = new Pager(tenants.getTotalPages(), tenants.getNumber(), BUTTONS_TO_SHOW);
         User login_user = userService.findUserByEmail(principal.getName());
         boolean is_admin = login_user.getUserRoles().stream().anyMatch(userRole -> userRole.getRole().name().equals(Role.ROLE_ADMIN.name()));
-
         model.addAttribute("tenantToProcess", tenantService.getTenantsWithStatusInToProcess());
-        model.addAttribute("TenantsWithFailedGeneratedPdf",tenantService.getTotalOfTenantsWithFailedGeneratedPdfDocument());
+        long result = 0;
+        if (numberOfDocumentsToProcess.getId() == null) {
+            result = tenantService.getTotalOfTenantsWithFailedGeneratedPdfDocument();
+        }
+        model.addAttribute("TenantsWithFailedGeneratedPdf", result);
         model.addAttribute("loginUser", is_admin);
         model.addAttribute("tenants", tenants);
-        model.addAttribute("selectedPageSize", evalPageSize);
-        model.addAttribute("pageSizes", PAGE_SIZES);
-        model.addAttribute("pager", pager);
-        model.addAttribute("email", emailDTO);
+        model.addAttribute(SELECTED_PAGE_SIZE, evalPageSize);
+        model.addAttribute(PAGE_SIZES_STRING, PAGE_SIZES);
+        model.addAttribute(PAGER, pager);
+        model.addAttribute(EMAIL, emailDTO);
         return "bo/index";
     }
 
     @GetMapping("/bo/create/admin")
     public String getAdmin(Model model) {
         EmailDTO emailDTO1 = new EmailDTO();
-        model.addAttribute("email", emailDTO1);
+        model.addAttribute(EMAIL, emailDTO1);
         return "bo/create-admin";
+    }
+
+    @GetMapping("/bo/regroup")
+    public String getRegroupTenants(RedirectAttributes redirectAttributes,Model model, ReGroupDTO reGroupDTO, @ModelAttribute("showAlert") BooleanDTO booleanDTO) {
+        EmailDTO emailDTO1 = new EmailDTO();
+        model.addAttribute(EMAIL, emailDTO1);
+        model.addAttribute("reGroupData", reGroupDTO);
+        if(booleanDTO.isAlertValue()){
+            redirectAttributes.addFlashAttribute(SHOW_ALERT, booleanDTO);
+            redirectAttributes.addFlashAttribute("alertShow", "alertShow");
+        }
+        model.addAttribute(SHOW_ALERT, booleanDTO);
+        return "bo/regroup-tenants";
+    }
+
+    @PostMapping("/bo/regroup/tenant")
+    public String regroupTenants(@ModelAttribute("reGroupData") ReGroupDTO reGroupDTO, RedirectAttributes redirectAttributes) {
+
+        User userCreate = userService.findUserByEmail(reGroupDTO.getTenantEmailCreate());
+        User userJoin = userService.findUserByEmail(reGroupDTO.getTenantEmailJoin());
+        if (userCreate != null && userJoin != null) {
+            Tenant tenantCreate = tenantService.getTenantById(userCreate.getId());
+            Tenant tenantJoin = tenantService.getTenantById(userJoin.getId());
+
+            if (tenantCreate.getApartmentSharing().getApplicationType().name().equals(ApplicationType.ALONE.name()) &&
+                    tenantJoin.getApartmentSharing().getApplicationType().name().equals(ApplicationType.ALONE.name())
+            ) {
+
+                ApartmentSharing apartmentSharing = tenantCreate.getApartmentSharing();
+                if (reGroupDTO.getTenantType().equals(ApplicationType.COUPLE.name())) {
+                    apartmentSharing.setApplicationType(ApplicationType.COUPLE);
+                } else {
+                    apartmentSharing.setApplicationType(ApplicationType.GROUP);
+                }
+                ApartmentSharing apartmentSharingFromJoin = tenantJoin.getApartmentSharing();
+
+                tenantJoin.setTenantType(TenantType.JOIN);
+                List<Tenant> tenantList = new ArrayList<>();
+                tenantList.add(tenantCreate);
+                tenantList.add(tenantJoin);
+                apartmentSharing.setTenants(tenantList);
+                tenantJoin.setApartmentSharing(tenantCreate.getApartmentSharing());
+                tenantService.save(tenantJoin);
+                apartmentSharingService.save(apartmentSharing);
+                apartmentSharingService.delete(apartmentSharingFromJoin);
+
+                return REDIRECT_BO_COLOCATION + apartmentSharing.getId() + "#tenant" + tenantCreate.getId();
+            }
+        }
+
+        BooleanDTO booleanDTO = new BooleanDTO();
+        booleanDTO.setAlertValue(true);
+        redirectAttributes.addFlashAttribute(SHOW_ALERT, booleanDTO);
+        return "redirect:/bo/regroup/";
     }
 
     @PostMapping("/bo/create/admin")
@@ -126,9 +219,9 @@ public class BOController {
                 userRoleService.createRoleAdminByEmail(emailDTO.getEmail(), user, create_user);
             } else {
                 UserRole userRole1;
-                if(create_user.equals("create_admin")){
+                if (create_user.equals("create_admin")) {
                     userRole1 = user.getUserRoles().stream().filter(userRole -> userRole.getRole().name().equals(Role.ROLE_ADMIN.name())).findFirst().orElse(null);
-                } else{
+                } else {
                     userRole1 = user.getUserRoles().stream().filter(userRole -> userRole.getRole().name().equals(Role.ROLE_OPERATOR.name())).findFirst().orElse(null);
                 }
                 if (userRole1 == null) {
@@ -142,7 +235,7 @@ public class BOController {
             userRoleService.createRoleAdminByEmail(userDTO.getEmail(), null, create_user);
         }
 
-        model.addAttribute("email", emailDTO1);
+        model.addAttribute(EMAIL, emailDTO1);
         return "bo/create-admin";
     }
 
@@ -164,11 +257,11 @@ public class BOController {
         }
 
         if (emailDTO.getEmail().contains("@") || UtilsLocatio.isNumeric(emailDTO.getEmail())) {
-            return "redirect:/bo/colocation/" + tenantList.get(0).getApartmentSharing().getId();
+            return REDIRECT_BO_COLOCATION + tenantList.get(0).getApartmentSharing().getId();
         }
 
         EmailDTO emailDTOSave = new EmailDTO();
-        model.addAttribute("email", emailDTOSave);
+        model.addAttribute(EMAIL, emailDTOSave);
         model.addAttribute("matchList", tenantList);
         model.addAttribute("keySearch", emailDTO.getEmail());
 
@@ -188,9 +281,9 @@ public class BOController {
         Page<Tenant> tenants = tenantService.listTenantsFilter(PageRequest.of(evalPage, evalPageSize), q);
         Pager pager = new Pager(tenants.getTotalPages(), tenants.getNumber(), BUTTONS_TO_SHOW);
         model.addAttribute("tenants", tenants);
-        model.addAttribute("selectedPageSize", evalPageSize);
-        model.addAttribute("pageSizes", PAGE_SIZES);
-        model.addAttribute("pager", pager);
+        model.addAttribute(SELECTED_PAGE_SIZE, evalPageSize);
+        model.addAttribute(PAGE_SIZES_STRING, PAGE_SIZES);
+        model.addAttribute(PAGER, pager);
         return "bo/searchResult";
     }
 
@@ -248,46 +341,51 @@ public class BOController {
     public String regeneratePdfDocument(@PathVariable Long id) {
         Document document = documentService.findDocumentById(id);
         documentService.initializeFieldsToProcessPdfGeneration(document);
-        producer.generatePdf(id);
+        producer.generatePdf(id,
+                documentPdfGenerationLogRepository.save(DocumentPdfGenerationLog.builder()
+                        .documentId(id)
+                        .build()).getId());
         Tenant tenant = document.getTenant() != null ? document.getTenant() : document.getGuarantor().getTenant();
         long apartmentSharingId = tenant.getApartmentSharing().getId();
-        return "redirect:/bo/colocation/" + apartmentSharingId + "#tenant" + tenant.getId();
+        return REDIRECT_BO_COLOCATION + apartmentSharingId + "#tenant" + tenant.getId();
     }
 
-    @GetMapping("/bo/regeneratePdfDocument/withMaxRetriesReached")
-    public String regenerateFailedPdfDocumentsManually() {
-        documentService.regenerateFailedPdfDocuments();
-        return "redirect:/bo";
+    @PostMapping("/bo/regeneratePdfDocument")
+    public String regeneratePdfDocument(RedirectAttributes redirectAttributes, @ModelAttribute("mapping1Form") ResultDTO numberOfDocumentsToProcess) {
+        documentService.regenerateFailedPdfDocumentsUsingButtonRequest();
+        numberOfDocumentsToProcess.setId(0L);
+        redirectAttributes.addFlashAttribute("numberOfDocumentsToProcess", numberOfDocumentsToProcess);
+        return REDIRECT_BO;
     }
 
     @Scheduled(cron = "0 1 0 * * ?")
-    public void regenerateFailedPdfDocumentsTask() {
+    public void regenerateFailedPdfDocumentsOneDayAgoTask() {
         log.info("Checking for failed PDF generation");
-        documentService.regenerateFailedPdfDocuments();
+        documentService.regenerateFailedPdfDocumentsOneDayAgoUsingScheduledTask();
     }
 
     @PostMapping(value = "/bo/regenerateStatusOfTenants")
     public String regenerateStatusOfTenants(@RequestParam("email") String email) {
         tenantService.updateStatusOfSomeTenants(email);
-        return "redirect:/bo";
+        return REDIRECT_BO;
     }
 
     @GetMapping("/bo/computeTenantsStatus")
     public String computeTenantStatus(Model model) {
         EmailDTO emailDTO = new EmailDTO();
         model.addAttribute("tenantList", emailDTO);
-        model.addAttribute("email", emailDTO);
+        model.addAttribute(EMAIL, emailDTO);
         return "bo/compute-status";
     }
 
     @GetMapping("/bo/deleteAccountsNotProperlyDeleted")
     public String deleteAccountsNotProperlyDeleted() {
         tenantService.deleteAccountsNotProperlyDeleted();
-        return "redirect:/bo";
+        return REDIRECT_BO;
     }
 
     @GetMapping("/update/documents/creationDate")
-    public String updateDocumentsWithNullCretionDate() {
+    public String updateDocumentsWithNullCreationDate() {
         tenantService.updateDocumentsWithNullCreationDateTime();
         return REDIRECT_BO;
     }

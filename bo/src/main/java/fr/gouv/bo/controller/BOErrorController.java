@@ -7,7 +7,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import java.security.SecureRandom;
-import java.util.Random;
 
 @Controller
 @Profile("preprod")

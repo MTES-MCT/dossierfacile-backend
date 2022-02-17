@@ -2,7 +2,7 @@ package fr.dossierfacile.api.front.service;
 
 import fr.dossierfacile.api.front.exception.DocumentNotFoundException;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
-import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
+import fr.dossierfacile.api.front.repository.FileRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 public class DocumentServiceImpl implements DocumentService {
 
     private final DocumentRepository documentRepository;
-    private final AuthenticationFacade authenticationFacade;
+    private final FileRepository fileRepository;
     private final OvhService ovhService;
     private final TenantService tenantService;
     private final ApartmentSharingService apartmentSharingService;
@@ -69,6 +69,7 @@ public class DocumentServiceImpl implements DocumentService {
                     .orElse(new ArrayList<>())
                     .forEach(document -> {
                         document.setDocumentStatus(DocumentStatus.TO_PROCESS);
+                        document.setDocumentDeniedReasons(null);
                         documentRepository.save(document);
                     });
             Optional.ofNullable(tenant.getGuarantors())
@@ -77,6 +78,7 @@ public class DocumentServiceImpl implements DocumentService {
                             .orElse(new ArrayList<>())
                             .forEach(document -> {
                                 document.setDocumentStatus(DocumentStatus.TO_PROCESS);
+                                document.setDocumentDeniedReasons(null);
                                 documentRepository.save(document);
                             }));
 
@@ -90,8 +92,32 @@ public class DocumentServiceImpl implements DocumentService {
                 .forEach(document -> {
                     if (!document.getDocumentStatus().equals(DocumentStatus.TO_PROCESS)) {
                         document.setDocumentStatus(DocumentStatus.TO_PROCESS);
+                        document.setDocumentDeniedReasons(null);
                         documentRepository.save(document);
                     }
                 });
+    }
+
+    @Override
+    public void deleteAllDocumentsAssociatedToTenant(Tenant tenant) {
+        List<Document> documentList = documentRepository.findAllAssociatedToTenantId(tenant.getId());
+        Optional.ofNullable(documentList)
+                .orElse(new ArrayList<>())
+                .forEach(this::deleteFilesFromStorage);
+
+        documentRepository.deleteAll(Optional.ofNullable(documentList)
+                .orElse(new ArrayList<>()));
+    }
+
+    private void deleteFilesFromStorage(Document document) {
+        List<String> pathFiles = fileRepository.getFilePathsByDocumentId(document.getId());
+        if (pathFiles != null && !pathFiles.isEmpty()) {
+            log.info("Removing files from storage of document with id [" + document.getId() + "]");
+            ovhService.delete(pathFiles);
+        }
+        if (document.getName() != null && !document.getName().isBlank()) {
+            log.info("Removing document from storage with path [" + document.getName() + "]");
+            ovhService.delete(document.getName());
+        }
     }
 }

@@ -15,6 +15,8 @@ import lombok.NoArgsConstructor;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CoTenantModel {
     private Long id;
+    private String firstName;
+    private String lastName;
     private String email;
     private TenantType tenantType;
     private TenantFileStatus status;

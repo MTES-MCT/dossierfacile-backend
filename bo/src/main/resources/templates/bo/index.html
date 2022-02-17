@@ -9,18 +9,40 @@
 <body>
 
 <div layout:fragment="content" th:remove="tag" th:with="email=${email}">
-    <div class="col-md-12" th:if="${loginUser} == true">
+    <style>
+        .button2:hover {
+            background-color: #008CBA;
+            color: white;
+        }
+    </style>
+    <div class="col-md-12" >
         <div class="row">
-            <a href="/bo/create/admin" class="btn" id="nextApplication2" style="background: #e63d3d;padding: 10px 16px 12px;float: left;color: aliceblue;font-size: large;margin-left: 10px;">ajouter
-                un admin</a>
-            <div class="" style="display: inline-grid;grid-auto-columns: max-content;justify-content: right; margin-right: 10px; float: right">
+            <div class="" style="display: inline-grid;grid-auto-columns: max-content; margin-left: 20px; float: left">
+                <div th:if="${loginUser} == true">
+                    <a href="/bo/create/admin" class="btn" id="nextApplication2" style="background: #e63d3d;padding: 10px 16px 12px;float: left;color: aliceblue;font-size: large;margin-left: 10px;">Ajouter
+                        un admin</a>
+                </div>
+                <div style="margin-top: 10px">
+                    <a href="/bo/regroup" class="btn" id="nextApplication3" style="background: #1f6685;padding: 10px 10px 12px;float: left;color: aliceblue;font-size: large;margin-left: 10px;">Regroup 2 tenants</a>
+                </div>
+            </div>
+            <div class="" style="display: inline-grid;grid-auto-columns: max-content;
+            justify-content: right; margin-right: 10px; float: right">
                 <div class="counter" style="float: right;font-family: 'Poppins', sans-serif;position: relative;z-index: 1;background: bisque;">
-                    <h3 style="font-size: 18px;color: red;padding: 10px;margin-top: -2px;">Tenants to process:
+                    <h3 style="font-size: 18px;color: red;padding: 10px 10px 6px;margin-top: -2px;">Tenants to process:
                         <span class="counter-value" style="font-size: large; font-weight: bold; color: black;" th:text="${tenantToProcess}"></span></h3>
                 </div>
-                <div class="counter" style="float: right;font-family: 'Poppins', sans-serif;text-align: center;position: relative;z-index: 1;padding-right: 10px;background: bisque;background: bisque;margin-top: 10px;">
-                    <h3 style=" font-size: 18px; color: red; background: bisque; padding: 10px; margin-top: -2px;">Tenants with failed PDF generation: <span th:text="${TenantsWithFailedGeneratedPdf}" class="counter-value" style="font-size: large; font-weight: bold; color: black;"></span></h3>
-                </div></div>
+                <div class="counter" style="float: right;font-family: 'Poppins', sans-serif;text-align: center;position: relative;z-index: 1;background: bisque;margin-top: 10px;">
+                    <a class="btn button2" th:href="@{/bo/documentFailedList}"  style="transition-duration: 0.4s;cursor: pointer;border-radius: inherit;border-bottom: solid; font-size: 18px; color: red; padding: 10px; margin-top: -2px;">Tenants with failed PDF generation:
+                        <span th:text="${TenantsWithFailedGeneratedPdf}" class="counter-value" style="font-size: large; font-weight: bold; color: black;"></span></a>
+                </div>
+                <div style="margin-top: 5px;" th:if="${TenantsWithFailedGeneratedPdf != 0}">
+                    <form th:action="@{/bo/regeneratePdfDocument}" th:method="post">
+                        <button style="border-radius: 5px; width: 100%" class="btn btn-danger bo-btn" name="action" type="submit">retry failed PDF</button>
+                    </form>
+                </div>
+            </div>
+
         </div>
     </div>
 

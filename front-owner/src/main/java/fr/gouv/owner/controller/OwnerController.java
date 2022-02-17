@@ -8,11 +8,13 @@ import fr.dossierfacile.common.entity.User;
 import fr.dossierfacile.common.enums.StepRegisterOwner;
 import fr.gouv.owner.dto.OwnerDTO;
 import fr.gouv.owner.dto.ProspectDTO;
-import fr.gouv.owner.repository.OwnerRepository;
-import fr.gouv.owner.repository.PropertyRepository;
-import fr.gouv.owner.repository.UserRepository;
 import fr.gouv.owner.security.SubscriptionStatus;
-import fr.gouv.owner.service.*;
+import fr.gouv.owner.service.OwnerService;
+import fr.gouv.owner.service.PropertyService;
+import fr.gouv.owner.service.ProspectService;
+import fr.gouv.owner.service.TenantService;
+import fr.gouv.owner.service.UserService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -20,7 +22,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -31,6 +37,7 @@ import java.security.Principal;
 
 @Controller
 @Slf4j
+@RequiredArgsConstructor
 public class OwnerController {
 
     private static final String TOKEN = "token";
@@ -39,16 +46,11 @@ public class OwnerController {
     private static final String REDIRECT_PROFILE = "redirect:/proprietaire/mon-compte";
     private static final String REDIRECT_LOGIN = "redirect:/login";
 
-    @Autowired
-    private OwnerService ownerService;
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private PropertyService propertyService;
-    @Autowired
-    private ProspectService prospectService;
-    @Autowired
-    private TenantService tenantService;
+    private final OwnerService ownerService;
+    private final UserService userService;
+    private final PropertyService propertyService;
+    private final ProspectService prospectService;
+    private final TenantService tenantService;
 
     @GetMapping("/")
     public String infoOwner(Model model, @RequestParam(value = "token", required = false) String token) {
@@ -104,7 +106,7 @@ public class OwnerController {
             tenant = tenantService.findOneByEmail(principal.getName());
         }
         if (tenant == null && tenantId != null) {
-            tenant = tenantService.find(Integer.parseInt(tenantId));
+            tenant = tenantService.find(Long.parseLong(tenantId));
         }
         if (tenant == null) {
             return REDIRECT_ERROR;

@@ -20,15 +20,21 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
             "WHERE d.name is null " +
             "and d.processingStartTime is not null " +
             "and d.processingEndTime is null " +
-            "and d.processingStartTime < :oneHourAgo " +
+            "and d.processingStartTime < :timeAgo " +
             "ORDER BY d.id")
-    Page<Long> findAllFailedGeneratedPdfDocumentIds(@Param("oneHourAgo") LocalDateTime oneHourAgo, Pageable pageable);
+    Page<Long> findAllFailedGeneratedPdfDocumentIdsSinceXTimeAgo(@Param("timeAgo") LocalDateTime timeAgo, Pageable pageable);
 
     @Modifying
     @Query(value = "UPDATE document SET retries = 0, locked = false, locked_by = null where id in (" +
-            "SELECT d.id FROM document d WHERE d.name is null and d.processing_start_time is not null and d.processing_end_time is null and d.processing_start_time < now() - (interval '1' hour)" +
+            "SELECT d.id FROM document d WHERE d.name is null and d.processing_start_time is not null and d.processing_end_time is null and d.processing_start_time < now() - (interval '12' hour)" +
             ")", nativeQuery = true)
-    void unlockFailedPdfDocumentsGenerated();
+    void unlockFailedPdfDocumentsGeneratedUsingButtonRequest();
+
+    @Modifying
+    @Query(value = "UPDATE document SET retries = 0, locked = false, locked_by = null where id in (" +
+            "SELECT d.id FROM document d WHERE d.name is null and d.processing_start_time is not null and d.processing_end_time is null and d.processing_start_time < now() - (interval '24' hour)" +
+            ")", nativeQuery = true)
+    void unlockFailedPdfDocumentsGeneratedUsingScheduledTask();
 
     @Modifying
     @Query("UPDATE Document d SET d.documentDeniedReasons = :documentDeniedReasons where d.id = :documentId")

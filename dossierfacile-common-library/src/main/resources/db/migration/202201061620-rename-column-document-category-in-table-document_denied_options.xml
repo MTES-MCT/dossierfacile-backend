@@ -1,0 +1,10 @@
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+    <changeSet id="202201061620" author="">
+        <sql>
+            ALTER TABLE document_denied_options RENAME COLUMN document_category TO document_sub_category;
+        </sql>
+    </changeSet>
+</databaseChangeLog>

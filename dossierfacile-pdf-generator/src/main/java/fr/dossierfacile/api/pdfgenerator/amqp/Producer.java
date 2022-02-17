@@ -27,13 +27,14 @@ public class Producer {
     private String routingKeyPdfGenerator;
 
     @Async
-    public void generatePdf(Long documentId) {
+    public void generatePdf(Long documentId, Long logId) {
         try {
-            DocumentModel documentModel = DocumentModel.builder().id(documentId).build();
+            DocumentModel documentModel = DocumentModel.builder().id(documentId).logId(logId).build();
             log.warn("Re-Sending document with ID [" + documentId + "] to the end of the queue");
             amqpTemplate.convertAndSend(exchangePdfGenerator, routingKeyPdfGenerator, gson.toJson(documentModel));
         } catch (Exception e) {
             log.error(EXCEPTION + Sentry.captureException(e));
+            log.error(e.getMessage(), e.getCause());
             throw e;
         }
     }

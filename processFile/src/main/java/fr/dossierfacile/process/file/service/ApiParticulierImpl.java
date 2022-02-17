@@ -20,7 +20,9 @@ import java.util.Objects;
 @Slf4j
 @RequiredArgsConstructor
 public class ApiParticulierImpl implements ApiParticulier {
-    @Value("${particulier.api.gouv.fr}")
+    private static final String EXCEPTION = "Sentry ID Exception: ";
+
+    @Value("${particulier.api.url}")
     private String apiURL;
     @Value("${particulier.api.gouv.fr.token}")
     private String apiToken;
@@ -43,8 +45,8 @@ public class ApiParticulierImpl implements ApiParticulier {
             Objects.requireNonNull(response.getBody()).setStatus(200);
             return response.getBody();
         } catch (Exception e) {
+            log.error(EXCEPTION + Sentry.captureException(e));
             log.error(e.getMessage(), e.getCause());
-            Sentry.capture(e);
             return new Taxes(404);
         }
     }

@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface DocumentRepository extends JpaRepository<Document, Long> {
@@ -16,11 +17,11 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
 
     Optional<Document> findFirstByDocumentCategoryAndTenant(DocumentCategory documentCategory, Tenant tenant);
 
-    Optional<Document> findByDocumentCategoryAndTenantAndId(DocumentCategory financial, Tenant tenant, Long id);
+    Optional<Document> findByDocumentCategoryAndTenantAndId(DocumentCategory documentCategory, Tenant tenant, Long id);
 
     Optional<Document> findFirstByDocumentCategoryAndGuarantor(DocumentCategory documentCategory, Guarantor guarantor);
 
-    Optional<Document> findByDocumentCategoryAndGuarantorAndId(DocumentCategory financial, Guarantor guarantor, Long documentId);
+    Optional<Document> findByDocumentCategoryAndGuarantorAndId(DocumentCategory documentCategory, Guarantor guarantor, Long documentId);
 
     @Query(value = "select d1.*\n" +
             "from document d1\n" +
@@ -35,4 +36,14 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
     Optional<Document> findByIdAssociatedToTenantId(@Param("documentId") Long documentId, @Param("tenantId") Long tenantId);
 
     Optional<Document> findFirstByName(String documentName);
+
+    @Query(value = "select d1.*\n" +
+            "from document d1\n" +
+            "where d1.tenant_id = :tenantId\n" +
+            "union\n" +
+            "select d2.*\n" +
+            "from document d2\n" +
+            "         join guarantor g on d2.guarantor_id = g.id\n" +
+            "where g.tenant_id = :tenantId", nativeQuery = true)
+    List<Document> findAllAssociatedToTenantId(Long tenantId);
 }

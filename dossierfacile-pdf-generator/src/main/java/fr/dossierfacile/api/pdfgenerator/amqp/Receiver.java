@@ -22,13 +22,15 @@ public class Receiver {
         try {
             DocumentModel documentModel = gson.fromJson(message, DocumentModel.class);
             try {
-                pdfGeneratorService.processPdfGenerationOfDocument(documentModel.getId());
+                pdfGeneratorService.processPdfGenerationOfDocument(documentModel.getId(), documentModel.getLogId());
             } catch (Exception e) {
                 log.error(EXCEPTION + Sentry.captureException(e));
-                producer.generatePdf(documentModel.getId());
+                log.error(e.getMessage(), e.getCause());
+                producer.generatePdf(documentModel.getId(), documentModel.getLogId());
             }
         } catch (Exception e) {
             log.error(EXCEPTION + Sentry.captureException(e));
+            log.error(e.getMessage(), e.getCause());
             throw e;
         }
     }

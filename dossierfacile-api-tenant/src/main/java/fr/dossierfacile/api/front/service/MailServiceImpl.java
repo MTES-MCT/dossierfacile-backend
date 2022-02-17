@@ -44,16 +44,20 @@ public class MailServiceImpl implements MailService {
     private Integer templateIdAccountDeleted;
     @Value("${mailjet.template.id.account.completed}")
     private Integer templateIdAccountCompleted;
-    @Value("${mailjet.template.id.account.email_validation_reminder}")
+    @Value("${mailjet.template.id.account.email.validation.reminder}")
     private Integer templateEmailWhenEmailAccountNotYetValidated;
-    @Value("${mailjet.template.id.account.incomplete_reminder}")
+    @Value("${mailjet.template.id.account.incomplete.reminder}")
     private Integer templateEmailWhenAccountNotYetCompleted;
-    @Value("${mailjet.template.id.account.declined_reminder}")
+    @Value("${mailjet.template.id.account.declined.reminder}")
     private Integer templateEmailWhenAccountIsStillDeclined;
-    @Value("${mailjet.template.id.account.satisfaction_email_to_tenants_NOT_associated_to_partners}")
+    @Value("${mailjet.template.id.account.satisf.not.assoc.to.partners}")
     private Integer templateEmailWhenTenantNOTAssociatedToPartnersAndValidated;
-    @Value("${mailjet.template.id.account.satisfaction_email_to_tenants_YES_associated_to_partners}")
+    @Value("${mailjet.template.id.account.satisf.yes.assoc.to.partners}")
     private Integer templateEmailWhenTenantYESAssociatedToPartnersAndValidated;
+    @Value("${mailjet.template.id.first.warning.for.deletion.of.documents}")
+    private Integer templateFirstWarningForDeletionOfDocuments;
+    @Value("${mailjet.template.id.second.warning.for.deletion.of.documents}")
+    private Integer templateSecondWarningForDeletionOfDocuments;
 
     @Async
     @Override
@@ -206,6 +210,38 @@ public class MailServiceImpl implements MailService {
                 .toEmail(user.getEmail())
                 .toName(user.getFullName())
                 .templateID(templateEmailWhenTenantYESAssociatedToPartnersAndValidated)
+                .build();
+        sendMailJetApi(mailjetModel);
+    }
+
+    @Override
+    public void sendEmailFirstWarningForDeletionOfDocuments(User user, ConfirmationToken confirmationToken) {
+        Map<String, String> variables = new HashMap<>();
+        variables.put("firstName", user.getFirstName());
+        variables.put("lastName", user.getLastName());
+        variables.put("confirmToken", confirmationToken.getToken());
+        MailJetModel mailjetModel = MailJetModel.builder()
+                .fromEmail(emailFrom)
+                .toEmail(user.getEmail())
+                .toName(user.getFullName())
+                .variables(variables)
+                .templateID(templateFirstWarningForDeletionOfDocuments)
+                .build();
+        sendMailJetApi(mailjetModel);
+    }
+
+    @Override
+    public void sendEmailSecondWarningForDeletionOfDocuments(User user, ConfirmationToken confirmationToken) {
+        Map<String, String> variables = new HashMap<>();
+        variables.put("firstName", user.getFirstName());
+        variables.put("lastName", user.getLastName());
+        variables.put("confirmToken", confirmationToken.getToken());
+        MailJetModel mailjetModel = MailJetModel.builder()
+                .fromEmail(emailFrom)
+                .toEmail(user.getEmail())
+                .toName(user.getFullName())
+                .variables(variables)
+                .templateID(templateSecondWarningForDeletionOfDocuments)
                 .build();
         sendMailJetApi(mailjetModel);
     }

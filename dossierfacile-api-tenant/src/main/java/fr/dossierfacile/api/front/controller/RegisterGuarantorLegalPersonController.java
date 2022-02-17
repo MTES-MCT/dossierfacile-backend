@@ -12,6 +12,7 @@ import fr.dossierfacile.api.front.validator.group.Dossier;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.LogType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,7 +23,7 @@ import static org.springframework.http.ResponseEntity.ok;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/register/guarantorLegalPerson")
+@RequestMapping(value = "/api/register/guarantorLegalPerson", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 public class RegisterGuarantorLegalPersonController {
     private final TenantService tenantService;
     private final AuthenticationFacade authenticationFacade;
@@ -36,10 +37,20 @@ public class RegisterGuarantorLegalPersonController {
         return ok(tenantModel);
     }
 
+
+    //TODO REMOVE, wrong name
     @PostMapping("/documentRepresentanIdentification")
-    public ResponseEntity<TenantModel> documentIdentificationRepresentan(@Validated({Dossier.class, DocumentIdentificationGuarantor.class}) DocumentIdentificationRepresentanGuarantorLegalPersonForm documentIdentificationRepresentanGuarantorLegalPersonForm) {
-        Tenant tenant = authenticationFacade.getTenant(documentIdentificationRepresentanGuarantorLegalPersonForm.getGuarantorId());
-        TenantModel tenantModel = tenantService.saveStepRegister(tenant, documentIdentificationRepresentanGuarantorLegalPersonForm, StepRegister.DOCUMENT_IDENTIFICATION_REPRESENTAN_GUARANTOR_LEGAL_PERSON);
+    public ResponseEntity<TenantModel> documentIdentificationRepresentan(@Validated({Dossier.class, DocumentIdentificationGuarantor.class}) DocumentIdentificationRepresentanGuarantorLegalPersonForm documentIdentificationRepresentantGuarantorLegalPersonForm) {
+        Tenant tenant = authenticationFacade.getTenant(documentIdentificationRepresentantGuarantorLegalPersonForm.getTenantId());
+        TenantModel tenantModel = tenantService.saveStepRegister(tenant, documentIdentificationRepresentantGuarantorLegalPersonForm, StepRegister.DOCUMENT_IDENTIFICATION_REPRESENTANT_GUARANTOR_LEGAL_PERSON);
+        logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
+        return ok(tenantModel);
+    }
+
+    @PostMapping("/documentRepresentantIdentification")
+    public ResponseEntity<TenantModel> documentIdentificationRepresentant(@Validated({Dossier.class, DocumentIdentificationGuarantor.class}) DocumentIdentificationRepresentanGuarantorLegalPersonForm documentIdentificationRepresentantGuarantorLegalPersonForm) {
+        Tenant tenant = authenticationFacade.getTenant(documentIdentificationRepresentantGuarantorLegalPersonForm.getTenantId());
+        TenantModel tenantModel = tenantService.saveStepRegister(tenant, documentIdentificationRepresentantGuarantorLegalPersonForm, StepRegister.DOCUMENT_IDENTIFICATION_REPRESENTANT_GUARANTOR_LEGAL_PERSON);
         logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
         return ok(tenantModel);
     }
