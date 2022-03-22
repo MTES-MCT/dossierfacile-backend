@@ -1,7 +1,9 @@
 package fr.dossierfacile.api.front.service;
 
+import fr.dossierfacile.api.front.amqp.Producer;
 import fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException;
 import fr.dossierfacile.api.front.exception.ApartmentSharingUnexpectedException;
+import fr.dossierfacile.common.entity.DocumentPdfGenerationLog;
 import fr.dossierfacile.common.mapper.ApplicationFullMapper;
 import fr.dossierfacile.common.mapper.ApplicationLightMapper;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
@@ -23,10 +25,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.UUID;
 
 @Service
@@ -40,7 +39,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
     private final ApplicationLightMapper applicationLightMapper;
     private final OvhService ovhService;
     private final LinkLogRepository linkLogRepository;
-    private final ApartmentSharingPdfServiceImpl apartmentSharingPdfService;
+    private final Producer producer;
 
     @Override
     public void createApartmentSharing(Tenant tenant) {
@@ -66,6 +65,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
         return applicationLightMapper.toApplicationModel(apartmentSharing);
     }
 
+
     @Override
     public ByteArrayOutputStream fullPdf(String token) throws IOException {
         ByteArrayOutputStream outputStreamResult = new ByteArrayOutputStream();
@@ -77,18 +77,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
 
         String urlDossierPdfDocument = apartmentSharing.getUrlDossierPdfDocument();
         if (urlDossierPdfDocument == null) {
-            ByteArrayOutputStream oSFullPDF = apartmentSharingPdfService.generatePdf(apartmentSharing);
-            if (oSFullPDF.size() > 0) {
-                byte[] pdfBytes = oSFullPDF.toByteArray();
-                urlDossierPdfDocument = UUID.randomUUID() + ".pdf";
-                log.info("Uploading Dossier PDF for ApartmentSharing with ID [" + apartmentSharing.getId() + "]");
-                ovhService.upload(urlDossierPdfDocument, new ByteArrayInputStream(pdfBytes));
-
-                apartmentSharing.setUrlDossierPdfDocument(urlDossierPdfDocument);
-                apartmentSharingRepository.save(apartmentSharing);
-
-                outputStreamResult.writeBytes(pdfBytes);
-            }
+            throw new FileNotFoundException("Full PDF doesn't exist yet");
         } else {
             SwiftObject swiftObject = ovhService.get(urlDossierPdfDocument);
             if (swiftObject != null) {
@@ -122,6 +111,18 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
                 token,
                 linkType
         ));
+    }
+
+    @Override
+    public void createFullPdf(String token){
+        ApartmentSharing apartmentSharing = apartmentSharingRepository.findByToken(token).orElseThrow(() -> new ApartmentSharingNotFoundException(token));
+
+        saveLinkLog(apartmentSharing, token, LinkType.DOCUMENT);
+
+        String urlDossierPdfDocument = apartmentSharing.getUrlDossierPdfDocument();
+        if (urlDossierPdfDocument == null) {
+            producer.generateFullPdf(apartmentSharing.getId());
+        }
     }
 
     private void checkingAllTenantsInTheApartmentAreValidatedAndAllDocumentsAreNotNull(long apartmentSharingId, String token) {

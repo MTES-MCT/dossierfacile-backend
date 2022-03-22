@@ -18,4 +18,5 @@ public interface ApartmentSharingService {
 
     void resetDossierPdfGenerated(ApartmentSharing apartmentSharing);
 
+    void createFullPdf(String token);
 }

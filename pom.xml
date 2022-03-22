@@ -13,7 +13,6 @@
         <module>dossierfacile-common-library</module>
         <module>front-owner</module>
         <module>dossierfacile-migrate-user</module>
-        <module>dossierfacile-pdf-generator</module>
     </modules>
     <packaging>pom</packaging>
 
