@@ -1,7 +1,7 @@
 package fr.dossierfacile.api.dossierfacileapiowner.property;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import fr.dossierfacile.common.entity.PropertyApartmentSharing;
+import fr.dossierfacile.common.entity.ApartmentSharing;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,10 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class PropertyModel {
+public class PropertyApartmentSharingModel {
     private Long id;
-    private String name;
-    private Double rentCost;
-    private String token;
-    private List<PropertyApartmentSharingModel> propertiesApartmentSharing;
+    private ApartmentSharingModel apartmentSharing;
 }

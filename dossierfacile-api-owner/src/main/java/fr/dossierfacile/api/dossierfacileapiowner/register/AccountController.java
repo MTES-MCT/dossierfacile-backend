@@ -25,7 +25,7 @@ public class AccountController {
     @PostMapping("/account")
     public ResponseEntity<OwnerModel> account(@RequestBody AccountForm accountForm) {
         OwnerModel ownerModel = registerService.register(accountForm);
-        logService.saveLog(LogType.ACCOUNT_CREATED, ownerModel.getId());
+//        logService.saveLog(LogType.ACCOUNT_CREATED, ownerModel.getId());
         return ok(ownerModel);
     }
 
