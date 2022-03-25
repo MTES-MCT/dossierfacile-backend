@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -43,5 +44,13 @@ public class PropertyServiceImpl implements PropertyService {
         Owner owner = authenticationFacade.getOwner();
         List<Property> properties = propertyRepository.findAllByOwnerId(owner.getId());
         return properties.stream().map(propertyMapper::toPropertyModel).collect(Collectors.toList());
+    }
+
+    @Override
+    public void delete(Long id) {
+        Owner owner = authenticationFacade.getOwner();
+        List<Property> properties = propertyRepository.findAllByOwnerId(owner.getId());
+        Optional<Property> property = properties.stream().filter(p -> p.getId().equals(id)).findFirst();
+        property.ifPresent(propertyRepository::delete);
     }
 }
