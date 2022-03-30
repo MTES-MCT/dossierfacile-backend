@@ -92,6 +92,10 @@ public class Property implements Serializable {
     @Column(columnDefinition = "integer default 0")
     private Integer cantEmailSentProspect = 0;
 
+    @Builder.Default
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private Boolean validated = false;
+
     public Property(Owner owner, String name, String propertyId) {
         this.owner = owner;
         this.name = name;

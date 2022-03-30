@@ -17,4 +17,6 @@ public class PropertyForm {
     private String name;
 
     private Double rentCost;
+
+    private Boolean validated;
 }

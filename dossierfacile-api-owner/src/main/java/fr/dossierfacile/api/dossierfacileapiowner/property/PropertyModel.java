@@ -19,5 +19,6 @@ public class PropertyModel {
     private String name;
     private Double rentCost;
     private String token;
+    private Boolean validated;
     private List<PropertyApartmentSharingModel> propertiesApartmentSharing;
 }

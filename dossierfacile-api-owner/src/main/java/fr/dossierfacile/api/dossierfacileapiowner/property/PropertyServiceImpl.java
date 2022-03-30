@@ -35,6 +35,9 @@ public class PropertyServiceImpl implements PropertyService {
         if (propertyForm.getRentCost() != null && propertyForm.getRentCost() > 0) {
             property.setRentCost(propertyForm.getRentCost());
         }
+        if (propertyForm.getValidated() != null && propertyForm.getValidated()) {
+            property.setValidated(true);
+        }
         property.setOwner(owner);
         return propertyMapper.toPropertyModel(propertyRepository.save(property));
     }
