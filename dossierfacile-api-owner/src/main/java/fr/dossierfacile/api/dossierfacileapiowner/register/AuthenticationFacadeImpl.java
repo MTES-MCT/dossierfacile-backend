@@ -60,18 +60,14 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
 
     @Override
     public Owner getOwner() {
-        Optional<Owner> ownerOptional = ownerRepository.findByEmail(getUserEmail());
-        Owner owner;
-        if (ownerOptional.isPresent()) {
-            owner = ownerOptional.get();
-        } else {
-            if (keycloakService.isKeycloakUser(getKeycloakUserId())) {
-                owner = new Owner("", "", getUserEmail());
-                owner.setKeycloakId(getKeycloakUserId());
-                ownerRepository.save(owner);
-            }
+        if (! keycloakService.isKeycloakUser(getKeycloakUserId())) {
             throw new AccessDeniedException("invalid token");
         }
+        Optional<Owner> optionalOwner = ownerRepository.findByKeycloakId(getKeycloakUserId());
+        if (optionalOwner.isEmpty()) {
+            optionalOwner = ownerRepository.findByEmail(getUserEmail());
+        }
+        Owner owner = optionalOwner.orElse(new Owner("", "", getUserEmail()));
         owner.setKeycloakId(getKeycloakUserId());
         if (isFranceConnect()) {
             owner.setFranceConnect(isFranceConnect());

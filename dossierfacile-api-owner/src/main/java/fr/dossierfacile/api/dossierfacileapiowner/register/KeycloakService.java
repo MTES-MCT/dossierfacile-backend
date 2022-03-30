@@ -11,4 +11,6 @@ public interface KeycloakService {
     boolean isKeycloakUser(String keyCloakId);
 
     void logout(Owner owner);
+
+    void deleteKeycloakUser(Owner owner);
 }

@@ -8,5 +8,7 @@ import java.util.Optional;
 public interface OwnerRepository extends JpaRepository<Owner, Long> {
     Optional<Owner> findByEmailAndEnabledFalse(String email);
 
-    Optional<Owner> findByEmail(String name);
+    Optional<Owner> findByEmail(String email);
+
+    Optional<Owner> findByKeycloakId(String keycloakId);
 }

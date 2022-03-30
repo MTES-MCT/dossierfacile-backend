@@ -5,9 +5,11 @@ import fr.dossierfacile.api.dossierfacileapiowner.register.AuthenticationFacade;
 import fr.dossierfacile.api.dossierfacileapiowner.register.KeycloakService;
 import fr.dossierfacile.common.entity.Owner;
 import fr.dossierfacile.common.entity.Property;
+import fr.dossierfacile.common.entity.Tenant;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -46,5 +48,13 @@ public class OwnerController {
         Owner owner = authenticationFacade.getOwner();
         return ok(ownerMapper.toOwnerModel(owner));
     }
+
+    @DeleteMapping("/deleteAccount")
+    public ResponseEntity<Void> deleteAccount() {
+        Owner owner = authenticationFacade.getOwner();
+        ownerService.deleteAccount(owner);
+        return ok().build();
+    }
+
 
 }

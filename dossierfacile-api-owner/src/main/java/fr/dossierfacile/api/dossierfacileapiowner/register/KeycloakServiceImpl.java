@@ -73,4 +73,8 @@ public class KeycloakServiceImpl implements KeycloakService {
         }
     }
 
+    @Override
+    public void deleteKeycloakUser(Owner owner) {
+        realmResource.users().delete(owner.getKeycloakId());
+    }
 }
