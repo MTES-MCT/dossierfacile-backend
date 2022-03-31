@@ -1,1 +1,1 @@
-web: java -jar dossier-facile-front.jar
+web: java -jar target/dossier-facile-front.jar

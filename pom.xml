@@ -10,7 +10,6 @@
         <module>bo</module>
         <module>processFile</module>
         <module>dossierfacile-api-tenant</module>
-        <module>dossierfacile-common-library</module>
         <module>front-owner</module>
         <module>dossierfacile-migrate-user</module>
     </modules>

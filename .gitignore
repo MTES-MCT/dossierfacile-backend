@@ -5,6 +5,8 @@
 /bo/tokens/
 /front/tokens/
 !.mvn/wrapper/maven-wrapper.jar
+application-*.properties
+.env
 
 static-front/
 
