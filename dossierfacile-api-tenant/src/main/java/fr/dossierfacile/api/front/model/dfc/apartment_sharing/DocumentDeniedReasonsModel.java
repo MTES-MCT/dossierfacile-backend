@@ -15,5 +15,8 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class DocumentDeniedReasonsModel {
     private List<String> checkedOptions;
+    private List<Integer> checkedOptionsId;
+    private List<SelectedOption> selectedOptions;
+    private boolean messageData;
     private String comment;
 }

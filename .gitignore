@@ -1,10 +1,9 @@
-/bo/target/
-/common/target/
-/front/target/
-/processFile/target/
-/bo/tokens/
+/dossierfacile-bo/tokens/
 /front/tokens/
 !.mvn/wrapper/maven-wrapper.jar
+application-*.properties
+.env
+target/
 
 static-front/
 

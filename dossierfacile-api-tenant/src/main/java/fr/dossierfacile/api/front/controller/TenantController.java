@@ -43,7 +43,7 @@ public class TenantController {
     @GetMapping(value = "/profile", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TenantModel> profile() {
         Tenant tenant = authenticationFacade.getTenant(null);
-        tenantService.updateLastLoginDate(tenant);
+        tenantService.updateLastLoginDateAndResetWarnings(tenant);
         return ok(tenantMapper.toTenantModel(tenant));
     }
 

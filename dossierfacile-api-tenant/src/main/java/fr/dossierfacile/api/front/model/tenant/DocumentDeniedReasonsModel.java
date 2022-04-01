@@ -16,6 +16,7 @@ import java.util.List;
 public class DocumentDeniedReasonsModel {
     private List<String> checkedOptions;
     private List<Integer> checkedOptionsId;
+    private List<SelectedOption> selectedOptions;
     private boolean messageData;
     private String comment;
 }
