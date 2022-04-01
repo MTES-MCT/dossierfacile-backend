@@ -2,8 +2,11 @@ package fr.dossierfacile.api.front.service;
 
 import fr.dossierfacile.api.front.exception.ConfirmationTokenNotFoundException;
 import fr.dossierfacile.api.front.repository.ConfirmationTokenRepository;
+import fr.dossierfacile.api.front.repository.DocumentRepository;
+import fr.dossierfacile.api.front.repository.GuarantorRepository;
 import fr.dossierfacile.api.front.service.interfaces.ConfirmationTokenService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
+import fr.dossierfacile.api.front.service.interfaces.GuarantorService;
 import fr.dossierfacile.api.front.service.interfaces.LogService;
 import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.api.front.service.interfaces.ScheduledTasksService;
@@ -30,11 +33,14 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ScheduledTasksServiceImpl implements ScheduledTasksService {
     private final TenantCommonRepository tenantRepository;
+    private final DocumentRepository documentRepository;
+    private final GuarantorRepository guarantorRepository;
     private final ConfirmationTokenRepository confirmationTokenRepository;
     private final MailService mailService;
     private final LogService logService;
     private final ConfirmationTokenService confirmationTokenService;
     private final DocumentService documentService;
+    private final GuarantorService guarantorService;
     @Value("${days_for_email_account_validation_reminder}")
     private Long daysForEmailAccountValidationReminder;
     @Value("${days_for_account_completion_reminder}")
@@ -153,60 +159,85 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
         //endregion
     }
 
-    @Scheduled(cron = "0 0 17 * * 5")
+    @Scheduled(cron = "0 0 8 * * 5")
     public void accountWarningsForDocumentDeletion() {
-        log.info("Executing scheduled task for account warnings at [" + LocalDateTime.now() + "]");
-        LocalDateTime localDateTime = LocalDateTime.now()
-                .minusMonths(monthsForDeletionOfDocuments);
+        log.info("accountWarnings. Executing scheduled task for account warnings at [" + LocalDateTime.now() + "]");
 
+        LocalDateTime localDateTime = LocalDateTime.now().minusMonths(monthsForDeletionOfDocuments);
+
+        processWarnings(0, localDateTime);
+        processWarnings(1, localDateTime);
+        processWarnings(2, localDateTime);
+
+        log.info("accountWarnings. Account warnings' task was finished");
+    }
+
+    public void processWarnings(int warnings, LocalDateTime localDateTime) {
         int lengthOfPage = 100;
         Pageable page = PageRequest.of(0, lengthOfPage, Sort.Direction.DESC, "id");
-        Page<Tenant> tenantList = tenantRepository.findByLastLoginDateIsBeforeAndHasDocuments(page, localDateTime);
-        log.info("Found [" + tenantList.getTotalElements() + "] tenants that needs to be warned because they have not logged in for [" + monthsForDeletionOfDocuments + "] months");
+        Page<Tenant> tenantList = tenantRepository.findByLastLoginDateIsBeforeAndHasDocuments(page, localDateTime, warnings);
+
+        switch (warnings) {
+            case 0 -> log.info("accountWarnings. Found [" + tenantList.getTotalElements() + "] tenants who will be warned for FIRST time by email");
+            case 1 -> log.info("accountWarnings. Found [" + tenantList.getTotalElements() + "] tenants who will be warned for SECOND time by email");
+            case 2 -> log.info("accountWarnings. Found [" + tenantList.getTotalElements() + "] tenants whose documents will be deleted");
+        }
 
         if (tenantList.getTotalElements() > 0) {
             while (!tenantList.isEmpty()) {
                 page = page.next();
 
-                long firstWarning = tenantList.stream().filter(tenant -> tenant.getWarnings() == 0).count();
-                log.info("- [" + firstWarning + "] of them to be warned with first email warning");
-                long secondWarning = tenantList.stream().filter(tenant -> tenant.getWarnings() == 1).count();
-                log.info("- [" + secondWarning + "] of them to be warned with second email warning");
-                long withDocumentsToDelete = tenantList.stream().filter(tenant -> tenant.getWarnings() == 2).count();
-                log.info("- To [" + withDocumentsToDelete + "] of them will have their documents deleted");
-
                 for (Tenant t : tenantList) {
-                    switch (t.getWarnings()) {
+                    switch (warnings) {
                         case 0 -> {
+                            log.info("accountWarnings. FIRST warning for tenant with ID [" + t.getId() + "]");
                             t.setWarnings(1);
                             tenantRepository.save(t);
                             mailService.sendEmailFirstWarningForDeletionOfDocuments(t, confirmationTokenService.createToken(t));
                             logService.saveLog(LogType.FIRST_ACCOUNT_WARNING_FOR_DOCUMENT_DELETION, t.getId());
                         }
                         case 1 -> {
+                            log.info("accountWarnings. SECOND warning for tenant with ID [" + t.getId() + "]");
                             t.setWarnings(2);
                             tenantRepository.save(t);
                             mailService.sendEmailSecondWarningForDeletionOfDocuments(t, confirmationTokenService.createToken(t));
                             logService.saveLog(LogType.SECOND_ACCOUNT_WARNING_FOR_DOCUMENT_DELETION, t.getId());
                         }
                         case 2 -> {
+                            log.info("accountWarnings. Documents deletion for tenant with ID [" + t.getId() + "]");
                             t.setWarnings(0);
                             t.setConfirmationToken(null);
                             t.setHonorDeclaration(false);
-                            t.setStatus(TenantFileStatus.INCOMPLETE);
+                            t.setStatus(TenantFileStatus.ARCHIVED);
+                            t.setZipCode("");
+                            t.setClarification("");
                             tenantRepository.save(t);
 
                             ConfirmationToken confirmationToken = confirmationTokenRepository.findByUser(t).orElseThrow(() -> new ConfirmationTokenNotFoundException(t.getId()));
                             confirmationTokenRepository.delete(confirmationToken);
 
                             documentService.deleteAllDocumentsAssociatedToTenant(t);
+                            guarantorService.deleteAllGuaratorsAssociatedToTenant(t);
                             logService.saveLog(LogType.DOCUMENT_DELETION_AFTER_2_ACCOUNT_WARNINGS, t.getId());
                         }
                     }
                 }
-                tenantList = tenantRepository.findByLastLoginDateIsBeforeAndHasDocuments(page, localDateTime);
+
+                tenantList = tenantRepository.findByLastLoginDateIsBeforeAndHasDocuments(page, localDateTime, warnings);
             }
+
+            log.info("accountWarnings. Flushing all elements related to " + (warnings == 0 ? "FIRST email warning" : warnings == 1 ? "SECOND email warning" : "deletion of documents"));
+            switch (warnings) {
+                case 0 -> tenantRepository.flush();
+                case 1 -> tenantRepository.flush();
+                case 2 -> {
+                    tenantRepository.flush();
+                    confirmationTokenRepository.flush();
+                    documentRepository.flush();
+                    guarantorRepository.flush();
+                }
+            }
+            log.info("accountWarnings. END. Flushing all elements related to " + (warnings == 0 ? "FIRST email warning" : warnings == 1 ? "SECOND email warning" : "deletion of documents"));
         }
-        log.info("Account warnings' task finished");
     }
 }

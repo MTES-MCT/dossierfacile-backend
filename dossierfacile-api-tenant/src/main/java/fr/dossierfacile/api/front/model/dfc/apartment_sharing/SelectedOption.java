@@ -6,17 +6,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class DocumentDeniedReasonsModel {
-    private List<String> checkedOptions;
-    private List<Integer> checkedOptionsId;
-    private List<SelectedOption> selectedOptions;
-    private boolean messageData;
-    private String comment;
+public class SelectedOption {
+    private Integer id;
+    private String label;
 }

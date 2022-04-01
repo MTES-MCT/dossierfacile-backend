@@ -12,5 +12,5 @@ public interface TenantService {
 
     void updateTenantStatus(Tenant tenant);
 
-    void updateLastLoginDate(Tenant tenant);
+    void updateLastLoginDateAndResetWarnings(Tenant tenant);
 }
