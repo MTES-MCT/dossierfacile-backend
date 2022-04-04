@@ -1,6 +1,7 @@
 package fr.dossierfacile.api.dossierfacileapiowner.property;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import fr.dossierfacile.common.enums.ApplicationType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,4 +17,5 @@ import java.util.List;
 public class ApartmentSharingModel {
     private Long id;
     private List<TenantModel> tenants;
+    private ApplicationType applicationType;
 }

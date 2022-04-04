@@ -1,7 +1,7 @@
 package fr.dossierfacile.api.dossierfacileapiowner.property;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.enums.TenantFileStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,4 +18,5 @@ public class TenantModel {
     private Long id;
     private String firstName;
     private String lastName;
+    private TenantFileStatus status;
 }
