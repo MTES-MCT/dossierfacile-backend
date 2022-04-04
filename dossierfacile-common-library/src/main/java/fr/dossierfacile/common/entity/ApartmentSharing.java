@@ -2,6 +2,7 @@ package fr.dossierfacile.common.entity;
 
 
 import fr.dossierfacile.common.enums.ApplicationType;
+import fr.dossierfacile.common.enums.FileStatus;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -62,6 +63,11 @@ public class ApartmentSharing implements Serializable {
     private ApplicationType applicationType;
 
     private String urlDossierPdfDocument;
+
+    @Column
+    @Enumerated(EnumType.STRING)
+    private FileStatus dossierPdfDocumentStatus;
+
 
     public ApartmentSharing(Tenant tenant) {
         tenants.add(tenant);

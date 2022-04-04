@@ -1,6 +1,7 @@
 package fr.gouv.bo.service;
 
 import fr.dossierfacile.common.entity.ApartmentSharing;
+import fr.dossierfacile.common.enums.FileStatus;
 import fr.dossierfacile.common.service.interfaces.OvhService;
 import fr.gouv.bo.dto.ApartmentSharingDTO01;
 import fr.gouv.bo.repository.ApartmentSharingRepository;
@@ -43,6 +44,7 @@ public class ApartmentSharingService {
         if (currentUrl != null) {
             ovhService.delete(currentUrl);
             apartmentSharing.setUrlDossierPdfDocument(null);
+            apartmentSharing.setDossierPdfDocumentStatus(FileStatus.DELETED);
             apartmentSharingRepository.save(apartmentSharing);
         }
     }

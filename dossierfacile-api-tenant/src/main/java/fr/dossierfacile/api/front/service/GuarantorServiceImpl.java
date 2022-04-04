@@ -26,4 +26,9 @@ public class GuarantorServiceImpl implements GuarantorService {
         tenantService.updateTenantStatus(tenant);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
     }
+
+    @Override
+    public void deleteAllGuaratorsAssociatedToTenant(Tenant tenant) {
+        guarantorRepository.deleteAll(guarantorRepository.findGuarantorsByTenant(tenant));
+    }
 }

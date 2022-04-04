@@ -1,1 +1,1 @@
-web: java -jar dossier-facile-pdf-generator.jar
+web: java -jar target/dossierfacile-pdf-generator.jar
