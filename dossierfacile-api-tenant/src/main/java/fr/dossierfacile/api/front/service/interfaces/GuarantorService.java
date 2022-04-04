@@ -4,4 +4,5 @@ import fr.dossierfacile.common.entity.Tenant;
 
 public interface GuarantorService {
     void delete(Long id, Tenant tenant);
+    void deleteAllGuaratorsAssociatedToTenant(Tenant tenant);
 }

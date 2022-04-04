@@ -58,7 +58,7 @@ public class SwaggerConfig {
                         "</div>",
                 "1.0",
                 URL,
-                new Contact("", URL, "contact@example.com"),
+                new Contact("Harlow Fres", URL, "contact@example.com"),
                 "License of API", URL, Collections.emptyList());
     }
 

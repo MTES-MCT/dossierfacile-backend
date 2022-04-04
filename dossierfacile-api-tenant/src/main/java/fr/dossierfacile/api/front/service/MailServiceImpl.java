@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -28,7 +29,8 @@ import static com.mailjet.client.resource.Emailv31.Message.EMAIL;
 @RequiredArgsConstructor
 @Slf4j
 public class MailServiceImpl implements MailService {
-    private final MailjetClient client;
+    private final @Qualifier("common_account") MailjetClient commonAccount;
+    private final @Qualifier("warnings_account") MailjetClient warningsAccount;
     @Value("${email.from}")
     private String emailFrom;
     @Value("${mailjet.template.id.welcome}")
@@ -70,7 +72,7 @@ public class MailServiceImpl implements MailService {
                 .variables(variables)
                 .templateID(templateIDWelcome)
                 .build();
-        sendMailJetApi(mailjetModel);
+        sendMailJetApiWithCommonAccount(mailjetModel);
     }
 
     @Async
@@ -86,7 +88,7 @@ public class MailServiceImpl implements MailService {
                 .variables(variables)
                 .templateID(templateIdNewPassword)
                 .build();
-        sendMailJetApi(mailjetModel);
+        sendMailJetApiWithCommonAccount(mailjetModel);
     }
 
     @Async
@@ -108,7 +110,7 @@ public class MailServiceImpl implements MailService {
                 .variables(variables)
                 .templateID(templateId)
                 .build();
-        sendMailJetApi(mailjetModel);
+        sendMailJetApiWithCommonAccount(mailjetModel);
     }
 
     @Async
@@ -124,7 +126,7 @@ public class MailServiceImpl implements MailService {
                 .variables(variables)
                 .templateID(templateIdAccountDeleted)
                 .build();
-        sendMailJetApi(mailjetModel);
+        sendMailJetApiWithCommonAccount(mailjetModel);
     }
 
     @Async
@@ -140,7 +142,7 @@ public class MailServiceImpl implements MailService {
                 .variables(variables)
                 .templateID(templateIdAccountCompleted)
                 .build();
-        sendMailJetApi(mailjetModel);
+        sendMailJetApiWithCommonAccount(mailjetModel);
     }
 
     @Async
@@ -157,7 +159,7 @@ public class MailServiceImpl implements MailService {
                 .variables(variables)
                 .templateID(templateEmailWhenEmailAccountNotYetValidated)
                 .build();
-        sendMailJetApi(mailjetModel);
+        sendMailJetApiWithCommonAccount(mailjetModel);
     }
 
     @Async
@@ -173,7 +175,7 @@ public class MailServiceImpl implements MailService {
                 .variables(variables)
                 .templateID(templateEmailWhenAccountNotYetCompleted)
                 .build();
-        sendMailJetApi(mailjetModel);
+        sendMailJetApiWithCommonAccount(mailjetModel);
     }
 
     @Async
@@ -189,7 +191,7 @@ public class MailServiceImpl implements MailService {
                 .variables(variables)
                 .templateID(templateEmailWhenAccountIsStillDeclined)
                 .build();
-        sendMailJetApi(mailjetModel);
+        sendMailJetApiWithCommonAccount(mailjetModel);
     }
 
     @Override
@@ -200,7 +202,7 @@ public class MailServiceImpl implements MailService {
                 .toName(user.getFullName())
                 .templateID(templateEmailWhenTenantNOTAssociatedToPartnersAndValidated)
                 .build();
-        sendMailJetApi(mailjetModel);
+        sendMailJetApiWithCommonAccount(mailjetModel);
     }
 
     @Override
@@ -211,7 +213,7 @@ public class MailServiceImpl implements MailService {
                 .toName(user.getFullName())
                 .templateID(templateEmailWhenTenantYESAssociatedToPartnersAndValidated)
                 .build();
-        sendMailJetApi(mailjetModel);
+        sendMailJetApiWithCommonAccount(mailjetModel);
     }
 
     @Override
@@ -227,7 +229,7 @@ public class MailServiceImpl implements MailService {
                 .variables(variables)
                 .templateID(templateFirstWarningForDeletionOfDocuments)
                 .build();
-        sendMailJetApi(mailjetModel);
+        sendMailJetApiWithWarningsAccount(mailjetModel);
     }
 
     @Override
@@ -243,10 +245,10 @@ public class MailServiceImpl implements MailService {
                 .variables(variables)
                 .templateID(templateSecondWarningForDeletionOfDocuments)
                 .build();
-        sendMailJetApi(mailjetModel);
+        sendMailJetApiWithWarningsAccount(mailjetModel);
     }
 
-    private void sendMailJetApi(MailJetModel mailjetModel) {
+    private void sendMailJetApiWithCommonAccount(MailJetModel mailjetModel) {
         MailjetRequest request;
         MailjetResponse response;
 
@@ -324,7 +326,93 @@ public class MailServiceImpl implements MailService {
                 .property(Emailv31.MESSAGES, new JSONArray()
                         .put(message));
         try {
-            response = client.post(request);
+            response = commonAccount.post(request);
+            log.info("ResponseStatus: {}", response.getStatus());
+            log.info("Response: {}", response.getData());
+        } catch (MailjetException e) {
+            log.error("MailjetException", e);
+        }
+    }
+
+    private void sendMailJetApiWithWarningsAccount(MailJetModel mailjetModel) {
+        MailjetRequest request;
+        MailjetResponse response;
+
+        JSONObject message = new JSONObject();
+        //from
+        if (mailjetModel.getFromEmail() != null) {
+            JSONObject from = new JSONObject();
+            from.put(EMAIL, mailjetModel.getFromEmail());
+            if (mailjetModel.getFromName() != null) {
+                from.put("Name", mailjetModel.getFromName());
+            }
+            message.put(Emailv31.Message.FROM, from);
+        }
+
+        //to
+        if (mailjetModel.getToEmail() != null) {
+            JSONArray to = new JSONArray();
+            JSONObject to1 = new JSONObject();
+            to1.put(EMAIL, mailjetModel.getToEmail());
+            if (mailjetModel.getToName() != null) {
+                to1.put("Name", mailjetModel.getToName());
+            }
+            message.put(Emailv31.Message.TO, to.put(to1));
+        }
+
+        //replyTo
+        if (mailjetModel.getReplyToEmail() != null) {
+            JSONObject replyTo = new JSONObject();
+            replyTo.put(EMAIL, mailjetModel.getReplyToEmail());
+            if (mailjetModel.getReplyToName() != null) {
+                replyTo.put("Name", mailjetModel.getReplyToName());
+            }
+            message.put(Emailv31.Message.REPLYTO, replyTo);
+        }
+
+        //cc
+        if (mailjetModel.getCcEmail() != null) {
+            JSONArray cc = new JSONArray();
+            JSONObject cc1 = new JSONObject();
+            cc1.put(EMAIL, mailjetModel.getCcEmail());
+            if (mailjetModel.getCcName() != null) {
+                cc1.put("Name", mailjetModel.getCcName());
+            }
+            message.put(Emailv31.Message.CC, cc.put(cc1));
+        }
+
+        //bcc
+        if (mailjetModel.getBccEmail() != null) {
+            JSONArray bcc = new JSONArray();
+            JSONObject bcc1 = new JSONObject();
+            bcc1.put(EMAIL, mailjetModel.getBccEmail());
+            if (mailjetModel.getCcName() != null) {
+                bcc1.put("Name", mailjetModel.getCcName());
+            }
+            message.put(Emailv31.Message.BCC, bcc.put(bcc1));
+        }
+
+        //subject
+        if (mailjetModel.getSubject() != null) {
+            message.put(Emailv31.Message.SUBJECT, mailjetModel.getSubject());
+        }
+
+        //template language
+        message.put(Emailv31.Message.TEMPLATELANGUAGE, true);
+
+        //variables
+        if (mailjetModel.getVariables() != null) {
+            message.put(Emailv31.Message.VARIABLES, new JSONObject(mailjetModel.getVariables()));
+        }
+
+        //templateID
+        message.put(Emailv31.Message.TEMPLATEID, mailjetModel.getTemplateID());
+
+        request = new MailjetRequest(Emailv31.resource)
+                .property(Emailv31.MESSAGES, new JSONArray()
+                        .put(message));
+        try {
+            response = warningsAccount.post(request);
             log.info("ResponseStatus: {}", response.getStatus());
             log.info("Response: {}", response.getData());
         } catch (MailjetException e) {

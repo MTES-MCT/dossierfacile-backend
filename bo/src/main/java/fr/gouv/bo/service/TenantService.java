@@ -340,6 +340,7 @@ public class TenantService {
                         mailMessage.append(P_LI);
                         DocumentDeniedOptions documentDeniedOptions = setCheckedOptionsId(messageItem.getDocumentId(), USER_TYPE_TENANT, itemDetail.getMessage());
                         documentDeniedReasons.getCheckedOptionsId().add(documentDeniedOptions.getId());
+                        documentDeniedReasons.getCheckedOptions().add(itemDetail.getMessage());
                     }
                 }
 
@@ -380,6 +381,7 @@ public class TenantService {
                             mailMessage.append(P_LI);
                             DocumentDeniedOptions documentDeniedOptions = setCheckedOptionsId(messageItem.getDocumentId(), USER_TYPE_GUARANTOR, itemDetail.getMessage());
                             documentDeniedReasons.getCheckedOptionsId().add(documentDeniedOptions.getId());
+                            documentDeniedReasons.getCheckedOptions().add(itemDetail.getMessage());
                         }
                     }
 

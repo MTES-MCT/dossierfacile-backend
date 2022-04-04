@@ -1,1 +1,1 @@
-web: java -jar dossier-facile-process-file.jar
+web: java -jar target/dossier-facile-process-file.jar

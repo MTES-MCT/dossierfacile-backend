@@ -10,6 +10,7 @@ import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.common.entity.Property;
 import fr.dossierfacile.common.entity.PropertyApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import lombok.AllArgsConstructor;
@@ -56,8 +57,12 @@ public class TenantServiceImpl implements TenantService {
     }
 
     @Override
-    public void updateLastLoginDate(Tenant tenant) {
+    public void updateLastLoginDateAndResetWarnings(Tenant tenant) {
         tenant.setLastLoginDate(LocalDateTime.now());
+        tenant.setWarnings(0);
+        if (tenant.getStatus() == TenantFileStatus.ARCHIVED) {
+            tenant.setStatus(TenantFileStatus.INCOMPLETE);
+        }
         log.info("Updating last_login_date of tenant with ID [" + tenant.getId() + "]");
         tenantRepository.save(tenant);
     }

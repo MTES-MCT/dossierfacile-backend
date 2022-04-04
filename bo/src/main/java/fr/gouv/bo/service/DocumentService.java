@@ -69,6 +69,7 @@ public class DocumentService {
         DocumentStatus documentStatus = DocumentStatus.valueOf(messageDTO.getMessage());
 
         document.setDocumentStatus(documentStatus);
+        document.setDocumentDeniedReasons(null);
         documentRepository.save(document);
 
         Tenant tenant;

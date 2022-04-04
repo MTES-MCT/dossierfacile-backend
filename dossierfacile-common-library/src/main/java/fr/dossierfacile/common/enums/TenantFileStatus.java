@@ -5,7 +5,8 @@ public enum TenantFileStatus {
     TO_PROCESS("non vérifié"),
     VALIDATED("vérifié"),
     DECLINED("modification demandée"),
-    INCOMPLETE("non terminé");
+    INCOMPLETE("non terminé"),
+    ARCHIVED("");
 
 
     String label;

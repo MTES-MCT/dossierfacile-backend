@@ -1,0 +1,27 @@
+name: Publish package to GitHub Packages
+
+on:
+  release:
+    types: [created]
+  push:
+    branches:
+      - main
+      - develop
+
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-java@v2
+        with:
+          java-version: '17'
+          distribution: 'adopt'
+      - name: Publish package
+        run: cd dossierfacile-common-library && mvn --batch-mode deploy
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
