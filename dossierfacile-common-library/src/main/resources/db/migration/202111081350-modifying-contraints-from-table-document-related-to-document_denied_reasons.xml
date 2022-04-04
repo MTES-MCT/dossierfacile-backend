@@ -1,0 +1,17 @@
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+    <changeSet id="202111081350" author="harlow">
+        <sql>
+            ALTER TABLE public.document
+            DROP CONSTRAINT document_document_denied_reasons_id_fkey;
+
+            ALTER TABLE public.document
+            ADD CONSTRAINT document_document_denied_reasons_id_fkey
+            FOREIGN KEY (document_denied_reasons_id)
+            REFERENCES public.document_denied_reasons (id)
+            ON UPDATE NO ACTION ON DELETE SET NULL;
+        </sql>
+    </changeSet>
+</databaseChangeLog>

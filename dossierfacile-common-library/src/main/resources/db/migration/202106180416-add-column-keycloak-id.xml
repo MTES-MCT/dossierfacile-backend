@@ -1,0 +1,10 @@
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+    <changeSet id="202106180416" author="harlow">
+        <sql>
+            ALTER TABLE public."user_account" ADD keycloak_id character varying NULL;
+        </sql>
+    </changeSet>
+</databaseChangeLog>

@@ -1,0 +1,11 @@
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+    <changeSet id="202111221454" author="harlow">
+        <sql>
+            ALTER TABLE public.file DROP COLUMN shareid_identification;
+            ALTER TABLE public.document DROP COLUMN discard_shareid_warning;
+        </sql>
+    </changeSet>
+</databaseChangeLog>

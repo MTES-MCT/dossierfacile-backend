@@ -1,0 +1,11 @@
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+    <changeSet id="202108021240" author="harlow">
+        <sql>
+            ALTER TABLE public."document" ADD processing_start_time timestamp NULL;
+            ALTER TABLE public."document" ADD processing_end_time timestamp NULL;
+        </sql>
+    </changeSet>
+</databaseChangeLog>
