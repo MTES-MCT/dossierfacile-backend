@@ -1,5 +1,7 @@
 package fr.dossierfacile.api.dossierfacileapiowner.property;
 
+import fr.dossierfacile.common.enums.PropertyFurniture;
+import fr.dossierfacile.common.enums.PropertyType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,4 +21,8 @@ public class PropertyForm {
     private Double rentCost;
 
     private Boolean validated;
+
+    private PropertyType type;
+
+    private PropertyFurniture furniture;
 }

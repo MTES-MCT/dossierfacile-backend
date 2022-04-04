@@ -2,6 +2,8 @@ package fr.dossierfacile.api.dossierfacileapiowner.property;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import fr.dossierfacile.common.entity.PropertyApartmentSharing;
+import fr.dossierfacile.common.enums.PropertyFurniture;
+import fr.dossierfacile.common.enums.PropertyType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,4 +23,6 @@ public class PropertyModel {
     private String token;
     private Boolean validated;
     private List<PropertyApartmentSharingModel> propertiesApartmentSharing;
+    private PropertyType type;
+    private PropertyFurniture furniture;
 }

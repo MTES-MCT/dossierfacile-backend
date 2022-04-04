@@ -32,6 +32,12 @@ public class PropertyServiceImpl implements PropertyService {
         if (propertyForm.getName() != null && !propertyForm.getName().isBlank()) {
             property.setName(propertyForm.getName());
         }
+        if (propertyForm.getType() != null) {
+            property.setType(propertyForm.getType());
+        }
+        if (propertyForm.getFurniture() != null) {
+            property.setFurniture(propertyForm.getFurniture());
+        }
         if (propertyForm.getRentCost() != null && propertyForm.getRentCost() > 0) {
             property.setRentCost(propertyForm.getRentCost());
         }

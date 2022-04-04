@@ -2,6 +2,9 @@ package fr.dossierfacile.common.entity;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import fr.dossierfacile.common.enums.PropertyFurniture;
+import fr.dossierfacile.common.enums.PropertyType;
+import fr.dossierfacile.common.enums.TenantType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,6 +15,8 @@ import org.apache.commons.lang3.RandomStringUtils;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -95,6 +100,14 @@ public class Property implements Serializable {
     @Builder.Default
     @Column(nullable = false, columnDefinition = "boolean default false")
     private Boolean validated = false;
+
+    @Column
+    @Enumerated(EnumType.STRING)
+    private PropertyType type;
+
+    @Column
+    @Enumerated(EnumType.STRING)
+    private PropertyFurniture furniture;
 
     public Property(Owner owner, String name, String propertyId) {
         this.owner = owner;
