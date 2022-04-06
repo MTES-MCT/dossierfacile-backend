@@ -124,4 +124,14 @@ public class ApartmentSharing implements Serializable {
         }
         return totalSalary;
     }
+
+    public List<TenantUserApi> groupingAllTenantUserApisInTheApartment() {
+        List<TenantUserApi> tenantUserApis = new ArrayList<>();
+        if (tenants != null && !tenants.isEmpty()) {
+            tenants.stream()
+                    .filter(t -> t.getTenantsUserApi() != null && !t.getTenantsUserApi().isEmpty())
+                    .forEach(t -> tenantUserApis.addAll(t.getTenantsUserApi()));
+        }
+        return tenantUserApis;
+    }
 }

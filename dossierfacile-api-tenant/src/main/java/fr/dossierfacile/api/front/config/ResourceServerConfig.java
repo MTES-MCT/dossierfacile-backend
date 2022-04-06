@@ -7,6 +7,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.header.writers.StaticHeadersWriter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -23,18 +24,22 @@ public class ResourceServerConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .headers()
-                .contentTypeOptions()
+                    .addHeaderWriter(new StaticHeadersWriter("X-Content-Security-Policy","script-src 'self'"))
+                    .addHeaderWriter(new StaticHeadersWriter("X-Content-Type-Options","nosniff"))
+                    .contentTypeOptions()
                 .and()
                 .xssProtection()
                 .and()
                 .cacheControl()
                 .and()
                 .httpStrictTransportSecurity()
-                .maxAgeInSeconds(31536000)
+                .maxAgeInSeconds(63072000)
                 .includeSubDomains(true)
                 .and()
-                .contentSecurityPolicy("script-src 'self'")
+                .contentSecurityPolicy("default-src 'none'; frame-ancestors 'none'")
                 .and()
+                .frameOptions()
+                .sameOrigin()
                 .and()
                 .formLogin()
                 .disable()

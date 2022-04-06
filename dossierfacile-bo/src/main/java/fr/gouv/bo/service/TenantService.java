@@ -9,7 +9,6 @@ import fr.dossierfacile.common.entity.Log;
 import fr.dossierfacile.common.entity.Message;
 import fr.dossierfacile.common.entity.OperatorLog;
 import fr.dossierfacile.common.entity.Tenant;
-import fr.dossierfacile.common.entity.TenantUserApi;
 import fr.dossierfacile.common.entity.User;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.ActionOperatorType;
@@ -149,42 +148,30 @@ public class TenantService {
     }
 
     public void partnerCallBackServiceWhenAccountIsDeclined(Tenant tenant) {
-        List<TenantUserApi> tenantUserApis = tenant.getTenantsUserApi();
-        if (tenantUserApis != null && !tenantUserApis.isEmpty()) {
-            for (TenantUserApi tenantUserApi : tenantUserApis
-            ) {
-                UserApi userApi = tenantUserApi.getUserApi();
-                if (userApi.getVersion() != null && userApi.getUrlCallback() != null) {
-                    partnerCallBackService.sendCallBack(tenant, tenantUserApi.getUserApi(), PartnerCallBackType.DENIED_ACCOUNT);
-                }
+        tenant.getApartmentSharing().groupingAllTenantUserApisInTheApartment().forEach(tenantUserApi -> {
+            UserApi userApi = tenantUserApi.getUserApi();
+            if (userApi.getVersion() != null && userApi.getUrlCallback() != null) {
+                partnerCallBackService.sendCallBack(tenant, tenantUserApi.getUserApi(), PartnerCallBackType.DENIED_ACCOUNT);
             }
-        }
+        });
     }
 
     public void partnerCallBackServiceWhenDeleteTenant(Tenant tenant) {
-        List<TenantUserApi> tenantUserApis = tenant.getTenantsUserApi();
-        if (tenantUserApis != null && !tenantUserApis.isEmpty()) {
-            for (TenantUserApi tenantUserApi : tenantUserApis
-            ) {
-                UserApi userApi = tenantUserApi.getUserApi();
-                if (userApi.getVersion() != null && userApi.getUrlCallback() != null) {
-                    partnerCallBackService.sendCallBack(tenant, userApi, PartnerCallBackType.DELETED_ACCOUNT);
-                }
+        tenant.getApartmentSharing().groupingAllTenantUserApisInTheApartment().forEach(tenantUserApi -> {
+            UserApi userApi = tenantUserApi.getUserApi();
+            if (userApi.getVersion() != null && userApi.getUrlCallback() != null) {
+                partnerCallBackService.sendCallBack(tenant, userApi, PartnerCallBackType.DELETED_ACCOUNT);
             }
-        }
+        });
     }
 
     public void partnerCallBackServiceWhenValidated(Tenant tenant) {
-        List<TenantUserApi> tenantUserApis = tenant.getTenantsUserApi();
-        if (tenantUserApis != null && !tenantUserApis.isEmpty()) {
-            for (TenantUserApi tenantUserApi : tenantUserApis
-            ) {
-                UserApi userApi = tenantUserApi.getUserApi();
-                if (userApi.getVersion() != null && userApi.getUrlCallback() != null) {
-                    partnerCallBackService.sendCallBack(tenant, tenantUserApi.getUserApi(), PartnerCallBackType.VERIFIED_ACCOUNT);
-                }
+        tenant.getApartmentSharing().groupingAllTenantUserApisInTheApartment().forEach(tenantUserApi -> {
+            UserApi userApi = tenantUserApi.getUserApi();
+            if (userApi.getVersion() != null && userApi.getUrlCallback() != null) {
+                partnerCallBackService.sendCallBack(tenant, userApi, PartnerCallBackType.VERIFIED_ACCOUNT);
             }
-        }
+        });
     }
 
     public Tenant find(Long id) {
@@ -542,7 +529,7 @@ public class TenantService {
 
                         this.wait(50);
                     } catch (InterruptedException e) {
-                        log.error("InterruptedException callBackManually ",e);
+                        log.error("InterruptedException callBackManually ", e);
                         Thread.currentThread().interrupt();
                     }
                 }

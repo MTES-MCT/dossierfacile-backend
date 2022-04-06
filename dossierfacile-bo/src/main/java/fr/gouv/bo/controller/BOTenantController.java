@@ -102,9 +102,9 @@ public class BOTenantController {
 
         Tenant tenant = tenantService.find(id);
 
-        UserApi result = userApiService.findById(partnerDTO.getPartner());
-        tenantUserApiService.getTenantUserApi(tenant, partnerDTO.getPartner(), partnerDTO.getInternalPartnerId());
-        partnerCallBackService.sendCallBack(tenant, result, tenant.getStatus() == TenantFileStatus.VALIDATED ?
+        UserApi userApi = userApiService.findById(partnerDTO.getPartner());
+        tenantUserApiService.addInternalPartnerIdToTenantUserApi(tenant, partnerDTO.getPartner(), partnerDTO.getInternalPartnerId());
+        partnerCallBackService.sendCallBack(tenant, userApi, tenant.getStatus() == TenantFileStatus.VALIDATED ?
                 PartnerCallBackType.VERIFIED_ACCOUNT :
                 PartnerCallBackType.CREATED_ACCOUNT);
 

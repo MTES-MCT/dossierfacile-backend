@@ -50,48 +50,36 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
         if (tenantFileStatus == TenantFileStatus.VALIDATED
                 || tenantFileStatus == TenantFileStatus.TO_PROCESS) {
 
-            List<TenantUserApi> tenantUserApiList = tenant.getTenantsUserApi();
-            if (tenantUserApiList != null && !tenantUserApiList.isEmpty()) {
-                for (TenantUserApi tenantUserApi : tenantUserApiList
-                ) {
-                    UserApi userApi = tenantUserApi.getUserApi();
-                    if (userApi.getVersion() != null && userApi.getUrlCallback() != null) {
-                        sendCallBack(
-                                tenant,
-                                userApi,
-                                tenantFileStatus == TenantFileStatus.VALIDATED ?
-                                        PartnerCallBackType.VERIFIED_ACCOUNT :
-                                        PartnerCallBackType.CREATED_ACCOUNT
-                        );
-                    }
+            tenant.getApartmentSharing().groupingAllTenantUserApisInTheApartment().forEach(tenantUserApi -> {
+                UserApi userApi = tenantUserApi.getUserApi();
+                if (userApi.getVersion() != null && userApi.getUrlCallback() != null) {
+                    sendCallBack(
+                            tenant,
+                            userApi,
+                            tenantFileStatus == TenantFileStatus.VALIDATED ?
+                                    PartnerCallBackType.VERIFIED_ACCOUNT :
+                                    PartnerCallBackType.CREATED_ACCOUNT
+                    );
                 }
-            }
+            });
         }
     }
 
     public void registerTenant(String internalPartnerId, Tenant tenant, UserApi userApi) {
-        TenantUserApi tenantUserApi = tenantUserApiRepository.findFirstByTenantAndUserApi(tenant, userApi);
-        if (tenantUserApi == null) {
-            tenantUserApi = TenantUserApi.builder()
-                    .id(new TenantUserApiKey(tenant.getId(), userApi.getId()))
-                    .tenant(tenant)
-                    .userApi(userApi)
-                    .allInternalPartnerId(
-                            internalPartnerId != null && !internalPartnerId.isEmpty() ?
-                                    Collections.singletonList(internalPartnerId) :
-                                    Collections.emptyList()
-                    )
-                    .build();
-            tenantUserApiRepository.save(tenantUserApi);
-        } else {
-            if (internalPartnerId != null && !internalPartnerId.isEmpty()) {
-                if (tenantUserApi.getAllInternalPartnerId() == null) {
-                    tenantUserApi.setAllInternalPartnerId(Collections.singletonList(internalPartnerId));
-                } else if (!tenantUserApi.getAllInternalPartnerId().contains(internalPartnerId)) {
-                    tenantUserApi.getAllInternalPartnerId().add(internalPartnerId);
-                }
-                tenantUserApiRepository.save(tenantUserApi);
+        TenantUserApi tenantUserApi = tenantUserApiRepository.findFirstByTenantAndUserApi(tenant, userApi).orElse(
+                TenantUserApi.builder()
+                        .id(new TenantUserApiKey(tenant.getId(), userApi.getId()))
+                        .tenant(tenant)
+                        .userApi(userApi)
+                        .build()
+        );
+        if (internalPartnerId != null && !internalPartnerId.isEmpty()) {
+            if (tenantUserApi.getAllInternalPartnerId() == null) {
+                tenantUserApi.setAllInternalPartnerId(Collections.singletonList(internalPartnerId));
+            } else if (!tenantUserApi.getAllInternalPartnerId().contains(internalPartnerId)) {
+                tenantUserApi.getAllInternalPartnerId().add(internalPartnerId);
             }
+            tenantUserApiRepository.save(tenantUserApi);
         }
 
         if (userApi.getVersion() != null && userApi.getUrlCallback() != null && (
@@ -130,7 +118,7 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
                         lightAPIInfoModel.getEmails().add(t.getEmail());
                     }
 
-                    TenantUserApi tenantUserApi = tenantUserApiRepository.findFirstByTenantAndUserApi(t, userApi);
+                    TenantUserApi tenantUserApi = tenantUserApiRepository.findFirstByTenantAndUserApi(t, userApi).orElse(null);
                     if (tenantUserApi != null && tenantUserApi.getAllInternalPartnerId() != null && !tenantUserApi.getAllInternalPartnerId().isEmpty()) {
                         lightAPIInfoModel.getInternalPartnersId().addAll(tenantUserApi.getAllInternalPartnerId());
                     }
@@ -174,16 +162,14 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
                 ApplicationModel applicationModel = applicationFullMapper.toApplicationModel(apartmentSharing);
                 List<Tenant> tenantList = tenantRepository.findAllByApartmentSharing(apartmentSharing);
                 for (Tenant t : tenantList) {
-
-                    TenantUserApi tenantUserApi = tenantUserApiRepository.findFirstByTenantAndUserApi(t, userApi);
-                    if (tenantUserApi != null) {
+                    tenantUserApiRepository.findFirstByTenantAndUserApi(t, userApi).ifPresent(tenantUserApi -> {
                         if (tenantUserApi.getAllInternalPartnerId() != null && !tenantUserApi.getAllInternalPartnerId().isEmpty()) {
                             applicationModel.getTenants().stream()
                                     .filter(tenantObject -> Objects.equals(tenantObject.getId(), t.getId()))
                                     .findFirst()
                                     .ifPresent(tenantModel -> tenantModel.setAllInternalPartnerId(tenantUserApi.getAllInternalPartnerId()));
                         }
-                    }
+                    });
                 }
                 applicationModel.setPartnerCallBackType(partnerCallBackType);
                 requestService.send(applicationModel, userApi.getUrlCallback(), userApi.getPartnerApiKeyCallback());
