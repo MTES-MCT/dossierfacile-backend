@@ -1,5 +1,7 @@
 package fr.dossierfacile.api.front.controller;
 
+import fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException;
+import fr.dossierfacile.api.front.exception.ApartmentSharingUnexpectedException;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
 import lombok.RequiredArgsConstructor;
@@ -51,17 +53,24 @@ public class ApplicationController {
             }
         } catch (IOException e) {
             log.error(e.getMessage(), e.getCause());
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
 
     @PostMapping(value = "/fullPdf/{token}", produces = MediaType.APPLICATION_PDF_VALUE)
-    public ResponseEntity<Void> createFullPdf(@PathVariable("token") String token) {
+    public ResponseEntity<String> createFullPdf(@PathVariable("token") String token) {
         try {
             apartmentSharingService.createFullPdf(token);
             return accepted().build();
+        } catch (ApartmentSharingNotFoundException e) {
+            log.error(e.getMessage(), e.getCause());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (ApartmentSharingUnexpectedException e) {
+            log.error(e.getMessage(), e.getCause());
+            return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(e.getMessage());
         } catch (Exception e) {
             log.error(e.getMessage(), e.getCause());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }
 }
