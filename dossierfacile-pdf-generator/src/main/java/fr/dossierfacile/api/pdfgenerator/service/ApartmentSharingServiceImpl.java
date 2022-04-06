@@ -23,9 +23,18 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
     public void setDossierPdfDocumentStatus(Long id, FileStatus fileStatus) {
         ApartmentSharing apartmentSharing = repository.getById(id);
 
-        if (fileStatus == FileStatus.FAILED || fileStatus == FileStatus.DELETED) {
-            apartmentSharing.setUrlDossierPdfDocument(null);
+        switch (fileStatus){
+            case COMPLETED -> {
+                if (apartmentSharing.getDossierPdfDocumentStatus() != FileStatus.IN_PROGRESS) {
+                    throw new IllegalStateException("Cannot complete a document which are not in progress state");
+                }
+                if (apartmentSharing.getUrlDossierPdfDocument() == null) {
+                    throw new IllegalStateException("Cannot complete a document with null url");
+                }
+            }
+            case FAILED, DELETED -> apartmentSharing.setUrlDossierPdfDocument(null);
         }
+
         apartmentSharing.setDossierPdfDocumentStatus(fileStatus);
         repository.save(apartmentSharing);
     }
