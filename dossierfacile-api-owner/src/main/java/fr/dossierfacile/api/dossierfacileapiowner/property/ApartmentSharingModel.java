@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.mapstruct.Mapping;
 
 import java.util.List;
 
@@ -18,4 +19,5 @@ public class ApartmentSharingModel {
     private Long id;
     private List<TenantModel> tenants;
     private ApplicationType applicationType;
+    private Integer totalSalary;
 }
