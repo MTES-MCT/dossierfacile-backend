@@ -15,6 +15,7 @@ public abstract class OwnerMapper {
     public abstract OwnerModel toOwnerModel(Owner owner);
 
     @Mapping( target="totalSalary", expression="java(apartmentSharing.totalSalary())" )
+    @Mapping( target="totalGuarantorSalary", expression="java(apartmentSharing.totalGuarantorSalary())" )
     public abstract ApartmentSharingModel apartmentSharingToApartmentSharingModel(ApartmentSharing apartmentSharing);
 
 }

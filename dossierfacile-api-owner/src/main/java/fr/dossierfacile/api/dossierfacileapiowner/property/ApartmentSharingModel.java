@@ -20,4 +20,5 @@ public class ApartmentSharingModel {
     private List<TenantModel> tenants;
     private ApplicationType applicationType;
     private Integer totalSalary;
+    private Integer totalGuarantorSalary;
 }
