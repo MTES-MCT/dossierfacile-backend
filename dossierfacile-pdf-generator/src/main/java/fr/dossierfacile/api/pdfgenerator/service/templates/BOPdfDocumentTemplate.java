@@ -7,7 +7,6 @@ import fr.dossierfacile.api.pdfgenerator.service.interfaces.PdfTemplate;
 import io.sentry.Sentry;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.pdfbox.multipdf.PDFMergerUtility;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
@@ -16,7 +15,8 @@ import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.tools.imageio.ImageIOUtil;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 
 
@@ -24,16 +24,22 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
-import java.io.*;
-import java.util.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
+import java.util.*;
 
 @Service
 @AllArgsConstructor
 @Slf4j
 public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>> {
+    public static final String DEFAULT_WATERMARK = "  DOCUMENTS EXCLUSIVEMENT DESTIN\u00c9S \u00c0 LA LOCATION IMMOBILI\u00c8RE     ";
     private static final String EXCEPTION = "Sentry ID Exception: ";
     private final PdfTemplateParameters params = PdfTemplateParameters.builder().build();
+    private final Locale locale = LocaleContextHolder.getLocale();
+    private final MessageSource messageSource;
 
     @Override
     public InputStream render(List<FileInputStream> data) throws IOException {
@@ -94,11 +100,26 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
      */
     private BufferedImage applyWatermark(BufferedImage bim) {
         try {
-            BufferedImage overlay = ImageIO.read(new ClassPathResource("static/pdf/watermark-layer128dpi.png").getInputStream());
-
-            Graphics g = bim.getGraphics();
+            Graphics2D g = bim.createGraphics();
             g.drawImage(bim, 0, 0, null);
-            g.drawImage(overlay, 0, 0, bim.getWidth(), bim.getHeight(), null);
+
+            //Create a watermark overlay
+            String watermark = messageSource.getMessage("tenant.pdf.watermark", null, DEFAULT_WATERMARK, locale).repeat(3);
+
+            g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
+            g.setColor(Color.DARK_GRAY);
+            g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
+            Font font = new Font("Arial", Font.PLAIN, 28 * bim.getWidth() / params.maxPage.width);
+            AffineTransform affineTransform = new AffineTransform();
+            affineTransform.rotate(-Math.PI / 4f, 0, 0);
+            Font rotatedFont = font.deriveFont(affineTransform);
+            g.setFont(rotatedFont);
+
+            for (int i = 1; i < 10; i++) {
+                g.drawString(watermark, 0, i * bim.getHeight() / 5);
+            }
+
             g.dispose();
 
             return bim;

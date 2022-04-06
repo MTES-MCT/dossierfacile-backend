@@ -51,6 +51,7 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
     private final Producer producer;
 
     private final EmptyBOPdfDocumentTemplate emptyBOPdfDocumentTemplate;
+    private final BOPdfDocumentTemplate boPdfDocumentTemplate;
     private final ApartmentSharingPdfDocumentTemplate apartmentSharingPdfDocumentTemplate;
     private final ApartmentSharingService apartmentSharingService;
 
@@ -116,7 +117,7 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
 
         List<String> pathFiles = fileRepository.getFilePathsByDocumentId(document.getId());
         if (!CollectionUtils.isEmpty(pathFiles)) {
-            return new BOPdfDocumentTemplate().render(pathFiles.stream()
+            return boPdfDocumentTemplate.render(pathFiles.stream()
                     .map(path -> {
                         try {
                             String extension = FilenameUtils.getExtension(path).toLowerCase(Locale.ROOT);
