@@ -8,10 +8,10 @@
 		<version>2.4.3</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.object</groupId>
-	<artifactId>checker</artifactId>
+	<groupId>fr.gouv</groupId>
+	<artifactId>dossierfacile-garbage-collector</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>checker</name>
+	<name>dossierfacile-garbage-collector</name>
 	<description>Object Checker project for Spring Boot</description>
 	<packaging>${packaging.type}</packaging>
 	<properties>
