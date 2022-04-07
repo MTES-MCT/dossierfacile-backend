@@ -25,7 +25,7 @@ import java.util.HashMap;
 @EnableTransactionManagement
 @PropertySource({"classpath:application.properties"})
 @EnableJpaRepositories(entityManagerFactoryRef = "objectEntityManager", transactionManagerRef = "objectTransactionManager",
-		basePackages = { "com.object.checker.repo.object","com.object.checker.repo.marker" })
+		basePackages = { "fr.dossierfacile.garbagecollector.repo.object","fr.dossierfacile.garbagecollector.repo.marker" })
 public class DataSourceObjectConfiguration {
 
 	@Autowired
@@ -38,7 +38,7 @@ public class DataSourceObjectConfiguration {
 				= new LocalContainerEntityManagerFactoryBean();
 		em.setDataSource(userDataSource());
 		em.setPackagesToScan(
-				new String[] { "com.object.checker.model.object","com.object.checker.model.marker" });
+				new String[] { "fr.dossierfacile.garbagecollector.model.object","fr.dossierfacile.garbagecollector.model.marker" });
 
 		HibernateJpaVendorAdapter vendorAdapter
 				= new HibernateJpaVendorAdapter();
