@@ -114,6 +114,7 @@
 	</dependencies>
 
 	<build>
+		<finalName>dossierfacile-garbage-collector</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
