@@ -1,0 +1,35 @@
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+    <changeSet id="202203031400" author="harlow">
+        <sql>
+            -- public.object
+
+            -- Drop table
+
+            -- DROP TABLE public.object;
+
+            CREATE TABLE public.object
+            (
+            id bigserial NOT NULL,
+            path text NULL,
+            to_delete bool NULL DEFAULT false,
+            CONSTRAINT path_pkey PRIMARY KEY (id)
+            );
+
+            -- public.maker
+
+            -- Drop table
+
+            -- DROP TABLE public.marker;
+
+            CREATE TABLE public.marker
+            (
+            id bigserial NOT NULL,
+            path text NULL,
+            CONSTRAINT path2_pkey PRIMARY KEY (id)
+            );
+        </sql>
+    </changeSet>
+</databaseChangeLog>
