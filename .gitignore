@@ -4,6 +4,7 @@
 application-*.properties
 .env
 target/
+.DS_Store
 
 static-front/
 
