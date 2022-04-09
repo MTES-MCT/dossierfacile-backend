@@ -2,7 +2,6 @@ package fr.dossierfacile.api.front.service;
 
 import fr.dossierfacile.api.front.amqp.Producer;
 import fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException;
-import fr.dossierfacile.api.front.exception.ApartmentSharingUnexpectedException;
 import fr.dossierfacile.api.front.repository.ApartmentSharingRepository;
 import fr.dossierfacile.api.front.repository.LinkLogRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
