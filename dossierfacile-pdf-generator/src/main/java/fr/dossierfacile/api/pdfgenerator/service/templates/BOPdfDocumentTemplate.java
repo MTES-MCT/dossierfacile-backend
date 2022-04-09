@@ -5,22 +5,9 @@ import fr.dossierfacile.api.pdfgenerator.model.PageDimension;
 import fr.dossierfacile.api.pdfgenerator.model.PdfTemplateParameters;
 import fr.dossierfacile.api.pdfgenerator.service.interfaces.PdfTemplate;
 import io.sentry.Sentry;
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.geom.AffineTransform;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import javax.imageio.ImageIO;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.pdfbox.multipdf.PDFMergerUtility;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
@@ -31,6 +18,15 @@ import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.tools.imageio.ImageIOUtil;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
+
+
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.geom.AffineTransform;
+import java.awt.image.BufferedImage;
+import java.io.*;
+import java.util.*;
+import java.util.List;
 
 @Service
 @AllArgsConstructor

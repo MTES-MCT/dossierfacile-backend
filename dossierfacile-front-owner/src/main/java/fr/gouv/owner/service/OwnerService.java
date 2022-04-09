@@ -1,19 +1,18 @@
 package fr.gouv.owner.service;
 
-import fr.dossierfacile.common.entity.ApartmentSharing;
-import fr.dossierfacile.common.entity.Owner;
-import fr.dossierfacile.common.entity.Property;
-import fr.dossierfacile.common.entity.Prospect;
-import fr.dossierfacile.common.entity.Tenant;
-import fr.dossierfacile.common.entity.User;
+import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.StepRegisterOwner;
-import static fr.dossierfacile.common.enums.TenantType.CREATE;
 import fr.gouv.owner.dto.OwnerDTO;
 import fr.gouv.owner.register_owner.RegisterOwnerFactory;
 import fr.gouv.owner.repository.OwnerRepository;
 import fr.gouv.owner.repository.TenantRepository;
 import fr.gouv.owner.repository.UserRepository;
 import fr.gouv.owner.security.SubscriptionStatus;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -22,9 +21,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
+
+import static fr.dossierfacile.common.enums.TenantType.CREATE;
 
 @Service
 @AllArgsConstructor
@@ -39,13 +37,9 @@ public class OwnerService {
     private final RegisterOwnerFactory registerOwnerFactory;
     private final TenantRepository tenantRepository;
 
-    public void saveOwner(Owner owner) {
-        ownerRepository.save(owner);
-    }
+    public void saveOwner(Owner owner){ ownerRepository.save(owner); }
 
-    public Owner getOwner(Principal principal) {
-        return ownerRepository.findOneByEmail(principal.getName());
-    }
+    public Owner getOwner(Principal principal){return ownerRepository.findOneByEmail(principal.getName());}
 
     public void linkOwnerTenant(Property property, String token) {
         if (null == token || !token.equals("")) {
@@ -145,7 +139,7 @@ public class OwnerService {
         return ownerRepository.findBySlug(slug);
     }
 
-    public SubscriptionStatus subscribeTenant(String token, boolean access, Tenant tenant) {
+    public  SubscriptionStatus subscribeTenant(String token, boolean access, Tenant tenant) {
         Property property = propertyService.findOneByToken(token);
         if (property == null) {
             return SubscriptionStatus.TOKEN_DOES_NOT_EXIST;

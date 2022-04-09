@@ -1,11 +1,14 @@
 package fr.gouv.owner.repository;
 
-import fr.dossierfacile.common.entity.Property;
+import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.entity.Prospect;
 import fr.dossierfacile.common.enums.TenantType;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
 import java.time.LocalDateTime;
 import java.util.List;
-import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ProspectRepository extends JpaRepository<Prospect, Long> {
 

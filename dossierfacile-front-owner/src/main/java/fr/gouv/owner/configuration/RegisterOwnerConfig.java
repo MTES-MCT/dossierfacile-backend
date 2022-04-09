@@ -1,10 +1,6 @@
 package fr.gouv.owner.configuration;
 
-import fr.gouv.owner.register_owner.RegisterOwnerFactory;
-import fr.gouv.owner.register_owner.SaveStep;
-import fr.gouv.owner.register_owner.SaveStep1;
-import fr.gouv.owner.register_owner.SaveStep2;
-import fr.gouv.owner.register_owner.SaveStep3;
+import fr.gouv.owner.register_owner.*;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.ServiceLocatorFactoryBean;
 import org.springframework.context.annotation.Bean;
@@ -13,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RegisterOwnerConfig {
 
-    private final BeanFactory beanFactory;
+    private BeanFactory beanFactory;
 
     public RegisterOwnerConfig(BeanFactory beanFactory) {
         this.beanFactory = beanFactory;

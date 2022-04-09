@@ -2,17 +2,14 @@ package fr.gouv.owner.dto;
 
 import fr.dossierfacile.common.entity.Prospect;
 import fr.dossierfacile.common.enums.TenantSituation;
-import fr.gouv.owner.annotation.UniqueEmail;
 import fr.gouv.owner.validator.interfaces.CreateProspect;
+import fr.gouv.owner.annotation.UniqueEmail;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.*;
+
+import javax.validation.constraints.Email;
 import java.util.ArrayList;
 import java.util.List;
-import javax.validation.constraints.Email;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Getter
 @Setter

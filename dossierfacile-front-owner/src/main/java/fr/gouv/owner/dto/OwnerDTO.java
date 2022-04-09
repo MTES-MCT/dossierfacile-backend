@@ -1,17 +1,14 @@
 package fr.gouv.owner.dto;
 
-import fr.dossierfacile.common.entity.Owner;
 import fr.gouv.owner.annotation.UniqueEmail;
+import fr.dossierfacile.common.entity.Owner;
 import fr.gouv.owner.validator.interfaces.Step1RegisterOwner;
 import fr.gouv.owner.validator.interfaces.Step2RegisterOwner;
+import lombok.*;
+
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Getter
 @Setter

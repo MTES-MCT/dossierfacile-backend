@@ -1,26 +1,23 @@
 package fr.gouv.owner.controller;
 
 
+import fr.gouv.owner.dto.OwnerDTO;
 import fr.dossierfacile.common.entity.Owner;
 import fr.dossierfacile.common.enums.StepRegisterOwner;
-import fr.gouv.owner.dto.OwnerDTO;
 import fr.gouv.owner.service.OwnerService;
 import fr.gouv.owner.validator.interfaces.Step1RegisterOwner;
 import fr.gouv.owner.validator.interfaces.Step2RegisterOwner;
 import fr.gouv.owner.validator.interfaces.Step3RegisterOwner;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
 
 @Controller
 @RequestMapping(value = "/registerOwner")

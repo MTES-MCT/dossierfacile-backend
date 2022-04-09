@@ -8,13 +8,7 @@ import fr.dossierfacile.common.enums.Role;
 import fr.gouv.owner.dto.UserDTO;
 import fr.gouv.owner.repository.PasswordRecoveryTokenRepository;
 import fr.gouv.owner.repository.UserRepository;
-import fr.gouv.owner.security.ChangePasswordStatus;
-import java.security.Principal;
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import fr.gouv.owner.security.*;
 import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +16,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+
+import java.security.Principal;
+import java.time.LocalDateTime;
+import java.util.*;
 
 @Service
 public class UserService {
@@ -87,9 +86,7 @@ public class UserService {
         return userRepository.getOne(id);
     }
 
-    public User getUser(Principal principal) {
-        return userRepository.findOneByEmail(principal.getName());
-    }
+    public  User getUser(Principal principal){ return userRepository.findOneByEmail(principal.getName()); }
 
     public User update(UserDTO userDTO) {
         User user = findOne(userDTO.getId());

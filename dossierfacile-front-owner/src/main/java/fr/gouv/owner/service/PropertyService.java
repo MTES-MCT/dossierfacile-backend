@@ -5,10 +5,11 @@ import fr.dossierfacile.common.entity.Owner;
 import fr.dossierfacile.common.entity.Property;
 import fr.gouv.owner.dto.PropertyDTO;
 import fr.gouv.owner.repository.PropertyRepository;
-import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.*;
 
 @Service
 @Slf4j
@@ -38,7 +39,7 @@ public class PropertyService {
     }
 
 
-    public List<Property> getPropertyList(Owner owner) {
+    public List<Property> getPropertyList(Owner owner){
         return propertyRepository.findAllByOwner(owner);
     }
 

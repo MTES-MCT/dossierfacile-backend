@@ -20,16 +20,6 @@ import fr.dossierfacile.common.enums.FileStatus;
 import fr.dossierfacile.common.repository.DocumentPdfGenerationLogRepository;
 import fr.dossierfacile.common.service.interfaces.OvhService;
 import io.sentry.Sentry;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.rmi.UnexpectedException;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
@@ -37,6 +27,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.rmi.UnexpectedException;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
