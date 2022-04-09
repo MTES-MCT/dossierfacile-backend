@@ -1,11 +1,9 @@
 package fr.gouv.owner.service;
 
-import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.entity.ApartmentSharing;
+import fr.dossierfacile.common.entity.Prospect;
 import fr.gouv.owner.repository.ApartmentSharingRepository;
-
 import fr.gouv.owner.utils.UtilsLocatio;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

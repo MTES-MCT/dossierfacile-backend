@@ -7,10 +7,12 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.User;
 import fr.dossierfacile.common.entity.UserRole;
 import fr.dossierfacile.common.enums.ApplicationType;
+import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.Role;
 import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.repository.DocumentPdfGenerationLogRepository;
 import fr.dossierfacile.common.service.interfaces.OvhService;
+import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.gouv.bo.amqp.Producer;
 import fr.gouv.bo.dto.BooleanDTO;
 import fr.gouv.bo.dto.DeleteUserDTO;
@@ -73,6 +75,7 @@ public class BOController {
     private final DocumentService documentService;
     private final Producer producer;
     private final UserRoleService userRoleService;
+    private final PartnerCallBackService partnerCallBackService;
     private final DocumentPdfGenerationLogRepository documentPdfGenerationLogRepository;
 
     @GetMapping("/")
@@ -310,7 +313,7 @@ public class BOController {
         User user = userService.findUserByEmail(deleteUser.getEmail());
         if (user instanceof Tenant) {
             Tenant tenant = (Tenant) user;
-            tenantService.partnerCallBackServiceWhenDeleteTenant(tenant);
+            partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.DELETED_ACCOUNT);
             apartmentSharingService.delete(tenant.getApartmentSharing());
         } else {
             if (!principal.getName().equals(deleteUser.getEmail())) {

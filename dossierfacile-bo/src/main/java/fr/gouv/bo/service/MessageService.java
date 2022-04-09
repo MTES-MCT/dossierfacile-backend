@@ -6,12 +6,11 @@ import fr.dossierfacile.common.entity.User;
 import fr.dossierfacile.common.enums.MessageStatus;
 import fr.gouv.bo.dto.MessageDTO;
 import fr.gouv.bo.repository.MessageRepository;
+import java.time.LocalDateTime;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -58,7 +57,12 @@ public class MessageService {
                 "<br/>" +
                 "En vous souhaitant une très bonne journée,<br/>" +
                 "Marie pour l’équipe DossierFacile";
-        Message message = Message.builder().messageBody(m).toUser(tenant).creationDateTime(LocalDateTime.now()).messageStatus(MessageStatus.UNREAD).build();
+        Message message = Message.builder()
+                .messageBody(m)
+                .toUser(tenant)
+                .creationDateTime(LocalDateTime.now())
+                .messageStatus(MessageStatus.UNREAD)
+                .build();
         messageRepository.save(message);
     }
 }

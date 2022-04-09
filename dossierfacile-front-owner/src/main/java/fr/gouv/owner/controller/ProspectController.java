@@ -6,15 +6,18 @@ import fr.dossierfacile.common.entity.Prospect;
 import fr.gouv.owner.dto.ProspectDTO;
 import fr.gouv.owner.service.PropertyService;
 import fr.gouv.owner.service.ProspectService;
+import java.security.Principal;
+import javax.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
-
-import javax.servlet.http.HttpSession;
-import java.security.Principal;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 @Slf4j
@@ -81,7 +84,7 @@ public class ProspectController {
         }
         session.setAttribute(OWNER_TOKEN, token);
         session.setAttribute(FIRST_NAME, firstName);
-        session.setAttribute(LAST_NAME , lastName);
+        session.setAttribute(LAST_NAME, lastName);
         session.setAttribute(EMAIL, email);
         return "redirect:/registerTenant/step1";
     }

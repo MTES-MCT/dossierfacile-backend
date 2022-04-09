@@ -16,6 +16,25 @@ import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.enums.TypeGuarantor;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
+import java.awt.Color;
+import java.awt.geom.AffineTransform;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -43,20 +62,6 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
-
-import java.awt.*;
-import java.awt.geom.AffineTransform;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -137,7 +142,9 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
     private static final float Y_LOCATION_STATIC_TEXT_IN_FIRST_INDEXPAGE = B_HEIGHT_TEMPLATE / 421 * 283f;
     private static final float Y_LOCATION_OF_TITLE_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_FIRST_INDEXPAGE = B_HEIGHT_TEMPLATE / 421 * 230.99f;
     private static final float Y_LOCATION_OF_NAME_OF_TENANT_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_FIRST_INDEXPAGE = B_HEIGHT_TEMPLATE / 421 * 224;
+    private static final float SEPARATION_BETWEEN_TITLE_AND_NAME_OF_SUBJECT_IN_GROUP_OF_DOCUMENT_INDEXES = Y_LOCATION_OF_TITLE_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_FIRST_INDEXPAGE - Y_LOCATION_OF_NAME_OF_TENANT_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_FIRST_INDEXPAGE;
     private static final float Y_LOCATION_OF_INDEX_PAGES_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_FIRST_INDEXPAGE = B_HEIGHT_TEMPLATE / 421 * 212.99f;
+    private static final float SEPARATION_BETWEEN_NAME_OF_SUBJECT_AND_INDEX_PAGES_IN_GROUP_OF_DOCUMENT_INDEXES = Y_LOCATION_OF_NAME_OF_TENANT_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_FIRST_INDEXPAGE - Y_LOCATION_OF_INDEX_PAGES_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_FIRST_INDEXPAGE;
     //--------------------------------------------------------------------------------------------------
     //Second page of indexes
     private static final float Y_LOCATION_OF_TITLE_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_SECOND_INDEXPAGE = B_HEIGHT_TEMPLATE / 421 * 312.5f;
@@ -146,69 +153,53 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
     //--------------------------------------------------------------------------------------------------
     //Common dimensions
     private static final float SEPARATION_BETWEEN_GROUPS_OF_DOCUMENT_INDEXES = B_HEIGHT_TEMPLATE / 421 * 13.5f;
-    private static final float SEPARATION_BETWEEN_TITLE_AND_NAME_OF_SUBJECT_IN_GROUP_OF_DOCUMENT_INDEXES = Y_LOCATION_OF_TITLE_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_FIRST_INDEXPAGE - Y_LOCATION_OF_NAME_OF_TENANT_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_FIRST_INDEXPAGE;
-    private static final float SEPARATION_BETWEEN_NAME_OF_SUBJECT_AND_INDEX_PAGES_IN_GROUP_OF_DOCUMENT_INDEXES = Y_LOCATION_OF_NAME_OF_TENANT_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_FIRST_INDEXPAGE - Y_LOCATION_OF_INDEX_PAGES_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_FIRST_INDEXPAGE;
     private static final float X_LOCATION_OF_END_OF_LEFT_RECTANGULE_IN_INDEXPAGES = A_WIDTH_TEMPLATE / 297.5f * 148;
     private static final float X_LOCATION_OF_END_OF_RIGHT_RECTANGULE_IN_INDEXPAGES = A_WIDTH_TEMPLATE / 297.5f * 282;
 
     private static final float RIGHT_MARGIN_FOR_PAGINATION = A_WIDTH_TEMPLATE / 297.5f * 21.60f;
     private static final float BOTTOM_MARGIN_FOR_PAGINATION = B_HEIGHT_TEMPLATE / 421 * 9.60f;
     private static final float FONT_SIZE_FOR_PAGINATION = B_HEIGHT_TEMPLATE / 421 * 7.2f;
-
+    private static final float LEFT_MARGIN_FOR_CLARIFICATION_TEXT = FONT_SIZE_FOR_PAGINATION;
     private static final float LEFT_MARGIN_FOR_BEGIN_OF_TEXT_HEADER = A_WIDTH_TEMPLATE / 297.5f * 24;
+    private static final float LEFT_MARGIN_FOR_HEADER_SENTENCE = LEFT_MARGIN_FOR_BEGIN_OF_TEXT_HEADER;
     private static final float FONT_SIZE_FOR_BEGIN_OF_TEXT_HEADER = B_HEIGHT_TEMPLATE / 421 * 6;
     private static final float Y_LOCATION_OF_BEGIN_OF_TEXT_HEADER = B_HEIGHT_TEMPLATE / 421 * 355.1f;
-
+    private static final float Y_LOCATION_OF_NAME_OF_TENANTS = Y_LOCATION_OF_BEGIN_OF_TEXT_HEADER;
     private static final float LEFT_MARGIN_FOR_NAME_OF_TENANTS = A_WIDTH_TEMPLATE / 297.5f * 64.5f;
     private static final float FONT_SIZE_FOR_NAME_OF_TENANTS = B_HEIGHT_TEMPLATE / 421 * 6.28f;
-    private static final float Y_LOCATION_OF_NAME_OF_TENANTS = Y_LOCATION_OF_BEGIN_OF_TEXT_HEADER;
-
-    private static final float LEFT_MARGIN_FOR_HEADER_SENTENCE = LEFT_MARGIN_FOR_BEGIN_OF_TEXT_HEADER;
     private static final float FONT_SIZE_FOR_HEADER_SENTENCE = FONT_SIZE_FOR_NAME_OF_TENANTS;
     private static final float Y_LOCATION_OF_HEADER_SENTENCE = B_HEIGHT_TEMPLATE / 421 * 343.6f;
-
     private static final float FONT_SIZE_FOR_CLARIFICATION_TEXT = B_HEIGHT_TEMPLATE / 421 * 4.88f;
     private static final float LEADING_FOR_CLARIFICATION_TEXT = B_HEIGHT_TEMPLATE / 421 * 8.23f;
-    private static final float LEFT_MARGIN_FOR_CLARIFICATION_TEXT = FONT_SIZE_FOR_PAGINATION;
-
     private static final float FONT_SIZE_FOR_STATIC_TEXT_IN_FIRST_TEMPLATE = B_HEIGHT_TEMPLATE / 421 * 8.37f;
 
     private static final float FONT_SIZE_FOR_FIRST_NAMES_OF_TENANTS_IN_HEADER_OF_INDEXPAGES = B_HEIGHT_TEMPLATE / 421 * 10f;
     private static final float Y_LOCATION_FOR_FIRST_NAMES_OF_TENANTS_IN_HEADER_OF_INDEXPAGES = B_HEIGHT_TEMPLATE / 421 * 357.03f;
 
     private static final float FONT_SIZE_FOR_TITLE_OF_FIRST_RECTANGULE_IN_FIRST_INDEXPAGES = B_HEIGHT_TEMPLATE / 421 * 4.5f;
-    private static final float FONT_SIZE_FOR_CONTENT_OF_FIRST_RECTANGULE_IN_FIRST_INDEXPAGES = B_HEIGHT_TEMPLATE / 421 * 3.78f;
-    private static final float Y_LOCATION_OF_CONTENT_OF_FIRST_RECTANGULE_IN_FIRST_INDEXPAGES = B_HEIGHT_TEMPLATE / 421 * 251.899f;
-
     private static final float FONT_SIZE_FOR_TITLE_OF_SECOND_RECTANGULE_IN_FIRST_INDEXPAGES = FONT_SIZE_FOR_TITLE_OF_FIRST_RECTANGULE_IN_FIRST_INDEXPAGES;
+    private static final float FONT_SIZE_FOR_TITLE_OF_THIRD_RECTANGULE_IN_FIRST_INDEXPAGES = FONT_SIZE_FOR_TITLE_OF_FIRST_RECTANGULE_IN_FIRST_INDEXPAGES;
+    private static final float FONT_SIZE_FOR_TITLE_OF_GROUP_OF_INDEXES = FONT_SIZE_FOR_TITLE_OF_FIRST_RECTANGULE_IN_FIRST_INDEXPAGES;
+    private static final float FONT_SIZE_FOR_INCOMING_NEXT_TO_INDEX_OF_FINANCIAL_DOCUMENTS = FONT_SIZE_FOR_TITLE_OF_FIRST_RECTANGULE_IN_FIRST_INDEXPAGES;
+    private static final float FONT_SIZE_FOR_CONTENT_OF_FIRST_RECTANGULE_IN_FIRST_INDEXPAGES = B_HEIGHT_TEMPLATE / 421 * 3.78f;
+    private static final float FONT_SIZE_FOR_CONTENT_OF_THIRD_RECTANGULE_IN_FIRST_INDEXPAGES = FONT_SIZE_FOR_CONTENT_OF_FIRST_RECTANGULE_IN_FIRST_INDEXPAGES;
+    private static final float Y_LOCATION_OF_CONTENT_OF_FIRST_RECTANGULE_IN_FIRST_INDEXPAGES = B_HEIGHT_TEMPLATE / 421 * 251.899f;
     private static final float FONT_SIZE_FOR_CONTENT_OF_SECOND_RECTANGULE_IN_FIRST_INDEXPAGES = B_HEIGHT_TEMPLATE / 421 * 6.48f;
     private static final float Y_LOCATION_OF_CONTENT_OF_SECOND_RECTANGULE_IN_FIRST_INDEXPAGES = B_HEIGHT_TEMPLATE / 421 * 250.999f;
-
-    private static final float FONT_SIZE_FOR_TITLE_OF_THIRD_RECTANGULE_IN_FIRST_INDEXPAGES = FONT_SIZE_FOR_TITLE_OF_FIRST_RECTANGULE_IN_FIRST_INDEXPAGES;
-    private static final float FONT_SIZE_FOR_CONTENT_OF_THIRD_RECTANGULE_IN_FIRST_INDEXPAGES = FONT_SIZE_FOR_CONTENT_OF_FIRST_RECTANGULE_IN_FIRST_INDEXPAGES;
+    private static final float Y_LOCATION_OF_BEGIN_OF_CONTENT_OF_THIRD_RECTANGULE_IN_FIRST_INDEXPAGES = Y_LOCATION_OF_CONTENT_OF_SECOND_RECTANGULE_IN_FIRST_INDEXPAGES;
     private static final float LEADING_FOR_CONTENT_OF_THIRD_RECTANGULE_IN_FIRST_INDEXPAGES = B_HEIGHT_TEMPLATE / 421 * 6f;
     private static final float FONT_SIZE_FOR_SMALL_CONTENT_OF_THIRD_RECTANGULE_IN_FIRST_INDEXPAGES = B_HEIGHT_TEMPLATE / 421 * 3.42f;
     private static final float LEADING_FOR_SMALL_CONTENT_OF_THIRD_RECTANGULE_IN_FIRST_INDEXPAGES = B_HEIGHT_TEMPLATE / 421 * 4.2f;
     private static final float X_LOCATION_OF_BEGIN_OF_CONTENT_OF_THIRD_RECTANGULE_IN_FIRST_INDEXPAGES = A_WIDTH_TEMPLATE / 297.5f * 214.81f;
-    private static final float Y_LOCATION_OF_BEGIN_OF_CONTENT_OF_THIRD_RECTANGULE_IN_FIRST_INDEXPAGES = Y_LOCATION_OF_CONTENT_OF_SECOND_RECTANGULE_IN_FIRST_INDEXPAGES;
-
     private static final float X_LOCATION_BEGIN_OF_FIRST_RECTANGULE = A_WIDTH_TEMPLATE / 297.5f * 16;
     private static final float X_LOCATION_BEGIN_OF_THIRD_RECTANGULE = A_WIDTH_TEMPLATE / 297.5f * 196;
-
     private static final float WIDTH_OF_ALL_THREE_RECTANGULES = A_WIDTH_TEMPLATE / 297.5f * 86;
     private static final float Y_LOCATION_OF_TITLE_OF_ALL_THREE_RECTANGULES = B_HEIGHT_TEMPLATE / 421 * 265.225f;
-
-    private static final float FONT_SIZE_FOR_TITLE_OF_GROUP_OF_INDEXES = FONT_SIZE_FOR_TITLE_OF_FIRST_RECTANGULE_IN_FIRST_INDEXPAGES;
-
     private static final float WIDTH_OF_THE_TWO_COLUMNS_FOR_INDEXES = A_WIDTH_TEMPLATE / 297.5f * 132;
-
     private static final float FONT_SIZE_FOR_CONTENT_OF_GROUP_OF_INDEXES = B_HEIGHT_TEMPLATE / 421 * 3.6f;
     private static final float ADDITIONAL_LEFT_MARGIN_FOR_CONTENT_OF_INDEXES = A_WIDTH_TEMPLATE / 297.5f * 6;
     private static final float LEADING_FOR_CONTENT_OF_GROUP_OF_INDEXES = B_HEIGHT_TEMPLATE / 421 * 7.08f;
-
-    private static final float FONT_SIZE_FOR_INCOMING_NEXT_TO_INDEX_OF_FINANCIAL_DOCUMENTS = FONT_SIZE_FOR_TITLE_OF_FIRST_RECTANGULE_IN_FIRST_INDEXPAGES;
     //endregion
-
     //region Bookmark's titles
     private static final String TITLE_0_DOSSIER_PDF = "Dossier PDF";
     private static final String TITLE_1_INDEX = "Index";

@@ -7,18 +7,20 @@ import fr.dossierfacile.common.enums.TenantSituation;
 import fr.dossierfacile.common.enums.TenantType;
 import fr.gouv.owner.annotation.JoinApartmentSharingByMail;
 import fr.gouv.owner.annotation.JoinApartmentSharingCapacity;
-import fr.gouv.owner.validator.interfaces.*;
+import fr.gouv.owner.validator.interfaces.CreateTenantRestApi;
+import fr.gouv.owner.validator.interfaces.TenantAlone;
+import fr.gouv.owner.validator.interfaces.TenantCreateApartmentSharing;
+import fr.gouv.owner.validator.interfaces.TenantJoinApartmentSharing;
+import fr.gouv.owner.validator.interfaces.UpdateTenantRestApi;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.validator.constraints.Range;
 import org.springframework.web.multipart.MultipartFile;
-
-
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotNull;
 
 @Getter
 @Setter

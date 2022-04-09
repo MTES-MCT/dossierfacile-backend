@@ -1,23 +1,25 @@
 package fr.dossierfacile.api.pdfgenerator.service.templates;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import fr.dossierfacile.api.pdfgenerator.service.DownloadServiceTest;
 import fr.dossierfacile.api.pdfgenerator.service.DownloadServiceImpl;
-
+import fr.dossierfacile.api.pdfgenerator.service.DownloadServiceTest;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.MessageSource;
-
-import java.io.*;
-
-import static org.mockito.ArgumentMatchers.*;
 
 @ExtendWith(MockitoExtension.class)
 public class ApartmentSharingPdfDocumentTemplateTest {

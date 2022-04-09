@@ -1,21 +1,20 @@
 package fr.gouv.owner.service;
 
 
-
-import fr.dossierfacile.common.entity.*;
+import fr.dossierfacile.common.entity.Property;
+import fr.dossierfacile.common.entity.Prospect;
+import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.TenantSituation;
+import static fr.dossierfacile.common.enums.TenantType.CREATE;
 import fr.gouv.owner.dto.CoProspectDTO;
 import fr.gouv.owner.dto.ProspectDTO;
 import fr.gouv.owner.repository.PropertyRepository;
 import fr.gouv.owner.repository.ProspectRepository;
+import java.time.LocalDateTime;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
-import java.util.List;
-
-import static fr.dossierfacile.common.enums.TenantType.CREATE;
 
 @Service
 @Slf4j
@@ -52,7 +51,7 @@ public class ProspectService {
 
     private void createCoProspects(Prospect prospect, List<CoProspectDTO> coProspectDTOList) {
         for (CoProspectDTO coProspectDTO : coProspectDTOList) {
-            Prospect coProspect = new Prospect(coProspectDTO.getFirstName(),coProspectDTO.getLastName(),coProspectDTO.getEmail().toLowerCase(), prospect);
+            Prospect coProspect = new Prospect(coProspectDTO.getFirstName(), coProspectDTO.getLastName(), coProspectDTO.getEmail().toLowerCase(), prospect);
             this.save(coProspect);
         }
     }
@@ -99,7 +98,7 @@ public class ProspectService {
             prospect.setFirstName(tenant.getFirstName());
             prospect.setLastName(tenant.getLastName());
 
-            prospect.setGuarantor(tenant.getGuarantors().size() >=1  ? "yes" : "no");
+            prospect.setGuarantor(tenant.getGuarantors().size() >= 1 ? "yes" : "no");
 
             prospect.setTenantSituation(tenant.getTenantSituation());
             prospect.setSalary(tenant.getTotalSalary());
@@ -119,9 +118,11 @@ public class ProspectService {
     public List<Prospect> findAllProspectByProperty(Property property) {
         return prospectRepository.findAllByPropertyAndProspectType(property, CREATE);
     }
+
     public Prospect findByEmailAndProperty(String email, Property property) {
         return prospectRepository.findFirst1ByEmailAndProperty(email, property);
     }
+
     public void delete(Long id) {
         prospectRepository.deleteById(id);
     }

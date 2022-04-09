@@ -154,7 +154,7 @@ public class BOTenantController {
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         tenantService.updateTenantStatus(tenant);
         if (tenant.getStatus().equals(TenantFileStatus.DECLINED)) {
-            tenantService.partnerCallBackServiceWhenAccountIsDeclined(tenant);
+            partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.DENIED_ACCOUNT);
         }
         return "redirect:/bo/colocation/" + tenant.getApartmentSharing().getId() + "#tenant" + tenant.getId();
     }
@@ -163,7 +163,7 @@ public class BOTenantController {
     public String changeStatusOfDocument(@PathVariable("id") Long id, MessageDTO messageDTO) {
         Tenant tenant = documentService.changeStatusOfDocument(id, messageDTO);
         if (DocumentStatus.valueOf(messageDTO.getMessage()).equals(DocumentStatus.DECLINED)) {
-            tenantService.partnerCallBackServiceWhenAccountIsDeclined(tenant);
+            partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.DENIED_ACCOUNT);
         }
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         tenantService.updateTenantStatus(tenant);
