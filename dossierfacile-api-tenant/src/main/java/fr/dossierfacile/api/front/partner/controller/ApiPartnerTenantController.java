@@ -36,6 +36,8 @@ public class ApiPartnerTenantController {
     @GetMapping(value = {"/profile", "/{tenantId}/profile"}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TenantModel> profile(@PathVariable(required = false) Long tenantId) {
         Tenant tenant = authenticationFacade.getTenant(tenantId);
+        var partner = authenticationFacade.getKeycloakClientId();
+        userService.linkTenantToPartner(tenant, partner);
         return ok(tenantMapper.toTenantModel(tenant));
     }
 

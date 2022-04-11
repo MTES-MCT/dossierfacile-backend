@@ -11,10 +11,12 @@ import fr.dossierfacile.common.entity.User;
 import fr.dossierfacile.common.entity.UserRole;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.AuthProvider;
+import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.Role;
 import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.OvhService;
+import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.gouv.bo.dto.UserDTO;
 import fr.gouv.bo.mapper.TenantMapper;
 import fr.gouv.bo.model.tenant.TenantModel;
@@ -53,6 +55,7 @@ public class UserService {
     private final ApartmentSharingRepository apartmentSharingRepository;
     private final PropertyApartmentSharingRepository propertyApartmentSharingRepository;
     private final ApartmentSharingService apartmentSharingService;
+    private final PartnerCallBackService partnerCallBackService;
 
     @Value("${authorize.domain.bo}")
     private String ad;
@@ -97,6 +100,7 @@ public class UserService {
             ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
             Tenant coTenant = apartmentSharing.getTenants().stream().filter(t -> t.getId().equals(id) && t.getTenantType().equals(TenantType.JOIN)).findFirst().orElseThrow(null);
             if (coTenant != null) {
+                partnerCallBackService.sendCallBack(coTenant, PartnerCallBackType.DELETED_ACCOUNT);
                 if (coTenant.getKeycloakId() != null) {
                     keycloakService.deleteKeycloakSingleUser(coTenant);
                 }
@@ -128,6 +132,7 @@ public class UserService {
         ApartmentSharing apartmentSharing = create.getApartmentSharing();
         Tenant mainTenant = apartmentSharing.getTenants().stream().filter(tenant -> !tenant.getTenantType().equals(TenantType.CREATE)).findAny().orElseThrow(null);
         if (mainTenant != null) {
+            partnerCallBackService.sendCallBack(create, PartnerCallBackType.DELETED_ACCOUNT);
             if (create.getKeycloakId() != null) {
                 keycloakService.deleteKeycloakSingleUser(create);
             }
