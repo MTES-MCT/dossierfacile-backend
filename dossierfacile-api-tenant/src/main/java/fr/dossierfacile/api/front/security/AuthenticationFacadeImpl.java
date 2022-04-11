@@ -104,8 +104,9 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
                 tenant.setKeycloakId(getKeycloakUserId());
                 tenantRepository.save(tenant);
                 apartmentSharingService.createApartmentSharing(tenant);
+            } else {
+                throw new AccessDeniedException("invalid token");
             }
-            throw new AccessDeniedException("invalid token");
         }
         tenant.setKeycloakId(getKeycloakUserId());
         if (isFranceConnect()) {

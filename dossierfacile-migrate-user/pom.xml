@@ -9,19 +9,21 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>fr.dossierfacile.migrate</groupId>
-    <artifactId>user</artifactId>
+    <artifactId>dossierfacile-migrate-user</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>user</name>
+    <name>dossierfacile-migrate-user</name>
     <description>App for migrate user to keycloak</description>
     <properties>
         <log4j2.version>2.17.1</log4j2.version>
         <java.version>11</java.version>
+        <dossierfacile.common.version>0.0.1-SNAPSHOT</dossierfacile.common.version>
     </properties>
+
     <dependencies>
         <dependency>
             <groupId>fr.dossierfacile</groupId>
             <artifactId>dossierfacile-common-library</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>${dossierfacile.common.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -55,6 +57,7 @@
     </dependencies>
 
     <build>
+        <finalName>dossierfacile-migrate-user</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>

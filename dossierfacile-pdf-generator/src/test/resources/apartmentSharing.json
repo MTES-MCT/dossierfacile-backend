@@ -1,0 +1,92 @@
+{
+  "id": 3,
+  "applicationType": "ALONE",
+  "token": "",
+  "tokenPublic": "",
+  "urlDossierPdfDocument": "http://localhost:8080/api/application/fullPdf/c975ad68-8481-4a85-92d7-9758bfcd2c3c",
+  "tenants": [
+    {
+      "id": 4,
+      "firstName": "FirstName",
+      "lastName": "LastName",
+      "email": "firstlastname123@yopmail.com",
+      "tenantType": "CREATE",
+      "status": "VALIDATED",
+      "documents": [
+        {
+          "id": 15,
+          "documentCategory": "IDENTIFICATION",
+          "documentSubCategory": "FRENCH_IDENTITY_CARD",
+          "documentStatus": "VALIDATED",
+          "name": "http://localhost:8080/api/document/resource/8d19767c-8301-4a81-8f85-8957ca11e85c.pdf",
+          "files": [
+            {
+              "id": 15,
+              "path": "http://localhost:8080/api/file/resource/15",
+              "originalName": "resultTestPdfWithJpeg.pdf",
+              "size": 133355
+            }
+          ]
+        },
+        {
+          "id": 11,
+          "documentCategory": "RESIDENCY",
+          "documentSubCategory": "TENANT",
+          "documentStatus": "VALIDATED",
+          "name": "http://localhost:8080/api/document/resource/29397850-69f3-47ef-87cd-9c790c1f1571.pdf",
+          "files": [
+            {
+              "id": 12,
+              "path": "http://localhost:8080/api/file/resource/12",
+              "originalName": "CNI.pdf",
+              "size": 709936
+            }
+          ]
+        },
+        {
+          "id": 12,
+          "documentCategory": "PROFESSIONAL",
+          "documentSubCategory": "CDI",
+          "documentStatus": "VALIDATED",
+          "name": "http://localhost:8080/api/document/resource/02237091-6401-4aa6-b6b4-c0b514dfef18.pdf",
+          "files": [
+            {
+              "id": 13,
+              "path": "http://localhost:8080/api/file/resource/13",
+              "originalName": "Fiche de paie (P).pdf",
+              "size": 3253651
+            }
+          ]
+        },
+        {
+          "id": 13,
+          "documentCategory": "FINANCIAL",
+          "documentSubCategory": "NO_INCOME",
+          "noDocument": true,
+          "customText": "non",
+          "monthlySum": 0,
+          "documentStatus": "VALIDATED",
+          "name": "http://localhost:8080/api/document/resource/3c687a69-0f25-47c1-bd3a-87e10eb4a736.pdf",
+          "files": []
+        },
+        {
+          "id": 14,
+          "documentCategory": "TAX",
+          "documentSubCategory": "MY_NAME",
+          "noDocument": false,
+          "documentStatus": "VALIDATED",
+          "name": "http://localhost:8080/api/document/resource/74ed8ae9-f1ae-44c8-9497-e5e3f851ba39.pdf",
+          "files": [
+            {
+              "id": 14,
+              "path": "http://localhost:8080/api/file/resource/14",
+              "originalName": "Avis d'impot.pdf",
+              "size": 2554747
+            }
+          ]
+        }
+      ],
+      "guarantors": []
+    }
+  ]
+}

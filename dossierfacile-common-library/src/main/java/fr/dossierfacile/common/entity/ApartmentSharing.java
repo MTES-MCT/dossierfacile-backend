@@ -2,6 +2,7 @@ package fr.dossierfacile.common.entity;
 
 
 import fr.dossierfacile.common.enums.ApplicationType;
+import fr.dossierfacile.common.enums.FileStatus;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -63,6 +64,11 @@ public class ApartmentSharing implements Serializable {
 
     private String urlDossierPdfDocument;
 
+    @Column
+    @Enumerated(EnumType.STRING)
+    private FileStatus dossierPdfDocumentStatus;
+
+
     public ApartmentSharing(Tenant tenant) {
         tenants.add(tenant);
         this.token = UUID.randomUUID().toString();
@@ -117,5 +123,15 @@ public class ApartmentSharing implements Serializable {
             totalSalary += tenant.getTotalSalary();
         }
         return totalSalary;
+    }
+
+    public List<TenantUserApi> groupingAllTenantUserApisInTheApartment() {
+        List<TenantUserApi> tenantUserApis = new ArrayList<>();
+        if (tenants != null && !tenants.isEmpty()) {
+            tenants.stream()
+                    .filter(t -> t.getTenantsUserApi() != null && !t.getTenantsUserApi().isEmpty())
+                    .forEach(t -> tenantUserApis.addAll(t.getTenantsUserApi()));
+        }
+        return tenantUserApis;
     }
 }

@@ -186,8 +186,9 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
     @Query(value = "select * from tenant t \n" +
             "join user_account u on u.id = t.id \n" +
             "where u.last_login_date < :localDateTime \n" +
-            "and t.id in (select d.tenant_id from document d where d.tenant_id is not null)", nativeQuery = true)
-    Page<Tenant> findByLastLoginDateIsBeforeAndHasDocuments(Pageable pageable, @Param("localDateTime") LocalDateTime localDateTime);
+            "and t.id in (select d.tenant_id from document d where d.tenant_id is not null) \n" +
+            "and t.warnings = :warnings", nativeQuery = true)
+    Page<Tenant> findByLastLoginDateIsBeforeAndHasDocuments(Pageable pageable, @Param("localDateTime") LocalDateTime localDateTime, Integer warnings);
 
     @Modifying
     @Query("UPDATE Tenant t SET t.warnings = 0 where t.id = :tenantId")
