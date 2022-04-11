@@ -69,7 +69,7 @@ public class Application implements SaveStep<ApplicationForm> {
 
         LocalDateTime now = LocalDateTime.now();
         tenant.lastUpdateDateProfile(now, null);
-        Tenant tenantSaved = tenantRepository.save(tenant);
+        tenantRepository.save(tenant);
 
         tenantToCreate.forEach(email -> {
             Tenant joinTenant = new Tenant(email, apartmentSharing);
@@ -82,6 +82,6 @@ public class Application implements SaveStep<ApplicationForm> {
             mailService.sendEmailForFlatmates(tenant, joinTenant, passwordRecoveryToken, applicationForm.getApplicationType());
             logService.saveLog(LogType.ACCOUNT_CREATED, joinTenant.getId());
         });
-        return tenantMapper.toTenantModel(tenantSaved);
+        return tenantMapper.toTenantModel(tenant);
     }
 }

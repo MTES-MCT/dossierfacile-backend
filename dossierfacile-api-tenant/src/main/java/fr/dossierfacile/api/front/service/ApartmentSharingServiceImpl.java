@@ -2,6 +2,11 @@ package fr.dossierfacile.api.front.service;
 
 import fr.dossierfacile.api.front.amqp.Producer;
 import fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException;
+import fr.dossierfacile.api.front.exception.ApartmentSharingUnexpectedException;
+import fr.dossierfacile.common.entity.DocumentPdfGenerationLog;
+import fr.dossierfacile.common.mapper.ApplicationFullMapper;
+import fr.dossierfacile.common.mapper.ApplicationLightMapper;
+import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
 import fr.dossierfacile.api.front.repository.ApartmentSharingRepository;
 import fr.dossierfacile.api.front.repository.LinkLogRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
@@ -9,15 +14,8 @@ import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.LinkLog;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.LinkType;
-import fr.dossierfacile.common.mapper.ApplicationFullMapper;
-import fr.dossierfacile.common.mapper.ApplicationLightMapper;
-import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.OvhService;
-import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -26,6 +24,9 @@ import org.openstack4j.model.storage.object.SwiftObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.io.*;
+import java.util.UUID;
 
 @Service
 @AllArgsConstructor
@@ -113,7 +114,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
     }
 
     @Override
-    public void createFullPdf(String token) {
+    public void createFullPdf(String token){
         ApartmentSharing apartmentSharing = apartmentSharingRepository.findByToken(token).orElseThrow(() -> new ApartmentSharingNotFoundException(token));
 
         saveLinkLog(apartmentSharing, token, LinkType.DOCUMENT);
@@ -121,6 +122,13 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
         String urlDossierPdfDocument = apartmentSharing.getUrlDossierPdfDocument();
         if (urlDossierPdfDocument == null) {
             producer.generateFullPdf(apartmentSharing.getId());
+        }
+    }
+
+    private void checkingAllTenantsInTheApartmentAreValidatedAndAllDocumentsAreNotNull(long apartmentSharingId, String token) {
+        int numberOfTenants = tenantRepository.countTenantsInTheApartmentNotValidatedOrWithSomeNullDocument(apartmentSharingId);
+        if (numberOfTenants > 0) {
+            throw new ApartmentSharingUnexpectedException(token);
         }
     }
 

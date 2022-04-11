@@ -5,20 +5,6 @@ import fr.gouv.bo.dto.CountActionsDTO;
 import fr.gouv.bo.dto.CountDTO;
 import fr.gouv.bo.dto.ErrorFieldDTO;
 import fr.gouv.bo.dto.KeyStatistics;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.security.SecureRandom;
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import javax.imageio.ImageIO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -30,16 +16,25 @@ import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.security.SecureRandom;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.util.*;
+
 @Slf4j
 public class UtilsLocatio {
 
     private UtilsLocatio() {
     }
 
-    public static boolean isNumeric(String string) {
+     public static boolean isNumeric(String string) {
         Long longValue;
         System.out.println(String.format("Parsing string: \"%s\"", string));
-        if (string == null || string.equals("")) {
+        if(string == null || string.equals("")) {
             System.out.println("String cannot be parsed, it is null or empty.");
             return false;
         }
@@ -51,7 +46,6 @@ public class UtilsLocatio {
         }
         return false;
     }
-
     public static String generateRandomString(int length) {
 
         String CHAR_LOWER = "abcdefghijklmnopqrstuvwxyz";
