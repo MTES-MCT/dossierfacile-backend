@@ -6,4 +6,6 @@ public interface RegisterService {
     long confirmAccount(String token);
 
     OwnerModel register(AccountForm accountForm);
+
+    void forgotPassword(String email);
 }

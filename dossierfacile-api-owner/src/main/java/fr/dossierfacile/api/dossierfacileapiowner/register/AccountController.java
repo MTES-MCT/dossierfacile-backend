@@ -4,7 +4,9 @@ import fr.dossierfacile.api.dossierfacileapiowner.log.LogService;
 import fr.dossierfacile.api.dossierfacileapiowner.user.OwnerModel;
 import fr.dossierfacile.common.enums.LogType;
 import lombok.AllArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -33,6 +35,12 @@ public class AccountController {
     public ResponseEntity<Void> confirmAccount(@PathVariable String token) {
         long ownerId = registerService.confirmAccount(token);
         logService.saveLog(LogType.EMAIL_ACCOUNT_VALIDATED, ownerId);
+        return ok().build();
+    }
+
+    @PostMapping(value = "/forgotPassword", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Void> forgotPassword(@Validated @RequestBody EmailResetForm email) {
+        registerService.forgotPassword(email.getEmail());
         return ok().build();
     }
 

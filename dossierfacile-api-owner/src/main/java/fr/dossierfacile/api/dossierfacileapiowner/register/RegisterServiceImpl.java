@@ -8,6 +8,7 @@ import fr.dossierfacile.api.dossierfacileapiowner.user.UserRepository;
 import fr.dossierfacile.api.dossierfacileapiowner.user.UserRoleService;
 import fr.dossierfacile.common.entity.ConfirmationToken;
 import fr.dossierfacile.common.entity.Owner;
+import fr.dossierfacile.common.entity.PasswordRecoveryToken;
 import fr.dossierfacile.common.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +27,7 @@ public class RegisterServiceImpl implements RegisterService {
     private final MailService mailService;
     private final ConfirmationTokenRepository confirmationTokenRepository;
     private final ConfirmationTokenService confirmationTokenService;
+    private final PasswordRecoveryTokenService passwordRecoveryTokenService;
     private final UserRepository userRepository;
     private final UserRoleService userRoleService;
 
@@ -52,5 +54,13 @@ public class RegisterServiceImpl implements RegisterService {
             mailService.sendEmailConfirmAccount(owner, confirmationTokenService.createToken(owner));
             userRoleService.createRole(owner);
             return ownerMapper.toOwnerModel(owner);
+    }
+
+    @Override
+    public void forgotPassword(String email) {
+        Owner owner = ownerRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException(email));
+        PasswordRecoveryToken passwordRecoveryToken = passwordRecoveryTokenService.create(owner);
+        mailService.sendEmailNewPassword(owner, passwordRecoveryToken);
     }
 }
