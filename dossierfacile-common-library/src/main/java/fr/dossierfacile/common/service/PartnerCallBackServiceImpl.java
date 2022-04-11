@@ -70,6 +70,25 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
         }
     }
 
+    @Override
+    public void linkTenantToPartner(String internalPartnerId, Tenant tenant, UserApi userApi) {
+        TenantUserApi tenantUserApi = tenantUserApiRepository.findFirstByTenantAndUserApi(tenant, userApi).orElse(
+                TenantUserApi.builder()
+                        .id(new TenantUserApiKey(tenant.getId(), userApi.getId()))
+                        .tenant(tenant)
+                        .userApi(userApi)
+                        .build()
+        );
+        if (internalPartnerId != null && !internalPartnerId.isEmpty()) {
+            if (tenantUserApi.getAllInternalPartnerId() == null) {
+                tenantUserApi.setAllInternalPartnerId(Collections.singletonList(internalPartnerId));
+            } else if (!tenantUserApi.getAllInternalPartnerId().contains(internalPartnerId)) {
+                tenantUserApi.getAllInternalPartnerId().add(internalPartnerId);
+            }
+            tenantUserApiRepository.save(tenantUserApi);
+        }
+    }
+
     public void sendCallBack(Tenant tenant) {
         TenantFileStatus tenantFileStatus = tenant.getStatus();
         if (tenantFileStatus == TenantFileStatus.VALIDATED || tenantFileStatus == TenantFileStatus.TO_PROCESS) {

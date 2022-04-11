@@ -165,6 +165,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public void linkTenantToApiPartner(Tenant tenant, String partner) {
+        if (partner != null) {
+            UserApi userApi = sourceService.findOrCreate(partner);
+            partnerCallBackService.linkTenantToPartner(null, tenant, userApi);
+        }
+    }
+
+    @Override
     public void logout(Tenant tenant) {
         keycloakService.logout(tenant);
     }

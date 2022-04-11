@@ -8,6 +8,7 @@ import java.util.List;
 public interface PartnerCallBackService {
 
     void registerTenant(String internalPartnerId, Tenant tenant, UserApi userApi);
+    void linkTenantToPartner(String internalPartnerId, Tenant tenant, UserApi userApi);
     void sendCallBack(Tenant tenant);
     void sendCallBack(Tenant tenant, PartnerCallBackType partnerCallBackType);
     void sendCallBack(List<Tenant> tenantList, PartnerCallBackType partnerCallBackType);

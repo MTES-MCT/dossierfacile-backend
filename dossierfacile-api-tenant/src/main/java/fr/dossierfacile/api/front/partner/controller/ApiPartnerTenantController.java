@@ -37,7 +37,7 @@ public class ApiPartnerTenantController {
     public ResponseEntity<TenantModel> profile(@PathVariable(required = false) Long tenantId) {
         Tenant tenant = authenticationFacade.getTenant(tenantId);
         var partner = authenticationFacade.getKeycloakClientId();
-        userService.linkTenantToPartner(tenant, partner);
+        userService.linkTenantToApiPartner(tenant, partner);
         return ok(tenantMapper.toTenantModel(tenant));
     }
 
