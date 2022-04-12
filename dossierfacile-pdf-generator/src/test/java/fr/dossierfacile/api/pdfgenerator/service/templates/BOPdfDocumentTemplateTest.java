@@ -2,9 +2,13 @@ package fr.dossierfacile.api.pdfgenerator.service.templates;
 
 import fr.dossierfacile.api.pdfgenerator.model.FileInputStream;
 import org.apache.commons.io.IOUtils;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.MessageSource;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -12,10 +16,22 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 
+import static org.mockito.Mockito.any;
+
 // Used for manual testing
 @Disabled
+@ExtendWith(MockitoExtension.class)
 public class BOPdfDocumentTemplateTest {
 
+    @Mock
+    MessageSource messageSource;
+    @InjectMocks
+    BOPdfDocumentTemplate boPdfDocumentTemplate;
+
+    @BeforeEach
+    void init() {
+        Mockito.when(messageSource.getMessage(any(),any(),any(),any() )).thenReturn(BOPdfDocumentTemplate.DEFAULT_WATERMARK);
+    }
 
     @DisplayName("Check if the render is correctly generated from text pdf and wrong sized pdf")
     @Test
@@ -31,7 +47,7 @@ public class BOPdfDocumentTemplateTest {
         File resultFile = new File("target/resultTestPdfWrongSize.pdf");
         resultFile.createNewFile();
 
-        byte[] bytes = IOUtils.toByteArray(new BOPdfDocumentTemplate().render(Arrays.asList(data)));
+        byte[] bytes = IOUtils.toByteArray(boPdfDocumentTemplate.render(Arrays.asList(data)));
 
         FileOutputStream w = new FileOutputStream(resultFile);
         w.write(bytes);
@@ -69,7 +85,7 @@ public class BOPdfDocumentTemplateTest {
         File resultFile = new File("target/resultFullTypeTestPdf.pdf");
         resultFile.createNewFile();
 
-        byte[] bytes = IOUtils.toByteArray(new BOPdfDocumentTemplate().render(Arrays.asList(data, data2, data3, data4)));
+        byte[] bytes = IOUtils.toByteArray(boPdfDocumentTemplate.render(Arrays.asList(data, data2, data3, data4)));
 
         FileOutputStream w = new FileOutputStream(resultFile);
         w.write(bytes);
@@ -89,7 +105,7 @@ public class BOPdfDocumentTemplateTest {
         File resultFile = new File("target/resultTestPdfWithJpeg.pdf");
         resultFile.createNewFile();
 
-        byte[] bytes = IOUtils.toByteArray(new BOPdfDocumentTemplate().render(Arrays.asList(data)));
+        byte[] bytes = IOUtils.toByteArray(boPdfDocumentTemplate.render(Arrays.asList(data)));
 
         FileOutputStream w = new FileOutputStream(resultFile);
         w.write(bytes);
@@ -120,7 +136,7 @@ public class BOPdfDocumentTemplateTest {
         File resultFile = new File("target/resultTestJpeg.pdf");
         resultFile.createNewFile();
 
-        byte[] bytes = IOUtils.toByteArray(new BOPdfDocumentTemplate().render(Arrays.asList(data, data2, data3)));
+        byte[] bytes = IOUtils.toByteArray(boPdfDocumentTemplate.render(Arrays.asList(data, data2, data3)));
 
         FileOutputStream w = new FileOutputStream(resultFile);
         w.write(bytes);

@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.*;
+import java.net.UnknownServiceException;
 import java.util.UUID;
 
 @Service
@@ -77,7 +78,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
 
         String urlDossierPdfDocument = apartmentSharing.getUrlDossierPdfDocument();
         if (urlDossierPdfDocument == null) {
-            throw new FileNotFoundException("Full PDF doesn't exist yet");
+            throw new FileNotFoundException("Full PDF doesn't exist");
         } else {
             SwiftObject swiftObject = ovhService.get(urlDossierPdfDocument);
             if (swiftObject != null) {
@@ -88,6 +89,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
                     IOUtils.copy(fileIS, outputStreamResult);
                 } else {
                     log.error("Problem downloading Dossier pdf [" + urlDossierPdfDocument + "].");
+                    throw new UnknownServiceException("Unable to get Full PDF from Storage");
                 }
             }
         }
@@ -116,6 +118,8 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
     @Override
     public void createFullPdf(String token){
         ApartmentSharing apartmentSharing = apartmentSharingRepository.findByToken(token).orElseThrow(() -> new ApartmentSharingNotFoundException(token));
+
+        checkingAllTenantsInTheApartmentAreValidatedAndAllDocumentsAreNotNull(apartmentSharing.getId(), token);
 
         saveLinkLog(apartmentSharing, token, LinkType.DOCUMENT);
 
