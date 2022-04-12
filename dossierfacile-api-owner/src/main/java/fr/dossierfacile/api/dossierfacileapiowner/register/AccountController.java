@@ -44,4 +44,11 @@ public class AccountController {
         return ok().build();
     }
 
+    @PostMapping(value = "/createPassword/{token}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<OwnerModel> createPassword(@PathVariable String token, @Validated @RequestBody PasswordForm password) {
+        OwnerModel ownerModel = registerService.createPassword(token, password.getPassword());
+        return ok(ownerModel);
+    }
+
+
 }

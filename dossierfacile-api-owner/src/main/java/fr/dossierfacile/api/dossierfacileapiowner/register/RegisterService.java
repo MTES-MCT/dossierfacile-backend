@@ -8,4 +8,6 @@ public interface RegisterService {
     OwnerModel register(AccountForm accountForm);
 
     void forgotPassword(String email);
+
+    OwnerModel createPassword(String token, String password);
 }

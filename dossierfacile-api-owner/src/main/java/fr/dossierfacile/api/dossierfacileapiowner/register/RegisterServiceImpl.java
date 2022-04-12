@@ -30,6 +30,7 @@ public class RegisterServiceImpl implements RegisterService {
     private final PasswordRecoveryTokenService passwordRecoveryTokenService;
     private final UserRepository userRepository;
     private final UserRoleService userRoleService;
+    private final PasswordRecoveryTokenRepository passwordRecoveryTokenRepository;
 
     @Override
     public long confirmAccount(String token) {
@@ -46,14 +47,14 @@ public class RegisterServiceImpl implements RegisterService {
     @Override
     @Transactional
     public OwnerModel register(AccountForm accountForm) {
-            String email = accountForm.getEmail().toLowerCase();
-            Owner owner = ownerRepository.findByEmailAndEnabledFalse(email).orElse(new Owner("", "", email));
-            owner.setPassword(bCryptPasswordEncoder.encode(accountForm.getPassword()));
-            owner.setKeycloakId(keycloakService.createKeycloakUserAccountCreation(accountForm, owner));
-            ownerRepository.save(owner);
-            mailService.sendEmailConfirmAccount(owner, confirmationTokenService.createToken(owner));
-            userRoleService.createRole(owner);
-            return ownerMapper.toOwnerModel(owner);
+        String email = accountForm.getEmail().toLowerCase();
+        Owner owner = ownerRepository.findByEmailAndEnabledFalse(email).orElse(new Owner("", "", email));
+        owner.setPassword(bCryptPasswordEncoder.encode(accountForm.getPassword()));
+        owner.setKeycloakId(keycloakService.createKeycloakUserAccountCreation(accountForm, owner));
+        ownerRepository.save(owner);
+        mailService.sendEmailConfirmAccount(owner, confirmationTokenService.createToken(owner));
+        userRoleService.createRole(owner);
+        return ownerMapper.toOwnerModel(owner);
     }
 
     @Override
@@ -63,4 +64,26 @@ public class RegisterServiceImpl implements RegisterService {
         PasswordRecoveryToken passwordRecoveryToken = passwordRecoveryTokenService.create(owner);
         mailService.sendEmailNewPassword(owner, passwordRecoveryToken);
     }
+
+    @Override
+    public OwnerModel createPassword(String token, String password) {
+        PasswordRecoveryToken passwordRecoveryToken = passwordRecoveryTokenRepository.findByToken(token)
+                .orElseThrow(() -> new PasswordRecoveryTokenNotFoundException(token));
+        User user = passwordRecoveryToken.getUser();
+        user.setEnabled(true);
+        user.setPassword(bCryptPasswordEncoder.encode(password));
+        if (user.getKeycloakId() == null) {
+            var keycloakId = keycloakService.getKeycloakId(user.getEmail());
+            keycloakService.createKeyCloakPassword(keycloakId, password);
+            user.setKeycloakId(keycloakId);
+        } else {
+            keycloakService.createKeyCloakPassword(user.getKeycloakId(), password);
+        }
+        userRepository.save(user);
+
+        passwordRecoveryTokenRepository.delete(passwordRecoveryToken);
+        return ownerMapper.toOwnerModel(ownerRepository.findById(user.getId()).orElseThrow(UserNotFoundException::new))
+        ;
+    }
+
 }

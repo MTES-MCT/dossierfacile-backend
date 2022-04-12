@@ -13,4 +13,10 @@ public interface KeycloakService {
     void logout(Owner owner);
 
     void deleteKeycloakUser(Owner owner);
+
+    String getKeycloakId(String email);
+
+    String createKeycloakUser(String email);
+
+    void createKeyCloakPassword(String keycloakId, String password);
 }

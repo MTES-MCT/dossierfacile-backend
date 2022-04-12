@@ -77,4 +77,25 @@ public class KeycloakServiceImpl implements KeycloakService {
     public void deleteKeycloakUser(Owner owner) {
         realmResource.users().delete(owner.getKeycloakId());
     }
+
+    @Override
+    public String getKeycloakId(String email) {
+        var userRepresentations = realmResource.users().search(email);
+        return userRepresentations.isEmpty() ? createKeycloakUser(email) : userRepresentations.get(0).getId();
+    }
+
+    @Override
+    public String createKeycloakUser(String email) {
+        var userRepresentation = createUser(email);
+        return createUserAndReturnId(userRepresentation);
+    }
+
+    @Override
+    public void createKeyCloakPassword(String keycloakId, String password) {
+        var userRepresentation = realmResource.users().get(keycloakId).toRepresentation();
+        userRepresentation.setEmailVerified(true);
+        userRepresentation.setEnabled(true);
+        createCredential(userRepresentation, password);
+        realmResource.users().get(keycloakId).update(userRepresentation);
+    }
 }
