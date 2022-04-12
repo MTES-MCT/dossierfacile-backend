@@ -35,6 +35,10 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
         return ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClaimAsString("family_name");
     }
 
+    private String getUsageName() {
+        return ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClaimAsString("preferred_name");
+    }
+
     @Override
     public String getKeycloakUserId() {
         return ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClaimAsString("sub");
@@ -117,6 +121,7 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
             tenant.setFranceConnectBirthDate(getFranceConnectBirthDate());
             tenant.setFirstName(getFirstName());
             tenant.setLastName(getLastName());
+            tenant.setUsageName(getUsageName());
         }
         return tenantRepository.saveAndFlush(tenant);
     }

@@ -30,6 +30,7 @@ import fr.dossierfacile.common.entity.User;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.LogType;
+import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.OvhService;
@@ -113,6 +114,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void deleteAccount(Tenant tenant) {
+        partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.DELETED_ACCOUNT);
         saveAndDeleteInfoByTenant(tenant);
         ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
         if (tenant.getTenantType() == TenantType.CREATE || apartmentSharing.getNumberOfTenants() == 1) {
@@ -133,6 +135,7 @@ public class UserServiceImpl implements UserService {
             ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
             Tenant coTenant = apartmentSharing.getTenants().stream().filter(t -> t.getId().equals(id) && t.getTenantType().equals(TenantType.JOIN)).findFirst().orElseThrow(null);
             if (coTenant != null) {
+                partnerCallBackService.sendCallBack(coTenant, PartnerCallBackType.DELETED_ACCOUNT);
                 if (coTenant.getKeycloakId() != null) {
                     keycloakService.deleteKeycloakUser(coTenant);
                 }
@@ -159,6 +162,14 @@ public class UserServiceImpl implements UserService {
     @Override
     public void linkTenantToPartner(Tenant tenant, String partner) {
         sourceService.findByName(partner).ifPresent(userApi -> partnerCallBackService.registerTenant(null, tenant, userApi));
+    }
+
+    @Override
+    public void linkTenantToApiPartner(Tenant tenant, String partner) {
+        if (partner != null) {
+            UserApi userApi = sourceService.findOrCreate(partner);
+            partnerCallBackService.linkTenantToPartner(null, tenant, userApi);
+        }
     }
 
     @Override

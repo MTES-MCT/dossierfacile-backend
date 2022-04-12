@@ -19,5 +19,7 @@ public interface UserService {
 
     void linkTenantToPartner(Tenant tenant, String partner);
 
+    void linkTenantToApiPartner(Tenant tenant, String partner);
+
     void logout(Tenant tenant);
 }

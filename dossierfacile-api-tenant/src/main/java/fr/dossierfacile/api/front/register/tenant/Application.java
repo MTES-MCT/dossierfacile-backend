@@ -15,14 +15,15 @@ import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.PasswordRecoveryToken;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.LogType;
+import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
-import lombok.AllArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
+import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @AllArgsConstructor
@@ -37,6 +38,7 @@ public class Application implements SaveStep<ApplicationForm> {
     private final LogService logService;
     private final KeycloakService keycloakService;
     private final ApartmentSharingService apartmentSharingService;
+    private final PartnerCallBackService partnerCallBackService;
 
     @Override
     @Transactional
@@ -61,6 +63,7 @@ public class Application implements SaveStep<ApplicationForm> {
         apartmentSharingRepository.save(apartmentSharing);
         apartmentSharingService.resetDossierPdfGenerated(apartmentSharing);
         var tenantEntityToDelete = tenantRepository.findByListEmail(tenantToDelete);
+        partnerCallBackService.sendCallBack(tenantEntityToDelete, PartnerCallBackType.DELETED_ACCOUNT);
         keycloakService.deleteKeycloakUsers(tenantEntityToDelete);
         tenantRepository.deleteAll(tenantEntityToDelete);
 
