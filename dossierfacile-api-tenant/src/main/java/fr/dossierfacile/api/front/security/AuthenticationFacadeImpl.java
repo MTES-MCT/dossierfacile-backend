@@ -36,7 +36,7 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
     }
 
     private String getUsageName() {
-        return ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClaimAsString("preferred_name");
+        return ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClaimAsString("preferred_username");
     }
 
     @Override
