@@ -58,8 +58,8 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
             } else if (!tenantUserApi.getAllInternalPartnerId().contains(internalPartnerId)) {
                 tenantUserApi.getAllInternalPartnerId().add(internalPartnerId);
             }
-            tenantUserApiRepository.save(tenantUserApi);
         }
+        tenantUserApiRepository.save(tenantUserApi);
 
         if (userApi.getVersion() != null && userApi.getUrlCallback() != null && (
                 tenant.getStatus() == TenantFileStatus.VALIDATED
@@ -85,8 +85,8 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
             } else if (!tenantUserApi.getAllInternalPartnerId().contains(internalPartnerId)) {
                 tenantUserApi.getAllInternalPartnerId().add(internalPartnerId);
             }
-            tenantUserApiRepository.save(tenantUserApi);
         }
+        tenantUserApiRepository.save(tenantUserApi);
     }
 
     public void sendCallBack(Tenant tenant) {
