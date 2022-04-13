@@ -3,7 +3,7 @@ package fr.dossierfacile.api.front.service;
 import fr.dossierfacile.api.front.amqp.Producer;
 import fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException;
 import fr.dossierfacile.api.front.exception.ApartmentSharingUnexpectedException;
-import fr.dossierfacile.common.entity.DocumentPdfGenerationLog;
+import fr.dossierfacile.common.enums.FileStatus;
 import fr.dossierfacile.common.mapper.ApplicationFullMapper;
 import fr.dossierfacile.common.mapper.ApplicationLightMapper;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
@@ -103,6 +103,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
         if (currentUrl != null) {
             ovhService.delete(currentUrl);
             apartmentSharing.setUrlDossierPdfDocument(null);
+            apartmentSharing.setDossierPdfDocumentStatus(FileStatus.DELETED);
             apartmentSharingRepository.save(apartmentSharing);
         }
     }
