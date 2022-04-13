@@ -110,7 +110,7 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
     @Override
     public void sendCallBack(List<Tenant> tenantList, PartnerCallBackType partnerCallBackType) {
         if (tenantList != null && !tenantList.isEmpty()) {
-            tenantList.forEach(t -> sendCallBack(t, PartnerCallBackType.DELETED_ACCOUNT));
+            tenantList.forEach(t -> sendCallBack(t, partnerCallBackType));
         }
     }
 
