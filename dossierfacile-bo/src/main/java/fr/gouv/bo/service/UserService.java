@@ -170,6 +170,7 @@ public class UserService {
     }
 
     public void deleteApartmentSharing(Tenant tenant) {
+        partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.DELETED_ACCOUNT);
         ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
         removeFromOwner(tenant);
         if (apartmentSharing.getTenants().size() == 1 && tenant.getKeycloakId() != null) {
