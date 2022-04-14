@@ -20,6 +20,7 @@ public class TenantModel {
     private Long id;
     private String firstName;
     private String lastName;
+    private String displayName;
     private String zipCode;
     private String email;
     private TenantType tenantType;
