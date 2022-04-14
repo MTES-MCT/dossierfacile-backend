@@ -89,15 +89,6 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
         tenantUserApiRepository.save(tenantUserApi);
     }
 
-    public void sendCallBack(Tenant tenant) {
-        TenantFileStatus tenantFileStatus = tenant.getStatus();
-        if (tenantFileStatus == TenantFileStatus.VALIDATED || tenantFileStatus == TenantFileStatus.TO_PROCESS) {
-            sendCallBack(tenant, tenantFileStatus == TenantFileStatus.VALIDATED ?
-                    PartnerCallBackType.VERIFIED_ACCOUNT :
-                    PartnerCallBackType.CREATED_ACCOUNT);
-        }
-    }
-
     public void sendCallBack(Tenant tenant, PartnerCallBackType partnerCallBackType) {
         tenant.getApartmentSharing().groupingAllTenantUserApisInTheApartment().forEach(tenantUserApi -> {
             UserApi userApi = tenantUserApi.getUserApi();
@@ -110,7 +101,7 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
     @Override
     public void sendCallBack(List<Tenant> tenantList, PartnerCallBackType partnerCallBackType) {
         if (tenantList != null && !tenantList.isEmpty()) {
-            tenantList.forEach(t -> sendCallBack(t, PartnerCallBackType.DELETED_ACCOUNT));
+            tenantList.forEach(t -> sendCallBack(t, partnerCallBackType));
         }
     }
 
