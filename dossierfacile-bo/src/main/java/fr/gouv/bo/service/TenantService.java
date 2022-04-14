@@ -216,7 +216,6 @@ public class TenantService {
         changeTenantStatusToValidated(tenant);
 
         mailService.sendEmailToTenantAfterValidateAllDocuments(tenant);
-        partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.VERIFIED_ACCOUNT);
         operatorLogRepository.save(new OperatorLog(
                 tenant, operator, tenant.getStatus(), ActionOperatorType.STOP_PROCESS
         ));
@@ -449,7 +448,6 @@ public class TenantService {
         operatorLogRepository.save(new OperatorLog(
                 tenant, operator, tenant.getStatus(), ActionOperatorType.STOP_PROCESS
         ));
-        partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.DENIED_ACCOUNT);
         logService.saveByLog(new Log(LogType.ACCOUNT_DENIED, tenant.getId(), operator.getId()));
     }
 
@@ -588,9 +586,10 @@ public class TenantService {
         operatorLogRepository.save(new OperatorLog(
                 tenant, operator, tenant.getStatus(), ActionOperatorType.STOP_PROCESS
         ));
-        partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.DENIED_ACCOUNT);
         if (message != null) {
             logService.saveByLog(new Log(LogType.ACCOUNT_DENIED, tenant.getId(), operator.getId(), message.getId()));
+        } else {
+            logService.saveByLog(new Log(LogType.ACCOUNT_DENIED, tenant.getId(), operator.getId()));
         }
         return "redirect:/bo";
     }
@@ -616,12 +615,12 @@ public class TenantService {
             changeTenantStatusToValidated(tenant);
             logService.saveByLog(new Log(LogType.ACCOUNT_VALIDATED, tenant.getId(), operator.getId()));
             mailService.sendEmailToTenantAfterValidateAllDocuments(tenant);
-            partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.VERIFIED_ACCOUNT);
         } else {
             changeTenantStatusToDeclined(tenant);
-            partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.DENIED_ACCOUNT);
             if (message != null) {
                 logService.saveByLog(new Log(LogType.ACCOUNT_DENIED, tenant.getId(), operator.getId(), message.getId()));
+            } else {
+                logService.saveByLog(new Log(LogType.ACCOUNT_DENIED, tenant.getId(), operator.getId()));
             }
             mailService.sendMailNotificationAfterDeny(tenant);
         }
@@ -660,24 +659,33 @@ public class TenantService {
         operatorLogRepository.save(new OperatorLog(
                 tenant, operator, tenant.getStatus(), ActionOperatorType.STOP_PROCESS
         ));
-        partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.DENIED_ACCOUNT);
+        logService.saveByLog(new Log(LogType.ACCOUNT_DENIED, tenant.getId(), operator.getId()));
 
         return "redirect:/bo/colocation/" + tenant.getApartmentSharing().getId() + "#tenant" + tenant.getId();
     }
 
     public void updateTenantStatus(Tenant tenant) {
+        TenantFileStatus previousStatus = tenant.getStatus();
         tenant.setStatus(tenant.computeStatus());
         tenantRepository.save(tenant);
+        if (previousStatus != tenant.getStatus()) {
+            switch (tenant.getStatus()) {
+                case VALIDATED: partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.VERIFIED_ACCOUNT);
+                case DECLINED: partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.DENIED_ACCOUNT);
+            }
+        }
     }
 
     public void changeTenantStatusToValidated(Tenant tenant) {
         tenant.setStatus(TenantFileStatus.VALIDATED);
         tenantRepository.save(tenant);
+        partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.VERIFIED_ACCOUNT);
     }
 
     public void changeTenantStatusToDeclined(Tenant tenant) {
         tenant.setStatus(TenantFileStatus.DECLINED);
         tenantRepository.save(tenant);
+        partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.DENIED_ACCOUNT);
     }
 
     @Transactional
