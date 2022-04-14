@@ -101,6 +101,7 @@
 	</dependencies>
 
 	<build>
+		<finalName>dossierfacile-api-owner</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.liquibase</groupId>
