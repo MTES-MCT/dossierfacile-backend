@@ -1,9 +1,5 @@
 package fr.dossierfacile.api.dossierfacileapiowner.mail;
 
-import com.mailjet.client.MailjetClient;
-import com.mailjet.client.MailjetRequest;
-import com.mailjet.client.MailjetResponse;
-import com.mailjet.client.errors.MailjetException;
 import com.mailjet.client.resource.Emailv31;
 import fr.dossierfacile.common.entity.ConfirmationToken;
 import fr.dossierfacile.common.entity.PasswordRecoveryToken;
@@ -27,7 +23,6 @@ import static com.mailjet.client.resource.Emailv31.Message.EMAIL;
 @Slf4j
 @Profile("prod")
 public class MailServiceImplProd implements MailService {
-    private final MailjetClient client;
     @Value("${email.from}")
     private String emailFrom;
     @Value("${mailjet.template.id.welcome}")
@@ -65,11 +60,7 @@ public class MailServiceImplProd implements MailService {
         sendMailJetApi(mailjetModel);
     }
 
-
     private void sendMailJetApi(MailJetModel mailjetModel) {
-        MailjetRequest request;
-        MailjetResponse response;
-
         JSONObject message = new JSONObject();
         //from
         if (mailjetModel.getFromEmail() != null) {
@@ -140,15 +131,6 @@ public class MailServiceImplProd implements MailService {
         //templateID
         message.put(Emailv31.Message.TEMPLATEID, mailjetModel.getTemplateID());
 
-        request = new MailjetRequest(Emailv31.resource)
-                .property(Emailv31.MESSAGES, new JSONArray()
-                        .put(message));
-        try {
-            response = client.post(request);
-            log.info("ResponseStatus: {}", response.getStatus());
-            log.info("Response: {}", response.getData());
-        } catch (MailjetException e) {
-            log.error("MailjetException", e);
-        }
+        log.info("message: {}", message);
     }
 }
