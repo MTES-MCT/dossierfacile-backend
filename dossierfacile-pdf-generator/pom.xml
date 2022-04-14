@@ -28,6 +28,8 @@
 
 		<!--PDF generation libraries-->
 		<jbig2.imageio.version>3.0.3</jbig2.imageio.version>
+		<jai-imageio-jpeg2000.version>1.4.0</jai-imageio-jpeg2000.version>
+		<jai-imageio-core.version>1.4.0</jai-imageio-core.version>
 		<metadata.extractor.version>2.16.0</metadata.extractor.version>
 		<pdfbox.tools.version>2.0.23</pdfbox.tools.version>
 		<pdf2dom.version>2.0.0</pdf2dom.version>
@@ -104,6 +106,19 @@
 			<groupId>org.apache.pdfbox</groupId>
 			<artifactId>jbig2-imageio</artifactId>
 			<version>${jbig2.imageio.version}</version>
+		</dependency>
+
+		<!-- require codecs for some images -->
+		<dependency>
+			<groupId>com.github.jai-imageio</groupId>
+			<artifactId>jai-imageio-core</artifactId>
+			<version>${jai-imageio-core.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.github.jai-imageio</groupId>
+			<artifactId>jai-imageio-jpeg2000</artifactId>
+			<version>${jai-imageio-jpeg2000.version}</version>
 		</dependency>
 
 		<!--Dependencies for Tests-->

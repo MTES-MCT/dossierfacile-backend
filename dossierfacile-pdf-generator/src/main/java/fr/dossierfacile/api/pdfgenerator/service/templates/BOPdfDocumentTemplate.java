@@ -80,7 +80,7 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
                     PDPageTree pagesTree = document.getPages();
                     List<BufferedImage> images = new ArrayList<>(pagesTree.getCount());
                     for (int i = 0; i < pagesTree.getCount(); i++) {
-                        images.add(pdfRenderer.renderImage(i));
+                        images.add(pdfRenderer.renderImageWithDPI(i, 300));
                     }
                     return images;
                 }
