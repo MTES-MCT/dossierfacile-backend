@@ -27,5 +27,7 @@ public class NamesForm {
     @NotBlank
     private String lastName;
 
+    private String preferredName;
+
     private String zipCode;
 }
