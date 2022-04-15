@@ -61,8 +61,8 @@ public class TenantServiceImpl implements TenantService {
 
         if (previousStatus != tenant.getStatus()) {
             switch (tenant.getStatus()) {
-                case VALIDATED: partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.VERIFIED_ACCOUNT);
-                case DECLINED: partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.DENIED_ACCOUNT);
+                case VALIDATED -> partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.VERIFIED_ACCOUNT);
+                case DECLINED -> partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.DENIED_ACCOUNT);
             }
         } else if (previousStatus == TenantFileStatus.INCOMPLETE && tenant.getStatus() == TenantFileStatus.TO_PROCESS) {
             partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.CREATED_ACCOUNT);
