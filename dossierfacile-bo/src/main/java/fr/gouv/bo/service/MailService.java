@@ -128,7 +128,7 @@ public class MailService {
     public void sendEmailAccountDeleted(User user) {
         Map<String, String> variables = new HashMap<>();
         variables.put(FIRST_NAME, user.getFirstName());
-        variables.put(LAST_NAME, user.getLastName());
+        variables.put(LAST_NAME, user.getPreferredName() != null ? user.getPreferredName() : user.getLastName());
         sendMailJetApi(emailFrom, null, user.getEmail(), user.getFullName(), null, null, null, null, null, null, null, variables, templateIdAccountDeleted);
     }
 
@@ -143,7 +143,7 @@ public class MailService {
     public void sendEmailToTenantAfterValidateAllDocuments(Tenant tenant) {
         Map<String, String> variables = new HashMap<>();
         variables.put(FIRST_NAME, tenant.getFirstName());
-        variables.put(LAST_NAME, tenant.getLastName());
+        variables.put(LAST_NAME, tenant.getPreferredName() != null ? tenant.getPreferredName() : tenant.getLastName());
         sendMailJetApi(emailFrom, null, tenant.getEmail(), tenant.getFullName(), null, null, null, null, null, null, null, variables, templateIDDossierValidated);
     }
 }
