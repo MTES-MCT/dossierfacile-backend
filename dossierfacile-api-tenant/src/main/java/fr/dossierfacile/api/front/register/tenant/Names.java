@@ -30,6 +30,7 @@ public class Names implements SaveStep<NamesForm> {
     public TenantModel saveStep(Tenant tenant, NamesForm namesForm) {
         tenant.setFirstName(namesForm.getFirstName());
         tenant.setLastName(namesForm.getLastName());
+        tenant.setPreferredName(namesForm.getPreferredName());
         tenant.setZipCode(namesForm.getZipCode());
         tenant.lastUpdateDateProfile(LocalDateTime.now(), null);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
