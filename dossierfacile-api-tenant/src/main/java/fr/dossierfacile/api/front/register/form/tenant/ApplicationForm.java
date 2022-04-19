@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.front.register.form.tenant;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import fr.dossierfacile.api.front.validator.anotation.tenant.application.CheckTenantTypeAcceptAccess;
 import fr.dossierfacile.api.front.validator.anotation.tenant.application.CheckTenantTypeCountListCoTenant;
 import fr.dossierfacile.api.front.validator.anotation.tenant.application.DeniedJoinTenant;
@@ -8,6 +9,7 @@ import fr.dossierfacile.api.front.validator.anotation.tenant.application.Distinc
 import fr.dossierfacile.api.front.validator.anotation.tenant.application.UniqueEmailListCoTenant;
 import fr.dossierfacile.api.front.validator.group.ApiPartner;
 import fr.dossierfacile.api.front.validator.group.Dossier;
+import fr.dossierfacile.common.deserializer.EmailDeserializer;
 import fr.dossierfacile.common.enums.ApplicationType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -37,6 +39,7 @@ public class ApplicationForm {
     private ApplicationType applicationType;
 
     @DistinctEmailList
+    @JsonDeserialize(contentUsing = EmailDeserializer.class)
     private List<@Email String> coTenantEmail = new ArrayList<>();
 
     private Boolean acceptAccess;
