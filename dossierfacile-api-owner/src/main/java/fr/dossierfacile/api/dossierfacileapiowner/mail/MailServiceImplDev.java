@@ -12,7 +12,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import sendinblue.ApiClient;
+import sendinblue.ApiException;
+import sendinblue.Configuration;
+import sendinblue.auth.ApiKeyAuth;
+import sibApi.TransactionalEmailsApi;
+import sibModel.SendSmtpEmail;
+import sibModel.SendSmtpEmailTo;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,23 +33,38 @@ import static com.mailjet.client.resource.Emailv31.Message.EMAIL;
 public class MailServiceImplDev implements MailService {
     @Value("${email.from}")
     private String emailFrom;
-    @Value("${mailjet.template.id.welcome}")
-    private Integer templateIDWelcome;
-    @Value("${mailjet.template.id.new.password}")
+    @Value("${sendinblue.apikey}")
+    private String sendinblueApiKey;
+    @Value("${sendinblue.template.id.welcome}")
+    private Long templateIDWelcome;
+    @Value("${sendinblue.template.id.new.password}")
     private Integer templateIdNewPassword;
 
     @Async
     @Override
     public void sendEmailConfirmAccount(User user, ConfirmationToken confirmationToken) {
-        Map<String, String> variables = new HashMap<>();
-        variables.put("confirmToken", confirmationToken.getToken());
-        MailJetModel mailjetModel = MailJetModel.builder()
-                .fromEmail(emailFrom)
-                .toEmail(user.getEmail())
-                .variables(variables)
-                .templateID(templateIDWelcome)
-                .build();
-        sendMailJetApi(mailjetModel);
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
+        apiKey.setApiKey(sendinblueApiKey);
+
+        SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
+        sendSmtpEmailTo.setEmail(user.getEmail());
+
+        TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
+        sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
+
+        sendSmtpEmail.templateId(templateIDWelcome);
+
+        ConfirmMailParams confirmMailParams = new ConfirmMailParams(confirmationToken.getToken());
+        sendSmtpEmail.params(confirmMailParams);
+
+        try {
+            apiInstance.sendTransacEmail(sendSmtpEmail);
+            log.info("message: {}", sendSmtpEmail);
+        } catch (ApiException e) {
+            log.error("Email api exception", e);
+        }
     }
 
     @Async
