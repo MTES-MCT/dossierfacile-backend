@@ -28,7 +28,6 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.validator.constraints.Range;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.constraints.AssertTrue;
@@ -84,7 +83,6 @@ public class TenantDTO {
     @NotEmpty(groups = {Step2.class})
     @JsonIgnore
     private String password;
-    @Range(min = 2, max = 6, groups = {TenantCreateApartmentSharing.class})
     @JsonIgnore
     private Integer numberOfTenants;
     @JsonIgnore
