@@ -16,9 +16,9 @@ import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.tools.imageio.ImageIOUtil;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
-
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -34,6 +34,7 @@ import java.util.*;
 @Service
 @AllArgsConstructor
 @Slf4j
+@Primary
 public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>> {
     public static final String DEFAULT_WATERMARK = "  DOCUMENTS EXCLUSIVEMENT DESTIN\u00c9S \u00c0 LA LOCATION IMMOBILI\u00c8RE     ";
     private static final String EXCEPTION = "Sentry ID Exception: ";
@@ -49,6 +50,7 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
             data.stream()
                     .map(pdfFileIS -> convertToImages(pdfFileIS))
                     .flatMap(Collection::stream)
+                    .map(bim -> smartCrop(bim))
                     .map(bim -> fitImageToPage(bim))
                     .map(bim -> applyWatermark(bim))
                     .forEach(bim -> addImageAsPageToDocument(document, bim));
@@ -80,7 +82,10 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
                     PDPageTree pagesTree = document.getPages();
                     List<BufferedImage> images = new ArrayList<>(pagesTree.getCount());
                     for (int i = 0; i < pagesTree.getCount(); i++) {
-                        images.add(pdfRenderer.renderImageWithDPI(i, 300));
+                        //Adapt image resolution according image file - avoid Out of Memory
+                        float dpi = (params.maxPage.width / pagesTree.get(i).getMediaBox().getWidth()) * 300;
+                        dpi = Math.min(600, dpi);
+                        images.add(pdfRenderer.renderImageWithDPI(i, dpi));
                     }
                     return images;
                 }
@@ -90,6 +95,12 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
         } catch (IOException e) {
             throw new RuntimeException("Unable to convert pdf to image", e);
         }
+    }
+
+    /** Apply document crop if require */
+    protected BufferedImage smartCrop(BufferedImage image) {
+        // by default there is not crop on BO Documents
+        return image;
     }
 
     /**

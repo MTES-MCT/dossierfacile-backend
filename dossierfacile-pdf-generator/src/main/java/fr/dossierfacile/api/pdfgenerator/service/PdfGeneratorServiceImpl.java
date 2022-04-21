@@ -9,6 +9,7 @@ import fr.dossierfacile.api.pdfgenerator.service.interfaces.DocumentPdfGeneratio
 import fr.dossierfacile.api.pdfgenerator.service.interfaces.DownloadService;
 import fr.dossierfacile.api.pdfgenerator.service.interfaces.PdfGeneratorService;
 import fr.dossierfacile.api.pdfgenerator.service.templates.ApartmentSharingPdfDocumentTemplate;
+import fr.dossierfacile.api.pdfgenerator.service.templates.BOIdentificationPdfDocumentTemplate;
 import fr.dossierfacile.api.pdfgenerator.service.templates.BOPdfDocumentTemplate;
 import fr.dossierfacile.api.pdfgenerator.service.templates.EmptyBOPdfDocumentTemplate;
 import fr.dossierfacile.common.entity.ApartmentSharing;
@@ -23,6 +24,7 @@ import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +36,9 @@ import java.rmi.UnexpectedException;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static fr.dossierfacile.common.enums.DocumentCategory.IDENTIFICATION;
+import static fr.dossierfacile.common.enums.DocumentCategory.IDENTIFICATION_LEGAL_PERSON;
 
 @Slf4j
 @Service
@@ -52,6 +57,8 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
 
     private final EmptyBOPdfDocumentTemplate emptyBOPdfDocumentTemplate;
     private final BOPdfDocumentTemplate boPdfDocumentTemplate;
+    @Qualifier("boIdentificationPdfDocumentTemplate")
+    private final BOIdentificationPdfDocumentTemplate identificationPdfDocumentTemplate;
     private final ApartmentSharingPdfDocumentTemplate apartmentSharingPdfDocumentTemplate;
     private final ApartmentSharingService apartmentSharingService;
 
@@ -117,7 +124,10 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
 
         List<String> pathFiles = fileRepository.getFilePathsByDocumentId(document.getId());
         if (!CollectionUtils.isEmpty(pathFiles)) {
-            return boPdfDocumentTemplate.render(pathFiles.stream()
+            BOPdfDocumentTemplate pdfDocumentTemplateToUse = (documentCategory == IDENTIFICATION
+                    || documentCategory == IDENTIFICATION_LEGAL_PERSON)? identificationPdfDocumentTemplate : boPdfDocumentTemplate;
+
+            return pdfDocumentTemplateToUse.render(pathFiles.stream()
                     .map(path -> {
                         try {
                             String extension = FilenameUtils.getExtension(path).toLowerCase(Locale.ROOT);
