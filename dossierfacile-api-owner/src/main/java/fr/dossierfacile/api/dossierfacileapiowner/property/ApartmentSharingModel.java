@@ -20,5 +20,5 @@ public class ApartmentSharingModel {
     private ApplicationType applicationType;
     private Integer totalSalary;
     private Integer totalGuarantorSalary;
-    private String tokenPublic;
+    private String token;
 }
