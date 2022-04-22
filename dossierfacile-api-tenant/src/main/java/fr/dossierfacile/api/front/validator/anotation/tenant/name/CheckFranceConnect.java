@@ -17,7 +17,7 @@ import java.lang.annotation.Target;
 )
 
 public @interface CheckFranceConnect {
-    String message() default "you can't edit your names that come from france connect";
+    String message() default "You cannot edit your firstname or lastname when the account is linked to a FranceConnect Account";
 
     Class<?>[] groups() default {};
 
