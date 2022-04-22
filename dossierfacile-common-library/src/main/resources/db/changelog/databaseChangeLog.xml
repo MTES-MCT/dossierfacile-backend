@@ -44,4 +44,5 @@
     <include file="db/migration/202201061620-rename-column-document-category-in-table-document_denied_options.xml"/>
     <include file="db/migration/202201070211-add-column-checked_options_id.xml"/>
     <include file="db/migration/202203311430-add-column-status-to-apartmentsharing.xml"/>
+    <include file="db/migration/202204110752-add-column-usage_name.xml"/>
 </databaseChangeLog>

@@ -19,17 +19,16 @@ import fr.dossierfacile.common.repository.TenantUserApiRepository;
 import fr.dossierfacile.common.service.interfaces.CallbackLogService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.dossierfacile.common.service.interfaces.RequestService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
@@ -45,26 +44,6 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
     @Value("${callback.domain:default}")
     private String callbackDomain;
 
-    public void sendCallBack(Tenant tenant) {
-        TenantFileStatus tenantFileStatus = tenant.getStatus();
-        if (tenantFileStatus == TenantFileStatus.VALIDATED
-                || tenantFileStatus == TenantFileStatus.TO_PROCESS) {
-
-            tenant.getApartmentSharing().groupingAllTenantUserApisInTheApartment().forEach(tenantUserApi -> {
-                UserApi userApi = tenantUserApi.getUserApi();
-                if (userApi.getVersion() != null && userApi.getUrlCallback() != null) {
-                    sendCallBack(
-                            tenant,
-                            userApi,
-                            tenantFileStatus == TenantFileStatus.VALIDATED ?
-                                    PartnerCallBackType.VERIFIED_ACCOUNT :
-                                    PartnerCallBackType.CREATED_ACCOUNT
-                    );
-                }
-            });
-        }
-    }
-
     public void registerTenant(String internalPartnerId, Tenant tenant, UserApi userApi) {
         TenantUserApi tenantUserApi = tenantUserApiRepository.findFirstByTenantAndUserApi(tenant, userApi).orElse(
                 TenantUserApi.builder()
@@ -79,19 +58,59 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
             } else if (!tenantUserApi.getAllInternalPartnerId().contains(internalPartnerId)) {
                 tenantUserApi.getAllInternalPartnerId().add(internalPartnerId);
             }
-            tenantUserApiRepository.save(tenantUserApi);
         }
+        tenantUserApiRepository.save(tenantUserApi);
 
         if (userApi.getVersion() != null && userApi.getUrlCallback() != null && (
                 tenant.getStatus() == TenantFileStatus.VALIDATED
                         || tenant.getStatus() == TenantFileStatus.TO_PROCESS)) {
-            sendCallBack(
-                    tenant,
-                    userApi,
-                    tenant.getStatus() == TenantFileStatus.VALIDATED ?
-                            PartnerCallBackType.VERIFIED_ACCOUNT :
-                            PartnerCallBackType.CREATED_ACCOUNT
-            );
+            sendCallBack(tenant, userApi, tenant.getStatus() == TenantFileStatus.VALIDATED ?
+                    PartnerCallBackType.VERIFIED_ACCOUNT :
+                    PartnerCallBackType.CREATED_ACCOUNT);
+        }
+    }
+
+    @Override
+    public void linkTenantToPartner(String internalPartnerId, Tenant tenant, UserApi userApi) {
+        TenantUserApi tenantUserApi = tenantUserApiRepository.findFirstByTenantAndUserApi(tenant, userApi).orElse(
+                TenantUserApi.builder()
+                        .id(new TenantUserApiKey(tenant.getId(), userApi.getId()))
+                        .tenant(tenant)
+                        .userApi(userApi)
+                        .build()
+        );
+        if (internalPartnerId != null && !internalPartnerId.isEmpty()) {
+            if (tenantUserApi.getAllInternalPartnerId() == null) {
+                tenantUserApi.setAllInternalPartnerId(Collections.singletonList(internalPartnerId));
+            } else if (!tenantUserApi.getAllInternalPartnerId().contains(internalPartnerId)) {
+                tenantUserApi.getAllInternalPartnerId().add(internalPartnerId);
+            }
+        }
+        tenantUserApiRepository.save(tenantUserApi);
+    }
+
+    public void sendCallBack(Tenant tenant) {
+        TenantFileStatus tenantFileStatus = tenant.getStatus();
+        if (tenantFileStatus == TenantFileStatus.VALIDATED || tenantFileStatus == TenantFileStatus.TO_PROCESS) {
+            sendCallBack(tenant, tenantFileStatus == TenantFileStatus.VALIDATED ?
+                    PartnerCallBackType.VERIFIED_ACCOUNT :
+                    PartnerCallBackType.CREATED_ACCOUNT);
+        }
+    }
+
+    public void sendCallBack(Tenant tenant, PartnerCallBackType partnerCallBackType) {
+        tenant.getApartmentSharing().groupingAllTenantUserApisInTheApartment().forEach(tenantUserApi -> {
+            UserApi userApi = tenantUserApi.getUserApi();
+            if (userApi.getVersion() != null && userApi.getUrlCallback() != null) {
+                sendCallBack(tenant, userApi, partnerCallBackType);
+            }
+        });
+    }
+
+    @Override
+    public void sendCallBack(List<Tenant> tenantList, PartnerCallBackType partnerCallBackType) {
+        if (tenantList != null && !tenantList.isEmpty()) {
+            tenantList.forEach(t -> sendCallBack(t, PartnerCallBackType.DELETED_ACCOUNT));
         }
     }
 

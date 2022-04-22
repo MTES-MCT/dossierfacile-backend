@@ -1,12 +1,11 @@
 package fr.dossierfacile.common.entity;
 
 import fr.dossierfacile.common.enums.AuthProvider;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.hibernate.annotations.UpdateTimestamp;
-
+import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -23,11 +22,11 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import java.io.Serializable;
-import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
 @Table(name = "user_account")
@@ -49,6 +48,8 @@ public class User implements Serializable {
     private String firstName;
 
     private String lastName;
+
+    private String usageName;
 
     @Column(unique = true)
     private String email;
@@ -105,6 +106,13 @@ public class User implements Serializable {
     }
 
     public String getFullName() {
-        return firstName!=null && lastName!=null? String.join(" ", firstName, lastName):"";
+        return firstName != null && lastName != null ? String.join(" ", firstName, lastName) : "";
+    }
+
+    public String getDisplayName() {
+        if (usageName == null || usageName.isBlank()) {
+            return lastName;
+        }
+        return usageName;
     }
 }

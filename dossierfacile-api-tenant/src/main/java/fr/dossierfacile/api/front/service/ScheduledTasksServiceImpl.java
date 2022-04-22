@@ -13,8 +13,10 @@ import fr.dossierfacile.api.front.service.interfaces.ScheduledTasksService;
 import fr.dossierfacile.common.entity.ConfirmationToken;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.LogType;
+import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
+import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,6 +43,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
     private final ConfirmationTokenService confirmationTokenService;
     private final DocumentService documentService;
     private final GuarantorService guarantorService;
+    private final PartnerCallBackService partnerCallBackService;
     @Value("${days_for_email_account_validation_reminder}")
     private Long daysForEmailAccountValidationReminder;
     @Value("${days_for_account_completion_reminder}")
@@ -219,6 +222,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
                             documentService.deleteAllDocumentsAssociatedToTenant(t);
                             guarantorService.deleteAllGuaratorsAssociatedToTenant(t);
                             logService.saveLog(LogType.DOCUMENT_DELETION_AFTER_2_ACCOUNT_WARNINGS, t.getId());
+                            partnerCallBackService.sendCallBack(t, PartnerCallBackType.ARCHIVED_ACCOUNT);
                         }
                     }
                 }
