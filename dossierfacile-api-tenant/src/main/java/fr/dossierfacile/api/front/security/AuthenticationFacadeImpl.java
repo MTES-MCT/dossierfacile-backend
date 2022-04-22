@@ -113,7 +113,7 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
             }
         }
         tenant.setKeycloakId(getKeycloakUserId());
-        if (isFranceConnect()) {
+        if (!tenant.getFranceConnect().equals(Boolean.TRUE) && isFranceConnect()) {
             tenant.setFranceConnect(isFranceConnect());
             tenant.setFranceConnectSub(getFranceConnectSub());
             tenant.setFranceConnectBirthCountry(getFranceConnectBirthCountry());
