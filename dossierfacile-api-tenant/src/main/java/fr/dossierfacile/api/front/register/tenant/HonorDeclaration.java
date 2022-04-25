@@ -43,7 +43,6 @@ public class HonorDeclaration implements SaveStep<HonorDeclarationForm> {
         Tenant tenantSaved = tenantRepository.save(tenant);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         mailService.sendEmailAccountCompleted(tenantSaved);
-        partnerCallBackService.sendCallBack(tenantSaved);
         return tenantMapper.toTenantModel(tenantSaved);
     }
 }

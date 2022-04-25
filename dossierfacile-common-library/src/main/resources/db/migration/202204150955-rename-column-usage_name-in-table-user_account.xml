@@ -1,0 +1,10 @@
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+    <changeSet id="202204150955" author="harlow">
+        <sql>
+            ALTER TABLE user_account RENAME COLUMN usage_name TO preferred_name;
+        </sql>
+    </changeSet>
+</databaseChangeLog>

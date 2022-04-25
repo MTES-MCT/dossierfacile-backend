@@ -32,5 +32,7 @@ public class AccountForm {
 
     private String lastName;
 
+    private String preferredName;
+
     private String internalPartnerId;
 }
