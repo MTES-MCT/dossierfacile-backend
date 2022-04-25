@@ -24,7 +24,6 @@ public class ResourceServerConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .headers()
-                    .addHeaderWriter(new StaticHeadersWriter("X-Content-Security-Policy","script-src 'self'"))
                     .addHeaderWriter(new StaticHeadersWriter("X-Content-Type-Options","nosniff"))
                     .contentTypeOptions()
                 .and()
@@ -36,7 +35,7 @@ public class ResourceServerConfig {
                 .maxAgeInSeconds(63072000)
                 .includeSubDomains(true)
                 .and()
-                .contentSecurityPolicy("default-src 'none'; frame-ancestors 'none'")
+                .contentSecurityPolicy("script-src 'self'; frame-ancestors 'none'")
                 .and()
                 .frameOptions()
                 .sameOrigin()
