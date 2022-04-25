@@ -47,6 +47,7 @@ public class Account implements SaveStep<AccountForm> {
         if (accountForm.getSource() != null && !accountForm.getSource().isBlank()) {
             tenant.setFirstName(accountForm.getFirstName());
             tenant.setLastName(accountForm.getLastName());
+            tenant.setPreferredName(accountForm.getPreferredName());
             tenantRepository.save(tenant);
             UserApi userApi = this.sourceService.findOrCreate(accountForm.getSource());
             partnerCallBackService.registerTenant(accountForm.getInternalPartnerId(), tenant, userApi);

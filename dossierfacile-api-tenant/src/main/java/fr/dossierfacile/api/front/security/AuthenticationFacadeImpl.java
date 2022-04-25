@@ -35,7 +35,7 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
         return ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClaimAsString("family_name");
     }
 
-    private String getUsageName() {
+    private String getPreferredName() {
         return ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClaimAsString("preferred_username");
     }
 
@@ -113,7 +113,7 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
             }
         }
         tenant.setKeycloakId(getKeycloakUserId());
-        if (isFranceConnect()) {
+        if (!tenant.getFranceConnect().equals(Boolean.TRUE) && isFranceConnect()) {
             tenant.setFranceConnect(isFranceConnect());
             tenant.setFranceConnectSub(getFranceConnectSub());
             tenant.setFranceConnectBirthCountry(getFranceConnectBirthCountry());
@@ -121,7 +121,7 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
             tenant.setFranceConnectBirthDate(getFranceConnectBirthDate());
             tenant.setFirstName(getFirstName());
             tenant.setLastName(getLastName());
-            tenant.setUsageName(getUsageName());
+            tenant.setPreferredName(getPreferredName());
         }
         return tenantRepository.saveAndFlush(tenant);
     }

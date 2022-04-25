@@ -153,18 +153,12 @@ public class BOTenantController {
         Tenant tenant = documentService.deleteDocument(id);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         tenantService.updateTenantStatus(tenant);
-        if (tenant.getStatus().equals(TenantFileStatus.DECLINED)) {
-            partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.DENIED_ACCOUNT);
-        }
         return "redirect:/bo/colocation/" + tenant.getApartmentSharing().getId() + "#tenant" + tenant.getId();
     }
 
     @GetMapping("/status/{id}")
     public String changeStatusOfDocument(@PathVariable("id") Long id, MessageDTO messageDTO) {
         Tenant tenant = documentService.changeStatusOfDocument(id, messageDTO);
-        if (DocumentStatus.valueOf(messageDTO.getMessage()).equals(DocumentStatus.DECLINED)) {
-            partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.DENIED_ACCOUNT);
-        }
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         tenantService.updateTenantStatus(tenant);
         return "redirect:/bo/colocation/" + tenant.getApartmentSharing().getId() + "#tenant" + tenant.getId();

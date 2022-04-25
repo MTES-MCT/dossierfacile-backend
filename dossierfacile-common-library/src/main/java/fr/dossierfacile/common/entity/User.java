@@ -49,7 +49,7 @@ public class User implements Serializable {
 
     private String lastName;
 
-    private String usageName;
+    private String preferredName;
 
     @Column(unique = true)
     private String email;
@@ -106,13 +106,7 @@ public class User implements Serializable {
     }
 
     public String getFullName() {
-        return firstName != null && lastName != null ? String.join(" ", firstName, lastName) : "";
-    }
-
-    public String getDisplayName() {
-        if (usageName == null || usageName.isBlank()) {
-            return lastName;
-        }
-        return usageName;
+        String displayName = preferredName != null ? preferredName : lastName;
+        return firstName != null && displayName != null ? String.join(" ", firstName, displayName) : "";
     }
 }

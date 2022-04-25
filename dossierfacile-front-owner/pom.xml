@@ -23,6 +23,7 @@
         <org.mapstruct.version>1.4.0.Final</org.mapstruct.version>
         <lombok.version>1.18.20</lombok.version>
         <dossierfacile.common.version>0.0.1-SNAPSHOT</dossierfacile.common.version>
+        <thymeleaf.version>3.0.15.RELEASE</thymeleaf.version>
     </properties>
 
     <dependencyManagement>
@@ -46,6 +47,26 @@
                 <groupId>org.apache.pdfbox</groupId>
                 <artifactId>pdfbox-debugger</artifactId>
                 <version>2.0.25</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.oauth-client</groupId>
+                <artifactId>google-oauth-client</artifactId>
+                <version>1.31.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.webjars</groupId>
+                <artifactId>jquery</artifactId>
+                <version>3.6.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-core</artifactId>
+                <version>5.3.19</version>
+            </dependency>
+            <dependency>
+                <groupId>org.thymeleaf</groupId>
+                <artifactId>thymeleaf-spring5</artifactId>
+                <version>3.0.15.RELEASE</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -80,7 +101,7 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>2.11.0</version>
+            <version>2.12.6.1</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
