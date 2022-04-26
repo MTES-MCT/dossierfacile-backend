@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.front.register.tenant;
 
+import com.google.common.base.Strings;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.SaveStep;
@@ -44,7 +45,7 @@ public class Account implements SaveStep<AccountForm> {
         String email = accountForm.getEmail().toLowerCase();
         Tenant tenant = tenantRepository.findByEmailAndEnabledFalse(email).orElse(new Tenant(email));
         tenant.setPassword(bCryptPasswordEncoder.encode(accountForm.getPassword()));
-        if (accountForm.getSource() != null && !accountForm.getSource().isBlank()) {
+        if (!Strings.isNullOrEmpty(accountForm.getSource())) {
             tenant.setFirstName(accountForm.getFirstName());
             tenant.setLastName(accountForm.getLastName());
             tenant.setPreferredName(accountForm.getPreferredName());
