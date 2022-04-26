@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.front.security;
 
+import com.google.common.base.Strings;
 import fr.dossierfacile.api.front.exception.TenantNotFoundException;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
@@ -36,6 +37,10 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
     }
 
     private String getPreferredName() {
+        String preferredUsername = ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClaimAsString("preferred_username");
+        if(Strings.isNullOrEmpty(preferredUsername) || preferredUsername.contains("@")) {
+            return null;
+        }
         return ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClaimAsString("preferred_username");
     }
 

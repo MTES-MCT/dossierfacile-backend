@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.front.service;
 
+import com.google.common.base.Strings;
 import com.mailjet.client.MailjetClient;
 import com.mailjet.client.MailjetRequest;
 import com.mailjet.client.MailjetResponse;
@@ -100,7 +101,7 @@ public class MailServiceImpl implements MailService {
         variables.put("firstName", flatmate.getFirstName());
         variables.put("password_recovery_url", passwordRecoveryToken.getToken());
         if (applicationType == ApplicationType.GROUP) {
-            variables.put("lastName", flatmate.getPreferredName() != null ? flatmate.getPreferredName() : flatmate.getLastName());
+            variables.put("lastName", Strings.isNullOrEmpty(flatmate.getPreferredName()) ? flatmate.getLastName() : flatmate.getPreferredName());
             templateId = templateIdGroupApplication;
         }
 
@@ -118,7 +119,7 @@ public class MailServiceImpl implements MailService {
     public void sendEmailAccountDeleted(User user) {
         Map<String, String> variables = new HashMap<>();
         variables.put("firstName", user.getFirstName());
-        variables.put("lastName", user.getPreferredName() != null ? user.getPreferredName() : user.getLastName());
+        variables.put("lastName", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
         MailJetModel mailjetModel = MailJetModel.builder()
                 .fromEmail(emailFrom)
                 .toEmail(user.getEmail())
@@ -134,7 +135,7 @@ public class MailServiceImpl implements MailService {
     public void sendEmailAccountCompleted(User user) {
         Map<String, String> variables = new HashMap<>();
         variables.put("FIRSTNAME_TENANT", user.getFirstName());
-        variables.put("LASTNAME_TENANT", user.getPreferredName() != null ? user.getPreferredName() : user.getLastName());
+        variables.put("LASTNAME_TENANT", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
         MailJetModel mailjetModel = MailJetModel.builder()
                 .fromEmail(emailFrom)
                 .toEmail(user.getEmail())
@@ -150,7 +151,7 @@ public class MailServiceImpl implements MailService {
     public void sendEmailWhenEmailAccountNotYetValidated(User user, ConfirmationToken confirmationToken) {
         Map<String, String> variables = new HashMap<>();
         variables.put("firstName", user.getFirstName());
-        variables.put("lastName", user.getPreferredName() != null ? user.getPreferredName() : user.getLastName());
+        variables.put("lastName", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
         variables.put("confirmToken", confirmationToken.getToken());
         MailJetModel mailjetModel = MailJetModel.builder()
                 .fromEmail(emailFrom)
@@ -167,7 +168,7 @@ public class MailServiceImpl implements MailService {
     public void sendEmailWhenAccountNotYetCompleted(User user) {
         Map<String, String> variables = new HashMap<>();
         variables.put("firstName", user.getFirstName());
-        variables.put("lastName", user.getPreferredName() != null ? user.getPreferredName() : user.getLastName());
+        variables.put("lastName", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
         MailJetModel mailjetModel = MailJetModel.builder()
                 .fromEmail(emailFrom)
                 .toEmail(user.getEmail())
@@ -183,7 +184,7 @@ public class MailServiceImpl implements MailService {
     public void sendEmailWhenAccountIsStillDeclined(User user) {
         Map<String, String> variables = new HashMap<>();
         variables.put("firstName", user.getFirstName());
-        variables.put("lastName", user.getPreferredName() != null ? user.getPreferredName() : user.getLastName());
+        variables.put("lastName", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
         MailJetModel mailjetModel = MailJetModel.builder()
                 .fromEmail(emailFrom)
                 .toEmail(user.getEmail())
@@ -220,7 +221,7 @@ public class MailServiceImpl implements MailService {
     public void sendEmailFirstWarningForDeletionOfDocuments(User user, ConfirmationToken confirmationToken) {
         Map<String, String> variables = new HashMap<>();
         variables.put("firstName", user.getFirstName());
-        variables.put("lastName", user.getPreferredName() != null ? user.getPreferredName() : user.getLastName());
+        variables.put("lastName", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
         variables.put("confirmToken", confirmationToken.getToken());
         MailJetModel mailjetModel = MailJetModel.builder()
                 .fromEmail(emailFrom)
@@ -236,7 +237,7 @@ public class MailServiceImpl implements MailService {
     public void sendEmailSecondWarningForDeletionOfDocuments(User user, ConfirmationToken confirmationToken) {
         Map<String, String> variables = new HashMap<>();
         variables.put("firstName", user.getFirstName());
-        variables.put("lastName", user.getPreferredName() != null ? user.getPreferredName() : user.getLastName());
+        variables.put("lastName", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
         variables.put("confirmToken", confirmationToken.getToken());
         MailJetModel mailjetModel = MailJetModel.builder()
                 .fromEmail(emailFrom)

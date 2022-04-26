@@ -1,5 +1,6 @@
 package fr.gouv.bo.service;
 
+import com.google.common.base.Strings;
 import com.mailjet.client.MailjetClient;
 import com.mailjet.client.MailjetRequest;
 import com.mailjet.client.MailjetResponse;
@@ -128,7 +129,7 @@ public class MailService {
     public void sendEmailAccountDeleted(User user) {
         Map<String, String> variables = new HashMap<>();
         variables.put(FIRST_NAME, user.getFirstName());
-        variables.put(LAST_NAME, user.getPreferredName() != null ? user.getPreferredName() : user.getLastName());
+        variables.put(LAST_NAME, Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
         sendMailJetApi(emailFrom, null, user.getEmail(), user.getFullName(), null, null, null, null, null, null, null, variables, templateIdAccountDeleted);
     }
 
@@ -143,7 +144,7 @@ public class MailService {
     public void sendEmailToTenantAfterValidateAllDocuments(Tenant tenant) {
         Map<String, String> variables = new HashMap<>();
         variables.put(FIRST_NAME, tenant.getFirstName());
-        variables.put(LAST_NAME, tenant.getPreferredName() != null ? tenant.getPreferredName() : tenant.getLastName());
+        variables.put(LAST_NAME, Strings.isNullOrEmpty(tenant.getPreferredName()) ? tenant.getLastName() : tenant.getPreferredName());
         sendMailJetApi(emailFrom, null, tenant.getEmail(), tenant.getFullName(), null, null, null, null, null, null, null, variables, templateIDDossierValidated);
     }
 }
