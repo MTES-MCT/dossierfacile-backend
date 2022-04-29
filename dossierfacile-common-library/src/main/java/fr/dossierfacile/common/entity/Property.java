@@ -4,7 +4,6 @@ package fr.dossierfacile.common.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import fr.dossierfacile.common.enums.PropertyFurniture;
 import fr.dossierfacile.common.enums.PropertyType;
-import fr.dossierfacile.common.enums.TenantType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -108,6 +107,9 @@ public class Property implements Serializable {
     @Column
     @Enumerated(EnumType.STRING)
     private PropertyFurniture furniture;
+
+    @Column
+    private String address;
 
     public Property(Owner owner, String name, String propertyId) {
         this.owner = owner;

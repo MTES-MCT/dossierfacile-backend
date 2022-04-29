@@ -25,4 +25,5 @@ public class PropertyModel {
     private List<PropertyApartmentSharingModel> propertiesApartmentSharing;
     private PropertyType type;
     private PropertyFurniture furniture;
+    private String address;
 }

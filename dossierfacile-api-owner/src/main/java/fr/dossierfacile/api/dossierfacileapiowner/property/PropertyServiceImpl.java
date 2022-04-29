@@ -35,6 +35,9 @@ public class PropertyServiceImpl implements PropertyService {
         if (propertyForm.getType() != null) {
             property.setType(propertyForm.getType());
         }
+        if (propertyForm.getAddress() != null) {
+            property.setAddress(propertyForm.getAddress());
+        }
         if (propertyForm.getFurniture() != null) {
             property.setFurniture(propertyForm.getFurniture());
         }

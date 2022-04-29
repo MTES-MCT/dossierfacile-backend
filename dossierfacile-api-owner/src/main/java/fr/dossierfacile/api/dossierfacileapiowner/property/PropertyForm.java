@@ -25,4 +25,6 @@ public class PropertyForm {
     private PropertyType type;
 
     private PropertyFurniture furniture;
+
+    private String address;
 }
