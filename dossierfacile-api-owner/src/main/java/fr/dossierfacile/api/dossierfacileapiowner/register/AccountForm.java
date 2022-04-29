@@ -13,7 +13,7 @@ import javax.validation.constraints.NotBlank;
 public class AccountForm {
 
     @Email
-    // TODO add uniq validator
+    @UniqueEmailActiveAccount
     private String email;
 
     @NotBlank

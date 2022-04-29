@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
+
 import static org.springframework.http.ResponseEntity.ok;
 
 @RestController
@@ -25,7 +27,7 @@ public class AccountController {
     private final LogService logService;
 
     @PostMapping("/account")
-    public ResponseEntity<OwnerModel> account(@RequestBody AccountForm accountForm) {
+    public ResponseEntity<OwnerModel> account(@Valid @RequestBody AccountForm accountForm) {
         OwnerModel ownerModel = registerService.register(accountForm);
 //        logService.saveLog(LogType.ACCOUNT_CREATED, ownerModel.getId());
         return ok(ownerModel);
