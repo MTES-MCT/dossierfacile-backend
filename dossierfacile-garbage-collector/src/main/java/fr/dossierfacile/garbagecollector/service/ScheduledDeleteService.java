@@ -30,7 +30,7 @@ public class ScheduledDeleteService {
     }
 
     /**
-     * Every 5 minutes will delete a maximum of 500 elements
+     * Every 5 seconds will delete a maximum of 500 elements
      */
     @Scheduled(fixedDelay = 5000)
     public void scheduleFixedDelayTask() {
