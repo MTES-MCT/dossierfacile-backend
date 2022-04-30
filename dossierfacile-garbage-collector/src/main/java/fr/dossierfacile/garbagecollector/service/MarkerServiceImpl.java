@@ -31,9 +31,6 @@ public class MarkerServiceImpl implements MarkerService {
     private final FileRepository fileRepository;
 
     private boolean isRunning = false;
-    private AtomicInteger readCount = new AtomicInteger(0);
-
-    private static final int PAGE_SIZE = 1000;
 
     @Value("${ovh.container:default}")
     private String ovhContainerName;
