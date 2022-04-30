@@ -9,20 +9,20 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-public interface objectRepo extends JpaRepository<Object, Long> {
+public interface ObjectRepository extends JpaRepository<Object, Long> {
 
     Object findObjectByPath(String path);
 
     void deleteObjectByPath(String path);
 
-    @Query(value = "SELECT count(ob) from Object ob where ob.to_delete = true")
-    long countAllObjectForDelete();
+    @Query(value = "SELECT count(ob) from Object ob where ob.toDelete = true")
+    long countAllObjectsForDeletion();
 
-    @Query(value = "SELECT * FROM object where to_delete = true ORDER BY id LIMIT 500",nativeQuery = true)
-    List<Object> getBatchObjectToDeleteInTrue();
+    @Query(value = "SELECT * FROM object where to_delete = true ORDER BY id LIMIT :limit",nativeQuery = true)
+    List<Object> getBatchObjectsForDeletion(@Param("limit") Integer limit);
 
-    @Query(value= "SELECT * FROM object where to_delete = true",nativeQuery = true)
-    List<Object> getAllObjectsInTrue();
+    @Query(value = "SELECT * FROM object where to_delete = true",nativeQuery = true)
+    List<Object> getAllObjectsForDeletion();
 
     @Modifying
     @Transactional
