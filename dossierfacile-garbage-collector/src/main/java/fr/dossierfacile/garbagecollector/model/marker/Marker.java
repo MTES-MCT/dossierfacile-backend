@@ -1,6 +1,5 @@
 package fr.dossierfacile.garbagecollector.model.marker;
 
-
 import lombok.Getter;
 import lombok.Setter;
 
@@ -27,12 +26,3 @@ public class Marker implements Serializable {
     private String path;
 
 }
-
-/*
-  CREATE TABLE public.marker
-            (
-            id bigserial NOT NULL,
-            path text NULL,
-            CONSTRAINT path_pkey PRIMARY KEY (id)
-            );
-*/
