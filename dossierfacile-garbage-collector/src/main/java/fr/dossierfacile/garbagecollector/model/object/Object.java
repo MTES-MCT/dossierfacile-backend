@@ -26,15 +26,6 @@ public class Object implements Serializable {
     @Column(name = "path")
     private String path;
 
-    @Column(columnDefinition = "boolean default false")
-    private boolean to_delete = false;
+    @Column(name = "to_delete", columnDefinition = "boolean default false")
+    private boolean toDelete = false;
 }
-/*
-  CREATE TABLE public.object
-            (
-            id bigserial NOT NULL,
-            path text NULL,
-            to_delete bool NULL DEFAULT false,
-            CONSTRAINT path_pkey PRIMARY KEY (id)
-            );
-*/

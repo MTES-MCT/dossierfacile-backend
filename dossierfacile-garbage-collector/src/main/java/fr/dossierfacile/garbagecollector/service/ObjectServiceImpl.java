@@ -1,67 +1,65 @@
 package fr.dossierfacile.garbagecollector.service;
 
 import fr.dossierfacile.garbagecollector.model.object.Object;
-import fr.dossierfacile.garbagecollector.repo.object.objectRepo;
+import fr.dossierfacile.garbagecollector.repo.object.ObjectRepository;
 import fr.dossierfacile.garbagecollector.service.interfaces.ObjectService;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class ObjectServiceImpl implements ObjectService {
 
-    private final objectRepo objectRepo;
+    private final ObjectRepository objectRepository;
 
-    public void register(Object t) {
-        objectRepo.save(t);
+    @Override
+    public List<Object> getBatchObjectsForDeletion(Integer limit) {
+        return objectRepository.getBatchObjectsForDeletion(limit);
     }
 
-    public List<Object> getAll() {
-        return objectRepo.findAll();
+    @Override
+    public List<Object> getAllObjectsForDeletion() {
+        return objectRepository.getAllObjectsForDeletion();
     }
 
-    public long getObjectListToDeleteTrue() {
-        return objectRepo.countAllObjectForDelete();
+//    @Override
+//    @Async
+//    public void updateAllToDeleteObjects() {
+//        System.out.println(" marking object for delete [STARTED]" + "\n");
+//        for (Object pathOvh : objectRepo.findAll()) {
+//            if (pathOvh.isToDelete()) {
+//                pathOvh.setToDelete(true);
+//                objectRepo.save(pathOvh);
+//            }
+//        }
+//        System.out.println(" marking object for delete [FINISHED]" + " total to_delete: [" + getObjectListToDeleteTrue() + "] " + "\n");
+//    }
+
+    @Override
+    public long countAllObjectsScanned() {
+        return objectRepository.count();
     }
 
-    public List<Object> getBatchObjectsToDelete() {
-        return objectRepo.getBatchObjectToDeleteInTrue();
+    @Override
+    public long countAllObjectsForDeletion() {
+        return objectRepository.countAllObjectsForDeletion();
     }
 
+    @Override
     public void deleteList(List<Object> objectList) {
-        objectRepo.deleteAll(objectList);
+        objectRepository.deleteAll(objectList);
     }
 
-    public List<Object> getAllObjectInTrue() {
-        return objectRepo.getAllObjectsInTrue();
-    }
-
-    @Async
-    public void updateAllToDeleteObjects() {
-        System.out.println(" marking object for delete [STARTED]" + "\n");
-        for (Object pathOvh : getAll()) {
-            if (!pathOvh.isTo_delete()) {
-                pathOvh.setTo_delete(true);
-                register(pathOvh);
-            }
-        }
-        System.out.println(" marking object for delete [FINISHED]" + " total to_delete: [" + getObjectListToDeleteTrue() + "] " + "\n");
-    }
-
-
-    @Transactional
+    @Override
     public void deleteObjectByPath(String path) {
-        objectRepo.deleteObjectByPath(path);
+        objectRepository.deleteObjectByPath(path);
     }
 
+    @Override
     public Object findObjectByPath(String path) {
-        return objectRepo.findObjectByPath(path);
+        return objectRepository.findObjectByPath(path);
     }
-
 }

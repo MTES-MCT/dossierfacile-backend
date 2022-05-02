@@ -45,13 +45,19 @@
                     <span th:text="${path.getId()}"></span>
                 </td>
                 <td>
-                    <span th:text="${path.getText()}"></span>
+                    <span th:text="${path.getPath()}"></span>
                 </td>
-                <td style="text-align-last: center;"><a style="font-size: smaller;margin-top: 9px;border-radius: .15em; margin-left: 2%; margin-bottom: auto;background: #efefef;padding: 1.5px;border-width: 2px;" th:href="${'/tenants_files/'+ path.getText()}"><i class="fa fa-eye" style="font-size:24px"></i></a></td>
+<!--                <td style="text-align-last: center;"><a style="font-size: smaller;margin-top: 9px;border-radius: .15em; margin-left: 2%; margin-bottom: auto;background: #efefef;padding: 1.5px;border-width: 2px;" th:href="${'/tenants_files/'+ path.getPath()}"><i class="fa fa-eye" style="font-size:24px"></i></a></td>-->
+                <td style="text-align-last: center;">
+                    <a
+                            style="font-size: smaller;margin-top: 9px;border-radius: .15em; margin-left: 2%; margin-bottom: auto;background: #efefef;padding: 1.5px;border-width: 2px;"
+                            th:data-url="@{/tenants_files(fileName=${path.getPath()})}"
+                            th:onclick="openWindow(this.getAttribute('data-url'))"
+                    ><i class="fa fa-eye" style="font-size:24px"></i></a></td>
                 <td>
                     <a class="btn btn-primary button2"
                        style="background-color: #e60a12ad;font-size: 13px;padding: 10px 10px 8px;text-decoration: none;"
-                       th:href="@{/delete/object/} + ${path.getText()}"
+                       th:href="@{/delete/object/} + ${path.getPath()}"
                     >DELETE
                     </a>
                     <style>
@@ -82,5 +88,14 @@
         </div>
     </div>
 </footer>
+<script>
+
+    function openWindow(url) {
+        ReportPrintPreview = window.open("about:blank", "ReportPrintPreview", "width=666,height=700left=250,top=50,dependent=yes,menubar=no,status=no,resizable=yes,toolbar=no,scrollbars=yes");
+        ReportPrintPreview.location.href = url;
+        ReportPrintPreview.focus();
+        return false;
+    }
+</script>
 </body>
 </html>
