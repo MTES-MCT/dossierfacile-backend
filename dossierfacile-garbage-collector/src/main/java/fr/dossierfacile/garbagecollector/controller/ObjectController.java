@@ -41,6 +41,15 @@ public class ObjectController {
         return "redirect:/checker";
     }
 
+    @GetMapping("/restart/scanner")
+    public String restartScanner() {
+        markerService.setRunningToFalse();
+        markerService.cleanDatabaseOfScanner();
+        markerService.setRunningToTrue();
+        markerService.startScanner();
+        return "redirect:/checker";
+    }
+
     //main view
     @GetMapping("/checker")
     public String object(Model model) {
