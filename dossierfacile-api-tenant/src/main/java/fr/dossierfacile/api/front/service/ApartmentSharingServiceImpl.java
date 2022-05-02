@@ -138,7 +138,8 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
 
         checkingAllTenantsInTheApartmentAreValidatedAndAllDocumentsAreNotNull(apartmentSharing.getId(), token);
 
-        switch (apartmentSharing.getDossierPdfDocumentStatus()) {
+        FileStatus status = apartmentSharing.getDossierPdfDocumentStatus() == null ? FileStatus.NONE : apartmentSharing.getDossierPdfDocumentStatus();
+        switch (status) {
             case COMPLETED -> log.warn("Trying to create Full PDF on completed Status -" + token);
             case IN_PROGRESS -> log.warn("Trying to create Full PDF on in progress Status -" + token);
             default -> producer.generateFullPdf(apartmentSharing.getId());
