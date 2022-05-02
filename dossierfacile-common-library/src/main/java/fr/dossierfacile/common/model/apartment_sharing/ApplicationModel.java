@@ -2,6 +2,7 @@ package fr.dossierfacile.common.model.apartment_sharing;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import fr.dossierfacile.common.enums.ApplicationType;
+import fr.dossierfacile.common.enums.FileStatus;
 import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import lombok.AllArgsConstructor;
@@ -21,6 +22,7 @@ public class ApplicationModel {
     private ApplicationType applicationType;
     private PartnerCallBackType partnerCallBackType;
     private String dossierPdfUrl;
+    private FileStatus dossierPdfDocumentStatus;
     private TenantFileStatus status;
     private List<TenantModel> tenants;
 }
