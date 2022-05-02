@@ -46,11 +46,26 @@
             background-color: #ff0000;
             color: #f5f5fe !important;
         }
+        .hidden {
+            display: none;
+        }
+        .disabled {
+            pointer-events: none;
+            cursor: default;
+            opacity: .6;
+        }
     </style>
     <div class="col-md-12" style="margin-top: -20px;">
         <div class="row">
             <div class=""
                  style="grid-auto-columns: max-content;margin-left: 20px;float: right;">
+                <a id="btn-restart" th:class="${is_importing_running} ? 'btn btn-primary' : 'hidden'"
+                   style="float: left;margin-right: 54px;text-decoration: none;margin-bottom: 10px;
+                   border-color: #d43f3a;font-size: 19px;padding: 11px;border-radius: 11px;"
+                   th:title="'restart scanner'"
+                   th:href="@{/restart/scanner}"
+                   th:text="'Restart scanner'"
+                   onclick="restartScanner()"></a>
                 <a th:class="${is_importing_running} ? 'btn btn-stop' : 'btn btn-primary'"
                    style="float: left;margin-right: 54px;text-decoration: none;margin-bottom: 10px;
                    border-color: #d43f3a;font-size: 19px;padding: 11px;border-radius: 11px;"
@@ -159,6 +174,11 @@
                 </nav>
             </div>
             <script>
+
+                function restartScanner() {
+                    $('#btn-restart').addClass('hidden');
+                    $('body').addClass('disabled');
+                }
 
                 function openWindow(url) {
                     ReportPrintPreview = window.open("about:blank", "ReportPrintPreview", "width=666,height=700left=250,top=50,dependent=yes,menubar=no,status=no,resizable=yes,toolbar=no,scrollbars=yes");
