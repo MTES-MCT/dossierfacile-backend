@@ -192,7 +192,7 @@
                                         $('#number-to-delete span').html($(data).get(0));
                                         $('#number-total-scanned span').html($(data).get(1));
                                         isScannerRunning = $(data).get(2);
-                                        if (!isScannerRunning){
+                                        if (isScannerRunning == "false"){
                                             window.location.href="/";
                                         }
                                     },
