@@ -8,11 +8,11 @@ import org.openstack4j.model.storage.object.SwiftObject;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RequiredArgsConstructor
 @Controller
@@ -23,8 +23,8 @@ public class FileController {
 
     private final OvhService ovhService;
 
-    @GetMapping("/tenants_files/{fileName:.+}")
-    public void getImageAsByteArray(HttpServletResponse response, @PathVariable String fileName) {
+    @GetMapping("/tenants_files")
+    public void getImageAsByteArray(@RequestParam("fileName") String fileName, HttpServletResponse response) {
         SwiftObject object = ovhService.get(fileName);
         if (object != null) {
             try (InputStream in = object.download().getInputStream()) {
