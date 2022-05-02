@@ -1,5 +1,6 @@
 package fr.dossierfacile.common.entity;
 
+import com.google.common.base.Strings;
 import fr.dossierfacile.common.enums.AuthProvider;
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -106,7 +107,7 @@ public class User implements Serializable {
     }
 
     public String getFullName() {
-        String displayName = preferredName != null ? preferredName : lastName;
+        String displayName = Strings.isNullOrEmpty(preferredName) ? lastName : preferredName;
         return firstName != null && displayName != null ? String.join(" ", firstName, displayName) : "";
     }
 }

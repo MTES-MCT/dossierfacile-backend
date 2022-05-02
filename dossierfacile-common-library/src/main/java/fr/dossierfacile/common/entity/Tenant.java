@@ -1,5 +1,6 @@
 package fr.dossierfacile.common.entity;
 
+import com.google.common.base.Strings;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.TenantFileStatus;
@@ -251,7 +252,7 @@ public class Tenant extends User implements Serializable {
      * This method will link the client to the tenant if not yet linked.
      */
     public void addLinkedKeycloakClient(String keycloakClient) {
-        if (this.linkedKeycloakClients == null || this.linkedKeycloakClients.isBlank()) {
+        if (Strings.isNullOrEmpty(this.linkedKeycloakClients)) {
             this.linkedKeycloakClients = keycloakClient;
         } else if (!this.linkedKeycloakClients.contains(keycloakClient)) {
             this.linkedKeycloakClients += "," + keycloakClient;
