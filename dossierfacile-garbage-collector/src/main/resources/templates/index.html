@@ -89,7 +89,7 @@
             ">
         <div class="counter"
              style="background:#003189;display: inline-grid;font-family: 'Poppins', sans-serif;position: relative;z-index: 1;padding: 5px;">
-            <a class="" style="
+            <a id="number-to-delete" class="" style="
             cursor: pointer;
             border-radius: inherit;
             margin-top: 5px;
@@ -98,7 +98,7 @@
             background: white;">Total objects to delete:
                 <span th:text="${total_objects_to_delete}" class="counter-value"
                       style="font-weight: bold; font-size: inherit;"></span></a>
-            <a class="" style="
+            <a id="number-total-scanned" class="" style="
             cursor: pointer;
             border-radius: inherit;
             margin-top: 5px;
@@ -173,7 +173,37 @@
                     </ul>
                 </nav>
             </div>
+            <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
             <script>
+                $(document).ready(function() {
+                    var timer;
+                    var timerActive = true;
+
+                    function startTimer() {
+                        timer = setInterval(function () {
+                            var isImportingTunning = [[${is_importing_running} ? true : false]];
+                            if(isImportingTunning && timerActive) {
+                                $.ajax({
+                                    type: 'GET',
+                                    url: '/update-scanning-info',
+                                    dataType: 'json',
+                                    success: function (data) {
+                                        console.log(data);
+                                        $('#number-to-delete span').html($(data).get(0));
+                                        $('#number-total-scanned span').html($(data).get(1));
+                                    },
+                                    error: function () {
+                                        console.log("Some error");
+                                        clearInterval(timer);
+                                        timerActive = false;
+                                    }
+                                });
+                            }
+                        }, 2000);
+                    }
+
+                    startTimer();
+                });
 
                 function restartScanner() {
                     $('#btn-restart').addClass('hidden');

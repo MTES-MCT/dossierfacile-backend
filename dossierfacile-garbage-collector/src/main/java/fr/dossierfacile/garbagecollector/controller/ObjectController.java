@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -70,6 +72,14 @@ public class ObjectController {
         model.addAttribute("is_delete_running", deleteSchedule.isActive());
 
         return "index";
+    }
+
+    @GetMapping(value = "/update-scanning-info", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<Integer>> currentReadObjects() {
+        List<Integer> result = new ArrayList<>();
+        result.add((int) objectService.countAllObjectsForDeletion());
+        result.add((int) objectService.countAllObjectsScanned());
+        return ResponseEntity.ok(result);
     }
 
     //search object
