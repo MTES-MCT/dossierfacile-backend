@@ -20,6 +20,8 @@ public class PropertyForm {
 
     private Double rentCost;
 
+    private Double chargesCost;
+
     private Boolean validated;
 
     private PropertyType type;
