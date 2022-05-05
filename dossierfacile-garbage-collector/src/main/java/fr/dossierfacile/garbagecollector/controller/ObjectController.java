@@ -68,17 +68,18 @@ public class ObjectController {
 
         model.addAttribute("total_objects_to_delete", objectService.countAllObjectsForDeletion());
         model.addAttribute("total_objects_scanned", objectService.countAllObjectsScanned());
-        model.addAttribute("is_importing_running", markerService.isRunning());
+        model.addAttribute("is_scanner_running", markerService.isRunning());
         model.addAttribute("is_delete_running", deleteSchedule.isActive());
 
         return "index";
     }
 
     @GetMapping(value = "/update-scanning-info", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<Integer>> currentReadObjects() {
-        List<Integer> result = new ArrayList<>();
-        result.add((int) objectService.countAllObjectsForDeletion());
-        result.add((int) objectService.countAllObjectsScanned());
+    public ResponseEntity<List<String>> currentReadObjects() {
+        List<String> result = new ArrayList<>();
+        result.add(String.valueOf(objectService.countAllObjectsForDeletion()));
+        result.add(String.valueOf(objectService.countAllObjectsScanned()));
+        result.add(String.valueOf(markerService.isRunning()));
         return ResponseEntity.ok(result);
     }
 

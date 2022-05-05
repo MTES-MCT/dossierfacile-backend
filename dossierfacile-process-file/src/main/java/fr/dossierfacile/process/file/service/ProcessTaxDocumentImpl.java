@@ -9,11 +9,14 @@ import fr.dossierfacile.process.file.service.interfaces.ApiParticulier;
 import fr.dossierfacile.process.file.service.interfaces.ApiTesseract;
 import fr.dossierfacile.process.file.service.interfaces.ProcessTaxDocument;
 import fr.dossierfacile.process.file.util.Utility;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -83,14 +86,14 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
 
         if (!fiscalNumber.equals("") && !referenceNumber.equals("")) {
             log.info("Call to particulier api");
-            Taxes taxes = apiParticulier.particulierApi(fiscalNumber, referenceNumber);
-            log.info("Response {}", taxes.getStatus());
-            if (taxes.getStatus() == 200) {
-                test1 = test1(taxes, lastName, firstName, unaccentFirstName, unaccentLastName);
-                test2 = test2(taxes, result);
-                taxDocument.setDeclarant1(taxes.getDeclarant1().toString());
-                taxDocument.setDeclarant2(taxes.getDeclarant2().toString());
-                taxDocument.setAnualSalary(taxes.getRevenuFiscalReference());
+            ResponseEntity<Taxes> taxesResponseEntity = apiParticulier.particulierApi(fiscalNumber, referenceNumber);
+            log.info("Response status {}", taxesResponseEntity.getStatusCodeValue());
+            if (taxesResponseEntity.getStatusCode() == HttpStatus.OK) {
+                test1 = test1(Objects.requireNonNull(taxesResponseEntity.getBody()), lastName, firstName, unaccentFirstName, unaccentLastName);
+                test2 = test2(taxesResponseEntity.getBody(), result);
+                taxDocument.setDeclarant1(taxesResponseEntity.getBody().getDeclarant1().toString());
+                taxDocument.setDeclarant2(taxesResponseEntity.getBody().getDeclarant2().toString());
+                taxDocument.setAnualSalary(taxesResponseEntity.getBody().getRevenuFiscalReference());
             }
         }
 

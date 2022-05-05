@@ -59,19 +59,19 @@
         <div class="row">
             <div class=""
                  style="grid-auto-columns: max-content;margin-left: 20px;float: right;">
-                <a id="btn-restart" th:class="${is_importing_running} ? 'btn btn-primary' : 'hidden'"
+                <a id="btn-restart" th:class="'btn btn-primary'"
                    style="float: left;margin-right: 54px;text-decoration: none;margin-bottom: 10px;
                    border-color: #d43f3a;font-size: 19px;padding: 11px;border-radius: 11px;"
                    th:title="'restart scanner'"
                    th:href="@{/restart/scanner}"
                    th:text="'Restart scanner'"
                    onclick="restartScanner()"></a>
-                <a th:class="${is_importing_running} ? 'btn btn-stop' : 'btn btn-primary'"
+                <a th:class="${is_scanner_running} ? 'btn btn-stop' : 'btn btn-primary'"
                    style="float: left;margin-right: 54px;text-decoration: none;margin-bottom: 10px;
                    border-color: #d43f3a;font-size: 19px;padding: 11px;border-radius: 11px;"
-                   th:title="${is_importing_running} ? 'stop scanner' : 'start scanner'"
-                   th:disabled="${is_importing_running}" th:href="@{/toggle/scanner}"
-                   th:text="${is_importing_running} ? 'Stop scanner' : 'Start scanner'"></a>
+                   th:title="${is_scanner_running} ? 'stop scanner' : 'start scanner'"
+                   th:disabled="${is_scanner_running}" th:href="@{/toggle/scanner}"
+                   th:text="${is_scanner_running} ? 'Stop scanner' : 'Start scanner'"></a>
                 <a th:class="${is_delete_running} ? 'btn btn-stop' : 'btn btn-primary'"
                    style="float: left;margin-right: 54px;text-decoration: none;margin-bottom: 10px;
                    border-color: #d43f3a;font-size: 19px;padding: 11px;border-radius: 11px;"
@@ -178,11 +178,11 @@
                 $(document).ready(function() {
                     var timer;
                     var timerActive = true;
+                    var isScannerRunning = [[${is_scanner_running} ? true : false]];
 
                     function startTimer() {
                         timer = setInterval(function () {
-                            var isImportingTunning = [[${is_importing_running} ? true : false]];
-                            if(isImportingTunning && timerActive) {
+                            if(isScannerRunning && timerActive) {
                                 $.ajax({
                                     type: 'GET',
                                     url: '/update-scanning-info',
@@ -191,11 +191,16 @@
                                         console.log(data);
                                         $('#number-to-delete span').html($(data).get(0));
                                         $('#number-total-scanned span').html($(data).get(1));
+                                        isScannerRunning = $(data).get(2);
+                                        if (isScannerRunning == "false"){
+                                            window.location.href="/";
+                                        }
                                     },
                                     error: function () {
                                         console.log("Some error");
                                         clearInterval(timer);
                                         timerActive = false;
+                                        window.location.href="/";
                                     }
                                 });
                             }
@@ -206,7 +211,6 @@
                 });
 
                 function restartScanner() {
-                    $('#btn-restart').addClass('hidden');
                     $('body').addClass('disabled');
                 }
 
