@@ -16,6 +16,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
 @Service
 @AllArgsConstructor
 @Slf4j
@@ -38,6 +40,7 @@ public class RegisterServiceImpl implements RegisterService {
         User user = confirmationToken.getUser();
         user.setEnabled(true);
         user.setConfirmationToken(null);
+        user.setLastLoginDate(LocalDateTime.now());
         userRepository.save(user);
         confirmationTokenRepository.delete(confirmationToken);
         keycloakService.confirmKeycloakUser(user.getKeycloakId());
@@ -49,6 +52,7 @@ public class RegisterServiceImpl implements RegisterService {
     public OwnerModel register(AccountForm accountForm) {
         String email = accountForm.getEmail().toLowerCase();
         Owner owner = ownerRepository.findByEmailAndEnabledFalse(email).orElse(new Owner("", "", email));
+        // TODO : useless ?
         owner.setPassword(bCryptPasswordEncoder.encode(accountForm.getPassword()));
         owner.setKeycloakId(keycloakService.createKeycloakUserAccountCreation(accountForm, owner));
         ownerRepository.save(owner);
