@@ -24,7 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class MarkerServiceImpl implements MarkerService {
 
-    private static final int PAGE_SIZE = 1000;
+    private static final int PAGE_SIZE = 10;
 
     private final OvhService ovhService;
     private final MarkerRepository markerRepository;
@@ -57,6 +57,7 @@ public class MarkerServiceImpl implements MarkerService {
         log.info("Connecting to OVH ...");
         final ObjectStorageObjectService objService = ovhService.getObjectStorage();
         int totalObjectsInOvh = objService.list(ovhContainerName).size();
+        log.info("Total objects in OVH : " + totalObjectsInOvh);
 
         try {
             final ObjectListOptions listOptions = initialize();
