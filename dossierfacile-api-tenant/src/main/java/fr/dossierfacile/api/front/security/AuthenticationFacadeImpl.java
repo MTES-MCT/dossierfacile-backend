@@ -5,6 +5,7 @@ import fr.dossierfacile.api.front.exception.TenantNotFoundException;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
+import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import lombok.AllArgsConstructor;
@@ -103,16 +104,25 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
     }
 
     private Tenant getPrincipalAuthTenant() {
-        Optional<Tenant> tenantOptional = tenantRepository.findByEmail(getUserEmail());
+        String email = getUserEmail();
+        Optional<Tenant> tenantOptional = tenantRepository.findByEmail(email);
         Tenant tenant;
         if (tenantOptional.isPresent()) {
             tenant = tenantOptional.get();
         } else {
             if (keycloakService.isKeycloakUser(getKeycloakUserId())) {
-                tenant = new Tenant(getUserEmail());
+//                tenant = new Tenant(getUserEmail());
+                //testing if fixed FC problem
+                tenant = tenantRepository.findByEmailAndEnabledFalse(email).orElseGet(() -> {
+                    ApartmentSharing apartmentSharing = apartmentSharingService.createApartmentSharing();
+                    Tenant tenant1 = new Tenant(email);
+                    apartmentSharing.addTenant(tenant1);
+                    return tenant1;
+                });
                 tenant.setKeycloakId(getKeycloakUserId());
                 tenantRepository.save(tenant);
-                apartmentSharingService.createApartmentSharing(tenant);
+                //testing if fixed FC problem
+//                apartmentSharingService.createApartmentSharing(tenant);
             } else {
                 throw new AccessDeniedException("invalid token");
             }

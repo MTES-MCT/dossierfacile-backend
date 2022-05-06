@@ -31,7 +31,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @AllArgsConstructor
-@NoArgsConstructor
+//@NoArgsConstructor //testing if fixed FC problem
 public class ApartmentSharing implements Serializable {
 
     private static final long serialVersionUID = -3603815439883206021L;
@@ -68,12 +68,18 @@ public class ApartmentSharing implements Serializable {
     @Enumerated(EnumType.STRING)
     private FileStatus dossierPdfDocumentStatus;
 
-
-    public ApartmentSharing(Tenant tenant) {
-        tenants.add(tenant);
+    //testing if fixed FC problem
+    public ApartmentSharing() {
         this.token = UUID.randomUUID().toString();
         this.tokenPublic = UUID.randomUUID().toString();
     }
+
+    //testing if fixed FC problem
+//    public ApartmentSharing(Tenant tenant) {
+//        tenants.add(tenant);
+//        this.token = UUID.randomUUID().toString();
+//        this.tokenPublic = UUID.randomUUID().toString();
+//    }
 
     public TenantFileStatus getStatus() {
         for (Tenant tenant : tenants) {
@@ -105,6 +111,12 @@ public class ApartmentSharing implements Serializable {
     public void addProspect(Prospect prospect) {
         prospects.add(prospect);
         prospect.setApartmentSharing(this);
+    }
+
+    //testing if fixed FC problem
+    public void addTenant(Tenant tenant) {
+        tenants.add(tenant);
+        tenant.setApartmentSharing(this);
     }
 
     public int getTotalGuarantor() {
