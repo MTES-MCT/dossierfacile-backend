@@ -3,11 +3,13 @@ package fr.dossierfacile.api.front.security;
 import com.google.common.base.Strings;
 import fr.dossierfacile.api.front.exception.TenantNotFoundException;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
-import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
+import fr.dossierfacile.api.front.service.interfaces.TenantService;
+import fr.dossierfacile.api.front.util.Obfuscator;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,10 +20,11 @@ import java.util.Optional;
 
 @Component
 @AllArgsConstructor
+@Slf4j
 public class AuthenticationFacadeImpl implements AuthenticationFacade {
 
     private final TenantCommonRepository tenantRepository;
-    private final ApartmentSharingService apartmentSharingService;
+    private final TenantService tenantService;
     private final KeycloakService keycloakService;
 
     private String getUserEmail() {
@@ -109,10 +112,10 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
             tenant = tenantOptional.get();
         } else {
             if (keycloakService.isKeycloakUser(getKeycloakUserId())) {
+                log.warn("Tenant" + Obfuscator.email(getUserEmail()) + " not exist - create it");
                 tenant = new Tenant(getUserEmail());
                 tenant.setKeycloakId(getKeycloakUserId());
-                tenantRepository.save(tenant);
-                apartmentSharingService.createApartmentSharing(tenant);
+                tenant = tenantService.create(tenant);
             } else {
                 throw new AccessDeniedException("invalid token");
             }
