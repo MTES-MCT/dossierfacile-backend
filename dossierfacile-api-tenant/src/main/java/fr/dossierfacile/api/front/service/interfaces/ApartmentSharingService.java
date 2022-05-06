@@ -8,7 +8,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 public interface ApartmentSharingService {
-    void createApartmentSharing(Tenant tenant);
+    //testing if fixed FC problem
+//    void createApartmentSharing(Tenant tenant);
+
+    //testing if fixed FC problem
+    ApartmentSharing createApartmentSharing();
 
     ApplicationModel full(String token);
 
