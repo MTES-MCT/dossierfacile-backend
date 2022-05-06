@@ -7,6 +7,7 @@ import fr.dossierfacile.api.front.register.form.partner.AccountPartnerForm;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.SourceService;
+import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
@@ -32,7 +33,14 @@ public class AccountApiPartner implements SaveStep<AccountPartnerForm> {
     @Override
     public TenantModel saveStep(Tenant t, AccountPartnerForm accountForm) {
         String email = accountForm.getEmail().toLowerCase();
-        Tenant tenant = tenantRepository.findByEmailAndEnabledFalse(email).orElse(new Tenant(email));
+//        Tenant tenant = tenantRepository.findByEmailAndEnabledFalse(email).orElse(new Tenant(email));
+        //testing if fixed FC problem
+        Tenant tenant = tenantRepository.findByEmailAndEnabledFalse(email).orElseGet(() -> {
+            ApartmentSharing apartmentSharing = apartmentSharingService.createApartmentSharing();
+            Tenant tenant1 = new Tenant(email);
+            apartmentSharing.addTenant(tenant1);
+            return tenant1;
+        });
         tenant.setEnabled(true);
         if (accountForm.getSource() != null && !accountForm.getSource().isBlank()) {
             tenantRepository.save(tenant);
@@ -41,7 +49,8 @@ public class AccountApiPartner implements SaveStep<AccountPartnerForm> {
         }
         tenant.addLinkedKeycloakClient(authenticationFacade.getKeycloakClientId());
         tenantRepository.save(tenant);
-        apartmentSharingService.createApartmentSharing(tenant);
+        //testing if fixed FC problem
+//        apartmentSharingService.createApartmentSharing(tenant);
         tenant.lastUpdateDateProfile(LocalDateTime.now(), null);
         return tenantMapper.toTenantModel(tenantRepository.save(tenant));
     }
