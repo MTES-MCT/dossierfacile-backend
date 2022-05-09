@@ -17,13 +17,14 @@ import org.openstack4j.model.storage.object.options.ObjectListOptions;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class MarkerServiceImpl implements MarkerService {
 
-    private static final int PAGE_SIZE = 1000;
+    private static final int PAGE_SIZE = 10;
 
     private final OvhService ovhService;
     private final MarkerRepository markerRepository;
@@ -49,13 +50,18 @@ public class MarkerServiceImpl implements MarkerService {
     @Override
     @Async
     public void startScanner() {
-        System.out.println("Connecting to OVH ...\n");
+        if (!isRunning) {
+            return;
+        }
+        log.info("Starting/Resuming scanner ...");
+        log.info("Connecting to OVH ...");
         final ObjectStorageObjectService objService = ovhService.getObjectStorage();
         int totalObjectsInOvh = objService.list(ovhContainerName).size();
+        log.info("Total objects in OVH : " + totalObjectsInOvh);
 
         try {
             final ObjectListOptions listOptions = initialize();
-            System.out.println("Reading objects from OVH: [STARTED]" + "\n");
+            log.info("Reading objects from OVH: [STARTED]");
             List<? extends SwiftObject> objects;
             do {
                 if (!isRunning) {
@@ -87,17 +93,43 @@ public class MarkerServiceImpl implements MarkerService {
                         break;
                     }
                     long totalObjectsRead = objectRepository.count();
-                    System.out.println("Objects read in the iteration [" + objects.size() + "]");
-                    System.out.println("Total objects read : " + totalObjectsRead + " from " + totalObjectsInOvh);
-                    System.out.println("Remaining objects : " + (totalObjectsInOvh - totalObjectsRead) + "\n");
+                    log.info("Objects read in the iteration [" + objects.size() + "]");
+                    log.info("Total objects read : " + totalObjectsRead + " from " + totalObjectsInOvh);
+                    log.info("Remaining objects : " + (totalObjectsInOvh - totalObjectsRead));
                 }
             } while (objects.size() == PAGE_SIZE);
 
         } catch (Exception e) {
             log.error(e.getMessage(), e.getCause());
         }
-        System.out.println("Disconnecting from OVH ...\n");
+        log.info("Disconnecting from OVH ...");
         isRunning = false;
+    }
+
+    @Override
+    public void setRunningToFalse() {
+        synchronized (this) {
+            isRunning = false;
+            log.info("Stopping scanner...");
+            try {
+                this.wait(10000);
+                log.info("Waiting 10 seconds...");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    @Override
+    public void setRunningToTrue() {
+        isRunning = true;
+    }
+
+    @Override
+    @Transactional
+    public void cleanDatabaseOfScanner() {
+        markerRepository.deleteAll();
+        objectRepository.deleteAll();
     }
 
     private ObjectListOptions initialize() {

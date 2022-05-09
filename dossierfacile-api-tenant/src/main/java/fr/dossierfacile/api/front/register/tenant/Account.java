@@ -11,6 +11,7 @@ import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
 import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.api.front.service.interfaces.SourceService;
 import fr.dossierfacile.api.front.service.interfaces.UserRoleService;
+import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
@@ -43,7 +44,14 @@ public class Account implements SaveStep<AccountForm> {
     @Transactional
     public TenantModel saveStep(Tenant t, AccountForm accountForm) {
         String email = accountForm.getEmail().toLowerCase();
-        Tenant tenant = tenantRepository.findByEmailAndEnabledFalse(email).orElse(new Tenant(email));
+//        Tenant tenant = tenantRepository.findByEmailAndEnabledFalse(email).orElse(new Tenant(email));
+        //testing if fixed FC problem
+        Tenant tenant = tenantRepository.findByEmailAndEnabledFalse(email).orElseGet(() -> {
+            ApartmentSharing apartmentSharing = apartmentSharingService.createApartmentSharing();
+            Tenant tenant1 = new Tenant(email);
+            apartmentSharing.addTenant(tenant1);
+            return tenant1;
+        });
         tenant.setPassword(bCryptPasswordEncoder.encode(accountForm.getPassword()));
         if (!Strings.isNullOrEmpty(accountForm.getSource())) {
             tenant.setFirstName(accountForm.getFirstName());
@@ -57,7 +65,8 @@ public class Account implements SaveStep<AccountForm> {
         tenantRepository.save(tenant);
         mailService.sendEmailConfirmAccount(tenant, confirmationTokenService.createToken(tenant));
         userRoleService.createRole(tenant);
-        apartmentSharingService.createApartmentSharing(tenant);
+        //testing if fixed FC problem
+//        apartmentSharingService.createApartmentSharing(tenant);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         tenant.lastUpdateDateProfile(LocalDateTime.now(), null);
         return tenantMapper.toTenantModel(tenantRepository.save(tenant));

@@ -44,12 +44,19 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
     private final LinkLogRepository linkLogRepository;
     private final Producer producer;
 
+    //testing if fixed FC problem
+//    @Override
+//    public void createApartmentSharing(Tenant tenant) {
+//        ApartmentSharing apartmentSharing = apartmentSharingRepository.findByTenant(tenant.getId()).orElse(new ApartmentSharing(tenant));
+//        apartmentSharingRepository.save(apartmentSharing);
+//        tenant.setApartmentSharing(apartmentSharing);
+//        tenantRepository.save(tenant);
+//    }
+
+    //testing if fixed FC problem
     @Override
-    public void createApartmentSharing(Tenant tenant) {
-        ApartmentSharing apartmentSharing = apartmentSharingRepository.findByTenant(tenant.getId()).orElse(new ApartmentSharing(tenant));
-        apartmentSharingRepository.save(apartmentSharing);
-        tenant.setApartmentSharing(apartmentSharing);
-        tenantRepository.save(tenant);
+    public ApartmentSharing createApartmentSharing() {
+        return apartmentSharingRepository.save(new ApartmentSharing());
     }
 
     @Override

@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,6 +43,15 @@ public class ObjectController {
         return "redirect:/checker";
     }
 
+    @GetMapping("/restart/scanner")
+    public String restartScanner() {
+        markerService.setRunningToFalse();
+        markerService.cleanDatabaseOfScanner();
+        markerService.setRunningToTrue();
+        markerService.startScanner();
+        return "redirect:/checker";
+    }
+
     //main view
     @GetMapping("/checker")
     public String object(Model model) {
@@ -57,10 +68,19 @@ public class ObjectController {
 
         model.addAttribute("total_objects_to_delete", objectService.countAllObjectsForDeletion());
         model.addAttribute("total_objects_scanned", objectService.countAllObjectsScanned());
-        model.addAttribute("is_importing_running", markerService.isRunning());
+        model.addAttribute("is_scanner_running", markerService.isRunning());
         model.addAttribute("is_delete_running", deleteSchedule.isActive());
 
         return "index";
+    }
+
+    @GetMapping(value = "/update-scanning-info", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<String>> currentReadObjects() {
+        List<String> result = new ArrayList<>();
+        result.add(String.valueOf(objectService.countAllObjectsForDeletion()));
+        result.add(String.valueOf(objectService.countAllObjectsScanned()));
+        result.add(String.valueOf(markerService.isRunning()));
+        return ResponseEntity.ok(result);
     }
 
     //search object
