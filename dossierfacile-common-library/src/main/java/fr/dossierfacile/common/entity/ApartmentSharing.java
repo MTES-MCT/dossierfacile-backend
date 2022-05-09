@@ -4,11 +4,11 @@ package fr.dossierfacile.common.entity;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.FileStatus;
 import fr.dossierfacile.common.enums.TenantFileStatus;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
+import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -20,18 +20,17 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
-import java.io.Serializable;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "apartment_sharing")
 @Getter
 @Setter
 @AllArgsConstructor
-//@NoArgsConstructor //testing if fixed FC problem
+@NoArgsConstructor
 public class ApartmentSharing implements Serializable {
 
     private static final long serialVersionUID = -3603815439883206021L;
@@ -68,18 +67,11 @@ public class ApartmentSharing implements Serializable {
     @Enumerated(EnumType.STRING)
     private FileStatus dossierPdfDocumentStatus;
 
-    //testing if fixed FC problem
-    public ApartmentSharing() {
+    public ApartmentSharing(Tenant tenant) {
+        tenants.add(tenant);
         this.token = UUID.randomUUID().toString();
         this.tokenPublic = UUID.randomUUID().toString();
     }
-
-    //testing if fixed FC problem
-//    public ApartmentSharing(Tenant tenant) {
-//        tenants.add(tenant);
-//        this.token = UUID.randomUUID().toString();
-//        this.tokenPublic = UUID.randomUUID().toString();
-//    }
 
     public TenantFileStatus getStatus() {
         for (Tenant tenant : tenants) {
@@ -111,12 +103,6 @@ public class ApartmentSharing implements Serializable {
     public void addProspect(Prospect prospect) {
         prospects.add(prospect);
         prospect.setApartmentSharing(this);
-    }
-
-    //testing if fixed FC problem
-    public void addTenant(Tenant tenant) {
-        tenants.add(tenant);
-        tenant.setApartmentSharing(this);
     }
 
     public int getTotalGuarantor() {
