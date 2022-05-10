@@ -1,6 +1,7 @@
 package fr.dossierfacile.garbagecollector.configuration;
 
 import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -15,6 +16,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @EnableWebSecurity
 @AllArgsConstructor
 class SecurityConfiguration extends WebSecurityConfigurerAdapter {
+
+    @Value("${app.username}")
+    private String username;
+    @Value("${app.password}")
+    private String password;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -31,14 +37,11 @@ class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .permitAll();
     }
 
-    private static final String ENCODED_PASSWORD = "$2a$12$wE/CvVJ13JgcELg.M/kifuFhZ8gCOsBTjr.X7h8K1ZjkOCtiYRI5a";
-    /// encode bcrypt: hackEmate*0021
-
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.inMemoryAuthentication()
                 .passwordEncoder(passwordEncoder())
-                .withUser("harlow").password(ENCODED_PASSWORD).roles("USER");
+                .withUser(username).password(password).roles("USER");
     }
 
     @Bean
