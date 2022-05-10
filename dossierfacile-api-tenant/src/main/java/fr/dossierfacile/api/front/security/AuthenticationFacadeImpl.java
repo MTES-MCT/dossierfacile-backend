@@ -4,9 +4,11 @@ import com.google.common.base.Strings;
 import fr.dossierfacile.api.front.exception.TenantNotFoundException;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
+import fr.dossierfacile.api.front.service.interfaces.LogService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.util.Obfuscator;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
@@ -25,6 +27,7 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
     private final TenantCommonRepository tenantRepository;
     private final TenantService tenantService;
     private final KeycloakService keycloakService;
+    private final LogService logService;
 
     private String getUserEmail() {
         return ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClaimAsString("email");
@@ -122,6 +125,13 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
         }
         tenant.setKeycloakId(getKeycloakUserId());
         if (!tenant.getFranceConnect().equals(Boolean.TRUE) && isFranceConnect()) {
+            if (tenantOptional.isPresent()) {
+                log.info("Local account link to FranceConnect account, for tenant with ID {}", tenant.getId());
+                logService.saveLog(LogType.FC_ACCOUNT_LINK, tenant.getId());
+            } else {
+                log.info("Local account creation via FranceConnect account, for tenant with ID {}", tenant.getId());
+                logService.saveLog(LogType.FC_ACCOUNT_CREATION, tenant.getId());
+            }
             tenant.setFranceConnect(isFranceConnect());
             tenant.setFranceConnectSub(getFranceConnectSub());
             tenant.setFranceConnectBirthCountry(getFranceConnectBirthCountry());
