@@ -3,26 +3,27 @@ package fr.dossierfacile.api.front.security;
 import com.google.common.base.Strings;
 import fr.dossierfacile.api.front.exception.TenantNotFoundException;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
-import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
-import fr.dossierfacile.common.entity.ApartmentSharing;
+import fr.dossierfacile.api.front.service.interfaces.TenantService;
+import fr.dossierfacile.api.front.util.Obfuscator;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
-
 @Component
 @AllArgsConstructor
+@Slf4j
 public class AuthenticationFacadeImpl implements AuthenticationFacade {
 
     private final TenantCommonRepository tenantRepository;
-    private final ApartmentSharingService apartmentSharingService;
+    private final TenantService tenantService;
     private final KeycloakService keycloakService;
 
     private String getUserEmail() {
@@ -39,7 +40,7 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
 
     private String getPreferredName() {
         String preferredUsername = ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClaimAsString("preferred_username");
-        if(Strings.isNullOrEmpty(preferredUsername) || preferredUsername.contains("@")) {
+        if (Strings.isNullOrEmpty(preferredUsername) || preferredUsername.contains("@")) {
             return null;
         }
         return ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClaimAsString("preferred_username");
@@ -111,18 +112,10 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
             tenant = tenantOptional.get();
         } else {
             if (keycloakService.isKeycloakUser(getKeycloakUserId())) {
-//                tenant = new Tenant(getUserEmail());
-                //testing if fixed FC problem
-                tenant = tenantRepository.findByEmailAndEnabledFalse(email).orElseGet(() -> {
-                    ApartmentSharing apartmentSharing = apartmentSharingService.createApartmentSharing();
-                    Tenant tenant1 = new Tenant(email);
-                    apartmentSharing.addTenant(tenant1);
-                    return tenant1;
-                });
+                log.warn("Tenant " + Obfuscator.email(email) + " not exist - create it");
+                tenant = new Tenant(email);
                 tenant.setKeycloakId(getKeycloakUserId());
-                tenantRepository.save(tenant);
-                //testing if fixed FC problem
-//                apartmentSharingService.createApartmentSharing(tenant);
+                tenant = tenantService.create(tenant);
             } else {
                 throw new AccessDeniedException("invalid token");
             }

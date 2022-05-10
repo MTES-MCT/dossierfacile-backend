@@ -8,7 +8,6 @@ import fr.dossierfacile.api.front.repository.LinkLogRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.LinkLog;
-import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.FileStatus;
 import fr.dossierfacile.common.enums.LinkType;
 import fr.dossierfacile.common.mapper.ApplicationFullMapper;
@@ -16,6 +15,11 @@ import fr.dossierfacile.common.mapper.ApplicationLightMapper;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.OvhService;
+import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.UnknownServiceException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -24,12 +28,6 @@ import org.openstack4j.model.storage.object.SwiftObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.UnknownServiceException;
 
 @Service
 @AllArgsConstructor
@@ -43,21 +41,6 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
     private final OvhService ovhService;
     private final LinkLogRepository linkLogRepository;
     private final Producer producer;
-
-    //testing if fixed FC problem
-//    @Override
-//    public void createApartmentSharing(Tenant tenant) {
-//        ApartmentSharing apartmentSharing = apartmentSharingRepository.findByTenant(tenant.getId()).orElse(new ApartmentSharing(tenant));
-//        apartmentSharingRepository.save(apartmentSharing);
-//        tenant.setApartmentSharing(apartmentSharing);
-//        tenantRepository.save(tenant);
-//    }
-
-    //testing if fixed FC problem
-    @Override
-    public ApartmentSharing createApartmentSharing() {
-        return apartmentSharingRepository.save(new ApartmentSharing());
-    }
 
     @Override
     public ApplicationModel full(String token) {
