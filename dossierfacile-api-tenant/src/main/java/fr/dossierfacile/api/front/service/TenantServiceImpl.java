@@ -4,9 +4,12 @@ import fr.dossierfacile.api.front.form.SubscriptionApartmentSharingOfTenantForm;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.RegisterFactory;
 import fr.dossierfacile.api.front.register.enums.StepRegister;
+import fr.dossierfacile.api.front.repository.ApartmentSharingRepository;
 import fr.dossierfacile.api.front.repository.PropertyApartmentSharingRepository;
 import fr.dossierfacile.api.front.service.interfaces.PropertyService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
+import fr.dossierfacile.api.front.util.Obfuscator;
+import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Property;
 import fr.dossierfacile.common.entity.PropertyApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
@@ -20,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -30,6 +34,7 @@ public class TenantServiceImpl implements TenantService {
     private final PropertyApartmentSharingRepository propertyApartmentSharingRepository;
     private final TenantCommonRepository tenantRepository;
     private final PartnerCallBackService partnerCallBackService;
+    private final ApartmentSharingRepository apartmentSharingRepository;
 
     @Override
     public <T> TenantModel saveStepRegister(Tenant tenant, T formStep, StepRegister step) {
@@ -79,5 +84,16 @@ public class TenantServiceImpl implements TenantService {
         }
         log.info("Updating last_login_date of tenant with ID [" + tenant.getId() + "]");
         tenantRepository.save(tenant);
+    }
+
+    @Override
+    @Transactional
+    public Tenant create(Tenant tenant) {
+        if ( tenantRepository.findByEmail(tenant.getEmail()).isPresent() ){
+            throw new IllegalStateException("Tenant " + Obfuscator.email(tenant.getEmail()) +" already exists");
+        }
+        tenant.setApartmentSharing(new ApartmentSharing(tenant));
+        apartmentSharingRepository.save(tenant.getApartmentSharing());
+        return tenantRepository.save(tenant);
     }
 }
