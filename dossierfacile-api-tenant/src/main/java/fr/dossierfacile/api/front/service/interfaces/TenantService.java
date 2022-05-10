@@ -13,4 +13,6 @@ public interface TenantService {
     void updateTenantStatus(Tenant tenant);
 
     void updateLastLoginDateAndResetWarnings(Tenant tenant);
+
+    Tenant create(Tenant tenant);
 }
