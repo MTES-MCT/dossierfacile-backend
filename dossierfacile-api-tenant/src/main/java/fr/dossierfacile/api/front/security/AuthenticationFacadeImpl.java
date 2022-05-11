@@ -113,25 +113,26 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
         Tenant tenant;
         if (tenantOptional.isPresent()) {
             tenant = tenantOptional.get();
+            if (!tenant.getFranceConnect().equals(Boolean.TRUE) && isFranceConnect()) {
+                log.info("Local account link to FranceConnect account, for tenant with ID {}", tenant.getId());
+                logService.saveLog(LogType.FC_ACCOUNT_LINK, tenant.getId());
+            }
         } else {
             if (keycloakService.isKeycloakUser(getKeycloakUserId())) {
                 log.warn("Tenant " + Obfuscator.email(email) + " not exist - create it");
                 tenant = new Tenant(email);
                 tenant.setKeycloakId(getKeycloakUserId());
                 tenant = tenantService.create(tenant);
+                if (isFranceConnect()) {
+                    log.info("Local account creation via FranceConnect account, for tenant with ID {}", tenant.getId());
+                    logService.saveLog(LogType.FC_ACCOUNT_CREATION, tenant.getId());
+                }
             } else {
                 throw new AccessDeniedException("invalid token");
             }
         }
         tenant.setKeycloakId(getKeycloakUserId());
         if (!tenant.getFranceConnect().equals(Boolean.TRUE) && isFranceConnect()) {
-            if (tenantOptional.isPresent()) {
-                log.info("Local account link to FranceConnect account, for tenant with ID {}", tenant.getId());
-                logService.saveLog(LogType.FC_ACCOUNT_LINK, tenant.getId());
-            } else {
-                log.info("Local account creation via FranceConnect account, for tenant with ID {}", tenant.getId());
-                logService.saveLog(LogType.FC_ACCOUNT_CREATION, tenant.getId());
-            }
             tenant.setFranceConnect(isFranceConnect());
             tenant.setFranceConnectSub(getFranceConnectSub());
             tenant.setFranceConnectBirthCountry(getFranceConnectBirthCountry());
