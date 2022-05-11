@@ -53,7 +53,10 @@ public class ResourceServerConfig {
                 .authorizeRequests()
                 .antMatchers("/swagger-ui/**", "/swagger-resources/**", "/v2/api-docs", "/api/register/account", "/api/register/confirmAccount/**",
                         "/api/auth/**", "/api/user/forgotPassword", "/api/user/createPassword/**",
-                        "/api/document/**", "/api/file/download/**", "/api/application/full/**", "/api/application/light/**", "/api/application/fullPdf/**", "/api/tenant/property/**","/actuator/health")
+                        "/api/document/**", "/api/file/download/**", "/api/application/full/**", "/api/application/light/**",
+                        "/api/application/fullPdf/**", "/api/tenant/property/**",
+                        "/api/support/email",
+                        "/actuator/health")
                 .permitAll()
                 .antMatchers("/api-partner/**").hasAuthority("SCOPE_api-partner")
                 .antMatchers("/dfc/tenant/profile").hasAuthority("SCOPE_dfc")
