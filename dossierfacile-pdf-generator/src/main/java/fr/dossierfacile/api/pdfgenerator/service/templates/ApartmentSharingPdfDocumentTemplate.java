@@ -137,11 +137,13 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
     private static final float Y_LOCATION_STATIC_TEXT_IN_FIRST_INDEXPAGE = B_HEIGHT_TEMPLATE / 421 * 283f;
     private static final float Y_LOCATION_OF_TITLE_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_FIRST_INDEXPAGE = B_HEIGHT_TEMPLATE / 421 * 230.99f;
     private static final float Y_LOCATION_OF_NAME_OF_TENANT_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_FIRST_INDEXPAGE = B_HEIGHT_TEMPLATE / 421 * 224;
+    private static final float Y_LOCATION_OF_EMAIL_OF_TENANT_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_FIRST_INDEXPAGE = B_HEIGHT_TEMPLATE / 421 * 219.5f;
     private static final float Y_LOCATION_OF_INDEX_PAGES_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_FIRST_INDEXPAGE = B_HEIGHT_TEMPLATE / 421 * 212.99f;
     //--------------------------------------------------------------------------------------------------
     //Second page of indexes
     private static final float Y_LOCATION_OF_TITLE_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_SECOND_INDEXPAGE = B_HEIGHT_TEMPLATE / 421 * 312.5f;
     private static final float Y_LOCATION_OF_NAME_OF_TENANT_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_SECOND_INDEXPAGE = B_HEIGHT_TEMPLATE / 421 * 305.5f;
+    private static final float Y_LOCATION_OF_EMAIL_OF_TENANT_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_SECOND_INDEXPAGE = B_HEIGHT_TEMPLATE / 421 * 301;
     private static final float Y_LOCATION_OF_INDEX_PAGES_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_SECOND_INDEXPAGE = B_HEIGHT_TEMPLATE / 421 * 294.5f;
     //--------------------------------------------------------------------------------------------------
     //Common dimensions
@@ -907,7 +909,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
         }
     }
 
-    private float addIndexesOfDocumentsOfTenantInCurrentPage(Tenant tenant, int indexPage, List<Integer> indexPagesForDocuments, AtomicInteger iteratorInIndexPagesForDocuments, PDDocument doc, PDType0Font fontForTitleAndSalary, PDType0Font fontIndexLines, float marginX, float yLocationFirstContentStream, float yLocationSecondContentStream, float yLocationThirdContentStream, float xLocationOfEndOfRectangule) throws IOException {
+    private float addIndexesOfDocumentsOfTenantInCurrentPage(Tenant tenant, int indexPage, List<Integer> indexPagesForDocuments, AtomicInteger iteratorInIndexPagesForDocuments, PDDocument doc, PDType0Font fontForTitleAndSalary, PDType0Font fontIndexLines, float marginX, float yLocationFirstContentStream, float yLocationSecondContentStream, float yLocationTenantEmailContentStream, float yLocationThirdContentStream, float xLocationOfEndOfRectangule) throws IOException {
         PDPageContentStream contentStream1 = new PDPageContentStream(doc, doc.getPage(indexPage), PDPageContentStream.AppendMode.APPEND, true);
         contentStream1.setNonStrokingColor(0 / 255.0F, 172 / 255.0F, 140 / 255.0F);
         contentStream1.beginText();
@@ -932,10 +934,22 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
         contentStream2.endText();
         contentStream2.close();
 
+        PDPageContentStream contentStreamEmailTenant = new PDPageContentStream(doc, doc.getPage(indexPage), PDPageContentStream.AppendMode.APPEND, true);
+        contentStreamEmailTenant.setNonStrokingColor(56 / 255.0F, 56 / 255.0F, 56 / 255.0F);
+        contentStreamEmailTenant.beginText();
+        fontSize = FONT_SIZE_FOR_CONTENT_OF_GROUP_OF_INDEXES;
+        contentStreamEmailTenant.setFont(fontIndexLines, fontSize);
+        String tenantEmail = tenant.getEmail() + "asdjashjdhasdghasgdhasgd";
+        textSize = fontSize * fontIndexLines.getStringWidth(tenantEmail) / 1000;
+        offset = marginX + (WIDTH_OF_THE_TWO_COLUMNS_FOR_INDEXES - textSize) / 2;
+        contentStreamEmailTenant.newLineAtOffset(offset, yLocationTenantEmailContentStream);
+        contentStreamEmailTenant.showText(tenantEmail);
+        contentStreamEmailTenant.endText();
+        contentStreamEmailTenant.close();
+
         PDPageContentStream contentStream3 = new PDPageContentStream(doc, doc.getPage(indexPage), PDPageContentStream.AppendMode.APPEND, true);
         contentStream3.setNonStrokingColor(106 / 255.0F, 106 / 255.0F, 106 / 255.0F);
         contentStream3.beginText();
-        fontSize = FONT_SIZE_FOR_CONTENT_OF_GROUP_OF_INDEXES;
         contentStream3.setFont(fontIndexLines, fontSize);
         contentStream3.newLineAtOffset(marginX + ADDITIONAL_LEFT_MARGIN_FOR_CONTENT_OF_INDEXES, yLocationThirdContentStream);
         float leading = LEADING_FOR_CONTENT_OF_GROUP_OF_INDEXES;
@@ -1224,9 +1238,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
                 Tenant leftTenantInPage = tenantList.get(indexTenant);
                 Tenant rightTenantInPage = (indexTenant + 1) < numberOfTenants ? tenantList.get(indexTenant + 1) : null;
 
-                float yLocationFirstContentStream;
-                float yLocationSecondContentStream;
-                float yLocationThirdContentStream;
+                float yLocationFirstContentStream, yLocationSecondContentStream, yLocationTenantEmailContentStream, yLocationThirdContentStream;
 
                 //The content area in the first page (indexPage == 0)
                 // is different in comparision with the one available in the other pages of indexes
@@ -1247,18 +1259,20 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
                     //region ContentStreams locations on the y-axis in first page of indexes
                     yLocationFirstContentStream = Y_LOCATION_OF_TITLE_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_FIRST_INDEXPAGE;
                     yLocationSecondContentStream = Y_LOCATION_OF_NAME_OF_TENANT_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_FIRST_INDEXPAGE;
+                    yLocationTenantEmailContentStream = Y_LOCATION_OF_EMAIL_OF_TENANT_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_FIRST_INDEXPAGE;
                     yLocationThirdContentStream = Y_LOCATION_OF_INDEX_PAGES_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_FIRST_INDEXPAGE;
                     //endregion
                 } else {
                     //region ContentStreams locations on the y-axis in the other pages of indexes
                     yLocationFirstContentStream = Y_LOCATION_OF_TITLE_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_SECOND_INDEXPAGE;
                     yLocationSecondContentStream = Y_LOCATION_OF_NAME_OF_TENANT_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_SECOND_INDEXPAGE;
+                    yLocationTenantEmailContentStream = Y_LOCATION_OF_EMAIL_OF_TENANT_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_SECOND_INDEXPAGE;
                     yLocationThirdContentStream = Y_LOCATION_OF_INDEX_PAGES_IN_GROUP_OF_DOCUMENT_INDEXES_FOR_TENANTS_IN_SECOND_INDEXPAGE;
                     //endregion
                 }
 
                 //region Details of left Tenant in current page
-                float lastYLocationLeftSide = addIndexesOfDocumentsOfTenantInCurrentPage(leftTenantInPage, indexPage, indexPagesForDocuments, iteratorInIndexPagesForDocuments, doc, fontSpectralExtraBold, fontMarianneRegular, LEFT_MARGIN_FOR_LEFT_TENANT, yLocationFirstContentStream, yLocationSecondContentStream, yLocationThirdContentStream, X_LOCATION_OF_END_OF_LEFT_RECTANGULE_IN_INDEXPAGES);
+                float lastYLocationLeftSide = addIndexesOfDocumentsOfTenantInCurrentPage(leftTenantInPage, indexPage, indexPagesForDocuments, iteratorInIndexPagesForDocuments, doc, fontSpectralExtraBold, fontMarianneRegular, LEFT_MARGIN_FOR_LEFT_TENANT, yLocationFirstContentStream, yLocationSecondContentStream, yLocationTenantEmailContentStream, yLocationThirdContentStream, X_LOCATION_OF_END_OF_LEFT_RECTANGULE_IN_INDEXPAGES);
                 List<Guarantor> guarantorsLeftTenant = leftTenantInPage.getGuarantors().stream().sorted(Comparator.comparing(Guarantor::getTypeGuarantor)).collect(Collectors.toList());
                 for (Guarantor guarantor : guarantorsLeftTenant) {
                     lastYLocationLeftSide = addIndexesOfDocumentsOfGuarantorInCurrentPage(guarantor, indexPage, indexPagesForDocuments, iteratorInIndexPagesForDocuments, doc, fontSpectralExtraBold, fontMarianneRegular, LEFT_MARGIN_FOR_LEFT_TENANT, lastYLocationLeftSide, X_LOCATION_OF_END_OF_LEFT_RECTANGULE_IN_INDEXPAGES);
@@ -1266,7 +1280,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
                 //endregion
                 //region Details of right Tenant in current page
                 if (rightTenantInPage != null) {
-                    float lastYLocationRightSide = addIndexesOfDocumentsOfTenantInCurrentPage(rightTenantInPage, indexPage, indexPagesForDocuments, iteratorInIndexPagesForDocuments, doc, fontSpectralExtraBold, fontMarianneRegular, LEFT_MARGIN_FOR_RIGHT_TENANT, yLocationFirstContentStream, yLocationSecondContentStream, yLocationThirdContentStream, X_LOCATION_OF_END_OF_RIGHT_RECTANGULE_IN_INDEXPAGES);
+                    float lastYLocationRightSide = addIndexesOfDocumentsOfTenantInCurrentPage(rightTenantInPage, indexPage, indexPagesForDocuments, iteratorInIndexPagesForDocuments, doc, fontSpectralExtraBold, fontMarianneRegular, LEFT_MARGIN_FOR_RIGHT_TENANT, yLocationFirstContentStream, yLocationSecondContentStream, yLocationTenantEmailContentStream, yLocationThirdContentStream, X_LOCATION_OF_END_OF_RIGHT_RECTANGULE_IN_INDEXPAGES);
                     List<Guarantor> guarantorsRightTenant = rightTenantInPage.getGuarantors().stream().sorted(Comparator.comparing(Guarantor::getTypeGuarantor)).collect(Collectors.toList());
                     for (Guarantor guarantor : guarantorsRightTenant) {
                         lastYLocationRightSide = addIndexesOfDocumentsOfGuarantorInCurrentPage(guarantor, indexPage, indexPagesForDocuments, iteratorInIndexPagesForDocuments, doc, fontSpectralExtraBold, fontMarianneRegular, LEFT_MARGIN_FOR_RIGHT_TENANT, lastYLocationRightSide, X_LOCATION_OF_END_OF_RIGHT_RECTANGULE_IN_INDEXPAGES);
