@@ -83,7 +83,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
         //endregion
 
         if (apartmentSharing.getDossierPdfDocumentStatus() != FileStatus.COMPLETED) {
-            throw new FileNotFoundException("Full PDF doesn't exist - FileStatus" + apartmentSharing.getDossierPdfDocumentStatus());
+            throw new FileNotFoundException("Full PDF doesn't exist - FileStatus " + apartmentSharing.getDossierPdfDocumentStatus());
         } else {
             SwiftObject swiftObject = ovhService.get(apartmentSharing.getUrlDossierPdfDocument());
             if (swiftObject != null) {
