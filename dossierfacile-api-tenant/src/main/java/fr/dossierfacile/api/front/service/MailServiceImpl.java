@@ -35,6 +35,8 @@ public class MailServiceImpl implements MailService {
     private final @Qualifier("warnings_account") MailjetClient warningsAccount;
     @Value("${email.from}")
     private String emailFrom;
+    @Value("${email.support.from}")
+    private String emailSupportFrom;
     @Value("${email.support}")
     private String emailSupport;
 
@@ -266,7 +268,7 @@ public class MailServiceImpl implements MailService {
         variables.put("subject", form.getSubject());
         variables.put("message", form.getMessage());
         MailJetModel mailjetModel = MailJetModel.builder()
-                .fromEmail(emailFrom)
+                .fromEmail(emailSupportFrom)
                 .toEmail(emailSupport)
                 .replyToEmail(form.getEmail())
                 .toName("Support depuis formulaire")
