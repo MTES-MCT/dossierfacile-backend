@@ -92,7 +92,7 @@ public class MarkerServiceImpl implements MarkerService {
                             // If the [File] doesn't exist in the [Database] then it will be marked with [true] to delete
                             object.setToDelete(!fileRepository.existsObject(nameFile));
                             object.setPath(nameFile);
-                            objectRepository.saveAndFlush(object);
+                            objectRepository.save(object);
                         }
                     }
                     if (!isRunning) {
@@ -103,7 +103,7 @@ public class MarkerServiceImpl implements MarkerService {
                     log.info("Total objects read : " + totalObjectsRead + " from " + totalObjectsInOvh);
                     log.info("Remaining objects : " + (totalObjectsInOvh - totalObjectsRead));
                 } else {
-                    log.info("\nSCANNING FINISHED\n");
+                    log.info("\n\nSCANNING FINISHED\n");
                 }
             } while (!objects.isEmpty());
 
@@ -158,8 +158,7 @@ public class MarkerServiceImpl implements MarkerService {
 
             //delete last marker to ensure checking again all elements between penultimate and last elements were processed
             markerRepository.delete(lastMarker);
-            Object object = objectRepository.findObjectByPath(penultimateMarker.getPath());
-            objectRepository.deleteObjectsMayorThan(Preconditions.checkNotNull(object, "object can not be null").getId());
+            objectRepository.deleteObjectsMayorThan(penultimateMarker.getPath());
         }
         return listOptions;
     }

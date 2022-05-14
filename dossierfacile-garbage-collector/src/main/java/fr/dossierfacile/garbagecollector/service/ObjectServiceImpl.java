@@ -6,7 +6,11 @@ import fr.dossierfacile.garbagecollector.service.interfaces.ObjectService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.jpa.datatables.mapping.DataTablesInput;
+import org.springframework.data.jpa.datatables.mapping.DataTablesOutput;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Slf4j
@@ -21,22 +25,10 @@ public class ObjectServiceImpl implements ObjectService {
     }
 
     @Override
-    public List<Object> getAllObjectsForDeletion() {
-        return objectRepository.getAllObjectsForDeletion();
+    public DataTablesOutput<Object> getAllObjectsForDeletion(DataTablesInput input) {
+        Specification<Object> specification = (root, query, criteriaBuilder) -> criteriaBuilder.isTrue(root.get("toDelete"));
+        return objectRepository.findAll(input, specification);
     }
-
-//    @Override
-//    @Async
-//    public void updateAllToDeleteObjects() {
-//        System.out.println(" marking object for delete [STARTED]" + "\n");
-//        for (Object pathOvh : objectRepo.findAll()) {
-//            if (pathOvh.isToDelete()) {
-//                pathOvh.setToDelete(true);
-//                objectRepo.save(pathOvh);
-//            }
-//        }
-//        System.out.println(" marking object for delete [FINISHED]" + " total to_delete: [" + getObjectListToDeleteTrue() + "] " + "\n");
-//    }
 
     @Override
     public long countAllObjectsScanned() {
@@ -45,7 +37,7 @@ public class ObjectServiceImpl implements ObjectService {
 
     @Override
     public long countAllObjectsForDeletion() {
-        return objectRepository.countAllObjectsForDeletion();
+        return objectRepository.countByToDeleteIsTrue();
     }
 
     @Override
@@ -54,12 +46,8 @@ public class ObjectServiceImpl implements ObjectService {
     }
 
     @Override
+    @Transactional
     public void deleteObjectByPath(String path) {
-        objectRepository.deleteObjectByPath(path);
-    }
-
-    @Override
-    public Object findObjectByPath(String path) {
-        return objectRepository.findObjectByPath(path);
+        objectRepository.deleteByPath(path);
     }
 }
