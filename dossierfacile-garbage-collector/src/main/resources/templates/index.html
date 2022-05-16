@@ -4,19 +4,15 @@
 >
 <head>
     <title>DossierFacile</title>
-    <link href="../static/css/Layout.css" th:href="@{/css/Layout.css}" rel="stylesheet"/>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
-    <link href="/webjars/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet"/>
-    <link href="/webjars/animate.css/animate.min.css" rel="stylesheet"/>
     <meta name="google-site-verification" content="4OOE91l6UNYCAnvnxQfNEnybmxX1QGAh05KkgvChMxw"/>
+    <link rel="stylesheet" th:href="@{/css/Layout.css}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.12.0/css/jquery.dataTables.css">
 </head>
 <body>
-<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
 
 <div class="topnav" style="margin-bottom: 43px;margin-top: 4px;padding: 6px">
     <a class="active" style="background:#003189; border-radius: 5px; color: #f5f5fe" th:href="@{/}">Object Checker</a>
@@ -24,14 +20,6 @@
         <form th:action="@{/logout}" method="post">
             <input style="background: transparent;color: #000091; font-size: medium;border-radius: 5px;padding-top: 3px;padding-bottom: 3px;"
                    type="submit" value="SignOut"/>
-        </form>
-    </div>
-    <div class="search-container">
-        <form th:method="get" th:action="@{/checker/searchPath}" th:object="${path}">
-            <input required="" oninvalid="this.setCustomValidity('remplissez ce champ')" oninput="setCustomValidity('')"
-                   type="text" th:field="*{path}" placeholder="Search path ..." name="search"
-                   style="padding: 4px;border-radius: 4px;border: 1px solid #009879 !important;">
-            <button type="submit"><i class="fa fa-search"></i></button>
         </form>
     </div>
 </div>
@@ -63,14 +51,14 @@
                    style="float: left;margin-right: 54px;text-decoration: none;margin-bottom: 10px;
                    border-color: #d43f3a;font-size: 19px;padding: 11px;border-radius: 11px;"
                    th:title="'restart scanner'"
-                   th:href="@{/restart/scanner}"
+                   th:href="@{/restart-scanner}"
                    th:text="'Restart scanner'"
                    onclick="restartScanner()"></a>
                 <a th:class="${is_scanner_running} ? 'btn btn-stop' : 'btn btn-primary'"
                    style="float: left;margin-right: 54px;text-decoration: none;margin-bottom: 10px;
                    border-color: #d43f3a;font-size: 19px;padding: 11px;border-radius: 11px;"
                    th:title="${is_scanner_running} ? 'stop scanner' : 'start scanner'"
-                   th:disabled="${is_scanner_running}" th:href="@{/toggle/scanner}"
+                   th:disabled="${is_scanner_running}" th:href="@{/start-stop-scanner}"
                    th:text="${is_scanner_running} ? 'Stop scanner' : 'Start scanner'"></a>
                 <a th:class="${is_delete_running} ? 'btn btn-stop' : 'btn btn-primary'"
                    style="float: left;margin-right: 54px;text-decoration: none;margin-bottom: 10px;
@@ -112,241 +100,17 @@
 
     <div class="container" style="text-align: -webkit-center;margin-top: 26px;">
         <div class="clearfix"></div>
-        <div class="table-responsive">
-            <div class="form-group">
-                <select class="form-control" name="state" id="maxRows">
-                    <option value="5">5</option>
-                    <option value="10">10</option>
-                    <option value="70">70</option>
-                    <option value="100">100</option>
-                    <option value="5000000">Show All Paths</option>
-                </select>
-            </div>
-
-            <table th:object="${objectsForDeletion}" class="table table-striped table-class styled-table" id="table-id">
-                <tr style="background: white;">
-                    <th></th>
+        <div class="table-responsive" style="width: 60%; margin-left: 20%;">
+            <table id="table_objects">
+                <thead>
+                <tr>
+                    <th style="width: 20%">Id</th>
                     <th>Path</th>
-                    <th>Get Object</th>
-                    <th></th>
+                    <th style="width: 10%"></th>
+                    <th style="width: 10%"></th>
                 </tr>
-                <tr th:each="object : ${objectsForDeletion}" class="active-row">
-                    <td></td>
-                    <td><span th:text="${object.getPath()}"></span></td>
-                    <td style="text-align-last: center;"><a
-                            style="font-size: smaller;margin-top: 9px;border-radius: .15em; margin-left: 2%; margin-bottom: auto;background: #efefef;padding: 1.5px;border-width: 2px;"
-                            th:data-url="@{/tenants_files(fileName=${object.getPath()})}"
-                            th:onclick="openWindow(this.getAttribute('data-url'))"><i class="fa fa-eye"
-                                                                                      style="font-size:24px"></i></a>
-                    </td>
-                    <td><a class="btn btn-primary button2"
-                           style="font-size: 13px;padding: 10px 10px 8px;text-decoration: none;"
-                           th:href="@{/delete/object/} + ${object.getPath()}"
-                    >DELETE
-                    </a></td>
-                </tr>
+                </thead>
             </table>
-
-            <div class='pagination-container'
-                 style="display: inline-block;padding-left: 0;margin: 20px 0;border-radius: 4px;">
-                <nav>
-                    <ul class="pagination">
-                        <li marker-page="prev" style="display: inline;">
-                            <span style="margin-left: 0;
-                                border-top-left-radius: 4px;
-                                border-bottom-left-radius: 4px;">
-                                <
-                                <span class="sr-only" style="position: absolute;
-                                width: 1px;
-                                height: 1px;
-                                padding: 0;
-                                margin: -1px;
-                                overflow: hidden;
-                                clip: rect(0,0,0,0);
-                                border: 0;">(current)</span></span>
-                        </li>
-                        <li marker-page="next" id="prev" style="display: inline;">
-                            <span>
-                                >
-                                <span class="sr-only">(current)</span></span>
-                        </li>
-                    </ul>
-                </nav>
-            </div>
-            <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
-            <script>
-                $(document).ready(function() {
-                    var timer;
-                    var timerActive = true;
-                    var isScannerRunning = [[${is_scanner_running} ? true : false]];
-
-                    function startTimer() {
-                        timer = setInterval(function () {
-                            if(isScannerRunning && timerActive) {
-                                $.ajax({
-                                    type: 'GET',
-                                    url: '/update-scanning-info',
-                                    dataType: 'json',
-                                    success: function (data) {
-                                        console.log(data);
-                                        $('#number-to-delete span').html($(data).get(0));
-                                        $('#number-total-scanned span').html($(data).get(1));
-                                        isScannerRunning = $(data).get(2);
-                                        if (isScannerRunning == "false"){
-                                            window.location.href="/";
-                                        }
-                                    },
-                                    error: function () {
-                                        console.log("Some error");
-                                        clearInterval(timer);
-                                        timerActive = false;
-                                        window.location.href="/";
-                                    }
-                                });
-                            }
-                        }, 2000);
-                    }
-
-                    startTimer();
-                });
-
-                function restartScanner() {
-                    $('body').addClass('disabled');
-                }
-
-                function openWindow(url) {
-                    ReportPrintPreview = window.open("about:blank", "ReportPrintPreview", "width=666,height=700left=250,top=50,dependent=yes,menubar=no,status=no,resizable=yes,toolbar=no,scrollbars=yes");
-                    ReportPrintPreview.location.href = url;
-                    ReportPrintPreview.focus();
-                    return false;
-                }
-
-                getPagination('#table-id');
-
-                function getPagination(table) {
-                    var lastPage = 1;
-
-                    $('#maxRows')
-                        .on('change', function (evt) {
-                            lastPage = 1;
-                            $('.pagination')
-                                .find('li')
-                                .slice(1, -1)
-                                .remove();
-                            var trnum = 0;
-                            var maxRows = parseInt($(this).val());
-
-                            if (maxRows == 5000000) {
-                                $('.pagination').hide();
-                            } else {
-                                $('.pagination').show();
-                            }
-
-                            var totalRows = $(table + ' tbody tr').length;
-                            $(table + ' tr:gt(0)').each(function () {
-                                trnum++; // Start Counter
-                                if (trnum > maxRows) {
-                                    $(this).hide(); // fade it out
-                                }
-                                if (trnum <= maxRows) {
-                                    $(this).show();
-                                }
-                            });
-                            if (totalRows > maxRows) {
-                                var pagenum = Math.ceil(totalRows / maxRows);
-                                //	numbers of pages
-                                for (var i = 1; i <= pagenum;) {
-                                    $('.pagination #prev')
-                                        .before(
-                                            '<li marker-page="' +
-                                            i +
-                                            '">\
-                                                              <span>' +
-                                            i++ +
-                                            '<span class="sr-only">(current)</span></span>\
-                                                            </li>'
-                                        )
-                                        .show();
-                                } // end for i
-                            }
-                            $('.pagination [marker-page="1"]').addClass('active');
-                            $('.pagination li').on('click', function (evt) {
-                                // on click each page
-                                evt.stopImmediatePropagation();
-                                evt.preventDefault();
-                                var pageNum = $(this).attr('marker-page');
-
-                                var maxRows = parseInt($('#maxRows').val());
-
-                                if (pageNum == 'prev') {
-                                    if (lastPage == 1) {
-                                        return;
-                                    }
-                                    pageNum = --lastPage;
-                                }
-                                if (pageNum == 'next') {
-                                    if (lastPage == $('.pagination li').length - 2) {
-                                        return;
-                                    }
-                                    pageNum = ++lastPage;
-                                }
-
-                                lastPage = pageNum;
-                                var trIndex = 0; // reset tr counter
-                                $('.pagination li').removeClass('active'); // remove active class from all li
-                                $('.pagination [marker-page="' + lastPage + '"]').addClass('active'); // add active class to the clicked
-                                // add active class to the clicked
-                                limitPagging();
-                                $(table + ' tr:gt(0)').each(function () {
-                                    // each tr in table not the header
-                                    trIndex++; // tr index counter
-                                    if (
-                                        trIndex > maxRows * pageNum ||
-                                        trIndex <= maxRows * pageNum - maxRows
-                                    ) {
-                                        $(this).hide();
-                                    } else {
-                                        $(this).show();
-                                    } //else fade in
-                                }); // end of for each tr in table
-                            }); // end of on click pagination list
-                            limitPagging();
-                        })
-                        .val(5)
-                        .change();
-                }
-
-                function limitPagging() {
-                    if ($('.pagination li').length > 7) {
-                        if ($('.pagination li.active').attr('marker-page') <= 3) {
-                            $('.pagination li:gt(5)').hide();
-                            $('.pagination li:lt(5)').show();
-                            $('.pagination [marker-page="next"]').show();
-                        }
-                        if ($('.pagination li.active').attr('marker-page') > 3) {
-                            $('.pagination li:gt(0)').hide();
-                            $('.pagination [marker-page="next"]').show();
-                            for (let i = (parseInt($('.pagination li.active').attr('marker-page')) - 2); i <= (parseInt($('.pagination li.active').attr('marker-page')) + 2); i++) {
-                                $('.pagination [marker-page="' + i + '"]').show();
-
-                            }
-
-                        }
-                    }
-                }
-
-                $(function () {
-                    // Just to append id number for each row
-                    $('table tr:eq(0)').prepend('<th> ID </th>');
-
-                    var id = 0;
-
-                    $('table tr:gt(0)').each(function () {
-                        id++;
-                        $(this).prepend('<td>' + id + '</td>');
-                    });
-                });
-            </script>
         </div>
     </div>
 </div>
@@ -367,5 +131,92 @@
         </div>
     </div>
 </footer>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.0/js/jquery.dataTables.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+<script type="text/javascript" th:src="@{/js/jquery.spring-friendly.js}"></script>
+<script>
+    $(document).ready(function() {
+        var timer;
+        var timerActive = true;
+        var isScannerRunning = [[${is_scanner_running} ? true : false]];
+
+        function startTimer() {
+            timer = setInterval(function () {
+                if(isScannerRunning && timerActive) {
+                    $.ajax({
+                        type: 'GET',
+                        url: '/update-scanner-info',
+                        dataType: 'json',
+                        success: function (data) {
+                            console.log(data);
+                            $('#number-to-delete span').html($(data).get(0));
+                            $('#number-total-scanned span').html($(data).get(1));
+                            isScannerRunning = $(data).get(2);
+                            if (isScannerRunning == "false"){
+                                window.location.href="/";
+                            }
+                        },
+                        error: function () {
+                            console.log("Some error");
+                            clearInterval(timer);
+                            timerActive = false;
+                            window.location.href="/";
+                        }
+                    });
+                }
+            }, 2000);
+        }
+
+        startTimer();
+
+        $('#table_objects').DataTable({
+            ajax: '/objects',
+            serverSide: true,
+            columns: [
+                {
+                    data: 'id',
+                    name: 'Id',
+                    searchable: true,
+                    orderable: true,
+                },
+                {
+                    data : 'path',
+                    name: 'Path',
+                    searchable: true,
+                    orderable: true,
+                },
+                {
+                    name: '',
+                    render: (_, __, row) => '<a onclick="openWindow(\'/tenants_files/' + row.path + '\')"><i class="fa fa-eye" style="font-size:24px"></i></a>',
+                    searchable: false,
+                    orderable: false
+                },
+                {
+                    name: '',
+                    // render: (_, __, row) => '<a class="btn btn-primary button2" style="font-size: 13px; padding: 5px 10px; text-decoration: none;" href="/delete/' + row.path + '">DELETE</a>',
+                    render: function(data, type, row, meta) {
+                        return '<a class="btn btn-primary button2" style="font-size: 13px; padding: 5px 10px; text-decoration: none;" href="/delete/' + row.path + '">DELETE</a>'
+                    },
+                    searchable: false,
+                    orderable: false
+                }
+            ]
+        });
+    });
+
+    function restartScanner() {
+        $('body').addClass('disabled');
+    }
+
+    function openWindow(url) {
+        ReportPrintPreview = window.open("about:blank", "ReportPrintPreview", "width=666,height=700left=250,top=50,dependent=yes,menubar=no,status=no,resizable=yes,toolbar=no,scrollbars=yes");
+        ReportPrintPreview.location.href = url;
+        ReportPrintPreview.focus();
+        return false;
+    }
+</script>
 </body>
 </html>

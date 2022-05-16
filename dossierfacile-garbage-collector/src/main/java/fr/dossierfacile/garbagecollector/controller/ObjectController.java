@@ -1,6 +1,6 @@
 package fr.dossierfacile.garbagecollector.controller;
 
-import fr.dossierfacile.garbagecollector.dto.PathDTO;
+import com.fasterxml.jackson.annotation.JsonView;
 import fr.dossierfacile.garbagecollector.model.object.Object;
 import fr.dossierfacile.garbagecollector.service.ScheduledDeleteService;
 import fr.dossierfacile.garbagecollector.service.interfaces.MarkerService;
@@ -8,8 +8,11 @@ import fr.dossierfacile.garbagecollector.service.interfaces.ObjectService;
 import fr.dossierfacile.garbagecollector.service.interfaces.OvhService;
 import java.util.ArrayList;
 import java.util.List;
+import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.jpa.datatables.mapping.DataTablesInput;
+import org.springframework.data.jpa.datatables.mapping.DataTablesOutput;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -25,16 +28,26 @@ public class ObjectController {
     private final ObjectService objectService;
     private final OvhService ovhService;
     private final MarkerService markerService;
-
-    private final ScheduledDeleteService deleteSchedule;
+    private final ScheduledDeleteService scheduledDeleteService;
 
     @GetMapping("/")
     public String index() {
         return "redirect:checker";
     }
 
+    //main view
+    @GetMapping("/checker")
+    public String object(Model model) {
+        model.addAttribute("total_objects_to_delete", objectService.countAllObjectsForDeletion());
+        model.addAttribute("total_objects_scanned", objectService.countAllObjectsScanned());
+        model.addAttribute("is_scanner_running", markerService.isRunning());
+        model.addAttribute("is_delete_running", scheduledDeleteService.isActive());
+
+        return "index";
+    }
+
     //get objects
-    @GetMapping("/toggle/scanner")
+    @GetMapping("/start-stop-scanner")
     public String toggleScanner() {
         boolean isNowRunning = markerService.toggleScanner();
         if (isNowRunning) {
@@ -43,7 +56,7 @@ public class ObjectController {
         return "redirect:/checker";
     }
 
-    @GetMapping("/restart/scanner")
+    @GetMapping("/restart-scanner")
     public String restartScanner() {
         markerService.setRunningToFalse();
         markerService.cleanDatabaseOfScanner();
@@ -52,29 +65,7 @@ public class ObjectController {
         return "redirect:/checker";
     }
 
-    //main view
-    @GetMapping("/checker")
-    public String object(Model model) {
-
-        PathDTO path = new PathDTO();
-        model.addAttribute("path", path);
-
-        List<Object> objectsForDeletion = objectService.getAllObjectsForDeletion();
-        if (!objectsForDeletion.isEmpty()) {
-            model.addAttribute("objectsForDeletion", objectsForDeletion);
-        } else {
-            model.addAttribute("objectsForDeletion", new ArrayList<>());
-        }
-
-        model.addAttribute("total_objects_to_delete", objectService.countAllObjectsForDeletion());
-        model.addAttribute("total_objects_scanned", objectService.countAllObjectsScanned());
-        model.addAttribute("is_scanner_running", markerService.isRunning());
-        model.addAttribute("is_delete_running", deleteSchedule.isActive());
-
-        return "index";
-    }
-
-    @GetMapping(value = "/update-scanning-info", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/update-scanner-info", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<String>> currentReadObjects() {
         List<String> result = new ArrayList<>();
         result.add(String.valueOf(objectService.countAllObjectsForDeletion()));
@@ -83,36 +74,23 @@ public class ObjectController {
         return ResponseEntity.ok(result);
     }
 
-    //search object
-    @GetMapping("/checker/searchPath")
-    public String searchPath(Model model, PathDTO pathDTO) {
-
-        Object path = objectService.findObjectByPath(pathDTO.getPath());
-        if (path == null) {
-            return "redirect:/checker";
-        }
-        model.addAttribute("path", path);
-        return "search-object";
+    @JsonView(DataTablesOutput.View.class)
+    @GetMapping(value = "/objects")
+    public ResponseEntity<DataTablesOutput<Object>> getObjects(@Valid DataTablesInput input) {
+        return ResponseEntity.ok(objectService.getAllObjectsForDeletion(input));
     }
 
     //delete one object
-    @GetMapping("/delete/object/{path}")
-    public String deleteDocument(@PathVariable("path") String path) {
+    @GetMapping("/delete/{path}")
+    public String deleteObject(@PathVariable("path") String path) {
         ovhService.delete(path);
         objectService.deleteObjectByPath(path);
         return "redirect:/checker";
     }
 
-    //to_delete action
-//    @GetMapping("/update/all")
-//    public String updateAllTo_DeleteObjects() {
-//        objectService.updateAllToDeleteObjects();
-//        return "redirect:/checker";
-//    }
-
     @GetMapping("/delete/toggle")
     public String toggleDelete() {
-        deleteSchedule.setIsActive(!deleteSchedule.isActive());
+        scheduledDeleteService.setIsActive(!scheduledDeleteService.isActive());
         return "redirect:/checker";
     }
 }
