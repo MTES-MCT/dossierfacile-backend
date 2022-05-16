@@ -62,7 +62,9 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
         List<File> pdfs = files.stream().filter(file -> FilenameUtils.getExtension(file.getPath()).equals("pdf")).collect(Collectors.toList());
         if (!pdfs.isEmpty()) {
             for (File pdf : pdfs) {
-                result.append(utility.extractTextPDFFirstPage(pdf.getPath()));
+                String[] info = utility.extractInfoFromPDFFirstPage(pdf.getPath());
+                result.append(info[0]);
+                taxDocument.setQrContent(info[1]);
             }
         }
         String fiscalNumber = Utility.extractFiscalNumber(result.toString());

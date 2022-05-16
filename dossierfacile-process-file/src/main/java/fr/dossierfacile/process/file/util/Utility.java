@@ -1,21 +1,31 @@
 package fr.dossierfacile.process.file.util;
 
+import com.google.zxing.BinaryBitmap;
+import com.google.zxing.ChecksumException;
+import com.google.zxing.FormatException;
+import com.google.zxing.NotFoundException;
+import com.google.zxing.Result;
+import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
+import com.google.zxing.common.HybridBinarizer;
+import com.google.zxing.qrcode.QRCodeReader;
 import fr.dossierfacile.common.service.interfaces.OvhService;
 import io.sentry.Sentry;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.logging.log4j.util.Strings;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.text.PDFTextStripper;
-import org.openstack4j.model.storage.object.SwiftObject;
-import org.springframework.stereotype.Service;
-
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.text.Normalizer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.util.Strings;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.rendering.ImageType;
+import org.apache.pdfbox.rendering.PDFRenderer;
+import org.apache.pdfbox.text.PDFTextStripper;
+import org.openstack4j.model.storage.object.SwiftObject;
+import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
@@ -87,8 +97,8 @@ public class Utility {
         return count;
     }
 
-    public String extractTextPDFFirstPage(String pathFile) {
-        String pdfFileInText = null;
+    public String[] extractInfoFromPDFFirstPage(String pathFile) {
+        String[] info = new String[2];
         SwiftObject swiftObject = ovhService.get(pathFile);
         if (swiftObject != null) {
             try (PDDocument document = PDDocument.load(swiftObject.download().getInputStream())) {
@@ -97,14 +107,30 @@ public class Utility {
                     reader.setAddMoreFormatting(true);
                     reader.setStartPage(1);
                     reader.setEndPage(1);
-                    pdfFileInText = reader.getText(document);
+                    info[0] = reader.getText(document);
+
+                    PDFRenderer pdfRenderer = new PDFRenderer(document);
+
+                    float dpi = (1058 / document.getPage(0).getMediaBox().getWidth()) * 300;
+                    dpi = Math.min(600, dpi);
+                    BufferedImage bufferedImage = pdfRenderer.renderImageWithDPI(0, dpi, ImageType.ARGB);
+
+                    BinaryBitmap binaryBitmap = new BinaryBitmap(
+                            new HybridBinarizer(
+                                    new BufferedImageLuminanceSource(bufferedImage)
+                            ));
+                    long time = System.currentTimeMillis();
+                    Result result = new QRCodeReader().decode(binaryBitmap);
+                    String decoded = result.getText();
+                    log.info("DECODED QR : " + decoded + ", in " + (System.currentTimeMillis() - time));
+                    info[1] = decoded;
                 }
-            } catch (IOException e) {
+            } catch (IOException | NotFoundException | ChecksumException | FormatException e) {
                 log.error(EXCEPTION_MESSAGE2, e);
                 log.error(EXCEPTION + Sentry.captureException(e));
                 log.error(e.getMessage(), e.getCause());
             }
         }
-        return pdfFileInText;
+        return info;
     }
 }
