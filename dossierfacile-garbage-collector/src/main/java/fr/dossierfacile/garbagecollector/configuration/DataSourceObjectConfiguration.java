@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
+import org.springframework.data.jpa.datatables.repository.DataTablesRepositoryFactoryBean;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.orm.jpa.JpaTransactionManager;
@@ -25,7 +26,8 @@ import java.util.HashMap;
 @EnableTransactionManagement
 @PropertySource({"classpath:application.properties"})
 @EnableJpaRepositories(entityManagerFactoryRef = "objectEntityManager", transactionManagerRef = "objectTransactionManager",
-		basePackages = { "fr.dossierfacile.garbagecollector.repo.object","fr.dossierfacile.garbagecollector.repo.marker" })
+		basePackages = { "fr.dossierfacile.garbagecollector.repo.object","fr.dossierfacile.garbagecollector.repo.marker" },
+		repositoryFactoryBeanClass = DataTablesRepositoryFactoryBean.class)
 public class DataSourceObjectConfiguration {
 
 	@Autowired

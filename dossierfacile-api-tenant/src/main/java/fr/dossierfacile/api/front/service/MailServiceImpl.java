@@ -6,6 +6,7 @@ import com.mailjet.client.MailjetRequest;
 import com.mailjet.client.MailjetResponse;
 import com.mailjet.client.errors.MailjetException;
 import com.mailjet.client.resource.Emailv31;
+import fr.dossierfacile.api.front.form.ContactForm;
 import fr.dossierfacile.api.front.model.MailJetModel;
 import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.common.entity.ConfirmationToken;
@@ -34,6 +35,11 @@ public class MailServiceImpl implements MailService {
     private final @Qualifier("warnings_account") MailjetClient warningsAccount;
     @Value("${email.from}")
     private String emailFrom;
+    @Value("${email.support.from}")
+    private String emailSupportFrom;
+    @Value("${email.support}")
+    private String emailSupport;
+
     @Value("${mailjet.template.id.welcome}")
     private Integer templateIDWelcome;
     @Value("${mailjet.template.id.new.password}")
@@ -61,6 +67,8 @@ public class MailServiceImpl implements MailService {
     private Integer templateFirstWarningForDeletionOfDocuments;
     @Value("${mailjet.template.id.second.warning.for.deletion.of.documents}")
     private Integer templateSecondWarningForDeletionOfDocuments;
+    @Value("${mailjet.template.id.contact.support}")
+    private Integer templateIdContactSupport;
 
     @Async
     @Override
@@ -247,6 +255,27 @@ public class MailServiceImpl implements MailService {
                 .templateID(templateSecondWarningForDeletionOfDocuments)
                 .build();
         sendMailJetApiWithWarningsAccount(mailjetModel);
+    }
+
+    @Async
+    @Override
+    public void sendEmailToSupport(ContactForm form) {
+        Map<String, String> variables = new HashMap<>();
+        variables.put("firstname", form.getFirstname());
+        variables.put("lastname", form.getLastname());
+        variables.put("email", form.getEmail());
+        variables.put("profile", form.getProfile());
+        variables.put("subject", form.getSubject());
+        variables.put("message", form.getMessage());
+        MailJetModel mailjetModel = MailJetModel.builder()
+                .fromEmail(emailSupportFrom)
+                .toEmail(emailSupport)
+                .replyToEmail(form.getEmail())
+                .toName("Support depuis formulaire")
+                .variables(variables)
+                .templateID(templateIdContactSupport)
+                .build();
+        sendMailJetApiWithCommonAccount(mailjetModel);
     }
 
     private void sendMailJetApiWithCommonAccount(MailJetModel mailjetModel) {

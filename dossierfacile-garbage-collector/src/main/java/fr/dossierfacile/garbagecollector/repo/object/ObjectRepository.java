@@ -1,31 +1,26 @@
 package fr.dossierfacile.garbagecollector.repo.object;
 
 import fr.dossierfacile.garbagecollector.model.object.Object;
-import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.List;
+import org.springframework.data.jpa.datatables.repository.DataTablesRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
-public interface ObjectRepository extends JpaRepository<Object, Long> {
+public interface ObjectRepository extends DataTablesRepository<Object, Long> {
 
     Object findObjectByPath(String path);
 
-    void deleteObjectByPath(String path);
+    void deleteByPath(String path);
 
-    @Query(value = "SELECT count(ob) from Object ob where ob.toDelete = true")
-    long countAllObjectsForDeletion();
+    long countByToDeleteIsTrue();
 
-    @Query(value = "SELECT * FROM object where to_delete = true ORDER BY id LIMIT :limit",nativeQuery = true)
+    @Query(value = "SELECT * FROM object where to_delete = true ORDER BY id LIMIT :limit", nativeQuery = true)
     List<Object> getBatchObjectsForDeletion(@Param("limit") Integer limit);
-
-    @Query(value = "SELECT * FROM object where to_delete = true",nativeQuery = true)
-    List<Object> getAllObjectsForDeletion();
 
     @Modifying
     @Transactional
-    @Query(value="delete from object where id > :id_obj ",nativeQuery = true)
-    void deleteObjectsMayorThan(@Param("id_obj") Long id_obj);
+    @Query(value = "delete from object where id > (select id from object where path = :path)", nativeQuery = true)
+    void deleteObjectsMayorThan(@Param("path") String path);
 }

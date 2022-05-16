@@ -1128,3 +1128,7 @@ span.ocr-result {
     cursor: pointer;
 }
 
+table#table_objects tr:hover {
+    background-color: gainsboro;
+}
+
