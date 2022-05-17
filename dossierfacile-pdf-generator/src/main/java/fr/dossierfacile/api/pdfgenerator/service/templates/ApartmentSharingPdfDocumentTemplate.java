@@ -939,7 +939,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
         contentStreamEmailTenant.beginText();
         fontSize = FONT_SIZE_FOR_CONTENT_OF_GROUP_OF_INDEXES;
         contentStreamEmailTenant.setFont(fontIndexLines, fontSize);
-        String tenantEmail = tenant.getEmail() + "asdjashjdhasdghasgdhasgd";
+        String tenantEmail = tenant.getEmail();
         textSize = fontSize * fontIndexLines.getStringWidth(tenantEmail) / 1000;
         offset = marginX + (WIDTH_OF_THE_TWO_COLUMNS_FOR_INDEXES - textSize) / 2;
         contentStreamEmailTenant.newLineAtOffset(offset, yLocationTenantEmailContentStream);
