@@ -97,8 +97,8 @@ public class Utility {
         return count;
     }
 
-    public String[] extractInfoFromPDFFirstPage(String pathFile) {
-        String[] info = new String[2];
+    public String extractInfoFromPDFFirstPage(String pathFile) {
+        String pdfFileInText = null;
         SwiftObject swiftObject = ovhService.get(pathFile);
         if (swiftObject != null) {
             try (PDDocument document = PDDocument.load(swiftObject.download().getInputStream())) {
@@ -107,8 +107,23 @@ public class Utility {
                     reader.setAddMoreFormatting(true);
                     reader.setStartPage(1);
                     reader.setEndPage(1);
-                    info[0] = reader.getText(document);
+                    pdfFileInText = reader.getText(document);
+                }
+            } catch (IOException e) {
+                log.error(EXCEPTION_MESSAGE2, e);
+                log.error(EXCEPTION + Sentry.captureException(e));
+                log.error(e.getMessage(), e.getCause());
+            }
+        }
+        return pdfFileInText;
+    }
 
+    public String extractQRCodeInfo(String pathFile) {
+        String qrCodeInfo = "";
+        SwiftObject swiftObject = ovhService.get(pathFile);
+        if (swiftObject != null) {
+            try (PDDocument document = PDDocument.load(swiftObject.download().getInputStream())) {
+                if (!document.isEncrypted()) {
                     PDFRenderer pdfRenderer = new PDFRenderer(document);
 
                     float dpi = (1058 / document.getPage(0).getMediaBox().getWidth()) * 300;
@@ -122,8 +137,8 @@ public class Utility {
                     long time = System.currentTimeMillis();
                     Result result = new QRCodeReader().decode(binaryBitmap);
                     String decoded = result.getText();
-                    log.info("DECODED QR : " + decoded + ", in " + (System.currentTimeMillis() - time));
-                    info[1] = decoded;
+                    log.info("DECODED QR : " + decoded + ", in " + (System.currentTimeMillis() - time) + "ms");
+                    qrCodeInfo = decoded != null ? decoded : "";
                 }
             } catch (IOException | NotFoundException | ChecksumException | FormatException e) {
                 log.error(EXCEPTION_MESSAGE2, e);
@@ -131,6 +146,7 @@ public class Utility {
                 log.error(e.getMessage(), e.getCause());
             }
         }
-        return info;
+
+        return qrCodeInfo;
     }
 }
