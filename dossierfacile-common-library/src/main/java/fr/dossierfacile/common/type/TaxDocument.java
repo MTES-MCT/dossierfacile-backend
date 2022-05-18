@@ -19,4 +19,5 @@ public class TaxDocument implements Serializable {
     private String fiscalNumber;
     private String referenceNumber;
     private long time = 0;
+    private String qrContent;
 }
