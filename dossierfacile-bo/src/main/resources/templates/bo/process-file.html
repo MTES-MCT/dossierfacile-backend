@@ -82,15 +82,19 @@
                                         <span th:text="'Income : ' + ${messageItem.getMonthlySum()}"></span>
                                     </h4>
                                     <h4 class="panel-title letter" style="padding-top: 7px"
-                                        th:if="${messageItem.taxDocument}!=null">
+                                        th:if="${messageItem.taxDocument}!=null and ${messageItem.taxDocument.qrContent}==null">
                                         <span th:text="'Fiscal Number : ' + ${messageItem.taxDocument.getFiscalNumber().toString()}"></span>
                                     </h4>
                                     <h4 class="panel-title letter" style="padding-top: 7px"
-                                        th:if="${messageItem.taxDocument}!=null">
+                                        th:if="${messageItem.taxDocument}!=null and ${messageItem.taxDocument.qrContent}==null">
                                         <span th:text="'Reference Number : ' + ${messageItem.taxDocument.getReferenceNumber().toString()}"></span>
                                     </h4>
+                                    <h4 class="panel-title letter" style="padding-top: 7px"
+                                        th:if="${messageItem.taxDocument}!=null and ${messageItem.taxDocument.qrContent}!=null">
+                                        <span th:text="'Tax result : ' + ${messageItem.taxDocument.qrContent}"></span>
+                                    </h4>
                                 </div>
-                                <div class="table-responsive" th:if="${messageItem.taxDocument}!=null">
+                                <div class="table-responsive" th:if="${messageItem.taxDocument}!=null and ${messageItem.taxDocument.qrContent}==null">
                                     <table class="table table-striped table-bordered table-hover"
                                            style="border: 1px solid gray;">
                                         <thead>
@@ -262,17 +266,17 @@
                                             <span th:text="'Legal Person Name : ' + ${guarantorItem.getLegalPersonName()}"></span>
                                         </h4>
                                         <h4 class="panel-title letter" style="padding-top: 7px"
-                                            th:if="${messageItem.taxDocument}!=null">
+                                            th:if="${messageItem.taxDocument}!=null and ${messageItem.taxDocument.qrContent}==null">
                                             <span th:text="'Fiscal Number : ' + ${messageItem.taxDocument.getFiscalNumber().toString()}"></span>
                                         </h4>
                                         <h4 class="panel-title letter" style="padding-top: 7px"
-                                            th:if="${messageItem.taxDocument}!=null">
+                                            th:if="${messageItem.taxDocument}!=null and ${messageItem.taxDocument.qrContent}==null">
                                             <span th:text="'Reference Number : ' + ${messageItem.taxDocument.getReferenceNumber().toString()}"></span>
                                         </h4>
                                         <input th:field="*{guarantorItems[__${k.index}__].guarantorId}"
                                                th:value="${guarantorItem.getGuarantorId()}" type="hidden"/>
                                     </div>
-                                    <div class="table-responsive" th:if="${messageItem.taxDocument}!=null">
+                                    <div class="table-responsive" th:if="${messageItem.taxDocument}!=null and ${messageItem.taxDocument.qrContent}==null">
                                         <table class="table table-striped table-bordered table-hover"
                                                style="border: 1px solid gray;">
                                             <thead>
