@@ -175,35 +175,20 @@ public class BOController {
     @PostMapping("/bo/regroup/tenant")
     public String regroupTenants(@ModelAttribute("reGroupData") ReGroupDTO reGroupDTO, RedirectAttributes redirectAttributes) {
 
-        User userCreate = userService.findUserByEmail(reGroupDTO.getTenantEmailCreate());
-        User userJoin = userService.findUserByEmail(reGroupDTO.getTenantEmailJoin());
-        if (userCreate != null && userJoin != null) {
-            Tenant tenantCreate = tenantService.getTenantById(userCreate.getId());
-            Tenant tenantJoin = tenantService.getTenantById(userJoin.getId());
+        if (!reGroupDTO.getTenantEmailCreate().equals(reGroupDTO.getTenantEmailJoin())) {
+            Tenant tenantCreate = tenantService.getTenantByEmail(reGroupDTO.getTenantEmailCreate());
+            Tenant tenantJoin = tenantService.getTenantByEmail(reGroupDTO.getTenantEmailJoin());
+            if (tenantCreate != null && tenantJoin != null) {
+                ApartmentSharing apartCreate = tenantCreate.getApartmentSharing();
+                ApartmentSharing apartJoin = tenantJoin.getApartmentSharing();
 
-            if (tenantCreate.getApartmentSharing().getApplicationType().name().equals(ApplicationType.ALONE.name()) &&
-                    tenantJoin.getApartmentSharing().getApplicationType().name().equals(ApplicationType.ALONE.name())
-            ) {
+                if (apartCreate.getNumberOfTenants() == 1 && apartCreate.getApplicationType() == ApplicationType.ALONE
+                    && apartJoin.getNumberOfTenants() == 1 && apartJoin.getApplicationType() == ApplicationType.ALONE) {
 
-                ApartmentSharing apartmentSharing = tenantCreate.getApartmentSharing();
-                if (reGroupDTO.getTenantType().equals(ApplicationType.COUPLE.name())) {
-                    apartmentSharing.setApplicationType(ApplicationType.COUPLE);
-                } else {
-                    apartmentSharing.setApplicationType(ApplicationType.GROUP);
+                    tenantService.regroupTenant(tenantJoin, apartCreate, reGroupDTO.getApplicationType());
+
+                    return REDIRECT_BO_COLOCATION + apartCreate.getId() + "#tenant" + tenantCreate.getId();
                 }
-                ApartmentSharing apartmentSharingFromJoin = tenantJoin.getApartmentSharing();
-
-                tenantJoin.setTenantType(TenantType.JOIN);
-                List<Tenant> tenantList = new ArrayList<>();
-                tenantList.add(tenantCreate);
-                tenantList.add(tenantJoin);
-                apartmentSharing.setTenants(tenantList);
-                tenantJoin.setApartmentSharing(tenantCreate.getApartmentSharing());
-                tenantService.save(tenantJoin);
-                apartmentSharingService.save(apartmentSharing);
-                apartmentSharingService.delete(apartmentSharingFromJoin);
-
-                return REDIRECT_BO_COLOCATION + apartmentSharing.getId() + "#tenant" + tenantCreate.getId();
             }
         }
 
