@@ -1,6 +1,8 @@
 package fr.gouv.bo.dto;
 
 
+import fr.dossierfacile.common.enums.ApplicationType;
+import javax.validation.constraints.Email;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,7 +13,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class ReGroupDTO {
+    @Email
     private String tenantEmailCreate;
+    @Email
     private String tenantEmailJoin;
-    private String tenantType;
+    private ApplicationType applicationType;
 }

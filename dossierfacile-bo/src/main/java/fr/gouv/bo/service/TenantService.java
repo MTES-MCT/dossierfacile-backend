@@ -12,6 +12,7 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.User;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.ActionOperatorType;
+import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
@@ -860,6 +861,28 @@ public class TenantService {
 
     public long getTenantsWithStatusInToProcess() {
         return tenantRepository.getTenantsByStatus(TenantFileStatus.TO_PROCESS).size();
+    }
+
+    public Tenant getTenantByEmail(String email) {
+        return tenantRepository.findOneByEmail(email);
+    }
+
+    @Transactional
+    public void regroupTenant(Tenant tenant, ApartmentSharing apartmentSharing, ApplicationType newApplicationType) {
+        ApartmentSharing apartmentToDelete = tenant.getApartmentSharing();
+
+        //Associating the tenant to the new apartment and disassociating the tenant from the current apartment
+        apartmentSharing.getTenants().add(tenant);
+        apartmentToDelete.getTenants().remove(tenant);
+
+        apartmentSharing.setApplicationType(newApplicationType);
+        apartmentSharingRepository.save(apartmentSharing);
+
+        tenant.setTenantType(TenantType.JOIN);
+        tenant.setApartmentSharing(apartmentSharing);
+        tenantRepository.save(tenant);
+
+        apartmentSharingRepository.delete(apartmentToDelete);
     }
 }
 
