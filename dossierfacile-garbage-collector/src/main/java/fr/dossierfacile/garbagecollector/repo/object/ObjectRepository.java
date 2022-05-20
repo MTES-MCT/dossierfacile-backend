@@ -23,4 +23,6 @@ public interface ObjectRepository extends DataTablesRepository<Object, Long> {
     @Transactional
     @Query(value = "delete from object where id > (select id from object where path = :path)", nativeQuery = true)
     void deleteObjectsMayorThan(@Param("path") String path);
+
+    long countAllByPath(String path);
 }

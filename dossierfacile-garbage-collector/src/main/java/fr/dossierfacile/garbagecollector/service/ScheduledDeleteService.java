@@ -3,6 +3,7 @@ package fr.dossierfacile.garbagecollector.service;
 import fr.dossierfacile.garbagecollector.model.object.Object;
 import fr.dossierfacile.garbagecollector.service.interfaces.ObjectService;
 import fr.dossierfacile.garbagecollector.service.interfaces.OvhService;
+import fr.dossierfacile.garbagecollector.transactions.interfaces.ObjectTransactions;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
@@ -18,6 +19,7 @@ public class ScheduledDeleteService {
 
     private static final Integer LIMIT_OBJECTS_TO_DELETE = 500;
     private final ObjectService objectService;
+    private final ObjectTransactions objectTransactions;
     private final OvhService ovhService;
     private final AtomicBoolean isActive = new AtomicBoolean(false);
 
@@ -49,7 +51,7 @@ public class ScheduledDeleteService {
         }
         List<String> allPaths = objectList.stream().map(Object::getPath).collect(Collectors.toList());
         ovhService.delete(allPaths);
-        objectService.deleteList(objectList);
+        objectTransactions.deleteListObjects(objectList);
         System.out.println("Deleted files: " + objectList.size() + "\n");
     }
 }
