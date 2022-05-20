@@ -142,10 +142,12 @@
         var timer;
         var timerActive = true;
         var isScannerRunning = [[${is_scanner_running} ? true : false]];
+        var isDeleteRunning = [[${is_delete_running} ? true : false]];
 
         function startTimer() {
             timer = setInterval(function () {
-                if(isScannerRunning && timerActive) {
+                if((isScannerRunning && timerActive)
+                    || (isDeleteRunning && timerActive)) {
                     $.ajax({
                         type: 'GET',
                         url: '/update-scanner-info',
@@ -155,7 +157,8 @@
                             $('#number-to-delete span').html($(data).get(0));
                             $('#number-total-scanned span').html($(data).get(1));
                             isScannerRunning = $(data).get(2);
-                            if (isScannerRunning == "false"){
+                            if ((isScannerRunning && $(data).get(2) == "false")
+                                || (isDeleteRunning && $(data).get(3) == "false")){
                                 window.location.href="/";
                             }
                         },

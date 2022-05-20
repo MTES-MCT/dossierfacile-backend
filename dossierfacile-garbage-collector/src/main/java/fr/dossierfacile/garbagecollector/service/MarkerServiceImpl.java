@@ -1,13 +1,12 @@
 package fr.dossierfacile.garbagecollector.service;
 
-import com.google.common.base.Preconditions;
 import fr.dossierfacile.garbagecollector.model.marker.Marker;
-import fr.dossierfacile.garbagecollector.model.object.Object;
-import fr.dossierfacile.garbagecollector.repo.file.FileRepository;
 import fr.dossierfacile.garbagecollector.repo.marker.MarkerRepository;
 import fr.dossierfacile.garbagecollector.repo.object.ObjectRepository;
 import fr.dossierfacile.garbagecollector.service.interfaces.MarkerService;
 import fr.dossierfacile.garbagecollector.service.interfaces.OvhService;
+import fr.dossierfacile.garbagecollector.transactions.interfaces.MarkerTransactions;
+import fr.dossierfacile.garbagecollector.transactions.interfaces.ObjectTransactions;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +16,7 @@ import org.openstack4j.model.storage.object.options.ObjectListOptions;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 
 @Service
 @Slf4j
@@ -27,19 +26,30 @@ public class MarkerServiceImpl implements MarkerService {
     private static final int PAGE_SIZE = 10;
 
     private final OvhService ovhService;
+    private final MarkerTransactions markerTransactions;
+    private final ObjectTransactions objectTransactions;
     private final MarkerRepository markerRepository;
     private final ObjectRepository objectRepository;
-    private final FileRepository fileRepository;
 
     private boolean isRunning = false;
+    private boolean isCanceled = false;
 
     @Value("${ovh.container:default}")
     private String ovhContainerName;
 
     @Override
     public boolean toggleScanner() {
-        isRunning = !isRunning;
-        return isRunning;
+        boolean toggleToStart = false;
+        if (isRunning) {
+            //the startScanner() method WILL STOP running (isRunning=false) after reading isCanceled = true;
+            isCanceled = true;
+        } else {
+            //the startScanner() method WILL START running (isRunning=true) after the controller launch it
+            isCanceled = false;
+            isRunning = true;
+            toggleToStart = true;
+        }
+        return toggleToStart;
     }
 
     @Override
@@ -48,83 +58,14 @@ public class MarkerServiceImpl implements MarkerService {
     }
 
     @Override
-    @Async
-    public void startScanner() {
-        if (!isRunning) {
-            return;
-        }
-        log.info("Starting/Resuming scanner ...");
-        log.info("Connecting to OVH ...");
-        final ObjectStorageObjectService objService = ovhService.getObjectStorage();
-        int totalObjectsInOvh = objService.list(ovhContainerName).size();
-        log.info("Total objects in OVH : " + totalObjectsInOvh);
-
-        try {
-            final ObjectListOptions listOptions = initialize();
-            log.info("Reading objects from OVH: [STARTED]");
-            List<? extends SwiftObject> objects;
-            do {
-                if (!isRunning) {
-                    break;
-                }
-                //get list of object from OVH
-                objects = objService.list(ovhContainerName, listOptions);
-                //save marker
-                if (!objects.isEmpty()) {
-                    String nameLastElement = objects.get(objects.size() - 1).getName();
-                    listOptions.marker(nameLastElement);
-
-                    if (markerRepository.findByPath(nameLastElement) == null) {
-                        Marker marker = new Marker();
-                        marker.setPath(nameLastElement);
-                        markerRepository.saveAndFlush(marker);
-                    }
-
-                    //copy the names of objects from OVH to DB
-                    for (final SwiftObject swiftObject : objects) {
-                        if (!isRunning) {
-                            break;
-                        }
-                        String nameFile = swiftObject.getName();
-
-                        if (objectRepository.findObjectByPath(nameFile) == null) {
-                            Object object = new Object();
-                            // If the [File] doesn't exist in the [Database] then it will be marked with [true] to delete
-                            object.setToDelete(!fileRepository.existsObject(nameFile));
-                            object.setPath(nameFile);
-                            objectRepository.save(object);
-                        }
-                    }
-                    if (!isRunning) {
-                        break;
-                    }
-                    long totalObjectsRead = objectRepository.count();
-                    log.info("Objects read in the iteration [" + objects.size() + "]");
-                    log.info("Total objects read : " + totalObjectsRead + " from " + totalObjectsInOvh);
-                    log.info("Remaining objects : " + (totalObjectsInOvh - totalObjectsRead));
-                } else {
-                    log.info("\n\nSCANNING FINISHED\n");
-                }
-            } while (!objects.isEmpty());
-
-        } catch (Exception e) {
-            log.error(e.getMessage(), e.getCause());
-        }
-        log.info("Disconnecting from OVH ...");
-        isRunning = false;
+    public boolean stoppingScanner() {
+        return isRunning && isCanceled;
     }
 
     @Override
-    public void setRunningToFalse() {
-        synchronized (this) {
-            isRunning = false;
-            log.info("Stopping scanner...");
-            try {
-                this.wait(10000);
-                log.info("Waiting 10 seconds...");
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+    public void stopScanner() {
+        if (isRunning) {
+            isCanceled = true;
         }
     }
 
@@ -134,10 +75,79 @@ public class MarkerServiceImpl implements MarkerService {
     }
 
     @Override
-    @Transactional
-    public void cleanDatabaseOfScanner() {
-        markerRepository.deleteAll();
-        objectRepository.deleteAll();
+    @Async
+    public void startScanner() {
+        if (isCanceled) {
+            isRunning = false;
+            isCanceled = false;
+            return;
+        }
+        log.info("Starting/Resuming scanner ...");
+        log.info("Connecting to OVH ...\n");
+
+        final ObjectStorageObjectService objService = ovhService.getObjectStorage();
+        int totalObjectsInOvh = objService.list(ovhContainerName).size();
+
+        int iterationNumber = 1;
+        try {
+            final ObjectListOptions listOptions = initialize();
+
+            int totalObjectsRead = (int) objectRepository.count();
+            int remainingObjectsToRead = totalObjectsInOvh - totalObjectsRead;
+            int totalRemainingIterations = remainingObjectsToRead % PAGE_SIZE == 0 ? remainingObjectsToRead / PAGE_SIZE : remainingObjectsToRead / PAGE_SIZE + 1;
+
+            log.info("----------------------------------------");
+            log.info("Total objects in OVH : " + totalObjectsInOvh);
+            log.info("Total objects read : " + totalObjectsRead);
+            log.info("Total remaining objects : " + remainingObjectsToRead);
+            log.info("Total remaining iterations : " + totalRemainingIterations);
+            log.info("----------------------------------------\n");
+
+            List<? extends SwiftObject> objects;
+            do {
+                long iterationElapsedTime = System.currentTimeMillis();
+                if (isCanceled) {
+                    break;
+                }
+                //get list of object from OVH
+                objects = objService.list(ovhContainerName, listOptions);
+                //save marker
+                if (!objects.isEmpty()) {
+                    String nameLastElement = objects.get(objects.size() - 1).getName();
+                    listOptions.marker(nameLastElement);
+
+                    markerTransactions.saveMarkerIfDoesntExist(nameLastElement);
+
+                    //copy the names of objects from OVH to DB
+                    for (final SwiftObject swiftObject : objects) {
+                        if (isCanceled) {
+                            break;
+                        }
+                        String nameFile = swiftObject.getName();
+
+                        objectTransactions.saveObjectIfDoesntExist(nameFile);
+                    }
+                    if (isCanceled) {
+                        break;
+                    }
+                    totalObjectsRead = (int) objectRepository.count();
+                    iterationElapsedTime = System.currentTimeMillis() - iterationElapsedTime;
+                    String textIteration = "------ Iteration [" + iterationNumber + "/" + totalRemainingIterations + "] ------- " + iterationElapsedTime/1000 + "sec. --";
+                    log.info(textIteration);
+                    log.info("Total objects read : " + totalObjectsRead);
+                    log.info("Remaining objects : " + (totalObjectsInOvh - totalObjectsRead));
+                    log.info("-".repeat(textIteration.length()) + "\n");
+                } else {
+                    log.info("SCANNING FINISHED\n");
+                }
+            } while (iterationNumber++ < totalRemainingIterations && !objects.isEmpty());
+
+        } catch (Exception e) {
+            log.error(e.getMessage(), e.getCause());
+        }
+        log.info("Disconnecting from OVH ...\n");
+        isRunning = false;
+        isCanceled = false;
     }
 
     private ObjectListOptions initialize() {
@@ -145,8 +155,8 @@ public class MarkerServiceImpl implements MarkerService {
         if (markerRepository.count() == 0) {
             return listOptions;
         } else if (markerRepository.count() == 1) {
-            markerRepository.deleteAll();
-            objectRepository.deleteAll();
+            markerTransactions.deleteAllMarkers();
+            objectTransactions.deleteAllObjects();
         } else {
             // markerRepository.count() >= 2
             List<Marker> lastTwoMarkers = markerRepository.lastTwoMarkers();
@@ -157,8 +167,10 @@ public class MarkerServiceImpl implements MarkerService {
             listOptions.marker(markerBeforeLastOne);
 
             //delete last marker to ensure checking again all elements between penultimate and last elements were processed
-            markerRepository.delete(lastMarker);
-            objectRepository.deleteObjectsMayorThan(penultimateMarker.getPath());
+            markerTransactions.deleteMarker(lastMarker);
+            long number = objectRepository.countAllByPath(penultimateMarker.getPath());
+            Assert.isTrue(number == 1, "There are " + number + " objects with the same path [" + penultimateMarker.getPath() + "]");
+            objectTransactions.deleteObjectsMayorThan(penultimateMarker.getPath());
         }
         return listOptions;
     }
