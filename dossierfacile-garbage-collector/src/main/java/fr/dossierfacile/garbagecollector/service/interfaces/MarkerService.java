@@ -3,8 +3,8 @@ package fr.dossierfacile.garbagecollector.service.interfaces;
 public interface MarkerService {
     boolean toggleScanner();
     boolean isRunning();
-    void startScanner();
-    void setRunningToFalse();
+    boolean stoppingScanner();
+    void stopScanner();
     void setRunningToTrue();
-    void cleanDatabaseOfScanner();
+    void startScanner();
 }

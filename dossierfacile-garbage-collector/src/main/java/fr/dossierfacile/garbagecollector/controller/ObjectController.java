@@ -6,6 +6,8 @@ import fr.dossierfacile.garbagecollector.service.ScheduledDeleteService;
 import fr.dossierfacile.garbagecollector.service.interfaces.MarkerService;
 import fr.dossierfacile.garbagecollector.service.interfaces.ObjectService;
 import fr.dossierfacile.garbagecollector.service.interfaces.OvhService;
+import fr.dossierfacile.garbagecollector.transactions.interfaces.MarkerTransactions;
+import fr.dossierfacile.garbagecollector.transactions.interfaces.ObjectTransactions;
 import java.util.ArrayList;
 import java.util.List;
 import javax.validation.Valid;
@@ -29,6 +31,8 @@ public class ObjectController {
     private final OvhService ovhService;
     private final MarkerService markerService;
     private final ScheduledDeleteService scheduledDeleteService;
+    private final ObjectTransactions objectTransactions;
+    private final MarkerTransactions markerTransactions;
 
     @GetMapping("/")
     public String index() {
@@ -49,8 +53,8 @@ public class ObjectController {
     //get objects
     @GetMapping("/start-stop-scanner")
     public String toggleScanner() {
-        boolean isNowRunning = markerService.toggleScanner();
-        if (isNowRunning) {
+        boolean toggleToStart = markerService.toggleScanner();
+        if (toggleToStart) {
             markerService.startScanner();
         }
         return "redirect:/checker";
@@ -58,8 +62,14 @@ public class ObjectController {
 
     @GetMapping("/restart-scanner")
     public String restartScanner() {
-        markerService.setRunningToFalse();
-        markerService.cleanDatabaseOfScanner();
+        markerService.stopScanner();
+
+        // waiting until the scanner stop
+        while (markerService.stoppingScanner()) {}
+
+        objectTransactions.deleteAllObjects();
+        markerTransactions.deleteAllMarkers();
+
         markerService.setRunningToTrue();
         markerService.startScanner();
         return "redirect:/checker";
@@ -71,6 +81,7 @@ public class ObjectController {
         result.add(String.valueOf(objectService.countAllObjectsForDeletion()));
         result.add(String.valueOf(objectService.countAllObjectsScanned()));
         result.add(String.valueOf(markerService.isRunning()));
+        result.add(String.valueOf(scheduledDeleteService.isActive()));
         return ResponseEntity.ok(result);
     }
 
