@@ -22,6 +22,8 @@ public class PropertyForm {
 
     private Double chargesCost;
 
+    private Double livingSpace;
+
     private Boolean validated;
 
     private PropertyType type;

@@ -47,6 +47,9 @@ public class PropertyServiceImpl implements PropertyService {
         if (propertyForm.getChargesCost() != null && propertyForm.getChargesCost() > 0) {
             property.setChargesCost(propertyForm.getChargesCost());
         }
+        if (propertyForm.getLivingSpace() != null && propertyForm.getLivingSpace() > 0) {
+            property.setLivingSpace(propertyForm.getLivingSpace());
+        }
         if (propertyForm.getValidated() != null && propertyForm.getValidated()) {
             property.setValidated(true);
         }

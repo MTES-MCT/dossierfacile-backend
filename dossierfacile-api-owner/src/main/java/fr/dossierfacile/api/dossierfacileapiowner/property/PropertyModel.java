@@ -21,6 +21,7 @@ public class PropertyModel {
     private String name;
     private Double rentCost;
     private Double chargesCost;
+    private Double livingSpace;
     private String token;
     private Boolean validated;
     private List<PropertyApartmentSharingModel> propertiesApartmentSharing;
