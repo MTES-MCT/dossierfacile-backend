@@ -2,10 +2,10 @@ package fr.dossierfacile.api.dossierfacileapiowner.mail;
 
 public class NewPasswordMailParams {
     String firstname = "";
-    String token;
+    String tokenUrl;
 
-    public NewPasswordMailParams(String firstname, String token) {
+    public NewPasswordMailParams(String firstname, String tokenUrl) {
         this.firstname = firstname;
-        this.token = token;
+        this.tokenUrl = tokenUrl;
     }
 }
