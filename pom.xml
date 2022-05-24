@@ -7,8 +7,6 @@
     <artifactId>locatio</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <modules>
-        <module>bo</module>
-        <module>processFile</module>
         <module>dossierfacile-common-library</module>
         <module>dossierfacile-bo</module>
         <module>dossierfacile-process-file</module>
