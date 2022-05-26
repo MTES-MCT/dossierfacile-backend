@@ -86,22 +86,16 @@ public class MarkerServiceImpl implements MarkerService {
         log.info("Connecting to OVH ...\n");
 
         final ObjectStorageObjectService objService = ovhService.getObjectStorage();
-        int totalObjectsInOvh = objService.list(ovhContainerName).size();
 
         int iterationNumber = 1;
         try {
             final ObjectListOptions listOptions = initialize();
 
             int totalObjectsRead = (int) objectRepository.count();
-            int remainingObjectsToRead = totalObjectsInOvh - totalObjectsRead;
-            int totalRemainingIterations = remainingObjectsToRead % PAGE_SIZE == 0 ? remainingObjectsToRead / PAGE_SIZE : remainingObjectsToRead / PAGE_SIZE + 1;
 
-            log.info("----------------------------------------");
-            log.info("Total objects in OVH : " + totalObjectsInOvh);
-            log.info("Total objects read : " + totalObjectsRead);
-            log.info("Total remaining objects : " + remainingObjectsToRead);
-            log.info("Total remaining iterations : " + totalRemainingIterations);
-            log.info("----------------------------------------\n");
+            log.info("\n----------------------------------------" +
+                    "\nTotal objects read : " + totalObjectsRead +
+                    "\n----------------------------------------");
 
             List<? extends SwiftObject> objects;
             do {
@@ -132,15 +126,14 @@ public class MarkerServiceImpl implements MarkerService {
                     }
                     totalObjectsRead = (int) objectRepository.count();
                     iterationElapsedTime = System.currentTimeMillis() - iterationElapsedTime;
-                    String textIteration = "------ Iteration [" + iterationNumber + "/" + totalRemainingIterations + "] ------- " + iterationElapsedTime/1000 + "sec. --";
-                    log.info(textIteration);
-                    log.info("Total objects read : " + totalObjectsRead);
-                    log.info("Remaining objects : " + (totalObjectsInOvh - totalObjectsRead));
-                    log.info("-".repeat(textIteration.length()) + "\n");
+                    String textIteration = "------ Iteration [" + iterationNumber++ + "] ------- " + iterationElapsedTime/1000 + "sec. --";
+                    log.info("\n\n" + textIteration +
+                            "\nTotal objects read : " + totalObjectsRead +
+                            "\n" + "-".repeat(textIteration.length()) + "\n");
                 } else {
                     log.info("SCANNING FINISHED\n");
                 }
-            } while (iterationNumber++ < totalRemainingIterations && !objects.isEmpty());
+            } while (!objects.isEmpty());
 
         } catch (Exception e) {
             log.error(e.getMessage(), e.getCause());
