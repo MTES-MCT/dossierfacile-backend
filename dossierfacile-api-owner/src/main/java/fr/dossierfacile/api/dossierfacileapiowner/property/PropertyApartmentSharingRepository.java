@@ -1,11 +1,8 @@
-package fr.gouv.owner.repository;
+package fr.dossierfacile.api.dossierfacileapiowner.property;
 
 import fr.dossierfacile.common.entity.PropertyApartmentSharing;
 import org.springframework.data.repository.CrudRepository;
 
-import java.util.List;
-
 public interface PropertyApartmentSharingRepository extends CrudRepository<PropertyApartmentSharing, Long> {
-    List<PropertyApartmentSharing> findAllByPropertyId(Long id);
 
 }

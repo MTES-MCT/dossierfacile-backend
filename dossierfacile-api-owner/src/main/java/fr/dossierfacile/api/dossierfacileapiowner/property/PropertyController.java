@@ -5,6 +5,8 @@ import fr.dossierfacile.api.dossierfacileapiowner.register.AuthenticationFacade;
 import fr.dossierfacile.api.dossierfacileapiowner.user.OwnerMapper;
 import fr.dossierfacile.api.dossierfacileapiowner.user.OwnerModel;
 import fr.dossierfacile.common.entity.Owner;
+import fr.dossierfacile.common.entity.Property;
+import fr.dossierfacile.common.entity.PropertyApartmentSharing;
 import fr.dossierfacile.common.enums.LogType;
 import lombok.AllArgsConstructor;
 import org.apache.http.client.HttpResponseException;
@@ -28,7 +30,9 @@ import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.security.Principal;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.springframework.http.ResponseEntity.ok;
 
@@ -39,6 +43,7 @@ public class PropertyController {
 
     private final LogService logService;
     private final PropertyService propertyService;
+    private final PropertyApartmentSharingService propertyApartmentSharingService;
     private final AuthenticationFacade authenticationFacade;
     private final OwnerMapper ownerMapper;
 
@@ -79,4 +84,15 @@ public class PropertyController {
         throw new HttpResponseException(404, "No result");
     }
 
+    @DeleteMapping("/tenant/{id}")
+    public void removeTenant(@PathVariable("id") Long id) {
+        Owner owner = authenticationFacade.getOwner();
+        List<Property> propertyList = owner.getProperties();
+        List<PropertyApartmentSharing> propertyApartmentSharings = propertyList.stream().flatMap(property -> property.getPropertiesApartmentSharing().stream()).collect(Collectors.toList());
+        PropertyApartmentSharing propertyApartmentSharing = propertyApartmentSharings.stream().filter(pas ->
+                pas.getId().equals(id)).findAny().orElse(null);
+
+        assert propertyApartmentSharing != null;
+        propertyApartmentSharingService.deletePropertyApartmentSharing(propertyApartmentSharing);
+    }
 }
