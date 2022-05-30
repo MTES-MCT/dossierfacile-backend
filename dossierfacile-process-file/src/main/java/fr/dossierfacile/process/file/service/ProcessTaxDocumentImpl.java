@@ -168,7 +168,7 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
             });
             if (listResponse.size() == i.get()) {
                 log.info("QR content VALID for PDF with ID [" + pdf.getId() + "]");
-                taxDocument.setTaxContentValid(true);
+                taxDocument.setTaxContentValid(Boolean.TRUE);
             } else {
                 String path = applicationDomain + URL_DELIMITER + applicationFilePath + URL_DELIMITER + pdf.getPath();
                 String tesseractResult = apiTesseract.apiTesseract(path, new int[]{1}, tesseractApiOcrDpiTax);
@@ -181,8 +181,9 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
                 });
                 if (listResponse.size() == ii.get()) {
                     log.info("QR content VALID for PDF with ID [" + pdf.getId() + "]");
-                    taxDocument.setTaxContentValid(true);
+                    taxDocument.setTaxContentValid(Boolean.TRUE);
                 } else {
+                    taxDocument.setTaxContentValid(Boolean.FALSE);
                     log.warn("QR content NOT VALID for the PDF with ID [" + pdf.getId() + "]");
                 }
             }

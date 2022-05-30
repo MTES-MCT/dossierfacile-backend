@@ -33,9 +33,6 @@ public class ProcessTenantImpl implements ProcessTenant {
                             if (!tenant.getFirstName().isBlank() && !tenant.getLastName().isBlank()) {
                                 TaxDocument taxDocument = processTaxDocument.process(document, tenant);
                                 document.setTaxProcessResult(taxDocument);
-                                if (taxDocument.isTaxContentValid()) {
-                                    document.setTaxContentValid(Boolean.TRUE);
-                                }
                                 documentRepository.save(document);
                             }
                         }));
