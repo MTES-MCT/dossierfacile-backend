@@ -105,6 +105,8 @@ public class Document implements Serializable {
 
     private String lockedBy;
 
+    private Boolean taxContentValid;
+
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "document_denied_reasons_id")
     @ToString.Exclude
