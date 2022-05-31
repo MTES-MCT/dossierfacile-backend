@@ -4,7 +4,7 @@
 http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
     <changeSet id="20220500900" author="matthieub">
         <sql>
-            alter table public."user_account" drop constraint "uk_hl02wv5hym99ys465woijmfib"
+            ALTER TABLE public."user_account" DROP CONSTRAINT IF EXISTS "uk_hl02wv5hym99ys465woijmfib"
         </sql>
     </changeSet>
 </databaseChangeLog>
