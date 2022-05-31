@@ -13,5 +13,5 @@ public class PdfTemplateParameters {
     @Builder.Default
     public float compressionQuality = 0.9f;
     @Builder.Default
-    public PageDimension maxPage = PageDimension.A4128;
+    public PageDimension maxPage = PageDimension.A4150;
 }
