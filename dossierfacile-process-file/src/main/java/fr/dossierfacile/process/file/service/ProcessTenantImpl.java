@@ -6,12 +6,11 @@ import fr.dossierfacile.process.file.repository.DocumentRepository;
 import fr.dossierfacile.process.file.repository.TenantRepository;
 import fr.dossierfacile.process.file.service.interfaces.ProcessTaxDocument;
 import fr.dossierfacile.process.file.service.interfaces.ProcessTenant;
+import java.util.ArrayList;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
-import java.util.Optional;
 
 @Service
 @Slf4j
