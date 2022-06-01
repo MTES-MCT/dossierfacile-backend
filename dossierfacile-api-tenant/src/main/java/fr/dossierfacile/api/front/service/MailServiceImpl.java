@@ -39,6 +39,8 @@ public class MailServiceImpl implements MailService {
     private String emailSupportFrom;
     @Value("${email.support}")
     private String emailSupport;
+    @Value("${tenant.domain}")
+    private String tenantDomain;
 
     @Value("${mailjet.template.id.welcome}")
     private Integer templateIDWelcome;
@@ -75,6 +77,7 @@ public class MailServiceImpl implements MailService {
     public void sendEmailConfirmAccount(User user, ConfirmationToken confirmationToken) {
         Map<String, String> variables = new HashMap<>();
         variables.put("confirmToken", confirmationToken.getToken());
+        variables.put("tenantDomain", tenantDomain);
         MailJetModel mailjetModel = MailJetModel.builder()
                 .fromEmail(emailFrom)
                 .toEmail(user.getEmail())
@@ -90,7 +93,7 @@ public class MailServiceImpl implements MailService {
         Map<String, String> variables = new HashMap<>();
         variables.put("createPasswordToken", passwordRecoveryToken.getToken());
         variables.put("firstName", user.getFirstName());
-
+        variables.put("tenantDomain", tenantDomain);
         MailJetModel mailjetModel = MailJetModel.builder()
                 .fromEmail(emailFrom)
                 .toEmail(user.getEmail())
@@ -108,6 +111,7 @@ public class MailServiceImpl implements MailService {
         Integer templateId = templateIdCoupleApplication;
         variables.put("firstName", flatmate.getFirstName());
         variables.put("password_recovery_url", passwordRecoveryToken.getToken());
+        variables.put("tenantDomain", tenantDomain);
         if (applicationType == ApplicationType.GROUP) {
             variables.put("lastName", Strings.isNullOrEmpty(flatmate.getPreferredName()) ? flatmate.getLastName() : flatmate.getPreferredName());
             templateId = templateIdGroupApplication;
@@ -144,6 +148,7 @@ public class MailServiceImpl implements MailService {
         Map<String, String> variables = new HashMap<>();
         variables.put("FIRSTNAME_TENANT", user.getFirstName());
         variables.put("LASTNAME_TENANT", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
+        variables.put("tenantDomain", tenantDomain);
         MailJetModel mailjetModel = MailJetModel.builder()
                 .fromEmail(emailFrom)
                 .toEmail(user.getEmail())
@@ -161,6 +166,7 @@ public class MailServiceImpl implements MailService {
         variables.put("firstName", user.getFirstName());
         variables.put("lastName", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
         variables.put("confirmToken", confirmationToken.getToken());
+        variables.put("tenantDomain", tenantDomain);
         MailJetModel mailjetModel = MailJetModel.builder()
                 .fromEmail(emailFrom)
                 .toEmail(user.getEmail())
@@ -177,6 +183,7 @@ public class MailServiceImpl implements MailService {
         Map<String, String> variables = new HashMap<>();
         variables.put("firstName", user.getFirstName());
         variables.put("lastName", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
+        variables.put("tenantDomain", tenantDomain);
         MailJetModel mailjetModel = MailJetModel.builder()
                 .fromEmail(emailFrom)
                 .toEmail(user.getEmail())
