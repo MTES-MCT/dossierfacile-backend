@@ -30,6 +30,8 @@ public class MailServiceImplDev implements MailService {
     private Long templateIDWelcome;
     @Value("${sendinblue.template.id.new.password}")
     private Long templateIdNewPassword;
+    @Value("${owner.url}")
+    private String ownerUrl;
 
     @Async
     @Override
@@ -74,7 +76,7 @@ public class MailServiceImplDev implements MailService {
 
         sendSmtpEmail.templateId(templateIdNewPassword);
 
-        NewPasswordMailParams newPasswordMailParams = new NewPasswordMailParams(user.getFirstName(), passwordRecoveryToken.getToken());
+        NewPasswordMailParams newPasswordMailParams = new NewPasswordMailParams(user.getFirstName(), ownerUrl + "/confirmerCompte/" + passwordRecoveryToken.getToken());
         sendSmtpEmail.params(newPasswordMailParams);
 
         try {
