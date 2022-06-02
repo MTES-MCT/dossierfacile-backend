@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.dossierfacileapiowner.register;
 
+import com.google.common.base.Strings;
 import fr.dossierfacile.api.dossierfacileapiowner.user.OwnerRepository;
 import fr.dossierfacile.common.entity.Owner;
 import lombok.AllArgsConstructor;
@@ -30,6 +31,14 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
 
     private String getLastName() {
         return ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClaimAsString("family_name");
+    }
+
+    private String getPreferredName() {
+        String preferredUsername = ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClaimAsString("preferred_username");
+        if (Strings.isNullOrEmpty(preferredUsername) || preferredUsername.contains("@")) {
+            return null;
+        }
+        return ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClaimAsString("preferred_username");
     }
 
     @Override
@@ -77,6 +86,7 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
             owner.setFranceConnectBirthDate(getFranceConnectBirthDate());
             owner.setFirstName(getFirstName());
             owner.setLastName(getLastName());
+            owner.setPreferredName(getPreferredName());
         }
         return ownerRepository.saveAndFlush(owner);
     }
