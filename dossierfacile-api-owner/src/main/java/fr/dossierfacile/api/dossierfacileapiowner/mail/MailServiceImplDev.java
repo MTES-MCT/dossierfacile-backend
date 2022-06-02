@@ -49,7 +49,8 @@ public class MailServiceImplDev implements MailService {
 
         sendSmtpEmail.templateId(templateIDWelcome);
 
-        ConfirmMailParams confirmMailParams = new ConfirmMailParams(confirmationToken.getToken());
+        ConfirmMailParams confirmMailParams =
+                new ConfirmMailParams(ownerUrl + "/confirmerCompte/" + confirmationToken.getToken());
         sendSmtpEmail.params(confirmMailParams);
 
         try {
