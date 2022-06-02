@@ -4,10 +4,8 @@ import fr.dossierfacile.api.dossierfacileapiowner.log.LogService;
 import fr.dossierfacile.api.dossierfacileapiowner.register.AuthenticationFacade;
 import fr.dossierfacile.api.dossierfacileapiowner.register.KeycloakService;
 import fr.dossierfacile.common.entity.Owner;
-import fr.dossierfacile.common.entity.Property;
-import fr.dossierfacile.common.entity.Tenant;
 import lombok.AllArgsConstructor;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,7 +19,7 @@ import static org.springframework.http.ResponseEntity.ok;
 @RestController
 @AllArgsConstructor
 @RequestMapping("/api/owner")
-@Log4j2
+@Slf4j
 public class OwnerController {
 
     private final LogService logService;
