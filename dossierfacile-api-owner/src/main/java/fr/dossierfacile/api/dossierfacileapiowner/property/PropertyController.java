@@ -85,14 +85,16 @@ public class PropertyController {
     }
 
     @DeleteMapping("/tenant/{id}")
-    public void removeTenant(@PathVariable("id") Long id) {
+    public void removeTenant(@PathVariable("id") Long id) throws HttpResponseException {
         Owner owner = authenticationFacade.getOwner();
         List<Property> propertyList = owner.getProperties();
         List<PropertyApartmentSharing> propertyApartmentSharings = propertyList.stream().flatMap(property -> property.getPropertiesApartmentSharing().stream()).collect(Collectors.toList());
         PropertyApartmentSharing propertyApartmentSharing = propertyApartmentSharings.stream().filter(pas ->
                 pas.getId().equals(id)).findAny().orElse(null);
 
-        assert propertyApartmentSharing != null;
+        if (propertyApartmentSharing == null) {
+            throw new HttpResponseException(404, "No tenant found");
+        }
         propertyApartmentSharingService.deletePropertyApartmentSharing(propertyApartmentSharing);
     }
 }
