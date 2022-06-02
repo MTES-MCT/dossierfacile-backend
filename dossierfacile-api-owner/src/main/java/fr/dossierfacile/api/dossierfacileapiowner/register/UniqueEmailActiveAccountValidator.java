@@ -20,6 +20,6 @@ public class UniqueEmailActiveAccountValidator implements ConstraintValidator<Un
 
     @Override
     public boolean isValid(String email, ConstraintValidatorContext constraintValidatorContext) {
-        return ownerRepository.findOneByEmailAndEnabledTrue(email.toLowerCase()) == null && !email.isEmpty();
+        return ownerRepository.findOneByEmailAndEnabledTrue(email) == null && !email.isEmpty();
     }
 }

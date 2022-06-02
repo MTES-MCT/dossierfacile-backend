@@ -50,7 +50,7 @@ public class RegisterServiceImpl implements RegisterService {
     @Override
     @Transactional
     public OwnerModel register(AccountForm accountForm) {
-        String email = accountForm.getEmail().toLowerCase();
+        String email = accountForm.getEmail();
         Owner owner = ownerRepository.findByEmailAndEnabledFalse(email).orElse(new Owner("", "", email));
         // TODO : useless ?
         owner.setPassword(bCryptPasswordEncoder.encode(accountForm.getPassword()));

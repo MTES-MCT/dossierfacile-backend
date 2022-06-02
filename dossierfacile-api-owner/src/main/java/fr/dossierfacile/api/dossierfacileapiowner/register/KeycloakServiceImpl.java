@@ -21,7 +21,7 @@ public class KeycloakServiceImpl implements KeycloakService {
         if (owner.getKeycloakId() != null) {
             realmResource.users().delete(owner.getKeycloakId());
         }
-        var email = accountForm.getEmail().toLowerCase();
+        var email = accountForm.getEmail();
         var userRepresentation = createUser(email);
         createCredential(userRepresentation, accountForm.getPassword());
         return createUserAndReturnId(userRepresentation);
