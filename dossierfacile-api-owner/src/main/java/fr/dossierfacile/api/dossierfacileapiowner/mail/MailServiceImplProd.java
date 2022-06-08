@@ -1,13 +1,10 @@
 package fr.dossierfacile.api.dossierfacileapiowner.mail;
 
-import com.mailjet.client.resource.Emailv31;
 import fr.dossierfacile.common.entity.ConfirmationToken;
 import fr.dossierfacile.common.entity.PasswordRecoveryToken;
 import fr.dossierfacile.common.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Async;
@@ -21,18 +18,12 @@ import sibModel.SendSmtpEmail;
 import sibModel.SendSmtpEmailTo;
 
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
-import static com.mailjet.client.resource.Emailv31.Message.EMAIL;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 @Profile("prod")
 public class MailServiceImplProd implements MailService {
-    @Value("${email.from}")
-    private String emailFrom;
     @Value("${sendinblue.apikey}")
     private String sendinblueApiKey;
     @Value("${sendinblue.template.id.welcome}")

@@ -77,7 +77,8 @@ public class MailServiceImplDev implements MailService {
 
         sendSmtpEmail.templateId(templateIdNewPassword);
 
-        NewPasswordMailParams newPasswordMailParams = new NewPasswordMailParams(user.getFirstName(), ownerUrl + "/confirmerCompte/" + passwordRecoveryToken.getToken());
+        NewPasswordMailParams newPasswordMailParams = new NewPasswordMailParams(user.getFirstName(),
+                ownerUrl + "/confirmerCompte/" + passwordRecoveryToken.getToken());
         sendSmtpEmail.params(newPasswordMailParams);
 
         try {
