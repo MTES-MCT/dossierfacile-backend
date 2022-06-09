@@ -23,6 +23,7 @@ public class TenantModel {
     private String zipCode;
     private String email;
     private TenantType tenantType;
+    private Boolean franceConnect;
     private TenantFileStatus status;
     private List<DocumentModel> documents;
     private List<GuarantorModel> guarantors;
