@@ -6,7 +6,9 @@ import fr.dossierfacile.api.front.exception.PasswordRecoveryTokenNotFoundExcepti
 import fr.dossierfacile.api.front.exception.UserNotFoundException;
 import fr.dossierfacile.api.front.form.PartnerForm;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
+import fr.dossierfacile.api.front.model.tenant.EmailExistsModel;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
+import fr.dossierfacile.api.front.register.form.partner.EmailExistsForm;
 import fr.dossierfacile.api.front.repository.AccountDeleteLogRepository;
 import fr.dossierfacile.api.front.repository.ApartmentSharingRepository;
 import fr.dossierfacile.api.front.repository.ConfirmationTokenRepository;
@@ -149,6 +151,14 @@ public class UserServiceImpl implements UserService {
             }
         }
         return false;
+    }
+
+    @Override
+    public EmailExistsModel emailExists(EmailExistsForm emailExistsForm) {
+        return EmailExistsModel.builder()
+                .email(emailExistsForm.getEmail())
+                .exists(userRepository.existsByEmail(emailExistsForm.getEmail()))
+                .build();
     }
 
     @Override
