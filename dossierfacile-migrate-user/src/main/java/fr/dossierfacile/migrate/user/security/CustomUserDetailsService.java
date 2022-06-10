@@ -2,7 +2,7 @@ package fr.dossierfacile.migrate.user.security;
 
 
 import fr.dossierfacile.common.entity.UserRole;
-import fr.dossierfacile.migrate.user.repository.UserRepository;
+import fr.dossierfacile.migrate.user.repository.OwnerRepository;
 import fr.dossierfacile.migrate.user.repository.UserRoleRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
@@ -21,13 +21,13 @@ import java.util.Set;
 @AllArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
 
-    private final UserRepository userRepository;
+    private final OwnerRepository ownerRepository;
     private final UserRoleRepository userRoleRepository;
 
 
     @Override
     public UserDetails loadUserByUsername(String username) {
-        var user = userRepository.findByEmail(username).orElseThrow(() -> new UsernameNotFoundException("Username: " + username + " not found"));
+        var user = ownerRepository.findByEmail(username).orElseThrow(() -> new UsernameNotFoundException("Username: " + username + " not found"));
         Set<GrantedAuthority> grantedAuthorities = new HashSet<>();
         List<UserRole> userRoles = userRoleRepository.findByUser(user).orElse(new ArrayList<>());
         for (UserRole role : userRoles) {

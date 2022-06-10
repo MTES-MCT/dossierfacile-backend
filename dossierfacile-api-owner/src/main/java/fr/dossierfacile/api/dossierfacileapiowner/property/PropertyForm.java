@@ -1,0 +1,34 @@
+package fr.dossierfacile.api.dossierfacileapiowner.property;
+
+import fr.dossierfacile.common.enums.PropertyFurniture;
+import fr.dossierfacile.common.enums.PropertyType;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import javax.validation.constraints.NotBlank;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class PropertyForm {
+
+    private Long id;
+
+    @NotBlank
+    private String name;
+
+    private Double rentCost;
+
+    private Double chargesCost;
+
+    private Double livingSpace;
+
+    private Boolean validated;
+
+    private PropertyType type;
+
+    private PropertyFurniture furniture;
+
+    private String address;
+}
