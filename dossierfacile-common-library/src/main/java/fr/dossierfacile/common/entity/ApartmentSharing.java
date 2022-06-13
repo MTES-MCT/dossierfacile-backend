@@ -132,4 +132,12 @@ public class ApartmentSharing implements Serializable {
         }
         return tenantUserApis;
     }
+
+    public Integer totalGuarantorSalary() {
+        int totalSalary = 0;
+        for (Tenant tenant : tenants) {
+            totalSalary += tenant.getGuarantorsTotalSalary();
+        }
+        return totalSalary;
+    }
 }
