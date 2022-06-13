@@ -13,6 +13,7 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.PDPageTree;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
+import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.tools.imageio.ImageIOUtil;
 import org.springframework.context.MessageSource;
@@ -82,10 +83,21 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
                     PDPageTree pagesTree = document.getPages();
                     List<BufferedImage> images = new ArrayList<>(pagesTree.getCount());
                     for (int i = 0; i < pagesTree.getCount(); i++) {
-                        //Adapt image resolution according image file - avoid Out of Memory
-                        float dpi = (params.maxPage.width / pagesTree.get(i).getMediaBox().getWidth()) * 300;
-                        dpi = Math.min(600, dpi);
-                        images.add(pdfRenderer.renderImageWithDPI(i, dpi));
+                        PDRectangle pageMediaBox = pagesTree.get(i).getMediaBox();
+                        float ratioImage = pageMediaBox.getHeight() / pageMediaBox.getWidth();
+                        float ratioPDF = params.mediaBox.getHeight() / params.mediaBox.getWidth();
+
+                        // scale according the greater axis
+                        PageDimension dimension = (ratioImage < ratioPDF) ?
+                                new PageDimension((int) pageMediaBox.getWidth(), (int) (pageMediaBox.getWidth() * ratioPDF), 0)
+                                : new PageDimension((int) (pageMediaBox.getHeight() / ratioPDF), (int) pageMediaBox.getHeight(), 0);
+
+
+                        float scale = (dimension.width < params.maxPage.width) ? 1f :
+                                params.maxPage.width / pageMediaBox.getWidth();// image is too big - scale if necessary
+
+                        // x2 - double the image resolution (prevent quality loss if image is cropped)
+                        images.add(pdfRenderer.renderImage(i, scale * 2, ImageType.RGB));
                     }
                     return images;
                 }

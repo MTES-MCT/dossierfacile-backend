@@ -2,6 +2,8 @@ package fr.dossierfacile.common.entity;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import fr.dossierfacile.common.enums.PropertyFurniture;
+import fr.dossierfacile.common.enums.PropertyType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,6 +14,8 @@ import org.apache.commons.lang3.RandomStringUtils;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -69,6 +73,12 @@ public class Property implements Serializable {
     @Column(name = "rent_cost", columnDefinition = "Decimal(10,2) default '0.00'")
     private Double rentCost;
 
+    @Column(name = "charges_cost", columnDefinition = "Decimal(10,2) default '0.00'")
+    private Double chargesCost;
+
+    @Column(name = "living_space", columnDefinition = "Decimal(10,1) default '0.0'")
+    private Double livingSpace;
+
     @OneToMany(mappedBy = "property", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     private List<PropertyApartmentSharing> propertiesApartmentSharing;
 
@@ -92,26 +102,47 @@ public class Property implements Serializable {
     @Column(columnDefinition = "integer default 0")
     private Integer cantEmailSentProspect = 0;
 
+    @Builder.Default
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private Boolean validated = false;
+
+    @Column
+    @Enumerated(EnumType.STRING)
+    private PropertyType type;
+
+    @Column
+    @Enumerated(EnumType.STRING)
+    private PropertyFurniture furniture;
+
+    @Column
+    private String address;
+
     public Property(Owner owner, String name, String propertyId) {
         this.owner = owner;
         this.name = name;
         this.propertyId = propertyId;
         this.rentCost = 0.0;
+        this.chargesCost = 0.0;
+        this.livingSpace = 0.0;
         this.creationDateTime = LocalDateTime.now();
     }
 
-    public Property(Owner owner, String name, String propertyId, double rentCost) {
+    public Property(Owner owner, String name, String propertyId, double rentCost, double chargesCost, double livingSpace) {
         this.owner = owner;
         this.name = name;
         this.propertyId = propertyId;
         this.rentCost = rentCost;
+        this.chargesCost = chargesCost;
+        this.livingSpace = livingSpace;
         this.creationDateTime = LocalDateTime.now();
     }
 
-    public Property(String name, String id, Double rentCost) {
+    public Property(String name, String id, Double rentCost, Double chargesCost, Double livingSpace) {
         this.name = name;
         this.propertyId = id;
         this.rentCost = rentCost;
+        this.chargesCost = chargesCost;
+        this.livingSpace = livingSpace;
         this.creationDateTime = LocalDateTime.now();
         this.displayed = true;
     }

@@ -46,4 +46,13 @@
     <include file="db/migration/202203311430-add-column-status-to-apartmentsharing.xml"/>
     <include file="db/migration/202204110752-add-column-usage_name.xml"/>
     <include file="db/migration/202204150955-rename-column-usage_name-in-table-user_account.xml"/>
+    <include file="db/migration/202203291038-add-column-property-validated.xml"/>
+    <include file="db/migration/202203311430-add-column-status-to-apartmentsharing.xml"/>
+    <include file="db/migration/202204040900-add-columns-property-type-furniture.xml"/>
+    <include file="db/migration/202204042900-add-columns-property-address.xml"/>
+    <include file="db/migration/202204110752-add-column-usage_name.xml"/>
+    <include file="db/migration/202204150955-rename-column-usage_name-in-table-user_account.xml"/>
+    <include file="db/migration/202205030900-add-columns-property-charges.xml"/>
+    <include file="db/migration/202205030900-add-columns-property-living-space.xml"/>
+    <include file="db/migration/202205050900-remove-unique-constraint.xml"/>
 </databaseChangeLog>

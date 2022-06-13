@@ -26,6 +26,7 @@ import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.ConfirmationToken;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
+import fr.dossierfacile.common.entity.Owner;
 import fr.dossierfacile.common.entity.PasswordRecoveryToken;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.User;
@@ -108,10 +109,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void forgotPassword(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException(email));
-        PasswordRecoveryToken passwordRecoveryToken = passwordRecoveryTokenService.create(user);
-        mailService.sendEmailNewPassword(user, passwordRecoveryToken);
+        Tenant tenant = tenantRepository.findOneByEmail(email);
+        if (tenant == null) {
+            throw new UserNotFoundException(email);
+        }
+        PasswordRecoveryToken passwordRecoveryToken = passwordRecoveryTokenService.create(tenant);
+        mailService.sendEmailNewPassword(tenant, passwordRecoveryToken);
     }
 
     @Override
