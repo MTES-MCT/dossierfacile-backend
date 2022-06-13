@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Date;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -17,4 +19,5 @@ public class TenantModel {
     private String firstName;
     private String lastName;
     private TenantFileStatus status;
+    private Date lastUpdateDate;
 }
