@@ -35,7 +35,8 @@ public class ApiParticulierImpl implements ApiParticulier {
             log.info("\ntoken: {}", apiToken);
             long time = System.currentTimeMillis();
             ResponseEntity<Taxes> response = restTemplate.exchange(url, HttpMethod.GET, entity, Taxes.class);
-            log.info("Time call api particuler " + (System.currentTimeMillis() - time) + " ms");
+            long milliseconds = System.currentTimeMillis() - time;
+            log.info("Time call api particuler " + milliseconds + " milliseconds");
             return ResponseEntity.ok(response.getBody());
         } catch (Exception e) {
             log.error(EXCEPTION + Sentry.captureException(e));

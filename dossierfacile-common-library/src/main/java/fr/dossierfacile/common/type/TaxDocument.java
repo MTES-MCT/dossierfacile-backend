@@ -20,5 +20,4 @@ public class TaxDocument implements Serializable {
     private String referenceNumber;
     private long time = 0;
     private String qrContent;
-    private Boolean taxContentValid;
 }

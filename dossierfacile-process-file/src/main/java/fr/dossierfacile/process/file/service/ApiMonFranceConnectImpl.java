@@ -58,7 +58,7 @@ public class ApiMonFranceConnectImpl implements ApiMonFranceConnect {
     }
 
     @Override
-    public ResponseEntity<List> monFranceConnect(String url) {
+    public ResponseEntity<String> monFranceConnect(String url) {
         URI uri = URI.create(url).resolve(url);
         List<NameValuePair> params = URLEncodedUtils.parse(uri, StandardCharsets.UTF_8);
         String query = "";
@@ -79,7 +79,7 @@ public class ApiMonFranceConnectImpl implements ApiMonFranceConnect {
             log.info("\n\nurl: {}\n", nextUrlToCall);
 
             long time = System.currentTimeMillis();
-            ResponseEntity<List> response = restTemplateIgnoringHttps().exchange(nextUrlToCall, HttpMethod.POST, entity, List.class);
+            ResponseEntity<String> response = restTemplateIgnoringHttps().exchange(nextUrlToCall, HttpMethod.POST, entity, String.class);
             long milliseconds = System.currentTimeMillis() - time;
             log.info("Time call api MonFranceConnect " + milliseconds + " milliseconds");
             return response;

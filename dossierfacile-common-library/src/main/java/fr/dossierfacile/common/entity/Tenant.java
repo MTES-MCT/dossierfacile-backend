@@ -248,10 +248,6 @@ public class Tenant extends User implements Serializable {
                 .filter(Objects::nonNull).reduce(0, Integer::sum);
     }
 
-    public int getGuarantorsTotalSalary() {
-        return guarantors.stream().map(Guarantor::getTotalSalary).reduce(0, Integer::sum);
-    }
-
     /**
      * This method will link the client to the tenant if not yet linked.
      */

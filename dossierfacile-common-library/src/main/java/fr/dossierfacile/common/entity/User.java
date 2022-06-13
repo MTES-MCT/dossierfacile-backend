@@ -52,7 +52,7 @@ public class User implements Serializable {
 
     private String preferredName;
 
-    @Column
+    @Column(unique = true)
     private String email;
 
     @Column

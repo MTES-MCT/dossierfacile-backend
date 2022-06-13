@@ -2,7 +2,7 @@ package fr.dossierfacile.migrate.user.controller;
 
 import fr.dossierfacile.migrate.user.model.UserInfo;
 import fr.dossierfacile.migrate.user.model.UserInfoPassword;
-import fr.dossierfacile.migrate.user.repository.OwnerRepository;
+import fr.dossierfacile.migrate.user.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -24,12 +24,12 @@ import static org.springframework.http.ResponseEntity.ok;
 @AllArgsConstructor
 public class MigrateUserToKeycloakController {
 
-    private final OwnerRepository ownerRepository;
+    private final UserRepository userRepository;
     private final AuthenticationManager authenticationManager;
 
     @GetMapping("/migrate/{username}")
     public ResponseEntity<UserInfo> getUserInfo(@PathVariable String username) {
-        var user = ownerRepository.findByEmail(username).orElseThrow(() -> new UsernameNotFoundException(username));
+        var user = userRepository.findByEmail(username).orElseThrow(() -> new UsernameNotFoundException(username));
         var userInfo = UserInfo.builder()
                 .username(user.getEmail())
                 .email(user.getEmail())

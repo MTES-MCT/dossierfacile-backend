@@ -92,8 +92,6 @@
                                     <h4 class="panel-title letter" style="padding-top: 7px"
                                         th:if="${messageItem.taxDocument}!=null and ${messageItem.taxDocument.qrContent}!=null">
                                         <span th:text="'Tax result : ' + ${messageItem.taxDocument.qrContent}"></span>
-                                        <br/>
-                                        <span th:text="'Valid tax information : ' + ${messageItem.taxDocument.taxContentValid}"></span>
                                     </h4>
                                 </div>
                                 <div class="table-responsive" th:if="${messageItem.taxDocument}!=null and ${messageItem.taxDocument.qrContent}==null">

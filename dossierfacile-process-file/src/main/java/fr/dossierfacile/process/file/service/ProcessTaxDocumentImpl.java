@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -69,13 +68,10 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
             for (File pdf : pdfs) {
                 String url = utility.extractQRCodeInfo(pdf.getPath());
                 if (url != null && !url.isBlank()) {
-                    ResponseEntity<List> response = apiMonFranceConnect.monFranceConnect(url);
+                    ResponseEntity<String> response = apiMonFranceConnect.monFranceConnect(url);
                     if (response.getStatusCode() == HttpStatus.OK) {
                         log.info("Api MonFranceConnect Response {}", response.getStatusCodeValue());
-
-                        checkIfInfoBehindQrContentMatchesPdfContent(pdf, response, taxDocument);
-
-                        String bodyResponse = Objects.requireNonNull(response.getBody()).toString();
+                        String bodyResponse = Objects.requireNonNull(response.getBody());
                         if (!currentQrContent.toString().isBlank()) {
                             currentQrContent.append(", ").append(bodyResponse);
                         } else {
@@ -153,41 +149,6 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
         long milliseconds = System.currentTimeMillis() - time;
         taxDocument.setTime(milliseconds);
         return taxDocument;
-    }
-
-    private void checkIfInfoBehindQrContentMatchesPdfContent(File pdf, ResponseEntity<List> response, TaxDocument taxDocument) {
-        List<String> listResponse = Objects.requireNonNull(response.getBody());
-
-        String result = utility.extractInfoFromPDFFirstPage(pdf.getPath());
-        AtomicInteger i = new AtomicInteger();
-        if (!listResponse.isEmpty()) {
-            listResponse.forEach(element -> {
-                if (result.contains(element)) {
-                    i.getAndIncrement();
-                }
-            });
-            if (listResponse.size() == i.get()) {
-                log.info("QR content VALID for PDF with ID [" + pdf.getId() + "]");
-                taxDocument.setTaxContentValid(Boolean.TRUE);
-            } else {
-                String path = applicationDomain + URL_DELIMITER + applicationFilePath + URL_DELIMITER + pdf.getPath();
-                String tesseractResult = apiTesseract.apiTesseract(path, new int[]{1}, tesseractApiOcrDpiTax);
-
-                AtomicInteger ii = new AtomicInteger();
-                listResponse.forEach(element -> {
-                    if (tesseractResult.contains(element)) {
-                        ii.getAndIncrement();
-                    }
-                });
-                if (listResponse.size() == ii.get()) {
-                    log.info("QR content VALID for PDF with ID [" + pdf.getId() + "]");
-                    taxDocument.setTaxContentValid(Boolean.TRUE);
-                } else {
-                    taxDocument.setTaxContentValid(Boolean.FALSE);
-                    log.warn("QR content NOT VALID for the PDF with ID [" + pdf.getId() + "]");
-                }
-            }
-        }
     }
 
     //check if the name is OK

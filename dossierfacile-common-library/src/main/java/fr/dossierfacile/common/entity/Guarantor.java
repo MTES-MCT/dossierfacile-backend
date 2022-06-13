@@ -1,6 +1,5 @@
 package fr.dossierfacile.common.entity;
 
-import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.TypeGuarantor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,7 +23,6 @@ import javax.persistence.Table;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 @Entity
 @Table(name = "guarantor")
@@ -77,10 +75,4 @@ public class Guarantor implements Serializable {
         }
         return fullName.toString();
     }
-
-    public int getTotalSalary() {
-        return documents.stream().filter(d -> d.getDocumentCategory() == DocumentCategory.FINANCIAL).map(Document::getMonthlySum)
-                .filter(Objects::nonNull).reduce(0, Integer::sum);
-    }
-
 }

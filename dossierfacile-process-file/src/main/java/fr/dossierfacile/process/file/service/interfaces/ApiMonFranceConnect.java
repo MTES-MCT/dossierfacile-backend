@@ -1,8 +1,7 @@
 package fr.dossierfacile.process.file.service.interfaces;
 
-import java.util.List;
 import org.springframework.http.ResponseEntity;
 
 public interface ApiMonFranceConnect {
-    ResponseEntity<List> monFranceConnect(String url);
+    ResponseEntity<String> monFranceConnect(String url);
 }
