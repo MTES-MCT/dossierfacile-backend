@@ -10,7 +10,7 @@ public interface TenantService {
 
     void subscribeApartmentSharingOfTenantToPropertyOfOwner(String propertyToken, SubscriptionApartmentSharingOfTenantForm subscriptionApartmentSharingOfTenantForm, Tenant tenant);
 
-    void updateTenantStatus(Tenant tenant);
+    Tenant updateTenantStatus(Tenant tenant);
 
     void updateLastLoginDateAndResetWarnings(Tenant tenant);
 
