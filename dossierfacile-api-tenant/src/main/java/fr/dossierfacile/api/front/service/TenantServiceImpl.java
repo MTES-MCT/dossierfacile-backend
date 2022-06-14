@@ -62,7 +62,7 @@ public class TenantServiceImpl implements TenantService {
         TenantFileStatus previousStatus = tenant.getStatus();
         tenant.setStatus(tenant.computeStatus());
         log.info("Updating status of tenant with ID [" + tenant.getId() + "] to [" + tenant.getStatus() + "]");
-        tenantRepository.save(tenant);
+        tenant = tenantRepository.save(tenant);
 
         if (previousStatus != tenant.getStatus()) {
             switch (tenant.getStatus()) {
