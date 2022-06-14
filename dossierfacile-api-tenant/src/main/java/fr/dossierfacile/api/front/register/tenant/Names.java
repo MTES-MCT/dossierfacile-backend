@@ -35,7 +35,7 @@ public class Names implements SaveStep<NamesForm> {
         tenant.lastUpdateDateProfile(LocalDateTime.now(), null);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         documentService.resetValidatedAndDeniedDocumentsStatusToToProcess(tenant.getDocuments());
-        tenantService.updateTenantStatus(tenant);
+        tenant = tenantService.updateTenantStatus(tenant);
         return tenantMapper.toTenantModel(tenantRepository.save(tenant));
     }
 }
