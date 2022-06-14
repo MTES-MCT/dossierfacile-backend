@@ -6,7 +6,9 @@ import fr.dossierfacile.api.front.exception.PasswordRecoveryTokenNotFoundExcepti
 import fr.dossierfacile.api.front.exception.UserNotFoundException;
 import fr.dossierfacile.api.front.form.PartnerForm;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
+import fr.dossierfacile.api.front.model.tenant.EmailExistsModel;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
+import fr.dossierfacile.api.front.register.form.partner.EmailExistsForm;
 import fr.dossierfacile.api.front.repository.AccountDeleteLogRepository;
 import fr.dossierfacile.api.front.repository.ApartmentSharingRepository;
 import fr.dossierfacile.api.front.repository.ConfirmationTokenRepository;
@@ -24,6 +26,7 @@ import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.ConfirmationToken;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
+import fr.dossierfacile.common.entity.Owner;
 import fr.dossierfacile.common.entity.PasswordRecoveryToken;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.User;
@@ -106,10 +109,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void forgotPassword(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException(email));
-        PasswordRecoveryToken passwordRecoveryToken = passwordRecoveryTokenService.create(user);
-        mailService.sendEmailNewPassword(user, passwordRecoveryToken);
+        Tenant tenant = tenantRepository.findOneByEmail(email);
+        if (tenant == null) {
+            throw new UserNotFoundException(email);
+        }
+        PasswordRecoveryToken passwordRecoveryToken = passwordRecoveryTokenService.create(tenant);
+        mailService.sendEmailNewPassword(tenant, passwordRecoveryToken);
     }
 
     @Override
@@ -149,6 +154,14 @@ public class UserServiceImpl implements UserService {
             }
         }
         return false;
+    }
+
+    @Override
+    public EmailExistsModel emailExists(EmailExistsForm emailExistsForm) {
+        return EmailExistsModel.builder()
+                .email(emailExistsForm.getEmail())
+                .exists(userRepository.existsByEmail(emailExistsForm.getEmail()))
+                .build();
     }
 
     @Override
