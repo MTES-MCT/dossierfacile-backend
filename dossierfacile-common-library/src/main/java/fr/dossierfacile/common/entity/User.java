@@ -93,6 +93,9 @@ public class User implements Serializable {
     private String franceConnectBirthPlace;
     private String franceConnectBirthCountry;
 
+    @Column(name = "user_type")
+    protected String userType;
+
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private ConfirmationToken confirmationToken;
 

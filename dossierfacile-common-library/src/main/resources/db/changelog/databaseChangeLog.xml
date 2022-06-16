@@ -55,4 +55,5 @@
     <include file="db/migration/202205030900-add-columns-property-charges.xml"/>
     <include file="db/migration/202205030900-add-columns-property-living-space.xml"/>
     <include file="db/migration/202205050900-remove-unique-constraint.xml"/>
+    <include file="db/migration/202206151600-add-combined-constraint.xml"/>
 </databaseChangeLog>

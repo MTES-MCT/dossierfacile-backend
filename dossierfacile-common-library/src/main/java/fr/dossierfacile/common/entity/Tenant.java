@@ -43,6 +43,7 @@ import java.util.Objects;
 public class Tenant extends User implements Serializable {
 
     private static final long serialVersionUID = -3603815939883106021L;
+    private static final String TENANT_TYPE = "TENANT";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -92,12 +93,14 @@ public class Tenant extends User implements Serializable {
     public Tenant(String email) {
         super(email);
         this.tenantType = TenantType.CREATE;
+        this.userType = TENANT_TYPE;
     }
 
     public Tenant(String email, ApartmentSharing apartmentSharing) {
         super(email);
         this.apartmentSharing = apartmentSharing;
         this.tenantType = TenantType.JOIN;
+        this.userType = TENANT_TYPE;
     }
 
     public TenantFileStatus getStatus() {
