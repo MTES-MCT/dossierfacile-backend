@@ -1,11 +1,13 @@
 package fr.dossierfacile.api.dossierfacileapiowner.user;
 
-import fr.dossierfacile.api.dossierfacileapiowner.log.LogService;
 import fr.dossierfacile.api.dossierfacileapiowner.register.AuthenticationFacade;
 import fr.dossierfacile.api.dossierfacileapiowner.register.KeycloakService;
 import fr.dossierfacile.common.entity.Owner;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.client.HttpResponseException;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,6 +15,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
+
+import javax.servlet.http.HttpServletResponse;
 
 import static org.springframework.http.ResponseEntity.ok;
 
@@ -22,16 +27,22 @@ import static org.springframework.http.ResponseEntity.ok;
 @Slf4j
 public class OwnerController {
 
-    private final LogService logService;
     private final OwnerService ownerService;
     private final AuthenticationFacade authenticationFacade;
     private final KeycloakService keycloakService;
     private final OwnerMapper ownerMapper;
 
     @PostMapping("/names")
-    public ResponseEntity<OwnerModel> names(@RequestBody NamesForm namesForm) {
-        OwnerModel ownerModel = ownerService.setNames(namesForm);
-        return ok(ownerModel);
+    public ResponseEntity<OwnerModel> names(HttpServletResponse response,  @RequestBody NamesForm namesForm) {
+        try {
+            OwnerModel ownerModel = ownerService.setNames(namesForm);
+            return ok(ownerModel);
+        } catch (DataIntegrityViolationException d) {
+            if (d.getMessage() != null && d.getMessage().contains("email_type_uniq")) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "email_exists");
+            }
+        }
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "bad request");
     }
 
     @PostMapping("/logout")
