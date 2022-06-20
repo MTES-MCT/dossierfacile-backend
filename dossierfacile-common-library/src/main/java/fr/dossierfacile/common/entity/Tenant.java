@@ -37,7 +37,6 @@ import java.util.Objects;
 @Table(name = "tenant")
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
 @Slf4j
 public class Tenant extends User implements Serializable {
@@ -91,16 +90,13 @@ public class Tenant extends User implements Serializable {
     private int warnings;
 
     public Tenant(String email) {
-        super(email);
-        this.tenantType = TenantType.CREATE;
-        this.userType = TENANT_TYPE;
+        super(TENANT_TYPE, email);
     }
 
     public Tenant(String email, ApartmentSharing apartmentSharing) {
-        super(email);
+        super(TENANT_TYPE, email);
         this.apartmentSharing = apartmentSharing;
         this.tenantType = TenantType.JOIN;
-        this.userType = TENANT_TYPE;
     }
 
     public TenantFileStatus getStatus() {

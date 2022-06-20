@@ -44,9 +44,11 @@ public class Owner extends User implements Serializable {
     @Column(columnDefinition = "boolean default false")
     private boolean example = true;
 
+    @Builder.Default
+    protected String userType = OWNER_TYPE;
+
     public Owner(String firstName, String lastName, String email) {
-        super(firstName, lastName, email);
-        this.userType = OWNER_TYPE;
+        super(OWNER_TYPE, firstName, lastName, email);
     }
 
     public Property lastProperty() {
