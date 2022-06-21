@@ -131,7 +131,7 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
                     .map(path -> {
                         try {
                             String extension = FilenameUtils.getExtension(path).toLowerCase(Locale.ROOT);
-                            if (!extension.matches("pdf|jpg|jpeg|png")) {
+                            if (!extension.matches("pdf|jpg|jpeg|png|jfif")) {
                                 throw new UnexpectedException("Unexpected extension for file with path [" + path + "]");
                             }
                             return new FileInputStream(downloadService.getFileInputStream(path), extension);
