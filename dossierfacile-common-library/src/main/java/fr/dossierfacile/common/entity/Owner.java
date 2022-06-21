@@ -29,6 +29,7 @@ import java.util.List;
 public class Owner extends User implements Serializable {
 
     private static final long serialVersionUID = -4711959104392579912L;
+    private static final String OWNER_TYPE = "OWNER";
 
     @Builder.Default
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -44,7 +45,7 @@ public class Owner extends User implements Serializable {
     private boolean example = true;
 
     public Owner(String firstName, String lastName, String email) {
-        super(firstName, lastName, email);
+        super(OWNER_TYPE, firstName, lastName, email);
     }
 
     public Property lastProperty() {

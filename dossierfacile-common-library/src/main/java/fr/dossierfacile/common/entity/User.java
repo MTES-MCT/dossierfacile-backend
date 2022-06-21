@@ -36,7 +36,6 @@ import org.hibernate.annotations.UpdateTimestamp;
 )
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
 public class User implements Serializable {
 
@@ -93,14 +92,19 @@ public class User implements Serializable {
     private String franceConnectBirthPlace;
     private String franceConnectBirthCountry;
 
+    @Column(name = "user_type")
+    private String userType;
+
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private ConfirmationToken confirmationToken;
 
-    public User(String email) {
+    public User(String userType, String email) {
+        this.userType = userType;
         this.email = email;
     }
 
-    public User(String firstName, String lastName, String email) {
+    public User(String userType, String firstName, String lastName, String email) {
+        this.userType = userType;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;

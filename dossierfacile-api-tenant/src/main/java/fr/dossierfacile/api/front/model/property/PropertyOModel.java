@@ -17,6 +17,7 @@ public class PropertyOModel {
 
     private Long id;
     private String name;
+    private String address;
     private Double rentCost;
     private OwnerModel owner;
 }

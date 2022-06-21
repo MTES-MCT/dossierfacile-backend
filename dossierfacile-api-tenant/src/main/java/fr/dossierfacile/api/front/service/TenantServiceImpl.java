@@ -58,11 +58,11 @@ public class TenantServiceImpl implements TenantService {
     }
 
     @Override
-    public void updateTenantStatus(Tenant tenant) {
+    public Tenant updateTenantStatus(Tenant tenant) {
         TenantFileStatus previousStatus = tenant.getStatus();
         tenant.setStatus(tenant.computeStatus());
         log.info("Updating status of tenant with ID [" + tenant.getId() + "] to [" + tenant.getStatus() + "]");
-        tenantRepository.save(tenant);
+        tenant = tenantRepository.save(tenant);
 
         if (previousStatus != tenant.getStatus()) {
             switch (tenant.getStatus()) {
@@ -72,6 +72,7 @@ public class TenantServiceImpl implements TenantService {
         } else if (previousStatus == TenantFileStatus.INCOMPLETE && tenant.getStatus() == TenantFileStatus.TO_PROCESS) {
             partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.CREATED_ACCOUNT);
         }
+        return tenant;
     }
 
     @Override
