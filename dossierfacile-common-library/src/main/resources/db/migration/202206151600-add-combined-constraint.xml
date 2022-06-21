@@ -1,0 +1,13 @@
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+    <changeSet id="20220600900" author="matthieub">
+        <sql>
+            ALTER TABLE public."user_account" ADD COLUMN user_type VARCHAR;
+            update public."user_account" set user_type='OWNER' where id in (select id from owner);
+            update public."user_account" set user_type='TENANT' where id in (select id from tenant);
+            ALTER TABLE public."user_account" ADD CONSTRAINT email_type_uniq UNIQUE (email, user_type);
+        </sql>
+    </changeSet>
+</databaseChangeLog>
