@@ -41,7 +41,7 @@ import java.util.Objects;
 public class Tenant extends User implements Serializable {
 
     private static final long serialVersionUID = -3603815939883106021L;
-    private static final String TENANT_TYPE = "TENANT";
+    private static final String TENANT_USER_TYPE = "TENANT";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -89,11 +89,12 @@ public class Tenant extends User implements Serializable {
     private int warnings;
 
     public Tenant(String email) {
-        super(TENANT_TYPE, email);
+        super(TENANT_USER_TYPE, email);
+        this.tenantType = TenantType.CREATE;
     }
 
     public Tenant(String email, ApartmentSharing apartmentSharing) {
-        super(TENANT_TYPE, email);
+        super(TENANT_USER_TYPE, email);
         this.apartmentSharing = apartmentSharing;
         this.tenantType = TenantType.JOIN;
     }
