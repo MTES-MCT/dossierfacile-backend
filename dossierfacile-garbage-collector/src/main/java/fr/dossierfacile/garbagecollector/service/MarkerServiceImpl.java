@@ -1,6 +1,7 @@
 package fr.dossierfacile.garbagecollector.service;
 
 import fr.dossierfacile.garbagecollector.model.marker.Marker;
+import fr.dossierfacile.garbagecollector.repo.file.FileRepository;
 import fr.dossierfacile.garbagecollector.repo.marker.MarkerRepository;
 import fr.dossierfacile.garbagecollector.repo.object.ObjectRepository;
 import fr.dossierfacile.garbagecollector.service.interfaces.MarkerService;
@@ -13,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.openstack4j.api.storage.ObjectStorageObjectService;
 import org.openstack4j.model.storage.object.SwiftObject;
 import org.openstack4j.model.storage.object.options.ObjectListOptions;
+import org.openstack4j.model.storage.object.options.ObjectLocation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -30,6 +32,7 @@ public class MarkerServiceImpl implements MarkerService {
     private final ObjectTransactions objectTransactions;
     private final MarkerRepository markerRepository;
     private final ObjectRepository objectRepository;
+    private final FileRepository fileRepository;
 
     private boolean isRunning = false;
     private boolean isCanceled = false;
@@ -110,7 +113,7 @@ public class MarkerServiceImpl implements MarkerService {
                     String nameLastElement = objects.get(objects.size() - 1).getName();
                     listOptions.marker(nameLastElement);
 
-                    markerTransactions.saveMarkerIfDoesntExist(nameLastElement);
+                    markerTransactions.saveMarkerIfNotYetSaved(nameLastElement);
 
                     //copy the names of objects from OVH to DB
                     for (final SwiftObject swiftObject : objects) {
@@ -118,8 +121,8 @@ public class MarkerServiceImpl implements MarkerService {
                             break;
                         }
                         String nameFile = swiftObject.getName();
-
-                        objectTransactions.saveObjectIfDoesntExist(nameFile);
+                        nameFile = renameFileIfNotInDatabase(objService, nameFile);
+                        objectTransactions.saveObjectIfNotYetSaved(nameFile);
                     }
                     if (isCanceled) {
                         break;
@@ -166,5 +169,16 @@ public class MarkerServiceImpl implements MarkerService {
             objectTransactions.deleteObjectsMayorThan(penultimateMarker.getPath());
         }
         return listOptions;
+    }
+
+    private String renameFileIfNotInDatabase(final ObjectStorageObjectService objService, String nameFile) {
+        boolean existsObject = fileRepository.existsObject(nameFile);
+        if (!existsObject && !nameFile.startsWith("GARBAGE_")) {
+            objService.copy(ObjectLocation.create(ovhContainerName, nameFile), ObjectLocation.create(ovhContainerName, "GARBAGE_" + nameFile));
+            ovhService.delete(nameFile);
+            log.info("[" + nameFile + "] renamed to [GARBAGE_" + nameFile + "]");
+            nameFile = "GARBAGE_" + nameFile;
+        }
+        return nameFile;
     }
 }
