@@ -93,14 +93,9 @@
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.pacesys</groupId>
-			<artifactId>openstack4j</artifactId>
-			<version>3.2.0</version>
-		</dependency>
-		<dependency>
-			<groupId>org.pacesys.openstack4j.connectors</groupId>
+			<groupId>com.github.openstack4j.core.connectors</groupId>
 			<artifactId>openstack4j-okhttp</artifactId>
-			<version>3.2.0</version>
+			<version>3.10</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-io</groupId>
