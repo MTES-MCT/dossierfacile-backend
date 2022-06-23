@@ -11,12 +11,10 @@ import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
-import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
 
 @Service
 @AllArgsConstructor
@@ -24,7 +22,6 @@ public class HonorDeclaration implements SaveStep<HonorDeclarationForm> {
 
     private final TenantCommonRepository tenantRepository;
     private final TenantMapper tenantMapper;
-    private final PartnerCallBackService partnerCallBackService;
     private final Producer producer;
     private final MailService mailService;
     private final DocumentService documentService;

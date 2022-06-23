@@ -16,7 +16,7 @@ public class MarkerTransactionsImpl implements MarkerTransactions {
 
     @Override
     @Transactional
-    public void saveMarkerIfDoesntExist(String name) {
+    public void saveMarkerIfNotYetSaved(String name) {
         if (markerRepository.findByPath(name) == null) {
             Marker marker = new Marker();
             marker.setPath(name);

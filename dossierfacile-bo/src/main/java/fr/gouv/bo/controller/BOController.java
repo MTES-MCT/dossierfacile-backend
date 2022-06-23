@@ -187,6 +187,8 @@ public class BOController {
 
                     tenantService.regroupTenant(tenantJoin, apartCreate, reGroupDTO.getApplicationType());
 
+                    partnerCallBackService.sendCallBack(apartCreate.getTenants(), PartnerCallBackType.MERGED_ACCOUNT);
+
                     return REDIRECT_BO_COLOCATION + apartCreate.getId() + "#tenant" + tenantCreate.getId();
                 }
             }
