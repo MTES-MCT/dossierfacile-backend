@@ -19,7 +19,7 @@ public class ObjectTransactionsImpl implements ObjectTransactions {
 
     @Override
     @Transactional
-    public void saveObjectIfDoesntExist(String nameFile) {
+    public void saveObjectIfNotYetSaved(String nameFile) {
         if (objectRepository.findObjectByPath(nameFile) == null) {
             Object object = new Object();
             // If the [File] doesn't exist in the [Database] then it will be marked with [true] to delete
