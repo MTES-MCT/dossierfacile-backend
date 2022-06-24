@@ -11,6 +11,7 @@ import org.openstack4j.api.storage.ObjectStorageObjectService;
 import org.openstack4j.model.common.Identifier;
 import org.openstack4j.model.storage.object.SwiftObject;
 
+import org.openstack4j.model.storage.object.options.ObjectLocation;
 import org.openstack4j.openstack.OSFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
@@ -109,6 +110,29 @@ public class OvhServiceImpl implements OvhService {
     public ObjectStorageObjectService getObjectStorage() {
         OSClient.OSClientV3 os = connect();
         return os.objectStorage().objects();
+    }
+
+    @Override
+    public void renameFile(String oldName, String newName) {
+        int attempts = 0;
+        while (attempts++ < ovhConnectionReattempts) {
+            try {
+                final ObjectStorageObjectService objService = getObjectStorage();
+                String eTag = objService.copy(ObjectLocation.create(ovhContainerName, oldName), ObjectLocation.create(ovhContainerName, newName));
+                if (eTag != null && !eTag.isEmpty()) {
+                    objService.delete(ovhContainerName, oldName);
+                    log.info("[" + oldName + "] renamed to [" + newName + "]");
+                }
+            } catch (Exception e) {
+                log.error(e.getMessage());
+                if (attempts == ovhConnectionReattempts) {
+                    log.error(OVH_CONNECT + EXCEPTION + Sentry.captureException(e));
+                    log.error(e.getClass().getName());
+                    String customExceptionMessage = OVH_CONNECT + "Could not connect to the storage provider after " + attempts + " attempts with given credentials";
+                    throw new OvhConnectionFailedException(customExceptionMessage, e.getCause());
+                }
+            }
+        }
     }
 
 }

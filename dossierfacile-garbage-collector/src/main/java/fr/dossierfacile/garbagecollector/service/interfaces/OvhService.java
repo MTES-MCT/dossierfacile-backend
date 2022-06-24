@@ -12,4 +12,6 @@ public interface OvhService {
     SwiftObject get(String name);
 
     ObjectStorageObjectService getObjectStorage();
+
+    void renameFile(String oldName, String newName);
 }
