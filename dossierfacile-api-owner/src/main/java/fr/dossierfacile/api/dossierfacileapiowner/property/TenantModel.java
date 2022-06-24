@@ -20,4 +20,5 @@ public class TenantModel {
     private String lastName;
     private TenantFileStatus status;
     private Date lastUpdateDate;
+    private String tenantType;
 }

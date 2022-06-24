@@ -3,18 +3,11 @@ package fr.dossierfacile.api.dossierfacileapiowner.user;
 import fr.dossierfacile.api.dossierfacileapiowner.log.LogService;
 import fr.dossierfacile.api.dossierfacileapiowner.register.AuthenticationFacade;
 import fr.dossierfacile.api.dossierfacileapiowner.register.KeycloakService;
-import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Owner;
-import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.LogType;
-import fr.dossierfacile.common.enums.TenantType;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
-import java.util.Optional;
 
 @Slf4j
 @Service
