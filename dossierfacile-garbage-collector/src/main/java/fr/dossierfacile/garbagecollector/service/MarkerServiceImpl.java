@@ -8,13 +8,14 @@ import fr.dossierfacile.garbagecollector.service.interfaces.MarkerService;
 import fr.dossierfacile.garbagecollector.service.interfaces.OvhService;
 import fr.dossierfacile.garbagecollector.transactions.interfaces.MarkerTransactions;
 import fr.dossierfacile.garbagecollector.transactions.interfaces.ObjectTransactions;
+
 import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.openstack4j.api.storage.ObjectStorageObjectService;
 import org.openstack4j.model.storage.object.SwiftObject;
 import org.openstack4j.model.storage.object.options.ObjectListOptions;
-import org.openstack4j.model.storage.object.options.ObjectLocation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -121,7 +122,7 @@ public class MarkerServiceImpl implements MarkerService {
                             break;
                         }
                         String nameFile = swiftObject.getName();
-                        nameFile = renameFileIfNotInDatabase(objService, nameFile);
+                        nameFile = renameFileIfNotInDatabase(nameFile);
                         objectTransactions.saveObjectIfNotYetSaved(nameFile);
                     }
                     if (isCanceled) {
@@ -129,7 +130,7 @@ public class MarkerServiceImpl implements MarkerService {
                     }
                     totalObjectsRead = (int) objectRepository.count();
                     iterationElapsedTime = System.currentTimeMillis() - iterationElapsedTime;
-                    String textIteration = "------ Iteration [" + iterationNumber++ + "] ------- " + iterationElapsedTime/1000 + "sec. --";
+                    String textIteration = "------ Iteration [" + iterationNumber++ + "] ------- " + iterationElapsedTime / 1000 + "sec. --";
                     log.info("\n\n" + textIteration +
                             "\nTotal objects read : " + totalObjectsRead +
                             "\n" + "-".repeat(textIteration.length()) + "\n");
@@ -171,14 +172,13 @@ public class MarkerServiceImpl implements MarkerService {
         return listOptions;
     }
 
-    private String renameFileIfNotInDatabase(final ObjectStorageObjectService objService, String nameFile) {
-        boolean existsObject = fileRepository.existsObject(nameFile);
-        if (!existsObject && !nameFile.startsWith("GARBAGE_")) {
-            objService.copy(ObjectLocation.create(ovhContainerName, nameFile), ObjectLocation.create(ovhContainerName, "GARBAGE_" + nameFile));
-            ovhService.delete(nameFile);
-            log.info("[" + nameFile + "] renamed to [GARBAGE_" + nameFile + "]");
-            nameFile = "GARBAGE_" + nameFile;
+    private String renameFileIfNotInDatabase(String oldName) {
+        String newName = oldName;
+        boolean existsObject = fileRepository.existsObject(oldName);
+        if (!existsObject && !oldName.startsWith("GARBAGE_")) {
+            newName = "GARBAGE_" + oldName;
+            ovhService.renameFile(oldName, newName);
         }
-        return nameFile;
+        return newName;
     }
 }
