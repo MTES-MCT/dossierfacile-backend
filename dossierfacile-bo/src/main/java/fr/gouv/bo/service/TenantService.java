@@ -40,6 +40,7 @@ import fr.gouv.bo.repository.UserApiRepository;
 import fr.gouv.bo.utils.UtilsLocatio;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -107,7 +108,7 @@ public class TenantService {
 
     public List<Tenant> getTenantByIdOrEmail(EmailDTO emailDTO) {
         List<Tenant> tenantList = new ArrayList<>();
-        if (UtilsLocatio.isNumeric(emailDTO.getEmail())) {
+        if (StringUtils.isNumeric(emailDTO.getEmail())) {
             tenantList.add(tenantRepository.findOneById(Long.parseLong(emailDTO.getEmail())));
             return tenantList;
         }

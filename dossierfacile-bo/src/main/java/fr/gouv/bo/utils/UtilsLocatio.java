@@ -1,25 +1,13 @@
 package fr.gouv.bo.utils;
 
-import fr.gouv.bo.dto.AvgDTO;
 import fr.gouv.bo.dto.CountActionsDTO;
 import fr.gouv.bo.dto.CountDTO;
 import fr.gouv.bo.dto.ErrorFieldDTO;
 import fr.gouv.bo.dto.KeyStatistics;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.PDPageContentStream;
-import org.apache.pdfbox.pdmodel.common.PDRectangle;
-import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
-import org.springframework.web.multipart.MultipartFile;
-
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -31,21 +19,6 @@ public class UtilsLocatio {
     private UtilsLocatio() {
     }
 
-     public static boolean isNumeric(String string) {
-        Long longValue;
-        System.out.println(String.format("Parsing string: \"%s\"", string));
-        if(string == null || string.equals("")) {
-            System.out.println("String cannot be parsed, it is null or empty.");
-            return false;
-        }
-        try {
-            longValue = Long.parseLong(string);
-            return true;
-        } catch (NumberFormatException e) {
-            System.out.println("Input String cannot be parsed to Long.");
-        }
-        return false;
-    }
     public static String generateRandomString(int length) {
 
         String CHAR_LOWER = "abcdefghijklmnopqrstuvwxyz";
@@ -68,28 +41,6 @@ public class UtilsLocatio {
         return sb.toString();
     }
 
-    public static byte[] convertImgToPDF(MultipartFile multipartFile) {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try (final PDDocument document = new PDDocument()) {
-            BufferedImage bimg = ImageIO.read(multipartFile.getInputStream());
-            if (bimg != null) {
-                float width = bimg.getWidth();
-                float height = bimg.getHeight();
-                PDPage page = new PDPage(new PDRectangle(width, height));
-                document.addPage(page);
-                PDImageXObject img = PDImageXObject.createFromByteArray(document, multipartFile.getBytes(), multipartFile.getOriginalFilename());
-                PDPageContentStream contentStream = new PDPageContentStream(document, page);
-                contentStream.drawImage(img, 0, 0);
-                contentStream.close();
-                document.save(baos);
-            }
-        } catch (IOException e) {
-            log.error("Exception white trying convert image to pdf", e);
-        }
-        return baos.toByteArray();
-    }
-
-
     public static void extractStatistics(Map<KeyStatistics, Map<String, Long>> map, List<CountDTO> list, String key) {
         for (CountDTO countDTO : list) {
             int year = countDTO.getYear();
@@ -100,21 +51,6 @@ public class UtilsLocatio {
             } else {
                 Map<String, Long> m = new HashMap<>();
                 m.put(key, countDTO.getCount());
-                map.put(keyStatistics, m);
-            }
-        }
-    }
-
-    public static void extractAvg(Map<KeyStatistics, Map<String, Double>> map, List<AvgDTO> list, String key) {
-        for (AvgDTO avgDTO : list) {
-            int year = avgDTO.getYear();
-            int week = avgDTO.getWeek();
-            KeyStatistics keyStatistics = new KeyStatistics(week, year);
-            if (map.containsKey(keyStatistics)) {
-                map.get(keyStatistics).put(key, avgDTO.getAvg());
-            } else {
-                Map<String, Double> m = new HashMap<>();
-                m.put(key, avgDTO.getAvg());
                 map.put(keyStatistics, m);
             }
         }

@@ -30,6 +30,7 @@ import fr.gouv.bo.service.UserService;
 import fr.gouv.bo.utils.UtilsLocatio;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -246,7 +247,7 @@ public class BOController {
             return REDIRECT_BO;
         }
 
-        if (emailDTO.getEmail().contains("@") || UtilsLocatio.isNumeric(emailDTO.getEmail())) {
+        if (emailDTO.getEmail().contains("@") || StringUtils.isNumeric(emailDTO.getEmail())) {
             return REDIRECT_BO_COLOCATION + tenantList.get(0).getApartmentSharing().getId();
         }
 
