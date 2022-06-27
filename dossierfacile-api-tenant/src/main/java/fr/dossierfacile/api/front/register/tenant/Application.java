@@ -76,6 +76,7 @@ public class Application implements SaveStep<ApplicationForm> {
             joinTenant.lastUpdateDateProfile(now, null);
             String id = keycloakService.createKeycloakUser(email);
             joinTenant.setKeycloakId(id);
+            joinTenant.setLinkedKeycloakClients(tenant.getLinkedKeycloakClients());
             tenantRepository.save(joinTenant);
             userRoleService.createRole(joinTenant);
             PasswordRecoveryToken passwordRecoveryToken = passwordRecoveryTokenService.create(joinTenant);
