@@ -64,7 +64,7 @@ public class RequestServiceImpl implements RequestService {
             log.info(CALL_BACK_RESPONSE, response.getStatusCode());
         } catch (RestClientException e) {
             log.error(EXCEPTION + Sentry.captureException(e));
-            log.error(e.getClass().getName());
+            log.error("Error occurs during the call to :" + urlCallback, e);
             if (e instanceof ResourceAccessException) {
                 try {
                     log.warn("Trying to send the request again without SSL Verification, to the urlCallBack: " + urlCallback);
