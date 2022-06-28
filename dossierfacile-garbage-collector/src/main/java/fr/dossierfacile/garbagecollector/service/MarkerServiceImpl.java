@@ -27,6 +27,7 @@ import org.springframework.util.Assert;
 public class MarkerServiceImpl implements MarkerService {
 
     private static final int PAGE_SIZE = 10;
+    private static final String MARKER_FOR_DELETION = "GARBAGE_";
 
     private final OvhService ovhService;
     private final MarkerTransactions markerTransactions;
@@ -122,7 +123,9 @@ public class MarkerServiceImpl implements MarkerService {
                             break;
                         }
                         String nameFile = swiftObject.getName();
-                        nameFile = renameFileIfNotInDatabase(nameFile);
+                        if (!nameFile.startsWith(MARKER_FOR_DELETION)) {
+                            nameFile = renameFileIfNotInDatabase(nameFile);
+                        }
                         objectTransactions.saveObjectIfNotYetSaved(nameFile);
                     }
                     if (isCanceled) {
@@ -165,20 +168,20 @@ public class MarkerServiceImpl implements MarkerService {
 
             //delete last marker to ensure checking again all elements between penultimate and last elements were processed
             markerTransactions.deleteMarker(lastMarker);
-            long number = objectRepository.countAllByPath(penultimateMarker.getPath());
-            Assert.isTrue(number == 1, "There are " + number + " objects with the same path [" + penultimateMarker.getPath() + "]");
+            long number1 = objectRepository.countAllByPath(penultimateMarker.getPath());
+            long number2 = objectRepository.countAllByPath(MARKER_FOR_DELETION + penultimateMarker.getPath());
+            Assert.isTrue(number1 + number2 == 1, "There is no exactly 1 marker with name [" + penultimateMarker.getPath() + "] or [" + MARKER_FOR_DELETION + penultimateMarker.getPath() + "] in the objects saved");
             objectTransactions.deleteObjectsMayorThan(penultimateMarker.getPath());
         }
         return listOptions;
     }
 
-    private String renameFileIfNotInDatabase(String oldName) {
-        String newName = oldName;
-        boolean existsObject = fileRepository.existsObject(oldName);
-        if (!existsObject && !oldName.startsWith("GARBAGE_")) {
-            newName = "GARBAGE_" + oldName;
-            ovhService.renameFile(oldName, newName);
+    private String renameFileIfNotInDatabase(String nameFile) {
+        if (!fileRepository.existsObject(nameFile)) {
+            String oldName = nameFile;
+            nameFile = MARKER_FOR_DELETION + nameFile;
+            ovhService.renameFile(oldName, nameFile);
         }
-        return newName;
+        return nameFile;
     }
 }
