@@ -516,14 +516,12 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
 
     private void createFirstsPages(PDFMergerUtility ut, int numberOfTenants, List<Integer> indexPagesForDocuments, PDOutlineItem pdOutlineItem) {
         try {
-            int numberOfPagesAdded = 0;
-            for (int i = 0; i < numberOfTenants; i += 2) {
-                if (i == 0) {
-                    ut.addSource(TEMPLATE_OF_FIRST_INDEXPAGES.getInputStream());
-                } else {
+            int numberOfPagesAdded = (numberOfTenants + 1) / 2; // 2 tenants by page
+            if (numberOfPagesAdded > 0) {
+                ut.addSource(TEMPLATE_OF_FIRST_INDEXPAGES.getInputStream());
+                for (int i = 1; i < numberOfPagesAdded; i++) {
                     ut.addSource(TEMPLATE_OF_OTHER_INDEXPAGES.getInputStream());
                 }
-                numberOfPagesAdded++;
             }
             log.info("Number of first pages added [" + numberOfPagesAdded + "]");
             indexPagesForDocuments.add(numberOfPagesAdded);
@@ -567,21 +565,25 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
     }
 
     private void addDocumentOfClarification(PDFMergerUtility ut, List<Tenant> tenantList, Tenant mainTenant, List<Integer> indexPagesForDocuments, PDOutlineItem pdOutlineItem) {
-        //region Adding bookmark
-        PDPageFitWidthDestination destination = new PDPageFitWidthDestination();
-        destination.setPageNumber(indexPagesForDocuments.get(indexPagesForDocuments.size() - 1));
-        destination.setTop((int) B_HEIGHT_TEMPLATE);
+        if ( StringUtils.isNotBlank(mainTenant.getClarification() )) {
+            //region Adding bookmark
+            PDPageFitWidthDestination destination = new PDPageFitWidthDestination();
+            destination.setPageNumber(indexPagesForDocuments.get(indexPagesForDocuments.size() - 1));
+            destination.setTop((int) B_HEIGHT_TEMPLATE);
 
-        PDOutlineItem pdO = new PDOutlineItem();
-        pdO.setTitle(TITLE_2_CLARIFICATION);
-        pdO.setDestination(destination);
+            PDOutlineItem pdO = new PDOutlineItem();
+            pdO.setTitle(TITLE_2_CLARIFICATION);
+            pdO.setDestination(destination);
 
-        pdOutlineItem.addLast(pdO);
-        //endregion
+            pdOutlineItem.addLast(pdO);
+            //endregion
 
-        ByteArrayOutputStream outputStream = addTextHeaderAndTextBodyToTheCopyOfAttachmentsAndClarificationTemplate(tenantList, LE_MOT_DU_LOCATAIRE, mainTenant.getClarification());
-        ut.addSource(new ByteArrayInputStream(outputStream.toByteArray()));
-        indexPagesForDocuments.add(indexPagesForDocuments.get(indexPagesForDocuments.size() - 1) + 1);
+            ByteArrayOutputStream outputStream = addTextHeaderAndTextBodyToTheCopyOfAttachmentsAndClarificationTemplate(tenantList, LE_MOT_DU_LOCATAIRE, mainTenant.getClarification());
+            ut.addSource(new ByteArrayInputStream(outputStream.toByteArray()));
+            indexPagesForDocuments.add(indexPagesForDocuments.get(indexPagesForDocuments.size() - 1) + 1);
+        } else {
+            indexPagesForDocuments.add(indexPagesForDocuments.get(indexPagesForDocuments.size() - 1)); // does not exist - stay on current page
+        }
     }
 
     private String getSentenceByApplicationType(ApplicationType applicationType) {
