@@ -131,6 +131,13 @@ public class OvhServiceImpl implements OvhService {
                     String customExceptionMessage = OVH_CONNECT + "Could not connect to the storage provider after " + attempts + " attempts with given credentials";
                     throw new OvhConnectionFailedException(customExceptionMessage, e.getCause());
                 }
+                try {
+                    log.info("Waiting 60 seconds for the next retry...");
+                    Thread.sleep(60000);
+                } catch (InterruptedException b) {
+                    log.error(b.getMessage());
+                    log.error("Unable to sleep the process");
+                }
             }
         }
     }
