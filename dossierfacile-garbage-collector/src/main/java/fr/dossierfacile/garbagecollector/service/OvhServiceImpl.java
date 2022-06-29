@@ -132,8 +132,8 @@ public class OvhServiceImpl implements OvhService {
                     throw new OvhConnectionFailedException(customExceptionMessage, e.getCause());
                 }
                 try {
-                    log.info("Waiting 15 seconds for the next retry...");
-                    Thread.sleep(15000);
+                    log.info("Waiting 60 seconds for the next retry...");
+                    Thread.sleep(60000);
                 } catch (InterruptedException b) {
                     log.error(b.getMessage());
                     log.error("Unable to sleep the process");
