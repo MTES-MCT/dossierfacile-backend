@@ -122,7 +122,11 @@ public class OvhServiceImpl implements OvhService {
                 if (eTag != null && !eTag.isEmpty()) {
                     objService.delete(ovhContainerName, oldName);
                     log.info("[" + oldName + "] renamed to [" + newName + "]");
+                    return;
                 }
+                log.error("[" + oldName + "] was not renamed successfully");
+                String customExceptionMessage = OVH_CONNECT + "Could not rename the file [" + oldName + "]";
+                throw new OvhConnectionFailedException(customExceptionMessage);
             } catch (Exception e) {
                 log.error(e.getMessage());
                 if (attempts == ovhConnectionReattempts) {
