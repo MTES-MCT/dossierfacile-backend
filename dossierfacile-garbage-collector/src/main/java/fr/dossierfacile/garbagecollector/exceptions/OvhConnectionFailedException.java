@@ -8,4 +8,7 @@ public class OvhConnectionFailedException extends RuntimeException {
     public OvhConnectionFailedException(String message, Throwable throwable) {
         super(message, throwable);
     }
+    public OvhConnectionFailedException(String message) {
+        super(message);
+    }
 }
