@@ -119,16 +119,11 @@ public class OvhServiceImpl implements OvhService {
     @Override
     public void renameFile(String oldName, String newName) {
         int attempts = 0;
-        final String REMOVE_LATER = "REMOVE_LATER. ";
         while (attempts++ < ovhConnectionReattempts) {
-            log.info(REMOVE_LATER + "attempt number [" + attempts + "]");
             try {
                 final ObjectStorageObjectService objService = getObjectStorage();
-                log.info(REMOVE_LATER + "Before calling the copy method to rename [" + oldName + "] to [" + newName + "]");
                 String eTag = objService.copy(ObjectLocation.create(ovhContainerName, oldName), ObjectLocation.create(ovhContainerName, newName));
-                log.info(REMOVE_LATER + "eTAG [" + eTag + "]");
                 if (eTag != null && !eTag.isEmpty()) {
-                    log.info(REMOVE_LATER + "Before deleting the old file [" + oldName + "]");
                     objService.delete(ovhContainerName, oldName);
                     log.info("[" + oldName + "] renamed to [" + newName + "]");
                     return;
