@@ -8,6 +8,7 @@ import org.openstack4j.api.OSClient;
 import org.openstack4j.api.exceptions.AuthenticationException;
 import org.openstack4j.api.exceptions.ClientResponseException;
 import org.openstack4j.api.storage.ObjectStorageObjectService;
+import org.openstack4j.core.transport.Config;
 import org.openstack4j.model.common.Identifier;
 import org.openstack4j.model.storage.object.SwiftObject;
 
@@ -54,6 +55,7 @@ public class OvhServiceImpl implements OvhService {
                             .endpoint(ovhAuthUrl)
                             .credentials(ovhUsername, ovhPassword, domainIdentifier)
                             .scopeToProject(Identifier.byName(ovhProjectName), Identifier.byName(ovhProjectDomain))
+                            .withConfig(Config.newConfig().withReadTimeout(60000).withConnectionTimeout(60000))
                             .authenticate();
                     os.useRegion(ovhRegion);
                     tokenId = os.getToken().getId();
@@ -62,6 +64,7 @@ public class OvhServiceImpl implements OvhService {
                             .endpoint(ovhAuthUrl)
                             .token(tokenId)
                             .scopeToProject(Identifier.byName(ovhProjectName), Identifier.byName(ovhProjectDomain))
+                            .withConfig(Config.newConfig().withReadTimeout(60000).withConnectionTimeout(60000))
                             .authenticate();
                     os.useRegion(ovhRegion);
                 }
@@ -73,6 +76,7 @@ public class OvhServiceImpl implements OvhService {
                         .endpoint(ovhAuthUrl)
                         .credentials(ovhUsername, ovhPassword, domainIdentifier)
                         .scopeToProject(Identifier.byName(ovhProjectName), Identifier.byName(ovhProjectDomain))
+                        .withConfig(Config.newConfig().withReadTimeout(60000).withConnectionTimeout(60000))
                         .authenticate();
                 os.useRegion(ovhRegion);
                 tokenId = os.getToken().getId();
@@ -116,7 +120,6 @@ public class OvhServiceImpl implements OvhService {
     public void renameFile(String oldName, String newName) {
         int attempts = 0;
         final String REMOVE_LATER = "REMOVE_LATER. ";
-        log.info(REMOVE_LATER + "INITIALIZING [attempts] to zero");
         while (attempts++ < ovhConnectionReattempts) {
             log.info(REMOVE_LATER + "attempt number [" + attempts + "]");
             try {
