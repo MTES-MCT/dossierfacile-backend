@@ -71,4 +71,9 @@ public class PropertyServiceImpl implements PropertyService {
         Optional<Property> property = properties.stream().filter(p -> p.getId().equals(id)).findFirst();
         property.ifPresent(propertyRepository::delete);
     }
+
+    @Override
+    public Optional<Property> getProperty(Long id) {
+        return propertyRepository.findById(id);
+    }
 }
