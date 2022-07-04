@@ -11,4 +11,6 @@ public interface PropertyRepository extends JpaRepository<Property, Long> {
     List<Property> findAllByOwnerId(Long ownerId);
 
     Optional<Property> findByIdAndOwnerId(Long id, Long ownerId);
+
+    Optional<Property> findByToken(String token);
 }
