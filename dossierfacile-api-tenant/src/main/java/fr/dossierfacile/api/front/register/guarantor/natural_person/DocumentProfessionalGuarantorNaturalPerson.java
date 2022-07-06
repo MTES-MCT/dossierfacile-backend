@@ -62,7 +62,6 @@ public class DocumentProfessionalGuarantorNaturalPerson implements SaveStep<Docu
 
     @Transactional
     Document saveDocument(Tenant tenant, DocumentProfessionalGuarantorNaturalPersonForm documentProfessionalGuarantorNaturalPersonForm) {
-        documentService.resetValidatedDocumentsStatusToToProcess(tenant);
         Guarantor guarantor = guarantorRepository.findByTenantAndTypeGuarantorAndId(tenant, TypeGuarantor.NATURAL_PERSON, documentProfessionalGuarantorNaturalPersonForm.getGuarantorId())
                 .orElseThrow(() -> new GuarantorNotFoundException(documentProfessionalGuarantorNaturalPersonForm.getGuarantorId()));
 
@@ -93,6 +92,7 @@ public class DocumentProfessionalGuarantorNaturalPerson implements SaveStep<Docu
         }
         documentService.initializeFieldsToProcessPdfGeneration(document);
         tenant.lastUpdateDateProfile(LocalDateTime.now(), DocumentCategory.PROFESSIONAL);
+        documentService.resetValidatedDocumentsStatusOfSpecifiedCategoriesToToProcess(guarantor.getDocuments(), List.of(DocumentCategory.PROFESSIONAL, DocumentCategory.FINANCIAL, DocumentCategory.TAX));
         tenantService.updateTenantStatus(tenant);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         tenantRepository.save(tenant);

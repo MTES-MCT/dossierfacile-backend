@@ -62,7 +62,6 @@ public class DocumentIdentificationGuarantorLegalPerson implements SaveStep<Docu
 
     @Transactional
     Document saveDocument(Tenant tenant, DocumentIdentificationGuarantorLegalPersonForm documentIdentificationGuarantorLegalPersonForm) {
-        documentService.resetValidatedDocumentsStatusToToProcess(tenant);
         Guarantor guarantor = guarantorRepository.findByTenantAndTypeGuarantorAndId(tenant, TypeGuarantor.LEGAL_PERSON, documentIdentificationGuarantorLegalPersonForm.getGuarantorId())
                 .orElseThrow(() -> new GuarantorNotFoundException(documentIdentificationGuarantorLegalPersonForm.getGuarantorId()));
         guarantor.setLegalPersonName(documentIdentificationGuarantorLegalPersonForm.getLegalPersonName());

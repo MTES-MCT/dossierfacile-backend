@@ -62,7 +62,6 @@ public class DocumentResidencyGuarantorNaturalPerson implements SaveStep<Documen
 
     @Transactional
     Document saveDocument(Tenant tenant, DocumentResidencyGuarantorNaturalPersonForm documentResidencyGuarantorNaturalPersonForm) {
-        documentService.resetValidatedDocumentsStatusToToProcess(tenant);
         Guarantor guarantor = guarantorRepository.findByTenantAndTypeGuarantorAndId(tenant, TypeGuarantor.NATURAL_PERSON, documentResidencyGuarantorNaturalPersonForm.getGuarantorId())
                 .orElseThrow(() -> new GuarantorNotFoundException(documentResidencyGuarantorNaturalPersonForm.getGuarantorId()));
 

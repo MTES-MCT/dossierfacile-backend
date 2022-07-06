@@ -32,7 +32,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -65,7 +64,6 @@ public class DocumentFinancialGuarantorNaturalPerson implements SaveStep<Documen
 
     @Transactional
     Document saveDocument(Tenant tenant, DocumentFinancialGuarantorNaturalPersonForm documentFinancialGuarantorNaturalPersonForm) {
-        documentService.resetValidatedDocumentsStatusToToProcess(tenant);
         Guarantor guarantor = guarantorRepository.findByTenantAndTypeGuarantorAndId(tenant, TypeGuarantor.NATURAL_PERSON, documentFinancialGuarantorNaturalPersonForm.getGuarantorId())
                 .orElseThrow(() -> new GuarantorNotFoundException(documentFinancialGuarantorNaturalPersonForm.getGuarantorId()));
 
@@ -111,6 +109,7 @@ public class DocumentFinancialGuarantorNaturalPerson implements SaveStep<Documen
         documentRepository.save(document);
         documentService.initializeFieldsToProcessPdfGeneration(document);
         tenant.lastUpdateDateProfile(LocalDateTime.now(), DocumentCategory.FINANCIAL);
+        documentService.resetValidatedDocumentsStatusOfSpecifiedCategoriesToToProcess(guarantor.getDocuments(), List.of(DocumentCategory.PROFESSIONAL, DocumentCategory.FINANCIAL, DocumentCategory.TAX));
         tenantService.updateTenantStatus(tenant);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         tenantRepository.save(tenant);

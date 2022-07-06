@@ -2,6 +2,7 @@ package fr.dossierfacile.api.front.service.interfaces;
 
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.enums.DocumentCategory;
 
 import java.util.List;
 
@@ -15,6 +16,8 @@ public interface DocumentService {
     void resetValidatedDocumentsStatusToToProcess(Tenant tenant);
 
     void resetValidatedAndDeniedDocumentsStatusToToProcess(List<Document> documentList);
+
+    void resetValidatedDocumentsStatusOfSpecifiedCategoriesToToProcess(List<Document> documentList, List<DocumentCategory> categoriesToChange);
 
     void deleteAllDocumentsAssociatedToTenant(Tenant tenant);
 }

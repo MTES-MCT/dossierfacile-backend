@@ -36,8 +36,6 @@ public class FileServiceImpl implements FileService {
     public Document delete(Long id, Tenant tenant) {
         File file = fileRepository.findByIdAndTenant(id, tenant.getId()).orElseThrow(() -> new FileNotFoundException(id, tenant));
 
-        documentService.resetValidatedDocumentsStatusToToProcess(tenant);
-
         Document document = file.getDocument();
 
         ovhService.delete(file.getPath());
