@@ -11,7 +11,7 @@ import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.TenantFileStatus;
-import fr.dossierfacile.common.service.interfaces.OvhService;
+import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -29,7 +29,7 @@ public class DocumentServiceImpl implements DocumentService {
 
     private final DocumentRepository documentRepository;
     private final FileRepository fileRepository;
-    private final OvhService ovhService;
+    private final FileStorageService fileStorageService;
     private final TenantService tenantService;
     private final ApartmentSharingService apartmentSharingService;
 
@@ -38,7 +38,7 @@ public class DocumentServiceImpl implements DocumentService {
         Document document = documentRepository.findByIdAssociatedToTenantId(documentId, tenant.getId())
                 .orElseThrow(() -> new DocumentNotFoundException(documentId));
         resetValidatedDocumentsStatusToToProcess(tenant);
-        ovhService.delete(document.getFiles().stream().map(File::getPath).collect(Collectors.toList()));
+        fileStorageService.delete(document.getFiles().stream().map(File::getPath).collect(Collectors.toList()));
         documentRepository.delete(document);
         tenant.getDocuments().remove(document);
         tenantService.updateTenantStatus(tenant);
@@ -113,11 +113,11 @@ public class DocumentServiceImpl implements DocumentService {
         List<String> pathFiles = fileRepository.getFilePathsByDocumentId(document.getId());
         if (pathFiles != null && !pathFiles.isEmpty()) {
             log.info("Removing files from storage of document with id [" + document.getId() + "]");
-            ovhService.delete(pathFiles);
+            fileStorageService.delete(pathFiles);
         }
         if (document.getName() != null && !document.getName().isBlank()) {
             log.info("Removing document from storage with path [" + document.getName() + "]");
-            ovhService.delete(document.getName());
+            fileStorageService.delete(document.getName());
         }
     }
 }

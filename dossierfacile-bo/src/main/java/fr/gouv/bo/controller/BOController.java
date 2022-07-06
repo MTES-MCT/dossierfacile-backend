@@ -9,9 +9,8 @@ import fr.dossierfacile.common.entity.UserRole;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.Role;
-import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.repository.DocumentPdfGenerationLogRepository;
-import fr.dossierfacile.common.service.interfaces.OvhService;
+import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.gouv.bo.amqp.Producer;
 import fr.gouv.bo.dto.BooleanDTO;
@@ -27,7 +26,6 @@ import fr.gouv.bo.service.DocumentService;
 import fr.gouv.bo.service.TenantService;
 import fr.gouv.bo.service.UserRoleService;
 import fr.gouv.bo.service.UserService;
-import fr.gouv.bo.utils.UtilsLocatio;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -47,7 +45,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.validation.Valid;
 import java.security.Principal;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -72,7 +69,7 @@ public class BOController {
     private final ApartmentSharingService apartmentSharingService;
     private final TenantService tenantService;
     private final UserService userService;
-    private final OvhService ovhService;
+    private final FileStorageService fileStorageService;
     private final DocumentService documentService;
     private final Producer producer;
     private final UserRoleService userRoleService;
@@ -324,7 +321,7 @@ public class BOController {
         if (result.hasErrors()) {
             return "bo/deleteFile";
         }
-        ovhService.deleteAllFiles(fileForm.getPath());
+        fileStorageService.deleteAllFiles(fileForm.getPath());
         return "redirect:/bo/deleteFile";
     }
 

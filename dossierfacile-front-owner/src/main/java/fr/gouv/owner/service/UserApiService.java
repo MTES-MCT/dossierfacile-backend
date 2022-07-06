@@ -2,7 +2,7 @@ package fr.gouv.owner.service;
 
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.TypeUserApi;
-import fr.dossierfacile.common.service.interfaces.OvhService;
+import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.gouv.owner.dto.UserApiDTO;
 import fr.gouv.owner.repository.UserApiRepository;
 import fr.gouv.owner.utils.UtilsLocatio;
@@ -20,7 +20,7 @@ import java.util.Objects;
 public class UserApiService {
 
     private final UserApiRepository userApiRepository;
-    private final OvhService ovhService;
+    private final FileStorageService fileStorageService;
 
     public UserApi findById(Long id) {
         return userApiRepository.findOneById(id);
@@ -40,7 +40,7 @@ public class UserApiService {
         userApi.setPartnerApiKeyCallback(userApiDTO.getPartnerApiKeyCallback());
         if (userApiDTO.getLogo() != null && !Objects.requireNonNull(userApiDTO.getLogo().getOriginalFilename()).isEmpty()) {
             try {
-                ovhService.upload("logoApi/" + username + ".png", userApiDTO.getLogo().getInputStream());
+                fileStorageService.upload("logoApi/" + username + ".png", userApiDTO.getLogo().getInputStream(), null);
                 userApi.setLogo(true);
             } catch (IOException e) {
                 log.error(e.getMessage(), e.getCause());

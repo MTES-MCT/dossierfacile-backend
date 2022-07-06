@@ -11,24 +11,17 @@ import fr.dossierfacile.common.entity.DocumentPdfGenerationLog;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.repository.DocumentPdfGenerationLogRepository;
-import fr.dossierfacile.common.service.interfaces.OvhService;
+import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
-import org.openstack4j.model.storage.object.SwiftObject;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
@@ -41,7 +34,7 @@ public class FileController {
     private final Producer producer;
     private final AuthenticationFacade authenticationFacade;
     private final FileRepository fileRepository;
-    private final OvhService ovhService;
+    private final FileStorageService fileStorageService;
     private final DocumentPdfGenerationLogRepository documentPdfGenerationLogRepository;
 
     @DeleteMapping("/{id}")
@@ -62,48 +55,44 @@ public class FileController {
     public void getPrivateFileAsByteArray(HttpServletResponse response, @PathVariable Long id) {
         Tenant tenant = authenticationFacade.getTenant(null);
         File file = fileRepository.findByIdAndTenant(id, tenant.getId()).orElseThrow(() -> new FileNotFoundException(id));
-        String fileName = file.getPath();
-        SwiftObject object = ovhService.get(file.getPath());
-        if (object != null) {
-            try (InputStream in = object.download().getInputStream()) {
-                if (fileName.endsWith(".pdf")) {
-                    response.setContentType(MediaType.APPLICATION_PDF_VALUE);
-                } else if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
-                    response.setContentType(MediaType.IMAGE_JPEG_VALUE);
-                } else {
-                    response.setContentType(MediaType.IMAGE_PNG_VALUE);
-                }
-                IOUtils.copy(in, response.getOutputStream());
-            } catch (final IOException e) {
-                log.error(FILE_NO_EXIST);
-                response.setStatus(404);
+
+        try (InputStream in = fileStorageService.download(file)) {
+            String fileName = file.getPath();
+            if (fileName.endsWith(".pdf")) {
+                response.setContentType(MediaType.APPLICATION_PDF_VALUE);
+            } else if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
+                response.setContentType(MediaType.IMAGE_JPEG_VALUE);
+            } else {
+                response.setContentType(MediaType.IMAGE_PNG_VALUE);
             }
-        } else {
-            log.error(FILE_NO_EXIST);
+            IOUtils.copy(in, response.getOutputStream());
+        } catch (final java.io.FileNotFoundException e) {
+            log.error(FILE_NO_EXIST, e);
+            response.setStatus(404);
+        } catch (IOException e) {
+            log.error("File cannot be downloaded - 408 - Too long?", e);
             response.setStatus(404);
         }
     }
 
     @GetMapping(value = "/download/{fileName:.+}", produces = {MediaType.APPLICATION_PDF_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
     public void getFileAsByteArray(HttpServletResponse response, @PathVariable String fileName) {
-        SwiftObject object = ovhService.get(fileName);
-        if (object != null) {
-            try (InputStream in = object.download().getInputStream()) {
-                if (fileName.endsWith(".pdf")) {
-                    response.setContentType(MediaType.APPLICATION_PDF_VALUE);
-                } else if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
-                    response.setContentType(MediaType.IMAGE_JPEG_VALUE);
-                } else {
-                    response.setContentType(MediaType.IMAGE_PNG_VALUE);
-                }
-                IOUtils.copy(in, response.getOutputStream());
-            } catch (final IOException e) {
-                log.error(FILE_NO_EXIST);
-                response.setStatus(404);
+        // TODO GET file from filename
+        try (InputStream in = fileStorageService.download(fileName, null)) {
+            if (fileName.endsWith(".pdf")) {
+                response.setContentType(MediaType.APPLICATION_PDF_VALUE);
+            } else if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
+                response.setContentType(MediaType.IMAGE_JPEG_VALUE);
+            } else {
+                response.setContentType(MediaType.IMAGE_PNG_VALUE);
             }
-        } else {
-            log.error(FILE_NO_EXIST);
+            IOUtils.copy(in, response.getOutputStream());
+        } catch (final java.io.FileNotFoundException e) {
+            log.error(FILE_NO_EXIST, e);
             response.setStatus(404);
+        } catch (IOException e){
+            log.error("File cannot be downloaded - 408 - Too long?", e);
+            response.setStatus(408);
         }
     }
 }
