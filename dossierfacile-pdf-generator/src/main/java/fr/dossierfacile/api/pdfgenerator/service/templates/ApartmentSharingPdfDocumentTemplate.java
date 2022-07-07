@@ -122,6 +122,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
     private static final Resource FONT_SPECTRAL_BOLD = new ClassPathResource("static/fonts/Spectral-Bold.ttf");
     private static final Resource FONT_SPECTRAL_EXTRA_BOLD = new ClassPathResource("static/fonts/Spectral-ExtraBold.ttf");
     private static final Resource FONT_SPECTRAL_ITALIC = new ClassPathResource("static/fonts/Spectral-Italic.ttf");
+
     //endregion
     //region First templates
     private static final Resource TEMPLATE_OF_FIRST_INDEXPAGES = new ClassPathResource("static/pdf/template_Dossier_PDF_first_page_1.pdf");
