@@ -33,6 +33,28 @@ public class BOPdfDocumentTemplateTest {
         Mockito.when(messageSource.getMessage(any(),any(),any(),any() )).thenReturn(BOPdfDocumentTemplate.DEFAULT_WATERMARK);
     }
 
+    @Disabled
+    @DisplayName("Check if the pdf file is correctly generated in specific files")
+    @Test
+    public void check_render_with_special_files() throws IOException {
+        InputStream is = BOPdfDocumentTemplateTest.class.getClassLoader().getResourceAsStream("secret/TestBOFile1.pdf");
+
+        FileInputStream data = FileInputStream
+                .builder()
+                .extension("pdf")
+                .inputStream(is)
+                .build();
+
+        File resultFile = new File("target/resultSpecial.pdf");
+        resultFile.createNewFile();
+
+        byte[] bytes = IOUtils.toByteArray(boPdfDocumentTemplate.render(Arrays.asList(data)));
+
+        FileOutputStream w = new FileOutputStream(resultFile);
+        w.write(bytes);
+    }
+
+
     @DisplayName("Check if the render is correctly generated from text pdf and wrong sized pdf")
     @Test
     public void check_render_with_text_pdf() throws IOException {
