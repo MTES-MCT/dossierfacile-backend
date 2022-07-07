@@ -58,4 +58,5 @@
     <include file="db/migration/202206151600-add-combined-constraint.xml"/>
     <include file="db/migration/202206271600-add-indexes.xml"/>
     <include file="db/migration/202206281000-add-index.xml"/>
+    <include file="db/migration/202207050000-encryption-key-changelog.xml"/>
 </databaseChangeLog>

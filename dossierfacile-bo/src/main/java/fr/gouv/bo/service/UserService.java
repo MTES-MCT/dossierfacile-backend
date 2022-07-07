@@ -15,7 +15,7 @@ import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.Role;
 import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
-import fr.dossierfacile.common.service.interfaces.OvhService;
+import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.gouv.bo.dto.UserDTO;
 import fr.gouv.bo.mapper.TenantMapper;
@@ -48,7 +48,7 @@ public class UserService {
     private final TenantCommonRepository tenantRepository;
     private final ModelMapper modelMapper;
     private final MailService mailService;
-    private final OvhService ovhService;
+    private final FileStorageService fileStorageService;
     private final TenantMapper tenantMapper;
     private final AccountDeleteLogRepository accountDeleteLogRepository;
     private final KeycloakService keycloakService;
@@ -161,11 +161,11 @@ public class UserService {
         List<File> files = document.getFiles();
         if (files != null && !files.isEmpty()) {
             log.info("Removing files from storage of document with id [" + document.getId() + "]");
-            ovhService.delete(files.stream().map(File::getPath).collect(Collectors.toList()));
+            fileStorageService.delete(files.stream().map(File::getPath).collect(Collectors.toList()));
         }
         if (document.getName() != null && !document.getName().isBlank()) {
             log.info("Removing document from storage with path [" + document.getName() + "]");
-            ovhService.delete(document.getName());
+            fileStorageService.delete(document.getName());
         }
     }
 

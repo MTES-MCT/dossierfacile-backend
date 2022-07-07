@@ -13,11 +13,4 @@ public interface DownloadService {
      */
     InputStream getDocumentInputStream(Document document);
 
-    /**
-     * Gets DocumentInputStream of a specified file from OVH storage.
-     *
-     * @param filePath name of object in storage
-     * @return file's content inputStream
-     */
-    InputStream getFileInputStream(String filePath);
 }

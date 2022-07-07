@@ -8,6 +8,6 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface FileRepository extends JpaRepository<File, Long> {
-    @Query(value = "select path FROM file WHERE document_id = :documentId", nativeQuery = true)
-    List<String> getFilePathsByDocumentId(@Param("documentId") Long documentId);
+    @Query("from File f left join fetch f.key where document_id = :documentId")
+    List<File> findAllByDocumentId(@Param("documentId") Long documentId);
 }

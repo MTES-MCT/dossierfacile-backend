@@ -14,20 +14,18 @@ import fr.dossierfacile.common.mapper.ApplicationFullMapper;
 import fr.dossierfacile.common.mapper.ApplicationLightMapper;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
-import fr.dossierfacile.common.service.interfaces.OvhService;
+import fr.dossierfacile.common.service.interfaces.FileStorageService;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.UnknownServiceException;
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
-import org.openstack4j.model.common.DLPayload;
-import org.openstack4j.model.storage.object.SwiftObject;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @AllArgsConstructor
@@ -38,7 +36,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
     private final TenantCommonRepository tenantRepository;
     private final ApplicationFullMapper applicationFullMapper;
     private final ApplicationLightMapper applicationLightMapper;
-    private final OvhService ovhService;
+    private final FileStorageService fileStorageService;
     private final LinkLogRepository linkLogRepository;
     private final Producer producer;
 
@@ -85,18 +83,17 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
         if (apartmentSharing.getDossierPdfDocumentStatus() != FileStatus.COMPLETED) {
             throw new FileNotFoundException("Full PDF doesn't exist - FileStatus " + apartmentSharing.getDossierPdfDocumentStatus());
         } else {
-            SwiftObject swiftObject = ovhService.get(apartmentSharing.getUrlDossierPdfDocument());
-            if (swiftObject != null) {
-                DLPayload dlPayload = swiftObject.download();
-                if (dlPayload.getHttpResponse().getStatus() == HttpStatus.OK.value()) {
-                    log.info("Dossier PDF downloaded for ApartmentSharing with ID [" + apartmentSharing.getId() + "]");
-                    InputStream fileIS = swiftObject.download().getInputStream();
-                    IOUtils.copy(fileIS, outputStreamResult);
-                } else {
-                    log.error("Problem downloading Dossier pdf [" + apartmentSharing.getUrlDossierPdfDocument() + "].");
-                    throw new UnknownServiceException("Unable to get Full PDF from Storage");
-                }
+            try (InputStream fileIS = fileStorageService.download(apartmentSharing.getUrlDossierPdfDocument(), null)) {
+                log.info("Dossier PDF downloaded for ApartmentSharing with ID [" + apartmentSharing.getId() + "]");
+                IOUtils.copy(fileIS, outputStreamResult);
                 saveLinkLog(apartmentSharing, token, LinkType.DOCUMENT);
+
+            } catch (FileNotFoundException e) {
+                log.error("Unable to download Dossier pdf [" + apartmentSharing.getUrlDossierPdfDocument() + "].");
+                throw e;
+            } catch (IOException e) {
+                log.error("Unable to download Dossier pdf [" + apartmentSharing.getUrlDossierPdfDocument() + "].");
+                throw new UnknownServiceException("Unable to get Full PDF from Storage");
             }
         }
         return outputStreamResult;
@@ -107,7 +104,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
     public void resetDossierPdfGenerated(ApartmentSharing apartmentSharing) {
         String currentUrl = apartmentSharing.getUrlDossierPdfDocument();
         if (currentUrl != null) {
-            ovhService.delete(currentUrl);
+            fileStorageService.delete(currentUrl);
             apartmentSharing.setUrlDossierPdfDocument(null);
             apartmentSharing.setDossierPdfDocumentStatus(FileStatus.DELETED);
             apartmentSharingRepository.save(apartmentSharing);

@@ -29,7 +29,7 @@ import java.util.Objects;
 @Component
 public class Utility {
     public static final PDRectangle MINUMUM_BASE_PDF_PAGE = PDRectangle.A4;
-    private static final float DPI_RENDERING_PDF_PAGE_TO_IMAGE = 150;
+
 
     public static int countNumberOfPagesOfPdfDocument(byte[] bytes) {
         int numberOfPages = 0;
@@ -43,14 +43,6 @@ public class Utility {
             log.error(e.getMessage(), e.getCause());
         }
         return numberOfPages;
-    }
-
-    public static int countNumberOfPagesOfPdfDocument(MultipartFile multipartFile) {
-        if (multipartFile.isEmpty()) {
-            return 0;
-        }
-        ByteArrayOutputStream outputStream = mergeMultipartFiles(Collections.singletonList(multipartFile));
-        return countNumberOfPagesOfPdfDocument(outputStream.toByteArray());
     }
 
     public static ByteArrayOutputStream mergeMultipartFiles(List<MultipartFile> multipartFiles) {
@@ -109,104 +101,5 @@ public class Utility {
             log.error("Exception while trying convert image to pdf", e);
         }
         return baos.toByteArray();
-    }
-
-    public static List<ByteArrayOutputStream> generateListOfImagesFromPdfPages(InputStream inputStream) {
-
-        List<ByteArrayOutputStream> outputStreamList = new ArrayList<>();
-        PDDocument document;
-        try {
-            document = PDDocument.load(inputStream);
-            PDFRenderer pdfRenderer = new PDFRenderer(document);
-
-            for (int indexPage = 0; indexPage < document.getNumberOfPages(); ++indexPage) {
-                ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-
-                BufferedImage bim = pdfRenderer.renderImageWithDPI(indexPage, DPI_RENDERING_PDF_PAGE_TO_IMAGE);
-                ImageIOUtil.writeImage(bim, "png", outputStream);
-
-                outputStreamList.add(
-                        outputStream
-                );
-            }
-            document.close();
-        } catch (IOException e) {
-            log.error("Problem converting the pdf pages to images");
-            log.error(e.getMessage(), e.getCause());
-        }
-        return outputStreamList;
-    }
-
-    public static BufferedImage convertPdfTemplateToImage(InputStream inputStream) {
-        BufferedImage bim = null;
-        try {
-            PDDocument document = PDDocument.load(inputStream);
-            PDFRenderer pdfRenderer = new PDFRenderer(document);
-
-            bim = pdfRenderer.renderImageWithDPI(0, DPI_RENDERING_PDF_PAGE_TO_IMAGE);
-            document.close();
-
-        } catch (IOException e) {
-            log.error("Problem in add water marker method");
-            log.error("Problem converting the pdf page to image");
-            log.error(e.getMessage(), e.getCause());
-        }
-        return bim;
-    }
-
-    public static void addParagraph(PDPageContentStream contentStream, float width, float sx, float sy,
-                                    List<String> text, boolean justify, PDFont font, float fontSize) throws IOException {
-        List<List<String>> listList = parseLines(text, width, font, fontSize);
-        contentStream.setFont(font, fontSize);
-        contentStream.newLineAtOffset(sx, sy);
-        for (List<String> lines : listList
-        ) {
-            for (String line : lines) {
-                float charSpacing = 0;
-                if (justify && line.length() > 1) {
-                    float size = fontSize * font.getStringWidth(line) / 1000;
-                    float free = width - size;
-                    if (free > 0 && !lines.get(lines.size() - 1).equals(line)) {
-                        charSpacing = free / (line.length() - 1);
-                    }
-
-                }
-                contentStream.setCharacterSpacing(charSpacing);
-                contentStream.showText(line);
-                contentStream.newLine();
-            }
-        }
-    }
-
-    private static List<List<String>> parseLines(List<String> list, float width, PDFont font, float fontSize) throws IOException {
-        List<List<String>> listArrayList = new ArrayList<>();
-        for (String text : list
-        ) {
-            List<String> lines = new ArrayList<>();
-            int lastSpace = -1;
-            while (text.length() > 0) {
-                int spaceIndex = text.indexOf(' ', lastSpace + 1);
-                if (spaceIndex < 0)
-                    spaceIndex = text.length();
-                String subString = text.substring(0, spaceIndex);
-                float size = fontSize * font.getStringWidth(subString) / 1000;
-                if (size > width) {
-                    if (lastSpace < 0) {
-                        lastSpace = spaceIndex;
-                    }
-                    subString = text.substring(0, lastSpace);
-                    lines.add(subString);
-                    text = text.substring(lastSpace).trim();
-                    lastSpace = -1;
-                } else if (spaceIndex == text.length()) {
-                    lines.add(text);
-                    text = "";
-                } else {
-                    lastSpace = spaceIndex;
-                }
-            }
-            listArrayList.add(lines);
-        }
-        return listArrayList;
     }
 }

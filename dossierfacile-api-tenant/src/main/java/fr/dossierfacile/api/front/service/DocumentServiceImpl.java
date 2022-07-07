@@ -13,6 +13,10 @@ import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.service.interfaces.OvhService;
+import fr.dossierfacile.common.service.interfaces.FileStorageService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +35,7 @@ public class DocumentServiceImpl implements DocumentService {
 
     private final DocumentRepository documentRepository;
     private final FileRepository fileRepository;
-    private final OvhService ovhService;
+    private final FileStorageService fileStorageService;
     private final TenantService tenantService;
     private final ApartmentSharingService apartmentSharingService;
 
@@ -39,7 +43,7 @@ public class DocumentServiceImpl implements DocumentService {
     public void delete(Long documentId, Tenant tenant) {
         Document document = documentRepository.findByIdAssociatedToTenantId(documentId, tenant.getId())
                 .orElseThrow(() -> new DocumentNotFoundException(documentId));
-
+        
         List<Document> documentList = new ArrayList<>();
         if (document.getTenant() != null) {
             documentList = document.getTenant().getDocuments();
@@ -151,11 +155,11 @@ public class DocumentServiceImpl implements DocumentService {
         List<String> pathFiles = fileRepository.getFilePathsByDocumentId(document.getId());
         if (pathFiles != null && !pathFiles.isEmpty()) {
             log.info("Removing files from storage of document with id [" + document.getId() + "]");
-            ovhService.delete(pathFiles);
+            fileStorageService.delete(pathFiles);
         }
         if (document.getName() != null && !document.getName().isBlank()) {
             log.info("Removing document from storage with path [" + document.getName() + "]");
-            ovhService.delete(document.getName());
+            fileStorageService.delete(document.getName());
         }
     }
 }

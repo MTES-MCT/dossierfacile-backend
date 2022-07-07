@@ -2,7 +2,7 @@ package fr.gouv.bo.service;
 
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.TypeUserApi;
-import fr.dossierfacile.common.service.interfaces.OvhService;
+import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.gouv.bo.dto.UserApiDTO;
 import fr.gouv.bo.repository.UserApiRepository;
 import fr.gouv.bo.utils.UtilsLocatio;
@@ -20,7 +20,7 @@ import java.util.Objects;
 public class UserApiService {
 
     private final UserApiRepository userApiRepository;
-    private final OvhService ovhService;
+    private final FileStorageService fileStorageService;
 
     public UserApi findById(Long id) {
         return userApiRepository.findOneById(id);
@@ -49,7 +49,7 @@ public class UserApiService {
         userApi.setPartnerApiKeyCallback(userApiDTO.getPartnerApiKeyCallback());
         if (userApiDTO.getLogo() != null && !Objects.requireNonNull(userApiDTO.getLogo().getOriginalFilename()).isEmpty()) {
             try {
-                ovhService.upload("logoApi/" + UtilsLocatio.generateRandomString(12) + ".png", userApiDTO.getLogo().getInputStream());
+                fileStorageService.upload("logoApi/" + UtilsLocatio.generateRandomString(12) + ".png", userApiDTO.getLogo().getInputStream(), null);
                 userApi.setLogo(true);
             } catch (IOException e) {
                 log.error(e.getMessage(), e.getCause());
@@ -67,7 +67,7 @@ public class UserApiService {
         userApi.setPartnerApiKeyCallback(userApiDTO.getPartnerApiKeyCallback());
         if (!Objects.requireNonNull(userApiDTO.getLogo().getOriginalFilename()).isEmpty()) {
             try {
-                ovhService.upload("logoApi/" + UtilsLocatio.generateRandomString(12) + ".png", userApiDTO.getLogo().getInputStream());
+                fileStorageService.upload("logoApi/" + UtilsLocatio.generateRandomString(12) + ".png", userApiDTO.getLogo().getInputStream(), null);
                 userApi.setLogo(true);
             } catch (IOException e) {
                 log.error(e.getMessage(), e.getCause());
