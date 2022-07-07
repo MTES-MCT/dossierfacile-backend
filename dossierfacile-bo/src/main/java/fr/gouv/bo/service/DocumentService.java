@@ -9,13 +9,12 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.repository.DocumentPdfGenerationLogRepository;
-import fr.dossierfacile.common.service.interfaces.OvhService;
+import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.gouv.bo.amqp.Producer;
 import fr.gouv.bo.dto.MessageDTO;
 import fr.gouv.bo.exception.DocumentNotFoundException;
 import fr.gouv.bo.repository.DocumentDeniedOptionsRepository;
 import fr.gouv.bo.repository.DocumentRepository;
-import fr.gouv.bo.repository.FileRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -35,8 +34,7 @@ import java.util.stream.Collectors;
 public class DocumentService {
 
     public final DocumentRepository documentRepository;
-    public final OvhService ovhService;
-    public final FileRepository fileRepository;
+    public final FileStorageService fileStorageService;
     private final Producer producer;
     private final DocumentPdfGenerationLogRepository documentPdfGenerationLogRepository;
     private final DocumentDeniedOptionsRepository documentDeniedOptionsRepository;
@@ -96,11 +94,11 @@ public class DocumentService {
         List<File> files = document.getFiles();
         if (files != null && !files.isEmpty()) {
             log.info("Removing files from storage of document with id [" + document.getId() + "]");
-            ovhService.delete(files.stream().map(File::getPath).collect(Collectors.toList()));
+            fileStorageService.delete(files.stream().map(File::getPath).collect(Collectors.toList()));
         }
         if (document.getName() != null && !document.getName().isBlank()) {
             log.info("Removing document from storage with path [" + document.getName() + "]");
-            ovhService.delete(document.getName());
+            fileStorageService.delete(document.getName());
         }
     }
 

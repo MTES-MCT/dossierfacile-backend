@@ -1,8 +1,9 @@
 package fr.dossierfacile.common.service;
 
+import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.exceptions.FileCannotUploadedException;
 import fr.dossierfacile.common.exceptions.OvhConnectionFailedException;
-import fr.dossierfacile.common.service.interfaces.OvhService;
+import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import io.sentry.Sentry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
@@ -15,13 +16,17 @@ import org.openstack4j.model.storage.object.SwiftObject;
 import org.openstack4j.model.storage.object.options.ObjectListOptions;
 import org.openstack4j.openstack.OSFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.crypto.Cipher;
+import javax.crypto.CipherInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.time.LocalDateTime;
+import java.security.Key;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -29,7 +34,8 @@ import java.util.UUID;
 
 @Service
 @Slf4j
-public class OvhServiceImpl implements OvhService {
+@Profile("!mockOvh")
+public class OvhFileStorageServiceImpl implements FileStorageService {
     private static final String OVH_CONNECT = "OVH connect. ";
     private static final String EXCEPTION = "Sentry ID Exception: ";
 
@@ -122,12 +128,31 @@ public class OvhServiceImpl implements OvhService {
     }
 
     @Override
-    public SwiftObject get(String name) {
-        return connect().objectStorage().objects().get(ovhContainerName, name);
+    public InputStream download(String path, Key key) throws IOException {
+        SwiftObject object = connect().objectStorage().objects().get(ovhContainerName, path);
+        if (object == null)
+            throw new FileNotFoundException("File " + path + " not found");
+
+        InputStream in = object.download().getInputStream();
+        if (key != null) {
+            try {
+                Cipher aes = Cipher.getInstance("AES/ECB/PKCS5Padding");
+                aes.init(Cipher.DECRYPT_MODE, key);
+
+                in = new CipherInputStream(in, aes);
+            } catch (Exception e) {
+                throw new IOException(e);
+            }
+        }
+        return in;
     }
 
     @Override
-    public List<? extends SwiftObject> getListObject(String folderName) {
+    public InputStream download(File file) throws IOException {
+        return download(file.getPath(), file.getKey());
+    }
+
+    private List<? extends SwiftObject> getListObject(String folderName) {
         OSClient.OSClientV3 os = connect();
         return os.objectStorage().objects().list(ovhContainerName, ObjectListOptions.create()
                 .path(folderName)
@@ -135,20 +160,27 @@ public class OvhServiceImpl implements OvhService {
     }
 
     @Override
-    public List<? extends SwiftObject> listObjectContainer() {
-        return connect().objectStorage().objects().list(ovhContainerName);
-    }
+    public void upload(String ovhPath, InputStream inputStream, Key key) throws IOException {
+        if (key != null) {
+            try {
+                Cipher aes = Cipher.getInstance("AES/ECB/PKCS5Padding");
+                aes.init(Cipher.ENCRYPT_MODE, key);
 
-    @Override
-    public void upload(String ovhPath, InputStream inputStream) {
+                inputStream = new CipherInputStream(inputStream, aes);
+
+            } catch (Exception e) {
+                log.error("Unable to encrypt file", e);
+                throw new IOException(e);
+            }
+        }
         connect().objectStorage().objects().put(ovhContainerName, ovhPath, Payloads.create(inputStream));
     }
 
     @Override
-    public String uploadFile(MultipartFile file) {
+    public String uploadFile(MultipartFile file, Key key) {
         String name = UUID.randomUUID() + "." + Objects.requireNonNull(FilenameUtils.getExtension(file.getOriginalFilename())).toLowerCase(Locale.ROOT);
         try {
-            upload(name, file.getInputStream());
+            upload(name, file.getInputStream(), key);
         } catch (IOException e) {
             throw new FileCannotUploadedException();
         }
