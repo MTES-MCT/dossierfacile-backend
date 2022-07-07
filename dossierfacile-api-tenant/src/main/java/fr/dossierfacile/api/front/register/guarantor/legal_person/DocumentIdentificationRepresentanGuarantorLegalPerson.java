@@ -77,7 +77,6 @@ public class DocumentIdentificationRepresentanGuarantorLegalPerson implements Sa
 
         documentService.initializeFieldsToProcessPdfGeneration(document);
         tenant.lastUpdateDateProfile(LocalDateTime.now(), DocumentCategory.IDENTIFICATION);
-        documentService.resetValidatedDocumentsStatusToToProcess(tenant);
         tenantService.updateTenantStatus(tenant);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         tenantRepository.save(tenant);

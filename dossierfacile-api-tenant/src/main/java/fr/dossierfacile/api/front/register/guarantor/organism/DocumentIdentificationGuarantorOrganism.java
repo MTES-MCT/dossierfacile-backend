@@ -55,7 +55,6 @@ public class DocumentIdentificationGuarantorOrganism implements SaveStep<Documen
 
     @Transactional
     Document saveDocument(Tenant tenant, DocumentIdentificationGuarantorOrganismForm documentIdentificationGuarantorOrganismForm) {
-        documentService.resetValidatedDocumentsStatusToToProcess(tenant);
         Guarantor guarantor = guarantorRepository.findByTenantAndTypeGuarantorAndId(tenant, TypeGuarantor.ORGANISM, documentIdentificationGuarantorOrganismForm.getGuarantorId())
                 .orElseThrow(() -> new GuarantorNotFoundException(documentIdentificationGuarantorOrganismForm.getGuarantorId()));
 

@@ -67,7 +67,6 @@ public class DocumentIdentification implements SaveStep<DocumentIdentificationFo
 
         documentService.initializeFieldsToProcessPdfGeneration(document);
         tenant.lastUpdateDateProfile(LocalDateTime.now(), DocumentCategory.IDENTIFICATION);
-        documentService.resetValidatedDocumentsStatusToToProcess(tenant);
         tenantService.updateTenantStatus(tenant);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         tenantRepository.save(tenant);
