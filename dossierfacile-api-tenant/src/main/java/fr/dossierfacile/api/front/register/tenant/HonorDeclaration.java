@@ -6,15 +6,15 @@ import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.SaveStep;
 import fr.dossierfacile.api.front.register.form.tenant.HonorDeclarationForm;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
-import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
-import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 
 @Service
 @AllArgsConstructor
@@ -24,7 +24,6 @@ public class HonorDeclaration implements SaveStep<HonorDeclarationForm> {
     private final TenantMapper tenantMapper;
     private final Producer producer;
     private final MailService mailService;
-    private final DocumentService documentService;
     private final TenantService tenantService;
     private final ApartmentSharingService apartmentSharingService;
 
@@ -35,7 +34,6 @@ public class HonorDeclaration implements SaveStep<HonorDeclarationForm> {
         tenant.setClarification(honorDeclarationForm.getClarification());
         tenant.lastUpdateDateProfile(LocalDateTime.now(), null);
         producer.processFileOcr(tenant.getId());
-        documentService.resetValidatedDocumentsStatusToToProcess(tenant);
         tenantService.updateTenantStatus(tenant);
         Tenant tenantSaved = tenantRepository.save(tenant);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());

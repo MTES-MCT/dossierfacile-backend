@@ -63,7 +63,6 @@ public class DocumentIdentificationGuarantorNaturalPersonFile implements SaveSte
 
     @Transactional
     Document saveDocument(Tenant tenant, DocumentIdentificationGuarantorNaturalPersonFileForm documentIdentificationGuarantorNaturalPersonFileForm) {
-        documentService.resetValidatedDocumentsStatusToToProcess(tenant);
         Guarantor guarantor = guarantorRepository.findByTenantAndTypeGuarantorAndId(tenant, TypeGuarantor.NATURAL_PERSON, documentIdentificationGuarantorNaturalPersonFileForm.getGuarantorId())
                 .orElseThrow(() -> new GuarantorNotFoundException(documentIdentificationGuarantorNaturalPersonFileForm.getGuarantorId()));
         guarantor.setTenant(tenant);
