@@ -35,8 +35,10 @@ public class Names implements SaveStep<NamesForm> {
                 || !tenant.getLastName().equals(namesForm.getLastName())) {
             documentService.resetValidatedDocumentsStatusOfSpecifiedCategoriesToToProcess(tenant.getDocuments(), Arrays.asList(DocumentCategory.values()));
         }
-        tenant.setFirstName(namesForm.getFirstName());
-        tenant.setLastName(namesForm.getLastName());
+        if (!tenant.getFranceConnect()) {
+            tenant.setFirstName(namesForm.getFirstName());
+            tenant.setLastName(namesForm.getLastName());
+        }
         tenant.setPreferredName(namesForm.getPreferredName());
         tenant.setZipCode(namesForm.getZipCode());
         tenant.lastUpdateDateProfile(LocalDateTime.now(), null);
