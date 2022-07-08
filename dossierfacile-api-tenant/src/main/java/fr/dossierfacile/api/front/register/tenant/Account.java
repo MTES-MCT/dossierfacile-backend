@@ -16,7 +16,9 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
+
 import java.time.LocalDateTime;
+
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -47,8 +49,10 @@ public class Account implements SaveStep<AccountForm> {
         Tenant tenant = tenantRepository.findByEmailAndEnabledFalse(email).orElseGet(() -> tenantService.create(new Tenant(email)));
         tenant.setPassword(bCryptPasswordEncoder.encode(accountForm.getPassword()));
         if (!Strings.isNullOrEmpty(accountForm.getSource())) {
-            tenant.setFirstName(accountForm.getFirstName());
-            tenant.setLastName(accountForm.getLastName());
+            if (!tenant.getFranceConnect()) {
+                tenant.setFirstName(accountForm.getFirstName());
+                tenant.setLastName(accountForm.getLastName());
+            }
             tenant.setPreferredName(accountForm.getPreferredName());
             tenantRepository.save(tenant);
             UserApi userApi = this.sourceService.findOrCreate(accountForm.getSource());
