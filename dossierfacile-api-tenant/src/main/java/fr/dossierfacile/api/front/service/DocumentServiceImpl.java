@@ -12,7 +12,6 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.TenantFileStatus;
-import fr.dossierfacile.common.service.interfaces.OvhService;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -59,7 +58,7 @@ public class DocumentServiceImpl implements DocumentService {
             resetValidatedDocumentsStatusOfSpecifiedCategoriesToToProcess(documentList, List.of(DocumentCategory.PROFESSIONAL, DocumentCategory.FINANCIAL));
         }
 
-        ovhService.delete(document.getFiles().stream().map(File::getPath).collect(Collectors.toList()));
+        fileStorageService.delete(document.getFiles().stream().map(File::getPath).collect(Collectors.toList()));
         documentRepository.delete(document);
 
         if (document.getTenant() != null) {
