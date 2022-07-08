@@ -30,14 +30,14 @@ public class Names implements SaveStep<NamesForm> {
     @Override
     @Transactional
     public TenantModel saveStep(Tenant tenant, NamesForm namesForm) {
-        //only the change of first and last names will trigger to update from validated -> to_process
-        if (!tenant.getFirstName().equals(namesForm.getFirstName())
-                || !tenant.getLastName().equals(namesForm.getLastName())) {
-            documentService.resetValidatedDocumentsStatusOfSpecifiedCategoriesToToProcess(tenant.getDocuments(), Arrays.asList(DocumentCategory.values()));
-        }
         if (!tenant.getFranceConnect()) {
             tenant.setFirstName(namesForm.getFirstName());
             tenant.setLastName(namesForm.getLastName());
+        }
+        //only the change of first and last names will trigger to update from validated -> to_process
+        if (tenant.getFirstName() != null && !tenant.getFirstName().equals(namesForm.getFirstName())
+                || tenant.getLastName() != null && !tenant.getLastName().equals(namesForm.getLastName())) {
+            documentService.resetValidatedDocumentsStatusOfSpecifiedCategoriesToToProcess(tenant.getDocuments(), Arrays.asList(DocumentCategory.values()));
         }
         tenant.setPreferredName(namesForm.getPreferredName());
         tenant.setZipCode(namesForm.getZipCode());
