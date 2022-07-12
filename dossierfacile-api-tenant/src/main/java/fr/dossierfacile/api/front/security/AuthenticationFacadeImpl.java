@@ -1,7 +1,7 @@
 package fr.dossierfacile.api.front.security;
 
 import com.google.common.base.Strings;
-import fr.dossierfacile.api.front.exception.TenantNotFoundException;
+import fr.dossierfacile.api.front.exception.TenantUserApiNotFoundException;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
 import fr.dossierfacile.api.front.service.interfaces.LogService;
@@ -10,6 +10,7 @@ import fr.dossierfacile.api.front.util.Obfuscator;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
+import fr.dossierfacile.common.repository.TenantUserApiRepository;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +19,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
 @Component
 @AllArgsConstructor
@@ -25,6 +27,7 @@ import org.springframework.stereotype.Component;
 public class AuthenticationFacadeImpl implements AuthenticationFacade {
 
     private final TenantCommonRepository tenantRepository;
+    private final TenantUserApiRepository tenantUserApiRepository;
     private final TenantService tenantService;
     private final KeycloakService keycloakService;
     private final LogService logService;
@@ -78,25 +81,13 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
     @Override
     public Tenant getTenant(Long id) {
         if (SecurityContextHolder.getContext().getAuthentication().getAuthorities().contains(new SimpleGrantedAuthority("SCOPE_api-partner"))) {
+            Assert.notNull(id, "Tenant id can not be null");
             var keycloakClientId = getKeycloakClientId();
             System.out.println(keycloakClientId);
-            if (id == null) {
-                //Tenant who logged in to link with the client/partner
-                var tenant = getPrincipalAuthTenant();
-                if (tenant.getLinkedKeycloakClients() != null && tenant.getLinkedKeycloakClients().contains(keycloakClientId)) {
-                    return tenant;
-                } else {
-                    tenant.addLinkedKeycloakClient(keycloakClientId);
-                    return tenantRepository.save(tenant);
-                }
-            } else {
-                //Tenant supposedly already linked with the client/partner
-                var tenant = tenantRepository.findById(id).orElseThrow(() -> new TenantNotFoundException(id));
-                if (tenant.getLinkedKeycloakClients() != null && tenant.getLinkedKeycloakClients().contains(keycloakClientId)) {
-                    return tenant;
-                }
-                throw new AccessDeniedException("The tenant with ID [" + id + "] isn't linked to the keycloak client [" + keycloakClientId + "]");
-            }
+            //Tenant supposedly already linked with the client/partner
+            return tenantUserApiRepository.findFirstByTenantIdAndUserApiName(id, keycloakClientId)
+                    .orElseThrow(() -> new TenantUserApiNotFoundException(id, keycloakClientId))
+                    .getTenant();
         } else {
             return getPrincipalAuthTenant();
         }
