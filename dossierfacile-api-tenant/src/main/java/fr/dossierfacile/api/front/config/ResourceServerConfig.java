@@ -58,6 +58,7 @@ public class ResourceServerConfig {
                         "/api/support/email",
                         "/actuator/health")
                 .permitAll()
+                .antMatchers("/api-partner-linking/**").hasAuthority("SCOPE_api-partner-linking")
                 .antMatchers("/api-partner/**").hasAuthority("SCOPE_api-partner")
                 .antMatchers("/dfc/tenant/profile").hasAuthority("SCOPE_dfc")
                 .anyRequest().hasAuthority("SCOPE_dossier")

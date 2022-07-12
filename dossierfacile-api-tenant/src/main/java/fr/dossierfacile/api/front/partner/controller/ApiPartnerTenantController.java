@@ -25,7 +25,7 @@ import static org.springframework.http.ResponseEntity.status;
 
 @RestController
 @AllArgsConstructor
-@RequestMapping("/api-partner/tenant")
+@RequestMapping("/api-partner/tenant/{tenantId}")
 public class ApiPartnerTenantController {
 
     private final AuthenticationFacade authenticationFacade;
@@ -33,15 +33,13 @@ public class ApiPartnerTenantController {
     private final TenantMapper tenantMapper;
     private final UserService userService;
 
-    @GetMapping(value = {"/profile", "/{tenantId}/profile"}, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<TenantModel> profile(@PathVariable(required = false) Long tenantId) {
+    @GetMapping(value = {"/profile"}, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<TenantModel> profile(@PathVariable Long tenantId) {
         Tenant tenant = authenticationFacade.getTenant(tenantId);
-        var partner = authenticationFacade.getKeycloakClientId();
-        userService.linkTenantToApiPartner(tenant, partner);
         return ok(tenantMapper.toTenantModel(tenant));
     }
 
-    @PostMapping(value = "/{tenantId}/subscribe/{token}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/subscribe/{token}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> subscribeTenant(@PathVariable("token") String propertyToken,
                                                 @Validated @RequestBody SubscriptionApartmentSharingOfTenantForm subscriptionApartmentSharingOfTenantForm,
                                                 @PathVariable Long tenantId) {
@@ -50,7 +48,7 @@ public class ApiPartnerTenantController {
         return ok().build();
     }
 
-    @DeleteMapping("/{tenantId}/deleteCoTenant/{id}")
+    @DeleteMapping("/deleteCoTenant/{id}")
     public ResponseEntity<Void> deleteCoTenant(@PathVariable Long id, @PathVariable Long tenantId) {
         Tenant tenant = authenticationFacade.getTenant(tenantId);
         return (userService.deleteCoTenant(tenant, id) ? ok() : status(HttpStatus.UNAUTHORIZED)).build();
