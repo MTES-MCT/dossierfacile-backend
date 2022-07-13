@@ -13,9 +13,6 @@ import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +39,7 @@ public class DocumentServiceImpl implements DocumentService {
     public void delete(Long documentId, Tenant tenant) {
         Document document = documentRepository.findByIdAssociatedToTenantId(documentId, tenant.getId())
                 .orElseThrow(() -> new DocumentNotFoundException(documentId));
-        
+
         List<Document> documentList = new ArrayList<>();
         if (document.getTenant() != null) {
             documentList = document.getTenant().getDocuments();
