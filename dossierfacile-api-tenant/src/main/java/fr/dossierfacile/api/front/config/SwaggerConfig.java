@@ -58,7 +58,7 @@ public class SwaggerConfig {
                 .securitySchemes(List.of(apiKey()))
                 .select()
                 .apis(RequestHandlerSelectors.basePackage("fr.dossierfacile.api.front.partner.controller"))
-                .paths(PathSelectors.ant("/api-partner/**"))
+                .paths(PathSelectors.ant("/api-partner/**").or(PathSelectors.ant("/api-partner-linking/**")))
                 .build()
                 .apiInfo(apiPartnerInfo());
     }
