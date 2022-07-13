@@ -197,7 +197,8 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
             incrementRetries(document);
             documentRepository.save(document);
             long milliseconds = System.currentTimeMillis() - time;
-            log.error("Failed PDF generation. Document [" + documentCategoryName + "] with ID [" + documentId + "] after [" + milliseconds + "] ms");
+            Sentry.captureException(e);
+            log.error("Failed PDF generation. Document [" + documentCategoryName + "] with ID [" + documentId + "] after [" + milliseconds + "] ms", e);
         }
 
     }

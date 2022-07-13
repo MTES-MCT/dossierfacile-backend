@@ -21,14 +21,13 @@ import java.lang.management.MemoryMXBean;
 @Slf4j
 public class PdfGeneratorApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(PdfGeneratorApplication.class, args);
-		int mb = 1024 * 1024;
-		MemoryMXBean memoryBean = ManagementFactory.getMemoryMXBean();
-		long xmx = memoryBean.getHeapMemoryUsage().getMax() / mb;
-		long xms = memoryBean.getHeapMemoryUsage().getInit() / mb;
-		log.info("Initial Memory (xms) : {}mb", xms);
-		log.info("Max Memory (xmx) : {}mb", xmx);
-	}
-
+    public static void main(String[] args) {
+        SpringApplication.run(PdfGeneratorApplication.class, args);
+        int mb = 1024 * 1024;
+        MemoryMXBean memoryBean = ManagementFactory.getMemoryMXBean();
+        long xmx = memoryBean.getHeapMemoryUsage().getMax() / mb;
+        long xms = memoryBean.getHeapMemoryUsage().getInit() / mb;
+        log.info("Initial Memory (xms) : {}mb", xms);
+        log.info("Max Memory (xmx) : {}mb", xmx);
+    }
 }

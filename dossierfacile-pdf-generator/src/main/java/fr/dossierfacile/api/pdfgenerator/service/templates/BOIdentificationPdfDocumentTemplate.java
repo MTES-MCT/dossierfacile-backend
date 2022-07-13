@@ -90,6 +90,12 @@ public class BOIdentificationPdfDocumentTemplate extends BOPdfDocumentTemplate i
         while (col < gridSample.length && isBlankColumn(gridSample, col)) {
             col++;
         }
+        if( col == gridSample.length) {
+            // unable to treat sounds empty
+            log.warn("Image sounds empty");
+            return image;
+        }
+
         int maxCol = gridSample.length - 1;
         while (maxCol > col && isBlankColumn(gridSample, maxCol)) {
             maxCol--;
