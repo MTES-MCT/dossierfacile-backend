@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static fr.dossierfacile.common.enums.DocumentSubCategory.MY_NAME;
 import static fr.dossierfacile.common.enums.DocumentSubCategory.OTHER_TAX;
