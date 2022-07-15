@@ -9,7 +9,8 @@ public enum DocumentCategory {
     PROFESSIONAL("tenant.profile.link3.v2"),
     FINANCIAL("tenant.profile.link5.v2"),
     TAX("tenant.profile.link4.v2"),
-    IDENTIFICATION_LEGAL_PERSON("tenant.profile.link1.v2");
+    IDENTIFICATION_LEGAL_PERSON("tenant.profile.link1.v2"),
+    NULL("");
 
     String label;
 
