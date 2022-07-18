@@ -18,6 +18,7 @@ public class DocumentServiceImpl implements DocumentService {
     @Override
     @Transactional
     public void updateTaxProcessResult(TaxDocument taxProcessResult, Long documentId) {
+        log.info("Updating tax result for document with ID [" + documentId + "]");
         documentRepository.updateTaxProcessResult(taxProcessResult, documentId);
     }
 }
