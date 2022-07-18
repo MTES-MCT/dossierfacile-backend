@@ -19,6 +19,7 @@ import fr.dossierfacile.common.entity.DocumentPdfGenerationLog;
 import fr.dossierfacile.common.entity.DocumentToken;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.enums.DocumentCategory;
+import fr.dossierfacile.common.exceptions.OvhConnectionFailedException;
 import fr.dossierfacile.common.repository.DocumentPdfGenerationLogRepository;
 import fr.dossierfacile.common.service.interfaces.DocumentHelperService;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
@@ -26,6 +27,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -55,24 +57,25 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Override
     public ResponseEntity<UploadFilesResponse> uploadFiles(DocumentForm documentForm) {
-        if (documentForm.getDocumentId() == null) {
-            throw new DocumentBadRequestException("parameter {documentId} can not be null");
-        } else if (documentForm.getFiles().stream().allMatch(MultipartFile::isEmpty)) {
+        if (documentForm.getFiles().stream().allMatch(MultipartFile::isEmpty)) {
             throw new DocumentBadRequestException("you must add some file");
         }
 
-        Document document = createOrUpdateDocument(documentForm);
+        Document document = createDocument(documentForm);
         producer.generatePdf(document.getId(),
                 documentPdfGenerationLogRepository.save(DocumentPdfGenerationLog.builder()
                         .documentId(document.getId())
                         .build()).getId());
-        return new ResponseEntity<>(UploadFilesResponse.builder()
+
+        UploadFilesResponse uploadFilesResponse = UploadFilesResponse.builder()
                 .token(createDocumentToken(document).getToken())
-                .build(), HttpStatus.OK);
+                .build();
+
+        return new ResponseEntity<>(uploadFilesResponse, HttpStatus.OK);
     }
 
     /**
-     * It will return an instance of ResponseEntity<String> containing the url of the PDF or an error message
+     * It will return an instance of ResponseEntity<DocumentUrlResponse> containing the url of the PDF or a message
      * <p>
      * Possible HTTP_STATUS :
      * - OK
@@ -81,7 +84,7 @@ public class DocumentServiceImpl implements DocumentService {
      * - EXPECTATION_FAILED
      *
      * @param token : String
-     * @return <name_of_pdf>.pdf -> Example: as9d8a89sa7sd87asd87a8sd8a7d8as.pdf
+     * @return { "url" : "<name_of_pdf>.pdf" } -> Example: { "url" : "as9d8a89sa7sd87asd87a8sd8a7d8as.pdf" }
      */
     @Override
     public ResponseEntity<DocumentUrlResponse> urlPdfDocument(String token) {
@@ -109,15 +112,18 @@ public class DocumentServiceImpl implements DocumentService {
             throw new ExpectationFailedException("PDF generation FAILED for unknown reason for Document with ID [" + documentId + "]");
         }
 
-        return new ResponseEntity<>(DocumentUrlResponse.builder()
+        DocumentUrlResponse documentUrlResponse = DocumentUrlResponse.builder()
                 .url(document.getName())
-                .build(), HttpStatus.OK);
+                .build();
+
+        return new ResponseEntity<>(documentUrlResponse, HttpStatus.OK);
     }
 
     @Override
     public void downloadPdfWatermarked(String token, HttpServletResponse response) {
-        Document document = documentTokenRepository.findFirstByToken(token)
-                .orElseThrow(() -> new DocumentTokenNotFoundException(token)).getDocument();
+        DocumentToken documentToken = documentTokenRepository.findFirstByToken(token)
+                .orElseThrow(() -> new DocumentTokenNotFoundException(token));
+        Document document = documentToken.getDocument();
 
         if (Strings.isNullOrEmpty(document.getName())) {
             log.error("document pdf path is null or empty");
@@ -128,7 +134,8 @@ public class DocumentServiceImpl implements DocumentService {
         try (InputStream in = fileStorageService.download(document.getName(), null)) {
             response.setContentType(MediaType.APPLICATION_PDF_VALUE);
             IOUtils.copy(in, response.getOutputStream());
-            deleteAllFiles(document);
+            List<String> fileList = deleteDataFromDB(documentToken, document);
+            deleteFilesFromStorage(fileList, document.getId());
         } catch (FileNotFoundException e) {
             log.error(DOCUMENT_NOT_EXIST);
             response.setStatus(404);
@@ -139,17 +146,23 @@ public class DocumentServiceImpl implements DocumentService {
     }
 
     @Transactional
-    Document createOrUpdateDocument(DocumentForm documentForm) {
-        //If the document is not found a new document is created.
-        Document document = documentRepository.findFirstByIdAndDocumentCategory(documentForm.getDocumentId(), DocumentCategory.NULL)
-                .orElse(Document.builder()
-                        .documentCategory(DocumentCategory.NULL)
-                        .build());
+    Document createDocument(DocumentForm documentForm) {
+        //a new document is created.
+        Document document = Document.builder()
+                .documentCategory(DocumentCategory.NULL)
+                .build();
         documentRepository.save(document);
 
-        documentForm.getFiles().stream()
-                .filter(f -> !f.isEmpty())
-                .forEach(multipartFile -> documentHelperService.addFile(multipartFile, document));
+        try {
+            documentForm.getFiles().stream()
+                    .filter(f -> !f.isEmpty())
+                    .forEach(multipartFile -> documentHelperService.addFile(multipartFile, document));
+        } catch (OvhConnectionFailedException e) {
+            log.error(e.getMessage());
+            log.error("Deleting document with ID [" + document.getId() + "] after error FOUND saving its files");
+            documentRepository.delete(document);
+            throw e;
+        }
 
         return document;
     }
@@ -165,12 +178,20 @@ public class DocumentServiceImpl implements DocumentService {
         return documentTokenRepository.save(documentToken);
     }
 
-    private void deleteAllFiles(Document document) {
+    @Transactional
+    List<String> deleteDataFromDB(DocumentToken documentToken, Document document) {
         List<File> fileList = document.getFiles();
+        List<String> result = new ArrayList<>();
         if (fileList != null && !fileList.isEmpty()) {
-            fileRepository.deleteAll(fileList);
-            log.info("Removing files from storage of document with id [" + document.getId() + "]");
-            fileStorageService.delete(fileList.stream().map(File::getPath).collect(Collectors.toList()));
+            result = fileList.stream().map(File::getPath).collect(Collectors.toList());
         }
+        documentTokenRepository.delete(documentToken);
+        documentRepository.delete(document);
+        return result;
+    }
+
+    private void deleteFilesFromStorage(List<String> fileList, Long documentId) {
+        log.info("Removing files from storage for document with ID [" + documentId + "]");
+        fileStorageService.delete(fileList);
     }
 }

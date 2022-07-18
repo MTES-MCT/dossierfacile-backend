@@ -23,18 +23,18 @@ import org.springframework.web.bind.annotation.RestController;
 public class DocumentController {
     private final DocumentService documentService;
 
-    @PostMapping(value = "/files", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/files", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<UploadFilesResponse> uploadFiles(@Validated DocumentForm documentForm) {
         return documentService.uploadFiles(documentForm);
     }
 
-    @GetMapping(value = "/url/{documentToken}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<DocumentUrlResponse> urlPdf(@PathVariable("documentToken") String documentToken) {
+    @GetMapping(value = "/url/{token}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<DocumentUrlResponse> urlPdf(@PathVariable("token") String documentToken) {
         return documentService.urlPdfDocument(documentToken);
     }
 
-    @GetMapping(value = "/{documentToken}", produces = MediaType.APPLICATION_PDF_VALUE)
-    public void downloadPdfWatermarked(@PathVariable("documentToken") String documentToken, HttpServletResponse response) {
+    @GetMapping(value = "/{token}", produces = MediaType.APPLICATION_PDF_VALUE)
+    public void downloadPdfWatermarked(@PathVariable("token") String documentToken, HttpServletResponse response) {
         documentService.downloadPdfWatermarked(documentToken, response);
     }
 }
