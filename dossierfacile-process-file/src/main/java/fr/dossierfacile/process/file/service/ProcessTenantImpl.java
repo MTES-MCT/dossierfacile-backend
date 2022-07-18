@@ -2,8 +2,8 @@ package fr.dossierfacile.process.file.service;
 
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.type.TaxDocument;
-import fr.dossierfacile.process.file.repository.DocumentRepository;
 import fr.dossierfacile.process.file.repository.TenantRepository;
+import fr.dossierfacile.process.file.service.interfaces.DocumentService;
 import fr.dossierfacile.process.file.service.interfaces.ProcessTaxDocument;
 import fr.dossierfacile.process.file.service.interfaces.ProcessTenant;
 import java.util.ArrayList;
@@ -19,7 +19,7 @@ public class ProcessTenantImpl implements ProcessTenant {
 
     private final TenantRepository tenantRepository;
     private final ProcessTaxDocument processTaxDocument;
-    private final DocumentRepository documentRepository;
+    private final DocumentService documentService;
 
     @Override
     public void process(Long tenantId) {
@@ -32,8 +32,7 @@ public class ProcessTenantImpl implements ProcessTenant {
                         .forEach(document -> {
                             if (!tenant.getFirstName().isBlank() && !tenant.getLastName().isBlank()) {
                                 TaxDocument taxDocument = processTaxDocument.process(document, tenant);
-                                document.setTaxProcessResult(taxDocument);
-                                documentRepository.save(document);
+                                documentService.updateTaxProcessResult(taxDocument, document.getId());
                             }
                         }));
     }
