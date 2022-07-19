@@ -9,9 +9,9 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>fr.dossierfacile.api</groupId>
-    <artifactId>dossierfacile-pdf-api</artifactId>
+    <artifactId>dossierfacile-api-watermark</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>dossierfacile-pdf-api</name>
+    <name>dossierfacile-api-watermark</name>
     <description>The app take a list of files in request and generate a watermarked pdf document, using the pdf
         generator app
     </description>
@@ -81,7 +81,7 @@
     </dependencies>
 
     <build>
-        <finalName>dossierfacile-pdf-api</finalName>
+        <finalName>dossierfacile-api-watermark</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
