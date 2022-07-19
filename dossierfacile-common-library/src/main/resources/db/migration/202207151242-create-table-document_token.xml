@@ -1,0 +1,18 @@
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+    <changeSet id="202207151242" author="harlow">
+        <sql>
+            CREATE TABLE public.document_token
+            (
+                id bigserial NOT NULL,
+                creation_date timestamp NULL,
+                "token" varchar(255) NULL,
+                document_id bigint NOT NULL,
+                CONSTRAINT document_token_pkey PRIMARY KEY (id),
+                CONSTRAINT document_token_fkey FOREIGN KEY (document_id) REFERENCES document (id)
+            );
+        </sql>
+    </changeSet>
+</databaseChangeLog>

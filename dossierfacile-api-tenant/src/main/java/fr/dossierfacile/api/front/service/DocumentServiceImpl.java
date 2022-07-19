@@ -47,12 +47,11 @@ public class DocumentServiceImpl implements DocumentService {
             documentList = document.getGuarantor().getDocuments();
         }
 
-        if (document.getDocumentCategory() == DocumentCategory.PROFESSIONAL) {
-            resetValidatedDocumentsStatusOfSpecifiedCategoriesToToProcess(documentList, List.of(DocumentCategory.FINANCIAL, DocumentCategory.TAX));
-        } else if (document.getDocumentCategory() == DocumentCategory.FINANCIAL) {
-            resetValidatedDocumentsStatusOfSpecifiedCategoriesToToProcess(documentList, List.of(DocumentCategory.PROFESSIONAL, DocumentCategory.TAX));
-        } else if (document.getDocumentCategory() == DocumentCategory.TAX) {
-            resetValidatedDocumentsStatusOfSpecifiedCategoriesToToProcess(documentList, List.of(DocumentCategory.PROFESSIONAL, DocumentCategory.FINANCIAL));
+        List<DocumentCategory> categoriesToChange = List.of(DocumentCategory.PROFESSIONAL, DocumentCategory.FINANCIAL, DocumentCategory.TAX);
+        if (categoriesToChange.contains(document.getDocumentCategory())) {
+            if (tenant.getStatus() == TenantFileStatus.VALIDATED) {
+                resetValidatedDocumentsStatusOfSpecifiedCategoriesToToProcess(documentList, categoriesToChange);
+            }
         }
 
         fileStorageService.delete(document.getFiles().stream().map(File::getPath).collect(Collectors.toList()));
