@@ -49,7 +49,9 @@ public class DocumentServiceImpl implements DocumentService {
 
         List<DocumentCategory> categoriesToChange = List.of(DocumentCategory.PROFESSIONAL, DocumentCategory.FINANCIAL, DocumentCategory.TAX);
         if (categoriesToChange.contains(document.getDocumentCategory())) {
-            resetValidatedDocumentsStatusOfSpecifiedCategoriesToToProcess(documentList, categoriesToChange);
+            if (tenant.getStatus() == TenantFileStatus.VALIDATED) {
+                resetValidatedDocumentsStatusOfSpecifiedCategoriesToToProcess(documentList, categoriesToChange);
+            }
         }
 
         fileStorageService.delete(document.getFiles().stream().map(File::getPath).collect(Collectors.toList()));

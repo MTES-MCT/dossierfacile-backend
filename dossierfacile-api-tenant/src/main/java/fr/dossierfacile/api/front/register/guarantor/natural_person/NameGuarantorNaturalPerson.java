@@ -12,6 +12,7 @@ import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.common.entity.Guarantor;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
+import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.enums.TypeGuarantor;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import lombok.AllArgsConstructor;
@@ -41,7 +42,9 @@ public class NameGuarantorNaturalPerson implements SaveStep<NameGuarantorNatural
         guarantor.setTenant(tenant);
         guarantorRepository.save(guarantor);
         tenant.lastUpdateDateProfile(LocalDateTime.now(), DocumentCategory.IDENTIFICATION);
-        tenant.getGuarantors().forEach(guarantor1 -> documentService.resetValidatedDocumentsStatusOfSpecifiedCategoriesToToProcess(guarantor1.getDocuments(), Arrays.asList(DocumentCategory.values())));
+        if (tenant.getStatus() == TenantFileStatus.VALIDATED) {
+            documentService.resetValidatedDocumentsStatusOfSpecifiedCategoriesToToProcess(guarantor.getDocuments(), Arrays.asList(DocumentCategory.values()));
+        }
         tenantService.updateTenantStatus(tenant);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         return tenantMapper.toTenantModel(tenantRepository.save(tenant));
