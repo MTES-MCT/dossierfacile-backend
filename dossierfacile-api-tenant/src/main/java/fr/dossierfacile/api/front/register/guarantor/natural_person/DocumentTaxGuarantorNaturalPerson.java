@@ -56,6 +56,9 @@ public class DocumentTaxGuarantorNaturalPerson implements SaveStep<DocumentTaxGu
                 documentPdfGenerationLogRepository.save(DocumentPdfGenerationLog.builder()
                         .documentId(document.getId())
                         .build()).getId());
+        if (tenant.getHonorDeclaration().equals(Boolean.TRUE)) {
+            producer.processFileOcr(tenant.getId());
+        }
         return tenantMapper.toTenantModel(document.getGuarantor().getTenant());
     }
 
