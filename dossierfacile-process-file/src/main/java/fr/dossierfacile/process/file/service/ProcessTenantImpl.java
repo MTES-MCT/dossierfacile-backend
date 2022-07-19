@@ -1,7 +1,7 @@
 package fr.dossierfacile.process.file.service;
 
 import fr.dossierfacile.common.enums.DocumentCategory;
-import fr.dossierfacile.common.type.TaxDocument;
+import fr.dossierfacile.common.enums.TypeGuarantor;
 import fr.dossierfacile.process.file.repository.TenantRepository;
 import fr.dossierfacile.process.file.service.interfaces.DocumentService;
 import fr.dossierfacile.process.file.service.interfaces.ProcessTaxDocument;
@@ -24,16 +24,27 @@ public class ProcessTenantImpl implements ProcessTenant {
     @Override
     public void process(Long tenantId) {
         tenantRepository.findByIdAndFirstNameIsNotNullAndLastNameIsNotNull(tenantId)
-                .ifPresent(tenant -> Optional.ofNullable(tenant.getDocuments())
-                        .orElse(new ArrayList<>())
-                        .stream()
-                        .filter(d -> d.getDocumentCategory() == DocumentCategory.TAX)
-                        .filter(d -> !d.getNoDocument())
-                        .forEach(document -> {
-                            if (!tenant.getFirstName().isBlank() && !tenant.getLastName().isBlank()) {
-                                TaxDocument taxDocument = processTaxDocument.process(document, tenant);
-                                documentService.updateTaxProcessResult(taxDocument, document.getId());
-                            }
-                        }));
+                .ifPresent(tenant -> {
+                    if (!tenant.getFirstName().isBlank() && !tenant.getLastName().isBlank()) {
+                        Optional.ofNullable(tenant.getDocuments())
+                                .orElse(new ArrayList<>())
+                                .stream()
+                                .filter(d -> d.getDocumentCategory() == DocumentCategory.TAX)
+                                .filter(d -> !d.getNoDocument())
+                                .forEach(document -> documentService.updateTaxProcessResult(processTaxDocument.process(document, tenant), document.getId()));
+                        Optional.ofNullable(tenant.getGuarantors())
+                                .orElse(new ArrayList<>())
+                                .stream()
+                                .filter(g -> g.getTypeGuarantor() == TypeGuarantor.NATURAL_PERSON)
+                                .forEach(guarantor -> {
+                                    Optional.ofNullable(guarantor.getDocuments())
+                                            .orElse(new ArrayList<>())
+                                            .stream()
+                                            .filter(d -> d.getDocumentCategory() == DocumentCategory.TAX)
+                                            .filter(d -> !d.getNoDocument())
+                                            .forEach(document -> documentService.updateTaxProcessResult(processTaxDocument.process(document, tenant), document.getId()));
+                                });
+                    }
+                });
     }
 }
