@@ -250,15 +250,4 @@ public class Tenant extends User implements Serializable {
     public int getGuarantorsTotalSalary() {
         return guarantors.stream().map(Guarantor::getTotalSalary).reduce(0, Integer::sum);
     }
-
-    /**
-     * This method will link the client to the tenant if not yet linked.
-     */
-    public void addLinkedKeycloakClient(String keycloakClient) {
-        if (Strings.isNullOrEmpty(this.linkedKeycloakClients)) {
-            this.linkedKeycloakClients = keycloakClient;
-        } else if (!this.linkedKeycloakClients.contains(keycloakClient)) {
-            this.linkedKeycloakClients += "," + keycloakClient;
-        }
-    }
 }
