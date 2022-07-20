@@ -32,15 +32,17 @@ public class PublicPropertyController {
     }
 
     @PostMapping("/subscribe/{token}/{tenantId}")
-    public ResponseEntity<Object> subscribe(@PathVariable String token, @PathVariable Long tenantId ) throws HttpResponseException {
+    public ResponseEntity<Object> subscribe(@PathVariable String token, @PathVariable Long tenantId ) throws HttpResponseException, InterruptedException {
         try {
             propertyService.subscribeTenantToProperty(token, tenantId);
             return ok().build();
         } catch (HttpResponseException e) {
             throw e;
+        } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
+            throw ie;
         } catch (Exception e) {
             throw new HttpResponseException(403, "Couldn't subscribe");
         }
     }
-
 }

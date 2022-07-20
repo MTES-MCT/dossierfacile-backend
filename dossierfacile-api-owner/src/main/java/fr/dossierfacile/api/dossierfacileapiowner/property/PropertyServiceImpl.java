@@ -111,6 +111,9 @@ public class PropertyServiceImpl implements PropertyService {
         String openIdToken;
         try {
             openIdToken = getOpenIdToken();
+        } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
+            throw ie;
         } catch (Exception e) {
             throw new HttpResponseException(500, "Couldn't get token");
         }
