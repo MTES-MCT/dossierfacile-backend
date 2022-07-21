@@ -19,7 +19,9 @@ import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -76,7 +78,11 @@ public class Application implements SaveStep<ApplicationForm> {
             joinTenant.lastUpdateDateProfile(now, null);
             String id = keycloakService.createKeycloakUser(email);
             joinTenant.setKeycloakId(id);
-            joinTenant.setLinkedKeycloakClients(tenant.getLinkedKeycloakClients());
+            tenantRepository.save(joinTenant);
+            // Relating all the clients related to tenant CREATE to tenant JOIN
+            Optional.ofNullable(tenant.getTenantsUserApi())
+                    .orElse(new ArrayList<>())
+                    .forEach(tenantUserApi -> partnerCallBackService.linkTenantToPartner(null, joinTenant, tenantUserApi.getUserApi()));
             tenantRepository.save(joinTenant);
             userRoleService.createRole(joinTenant);
             PasswordRecoveryToken passwordRecoveryToken = passwordRecoveryTokenService.create(joinTenant);

@@ -19,7 +19,5 @@ public class AccountPartnerForm {
     @JsonDeserialize(using = EmailDeserializer.class)
     private String email;
 
-    private String source;
-
     private String internalPartnerId;
 }
