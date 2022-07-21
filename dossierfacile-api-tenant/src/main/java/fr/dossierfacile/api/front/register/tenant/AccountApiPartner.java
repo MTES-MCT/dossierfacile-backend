@@ -33,13 +33,9 @@ public class AccountApiPartner implements SaveStep<AccountPartnerForm> {
         String email = accountForm.getEmail().toLowerCase();
         Tenant tenant = tenantRepository.findByEmailAndEnabledFalse(email).orElseGet(() -> tenantService.create(new Tenant(email)));
         tenant.setEnabled(true);
-        if (accountForm.getSource() != null && !accountForm.getSource().isBlank()) {
-            tenantRepository.save(tenant);
-            UserApi userApi = this.sourceService.findOrCreate(accountForm.getSource());
-            partnerCallBackService.registerTenant(accountForm.getInternalPartnerId(), tenant, userApi);
-        }
-        tenant.addLinkedKeycloakClient(authenticationFacade.getKeycloakClientId());
         tenantRepository.save(tenant);
+        UserApi userApi = this.sourceService.findOrCreate(authenticationFacade.getKeycloakClientId());
+        partnerCallBackService.registerTenant(accountForm.getInternalPartnerId(), tenant, userApi);
         tenant.lastUpdateDateProfile(LocalDateTime.now(), null);
         return tenantMapper.toTenantModel(tenantRepository.save(tenant));
     }
