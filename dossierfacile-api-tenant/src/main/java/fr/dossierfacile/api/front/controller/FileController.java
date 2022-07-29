@@ -12,6 +12,7 @@ import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.repository.DocumentPdfGenerationLogRepository;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
+import fr.dossierfacile.common.service.interfaces.SharedFileService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.Key;
 
 @RestController
 @RequiredArgsConstructor
@@ -30,6 +32,7 @@ import java.io.InputStream;
 public class FileController {
     private static final String FILE_NO_EXIST = "The file does not exist";
     private final FileService fileService;
+    private final SharedFileService sharedFileService;
     private final DocumentService documentService;
     private final Producer producer;
     private final AuthenticationFacade authenticationFacade;
@@ -77,8 +80,9 @@ public class FileController {
 
     @GetMapping(value = "/download/{fileName:.+}", produces = {MediaType.APPLICATION_PDF_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
     public void getFileAsByteArray(HttpServletResponse response, @PathVariable String fileName) {
-        // TODO GET file from filename
-        try (InputStream in = fileStorageService.download(fileName, null)) {
+        Key key = sharedFileService.findByPath(fileName).map(f -> f.getKey()).orElse(null);
+
+        try (InputStream in = fileStorageService.download(fileName, key)) {
             if (fileName.endsWith(".pdf")) {
                 response.setContentType(MediaType.APPLICATION_PDF_VALUE);
             } else if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
