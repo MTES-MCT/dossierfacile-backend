@@ -87,10 +87,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public TenantModel createPassword(String token, String password) {
-        PasswordRecoveryToken passwordRecoveryToken = passwordRecoveryTokenRepository.findByToken(token)
-                .orElseThrow(() -> new PasswordRecoveryTokenNotFoundException(token));
-        User user = passwordRecoveryToken.getUser();
+    public TenantModel createPassword(User user, String password) {
         user.setEnabled(true);
         user.setPassword(bCryptPasswordEncoder.encode(password));
         if (user.getKeycloakId() == null) {
@@ -102,8 +99,18 @@ public class UserServiceImpl implements UserService {
         }
         userRepository.save(user);
 
-        passwordRecoveryTokenRepository.delete(passwordRecoveryToken);
         return tenantMapper.toTenantModel(tenantRepository.getOne(user.getId()));
+    }
+
+    @Override
+    public TenantModel createPassword(String token, String password) {
+        PasswordRecoveryToken passwordRecoveryToken = passwordRecoveryTokenRepository.findByToken(token)
+                .orElseThrow(() -> new PasswordRecoveryTokenNotFoundException(token));
+
+        TenantModel tenantModel = createPassword(passwordRecoveryToken.getUser(), password);
+
+        passwordRecoveryTokenRepository.delete(passwordRecoveryToken);
+        return tenantModel;
     }
 
     @Override
@@ -187,6 +194,14 @@ public class UserServiceImpl implements UserService {
     @Override
     public void logout(Tenant tenant) {
         keycloakService.logout(tenant);
+    }
+
+    @Override
+    public void unlinkFranceConnect(Tenant tenant) {
+        User user = userRepository.findById(tenant.getId()).orElseThrow(IllegalArgumentException::new);
+        user.setFranceConnect(false);
+        userRepository.save(tenant);
+        keycloakService.unlinkFranceConnect(tenant);
     }
 
     private void saveAndDeleteInfoByTenant(Tenant tenant) {
