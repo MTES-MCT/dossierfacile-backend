@@ -1,6 +1,5 @@
 package fr.dossierfacile.common.entity;
 
-import com.google.common.base.Strings;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.TenantFileStatus;
