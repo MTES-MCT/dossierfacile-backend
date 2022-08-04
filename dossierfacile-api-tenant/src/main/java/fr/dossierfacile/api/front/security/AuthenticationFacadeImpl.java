@@ -3,23 +3,29 @@ package fr.dossierfacile.api.front.security;
 import com.google.common.base.Strings;
 import fr.dossierfacile.api.front.exception.TenantUserApiNotFoundException;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
+import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
 import fr.dossierfacile.api.front.service.interfaces.LogService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.util.Obfuscator;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.LogType;
+import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.repository.TenantUserApiRepository;
-import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
+
+import java.util.Arrays;
+import java.util.Optional;
 
 @Component
 @AllArgsConstructor
@@ -31,6 +37,7 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
     private final TenantService tenantService;
     private final KeycloakService keycloakService;
     private final LogService logService;
+    private final DocumentService documentService;
 
     private String getUserEmail() {
         return ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClaimAsString("email");
@@ -104,7 +111,7 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
         Tenant tenant;
         if (tenantOptional.isPresent()) {
             tenant = tenantOptional.get();
-            if (!tenant.getFranceConnect().equals(Boolean.TRUE) && isFranceConnect()) {
+            if (!Boolean.TRUE.equals(tenant.getFranceConnect()) && isFranceConnect()) {
                 log.info("Local account link to FranceConnect account, for tenant with ID {}", tenant.getId());
                 logService.saveLog(LogType.FC_ACCOUNT_LINK, tenant.getId());
             }
@@ -123,15 +130,25 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
             }
         }
         tenant.setKeycloakId(getKeycloakUserId());
-        if (!tenant.getFranceConnect().equals(Boolean.TRUE) && isFranceConnect()) {
+        if (!Boolean.TRUE.equals(tenant.getFranceConnect()) && isFranceConnect()) {
             tenant.setFranceConnect(isFranceConnect());
             tenant.setFranceConnectSub(getFranceConnectSub());
             tenant.setFranceConnectBirthCountry(getFranceConnectBirthCountry());
             tenant.setFranceConnectBirthPlace(getFranceConnectBirthPlace());
             tenant.setFranceConnectBirthDate(getFranceConnectBirthDate());
+
+            if (!StringUtils.equals(tenant.getFirstName(), getFirstName())
+                    || !StringUtils.equals(tenant.getLastName(), getLastName())
+                    || (getPreferredName() != null && !StringUtils.equals(tenant.getPreferredName(), getPreferredName()))) {
+                if (tenant.getStatus() == TenantFileStatus.VALIDATED) {
+                    documentService.resetValidatedDocumentsStatusOfSpecifiedCategoriesToToProcess(tenant.getDocuments(),
+                            Arrays.asList(DocumentCategory.values()));
+                }
+            }
             tenant.setFirstName(getFirstName());
             tenant.setLastName(getLastName());
-            tenant.setPreferredName(getPreferredName());
+            tenant.setPreferredName(getPreferredName() == null? tenant.getPreferredName() : getPreferredName());
+            tenantService.updateTenantStatus(tenant);
         }
         return tenantRepository.saveAndFlush(tenant);
     }
