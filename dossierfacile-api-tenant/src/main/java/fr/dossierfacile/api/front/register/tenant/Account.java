@@ -59,6 +59,7 @@ public class Account implements SaveStep<AccountForm> {
             partnerCallBackService.registerTenant(accountForm.getInternalPartnerId(), tenant, userApi);
         }
         tenant.setKeycloakId(keycloakService.createKeycloakUserAccountCreation(accountForm, tenant));
+
         tenantRepository.save(tenant);
         mailService.sendEmailConfirmAccount(tenant, confirmationTokenService.createToken(tenant));
         userRoleService.createRole(tenant);
