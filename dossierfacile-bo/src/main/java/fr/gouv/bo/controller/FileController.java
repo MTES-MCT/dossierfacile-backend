@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,6 +27,7 @@ public class FileController {
     private final FileStorageService fileStorageService;
     private final SharedFileService fileService;
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/tenants_files/{fileName:.+}")
     public void getImageAsByteArray(HttpServletResponse response, @PathVariable String fileName) {
         Key key = fileService.findByPath(fileName).map(f -> f.getKey()).orElse(null);
