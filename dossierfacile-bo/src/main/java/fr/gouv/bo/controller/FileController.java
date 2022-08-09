@@ -27,7 +27,7 @@ public class FileController {
     private final FileStorageService fileStorageService;
     private final SharedFileService fileService;
 
-    @PreAuthorize("hasRole('ADMIN')")
+    //@PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/tenants_files/{fileName:.+}")
     public void getImageAsByteArray(HttpServletResponse response, @PathVariable String fileName) {
         Key key = fileService.findByPath(fileName).map(f -> f.getKey()).orElse(null);
