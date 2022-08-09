@@ -6,6 +6,7 @@ import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.UserService;
 import fr.dossierfacile.common.entity.Tenant;
+import io.swagger.annotations.ApiOperation;
 import lombok.AllArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -34,16 +35,29 @@ public class UserController {
         return ok().build();
     }
 
+    @PostMapping(value = "/createPassword", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation("Set a new Password to logged user")
+    public ResponseEntity<TenantModel> createPassword(@Validated @RequestBody PasswordForm password) {
+        return ok(userService.createPassword(authenticationFacade.getTenant(null), password.getPassword()));
+    }
+
     @PostMapping(value = "/createPassword/{token}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TenantModel> createPassword(@PathVariable String token, @Validated @RequestBody PasswordForm password) {
-        TenantModel tenantModel = userService.createPassword(token, password.getPassword());
-        return ok(tenantModel);
+        return ok(userService.createPassword(token, password.getPassword()));
     }
 
     @DeleteMapping("/deleteAccount")
     public ResponseEntity<Void> deleteAccount() {
         Tenant tenant = authenticationFacade.getTenant(null);
         userService.deleteAccount(tenant);
+        return ok().build();
+    }
+
+    @DeleteMapping("/franceConnect")
+    @ApiOperation("Unlink account from FranceConnect")
+    public ResponseEntity<Void> unlinkFranceConnect() {
+        Tenant tenant = authenticationFacade.getTenant(null);
+        userService.unlinkFranceConnect(tenant);
         return ok().build();
     }
 

@@ -26,7 +26,6 @@ import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.ConfirmationToken;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
-import fr.dossierfacile.common.entity.Owner;
 import fr.dossierfacile.common.entity.PasswordRecoveryToken;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.User;
@@ -36,7 +35,7 @@ import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
-import fr.dossierfacile.common.service.interfaces.OvhService;
+import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -60,7 +59,7 @@ public class UserServiceImpl implements UserService {
     private final PasswordRecoveryTokenRepository passwordRecoveryTokenRepository;
     private final MailService mailService;
     private final PasswordRecoveryTokenService passwordRecoveryTokenService;
-    private final OvhService ovhService;
+    private final FileStorageService fileStorageService;
     private final ApartmentSharingRepository apartmentSharingRepository;
     private final AccountDeleteLogRepository accountDeleteLogRepository;
     private final TenantMapper tenantMapper;
@@ -88,10 +87,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public TenantModel createPassword(String token, String password) {
-        PasswordRecoveryToken passwordRecoveryToken = passwordRecoveryTokenRepository.findByToken(token)
-                .orElseThrow(() -> new PasswordRecoveryTokenNotFoundException(token));
-        User user = passwordRecoveryToken.getUser();
+    public TenantModel createPassword(User user, String password) {
         user.setEnabled(true);
         user.setPassword(bCryptPasswordEncoder.encode(password));
         if (user.getKeycloakId() == null) {
@@ -103,8 +99,18 @@ public class UserServiceImpl implements UserService {
         }
         userRepository.save(user);
 
-        passwordRecoveryTokenRepository.delete(passwordRecoveryToken);
         return tenantMapper.toTenantModel(tenantRepository.getOne(user.getId()));
+    }
+
+    @Override
+    public TenantModel createPassword(String token, String password) {
+        PasswordRecoveryToken passwordRecoveryToken = passwordRecoveryTokenRepository.findByToken(token)
+                .orElseThrow(() -> new PasswordRecoveryTokenNotFoundException(token));
+
+        TenantModel tenantModel = createPassword(passwordRecoveryToken.getUser(), password);
+
+        passwordRecoveryTokenRepository.delete(passwordRecoveryToken);
+        return tenantModel;
     }
 
     @Override
@@ -190,6 +196,14 @@ public class UserServiceImpl implements UserService {
         keycloakService.logout(tenant);
     }
 
+    @Override
+    public void unlinkFranceConnect(Tenant tenant) {
+        User user = userRepository.findById(tenant.getId()).orElseThrow(IllegalArgumentException::new);
+        user.setFranceConnect(false);
+        userRepository.save(tenant);
+        keycloakService.unlinkFranceConnect(tenant);
+    }
+
     private void saveAndDeleteInfoByTenant(Tenant tenant) {
         mailService.sendEmailAccountDeleted(tenant);
         this.savingJsonProfileBeforeDeletion(tenantMapper.toTenantModel(tenant));
@@ -219,11 +233,11 @@ public class UserServiceImpl implements UserService {
         List<File> files = document.getFiles();
         if (files != null && !files.isEmpty()) {
             log.info("Removing files from storage of document with id [" + document.getId() + "]");
-            ovhService.delete(files.stream().map(File::getPath).collect(Collectors.toList()));
+            fileStorageService.delete(files.stream().map(File::getPath).collect(Collectors.toList()));
         }
         if (document.getName() != null && !document.getName().isBlank()) {
             log.info("Removing document from storage with path [" + document.getName() + "]");
-            ovhService.delete(document.getName());
+            fileStorageService.delete(document.getName());
         }
     }
 

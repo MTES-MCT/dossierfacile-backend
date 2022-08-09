@@ -12,6 +12,7 @@
         <module>dossierfacile-process-file</module>
         <module>dossierfacile-api-tenant</module>
         <module>dossierfacile-api-owner</module>
+        <module>dossierfacile-api-watermark</module>
         <module>dossierfacile-migrate-user</module>
         <module>dossierfacile-pdf-generator</module>
         <module>dossierfacile-garbage-collector</module>

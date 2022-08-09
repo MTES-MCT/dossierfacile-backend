@@ -63,6 +63,19 @@ public class SwaggerConfig {
                 .apiInfo(apiPartnerInfo());
     }
 
+    @Bean
+    public Docket apiLinkTenantToPartner() {
+        return new Docket(DocumentationType.SWAGGER_2)
+                .groupName("API Link Tenant to Partner")
+                .securityContexts(List.of(securityContextForPartnerAPI()))
+                .securitySchemes(List.of(apiKey()))
+                .select()
+                .apis(RequestHandlerSelectors.basePackage("fr.dossierfacile.api.front.partner.controller"))
+                .paths(PathSelectors.ant("/api-partner-linking/**"))
+                .build()
+                .apiInfo(apiLinkTenantToPartnerInfo());
+    }
+
     private ApiInfo apiInfo() {
         return new ApiInfo(
                 "DossierFacile REST API",
@@ -100,6 +113,23 @@ public class SwaggerConfig {
     private ApiInfo apiPartnerInfo() {
         return new ApiInfo(
                 "DossierFacile REST API Partner",
+                "<h3>Description of the api</h3>\n" +
+                        "<div>\n" +
+                        "    <ul>\n" +
+                        LI + "\n" +
+                        "       TODO: (PUT HERE YOUR DESCRIPTION).\n" +
+                        LI_CLOSE + "\n" +
+                        "    </ul>\n" +
+                        "</div>",
+                "1.0",
+                "",
+                ApiInfo.DEFAULT_CONTACT,
+                "", "", Collections.emptyList());
+    }
+
+    private ApiInfo apiLinkTenantToPartnerInfo() {
+        return new ApiInfo(
+                "DossierFacile REST API Link Tenant to Partner",
                 "<h3>Description of the api</h3>\n" +
                         "<div>\n" +
                         "    <ul>\n" +

@@ -12,7 +12,7 @@ import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentStatus;
-import fr.dossierfacile.common.service.interfaces.OvhService;
+import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,7 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class FileServiceImpl implements FileService {
 
-    private final OvhService ovhService;
+    private final FileStorageService fileStorageService;
     private final FileRepository fileRepository;
     private final DocumentRepository documentRepository;
     private final AuthenticationFacade authenticationFacade;
@@ -36,11 +36,9 @@ public class FileServiceImpl implements FileService {
     public Document delete(Long id, Tenant tenant) {
         File file = fileRepository.findByIdAndTenant(id, tenant.getId()).orElseThrow(() -> new FileNotFoundException(id, tenant));
 
-        documentService.resetValidatedDocumentsStatusToToProcess(tenant);
-
         Document document = file.getDocument();
 
-        ovhService.delete(file.getPath());
+        fileStorageService.delete(file.getPath());
         fileRepository.delete(file);
         document.getFiles().remove(file);
 

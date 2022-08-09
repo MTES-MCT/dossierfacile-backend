@@ -1,12 +1,12 @@
 package fr.dossierfacile.common.entity;
 
-import com.google.common.base.Strings;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.enums.TenantSituation;
 import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.enums.TypeGuarantor;
+import fr.dossierfacile.common.enums.UserType;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -41,7 +41,6 @@ import java.util.Objects;
 public class Tenant extends User implements Serializable {
 
     private static final long serialVersionUID = -3603815939883106021L;
-    private static final String TENANT_USER_TYPE = "TENANT";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -89,12 +88,12 @@ public class Tenant extends User implements Serializable {
     private int warnings;
 
     public Tenant(String email) {
-        super(TENANT_USER_TYPE, email);
+        super(UserType.TENANT, email);
         this.tenantType = TenantType.CREATE;
     }
 
     public Tenant(String email, ApartmentSharing apartmentSharing) {
-        super(TENANT_USER_TYPE, email);
+        super(UserType.TENANT, email);
         this.apartmentSharing = apartmentSharing;
         this.tenantType = TenantType.JOIN;
     }
@@ -249,16 +248,5 @@ public class Tenant extends User implements Serializable {
 
     public int getGuarantorsTotalSalary() {
         return guarantors.stream().map(Guarantor::getTotalSalary).reduce(0, Integer::sum);
-    }
-
-    /**
-     * This method will link the client to the tenant if not yet linked.
-     */
-    public void addLinkedKeycloakClient(String keycloakClient) {
-        if (Strings.isNullOrEmpty(this.linkedKeycloakClients)) {
-            this.linkedKeycloakClients = keycloakClient;
-        } else if (!this.linkedKeycloakClients.contains(keycloakClient)) {
-            this.linkedKeycloakClients += "," + keycloakClient;
-        }
     }
 }

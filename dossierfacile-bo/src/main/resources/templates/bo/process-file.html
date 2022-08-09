@@ -275,6 +275,12 @@
                                             th:if="${messageItem.taxDocument}!=null and ${messageItem.taxDocument.qrContent}==null">
                                             <span th:text="'Reference Number : ' + ${messageItem.taxDocument.getReferenceNumber().toString()}"></span>
                                         </h4>
+                                        <h4 class="panel-title letter" style="padding-top: 7px"
+                                            th:if="${messageItem.taxDocument}!=null and ${messageItem.taxDocument.qrContent}!=null">
+                                            <span th:text="'Tax result : ' + ${messageItem.taxDocument.qrContent}"></span>
+                                            <br/>
+                                            <span th:text="'Valid tax information : ' + ${messageItem.taxDocument.taxContentValid}"></span>
+                                        </h4>
                                         <input th:field="*{guarantorItems[__${k.index}__].guarantorId}"
                                                th:value="${guarantorItem.getGuarantorId()}" type="hidden"/>
                                     </div>

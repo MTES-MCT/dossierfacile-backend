@@ -15,11 +15,12 @@ import fr.dossierfacile.api.pdfgenerator.service.templates.EmptyBOPdfDocumentTem
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentPdfGenerationLog;
+import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.FileStatus;
 import fr.dossierfacile.common.repository.DocumentPdfGenerationLogRepository;
-import fr.dossierfacile.common.service.interfaces.OvhService;
+import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,7 +53,7 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
     private final DocumentRepository documentRepository;
     private final DocumentPdfGenerationLogRepository documentPdfGenerationLogRepository;
     private final FileRepository fileRepository;
-    private final OvhService ovhService;
+    private final FileStorageService fileStorageService;
     private final Producer producer;
 
     private final EmptyBOPdfDocumentTemplate emptyBOPdfDocumentTemplate;
@@ -122,19 +123,19 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
             return emptyBOPdfDocumentTemplate.render(document);
         }
 
-        List<String> pathFiles = fileRepository.getFilePathsByDocumentId(document.getId());
-        if (!CollectionUtils.isEmpty(pathFiles)) {
+        List<File> files = fileRepository.findAllByDocumentId(document.getId());
+        if (!CollectionUtils.isEmpty(files)) {
             BOPdfDocumentTemplate pdfDocumentTemplateToUse = (documentCategory == IDENTIFICATION
                     || documentCategory == IDENTIFICATION_LEGAL_PERSON)? identificationPdfDocumentTemplate : boPdfDocumentTemplate;
 
-            return pdfDocumentTemplateToUse.render(pathFiles.stream()
-                    .map(path -> {
+            return pdfDocumentTemplateToUse.render(files.stream()
+                    .map(file -> {
                         try {
-                            String extension = FilenameUtils.getExtension(path).toLowerCase(Locale.ROOT);
+                            String extension = FilenameUtils.getExtension(file.getPath()).toLowerCase(Locale.ROOT);
                             if (!extension.matches("pdf|jpg|jpeg|png|jfif")) {
-                                throw new UnexpectedException("Unexpected extension for file with path [" + path + "]");
+                                throw new UnexpectedException("Unexpected extension for file with path [" + file.getPath() + "]");
                             }
-                            return new FileInputStream(downloadService.getFileInputStream(path), extension);
+                            return new FileInputStream(fileStorageService.download(file), extension);
 
                         } catch (Exception e) {
                             log.error(e.getMessage() + ". It will not be added to the pdf of document [" + documentCategory.name() + "] with ID [" + documentId + "]");
@@ -164,7 +165,7 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
         try (InputStream documentInputStream = renderBODocumentPdf(document)) {
 
             String name = document.getName() == null || document.getName().isBlank() ? UUID.randomUUID() + ".pdf" : document.getName();
-            ovhService.upload(name, documentInputStream);
+            fileStorageService.upload(name, documentInputStream, null);
             document.setName(name);
             document.setProcessingEndTime(LocalDateTime.now());
 
@@ -180,7 +181,7 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
                 long milliseconds = System.currentTimeMillis() - time;
                 log.info("Sucessful PDF generation. Document [" + documentCategoryName + "] with ID [" + documentId + "] after [" + milliseconds + "] ms");
             } else {
-                ovhService.delete(name);
+                fileStorageService.delete(name);
                 long milliseconds = System.currentTimeMillis() - time;
                 log.info("Failed PDF generation. Document [" + documentCategoryName + "] with ID [" + documentId + "] has been deleted during its PDF generation. Elapsed time [" + milliseconds + "] ms");
             }
@@ -210,13 +211,13 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
         if (apartSharing != null) {
             String url = apartSharing.getUrlDossierPdfDocument();
             try {
-                ovhService.upload(url, apartmentSharingPdfDocumentTemplate.render(apartSharing));
+                fileStorageService.upload(url, apartmentSharingPdfDocumentTemplate.render(apartSharing), null);
                 apartmentSharingService.setDossierPdfDocumentStatus(apartSharing.getId(), FileStatus.COMPLETED);
             } catch (Exception e) {
                 log.error("Unable to generate the dossierPdfDocument: " + e.getMessage(), e);
                 apartmentSharingService.setDossierPdfDocumentStatus(apartSharing.getId(), FileStatus.FAILED);
                 try {
-                    ovhService.delete(url);
+                    fileStorageService.delete(url);
                 } catch (Exception ex) {
                     log.error("Unable to delete file on storage service");
                 }

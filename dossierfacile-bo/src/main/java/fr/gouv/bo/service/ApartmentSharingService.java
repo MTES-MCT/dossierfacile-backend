@@ -2,7 +2,7 @@ package fr.gouv.bo.service;
 
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.enums.FileStatus;
-import fr.dossierfacile.common.service.interfaces.OvhService;
+import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.gouv.bo.dto.ApartmentSharingDTO01;
 import fr.gouv.bo.repository.ApartmentSharingRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ApartmentSharingService {
 
     private final ApartmentSharingRepository apartmentSharingRepository;
-    private final OvhService ovhService;
+    private final FileStorageService fileStorageService;
 
     public ApartmentSharing find(Long id) {
         return apartmentSharingRepository.getOne(id);
@@ -42,7 +42,7 @@ public class ApartmentSharingService {
     public void resetDossierPdfGenerated(ApartmentSharing apartmentSharing) {
         String currentUrl = apartmentSharing.getUrlDossierPdfDocument();
         if (currentUrl != null) {
-            ovhService.delete(currentUrl);
+            fileStorageService.delete(currentUrl);
             apartmentSharing.setUrlDossierPdfDocument(null);
             apartmentSharing.setDossierPdfDocumentStatus(FileStatus.DELETED);
             apartmentSharingRepository.save(apartmentSharing);

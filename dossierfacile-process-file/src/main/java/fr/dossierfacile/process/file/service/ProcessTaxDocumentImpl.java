@@ -67,7 +67,7 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
         List<File> pdfs = files.stream().filter(file -> FilenameUtils.getExtension(file.getPath()).equals("pdf")).collect(Collectors.toList());
         if (!pdfs.isEmpty()) {
             for (File pdf : pdfs) {
-                String url = utility.extractQRCodeInfo(pdf.getPath());
+                String url = utility.extractQRCodeInfo(pdf);
                 if (url != null && !url.isBlank()) {
                     ResponseEntity<List> response = apiMonFranceConnect.monFranceConnect(url);
                     if (response.getStatusCode() == HttpStatus.OK) {
@@ -109,7 +109,7 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
         List<File> pdfs = files.stream().filter(file -> FilenameUtils.getExtension(file.getPath()).equals("pdf")).collect(Collectors.toList());
         if (!pdfs.isEmpty()) {
             for (File pdf : pdfs) {
-                result.append(utility.extractInfoFromPDFFirstPage(pdf.getPath()));
+                result.append(utility.extractInfoFromPDFFirstPage(pdf));
             }
         }
         String fiscalNumber = Utility.extractFiscalNumber(result.toString());
@@ -158,7 +158,7 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
     private void checkIfInfoBehindQrContentMatchesPdfContent(File pdf, ResponseEntity<List> response, TaxDocument taxDocument) {
         List<String> listResponse = Objects.requireNonNull(response.getBody());
 
-        String result = utility.extractInfoFromPDFFirstPage(pdf.getPath());
+        String result = utility.extractInfoFromPDFFirstPage(pdf);
         AtomicInteger i = new AtomicInteger();
         if (!listResponse.isEmpty()) {
             listResponse.forEach(element -> {

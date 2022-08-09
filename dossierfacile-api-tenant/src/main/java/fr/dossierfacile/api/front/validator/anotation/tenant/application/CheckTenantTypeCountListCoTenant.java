@@ -15,7 +15,7 @@ import java.lang.annotation.Target;
         validatedBy = {CheckTenantTypeCountListCoTenantValidator.class}
 )
 public @interface CheckTenantTypeCountListCoTenant {
-    String message() default "there is no correspondence between the type of tenant and the number of co-tenants";
+    String message() default "there is no correspondence between the type of application and the number of co-tenants";
 
     Class<?>[] groups() default {};
 

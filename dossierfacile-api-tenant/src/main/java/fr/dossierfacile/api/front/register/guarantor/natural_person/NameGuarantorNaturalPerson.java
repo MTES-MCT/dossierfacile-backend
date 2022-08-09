@@ -12,6 +12,7 @@ import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.common.entity.Guarantor;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
+import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.enums.TypeGuarantor;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import lombok.AllArgsConstructor;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 
 @Service
 @AllArgsConstructor
@@ -33,7 +35,6 @@ public class NameGuarantorNaturalPerson implements SaveStep<NameGuarantorNatural
     @Override
     @Transactional
     public TenantModel saveStep(Tenant tenant, NameGuarantorNaturalPersonForm nameGuarantorNaturalPersonForm) {
-        documentService.resetValidatedDocumentsStatusToToProcess(tenant);
         Guarantor guarantor = guarantorRepository.findByTenantAndTypeGuarantorAndId(tenant, TypeGuarantor.NATURAL_PERSON, nameGuarantorNaturalPersonForm.getGuarantorId())
                 .orElseThrow(() -> new GuarantorNotFoundException(nameGuarantorNaturalPersonForm.getGuarantorId()));
         guarantor.setFirstName(nameGuarantorNaturalPersonForm.getFirstName());
@@ -41,7 +42,9 @@ public class NameGuarantorNaturalPerson implements SaveStep<NameGuarantorNatural
         guarantor.setTenant(tenant);
         guarantorRepository.save(guarantor);
         tenant.lastUpdateDateProfile(LocalDateTime.now(), DocumentCategory.IDENTIFICATION);
-        tenant.getGuarantors().forEach(guarantor1 -> documentService.resetValidatedAndDeniedDocumentsStatusToToProcess(guarantor1.getDocuments()));
+        if (tenant.getStatus() == TenantFileStatus.VALIDATED) {
+            documentService.resetValidatedDocumentsStatusOfSpecifiedCategoriesToToProcess(guarantor.getDocuments(), Arrays.asList(DocumentCategory.values()));
+        }
         tenantService.updateTenantStatus(tenant);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         return tenantMapper.toTenantModel(tenantRepository.save(tenant));

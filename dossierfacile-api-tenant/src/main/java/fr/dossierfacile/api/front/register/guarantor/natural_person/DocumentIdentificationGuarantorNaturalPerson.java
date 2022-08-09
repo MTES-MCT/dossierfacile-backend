@@ -7,45 +7,35 @@ import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.SaveStep;
 import fr.dossierfacile.api.front.register.form.guarantor.natural_person.DocumentIdentificationGuarantorNaturalPersonForm;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
-import fr.dossierfacile.api.front.repository.FileRepository;
 import fr.dossierfacile.api.front.repository.GuarantorRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
-import fr.dossierfacile.api.front.util.Utility;
-import fr.dossierfacile.common.entity.Document;
-import fr.dossierfacile.common.entity.DocumentPdfGenerationLog;
-import fr.dossierfacile.common.entity.File;
-import fr.dossierfacile.common.entity.Guarantor;
-import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.TypeGuarantor;
 import fr.dossierfacile.common.repository.DocumentPdfGenerationLogRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
-import fr.dossierfacile.common.service.interfaces.OvhService;
+import fr.dossierfacile.common.service.interfaces.DocumentHelperService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class DocumentIdentificationGuarantorNaturalPerson implements SaveStep<DocumentIdentificationGuarantorNaturalPersonForm> {
 
-    private final OvhService ovhService;
+    private final DocumentHelperService documentHelperService;
     private final TenantCommonRepository tenantRepository;
     private final DocumentRepository documentRepository;
     private final TenantMapper tenantMapper;
     private final GuarantorRepository guarantorRepository;
-    private final FileRepository fileRepository;
     private final DocumentService documentService;
     private final TenantService tenantService;
     private final Producer producer;
@@ -64,7 +54,6 @@ public class DocumentIdentificationGuarantorNaturalPerson implements SaveStep<Do
 
     @Transactional
     Document saveDocument(Tenant tenant, DocumentIdentificationGuarantorNaturalPersonForm documentIdentificationGuarantorNaturalPersonForm) {
-        documentService.resetValidatedDocumentsStatusToToProcess(tenant);
         Guarantor guarantor = guarantorRepository.findByTenantAndTypeGuarantorAndId(tenant, TypeGuarantor.NATURAL_PERSON, documentIdentificationGuarantorNaturalPersonForm.getGuarantorId())
                 .orElseThrow(() -> new GuarantorNotFoundException(documentIdentificationGuarantorNaturalPersonForm.getGuarantorId()));
         guarantor.setFirstName(documentIdentificationGuarantorNaturalPersonForm.getFirstName());
@@ -83,20 +72,11 @@ public class DocumentIdentificationGuarantorNaturalPerson implements SaveStep<Do
         document.setDocumentSubCategory(documentSubCategory);
         documentRepository.save(document);
 
-        List<MultipartFile> multipartFiles = documentIdentificationGuarantorNaturalPersonForm.getDocuments().stream().filter(f -> !f.isEmpty()).collect(Collectors.toList());
-        for (MultipartFile multipartFile : multipartFiles) {
-            String originalName = multipartFile.getOriginalFilename();
-            long size = multipartFile.getSize();
-            String name = ovhService.uploadFile(multipartFile);
-            File file = File.builder()
-                    .path(name)
-                    .document(document)
-                    .originalName(originalName)
-                    .size(size)
-                    .numberOfPages(Utility.countNumberOfPagesOfPdfDocument(multipartFile))
-                    .build();
-            document.getFiles().add(fileRepository.save(file));
-        }
+
+        documentIdentificationGuarantorNaturalPersonForm.getDocuments().stream()
+                        .filter(f -> !f.isEmpty())
+                        .forEach( multipartFile -> documentHelperService.addFile(multipartFile, document));
+
         documentService.initializeFieldsToProcessPdfGeneration(document);
         tenant.lastUpdateDateProfile(LocalDateTime.now(), DocumentCategory.IDENTIFICATION);
         tenantService.updateTenantStatus(tenant);

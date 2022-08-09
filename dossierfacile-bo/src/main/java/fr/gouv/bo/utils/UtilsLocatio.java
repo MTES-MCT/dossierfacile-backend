@@ -4,14 +4,20 @@ import fr.gouv.bo.dto.CountActionsDTO;
 import fr.gouv.bo.dto.CountDTO;
 import fr.gouv.bo.dto.ErrorFieldDTO;
 import fr.gouv.bo.dto.KeyStatistics;
+import java.security.SecureRandom;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
-import java.security.SecureRandom;
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.util.*;
 
 @Slf4j
 public class UtilsLocatio {

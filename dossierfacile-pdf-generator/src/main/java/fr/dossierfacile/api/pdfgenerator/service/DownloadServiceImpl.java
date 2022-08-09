@@ -4,13 +4,10 @@ import fr.dossierfacile.api.pdfgenerator.exception.DocumentNotFoundException;
 import fr.dossierfacile.api.pdfgenerator.exception.FileDownloadException;
 import fr.dossierfacile.api.pdfgenerator.service.interfaces.DownloadService;
 import fr.dossierfacile.common.entity.Document;
-import fr.dossierfacile.common.service.interfaces.OvhService;
+import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.openstack4j.model.common.DLPayload;
-import org.openstack4j.model.storage.object.SwiftObject;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
@@ -19,18 +16,7 @@ import java.io.InputStream;
 @AllArgsConstructor
 @Slf4j
 public class DownloadServiceImpl implements DownloadService {
-    private final OvhService ovhService;
-
-    private InputStream getDownloadedInputStream(String file) throws FileDownloadException {
-        SwiftObject swiftObject = ovhService.get(file);
-        if (swiftObject != null) {
-            DLPayload dlPayload = swiftObject.download();
-            if (dlPayload.getHttpResponse().getStatus() == HttpStatus.OK.value()) {
-                return dlPayload.getInputStream();
-            }
-        }
-        throw new FileDownloadException(file);
-    }
+    private final FileStorageService fileStorageService;
 
     @Override
     public InputStream getDocumentInputStream(Document document) {
@@ -39,18 +25,9 @@ public class DownloadServiceImpl implements DownloadService {
             throw new DocumentNotFoundException(document);
         }
         try {
-            return getDownloadedInputStream(document.getName());
+            return fileStorageService.download(document.getName(), null);
         } catch (Exception e) {
             throw new FileDownloadException(document);
         }
-    }
-
-    @Override
-    public InputStream getFileInputStream(String filepath) {
-        log.info("Downloading file [" + filepath + "]");
-        if (StringUtils.isBlank(filepath)) {
-            throw new IllegalArgumentException("File path is empty");
-        }
-        return getDownloadedInputStream(filepath);
     }
 }

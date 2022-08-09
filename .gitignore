@@ -4,8 +4,8 @@
 application-*.properties
 .env
 target/
+mockstorage/
 .DS_Store
-
 static-front/
 
 ### STS ###

@@ -10,4 +10,6 @@ import java.util.Optional;
 
 public interface TenantUserApiRepository extends JpaRepository<TenantUserApi, TenantUserApiKey> {
     Optional<TenantUserApi> findFirstByTenantAndUserApi(Tenant tenant, UserApi userApi);
+
+    Optional<TenantUserApi> findFirstByTenantIdAndUserApiName(Long tenantId, String userApiName);
 }

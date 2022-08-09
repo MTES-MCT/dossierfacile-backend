@@ -1,22 +1,12 @@
 package fr.dossierfacile.process.file.util;
 
-import com.google.zxing.BinaryBitmap;
-import com.google.zxing.ChecksumException;
-import com.google.zxing.FormatException;
-import com.google.zxing.NotFoundException;
-import com.google.zxing.Result;
+import com.google.zxing.*;
 import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.qrcode.QRCodeReader;
-import fr.dossierfacile.common.service.interfaces.OvhService;
+import fr.dossierfacile.common.entity.File;
+import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import io.sentry.Sentry;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.text.Normalizer;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
@@ -24,8 +14,16 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.text.PDFTextStripper;
-import org.openstack4j.model.storage.object.SwiftObject;
 import org.springframework.stereotype.Service;
+
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
+import java.text.Normalizer;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 @Slf4j
@@ -33,7 +31,7 @@ import org.springframework.stereotype.Service;
 public class Utility {
     private static final String EXCEPTION = "Sentry ID Exception: ";
     private static final String EXCEPTION_MESSAGE2 = "Exception while trying extract text to pdf";
-    private final OvhService ovhService;
+    private final FileStorageService fileStorageService;
 
     public static String normalize(String s) {
         return Normalizer
@@ -97,11 +95,10 @@ public class Utility {
         return count;
     }
 
-    public String extractInfoFromPDFFirstPage(String pathFile) {
+    public String extractInfoFromPDFFirstPage(File dfFile) {
         String pdfFileInText = null;
-        SwiftObject swiftObject = ovhService.get(pathFile);
-        if (swiftObject != null) {
-            try (PDDocument document = PDDocument.load(swiftObject.download().getInputStream())) {
+        try (InputStream fileInputStream = fileStorageService.download(dfFile)) {
+            try (PDDocument document = PDDocument.load(fileInputStream)) {
                 if (!document.isEncrypted()) {
                     PDFTextStripper reader = new PDFTextStripper();
                     reader.setAddMoreFormatting(true);
@@ -109,20 +106,19 @@ public class Utility {
                     reader.setEndPage(1);
                     pdfFileInText = reader.getText(document);
                 }
-            } catch (IOException e) {
-                log.error(EXCEPTION_MESSAGE2, e);
-                log.error(EXCEPTION + Sentry.captureException(e));
-                log.error(e.getMessage(), e.getCause());
             }
+        } catch (IOException e) {
+            log.error(EXCEPTION_MESSAGE2, e);
+            log.error(EXCEPTION + Sentry.captureException(e));
+            log.error(e.getMessage(), e.getCause());
         }
         return pdfFileInText;
     }
 
-    public String extractQRCodeInfo(String pathFile) {
+    public String extractQRCodeInfo(File dfFile) {
         String qrCodeInfo = "";
-        SwiftObject swiftObject = ovhService.get(pathFile);
-        if (swiftObject != null) {
-            try (PDDocument document = PDDocument.load(swiftObject.download().getInputStream())) {
+        try (InputStream inputStream = fileStorageService.download(dfFile)) {
+            try (PDDocument document = PDDocument.load(inputStream)) {
                 if (!document.isEncrypted()) {
                     PDFRenderer pdfRenderer = new PDFRenderer(document);
 
@@ -145,6 +141,9 @@ public class Utility {
                 log.error(EXCEPTION + Sentry.captureException(e));
                 log.error(e.getMessage(), e.getCause());
             }
+        } catch (IOException e) {
+            log.error("Unable to download file " + dfFile.getPath(), e);
+            Sentry.captureMessage("Unable to download file " + dfFile.getPath());
         }
 
         return qrCodeInfo;
