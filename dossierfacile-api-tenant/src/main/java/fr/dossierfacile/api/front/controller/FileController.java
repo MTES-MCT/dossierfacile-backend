@@ -13,6 +13,7 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.repository.DocumentPdfGenerationLogRepository;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.common.service.interfaces.SharedFileService;
+import fr.dossierfacile.common.utils.FileUtility;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
@@ -60,14 +61,7 @@ public class FileController {
         File file = fileRepository.findByIdAndTenant(id, tenant.getId()).orElseThrow(() -> new FileNotFoundException(id));
 
         try (InputStream in = fileStorageService.download(file)) {
-            String fileName = file.getPath();
-            if (fileName.endsWith(".pdf")) {
-                response.setContentType(MediaType.APPLICATION_PDF_VALUE);
-            } else if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
-                response.setContentType(MediaType.IMAGE_JPEG_VALUE);
-            } else {
-                response.setContentType(MediaType.IMAGE_PNG_VALUE);
-            }
+            response.setContentType(file.getComputedContentType());
             IOUtils.copy(in, response.getOutputStream());
         } catch (final java.io.FileNotFoundException e) {
             log.error(FILE_NO_EXIST, e);
@@ -83,13 +77,7 @@ public class FileController {
         Key key = sharedFileService.findByPath(fileName).map(f -> f.getKey()).orElse(null);
 
         try (InputStream in = fileStorageService.download(fileName, key)) {
-            if (fileName.endsWith(".pdf")) {
-                response.setContentType(MediaType.APPLICATION_PDF_VALUE);
-            } else if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
-                response.setContentType(MediaType.IMAGE_JPEG_VALUE);
-            } else {
-                response.setContentType(MediaType.IMAGE_PNG_VALUE);
-            }
+            response.setContentType(FileUtility.computeMediaType(fileName));
             IOUtils.copy(in, response.getOutputStream());
         } catch (final java.io.FileNotFoundException e) {
             log.error(FILE_NO_EXIST, e);
