@@ -6,7 +6,6 @@ import fr.dossierfacile.common.utils.FileUtility;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
-import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,7 +15,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.Key;
 
 @RequiredArgsConstructor
 @Controller
@@ -28,12 +26,35 @@ public class FileController {
     private final FileStorageService fileStorageService;
     private final SharedFileService fileService;
 
-    //@PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/tenants_files/{fileName:.+}")
-    public void getImageAsByteArray(HttpServletResponse response, @PathVariable String fileName) {
-        Key key = fileService.findByPath(fileName).map(f -> f.getKey()).orElse(null);
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/files/{id}")
+    public void getOriginalFileAsByteArray(HttpServletResponse response, @PathVariable Long id) {
+        fileService.findById(id).ifPresentOrElse(
+                file -> {
+                    try (InputStream in = fileStorageService.download(file)) {
+                        response.setContentType(file.getComputedContentType());
+                        IOUtils.copy(in, response.getOutputStream());
+                    } catch (final FileNotFoundException e) {
+                        log.error(FILE_NO_EXIST, e);
+                        response.setStatus(404);
+                    } catch (final IOException e) {
+                        log.error("Unable to download file", e);
+                        response.setStatus(408);
+                    }
+                }, () -> {
+                    log.error("File not found in Database");
+                    response.setStatus(404);
+                }
+        );
+    }
 
-        try (InputStream in = fileStorageService.download(fileName, key)) {
+    /**
+     * This endpoint does not allow decrypting protected file
+     */
+    @GetMapping("/tenants_files/{fileName:.+}")
+    public void getFileAsByteArray(HttpServletResponse response, @PathVariable String fileName) {
+
+        try (InputStream in = fileStorageService.download(fileName, null)) {
             response.setContentType(FileUtility.computeMediaType(fileName));
             IOUtils.copy(in, response.getOutputStream());
         } catch (final FileNotFoundException e) {

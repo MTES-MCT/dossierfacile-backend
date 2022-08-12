@@ -586,7 +586,7 @@
                                     </div>
 
                                     <div style="margin-top: 5px" th:each="file,i : ${document.getFiles()}">
-                                        <a th:href="${'/tenants_files/'+file.getPath()}"
+                                        <a th:href="${'/files/'+file.getId()}"
                                            th:text="${'-File ' + (i.index+1)}"></a>
                                     </div>
                                     <div th:if="${document.getDocumentCategory().name()=='TAX'} and ${document.getTaxProcessResult()!=null}"
@@ -892,7 +892,7 @@
                                         <span th:text="${'Custom text: '+document.getCustomText()}"></span>
                                     </div>
                                     <div th:each="file,i : ${document.getFiles()}">
-                                        <a th:href="${'/tenants_files/'+file.getPath()}"
+                                        <a th:href="${'/files/'+file.getId()}"
                                            th:text="${'-File ' + (i.index+1)}"></a>
                                     </div>
                                     <div th:if="${document.getDocumentCategory().name()=='TAX'} and ${document.getTaxProcessResult()!=null}"
