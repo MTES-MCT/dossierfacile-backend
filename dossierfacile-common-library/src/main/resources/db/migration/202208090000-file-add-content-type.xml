@@ -13,9 +13,9 @@
 
     <changeSet id="2022080900001-02" author="fabien (manual)">
         <sql>
-            UPDATE file SET content_type = 'application/pdf' WHERE original_name like '%.pdf';
-            UPDATE file SET content_type = 'image/jpeg' WHERE original_name like '%.jpeg' OR original_name like '%.jpg';
-            UPDATE file SET content_type = 'image/png' WHERE original_name like '%.png';
+            UPDATE file SET content_type = 'application/pdf' WHERE original_name like '%.pdf' OR original_name like '%.PDF';
+            UPDATE file SET content_type = 'image/jpeg' WHERE original_name like '%.jpeg' OR original_name like '%.jpg' OR original_name like '%.JPEG' OR original_name like '%.JPG';
+            UPDATE file SET content_type = 'image/png' WHERE original_name like '%.png' OR original_name like '%.PNG';
         </sql>
     </changeSet>
 </databaseChangeLog>
