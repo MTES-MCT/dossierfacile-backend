@@ -1,9 +1,8 @@
 package fr.dossierfacile.api.pdfgenerator.service.templates;
 
 import com.drew.imaging.ImageMetadataReader;
-import com.drew.imaging.ImageProcessingException;
+import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
-import com.drew.metadata.MetadataException;
 import com.drew.metadata.exif.ExifIFD0Directory;
 import com.twelvemonkeys.image.ImageUtil;
 import fr.dossierfacile.api.pdfgenerator.model.FileInputStream;
@@ -134,9 +133,8 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
             try (ByteArrayInputStream imageInputForMeta = new ByteArrayInputStream(bytes)) {
 
                 Metadata metadata = ImageMetadataReader.readMetadata(imageInputForMeta);
-                int orientation = metadata
-                        .getFirstDirectoryOfType(ExifIFD0Directory.class)
-                        .getInt(ExifIFD0Directory.TAG_ORIENTATION);
+                Directory dir = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
+                int orientation = dir != null ? dir.getInteger(ExifIFD0Directory.TAG_ORIENTATION) : 0;
 
                 return switch (orientation) {
                     case 2 -> ImageUtil.createFlipped(image, ImageUtil.FLIP_HORIZONTAL);
@@ -150,10 +148,10 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
                             ImageUtil.createRotated(image, ImageUtil.ROTATE_90_CW),
                             ImageUtil.FLIP_VERTICAL);
                     case 8 -> ImageUtil.createRotated(image, ImageUtil.ROTATE_90_CW);
-                    default -> image; // 1 included
+                    default -> image; // 0,1 included
                 };
 
-            } catch (IOException | ImageProcessingException | MetadataException e) {
+            } catch (Exception e) {
                 log.error("Unable to rotate and flip from metadata", e);
                 Sentry.captureException(e);
             }
