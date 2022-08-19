@@ -94,7 +94,7 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
             "and d.processing_start_time < now() - (interval '12' hour)))", nativeQuery = true)
     Page<Tenant> findAllTenantsWithFailedGeneratedPdfDocument(Pageable pageable);
 
-    List<Tenant> getTenantsByStatus(TenantFileStatus tenantFileStatus);
+    long countAllByStatus(TenantFileStatus tenantFileStatus);
     //endregion
 
     //region Used in FO
