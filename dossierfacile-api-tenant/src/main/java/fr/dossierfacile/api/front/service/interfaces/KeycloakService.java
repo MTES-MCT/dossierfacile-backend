@@ -24,4 +24,6 @@ public interface KeycloakService {
     String getKeycloakId(String email);
 
     void logout(Tenant tenant);
+
+    void unlinkFranceConnect(Tenant tenant);
 }

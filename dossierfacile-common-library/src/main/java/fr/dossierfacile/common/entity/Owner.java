@@ -1,6 +1,7 @@
 package fr.dossierfacile.common.entity;
 
 import fr.dossierfacile.common.enums.StepRegisterOwner;
+import fr.dossierfacile.common.enums.UserType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -29,7 +30,6 @@ import java.util.List;
 public class Owner extends User implements Serializable {
 
     private static final long serialVersionUID = -4711959104392579912L;
-    private static final String OWNER_TYPE = "OWNER";
 
     @Builder.Default
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -45,7 +45,7 @@ public class Owner extends User implements Serializable {
     private boolean example = true;
 
     public Owner(String firstName, String lastName, String email) {
-        super(OWNER_TYPE, firstName, lastName, email);
+        super(UserType.OWNER, firstName, lastName, email);
     }
 
     public Property lastProperty() {

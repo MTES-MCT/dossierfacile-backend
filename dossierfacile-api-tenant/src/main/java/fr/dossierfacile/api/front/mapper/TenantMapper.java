@@ -29,6 +29,7 @@ public abstract class TenantMapper {
     @Value("${application.file.path}")
     private String path;
 
+    @Mapping(target="passwordEnabled", expression="java(tenant.getPassword() != null)")
     public abstract TenantModel toTenantModel(Tenant tenant);
 
     @Mapping(target = "connectedTenantId", source = "id")

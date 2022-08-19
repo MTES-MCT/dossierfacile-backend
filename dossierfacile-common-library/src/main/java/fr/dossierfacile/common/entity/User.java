@@ -23,7 +23,7 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import lombok.AllArgsConstructor;
+import fr.dossierfacile.common.enums.UserType;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -93,17 +93,18 @@ public class User implements Serializable {
     private String franceConnectBirthCountry;
 
     @Column(name = "user_type")
-    private String userType;
+    @Enumerated(EnumType.STRING)
+    private UserType userType;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private ConfirmationToken confirmationToken;
 
-    public User(String userType, String email) {
+    public User(UserType userType, String email) {
         this.userType = userType;
         this.email = email;
     }
 
-    public User(String userType, String firstName, String lastName, String email) {
+    public User(UserType userType, String firstName, String lastName, String email) {
         this.userType = userType;
         this.firstName = firstName;
         this.lastName = lastName;

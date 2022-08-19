@@ -78,6 +78,13 @@ public class KeycloakServiceImpl implements KeycloakService {
     public void logout(Tenant tenant) {
         realmResource.users().get(tenant.getKeycloakId()).logout();
     }
+    @Override
+    public void unlinkFranceConnect(Tenant tenant) {
+        var userRepresentation = realmResource.users().get(tenant.getKeycloakId()).toRepresentation();
+        userRepresentation.singleAttribute("france-connect", "false");
+        realmResource.users().get(tenant.getKeycloakId()).update(userRepresentation);
+    }
+
 
     private UserRepresentation createUser(String email) {
         var userRepresentation = new UserRepresentation();

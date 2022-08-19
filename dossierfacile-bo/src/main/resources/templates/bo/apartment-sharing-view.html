@@ -373,7 +373,10 @@
                                 </tr>
                                 <tr>
                                     <td>Email</td>
-                                    <td th:text="${tenant.getEmail()}"></td>
+                                    <td >
+                                        <span th:if="${ tenant.getFranceConnect() == true }"><img src="/assets/images/franceconnect-icon.png" height="22px" alt="isFC"/></span>
+                                        <span th:text="${tenant.getEmail()}"></span>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td>ZipCode</td>
@@ -563,8 +566,7 @@
                                             </button>
 
                                             <a style="font-size: smaller;margin-top: 9px;border-radius: .15em; margin-left: 2%; margin-bottom: auto;background: #efefef;padding: 1.5px;border-width: 2px;"
-                                               th:href="${'/tenants_files/'+ document.getName()}">See
-                                                Document PDF</a>
+                                               th:href="${'/tenants_files/'+ document.getName()}" target="_blank">See Document PDF</a>
                                         </div>
                                     </h4>
 
@@ -584,7 +586,7 @@
                                     </div>
 
                                     <div style="margin-top: 5px" th:each="file,i : ${document.getFiles()}">
-                                        <a th:href="${'/tenants_files/'+file.getPath()}"
+                                        <a th:href="${'/files/'+file.getId()}"
                                            th:text="${'-File ' + (i.index+1)}"></a>
                                     </div>
                                     <div th:if="${document.getDocumentCategory().name()=='TAX'} and ${document.getTaxProcessResult()!=null}"
@@ -890,7 +892,7 @@
                                         <span th:text="${'Custom text: '+document.getCustomText()}"></span>
                                     </div>
                                     <div th:each="file,i : ${document.getFiles()}">
-                                        <a th:href="${'/tenants_files/'+file.getPath()}"
+                                        <a th:href="${'/files/'+file.getId()}"
                                            th:text="${'-File ' + (i.index+1)}"></a>
                                     </div>
                                     <div th:if="${document.getDocumentCategory().name()=='TAX'} and ${document.getTaxProcessResult()!=null}"

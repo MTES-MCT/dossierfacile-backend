@@ -5,9 +5,12 @@ import fr.dossierfacile.api.front.model.tenant.EmailExistsModel;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.form.partner.EmailExistsForm;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.entity.User;
 
 public interface UserService {
     long confirmAccount(String token);
+
+    TenantModel createPassword(User user, String password);
 
     TenantModel createPassword(String token, String password);
 
@@ -26,4 +29,6 @@ public interface UserService {
     void linkTenantToApiPartner(Tenant tenant, String partner);
 
     void logout(Tenant tenant);
+
+    void unlinkFranceConnect(Tenant tenant);
 }

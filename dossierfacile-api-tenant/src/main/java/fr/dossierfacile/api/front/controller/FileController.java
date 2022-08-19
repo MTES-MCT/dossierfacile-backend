@@ -12,6 +12,8 @@ import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.repository.DocumentPdfGenerationLogRepository;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
+import fr.dossierfacile.common.service.interfaces.SharedFileService;
+import fr.dossierfacile.common.utils.FileUtility;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.Key;
 
 @RestController
 @RequiredArgsConstructor
@@ -30,6 +33,7 @@ import java.io.InputStream;
 public class FileController {
     private static final String FILE_NO_EXIST = "The file does not exist";
     private final FileService fileService;
+    private final SharedFileService sharedFileService;
     private final DocumentService documentService;
     private final Producer producer;
     private final AuthenticationFacade authenticationFacade;
@@ -57,14 +61,7 @@ public class FileController {
         File file = fileRepository.findByIdAndTenant(id, tenant.getId()).orElseThrow(() -> new FileNotFoundException(id));
 
         try (InputStream in = fileStorageService.download(file)) {
-            String fileName = file.getPath();
-            if (fileName.endsWith(".pdf")) {
-                response.setContentType(MediaType.APPLICATION_PDF_VALUE);
-            } else if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
-                response.setContentType(MediaType.IMAGE_JPEG_VALUE);
-            } else {
-                response.setContentType(MediaType.IMAGE_PNG_VALUE);
-            }
+            response.setContentType(file.getComputedContentType());
             IOUtils.copy(in, response.getOutputStream());
         } catch (final java.io.FileNotFoundException e) {
             log.error(FILE_NO_EXIST, e);
@@ -77,15 +74,10 @@ public class FileController {
 
     @GetMapping(value = "/download/{fileName:.+}", produces = {MediaType.APPLICATION_PDF_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
     public void getFileAsByteArray(HttpServletResponse response, @PathVariable String fileName) {
-        // TODO GET file from filename
-        try (InputStream in = fileStorageService.download(fileName, null)) {
-            if (fileName.endsWith(".pdf")) {
-                response.setContentType(MediaType.APPLICATION_PDF_VALUE);
-            } else if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
-                response.setContentType(MediaType.IMAGE_JPEG_VALUE);
-            } else {
-                response.setContentType(MediaType.IMAGE_PNG_VALUE);
-            }
+        Key key = sharedFileService.findByPath(fileName).map(f -> f.getKey()).orElse(null);
+
+        try (InputStream in = fileStorageService.download(fileName, key)) {
+            response.setContentType(FileUtility.computeMediaType(fileName));
             IOUtils.copy(in, response.getOutputStream());
         } catch (final java.io.FileNotFoundException e) {
             log.error(FILE_NO_EXIST, e);
