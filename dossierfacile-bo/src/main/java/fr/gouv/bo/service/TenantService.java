@@ -860,8 +860,8 @@ public class TenantService {
         return new PageImpl<>(tenantRepository.findAllTenantsWithFailedGeneratedPdfDocument(pageable).toList());
     }
 
-    public long getTenantsWithStatusInToProcess() {
-        return tenantRepository.getTenantsByStatus(TenantFileStatus.TO_PROCESS).size();
+    public long countTenantsWithStatusInToProcess() {
+        return tenantRepository.countAllByStatus(TenantFileStatus.TO_PROCESS);
     }
 
     public Tenant getTenantByEmail(String email) {
