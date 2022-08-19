@@ -18,6 +18,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.List;
 
 import static org.mockito.Mockito.any;
 
@@ -33,7 +34,28 @@ public class IdentificationBOPdfDocumentTemplateTest {
 
     @BeforeEach
     void init() {
-        Mockito.when(messageSource.getMessage(any(),any(),any(),any() )).thenReturn(BOPdfDocumentTemplate.DEFAULT_WATERMARK);
+        Mockito.lenient().when(messageSource.getMessage(any(),any(),any(),any() )).thenReturn(BOPdfDocumentTemplate.DEFAULT_WATERMARK);
+    }
+
+
+    @Disabled
+    @Test
+    public void check_render_with_rotated_files() throws IOException {
+        InputStream is = BOPdfDocumentTemplateTest.class.getClassLoader().getResourceAsStream("CNI_rotated.jpeg");
+
+        FileInputStream data = FileInputStream
+                .builder()
+                .extension("jpeg")
+                .inputStream(is)
+                .build();
+
+        File resultFile = new File("target/resultReverse.pdf");
+        resultFile.createNewFile();
+
+        byte[] bytes = IOUtils.toByteArray(boPdfDocumentTemplate.render(Arrays.asList(data)));
+
+        FileOutputStream w = new FileOutputStream(resultFile);
+        w.write(bytes);
     }
 
     @Disabled
@@ -88,34 +110,42 @@ public class IdentificationBOPdfDocumentTemplateTest {
     public void check_render_with_all_type() throws IOException {
         InputStream is = IdentificationBOPdfDocumentTemplateTest.class.getClassLoader().getResourceAsStream("CNI.pdf");
         InputStream isJPG = IdentificationBOPdfDocumentTemplateTest.class.getClassLoader().getResourceAsStream("CNI.jpg");
+        InputStream isHJPG = IdentificationBOPdfDocumentTemplateTest.class.getClassLoader().getResourceAsStream("CNIHorizontale.jpg");
         InputStream isTextPdf = IdentificationBOPdfDocumentTemplateTest.class.getClassLoader().getResourceAsStream("landscapeid.pdf");
         InputStream isOpen = IdentificationBOPdfDocumentTemplateTest.class.getClassLoader().getResourceAsStream("CNI.pdf");
 
-        FileInputStream data = FileInputStream
-                .builder()
-                .extension("pdf")
-                .inputStream(is)
-                .build();
-        FileInputStream data2 = FileInputStream
-                .builder()
-                .extension("jpg")
-                .inputStream(isJPG)
-                .build();
-        FileInputStream data3 = FileInputStream
-                .builder()
-                .extension("pdf")
-                .inputStream(isTextPdf)
-                .build();
-        FileInputStream data4 = FileInputStream
-                .builder()
-                .extension("pdf")
-                .inputStream(isOpen)
-                .build();
+        List<FileInputStream> dataList =
+                Arrays.asList(FileInputStream
+                                .builder()
+                                .extension("pdf")
+                                .inputStream(is)
+                                .build(),
+                        FileInputStream
+                                .builder()
+                                .extension("jpg")
+                                .inputStream(isJPG)
+                                .build(),
+                        FileInputStream
+                                .builder()
+                                .extension("jpg")
+                                .inputStream(isHJPG)
+                                .build(),
+
+                        FileInputStream
+                                .builder()
+                                .extension("pdf")
+                                .inputStream(isTextPdf)
+                                .build(),
+                        FileInputStream
+                                .builder()
+                                .extension("pdf")
+                                .inputStream(isOpen)
+                                .build());
 
         File resultFile = new File("target/resultFullTypeTestPdf.pdf");
         resultFile.createNewFile();
 
-        byte[] bytes = IOUtils.toByteArray(boPdfDocumentTemplate.render(Arrays.asList(data, data2, data3, data4)));
+        byte[] bytes = IOUtils.toByteArray(boPdfDocumentTemplate.render(dataList));
 
         FileOutputStream w = new FileOutputStream(resultFile);
         w.write(bytes);
