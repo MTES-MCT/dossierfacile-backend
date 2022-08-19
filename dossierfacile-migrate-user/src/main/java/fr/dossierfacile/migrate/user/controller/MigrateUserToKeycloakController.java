@@ -36,7 +36,6 @@ public class MigrateUserToKeycloakController {
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
                 .emailVerified(true)
-                .enabled(user.isEnabled())
                 .roles(Collections.singletonList("OWNER"))
                 .groups(Collections.emptyList())
                 .requiredActions(Collections.emptyList())
