@@ -30,7 +30,7 @@
 		<jbig2.imageio.version>3.0.3</jbig2.imageio.version>
 		<jai-imageio-jpeg2000.version>1.4.0</jai-imageio-jpeg2000.version>
 		<jai-imageio-core.version>1.4.0</jai-imageio-core.version>
-		<metadata.extractor.version>2.16.0</metadata.extractor.version>
+		<metadata.extractor.version>2.18.0</metadata.extractor.version>
 		<pdfbox.tools.version>2.0.23</pdfbox.tools.version>
 		<pdf2dom.version>2.0.0</pdf2dom.version>
 	</properties>
