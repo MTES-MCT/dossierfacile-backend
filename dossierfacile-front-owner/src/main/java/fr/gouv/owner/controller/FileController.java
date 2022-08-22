@@ -2,10 +2,10 @@ package fr.gouv.owner.controller;
 
 import fr.dossierfacile.common.service.interfaces.SharedFileService;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
+import fr.dossierfacile.common.utils.FileUtility;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -31,13 +31,7 @@ public class FileController {
         Key key = fileService.findByPath(fileName).map(f -> f.getKey()).orElse(null);
 
         try (InputStream in = fileStorageService.download(fileName, key)) {
-            if (fileName.endsWith(".pdf")) {
-                response.setContentType(MediaType.APPLICATION_PDF_VALUE);
-            } else if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
-                response.setContentType(MediaType.IMAGE_JPEG_VALUE);
-            } else {
-                response.setContentType(MediaType.IMAGE_PNG_VALUE);
-            }
+            response.setContentType(FileUtility.computeMediaType(fileName));
             IOUtils.copy(in, response.getOutputStream());
         } catch (final FileNotFoundException e) {
             log.error(FILE_NO_EXIST, e);

@@ -51,7 +51,7 @@ public class DocumentTax implements SaveStep<DocumentTaxForm> {
                 documentPdfGenerationLogRepository.save(DocumentPdfGenerationLog.builder()
                         .documentId(document.getId())
                         .build()).getId());
-        if (tenant.getHonorDeclaration().equals(Boolean.TRUE)) {
+        if (Boolean.TRUE.equals(tenant.getHonorDeclaration())) {
             producer.processFileOcr(tenant.getId());
         }
         return tenantMapper.toTenantModel(document.getTenant());
