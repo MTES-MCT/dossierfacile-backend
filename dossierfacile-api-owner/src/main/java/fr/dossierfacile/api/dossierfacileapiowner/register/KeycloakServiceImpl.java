@@ -1,6 +1,7 @@
 package fr.dossierfacile.api.dossierfacileapiowner.register;
 
 import fr.dossierfacile.common.entity.Owner;
+import fr.dossierfacile.common.entity.User;
 import lombok.AllArgsConstructor;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
@@ -24,6 +25,16 @@ public class KeycloakServiceImpl implements KeycloakService {
         var email = accountForm.getEmail();
         var userRepresentation = createUser(email);
         createCredential(userRepresentation, accountForm.getPassword());
+        return createUserAndReturnId(userRepresentation);
+    }
+
+    @Override
+    public String createKeycloakFromExistingUser(User user, String password) {
+        var email = user.getEmail();
+        var userRepresentation = createUser(email);
+        userRepresentation.setEmailVerified(true);
+        userRepresentation.setEnabled(true);
+        createCredential(userRepresentation, password);
         return createUserAndReturnId(userRepresentation);
     }
 
@@ -81,7 +92,7 @@ public class KeycloakServiceImpl implements KeycloakService {
     @Override
     public String getKeycloakId(String email) {
         var userRepresentations = realmResource.users().search(email);
-        return userRepresentations.isEmpty() ? createKeycloakUser(email) : userRepresentations.get(0).getId();
+        return userRepresentations.isEmpty() ? null : userRepresentations.get(0).getId();
     }
 
     @Override
