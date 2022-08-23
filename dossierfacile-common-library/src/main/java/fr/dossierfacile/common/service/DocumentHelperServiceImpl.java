@@ -33,6 +33,7 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
                         .document(document)
                         .originalName(multipartFile.getOriginalFilename())
                         .size(multipartFile.getSize())
+                        .contentType(multipartFile.getContentType())
                         .key(encryptionKey)
                         .numberOfPages(FileUtility.countNumberOfPagesOfPdfDocument(multipartFile))
                         .build()

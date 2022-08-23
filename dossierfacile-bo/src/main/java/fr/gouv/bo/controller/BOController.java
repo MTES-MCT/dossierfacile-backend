@@ -135,7 +135,7 @@ public class BOController {
         Pager pager = new Pager(tenants.getTotalPages(), tenants.getNumber(), BUTTONS_TO_SHOW);
         User login_user = userService.findUserByEmail(principal.getName());
         boolean is_admin = login_user.getUserRoles().stream().anyMatch(userRole -> userRole.getRole().name().equals(Role.ROLE_ADMIN.name()));
-        model.addAttribute("tenantToProcess", tenantService.getTenantsWithStatusInToProcess());
+        model.addAttribute("numberOfTenantsToProcess", tenantService.countTenantsWithStatusInToProcess());
         long result = 0;
         if (numberOfDocumentsToProcess.getId() == null) {
             result = tenantService.getTotalOfTenantsWithFailedGeneratedPdfDocument();
