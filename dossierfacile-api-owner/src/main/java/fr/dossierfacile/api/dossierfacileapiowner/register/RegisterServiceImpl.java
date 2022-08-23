@@ -76,7 +76,7 @@ public class RegisterServiceImpl implements RegisterService {
         User user = passwordRecoveryToken.getUser();
         user.setEnabled(true);
         user.setPassword(bCryptPasswordEncoder.encode(password));
-        if (user.getKeycloakId().isBlank()) {
+        if (user.getKeycloakId() == null || user.getKeycloakId().isBlank()) {
             var keycloakId = keycloakService.getKeycloakId(user.getEmail());
             if (keycloakId == null) {
                 keycloakId = keycloakService.createKeycloakFromExistingUser(user, password);
