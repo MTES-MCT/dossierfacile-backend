@@ -300,6 +300,9 @@ public class TenantService {
                         mailMessage.append(itemDetail.getMessage());
                         mailMessage.append(P_LI);
                         DocumentDeniedOptions documentDeniedOptions = setCheckedOptionsId(messageItem.getDocumentId(), USER_TYPE_TENANT, itemDetail.getMessage());
+                        if(documentDeniedOptions == null) {
+                            logFAILURE(tenant.getId(), messageItem, USER_TYPE_TENANT, itemDetail);
+                        }
                         documentDeniedReasons.getCheckedOptionsId().add(documentDeniedOptions.getId());
                         documentDeniedReasons.getCheckedOptions().add(itemDetail.getMessage());
                     }
@@ -341,6 +344,9 @@ public class TenantService {
                             mailMessage.append(itemDetail.getMessage());
                             mailMessage.append(P_LI);
                             DocumentDeniedOptions documentDeniedOptions = setCheckedOptionsId(messageItem.getDocumentId(), USER_TYPE_GUARANTOR, itemDetail.getMessage());
+                            if(documentDeniedOptions == null) {
+                                logFAILURE(guarantorItem.getGuarantorId(), messageItem, USER_TYPE_GUARANTOR, itemDetail);
+                            }
                             documentDeniedReasons.getCheckedOptionsId().add(documentDeniedOptions.getId());
                             documentDeniedReasons.getCheckedOptions().add(itemDetail.getMessage());
                         }
@@ -385,6 +391,31 @@ public class TenantService {
             return message;
         }
         return null;
+    }
+
+    // todo : remove this and the use of this , after finding the error
+    private void logFAILURE(Long idUserType, MessageItem messageItem, String userType, ItemDetail itemDetail) {
+        Long documentId = messageItem.getDocumentId();
+        Document document = documentRepository.findById(documentId).orElse(null);
+        assert document != null;
+        if (userType.equals(USER_TYPE_TENANT)) {
+            String messageReplaced = itemDetail.getMessage();
+            if (messageReplaced.contains(IDENTITY_REPLACE)) {
+                messageReplaced = messageReplaced.replace(IDENTITY_REPLACE, IDENTITY_REPLACE_DB);
+            }
+            if (messageReplaced.contains(SOCIAL_REPLACE)) {
+                messageReplaced = messageReplaced.replace(SOCIAL_REPLACE, SOCIAL_REPLACE_DB);
+            }
+            if (messageReplaced.contains(TENANT_REPLACE)) {
+                messageReplaced = messageReplaced.replace(TENANT_REPLACE, TENANT_REPLACE_DB);
+            }
+            if (messageReplaced.contains(SALARY_REPLACE)) {
+                messageReplaced = messageReplaced.replace(SALARY_REPLACE, SALARY_REPLACE_DB);
+            }
+            log.info("FAILURE: tenantId [" + idUserType + "] , documentId [" + documentId + "] , documentSubCategory [" + document.getDocumentSubCategory().toString() + "] - [" + document.getDocumentSubCategory().name() + "] , message [" + itemDetail.getMessage() + "] - [" + messageReplaced + "]");
+        } else {
+            log.info("FAILURE: guarantorId [" + idUserType + "] , documentId [" + documentId + "] , documentSubCategory [" + document.getDocumentSubCategory().toString() + "] - [" + document.getDocumentSubCategory().name() + "] , message [" + itemDetail.getMessage() + "] - [NO MESSAGE REPLACED]");
+        }
     }
 
     private DocumentDeniedOptions setCheckedOptionsId(Long documentId, String userType, String message) {
