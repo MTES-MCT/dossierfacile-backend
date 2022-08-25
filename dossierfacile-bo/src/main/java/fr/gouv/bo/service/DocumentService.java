@@ -15,6 +15,9 @@ import fr.gouv.bo.dto.MessageDTO;
 import fr.gouv.bo.exception.DocumentNotFoundException;
 import fr.gouv.bo.repository.DocumentDeniedOptionsRepository;
 import fr.gouv.bo.repository.DocumentRepository;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -23,10 +26,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -157,7 +156,7 @@ public class DocumentService {
                     this.wait(5000);
                 }
             } catch (InterruptedException e) {
-                log.error("InterruptedException regenerateFailedPdf ",e);
+                log.error("InterruptedException regenerateFailedPdf ", e);
                 Thread.currentThread().interrupt();
             }
         }
@@ -168,8 +167,7 @@ public class DocumentService {
         documentRepository.updateDocumentWithDocumentDeniedReasons(documentDeniedReasons, documentId);
     }
 
-    public List<DocumentDeniedOptions> getAllDocumentDeniedOptions(DocumentSubCategory documentSubCategory, boolean userType) {
-        String documentUserType = userType ? "tenant" : "guarantor";
-        return documentDeniedOptionsRepository.findAllByDocumentSubCategoryAndDocumentUserType(documentSubCategory, documentUserType);
+    public List<DocumentDeniedOptions> findDocumentDeniedOptionsByDocumentSubCategoryAndDocumentUserType(DocumentSubCategory documentSubCategory, String tenantOrGuarantor) {
+        return documentDeniedOptionsRepository.findAllByDocumentSubCategoryAndDocumentUserType(documentSubCategory, tenantOrGuarantor);
     }
 }

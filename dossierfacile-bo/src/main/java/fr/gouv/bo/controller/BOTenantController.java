@@ -29,6 +29,12 @@ import fr.gouv.bo.service.TenantService;
 import fr.gouv.bo.service.TenantUserApiService;
 import fr.gouv.bo.service.UserApiService;
 import fr.gouv.bo.service.UserService;
+import java.io.IOException;
+import java.security.Principal;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,13 +46,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.io.IOException;
-import java.security.Principal;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
 import static org.springframework.http.ResponseEntity.ok;
 
 @RequiredArgsConstructor
@@ -57,6 +56,7 @@ public class BOTenantController {
 
     private static final String EMAIL = "email";
     private static final String TENANT = "tenant";
+    private static final String GUARANTOR = "guarantor";
     private static final String NEW_MESSAGE = "newMessage";
     private static final String PARTNER_LIST = "partnerList";
     private static final String REDIRECT_BO = "redirect:/bo";
@@ -211,11 +211,15 @@ public class BOTenantController {
         return tenantService.redirectToApplication(principal, null);
     }
 
-    private List<ItemDetail> getItemDetailForSubcategoryOfDocument(DocumentSubCategory documentSubCategory, Boolean typeMessage) {
+    private List<ItemDetail> getItemDetailForSubcategoryOfDocument(DocumentSubCategory documentSubCategory, String tenantOrGuarantor) {
 
         List<ItemDetail> itemDetails = new ArrayList<>();
-        for (DocumentDeniedOptions documentDeniedOptions : documentService.getAllDocumentDeniedOptions(documentSubCategory, typeMessage)) {
-            ItemDetail itemDetail1 = ItemDetail.builder().check(false).message(documentDeniedOptions.getMessageValue()).build();
+        for (DocumentDeniedOptions documentDeniedOptions : documentService.findDocumentDeniedOptionsByDocumentSubCategoryAndDocumentUserType(documentSubCategory, tenantOrGuarantor)) {
+            ItemDetail itemDetail1 = ItemDetail.builder()
+                    .check(false)
+                    .message(documentDeniedOptions.getMessageValue())
+                    .idOptionMessage(documentDeniedOptions.getId())
+                    .build();
             itemDetails.add(itemDetail1);
         }
         return itemDetails;
@@ -235,7 +239,7 @@ public class BOTenantController {
                         .taxDocument(document.getTaxProcessResult())
                         .documentCategory(document.getDocumentCategory())
                         .documentSubCategory(document.getDocumentSubCategory())
-                        .itemDetailList(getItemDetailForSubcategoryOfDocument(document.getDocumentSubCategory(), true))
+                        .itemDetailList(getItemDetailForSubcategoryOfDocument(document.getDocumentSubCategory(), TENANT))
                         .documentId(document.getId())
                         .documentName(document.getName())
                         .files(document.getDocumentCategory() == DocumentCategory.IDENTIFICATION ? document.getFiles() : Collections.emptyList())
@@ -262,7 +266,7 @@ public class BOTenantController {
                             .taxDocument(document.getTaxProcessResult())
                             .documentCategory(document.getDocumentCategory())
                             .documentSubCategory(document.getDocumentSubCategory())
-                            .itemDetailList(getItemDetailForSubcategoryOfDocument(document.getDocumentSubCategory(), false))
+                            .itemDetailList(getItemDetailForSubcategoryOfDocument(document.getDocumentSubCategory(), GUARANTOR))
                             .documentId(document.getId())
                             .documentName(document.getName())
                             .build());

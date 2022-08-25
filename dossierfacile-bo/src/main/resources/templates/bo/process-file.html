@@ -190,9 +190,11 @@
                                         <input style="padding-left: 10px;"
                                                th:field="*{messageItems[__${i.index}__].itemDetailList[__${j.index}__].check}"
                                                type="checkbox"/>
-                                        <input style="padding-left: 10px;"
-                                               th:field="*{messageItems[__${i.index}__].itemDetailList[__${j.index}__].message}"
+                                        <input th:field="*{messageItems[__${i.index}__].itemDetailList[__${j.index}__].message}"
                                                th:value="${itemDetail.getMessage()}"
+                                               type="hidden"/>
+                                        <input th:field="*{messageItems[__${i.index}__].itemDetailList[__${j.index}__].idOptionMessage}"
+                                               th:value="${itemDetail.getIdOptionMessage()}"
                                                type="hidden"/>
                                         <p class="span1" style="display:block;"
                                            th:utext="${itemDetail.getMessage()}"></p>
@@ -374,9 +376,11 @@
                                             <input style="padding-left: 10px;"
                                                    th:field="*{guarantorItems[__${k.index}__].messageItems[__${i.index}__].itemDetailList[__${j.index}__].check}"
                                                    type="checkbox"/>
-                                            <input style="padding-left: 10px;"
-                                                   th:field="*{guarantorItems[__${k.index}__].messageItems[__${i.index}__].itemDetailList[__${j.index}__].message}"
+                                            <input th:field="*{guarantorItems[__${k.index}__].messageItems[__${i.index}__].itemDetailList[__${j.index}__].message}"
                                                    th:value="${itemDetail.getMessage()}"
+                                                   type="hidden"/>
+                                            <input th:field="*{guarantorItems[__${k.index}__].messageItems[__${i.index}__].itemDetailList[__${j.index}__].idOptionMessage}"
+                                                   th:value="${itemDetail.getIdOptionMessage()}"
                                                    type="hidden"/>
                                             <span class="span1" th:text="${itemDetail.getMessage()}"></span>
                                         </label>
