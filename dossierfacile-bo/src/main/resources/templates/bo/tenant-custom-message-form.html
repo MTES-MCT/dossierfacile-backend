@@ -45,6 +45,8 @@
                                            type="checkbox"/>
                                     <input th:field="*{messageItems[__${i.index}__].itemDetailList[__${j.index}__].message}"
                                            th:value="${itemDetail.getMessage()}" type="hidden"/>
+                                    <input th:field="*{messageItems[__${i.index}__].itemDetailList[__${j.index}__].idOptionMessage}"
+                                           th:value="${itemDetail.getIdOptionMessage()}" type="hidden"/>
                                     <span th:text="#{${itemDetail.getMessage()}}"></span>
                                 </label>
                             </div>
@@ -74,6 +76,8 @@
                                                type="checkbox"/>
                                         <input th:field="*{guarantorItems[__${k.index}__].messageItems[__${i.index}__].itemDetailList[__${j.index}__].message}"
                                                th:value="${itemDetail.getMessage()}" type="hidden"/>
+                                        <input th:field="*{guarantorItems[__${k.index}__].messageItems[__${i.index}__].itemDetailList[__${j.index}__].idOptionMessage}"
+                                               th:value="${itemDetail.getIdOptionMessage()}" type="hidden"/>
                                         <span th:text="#{${itemDetail.getMessage()}}"></span>
                                     </label>
                                 </div>
