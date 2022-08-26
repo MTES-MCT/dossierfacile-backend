@@ -12,4 +12,5 @@ import lombok.NoArgsConstructor;
 public class ItemDetail {
     private boolean check;
     private String message;
+    private Integer idOptionMessage;
 }
