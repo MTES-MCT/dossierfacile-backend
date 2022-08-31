@@ -28,33 +28,33 @@ public class MailServiceImpl implements MailService {
     private final TransactionalEmailsApi apiInstance;
     @Value("${email.support}")
     private String emailSupport;
-    @Value("${mailjet.template.id.welcome}")
+    @Value("${sendinblue.template.id.welcome}")
     private Long templateIDWelcome;
-    @Value("${mailjet.template.id.new.password}")
+    @Value("${sendinblue.template.id.new.password}")
     private Long templateIdNewPassword;
-    @Value("${mailjet.template.id.invitation.couple}")
+    @Value("${sendinblue.template.id.invitation.couple}")
     private Long templateIdCoupleApplication;
-    @Value("${mailjet.template.id.invitation.group}")
+    @Value("${sendinblue.template.id.invitation.group}")
     private Long templateIdGroupApplication;
-    @Value("${mailjet.template.id.account.deleted}")
+    @Value("${sendinblue.template.id.account.deleted}")
     private Long templateIdAccountDeleted;
-    @Value("${mailjet.template.id.account.completed}")
+    @Value("${sendinblue.template.id.account.completed}")
     private Long templateIdAccountCompleted;
-    @Value("${mailjet.template.id.account.email.validation.reminder}")
+    @Value("${sendinblue.template.id.account.email.validation.reminder}")
     private Long templateEmailWhenEmailAccountNotYetValidated;
-    @Value("${mailjet.template.id.account.incomplete.reminder}")
+    @Value("${sendinblue.template.id.account.incomplete.reminder}")
     private Long templateEmailWhenAccountNotYetCompleted;
-    @Value("${mailjet.template.id.account.declined.reminder}")
+    @Value("${sendinblue.template.id.account.declined.reminder}")
     private Long templateEmailWhenAccountIsStillDeclined;
-    @Value("${mailjet.template.id.account.satisf.not.assoc.to.partners}")
+    @Value("${sendinblue.template.id.account.satisf.not.assoc.to.partners}")
     private Long templateEmailWhenTenantNOTAssociatedToPartnersAndValidated;
-    @Value("${mailjet.template.id.account.satisf.yes.assoc.to.partners}")
+    @Value("${sendinblue.template.id.account.satisf.yes.assoc.to.partners}")
     private Long templateEmailWhenTenantYESAssociatedToPartnersAndValidated;
-    @Value("${mailjet.template.id.first.warning.for.deletion.of.documents}")
+    @Value("${sendinblue.template.id.first.warning.for.deletion.of.documents}")
     private Long templateFirstWarningForDeletionOfDocuments;
-    @Value("${mailjet.template.id.second.warning.for.deletion.of.documents}")
+    @Value("${sendinblue.template.id.second.warning.for.deletion.of.documents}")
     private Long templateSecondWarningForDeletionOfDocuments;
-    @Value("${mailjet.template.id.contact.support}")
+    @Value("${sendinblue.template.id.contact.support}")
     private Long templateIdContactSupport;
 
     @Async

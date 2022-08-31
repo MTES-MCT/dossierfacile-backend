@@ -21,11 +21,11 @@ import sibModel.SendSmtpEmailTo;
 @Slf4j
 public class MailService {
     private final TransactionalEmailsApi apiInstance;
-    @Value("${mailjet.template.id.message.notification}")
+    @Value("${sendinblue.template.id.message.notification}")
     private Long templateIDMessageNotification;
-    @Value("${mailjet.template.id.account.deleted}")
+    @Value("${sendinblue.template.id.account.deleted}")
     private Long templateIdAccountDeleted;
-    @Value("${mailjet.template.id.dossier.validated}")
+    @Value("${sendinblue.template.id.dossier.validated}")
     private Long templateIDDossierValidated;
 
     @Async
