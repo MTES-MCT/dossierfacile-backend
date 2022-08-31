@@ -1,4 +1,4 @@
-package fr.dossierfacile.api.front.config;
+package fr.gouv.bo.configuration;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

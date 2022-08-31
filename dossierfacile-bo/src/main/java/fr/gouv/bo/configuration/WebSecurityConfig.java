@@ -1,13 +1,11 @@
 package fr.gouv.bo.configuration;
 
 import com.google.gson.Gson;
-import com.mailjet.client.ClientOptions;
-import com.mailjet.client.MailjetClient;
 import fr.gouv.bo.security.RedirectAuthenticationSuccessHandler;
+import java.util.concurrent.Executor;
 import nz.net.ultraq.thymeleaf.LayoutDialect;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -26,18 +24,11 @@ import org.springframework.security.web.header.writers.StaticHeadersWriter;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.RequestContextListener;
 
-import java.util.concurrent.Executor;
-
 @Configuration
 @EnableWebSecurity
 @EnableAsync
 @EnableGlobalMethodSecurity(securedEnabled = true, prePostEnabled = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
-
-    @Value("${spring.mail.username}")
-    private String username;
-    @Value("${spring.mail.password}")
-    private String password;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -118,12 +109,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public MailjetClient mailjetClient() {
-        return new MailjetClient(username, password, new ClientOptions("v3.1"));
-    }
-
-    @Bean
-    public Executor asyncExecutor() {
+    public Executor taskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(2);
         executor.setMaxPoolSize(2);

@@ -208,12 +208,6 @@
             <version>2.3.8</version>
         </dependency>
         <dependency>
-            <groupId>com.mailjet</groupId>
-            <artifactId>mailjet-client</artifactId>
-            <version>4.6.0</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
             <groupId>io.swagger</groupId>
             <artifactId>swagger-annotations</artifactId>
             <version>1.5.20</version>
@@ -223,11 +217,6 @@
             <artifactId>mapstruct</artifactId>
             <version>${org.mapstruct.version}</version>
         </dependency>
-        <!--        <dependency>-->
-        <!--            <groupId>org.owasp.esapi</groupId>-->
-        <!--            <artifactId>esapi</artifactId>-->
-        <!--            <version>2.2.3.0</version>-->
-        <!--        </dependency>-->
         <dependency>
             <groupId>org.jsoup</groupId>
             <artifactId>jsoup</artifactId>
@@ -277,6 +266,12 @@
             <groupId>org.pacesys.openstack4j.connectors</groupId>
             <artifactId>openstack4j-okhttp</artifactId>
             <version>3.2.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sendinblue</groupId>
+            <artifactId>sib-api-v3-sdk</artifactId>
+            <version>6.0.0</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
     <build>
