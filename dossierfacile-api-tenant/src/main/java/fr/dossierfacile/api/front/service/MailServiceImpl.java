@@ -26,6 +26,8 @@ import sibModel.SendSmtpEmailTo;
 @Slf4j
 public class MailServiceImpl implements MailService {
     private final TransactionalEmailsApi apiInstance;
+    @Value("${tenant.domain}")
+    private String tenantDomain;
     @Value("${email.support}")
     private String emailSupport;
     @Value("${sendinblue.template.id.welcome}")
@@ -62,6 +64,7 @@ public class MailServiceImpl implements MailService {
     public void sendEmailConfirmAccount(User user, ConfirmationToken confirmationToken) {
         Map<String, String> variables = new HashMap<>();
         variables.put("confirmToken", confirmationToken.getToken());
+        variables.put("tenantDomain", tenantDomain);
 
         SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
         sendSmtpEmailTo.setEmail(user.getEmail());
@@ -88,6 +91,7 @@ public class MailServiceImpl implements MailService {
         Map<String, String> variables = new HashMap<>();
         variables.put("newPasswordToken", passwordRecoveryToken.getToken());
         variables.put("PRENOM", user.getFirstName());
+        variables.put("tenantDomain", tenantDomain);
 
         SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
         sendSmtpEmailTo.setEmail(user.getEmail());
@@ -115,6 +119,7 @@ public class MailServiceImpl implements MailService {
         Long templateId = templateIdCoupleApplication;
         variables.put("PRENOM", flatmate.getFirstName());
         variables.put("confirmToken", passwordRecoveryToken.getToken());
+        variables.put("tenantDomain", tenantDomain);
         if (applicationType == ApplicationType.GROUP) {
             variables.put("NOM", Strings.isNullOrEmpty(flatmate.getPreferredName()) ? flatmate.getLastName() : flatmate.getPreferredName());
             templateId = templateIdGroupApplication;
@@ -195,6 +200,7 @@ public class MailServiceImpl implements MailService {
         variables.put("PRENOM", user.getFirstName());
         variables.put("NOM", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
         variables.put("confirmToken", confirmationToken.getToken());
+        variables.put("tenantDomain", tenantDomain);
 
         SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
         sendSmtpEmailTo.setEmail(user.getEmail());
@@ -220,6 +226,7 @@ public class MailServiceImpl implements MailService {
         Map<String, String> variables = new HashMap<>();
         variables.put("PRENOM", user.getFirstName());
         variables.put("NOM", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
+        variables.put("tenantDomain", tenantDomain);
 
         SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
         sendSmtpEmailTo.setEmail(user.getEmail());
@@ -308,6 +315,7 @@ public class MailServiceImpl implements MailService {
         variables.put("firstName", user.getFirstName());
         variables.put("lastName", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
         variables.put("confirmToken", confirmationToken.getToken());
+        variables.put("tenantDomain", tenantDomain);
 
         SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
         sendSmtpEmailTo.setEmail(user.getEmail());
@@ -333,6 +341,7 @@ public class MailServiceImpl implements MailService {
         variables.put("firstName", user.getFirstName());
         variables.put("lastName", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
         variables.put("confirmToken", confirmationToken.getToken());
+        variables.put("tenantDomain", tenantDomain);
 
         SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
         sendSmtpEmailTo.setEmail(user.getEmail());
