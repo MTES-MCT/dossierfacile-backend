@@ -6,7 +6,9 @@ import fr.dossierfacile.api.front.mapper.PropertyOMapper;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.property.PropertyOModel;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
+import fr.dossierfacile.api.front.register.tenant.DocumentTax;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
+import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
 import fr.dossierfacile.api.front.service.interfaces.PropertyService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.service.interfaces.UserService;
@@ -23,6 +25,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import static org.springframework.http.ResponseEntity.ok;
@@ -39,6 +42,10 @@ public class TenantController {
     private final PropertyService propertyService;
     private final PropertyOMapper propertyMapper;
     private final UserService userService;
+
+    private final DocumentTax documentTaxService;
+
+    private final KeycloakService keycloakService;
 
     @GetMapping(value = "/profile", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TenantModel> profile() {
@@ -72,4 +79,17 @@ public class TenantController {
         userService.linkTenantToPartner(tenant, partnerForm);
         return ok().build();
     }
+
+    @GetMapping(value = "/allowTax/{allowTax}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<TenantModel> setAllowTax(@PathVariable("allowTax") String allowTax, @RequestParam String redirectUri) {
+        Tenant tenant = authenticationFacade.getTenant(null);
+        tenant = documentTaxService.setAllowTax(tenant, allowTax);
+        TenantModel tenantModel = tenantMapper.toTenantModel(tenant);
+        if (tenantModel.getAllowCheckTax()) {
+            tenantModel.setLinkUrl(authenticationFacade.getFranceConnectOauth(tenant, redirectUri));
+        }
+        return ok(tenantModel);
+    }
+
+
 }

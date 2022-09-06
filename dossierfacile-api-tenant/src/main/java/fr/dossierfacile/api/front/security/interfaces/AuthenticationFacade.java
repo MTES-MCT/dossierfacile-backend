@@ -9,4 +9,6 @@ public interface AuthenticationFacade {
     Tenant getTenant(Long id);
 
     String getKeycloakClientId();
+
+    String getFranceConnectOauth(Tenant tenant, String redirectUri);
 }

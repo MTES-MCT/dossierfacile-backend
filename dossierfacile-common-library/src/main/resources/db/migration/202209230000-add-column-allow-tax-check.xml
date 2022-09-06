@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+    <changeSet id="2022092300001-01" author="Matthieu">
+        <addColumn tableName="tenant">
+            <column name="allow_check_tax"
+                    type="boolean"
+                    />
+        </addColumn>
+    </changeSet>
+    <changeSet id="2022092300001-02" author="Matthieu">
+        <sql>
+            <![CDATA[
+                UPDATE tenant
+                SET allow_check_tax=true
+                WHERE id in (select tenant_id from document where document_sub_category='MY_NAME');
+          ]]>
+        </sql>
+    </changeSet>
+</databaseChangeLog>
