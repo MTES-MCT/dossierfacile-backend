@@ -21,8 +21,8 @@ import sibModel.SendSmtpEmailTo;
 @Slf4j
 public class MailService {
     private final TransactionalEmailsApi apiInstance;
-    @Value("${tenant.domain}")
-    private String tenantDomain;
+    @Value("${sendinblue.url.domain}")
+    private String sendinBlueUrlDomain;
     @Value("${sendinblue.template.id.message.notification}")
     private Long templateIDMessageNotification;
     @Value("${sendinblue.template.id.account.deleted}")
@@ -59,7 +59,7 @@ public class MailService {
         Map<String, String> variables = new HashMap<>();
         variables.put("PRENOM", user.getFirstName());
         variables.put("NOM", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
-        variables.put("tenantDomain", tenantDomain);
+        variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
 
         SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
         sendSmtpEmailTo.setEmail(user.getEmail());
@@ -84,7 +84,7 @@ public class MailService {
         Map<String, String> variables = new HashMap<>();
         variables.put("PRENOM", tenant.getFirstName());
         variables.put("NOM", Strings.isNullOrEmpty(tenant.getPreferredName()) ? tenant.getLastName() : tenant.getPreferredName());
-        variables.put("tenantDomain", tenantDomain);
+        variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
 
         SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
         sendSmtpEmailTo.setEmail(tenant.getEmail());
