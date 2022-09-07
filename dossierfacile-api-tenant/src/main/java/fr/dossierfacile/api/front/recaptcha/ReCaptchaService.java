@@ -8,6 +8,7 @@ import org.springframework.web.client.RestOperations;
 
 import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.Objects;
 
 @Service
@@ -22,10 +23,10 @@ public class ReCaptchaService {
     private final HttpServletRequest request;
 
     @Value("${spring.profiles.active}")
-    private String activeProfile;
+    private String activeProfiles;
 
     boolean validate(String reCaptchaResponse) {
-        if (activeProfile.equals("dev") || activeProfile.equals("preprod")) {
+        if (Arrays.asList(activeProfiles.split(",")).stream().anyMatch(profile -> "dev".equals(profile) || "preprod".equals(profile))) {
             return true;
         }
         URI verifyUri = URI.create(String.format(

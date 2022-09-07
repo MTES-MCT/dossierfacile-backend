@@ -62,4 +62,5 @@
     <include file="db/migration/202207151242-create-table-document_token.xml"/>
     <include file="db/migration/202208090000-file-add-content-type.xml"/>
     <include file="db/migration/202208100000-add-code-denied-options.xml"/>
+    <include file="db/migration/202209070000-update-code-denied-options.xml"/>
 </databaseChangeLog>

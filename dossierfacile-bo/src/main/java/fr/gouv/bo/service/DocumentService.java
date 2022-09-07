@@ -168,6 +168,6 @@ public class DocumentService {
     }
 
     public List<DocumentDeniedOptions> findDocumentDeniedOptionsByDocumentSubCategoryAndDocumentUserType(DocumentSubCategory documentSubCategory, String tenantOrGuarantor) {
-        return documentDeniedOptionsRepository.findAllByDocumentSubCategoryAndDocumentUserType(documentSubCategory, tenantOrGuarantor);
+        return documentDeniedOptionsRepository.findAllByDocumentSubCategoryAndDocumentUserTypeOrderByCode(documentSubCategory, tenantOrGuarantor);
     }
 }
