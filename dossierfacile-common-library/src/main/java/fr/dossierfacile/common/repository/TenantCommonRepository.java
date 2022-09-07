@@ -183,11 +183,10 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
     )
     List<Tenant> findAllTenantsYESAssociatedToPartnersAndValidatedSinceXDaysAgo(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 
-    @Query(value = "select * from tenant t \n" +
-            "join user_account u on u.id = t.id \n" +
-            "where u.last_login_date < :localDateTime \n" +
-            "and t.id in (select d.tenant_id from document d where d.tenant_id is not null) \n" +
-            "and t.warnings = :warnings", nativeQuery = true)
+    @Query(value = "from Tenant t " +
+            "where t.lastLoginDate < :localDateTime " +
+            "and t.warnings = :warnings " +
+            "and t.id in (select d.tenant.id from Document d where d.tenant.id is not null)")
     Page<Tenant> findByLastLoginDateIsBeforeAndHasDocuments(Pageable pageable, @Param("localDateTime") LocalDateTime localDateTime, Integer warnings);
 
     @Modifying
