@@ -47,8 +47,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
     protected ResponseEntity<Object> handleMethodArgumentNotValid(@CheckForNull final MethodArgumentNotValidException ex, final HttpHeaders headers, final HttpStatus status, final WebRequest request) {
         assert ex != null;
         logger.error(MESSAGE + Sentry.captureException(ex));
-        logger.error(ex.getMessage());
-        logger.error(ex.getStackTrace());
+        logger.error(ex.getMessage(), ex);
 
         final List<String> errors = new ArrayList<>();
         for (final FieldError error : ex.getBindingResult().getFieldErrors()) {
@@ -65,8 +64,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
     protected ResponseEntity<Object> handleBindException(@CheckForNull final BindException ex, final HttpHeaders headers, final HttpStatus status, final WebRequest request) {
         assert ex != null;
         logger.error(MESSAGE + Sentry.captureException(ex));
-        logger.error(ex.getMessage());
-        logger.error(ex.getStackTrace());
+        logger.error(ex.getMessage(), ex);
 
         final List<String> errors = new ArrayList<>();
         for (final FieldError error : ex.getBindingResult().getFieldErrors()) {
@@ -83,8 +81,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
     protected ResponseEntity<Object> handleTypeMismatch(@CheckForNull final TypeMismatchException ex, final HttpHeaders headers, final HttpStatus status, final WebRequest request) {
         assert ex != null;
         logger.error(MESSAGE + Sentry.captureException(ex));
-        logger.error(ex.getMessage());
-        logger.error(ex.getStackTrace());
+        logger.error(ex.getMessage(), ex);
 
         final String error = ex.getValue() + " value for " + ex.getPropertyName() + " should be of type " + ex.getRequiredType();
 
@@ -96,8 +93,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
     protected ResponseEntity<Object> handleMissingServletRequestPart(@CheckForNull final MissingServletRequestPartException ex, final HttpHeaders headers, final HttpStatus status, final WebRequest request) {
         assert ex != null;
         logger.error(MESSAGE + Sentry.captureException(ex));
-        logger.error(ex.getMessage());
-        logger.error(ex.getStackTrace());
+        logger.error(ex.getMessage(), ex);
 
         final String error = ex.getRequestPartName() + " part is missing";
         final ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST, ex.getLocalizedMessage(), error);
@@ -108,8 +104,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
     protected ResponseEntity<Object> handleMissingServletRequestParameter(@CheckForNull final MissingServletRequestParameterException ex, final HttpHeaders headers, final HttpStatus status, final WebRequest request) {
         assert ex != null;
         logger.error(MESSAGE + Sentry.captureException(ex));
-        logger.error(ex.getMessage());
-        logger.error(ex.getStackTrace());
+        logger.error(ex.getMessage(), ex);
 
         final String error = ex.getParameterName() + " parameter is missing";
         final ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST, ex.getLocalizedMessage(), error);
@@ -120,8 +115,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<Object> handleMethodArgumentTypeMismatch(@CheckForNull final MethodArgumentTypeMismatchException ex, final WebRequest request) {
 
         logger.error(MESSAGE + Sentry.captureException(Objects.requireNonNull(ex)));
-        logger.error(ex.getMessage());
-        logger.error(ex.getStackTrace());
+        logger.error(ex.getMessage(), ex);
 
         final String error = ex.getName() + " should be of type " + Objects.requireNonNull(ex.getRequiredType()).getName();
 
@@ -132,8 +126,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler({ConstraintViolationException.class})
     public ResponseEntity<Object> handleConstraintViolation(final ConstraintViolationException ex, final WebRequest request) {
         logger.error(MESSAGE + Sentry.captureException(ex));
-        logger.error(ex.getMessage());
-        logger.error(ex.getStackTrace());
+        logger.error(ex.getMessage(), ex);
 
         final List<String> errors = new ArrayList<>();
         for (final ConstraintViolation<?> violation : ex.getConstraintViolations()) {
@@ -148,8 +141,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
     protected ResponseEntity<Object> handleNoHandlerFoundException(@CheckForNull final NoHandlerFoundException ex, final HttpHeaders headers, final HttpStatus status, final WebRequest request) {
         assert ex != null;
         logger.error(MESSAGE + Sentry.captureException(ex));
-        logger.error(ex.getMessage());
-        logger.error(ex.getStackTrace());
+        logger.error(ex.getMessage(), ex);
 
         final String error = "No handler found for " + ex.getHttpMethod() + " " + ex.getRequestURL();
 
@@ -161,8 +153,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
     protected ResponseEntity<Object> handleHttpRequestMethodNotSupported(@CheckForNull final HttpRequestMethodNotSupportedException ex, final HttpHeaders headers, final HttpStatus status, final WebRequest request) {
         assert ex != null;
         logger.error(MESSAGE + Sentry.captureException(ex));
-        logger.error(ex.getMessage());
-        logger.error(ex.getStackTrace());
+        logger.error(ex.getMessage(), ex);
 
         final StringBuilder builder = new StringBuilder();
         builder.append(ex.getMethod());
@@ -177,8 +168,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
     protected ResponseEntity<Object> handleHttpMediaTypeNotSupported(@CheckForNull final HttpMediaTypeNotSupportedException ex, final HttpHeaders headers, final HttpStatus status, final WebRequest request) {
         assert ex != null;
         logger.error(MESSAGE + Sentry.captureException(ex));
-        logger.error(ex.getMessage());
-        logger.error(ex.getStackTrace());
+        logger.error(ex.getMessage(), ex);
 
         final StringBuilder builder = new StringBuilder();
         builder.append(ex.getContentType());
@@ -192,8 +182,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler({BadCredentialsException.class})
     public ResponseEntity<Object> handleBadCredential(final BadCredentialsException ex) {
         logger.error(MESSAGE + Sentry.captureException(ex));
-        logger.error(ex.getMessage());
-        logger.error(ex.getStackTrace());
+        logger.error(ex.getMessage(), ex);
 
         final ApiError apiError = new ApiError(HttpStatus.UNAUTHORIZED, ex.getLocalizedMessage());
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
@@ -202,8 +191,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler({GuarantorNotFoundException.class})
     public ResponseEntity<Object> handleGuarantorNotFoundException(final GuarantorNotFoundException ex) {
         logger.error(MESSAGE + Sentry.captureException(ex));
-        logger.error(ex.getMessage());
-        logger.error(ex.getStackTrace());
+        logger.error(ex.getMessage(), ex);
 
         final ApiError apiError = new ApiError(HttpStatus.NOT_FOUND, ex.getLocalizedMessage());
         ex.printStackTrace();
@@ -213,8 +201,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler({UserNotFoundException.class})
     public ResponseEntity<Object> handleUserNotFoundException(final UserNotFoundException ex) {
         logger.error(MESSAGE + Sentry.captureException(ex));
-        logger.error(ex.getMessage());
-        logger.error(ex.getStackTrace());
+        logger.error(ex.getMessage(), ex);
 
         final ApiError apiError = new ApiError(HttpStatus.NOT_FOUND, ex.getLocalizedMessage());
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
@@ -223,8 +210,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler({PasswordRecoveryTokenNotFoundException.class})
     public ResponseEntity<Object> handlePasswordRecoveryTokenNotFoundException(final PasswordRecoveryTokenNotFoundException ex) {
         logger.error(MESSAGE + Sentry.captureException(ex));
-        logger.error(ex.getMessage());
-        logger.error(ex.getStackTrace());
+        logger.error(ex.getMessage(), ex);
 
         final ApiError apiError = new ApiError(HttpStatus.NOT_FOUND, ex.getLocalizedMessage());
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
@@ -233,8 +219,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler({FileNotFoundException.class})
     public ResponseEntity<Object> handleFileNotFoundException(final FileNotFoundException ex) {
         logger.error(MESSAGE + Sentry.captureException(ex));
-        logger.error(ex.getMessage());
-        logger.error(ex.getStackTrace());
+        logger.error(ex.getMessage(), ex);
 
         final ApiError apiError = new ApiError(HttpStatus.NOT_FOUND, ex.getLocalizedMessage());
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
@@ -243,8 +228,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler({DocumentNotFoundException.class})
     public ResponseEntity<Object> handleDocumentNotFoundException(final DocumentNotFoundException ex) {
         logger.error(MESSAGE + Sentry.captureException(ex));
-        logger.error(ex.getMessage());
-        logger.error(ex.getStackTrace());
+        logger.error(ex.getMessage(), ex);
 
         final ApiError apiError = new ApiError(HttpStatus.NOT_FOUND, ex.getLocalizedMessage());
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
@@ -253,8 +237,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler({ConfirmationTokenNotFoundException.class})
     public ResponseEntity<Object> handleConfirmationTokenNotFoundException(final ConfirmationTokenNotFoundException ex) {
         logger.error(MESSAGE + Sentry.captureException(ex));
-        logger.error(ex.getMessage());
-        logger.error(ex.getStackTrace());
+        logger.error(ex.getMessage(), ex);
 
         final ApiError apiError = new ApiError(HttpStatus.NOT_FOUND, ex.getLocalizedMessage());
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
@@ -263,8 +246,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler({ApartmentSharingNotFoundException.class})
     public ResponseEntity<Object> handleApartmentSharingNotFoundException(final ApartmentSharingNotFoundException ex) {
         logger.error(MESSAGE + Sentry.captureException(ex));
-        logger.error(ex.getMessage());
-        logger.error(ex.getStackTrace());
+        logger.error(ex.getMessage(), ex);
 
         final ApiError apiError = new ApiError(HttpStatus.NOT_FOUND, ex.getLocalizedMessage());
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
@@ -273,8 +255,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler({ApartmentSharingUnexpectedException.class})
     public ResponseEntity<Object> handleApartmentSharingUnexpectedException(final ApartmentSharingUnexpectedException ex) {
         logger.error(MESSAGE + Sentry.captureException(ex));
-        logger.error(ex.getMessage());
-        logger.error(ex.getStackTrace());
+        logger.error(ex.getMessage(), ex);
 
         final ApiError apiError = new ApiError(HttpStatus.EXPECTATION_FAILED, ex.getLocalizedMessage());
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
@@ -283,8 +264,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler({AccessDeniedException.class})
     public ResponseEntity<Object> handleAccessDeniedException(final AccessDeniedException ex) {
         logger.error(MESSAGE + Sentry.captureException(ex));
-        logger.error(ex.getMessage());
-        logger.error(ex.getStackTrace());
+        logger.error(ex.getMessage(), ex);
 
         final ApiError apiError = new ApiError(HttpStatus.FORBIDDEN, ex.getLocalizedMessage());
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
@@ -293,8 +273,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler({Exception.class})
     public ResponseEntity<Object> handleAll(final Exception ex) {
         logger.error(MESSAGE + Sentry.captureException(ex));
-        logger.error(ex.getMessage());
-        logger.error(ex.getStackTrace());
+        logger.error(ex.getMessage(), ex);
 
         final ApiError apiError = new ApiError(HttpStatus.INTERNAL_SERVER_ERROR, ex.getLocalizedMessage(), "error occurred");
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
