@@ -174,6 +174,7 @@ public class MailServiceImpl implements MailService {
         Map<String, String> variables = new HashMap<>();
         variables.put("PRENOM", user.getFirstName());
         variables.put("NOM", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
+        variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
 
         SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
         sendSmtpEmailTo.setEmail(user.getEmail());
@@ -252,6 +253,7 @@ public class MailServiceImpl implements MailService {
         Map<String, String> variables = new HashMap<>();
         variables.put("PRENOM", user.getFirstName());
         variables.put("NOM", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
+        variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
 
         SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
         sendSmtpEmailTo.setEmail(user.getEmail());
@@ -273,6 +275,9 @@ public class MailServiceImpl implements MailService {
 
     @Override
     public void sendEmailWhenTenantNOTAssociatedToPartnersAndValidatedXDaysAgo(User user) {
+        Map<String, String> variables = new HashMap<>();
+        variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
+
         SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
         sendSmtpEmailTo.setEmail(user.getEmail());
         if (!Strings.isNullOrEmpty(user.getFullName())) {
@@ -281,6 +286,7 @@ public class MailServiceImpl implements MailService {
 
         SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
         sendSmtpEmail.templateId(templateEmailWhenTenantNOTAssociatedToPartnersAndValidated);
+        sendSmtpEmail.params(variables);
         sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
 
         try {
@@ -292,6 +298,9 @@ public class MailServiceImpl implements MailService {
 
     @Override
     public void sendEmailWhenTenantYESAssociatedToPartnersAndValidatedXDaysAgo(User user) {
+        Map<String, String> variables = new HashMap<>();
+        variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
+
         SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
         sendSmtpEmailTo.setEmail(user.getEmail());
         if (!Strings.isNullOrEmpty(user.getFullName())) {
@@ -300,6 +309,7 @@ public class MailServiceImpl implements MailService {
 
         SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
         sendSmtpEmail.templateId(templateEmailWhenTenantYESAssociatedToPartnersAndValidated);
+        sendSmtpEmail.params(variables);
         sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
 
         try {
