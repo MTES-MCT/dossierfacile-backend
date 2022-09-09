@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+    <changeSet id="2022090900000-01" author="fabien (manual)">
+        <sql>
+            <![CDATA[
+
+                INSERT INTO public.document_denied_options
+                    (message_value, document_sub_category, document_user_type, code)
+                VALUES
+                    ('Veuillez changer la nature de votre situation professionnelle en choisissant dans la liste à votre disposition.','OTHER', 'tenant', 'T_OTHER_007');
+
+          ]]>
+        </sql>
+    </changeSet>
+
+    <changeSet id="2022090900000-02" author="fabien (manual)">
+        <sql>
+            <![CDATA[
+
+
+                UPDATE document_denied_options
+                SET message_value = REPLACE(message_value, 'est préférée', 'est préféré' )
+                WHERE
+                    code = 'T_GUEST_008'
+                    OR code = 'T_GUEST_PARENTS_008'
+                    OR code = 'T_OWNER_006'
+                    OR code = 'T_TENANT_006';
+
+          ]]>
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
