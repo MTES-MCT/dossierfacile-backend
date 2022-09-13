@@ -19,9 +19,8 @@ import java.util.Optional;
 public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
 
     //region Used in BO
-    Tenant findOneByEmail(String email);
-
-    List<Tenant> findByLastLoginDateBetween(LocalDateTime startLogin, LocalDateTime endLogin);
+    Tenant findOneByEmail(String email);// TODO to merge
+    Optional<Tenant> findByEmail(String email);// TODO to merge
 
     @Query("select distinct t FROM Tenant t where concat(LOWER(t.firstName),' ',LOWER(t.lastName)) like CONCAT('%',:nameUser,'%') ")
     List<Tenant> findTenantByFirstNameOrLastNameOrFullName(@Param("nameUser") String nameUser);
@@ -102,8 +101,6 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
 
     @Query("from Tenant t where t.email in :emails")
     List<Tenant> findByListEmail(@Param("emails") List<String> emails);
-
-    Optional<Tenant> findByEmail(String name);
 
     List<Tenant> findAllByEnabledIsFalseAndCreationDateTimeIsBetween(LocalDateTime initDate, LocalDateTime endDate);
 

@@ -1,10 +1,11 @@
 package fr.gouv.bo.security.oauth2;
 
+import fr.dossierfacile.common.entity.BOUser;
 import fr.dossierfacile.common.entity.User;
 import fr.dossierfacile.common.entity.UserRole;
 import fr.dossierfacile.common.enums.AuthProvider;
 import fr.gouv.bo.exception.OAuth2AuthenticationProcessingException;
-import fr.gouv.bo.repository.UserRepository;
+import fr.gouv.bo.repository.BOUserRepository;
 import fr.gouv.bo.repository.UserRoleRepository;
 import fr.gouv.bo.security.UserPrincipal;
 import fr.gouv.bo.security.oauth2.user.OAuth2UserInfo;
@@ -30,7 +31,7 @@ import java.util.Set;
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     @Autowired
-    private UserRepository userRepository;
+    private BOUserRepository userRepository;
     @Autowired
     private UserRoleRepository userRoleRepository;
     @Value("${authorize.domain.bo}")
@@ -59,8 +60,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             throw new OAuth2AuthenticationProcessingException("Your email does not belong to this organization");
         }
 
-        Optional<User> userOptional = userRepository.findByEmail(oAuth2UserInfo.getEmail());
-        User user;
+        Optional<BOUser> userOptional = userRepository.findByEmail(oAuth2UserInfo.getEmail());
+        BOUser user;
         if (userOptional.isPresent()) {
             user = userOptional.get();
             if (!user.getProvider().equals(AuthProvider.valueOf(oAuth2UserRequest.getClientRegistration().getRegistrationId()))) {
@@ -84,8 +85,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         return UserPrincipal.create(user, oAuth2User.getAttributes(), authorities);
     }
 
-    private User registerNewUser(OAuth2UserRequest oAuth2UserRequest, OAuth2UserInfo oAuth2UserInfo) {
-        User user = new User();
+    private BOUser registerNewUser(OAuth2UserRequest oAuth2UserRequest, OAuth2UserInfo oAuth2UserInfo) {
+        BOUser user = new BOUser();
 
         user.setProvider(AuthProvider.valueOf(oAuth2UserRequest.getClientRegistration().getRegistrationId()));
         user.setProviderId(oAuth2UserInfo.getId());
@@ -96,7 +97,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         return user;
     }
 
-    private User updateExistingUser(User existingUser, OAuth2UserInfo oAuth2UserInfo) {
+    private BOUser updateExistingUser(BOUser existingUser, OAuth2UserInfo oAuth2UserInfo) {
         existingUser.setFirstName(oAuth2UserInfo.getName());
         existingUser.setImageUrl(oAuth2UserInfo.getImageUrl());
         return userRepository.save(existingUser);

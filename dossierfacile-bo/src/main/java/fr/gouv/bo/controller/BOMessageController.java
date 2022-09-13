@@ -27,7 +27,7 @@ public class BOMessageController {
     private static final String APARTMENT_SHARING_ID = "aptSharingId";
     private static final String MESSAGES = "messages";
     private static final String TENANT = "tenant";
-    private static final String NAME = "name";
+    private static final String OPNAME = "operatorName";
 
     private final TenantService tenantService;
     private final MessageService messageService;
@@ -51,7 +51,7 @@ public class BOMessageController {
         model.addAttribute(APARTMENT_SHARING_ID, apartmentSharing.getId());
         model.addAttribute(MESSAGES, messages);
         model.addAttribute(TENANT, tenant);
-        model.addAttribute(NAME, loggedUser.getFullName());
+        model.addAttribute(OPNAME, loggedUser.getEmail());
         return "bo/message";
     }
 

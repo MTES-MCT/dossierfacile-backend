@@ -64,6 +64,7 @@
     <include file="db/migration/202208100000-add-code-denied-options.xml"/>
     <include file="db/migration/202209070000-update-code-denied-options.xml"/>
     <include file="db/migration/202209090000-update-code-denied-options.xml"/>
+    <include file="db/migration/202209130000-add-bo-user.xml"/>
     <include file="db/migration/202209130000-update-code-denied-options.xml"/>
     <include file="db/migration/202209230000-add-column-allow-tax-check.xml"/>
     <include file="db/migration/202210170000-add-table-feedback.xml"/>

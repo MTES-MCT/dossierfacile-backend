@@ -114,46 +114,6 @@ public class Prospect implements Serializable {
     @Column(nullable = false, columnDefinition = "boolean default false")
     private boolean reminderWelcome = false;
 
-    public Prospect(String name, String lastName, String email, String phone, Integer salary, Integer situation) {
-        this.firstName = name;
-        this.lastName = lastName;
-        this.email = email;
-        this.phone = phone;
-        this.salary = salary;
-        this.creationDateTime = LocalDateTime.now();
-        this.prospectType = CREATE;
-        if (situation != null) {
-            this.tenantSituation = TenantSituation.values()[situation];
-        } else {
-            this.tenantSituation = TenantSituation.CDD;
-        }
-    }
-
-    public Prospect(Tenant tenant) {
-        this.firstName = tenant.getFirstName();
-        this.lastName = tenant.getLastName();
-        this.email = tenant.getEmail().toLowerCase();
-        this.phone = "";
-        this.creationDateTime = LocalDateTime.now();
-        this.prospectType = CREATE;
-        this.tenantSituation = tenant.getTenantSituation() == TenantSituation.UNDEFINED ? TenantSituation.CDD : tenant.getTenantSituation();
-        this.salary = tenant.getTotalSalary();
-    }
-
-    public Prospect(String firstName, String lastName, String email, Prospect prospect) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.email = email;
-        this.creationDateTime = LocalDateTime.now();
-        this.prospectType = JOIN;
-        this.tenantSituation = TenantSituation.CDD;
-        this.guarantor = "no";
-        this.salary = 0;
-        this.setPropertyId(prospect.getPropertyId());
-        this.setProperty(prospect.getProperty());
-        this.setApartmentSharing(prospect.getApartmentSharing());
-    }
-
     public String getFullName() {
         return ((this.firstName != null) ? this.firstName : "") + " " + ((this.lastName != null) ? this.lastName : "");
     }

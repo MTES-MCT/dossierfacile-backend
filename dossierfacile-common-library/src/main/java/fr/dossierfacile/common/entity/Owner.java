@@ -11,6 +11,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
+import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.OneToMany;
@@ -22,6 +23,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "owner")
+@DiscriminatorValue("OWNER")
 @Getter
 @Setter
 @AllArgsConstructor

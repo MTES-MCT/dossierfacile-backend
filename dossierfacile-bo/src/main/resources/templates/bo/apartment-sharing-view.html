@@ -257,12 +257,20 @@
                                        th:href="@{/bo/tenant/} + ${tenant.getId()} + '/processFile'">
                                         Traiter les documents
                                     </a>
-                                    <div th:if="${tenant.getApartmentSharing().getTenants().size()} > 1">
+                                    <div th:if="${ tenant.getTenantType().toString() == 'JOIN' }">
+                                        <a class="btn btn-warning bo-btn"
+                                           style="margin-right: 10px;float: right"
+                                           th:attrappend="data-id=${tenant.getId()}"
+                                           th:href="@{/bo/tenant/setAsTenantCreate/} + ${tenant.getId()}"
+                                           th:text="'Fixer comme locataire principal'"
+                                        ></a>
+                                    </div>
+                                    <div th:if="${ tenant.getTenantType().toString() != 'CREATE'}">
                                         <a class="btn btn-danger bo-btn btn-deleteCotenant"
                                            style="margin-right: 10px;float: right"
                                            th:attrappend="data-id=${tenant.getId()}"
                                            th:href="@{/bo/tenant/deleteCoTenant/} + ${tenant.getId()}"
-                                           th:text="${tenant.getTenantType().toString() == 'CREATE'}?'Supprimer le locataire':'Supprimer le colocataire'"
+                                           th:text="'Supprimer le colocataire'"
                                         ></a>
                                     </div>
                                 </div>

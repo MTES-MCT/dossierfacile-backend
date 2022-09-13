@@ -13,6 +13,7 @@ import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.MessageStatus;
 import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
+import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.gouv.bo.dto.CustomMessage;
 import fr.gouv.bo.dto.EmailDTO;
@@ -88,16 +89,20 @@ public class BOTenantController {
         throw new ObjectNotFoundException("TENANT", "Tenant is not found. Still exists?");
     }
 
+    @GetMapping("/setAsTenantCreate/{id}")
+    public String setAsTenantCreate(@PathVariable Long id) {
+        Tenant tenant = userService.setAsTenantCreate(tenantService.findTenantById(id));
+        return "redirect:/bo/colocation/" + tenant.getApartmentSharing().getId() + "#tenant" + tenant.getId();
+    }
+
     @GetMapping("/deleteCoTenant/{id}")
     public String deleteCoTenant(@PathVariable Long id) {
-        Tenant create = tenantService.findTenantCreate(tenantService.findTenantById(id).getApartmentSharing().getId());
-        if (create.getId().equals(id)) {
-            Tenant mainTenant = userService.deleteAndReplaceTenantCreate(create);
-            return "redirect:/bo/colocation/" + mainTenant.getApartmentSharing().getId() + "#tenant" + mainTenant.getId();
+        Tenant tenant = tenantService.findTenantById(id);
+        if (tenant.getTenantType() == TenantType.CREATE ) {
+            throw new IllegalArgumentException("Delete main tenant is not allowed - set another user as main tenant before OR delete the entire apartmentSharing");
         }
-
-        userService.deleteCoTenant(create, id);
-        return "redirect:/bo/colocation/" + create.getApartmentSharing().getId() + "#tenant" + create.getId();
+        userService.deleteCoTenant(tenant);
+        return "redirect:/bo/colocation/" + tenant.getApartmentSharing().getId();
     }
 
     @GetMapping("/deleteApartmentSharing/{id}")

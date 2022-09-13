@@ -4,7 +4,7 @@ import fr.dossierfacile.common.entity.User;
 import fr.dossierfacile.common.entity.UserRole;
 import fr.dossierfacile.common.enums.Role;
 import fr.gouv.bo.dto.UserDTO;
-import fr.gouv.bo.repository.UserRepository;
+import fr.gouv.bo.repository.BOUserRepository;
 import fr.gouv.bo.repository.UserRoleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 public class UserRoleService {
 
     private final UserRoleRepository userRoleRepository;
-    private final UserRepository userRepository;
+    private final BOUserRepository userRepository;
 
     public void save(User user, UserDTO userDTO) {
         for (Role role : userDTO.getRole()) {

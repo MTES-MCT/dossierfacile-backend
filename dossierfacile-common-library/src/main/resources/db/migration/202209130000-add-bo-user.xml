@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+    <changeSet id="2022091300000-01" author="fle (generated)">
+        <createTable tableName="bo_user">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="bo_user_pkey"/>
+            </column>
+            <column name="user_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="2022091300000-02" author="fabien (manual)">
+        <sql>
+            <![CDATA[
+                UPDATE user_account
+                SET user_type = 'BO'
+                WHERE
+                    user_type is null
+                    AND email like '%@dossierfacile.fr';
+
+                INSERT INTO bo_user (id, user_id)
+                SELECT id, id
+                FROM user_account
+                WHERE user_type = 'BO';
+
+          ]]>
+        </sql>
+    </changeSet>
+
+    <changeSet author="fle (generated)" id="2022091300000-03">
+        <addForeignKeyConstraint baseColumnNames="user_id" baseTableName="bo_user" constraintName="fk_bo_user_user_account" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="user_account" validate="true"/>
+    </changeSet>
+
+</databaseChangeLog>

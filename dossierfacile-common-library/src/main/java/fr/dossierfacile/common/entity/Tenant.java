@@ -35,6 +35,7 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "tenant")
+@DiscriminatorValue("TENANT")
 @Getter
 @Setter
 @NoArgsConstructor

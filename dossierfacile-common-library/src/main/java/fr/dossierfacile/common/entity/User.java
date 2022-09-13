@@ -37,7 +37,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 @Getter
 @Setter
 @NoArgsConstructor
-public class User implements Serializable {
+public abstract class User implements Serializable {
 
     private static final long serialVersionUID = -3603815439883206021L;
 
@@ -71,6 +71,8 @@ public class User implements Serializable {
     @Column(name = "last_login_date")
     private LocalDateTime lastLoginDate = LocalDateTime.now();
 
+    /** use Keycloak service */
+    @Deprecated
     @Column(columnDefinition = "boolean default true")
     private boolean enabled = false;
 
