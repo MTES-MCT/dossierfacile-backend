@@ -290,6 +290,7 @@ public class TenantService {
                         mailMessage.append(fileNameWithBold.getFileNameWithBold(messageItem.getDocumentCategory().getLabel()));
                         mailMessage.append(itemDetail.getMessage());
                         mailMessage.append(P_LI);
+                        documentDeniedReasons.getCheckedOptions().add(itemDetail.getMessage());
                         documentDeniedReasons.getCheckedOptionsId().add(itemDetail.getIdOptionMessage());
                     }
                 }
@@ -329,6 +330,7 @@ public class TenantService {
                             mailMessage.append(fileNameWithBoldGuarantor.getFileNameWithBold(messageItem.getDocumentCategory().getLabel()));
                             mailMessage.append(itemDetail.getMessage());
                             mailMessage.append(P_LI);
+                            documentDeniedReasons.getCheckedOptions().add(itemDetail.getMessage());
                             documentDeniedReasons.getCheckedOptionsId().add(itemDetail.getIdOptionMessage());
                         }
                     }
