@@ -64,4 +64,5 @@
     <include file="db/migration/202208100000-add-code-denied-options.xml"/>
     <include file="db/migration/202209070000-update-code-denied-options.xml"/>
     <include file="db/migration/202209090000-update-code-denied-options.xml"/>
+    <include file="db/migration/202209130000-update-code-denied-options.xml"/>
 </databaseChangeLog>

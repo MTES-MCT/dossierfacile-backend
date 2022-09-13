@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+    <changeSet id="2022091300001-01" author="fabien (manual)">
+        <sql>
+            <![CDATA[
+                UPDATE document_denied_options
+                SET message_value= 'Si vous étiez précédemment hébergé fiscalement chez vos parents, veuillez cocher la case "Vous êtes rattaché fiscalement à vos parents", cela générera un justificatif automatique ajouté à votre dossier en complément.'
+                WHERE
+                    code = 'T_OTHER_TAX_009';
+          ]]>
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
