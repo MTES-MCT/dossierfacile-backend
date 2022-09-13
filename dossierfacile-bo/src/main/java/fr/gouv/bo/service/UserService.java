@@ -67,7 +67,7 @@ public class UserService {
     }
 
     public User findUserByEmail(String email) {
-        return userRepository.findOneByEmail(email);
+        return userRepository.findByEmail(email).get();
     }
 
     public User save(UserDTO userDTO) {

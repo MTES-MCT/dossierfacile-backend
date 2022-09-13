@@ -1,5 +1,6 @@
 package fr.gouv.bo.service;
 
+import com.drew.lang.annotations.NotNull;
 import fr.dossierfacile.common.entity.User;
 import fr.dossierfacile.common.entity.UserRole;
 import fr.dossierfacile.common.enums.Role;
@@ -23,11 +24,8 @@ public class UserRoleService {
         }
     }
 
-    public void createRoleAdminByEmail(String userEmail, User user, String create_user) {
+    public void createRoleAdminByEmail(String userEmail, @NotNull User user, String create_user) {
         UserRole newUserRole;
-        if(user == null){
-            user = userRepository.findOneByEmail(userEmail);
-        }
         if(create_user.equals("create_admin")){
             newUserRole = new UserRole(user, Role.ROLE_ADMIN);
         } else{

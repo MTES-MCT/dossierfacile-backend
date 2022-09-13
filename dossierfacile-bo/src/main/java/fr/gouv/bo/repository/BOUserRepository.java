@@ -12,8 +12,6 @@ import java.util.Optional;
 public interface BOUserRepository extends JpaRepository<User, Long> {
     Optional<BOUser> findByEmail(String email);
 
-    BOUser findOneByEmail(String email);
-
     @Query("SELECT distinct u from UserRole ur join ur.user u where (ur.role = 2 or ur.role=3) and u.id in :userId")
     List<BOUser> findAllAdmins(@Param("userId") int[] userId);
 

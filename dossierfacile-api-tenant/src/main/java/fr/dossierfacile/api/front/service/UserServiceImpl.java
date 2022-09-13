@@ -145,10 +145,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void forgotPassword(String email) {
-        Tenant tenant = tenantRepository.findOneByEmail(email);
-        if (tenant == null) {
-            throw new UserNotFoundException(email);
-        }
+        Tenant tenant = tenantRepository.findByEmail(email).orElseThrow( () -> new UserNotFoundException(email));
+
         PasswordRecoveryToken passwordRecoveryToken = passwordRecoveryTokenService.create(tenant);
         mailService.sendEmailNewPassword(tenant, passwordRecoveryToken);
     }

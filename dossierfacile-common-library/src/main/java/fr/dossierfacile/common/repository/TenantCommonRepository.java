@@ -19,8 +19,7 @@ import java.util.Optional;
 public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
 
     //region Used in BO
-    Tenant findOneByEmail(String email);// TODO to merge
-    Optional<Tenant> findByEmail(String email);// TODO to merge
+    Optional<Tenant> findByEmail(String email);
 
     @Query("select distinct t FROM Tenant t where concat(LOWER(t.firstName),' ',LOWER(t.lastName)) like CONCAT('%',:nameUser,'%') ")
     List<Tenant> findTenantByFirstNameOrLastNameOrFullName(@Param("nameUser") String nameUser);
