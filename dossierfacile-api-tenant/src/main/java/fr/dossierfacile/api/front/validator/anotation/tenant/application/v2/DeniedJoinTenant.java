@@ -1,6 +1,7 @@
-package fr.dossierfacile.api.front.validator.anotation.tenant.application;
+package fr.dossierfacile.api.front.validator.anotation.tenant.application.v2;
 
-import fr.dossierfacile.api.front.validator.tenant.application.DeniedJoinTenantValidator;
+
+import fr.dossierfacile.api.front.validator.tenant.application.v2.DeniedJoinTenantValidator;
 
 import javax.validation.Constraint;
 import javax.validation.Payload;
@@ -9,7 +10,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Deprecated
 @Target({ElementType.TYPE, ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 @Constraint(

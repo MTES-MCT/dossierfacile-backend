@@ -1,6 +1,6 @@
-package fr.dossierfacile.api.front.validator.anotation.tenant.application;
+package fr.dossierfacile.api.front.validator.anotation.tenant.application.v2;
 
-import fr.dossierfacile.api.front.validator.tenant.application.CheckTenantTypeCountListCoTenantValidator;
+import fr.dossierfacile.api.front.validator.tenant.application.v2.CheckCoTenantCountValidator;
 
 import javax.validation.Constraint;
 import javax.validation.Payload;
@@ -9,16 +9,16 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Deprecated
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Constraint(
-        validatedBy = {CheckTenantTypeCountListCoTenantValidator.class}
+        validatedBy = {CheckCoTenantCountValidator.class}
 )
-public @interface CheckTenantTypeCountListCoTenant {
+public @interface CheckCoTenantCount {
     String message() default "there is no correspondence between the type of application and the number of co-tenants";
 
     Class<?>[] groups() default {};
 
     Class<? extends Payload>[] payload() default {};
 }
+

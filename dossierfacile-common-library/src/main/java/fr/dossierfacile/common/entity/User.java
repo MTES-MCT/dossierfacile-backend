@@ -106,10 +106,11 @@ public abstract class User implements Serializable {
         this.email = email;
     }
 
-    public User(UserType userType, String firstName, String lastName, String email) {
+    public User(UserType userType, String firstName, String lastName, String preferredName, String email) {
         this.userType = userType;
         this.firstName = firstName;
         this.lastName = lastName;
+        this.preferredName = preferredName;
         this.email = email;
     }
 

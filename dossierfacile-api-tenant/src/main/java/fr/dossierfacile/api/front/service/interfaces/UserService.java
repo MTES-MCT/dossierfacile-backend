@@ -22,8 +22,6 @@ public interface UserService {
 
     Boolean deleteCoTenant(Tenant tenant, Long id);
 
-    EmailExistsModel emailExists(EmailExistsForm emailExistsForm);
-
     void linkTenantToPartner(Tenant tenant, PartnerForm partnerForm);
 
     void linkTenantToPartner(Tenant tenant, String partner);

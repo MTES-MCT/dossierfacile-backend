@@ -47,7 +47,7 @@ public class Owner extends User implements Serializable {
     private boolean example = true;
 
     public Owner(String firstName, String lastName, String email) {
-        super(UserType.OWNER, firstName, lastName, email);
+        super(UserType.OWNER, firstName, lastName, "", email);
     }
 
     public Property lastProperty() {

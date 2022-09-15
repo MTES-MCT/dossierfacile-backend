@@ -9,6 +9,8 @@ import org.springframework.stereotype.Component;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
+/** deprecated  since 202209 */
+@Deprecated
 @Component
 @AllArgsConstructor
 public class DistinctTenantPrincipalEmailListCoTenantValidator implements ConstraintValidator<DistinctTenantPrincipalEmailListCoTenant, ApplicationForm> {

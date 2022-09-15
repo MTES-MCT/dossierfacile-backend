@@ -1,6 +1,6 @@
-package fr.dossierfacile.api.front.validator.anotation.tenant.application;
+package fr.dossierfacile.api.front.validator.anotation.tenant.application.v2;
 
-import fr.dossierfacile.api.front.validator.tenant.application.UniqueEmailListCoTenantValidator;
+import fr.dossierfacile.api.front.validator.tenant.application.v2.CheckTenantTypeAcceptAccessValidator;
 
 import javax.validation.Constraint;
 import javax.validation.Payload;
@@ -9,16 +9,13 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/** deprecated  since 202209 */
-@Deprecated
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Constraint(
-        validatedBy = {UniqueEmailListCoTenantValidator.class}
+        validatedBy = {CheckTenantTypeAcceptAccessValidator.class}
 )
-public @interface UniqueEmailListCoTenant {
-
-    String message() default "the emails %s are already being used";
+public @interface CheckTenantTypeAcceptAccess {
+    String message() default "accept access must not null";
 
     Class<?>[] groups() default {};
 

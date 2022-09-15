@@ -68,7 +68,7 @@ public class RegisterController {
     }
 
     @PostMapping(value = "/application", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<TenantModel> application(@Validated(Dossier.class) @RequestBody ApplicationForm applicationForm) {
+    public ResponseEntity<TenantModel> application(@Validated(Dossier.class) @RequestBody ApplicationFormV2 applicationForm) {
         Tenant tenant = authenticationFacade.getTenant(applicationForm.getTenantId());
         TenantModel tenantModel = tenantService.saveStepRegister(tenant, applicationForm, StepRegister.APPLICATION);
         logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());

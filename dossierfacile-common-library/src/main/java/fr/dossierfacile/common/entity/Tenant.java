@@ -98,8 +98,8 @@ public class Tenant extends User implements Serializable {
         this.tenantType = TenantType.CREATE;
     }
 
-    public Tenant(String email, ApartmentSharing apartmentSharing) {
-        super(UserType.TENANT, email);
+    public Tenant(String firstName, String lastName, String preferredName, String email, ApartmentSharing apartmentSharing) {
+        super(UserType.TENANT, firstName, lastName, preferredName, email);
         this.apartmentSharing = apartmentSharing;
         this.tenantType = TenantType.JOIN;
     }

@@ -1,8 +1,9 @@
-package fr.dossierfacile.api.front.validator.tenant.application;
+package fr.dossierfacile.api.front.validator.tenant.application.v2;
 
-import fr.dossierfacile.api.front.register.form.tenant.ApplicationForm;
+
+import fr.dossierfacile.api.front.register.form.tenant.ApplicationFormV2;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
-import fr.dossierfacile.api.front.validator.anotation.tenant.application.DeniedJoinTenant;
+import fr.dossierfacile.api.front.validator.anotation.tenant.application.v2.DeniedJoinTenant;
 import fr.dossierfacile.common.enums.TenantType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -10,11 +11,9 @@ import org.springframework.stereotype.Component;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
-/** deprecated  since 202209 */
-@Deprecated
 @Component
 @RequiredArgsConstructor
-public class DeniedJoinTenantValidator implements ConstraintValidator<DeniedJoinTenant, ApplicationForm> {
+public class DeniedJoinTenantValidator implements ConstraintValidator<DeniedJoinTenant, ApplicationFormV2> {
     private final AuthenticationFacade authenticationFacade;
 
     @Override
@@ -23,7 +22,7 @@ public class DeniedJoinTenantValidator implements ConstraintValidator<DeniedJoin
     }
 
     @Override
-    public boolean isValid(ApplicationForm applicationForm, ConstraintValidatorContext constraintValidatorContext) {
+    public boolean isValid(ApplicationFormV2 applicationForm, ConstraintValidatorContext constraintValidatorContext) {
         var tenant = authenticationFacade.getTenant(applicationForm.getTenantId());
         if (tenant == null) {
             return true;

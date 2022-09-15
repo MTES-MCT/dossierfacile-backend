@@ -190,13 +190,6 @@ public class UserServiceImpl implements UserService {
         return false;
     }
 
-    @Override
-    public EmailExistsModel emailExists(EmailExistsForm emailExistsForm) {
-        return EmailExistsModel.builder()
-                .email(emailExistsForm.getEmail())
-                .exists(userRepository.existsByEmail(emailExistsForm.getEmail()))
-                .build();
-    }
 
     @Override
     public void linkTenantToPartner(Tenant tenant, PartnerForm partnerForm) {

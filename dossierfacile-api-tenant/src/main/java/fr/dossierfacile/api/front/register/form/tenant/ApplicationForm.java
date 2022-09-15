@@ -21,6 +21,8 @@ import javax.validation.constraints.Null;
 import java.util.ArrayList;
 import java.util.List;
 
+/** deprecated since 20220915 see ApplicationFormV2 */
+@Deprecated
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

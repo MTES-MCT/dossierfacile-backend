@@ -1,9 +1,11 @@
 package fr.dossierfacile.api.front.service;
 
 import fr.dossierfacile.api.front.form.SubscriptionApartmentSharingOfTenantForm;
+import fr.dossierfacile.api.front.model.tenant.EmailExistsModel;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.RegisterFactory;
 import fr.dossierfacile.api.front.register.enums.StepRegister;
+import fr.dossierfacile.api.front.register.form.partner.EmailExistsForm;
 import fr.dossierfacile.api.front.repository.ApartmentSharingRepository;
 import fr.dossierfacile.api.front.repository.PropertyApartmentSharingRepository;
 import fr.dossierfacile.api.front.service.interfaces.PropertyService;
@@ -21,9 +23,9 @@ import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -92,11 +94,19 @@ public class TenantServiceImpl implements TenantService {
     @Override
     @Transactional
     public Tenant create(Tenant tenant) {
-        if ( tenantRepository.findByEmail(tenant.getEmail()).isPresent() ){
-            throw new IllegalStateException("Tenant " + Obfuscator.email(tenant.getEmail()) +" already exists");
+        if (tenantRepository.findByEmail(tenant.getEmail()).isPresent()) {
+            throw new IllegalStateException("Tenant " + Obfuscator.email(tenant.getEmail()) + " already exists");
         }
         tenant.setApartmentSharing(new ApartmentSharing(tenant));
         apartmentSharingRepository.save(tenant.getApartmentSharing());
         return tenantRepository.save(tenant);
+    }
+
+    @Override
+    public EmailExistsModel emailExists(EmailExistsForm emailExistsForm) {
+        return EmailExistsModel.builder()
+                .email(emailExistsForm.getEmail())
+                .exists(tenantRepository.existsByEmail(emailExistsForm.getEmail()))
+                .build();
     }
 }
