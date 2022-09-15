@@ -1,106 +1,114 @@
 package fr.dossierfacile.api.front.service;
 
 import com.google.common.base.Strings;
-import com.mailjet.client.MailjetClient;
-import com.mailjet.client.MailjetRequest;
-import com.mailjet.client.MailjetResponse;
-import com.mailjet.client.errors.MailjetException;
-import com.mailjet.client.resource.Emailv31;
 import fr.dossierfacile.api.front.form.ContactForm;
-import fr.dossierfacile.api.front.model.MailJetModel;
 import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.common.entity.ConfirmationToken;
 import fr.dossierfacile.common.entity.PasswordRecoveryToken;
 import fr.dossierfacile.common.entity.User;
 import fr.dossierfacile.common.enums.ApplicationType;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import static com.mailjet.client.resource.Emailv31.Message.EMAIL;
+import sendinblue.ApiException;
+import sibApi.TransactionalEmailsApi;
+import sibModel.SendSmtpEmail;
+import sibModel.SendSmtpEmailReplyTo;
+import sibModel.SendSmtpEmailTo;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class MailServiceImpl implements MailService {
-    private final @Qualifier("common_account") MailjetClient commonAccount;
-    private final @Qualifier("warnings_account") MailjetClient warningsAccount;
-    @Value("${email.from}")
-    private String emailFrom;
-    @Value("${email.support.from}")
-    private String emailSupportFrom;
+    private final TransactionalEmailsApi apiInstance;
+    @Value("${sendinblue.url.domain}")
+    private String sendinBlueUrlDomain;
     @Value("${email.support}")
     private String emailSupport;
-    @Value("${tenant.domain}")
-    private String tenantDomain;
-
-    @Value("${mailjet.template.id.welcome}")
-    private Integer templateIDWelcome;
-    @Value("${mailjet.template.id.new.password}")
-    private Integer templateIdNewPassword;
-
-    @Value("${mailjet.template.id.invitation.couple}")
-    private Integer templateIdCoupleApplication;
-    @Value("${mailjet.template.id.invitation.group}")
-    private Integer templateIdGroupApplication;
-    @Value("${mailjet.template.id.account.deleted}")
-    private Integer templateIdAccountDeleted;
-    @Value("${mailjet.template.id.account.completed}")
-    private Integer templateIdAccountCompleted;
-    @Value("${mailjet.template.id.account.email.validation.reminder}")
-    private Integer templateEmailWhenEmailAccountNotYetValidated;
-    @Value("${mailjet.template.id.account.incomplete.reminder}")
-    private Integer templateEmailWhenAccountNotYetCompleted;
-    @Value("${mailjet.template.id.account.declined.reminder}")
-    private Integer templateEmailWhenAccountIsStillDeclined;
-    @Value("${mailjet.template.id.account.satisf.not.assoc.to.partners}")
-    private Integer templateEmailWhenTenantNOTAssociatedToPartnersAndValidated;
-    @Value("${mailjet.template.id.account.satisf.yes.assoc.to.partners}")
-    private Integer templateEmailWhenTenantYESAssociatedToPartnersAndValidated;
-    @Value("${mailjet.template.id.first.warning.for.deletion.of.documents}")
-    private Integer templateFirstWarningForDeletionOfDocuments;
-    @Value("${mailjet.template.id.second.warning.for.deletion.of.documents}")
-    private Integer templateSecondWarningForDeletionOfDocuments;
-    @Value("${mailjet.template.id.contact.support}")
-    private Integer templateIdContactSupport;
+    @Value("${sendinblue.template.id.welcome}")
+    private Long templateIDWelcome;
+    @Value("${sendinblue.template.id.new.password}")
+    private Long templateIdNewPassword;
+    @Value("${sendinblue.template.id.invitation.couple}")
+    private Long templateIdCoupleApplication;
+    @Value("${sendinblue.template.id.invitation.group}")
+    private Long templateIdGroupApplication;
+    @Value("${sendinblue.template.id.account.deleted}")
+    private Long templateIdAccountDeleted;
+    @Value("${sendinblue.template.id.account.completed}")
+    private Long templateIdAccountCompleted;
+    @Value("${sendinblue.template.id.account.email.validation.reminder}")
+    private Long templateEmailWhenEmailAccountNotYetValidated;
+    @Value("${sendinblue.template.id.account.incomplete.reminder}")
+    private Long templateEmailWhenAccountNotYetCompleted;
+    @Value("${sendinblue.template.id.account.declined.reminder}")
+    private Long templateEmailWhenAccountIsStillDeclined;
+    @Value("${sendinblue.template.id.account.satisf.not.assoc.to.partners}")
+    private Long templateEmailWhenTenantNOTAssociatedToPartnersAndValidated;
+    @Value("${sendinblue.template.id.account.satisf.yes.assoc.to.partners}")
+    private Long templateEmailWhenTenantYESAssociatedToPartnersAndValidated;
+    @Value("${sendinblue.template.id.first.warning.for.deletion.of.documents}")
+    private Long templateFirstWarningForDeletionOfDocuments;
+    @Value("${sendinblue.template.id.second.warning.for.deletion.of.documents}")
+    private Long templateSecondWarningForDeletionOfDocuments;
+    @Value("${sendinblue.template.id.contact.support}")
+    private Long templateIdContactSupport;
 
     @Async
     @Override
     public void sendEmailConfirmAccount(User user, ConfirmationToken confirmationToken) {
         Map<String, String> variables = new HashMap<>();
         variables.put("confirmToken", confirmationToken.getToken());
-        variables.put("tenantDomain", tenantDomain);
-        MailJetModel mailjetModel = MailJetModel.builder()
-                .fromEmail(emailFrom)
-                .toEmail(user.getEmail())
-                .variables(variables)
-                .templateID(templateIDWelcome)
-                .build();
-        sendMailJetApiWithCommonAccount(mailjetModel);
+        variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
+
+        SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
+        sendSmtpEmailTo.setEmail(user.getEmail());
+        if (!Strings.isNullOrEmpty(user.getFullName())) {
+            sendSmtpEmailTo.setName(user.getFullName());
+        }
+
+        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
+        sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
+
+        sendSmtpEmail.templateId(templateIDWelcome);
+        sendSmtpEmail.params(variables);
+
+        try {
+            apiInstance.sendTransacEmail(sendSmtpEmail);
+        } catch (ApiException e) {
+            log.error("Email api exception", e);
+        }
     }
 
     @Async
     @Override
     public void sendEmailNewPassword(User user, PasswordRecoveryToken passwordRecoveryToken) {
         Map<String, String> variables = new HashMap<>();
-        variables.put("createPasswordToken", passwordRecoveryToken.getToken());
-        variables.put("firstName", user.getFirstName());
-        variables.put("tenantDomain", tenantDomain);
-        MailJetModel mailjetModel = MailJetModel.builder()
-                .fromEmail(emailFrom)
-                .toEmail(user.getEmail())
-                .variables(variables)
-                .templateID(templateIdNewPassword)
-                .build();
-        sendMailJetApiWithCommonAccount(mailjetModel);
+        variables.put("newPasswordToken", passwordRecoveryToken.getToken());
+        variables.put("PRENOM", user.getFirstName());
+        variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
+
+        SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
+        sendSmtpEmailTo.setEmail(user.getEmail());
+        if (!Strings.isNullOrEmpty(user.getFullName())) {
+            sendSmtpEmailTo.setName(user.getFullName());
+        }
+
+        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
+        sendSmtpEmail.templateId(templateIdNewPassword);
+        sendSmtpEmail.params(variables);
+        sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
+
+        try {
+            apiInstance.sendTransacEmail(sendSmtpEmail);
+        } catch (ApiException e) {
+            log.error("Email api exception", e);
+        }
     }
 
     @Async
@@ -108,160 +116,259 @@ public class MailServiceImpl implements MailService {
     public void sendEmailForFlatmates(User flatmate, User guest, PasswordRecoveryToken passwordRecoveryToken, ApplicationType applicationType) {
         Map<String, String> variables = new HashMap<>();
 
-        Integer templateId = templateIdCoupleApplication;
-        variables.put("firstName", flatmate.getFirstName());
-        variables.put("password_recovery_url", passwordRecoveryToken.getToken());
-        variables.put("tenantDomain", tenantDomain);
+        Long templateId = templateIdCoupleApplication;
+        variables.put("PRENOM", flatmate.getFirstName());
+        variables.put("confirmToken", passwordRecoveryToken.getToken());
+        variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
         if (applicationType == ApplicationType.GROUP) {
-            variables.put("lastName", Strings.isNullOrEmpty(flatmate.getPreferredName()) ? flatmate.getLastName() : flatmate.getPreferredName());
+            variables.put("NOM", Strings.isNullOrEmpty(flatmate.getPreferredName()) ? flatmate.getLastName() : flatmate.getPreferredName());
             templateId = templateIdGroupApplication;
         }
 
-        MailJetModel mailjetModel = MailJetModel.builder()
-                .fromEmail(emailFrom)
-                .toEmail(guest.getEmail())
-                .variables(variables)
-                .templateID(templateId)
-                .build();
-        sendMailJetApiWithCommonAccount(mailjetModel);
+        SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
+        sendSmtpEmailTo.setEmail(guest.getEmail());
+        if (!Strings.isNullOrEmpty(guest.getFullName())) {
+            sendSmtpEmailTo.setName(guest.getFullName());
+        }
+
+        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
+        sendSmtpEmail.templateId(templateId);
+        sendSmtpEmail.params(variables);
+        sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
+
+        try {
+            apiInstance.sendTransacEmail(sendSmtpEmail);
+        } catch (ApiException e) {
+            log.error("Email api exception", e);
+        }
     }
 
     @Async
     @Override
     public void sendEmailAccountDeleted(User user) {
         Map<String, String> variables = new HashMap<>();
-        variables.put("firstName", user.getFirstName());
-        variables.put("lastName", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
-        MailJetModel mailjetModel = MailJetModel.builder()
-                .fromEmail(emailFrom)
-                .toEmail(user.getEmail())
-                .toName(user.getFullName())
-                .variables(variables)
-                .templateID(templateIdAccountDeleted)
-                .build();
-        sendMailJetApiWithCommonAccount(mailjetModel);
+        variables.put("PRENOM", user.getFirstName());
+        variables.put("NOM", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
+
+        SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
+        sendSmtpEmailTo.setEmail(user.getEmail());
+        if (!Strings.isNullOrEmpty(user.getFullName())) {
+            sendSmtpEmailTo.setName(user.getFullName());
+        }
+
+        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
+        sendSmtpEmail.templateId(templateIdAccountDeleted);
+        sendSmtpEmail.params(variables);
+        sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
+
+        try {
+            apiInstance.sendTransacEmail(sendSmtpEmail);
+        } catch (ApiException e) {
+            log.error("Email api exception", e);
+        }
     }
 
     @Async
     @Override
     public void sendEmailAccountCompleted(User user) {
         Map<String, String> variables = new HashMap<>();
-        variables.put("FIRSTNAME_TENANT", user.getFirstName());
-        variables.put("LASTNAME_TENANT", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
-        variables.put("tenantDomain", tenantDomain);
-        MailJetModel mailjetModel = MailJetModel.builder()
-                .fromEmail(emailFrom)
-                .toEmail(user.getEmail())
-                .toName(user.getFullName())
-                .variables(variables)
-                .templateID(templateIdAccountCompleted)
-                .build();
-        sendMailJetApiWithCommonAccount(mailjetModel);
+        variables.put("PRENOM", user.getFirstName());
+        variables.put("NOM", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
+        variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
+
+        SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
+        sendSmtpEmailTo.setEmail(user.getEmail());
+        if (!Strings.isNullOrEmpty(user.getFullName())) {
+            sendSmtpEmailTo.setName(user.getFullName());
+        }
+
+        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
+        sendSmtpEmail.templateId(templateIdAccountCompleted);
+        sendSmtpEmail.params(variables);
+        sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
+
+        try {
+            apiInstance.sendTransacEmail(sendSmtpEmail);
+        } catch (ApiException e) {
+            log.error("Email api exception", e);
+        }
     }
 
     @Async
     @Override
     public void sendEmailWhenEmailAccountNotYetValidated(User user, ConfirmationToken confirmationToken) {
         Map<String, String> variables = new HashMap<>();
-        variables.put("firstName", user.getFirstName());
-        variables.put("lastName", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
+        variables.put("PRENOM", user.getFirstName());
+        variables.put("NOM", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
         variables.put("confirmToken", confirmationToken.getToken());
-        variables.put("tenantDomain", tenantDomain);
-        MailJetModel mailjetModel = MailJetModel.builder()
-                .fromEmail(emailFrom)
-                .toEmail(user.getEmail())
-                .toName(user.getFullName())
-                .variables(variables)
-                .templateID(templateEmailWhenEmailAccountNotYetValidated)
-                .build();
-        sendMailJetApiWithCommonAccount(mailjetModel);
+        variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
+
+        SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
+        sendSmtpEmailTo.setEmail(user.getEmail());
+        if (!Strings.isNullOrEmpty(user.getFullName())) {
+            sendSmtpEmailTo.setName(user.getFullName());
+        }
+
+        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
+        sendSmtpEmail.templateId(templateEmailWhenEmailAccountNotYetValidated);
+        sendSmtpEmail.params(variables);
+        sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
+
+        try {
+            apiInstance.sendTransacEmail(sendSmtpEmail);
+        } catch (ApiException e) {
+            log.error("Email api exception", e);
+        }
     }
 
     @Async
     @Override
     public void sendEmailWhenAccountNotYetCompleted(User user) {
         Map<String, String> variables = new HashMap<>();
-        variables.put("firstName", user.getFirstName());
-        variables.put("lastName", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
-        variables.put("tenantDomain", tenantDomain);
-        MailJetModel mailjetModel = MailJetModel.builder()
-                .fromEmail(emailFrom)
-                .toEmail(user.getEmail())
-                .toName(user.getFullName())
-                .variables(variables)
-                .templateID(templateEmailWhenAccountNotYetCompleted)
-                .build();
-        sendMailJetApiWithCommonAccount(mailjetModel);
+        variables.put("PRENOM", user.getFirstName());
+        variables.put("NOM", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
+        variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
+
+        SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
+        sendSmtpEmailTo.setEmail(user.getEmail());
+        if (!Strings.isNullOrEmpty(user.getFullName())) {
+            sendSmtpEmailTo.setName(user.getFullName());
+        }
+
+        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
+        sendSmtpEmail.templateId(templateEmailWhenAccountNotYetCompleted);
+        sendSmtpEmail.params(variables);
+        sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
+
+        try {
+            apiInstance.sendTransacEmail(sendSmtpEmail);
+        } catch (ApiException e) {
+            log.error("Email api exception", e);
+        }
     }
 
     @Async
     @Override
     public void sendEmailWhenAccountIsStillDeclined(User user) {
         Map<String, String> variables = new HashMap<>();
-        variables.put("firstName", user.getFirstName());
-        variables.put("lastName", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
-        MailJetModel mailjetModel = MailJetModel.builder()
-                .fromEmail(emailFrom)
-                .toEmail(user.getEmail())
-                .toName(user.getFullName())
-                .variables(variables)
-                .templateID(templateEmailWhenAccountIsStillDeclined)
-                .build();
-        sendMailJetApiWithCommonAccount(mailjetModel);
+        variables.put("PRENOM", user.getFirstName());
+        variables.put("NOM", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
+        variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
+
+        SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
+        sendSmtpEmailTo.setEmail(user.getEmail());
+        if (!Strings.isNullOrEmpty(user.getFullName())) {
+            sendSmtpEmailTo.setName(user.getFullName());
+        }
+
+        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
+        sendSmtpEmail.templateId(templateEmailWhenAccountIsStillDeclined);
+        sendSmtpEmail.params(variables);
+        sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
+
+        try {
+            apiInstance.sendTransacEmail(sendSmtpEmail);
+        } catch (ApiException e) {
+            log.error("Email api exception", e);
+        }
     }
 
     @Override
     public void sendEmailWhenTenantNOTAssociatedToPartnersAndValidatedXDaysAgo(User user) {
-        MailJetModel mailjetModel = MailJetModel.builder()
-                .fromEmail(emailFrom)
-                .toEmail(user.getEmail())
-                .toName(user.getFullName())
-                .templateID(templateEmailWhenTenantNOTAssociatedToPartnersAndValidated)
-                .build();
-        sendMailJetApiWithCommonAccount(mailjetModel);
+        Map<String, String> variables = new HashMap<>();
+        variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
+
+        SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
+        sendSmtpEmailTo.setEmail(user.getEmail());
+        if (!Strings.isNullOrEmpty(user.getFullName())) {
+            sendSmtpEmailTo.setName(user.getFullName());
+        }
+
+        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
+        sendSmtpEmail.templateId(templateEmailWhenTenantNOTAssociatedToPartnersAndValidated);
+        sendSmtpEmail.params(variables);
+        sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
+
+        try {
+            apiInstance.sendTransacEmail(sendSmtpEmail);
+        } catch (ApiException e) {
+            log.error("Email api exception", e);
+        }
     }
 
     @Override
     public void sendEmailWhenTenantYESAssociatedToPartnersAndValidatedXDaysAgo(User user) {
-        MailJetModel mailjetModel = MailJetModel.builder()
-                .fromEmail(emailFrom)
-                .toEmail(user.getEmail())
-                .toName(user.getFullName())
-                .templateID(templateEmailWhenTenantYESAssociatedToPartnersAndValidated)
-                .build();
-        sendMailJetApiWithCommonAccount(mailjetModel);
+        Map<String, String> variables = new HashMap<>();
+        variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
+
+        SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
+        sendSmtpEmailTo.setEmail(user.getEmail());
+        if (!Strings.isNullOrEmpty(user.getFullName())) {
+            sendSmtpEmailTo.setName(user.getFullName());
+        }
+
+        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
+        sendSmtpEmail.templateId(templateEmailWhenTenantYESAssociatedToPartnersAndValidated);
+        sendSmtpEmail.params(variables);
+        sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
+
+        try {
+            apiInstance.sendTransacEmail(sendSmtpEmail);
+        } catch (ApiException e) {
+            log.error("Email api exception", e);
+        }
     }
 
     @Override
     public void sendEmailFirstWarningForDeletionOfDocuments(User user, ConfirmationToken confirmationToken) {
         Map<String, String> variables = new HashMap<>();
-        variables.put("firstName", user.getFirstName());
-        variables.put("lastName", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
+        variables.put("PRENOM", user.getFirstName());
+        variables.put("NOM", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
         variables.put("confirmToken", confirmationToken.getToken());
-        MailJetModel mailjetModel = MailJetModel.builder()
-                .fromEmail(emailFrom)
-                .toEmail(user.getEmail())
-                .toName(user.getFullName())
-                .variables(variables)
-                .templateID(templateFirstWarningForDeletionOfDocuments)
-                .build();
-        sendMailJetApiWithWarningsAccount(mailjetModel);
+        variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
+
+        SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
+        sendSmtpEmailTo.setEmail(user.getEmail());
+        if (!Strings.isNullOrEmpty(user.getFullName())) {
+            sendSmtpEmailTo.setName(user.getFullName());
+        }
+
+        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
+        sendSmtpEmail.templateId(templateFirstWarningForDeletionOfDocuments);
+        sendSmtpEmail.params(variables);
+        sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
+
+        try {
+            apiInstance.sendTransacEmail(sendSmtpEmail);
+        } catch (ApiException e) {
+            log.error("Email api exception", e);
+        }
     }
 
     @Override
     public void sendEmailSecondWarningForDeletionOfDocuments(User user, ConfirmationToken confirmationToken) {
         Map<String, String> variables = new HashMap<>();
-        variables.put("firstName", user.getFirstName());
-        variables.put("lastName", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
+        variables.put("PRENOM", user.getFirstName());
+        variables.put("NOM", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
         variables.put("confirmToken", confirmationToken.getToken());
-        MailJetModel mailjetModel = MailJetModel.builder()
-                .fromEmail(emailFrom)
-                .toEmail(user.getEmail())
-                .toName(user.getFullName())
-                .variables(variables)
-                .templateID(templateSecondWarningForDeletionOfDocuments)
-                .build();
-        sendMailJetApiWithWarningsAccount(mailjetModel);
+        variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
+
+        SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
+        sendSmtpEmailTo.setEmail(user.getEmail());
+        if (!Strings.isNullOrEmpty(user.getFullName())) {
+            sendSmtpEmailTo.setName(user.getFullName());
+        }
+
+        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
+        sendSmtpEmail.templateId(templateSecondWarningForDeletionOfDocuments);
+        sendSmtpEmail.params(variables);
+        sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
+
+        try {
+            apiInstance.sendTransacEmail(sendSmtpEmail);
+        } catch (ApiException e) {
+            log.error("Email api exception", e);
+        }
     }
 
     @Async
@@ -274,186 +381,24 @@ public class MailServiceImpl implements MailService {
         variables.put("profile", form.getProfile());
         variables.put("subject", form.getSubject());
         variables.put("message", form.getMessage());
-        MailJetModel mailjetModel = MailJetModel.builder()
-                .fromEmail(emailSupportFrom)
-                .toEmail(emailSupport)
-                .replyToEmail(form.getEmail())
-                .toName("Support depuis formulaire")
-                .variables(variables)
-                .templateID(templateIdContactSupport)
-                .build();
-        sendMailJetApiWithCommonAccount(mailjetModel);
-    }
 
-    private void sendMailJetApiWithCommonAccount(MailJetModel mailjetModel) {
-        MailjetRequest request;
-        MailjetResponse response;
+        SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
+        sendSmtpEmailTo.setEmail(emailSupport);
+        sendSmtpEmailTo.setName("Support depuis formulaire");
 
-        JSONObject message = new JSONObject();
-        //from
-        if (mailjetModel.getFromEmail() != null) {
-            JSONObject from = new JSONObject();
-            from.put(EMAIL, mailjetModel.getFromEmail());
-            if (mailjetModel.getFromName() != null) {
-                from.put("Name", mailjetModel.getFromName());
-            }
-            message.put(Emailv31.Message.FROM, from);
-        }
+        SendSmtpEmailReplyTo sendSmtpEmailReplyTo = new SendSmtpEmailReplyTo();
+        sendSmtpEmailReplyTo.setEmail(form.getEmail());
 
-        //to
-        if (mailjetModel.getToEmail() != null) {
-            JSONArray to = new JSONArray();
-            JSONObject to1 = new JSONObject();
-            to1.put(EMAIL, mailjetModel.getToEmail());
-            if (mailjetModel.getToName() != null) {
-                to1.put("Name", mailjetModel.getToName());
-            }
-            message.put(Emailv31.Message.TO, to.put(to1));
-        }
+        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
+        sendSmtpEmail.templateId(templateIdContactSupport);
+        sendSmtpEmail.params(variables);
+        sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
+        sendSmtpEmail.replyTo(sendSmtpEmailReplyTo);
 
-        //replyTo
-        if (mailjetModel.getReplyToEmail() != null) {
-            JSONObject replyTo = new JSONObject();
-            replyTo.put(EMAIL, mailjetModel.getReplyToEmail());
-            if (mailjetModel.getReplyToName() != null) {
-                replyTo.put("Name", mailjetModel.getReplyToName());
-            }
-            message.put(Emailv31.Message.REPLYTO, replyTo);
-        }
-
-        //cc
-        if (mailjetModel.getCcEmail() != null) {
-            JSONArray cc = new JSONArray();
-            JSONObject cc1 = new JSONObject();
-            cc1.put(EMAIL, mailjetModel.getCcEmail());
-            if (mailjetModel.getCcName() != null) {
-                cc1.put("Name", mailjetModel.getCcName());
-            }
-            message.put(Emailv31.Message.CC, cc.put(cc1));
-        }
-
-        //bcc
-        if (mailjetModel.getBccEmail() != null) {
-            JSONArray bcc = new JSONArray();
-            JSONObject bcc1 = new JSONObject();
-            bcc1.put(EMAIL, mailjetModel.getBccEmail());
-            if (mailjetModel.getCcName() != null) {
-                bcc1.put("Name", mailjetModel.getCcName());
-            }
-            message.put(Emailv31.Message.BCC, bcc.put(bcc1));
-        }
-
-        //subject
-        if (mailjetModel.getSubject() != null) {
-            message.put(Emailv31.Message.SUBJECT, mailjetModel.getSubject());
-        }
-
-        //template language
-        message.put(Emailv31.Message.TEMPLATELANGUAGE, true);
-
-        //variables
-        if (mailjetModel.getVariables() != null) {
-            message.put(Emailv31.Message.VARIABLES, new JSONObject(mailjetModel.getVariables()));
-        }
-
-        //templateID
-        message.put(Emailv31.Message.TEMPLATEID, mailjetModel.getTemplateID());
-
-        request = new MailjetRequest(Emailv31.resource)
-                .property(Emailv31.MESSAGES, new JSONArray()
-                        .put(message));
         try {
-            response = commonAccount.post(request);
-            log.info("ResponseStatus: {}", response.getStatus());
-            log.info("Response: {}", response.getData());
-        } catch (MailjetException e) {
-            log.error("MailjetException", e);
-        }
-    }
-
-    private void sendMailJetApiWithWarningsAccount(MailJetModel mailjetModel) {
-        MailjetRequest request;
-        MailjetResponse response;
-
-        JSONObject message = new JSONObject();
-        //from
-        if (mailjetModel.getFromEmail() != null) {
-            JSONObject from = new JSONObject();
-            from.put(EMAIL, mailjetModel.getFromEmail());
-            if (mailjetModel.getFromName() != null) {
-                from.put("Name", mailjetModel.getFromName());
-            }
-            message.put(Emailv31.Message.FROM, from);
-        }
-
-        //to
-        if (mailjetModel.getToEmail() != null) {
-            JSONArray to = new JSONArray();
-            JSONObject to1 = new JSONObject();
-            to1.put(EMAIL, mailjetModel.getToEmail());
-            if (mailjetModel.getToName() != null) {
-                to1.put("Name", mailjetModel.getToName());
-            }
-            message.put(Emailv31.Message.TO, to.put(to1));
-        }
-
-        //replyTo
-        if (mailjetModel.getReplyToEmail() != null) {
-            JSONObject replyTo = new JSONObject();
-            replyTo.put(EMAIL, mailjetModel.getReplyToEmail());
-            if (mailjetModel.getReplyToName() != null) {
-                replyTo.put("Name", mailjetModel.getReplyToName());
-            }
-            message.put(Emailv31.Message.REPLYTO, replyTo);
-        }
-
-        //cc
-        if (mailjetModel.getCcEmail() != null) {
-            JSONArray cc = new JSONArray();
-            JSONObject cc1 = new JSONObject();
-            cc1.put(EMAIL, mailjetModel.getCcEmail());
-            if (mailjetModel.getCcName() != null) {
-                cc1.put("Name", mailjetModel.getCcName());
-            }
-            message.put(Emailv31.Message.CC, cc.put(cc1));
-        }
-
-        //bcc
-        if (mailjetModel.getBccEmail() != null) {
-            JSONArray bcc = new JSONArray();
-            JSONObject bcc1 = new JSONObject();
-            bcc1.put(EMAIL, mailjetModel.getBccEmail());
-            if (mailjetModel.getCcName() != null) {
-                bcc1.put("Name", mailjetModel.getCcName());
-            }
-            message.put(Emailv31.Message.BCC, bcc.put(bcc1));
-        }
-
-        //subject
-        if (mailjetModel.getSubject() != null) {
-            message.put(Emailv31.Message.SUBJECT, mailjetModel.getSubject());
-        }
-
-        //template language
-        message.put(Emailv31.Message.TEMPLATELANGUAGE, true);
-
-        //variables
-        if (mailjetModel.getVariables() != null) {
-            message.put(Emailv31.Message.VARIABLES, new JSONObject(mailjetModel.getVariables()));
-        }
-
-        //templateID
-        message.put(Emailv31.Message.TEMPLATEID, mailjetModel.getTemplateID());
-
-        request = new MailjetRequest(Emailv31.resource)
-                .property(Emailv31.MESSAGES, new JSONArray()
-                        .put(message));
-        try {
-            response = warningsAccount.post(request);
-            log.info("ResponseStatus: {}", response.getStatus());
-            log.info("Response: {}", response.getData());
-        } catch (MailjetException e) {
-            log.error("MailjetException", e);
+            apiInstance.sendTransacEmail(sendSmtpEmail);
+        } catch (ApiException e) {
+            log.error("Email api exception", e);
         }
     }
 }

@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+    <changeSet id="2022090700001-01" author="fabien (manual)">
+        <sql>
+            <![CDATA[
+                UPDATE document_denied_options
+                SET message_value= 'Veuillez fournir une copie des pages 2 et 3 de votre passeport car la signature doit apparaître.'
+                WHERE
+                    code = 'FRENCH_PASSPORT_001';
+
+          ]]>
+        </sql>
+    </changeSet>
+
+    <changeSet id="2022090700001-02" author="fabien (manual)">
+        <sql>
+            <![CDATA[
+                -- improve code number - split guarantor and tenant in code
+                UPDATE document_denied_options
+                    SET code= CONCAT(
+								( CASE
+    								WHEN document_user_type = 'tenant' THEN  'T_'
+					     			WHEN document_user_type = 'guarantor' THEN  'G_'
+								    ELSE 'O_'
+								 END)
+								,
+								CONCAT( document_sub_category,
+								   ( CASE
+										WHEN tmp.numero < 10 THEN  CONCAT('_00', tmp.numero)
+										ELSE CONCAT('_0', tmp.numero)
+									 END)
+									)
+                                    )
+                    FROM (SELECT id, ROW_NUMBER() OVER (PARTITION BY document_sub_category, document_user_type ORDER BY code) numero
+                                FROM document_denied_options) as tmp
+                    WHERE
+                        document_denied_options.id = tmp.id;
+
+          ]]>
+        </sql>
+    </changeSet>
+
+    <changeSet id="2022090700001-03" author="fabien (manual)">
+        <sql>
+            <![CDATA[
+                -- add/update messages host (for guarant or tenant)
+
+                UPDATE document_denied_options
+                SET message_value= 'Ajouter une pièce d''identité de votre hébergeur.'
+                WHERE
+                    code = 'T_GUEST_PARENTS_010' OR code = 'T_GUEST_010';
+
+
+                INSERT INTO public.document_denied_options
+                    (message_value, document_sub_category, document_user_type, code)
+                VALUES
+                    ('La pièce d''identité de l''hébergeur n''est plus valide car elle a expiré', 'GUEST_PARENTS', 'tenant', 'T_GUEST_PARENTS_011'),
+                    ('La pièce d''identité de l''hébergeur n''est plus valide car elle a expiré', 'GUEST', 'tenant', 'T_GUEST_011'),
+                    ('Veuillez ajouter en complément un avis de taxe foncière ou une facture récente  (de moins de 3 mois) au nom et adresse de votre hébergeur', 'GUEST_PARENTS', 'tenant', 'T_GUEST_PARENTS_012'),
+                    ('Veuillez ajouter en complément un avis de taxe foncière ou une facture récente  (de moins de 3 mois) au nom et adresse de votre hébergeur', 'GUEST', 'tenant', 'T_GUEST_012');
+
+          ]]>
+        </sql>
+    </changeSet>
+
+    <changeSet id="2022090700001-04" author="fabien (manual)">
+        <sql>
+            <![CDATA[
+                -- add link in host message
+                UPDATE document_denied_options
+                SET message_value= CONCAT( message_value, ' <a target="_blank" href="https://www.service-public.fr/particuliers/vosdroits/R39697">#Lien vers modèle</a>')
+                WHERE
+                    code = 'T_GUEST_PARENTS_001' OR code = 'T_GUEST_001';
+
+          ]]>
+        </sql>
+    </changeSet>
+
+
+    <changeSet id="2022090700001-05" author="fabien (manual)">
+        <sql>
+            <![CDATA[
+                UPDATE document_denied_options
+                SET message_value= 'Veuillez fournir un avis de taxe foncière, un titre de propriété ou bien une facture récente de moins de 3 mois de votre garant.'
+                WHERE
+                    code = 'G_OWNER_001' ;
+
+            ]]>
+        </sql>
+    </changeSet>
+
+    <changeSet id="2022090700001-06" author="fabien (manual)">
+        <sql>
+            <![CDATA[
+
+                INSERT INTO public.document_denied_options
+                    (message_value, document_sub_category, document_user_type, code)
+                VALUES
+                    ('Veuillez fournir un avis de taxe foncière, un titre de propriété ou bien une facture récente de moins de 3 mois de votre garant.', 'OTHER', 'tenant', 'T_OTHER_006');
+
+                UPDATE document_denied_options
+                SET message_value = 'Veuillez fournir une fiche de paie de votre garant de moins de 3 mois ou une copie complète de toutes les pages du contrat de travail de votre garant daté et signé ou une attestation de son employeur datée de moins de 3 mois.'
+                WHERE code = 'G_CDD_001' or code = 'G_CDI_001';
+
+                UPDATE document_denied_options
+                SET message_value = 'Veuillez fournir une fiche de paie récente de moins de 3 mois ou une copie de l’arrêté de nomination de votre garant ou une attestation de son employeur datée de moins de 3 mois.'
+                WHERE code = 'G_PUBLIC_001';
+
+            ]]>
+        </sql>
+    </changeSet>
+
+    <changeSet id="2022090700001-07" author="fabien (manual)">
+        <sql>
+            <![CDATA[
+                UPDATE document_denied_options
+                SET message_value = 'Veuillez fournir une copie d''une fiche de paie des 3 derniers mois, un justificatif des indemnités de stage, une attestation de versement URSSAF (indépendants) ou une attestation comptable synthètique des revenus (non-salariés) du garant.'
+                WHERE code = 'G_SALARY_001';
+
+            ]]>
+        </sql>
+    </changeSet>
+
+    <changeSet id="2022090700001-08" author="fabien (manual)">
+        <sql>
+            <![CDATA[
+
+                INSERT INTO public.document_denied_options
+                    (message_value, document_sub_category, document_user_type, code)
+                VALUES
+                    ('Si vous étiez précédemment hébergé fiscalement chez vos parents, veuillez cocher la case "domicilié fiscalement chez mes parents", cela générera un justificatif automatique ajouté à votre dossier en complément.', 'OTHER_TAX', 'tenant', 'T_OTHER_TAX_009');
+
+            ]]>
+        </sql>
+    </changeSet>
+
+    <changeSet id="2022090700001-09" author="fabien (manual)">
+        <sql>
+            <![CDATA[
+                UPDATE document_denied_options
+                SET message_value = 'Le(s) document(s) fourni(s) ne constitue(nt) pas l''avis d’imposition du garant.'
+                WHERE code = 'G_MY_NAME_002' OR code='G_MY_PARENTS_002' OR code='G_LESS_THAN_YEAR_002' OR code='G_OTHER_TAX_002';
+
+            ]]>
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

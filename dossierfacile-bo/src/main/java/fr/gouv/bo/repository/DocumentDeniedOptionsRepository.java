@@ -7,6 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface DocumentDeniedOptionsRepository extends JpaRepository<DocumentDeniedOptions, Integer> {
 
-    List<DocumentDeniedOptions> findAllByDocumentSubCategoryAndDocumentUserType(DocumentSubCategory documentSubCategory, String documentUserType);
+    List<DocumentDeniedOptions> findAllByDocumentSubCategoryAndDocumentUserTypeOrderByCode(DocumentSubCategory documentSubCategory, String documentUserType);
 
 }
