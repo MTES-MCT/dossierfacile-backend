@@ -20,4 +20,7 @@ public interface TenantService {
 
     EmailExistsModel emailExists(EmailExistsForm emailExistsForm);
 
+    Tenant findById(Long coTenantId);
+
+    Tenant findByKeycloakId(String keycloakId);
 }

@@ -34,7 +34,7 @@ public class FileServiceImpl implements FileService {
     @Override
     @Transactional
     public Document delete(Long id, Tenant tenant) {
-        File file = fileRepository.findByIdAndTenant(id, tenant.getId()).orElseThrow(() -> new FileNotFoundException(id, tenant));
+        File file = fileRepository.findByIdForApartmentSharing(id, tenant.getApartmentSharing().getId()).orElseThrow(() -> new FileNotFoundException(id, tenant));
 
         Document document = file.getDocument();
 
@@ -43,12 +43,13 @@ public class FileServiceImpl implements FileService {
         document.getFiles().remove(file);
 
         if (document.getFiles().isEmpty()) {
-            documentService.delete(document.getId(), tenant);
+            documentService.delete(document.getId(), document.getTenant());
             return null;
         } else {
             document.setDocumentStatus(DocumentStatus.TO_PROCESS);
             document.setDocumentDeniedReasons(null);
             Document documentSaved = documentRepository.saveAndFlush(document);
+            tenantService.updateTenantStatus(document.getTenant());
             tenantService.updateTenantStatus(tenant);
             apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
             return documentSaved;

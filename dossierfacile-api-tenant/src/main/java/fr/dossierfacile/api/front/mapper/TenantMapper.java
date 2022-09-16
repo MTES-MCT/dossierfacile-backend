@@ -50,6 +50,15 @@ public abstract class TenantMapper {
         var filePath = isDossierUser ? "/api/file/resource/" : "/api-partner/tenant/" + tenantModel.getId() + "/file/resource/";
         setDocumentDeniedReasonsAndDocumentAndFilesRoutes(tenantModel.getDocuments(), filePath);
 
+        tenantModel.getApartmentSharing().getTenants().stream().filter( t -> t.getId() == tenantModel.getId()).forEach(
+                t -> {
+                    t.setDocuments(null);
+                    t.setGuarantors(null);
+                }
+        );
+        Optional.ofNullable(tenantModel.getApartmentSharing().getTenants())
+                .ifPresent(coTenantModels -> coTenantModels.forEach(coTenantModel -> setDocumentDeniedReasonsAndDocumentAndFilesRoutes(coTenantModel.getDocuments(), filePath)));
+
         Optional.ofNullable(tenantModel.getGuarantors())
                 .ifPresent(guarantorModels -> guarantorModels.forEach(guarantorModel -> setDocumentDeniedReasonsAndDocumentAndFilesRoutes(guarantorModel.getDocuments(), filePath)));
     }

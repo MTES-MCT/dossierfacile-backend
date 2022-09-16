@@ -88,17 +88,19 @@ public interface FileRepository extends JpaRepository<File, Long> {
 
     @Query(value = "select f.*\n" +
             "from file f\n" +
-            "         join document d on f.document_id = d.id\n" +
-            "where d.tenant_id = :t\n" +
+            "  join document d on f.document_id = d.id\n" +
+            "  join tenant t on t.id = d.tenant_id\n" +
+            "where t.apartment_sharing_id = :ap\n" +
             "  and f.id = :id\n" +
             "union\n" +
             "select f2.*\n" +
             "from file f2\n" +
-            "         join document d2 on f2.document_id = d2.id\n" +
-            "         join guarantor g on d2.guarantor_id = g.id\n" +
-            "where g.tenant_id = :t\n" +
+            "  join document d2 on f2.document_id = d2.id\n" +
+            "  join tenant t on t.id = d2.tenant_id\n" +
+            "  join guarantor g on d2.guarantor_id = g.id\n" +
+            "where t.apartment_sharing_id = :ap\n" +
             "  and f2.id = :id", nativeQuery = true)
-    Optional<File> findByIdAndTenant(@Param("id") Long id, @Param("t") Long t);
+    Optional<File> findByIdForApartmentSharing(@Param("id") Long id, @Param("ap") Long apartmentSharingId);
 
     @Query(value = "select path FROM file WHERE document_id = :documentId", nativeQuery = true)
     List<String> getFilePathsByDocumentId(@Param("documentId") Long documentId);

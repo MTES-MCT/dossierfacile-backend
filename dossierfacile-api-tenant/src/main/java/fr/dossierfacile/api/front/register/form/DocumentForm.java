@@ -17,7 +17,6 @@ import java.util.List;
 @Extension
 public abstract class DocumentForm {
 
-    @Null(groups = Dossier.class)
     @NotNull(groups = ApiPartner.class)
     private Long tenantId;
 

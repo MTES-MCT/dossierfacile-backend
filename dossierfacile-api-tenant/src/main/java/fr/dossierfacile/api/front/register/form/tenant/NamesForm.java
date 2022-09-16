@@ -17,7 +17,6 @@ import javax.validation.constraints.Null;
 @CheckFranceConnect(groups = Dossier.class)
 public class NamesForm {
 
-    @Null(groups = Dossier.class)
     @NotNull(groups = ApiPartner.class)
     private Long tenantId;
 

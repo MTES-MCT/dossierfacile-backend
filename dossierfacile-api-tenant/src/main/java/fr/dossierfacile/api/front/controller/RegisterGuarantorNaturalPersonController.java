@@ -18,6 +18,7 @@ import fr.dossierfacile.common.enums.LogType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,6 +34,7 @@ public class RegisterGuarantorNaturalPersonController {
     private final AuthenticationFacade authenticationFacade;
     private final LogService logService;
 
+    @PreAuthorize("hasPermissionOnTenant(#documentIdentificationGuarantorNaturalPersonForm.tenantId)")
     @PostMapping("/documentIdentification")
     public ResponseEntity<TenantModel> documentIdentification(@Validated(Dossier.class) DocumentIdentificationGuarantorNaturalPersonForm documentIdentificationGuarantorNaturalPersonForm) {
         var tenant = authenticationFacade.getTenant(documentIdentificationGuarantorNaturalPersonForm.getTenantId());
@@ -41,6 +43,7 @@ public class RegisterGuarantorNaturalPersonController {
         return ok(tenantModel);
     }
 
+    @PreAuthorize("hasPermissionOnTenant(#documentIdentificationGuarantorNaturalPersonFileForm.tenantId)")
     @PostMapping("/documentIdentification/v2")
     public ResponseEntity<TenantModel> documentIdentificationFile(@Validated(Dossier.class) DocumentIdentificationGuarantorNaturalPersonFileForm documentIdentificationGuarantorNaturalPersonFileForm) {
         var tenant = authenticationFacade.getTenant(documentIdentificationGuarantorNaturalPersonFileForm.getTenantId());
@@ -49,14 +52,21 @@ public class RegisterGuarantorNaturalPersonController {
         return ok(tenantModel);
     }
 
+    @PreAuthorize("hasPermissionOnTenant(#nameGuarantorNaturalPersonForm.tenantId)")
     @PostMapping("/name")
-    public ResponseEntity<TenantModel> guarantorName(@Validated(Dossier.class) NameGuarantorNaturalPersonForm nameGuarantorNaturalPersonForm) {
-        var tenant = authenticationFacade.getTenant(nameGuarantorNaturalPersonForm.getTenantId());
+    public ResponseEntity<TenantModel> guarantorName(NameGuarantorNaturalPersonForm nameGuarantorNaturalPersonForm) throws IllegalAccessException {
+        var loggedTenant = authenticationFacade.getTenant(null);
+        var tenant = (nameGuarantorNaturalPersonForm.getTenantId() == null) ? loggedTenant :
+                loggedTenant.getApartmentSharing().getTenants().stream()
+                        .filter(t -> t.getId().equals(nameGuarantorNaturalPersonForm.getTenantId()))
+                        .findFirst()
+                        .orElseThrow(() -> new IllegalAccessException("You are not authorize to see this tenant"));
         var tenantModel = tenantService.saveStepRegister(tenant, nameGuarantorNaturalPersonForm, StepRegister.NAME_GUARANTOR_NATURAL_PERSON);
         logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
         return ok(tenantModel);
     }
 
+    @PreAuthorize("hasPermissionOnTenant(#documentResidencyGuarantorNaturalPersonForm.tenantId)")
     @PostMapping("/documentResidency")
     public ResponseEntity<TenantModel> documentResidency(@Validated(Dossier.class) DocumentResidencyGuarantorNaturalPersonForm documentResidencyGuarantorNaturalPersonForm) {
         Tenant tenant = authenticationFacade.getTenant(documentResidencyGuarantorNaturalPersonForm.getTenantId());
@@ -65,6 +75,7 @@ public class RegisterGuarantorNaturalPersonController {
         return ok(tenantModel);
     }
 
+    @PreAuthorize("hasPermissionOnTenant(#documentProfessionalGuarantorNaturalPersonForm.tenantId)")
     @PostMapping("/documentProfessional")
     public ResponseEntity<TenantModel> documentProfessional(@Validated(Dossier.class) DocumentProfessionalGuarantorNaturalPersonForm documentProfessionalGuarantorNaturalPersonForm) {
         var tenant = authenticationFacade.getTenant(documentProfessionalGuarantorNaturalPersonForm.getTenantId());
@@ -73,6 +84,7 @@ public class RegisterGuarantorNaturalPersonController {
         return ok(tenantModel);
     }
 
+    @PreAuthorize("hasPermissionOnTenant(#documentFinancialGuarantorNaturalPersonForm.tenantId)")
     @PostMapping("/documentFinancial")
     public ResponseEntity<TenantModel> documentFinancial(@Validated(Dossier.class) DocumentFinancialGuarantorNaturalPersonForm documentFinancialGuarantorNaturalPersonForm) {
         var tenant = authenticationFacade.getTenant(documentFinancialGuarantorNaturalPersonForm.getTenantId());
@@ -81,7 +93,7 @@ public class RegisterGuarantorNaturalPersonController {
         return ok(tenantModel);
     }
 
-
+    @PreAuthorize("hasPermissionOnTenant(#documentTaxGuarantorNaturalPersonForm.tenantId)")
     @PostMapping("/documentTax")
     public ResponseEntity<TenantModel> documentTax(@Validated(Dossier.class) DocumentTaxGuarantorNaturalPersonForm documentTaxGuarantorNaturalPersonForm) {
         // TODO : shouldn't we check tenant instead of trusting input ?

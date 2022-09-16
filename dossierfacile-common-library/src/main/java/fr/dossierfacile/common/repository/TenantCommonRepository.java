@@ -192,4 +192,6 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
 
     List<Tenant> findAllByApartmentSharing(ApartmentSharing apartmentSharing);
     List<Tenant> findByEmailInAndApartmentSharingNot(List<String> coTenantEmail, ApartmentSharing apartmentSharing);
+
+    Tenant findByKeycloakId(String keycloakId);
 }

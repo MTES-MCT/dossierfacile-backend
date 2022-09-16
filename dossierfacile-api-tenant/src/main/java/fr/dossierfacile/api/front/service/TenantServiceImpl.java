@@ -109,4 +109,13 @@ public class TenantServiceImpl implements TenantService {
                 .exists(tenantRepository.existsByEmail(emailExistsForm.getEmail()))
                 .build();
     }
+    @Override
+    public Tenant findById(Long id) {
+        return tenantRepository.findById(id).get();
+    }
+    @Override
+    public Tenant findByKeycloakId(String keycloakId){
+        return tenantRepository.findByKeycloakId(keycloakId);
+    }
+
 }
