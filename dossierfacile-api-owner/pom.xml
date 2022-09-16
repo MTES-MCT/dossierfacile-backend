@@ -85,7 +85,7 @@
         <dependency>
             <groupId>org.keycloak</groupId>
             <artifactId>keycloak-admin-client</artifactId>
-            <version>17.0.0</version>
+            <version>19.0.2</version>
         </dependency>
         <dependency>
             <groupId>org.mapstruct</groupId>
@@ -100,7 +100,7 @@
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-ui</artifactId>
-            <version>1.6.4</version>
+            <version>1.6.7</version>
         </dependency>
         <dependency>
             <groupId>com.sendinblue</groupId>
