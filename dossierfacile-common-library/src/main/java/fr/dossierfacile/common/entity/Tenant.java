@@ -89,6 +89,9 @@ public class Tenant extends User implements Serializable {
 
     private int warnings;
 
+    @Column(name = "allow_check_tax")
+    private Boolean allowCheckTax;
+
     public Tenant(String email) {
         super(UserType.TENANT, email);
         this.tenantType = TenantType.CREATE;

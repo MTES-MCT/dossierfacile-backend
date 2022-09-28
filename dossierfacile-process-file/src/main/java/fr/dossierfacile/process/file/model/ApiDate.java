@@ -11,8 +11,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Deprecated
-public class FoyerFiscal {
-    private String adresse;
+public class ApiDate {
+    private String jour;
+    private String mois;
     private String annee;
 }

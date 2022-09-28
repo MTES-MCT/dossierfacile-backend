@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@Deprecated
 public class Declarant {
     private String nom;
     private String nomNaissance;
@@ -29,3 +30,4 @@ public class Declarant {
         return "";
     }
 }
+

@@ -11,8 +11,12 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Deprecated
-public class FoyerFiscal {
-    private String adresse;
-    private String annee;
+public class Facture {
+    private String numLigne;
+    private String codeLigne;
+    private String libelleLigne;
+    private String colonne1;
+    private String colonne2;
+    private String colonne3;
+    private String colonne4;
 }

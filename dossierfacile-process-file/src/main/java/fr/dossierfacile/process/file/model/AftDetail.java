@@ -11,8 +11,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Deprecated
-public class FoyerFiscal {
-    private String adresse;
-    private String annee;
+public class AftDetail {
+    private String voie;
+    private String commune;
+    private String codePostal;
+    private String complementAdresse;
 }
