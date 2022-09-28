@@ -5,4 +5,6 @@ import org.springframework.http.ResponseEntity;
 
 public interface ApiParticulier {
     ResponseEntity<Taxes> particulierApi(String fiscalNumber);
+
+    ResponseEntity<Taxes> particulierApi(String fiscalNumber, String taxReference);
 }

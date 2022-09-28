@@ -38,7 +38,34 @@ public class ApiParticulierImpl implements ApiParticulier {
     @Value("${api.impots.idteleservice}")
     private String idTeleservice;
 
+
+    @Value("${particulier.api.url}")
+    private String oldApiURL;
+    @Value("${particulier.api.gouv.fr.token}")
+    private String apiToken;
+
+    @Deprecated
     @Override
+    public ResponseEntity<Taxes> particulierApi(String fiscalNumber, String taxReference) {
+                    HttpHeaders headers = new HttpHeaders();
+        headers.set("X-Api-Key", apiToken);
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+            try {
+            String url = oldApiURL + "/v2/avis-imposition?numeroFiscal=" + fiscalNumber + "&referenceAvis=" + taxReference;
+            log.info("\nurl: {}", url);
+            log.info("\ntoken: {}", apiToken);
+            long time = System.currentTimeMillis();
+            ResponseEntity<Taxes> response = restTemplate.exchange(url, HttpMethod.GET, entity, Taxes.class);
+            log.info("Time call api particuler " + (System.currentTimeMillis() - time) + " ms");
+            return ResponseEntity.ok(response.getBody());
+            } catch (Exception e) {
+                log.error(EXCEPTION + Sentry.captureException(e));
+                log.error(e.getMessage(), e.getCause());
+                return ResponseEntity.notFound().build();
+            }
+        }
+
+        @Override
     public ResponseEntity<Taxes> particulierApi(String fiscalNumber) {
         var bearerToken = "";
         try {
@@ -65,7 +92,7 @@ public class ApiParticulierImpl implements ApiParticulier {
         }
         try {
             Taxes taxes = getTaxes(year, fiscalNumber, entity);
-            if (taxes == null) {
+            if (taxes.getRfr() == null) {
                 taxes = getTaxes(year - 1, fiscalNumber, entity);
             }
             return ResponseEntity.ok(taxes);
@@ -85,7 +112,7 @@ public class ApiParticulierImpl implements ApiParticulier {
         } catch (Exception e) {
             log.error(EXCEPTION + Sentry.captureException(e));
             log.error(e.getMessage(), e.getCause());
-            return null;
+            return new Taxes();
         }
     }
 

@@ -16,6 +16,28 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Taxes {
 
+    // Deprecated
+    private Declarant declarant1;
+    private Declarant declarant2;
+    private FoyerFiscal foyerFiscal;
+    private String dateRecouvrement;
+    private String dateEtablissement;
+    private String nombreParts;
+    private int revenuBrutGlobal;
+    private int revenuImposable;
+    private int impotRevenuNetAvantCorrections;
+    private int montantImpot;
+    private int revenuFiscalReference;
+    private int nombrePersonnesCharge;
+    private String anneeImpots;
+    private String anneeRevenus;
+    private String erreurCorrectif;
+    private String situationPartielle;
+    private String situationFamille;
+    // Deprecated
+
+
+
     private int year;
     private String rfr;
     private String sitFam;

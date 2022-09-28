@@ -125,4 +125,30 @@ public class Utility {
 
         return qrCodeInfo;
     }
+
+    @Deprecated
+    public static String extractReferenceNumber(String s) {
+        Pattern p = Pattern.compile("[A-Z0-9]{2}\\s[A-Z0-9]{2}\\s[A-Z0-9]{7}\\s[0-9]{2}");
+        Matcher m = p.matcher(s);
+        String result = "";
+        while (m.find()) {
+            String sMatch = m.group();
+            if (countDigits(sMatch) > countDigits(result)) {
+                result = sMatch.replaceAll("\\s", "");
+            }
+        }
+        return result;
+    }
+
+     static int countDigits(String s) {
+        int count = 0;
+        for (int i = 0, len = s.length(); i < len; i++) {
+            if (Character.isDigit(s.charAt(i))) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+
 }

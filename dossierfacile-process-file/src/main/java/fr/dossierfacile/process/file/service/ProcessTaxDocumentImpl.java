@@ -10,6 +10,7 @@ import fr.dossierfacile.process.file.service.interfaces.ApiParticulier;
 import fr.dossierfacile.process.file.service.interfaces.ApiTesseract;
 import fr.dossierfacile.process.file.service.interfaces.ProcessTaxDocument;
 import fr.dossierfacile.process.file.util.Utility;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +18,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
@@ -41,6 +43,9 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
     private String applicationDomain;
     @Value("${application.file.path}")
     private String applicationFilePath;
+
+    @Value("${feature.toggle.new.api}")
+    private boolean newApi;
 
     @Override
     public TaxDocument process(Document document, Tenant tenant) {
@@ -116,8 +121,9 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
             }
         }
         String fiscalNumber = Utility.extractFiscalNumber(result.toString());
+        String referenceNumber = Utility.extractReferenceNumber(result.toString());
 
-        if (fiscalNumber.equals("")) {
+        if (fiscalNumber.equals("") || referenceNumber.equals("")) {
             result = new StringBuilder();
             List<String> paths = files.stream().map(file -> applicationDomain + URL_DELIMITER + applicationFilePath + URL_DELIMITER + file.getPath()).collect(Collectors.toList());
             if (!paths.isEmpty()) {
@@ -125,19 +131,47 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
                     result.append(apiTesseract.apiTesseract(path, new int[]{1}, tesseractApiOcrDpiTax));
                 }
             }
-            fiscalNumber = Utility.extractFiscalNumber(result.toString());
+            if (fiscalNumber.equals("")) {
+                fiscalNumber = Utility.extractFiscalNumber(result.toString());
+            }
+            if (referenceNumber.equals("")) {
+                referenceNumber = Utility.extractReferenceNumber(result.toString());
+            }
+
         }
 
         if (!fiscalNumber.equals("")) {
             log.info("Call to particulier api");
-            ResponseEntity<Taxes> taxesResponseEntity = apiParticulier.particulierApi(fiscalNumber);
+            ResponseEntity<Taxes> taxesResponseEntity;
+            if (newApi) {
+                taxesResponseEntity = apiParticulier.particulierApi(fiscalNumber);
+            } else {
+                if (referenceNumber.equals("")) {
+                    return new TaxDocument();
+                }
+                taxesResponseEntity = apiParticulier.particulierApi(fiscalNumber, referenceNumber);
+            }
+
             log.info("Response status {}", taxesResponseEntity.getStatusCodeValue());
             if (taxesResponseEntity.getStatusCode() == HttpStatus.OK) {
-                test1 = test1(Objects.requireNonNull(taxesResponseEntity.getBody()), lastName, firstName, unaccentFirstName, unaccentLastName);
-                test2 = test2(taxesResponseEntity.getBody(), result);
-                taxDocument.setDeclarant1(taxesResponseEntity.getBody().getDeclarant1Name());
-                taxDocument.setDeclarant2(taxesResponseEntity.getBody().getDeclarant2Name());
-                taxDocument.setAnualSalary(Integer.parseInt(taxesResponseEntity.getBody().getRfr()));
+                if (newApi) {
+                    test1 = test1(Objects.requireNonNull(taxesResponseEntity.getBody()), lastName, firstName, unaccentFirstName, unaccentLastName);
+                    test2 = test2(taxesResponseEntity.getBody(), result);
+                    taxDocument.setDeclarant1(taxesResponseEntity.getBody().getDeclarant1Name());
+                    taxDocument.setDeclarant2(taxesResponseEntity.getBody().getDeclarant2Name());
+                    if (taxesResponseEntity.getBody().getRfr() != null) {
+                        taxDocument.setAnualSalary(Integer.parseInt(taxesResponseEntity.getBody().getRfr()));
+                    } else {
+                        taxDocument.setAnualSalary(0);
+                    }
+                } else {
+                    test1 = oldTest1(Objects.requireNonNull(taxesResponseEntity.getBody()), lastName, firstName, unaccentFirstName, unaccentLastName);
+                    test2 = oldTest2(taxesResponseEntity.getBody(), result);
+                    taxDocument.setDeclarant1(taxesResponseEntity.getBody().getDeclarant1().toString());
+                    taxDocument.setDeclarant2(taxesResponseEntity.getBody().getDeclarant2().toString());
+                    taxDocument.setAnualSalary(taxesResponseEntity.getBody().getRevenuFiscalReference());
+                    taxDocument.setReferenceNumber(referenceNumber.equals("") ? "fail" : referenceNumber);
+                }
             }
         }
 
@@ -187,34 +221,67 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
     }
 
     //check if the name is OK
+    private boolean oldTest1(Taxes taxes, String lastName, String firstName, String unaccentFirstName, String unaccentLastName) {
+        boolean result1 = (taxes.getDeclarant1() != null &&
+                (StringUtils.containsIgnoreCase(taxes.getDeclarant1().getNom(), lastName) ||
+                        StringUtils.containsIgnoreCase(taxes.getDeclarant1().getNomNaissance(), lastName)) &&
+                StringUtils.containsIgnoreCase(taxes.getDeclarant1().getPrenoms(), firstName))
+
+                || (taxes.getDeclarant2() != null &&
+                (StringUtils.containsIgnoreCase(taxes.getDeclarant2().getNom(), lastName) ||
+                        StringUtils.containsIgnoreCase(taxes.getDeclarant2().getNomNaissance(), lastName)) &&
+                StringUtils.containsIgnoreCase(taxes.getDeclarant2().getPrenoms(), firstName));
+
+        boolean result2 = (taxes.getDeclarant1() != null &&
+                (StringUtils.containsIgnoreCase(taxes.getDeclarant1().getNom(), unaccentLastName) ||
+                        StringUtils.containsIgnoreCase(taxes.getDeclarant1().getNomNaissance(), unaccentLastName)) &&
+                StringUtils.containsIgnoreCase(taxes.getDeclarant1().getPrenoms(), unaccentFirstName))
+
+                || (taxes.getDeclarant2() != null &&
+                ((StringUtils.containsIgnoreCase(taxes.getDeclarant2().getNom(), unaccentLastName) ||
+                        StringUtils.containsIgnoreCase(taxes.getDeclarant2().getNomNaissance(), unaccentLastName)) &&
+                        StringUtils.containsIgnoreCase(taxes.getDeclarant2().getPrenoms(), unaccentFirstName)));
+        return result1 || result2;
+    }
+
     public boolean test1(Taxes taxes, String lastName, String firstName, String unaccentFirstName, String unaccentLastName) {
-        boolean result1 = (taxes.getNmUsaDec1() != null &&
-                (StringUtils.containsIgnoreCase(taxes.getNmUsaDec1(), lastName) ||
+        boolean result1 = (taxes.getNmUsaDec1() != null && (StringUtils.containsIgnoreCase(taxes.getNmUsaDec1(), lastName) ||
+                taxes.getNmNaiDec1() != null && taxes.getPrnmDec1() != null &&
                         StringUtils.containsIgnoreCase(taxes.getNmNaiDec1(), lastName)) &&
                 StringUtils.containsIgnoreCase(taxes.getPrnmDec1(), firstName))
+                ||
+                (taxes.getNmUsaDec2() != null && (StringUtils.containsIgnoreCase(taxes.getNmUsaDec2(), lastName) ||
+                        taxes.getNmNaiDec2() != null && taxes.getPrnmDec2() != null &&
+                                StringUtils.containsIgnoreCase(taxes.getNmNaiDec2(), lastName)) &&
+                        StringUtils.containsIgnoreCase(taxes.getPrnmDec2(), firstName));
 
-                || (taxes.getNmNaiDec2() != null &&
-                (StringUtils.containsIgnoreCase(taxes.getNmUsaDec2(), lastName) ||
-                        StringUtils.containsIgnoreCase(taxes.getNmNaiDec2(), lastName)) &&
-                StringUtils.containsIgnoreCase(taxes.getPrnmDec1(), firstName));
-
-        boolean result2 = (taxes.getNmUsaDec1() != null &&
-                (StringUtils.containsIgnoreCase(taxes.getNmUsaDec1(), unaccentLastName) ||
+        boolean result2 = (taxes.getNmUsaDec1() != null && (StringUtils.containsIgnoreCase(taxes.getNmUsaDec1(), unaccentLastName) ||
+                taxes.getNmNaiDec1() != null && taxes.getPrnmDec1() != null &&
                         StringUtils.containsIgnoreCase(taxes.getNmNaiDec1(), unaccentLastName)) &&
                 StringUtils.containsIgnoreCase(taxes.getPrnmDec1(), unaccentFirstName))
-
-                || (taxes.getNmUsaDec2() != null &&
-                ((StringUtils.containsIgnoreCase(taxes.getNmUsaDec2(), unaccentLastName) ||
-                        StringUtils.containsIgnoreCase(taxes.getNmNaiDec2(), unaccentLastName)) &&
-                        StringUtils.containsIgnoreCase(taxes.getPrnmDec2(), unaccentFirstName)));
+                ||
+                (taxes.getNmUsaDec2() != null &&
+                        ((StringUtils.containsIgnoreCase(taxes.getNmUsaDec2(), unaccentLastName) ||
+                                taxes.getNmNaiDec2() != null && taxes.getPrnmDec2() != null &&
+                                StringUtils.containsIgnoreCase(taxes.getNmNaiDec2(), unaccentLastName)) &&
+                                StringUtils.containsIgnoreCase(taxes.getPrnmDec2(), unaccentFirstName)));
 
         return result1 || result2;
     }
 
     //check if the amount "montant fiscal de référence" is equals to 12*salary with an acceptable error of 10% (value in parameter)
     public boolean test2(Taxes taxes, StringBuilder stringBuilder) {
+        if(taxes.getRfr() == null) {
+            return false;
+        }
         Map<String, Integer> map = Utility.extractNumbersText(stringBuilder.toString());
         int salaryApi = Integer.parseInt(taxes.getRfr());
+        return map.containsKey(String.valueOf(salaryApi));
+    }
+
+    private boolean oldTest2(Taxes taxes, StringBuilder stringBuilder) {
+        Map<String, Integer> map = Utility.extractNumbersText(stringBuilder.toString());
+        int salaryApi = taxes.getRevenuFiscalReference();
         return map.containsKey(String.valueOf(salaryApi));
     }
 }
