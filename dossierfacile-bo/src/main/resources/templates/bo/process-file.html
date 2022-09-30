@@ -82,11 +82,11 @@
                                         <span th:text="'Income : ' + ${messageItem.getMonthlySum()}"></span>
                                     </h4>
                                     <h4 class="panel-title letter" style="padding-top: 7px"
-                                        th:if="${messageItem.taxDocument}!=null and ${messageItem.taxDocument.qrContent}==null">
+                                        th:if="${messageItem.taxDocument}!=null and ${messageItem.taxDocument.qrContent}==null and ${messageItem.taxDocument.getFiscalNumber()}!=null">
                                         <span th:text="'Fiscal Number : ' + ${messageItem.taxDocument.getFiscalNumber().toString()}"></span>
                                     </h4>
                                     <h4 class="panel-title letter" style="padding-top: 7px"
-                                        th:if="${messageItem.taxDocument}!=null and ${messageItem.taxDocument.qrContent}==null">
+                                        th:if="${messageItem.taxDocument}!=null and ${messageItem.taxDocument.qrContent}==null and ${messageItem.taxDocument.getReferenceNumber()}!=null">
                                         <span th:text="'Reference Number : ' + ${messageItem.taxDocument.getReferenceNumber().toString()}"></span>
                                     </h4>
                                     <h4 class="panel-title letter" style="padding-top: 7px"
