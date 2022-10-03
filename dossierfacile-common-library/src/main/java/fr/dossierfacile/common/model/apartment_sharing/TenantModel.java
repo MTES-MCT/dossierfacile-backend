@@ -28,4 +28,5 @@ public class TenantModel {
     private List<DocumentModel> documents;
     private List<GuarantorModel> guarantors;
     private List<String> allInternalPartnerId;
+    private Boolean allowCheckTax;
 }
