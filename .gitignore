@@ -2,6 +2,7 @@
 /front/tokens/
 !.mvn/wrapper/maven-wrapper.jar
 application-*.properties
+!application-test.properties
 .env
 target/
 mockstorage/
