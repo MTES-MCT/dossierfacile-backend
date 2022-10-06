@@ -1,8 +1,11 @@
 package fr.gouv.bo.dto;
 
+import fr.dossierfacile.common.enums.DocumentSubCategory;
 import lombok.Data;
 
 @Data
 public class DocumentDeniedOptionsDTO {
-    private final String messageValue;
+    private DocumentSubCategory documentSubCategory;
+    private String documentUserType;
+    private String messageValue;
 }

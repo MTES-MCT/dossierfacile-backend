@@ -12,6 +12,4 @@ public interface DocumentDeniedOptionsRepository extends JpaRepository<DocumentD
 
     List<DocumentDeniedOptions> findAllByDocumentSubCategory(DocumentSubCategory documentSubCategory);
 
-    DocumentDeniedOptions findByCode(String code);
-
 }

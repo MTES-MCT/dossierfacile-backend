@@ -42,10 +42,6 @@
             border-radius: 6px;
         }
 
-        .disabled {
-            background: lightgrey;
-        }
-
         .btn-save {
             font-size: initial;
             float: right;
@@ -53,20 +49,31 @@
             background-color: #4064a5;
             border-color: #4064a5;
         }
+        form div {
+            margin: 1em 0;
+        }
     </style>
     <div>
         <div class="container">
             <div class="edit-form">
-                <div class="title">Editer le message de refus</div>
-                <form th:method="post" th:action="*{'/bo/documentDeniedOptions/' + id}"
+                <div class="title">Créer un message de refus</div>
+                <form th:method="post" th:action="*{'/bo/documentDeniedOptions'}"
                       th:object="${documentDeniedOption}">
                     <div>
-                        <label>Type de document</label>
-                        <p class="input disabled" th:text="*{documentSubCategory}"></p>
+                        <label for="documentSubCategory">Type de document</label>
+                        <select name="documentSubCategory" id="documentSubCategory" class="form-control dropdown">
+                            <option th:each="category : ${documentSubCategories}"
+                                    th:value="${category}" th:text="${category}">
+                            </option>
+                        </select>
                     </div>
                     <div>
-                        <label>Personne concernée</label>
-                        <p class="input disabled" th:text="*{documentUserType}"></p>
+                        <label for="documentUserType">Personne concernée</label>
+                        <select name="documentUserType" id="documentUserType" class="form-control dropdown">
+                            <option th:each="type : ${documentUserTypes}"
+                                    th:value="${type}" th:text="${type}">
+                            </option>
+                        </select>
                     </div>
                     <div>
                         <label for="messageValue">Message</label>
