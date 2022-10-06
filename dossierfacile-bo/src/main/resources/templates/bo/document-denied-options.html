@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fr"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="bo/layout-bo">
+<head>
+    <title>DossierFacile</title>
+</head>
+<body>
+
+<div layout:fragment="content" th:remove="tag">
+    <style>
+        .filters {
+            margin-bottom: 1em;
+            padding: 1em;
+            background-color: #eaeaf3;
+            border: 1px solid #c6c7cc;
+            border-radius: 1em;
+            display: flex;
+            align-content: start;
+            align-items: center;
+        }
+
+        .dropdown {
+            margin: 1em;
+            color: #4064a5;
+            width: 30%;
+            border-color: #1d4896;
+            border-radius: 4px;
+        }
+
+        .filters button {
+            background-color: #4064a5;
+            border-color: #4064a5;
+            font-size: 1em;
+            padding: 0.5em 2em;
+        }
+    </style>
+
+    <div class="col-md-12">
+        <div class="container">
+            <form method="get" class="filters">
+                <select name="documentSubCategory" class="form-control dropdown">
+                    <option disabled selected>Type de document</option>
+                    <option th:each="category : ${documentSubCategories}"
+                            th:value="${category}" th:text="${category}">
+                    </option>
+                </select>
+                <button type="submit" class="btn btn-info">Filtrer</button>
+            </form>
+        </div>
+        <div class="container">
+            <div class="table-responsive">
+                <table th:object="${documentDeniedOptions}" class="table table-striped table-bordered table-hover">
+                    <thead>
+                    <tr>
+                        <th>Type de document</th>
+                        <th>Personne concernée</th>
+                        <th>Message de refus</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="option : ${documentDeniedOptions}">
+                        <td th:text="${option.documentSubCategory}"></td>
+                        <td th:text="${option.documentUserType}"></td>
+                        <td th:text="${option.messageValue}"></td>
+                        <td>
+                            <a th:href="${'/bo/documentDeniedOptions/' + option.code}">
+                                <i class="fa fa-edit"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div layout:fragment="javascripts" th:remove="tag">
+    <script src="/js/bo/index.js"></script>
+</div>
+</body>
+</html>
