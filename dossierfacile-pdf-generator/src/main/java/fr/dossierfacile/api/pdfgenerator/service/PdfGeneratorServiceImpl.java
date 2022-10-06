@@ -185,8 +185,6 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
                 long milliseconds = System.currentTimeMillis() - time;
                 log.info("Failed PDF generation. Document [" + documentCategoryName + "] with ID [" + documentId + "] has been deleted during its PDF generation. Elapsed time [" + milliseconds + "] ms");
             }
-
-
         } catch (Exception e) {
             //region unlock document after failed generation
             document.setLocked(false);
@@ -201,17 +199,16 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
             Sentry.captureException(e);
             log.error("Failed PDF generation. Document [" + documentCategoryName + "] with ID [" + documentId + "] after [" + milliseconds + "] ms", e);
         }
-
     }
 
     @Override
     public void generateFullDossierPdf(Long apartmentSharingId) {
-
         ApartmentSharing apartSharing = apartmentSharingService.initialiseApartmentSharingForPdfGeneration(apartmentSharingId);
         if (apartSharing != null) {
             String url = apartSharing.getUrlDossierPdfDocument();
             try {
-                fileStorageService.upload(url, apartmentSharingPdfDocumentTemplate.render(apartSharing), null);
+                InputStream render = apartmentSharingPdfDocumentTemplate.render(apartSharing);
+                fileStorageService.upload(url, render, null);
                 apartmentSharingService.setDossierPdfDocumentStatus(apartSharing.getId(), FileStatus.COMPLETED);
             } catch (Exception e) {
                 log.error("Unable to generate the dossierPdfDocument: " + e.getMessage(), e);
@@ -223,8 +220,6 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
                 }
             }
         }
-
-
     }
 
 }

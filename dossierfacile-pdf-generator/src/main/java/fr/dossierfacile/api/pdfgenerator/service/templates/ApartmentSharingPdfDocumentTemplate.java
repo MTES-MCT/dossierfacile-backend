@@ -30,6 +30,7 @@ import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject;
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionGoTo;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink;
@@ -50,8 +51,14 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
-import java.util.*;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
@@ -206,6 +213,8 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
     private static final float WIDTH_OF_THE_TWO_COLUMNS_FOR_INDEXES = A_WIDTH_TEMPLATE / 297.5f * 132;
 
     private static final float FONT_SIZE_FOR_CONTENT_OF_GROUP_OF_INDEXES = B_HEIGHT_TEMPLATE / 421 * 3.6f;
+
+    private static final float FONT_SIZE_SMALL = 22;
     private static final float ADDITIONAL_LEFT_MARGIN_FOR_CONTENT_OF_INDEXES = A_WIDTH_TEMPLATE / 297.5f * 6;
     private static final float LEADING_FOR_CONTENT_OF_GROUP_OF_INDEXES = B_HEIGHT_TEMPLATE / 421 * 7.08f;
 
@@ -219,6 +228,14 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
     private static final String TITLE_3_TENANT = "Tenant";
     private static final String TITLE_3_1_GUARANTOR = "Guarantor";
     //endregion
+
+    private static final Color DARK_GREEN = new Color(70, 105, 100);
+    private static final Color GREEN = new Color(0, 172, 140);
+
+    private static final Color LIGHT_GREEN = new Color(223, 253, 247);
+    private static final Color DARK_GRAY = new Color(30, 30, 30);
+    private static final Color GRAY = new Color(56, 56, 56);
+    private static final Color LIGHT_GRAY = new Color(106, 106, 106);
 
     private final Locale locale = LocaleContextHolder.getLocale();
     private final TenantCommonRepository tenantRepository;
@@ -276,7 +293,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
             PDPageContentStream contentStream1 = new PDPageContentStream(doc, pageTemplate, PDPageContentStream.AppendMode.APPEND, true);
             contentStream1.beginText();
             contentStream1.setFont(font1, FONT_SIZE_FOR_BEGIN_OF_TEXT_HEADER);
-            contentStream1.setNonStrokingColor(0 / 255.0F, 172 / 255.0F, 140 / 255.0F);
+            contentStream1.setNonStrokingColor(GREEN);
             contentStream1.newLineAtOffset(LEFT_MARGIN_FOR_BEGIN_OF_TEXT_HEADER, Y_LOCATION_OF_BEGIN_OF_TEXT_HEADER);
             contentStream1.showText(BEGIN_OF_TEXT_HEADER);
             contentStream1.endText();
@@ -287,7 +304,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
             PDPageContentStream contentStream2 = new PDPageContentStream(doc, pageTemplate, PDPageContentStream.AppendMode.APPEND, true);
             contentStream2.beginText();
             contentStream2.setFont(font2, FONT_SIZE_FOR_NAME_OF_TENANTS);
-            contentStream2.setNonStrokingColor(0 / 255.0F, 172 / 255.0F, 140 / 255.0F);
+            contentStream2.setNonStrokingColor(GREEN);
             contentStream2.newLineAtOffset(LEFT_MARGIN_FOR_NAME_OF_TENANTS, Y_LOCATION_OF_NAME_OF_TENANTS);
             contentStream2.showText(concatenateTheFullTenantNames(tenantList));
             contentStream2.endText();
@@ -298,7 +315,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
             PDPageContentStream contentStream3 = new PDPageContentStream(doc, pageTemplate, PDPageContentStream.AppendMode.APPEND, true);
             contentStream3.beginText();
             contentStream3.setFont(font3, FONT_SIZE_FOR_HEADER_SENTENCE);
-            contentStream3.setNonStrokingColor(56 / 255.0F, 56 / 255.0F, 56 / 255.0F);
+            contentStream3.setNonStrokingColor(GRAY);
             contentStream3.newLineAtOffset(LEFT_MARGIN_FOR_HEADER_SENTENCE, Y_LOCATION_OF_HEADER_SENTENCE);
             contentStream3.showText(headerSentence);
             contentStream3.endText();
@@ -309,7 +326,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
             if (bodyText != null && !bodyText.isBlank()) {
                 PDPageContentStream contentStream4 = new PDPageContentStream(doc, pageTemplate, PDPageContentStream.AppendMode.APPEND, true);
                 contentStream4.beginText();
-                contentStream4.setNonStrokingColor(56 / 255.0F, 56 / 255.0F, 56 / 255.0F);
+                contentStream4.setNonStrokingColor(GRAY);
                 contentStream4.setLeading(LEADING_FOR_CLARIFICATION_TEXT);
                 contentStream4.newLine();
                 contentStream4.newLine();
@@ -566,7 +583,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
     }
 
     private void addDocumentOfClarification(PDFMergerUtility ut, List<Tenant> tenantList, Tenant mainTenant, List<Integer> indexPagesForDocuments, PDOutlineItem pdOutlineItem) {
-        if ( StringUtils.isNotBlank(mainTenant.getClarification() )) {
+        if (StringUtils.isNotBlank(mainTenant.getClarification())) {
             //region Adding bookmark
             PDPageFitWidthDestination destination = new PDPageFitWidthDestination();
             destination.setPageNumber(indexPagesForDocuments.get(indexPagesForDocuments.size() - 1));
@@ -604,7 +621,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
 
     private void addFirstNamesOfTenantsInTheHeaderOfCurrentIndexPage(int indexPage, PDDocument doc, List<Tenant> tenantList, PDType0Font font) throws IOException {
         PDPageContentStream contentStream1 = new PDPageContentStream(doc, doc.getPage(indexPage), PDPageContentStream.AppendMode.APPEND, true);
-        contentStream1.setNonStrokingColor(56 / 255.0F, 56 / 255.0F, 56 / 255.0F);
+        contentStream1.setNonStrokingColor(GRAY);
         contentStream1.beginText();
 
         float fontSize = FONT_SIZE_FOR_FIRST_NAMES_OF_TENANTS_IN_HEADER_OF_INDEXPAGES;
@@ -620,7 +637,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
 
     private void addStaticTextInFirstTemplateOfIndexes(int indexPage, PDDocument doc, PDType0Font font) throws IOException {
         PDPageContentStream contentStream2 = new PDPageContentStream(doc, doc.getPage(indexPage), PDPageContentStream.AppendMode.APPEND, true);
-        contentStream2.setNonStrokingColor(0 / 255.0F, 172 / 255.0F, 140 / 255.0F);
+        contentStream2.setNonStrokingColor(GREEN);
         contentStream2.beginText();
         float fontSize = FONT_SIZE_FOR_STATIC_TEXT_IN_FIRST_TEMPLATE;
         contentStream2.setFont(font, fontSize);
@@ -634,7 +651,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
 
     private void addContentInFirstRectanguleInFirstTemplateOfIndexes(int indexPage, PDDocument doc, PDType0Font font, ApplicationType applicationType) throws IOException {
         PDPageContentStream contentStream1 = new PDPageContentStream(doc, doc.getPage(indexPage), PDPageContentStream.AppendMode.APPEND, true);
-        contentStream1.setNonStrokingColor(106 / 255.0F, 106 / 255.0F, 106 / 255.0F);
+        contentStream1.setNonStrokingColor(LIGHT_GRAY);
         contentStream1.beginText();
         float fontSize = FONT_SIZE_FOR_TITLE_OF_FIRST_RECTANGULE_IN_FIRST_INDEXPAGES;
         contentStream1.setFont(font, fontSize);
@@ -646,7 +663,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
         contentStream1.close();
 
         PDPageContentStream contentStream2 = new PDPageContentStream(doc, doc.getPage(indexPage), PDPageContentStream.AppendMode.APPEND, true);
-        contentStream2.setNonStrokingColor(30 / 255.0F, 30 / 255.0F, 30 / 255.0F);
+        contentStream2.setNonStrokingColor(DARK_GRAY);
         contentStream2.beginText();
         fontSize = FONT_SIZE_FOR_CONTENT_OF_FIRST_RECTANGULE_IN_FIRST_INDEXPAGES;
         contentStream2.setFont(font, fontSize);
@@ -661,7 +678,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
 
     private void addContentInSecondRectanguleInFirstTemplateOfIndexes(int indexPage, PDDocument doc, PDType0Font fontTitle, PDType0Font fontContent, String content) throws IOException {
         PDPageContentStream contentStream1 = new PDPageContentStream(doc, doc.getPage(indexPage), PDPageContentStream.AppendMode.APPEND, true);
-        contentStream1.setNonStrokingColor(106 / 255.0F, 106 / 255.0F, 106 / 255.0F);
+        contentStream1.setNonStrokingColor(LIGHT_GRAY);
         contentStream1.beginText();
         float fontSize = FONT_SIZE_FOR_TITLE_OF_SECOND_RECTANGULE_IN_FIRST_INDEXPAGES;
         contentStream1.setFont(fontTitle, fontSize);
@@ -687,7 +704,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
 
     private void addContentInThirdRectanguleInFirstTemplateOfIndexes(int indexPage, PDDocument doc, PDType0Font fontTitle, PDType0Font fontContent, List<Tenant> tenantList) throws IOException {
         PDPageContentStream contentStream1 = new PDPageContentStream(doc, doc.getPage(indexPage), PDPageContentStream.AppendMode.APPEND, true);
-        contentStream1.setNonStrokingColor(106 / 255.0F, 106 / 255.0F, 106 / 255.0F);
+        contentStream1.setNonStrokingColor(LIGHT_GRAY);
         contentStream1.beginText();
         float fontSize = FONT_SIZE_FOR_TITLE_OF_THIRD_RECTANGULE_IN_FIRST_INDEXPAGES;
         contentStream1.setFont(fontTitle, fontSize);
@@ -719,7 +736,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
         }
 
         PDPageContentStream contentStream2 = new PDPageContentStream(doc, doc.getPage(indexPage), PDPageContentStream.AppendMode.APPEND, true);
-        contentStream2.setNonStrokingColor(106 / 255.0F, 106 / 255.0F, 106 / 255.0F);
+        contentStream2.setNonStrokingColor(LIGHT_GRAY);
         contentStream2.beginText();
         fontSize = FONT_SIZE_FOR_CONTENT_OF_THIRD_RECTANGULE_IN_FIRST_INDEXPAGES;
         contentStream2.setFont(fontTitle, fontSize);
@@ -914,7 +931,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
 
     private float addIndexesOfDocumentsOfTenantInCurrentPage(Tenant tenant, int indexPage, List<Integer> indexPagesForDocuments, AtomicInteger iteratorInIndexPagesForDocuments, PDDocument doc, PDType0Font fontForTitleAndSalary, PDType0Font fontIndexLines, float marginX, float yLocationFirstContentStream, float yLocationSecondContentStream, float yLocationTenantEmailContentStream, float yLocationThirdContentStream, float xLocationOfEndOfRectangule) throws IOException {
         PDPageContentStream contentStream1 = new PDPageContentStream(doc, doc.getPage(indexPage), PDPageContentStream.AppendMode.APPEND, true);
-        contentStream1.setNonStrokingColor(0 / 255.0F, 172 / 255.0F, 140 / 255.0F);
+        contentStream1.setNonStrokingColor(GREEN);
         contentStream1.beginText();
         float fontSize = FONT_SIZE_FOR_TITLE_OF_GROUP_OF_INDEXES;
         contentStream1.setFont(fontForTitleAndSalary, fontSize);
@@ -926,7 +943,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
         contentStream1.close();
 
         PDPageContentStream contentStream2 = new PDPageContentStream(doc, doc.getPage(indexPage), PDPageContentStream.AppendMode.APPEND, true);
-        contentStream2.setNonStrokingColor(56 / 255.0F, 56 / 255.0F, 56 / 255.0F);
+        contentStream2.setNonStrokingColor(GRAY);
         contentStream2.beginText();
         contentStream2.setFont(fontForTitleAndSalary, fontSize);
         String tenantFullName = tenant.getFullName();
@@ -938,7 +955,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
         contentStream2.close();
 
         PDPageContentStream contentStreamEmailTenant = new PDPageContentStream(doc, doc.getPage(indexPage), PDPageContentStream.AppendMode.APPEND, true);
-        contentStreamEmailTenant.setNonStrokingColor(56 / 255.0F, 56 / 255.0F, 56 / 255.0F);
+        contentStreamEmailTenant.setNonStrokingColor(GRAY);
         contentStreamEmailTenant.beginText();
         fontSize = FONT_SIZE_FOR_CONTENT_OF_GROUP_OF_INDEXES;
         contentStreamEmailTenant.setFont(fontIndexLines, fontSize);
@@ -951,7 +968,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
         contentStreamEmailTenant.close();
 
         PDPageContentStream contentStream3 = new PDPageContentStream(doc, doc.getPage(indexPage), PDPageContentStream.AppendMode.APPEND, true);
-        contentStream3.setNonStrokingColor(106 / 255.0F, 106 / 255.0F, 106 / 255.0F);
+        contentStream3.setNonStrokingColor(LIGHT_GRAY);
         contentStream3.beginText();
         contentStream3.setFont(fontIndexLines, fontSize);
         contentStream3.newLineAtOffset(marginX + ADDITIONAL_LEFT_MARGIN_FOR_CONTENT_OF_INDEXES, yLocationThirdContentStream);
@@ -960,6 +977,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
 
         List<PDAnnotation> annotationList = doc.getPage(indexPage).getAnnotations();
         float yLocationDocFinancialIndex = -1;
+        float yLocationDocTaxIndex = -1;
         float lastYLocation = yLocationThirdContentStream;
         //We obtain here the list with the categories, NOT REPEATED (distinctByKey), of documents that the tenant has. Ordered ascending by the ID of DocumentCategory.
         List<DocumentCategory> listOfDocumentCategoryContainedForTenant = tenant.getDocuments().stream().sorted(Comparator.comparing(Document::getDocumentCategory)).filter(distinctByKey(Document::getDocumentCategory)).map(Document::getDocumentCategory).collect(Collectors.toList());
@@ -1001,6 +1019,9 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
             if (documentCategory == DocumentCategory.FINANCIAL) {
                 yLocationDocFinancialIndex = lastYLocation;
             }
+            if (documentCategory == DocumentCategory.TAX && tenant.getAllowCheckTax()) {
+                yLocationDocTaxIndex = lastYLocation;
+            }
 
             lastYLocation -= leading;
         }
@@ -1026,12 +1047,57 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
             cSSalaryTenant.close();
         }
 
+        if (yLocationDocTaxIndex != -1) {
+            fontSize = FONT_SIZE_SMALL;
+            String text = "Certifié auprès des impôts";
+            textSize = fontSize * fontForTitleAndSalary.getStringWidth(text) / 1000;
+
+            PDPageContentStream greenBackground = new PDPageContentStream(doc, doc.getPage(indexPage), PDPageContentStream.AppendMode.APPEND, true);
+            greenBackground.setNonStrokingColor(LIGHT_GREEN);
+            float x = xLocationOfEndOfRectangule - textSize - RIGHT_MARGIN_FOR_TEXT_INCOMING - 20;
+            float y = yLocationDocTaxIndex + 7;
+            float height = 45;
+            float r = height / 2;
+            float width = textSize + RIGHT_MARGIN_FOR_TEXT_INCOMING - 35;
+
+            final float k = 0.552284749831f;
+            greenBackground.moveTo(x - r, y);
+            greenBackground.curveTo(x - r, y + k * r, x - k * r, y + r, x, y + r);
+            greenBackground.curveTo(x + width / 3, y + r, x + width * 2 / 3, y + r, x + width, y + r);
+            greenBackground.curveTo(x + width + k * r, y + r, x + width + r, y + k * r, x + width + r, y);
+            greenBackground.curveTo(x + width + r, y - k * r, x + width + k * r, y - r, x + width, y - r);
+            greenBackground.curveTo(x + width * 2 / 3, y - r, x + width / 3, y - r, x, y - r);
+            greenBackground.curveTo(x - k * r, y - r, x - r, y - k * r, x-r, y);
+            greenBackground.fill();
+
+            greenBackground.fill();
+            greenBackground.close();
+
+
+            PDPageContentStream cSSalaryTenant = new PDPageContentStream(doc, doc.getPage(indexPage), PDPageContentStream.AppendMode.APPEND, true);
+            cSSalaryTenant.setNonStrokingColor(DARK_GREEN);
+            cSSalaryTenant.beginText();
+            cSSalaryTenant.setFont(fontIndexLines, fontSize);
+            offset = xLocationOfEndOfRectangule - textSize - RIGHT_MARGIN_FOR_TEXT_INCOMING;
+            cSSalaryTenant.newLineAtOffset(offset, yLocationDocTaxIndex);
+            cSSalaryTenant.showText(text);
+            cSSalaryTenant.endText();
+            cSSalaryTenant.close();
+
+            PDImageXObject imgNeu = PDImageXObject.createFromFile("./src/main/resources/verified.png", doc);
+            PDPageContentStream contentStream = new PDPageContentStream(doc, doc.getPage(indexPage), PDPageContentStream.AppendMode.APPEND, true);
+            offset = xLocationOfEndOfRectangule - textSize - RIGHT_MARGIN_FOR_TEXT_INCOMING - 28;
+            contentStream.drawImage(imgNeu, offset, yLocationDocTaxIndex - 4);
+            contentStream.close();
+
+        }
+
         return lastYLocation;
     }
 
     private float addIndexesOfDocumentsOfGuarantorInCurrentPage(Guarantor guarantor, int indexPage, List<Integer> indexPagesForDocuments, AtomicInteger iteratorInIndexPagesForDocuments, PDDocument doc, PDType0Font fontLinesOfTitleAndTextOfIncomingGuarantor, PDType0Font fontLinesOfDocumentIndexes, float marginX, float lastYLocation, float xLocationOfEndOfRectangule) throws IOException {
         PDPageContentStream contentStream1 = new PDPageContentStream(doc, doc.getPage(indexPage), PDPageContentStream.AppendMode.APPEND, true);
-        contentStream1.setNonStrokingColor(0 / 255.0F, 172 / 255.0F, 140 / 255.0F);
+        contentStream1.setNonStrokingColor(GREEN);
         contentStream1.beginText();
         float fontSize = FONT_SIZE_FOR_TITLE_OF_GROUP_OF_INDEXES;
         contentStream1.setFont(fontLinesOfTitleAndTextOfIncomingGuarantor, fontSize);
@@ -1050,7 +1116,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
         //region Name of guarantor if (NATURAL_PERSON or LEGAL_PERSON)
         if (typeGuarantor == TypeGuarantor.NATURAL_PERSON || typeGuarantor == TypeGuarantor.LEGAL_PERSON) {
             PDPageContentStream contentStream2 = new PDPageContentStream(doc, doc.getPage(indexPage), PDPageContentStream.AppendMode.APPEND, true);
-            contentStream2.setNonStrokingColor(56 / 255.0F, 56 / 255.0F, 56 / 255.0F);
+            contentStream2.setNonStrokingColor(GRAY);
             contentStream2.beginText();
             contentStream2.setFont(fontLinesOfTitleAndTextOfIncomingGuarantor, fontSize);
             String guarantorFullName = guarantor.getCompleteName();
@@ -1067,7 +1133,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
         //endregion
 
         PDPageContentStream contentStream3 = new PDPageContentStream(doc, doc.getPage(indexPage), PDPageContentStream.AppendMode.APPEND, true);
-        contentStream3.setNonStrokingColor(106 / 255.0F, 106 / 255.0F, 106 / 255.0F);
+        contentStream3.setNonStrokingColor(LIGHT_GRAY);
         contentStream3.beginText();
         fontSize = FONT_SIZE_FOR_CONTENT_OF_GROUP_OF_INDEXES;
         contentStream3.setFont(fontLinesOfDocumentIndexes, fontSize);

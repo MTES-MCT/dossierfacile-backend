@@ -1,7 +1,6 @@
 package fr.dossierfacile.api.pdfgenerator.amqp;
 
 
-import com.google.gson.Gson;
 import fr.dossierfacile.api.pdfgenerator.service.interfaces.PdfGeneratorService;
 import io.sentry.Sentry;
 import lombok.AllArgsConstructor;
