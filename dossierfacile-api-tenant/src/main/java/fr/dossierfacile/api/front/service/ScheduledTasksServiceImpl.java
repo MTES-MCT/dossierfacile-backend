@@ -168,9 +168,9 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
 
         LocalDateTime localDateTime = LocalDateTime.now().minusMonths(monthsForDeletionOfDocuments);
 
-        processWarnings(0, localDateTime);
-        processWarnings(1, localDateTime);
         processWarnings(2, localDateTime);
+        processWarnings(1, localDateTime);
+        processWarnings(0, localDateTime);
 
         log.info("accountWarnings. Account warnings' task was finished");
     }
