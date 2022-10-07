@@ -36,3 +36,6 @@ static-front/
 .elasticbeanstalk/*
 !.elasticbeanstalk/*.cfg.yml
 !.elasticbeanstalk/*.global.yml
+
+# Used in test
+7fdad8b1*

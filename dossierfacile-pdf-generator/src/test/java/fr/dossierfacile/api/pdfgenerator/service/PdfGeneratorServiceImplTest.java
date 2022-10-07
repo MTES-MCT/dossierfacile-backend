@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
@@ -36,8 +37,18 @@ class PdfGeneratorServiceImplTest {
     @MockBean
     TenantCommonRepository tenantRepository;
 
+    @Value("${mock.storage.path}")
+    private String filePath;
+
     @Test
     void generateFullDossierPdf() throws IOException {
+        File file = new File(filePath + "/7fdad8b1-6a9e-40dc-acab-d698701f76db.pdf");
+        try {
+            file.delete();
+        } catch (Exception e) {
+            // Normal case
+        }
+
         ApartmentSharing apartmentSharing = buildApartmentSharing();
         Mockito.when(repository.getById(1L)).thenReturn(apartmentSharing);
         Mockito.when(repository.save(ArgumentMatchers.any())).thenAnswer(i -> i.getArguments()[0]);
@@ -46,8 +57,8 @@ class PdfGeneratorServiceImplTest {
 
         pdfGeneratorService.generateFullDossierPdf(1L);
 
-        File file = new File("./mockstorage/7fdad8b1-6a9e-40dc-acab-d698701f76db.pdf");
-        assert(file.exists());
+        file = new File(filePath + "/7fdad8b1-6a9e-40dc-acab-d698701f76db.pdf");
+        assert (file.exists());
     }
 
     private ApartmentSharing buildApartmentSharing() {
