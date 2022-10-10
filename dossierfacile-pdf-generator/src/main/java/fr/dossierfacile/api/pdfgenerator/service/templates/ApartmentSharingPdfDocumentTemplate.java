@@ -218,6 +218,8 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
     private static final float ADDITIONAL_LEFT_MARGIN_FOR_CONTENT_OF_INDEXES = A_WIDTH_TEMPLATE / 297.5f * 6;
     private static final float LEADING_FOR_CONTENT_OF_GROUP_OF_INDEXES = B_HEIGHT_TEMPLATE / 421 * 7.08f;
 
+    private static final float DGFIP_ICON_WIDTH = 60;
+
     private static final float FONT_SIZE_FOR_INCOMING_NEXT_TO_INDEX_OF_FINANCIAL_DOCUMENTS = FONT_SIZE_FOR_TITLE_OF_FIRST_RECTANGULE_IN_FIRST_INDEXPAGES;
     //endregion
 
@@ -1049,12 +1051,12 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
 
         if (yLocationDocTaxIndex != -1) {
             fontSize = FONT_SIZE_SMALL;
-            String text = "Certifié auprès des impôts";
+            String text = "Revenu fiscal certifié";
             textSize = fontSize * fontForTitleAndSalary.getStringWidth(text) / 1000;
 
             PDPageContentStream greenBackground = new PDPageContentStream(doc, doc.getPage(indexPage), PDPageContentStream.AppendMode.APPEND, true);
             greenBackground.setNonStrokingColor(LIGHT_GREEN);
-            float x = xLocationOfEndOfRectangule - textSize - RIGHT_MARGIN_FOR_TEXT_INCOMING - 20;
+            float x = xLocationOfEndOfRectangule - textSize - RIGHT_MARGIN_FOR_TEXT_INCOMING - 20 - DGFIP_ICON_WIDTH;
             float y = yLocationDocTaxIndex + 7;
             float height = 45;
             float r = height / 2;
@@ -1078,17 +1080,23 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
             cSSalaryTenant.setNonStrokingColor(DARK_GREEN);
             cSSalaryTenant.beginText();
             cSSalaryTenant.setFont(fontIndexLines, fontSize);
-            offset = xLocationOfEndOfRectangule - textSize - RIGHT_MARGIN_FOR_TEXT_INCOMING;
+            offset = xLocationOfEndOfRectangule - textSize - RIGHT_MARGIN_FOR_TEXT_INCOMING - DGFIP_ICON_WIDTH;
             cSSalaryTenant.newLineAtOffset(offset, yLocationDocTaxIndex);
             cSSalaryTenant.showText(text);
             cSSalaryTenant.endText();
             cSSalaryTenant.close();
 
-            PDImageXObject imgNeu = PDImageXObject.createFromFile("./src/main/resources/verified.png", doc);
+            PDImageXObject imgVerified = PDImageXObject.createFromFile("./src/main/resources/verified.png", doc);
             PDPageContentStream contentStream = new PDPageContentStream(doc, doc.getPage(indexPage), PDPageContentStream.AppendMode.APPEND, true);
-            offset = xLocationOfEndOfRectangule - textSize - RIGHT_MARGIN_FOR_TEXT_INCOMING - 28;
-            contentStream.drawImage(imgNeu, offset, yLocationDocTaxIndex - 4);
+            offset = xLocationOfEndOfRectangule - textSize - RIGHT_MARGIN_FOR_TEXT_INCOMING - 28 - DGFIP_ICON_WIDTH;
+            contentStream.drawImage(imgVerified, offset, yLocationDocTaxIndex - 4);
             contentStream.close();
+
+            PDImageXObject dgfipImg = PDImageXObject.createFromFile("./src/main/resources/dgfip-icon.png", doc);
+            PDPageContentStream dgfipContentStream = new PDPageContentStream(doc, doc.getPage(indexPage), PDPageContentStream.AppendMode.APPEND, true);
+            offset = xLocationOfEndOfRectangule - RIGHT_MARGIN_FOR_TEXT_INCOMING - 20;
+            dgfipContentStream.drawImage(dgfipImg, offset, yLocationDocTaxIndex - 14);
+            dgfipContentStream.close();
 
         }
 
