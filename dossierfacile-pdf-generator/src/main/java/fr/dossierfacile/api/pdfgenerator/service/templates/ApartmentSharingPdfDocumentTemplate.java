@@ -39,6 +39,7 @@ import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPa
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDDocumentOutline;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineItem;
 import org.apache.pdfbox.util.Matrix;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.core.io.ClassPathResource;
@@ -69,6 +70,9 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @Slf4j
 public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<ApartmentSharing> {
+
+    private static final Resource dgfipIcon = new ClassPathResource("dgfip-icon.png");
+    private static final Resource verifiedIcon = new ClassPathResource("verified.png");
 
     //region Important dimensions in template (static/pdf/template_Dossier_PDF_attachments_and_clarification.pdf)
     private static final float A_WIDTH_TEMPLATE = 2479f; //(original : 297.5px)
@@ -1086,13 +1090,13 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
             cSSalaryTenant.endText();
             cSSalaryTenant.close();
 
-            PDImageXObject imgVerified = PDImageXObject.createFromFile("./src/main/resources/verified.png", doc);
+            PDImageXObject imgVerified = PDImageXObject.createFromFile(verifiedIcon.getURI().getPath(), doc);
             PDPageContentStream contentStream = new PDPageContentStream(doc, doc.getPage(indexPage), PDPageContentStream.AppendMode.APPEND, true);
             offset = xLocationOfEndOfRectangule - textSize - RIGHT_MARGIN_FOR_TEXT_INCOMING - 28 - DGFIP_ICON_WIDTH;
             contentStream.drawImage(imgVerified, offset, yLocationDocTaxIndex - 4);
             contentStream.close();
 
-            PDImageXObject dgfipImg = PDImageXObject.createFromFile("./src/main/resources/dgfip-icon.png", doc);
+            PDImageXObject dgfipImg = PDImageXObject.createFromFile(dgfipIcon.getURI().getPath(), doc);
             PDPageContentStream dgfipContentStream = new PDPageContentStream(doc, doc.getPage(indexPage), PDPageContentStream.AppendMode.APPEND, true);
             offset = xLocationOfEndOfRectangule - RIGHT_MARGIN_FOR_TEXT_INCOMING - 20;
             dgfipContentStream.drawImage(dgfipImg, offset, yLocationDocTaxIndex - 14);
