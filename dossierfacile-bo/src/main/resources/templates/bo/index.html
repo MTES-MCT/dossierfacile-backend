@@ -18,13 +18,13 @@
     <div class="col-md-12" >
         <div class="row">
             <div class="" style="display: inline-grid;grid-auto-columns: max-content; margin-left: 20px; float: left">
-                <div th:if="${loginUser} == true">
+                <div th:if="${isUserAdmin} == true">
                     <a href="/bo/create/admin" class="btn" id="nextApplication2" style="background: #e63d3d;padding: 10px 16px 12px;float: left;color: aliceblue;font-size: large;margin-left: 10px;">
                         Ajouter un admin
                     </a>
                 </div>
-                <div>
-                    <a href="/bo/documentDeniedOptions" class="btn" id="editMessages" style="background: #1f6685;padding: 10px 16px 12px;float: left;color: aliceblue;font-size: large;margin-left: 10px;margin-top: 10px">
+                <div th:if="${isUserAdmin} == true">
+                    <a href="/bo/documentDeniedOptions" class="btn" id="editMessages" style="background: #e63d3d;padding: 10px 16px 12px;float: left;color: aliceblue;font-size: large;margin-left: 10px;margin-top: 10px">
                         Editer les messages
                     </a>
                 </div>
