@@ -30,6 +30,8 @@ import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject;
+import org.apache.pdfbox.pdmodel.graphics.image.JPEGFactory;
+import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionGoTo;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
@@ -39,15 +41,16 @@ import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPa
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDDocumentOutline;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineItem;
 import org.apache.pdfbox.util.Matrix;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -1090,13 +1093,15 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
             cSSalaryTenant.endText();
             cSSalaryTenant.close();
 
-            PDImageXObject imgVerified = PDImageXObject.createFromFile(verifiedIcon.getURI().getPath(), doc);
+            BufferedImage bimVerified = ImageIO.read(verifiedIcon.getInputStream());
+            PDImageXObject imgVerified = LosslessFactory.createFromImage(doc, bimVerified);
             PDPageContentStream contentStream = new PDPageContentStream(doc, doc.getPage(indexPage), PDPageContentStream.AppendMode.APPEND, true);
             offset = xLocationOfEndOfRectangule - textSize - RIGHT_MARGIN_FOR_TEXT_INCOMING - 28 - DGFIP_ICON_WIDTH;
             contentStream.drawImage(imgVerified, offset, yLocationDocTaxIndex - 4);
             contentStream.close();
 
-            PDImageXObject dgfipImg = PDImageXObject.createFromFile(dgfipIcon.getURI().getPath(), doc);
+            BufferedImage bim = ImageIO.read(dgfipIcon.getInputStream());
+            PDImageXObject dgfipImg = LosslessFactory.createFromImage(doc, bim);
             PDPageContentStream dgfipContentStream = new PDPageContentStream(doc, doc.getPage(indexPage), PDPageContentStream.AppendMode.APPEND, true);
             offset = xLocationOfEndOfRectangule - RIGHT_MARGIN_FOR_TEXT_INCOMING - 20;
             dgfipContentStream.drawImage(dgfipImg, offset, yLocationDocTaxIndex - 14);
