@@ -141,7 +141,7 @@ public class BOController {
             result = tenantService.getTotalOfTenantsWithFailedGeneratedPdfDocument();
         }
         model.addAttribute("TenantsWithFailedGeneratedPdf", result);
-        model.addAttribute("loginUser", is_admin);
+        model.addAttribute("isUserAdmin", is_admin);
         model.addAttribute("tenants", tenants);
         model.addAttribute(SELECTED_PAGE_SIZE, evalPageSize);
         model.addAttribute(PAGE_SIZES_STRING, PAGE_SIZES);
