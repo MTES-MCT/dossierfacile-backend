@@ -4,7 +4,6 @@ import fr.dossierfacile.api.front.register.form.guarantor.DocumentGuarantorFormA
 import fr.dossierfacile.api.front.validator.anotation.DocumentSubcategorySubset;
 import fr.dossierfacile.api.front.validator.anotation.LengthOfText;
 import fr.dossierfacile.api.front.validator.anotation.NumberOfPages;
-import fr.dossierfacile.api.front.validator.anotation.guarantor.natural_person.tax.MyNameAcceptVerificationGuarantorNaturalPerson;
 import fr.dossierfacile.api.front.validator.anotation.guarantor.natural_person.tax.NumberOfDocumentTaxGuarantorNaturalPerson;
 import fr.dossierfacile.api.front.validator.anotation.guarantor.natural_person.tax.OtherTaxCustomTextGuarantorNaturalPerson;
 import fr.dossierfacile.common.enums.DocumentCategory;
@@ -27,7 +26,6 @@ import static fr.dossierfacile.common.enums.DocumentSubCategory.OTHER_TAX;
 @NoArgsConstructor
 @NumberOfDocumentTaxGuarantorNaturalPerson
 @OtherTaxCustomTextGuarantorNaturalPerson
-@MyNameAcceptVerificationGuarantorNaturalPerson
 @NumberOfPages(category = DocumentCategory.TAX, max = 10)
 public class DocumentTaxGuarantorNaturalPersonForm extends DocumentGuarantorFormAbstract {
 
@@ -41,8 +39,6 @@ public class DocumentTaxGuarantorNaturalPersonForm extends DocumentGuarantorForm
 
     @LengthOfText(max = 1355)
     private String customText;
-
-    private Boolean acceptVerification;
 
     private TypeGuarantor typeGuarantor = TypeGuarantor.NATURAL_PERSON;
 }

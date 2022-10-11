@@ -8,6 +8,7 @@ import fr.dossierfacile.api.front.register.form.tenant.DocumentTaxForm;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
+import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentPdfGenerationLog;
@@ -44,9 +45,12 @@ public class DocumentTax implements SaveStep<DocumentTaxForm> {
     private final ApartmentSharingService apartmentSharingService;
     private final DocumentPdfGenerationLogRepository documentPdfGenerationLogRepository;
 
+    private final KeycloakService keycloakService;
+
     @Override
     public TenantModel saveStep(Tenant tenant, DocumentTaxForm documentTaxForm) {
         Document document = saveDocument(tenant, documentTaxForm);
+
         producer.generatePdf(document.getId(),
                 documentPdfGenerationLogRepository.save(DocumentPdfGenerationLog.builder()
                         .documentId(document.getId())
@@ -102,5 +106,14 @@ public class DocumentTax implements SaveStep<DocumentTaxForm> {
 
     private void deleteFilesIfExistedBefore(Document document) {
         documentHelperService.deleteFiles(document);
+    }
+
+    public Tenant setAllowTax(Tenant tenant, String allowTax) {
+        if ("allow".equals(allowTax)) {
+            tenant.setAllowCheckTax(true);
+        } else if ("disallow".equals(allowTax)) {
+            tenant.setAllowCheckTax(false);
+        }
+        return tenantRepository.save(tenant);
     }
 }

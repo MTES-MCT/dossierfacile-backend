@@ -17,7 +17,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.retry.interceptor.RetryInterceptorBuilder;
-import org.springframework.retry.interceptor.RetryOperationsInterceptor;
 
 @Configuration
 @ConfigurationProperties(
@@ -30,8 +29,8 @@ public class AMQPConfig {
     @Value("${rabbitmq.queue.name}")
     private String queueName;
 
-    @Value("${rabbitmq.queue.apartment-sharing.name}")
-    private String apartmentSharingQueueName;
+    @Value("${rabbitmq.queue.watermark.name}")
+    private String watermarkQueueName;
 
     @Value("${rabbitmq.routing.key}")
     private String routingKey;
@@ -50,8 +49,19 @@ public class AMQPConfig {
     }
 
     @Bean
+    Queue queueWatermarkPdfGenerator() {
+        return new Queue(watermarkQueueName, true);
+    }
+
+
+    @Bean
     Binding bindingQueuePdfGeneratorExchangePdfGenerator(Queue queuePdfGenerator, TopicExchange exchangePdfGenerator) {
         return BindingBuilder.bind(queuePdfGenerator).to(exchangePdfGenerator).with(routingKey);
+    }
+
+    @Bean
+    Binding bindingQueueWatermarkPdfGeneratorExchangePdfGenerator(Queue queueWatermarkPdfGenerator, TopicExchange exchangePdfGenerator) {
+        return BindingBuilder.bind(queueWatermarkPdfGenerator).to(exchangePdfGenerator).with(routingKey);
     }
 
     @Bean

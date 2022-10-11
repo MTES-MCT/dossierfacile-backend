@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="fr"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="bo/layout-bo">
+<head>
+    <title>DossierFacile</title>
+</head>
+<body>
+
+<div layout:fragment="content" th:remove="tag">
+    <style>
+        .actions-section {
+            background-color: #eaeaf3;
+            border: 1px solid #c6c7cc;
+            border-radius: 1em;
+            display: flex;
+            align-items: center;
+            margin-bottom: 2em;
+        }
+
+        .filter {
+            padding: 1em;
+            float: left;
+            display: flex;
+            align-content: start;
+            align-items: center;
+        }
+
+        .dropdown {
+            margin: 1em;
+            color: #4064a5;
+            border-color: #1d4896;
+            border-radius: 4px;
+        }
+
+        .filter button {
+            background-color: #4064a5;
+            border-color: #4064a5;
+            font-size: 1em;
+            padding: 0.5em 2em;
+        }
+
+        .btn-create {
+            font-size: 1em;
+            padding: 0.5em 2em;
+            float: right;
+            margin: 1em;
+        }
+
+        .action-edit {
+            color: #4064a5;
+            margin: 0.5em;
+        }
+
+        .action-delete {
+            outline: none;
+            background: transparent;
+            border: 1px solid transparent;
+            color: #e63d3d;
+            margin: 0.1em 0.5em;
+        }
+    </style>
+
+    <div class="col-md-12">
+        <div class="container actions-section">
+            <div class="col-md-6">
+                <form method="get" class="filter">
+                    <select name="documentSubCategory" class="form-control dropdown">
+                        <option disabled selected>Type de document</option>
+                        <option th:each="category : ${documentSubCategories}"
+                                th:value="${category}" th:text="${category}">
+                        </option>
+                    </select>
+                    <button type="submit" class="btn btn-info">Filtrer</button>
+                </form>
+            </div>
+            <div class="col-md-6">
+                <a th:href="${'/bo/documentDeniedOptions/create'}" class="btn btn-info btn-create">
+                    Créer un nouveau message
+                </a>
+            </div>
+        </div>
+        <div class="container">
+            <div class="table-responsive">
+                <table th:object="${documentDeniedOptions}" class="table table-striped table-bordered table-hover">
+                    <thead>
+                    <tr>
+                        <th>Type de document</th>
+                        <th>Personne concernée</th>
+                        <th>Message de refus</th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="option : ${documentDeniedOptions}">
+                        <td th:text="${option.documentSubCategory}"></td>
+                        <td th:text="${option.documentUserType}"></td>
+                        <td th:text="${option.messageValue}"></td>
+                        <td>
+                            <a th:href="${'/bo/documentDeniedOptions/' + option.id}" class="action-edit">
+                                <i class="fa fa-edit"></i>
+                            </a>
+                        </td>
+                        <td>
+                            <form th:method="delete" th:action="${'/bo/documentDeniedOptions/' + option.id}">
+                                <button type="submit" class="fa fa-trash action-delete"></button>
+                            </form>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div layout:fragment="javascripts" th:remove="tag">
+    <script src="/js/bo/index.js"></script>
+</div>
+</body>
+</html>

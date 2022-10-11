@@ -4,7 +4,6 @@ import fr.dossierfacile.api.front.register.form.DocumentForm;
 import fr.dossierfacile.api.front.validator.anotation.DocumentSubcategorySubset;
 import fr.dossierfacile.api.front.validator.anotation.LengthOfText;
 import fr.dossierfacile.api.front.validator.anotation.NumberOfPages;
-import fr.dossierfacile.api.front.validator.anotation.tenant.tax.MyNameAcceptVerification;
 import fr.dossierfacile.api.front.validator.anotation.tenant.tax.NumberOfDocumentTax;
 import fr.dossierfacile.api.front.validator.anotation.tenant.tax.OtherTaxCustomText;
 import fr.dossierfacile.common.enums.DocumentCategory;
@@ -27,7 +26,6 @@ import static fr.dossierfacile.common.enums.DocumentSubCategory.OTHER_TAX;
 @NoArgsConstructor
 @NumberOfDocumentTax
 @OtherTaxCustomText
-@MyNameAcceptVerification
 @NumberOfPages(category = DocumentCategory.TAX, max = 10)
 public class DocumentTaxForm extends DocumentForm {
 
@@ -41,6 +39,4 @@ public class DocumentTaxForm extends DocumentForm {
 
     @LengthOfText(max = 1355)
     private String customText;
-
-    private Boolean acceptVerification;
 }
