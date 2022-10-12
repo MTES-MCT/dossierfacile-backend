@@ -1028,7 +1028,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
             if (documentCategory == DocumentCategory.FINANCIAL) {
                 yLocationDocFinancialIndex = lastYLocation;
             }
-            if (documentCategory == DocumentCategory.TAX && tenant.getAllowCheckTax()) {
+            if (documentCategory == DocumentCategory.TAX && tenant.getAllowCheckTax() != null && tenant.getAllowCheckTax()) {
                 yLocationDocTaxIndex = lastYLocation;
             }
 
