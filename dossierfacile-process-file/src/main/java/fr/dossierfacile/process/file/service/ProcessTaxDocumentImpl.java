@@ -2,6 +2,7 @@ package fr.dossierfacile.process.file.service;
 
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
+import fr.dossierfacile.common.entity.Guarantor;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.type.TaxDocument;
 import fr.dossierfacile.process.file.model.Taxes;
@@ -46,6 +47,21 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
 
     @Value("${feature.toggle.new.api}")
     private boolean newApi;
+
+    @Override
+    public TaxDocument process(Document document, Guarantor guarantor) {
+        log.info("Starting with process of guarantor tax document");
+        List<File> files = Optional.ofNullable(document.getFiles()).orElse(new ArrayList<>());
+        TaxDocument taxDocument = processTaxDocumentWithQRCode(files);
+
+        if (taxDocument.getQrContent() == null) {
+            taxDocument = processTaxDocumentWithoutQRCode(files, guarantor.getLastName(), guarantor.getFirstName(),
+                    Utility.normalize(guarantor.getFirstName()), Utility.normalize(guarantor.getLastName()));
+        }
+
+        log.info("Finishing with process of guarantor tax document");
+        return taxDocument;
+    }
 
     @Override
     public TaxDocument process(Document document, Tenant tenant) {
