@@ -42,7 +42,7 @@ public class ProcessTenantImpl implements ProcessTenant {
                                             .stream()
                                             .filter(d -> d.getDocumentCategory() == DocumentCategory.TAX)
                                             .filter(d -> !d.getNoDocument())
-                                            .forEach(document -> documentService.updateTaxProcessResult(processTaxDocument.process(document, tenant), document.getId()));
+                                            .forEach(document -> documentService.updateTaxProcessResult(processTaxDocument.process(document, guarantor), document.getId()));
                                 });
                     }
                 });
