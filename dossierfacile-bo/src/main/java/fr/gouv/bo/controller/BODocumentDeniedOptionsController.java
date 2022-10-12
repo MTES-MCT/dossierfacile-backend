@@ -6,6 +6,7 @@ import fr.gouv.bo.dto.DocumentDeniedOptionsDTO;
 import fr.gouv.bo.dto.EmailDTO;
 import fr.gouv.bo.service.DocumentDeniedOptionsService;
 import lombok.AllArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -16,8 +17,9 @@ import java.util.Optional;
 import static java.util.Comparator.comparing;
 
 @Controller
-@RequestMapping("/bo/documentDeniedOptions")
 @AllArgsConstructor
+@PreAuthorize("hasRole('ROLE_ADMIN')")
+@RequestMapping("/bo/documentDeniedOptions")
 public class BODocumentDeniedOptionsController {
 
     private static final String EMAIL = "email";
