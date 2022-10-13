@@ -96,8 +96,8 @@ public interface FileRepository extends JpaRepository<File, Long> {
             "select f2.*\n" +
             "from file f2\n" +
             "  join document d2 on f2.document_id = d2.id\n" +
-            "  join tenant t on t.id = d2.tenant_id\n" +
             "  join guarantor g on d2.guarantor_id = g.id\n" +
+            "  join tenant t on t.id = g.tenant_id\n" +
             "where t.apartment_sharing_id = :ap\n" +
             "  and f2.id = :id", nativeQuery = true)
     Optional<File> findByIdForApartmentSharing(@Param("id") Long id, @Param("ap") Long apartmentSharingId);

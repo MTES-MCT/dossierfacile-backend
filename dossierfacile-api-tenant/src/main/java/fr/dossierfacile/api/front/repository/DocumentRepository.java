@@ -33,8 +33,8 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
             "union\n" +
             "select d2.*\n" +
             "from document d2\n" +
-            "  join tenant t on t.id = d2.tenant_id\n" +
             "  join guarantor g on d2.guarantor_id = g.id\n" +
+            "  join tenant t on t.id = g.tenant_id\n" +
             "where t.apartment_sharing_id = :apartId\n" +
             "  and d2.id = :documentId", nativeQuery = true)
     Optional<Document> findByIdForApartmentSharing(@Param("documentId") Long documentId, @Param("apartId") Long apartmentSharing);

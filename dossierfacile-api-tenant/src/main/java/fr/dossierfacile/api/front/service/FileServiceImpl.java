@@ -49,7 +49,9 @@ public class FileServiceImpl implements FileService {
             document.setDocumentStatus(DocumentStatus.TO_PROCESS);
             document.setDocumentDeniedReasons(null);
             Document documentSaved = documentRepository.saveAndFlush(document);
-            tenantService.updateTenantStatus(document.getTenant());
+            if (document.getTenant() != null && !tenant.getId().equals(document.getTenant().getId())) {
+                tenantService.updateTenantStatus(document.getTenant());
+            }
             tenantService.updateTenantStatus(tenant);
             apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
             return documentSaved;

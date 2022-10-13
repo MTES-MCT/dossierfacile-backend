@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.front.controller;
 
+import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.enums.StepRegister;
 import fr.dossierfacile.api.front.register.form.guarantor.legal_person.DocumentIdentificationGuarantorLegalPersonForm;
@@ -16,6 +17,7 @@ import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,6 +30,7 @@ import static org.springframework.http.ResponseEntity.ok;
 @RequestMapping(value = "/api/register/guarantorLegalPerson", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 public class RegisterGuarantorLegalPersonController {
     private final TenantService tenantService;
+    private final TenantMapper tenantMapper;
     private final AuthenticationFacade authenticationFacade;
     private final LogService logService;
 
@@ -39,30 +42,23 @@ public class RegisterGuarantorLegalPersonController {
         return ok(tenantModel);
     }
 
+    @PreAuthorize("hasPermissionOnTenant(#documentIdentificationGuarantorLegalPersonForm.tenantId)")
     @PostMapping("/documentIdentification")
     public ResponseEntity<TenantModel> documentIdentification(@Validated({Dossier.class, DocumentIdentificationGuarantor.class}) DocumentIdentificationGuarantorLegalPersonForm documentIdentificationGuarantorLegalPersonForm) {
         Tenant tenant = authenticationFacade.getTenant(documentIdentificationGuarantorLegalPersonForm.getTenantId());
         TenantModel tenantModel = tenantService.saveStepRegister(tenant, documentIdentificationGuarantorLegalPersonForm, StepRegister.DOCUMENT_IDENTIFICATION_GUARANTOR_LEGAL_PERSON);
         logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
-        return ok(tenantModel);
+        Tenant loggedTenant = (documentIdentificationGuarantorLegalPersonForm.getTenantId() == null)? tenant : authenticationFacade.getTenant(null);
+        return ok(tenantMapper.toTenantModel(loggedTenant));
     }
 
-
-    //TODO REMOVE, wrong name
-    @ApiOperation("Deprecated - Please use /documentRepresentantIdentification endpoint ")
-    @PostMapping("/documentRepresentanIdentification")
-    public ResponseEntity<TenantModel> documentIdentificationRepresentan(@Validated({Dossier.class, DocumentIdentificationGuarantor.class}) DocumentIdentificationRepresentanGuarantorLegalPersonForm documentIdentificationRepresentantGuarantorLegalPersonForm) {
-        Tenant tenant = authenticationFacade.getTenant(documentIdentificationRepresentantGuarantorLegalPersonForm.getTenantId());
-        TenantModel tenantModel = tenantService.saveStepRegister(tenant, documentIdentificationRepresentantGuarantorLegalPersonForm, StepRegister.DOCUMENT_IDENTIFICATION_REPRESENTANT_GUARANTOR_LEGAL_PERSON);
-        logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
-        return ok(tenantModel);
-    }
-
+    @PreAuthorize("hasPermissionOnTenant(#documentIdentificationRepresentantGuarantorLegalPersonForm.tenantId)")
     @PostMapping("/documentRepresentantIdentification")
     public ResponseEntity<TenantModel> documentIdentificationRepresentant(@Validated({Dossier.class, DocumentIdentificationGuarantor.class}) DocumentIdentificationRepresentanGuarantorLegalPersonForm documentIdentificationRepresentantGuarantorLegalPersonForm) {
         Tenant tenant = authenticationFacade.getTenant(documentIdentificationRepresentantGuarantorLegalPersonForm.getTenantId());
         TenantModel tenantModel = tenantService.saveStepRegister(tenant, documentIdentificationRepresentantGuarantorLegalPersonForm, StepRegister.DOCUMENT_IDENTIFICATION_REPRESENTANT_GUARANTOR_LEGAL_PERSON);
         logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
-        return ok(tenantModel);
+        Tenant loggedTenant = (documentIdentificationRepresentantGuarantorLegalPersonForm.getTenantId() == null)? tenant : authenticationFacade.getTenant(null);
+        return ok(tenantMapper.toTenantModel(loggedTenant));
     }
 }

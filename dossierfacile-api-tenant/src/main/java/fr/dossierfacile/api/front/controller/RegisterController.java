@@ -84,7 +84,8 @@ public class RegisterController {
         Tenant tenant = authenticationFacade.getTenant(applicationForm.getTenantId());
         TenantModel tenantModel = tenantService.saveStepRegister(tenant, applicationForm, StepRegister.APPLICATION_V1);
         logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
-        return ok(tenantModel);
+        Tenant loggedTenant = (applicationForm.getTenantId() == null)? tenant : authenticationFacade.getTenant(null);
+        return ok(tenantMapper.toTenantModel(loggedTenant));
     }
 
     @PostMapping(value = "/application/v2", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -92,7 +93,8 @@ public class RegisterController {
         Tenant tenant = authenticationFacade.getTenant(applicationForm.getTenantId());
         TenantModel tenantModel = tenantService.saveStepRegister(tenant, applicationForm, StepRegister.APPLICATION);
         logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
-        return ok(tenantModel);
+        Tenant loggedTenant = (applicationForm.getTenantId() == null)? tenant : authenticationFacade.getTenant(null);
+        return ok(tenantMapper.toTenantModel(loggedTenant));
     }
 
     @PreAuthorize("hasPermissionOnTenant(#honorDeclarationForm.tenantId)")

@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.front.controller;
 
+import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.enums.StepRegister;
 import fr.dossierfacile.api.front.register.form.guarantor.natural_person.DocumentFinancialGuarantorNaturalPersonForm;
@@ -31,6 +32,7 @@ import static org.springframework.http.ResponseEntity.ok;
 @RequestMapping(value = "/api/register/guarantorNaturalPerson", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 public class RegisterGuarantorNaturalPersonController {
     private final TenantService tenantService;
+    private final TenantMapper tenantMapper;
     private final AuthenticationFacade authenticationFacade;
     private final LogService logService;
 
@@ -40,7 +42,8 @@ public class RegisterGuarantorNaturalPersonController {
         var tenant = authenticationFacade.getTenant(documentIdentificationGuarantorNaturalPersonForm.getTenantId());
         var tenantModel = tenantService.saveStepRegister(tenant, documentIdentificationGuarantorNaturalPersonForm, StepRegister.DOCUMENT_IDENTIFICATION_GUARANTOR_NATURAL_PERSON);
         logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
-        return ok(tenantModel);
+        Tenant loggedTenant = (documentIdentificationGuarantorNaturalPersonForm.getTenantId() == null)? tenant : authenticationFacade.getTenant(null);
+        return ok(tenantMapper.toTenantModel(loggedTenant));
     }
 
     @PreAuthorize("hasPermissionOnTenant(#documentIdentificationGuarantorNaturalPersonFileForm.tenantId)")
@@ -49,7 +52,8 @@ public class RegisterGuarantorNaturalPersonController {
         var tenant = authenticationFacade.getTenant(documentIdentificationGuarantorNaturalPersonFileForm.getTenantId());
         var tenantModel = tenantService.saveStepRegister(tenant, documentIdentificationGuarantorNaturalPersonFileForm, StepRegister.DOCUMENT_IDENTIFICATION_GUARANTOR_NATURAL_PERSON_FILE);
         logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
-        return ok(tenantModel);
+        Tenant loggedTenant = (documentIdentificationGuarantorNaturalPersonFileForm.getTenantId() == null)? tenant : authenticationFacade.getTenant(null);
+        return ok(tenantMapper.toTenantModel(loggedTenant));
     }
 
     @PreAuthorize("hasPermissionOnTenant(#nameGuarantorNaturalPersonForm.tenantId)")
@@ -63,7 +67,7 @@ public class RegisterGuarantorNaturalPersonController {
                         .orElseThrow(() -> new IllegalAccessException("You are not authorize to see this tenant"));
         var tenantModel = tenantService.saveStepRegister(tenant, nameGuarantorNaturalPersonForm, StepRegister.NAME_GUARANTOR_NATURAL_PERSON);
         logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
-        return ok(tenantModel);
+        return ok(tenantMapper.toTenantModel(loggedTenant));
     }
 
     @PreAuthorize("hasPermissionOnTenant(#documentResidencyGuarantorNaturalPersonForm.tenantId)")
@@ -72,7 +76,8 @@ public class RegisterGuarantorNaturalPersonController {
         Tenant tenant = authenticationFacade.getTenant(documentResidencyGuarantorNaturalPersonForm.getTenantId());
         TenantModel tenantModel = tenantService.saveStepRegister(tenant, documentResidencyGuarantorNaturalPersonForm, StepRegister.DOCUMENT_RESIDENCY_GUARANTOR_NATURAL_PERSON);
         logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
-        return ok(tenantModel);
+        Tenant loggedTenant = (documentResidencyGuarantorNaturalPersonForm.getTenantId() == null)? tenant : authenticationFacade.getTenant(null);
+        return ok(tenantMapper.toTenantModel(loggedTenant));
     }
 
     @PreAuthorize("hasPermissionOnTenant(#documentProfessionalGuarantorNaturalPersonForm.tenantId)")
@@ -81,7 +86,8 @@ public class RegisterGuarantorNaturalPersonController {
         var tenant = authenticationFacade.getTenant(documentProfessionalGuarantorNaturalPersonForm.getTenantId());
         var tenantModel = tenantService.saveStepRegister(tenant, documentProfessionalGuarantorNaturalPersonForm, StepRegister.DOCUMENT_PROFESSIONAL_GUARANTOR_NATURAL_PERSON);
         logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
-        return ok(tenantModel);
+        Tenant loggedTenant = (documentProfessionalGuarantorNaturalPersonForm.getTenantId() == null)? tenant : authenticationFacade.getTenant(null);
+        return ok(tenantMapper.toTenantModel(loggedTenant));
     }
 
     @PreAuthorize("hasPermissionOnTenant(#documentFinancialGuarantorNaturalPersonForm.tenantId)")
@@ -90,7 +96,8 @@ public class RegisterGuarantorNaturalPersonController {
         var tenant = authenticationFacade.getTenant(documentFinancialGuarantorNaturalPersonForm.getTenantId());
         var tenantModel = tenantService.saveStepRegister(tenant, documentFinancialGuarantorNaturalPersonForm, StepRegister.DOCUMENT_FINANCIAL_GUARANTOR_NATURAL_PERSON);
         logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
-        return ok(tenantModel);
+        Tenant loggedTenant = (documentFinancialGuarantorNaturalPersonForm.getTenantId() == null)? tenant : authenticationFacade.getTenant(null);
+        return ok(tenantMapper.toTenantModel(loggedTenant));
     }
 
     @PreAuthorize("hasPermissionOnTenant(#documentTaxGuarantorNaturalPersonForm.tenantId)")
@@ -100,6 +107,7 @@ public class RegisterGuarantorNaturalPersonController {
         var tenant = authenticationFacade.getTenant(documentTaxGuarantorNaturalPersonForm.getTenantId());
         var tenantModel = tenantService.saveStepRegister(tenant, documentTaxGuarantorNaturalPersonForm, StepRegister.DOCUMENT_TAX_GUARANTOR_NATURAL_PERSON);
         logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
-        return ok(tenantModel);
+        Tenant loggedTenant = (documentTaxGuarantorNaturalPersonForm.getTenantId() == null)? tenant : authenticationFacade.getTenant(null);
+        return ok(tenantMapper.toTenantModel(loggedTenant));
     }
 }
