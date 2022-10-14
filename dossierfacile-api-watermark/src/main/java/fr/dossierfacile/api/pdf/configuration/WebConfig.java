@@ -15,7 +15,7 @@ public class WebConfig implements WebMvcConfigurer {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/api/**").allowedOrigins("https://dossierfacile-filigrane-prod-front.osc-secnum-fr1.scalingo.io").allowedOrigins("http://localhost:3000").allowedMethods("*");
+                registry.addMapping("/api/**").allowedOrigins("*").allowedMethods("*");
             }
         };
     }
