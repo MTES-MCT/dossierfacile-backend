@@ -13,4 +13,6 @@ public interface DocumentService {
     ResponseEntity<DocumentUrlResponse> urlPdfDocument(String token);
 
     void downloadPdfWatermarked(String token, HttpServletResponse response);
+
+    void cleanOldDocuments();
 }
