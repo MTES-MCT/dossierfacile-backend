@@ -50,4 +50,7 @@ public class SendinblueEmailTemplateIds {
     @Value("${sendinblue.template.id.contact.support}")
     private Long contactSupportEmail;
 
+    @Value("${sendinblue.template.id.welcome.partner}")
+    private Long welcomePartnerEmail;
+
 }

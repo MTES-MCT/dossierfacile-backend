@@ -5,6 +5,7 @@ import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.common.entity.ConfirmationToken;
 import fr.dossierfacile.common.entity.PasswordRecoveryToken;
 import fr.dossierfacile.common.entity.User;
+import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.ApplicationType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -205,6 +206,17 @@ public class MailServiceImpl implements MailService {
                 .withParam("message", form.getMessage())
                 .to(emailSupport, "Support depuis formulaire")
                 .replyTo(form.getEmail())
+                .build();
+
+        send(email);
+    }
+
+    @Override
+    public void sendEmailWelcomeForPartnerUser(User user, UserApi userApi) {
+        SendSmtpEmail email = EmailBuilder.fromTemplate(emailTemplates.getWelcomePartnerEmail())
+                .withParam("partnerName", userApi.getName2())
+                .withParam("sendinBlueUrlDomain", sendinBlueUrlDomain)
+                .to(user)
                 .build();
 
         send(email);
