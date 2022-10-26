@@ -1,8 +1,6 @@
 package fr.gouv.bo.configuration;
 
 import com.google.gson.Gson;
-import fr.gouv.bo.security.RedirectAuthenticationSuccessHandler;
-import java.util.concurrent.Executor;
 import nz.net.ultraq.thymeleaf.LayoutDialect;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,11 +16,14 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.client.web.HttpSessionOAuth2AuthorizationRequestRepository;
+import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
 import org.springframework.security.web.header.writers.StaticHeadersWriter;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.RequestContextListener;
+
+import java.util.concurrent.Executor;
 
 @Configuration
 @EnableWebSecurity
@@ -64,16 +65,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .authenticated()
                 .and()
                 .oauth2Login()
-                .successHandler(redirectAuthenticationSuccessHandler())
+                .successHandler(new SavedRequestAwareAuthenticationSuccessHandler())
                 .and()
                 .logout();
         // @formatter:on
-
-    }
-
-    @Bean
-    public RedirectAuthenticationSuccessHandler redirectAuthenticationSuccessHandler() {
-        return new RedirectAuthenticationSuccessHandler();
     }
 
     @Bean
