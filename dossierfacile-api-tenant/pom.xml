@@ -19,7 +19,7 @@
         <java.version>15</java.version>
         <maven.compiler.source>15</maven.compiler.source>
         <maven.compiler.target>15</maven.compiler.target>
-        <org.mapstruct.version>1.4.0.Final</org.mapstruct.version>
+        <org.mapstruct.version>1.4.2.Final</org.mapstruct.version>
         <lombok.version>1.18.20</lombok.version>
         <dossierfacile.common.version>0.0.1-SNAPSHOT</dossierfacile.common.version>
     </properties>
