@@ -154,10 +154,8 @@ public class Utility {
                     dpi = Math.min(600, dpi);
                     BufferedImage bufferedImage = pdfRenderer.renderImageWithDPI(0, dpi, ImageType.RGB);
 
+                    // Crop image to have better recognition by the BarcodeReader library
                     BufferedImage cropImg = bufferedImage.getSubimage(880, 350, 910, 930);
-
-                    java.io.File outputfile = new java.io.File("extracted.png");
-                    ImageIO.write(cropImg, "png", outputfile);
 
                     BinaryBitmap binaryBitmap = new BinaryBitmap(
                             new HybridBinarizer(

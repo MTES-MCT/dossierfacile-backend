@@ -1,5 +1,6 @@
 package fr.dossierfacile.common.type;
 
+import fr.dossierfacile.common.enums.TaxFileExtractionType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,4 +22,5 @@ public class TaxDocument implements Serializable {
     private long time = 0;
     private String qrContent;
     private Boolean taxContentValid;
+    private TaxFileExtractionType fileExtractionType;
 }
