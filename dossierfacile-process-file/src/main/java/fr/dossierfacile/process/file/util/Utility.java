@@ -3,9 +3,12 @@ package fr.dossierfacile.process.file.util;
 import com.google.zxing.*;
 import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 import com.google.zxing.common.HybridBinarizer;
+import com.google.zxing.multi.GenericMultipleBarcodeReader;
+import com.google.zxing.multi.MultipleBarcodeReader;
 import com.google.zxing.qrcode.QRCodeReader;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
+import fr.dossierfacile.process.file.model.TwoDDoc;
 import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,10 +19,13 @@ import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.springframework.stereotype.Service;
 
+import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.Normalizer;
+import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -32,6 +38,17 @@ public class Utility {
     private static final String EXCEPTION = "Sentry ID Exception: ";
     private static final String EXCEPTION_MESSAGE2 = "Exception while trying extract text to pdf";
     private final FileStorageService fileStorageService;
+
+    private static final char ASCII_GROUP_SEPARATOR = (char)29;
+    private static final char ASCII_UNIT_SEPARATOR = (char)31;
+
+    private static final Map<DecodeHintType,Object> HINTS;
+
+    static {
+        HINTS = new EnumMap<>(DecodeHintType.class);
+        HINTS.put(DecodeHintType.TRY_HARDER, Boolean.TRUE);
+        HINTS.put(DecodeHintType.POSSIBLE_FORMATS, EnumSet.allOf(BarcodeFormat.class));
+    }
 
     public static String normalize(String s) {
         return Normalizer
@@ -126,6 +143,48 @@ public class Utility {
         return qrCodeInfo;
     }
 
+    public String extractTax2DDoc(File dfFile) {
+        String qrCodeInfo = "";
+        try (InputStream inputStream = fileStorageService.download(dfFile)) {
+            try (PDDocument document = PDDocument.load(inputStream)) {
+                if (!document.isEncrypted()) {
+                    PDFRenderer pdfRenderer = new PDFRenderer(document);
+
+                    float dpi = (1058 / document.getPage(0).getMediaBox().getWidth()) * 300;
+                    dpi = Math.min(600, dpi);
+                    BufferedImage bufferedImage = pdfRenderer.renderImageWithDPI(0, dpi, ImageType.RGB);
+
+                    BufferedImage cropImg = bufferedImage.getSubimage(880, 350, 910, 930);
+
+                    java.io.File outputfile = new java.io.File("extracted.png");
+                    ImageIO.write(cropImg, "png", outputfile);
+
+                    BinaryBitmap binaryBitmap = new BinaryBitmap(
+                            new HybridBinarizer(
+                                    new BufferedImageLuminanceSource(cropImg)
+                            ));
+                    long time = System.currentTimeMillis();
+
+                    MultipleBarcodeReader multiReader = new GenericMultipleBarcodeReader(new MultiFormatReader());
+                    Result[] theResults = multiReader.decodeMultiple(binaryBitmap, HINTS);
+                    String decoded = theResults[0].getText();
+
+                    log.info("DECODED QR : " + decoded + ", in " + (System.currentTimeMillis() - time) + "ms");
+                    qrCodeInfo = decoded != null ? decoded : "";
+                }
+            } catch (IOException | NotFoundException e) {
+                log.error(EXCEPTION_MESSAGE2, e);
+                log.error(EXCEPTION + Sentry.captureException(e));
+                log.error(e.getMessage(), e.getCause());
+            }
+        } catch (IOException e) {
+            log.error("Unable to download file " + dfFile.getPath(), e);
+            Sentry.captureMessage("Unable to download file " + dfFile.getPath());
+        }
+
+        return qrCodeInfo;
+    }
+
     @Deprecated
     public static String extractReferenceNumber(String s) {
         Pattern p = Pattern.compile("[A-Z0-9]{2}\\s[A-Z0-9]{2}\\s[A-Z0-9]{7}\\s[0-9]{2}");
@@ -151,4 +210,58 @@ public class Utility {
     }
 
 
+    public TwoDDoc parseTwoDDoc(String twoDDocContent) {
+        TwoDDoc twoDDoc = new TwoDDoc();
+
+        if (twoDDocContent == null || twoDDocContent.length() < 26) {
+            return twoDDoc;
+        }
+
+        int version = Integer.parseInt(twoDDocContent.substring(2,4));
+        if (version != 4) {
+            return twoDDoc;
+        }
+
+        twoDDoc.setIDFlag(twoDDocContent.substring(0,2));
+        twoDDoc.setVersion(version);
+        twoDDoc.setIssuer(twoDDocContent.substring(4,8));
+        twoDDoc.setCertId(twoDDocContent.substring(8, 12));
+        twoDDoc.setDocumentDate(twoDDocContent.substring(12, 16));
+        twoDDoc.setSignatureDate(twoDDocContent.substring(16, 20));
+        twoDDoc.setDocumentTypeId(twoDDocContent.substring(20, 22));
+        twoDDoc.setPerimeterId(twoDDocContent.substring(22, 24));
+        twoDDoc.setCountryId(twoDDocContent.substring(24, 26));
+
+        String remain = twoDDocContent.substring(26);
+        String[] unitParts = remain.split(String.valueOf(ASCII_UNIT_SEPARATOR));
+        String data = unitParts[0];
+        String signature = unitParts[1];
+
+        while (data.length() > 0) {
+            int separatorLength = 0;
+            String id = data.substring(0, 2);
+            data = data.substring(2);
+            TwoDDocIdEnum docId = TwoDDocIdEnum.valueOf("ID_"+id);
+            if (docId.getMinSize() == docId.getMaxSize()) {
+                twoDDoc.getData().put(id, data.substring(0, docId.getMaxSize()));
+                data = data.substring(docId.getMaxSize());
+            } else {
+                String potentialResult = data;
+                if (docId.getMaxSize() > 0) {
+                    potentialResult = data.substring(0, docId.getMaxSize());
+                }
+                int pos = potentialResult.indexOf(ASCII_GROUP_SEPARATOR);
+                if (pos < 0) {
+                    pos = potentialResult.length();
+                } else {
+                    separatorLength = 1;
+                }
+                String result = data.substring(0, pos);
+                data = data.substring(pos+separatorLength);
+                twoDDoc.getData().put(id, result);
+            }
+        }
+
+        return twoDDoc;
+    }
 }
