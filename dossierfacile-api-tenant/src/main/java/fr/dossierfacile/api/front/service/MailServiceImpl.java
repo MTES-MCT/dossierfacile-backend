@@ -6,6 +6,7 @@ import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.common.entity.ConfirmationToken;
 import fr.dossierfacile.common.entity.PasswordRecoveryToken;
 import fr.dossierfacile.common.entity.User;
+import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.ApplicationType;
 import java.util.Collections;
 import java.util.HashMap;
@@ -32,6 +33,8 @@ public class MailServiceImpl implements MailService {
     private String emailSupport;
     @Value("${sendinblue.template.id.welcome}")
     private Long templateIDWelcome;
+    @Value("${sendinblue.template.id.welcome.partner}")
+    private Long templateIDWelcomePartner;
     @Value("${sendinblue.template.id.new.password}")
     private Long templateIdNewPassword;
     @Value("${sendinblue.template.id.invitation.couple}")
@@ -394,6 +397,31 @@ public class MailServiceImpl implements MailService {
         sendSmtpEmail.params(variables);
         sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
         sendSmtpEmail.replyTo(sendSmtpEmailReplyTo);
+
+        try {
+            apiInstance.sendTransacEmail(sendSmtpEmail);
+        } catch (ApiException e) {
+            log.error("Email api exception", e);
+        }
+    }
+
+    @Async
+    @Override
+    public void sendEmailWelcomeForPartnerUser(User user, UserApi userApi) {
+        Map<String, String> variables = new HashMap<>();
+        variables.put("partnerName", userApi.getName2());
+        variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
+
+        SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
+        sendSmtpEmailTo.setEmail(user.getEmail());
+        if (!Strings.isNullOrEmpty(user.getFullName())) {
+            sendSmtpEmailTo.setName(user.getFullName());
+        }
+
+        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
+        sendSmtpEmail.templateId(templateIDWelcomePartner);
+        sendSmtpEmail.params(variables);
+        sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
 
         try {
             apiInstance.sendTransacEmail(sendSmtpEmail);
