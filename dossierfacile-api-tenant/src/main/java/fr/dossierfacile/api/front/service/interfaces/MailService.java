@@ -4,7 +4,6 @@ import fr.dossierfacile.api.front.form.ContactForm;
 import fr.dossierfacile.common.entity.ConfirmationToken;
 import fr.dossierfacile.common.entity.PasswordRecoveryToken;
 import fr.dossierfacile.common.entity.User;
-import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.ApplicationType;
 
 public interface MailService {
@@ -33,7 +32,4 @@ public interface MailService {
     void sendEmailSecondWarningForDeletionOfDocuments(User user, ConfirmationToken confirmationToken);
 
     void sendEmailToSupport(ContactForm form);
-
-    void sendEmailWelcomeForPartnerUser(User user, UserApi userApi);
-
 }

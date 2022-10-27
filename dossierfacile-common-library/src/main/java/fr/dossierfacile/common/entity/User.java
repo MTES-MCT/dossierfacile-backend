@@ -111,15 +111,8 @@ public class User implements Serializable {
         this.email = email;
     }
 
-    public String getPreferredLastName() {
-        return Strings.isNullOrEmpty(preferredName) ? lastName : preferredName;
-    }
-
     public String getFullName() {
-        if (firstName == null || getPreferredLastName() == null) {
-            return "";
-        }
-        return String.join(" ", firstName, getPreferredLastName());
+        String displayName = Strings.isNullOrEmpty(preferredName) ? lastName : preferredName;
+        return firstName != null && displayName != null ? String.join(" ", firstName, displayName) : "";
     }
-
 }

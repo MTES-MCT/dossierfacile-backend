@@ -5,7 +5,6 @@ import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.SaveStep;
 import fr.dossierfacile.api.front.register.form.partner.AccountPartnerForm;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
-import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.api.front.service.interfaces.SourceService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.common.entity.Tenant;
@@ -28,27 +27,16 @@ public class AccountApiPartner implements SaveStep<AccountPartnerForm> {
     private final AuthenticationFacade authenticationFacade;
     private final SourceService sourceService;
     private final PartnerCallBackService partnerCallBackService;
-    private final MailService mailService;
 
     @Override
     public TenantModel saveStep(Tenant t, AccountPartnerForm accountForm) {
         String email = accountForm.getEmail().toLowerCase();
-        Tenant tenant = findOrCreateTenant(email);
+        Tenant tenant = tenantRepository.findByEmailAndEnabledFalse(email).orElseGet(() -> tenantService.create(new Tenant(email)));
+        tenant.setEnabled(true);
+        tenantRepository.save(tenant);
         UserApi userApi = this.sourceService.findOrCreate(authenticationFacade.getKeycloakClientId());
         partnerCallBackService.registerTenant(accountForm.getInternalPartnerId(), tenant, userApi);
-
-        mailService.sendEmailWelcomeForPartnerUser(tenant, userApi);
-
         tenant.lastUpdateDateProfile(LocalDateTime.now(), null);
         return tenantMapper.toTenantModel(tenantRepository.save(tenant));
     }
-
-    private Tenant findOrCreateTenant(String email) {
-        Tenant tenant = tenantRepository.findByEmailAndEnabledFalse(email)
-                .orElseGet(() -> tenantService.create(new Tenant(email)));
-        tenant.setEnabled(true);
-        tenantRepository.save(tenant);
-        return tenant;
-    }
-
 }
