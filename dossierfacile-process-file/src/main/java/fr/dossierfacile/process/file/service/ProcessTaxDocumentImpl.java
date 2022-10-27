@@ -4,8 +4,10 @@ import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Guarantor;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.enums.TaxFileExtractionType;
 import fr.dossierfacile.common.type.TaxDocument;
 import fr.dossierfacile.process.file.model.Taxes;
+import fr.dossierfacile.process.file.model.TwoDDoc;
 import fr.dossierfacile.process.file.service.interfaces.ApiMonFranceConnect;
 import fr.dossierfacile.process.file.service.interfaces.ApiParticulier;
 import fr.dossierfacile.process.file.service.interfaces.ApiTesseract;
@@ -55,7 +57,12 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
         TaxDocument taxDocument = processTaxDocumentWithQRCode(files);
 
         if (taxDocument.getQrContent() == null) {
-            taxDocument = processTaxDocumentWithoutQRCode(files, guarantor.getLastName(), guarantor.getFirstName(),
+            taxDocument = processTaxDocumentWith2DCode(files, guarantor.getLastName(), guarantor.getFirstName(),
+                    Utility.normalize(guarantor.getFirstName()), Utility.normalize(guarantor.getLastName()));
+        }
+
+        if (taxDocument.getQrContent() == null) {
+            taxDocument = processTaxDocumentWithOCR(files, guarantor.getLastName(), guarantor.getFirstName(),
                     Utility.normalize(guarantor.getFirstName()), Utility.normalize(guarantor.getLastName()));
         }
 
@@ -73,7 +80,12 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
         TaxDocument taxDocument = processTaxDocumentWithQRCode(files);
 
         if (taxDocument.getQrContent() == null) {
-            taxDocument = processTaxDocumentWithoutQRCode(files, tenant.getLastName(), tenant.getFirstName(),
+            taxDocument = processTaxDocumentWith2DCode(files, tenant.getLastName(), tenant.getFirstName(),
+                    Utility.normalize(tenant.getFirstName()), Utility.normalize(tenant.getLastName()));
+        }
+
+        if (taxDocument.getQrContent() == null) {
+            taxDocument = processTaxDocumentWithOCR(files, tenant.getLastName(), tenant.getFirstName(),
                     Utility.normalize(tenant.getFirstName()), Utility.normalize(tenant.getLastName()));
         }
 
@@ -93,21 +105,7 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
             for (File pdf : pdfs) {
                 String url = utility.extractQRCodeInfo(pdf);
                 if (url != null && !url.isBlank()) {
-                    ResponseEntity<List> response = apiMonFranceConnect.monFranceConnect(url);
-                    if (response.getStatusCode() == HttpStatus.OK) {
-                        log.info("Api MonFranceConnect Response {}", response.getStatusCodeValue());
-
-                        checkIfInfoBehindQrContentMatchesPdfContent(pdf, response, taxDocument);
-
-                        String bodyResponse = Objects.requireNonNull(response.getBody()).toString();
-                        if (!currentQrContent.toString().isBlank()) {
-                            currentQrContent.append(", ").append(bodyResponse);
-                        } else {
-                            currentQrContent = new StringBuilder(bodyResponse);
-                        }
-                    } else {
-                        log.warn("Api MonFranceConnect Response {}", response.getStatusCodeValue());
-                    }
+                    currentQrContent = getMonFranceConnectCodeContent(taxDocument, currentQrContent, pdf, url);
                 }
             }
         }
@@ -118,16 +116,68 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
         long milliseconds = System.currentTimeMillis() - time;
         log.info("Finishing with extraction of QR content of document in {} ms", milliseconds);
         taxDocument.setTime(milliseconds);
+        taxDocument.setFileExtractionType(TaxFileExtractionType.MON_FRANCE_CONNECT);
         return taxDocument;
     }
 
-    private TaxDocument processTaxDocumentWithoutQRCode(List<File> files, String lastName, String firstName, String unaccentFirstName, String unaccentLastName) {
+    private TaxDocument processTaxDocumentWith2DCode(List<File> files, String lastName, String firstName, String unaccentFirstName, String unaccentLastName) {
+        long time = System.currentTimeMillis();
+        log.info("Extracting 2D-doc content from tax document");
+
+        TaxDocument taxDocument = new TaxDocument();
+
+        List<File> pdfs = files.stream().filter(file -> FilenameUtils.getExtension(file.getPath()).equals("pdf")).collect(Collectors.toList());
+        if (!pdfs.isEmpty()) {
+            for (File pdf : pdfs) {
+                String twoDDocContent = utility.extractTax2DDoc(pdf);
+                if (twoDDocContent != null && !twoDDocContent.isBlank()) {
+                    StringBuilder result = new StringBuilder(utility.extractInfoFromPDFFirstPage(pdf));
+                    taxDocument = getTaxApiCodeContent(twoDDocContent, lastName, firstName, unaccentFirstName, unaccentLastName, result);
+                    taxDocument.setQrContent(twoDDocContent);
+                }
+            }
+        }
+
+        log.info("Extracted 2D-doc content : {}", taxDocument.getQrContent());
+        long milliseconds = System.currentTimeMillis() - time;
+        log.info("Finishing with extraction of 2D-doc content of document in {} ms", milliseconds);
+        taxDocument.setTime(milliseconds);
+        taxDocument.setFileExtractionType(TaxFileExtractionType.TWOD_DOC);
+        return taxDocument;
+    }
+
+    private TaxDocument getTaxApiCodeContent(String twoDDocContent, String lastName, String firstName, String unaccentFirstName, String unaccentLastName, StringBuilder result) {
+        TwoDDoc twoDDoc = utility.parseTwoDDoc(twoDDocContent);
+        String fiscalNumber = twoDDoc.getFiscalNumber();
+        String referenceNumber = twoDDoc.getReferenceNumber();
+        TaxDocument taxDocument = getTaxDocument(lastName, firstName, unaccentFirstName, unaccentLastName, result, fiscalNumber, referenceNumber);
+        log.info("Finishing processing tax document with 2D code");
+        return taxDocument;
+    }
+
+    private StringBuilder getMonFranceConnectCodeContent(TaxDocument taxDocument, StringBuilder currentQrContent, File pdf, String url) {
+        ResponseEntity<List> response = apiMonFranceConnect.monFranceConnect(url);
+        if (response.getStatusCode() == HttpStatus.OK) {
+            log.info("Api MonFranceConnect Response {}", response.getStatusCodeValue());
+
+            checkIfInfoBehindQrContentMatchesPdfContent(pdf, response, taxDocument);
+
+            String bodyResponse = Objects.requireNonNull(response.getBody()).toString();
+            if (!currentQrContent.toString().isBlank()) {
+                currentQrContent.append(", ").append(bodyResponse);
+            } else {
+                currentQrContent = new StringBuilder(bodyResponse);
+            }
+        } else {
+            log.warn("Api MonFranceConnect Response {}", response.getStatusCodeValue());
+        }
+//        log stats mon france connect
+        return currentQrContent;
+    }
+
+    private TaxDocument processTaxDocumentWithOCR(List<File> files, String lastName, String firstName, String unaccentFirstName, String unaccentLastName) {
         long time = System.currentTimeMillis();
         log.info("Processing tax document without QR code");
-
-        boolean test1 = false;
-        boolean test2 = false;
-        TaxDocument taxDocument = new TaxDocument();
 
         StringBuilder result = new StringBuilder();
         List<File> pdfs = files.stream().filter(file -> FilenameUtils.getExtension(file.getPath()).equals("pdf")).collect(Collectors.toList());
@@ -156,6 +206,18 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
 
         }
 
+        TaxDocument taxDocument = getTaxDocument(lastName, firstName, unaccentFirstName, unaccentLastName, result, fiscalNumber, referenceNumber);
+        log.info("Finishing processing tax document without QR code");
+        long milliseconds = System.currentTimeMillis() - time;
+        taxDocument.setTime(milliseconds);
+        taxDocument.setFileExtractionType(TaxFileExtractionType.OCR);
+        return taxDocument;
+    }
+
+    private TaxDocument getTaxDocument(String lastName, String firstName, String unaccentFirstName, String unaccentLastName, StringBuilder result, String fiscalNumber, String referenceNumber) {
+        TaxDocument taxDocument = new TaxDocument();
+        boolean test1 = false;
+        boolean test2 = false;
         if (!fiscalNumber.equals("")) {
             log.info("Call to particulier api");
             ResponseEntity<Taxes> taxesResponseEntity;
@@ -163,7 +225,7 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
                 taxesResponseEntity = apiParticulier.particulierApi(fiscalNumber);
             } else {
                 if (referenceNumber.equals("")) {
-                    return new TaxDocument();
+                    return taxDocument;
                 }
                 taxesResponseEntity = apiParticulier.particulierApi(fiscalNumber, referenceNumber);
             }
@@ -194,10 +256,6 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
         taxDocument.setTest1(test1);
         taxDocument.setTest2(test2);
         taxDocument.setFiscalNumber(fiscalNumber.equals("") ? "fail" : fiscalNumber);
-
-        log.info("Finishing processing tax document without QR code");
-        long milliseconds = System.currentTimeMillis() - time;
-        taxDocument.setTime(milliseconds);
         return taxDocument;
     }
 
