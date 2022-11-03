@@ -4,7 +4,9 @@ import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.Guarantor;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
+import fr.dossierfacile.common.type.TaxDocument;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -46,4 +48,8 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
             "         join guarantor g on d2.guarantor_id = g.id\n" +
             "where g.tenant_id = :tenantId", nativeQuery = true)
     List<Document> findAllAssociatedToTenantId(Long tenantId);
+
+    @Modifying
+    @Query("UPDATE Document d SET d.taxProcessResult = :taxProcessResult where d.id = :documentId")
+    void updateTaxProcessResult(@Param("taxProcessResult") TaxDocument taxProcessResult, @Param("documentId") Long documentId);
 }

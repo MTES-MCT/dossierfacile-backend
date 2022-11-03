@@ -4,5 +4,6 @@ public enum TaxFileExtractionType {
     NONE,
     OCR,
     MON_FRANCE_CONNECT,
-    TWOD_DOC
+    TWOD_DOC,
+    FRANCE_CONNECT
 }

@@ -4,8 +4,10 @@ import fr.dossierfacile.api.front.form.PartnerForm;
 import fr.dossierfacile.api.front.model.tenant.EmailExistsModel;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.form.partner.EmailExistsForm;
+import fr.dossierfacile.api.front.register.form.tenant.FranceConnectTaxForm;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.User;
+import org.springframework.transaction.annotation.Transactional;
 
 public interface UserService {
     long confirmAccount(String token);
@@ -31,4 +33,7 @@ public interface UserService {
     void logout(Tenant tenant);
 
     void unlinkFranceConnect(Tenant tenant);
+
+    @Transactional
+    void checkDGFIPApi(Tenant tenant, FranceConnectTaxForm franceConnectTaxForm);
 }
