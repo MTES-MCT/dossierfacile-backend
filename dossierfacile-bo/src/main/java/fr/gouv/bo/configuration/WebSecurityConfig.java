@@ -47,7 +47,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .httpStrictTransportSecurity()
                 .and()
-                .addHeaderWriter(new StaticHeadersWriter("X-Content-Security-Policy","script-src 'self'"))
+                .addHeaderWriter(new StaticHeadersWriter("X-Content-Security-Policy", "script-src 'self'"))
                 .frameOptions()
                 .sameOrigin()
                 .and()
@@ -56,18 +56,21 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .httpBasic()
                 .disable()
                 .authorizeRequests()
-                .antMatchers( "/","/login/auth/**", "/login/oauth2/**,","/actuator/health")
+                .antMatchers("/", "/login", "/login/auth/**", "/login/oauth2/**,", "/actuator/health")
                 .permitAll()
-                .antMatchers("/bo/userApi", "/bo/userApi/**", "/bo/admin", "/bo/admin/**", "/bo/statistic/admin", "/bo/timeServeTenant", "/bo/deleteAccount", "/bo/sleepMode","/bo/create/admin").access("hasAnyRole('ROLE_ADMIN')")
+                .antMatchers("/bo/userApi", "/bo/userApi/**", "/bo/admin", "/bo/admin/**", "/bo/statistic/admin", "/bo/timeServeTenant", "/bo/deleteAccount", "/bo/sleepMode", "/bo/create/admin").access("hasAnyRole('ROLE_ADMIN')")
                 .antMatchers("/bo/nextApplicationQuickly").access("hasAnyRole('ROLE_OPERATOR','ROLE_ADMIN')")
                 .antMatchers("/bo/**", "/bo").access("hasAnyRole('ROLE_OPERATOR','ROLE_ADMIN','ROLE_OPERATOR_AWAY')")
                 .anyRequest()
                 .authenticated()
                 .and()
                 .oauth2Login()
+                .loginPage("/login")
                 .successHandler(new SavedRequestAwareAuthenticationSuccessHandler())
                 .and()
-                .logout();
+                .logout()
+                .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID", "JWT", "_csrf");
         // @formatter:on
     }
 
