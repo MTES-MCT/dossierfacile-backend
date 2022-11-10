@@ -1,7 +1,9 @@
 package fr.gouv.bo.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.TypeUserApi;
+import fr.gouv.bo.dto.EmailDTO;
 import fr.gouv.bo.dto.UserApiDTO;
 import fr.gouv.bo.service.UserApiService;
 import lombok.RequiredArgsConstructor;
@@ -23,19 +25,22 @@ import java.util.List;
 @RequestMapping("/bo/userApi")
 @Slf4j
 public class BOUserApiController {
+    private static final String EMAIL = "email";
 
     private static final String REDIRECT_URL = "redirect:/bo/userApi";
 
     private final UserApiService userApiService;
+
+    private final ObjectMapper mapper;
 
     @GetMapping("")
     public String index(Model model) {
         List<UserApi> userApiList = userApiService.findAll();
         model.addAttribute("userApiList", userApiList);
         model.addAttribute("userApiDTO", new UserApiDTO());
+        model.addAttribute(EMAIL, new EmailDTO());
         return "bo/user-api";
     }
-
     @PostMapping("")
     public String create(@Validated @ModelAttribute("userApiDTO") UserApiDTO userApiDTO, BindingResult result) {
         if (result.hasErrors()) {
@@ -54,9 +59,10 @@ public class BOUserApiController {
             log.error("BOUserApiController updateForm not found userApi with id : {}", id);
             return "redirect:/error";
         }
-        UserApiDTO userApiDTO = new UserApiDTO(userApi);
+        UserApiDTO userApiDTO = mapper.convertValue(userApi, UserApiDTO.class);
         model.addAttribute("userApiDTO", userApiDTO);
         model.addAttribute("userApi", userApi);
+        model.addAttribute(EMAIL, new EmailDTO());
         return "bo/user-api-edit";
     }
 

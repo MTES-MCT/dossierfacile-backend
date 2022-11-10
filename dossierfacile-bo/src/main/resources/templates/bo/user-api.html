@@ -14,97 +14,39 @@
     <br/><br/><br/>
     <div class="container">
         <div class="medium-space-separator">
-            <form enctype="multipart/form-data" th:action="@{/bo/userApi}" th:method="post" th:object="${userApiDTO}">
-                <div class="row">
-                    <div class="form-group col-md-6">
-                        <input required="required" type="text" id="name"
-                               th:field="*{name}"
-                               class="form-control form-control-formatted form-control-untouched"
-                               placeholder="source"/>
-                        <span class="help-block color--error" th:errors="*{name}"
-                              th:if="${#fields.hasErrors('name')}"></span>
-                    </div>
-                    <div class="form-group col-md-6">
-                        <input required="required" type="url" id="urlCallback" autocomplete="off"
-                               th:field="*{urlCallback}"
-                               class="form-control form-control-formatted form-control-untouched"
-                               placeholder="urlCallback"/>
-                        <span class="help-block color--error" th:errors="*{urlCallback}"
-                              th:if="${#fields.hasErrors('urlCallback')}"></span>
-                    </div>
-
-                    <div class="form-group col-md-6">
-                        <input type="url" autocomplete="off"
-                               th:field="*{site}"
-                               class="form-control form-control-formatted form-control-untouched"
-                               placeholder="site"/>
-                        <span class="help-block color--error" th:errors="*{site}"
-                              th:if="${#fields.hasErrors('site')}"></span>
-                    </div>
-                    <div class="form-group col-md-6">
-                        <input type="text" autocomplete="off"
-                               th:field="*{name2}"
-                               class="form-control form-control-formatted form-control-untouched"
-                               placeholder="name"/>
-                        <span class="help-block color--error" th:errors="*{name2}"
-                              th:if="${#fields.hasErrors('name2')}"></span>
-                    </div>
-                    <div class="form-group col-md-6">
-                        <input autocomplete="off" class="form-control form-control-formatted form-control-untouched"
-                               placeholder="textModal"
-                               th:field="*{textModal}"
-                               type="text"/>
-                        <span class="help-block color--error" th:errors="*{textModal}"
-                              th:if="${#fields.hasErrors('textModal')}"></span>
-                    </div>
-                    <div class="form-group col-md-4">
-                        <div class="input-icon text-center info-icon input-file-container">
-                            <input class="form-control form-control-formatted form-control-untouched input-file"
-                                   id="identity_card"
-                                   placeholder="logo" readonly="" type="text"/>
-                            <input accept="image/png" class="hidden file-reader" name="identity_card" th:field="*{logo}"
-                                   type="file"/>
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <button class="btn btn-danger bo-btn" type="submit">Generate</button>
-                    </div>
-                    <div class="form-group col-md-6">
-                        <input autocomplete="off" class="form-control form-control-formatted form-control-untouched"
-                               placeholder="partnerApiKeyCallback"
-                               th:field="*{partnerApiKeyCallback}"
-                               type="text"/>
-                        <span class="help-block color--error" th:errors="*{partnerApiKeyCallback}"
-                              th:if="${#fields.hasErrors('partnerApiKeyCallback')}"></span>
-                    </div>
-                </div>
-            </form>
+            <div th:replace="bo/fragments/user-api-form">
+            </div>
         </div>
         <div class="table-responsive">
             <table class="table table-striped table-bordered table-hover">
                 <thead>
                 <tr>
-                    <th>source</th>
-                    <th>username</th>
-                    <th>key</th>
-                    <th>urlCallback</th>
+                    <th>id</th>
                     <th>name</th>
+                    <th>name2</th>
                     <th>site</th>
+                    <th>urlCallback</th>
                     <th>partnerApiKeyCallback</th>
-                    <th>edit</th>
+                    <th>typeUserApi</th>
+                    <th>textModal</th>
+                    <th>version</th>
+                    <th>Edit</th>
                 </tr>
                 </thead>
                 <tbody>
 
                 <tr th:each="userApi : ${userApiList}">
-                    <td th:text="${userApi.getName()}"></td>
-                    <td th:text="${userApi.getUsername()}"></td>
-                    <td th:text="${userApi.getApiKey()}"></td>
-                    <td th:text="${userApi.getUrlCallback()}"></td>
-                    <td th:text="${userApi.getName2()}"></td>
-                    <td th:text="${userApi.getSite()}"></td>
-                    <td th:text="${userApi.getPartnerApiKeyCallback()}"></td>
-                    <td><a class="fa fa-pencil nounderline" th:href="@{/bo/userApi/} + ${userApi.getId()}"></a></td>
+                    <td th:text="${userApi.id}"></td>
+                    <td th:text="${userApi.name}?: '-'"></td>
+                    <td th:text="${userApi.name2}?: '-'"></td>
+                    <td th:text="${userApi.site}?: '-'"></td>
+                    <td th:text="${userApi.urlCallback}?: '-'"></td>
+                    <td th:text="${userApi.partnerApiKeyCallback}?: '-'"></td>
+
+                    <td th:text="${userApi.typeUserApi}?: '-'"></td>
+                    <td th:text="${userApi.textModal}?: '-'"></td>
+                    <td th:text="${userApi.version}?: '-'"></td>
+                    <td><a class="fa fa-pencil nounderline" th:href="@{/bo/userApi/} + ${userApi.id}"></a></td>
                 </tr>
                 </tbody>
             </table>

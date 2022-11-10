@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+    <div th:fragments="user-api-form">
+        <form enctype="multipart/form-data" th:action="@{/bo/userApi/} + ${userApiDTO.getId() != null ? userApiDTO.getId() : ''}" th:method="post" th:object="${userApiDTO}">
+            <div class="row">
+                <div class="form-group col-md-6">
+                    <input required="required" type="text" id="name"
+                           th:field="*{name}"
+                           class="form-control form-control-formatted form-control-untouched"
+                           placeholder="name"/>
+                    <span class="help-block color--error" th:errors="*{name}"
+                          th:if="${#fields.hasErrors('name')}"></span>
+                </div>
+                <div class="form-group col-md-6">
+                    <input required="required" type="text" id="name2"
+                           th:field="*{name2}"
+                           class="form-control form-control-formatted form-control-untouched"
+                           placeholder="name2"/>
+                    <span class="help-block color--error" th:errors="*{name2}"
+                          th:if="${#fields.hasErrors('name2')}"></span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group col-md-6">
+                    <input type="url" autocomplete="off"
+                           th:field="*{site}"
+                           class="form-control form-control-formatted form-control-untouched"
+                           placeholder="site"/>
+                    <span class="help-block color--error" th:errors="*{site}"
+                          th:if="${#fields.hasErrors('site')}"></span>
+                </div>
+                <div class="form-group col-md-6">
+                    <input required="required" type="url" id="urlCallback" autocomplete="off"
+                           th:field="*{urlCallback}"
+                           class="form-control form-control-formatted form-control-untouched"
+                           placeholder="urlCallback"/>
+                    <span class="help-block color--error" th:errors="*{urlCallback}"
+                          th:if="${#fields.hasErrors('urlCallback')}"></span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group col-md-6">
+                    <input autocomplete="off" class="form-control form-control-formatted form-control-untouched"
+                           placeholder="textModal"
+                           th:field="*{textModal}"
+                           type="text"/>
+                    <span class="help-block color--error" th:errors="*{textModal}"
+                          th:if="${#fields.hasErrors('textModal')}"></span>
+                </div>
+
+                <div class="form-group col-md-6">
+                    <input autocomplete="off" class="form-control form-control-formatted form-control-untouched"
+                           placeholder="partnerApiKeyCallback"
+                           th:field="*{partnerApiKeyCallback}"
+                           type="text"/>
+                    <span class="help-block color--error" th:errors="*{partnerApiKeyCallback}"
+                          th:if="${#fields.hasErrors('partnerApiKeyCallback')}"></span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group col-md-6">
+                    <input autocomplete="off" class="form-control form-control-formatted form-control-untouched"
+                           placeholder="version"
+                           th:field="*{version}"
+                           type="text"/>
+                    <span class="help-block color--error" th:errors="*{version}"
+                          th:if="${#fields.hasErrors('version')}"></span>
+                </div>
+                <div class="form-group col-md-6">
+                    <input autocomplete="off" class="form-control form-control-formatted form-control-untouched"
+                           placeholder="typeUserApi"
+                           th:field="*{typeUserApi}"
+                           type="text"/>
+                    <span class="help-block color--error" th:errors="*{typeUserApi}"
+                          th:if="${#fields.hasErrors('typeUserApi')}"></span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-2">
+                    <button class="btn btn-primary bo-btn" type="submit">Update/Create</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</body>
