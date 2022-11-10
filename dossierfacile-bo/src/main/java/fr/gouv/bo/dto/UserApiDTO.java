@@ -1,20 +1,21 @@
 package fr.gouv.bo.dto;
 
-import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.TypeUserApi;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserApiDTO {
+
+    private Long id;
 
     @NotBlank
     private String urlCallback;
@@ -24,25 +25,11 @@ public class UserApiDTO {
 
     private String name2;
     private String site;
-    private Long id;
+    @NotNull
     private TypeUserApi typeUserApi;
-    private MultipartFile logo;
     private String textModal;
     private String partnerApiKeyCallback;
-
-    public UserApiDTO(String name, TypeUserApi typeUserApi) {
-        this.name = name;
-        this.typeUserApi = typeUserApi;
-    }
-
-    public UserApiDTO(UserApi userApi) {
-        this.name = userApi.getName();
-        this.urlCallback = userApi.getUrlCallback();
-        this.id = userApi.getId();
-        this.name2 = userApi.getName2();
-        this.site = userApi.getSite();
-        this.textModal = userApi.getTextModal();
-        this.partnerApiKeyCallback = userApi.getPartnerApiKeyCallback();
-    }
+    @NotNull
+    private Integer version;
 
 }
