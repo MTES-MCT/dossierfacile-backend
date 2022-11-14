@@ -34,5 +34,4 @@ public class TenantModel {
     private boolean franceConnect;
     private boolean passwordEnabled;
     private Boolean allowCheckTax;
-    private String linkUrl;
 }

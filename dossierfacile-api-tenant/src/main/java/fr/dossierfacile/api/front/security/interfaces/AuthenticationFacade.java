@@ -10,5 +10,5 @@ public interface AuthenticationFacade {
 
     String getKeycloakClientId();
 
-    String getFranceConnectOauth(Tenant tenant, String redirectUri);
+    String getFranceConnectLink(String redirectUri);
 }

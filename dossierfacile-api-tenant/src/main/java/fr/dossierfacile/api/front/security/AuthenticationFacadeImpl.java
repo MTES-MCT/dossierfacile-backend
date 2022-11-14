@@ -172,11 +172,11 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
     }
 
     @Override
-    public String getFranceConnectOauth(Tenant tenant, String redirectUri) {
+    public String getFranceConnectLink(String redirectUri) {
         String clientId = ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClaimAsString("azp");
         String token = ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClaimAsString("session_state");
         String nonce = UUID.randomUUID().toString();
-        MessageDigest md = null;
+        MessageDigest md;
         try {
             md = MessageDigest.getInstance("SHA-256");
         } catch (NoSuchAlgorithmException e) {
@@ -193,5 +193,4 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
                 .queryParam("client_id", clientId)
                 .queryParam("redirect_uri", redirectUri).build(realm, provider).toString();
     }
-
 }
