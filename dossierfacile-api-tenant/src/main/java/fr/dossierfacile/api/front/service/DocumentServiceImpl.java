@@ -64,7 +64,7 @@ public class DocumentServiceImpl implements DocumentService {
             tenant.getGuarantors().stream().filter(g -> Objects.equals(document.getGuarantor().getId(), g.getId())).findFirst().ifPresent(guarantor -> guarantor.getDocuments().remove(document));
         }
 
-        tenantService.updateTenantStatus(document.getTenant());
+        tenantService.updateTenantStatus(document.getTenant() != null ? document.getTenant() : document.getGuarantor().getTenant());
         tenantService.updateTenantStatus(tenant);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
     }

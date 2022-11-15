@@ -43,7 +43,7 @@ public class FileServiceImpl implements FileService {
         document.getFiles().remove(file);
 
         if (document.getFiles().isEmpty()) {
-            documentService.delete(document.getId(), document.getTenant());
+            documentService.delete(document.getId(), document.getTenant() != null ? document.getTenant() : document.getGuarantor().getTenant());
             return null;
         } else {
             document.setDocumentStatus(DocumentStatus.TO_PROCESS);
