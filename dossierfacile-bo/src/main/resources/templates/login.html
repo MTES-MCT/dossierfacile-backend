@@ -1,55 +1,68 @@
 <!DOCTYPE html>
 <html lang="en"
       xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorator="bo/layout-bo">
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 <head>
     <title>DossierFacile</title>
+    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans" />
+    <style lang="css">
+        @import url(https://fonts.googleapis.com/css?family=Roboto:500);
+        .google-btn {
+          display:inline-flex;
+          width: 184px;
+          height: 42px;
+          background-color: #4285f4;
+          border-radius: 2px;
+          box-shadow: 0 3px 4px 0 rgba(0,0,0,.25);
+        }
+        .google-icon-wrapper {
+            margin-top: 1px;
+            margin-left: 1px;
+            width: 40px;
+            height: 40px;
+            border-radius: 2px;
+            background-color: #fff;
+          }
+          .google-icon {
+            position: absolute;
+            margin-top: 11px;
+            margin-left: 11px;
+            width: 18px;
+            height: 18px;
+          }
+          .btn-text {
+            float: right;
+            margin: 11px 11px 0 11px;
+            color: #fff;
+            font-size: 14px;
+            letter-spacing: 0.2px;
+            font-family: Roboto, Verdana, sans-serif;
+          }
+          .google-btn:hover {
+            box-shadow: 0 0 6px #4285f4;
+          }
+          .google-btn:active {
+            background: #1669F2;
+          }
+
+    </style>
 </head>
 <body>
 
-<div layout:fragment="content" th:remove="tag">
+<h3>Connexion à DossierFacile:</h3>
 
-    <div class="container big-space-separator">
-        <div class="row">
-            <div class="col-md-2 col-sm-1 col-xs-1"></div>
-            <div class="col-md-8 col-sm-10 col-xs-10">
-                <p class="little-title text-center padding border-bottom border-primary text-primary text-primary1 medium-margin-bottom">
-                    Connexion à mon compte
-                    DossierFacile</p>
-            </div>
+<th:block th:each="client : ${clientRegistrations}">
+    <a th:href="${client.authUrl}" >
+        <div class="google-btn">
+          <div class="google-icon-wrapper">
+            <img alt="" class="google-icon" src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg"/>
+          </div>
+          <div class="btn-text">
+            <strong th:text="${client.clientName}">Se connecter</strong>
+          </div>
         </div>
+    </a>
+</th:block>
 
-        <div class="row">
-            <div class="col-md-3 col-sm-2 col-xs-1"></div>
-            <div class="col-md-6 col-sm-8 col-xs-10">
-                <form th:action="@{/login}" th:method="post">
-                    <input autocomplete="true" id="token" required="required" th:name="token" th:value="*{token}"
-                           type="hidden"/>
-                    <div class="form-group">
-                        <label class="text-primary1 formatted-label  space-separator" for="email">Email&nbsp;:</label>
-                        <input autocomplete="true" class="form-control form-control-formatted form-control-untouched "
-                               id="email" name="username" required="required"
-                               th:classappend="${param.error} ? 'invalid' : ''" type="email"/>
-                    </div>
-                    <div class="form-group">
-                        <label class="text-primary1 formatted-label  space-separator" for="pas">Mot de
-                            passe&nbsp;:</label>
-                        <input class="form-control form-control-formatted form-control-untouched " id="pas"
-                               name="password" th:classappend="${param.error} ? 'invalid' : ''"
-                               type="password"/>
-                    </div>
-                    <div class="text-center space-separator" th:if="${param.error}"><span>Merci de vérifier vos informations de connexion</span>
-                    </div>
-                    <div class="text-center medium-space-separator">
-                        <button class="btn btn-primary btn-responsive animated subtitle1" type="submit">Valider</button>
-                        <br/><br/>
-                        <a class="text-primary1" href="/mot-de-passe-oublie">J'ai oublié mon mot de passe.</a>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
 </body>
 </html>

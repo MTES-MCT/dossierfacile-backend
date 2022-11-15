@@ -12,6 +12,7 @@ import fr.dossierfacile.api.front.register.form.tenant.DocumentTaxForm;
 import fr.dossierfacile.api.front.register.form.tenant.GuarantorTypeForm;
 import fr.dossierfacile.api.front.register.form.tenant.HonorDeclarationForm;
 import fr.dossierfacile.api.front.register.form.tenant.NamesForm;
+import fr.dossierfacile.api.front.register.tenant.DocumentTax;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.LogService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
@@ -41,6 +42,8 @@ public class RegisterController {
     private final UserService userService;
     private final AuthenticationFacade authenticationFacade;
     private final LogService logService;
+
+    private final DocumentTax documentTax;
 
     @PostMapping(value = "/account", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TenantModel> account(@Validated(Dossier.class) @RequestBody AccountForm accountForm) {

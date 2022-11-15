@@ -4,7 +4,9 @@ import fr.dossierfacile.api.front.form.ContactForm;
 import fr.dossierfacile.common.entity.ConfirmationToken;
 import fr.dossierfacile.common.entity.PasswordRecoveryToken;
 import fr.dossierfacile.common.entity.User;
+import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.ApplicationType;
+import org.springframework.scheduling.annotation.Async;
 
 public interface MailService {
     void sendEmailConfirmAccount(User user, ConfirmationToken confirmationToken);
@@ -32,4 +34,7 @@ public interface MailService {
     void sendEmailSecondWarningForDeletionOfDocuments(User user, ConfirmationToken confirmationToken);
 
     void sendEmailToSupport(ContactForm form);
+
+    @Async
+    void sendEmailWelcomeForPartnerUser(User user, UserApi userApi);
 }

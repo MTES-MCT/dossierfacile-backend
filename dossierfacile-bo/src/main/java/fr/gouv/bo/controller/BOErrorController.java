@@ -20,8 +20,4 @@ public class BOErrorController implements ErrorController {
         return "error/error" + i;
     }
 
-    @Override
-    public String getErrorPath() {
-        return "/error";
-    }
 }

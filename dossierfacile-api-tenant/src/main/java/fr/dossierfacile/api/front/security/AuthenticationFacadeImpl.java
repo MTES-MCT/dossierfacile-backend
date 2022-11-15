@@ -14,8 +14,6 @@ import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.repository.TenantUserApiRepository;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -28,7 +26,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
 
 import javax.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
@@ -43,14 +40,6 @@ import java.util.UUID;
 @Slf4j
 public class AuthenticationFacadeImpl implements AuthenticationFacade {
 
-    @Value("${keycloak.server.url}")
-    private String keycloakServerUrl;
-
-    @Value("${keycloak.franceconnect.provider}")
-    private String provider;
-
-    @Value("${keycloak.server.realm}")
-    private String realm;
     private final TenantCommonRepository tenantRepository;
     private final TenantUserApiRepository tenantUserApiRepository;
     private final TenantService tenantService;
@@ -59,6 +48,12 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
     private final DocumentService documentService;
     private final HttpServletRequest httpServletRequest;
     private final RealmResource realmResource;
+    @Value("${keycloak.server.url}")
+    private String keycloakServerUrl;
+    @Value("${keycloak.franceconnect.provider}")
+    private String provider;
+    @Value("${keycloak.server.realm}")
+    private String realm;
 
     private String getUserEmail() {
         return ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClaimAsString("email");
@@ -108,14 +103,16 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
 
     @Override
     public Tenant getTenant(Long id) {
-        if (SecurityContextHolder.getContext().getAuthentication().getAuthorities().contains(new SimpleGrantedAuthority("SCOPE_api-partner"))) {
-            Assert.notNull(id, "Tenant id can not be null");
-            var keycloakClientId = getKeycloakClientId();
-            System.out.println(keycloakClientId);
-            //Tenant supposedly already linked with the client/partner
-            return tenantUserApiRepository.findFirstByTenantIdAndUserApiName(id, keycloakClientId)
-                    .orElseThrow(() -> new TenantUserApiNotFoundException(id, keycloakClientId))
-                    .getTenant();
+        if (id != null) {
+            if (SecurityContextHolder.getContext().getAuthentication().getAuthorities().contains(new SimpleGrantedAuthority("SCOPE_api-partner"))) {
+                var keycloakClientId = getKeycloakClientId();
+                //Tenant supposedly already linked with the client/partner
+                return tenantUserApiRepository.findFirstByTenantIdAndUserApiName(id, keycloakClientId)
+                        .orElseThrow(() -> new TenantUserApiNotFoundException(id, keycloakClientId))
+                        .getTenant();
+            } else {
+                throw new AccessDeniedException("Access denied id=" + id);
+            }
         } else {
             return getPrincipalAuthTenant();
         }
@@ -168,26 +165,26 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
             }
             tenant.setFirstName(getFirstName());
             tenant.setLastName(getLastName());
-            tenant.setPreferredName(getPreferredName() == null? tenant.getPreferredName() : getPreferredName());
+            tenant.setPreferredName(getPreferredName() == null ? tenant.getPreferredName() : getPreferredName());
             tenantService.updateTenantStatus(tenant);
         }
         return tenantRepository.saveAndFlush(tenant);
     }
 
     @Override
-    public String getFranceConnectOauth(Tenant tenant, String redirectUri) {
-            String clientId = ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClaimAsString("azp");
-            String token = ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClaimAsString("session_state");
-            String nonce = UUID.randomUUID().toString();
-            MessageDigest md = null;
-            try {
-                md = MessageDigest.getInstance("SHA-256");
-            } catch (NoSuchAlgorithmException e) {
-                throw new RuntimeException(e);
-            }
-            String input = nonce + token + clientId + "oidc";
-            byte[] check = md.digest(input.getBytes(StandardCharsets.UTF_8));
-            String hash = Base64Url.encode(check);
+    public String getFranceConnectLink(String redirectUri) {
+        String clientId = ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClaimAsString("azp");
+        String token = ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClaimAsString("session_state");
+        String nonce = UUID.randomUUID().toString();
+        MessageDigest md;
+        try {
+            md = MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+        String input = nonce + token + clientId + "oidc";
+        byte[] check = md.digest(input.getBytes(StandardCharsets.UTF_8));
+        String hash = Base64Url.encode(check);
 
         return KeycloakUriBuilder.fromUri(keycloakServerUrl)
                 .path("/realms/{realm}/broker/{provider}/link")
@@ -196,5 +193,4 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
                 .queryParam("client_id", clientId)
                 .queryParam("redirect_uri", redirectUri).build(realm, provider).toString();
     }
-
 }
