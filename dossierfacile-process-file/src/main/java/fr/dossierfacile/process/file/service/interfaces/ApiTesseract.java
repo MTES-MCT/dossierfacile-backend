@@ -1,5 +1,8 @@
 package fr.dossierfacile.process.file.service.interfaces;
 
+
+import java.io.File;
+
 public interface ApiTesseract {
-    String apiTesseract(String path, int[] pages, int dpi);
+    String extractText(File file) ;
 }

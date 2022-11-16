@@ -26,9 +26,10 @@ public class Receiver {
             try {
                 processTenant.process(tenantModel.getId());
             } catch (Exception e) {
-                log.error(EXCEPTION + Sentry.captureException(e));
+                log.error(EXCEPTION + Sentry.captureException(e), e);
                 log.error(e.getMessage(), e.getCause());
-                producer.processFile(tenantModel.getId());
+                // TODO implement retry + dlq - doing retry involve eternal loop
+                //producer.processFile(tenantModel.getId());
             }
         } catch (Exception e) {
             log.error(EXCEPTION + Sentry.captureException(e));

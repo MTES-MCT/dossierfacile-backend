@@ -13,15 +13,6 @@ import fr.dossierfacile.process.file.service.interfaces.ApiParticulier;
 import fr.dossierfacile.process.file.service.interfaces.ApiTesseract;
 import fr.dossierfacile.process.file.service.interfaces.ProcessTaxDocument;
 import fr.dossierfacile.process.file.util.Utility;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
@@ -30,6 +21,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -40,8 +39,7 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
     private final Utility utility;
     private final ApiTesseract apiTesseract;
     private final ApiMonFranceConnect apiMonFranceConnect;
-    @Value("${tesseract.api.ocr.dpi.tax}")
-    private int tesseractApiOcrDpiTax;
+
     @Value("${application.domain}")
     private String applicationDomain;
     @Value("${application.file.path}")
@@ -72,7 +70,7 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
 
     @Override
     public TaxDocument process(Document document, Tenant tenant) {
-        if (!tenant.getAllowCheckTax()) {
+        if (!Boolean.TRUE.equals(tenant.getAllowCheckTax())) {
             return new TaxDocument();
         }
         log.info("Starting with process of tax document");
@@ -190,20 +188,23 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
         String referenceNumber = Utility.extractReferenceNumber(result.toString());
 
         if (fiscalNumber.equals("") || referenceNumber.equals("")) {
-            result = new StringBuilder();
-            List<String> paths = files.stream().map(file -> applicationDomain + URL_DELIMITER + applicationFilePath + URL_DELIMITER + file.getPath()).collect(Collectors.toList());
-            if (!paths.isEmpty()) {
-                for (String path : paths) {
-                    result.append(apiTesseract.apiTesseract(path, new int[]{1}, tesseractApiOcrDpiTax));
-                }
-            }
+            String text = files.stream()
+                    .map(dfFile -> utility.getTemporaryFile(dfFile))
+                    .map(file -> {
+                        String extractedText = apiTesseract.extractText(file);
+                        if (!file.delete()) {
+                            log.warn("Unable to delete file");
+                        };
+                        return extractedText;
+                    })
+                    .reduce("", String::concat);
+
             if (fiscalNumber.equals("")) {
-                fiscalNumber = Utility.extractFiscalNumber(result.toString());
+                fiscalNumber = Utility.extractFiscalNumber(text);
             }
             if (referenceNumber.equals("")) {
-                referenceNumber = Utility.extractReferenceNumber(result.toString());
+                referenceNumber = Utility.extractReferenceNumber(text);
             }
-
         }
 
         TaxDocument taxDocument = getTaxDocument(lastName, firstName, unaccentFirstName, unaccentLastName, result, fiscalNumber, referenceNumber);
@@ -274,8 +275,11 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
                 log.info("QR content VALID for PDF with ID [" + pdf.getId() + "]");
                 taxDocument.setTaxContentValid(Boolean.TRUE);
             } else {
-                String path = applicationDomain + URL_DELIMITER + applicationFilePath + URL_DELIMITER + pdf.getPath();
-                String tesseractResult = apiTesseract.apiTesseract(path, new int[]{1}, tesseractApiOcrDpiTax);
+                java.io.File tmpFile = utility.getTemporaryFile(pdf);
+                String tesseractResult = apiTesseract.extractText(tmpFile);
+                if (!tmpFile.delete()) {
+                    log.warn("Unable to delete file");
+                };
 
                 AtomicInteger ii = new AtomicInteger();
                 listResponse.forEach(element -> {
@@ -337,7 +341,7 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
                 (taxes.getNmUsaDec2() != null &&
                         ((StringUtils.containsIgnoreCase(taxes.getNmUsaDec2(), unaccentLastName) ||
                                 taxes.getNmNaiDec2() != null && taxes.getPrnmDec2() != null &&
-                                StringUtils.containsIgnoreCase(taxes.getNmNaiDec2(), unaccentLastName)) &&
+                                        StringUtils.containsIgnoreCase(taxes.getNmNaiDec2(), unaccentLastName)) &&
                                 StringUtils.containsIgnoreCase(taxes.getPrnmDec2(), unaccentFirstName)));
 
         return result1 || result2;
@@ -345,7 +349,7 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
 
     //check if the amount "montant fiscal de référence" is equals to 12*salary with an acceptable error of 10% (value in parameter)
     public boolean test2(Taxes taxes, StringBuilder stringBuilder) {
-        if(taxes.getRfr() == null) {
+        if (taxes.getRfr() == null) {
             return false;
         }
         Map<String, Integer> map = Utility.extractNumbersText(stringBuilder.toString());

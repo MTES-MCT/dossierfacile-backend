@@ -12,6 +12,7 @@ import fr.dossierfacile.process.file.model.TwoDDoc;
 import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.util.Strings;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.ImageType;
@@ -19,15 +20,21 @@ import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.springframework.stereotype.Service;
 
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.text.Normalizer;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -87,6 +94,26 @@ public class Utility {
             result = sMatch.replaceAll("\\s", "");
         }
         return result;
+    }
+
+    public java.io.File getTemporaryFile(File dfFile) {
+        try (InputStream fileInputStream = fileStorageService.download(dfFile)) {
+            java.io.File myFilesDirectory = new java.io.File("myfiles");
+            if (!myFilesDirectory.mkdir()){
+                throw new IOException("Unable to create myfiles directory - fallback to temp");
+            }
+
+            java.io.File tempFile = java.io.File.createTempFile("tmp", dfFile.getPath(), myFilesDirectory );
+
+            Files.copy(fileInputStream, tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            tempFile.deleteOnExit();
+
+            return tempFile;
+        } catch (Exception e) {
+            log.error("Unable to write temporary File on instance", e);
+            Sentry.captureException(e);
+        }
+        return null;
     }
 
     public String extractInfoFromPDFFirstPage(File dfFile) {
