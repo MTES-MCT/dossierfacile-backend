@@ -8,18 +8,17 @@ import fr.dossierfacile.process.file.model.Taxes;
 import fr.dossierfacile.process.file.service.interfaces.ProcessTaxDocument;
 import fr.dossierfacile.process.file.util.Utility;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@SpringBootTest
+@ExtendWith(MockitoExtension.class)
 class ProcessTaxDocumentImplTest {
 
-    @Autowired
-    private ProcessTaxDocument processTaxDocument;
+    private final ProcessTaxDocument processTaxDocument = new ProcessTaxDocumentImpl(null, null, null, null);
 
     @Test
     void test1() {
@@ -91,6 +90,5 @@ class ProcessTaxDocumentImplTest {
 
         return taxes;
     }
-
 
 }
