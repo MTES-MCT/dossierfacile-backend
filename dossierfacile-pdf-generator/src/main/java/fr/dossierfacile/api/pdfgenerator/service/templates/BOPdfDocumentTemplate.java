@@ -134,7 +134,8 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
 
                 Metadata metadata = ImageMetadataReader.readMetadata(imageInputForMeta);
                 Directory dir = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
-                int orientation = dir != null ? dir.getInteger(ExifIFD0Directory.TAG_ORIENTATION) : 0;
+                int orientation = dir != null && dir.getInteger(ExifIFD0Directory.TAG_ORIENTATION) != null
+                        ? dir.getInteger(ExifIFD0Directory.TAG_ORIENTATION) : 0;
 
                 return switch (orientation) {
                     case 2 -> ImageUtil.createFlipped(image, ImageUtil.FLIP_HORIZONTAL);
