@@ -33,7 +33,7 @@ public class HonorDeclaration implements SaveStep<HonorDeclarationForm> {
         tenant.setHonorDeclaration(honorDeclarationForm.isHonorDeclaration());
         tenant.setClarification(honorDeclarationForm.getClarification());
         tenant.lastUpdateDateProfile(LocalDateTime.now(), null);
-        producer.processFileOcr(tenant.getId());
+        producer.processFileTax(tenant.getId());
         tenantService.updateTenantStatus(tenant);
         Tenant tenantSaved = tenantRepository.save(tenant);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
