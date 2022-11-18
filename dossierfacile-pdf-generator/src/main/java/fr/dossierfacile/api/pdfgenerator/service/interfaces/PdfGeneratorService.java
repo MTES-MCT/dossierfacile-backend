@@ -9,7 +9,7 @@ public interface PdfGeneratorService {
 
     void lockDocument(Document document, String lockedBy);
 
-    void generateBOPdfDocument(Document document, Long logId);
+    void generateBOPdfDocument(Document document, Long logId) throws Exception;
 
     void generateFullDossierPdf(Long apartmentSharingId) throws IOException;
 }

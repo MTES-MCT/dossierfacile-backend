@@ -6,6 +6,7 @@ import fr.dossierfacile.process.file.service.interfaces.ProcessTenant;
 import io.sentry.Sentry;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -16,21 +17,15 @@ public class Receiver {
 
     private final Gson gson;
     private final ProcessTenant processTenant;
-    private final Producer producer;
 
-    public void receiveMessage(String message) {
+    @RabbitListener(queues = "${rabbitmq.queue.file.process.tax}", containerFactory = "retryContainerFactory")
+    public void processFileTax(String message) {
         try {
             log.info("Receive process file");
             TenantModel tenantModel = gson.fromJson(message, TenantModel.class);
             log.info("Tenant ID received [" + tenantModel.getId() + "]");
-            try {
-                processTenant.process(tenantModel.getId());
-            } catch (Exception e) {
-                log.error(EXCEPTION + Sentry.captureException(e), e);
-                log.error(e.getMessage(), e.getCause());
-                // TODO implement retry + dlq - doing retry involve eternal loop
-                //producer.processFile(tenantModel.getId());
-            }
+            processTenant.process(tenantModel.getId());
+
         } catch (Exception e) {
             log.error(EXCEPTION + Sentry.captureException(e));
             log.error(e.getMessage(), e.getCause());

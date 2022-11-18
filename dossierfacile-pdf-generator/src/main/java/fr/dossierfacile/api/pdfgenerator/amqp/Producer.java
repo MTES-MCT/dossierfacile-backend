@@ -23,7 +23,7 @@ public class Producer {
     //Pdf generation
     @Value("${rabbitmq.exchange.name}")
     private String exchangePdfGenerator;
-    @Value("${rabbitmq.routing.key}")
+    @Value("${rabbitmq.routing.key.watermark-document}")
     private String routingKeyPdfGenerator;
 
     @Async
