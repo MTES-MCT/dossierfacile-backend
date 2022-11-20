@@ -20,6 +20,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -82,13 +83,13 @@ public class TenantController {
         return ok().build();
     }
 
+    @PreAuthorize("hasPermissionOnTenant(#franceConnectTaxForm.tenantId)")
     @PostMapping(value = "/allowTax/{allowTax}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TenantModel> setAllowTax(@PathVariable("allowTax") String allowTax, @RequestBody FranceConnectTaxForm franceConnectTaxForm) {
-        Tenant tenant = authenticationFacade.getTenant(null);
+        Tenant tenant = authenticationFacade.getTenant(franceConnectTaxForm.getTenantId());
         tenant = documentTaxService.setAllowTax(tenant, allowTax);
         TenantModel tenantModel = tenantMapper.toTenantModel(tenant);
         if (tenantModel.getAllowCheckTax()) {
-            tenant.setAllowCheckTax(true);
             if (tenant.getFranceConnect()) {
                 userService.checkDGFIPApi(tenant, franceConnectTaxForm);
             }

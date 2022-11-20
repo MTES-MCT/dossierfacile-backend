@@ -1,6 +1,7 @@
 package fr.dossierfacile.api.front.security;
 
 import com.google.common.base.Strings;
+import fr.dossierfacile.api.front.exception.TenantNotFoundException;
 import fr.dossierfacile.api.front.exception.TenantUserApiNotFoundException;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
@@ -104,12 +105,18 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
     @Override
     public Tenant getTenant(Long id) {
         if (id != null) {
-            if (SecurityContextHolder.getContext().getAuthentication().getAuthorities().contains(new SimpleGrantedAuthority("SCOPE_api-partner"))) {
+            if (SecurityContextHolder.getContext().getAuthentication().getAuthorities().contains(new SimpleGrantedAuthority("SCOPE_api-partner"))
+            ) {
                 var keycloakClientId = getKeycloakClientId();
                 //Tenant supposedly already linked with the client/partner
                 return tenantUserApiRepository.findFirstByTenantIdAndUserApiName(id, keycloakClientId)
                         .orElseThrow(() -> new TenantUserApiNotFoundException(id, keycloakClientId))
                         .getTenant();
+            }
+            if (SecurityContextHolder.getContext().getAuthentication().getAuthorities().contains(new SimpleGrantedAuthority("SCOPE_dossier"))) {
+                return tenantRepository.findById(id)
+                        .orElseThrow(() -> new TenantNotFoundException(id));
+
             } else {
                 throw new AccessDeniedException("Access denied id=" + id);
             }

@@ -34,6 +34,7 @@ public class RegisterGuarantorLegalPersonController {
     private final AuthenticationFacade authenticationFacade;
     private final LogService logService;
 
+    @PreAuthorize("hasPermissionOnTenant(#nameGuarantorLegalPersonForm.tenantId)")
     @PostMapping("/name")
     public ResponseEntity<TenantModel> guarantorName(@Validated(Dossier.class) NameGuarantorLegalPersonForm nameGuarantorLegalPersonForm) {
         var tenant = authenticationFacade.getTenant(nameGuarantorLegalPersonForm.getTenantId());

@@ -5,6 +5,7 @@ import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.enums.StepRegister;
 import fr.dossierfacile.api.front.register.form.tenant.AccountForm;
 import fr.dossierfacile.api.front.register.form.tenant.ApplicationForm;
+import fr.dossierfacile.api.front.register.form.tenant.ApplicationFormV2;
 import fr.dossierfacile.api.front.register.form.tenant.DocumentFinancialForm;
 import fr.dossierfacile.api.front.register.form.tenant.DocumentIdentificationForm;
 import fr.dossierfacile.api.front.register.form.tenant.DocumentProfessionalForm;
