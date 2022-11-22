@@ -50,7 +50,8 @@ public class DocumentServiceImpl implements DocumentService {
 
         List<DocumentCategory> categoriesToChange = List.of(DocumentCategory.PROFESSIONAL, DocumentCategory.FINANCIAL, DocumentCategory.TAX);
         if (categoriesToChange.contains(document.getDocumentCategory())) {
-            if (document.getTenant().getStatus() == TenantFileStatus.VALIDATED) {
+            if (document.getTenant() != null && document.getTenant().getStatus() == TenantFileStatus.VALIDATED ||
+                document.getGuarantor() != null && document.getGuarantor().getTenant().getStatus() == TenantFileStatus.VALIDATED) {
                 resetValidatedDocumentsStatusOfSpecifiedCategoriesToToProcess(documentList, categoriesToChange);
             }
         }
@@ -64,7 +65,6 @@ public class DocumentServiceImpl implements DocumentService {
             tenant.getGuarantors().stream().filter(g -> Objects.equals(document.getGuarantor().getId(), g.getId())).findFirst().ifPresent(guarantor -> guarantor.getDocuments().remove(document));
         }
 
-        tenantService.updateTenantStatus(document.getTenant() != null ? document.getTenant() : document.getGuarantor().getTenant());
         tenantService.updateTenantStatus(tenant);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
     }
