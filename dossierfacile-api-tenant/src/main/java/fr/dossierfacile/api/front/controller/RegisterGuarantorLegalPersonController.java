@@ -13,7 +13,6 @@ import fr.dossierfacile.api.front.validator.group.DocumentIdentificationGuaranto
 import fr.dossierfacile.api.front.validator.group.Dossier;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.LogType;
-import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -40,7 +39,8 @@ public class RegisterGuarantorLegalPersonController {
         var tenant = authenticationFacade.getTenant(nameGuarantorLegalPersonForm.getTenantId());
         var tenantModel = tenantService.saveStepRegister(tenant, nameGuarantorLegalPersonForm, StepRegister.NAME_GUARANTOR_LEGAL_PERSON);
         logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
-        return ok(tenantModel);
+        Tenant loggedTenant = (nameGuarantorLegalPersonForm.getTenantId() == null)? tenant : authenticationFacade.getTenant(null);
+        return ok(tenantMapper.toTenantModel(loggedTenant));
     }
 
     @PreAuthorize("hasPermissionOnTenant(#documentIdentificationGuarantorLegalPersonForm.tenantId)")

@@ -47,8 +47,6 @@ public class RegisterController {
     private final AuthenticationFacade authenticationFacade;
     private final LogService logService;
 
-    private final DocumentTax documentTax;
-
     @PostMapping(value = "/account", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TenantModel> account(@Validated(Dossier.class) @RequestBody AccountForm accountForm) {
         TenantModel tenantModel = tenantService.saveStepRegister(null, accountForm, StepRegister.ACCOUNT);

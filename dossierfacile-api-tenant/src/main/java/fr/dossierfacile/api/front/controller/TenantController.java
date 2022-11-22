@@ -10,7 +10,6 @@ import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.form.tenant.FranceConnectTaxForm;
 import fr.dossierfacile.api.front.register.tenant.DocumentTax;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
-import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
 import fr.dossierfacile.api.front.service.interfaces.PropertyService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.service.interfaces.UserService;
@@ -47,8 +46,6 @@ public class TenantController {
     private final UserService userService;
 
     private final DocumentTax documentTaxService;
-
-    private final KeycloakService keycloakService;
 
     @GetMapping(value = "/profile", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TenantModel> profile() {
