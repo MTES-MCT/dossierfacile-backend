@@ -57,7 +57,7 @@ public class DocumentTax implements SaveStep<DocumentTaxForm> {
                         .documentId(document.getId())
                         .build()).getId());
         if (Boolean.TRUE.equals(tenant.getHonorDeclaration())) {
-            producer.processFileTax(tenant.getId());
+            producer.processFileTax(documentTaxForm.getOptionalTenantId().orElse(tenant.getId()));
         }
         return tenantMapper.toTenantModel(document.getTenant());
     }
