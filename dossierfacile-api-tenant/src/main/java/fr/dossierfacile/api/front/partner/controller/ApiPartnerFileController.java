@@ -58,7 +58,7 @@ public class ApiPartnerFileController {
     @GetMapping(value = "/resource/{id}", produces = {MediaType.APPLICATION_PDF_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
     public void getPrivateFileAsByteArray(HttpServletResponse response, @PathVariable Long id, @PathVariable Long tenantId) {
         Tenant tenant = authenticationFacade.getTenant(tenantId);
-        File file = fileRepository.findByIdForApartmentSharing(id, tenant.getApartmentSharing().getId()).orElseThrow(() -> new FileNotFoundException(id));
+        File file = fileRepository.findByIdForTenant(id, tenant.getId()).orElseThrow(() -> new FileNotFoundException(id));
 
         try (InputStream in = fileStorageService.download(file) ) {
             response.setContentType(file.getComputedContentType());

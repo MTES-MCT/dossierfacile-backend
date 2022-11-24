@@ -76,7 +76,6 @@ public interface FileRepository extends JpaRepository<File, Long> {
             @Param("tenant") Tenant tenant,
             @Param("documentId") Long documentId);
 
-
     @Query("select sum(f.size) from File f " +
             "join f.document d join d.guarantor g join g.tenant t " +
             "where d.documentCategory =:documentCategory and g.id =:guarantorId and g.typeGuarantor =:typeGuarantor and t=:tenant")
@@ -86,21 +85,22 @@ public interface FileRepository extends JpaRepository<File, Long> {
             @Param("typeGuarantor") TypeGuarantor typeGuarantor,
             @Param("tenant") Tenant tenant);
 
-    @Query(value = "select f.*\n" +
-            "from file f\n" +
-            "  join document d on f.document_id = d.id\n" +
-            "  join tenant t on t.id = d.tenant_id\n" +
-            "where t.apartment_sharing_id = :ap\n" +
-            "  and f.id = :id\n" +
-            "union\n" +
-            "select f2.*\n" +
-            "from file f2\n" +
-            "  join document d2 on f2.document_id = d2.id\n" +
-            "  join guarantor g on d2.guarantor_id = g.id\n" +
-            "  join tenant t on t.id = g.tenant_id\n" +
-            "where t.apartment_sharing_id = :ap\n" +
-            "  and f2.id = :id", nativeQuery = true)
-    Optional<File> findByIdForApartmentSharing(@Param("id") Long id, @Param("ap") Long apartmentSharingId);
+    @Query(value = """
+            select f.*
+            from file f
+              join document d on f.document_id = d.id
+              join tenant t on t.id = d.tenant_id
+            where t.id = :t
+              and f.id = :id
+            union
+            select f2.*
+            from file f2
+              join document d2 on f2.document_id = d2.id
+              join guarantor g on d2.guarantor_id = g.id
+              join tenant t on t.id = g.tenant_id
+            where t.id = :t
+              and f2.id = :id""", nativeQuery = true)
+    Optional<File> findByIdForTenant(@Param("id") Long id, @Param("t") Long tenantId);
 
     @Query(value = "select path FROM file WHERE document_id = :documentId", nativeQuery = true)
     List<String> getFilePathsByDocumentId(@Param("documentId") Long documentId);

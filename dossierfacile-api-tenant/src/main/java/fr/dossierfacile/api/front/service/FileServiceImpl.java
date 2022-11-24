@@ -34,7 +34,7 @@ public class FileServiceImpl implements FileService {
     @Override
     @Transactional
     public Document delete(Long id, Tenant tenant) {
-        File file = fileRepository.findByIdForApartmentSharing(id, tenant.getApartmentSharing().getId()).orElseThrow(() -> new FileNotFoundException(id, tenant));
+        File file = fileRepository.findByIdForTenant(id, tenant.getId()).orElseThrow(() -> new FileNotFoundException(id, tenant));
 
         Document document = file.getDocument();
 
