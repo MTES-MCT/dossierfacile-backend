@@ -8,6 +8,7 @@ import fr.dossierfacile.api.front.register.form.tenant.HonorDeclarationForm;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
+import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import lombok.AllArgsConstructor;
@@ -15,6 +16,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
+
+import static java.util.Collections.singletonList;
 
 @Service
 @AllArgsConstructor
@@ -30,14 +34,34 @@ public class HonorDeclaration implements SaveStep<HonorDeclarationForm> {
     @Override
     @Transactional
     public TenantModel saveStep(Tenant tenant, HonorDeclarationForm honorDeclarationForm) {
-        tenant.setHonorDeclaration(honorDeclarationForm.isHonorDeclaration());
+        updateHonorDeclaration(tenant, honorDeclarationForm.isHonorDeclaration());
         tenant.setClarification(honorDeclarationForm.getClarification());
         tenant.lastUpdateDateProfile(LocalDateTime.now(), null);
-        producer.processFileTax(tenant.getId());
+
         tenantService.updateTenantStatus(tenant);
         Tenant tenantSaved = tenantRepository.save(tenant);
+
+        sendFileToBeProcessed(tenant);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         mailService.sendEmailAccountCompleted(tenantSaved);
         return tenantMapper.toTenantModel(tenantSaved);
+    }
+
+    private static void updateHonorDeclaration(Tenant loggedTenant, boolean honorDeclaration) {
+        getTenantOrPartners(loggedTenant)
+                .forEach(tenant -> tenant.setHonorDeclaration(honorDeclaration));
+    }
+
+    private void sendFileToBeProcessed(Tenant loggedTenant) {
+        getTenantOrPartners(loggedTenant)
+                .forEach(tenant -> producer.processFileTax(tenant.getId()));
+    }
+
+    private static List<Tenant> getTenantOrPartners(Tenant tenant) {
+        ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
+        return switch (apartmentSharing.getApplicationType()) {
+            case COUPLE -> apartmentSharing.getTenants();
+            case ALONE, GROUP -> singletonList(tenant);
+        };
     }
 }
