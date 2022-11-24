@@ -32,7 +32,7 @@ public class ApiPartnerRegisterGuarantorLegalPersonController {
     private final LogService logService;
 
     @PostMapping("/name")
-    public ResponseEntity<TenantModel> guarantorName(@Validated(Dossier.class) NameGuarantorLegalPersonForm nameGuarantorLegalPersonForm) {
+    public ResponseEntity<TenantModel> guarantorName(@Validated(ApiPartner.class) NameGuarantorLegalPersonForm nameGuarantorLegalPersonForm) {
         var tenant = authenticationFacade.getTenant(nameGuarantorLegalPersonForm.getTenantId());
         var tenantModel = tenantService.saveStepRegister(tenant, nameGuarantorLegalPersonForm, StepRegister.NAME_GUARANTOR_LEGAL_PERSON);
         logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
