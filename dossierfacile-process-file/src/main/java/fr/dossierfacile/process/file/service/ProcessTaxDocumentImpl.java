@@ -78,6 +78,10 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
             doc.setFileExtractionType(TaxFileExtractionType.NONE);
             return doc;
         }
+        if (existingResultRetrievedViaFranceConnect(document)) {
+            return document.getTaxProcessResult();
+        }
+
         log.info("Starting with process of tax document");
         List<File> files = document.getFiles();
         TaxDocument taxDocument = processTaxDocumentWithQRCode(files);
@@ -94,6 +98,12 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
 
         log.info("Finishing with process of tax document");
         return taxDocument;
+    }
+
+    private boolean existingResultRetrievedViaFranceConnect(Document document) {
+        TaxDocument taxProcessResult = document.getTaxProcessResult();
+        return taxProcessResult != null &&
+                taxProcessResult.getFileExtractionType() == TaxFileExtractionType.FRANCE_CONNECT;
     }
 
     private TaxDocument processTaxDocumentWithQRCode(List<File> files) {
