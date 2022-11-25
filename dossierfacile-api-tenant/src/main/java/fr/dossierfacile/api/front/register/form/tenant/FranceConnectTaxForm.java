@@ -8,6 +8,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class FranceConnectTaxForm {
-    private Long tenantId;
     private String fcToken;
 }

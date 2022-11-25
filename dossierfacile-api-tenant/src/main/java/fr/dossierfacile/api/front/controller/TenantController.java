@@ -81,10 +81,9 @@ public class TenantController {
         return ok().build();
     }
 
-    @PreAuthorize("hasPermissionOnTenant(#franceConnectTaxForm.tenantId)")
     @PostMapping(value = "/allowTax/{allowTax}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TenantModel> setAllowTax(@PathVariable("allowTax") String allowTax, @RequestBody FranceConnectTaxForm franceConnectTaxForm) {
-        Tenant tenant = authenticationFacade.getTenant(franceConnectTaxForm.getTenantId());
+        Tenant tenant = authenticationFacade.getTenant(null);
         Boolean allow = BooleanUtils.toBooleanObject(allowTax, "allow", "disallow", "");
         documentTaxService.updateAutomaticTaxVerificationConsent(tenant, allow);
         if (allow && tenant.getFranceConnect()) {
