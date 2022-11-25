@@ -1,6 +1,5 @@
 package fr.dossierfacile.api.front.controller;
 
-import fr.dossierfacile.api.front.register.form.tenant.UrlForm;
 import fr.dossierfacile.api.front.form.PartnerForm;
 import fr.dossierfacile.api.front.form.SubscriptionApartmentSharingOfTenantForm;
 import fr.dossierfacile.api.front.mapper.PropertyOMapper;
@@ -8,6 +7,7 @@ import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.property.PropertyOModel;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.form.tenant.FranceConnectTaxForm;
+import fr.dossierfacile.api.front.register.form.tenant.UrlForm;
 import fr.dossierfacile.api.front.register.tenant.DocumentTax;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.PropertyService;
@@ -16,6 +16,7 @@ import fr.dossierfacile.api.front.service.interfaces.UserService;
 import fr.dossierfacile.common.entity.Property;
 import fr.dossierfacile.common.entity.Tenant;
 import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -84,13 +85,12 @@ public class TenantController {
     @PostMapping(value = "/allowTax/{allowTax}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TenantModel> setAllowTax(@PathVariable("allowTax") String allowTax, @RequestBody FranceConnectTaxForm franceConnectTaxForm) {
         Tenant tenant = authenticationFacade.getTenant(franceConnectTaxForm.getTenantId());
-        tenant = documentTaxService.setAllowTax(tenant, allowTax);
-        TenantModel tenantModel = tenantMapper.toTenantModel(tenant);
-        if (tenantModel.getAllowCheckTax()) {
-            if (tenant.getFranceConnect()) {
-                userService.checkDGFIPApi(tenant, franceConnectTaxForm);
-            }
+        Boolean allow = BooleanUtils.toBooleanObject(allowTax, "allow", "disallow", "");
+        documentTaxService.updateAutomaticTaxVerificationConsent(tenant, allow);
+        if (allow && tenant.getFranceConnect()) {
+            userService.checkDGFIPApi(tenant, franceConnectTaxForm);
         }
+        TenantModel tenantModel = tenantMapper.toTenantModel(tenant);
         return ok(tenantModel);
     }
 

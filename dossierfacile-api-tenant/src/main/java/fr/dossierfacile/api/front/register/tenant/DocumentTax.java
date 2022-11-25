@@ -8,8 +8,8 @@ import fr.dossierfacile.api.front.register.form.tenant.DocumentTaxForm;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
-import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
+import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentPdfGenerationLog;
 import fr.dossierfacile.common.entity.Tenant;
@@ -30,6 +30,7 @@ import java.util.List;
 
 import static fr.dossierfacile.common.enums.DocumentSubCategory.MY_NAME;
 import static fr.dossierfacile.common.enums.DocumentSubCategory.OTHER_TAX;
+import static java.util.Collections.singletonList;
 
 @Slf4j
 @Service
@@ -45,8 +46,6 @@ public class DocumentTax implements SaveStep<DocumentTaxForm> {
     private final Producer producer;
     private final ApartmentSharingService apartmentSharingService;
     private final DocumentPdfGenerationLogRepository documentPdfGenerationLogRepository;
-
-    private final KeycloakService keycloakService;
 
     @Override
     public TenantModel saveStep(Tenant tenant, DocumentTaxForm documentTaxForm) {
@@ -109,12 +108,15 @@ public class DocumentTax implements SaveStep<DocumentTaxForm> {
         documentHelperService.deleteFiles(document);
     }
 
-    public Tenant setAllowTax(Tenant tenant, String allowTax) {
-        if ("allow".equals(allowTax)) {
-            tenant.setAllowCheckTax(true);
-        } else if ("disallow".equals(allowTax)) {
-            tenant.setAllowCheckTax(false);
-        }
-        return tenantRepository.save(tenant);
+    public void updateAutomaticTaxVerificationConsent(Tenant loggedTenant, Boolean allowTax) {
+        ApartmentSharing apartmentSharing = loggedTenant.getApartmentSharing();
+        var tenantsToUpdate = switch (apartmentSharing.getApplicationType()) {
+            case COUPLE -> apartmentSharing.getTenants();
+            case ALONE, GROUP -> singletonList(loggedTenant);
+        };
+        tenantsToUpdate.forEach(tenant -> {
+            tenant.setAllowCheckTax(allowTax);
+            tenantRepository.save(tenant);
+        });
     }
 }
