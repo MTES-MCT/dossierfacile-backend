@@ -43,7 +43,7 @@ public class FileController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        var tenant = authenticationFacade.getTenant(null);
+        var tenant = authenticationFacade.getLoggedTenant();
         Document document = fileService.delete(id, tenant);
         if (document != null) {
             documentService.initializeFieldsToProcessPdfGeneration(document);
@@ -57,7 +57,7 @@ public class FileController {
 
     @GetMapping(value = "/resource/{id}", produces = {MediaType.APPLICATION_PDF_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
     public void getPrivateFileAsByteArray(HttpServletResponse response, @PathVariable Long id) {
-        Tenant tenant = authenticationFacade.getTenant(null);
+        Tenant tenant = authenticationFacade.getLoggedTenant();
         File file = fileRepository.findByIdForTenant(id, tenant.getId()).orElseThrow(() -> new FileNotFoundException(id));
 
         try (InputStream in = fileStorageService.download(file)) {

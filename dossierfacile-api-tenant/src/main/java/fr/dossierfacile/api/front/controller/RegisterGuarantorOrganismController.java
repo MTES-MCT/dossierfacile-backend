@@ -36,7 +36,7 @@ public class RegisterGuarantorOrganismController {
         var tenant = authenticationFacade.getTenant(documentIdentificationGuarantorOrganismForm.getTenantId());
         var tenantModel = tenantService.saveStepRegister(tenant, documentIdentificationGuarantorOrganismForm, StepRegister.DOCUMENT_IDENTIFICATION_GUARANTOR_ORGANISM);
         logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
-        Tenant loggedTenant = (documentIdentificationGuarantorOrganismForm.getTenantId() == null)? tenant : authenticationFacade.getTenant(null);
+        Tenant loggedTenant = (documentIdentificationGuarantorOrganismForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
         return ok(tenantMapper.toTenantModel(loggedTenant));
     }
 }

@@ -50,14 +50,14 @@ public class TenantController {
 
     @GetMapping(value = "/profile", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TenantModel> profile() {
-        Tenant tenant = authenticationFacade.getTenant(null);
+        Tenant tenant = authenticationFacade.getLoggedTenant();
         tenantService.updateLastLoginDateAndResetWarnings(tenant);
         return ok(tenantMapper.toTenantModel(tenant));
     }
 
     @PostMapping(value = "/subscribe/{token}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> subscribeApartmentSharingOfTenantToPropertyOfOwner(@PathVariable("token") String propertyToken, @Validated @RequestBody SubscriptionApartmentSharingOfTenantForm subscriptionApartmentSharingOfTenantForm) {
-        Tenant tenant = authenticationFacade.getTenant(null);
+        Tenant tenant = authenticationFacade.getLoggedTenant();
         tenantService.subscribeApartmentSharingOfTenantToPropertyOfOwner(propertyToken, subscriptionApartmentSharingOfTenantForm, tenant);
         return ok().build();
     }
@@ -70,20 +70,20 @@ public class TenantController {
 
     @DeleteMapping("/deleteCoTenant/{id}")
     public ResponseEntity<Void> deleteCoTenant(@PathVariable Long id) {
-        Tenant tenant = authenticationFacade.getTenant(null);
+        Tenant tenant = authenticationFacade.getLoggedTenant();
         return (userService.deleteCoTenant(tenant, id) ? ok() : status(HttpStatus.UNAUTHORIZED)).build();
     }
 
     @PostMapping(value = "/linkTenantToPartner", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> linkTenantToPartner(@Validated @RequestBody PartnerForm partnerForm) {
-        Tenant tenant = authenticationFacade.getTenant(null);
+        Tenant tenant = authenticationFacade.getLoggedTenant();
         userService.linkTenantToPartner(tenant, partnerForm);
         return ok().build();
     }
 
     @PostMapping(value = "/allowTax/{allowTax}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TenantModel> setAllowTax(@PathVariable("allowTax") String allowTax, @RequestBody FranceConnectTaxForm franceConnectTaxForm) {
-        Tenant tenant = authenticationFacade.getTenant(null);
+        Tenant tenant = authenticationFacade.getLoggedTenant();
         Boolean allow = BooleanUtils.toBooleanObject(allowTax, "allow", "disallow", "");
         documentTaxService.updateAutomaticTaxVerificationConsent(tenant, allow);
         if (allow && tenant.getFranceConnect()) {

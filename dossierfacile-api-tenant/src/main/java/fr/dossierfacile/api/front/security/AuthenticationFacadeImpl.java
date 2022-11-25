@@ -18,7 +18,6 @@ import fr.dossierfacile.common.repository.TenantUserApiRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.common.util.Base64Url;
 import org.keycloak.common.util.KeycloakUriBuilder;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,7 +27,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
 
-import javax.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -47,8 +45,6 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
     private final KeycloakService keycloakService;
     private final LogService logService;
     private final DocumentService documentService;
-    private final HttpServletRequest httpServletRequest;
-    private final RealmResource realmResource;
     @Value("${keycloak.server.url}")
     private String keycloakServerUrl;
     @Value("${keycloak.franceconnect.provider}")
@@ -121,7 +117,7 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
                 throw new AccessDeniedException("Access denied id=" + id);
             }
         } else {
-            return getPrincipalAuthTenant();
+            return getLoggedTenant();
         }
     }
 
@@ -130,7 +126,8 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
         return ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClaimAsString("azp");
     }
 
-    private Tenant getPrincipalAuthTenant() {
+    @Override
+    public Tenant getLoggedTenant() {
         String email = getUserEmail();
         Optional<Tenant> tenantOptional = tenantRepository.findByEmail(email);
         Tenant tenant;

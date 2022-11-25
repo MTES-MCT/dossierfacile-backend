@@ -14,7 +14,6 @@ import fr.dossierfacile.api.front.register.form.tenant.DocumentTaxForm;
 import fr.dossierfacile.api.front.register.form.tenant.GuarantorTypeForm;
 import fr.dossierfacile.api.front.register.form.tenant.HonorDeclarationForm;
 import fr.dossierfacile.api.front.register.form.tenant.NamesForm;
-import fr.dossierfacile.api.front.register.tenant.DocumentTax;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.LogService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
@@ -64,7 +63,7 @@ public class RegisterController {
     @PreAuthorize("hasPermissionOnTenant(#namesForm.tenantId)")
     @PostMapping(value = "/names", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TenantModel> names(@Validated(Dossier.class) @RequestBody NamesForm namesForm) throws IllegalAccessException {
-        var loggedTenant = authenticationFacade.getTenant(null);
+        var loggedTenant = authenticationFacade.getLoggedTenant();
         var tenant = (namesForm.getTenantId() == null) ? loggedTenant :
                 loggedTenant.getApartmentSharing().getTenants().stream()
                         .filter(t -> t.getId().equals(namesForm.getTenantId()))
@@ -83,7 +82,7 @@ public class RegisterController {
         Tenant tenant = authenticationFacade.getTenant(applicationForm.getTenantId());
         TenantModel tenantModel = tenantService.saveStepRegister(tenant, applicationForm, StepRegister.APPLICATION_V1);
         logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
-        Tenant loggedTenant = (applicationForm.getTenantId() == null)? tenant : authenticationFacade.getTenant(null);
+        Tenant loggedTenant = (applicationForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
         return ok(tenantMapper.toTenantModel(loggedTenant));
     }
 
@@ -92,7 +91,7 @@ public class RegisterController {
         Tenant tenant = authenticationFacade.getTenant(applicationForm.getTenantId());
         TenantModel tenantModel = tenantService.saveStepRegister(tenant, applicationForm, StepRegister.APPLICATION);
         logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
-        Tenant loggedTenant = (applicationForm.getTenantId() == null)? tenant : authenticationFacade.getTenant(null);
+        Tenant loggedTenant = (applicationForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
         return ok(tenantMapper.toTenantModel(loggedTenant));
     }
 
@@ -102,7 +101,7 @@ public class RegisterController {
         Tenant tenant = authenticationFacade.getTenant(honorDeclarationForm.getTenantId());
         TenantModel tenantModel = tenantService.saveStepRegister(tenant, honorDeclarationForm, StepRegister.HONOR_DECLARATION);
         logService.saveLog(LogType.ACCOUNT_COMPLETED, tenantModel.getId());
-        Tenant loggedTenant = (honorDeclarationForm.getTenantId() == null)? tenant : authenticationFacade.getTenant(null);
+        Tenant loggedTenant = (honorDeclarationForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
         return ok(tenantMapper.toTenantModel(loggedTenant));
     }
 
@@ -112,7 +111,7 @@ public class RegisterController {
         Tenant tenant = authenticationFacade.getTenant(documentIdentificationForm.getTenantId());
         TenantModel tenantModel = tenantService.saveStepRegister(tenant, documentIdentificationForm, StepRegister.DOCUMENT_IDENTIFICATION);
         logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
-        Tenant loggedTenant = (documentIdentificationForm.getTenantId() == null)? tenant : authenticationFacade.getTenant(null);
+        Tenant loggedTenant = (documentIdentificationForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
         return ok(tenantMapper.toTenantModel(loggedTenant));
     }
 
@@ -122,7 +121,7 @@ public class RegisterController {
         Tenant tenant = authenticationFacade.getTenant(documentResidencyForm.getTenantId());
         TenantModel tenantModel = tenantService.saveStepRegister(tenant, documentResidencyForm, StepRegister.DOCUMENT_RESIDENCY);
         logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
-        Tenant loggedTenant = (documentResidencyForm.getTenantId() == null)? tenant : authenticationFacade.getTenant(null);
+        Tenant loggedTenant = (documentResidencyForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
         return ok(tenantMapper.toTenantModel(loggedTenant));
     }
 
@@ -132,7 +131,7 @@ public class RegisterController {
         Tenant tenant = authenticationFacade.getTenant(documentProfessionalForm.getTenantId());
         TenantModel tenantModel = tenantService.saveStepRegister(tenant, documentProfessionalForm, StepRegister.DOCUMENT_PROFESSIONAL);
         logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
-        Tenant loggedTenant = (documentProfessionalForm.getTenantId() == null)? tenant : authenticationFacade.getTenant(null);
+        Tenant loggedTenant = (documentProfessionalForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
         return ok(tenantMapper.toTenantModel(loggedTenant));
     }
 
@@ -142,7 +141,7 @@ public class RegisterController {
         Tenant tenant = authenticationFacade.getTenant(documentFinancialForm.getTenantId());
         TenantModel tenantModel = tenantService.saveStepRegister(tenant, documentFinancialForm, StepRegister.DOCUMENT_FINANCIAL);
         logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
-        Tenant loggedTenant = (documentFinancialForm.getTenantId() == null)? tenant : authenticationFacade.getTenant(null);
+        Tenant loggedTenant = (documentFinancialForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
         return ok(tenantMapper.toTenantModel(loggedTenant));
     }
 
@@ -152,14 +151,14 @@ public class RegisterController {
         Tenant tenant = authenticationFacade.getTenant(documentTaxForm.getTenantId());
         TenantModel tenantModel = tenantService.saveStepRegister(tenant, documentTaxForm, StepRegister.DOCUMENT_TAX);
         logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
-        Tenant loggedTenant = (documentTaxForm.getTenantId() == null)? tenant : authenticationFacade.getTenant(null);
+        Tenant loggedTenant = (documentTaxForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
         return ok(tenantMapper.toTenantModel(loggedTenant));
     }
 
     @PreAuthorize("hasPermissionOnTenant(#guarantorTypeForm.tenantId)")
     @PostMapping(value = "/guarantorType", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TenantModel> guarantor(@RequestBody @Validated(Dossier.class) GuarantorTypeForm guarantorTypeForm) throws IllegalAccessException {
-        var loggedTenant = authenticationFacade.getTenant(null);
+        var loggedTenant = authenticationFacade.getLoggedTenant();
         var tenant = (guarantorTypeForm.getTenantId() == null) ? loggedTenant :
                 loggedTenant.getApartmentSharing().getTenants().stream()
                         .filter(t -> t.getId().equals(guarantorTypeForm.getTenantId()))

@@ -20,7 +20,7 @@ public class GuarantorController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        var tenant = authenticationFacade.getTenant(null);
+        var tenant = authenticationFacade.getLoggedTenant();
         try {
             guarantorService.delete(id, tenant);
         } catch (GuarantorNotFoundException e) {

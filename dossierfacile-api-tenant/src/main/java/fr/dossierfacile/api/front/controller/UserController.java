@@ -38,7 +38,7 @@ public class UserController {
     @PostMapping(value = "/createPassword", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation("Set a new Password to logged user")
     public ResponseEntity<TenantModel> createPassword(@Validated @RequestBody PasswordForm password) {
-        return ok(userService.createPassword(authenticationFacade.getTenant(null), password.getPassword()));
+        return ok(userService.createPassword(authenticationFacade.getLoggedTenant(), password.getPassword()));
     }
 
     @PostMapping(value = "/createPassword/{token}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -48,7 +48,7 @@ public class UserController {
 
     @DeleteMapping("/deleteAccount")
     public ResponseEntity<Void> deleteAccount() {
-        Tenant tenant = authenticationFacade.getTenant(null);
+        Tenant tenant = authenticationFacade.getLoggedTenant();
         userService.deleteAccount(tenant);
         return ok().build();
     }
@@ -56,14 +56,14 @@ public class UserController {
     @DeleteMapping("/franceConnect")
     @ApiOperation("Unlink account from FranceConnect")
     public ResponseEntity<Void> unlinkFranceConnect() {
-        Tenant tenant = authenticationFacade.getTenant(null);
+        Tenant tenant = authenticationFacade.getLoggedTenant();
         userService.unlinkFranceConnect(tenant);
         return ok().build();
     }
 
     @PostMapping("/logout")
     public ResponseEntity<Void> logout() {
-        Tenant tenant = authenticationFacade.getTenant(null);
+        Tenant tenant = authenticationFacade.getLoggedTenant();
         userService.logout(tenant);
         return ok().build();
     }

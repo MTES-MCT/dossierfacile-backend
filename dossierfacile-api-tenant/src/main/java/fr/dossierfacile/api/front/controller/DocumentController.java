@@ -34,7 +34,7 @@ public class DocumentController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        var tenant = authenticationFacade.getTenant(null);
+        var tenant = authenticationFacade.getLoggedTenant();
         documentService.delete(id, tenant);
         return ResponseEntity.ok().build();
     }

@@ -39,7 +39,7 @@ public class RegisterGuarantorLegalPersonController {
         var tenant = authenticationFacade.getTenant(nameGuarantorLegalPersonForm.getTenantId());
         var tenantModel = tenantService.saveStepRegister(tenant, nameGuarantorLegalPersonForm, StepRegister.NAME_GUARANTOR_LEGAL_PERSON);
         logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
-        Tenant loggedTenant = (nameGuarantorLegalPersonForm.getTenantId() == null)? tenant : authenticationFacade.getTenant(null);
+        Tenant loggedTenant = (nameGuarantorLegalPersonForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
         return ok(tenantMapper.toTenantModel(loggedTenant));
     }
 
@@ -49,7 +49,7 @@ public class RegisterGuarantorLegalPersonController {
         Tenant tenant = authenticationFacade.getTenant(documentIdentificationGuarantorLegalPersonForm.getTenantId());
         TenantModel tenantModel = tenantService.saveStepRegister(tenant, documentIdentificationGuarantorLegalPersonForm, StepRegister.DOCUMENT_IDENTIFICATION_GUARANTOR_LEGAL_PERSON);
         logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
-        Tenant loggedTenant = (documentIdentificationGuarantorLegalPersonForm.getTenantId() == null)? tenant : authenticationFacade.getTenant(null);
+        Tenant loggedTenant = (documentIdentificationGuarantorLegalPersonForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
         return ok(tenantMapper.toTenantModel(loggedTenant));
     }
 
@@ -59,7 +59,7 @@ public class RegisterGuarantorLegalPersonController {
         Tenant tenant = authenticationFacade.getTenant(documentIdentificationRepresentantGuarantorLegalPersonForm.getTenantId());
         TenantModel tenantModel = tenantService.saveStepRegister(tenant, documentIdentificationRepresentantGuarantorLegalPersonForm, StepRegister.DOCUMENT_IDENTIFICATION_REPRESENTANT_GUARANTOR_LEGAL_PERSON);
         logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
-        Tenant loggedTenant = (documentIdentificationRepresentantGuarantorLegalPersonForm.getTenantId() == null)? tenant : authenticationFacade.getTenant(null);
+        Tenant loggedTenant = (documentIdentificationRepresentantGuarantorLegalPersonForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
         return ok(tenantMapper.toTenantModel(loggedTenant));
     }
 }
