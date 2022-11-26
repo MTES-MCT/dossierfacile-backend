@@ -122,4 +122,16 @@ public class MockStorage implements FileStorageService {
         }
         return name;
     }
+
+    @Override
+    public String uploadByteArray(byte[] file, String extension, Key key) {
+        String name = UUID.randomUUID() + "." + Objects.requireNonNull(extension).toLowerCase(Locale.ROOT);
+        try {
+            InputStream targetStream = new ByteArrayInputStream(file);
+            upload(name, targetStream, key);
+        } catch (IOException e) {
+            throw new FileCannotUploadedException();
+        }
+        return name;
+    }
 }

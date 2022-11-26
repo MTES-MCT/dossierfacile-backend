@@ -1,6 +1,7 @@
 package fr.dossierfacile.api.front.repository;
 
 import fr.dossierfacile.common.entity.File;
+import fr.dossierfacile.common.entity.Guarantor;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.TypeGuarantor;
@@ -104,4 +105,24 @@ public interface FileRepository extends JpaRepository<File, Long> {
 
     @Query(value = "select path FROM file WHERE document_id = :documentId", nativeQuery = true)
     List<String> getFilePathsByDocumentId(@Param("documentId") Long documentId);
+
+    Optional<File> findByPreview(String preview);
+
+    @Query(value = """
+            select f.*
+            from file f
+              join document d on f.document_id = d.id
+              join tenant t on t.id = d.tenant_id
+            where t.apartment_sharing_id = :apartId
+              and f.id = :fileId
+            union
+            select f2.*
+            from file f2
+              join document d2 on f2.document_id = d2.id
+              join guarantor g on d2.guarantor_id = g.id
+              join tenant t2 on t2.id = g.tenant_id
+            where t2.apartment_sharing_id = :apartId
+              and f2.id = :fileId
+            """, nativeQuery = true)
+    Optional<File> findByIdForAppartmentSharing(@Param("fileId") Long id, @Param("apartId") Long apartId);
 }

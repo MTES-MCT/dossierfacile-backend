@@ -1,15 +1,16 @@
 package fr.dossierfacile.api.front.service;
 
 import fr.dossierfacile.api.front.exception.FileNotFoundException;
+import fr.dossierfacile.api.front.exception.GuarantorNotFoundException;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.repository.FileRepository;
-import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.FileService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
+import fr.dossierfacile.common.entity.Guarantor;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
@@ -26,7 +27,6 @@ public class FileServiceImpl implements FileService {
     private final FileStorageService fileStorageService;
     private final FileRepository fileRepository;
     private final DocumentRepository documentRepository;
-    private final AuthenticationFacade authenticationFacade;
     private final DocumentService documentService;
     private final TenantService tenantService;
     private final ApartmentSharingService apartmentSharingService;
@@ -34,7 +34,7 @@ public class FileServiceImpl implements FileService {
     @Override
     @Transactional
     public Document delete(Long id, Tenant tenant) {
-        File file = fileRepository.findByIdForTenant(id, tenant.getId()).orElseThrow(() -> new FileNotFoundException(id, tenant));
+        File file = fileRepository.findByIdForAppartmentSharing(id, tenant.getApartmentSharing().getId()).orElseThrow(() -> new FileNotFoundException(id, tenant));
 
         Document document = file.getDocument();
 
@@ -57,4 +57,6 @@ public class FileServiceImpl implements FileService {
             return documentSaved;
         }
     }
+
+
 }
