@@ -36,9 +36,12 @@ public class HonorDeclaration implements SaveStep<HonorDeclarationForm> {
     public TenantModel saveStep(Tenant tenant, HonorDeclarationForm honorDeclarationForm) {
         updateHonorDeclaration(tenant, honorDeclarationForm.isHonorDeclaration());
         tenant.setClarification(honorDeclarationForm.getClarification());
-        tenant.lastUpdateDateProfile(LocalDateTime.now(), null);
 
-        tenantService.updateTenantStatus(tenant);
+        getTenantOrPartners(tenant)
+                .forEach(t -> {
+                    t.lastUpdateDateProfile(LocalDateTime.now(), null);
+                    tenantService.updateTenantStatus(t);
+                });
         Tenant tenantSaved = tenantRepository.save(tenant);
 
         sendFileToBeProcessed(tenant);

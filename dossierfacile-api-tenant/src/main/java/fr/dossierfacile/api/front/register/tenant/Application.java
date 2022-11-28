@@ -101,13 +101,15 @@ public class Application implements SaveStep<ApplicationFormV2> {
 
         Set<Tenant> joinTenants = tenants.stream().map(
                 tenant -> {
-
                     Tenant joinTenant = new Tenant(
                             tenant.getFirstName(),
                             tenant.getLastName(),
                             tenant.getPreferredName(),
                             StringUtils.isBlank(tenant.getEmail()) ? null : tenant.getEmail(),
                             apartmentSharing);
+                    if (Boolean.TRUE.equals(tenantCreate.getHonorDeclaration())){
+                        joinTenant.setHonorDeclaration(true);
+                    }
                     tenantRepository.save(joinTenant);
 
                     if (StringUtils.isNotBlank(tenant.getEmail())) {
