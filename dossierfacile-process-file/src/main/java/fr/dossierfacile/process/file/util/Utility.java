@@ -18,6 +18,7 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.text.PDFTextStripper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.awt.image.BufferedImage;
@@ -45,7 +46,8 @@ public class Utility {
     private static final String EXCEPTION = "Sentry ID Exception: ";
     private static final String EXCEPTION_MESSAGE2 = "Exception while trying extract text to pdf";
     private final FileStorageService fileStorageService;
-
+    @Value("${directory.ocr.path:/app/ocr}")
+    private String ocrDirectoryPath;
     private static final char ASCII_GROUP_SEPARATOR = (char)29;
     private static final char ASCII_UNIT_SEPARATOR = (char)31;
 
@@ -98,9 +100,13 @@ public class Utility {
 
     public java.io.File getTemporaryFile(File dfFile) {
         try (InputStream fileInputStream = fileStorageService.download(dfFile)) {
-            java.io.File myFilesDirectory = new java.io.File("myfiles");
-            if (!myFilesDirectory.mkdir()){
-                throw new IOException("Unable to create myfiles directory - fallback to temp");
+            java.io.File myFilesDirectory = new java.io.File(ocrDirectoryPath);
+            try{
+                if (!myFilesDirectory.mkdir()){
+                    throw new IOException("Unable to create directory: " + ocrDirectoryPath);
+                }
+            } catch(Exception e){
+                throw new IOException("Security : Unable to create directory: " + ocrDirectoryPath, e);
             }
 
             java.io.File tempFile = java.io.File.createTempFile("tmp", dfFile.getPath(), myFilesDirectory );
