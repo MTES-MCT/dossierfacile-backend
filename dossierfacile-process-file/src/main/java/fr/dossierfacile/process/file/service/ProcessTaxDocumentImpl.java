@@ -192,9 +192,13 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
                     .map(dfFile -> utility.getTemporaryFile(dfFile))
                     .map(file -> {
                         String extractedText = apiTesseract.extractText(file);
-                        if (!file.delete()) {
-                            log.warn("Unable to delete file");
-                        };
+                        try {
+                            if (!file.delete()) {
+                                log.warn("Unable to delete file");
+                            }
+                        } catch (Exception e) {
+                            log.warn("Unable to delete file", e);
+                        }
                         return extractedText;
                     })
                     .reduce("", String::concat);
@@ -277,9 +281,13 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
             } else {
                 java.io.File tmpFile = utility.getTemporaryFile(pdf);
                 String tesseractResult = apiTesseract.extractText(tmpFile);
-                if (!tmpFile.delete()) {
-                    log.warn("Unable to delete file");
-                };
+                try {
+                    if (!tmpFile.delete()) {
+                        log.warn("Unable to delete file");
+                    }
+                } catch (Exception e) {
+                    log.warn("Unable to delete file", e);
+                }
 
                 AtomicInteger ii = new AtomicInteger();
                 listResponse.forEach(element -> {
