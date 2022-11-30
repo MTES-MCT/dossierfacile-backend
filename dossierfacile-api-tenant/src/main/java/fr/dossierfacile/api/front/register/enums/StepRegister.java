@@ -3,6 +3,7 @@ package fr.dossierfacile.api.front.register.enums;
 import fr.dossierfacile.api.front.register.guarantor.legal_person.DocumentIdentificationGuarantorLegalPerson;
 import fr.dossierfacile.api.front.register.guarantor.legal_person.DocumentIdentificationRepresentanGuarantorLegalPerson;
 import fr.dossierfacile.api.front.register.guarantor.legal_person.NameGuarantorLegalPerson;
+import fr.dossierfacile.api.front.register.guarantor.legal_person.NameRepresentantGuarantorLegalPerson;
 import fr.dossierfacile.api.front.register.guarantor.natural_person.DocumentFinancialGuarantorNaturalPerson;
 import fr.dossierfacile.api.front.register.guarantor.natural_person.DocumentIdentificationGuarantorNaturalPerson;
 import fr.dossierfacile.api.front.register.guarantor.natural_person.DocumentIdentificationGuarantorNaturalPersonFile;
@@ -38,7 +39,8 @@ public enum StepRegister {
     DOCUMENT_IDENTIFICATION_GUARANTOR_LEGAL_PERSON(DocumentIdentificationGuarantorLegalPerson.class.getName()),
     DOCUMENT_IDENTIFICATION_REPRESENTANT_GUARANTOR_LEGAL_PERSON(DocumentIdentificationRepresentanGuarantorLegalPerson.class.getName()),
     GUARANTOR_TYPE(GuarantorType.class.getName()),
-    NAME_GUARANTOR_LEGAL_PERSON(NameGuarantorLegalPerson.class.getName());
+    NAME_GUARANTOR_LEGAL_PERSON(NameGuarantorLegalPerson.class.getName()),
+    NAME_IDENTIFICATION_REPRESENTANT_GUARANTOR_LEGAL_PERSON(NameRepresentantGuarantorLegalPerson.class.getName());
     private final String label;
 
     StepRegister(String label) {

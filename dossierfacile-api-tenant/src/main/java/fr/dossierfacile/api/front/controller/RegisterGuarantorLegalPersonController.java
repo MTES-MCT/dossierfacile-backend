@@ -6,6 +6,7 @@ import fr.dossierfacile.api.front.register.enums.StepRegister;
 import fr.dossierfacile.api.front.register.form.guarantor.legal_person.DocumentIdentificationGuarantorLegalPersonForm;
 import fr.dossierfacile.api.front.register.form.guarantor.legal_person.DocumentIdentificationRepresentanGuarantorLegalPersonForm;
 import fr.dossierfacile.api.front.register.form.guarantor.legal_person.NameGuarantorLegalPersonForm;
+import fr.dossierfacile.api.front.register.form.guarantor.legal_person.NameGuarantorRepresentantLegalPersonForm;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.LogService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
@@ -60,6 +61,16 @@ public class RegisterGuarantorLegalPersonController {
         TenantModel tenantModel = tenantService.saveStepRegister(tenant, documentIdentificationRepresentantGuarantorLegalPersonForm, StepRegister.DOCUMENT_IDENTIFICATION_REPRESENTANT_GUARANTOR_LEGAL_PERSON);
         logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
         Tenant loggedTenant = (documentIdentificationRepresentantGuarantorLegalPersonForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
+        return ok(tenantMapper.toTenantModel(loggedTenant));
+    }
+
+    @PreAuthorize("hasPermissionOnTenant(#nameGuarantorRepresentantLegalPersonForm.tenantId)")
+    @PostMapping("/representing-name")
+    public ResponseEntity<TenantModel> guarantorRepresentingName(@Validated(Dossier.class) NameGuarantorRepresentantLegalPersonForm nameGuarantorRepresentantLegalPersonForm) {
+        var tenant = authenticationFacade.getTenant(nameGuarantorRepresentantLegalPersonForm.getTenantId());
+        var tenantModel = tenantService.saveStepRegister(tenant, nameGuarantorRepresentantLegalPersonForm, StepRegister.NAME_IDENTIFICATION_REPRESENTANT_GUARANTOR_LEGAL_PERSON);
+        logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
+        Tenant loggedTenant = (nameGuarantorRepresentantLegalPersonForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
         return ok(tenantMapper.toTenantModel(loggedTenant));
     }
 }
