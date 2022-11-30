@@ -187,7 +187,7 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
         String fiscalNumber = Utility.extractFiscalNumber(result.toString());
         String referenceNumber = Utility.extractReferenceNumber(result.toString());
 
-        if (fiscalNumber.equals("") || referenceNumber.equals("")) {
+        if (StringUtils.isBlank(fiscalNumber) || StringUtils.isBlank(referenceNumber)) {
             String text = files.stream()
                     .map(dfFile -> utility.getTemporaryFile(dfFile))
                     .map(file -> {
@@ -203,10 +203,10 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
                     })
                     .reduce("", String::concat);
 
-            if (fiscalNumber.equals("")) {
+            if (StringUtils.isBlank(fiscalNumber)) {
                 fiscalNumber = Utility.extractFiscalNumber(text);
             }
-            if (referenceNumber.equals("")) {
+            if (StringUtils.isBlank(referenceNumber)) {
                 referenceNumber = Utility.extractReferenceNumber(text);
             }
         }
@@ -223,13 +223,13 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
         TaxDocument taxDocument = new TaxDocument();
         boolean test1 = false;
         boolean test2 = false;
-        if (!fiscalNumber.equals("")) {
+        if (StringUtils.isNotBlank(fiscalNumber)) {
             log.info("Call to particulier api");
             ResponseEntity<Taxes> taxesResponseEntity;
             if (newApi) {
                 taxesResponseEntity = apiParticulier.particulierApi(fiscalNumber);
             } else {
-                if (referenceNumber.equals("")) {
+                if (StringUtils.isBlank(referenceNumber)) {
                     return taxDocument;
                 }
                 taxesResponseEntity = apiParticulier.particulierApi(fiscalNumber, referenceNumber);
@@ -253,14 +253,14 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
                     taxDocument.setDeclarant1(taxesResponseEntity.getBody().getDeclarant1().toString());
                     taxDocument.setDeclarant2(taxesResponseEntity.getBody().getDeclarant2().toString());
                     taxDocument.setAnualSalary(taxesResponseEntity.getBody().getRevenuFiscalReference());
-                    taxDocument.setReferenceNumber(referenceNumber.equals("") ? "fail" : referenceNumber);
+                    taxDocument.setReferenceNumber(StringUtils.isBlank(referenceNumber) ? "fail" : referenceNumber);
                 }
             }
         }
 
         taxDocument.setTest1(test1);
         taxDocument.setTest2(test2);
-        taxDocument.setFiscalNumber(fiscalNumber.equals("") ? "fail" : fiscalNumber);
+        taxDocument.setFiscalNumber(StringUtils.isBlank(fiscalNumber) ? "fail" : fiscalNumber);
         return taxDocument;
     }
 
