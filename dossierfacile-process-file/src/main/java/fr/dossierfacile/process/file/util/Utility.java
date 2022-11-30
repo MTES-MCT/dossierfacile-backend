@@ -101,12 +101,16 @@ public class Utility {
     public java.io.File getTemporaryFile(File dfFile) {
         try (InputStream fileInputStream = fileStorageService.download(dfFile)) {
             java.io.File myFilesDirectory = new java.io.File(ocrDirectoryPath);
-            try{
-                if (!myFilesDirectory.mkdir()){
-                    throw new IOException("Unable to create directory: " + ocrDirectoryPath);
+            try {
+                if (!myFilesDirectory.exists()) {
+                    if (!myFilesDirectory.mkdir()) {
+                        log.error("Unable create directory 'mkdir returns false':" + ocrDirectoryPath);
+                        throw new IOException("Unable to create directory " + ocrDirectoryPath);
+                    }
                 }
-            } catch(Exception e){
-                throw new IOException("Security : Unable to create directory: " + ocrDirectoryPath, e);
+            } catch (SecurityException e) {
+                log.error("Security : Unable read/write directory " + ocrDirectoryPath + ":" + e.getCause(), e);
+                throw e;
             }
 
             java.io.File tempFile = java.io.File.createTempFile("tmp", dfFile.getPath(), myFilesDirectory );
