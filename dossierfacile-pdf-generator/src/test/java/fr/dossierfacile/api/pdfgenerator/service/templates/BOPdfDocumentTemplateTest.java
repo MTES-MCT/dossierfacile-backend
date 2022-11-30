@@ -30,7 +30,7 @@ public class BOPdfDocumentTemplateTest {
 
     @BeforeEach
     void init() {
-        Mockito.when(messageSource.getMessage(any(),any(),any(),any() )).thenReturn(BOPdfDocumentTemplate.DEFAULT_WATERMARK);
+        Mockito.lenient().when(messageSource.getMessage(any(),any(),any(),any() )).thenReturn(BOPdfDocumentTemplate.DEFAULT_WATERMARK);
     }
 
     @Disabled

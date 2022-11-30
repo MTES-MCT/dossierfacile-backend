@@ -16,4 +16,6 @@ public class FileModel {
     private String path;
     private String originalName;
     private Long size;
+    private int numberOfPages;
+    private String contentType;
 }

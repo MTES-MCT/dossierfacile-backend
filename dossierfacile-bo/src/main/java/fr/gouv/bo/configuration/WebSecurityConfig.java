@@ -1,13 +1,9 @@
 package fr.gouv.bo.configuration;
 
 import com.google.gson.Gson;
-import com.mailjet.client.ClientOptions;
-import com.mailjet.client.MailjetClient;
-import fr.gouv.bo.security.RedirectAuthenticationSuccessHandler;
 import nz.net.ultraq.thymeleaf.LayoutDialect;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -20,6 +16,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.client.web.HttpSessionOAuth2AuthorizationRequestRepository;
+import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
 import org.springframework.security.web.header.writers.StaticHeadersWriter;
@@ -33,11 +30,6 @@ import java.util.concurrent.Executor;
 @EnableAsync
 @EnableGlobalMethodSecurity(securedEnabled = true, prePostEnabled = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
-
-    @Value("${spring.mail.username}")
-    private String username;
-    @Value("${spring.mail.password}")
-    private String password;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -55,7 +47,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .httpStrictTransportSecurity()
                 .and()
-                .addHeaderWriter(new StaticHeadersWriter("X-Content-Security-Policy","script-src 'self'"))
+                .addHeaderWriter(new StaticHeadersWriter("X-Content-Security-Policy", "script-src 'self'"))
                 .frameOptions()
                 .sameOrigin()
                 .and()
@@ -64,25 +56,22 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .httpBasic()
                 .disable()
                 .authorizeRequests()
-                .antMatchers( "/","/login/auth/**", "/login/oauth2/**,","/actuator/health")
+                .antMatchers("/", "/login", "/login/auth/**", "/login/oauth2/**,", "/actuator/health")
                 .permitAll()
-                .antMatchers("/bo/userApi", "/bo/userApi/**", "/bo/admin", "/bo/admin/**", "/bo/statistic/admin", "/bo/timeServeTenant", "/bo/deleteAccount", "/bo/sleepMode","/bo/create/admin").access("hasAnyRole('ROLE_ADMIN')")
+                .antMatchers("/bo/userApi", "/bo/userApi/**", "/bo/admin", "/bo/admin/**", "/bo/statistic/admin", "/bo/timeServeTenant", "/bo/deleteAccount", "/bo/sleepMode", "/bo/create/admin").access("hasAnyRole('ROLE_ADMIN')")
                 .antMatchers("/bo/nextApplicationQuickly").access("hasAnyRole('ROLE_OPERATOR','ROLE_ADMIN')")
                 .antMatchers("/bo/**", "/bo").access("hasAnyRole('ROLE_OPERATOR','ROLE_ADMIN','ROLE_OPERATOR_AWAY')")
                 .anyRequest()
                 .authenticated()
                 .and()
                 .oauth2Login()
-                .successHandler(redirectAuthenticationSuccessHandler())
+                .loginPage("/login")
+                .successHandler(new SavedRequestAwareAuthenticationSuccessHandler())
                 .and()
-                .logout();
+                .logout()
+                .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID", "JWT", "_csrf");
         // @formatter:on
-
-    }
-
-    @Bean
-    public RedirectAuthenticationSuccessHandler redirectAuthenticationSuccessHandler() {
-        return new RedirectAuthenticationSuccessHandler();
     }
 
     @Bean
@@ -118,12 +107,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public MailjetClient mailjetClient() {
-        return new MailjetClient(username, password, new ClientOptions("v3.1"));
-    }
-
-    @Bean
-    public Executor asyncExecutor() {
+    public Executor taskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(2);
         executor.setMaxPoolSize(2);

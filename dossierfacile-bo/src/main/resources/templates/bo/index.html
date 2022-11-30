@@ -18,19 +18,25 @@
     <div class="col-md-12" >
         <div class="row">
             <div class="" style="display: inline-grid;grid-auto-columns: max-content; margin-left: 20px; float: left">
-                <div th:if="${loginUser} == true">
-                    <a href="/bo/create/admin" class="btn" id="nextApplication2" style="background: #e63d3d;padding: 10px 16px 12px;float: left;color: aliceblue;font-size: large;margin-left: 10px;">Ajouter
-                        un admin</a>
+                <div th:if="${isUserAdmin} == true">
+                    <a href="/bo/create/admin" class="btn" id="nextApplication2" style="background: #e63d3d;padding: 10px 16px 12px;float: left;color: aliceblue;font-size: large;margin-left: 10px;">
+                        Ajouter un admin
+                    </a>
+                </div>
+                <div th:if="${isUserAdmin} == true">
+                    <a href="/bo/documentDeniedOptions" class="btn" id="editMessages" style="background: #e63d3d;padding: 10px 16px 12px;float: left;color: aliceblue;font-size: large;margin-left: 10px;margin-top: 10px">
+                        Editer les messages
+                    </a>
                 </div>
                 <div style="margin-top: 10px">
-                    <a href="/bo/regroup" class="btn" id="nextApplication3" style="background: #1f6685;padding: 10px 10px 12px;float: left;color: aliceblue;font-size: large;margin-left: 10px;">Regroup 2 tenants</a>
+                    <a href="/bo/regroup" class="btn" id="nextApplication3" style="background: #1f6685;padding: 10px 10px 12px;float: left;color: aliceblue;font-size: large;margin-left: 10px;">Regrouper deux locataires</a>
                 </div>
             </div>
             <div class="" style="display: inline-grid;grid-auto-columns: max-content;
             justify-content: right; margin-right: 10px; float: right">
                 <div class="counter" style="float: right;font-family: 'Poppins', sans-serif;position: relative;z-index: 1;background: bisque;">
                     <h3 style="font-size: 18px;color: red;padding: 10px 10px 6px;margin-top: -2px;">Tenants to process:
-                        <span class="counter-value" style="font-size: large; font-weight: bold; color: black;" th:text="${tenantToProcess}"></span></h3>
+                        <span class="counter-value" style="font-size: large; font-weight: bold; color: black;" th:text="${numberOfTenantsToProcess}"></span></h3>
                 </div>
                 <div class="counter" style="float: right;font-family: 'Poppins', sans-serif;text-align: center;position: relative;z-index: 1;background: bisque;margin-top: 10px;">
                     <a class="btn button2" th:href="@{/bo/documentFailedList}"  style="transition-duration: 0.4s;cursor: pointer;border-radius: inherit;border-bottom: solid; font-size: 18px; color: red; padding: 10px; margin-top: -2px;">Tenants with failed PDF generation:
@@ -48,7 +54,7 @@
 
     <div class="container">
         <div class="text-center margin-bottom">
-            <span th:text="${tenants.getTotalElements()} +' TO PROCESS FILES'"></span>
+            <span th:text="${tenants.getTotalElements()} +' DOSSIERS A VALIDER'"></span>
         </div>
         <div class="text-center margin-bottom">
             <a th:href="@{/bo/nextApplication}" class="btn btn-primary" id="nextApplication">Next Application</a>
@@ -68,13 +74,10 @@
                 </thead>
                 <tr th:each="tenant : ${tenants}">
                     <td><a class="btn btn-warning bo-btn" th:href="'/bo/nextApplication?tenant_id='+${tenant.getId()}">
-                        vérifier pièce par pièce
+                        Vérifier pièce par pièce
                     </a></td>
                     <td>
                         <span th:text="${tenant.getId()}"></span>
-                        <!--   <span th:if="${tenant.getUserApis().size() > 0}"
-                                 th:text="${tenant.getPartnerId()!=null?tenant.getPartnerId():'api'}"
-                                 class="label label-info"></span>-->
                     </td>
                     <td th:text="${#temporals.format(tenant.getCreationDateTime(), 'yyyy-MM-dd HH:mm:ss')}"></td>
                     <td th:text="${tenant.getFirstName()}"></td>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en"
+<html lang="fr"
       layout:decorator="bo/process-file-layout"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       xmlns:th="http://www.thymeleaf.org">
@@ -82,11 +82,11 @@
                                         <span th:text="'Income : ' + ${messageItem.getMonthlySum()}"></span>
                                     </h4>
                                     <h4 class="panel-title letter" style="padding-top: 7px"
-                                        th:if="${messageItem.taxDocument}!=null and ${messageItem.taxDocument.qrContent}==null">
+                                        th:if="${messageItem.taxDocument}!=null and ${messageItem.taxDocument.qrContent}==null and ${messageItem.taxDocument.getFiscalNumber()}!=null">
                                         <span th:text="'Fiscal Number : ' + ${messageItem.taxDocument.getFiscalNumber().toString()}"></span>
                                     </h4>
                                     <h4 class="panel-title letter" style="padding-top: 7px"
-                                        th:if="${messageItem.taxDocument}!=null and ${messageItem.taxDocument.qrContent}==null">
+                                        th:if="${messageItem.taxDocument}!=null and ${messageItem.taxDocument.qrContent}==null and ${messageItem.taxDocument.getReferenceNumber()}!=null">
                                         <span th:text="'Reference Number : ' + ${messageItem.taxDocument.getReferenceNumber().toString()}"></span>
                                     </h4>
                                     <h4 class="panel-title letter" style="padding-top: 7px"
@@ -190,9 +190,11 @@
                                         <input style="padding-left: 10px;"
                                                th:field="*{messageItems[__${i.index}__].itemDetailList[__${j.index}__].check}"
                                                type="checkbox"/>
-                                        <input style="padding-left: 10px;"
-                                               th:field="*{messageItems[__${i.index}__].itemDetailList[__${j.index}__].message}"
+                                        <input th:field="*{messageItems[__${i.index}__].itemDetailList[__${j.index}__].message}"
                                                th:value="${itemDetail.getMessage()}"
+                                               type="hidden"/>
+                                        <input th:field="*{messageItems[__${i.index}__].itemDetailList[__${j.index}__].idOptionMessage}"
+                                               th:value="${itemDetail.getIdOptionMessage()}"
                                                type="hidden"/>
                                         <p class="span1" style="display:block;"
                                            th:utext="${itemDetail.getMessage()}"></p>
@@ -268,11 +270,11 @@
                                             <span th:text="'Legal Person Name : ' + ${guarantorItem.getLegalPersonName()}"></span>
                                         </h4>
                                         <h4 class="panel-title letter" style="padding-top: 7px"
-                                            th:if="${messageItem.taxDocument}!=null and ${messageItem.taxDocument.qrContent}==null">
+                                            th:if="${messageItem.taxDocument}!=null and ${messageItem.taxDocument.qrContent}==null and ${messageItem.taxDocument.getFiscalNumber()}!=null">
                                             <span th:text="'Fiscal Number : ' + ${messageItem.taxDocument.getFiscalNumber().toString()}"></span>
                                         </h4>
                                         <h4 class="panel-title letter" style="padding-top: 7px"
-                                            th:if="${messageItem.taxDocument}!=null and ${messageItem.taxDocument.qrContent}==null">
+                                            th:if="${messageItem.taxDocument}!=null and ${messageItem.taxDocument.qrContent}==null and ${messageItem.taxDocument.getReferenceNumber()}!=null">
                                             <span th:text="'Reference Number : ' + ${messageItem.taxDocument.getReferenceNumber().toString()}"></span>
                                         </h4>
                                         <h4 class="panel-title letter" style="padding-top: 7px"
@@ -374,9 +376,11 @@
                                             <input style="padding-left: 10px;"
                                                    th:field="*{guarantorItems[__${k.index}__].messageItems[__${i.index}__].itemDetailList[__${j.index}__].check}"
                                                    type="checkbox"/>
-                                            <input style="padding-left: 10px;"
-                                                   th:field="*{guarantorItems[__${k.index}__].messageItems[__${i.index}__].itemDetailList[__${j.index}__].message}"
+                                            <input th:field="*{guarantorItems[__${k.index}__].messageItems[__${i.index}__].itemDetailList[__${j.index}__].message}"
                                                    th:value="${itemDetail.getMessage()}"
+                                                   type="hidden"/>
+                                            <input th:field="*{guarantorItems[__${k.index}__].messageItems[__${i.index}__].itemDetailList[__${j.index}__].idOptionMessage}"
+                                                   th:value="${itemDetail.getIdOptionMessage()}"
                                                    type="hidden"/>
                                             <span class="span1" th:text="${itemDetail.getMessage()}"></span>
                                         </label>

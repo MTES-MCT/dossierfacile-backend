@@ -26,22 +26,22 @@ public class Producer {
     //File process
     @Value("${rabbitmq.exchange.file.process}")
     private String exchangeFileProcess;
-    @Value("${rabbitmq.routing.key.ocr}")
-    private String routingKeyOcr;
+    @Value("${rabbitmq.routing.key.tax}")
+    private String routingKeyFieProcessTax;
 
     //Pdf generation
     @Value("${rabbitmq.exchange.pdf.generator}")
     private String exchangePdfGenerator;
-    @Value("${rabbitmq.routing.key.pdf.generator}")
+    @Value("${rabbitmq.routing.key.pdf.generator.watermark-document}")
     private String routingKeyPdfGenerator;
     @Value("${rabbitmq.routing.key.pdf.generator.apartment-sharing}")
     private String routingKeyPdfGeneratorApartmentSharing;
 
     @Async
-    public void processFileOcr(Long id) {
+    public void processFileTax(Long id) {
         TenantModel tenantModel = TenantModel.builder().id(id).build();
         log.info("Send process file");
-        amqpTemplate.convertAndSend(exchangeFileProcess, routingKeyOcr, gson.toJson(tenantModel));
+        amqpTemplate.convertAndSend(exchangeFileProcess, routingKeyFieProcessTax, gson.toJson(tenantModel));
     }
 
     @Async

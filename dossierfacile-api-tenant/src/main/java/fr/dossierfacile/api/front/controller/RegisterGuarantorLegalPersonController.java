@@ -4,6 +4,7 @@ import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.enums.StepRegister;
 import fr.dossierfacile.api.front.register.form.guarantor.legal_person.DocumentIdentificationGuarantorLegalPersonForm;
 import fr.dossierfacile.api.front.register.form.guarantor.legal_person.DocumentIdentificationRepresentanGuarantorLegalPersonForm;
+import fr.dossierfacile.api.front.register.form.guarantor.legal_person.NameGuarantorLegalPersonForm;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.LogService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
@@ -29,6 +30,14 @@ public class RegisterGuarantorLegalPersonController {
     private final TenantService tenantService;
     private final AuthenticationFacade authenticationFacade;
     private final LogService logService;
+
+    @PostMapping("/name")
+    public ResponseEntity<TenantModel> guarantorName(@Validated(Dossier.class) NameGuarantorLegalPersonForm nameGuarantorLegalPersonForm) {
+        var tenant = authenticationFacade.getTenant(nameGuarantorLegalPersonForm.getTenantId());
+        var tenantModel = tenantService.saveStepRegister(tenant, nameGuarantorLegalPersonForm, StepRegister.NAME_GUARANTOR_LEGAL_PERSON);
+        logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
+        return ok(tenantModel);
+    }
 
     @PostMapping("/documentIdentification")
     public ResponseEntity<TenantModel> documentIdentification(@Validated({Dossier.class, DocumentIdentificationGuarantor.class}) DocumentIdentificationGuarantorLegalPersonForm documentIdentificationGuarantorLegalPersonForm) {

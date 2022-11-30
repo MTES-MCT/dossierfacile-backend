@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="fr"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="bo/layout-bo">
+<head>
+    <title>DossierFacile</title>
+</head>
+<body>
+
+<div layout:fragment="content" th:remove="tag">
+    <style>
+        .container {
+            padding: 20px;
+        }
+
+        .edit-form {
+            margin: 2% 20%;
+            padding: 50px;
+            background-color: #eaeaf3;
+            border: 1px solid #c6c7cc;
+            border-radius: 3px;
+            font: 14px/1.4 "Helvetica Neue", Helvetica, Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        .title {
+            color: #395870;
+            display: block;
+            margin-bottom: 1em;
+        }
+
+        .input {
+            width: 100%;
+            background: #fff;
+            border: 1px solid #c6cbd3;
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, .1);
+            color: #636466;
+            padding: 10px;
+            margin-bottom: 10px;
+            display: block;
+            border-radius: 6px;
+        }
+
+        .btn-save {
+            font-size: initial;
+            float: right;
+            padding: 0.7em 2em;
+            background-color: #4064a5;
+            border-color: #4064a5;
+        }
+        form div {
+            margin: 1em 0;
+        }
+    </style>
+    <div>
+        <div class="container">
+            <div class="edit-form">
+                <div class="title">Créer un message de refus</div>
+                <form th:method="post" th:action="*{'/bo/documentDeniedOptions'}"
+                      th:object="${documentDeniedOption}">
+                    <div>
+                        <label for="documentSubCategory">Type de document</label>
+                        <select name="documentSubCategory" id="documentSubCategory" class="form-control dropdown">
+                            <option th:each="category : ${documentSubCategories}"
+                                    th:value="${category}" th:text="${category}">
+                            </option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="documentUserType">Personne concernée</label>
+                        <select name="documentUserType" id="documentUserType" class="form-control dropdown">
+                            <option th:each="type : ${documentUserTypes}"
+                                    th:value="${type}" th:text="${type}">
+                            </option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="messageValue">Message</label>
+                        <textarea id="messageValue" class="input" rows="4" required
+                                  th:field="*{messageValue}"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-info btn-save">Sauvegarder</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<div layout:fragment="javascripts" th:remove="tag">
+    <script src="/js/bo/index.js"></script>
+</div>
+</body>
+</html>

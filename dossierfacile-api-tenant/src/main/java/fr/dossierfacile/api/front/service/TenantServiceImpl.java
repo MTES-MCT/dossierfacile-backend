@@ -54,6 +54,8 @@ public class TenantServiceImpl implements TenantService {
                             .build()
             );
             propertyApartmentSharingRepository.save(propertyApartmentSharing);
+        } else {
+            throw new IllegalStateException("Tenant is not the main tenant");
         }
     }
 

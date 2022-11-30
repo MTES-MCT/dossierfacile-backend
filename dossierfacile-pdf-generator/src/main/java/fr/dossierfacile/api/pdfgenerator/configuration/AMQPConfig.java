@@ -1,6 +1,5 @@
 package fr.dossierfacile.api.pdfgenerator.configuration;
 
-import fr.dossierfacile.api.pdfgenerator.amqp.Receiver;
 import org.aopalliance.aop.Advice;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
@@ -8,8 +7,6 @@ import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
-import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
-import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
 import org.springframework.amqp.rabbit.retry.RejectAndDontRequeueRecoverer;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,7 +14,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.retry.interceptor.RetryInterceptorBuilder;
-import org.springframework.retry.interceptor.RetryOperationsInterceptor;
 
 @Configuration
 @ConfigurationProperties(
@@ -27,15 +23,23 @@ public class AMQPConfig {
     @Value("${rabbitmq.exchange.name}")
     private String exchangeName;
 
-    @Value("${rabbitmq.queue.name}")
-    private String queueName;
+    @Value("${rabbitmq.queue.watermark-document.name}")
+    private String watermarkDocumentQueueName;
 
     @Value("${rabbitmq.queue.apartment-sharing.name}")
     private String apartmentSharingQueueName;
 
-    @Value("${rabbitmq.routing.key}")
-    private String routingKey;
+    @Value("${rabbitmq.queue.watermark-generic.name}")
+    private String watermarkGenericQueueName;
 
+    @Value("${rabbitmq.routing.key.apartment-sharing}")
+    private String apartmentSharingRoutingKey;
+
+    @Value("${rabbitmq.routing.key.watermark-generic}")
+    private String watermarkGenericRoutingKey;
+
+    @Value("${rabbitmq.routing.key.watermark-document}")
+    private String watermarkDocumentRoutingKey;
     @Value("${rabbitmq.prefetch}")
     private Integer prefetch;
 
@@ -45,29 +49,31 @@ public class AMQPConfig {
     }
 
     @Bean
-    Queue queuePdfGenerator() {
-        return new Queue(queueName, true);
+    Queue queueWatermarkDocumentGenerator() {
+        return new Queue(watermarkDocumentQueueName, true);
     }
 
     @Bean
-    Binding bindingQueuePdfGeneratorExchangePdfGenerator(Queue queuePdfGenerator, TopicExchange exchangePdfGenerator) {
-        return BindingBuilder.bind(queuePdfGenerator).to(exchangePdfGenerator).with(routingKey);
+    Queue queueApartmentSharingQueueName() {
+        return new Queue(apartmentSharingQueueName, true);
+    }
+    @Bean
+    Queue queueWatermarkGenerator() {
+        return new Queue(watermarkGenericQueueName, true);
     }
 
     @Bean
-    SimpleMessageListenerContainer container(ConnectionFactory connectionFactory,
-                                             MessageListenerAdapter listenerAdapter) {
-        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
-        container.setConnectionFactory(connectionFactory);
-        container.setQueueNames(queueName);
-        container.setPrefetchCount(prefetch);
-        container.setMessageListener(listenerAdapter);
-        return container;
+    Binding bindingQueueWatermarkDocument(Queue queueWatermarkDocumentGenerator, TopicExchange exchangePdfGenerator) {
+        return BindingBuilder.bind(queueWatermarkDocumentGenerator).to(exchangePdfGenerator).with(watermarkDocumentRoutingKey);
     }
 
     @Bean
-    MessageListenerAdapter listenerAdapter(Receiver receiver) {
-        return new MessageListenerAdapter(receiver, "receiveMessage");
+    Binding bindingQueueApartmentSharing(Queue queueApartmentSharingQueueName, TopicExchange exchangePdfGenerator) {
+        return BindingBuilder.bind(queueApartmentSharingQueueName).to(exchangePdfGenerator).with(apartmentSharingRoutingKey);
+    }
+    @Bean
+    Binding bindingQueueWatermark(Queue queueWatermarkGenerator, TopicExchange exchangePdfGenerator) {
+        return BindingBuilder.bind(queueWatermarkGenerator).to(exchangePdfGenerator).with(watermarkGenericRoutingKey);
     }
 
     // next step: use DLQ for unblocking retry instead of this blocking way - 3 retry - x5
@@ -83,6 +89,7 @@ public class AMQPConfig {
                 .recoverer( (r,t) -> new RejectAndDontRequeueRecoverer())
                 .build() };
         factory.setAdviceChain(adviceChain);
+        factory.setPrefetchCount(prefetch);
 
         return factory;
     }

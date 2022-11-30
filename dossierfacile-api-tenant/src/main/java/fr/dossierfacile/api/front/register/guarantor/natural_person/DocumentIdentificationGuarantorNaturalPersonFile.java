@@ -14,6 +14,7 @@ import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentStatus;
+import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.TypeGuarantor;
 import fr.dossierfacile.common.repository.DocumentPdfGenerationLogRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
@@ -58,6 +59,7 @@ public class DocumentIdentificationGuarantorNaturalPersonFile implements SaveSte
         guarantor.setTenant(tenant);
         guarantorRepository.save(guarantor);
 
+        DocumentSubCategory documentSubCategory = documentIdentificationGuarantorNaturalPersonFileForm.getTypeDocumentIdentification();
         Document document = documentRepository.findFirstByDocumentCategoryAndGuarantor(DocumentCategory.IDENTIFICATION, guarantor)
                 .orElse(Document.builder()
                         .documentCategory(DocumentCategory.IDENTIFICATION)
@@ -65,6 +67,7 @@ public class DocumentIdentificationGuarantorNaturalPersonFile implements SaveSte
                         .build());
         document.setDocumentStatus(DocumentStatus.TO_PROCESS);
         document.setDocumentDeniedReasons(null);
+        document.setDocumentSubCategory(documentSubCategory);
 
         documentRepository.save(document);
 

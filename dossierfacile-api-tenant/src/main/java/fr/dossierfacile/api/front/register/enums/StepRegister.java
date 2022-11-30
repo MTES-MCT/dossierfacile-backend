@@ -22,6 +22,7 @@ public enum StepRegister {
     DOCUMENT_FINANCIAL_GUARANTOR_NATURAL_PERSON("documentFinancialGuarantorNaturalPerson"),
     DOCUMENT_TAX_GUARANTOR_NATURAL_PERSON("documentTaxGuarantorNaturalPerson"),
     DOCUMENT_IDENTIFICATION_GUARANTOR_ORGANISM("documentIdentificationGuarantorOrganism"),
+    NAME_GUARANTOR_LEGAL_PERSON("nameGuarantorLegalPerson"),
     DOCUMENT_IDENTIFICATION_GUARANTOR_LEGAL_PERSON("documentIdentificationGuarantorLegalPerson"),
     DOCUMENT_IDENTIFICATION_REPRESENTANT_GUARANTOR_LEGAL_PERSON("documentIdentificationRepresentanGuarantorLegalPerson"),
     GUARANTOR_TYPE("guarantorType");

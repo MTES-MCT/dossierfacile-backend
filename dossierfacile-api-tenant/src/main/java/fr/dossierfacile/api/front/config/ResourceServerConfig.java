@@ -60,7 +60,7 @@ public class ResourceServerConfig {
                 .permitAll()
                 .antMatchers("/api-partner-linking/**").hasAuthority("SCOPE_api-partner-linking")
                 .antMatchers("/api-partner/**").hasAuthority("SCOPE_api-partner")
-                .antMatchers("/dfc/tenant/profile").hasAuthority("SCOPE_dfc")
+                .antMatchers("/dfc/tenant/**").hasAuthority("SCOPE_dfc")
                 .anyRequest().hasAuthority("SCOPE_dossier")
                 .and()
                 .oauth2ResourceServer()

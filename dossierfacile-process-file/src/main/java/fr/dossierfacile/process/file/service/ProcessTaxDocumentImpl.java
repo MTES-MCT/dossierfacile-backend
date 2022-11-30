@@ -2,21 +2,17 @@ package fr.dossierfacile.process.file.service;
 
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
+import fr.dossierfacile.common.entity.Guarantor;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.enums.TaxFileExtractionType;
 import fr.dossierfacile.common.type.TaxDocument;
 import fr.dossierfacile.process.file.model.Taxes;
+import fr.dossierfacile.process.file.model.TwoDDoc;
 import fr.dossierfacile.process.file.service.interfaces.ApiMonFranceConnect;
 import fr.dossierfacile.process.file.service.interfaces.ApiParticulier;
 import fr.dossierfacile.process.file.service.interfaces.ApiTesseract;
 import fr.dossierfacile.process.file.service.interfaces.ProcessTaxDocument;
 import fr.dossierfacile.process.file.util.Utility;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
@@ -25,6 +21,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -35,21 +39,51 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
     private final Utility utility;
     private final ApiTesseract apiTesseract;
     private final ApiMonFranceConnect apiMonFranceConnect;
-    @Value("${tesseract.api.ocr.dpi.tax}")
-    private int tesseractApiOcrDpiTax;
+
     @Value("${application.domain}")
     private String applicationDomain;
     @Value("${application.file.path}")
     private String applicationFilePath;
 
+    @Value("${feature.toggle.new.api}")
+    private boolean newApi;
+
+    @Override
+    public TaxDocument process(Document document, Guarantor guarantor) {
+        log.info("Starting with process of guarantor tax document");
+        List<File> files = Optional.ofNullable(document.getFiles()).orElse(new ArrayList<>());
+        TaxDocument taxDocument = processTaxDocumentWithQRCode(files);
+
+        if (taxDocument.getQrContent() == null) {
+            taxDocument = processTaxDocumentWith2DCode(files, guarantor.getLastName(), guarantor.getFirstName(),
+                    Utility.normalize(guarantor.getFirstName()), Utility.normalize(guarantor.getLastName()));
+        }
+
+        if (taxDocument.getQrContent() == null) {
+            taxDocument = processTaxDocumentWithOCR(files, guarantor.getLastName(), guarantor.getFirstName(),
+                    Utility.normalize(guarantor.getFirstName()), Utility.normalize(guarantor.getLastName()));
+        }
+
+        log.info("Finishing with process of guarantor tax document");
+        return taxDocument;
+    }
+
     @Override
     public TaxDocument process(Document document, Tenant tenant) {
+        if (!Boolean.TRUE.equals(tenant.getAllowCheckTax())) {
+            return new TaxDocument();
+        }
         log.info("Starting with process of tax document");
         List<File> files = Optional.ofNullable(document.getFiles()).orElse(new ArrayList<>());
         TaxDocument taxDocument = processTaxDocumentWithQRCode(files);
 
         if (taxDocument.getQrContent() == null) {
-            taxDocument = processTaxDocumentWithoutQRCode(files, tenant.getLastName(), tenant.getFirstName(),
+            taxDocument = processTaxDocumentWith2DCode(files, tenant.getLastName(), tenant.getFirstName(),
+                    Utility.normalize(tenant.getFirstName()), Utility.normalize(tenant.getLastName()));
+        }
+
+        if (taxDocument.getQrContent() == null) {
+            taxDocument = processTaxDocumentWithOCR(files, tenant.getLastName(), tenant.getFirstName(),
                     Utility.normalize(tenant.getFirstName()), Utility.normalize(tenant.getLastName()));
         }
 
@@ -69,21 +103,7 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
             for (File pdf : pdfs) {
                 String url = utility.extractQRCodeInfo(pdf);
                 if (url != null && !url.isBlank()) {
-                    ResponseEntity<List> response = apiMonFranceConnect.monFranceConnect(url);
-                    if (response.getStatusCode() == HttpStatus.OK) {
-                        log.info("Api MonFranceConnect Response {}", response.getStatusCodeValue());
-
-                        checkIfInfoBehindQrContentMatchesPdfContent(pdf, response, taxDocument);
-
-                        String bodyResponse = Objects.requireNonNull(response.getBody()).toString();
-                        if (!currentQrContent.toString().isBlank()) {
-                            currentQrContent.append(", ").append(bodyResponse);
-                        } else {
-                            currentQrContent = new StringBuilder(bodyResponse);
-                        }
-                    } else {
-                        log.warn("Api MonFranceConnect Response {}", response.getStatusCodeValue());
-                    }
+                    currentQrContent = getMonFranceConnectCodeContent(taxDocument, currentQrContent, pdf, url);
                 }
             }
         }
@@ -94,16 +114,68 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
         long milliseconds = System.currentTimeMillis() - time;
         log.info("Finishing with extraction of QR content of document in {} ms", milliseconds);
         taxDocument.setTime(milliseconds);
+        taxDocument.setFileExtractionType(TaxFileExtractionType.MON_FRANCE_CONNECT);
         return taxDocument;
     }
 
-    private TaxDocument processTaxDocumentWithoutQRCode(List<File> files, String lastName, String firstName, String unaccentFirstName, String unaccentLastName) {
+    private TaxDocument processTaxDocumentWith2DCode(List<File> files, String lastName, String firstName, String unaccentFirstName, String unaccentLastName) {
+        long time = System.currentTimeMillis();
+        log.info("Extracting 2D-doc content from tax document");
+
+        TaxDocument taxDocument = new TaxDocument();
+
+        List<File> pdfs = files.stream().filter(file -> FilenameUtils.getExtension(file.getPath()).equals("pdf")).collect(Collectors.toList());
+        if (!pdfs.isEmpty()) {
+            for (File pdf : pdfs) {
+                String twoDDocContent = utility.extractTax2DDoc(pdf);
+                if (twoDDocContent != null && !twoDDocContent.isBlank()) {
+                    StringBuilder result = new StringBuilder(utility.extractInfoFromPDFFirstPage(pdf));
+                    taxDocument = getTaxApiCodeContent(twoDDocContent, lastName, firstName, unaccentFirstName, unaccentLastName, result);
+                    taxDocument.setQrContent(twoDDocContent);
+                }
+            }
+        }
+
+        log.info("Extracted 2D-doc content : {}", taxDocument.getQrContent());
+        long milliseconds = System.currentTimeMillis() - time;
+        log.info("Finishing with extraction of 2D-doc content of document in {} ms", milliseconds);
+        taxDocument.setTime(milliseconds);
+        taxDocument.setFileExtractionType(TaxFileExtractionType.TWOD_DOC);
+        return taxDocument;
+    }
+
+    private TaxDocument getTaxApiCodeContent(String twoDDocContent, String lastName, String firstName, String unaccentFirstName, String unaccentLastName, StringBuilder result) {
+        TwoDDoc twoDDoc = utility.parseTwoDDoc(twoDDocContent);
+        String fiscalNumber = twoDDoc.getFiscalNumber();
+        String referenceNumber = twoDDoc.getReferenceNumber();
+        TaxDocument taxDocument = getTaxDocument(lastName, firstName, unaccentFirstName, unaccentLastName, result, fiscalNumber, referenceNumber);
+        log.info("Finishing processing tax document with 2D code");
+        return taxDocument;
+    }
+
+    private StringBuilder getMonFranceConnectCodeContent(TaxDocument taxDocument, StringBuilder currentQrContent, File pdf, String url) {
+        ResponseEntity<List> response = apiMonFranceConnect.monFranceConnect(url);
+        if (response.getStatusCode() == HttpStatus.OK) {
+            log.info("Api MonFranceConnect Response {}", response.getStatusCodeValue());
+
+            checkIfInfoBehindQrContentMatchesPdfContent(pdf, response, taxDocument);
+
+            String bodyResponse = Objects.requireNonNull(response.getBody()).toString();
+            if (!currentQrContent.toString().isBlank()) {
+                currentQrContent.append(", ").append(bodyResponse);
+            } else {
+                currentQrContent = new StringBuilder(bodyResponse);
+            }
+        } else {
+            log.warn("Api MonFranceConnect Response {}", response.getStatusCodeValue());
+        }
+//        log stats mon france connect
+        return currentQrContent;
+    }
+
+    private TaxDocument processTaxDocumentWithOCR(List<File> files, String lastName, String firstName, String unaccentFirstName, String unaccentLastName) {
         long time = System.currentTimeMillis();
         log.info("Processing tax document without QR code");
-
-        boolean test1 = false;
-        boolean test2 = false;
-        TaxDocument taxDocument = new TaxDocument();
 
         StringBuilder result = new StringBuilder();
         List<File> pdfs = files.stream().filter(file -> FilenameUtils.getExtension(file.getPath()).equals("pdf")).collect(Collectors.toList());
@@ -116,42 +188,79 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
         String referenceNumber = Utility.extractReferenceNumber(result.toString());
 
         if (fiscalNumber.equals("") || referenceNumber.equals("")) {
-            result = new StringBuilder();
-            List<String> paths = files.stream().map(file -> applicationDomain + URL_DELIMITER + applicationFilePath + URL_DELIMITER + file.getPath()).collect(Collectors.toList());
-            if (!paths.isEmpty()) {
-                for (String path : paths) {
-                    result.append(apiTesseract.apiTesseract(path, new int[]{1}, tesseractApiOcrDpiTax));
-                }
-            }
+            String text = files.stream()
+                    .map(dfFile -> utility.getTemporaryFile(dfFile))
+                    .map(file -> {
+                        String extractedText = apiTesseract.extractText(file);
+                        try {
+                            if (!file.delete()) {
+                                log.warn("Unable to delete file");
+                            }
+                        } catch (Exception e) {
+                            log.warn("Unable to delete file", e);
+                        }
+                        return extractedText;
+                    })
+                    .reduce("", String::concat);
+
             if (fiscalNumber.equals("")) {
-                fiscalNumber = Utility.extractFiscalNumber(result.toString());
+                fiscalNumber = Utility.extractFiscalNumber(text);
             }
             if (referenceNumber.equals("")) {
-                referenceNumber = Utility.extractReferenceNumber(result.toString());
+                referenceNumber = Utility.extractReferenceNumber(text);
             }
         }
 
-        if (!fiscalNumber.equals("") && !referenceNumber.equals("")) {
+        TaxDocument taxDocument = getTaxDocument(lastName, firstName, unaccentFirstName, unaccentLastName, result, fiscalNumber, referenceNumber);
+        log.info("Finishing processing tax document without QR code");
+        long milliseconds = System.currentTimeMillis() - time;
+        taxDocument.setTime(milliseconds);
+        taxDocument.setFileExtractionType(TaxFileExtractionType.OCR);
+        return taxDocument;
+    }
+
+    private TaxDocument getTaxDocument(String lastName, String firstName, String unaccentFirstName, String unaccentLastName, StringBuilder result, String fiscalNumber, String referenceNumber) {
+        TaxDocument taxDocument = new TaxDocument();
+        boolean test1 = false;
+        boolean test2 = false;
+        if (!fiscalNumber.equals("")) {
             log.info("Call to particulier api");
-            ResponseEntity<Taxes> taxesResponseEntity = apiParticulier.particulierApi(fiscalNumber, referenceNumber);
+            ResponseEntity<Taxes> taxesResponseEntity;
+            if (newApi) {
+                taxesResponseEntity = apiParticulier.particulierApi(fiscalNumber);
+            } else {
+                if (referenceNumber.equals("")) {
+                    return taxDocument;
+                }
+                taxesResponseEntity = apiParticulier.particulierApi(fiscalNumber, referenceNumber);
+            }
+
             log.info("Response status {}", taxesResponseEntity.getStatusCodeValue());
             if (taxesResponseEntity.getStatusCode() == HttpStatus.OK) {
-                test1 = test1(Objects.requireNonNull(taxesResponseEntity.getBody()), lastName, firstName, unaccentFirstName, unaccentLastName);
-                test2 = test2(taxesResponseEntity.getBody(), result);
-                taxDocument.setDeclarant1(taxesResponseEntity.getBody().getDeclarant1().toString());
-                taxDocument.setDeclarant2(taxesResponseEntity.getBody().getDeclarant2().toString());
-                taxDocument.setAnualSalary(taxesResponseEntity.getBody().getRevenuFiscalReference());
+                if (newApi) {
+                    test1 = test1(Objects.requireNonNull(taxesResponseEntity.getBody()), lastName, firstName, unaccentFirstName, unaccentLastName);
+                    test2 = test2(taxesResponseEntity.getBody(), result);
+                    taxDocument.setDeclarant1(taxesResponseEntity.getBody().getDeclarant1Name());
+                    taxDocument.setDeclarant2(taxesResponseEntity.getBody().getDeclarant2Name());
+                    if (taxesResponseEntity.getBody().getRfr() != null) {
+                        taxDocument.setAnualSalary(Integer.parseInt(taxesResponseEntity.getBody().getRfr()));
+                    } else {
+                        taxDocument.setAnualSalary(0);
+                    }
+                } else {
+                    test1 = oldTest1(Objects.requireNonNull(taxesResponseEntity.getBody()), lastName, firstName, unaccentFirstName, unaccentLastName);
+                    test2 = oldTest2(taxesResponseEntity.getBody(), result);
+                    taxDocument.setDeclarant1(taxesResponseEntity.getBody().getDeclarant1().toString());
+                    taxDocument.setDeclarant2(taxesResponseEntity.getBody().getDeclarant2().toString());
+                    taxDocument.setAnualSalary(taxesResponseEntity.getBody().getRevenuFiscalReference());
+                    taxDocument.setReferenceNumber(referenceNumber.equals("") ? "fail" : referenceNumber);
+                }
             }
         }
 
         taxDocument.setTest1(test1);
         taxDocument.setTest2(test2);
         taxDocument.setFiscalNumber(fiscalNumber.equals("") ? "fail" : fiscalNumber);
-        taxDocument.setReferenceNumber(referenceNumber.equals("") ? "fail" : referenceNumber);
-
-        log.info("Finishing processing tax document without QR code");
-        long milliseconds = System.currentTimeMillis() - time;
-        taxDocument.setTime(milliseconds);
         return taxDocument;
     }
 
@@ -170,8 +279,15 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
                 log.info("QR content VALID for PDF with ID [" + pdf.getId() + "]");
                 taxDocument.setTaxContentValid(Boolean.TRUE);
             } else {
-                String path = applicationDomain + URL_DELIMITER + applicationFilePath + URL_DELIMITER + pdf.getPath();
-                String tesseractResult = apiTesseract.apiTesseract(path, new int[]{1}, tesseractApiOcrDpiTax);
+                java.io.File tmpFile = utility.getTemporaryFile(pdf);
+                String tesseractResult = apiTesseract.extractText(tmpFile);
+                try {
+                    if (!tmpFile.delete()) {
+                        log.warn("Unable to delete file");
+                    }
+                } catch (Exception e) {
+                    log.warn("Unable to delete file", e);
+                }
 
                 AtomicInteger ii = new AtomicInteger();
                 listResponse.forEach(element -> {
@@ -191,7 +307,7 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
     }
 
     //check if the name is OK
-    private boolean test1(Taxes taxes, String lastName, String firstName, String unaccentFirstName, String unaccentLastName) {
+    private boolean oldTest1(Taxes taxes, String lastName, String firstName, String unaccentFirstName, String unaccentLastName) {
         boolean result1 = (taxes.getDeclarant1() != null &&
                 (StringUtils.containsIgnoreCase(taxes.getDeclarant1().getNom(), lastName) ||
                         StringUtils.containsIgnoreCase(taxes.getDeclarant1().getNomNaissance(), lastName)) &&
@@ -211,12 +327,45 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
                 ((StringUtils.containsIgnoreCase(taxes.getDeclarant2().getNom(), unaccentLastName) ||
                         StringUtils.containsIgnoreCase(taxes.getDeclarant2().getNomNaissance(), unaccentLastName)) &&
                         StringUtils.containsIgnoreCase(taxes.getDeclarant2().getPrenoms(), unaccentFirstName)));
+        return result1 || result2;
+    }
+
+    public boolean test1(Taxes taxes, String lastName, String firstName, String unaccentFirstName, String unaccentLastName) {
+        boolean result1 = (taxes.getNmUsaDec1() != null && (StringUtils.containsIgnoreCase(taxes.getNmUsaDec1(), lastName) ||
+                taxes.getNmNaiDec1() != null && taxes.getPrnmDec1() != null &&
+                        StringUtils.containsIgnoreCase(taxes.getNmNaiDec1(), lastName)) &&
+                StringUtils.containsIgnoreCase(taxes.getPrnmDec1(), firstName))
+                ||
+                (taxes.getNmUsaDec2() != null && (StringUtils.containsIgnoreCase(taxes.getNmUsaDec2(), lastName) ||
+                        taxes.getNmNaiDec2() != null && taxes.getPrnmDec2() != null &&
+                                StringUtils.containsIgnoreCase(taxes.getNmNaiDec2(), lastName)) &&
+                        StringUtils.containsIgnoreCase(taxes.getPrnmDec2(), firstName));
+
+        boolean result2 = (taxes.getNmUsaDec1() != null && (StringUtils.containsIgnoreCase(taxes.getNmUsaDec1(), unaccentLastName) ||
+                taxes.getNmNaiDec1() != null && taxes.getPrnmDec1() != null &&
+                        StringUtils.containsIgnoreCase(taxes.getNmNaiDec1(), unaccentLastName)) &&
+                StringUtils.containsIgnoreCase(taxes.getPrnmDec1(), unaccentFirstName))
+                ||
+                (taxes.getNmUsaDec2() != null &&
+                        ((StringUtils.containsIgnoreCase(taxes.getNmUsaDec2(), unaccentLastName) ||
+                                taxes.getNmNaiDec2() != null && taxes.getPrnmDec2() != null &&
+                                        StringUtils.containsIgnoreCase(taxes.getNmNaiDec2(), unaccentLastName)) &&
+                                StringUtils.containsIgnoreCase(taxes.getPrnmDec2(), unaccentFirstName)));
 
         return result1 || result2;
     }
 
     //check if the amount "montant fiscal de référence" is equals to 12*salary with an acceptable error of 10% (value in parameter)
-    private boolean test2(Taxes taxes, StringBuilder stringBuilder) {
+    public boolean test2(Taxes taxes, StringBuilder stringBuilder) {
+        if (taxes.getRfr() == null) {
+            return false;
+        }
+        Map<String, Integer> map = Utility.extractNumbersText(stringBuilder.toString());
+        int salaryApi = Integer.parseInt(taxes.getRfr());
+        return map.containsKey(String.valueOf(salaryApi));
+    }
+
+    private boolean oldTest2(Taxes taxes, StringBuilder stringBuilder) {
         Map<String, Integer> map = Utility.extractNumbersText(stringBuilder.toString());
         int salaryApi = taxes.getRevenuFiscalReference();
         return map.containsKey(String.valueOf(salaryApi));

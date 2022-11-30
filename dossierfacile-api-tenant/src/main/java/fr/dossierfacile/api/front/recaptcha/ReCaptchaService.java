@@ -2,7 +2,6 @@ package fr.dossierfacile.api.front.recaptcha;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestOperations;
 
@@ -21,11 +20,9 @@ public class ReCaptchaService {
 
     private final HttpServletRequest request;
 
-    @Value("${spring.profiles.active}")
-    private String activeProfile;
-
     boolean validate(String reCaptchaResponse) {
-        if (activeProfile.equals("dev") || activeProfile.equals("preprod")) {
+        if (captchaSettings.isDisabled()) {
+            log.info("Captcha verification is disabled");
             return true;
         }
         URI verifyUri = URI.create(String.format(

@@ -5,6 +5,7 @@ import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -31,10 +32,10 @@ import static java.lang.String.format;
 @Service
 @Profile("mockOvh")
 public class MockStorage implements FileStorageService {
-    static String filePath = "./mockstorage/";
+    private final String filePath;
 
-
-    public MockStorage() {
+    public MockStorage(@Value("${mock.storage.path:./mockstorage/}") String filePath) {
+        this.filePath = filePath;
         new File(filePath).mkdirs();
     }
 

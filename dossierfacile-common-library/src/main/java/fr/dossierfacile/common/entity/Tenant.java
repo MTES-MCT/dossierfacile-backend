@@ -24,6 +24,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
@@ -47,6 +48,7 @@ public class Tenant extends User implements Serializable {
     private Long id;
 
     @OneToMany(mappedBy = "tenant", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @OrderBy("id")
     private List<Guarantor> guarantors;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -86,6 +88,9 @@ public class Tenant extends User implements Serializable {
     private LocalDateTime operatorDateTime;
 
     private int warnings;
+
+    @Column(name = "allow_check_tax")
+    private Boolean allowCheckTax;
 
     public Tenant(String email) {
         super(UserType.TENANT, email);

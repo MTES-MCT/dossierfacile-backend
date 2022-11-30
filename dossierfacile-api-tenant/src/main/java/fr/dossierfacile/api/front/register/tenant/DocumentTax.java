@@ -8,6 +8,7 @@ import fr.dossierfacile.api.front.register.form.tenant.DocumentTaxForm;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
+import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentPdfGenerationLog;
@@ -19,12 +20,13 @@ import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.repository.DocumentPdfGenerationLogRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.DocumentHelperService;
-import java.time.LocalDateTime;
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 import static fr.dossierfacile.common.enums.DocumentSubCategory.MY_NAME;
 import static fr.dossierfacile.common.enums.DocumentSubCategory.OTHER_TAX;
@@ -44,15 +46,18 @@ public class DocumentTax implements SaveStep<DocumentTaxForm> {
     private final ApartmentSharingService apartmentSharingService;
     private final DocumentPdfGenerationLogRepository documentPdfGenerationLogRepository;
 
+    private final KeycloakService keycloakService;
+
     @Override
     public TenantModel saveStep(Tenant tenant, DocumentTaxForm documentTaxForm) {
         Document document = saveDocument(tenant, documentTaxForm);
+
         producer.generatePdf(document.getId(),
                 documentPdfGenerationLogRepository.save(DocumentPdfGenerationLog.builder()
                         .documentId(document.getId())
                         .build()).getId());
-        if (tenant.getHonorDeclaration().equals(Boolean.TRUE)) {
-            producer.processFileOcr(tenant.getId());
+        if (Boolean.TRUE.equals(tenant.getHonorDeclaration())) {
+            producer.processFileTax(tenant.getId());
         }
         return tenantMapper.toTenantModel(document.getTenant());
     }
@@ -102,5 +107,14 @@ public class DocumentTax implements SaveStep<DocumentTaxForm> {
 
     private void deleteFilesIfExistedBefore(Document document) {
         documentHelperService.deleteFiles(document);
+    }
+
+    public Tenant setAllowTax(Tenant tenant, String allowTax) {
+        if ("allow".equals(allowTax)) {
+            tenant.setAllowCheckTax(true);
+        } else if ("disallow".equals(allowTax)) {
+            tenant.setAllowCheckTax(false);
+        }
+        return tenantRepository.save(tenant);
     }
 }

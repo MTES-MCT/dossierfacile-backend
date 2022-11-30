@@ -2,7 +2,6 @@ package fr.gouv.bo.service;
 
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Document;
-import fr.dossierfacile.common.entity.DocumentDeniedOptions;
 import fr.dossierfacile.common.entity.DocumentDeniedReasons;
 import fr.dossierfacile.common.entity.Guarantor;
 import fr.dossierfacile.common.entity.Log;
@@ -32,12 +31,19 @@ import fr.gouv.bo.exception.DocumentNotFoundException;
 import fr.gouv.bo.lambda_interfaces.StringCustomMessage;
 import fr.gouv.bo.lambda_interfaces.StringCustomMessageGuarantor;
 import fr.gouv.bo.repository.ApartmentSharingRepository;
-import fr.gouv.bo.repository.DocumentDeniedOptionsRepository;
 import fr.gouv.bo.repository.DocumentDeniedReasonsRepository;
 import fr.gouv.bo.repository.DocumentRepository;
 import fr.gouv.bo.repository.OperatorLogRepository;
 import fr.gouv.bo.repository.UserApiRepository;
-import fr.gouv.bo.utils.UtilsLocatio;
+import java.security.Principal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -52,38 +58,24 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.security.Principal;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class TenantService {
 
-    private static final String USER_TYPE_TENANT = "tenant";
-    private static final String USER_TYPE_GUARANTOR = "guarantor";
     private static final String LI_P = "<li><p>";
     private static final String P_LI = "</p></li>";
     private static final String BOLD_CLOSE = "</b> ";
     private static final String IDENTITY_KEY = "documentation";
-    private static final String IDENTITY_REPLACE = "<a style=\"color: black;font-weight: bolder\" rel=\"nofollow\" href=\"https://docs.dossierfacile.fr/guide-dutilisation-de-dossierfacile/ajouter-un.e-conjoint.e\">documentation</a>";
-    private static final String IDENTITY_REPLACE_DB = "<a  class=\"bold\" style=\"color: black;\" rel=\"nofollow\" href=\"https://docs.dossierfacile.fr/guide-dutilisation-de-dossierfacile/ajouter-un.e-conjoint.e\">documentation</a>";
+    private static final String IDENTITY_REPLACE = "<a target=\"_blank\" style=\"color: black;font-weight: bolder\" rel=\"nofollow\" href=\"https://docs.dossierfacile.fr/guide-dutilisation-de-dossierfacile/ajouter-un.e-conjoint.e\">documentation</a>";
     private static final String TENANT_KEY = "pour les trois derniers mois";
     private static final String TENANT_REPLACE = "<mark style=\"font-weight: bolder; background:none\">pour les trois derniers mois</mark>";
-    private static final String TENANT_REPLACE_DB = "<mark class=\"bold\" style=\"background: #dedfdd\">pour les trois derniers mois</mark>";
     private static final String SOCIAL_KEY = "vos trois derniers justificatifs";
     private static final String SOCIAL_REPLACE = "<mark style=\"font-weight: bolder; background:none\">vos trois derniers justificatifs</mark>";
-    private static final String SOCIAL_REPLACE_DB = "<mark class=\"bold\" style=\"background: #dedfdd\">vos trois derniers justificatifs</mark>";
     private static final String SALARY_KEY = "des 3 derniers mois";
     private static final String SALARY_REPLACE = "<mark style=\"font-weight: bolder; background:none\">des 3 derniers mois</mark>";
-    private static final String SALARY_REPLACE_DB = "<mark class=\"bold\" style=\"background: #dedfdd\">des 3 derniers mois</mark>";
+    private static final String GUEST_PARENTS_KEY = "#Lien vers modèle";
+    private static final String GUEST_PARENTS_REPLACE = "<a target=\"_blank\" href=\"https://www.service-public.fr/particuliers/vosdroits/R39697\">Lien vers modèle</a>";
 
     private final Locale locale = LocaleContextHolder.getLocale();
     private final TenantCommonRepository tenantRepository;
@@ -100,7 +92,6 @@ public class TenantService {
     private final LogActionTenantStatusService logService;
     private final DocumentDeniedReasonsService documentDeniedReasonsService;
     private final DocumentService documentService;
-    private final DocumentDeniedOptionsRepository documentDeniedOptionsRepository;
 
     private int forTenant = 0;
     @Value("${time.reprocess.application.minutes}")
@@ -299,9 +290,8 @@ public class TenantService {
                         mailMessage.append(fileNameWithBold.getFileNameWithBold(messageItem.getDocumentCategory().getLabel()));
                         mailMessage.append(itemDetail.getMessage());
                         mailMessage.append(P_LI);
-                        DocumentDeniedOptions documentDeniedOptions = setCheckedOptionsId(messageItem.getDocumentId(), USER_TYPE_TENANT, itemDetail.getMessage());
-                        documentDeniedReasons.getCheckedOptionsId().add(documentDeniedOptions.getId());
                         documentDeniedReasons.getCheckedOptions().add(itemDetail.getMessage());
+                        documentDeniedReasons.getCheckedOptionsId().add(itemDetail.getIdOptionMessage());
                     }
                 }
 
@@ -340,9 +330,8 @@ public class TenantService {
                             mailMessage.append(fileNameWithBoldGuarantor.getFileNameWithBold(messageItem.getDocumentCategory().getLabel()));
                             mailMessage.append(itemDetail.getMessage());
                             mailMessage.append(P_LI);
-                            DocumentDeniedOptions documentDeniedOptions = setCheckedOptionsId(messageItem.getDocumentId(), USER_TYPE_GUARANTOR, itemDetail.getMessage());
-                            documentDeniedReasons.getCheckedOptionsId().add(documentDeniedOptions.getId());
                             documentDeniedReasons.getCheckedOptions().add(itemDetail.getMessage());
+                            documentDeniedReasons.getCheckedOptionsId().add(itemDetail.getIdOptionMessage());
                         }
                     }
 
@@ -387,28 +376,8 @@ public class TenantService {
         return null;
     }
 
-    private DocumentDeniedOptions setCheckedOptionsId(Long documentId, String userType, String message) {
-        Document document = documentRepository.findById(documentId).orElse(null);
-        assert document != null;
-        if (userType.equals(USER_TYPE_TENANT)) {
-            if (message.contains(IDENTITY_REPLACE)) {
-                message = message.replace(IDENTITY_REPLACE, IDENTITY_REPLACE_DB);
-            }
-            if (message.contains(SOCIAL_REPLACE)) {
-                message = message.replace(SOCIAL_REPLACE, SOCIAL_REPLACE_DB);
-            }
-            if (message.contains(TENANT_REPLACE)) {
-                message = message.replace(TENANT_REPLACE, TENANT_REPLACE_DB);
-            }
-            if (message.contains(SALARY_REPLACE)) {
-                message = message.replace(SALARY_REPLACE, SALARY_REPLACE_DB);
-            }
-        }
-
-        return documentDeniedOptionsRepository.findOneDocumentDeniedOptions(document.getDocumentSubCategory().toString(), userType, message);
-    }
-
     public void createStylesInMessages(CustomMessage customMessage) {
+
 
         customMessage.getMessageItems().forEach(messageItem -> messageItem.getItemDetailList().forEach(itemDetail -> {
             if (messageItem.getDocumentCategory().equals(DocumentCategory.IDENTIFICATION) && itemDetail.getMessage().contains(IDENTITY_KEY)) {
@@ -422,6 +391,11 @@ public class TenantService {
             }
             if (messageItem.getDocumentSubCategory().equals(DocumentSubCategory.SALARY) && itemDetail.getMessage().contains(SALARY_KEY)) {
                 itemDetail.setMessage(itemDetail.getMessage().replace(SALARY_KEY, SALARY_REPLACE));
+            }
+            if ((messageItem.getDocumentSubCategory().equals(DocumentSubCategory.GUEST_PARENTS) ||
+                    messageItem.getDocumentSubCategory().equals(DocumentSubCategory.GUEST))
+                    && itemDetail.getMessage().contains(GUEST_PARENTS_KEY)) {
+                itemDetail.setMessage(itemDetail.getMessage().replace(GUEST_PARENTS_KEY, GUEST_PARENTS_REPLACE));
             }
         }));
     }
@@ -860,8 +834,8 @@ public class TenantService {
         return new PageImpl<>(tenantRepository.findAllTenantsWithFailedGeneratedPdfDocument(pageable).toList());
     }
 
-    public long getTenantsWithStatusInToProcess() {
-        return tenantRepository.getTenantsByStatus(TenantFileStatus.TO_PROCESS).size();
+    public long countTenantsWithStatusInToProcess() {
+        return tenantRepository.countAllByStatus(TenantFileStatus.TO_PROCESS);
     }
 
     public Tenant getTenantByEmail(String email) {

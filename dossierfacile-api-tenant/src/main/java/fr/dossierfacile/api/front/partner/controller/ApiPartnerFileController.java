@@ -61,14 +61,7 @@ public class ApiPartnerFileController {
         File file = fileRepository.findByIdAndTenant(id, tenant.getId()).orElseThrow(() -> new FileNotFoundException(id));
 
         try (InputStream in = fileStorageService.download(file) ) {
-            String fileName = file.getPath();
-            if (fileName.endsWith(".pdf")) {
-                response.setContentType(MediaType.APPLICATION_PDF_VALUE);
-            } else if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
-                response.setContentType(MediaType.IMAGE_JPEG_VALUE);
-            } else {
-                response.setContentType(MediaType.IMAGE_PNG_VALUE);
-            }
+            response.setContentType(file.getComputedContentType());
             IOUtils.copy(in, response.getOutputStream());
         } catch (final IOException e) {
             log.error(FILE_NO_EXIST);

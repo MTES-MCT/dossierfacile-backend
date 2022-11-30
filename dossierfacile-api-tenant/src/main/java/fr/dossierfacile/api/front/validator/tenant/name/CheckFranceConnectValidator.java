@@ -23,7 +23,7 @@ public class CheckFranceConnectValidator implements ConstraintValidator<CheckFra
     @Override
     public boolean isValid(NamesForm namesForm, ConstraintValidatorContext constraintValidatorContext) {
         var tenant = authenticationFacade.getTenant(namesForm.getTenantId());
-        return (!tenant.getFranceConnect().equals(Boolean.TRUE) ||
+        return (!Boolean.TRUE.equals(tenant.getFranceConnect()) ||
                 (tenant.getFirstName().equals(namesForm.getFirstName()) && tenant.getLastName().equals(namesForm.getLastName())));
     }
 }

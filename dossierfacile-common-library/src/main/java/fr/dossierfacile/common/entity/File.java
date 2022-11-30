@@ -1,9 +1,22 @@
 package fr.dossierfacile.common.entity;
 
-import lombok.*;
+import fr.dossierfacile.common.utils.FileUtility;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.Hibernate;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
@@ -31,6 +44,8 @@ public class File implements Serializable {
 
     private Long size;
 
+    private String contentType;
+
     private int numberOfPages;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -57,5 +72,11 @@ public class File implements Serializable {
     @Override
     public int hashCode() {
         return getClass().hashCode();
+    }
+
+    public String getComputedContentType() {
+        if (contentType == null)
+            return FileUtility.computeMediaType(this.getPath());
+        return contentType;
     }
 }

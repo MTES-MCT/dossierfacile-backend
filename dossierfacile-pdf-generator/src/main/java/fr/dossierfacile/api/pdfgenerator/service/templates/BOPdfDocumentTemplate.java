@@ -1,5 +1,10 @@
 package fr.dossierfacile.api.pdfgenerator.service.templates;
 
+import com.drew.imaging.ImageMetadataReader;
+import com.drew.metadata.Directory;
+import com.drew.metadata.Metadata;
+import com.drew.metadata.exif.ExifIFD0Directory;
+import com.twelvemonkeys.image.ImageUtil;
 import fr.dossierfacile.api.pdfgenerator.model.FileInputStream;
 import fr.dossierfacile.api.pdfgenerator.model.PageDimension;
 import fr.dossierfacile.api.pdfgenerator.model.PdfTemplateParameters;
@@ -16,6 +21,7 @@ import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.tools.imageio.ImageIOUtil;
+import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -29,8 +35,11 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
-import java.util.*;
+import java.util.Locale;
 
 @Service
 @AllArgsConstructor
@@ -49,7 +58,7 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
         try (PDDocument document = new PDDocument()) {
 
             data.stream()
-                    .map(pdfFileIS -> convertToImages(pdfFileIS))
+                    .map(pdfOrImgFileIS -> convertToImages(pdfOrImgFileIS))
                     .flatMap(Collection::stream)
                     .map(bim -> smartCrop(bim))
                     .map(bim -> fitImageToPage(bim))
@@ -76,6 +85,7 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
      */
     private List<BufferedImage> convertToImages(FileInputStream fileInputStream) {
         try {
+
             if ("pdf".equalsIgnoreCase(fileInputStream.getExtension())) {
 
                 try (PDDocument document = PDDocument.load(fileInputStream.getInputStream())) {
@@ -102,14 +112,56 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
                     return images;
                 }
             }
-            return Collections.singletonList(ImageIO.read(fileInputStream.getInputStream()));
+
+            return Collections.singletonList(createImageWithOrientation(fileInputStream.getInputStream()));
 
         } catch (IOException e) {
             throw new RuntimeException("Unable to convert pdf to image", e);
         }
     }
 
-    /** Apply document crop if require */
+    private BufferedImage createImageWithOrientation(InputStream inputStream) throws IOException {
+        // duplicate input stream - because it will be read twice
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        IOUtils.copy(inputStream, baos);
+        byte[] bytes = baos.toByteArray();
+
+        try (ByteArrayInputStream imageInput = new ByteArrayInputStream(bytes)) {
+            BufferedImage image = ImageIO.read(imageInput);
+
+            // check en rotate according metadata
+            try (ByteArrayInputStream imageInputForMeta = new ByteArrayInputStream(bytes)) {
+
+                Metadata metadata = ImageMetadataReader.readMetadata(imageInputForMeta);
+                Directory dir = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
+                int orientation = dir != null ? dir.getInteger(ExifIFD0Directory.TAG_ORIENTATION) : 0;
+
+                return switch (orientation) {
+                    case 2 -> ImageUtil.createFlipped(image, ImageUtil.FLIP_HORIZONTAL);
+                    case 3 -> ImageUtil.createRotated(image, ImageUtil.ROTATE_180);
+                    case 4 -> ImageUtil.createFlipped(image, ImageUtil.FLIP_VERTICAL);
+                    case 5 -> ImageUtil.createRotated(
+                            ImageUtil.createFlipped(image, ImageUtil.FLIP_VERTICAL),
+                            ImageUtil.ROTATE_90_CCW);
+                    case 6 -> ImageUtil.createRotated(image, ImageUtil.ROTATE_90_CCW);
+                    case 7 -> ImageUtil.createFlipped(
+                            ImageUtil.createRotated(image, ImageUtil.ROTATE_90_CW),
+                            ImageUtil.FLIP_VERTICAL);
+                    case 8 -> ImageUtil.createRotated(image, ImageUtil.ROTATE_90_CW);
+                    default -> image; // 0,1 included
+                };
+
+            } catch (Exception e) {
+                log.error("Unable to rotate and flip from metadata", e);
+                Sentry.captureException(e);
+            }
+            return image;
+        }
+    }
+
+    /**
+     * Apply document crop if require
+     */
     protected BufferedImage smartCrop(BufferedImage image) {
         // by default there is not crop on BO Documents
         return image;

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+    <changeSet id="2022081000001-01" author="fabien (manual)">
+        <addColumn tableName="document_denied_options">
+            <column name="code"
+                    type="VARCHAR(255)"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="2022081000001-02" author="fabien (manual)">
+        <sql>
+            <![CDATA[
+                UPDATE document_denied_options
+                SET code= tmp.code
+                FROM (SELECT id, ROW_NUMBER() OVER (PARTITION BY document_sub_category ORDER BY id) code
+                            FROM document_denied_options) as tmp
+                WHERE
+                    document_denied_options.id = tmp.id;
+
+                UPDATE document_denied_options SET code = CONCAT('0', code) WHERE cast(code as integer) < 100;
+                UPDATE document_denied_options SET code = CONCAT('0', code) WHERE cast(code as integer) < 10;
+
+                UPDATE document_denied_options SET code = CONCAT(document_sub_category, '_' ,code);
+            ]]>
+        </sql>
+    </changeSet>
+
+    <changeSet id="2022081000001-03" author="fabien (manual)">
+        <addUniqueConstraint columnNames="code"
+                             constraintName="uc_document_denied_options_code"
+                             tableName="document_denied_options"/>
+    </changeSet>
+    <changeSet id="2022081000001-04" author="fabien (manual)">
+        <sql>
+            <![CDATA[
+                UPDATE document_denied_options
+                SET message_value = replace(message_value,'<a','<a target="_blank"')
+                WHERE message_value like '%<a%'
+            ]]>
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

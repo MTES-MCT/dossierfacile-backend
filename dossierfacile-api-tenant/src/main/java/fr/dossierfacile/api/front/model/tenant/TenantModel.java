@@ -33,4 +33,5 @@ public class TenantModel {
     private List<GuarantorModel> guarantors;
     private boolean franceConnect;
     private boolean passwordEnabled;
+    private Boolean allowCheckTax;
 }

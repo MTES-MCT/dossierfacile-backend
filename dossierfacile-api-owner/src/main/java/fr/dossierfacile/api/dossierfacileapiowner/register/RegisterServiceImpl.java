@@ -76,10 +76,15 @@ public class RegisterServiceImpl implements RegisterService {
         User user = passwordRecoveryToken.getUser();
         user.setEnabled(true);
         user.setPassword(bCryptPasswordEncoder.encode(password));
-        if (user.getKeycloakId() == null) {
+        if (user.getKeycloakId() == null || user.getKeycloakId().isBlank()) {
             var keycloakId = keycloakService.getKeycloakId(user.getEmail());
-            keycloakService.createKeyCloakPassword(keycloakId, password);
-            user.setKeycloakId(keycloakId);
+            if (keycloakId == null) {
+                keycloakId = keycloakService.createKeycloakFromExistingUser(user, password);
+                user.setKeycloakId(keycloakId);
+            } else {
+                keycloakService.createKeyCloakPassword(keycloakId, password);
+                user.setKeycloakId(keycloakId);
+            }
         } else {
             keycloakService.createKeyCloakPassword(user.getKeycloakId(), password);
         }

@@ -23,15 +23,6 @@ import fr.dossierfacile.common.exceptions.OvhConnectionFailedException;
 import fr.dossierfacile.common.repository.DocumentPdfGenerationLogRepository;
 import fr.dossierfacile.common.service.interfaces.DocumentHelperService;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
@@ -42,10 +33,21 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class DocumentServiceImpl implements DocumentService {
+    private static final int RETENTION_DAYS = 10;
     private static final String DOCUMENT_NOT_EXIST = "The document does not exist";
     private final DocumentRepository documentRepository;
     private final DocumentTokenRepository documentTokenRepository;
@@ -142,6 +144,17 @@ public class DocumentServiceImpl implements DocumentService {
         } catch (IOException e) {
             log.error("Cannot download document", e);
             response.setStatus(404);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void cleanOldDocuments() {
+        LocalDateTime date = LocalDateTime.now().minusDays(RETENTION_DAYS);
+        List<DocumentToken> documentTokens = documentTokenRepository.findAllByCreationDateBefore(date);
+        for (DocumentToken documentToken : documentTokens) {
+            List<String> fileList = deleteDataFromDB(documentToken, documentToken.getDocument());
+            deleteFilesFromStorage(fileList, documentToken.getDocument().getId());
         }
     }
 

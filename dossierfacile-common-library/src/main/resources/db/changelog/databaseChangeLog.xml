@@ -60,4 +60,11 @@
     <include file="db/migration/202206281000-add-index.xml"/>
     <include file="db/migration/202207050000-encryption-key-changelog.xml"/>
     <include file="db/migration/202207151242-create-table-document_token.xml"/>
+    <include file="db/migration/202208090000-file-add-content-type.xml"/>
+    <include file="db/migration/202208100000-add-code-denied-options.xml"/>
+    <include file="db/migration/202209070000-update-code-denied-options.xml"/>
+    <include file="db/migration/202209090000-update-code-denied-options.xml"/>
+    <include file="db/migration/202209130000-update-code-denied-options.xml"/>
+    <include file="db/migration/202209230000-add-column-allow-tax-check.xml"/>
+    <include file="db/migration/202210170000-add-table-feedback.xml"/>
 </databaseChangeLog>
