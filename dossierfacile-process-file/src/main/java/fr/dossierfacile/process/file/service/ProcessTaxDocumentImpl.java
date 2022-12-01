@@ -1,5 +1,6 @@
 package fr.dossierfacile.process.file.service;
 
+import com.google.common.annotations.VisibleForTesting;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Guarantor;
@@ -21,6 +22,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -70,11 +72,14 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
 
     @Override
     public TaxDocument process(Document document, Tenant tenant) {
-        if (!Boolean.TRUE.equals(tenant.getAllowCheckTax())) {
-            return new TaxDocument();
+        if (!Boolean.TRUE.equals(tenant.getAllowCheckTax())
+                || CollectionUtils.isEmpty(document.getFiles())) {
+            TaxDocument doc = new TaxDocument();
+            doc.setFileExtractionType(TaxFileExtractionType.NONE);
+            return doc;
         }
         log.info("Starting with process of tax document");
-        List<File> files = Optional.ofNullable(document.getFiles()).orElse(new ArrayList<>());
+        List<File> files = document.getFiles();
         TaxDocument taxDocument = processTaxDocumentWithQRCode(files);
 
         if (taxDocument.getQrContent() == null) {
@@ -118,7 +123,8 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
         return taxDocument;
     }
 
-    private TaxDocument processTaxDocumentWith2DCode(List<File> files, String lastName, String firstName, String unaccentFirstName, String unaccentLastName) {
+    @VisibleForTesting
+    protected TaxDocument processTaxDocumentWith2DCode(List<File> files, String lastName, String firstName, String unaccentFirstName, String unaccentLastName) {
         long time = System.currentTimeMillis();
         log.info("Extracting 2D-doc content from tax document");
 
@@ -128,7 +134,7 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
         if (!pdfs.isEmpty()) {
             for (File pdf : pdfs) {
                 String twoDDocContent = utility.extractTax2DDoc(pdf);
-                if (twoDDocContent != null && !twoDDocContent.isBlank()) {
+                if (StringUtils.isNotBlank(twoDDocContent)) {
                     StringBuilder result = new StringBuilder(utility.extractInfoFromPDFFirstPage(pdf));
                     taxDocument = getTaxApiCodeContent(twoDDocContent, lastName, firstName, unaccentFirstName, unaccentLastName, result);
                     taxDocument.setQrContent(twoDDocContent);
@@ -253,7 +259,6 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
                     taxDocument.setDeclarant1(taxesResponseEntity.getBody().getDeclarant1().toString());
                     taxDocument.setDeclarant2(taxesResponseEntity.getBody().getDeclarant2().toString());
                     taxDocument.setAnualSalary(taxesResponseEntity.getBody().getRevenuFiscalReference());
-                    taxDocument.setReferenceNumber(StringUtils.isBlank(referenceNumber) ? "fail" : referenceNumber);
                 }
             }
         }
@@ -261,6 +266,7 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
         taxDocument.setTest1(test1);
         taxDocument.setTest2(test2);
         taxDocument.setFiscalNumber(StringUtils.isBlank(fiscalNumber) ? "fail" : fiscalNumber);
+        taxDocument.setReferenceNumber(StringUtils.isBlank(referenceNumber) ? "fail" : referenceNumber);
         return taxDocument;
     }
 
