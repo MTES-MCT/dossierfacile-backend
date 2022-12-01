@@ -6,7 +6,6 @@ import org.openstack4j.core.transport.HttpResponse;
 import org.openstack4j.model.common.DLPayload;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
 
 public class SwiftObjectMock extends SwiftObjectAdapter {

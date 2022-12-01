@@ -82,12 +82,12 @@
                                         <span th:text="'Income : ' + ${messageItem.getMonthlySum()}"></span>
                                     </h4>
                                     <h4 class="panel-title letter" style="padding-top: 7px"
-                                        th:if="${messageItem.taxDocument}!=null and ${messageItem.taxDocument.qrContent}==null and ${messageItem.taxDocument.getFiscalNumber()}!=null">
-                                        <span th:text="'Fiscal Number : ' + ${messageItem.taxDocument.getFiscalNumber().toString()}"></span>
+                                        th:if="${messageItem.taxDocument}!=null and ${messageItem.taxDocument.fiscalNumber}!=null">
+                                        <span th:text="'Fiscal Number : ' + ${messageItem.taxDocument.fiscalNumber}"></span>
                                     </h4>
                                     <h4 class="panel-title letter" style="padding-top: 7px"
-                                        th:if="${messageItem.taxDocument}!=null and ${messageItem.taxDocument.qrContent}==null and ${messageItem.taxDocument.getReferenceNumber()}!=null">
-                                        <span th:text="'Reference Number : ' + ${messageItem.taxDocument.getReferenceNumber().toString()}"></span>
+                                        th:if="${messageItem.taxDocument}!=null and ${messageItem.taxDocument.referenceNumber}!=null">
+                                        <span th:text="'Reference Number : ' + ${messageItem.taxDocument.referenceNumber}"></span>
                                     </h4>
                                     <h4 class="panel-title letter" style="padding-top: 7px"
                                         th:if="${messageItem.taxDocument}!=null and ${messageItem.taxDocument.qrContent}!=null">
@@ -270,12 +270,12 @@
                                             <span th:text="'Legal Person Name : ' + ${guarantorItem.getLegalPersonName()}"></span>
                                         </h4>
                                         <h4 class="panel-title letter" style="padding-top: 7px"
-                                            th:if="${messageItem.taxDocument}!=null and ${messageItem.taxDocument.qrContent}==null and ${messageItem.taxDocument.getFiscalNumber()}!=null">
-                                            <span th:text="'Fiscal Number : ' + ${messageItem.taxDocument.getFiscalNumber().toString()}"></span>
+                                            th:if="${messageItem.taxDocument}!=null and ${messageItem.taxDocument.fiscalNumber}!=null">
+                                            <span th:text="'Fiscal Number : ' + ${messageItem.taxDocument.fiscalNumber}"></span>
                                         </h4>
                                         <h4 class="panel-title letter" style="padding-top: 7px"
-                                            th:if="${messageItem.taxDocument}!=null and ${messageItem.taxDocument.qrContent}==null and ${messageItem.taxDocument.getReferenceNumber()}!=null">
-                                            <span th:text="'Reference Number : ' + ${messageItem.taxDocument.getReferenceNumber().toString()}"></span>
+                                            th:if="${messageItem.taxDocument}!=null and ${messageItem.taxDocument.referenceNumber}!=null">
+                                            <span th:text="'Reference Number : ' + ${messageItem.taxDocument.referenceNumber}"></span>
                                         </h4>
                                         <h4 class="panel-title letter" style="padding-top: 7px"
                                             th:if="${messageItem.taxDocument}!=null and ${messageItem.taxDocument.qrContent}!=null">
