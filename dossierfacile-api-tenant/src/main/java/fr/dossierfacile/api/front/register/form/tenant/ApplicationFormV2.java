@@ -11,6 +11,7 @@ import fr.dossierfacile.api.front.validator.group.ApiPartner;
 import fr.dossierfacile.api.front.validator.group.Dossier;
 import fr.dossierfacile.common.enums.ApplicationType;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -27,6 +28,7 @@ import java.util.List;
 @CheckTenantTypeAcceptAccess
 @DeniedJoinTenant
 @UniqueCoTenantsEmail
+@Builder
 public class ApplicationFormV2 {
 
     @Null(groups = Dossier.class)

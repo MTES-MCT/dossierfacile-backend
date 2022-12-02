@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.front.register.tenant;
 
+import com.google.common.annotations.VisibleForTesting;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.SaveStep;
@@ -22,6 +23,8 @@ import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,7 +50,6 @@ public class Application implements SaveStep<ApplicationFormV2> {
     private final ApartmentSharingService apartmentSharingService;
     private final PartnerCallBackService partnerCallBackService;
 
-
     @Override
     @Transactional
     public TenantModel saveStep(Tenant tenant, ApplicationFormV2 applicationForm) {
@@ -59,17 +61,68 @@ public class Application implements SaveStep<ApplicationFormV2> {
         List<Tenant> tenantToDelete = oldCoTenant.stream()
                 .filter(t -> applicationForm.getCoTenants().parallelStream()
                         .noneMatch(currentTenant -> t.getFirstName().equals(currentTenant.getFirstName())
-                                && t.getLastName().equals(currentTenant.getLastName())))
+                                && t.getLastName().equals(currentTenant.getLastName())
+                                && (StringUtils.isBlank(t.getEmail()) || t.getEmail().equals(currentTenant.getEmail()))))
                 .collect(Collectors.toList());
 
         List<CoTenantForm> tenantToCreate = applicationForm.getCoTenants().stream()
                 .filter(currentTenant -> oldCoTenant.parallelStream()
                         .noneMatch(oldTenant -> oldTenant.getFirstName().equals(currentTenant.getFirstName())
-                                && oldTenant.getLastName().equals(currentTenant.getLastName())))
+                                && oldTenant.getLastName().equals(currentTenant.getLastName())
+                                && (StringUtils.isBlank(oldTenant.getEmail()) || oldTenant.getEmail().equals(currentTenant.getEmail()))))
                 .collect(Collectors.toList());
 
+        List<Pair<Tenant, String>> tenantWitNewEmailToUpdate = applicationForm.getCoTenants().stream()
+                .map(currentTenant -> {
+                            Optional<Tenant> updatedTenant = oldCoTenant.parallelStream()
+                                    .filter(oldTenant ->
+                                            oldTenant.getFirstName().equals(currentTenant.getFirstName())
+                                                    && oldTenant.getLastName().equals(currentTenant.getLastName())
+                                                    && !StringUtils.equals(oldTenant.getEmail(), currentTenant.getEmail())
+                                                    && oldTenant.getEmail() == null
+                                    ).findFirst();
+                            if (updatedTenant.isEmpty()) {
+                                return null;
+                            }
+                            return new ImmutablePair<Tenant, String>(updatedTenant.get(), currentTenant.getEmail());
+                        }
+                )
+                .filter(d -> d != null)
+                .collect(Collectors.toList());
+
+        linkEmailToTenants(tenant, tenantWitNewEmailToUpdate);
 
         return saveStep(tenant, applicationForm.getApplicationType(), tenantToDelete, tenantToCreate);
+    }
+
+    @VisibleForTesting
+    protected void linkEmailToTenants(Tenant tenantCreate, List<Pair<Tenant, String>> tenantWitNewEmailToUpdate) {
+        if (tenantWitNewEmailToUpdate != null) {
+            List<String> emailsExistTenants = tenantWitNewEmailToUpdate.stream()
+                    .map(pair -> pair.getRight())
+                    .filter(email -> tenantRepository.existsByEmail(email))
+                    .collect(Collectors.toList());
+
+            if (!emailsExistTenants.isEmpty())
+                throw new IllegalArgumentException("Cannot update a tenant with an existing email: " + String.join(",", emailsExistTenants));
+
+            //tenantWitNewEmailToUpdate
+            for (Pair<Tenant, String> pair : tenantWitNewEmailToUpdate) {
+                Tenant t = pair.getLeft();
+                String newEmail = pair.getRight();
+
+                if (StringUtils.isNotBlank(newEmail)) {
+                    // create keycloak user
+                    t.setKeycloakId(keycloakService.createKeycloakUser(newEmail));
+                    t.setEmail(newEmail);
+                    userRoleService.createRole(t);
+                    tenantRepository.save(t);
+
+                    PasswordRecoveryToken passwordRecoveryToken = passwordRecoveryTokenService.create(t);
+                    mailService.sendEmailForFlatmates(tenantCreate, t, passwordRecoveryToken, tenantCreate.getApartmentSharing().getApplicationType());
+                }
+            }
+        }
     }
 
     TenantModel saveStep(Tenant tenant, ApplicationType applicationType, List<Tenant> tenantToDelete, List<CoTenantForm> tenantToCreate) {
@@ -107,7 +160,7 @@ public class Application implements SaveStep<ApplicationFormV2> {
                             tenant.getPreferredName(),
                             StringUtils.isBlank(tenant.getEmail()) ? null : tenant.getEmail(),
                             apartmentSharing);
-                    if (Boolean.TRUE.equals(tenantCreate.getHonorDeclaration())){
+                    if (Boolean.TRUE.equals(tenantCreate.getHonorDeclaration())) {
                         joinTenant.setHonorDeclaration(true);
                     }
                     tenantRepository.save(joinTenant);
