@@ -8,7 +8,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -20,6 +19,7 @@ public class CoTenantModel {
     private Long id;
     private String firstName;
     private String lastName;
+    private String preferredName;
     private String email;
     private TenantType tenantType;
     private TenantFileStatus status;
