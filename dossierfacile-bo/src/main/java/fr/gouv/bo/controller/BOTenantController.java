@@ -37,6 +37,7 @@ import java.util.Comparator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -77,6 +78,15 @@ public class BOTenantController {
     String locationMessageTenant;
     @Value("${bo.message-guarantor.location}")
     String locationMessageGuarantor;
+
+    @GetMapping("/{id}")
+    public String getTenant(@PathVariable Long id) {
+        Tenant tenant = tenantService.findTenantById(id);
+        if (tenant != null) {
+            return "redirect:/bo/colocation/" + tenant.getApartmentSharing().getId() + "#tenant" + tenant.getId();
+        }
+        throw new ObjectNotFoundException("TENANT", "Tenant is not found. Still exists?");
+    }
 
     @GetMapping("/deleteCoTenant/{id}")
     public String deleteCoTenant(@PathVariable Long id) {
