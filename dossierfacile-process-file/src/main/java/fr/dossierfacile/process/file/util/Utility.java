@@ -12,7 +12,6 @@ import fr.dossierfacile.process.file.model.TwoDDoc;
 import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.util.Strings;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.ImageType;
@@ -25,17 +24,12 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.nio.file.attribute.FileAttribute;
-import java.nio.file.attribute.PosixFilePermission;
-import java.nio.file.attribute.PosixFilePermissions;
 import java.text.Normalizer;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -51,7 +45,7 @@ public class Utility {
     private static final char ASCII_GROUP_SEPARATOR = (char)29;
     private static final char ASCII_UNIT_SEPARATOR = (char)31;
 
-    private static final Map<DecodeHintType,Object> HINTS;
+    private static final Map<DecodeHintType, Object> HINTS;
 
     static {
         HINTS = new EnumMap<>(DecodeHintType.class);
@@ -181,18 +175,19 @@ public class Utility {
     }
 
     public String extractTax2DDoc(File dfFile) {
-        String qrCodeInfo = "";
         try (InputStream inputStream = fileStorageService.download(dfFile)) {
             try (PDDocument document = PDDocument.load(inputStream)) {
                 if (!document.isEncrypted()) {
-                    PDFRenderer pdfRenderer = new PDFRenderer(document);
+                    int scale = Math.max(1 , (int) (2048 / document.getPage(0).getMediaBox().getWidth()));
 
-                    float dpi = (1058 / document.getPage(0).getMediaBox().getWidth()) * 300;
-                    dpi = Math.min(600, dpi);
-                    BufferedImage bufferedImage = pdfRenderer.renderImageWithDPI(0, dpi, ImageType.RGB);
+                    PDFRenderer pdfRenderer = new PDFRenderer(document);
+                    BufferedImage bufferedImage = pdfRenderer.renderImage(0, scale, ImageType.BINARY);
 
                     // Crop image to have better recognition by the BarcodeReader library
-                    BufferedImage cropImg = bufferedImage.getSubimage(880, 350, 910, 930);
+                    int x = 180 * bufferedImage.getWidth() / 1000;
+                    int y = 105 * bufferedImage.getWidth() / 1000;
+                    int width = 220 * bufferedImage.getWidth() / 1000;
+                    BufferedImage cropImg = bufferedImage.getSubimage(x, y, width, width);
 
                     BinaryBitmap binaryBitmap = new BinaryBitmap(
                             new HybridBinarizer(
@@ -204,11 +199,15 @@ public class Utility {
                     Result[] theResults = multiReader.decodeMultiple(binaryBitmap, HINTS);
                     String decoded = theResults[0].getText();
 
-                    log.info("DECODED QR : " + decoded + ", in " + (System.currentTimeMillis() - time) + "ms");
-                    qrCodeInfo = decoded != null ? decoded : "";
+                    log.debug("DECODED QR : " + decoded + ", in " + (System.currentTimeMillis() - time) + "ms");
+
+                    return decoded != null ? decoded : "";
                 }
-            } catch (IOException | NotFoundException e) {
-                log.error(EXCEPTION_MESSAGE2, e);
+            } catch (NotFoundException e) {
+                log.warn("Unable to parse 2DDoc code - file Id:" + dfFile.getId(), e);
+                Sentry.captureMessage("Unable to parse 2DDoc code - Not found");
+            } catch (IOException e) {
+                log.warn(EXCEPTION_MESSAGE2, e);
                 log.error(EXCEPTION + Sentry.captureException(e));
                 log.error(e.getMessage(), e.getCause());
             }
@@ -217,7 +216,7 @@ public class Utility {
             Sentry.captureMessage("Unable to download file " + dfFile.getPath());
         }
 
-        return qrCodeInfo;
+        return "";
     }
 
     @Deprecated

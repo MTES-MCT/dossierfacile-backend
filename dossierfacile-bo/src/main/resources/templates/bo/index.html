@@ -28,6 +28,16 @@
                         Editer les messages
                     </a>
                 </div>
+                <div th:if="${isUserAdmin} == true">
+                    <a href="/bo/userApi" class="btn" id="userApi" style="background: #e63d3d;padding: 10px 16px 12px;float: left;color: aliceblue;font-size: large;margin-left: 10px;margin-top: 10px">
+                        API Partners
+                    </a>
+                </div>
+                <div th:if="${isUserAdmin} == true">
+                    <a href="/bo/log" class="btn" id="displayLogs" style="background: #e63d3d;padding: 10px 16px 12px;float: left;color: aliceblue;font-size: large;margin-left: 10px;margin-top: 10px">
+                        Afficher les logs
+                    </a>
+                </div>
                 <div style="margin-top: 10px">
                     <a href="/bo/regroup" class="btn" id="nextApplication3" style="background: #1f6685;padding: 10px 10px 12px;float: left;color: aliceblue;font-size: large;margin-left: 10px;">Regrouper deux locataires</a>
                 </div>

@@ -1,15 +1,23 @@
 package fr.dossierfacile.process.file.util;
 
+import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.process.file.model.TwoDDoc;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@SpringBootTest
+import java.io.IOException;
+
+@ExtendWith(MockitoExtension.class)
 class UtilityTest {
+    @Mock
+    FileStorageService fileStorageService;
 
-    @Autowired
+    @InjectMocks
     private Utility utility;
 
     @Test
@@ -19,4 +27,13 @@ class UtilityTest {
         Assertions.assertEquals(4, twoDDoc.getVersion());
         Assertions.assertEquals("1267027554499", twoDDoc.getFiscalNumber());
     }
+
+    @Test
+    void extract2DDoc() throws IOException {
+        fr.dossierfacile.common.entity.File dfFile = new fr.dossierfacile.common.entity.File();
+        Mockito.when(fileStorageService.download(dfFile)).thenReturn(UtilityTest.class.getResourceAsStream("/2ddoc.pdf"));
+        Assertions.assertEquals("DC02FR000001125E125B0126FR247500010MME/SPECIMEN/NATACHA\u001D22145 AVENUE DES SPECIMENS\u001D\u001F54LDD5F7JD4JEFPR6WZYVZVB2JZXPZB73SP7WUTN5N44P3GESXW75JZUZD5FM3G4URAJ6IKDSSUB66Y3OWQIEH22G46QOAGWH7YHJWQ",
+                utility.extractTax2DDoc(dfFile));
+    }
+
 }
