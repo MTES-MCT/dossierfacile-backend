@@ -1,6 +1,7 @@
 package fr.dossierfacile.common.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import fr.dossierfacile.common.enums.TypeUserApi;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -63,6 +64,7 @@ public class UserApi implements Serializable {
 
     private Integer version;
 
+    @JsonIgnore
     @Builder.Default
     @OneToMany(mappedBy = "userApi", fetch = FetchType.LAZY)
     private List<TenantUserApi> tenantsUserApi = new ArrayList<>();
@@ -73,7 +75,7 @@ public class UserApi implements Serializable {
         this.site = site;
         this.name2 = name2;
         this.textModal = textModal;
-        version = 1;
+        this.version = 1;
     }
 
     @Override
