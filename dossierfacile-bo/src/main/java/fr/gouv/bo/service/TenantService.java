@@ -35,15 +35,6 @@ import fr.gouv.bo.repository.DocumentDeniedReasonsRepository;
 import fr.gouv.bo.repository.DocumentRepository;
 import fr.gouv.bo.repository.OperatorLogRepository;
 import fr.gouv.bo.repository.UserApiRepository;
-import java.security.Principal;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -57,6 +48,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.security.Principal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -206,13 +207,7 @@ public class TenantService {
                             document.setDocumentDeniedReasons(null);
                             documentRepository.save(document);
                         }));
-        changeTenantStatusToValidated(tenant);
-
-        mailService.sendEmailToTenantAfterValidateAllDocuments(tenant);
-        operatorLogRepository.save(new OperatorLog(
-                tenant, operator, tenant.getStatus(), ActionOperatorType.STOP_PROCESS
-        ));
-        logService.saveByLog(new Log(LogType.ACCOUNT_VALIDATED, tenant.getId(), operator.getId()));
+        changeTenantStatusToValidated(tenant, operator);
     }
 
     private boolean updateFileStatus(CustomMessage customMessage) {
@@ -418,14 +413,7 @@ public class TenantService {
                             document.setDocumentStatus(DocumentStatus.DECLINED);
                             documentRepository.save(document);
                         }));
-        changeTenantStatusToDeclined(tenant);
-
-        mailService.sendMailNotificationAfterDeny(tenant);
-        operatorLogRepository.save(new OperatorLog(
-                tenant, operator, tenant.getStatus(), ActionOperatorType.STOP_PROCESS
-        ));
-        partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.DENIED_ACCOUNT);
-        logService.saveByLog(new Log(LogType.ACCOUNT_DENIED, tenant.getId(), operator.getId()));
+        changeTenantStatusToDeclined(tenant, operator, null);
     }
 
     public void sendCallBacksManuallyToUserApi(Long userApiId) {
@@ -554,21 +542,11 @@ public class TenantService {
             log.error("BOTenantController customEmail not found tenant with id : {}", tenantId);
             return "redirect:/error";
         }
-        updateFileStatus(customMessage);
-        changeTenantStatusToDeclined(tenant);
-        Message message = sendCustomMessage(tenant, customMessage, checkValueOfCustomMessage(customMessage));
-        mailService.sendMailNotificationAfterDeny(tenant);
-
         User operator = userService.findUserByEmail(principal.getName());
-        operatorLogRepository.save(new OperatorLog(
-                tenant, operator, tenant.getStatus(), ActionOperatorType.STOP_PROCESS
-        ));
-        partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.DENIED_ACCOUNT);
-        if (message != null) {
-            logService.saveByLog(new Log(LogType.ACCOUNT_DENIED, tenant.getId(), operator.getId(), message.getId()));
-        } else {
-            logService.saveByLog(new Log(LogType.ACCOUNT_DENIED, tenant.getId(), operator.getId()));
-        }
+        updateFileStatus(customMessage);
+        Message message = sendCustomMessage(tenant, customMessage, checkValueOfCustomMessage(customMessage));
+        changeTenantStatusToDeclined(tenant, operator, message);
+
         return "redirect:/bo";
     }
 
@@ -588,23 +566,13 @@ public class TenantService {
             return "redirect:/error";
         }
         boolean allDocumentsValid = updateFileStatus(customMessage);
-        Message message = sendCustomMessage(tenant, customMessage, checkValueOfCustomMessage(customMessage));
+
         if (allDocumentsValid) {
-            changeTenantStatusToValidated(tenant);
-            logService.saveByLog(new Log(LogType.ACCOUNT_VALIDATED, tenant.getId(), operator.getId()));
-            mailService.sendEmailToTenantAfterValidateAllDocuments(tenant);
+            changeTenantStatusToValidated(tenant, operator);
         } else {
-            changeTenantStatusToDeclined(tenant);
-            if (message != null) {
-                logService.saveByLog(new Log(LogType.ACCOUNT_DENIED, tenant.getId(), operator.getId(), message.getId()));
-            } else {
-                logService.saveByLog(new Log(LogType.ACCOUNT_DENIED, tenant.getId(), operator.getId()));
-            }
-            mailService.sendMailNotificationAfterDeny(tenant);
+            Message message = sendCustomMessage(tenant, customMessage, checkValueOfCustomMessage(customMessage));
+            changeTenantStatusToDeclined(tenant, operator, message);
         }
-        operatorLogRepository.save(new OperatorLog(
-                tenant, operator, tenant.getStatus(), ActionOperatorType.STOP_PROCESS
-        ));
         return "redirect:/bo";
     }
 
@@ -632,12 +600,8 @@ public class TenantService {
                                 documentRepository.save(document);
                             }
                         }));
-        changeTenantStatusToDeclined(tenant);
-        mailService.sendMailNotificationAfterDeny(tenant);
-        operatorLogRepository.save(new OperatorLog(
-                tenant, operator, tenant.getStatus(), ActionOperatorType.STOP_PROCESS
-        ));
-        logService.saveByLog(new Log(LogType.ACCOUNT_DENIED, tenant.getId(), operator.getId()));
+        changeTenantStatusToDeclined(tenant, operator, null);
+
         return "redirect:/bo/colocation/" + tenant.getApartmentSharing().getId() + "#tenant" + tenant.getId();
     }
 
@@ -659,15 +623,43 @@ public class TenantService {
         }
     }
 
-    public void changeTenantStatusToValidated(Tenant tenant) {
+    private void changeTenantStatusToValidated(Tenant tenant, User operator) {
         tenant.setStatus(TenantFileStatus.VALIDATED);
         tenantRepository.save(tenant);
+
+        logService.saveByLog(new Log(LogType.ACCOUNT_VALIDATED, tenant.getId(), operator.getId()));
+        operatorLogRepository.save(new OperatorLog(tenant, operator, tenant.getStatus(), ActionOperatorType.STOP_PROCESS));
+
+        if (tenant.getApartmentSharing().getApplicationType() == ApplicationType.GROUP) {
+            mailService.sendEmailToTenantAfterValidateAllDocumentsOfTenant(tenant);
+        } else {
+            if (tenant.getApartmentSharing().getTenants().stream()
+                    .allMatch(t -> t.getStatus() == TenantFileStatus.VALIDATED)) {
+                tenant.getApartmentSharing().getTenants().stream()
+                        .filter(t -> StringUtils.isNotBlank(t.getEmail()))
+                        .forEach(t -> mailService.sendEmailToTenantAfterValidateAllDocuments(t));
+            }
+        }
+
         partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.VERIFIED_ACCOUNT);
+
     }
 
-    public void changeTenantStatusToDeclined(Tenant tenant) {
+    private void changeTenantStatusToDeclined(Tenant tenant, User operator, Message message) {
         tenant.setStatus(TenantFileStatus.DECLINED);
         tenantRepository.save(tenant);
+
+        logService.saveByLog(new Log(LogType.ACCOUNT_DENIED, tenant.getId(), operator.getId(), (message == null) ? null : message.getId()));
+        operatorLogRepository.save(new OperatorLog(
+                tenant, operator, tenant.getStatus(), ActionOperatorType.STOP_PROCESS
+        ));
+        if (tenant.getApartmentSharing().getApplicationType() == ApplicationType.COUPLE) {
+            tenant.getApartmentSharing().getTenants().stream()
+                    .filter(t -> StringUtils.isNotBlank(t.getEmail()))
+                    .forEach(t -> mailService.sendEmailToTenantAfterTenantDenied(t, tenant));
+        } else {
+            mailService.sendMailNotificationAfterDeny(tenant);
+        }
         partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.DENIED_ACCOUNT);
     }
 
