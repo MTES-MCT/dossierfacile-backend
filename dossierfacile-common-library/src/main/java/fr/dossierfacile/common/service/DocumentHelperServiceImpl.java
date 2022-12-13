@@ -73,7 +73,6 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
         return fileStorageService.uploadByteArray(file, extension, encryptionKey);
     }
 
-    @Transactional
     private String generatePreview(MultipartFile multipartFile) {
         String imageExtension = Objects.requireNonNull(multipartFile.getOriginalFilename()).substring(multipartFile.getOriginalFilename().lastIndexOf(".") + 1);
         byte[] compressImage;
