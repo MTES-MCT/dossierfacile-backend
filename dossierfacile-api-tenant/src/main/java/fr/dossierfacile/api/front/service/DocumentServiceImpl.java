@@ -1,6 +1,7 @@
 package fr.dossierfacile.api.front.service;
 
 import fr.dossierfacile.api.front.exception.DocumentNotFoundException;
+import fr.dossierfacile.api.front.exception.FileNotFoundException;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.repository.FileRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
@@ -37,7 +38,7 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Override
     public void delete(Long documentId, Tenant tenant) {
-        Document document = documentRepository.findByIdAssociatedToTenantId(documentId, tenant.getId())
+        Document document = documentRepository.findByIdForApartmentSharing(documentId, tenant.getApartmentSharing().getId())
                 .orElseThrow(() -> new DocumentNotFoundException(documentId));
 
         List<Document> documentList = new ArrayList<>();
@@ -49,7 +50,8 @@ public class DocumentServiceImpl implements DocumentService {
 
         List<DocumentCategory> categoriesToChange = List.of(DocumentCategory.PROFESSIONAL, DocumentCategory.FINANCIAL, DocumentCategory.TAX);
         if (categoriesToChange.contains(document.getDocumentCategory())) {
-            if (tenant.getStatus() == TenantFileStatus.VALIDATED) {
+            if (document.getTenant() != null && document.getTenant().getStatus() == TenantFileStatus.VALIDATED ||
+                document.getGuarantor() != null && document.getGuarantor().getTenant().getStatus() == TenantFileStatus.VALIDATED) {
                 resetValidatedDocumentsStatusOfSpecifiedCategoriesToToProcess(documentList, categoriesToChange);
             }
         }

@@ -36,8 +36,8 @@ public class UserRole implements Serializable {
 
     private Role role;
 
-    public UserRole(Tenant tenant) {
-        this.user = tenant;
+    public UserRole(User user) {
+        this.user = user;
         this.role = Role.ROLE_TENANT;
     }
 

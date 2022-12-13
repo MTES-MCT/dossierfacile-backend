@@ -3,6 +3,7 @@ package fr.dossierfacile.api.front.partner.controller;
 import fr.dossierfacile.api.front.model.tenant.EmailExistsModel;
 import fr.dossierfacile.api.front.register.form.partner.EmailExistsForm;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
+import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.service.interfaces.UserService;
 import fr.dossierfacile.common.entity.Tenant;
 import lombok.AllArgsConstructor;
@@ -23,13 +24,14 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 public class ApiPartnerUserController {
 
+    private final TenantService tenantService;
     private final UserService userService;
     private final AuthenticationFacade authenticationFacade;
 
 
     @PostMapping(value = "/emailexists", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<EmailExistsModel> emailExists(@Validated @RequestBody EmailExistsForm emailExistsForm) {
-        return ok(userService.emailExists(emailExistsForm));
+        return ok(tenantService.emailExists(emailExistsForm));
     }
 
     @DeleteMapping("/tenant/{tenantId}/user/deleteAccount")

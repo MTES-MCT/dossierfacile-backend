@@ -104,7 +104,7 @@ public class TenantService {
             return tenantList;
         }
         if (emailDTO.getEmail().contains("@")) {
-            tenantList.add(tenantRepository.findOneByEmail(emailDTO.getEmail()));
+            tenantList.add(tenantRepository.findByEmail(emailDTO.getEmail()).get());
             tenantList.add(new Tenant());
             return tenantList;
         }
@@ -839,7 +839,7 @@ public class TenantService {
     }
 
     public Tenant getTenantByEmail(String email) {
-        return tenantRepository.findOneByEmail(email);
+        return tenantRepository.findByEmail(email).get();
     }
 
     @Transactional

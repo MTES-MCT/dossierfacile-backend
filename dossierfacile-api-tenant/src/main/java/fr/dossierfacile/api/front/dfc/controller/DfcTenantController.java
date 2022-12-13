@@ -26,7 +26,7 @@ public class DfcTenantController {
 
     @GetMapping(value = "/profile", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ConnectedTenantModel> profilePartner() {
-        var tenant = authenticationFacade.getTenant(null);
+        var tenant = authenticationFacade.getLoggedTenant();
         var partner = authenticationFacade.getKeycloakClientId();
         userService.linkTenantToPartner(tenant, partner);
         return ok(tenantMapper.toTenantModelDfc(tenant));
@@ -34,7 +34,7 @@ public class DfcTenantController {
 
     @RequestMapping(path="/logout", method = {RequestMethod.GET, RequestMethod.POST})
     public ResponseEntity<Void> logout() {
-        Tenant tenant = authenticationFacade.getTenant(null);
+        Tenant tenant = authenticationFacade.getLoggedTenant();
         userService.logout(tenant);
         return ok().build();
     }

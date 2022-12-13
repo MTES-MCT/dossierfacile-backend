@@ -10,6 +10,7 @@ import javax.validation.constraints.NotBlank;
 @AllArgsConstructor
 @NoArgsConstructor
 public class MessageForm {
+    private Long tenantId;
     @NotBlank
     private String messageBody;
 }

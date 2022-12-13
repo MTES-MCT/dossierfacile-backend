@@ -17,7 +17,6 @@ import javax.validation.constraints.Null;
 @MaxGuarantor
 public class GuarantorTypeForm {
 
-    @Null(groups = Dossier.class)
     @NotNull(groups = ApiPartner.class)
     private Long tenantId;
 

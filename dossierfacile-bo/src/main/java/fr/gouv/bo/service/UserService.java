@@ -3,6 +3,7 @@ package fr.gouv.bo.service;
 import com.google.gson.Gson;
 import fr.dossierfacile.common.entity.AccountDeleteLog;
 import fr.dossierfacile.common.entity.ApartmentSharing;
+import fr.dossierfacile.common.entity.BOUser;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.PropertyApartmentSharing;
@@ -23,9 +24,10 @@ import fr.gouv.bo.model.tenant.TenantModel;
 import fr.gouv.bo.repository.AccountDeleteLogRepository;
 import fr.gouv.bo.repository.ApartmentSharingRepository;
 import fr.gouv.bo.repository.PropertyApartmentSharingRepository;
-import fr.gouv.bo.repository.UserRepository;
+import fr.gouv.bo.repository.BOUserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.keycloak.representations.idm.UserRepresentation;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -44,7 +46,7 @@ import java.util.stream.Collectors;
 public class UserService {
 
     private final Gson gson;
-    private final UserRepository userRepository;
+    private final BOUserRepository userRepository;
     private final TenantCommonRepository tenantRepository;
     private final ModelMapper modelMapper;
     private final MailService mailService;
@@ -60,12 +62,12 @@ public class UserService {
     @Value("${authorize.domain.bo}")
     private String ad;
 
-    public List<User> findAllAdmins() {
+    public List<BOUser> findAllAdmins() {
         return userRepository.findAllAdmins(ad);
     }
 
     public User findUserByEmail(String email) {
-        return userRepository.findOneByEmail(email);
+        return userRepository.findByEmail(email).get();
     }
 
     public User save(UserDTO userDTO) {
@@ -94,23 +96,23 @@ public class UserService {
         userRepository.deleteById(id);
     }
 
-    public void deleteCoTenant(Tenant tenant, Long id) {
+    public void deleteCoTenant(Tenant tenant) {
 
         if (tenant.getTenantType().equals(TenantType.CREATE)) {
-            ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
-            Tenant coTenant = apartmentSharing.getTenants().stream().filter(t -> t.getId().equals(id) && t.getTenantType().equals(TenantType.JOIN)).findFirst().orElseThrow(null);
-            if (coTenant != null) {
-                partnerCallBackService.sendCallBack(coTenant, PartnerCallBackType.DELETED_ACCOUNT);
-                if (coTenant.getKeycloakId() != null) {
-                    keycloakService.deleteKeycloakSingleUser(coTenant);
-                }
-                saveAndDeleteInfoByTenant(coTenant);
-                userRepository.delete(coTenant);
-                apartmentSharing.getTenants().remove(coTenant);
-                updateApplicationTypeOfApartmentAfterDeletionOfCotenant(apartmentSharing);
-                apartmentSharingService.resetDossierPdfGenerated(apartmentSharing);
-            }
+            throw new IllegalArgumentException("this tenant is a main tenant");
         }
+
+        ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
+        partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.DELETED_ACCOUNT);
+        if (tenant.getKeycloakId() != null ){
+            keycloakService.deleteKeycloakSingleUser(tenant);
+        }
+        saveAndDeleteInfoByTenant(tenant);
+        tenantRepository.delete(tenant);
+
+        apartmentSharing.getTenants().remove(tenant);
+        updateApplicationTypeOfApartmentAfterDeletionOfCotenant(apartmentSharing);
+        apartmentSharingService.resetDossierPdfGenerated(apartmentSharing);
     }
 
     private void saveAndDeleteInfoByTenant(Tenant tenant) {
@@ -128,23 +130,26 @@ public class UserService {
                 );
     }
 
-    public Tenant deleteAndReplaceTenantCreate(Tenant create) {
-        ApartmentSharing apartmentSharing = create.getApartmentSharing();
-        Tenant mainTenant = apartmentSharing.getTenants().stream().filter(tenant -> !tenant.getTenantType().equals(TenantType.CREATE)).findAny().orElseThrow(null);
-        if (mainTenant != null) {
-            partnerCallBackService.sendCallBack(create, PartnerCallBackType.DELETED_ACCOUNT);
-            if (create.getKeycloakId() != null) {
-                keycloakService.deleteKeycloakSingleUser(create);
-            }
-            saveAndDeleteInfoByTenant(create);
-            tenantRepository.delete(create);
-            apartmentSharing.getTenants().remove(create);
-            mainTenant.setTenantType(TenantType.CREATE);
-            tenantRepository.save(mainTenant);
-            updateApplicationTypeOfApartmentAfterDeletionOfCotenant(apartmentSharing);
-            apartmentSharingService.resetDossierPdfGenerated(apartmentSharing);
+
+    public Tenant setAsTenantCreate(Tenant tenant) {
+        ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
+        UserRepresentation keycloakUser = keycloakService.getKeyCloakUser(
+                tenant.getKeycloakId() == null ? null : tenant.getKeycloakId());
+
+        if (keycloakUser == null || !keycloakUser.isEnabled()) { // cannot be a create tenant
+            throw new IllegalStateException("This tenant cannot be a tenant - missing keycloak user or is not enabled");
         }
-        return mainTenant;
+        Tenant mainTenant = apartmentSharing.getTenants().stream()
+                .filter(t -> t.getTenantType().equals(TenantType.CREATE))
+                .findFirst()
+                .orElseThrow(IllegalStateException::new);
+
+        mainTenant.setTenantType(TenantType.JOIN);
+        tenant.setTenantType(TenantType.CREATE);
+        tenantRepository.save(mainTenant);
+        tenantRepository.save(tenant);
+
+        return tenant;
     }
 
     private void savingJsonProfileBeforeDeletion(TenantModel tenantModel) {
@@ -173,12 +178,10 @@ public class UserService {
         partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.DELETED_ACCOUNT);
         ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
         removeFromOwner(tenant);
-        if (apartmentSharing.getTenants().size() == 1 && tenant.getKeycloakId() != null) {
-            keycloakService.deleteKeycloakSingleUser(tenant);
-        }
-        if (apartmentSharing.getTenants().size() > 1) {
-            keycloakService.deleteKeycloakUsers(apartmentSharing.getTenants());
-        }
+        keycloakService.deleteKeycloakUsers(
+                apartmentSharing.getTenants().stream()
+                        .filter(t -> t.getKeycloakId() != null)
+                        .collect(Collectors.toList()));
         apartmentSharing.getTenants().forEach(this::saveAndDeleteInfoByTenant);
         apartmentSharingRepository.delete(apartmentSharing);
     }

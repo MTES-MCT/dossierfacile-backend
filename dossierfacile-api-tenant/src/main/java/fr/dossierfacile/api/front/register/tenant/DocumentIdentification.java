@@ -8,6 +8,7 @@ import fr.dossierfacile.api.front.register.form.tenant.DocumentIdentificationFor
 import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
+import fr.dossierfacile.api.front.service.interfaces.FileService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.DocumentCategory;
@@ -20,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 
@@ -37,6 +39,7 @@ public class DocumentIdentification implements SaveStep<DocumentIdentificationFo
     private final Producer producer;
     private final ApartmentSharingService apartmentSharingService;
     private final DocumentPdfGenerationLogRepository documentPdfGenerationLogRepository;
+    private final FileService fileService;
 
     @Override
     public TenantModel saveStep(Tenant tenant, DocumentIdentificationForm documentIdentificationForm) {
@@ -63,7 +66,8 @@ public class DocumentIdentification implements SaveStep<DocumentIdentificationFo
 
         documentIdentificationForm.getDocuments().stream()
                 .filter(f -> !f.isEmpty())
-                .forEach(multipartFile -> documentHelperService.addFile(multipartFile, document));
+                .forEach(multipartFile -> documentHelperService.addFile(multipartFile, document)
+                );
 
         documentService.initializeFieldsToProcessPdfGeneration(document);
         tenant.lastUpdateDateProfile(LocalDateTime.now(), DocumentCategory.IDENTIFICATION);

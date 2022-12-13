@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+    <changeSet id="2022091400000-01" author="fle (manual)">
+        <sql>
+            <![CDATA[
+            -- update email_type_uniq constraint
+            DROP INDEX email_type_uniq;
+
+            -- allow multiple null values
+            CREATE UNIQUE INDEX unique_email_usertype_notnull
+            ON user_account (email, user_type)
+            WHERE email IS NOT NULL;
+          ]]>
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

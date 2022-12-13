@@ -1,14 +1,13 @@
 package fr.dossierfacile.api.front.service;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import fr.dossierfacile.api.front.exception.ConfirmationTokenNotFoundException;
 import fr.dossierfacile.api.front.exception.PasswordRecoveryTokenNotFoundException;
 import fr.dossierfacile.api.front.exception.UserNotFoundException;
 import fr.dossierfacile.api.front.form.PartnerForm;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
-import fr.dossierfacile.api.front.model.tenant.EmailExistsModel;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
-import fr.dossierfacile.api.front.register.form.partner.EmailExistsForm;
 import fr.dossierfacile.api.front.register.form.tenant.FranceConnectTaxForm;
 import fr.dossierfacile.api.front.repository.AccountDeleteLogRepository;
 import fr.dossierfacile.api.front.repository.ApartmentSharingRepository;
@@ -23,6 +22,7 @@ import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.api.front.service.interfaces.PasswordRecoveryTokenService;
 import fr.dossierfacile.api.front.service.interfaces.SourceService;
 import fr.dossierfacile.api.front.service.interfaces.UserService;
+import fr.dossierfacile.api.front.util.LocalDateTimeTypeAdapter;
 import fr.dossierfacile.common.entity.AccountDeleteLog;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.ConfirmationToken;
@@ -84,7 +84,6 @@ public class UserServiceImpl implements UserService {
     private final TenantMapper tenantMapper;
     private final TenantCommonRepository tenantRepository;
     private final LogService logService;
-    private final Gson gson = new Gson();
     private final KeycloakService keycloakService;
     private final SourceService sourceService;
     private final PartnerCallBackService partnerCallBackService;
@@ -145,10 +144,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void forgotPassword(String email) {
-        Tenant tenant = tenantRepository.findOneByEmail(email);
-        if (tenant == null) {
-            throw new UserNotFoundException(email);
-        }
+        Tenant tenant = tenantRepository.findByEmail(email).orElseThrow( () -> new UserNotFoundException(email));
+
         PasswordRecoveryToken passwordRecoveryToken = passwordRecoveryTokenService.create(tenant);
         mailService.sendEmailNewPassword(tenant, passwordRecoveryToken);
     }
@@ -192,13 +189,6 @@ public class UserServiceImpl implements UserService {
         return false;
     }
 
-    @Override
-    public EmailExistsModel emailExists(EmailExistsForm emailExistsForm) {
-        return EmailExistsModel.builder()
-                .email(emailExistsForm.getEmail())
-                .exists(userRepository.existsByEmail(emailExistsForm.getEmail()))
-                .build();
-    }
 
     @Override
     public void linkTenantToPartner(Tenant tenant, PartnerForm partnerForm) {
@@ -250,6 +240,10 @@ public class UserServiceImpl implements UserService {
     }
 
     private void savingJsonProfileBeforeDeletion(TenantModel tenantModel) {
+        GsonBuilder builder = new GsonBuilder();
+        builder.registerTypeAdapter(LocalDateTime.class, new LocalDateTimeTypeAdapter());
+        Gson gson = builder.create();
+
         accountDeleteLogRepository.save(
                 AccountDeleteLog.builder()
                         .userId(tenantModel.getId())

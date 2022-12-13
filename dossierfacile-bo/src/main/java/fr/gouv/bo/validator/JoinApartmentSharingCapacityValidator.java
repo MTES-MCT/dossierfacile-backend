@@ -23,7 +23,7 @@ public class JoinApartmentSharingCapacityValidator implements ConstraintValidato
 
     @Override
     public boolean isValid(String s, ConstraintValidatorContext constraintValidatorContext) {
-        Tenant tenant = tenantRepository.findOneByEmail(s);
+        Tenant tenant = tenantRepository.findByEmail(s).get();
         if (tenant == null) {
             return true;
         }

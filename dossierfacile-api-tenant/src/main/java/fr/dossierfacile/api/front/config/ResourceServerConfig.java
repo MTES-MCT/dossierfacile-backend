@@ -35,7 +35,7 @@ public class ResourceServerConfig {
                 .maxAgeInSeconds(63072000)
                 .includeSubDomains(true)
                 .and()
-                .contentSecurityPolicy("frame-ancestors 'none'; frame-src 'none'; child-src 'none'; upgrade-insecure-requests; default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; object-src 'none'; img-src 'self' data:; font-src 'self'; connect-src *.dossierfacile.fr; base-uri 'self'; form-action 'none'; media-src 'none'; worker-src 'none'; manifest-src 'none'; prefetch-src 'none';")
+                .contentSecurityPolicy("frame-ancestors 'none'; frame-src 'none'; child-src 'none'; upgrade-insecure-requests; default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; object-src 'none'; img-src 'self' data:; font-src 'self'; connect-src *.dossierfacile.fr *.dossierfacile.fr:*; base-uri 'self'; form-action 'none'; media-src 'none'; worker-src 'none'; manifest-src 'none'; prefetch-src 'none';")
                 .and()
                 .frameOptions()
                 .sameOrigin()
@@ -53,7 +53,7 @@ public class ResourceServerConfig {
                 .authorizeRequests()
                 .antMatchers("/swagger-ui/**", "/swagger-resources/**", "/v2/api-docs", "/api/register/account", "/api/register/confirmAccount/**",
                         "/api/auth/**", "/api/user/forgotPassword", "/api/user/createPassword/**",
-                        "/api/document/**", "/api/file/download/**", "/api/application/full/**", "/api/application/light/**",
+                        "/api/document/**", "/api/file/download/**", "/api/file/preview/**", "/api/application/full/**", "/api/application/light/**",
                         "/api/application/fullPdf/**", "/api/tenant/property/**",
                         "/api/support/email",
                         "/actuator/health")

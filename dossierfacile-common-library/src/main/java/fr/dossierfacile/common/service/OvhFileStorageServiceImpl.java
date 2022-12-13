@@ -23,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -181,6 +182,18 @@ public class OvhFileStorageServiceImpl implements FileStorageService {
         String name = UUID.randomUUID() + "." + Objects.requireNonNull(FilenameUtils.getExtension(file.getOriginalFilename())).toLowerCase(Locale.ROOT);
         try {
             upload(name, file.getInputStream(), key);
+        } catch (IOException e) {
+            throw new FileCannotUploadedException();
+        }
+        return name;
+    }
+
+    @Override
+    public String uploadByteArray(byte[] file, String extension, Key key) {
+        String name = UUID.randomUUID() + "." + Objects.requireNonNull(extension).toLowerCase(Locale.ROOT);
+        try {
+            InputStream targetStream = new ByteArrayInputStream(file);
+            upload(name, targetStream, key);
         } catch (IOException e) {
             throw new FileCannotUploadedException();
         }

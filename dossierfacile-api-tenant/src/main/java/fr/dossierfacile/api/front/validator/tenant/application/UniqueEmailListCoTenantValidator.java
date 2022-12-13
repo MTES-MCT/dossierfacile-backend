@@ -11,6 +11,7 @@ import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 import java.util.stream.Collectors;
 
+@Deprecated
 @Component
 @AllArgsConstructor
 public class UniqueEmailListCoTenantValidator implements ConstraintValidator<UniqueEmailListCoTenant, ApplicationForm> {
@@ -29,18 +30,20 @@ public class UniqueEmailListCoTenantValidator implements ConstraintValidator<Uni
         if (tenant == null) {
             return true;
         }
-        var apartmentSharing = tenant.getApartmentSharing();
-        var emails = applicationForm.getCoTenantEmail().stream().map(String::toLowerCase).collect(Collectors.toList());
-        var tenants = tenantRepository.findByListEmail(emails)
+        var existingEmails = tenantRepository.findByEmailInAndApartmentSharingNot(applicationForm.getCoTenantEmail(), tenant.getApartmentSharing())
                 .stream()
-                .filter(t -> t.getApartmentSharing() != null && !t.getApartmentSharing().equals(apartmentSharing)).collect(Collectors.toList());
-        boolean isValid = tenants.isEmpty();
-        if (!isValid) {
+                .map( t -> t.getEmail())
+                .collect(Collectors.toList());
+
+        if (!existingEmails.isEmpty()) {
             constraintValidatorContext.disableDefaultConstraintViolation();
+            String msgTemplate = String.format(constraintValidatorContext.getDefaultConstraintMessageTemplate(),
+                    String.join(",", existingEmails));
             constraintValidatorContext
-                    .buildConstraintViolationWithTemplate(constraintValidatorContext.getDefaultConstraintMessageTemplate())
+                    .buildConstraintViolationWithTemplate(msgTemplate)
                     .addPropertyNode("coTenantEmail").addConstraintViolation();
+            return false;
         }
-        return isValid;
+        return true;
     }
 }

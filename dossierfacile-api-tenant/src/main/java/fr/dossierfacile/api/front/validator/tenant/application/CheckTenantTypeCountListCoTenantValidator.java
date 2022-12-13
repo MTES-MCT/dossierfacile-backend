@@ -7,6 +7,8 @@ import fr.dossierfacile.common.enums.ApplicationType;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
+/** deprecated  since 202209 */
+@Deprecated
 public class CheckTenantTypeCountListCoTenantValidator implements ConstraintValidator<CheckTenantTypeCountListCoTenant, ApplicationForm> {
 
     @Override

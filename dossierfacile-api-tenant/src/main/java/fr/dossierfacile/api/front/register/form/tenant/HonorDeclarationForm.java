@@ -18,7 +18,6 @@ import javax.validation.constraints.Size;
 @CheckHonorDeclarationClarification
 public class HonorDeclarationForm {
 
-    @Null(groups = Dossier.class)
     @NotNull(groups = ApiPartner.class)
     private Long tenantId;
 

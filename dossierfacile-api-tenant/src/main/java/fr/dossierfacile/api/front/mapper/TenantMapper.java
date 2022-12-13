@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Component
@@ -48,20 +49,37 @@ public abstract class TenantMapper {
         }
         var isDossierUser = SecurityContextHolder.getContext().getAuthentication().getAuthorities().contains(new SimpleGrantedAuthority("SCOPE_dossier"));
         var filePath = isDossierUser ? "/api/file/resource/" : "/api-partner/tenant/" + tenantModel.getId() + "/file/resource/";
-        setDocumentDeniedReasonsAndDocumentAndFilesRoutes(tenantModel.getDocuments(), filePath);
+        setDocumentDeniedReasonsAndDocumentAndFilesRoutes(tenantModel.getDocuments(), filePath, false);
+
+        tenantModel.getApartmentSharing().getTenants().stream().filter( t -> Objects.equals(t.getId(), tenantModel.getId())).forEach(
+                t -> {
+                    t.setDocuments(null);
+                    t.setGuarantors(null);
+                }
+        );
+        Optional.ofNullable(tenantModel.getApartmentSharing().getTenants())
+                .ifPresent(coTenantModels -> coTenantModels.forEach(coTenantModel -> {
+                    setDocumentDeniedReasonsAndDocumentAndFilesRoutes(coTenantModel.getDocuments(), filePath, true);
+                    Optional.ofNullable(coTenantModel.getGuarantors())
+                            .ifPresent(guarantorModels -> guarantorModels.forEach(guarantorModel -> setDocumentDeniedReasonsAndDocumentAndFilesRoutes(guarantorModel.getDocuments(), filePath, true)));
+                }));
 
         Optional.ofNullable(tenantModel.getGuarantors())
-                .ifPresent(guarantorModels -> guarantorModels.forEach(guarantorModel -> setDocumentDeniedReasonsAndDocumentAndFilesRoutes(guarantorModel.getDocuments(), filePath)));
+                .ifPresent(guarantorModels -> guarantorModels.forEach(guarantorModel -> setDocumentDeniedReasonsAndDocumentAndFilesRoutes(guarantorModel.getDocuments(), filePath, false)));
+
     }
 
-    private void setDocumentDeniedReasonsAndDocumentAndFilesRoutes(List<DocumentModel> list, String filePath) {
+    private void setDocumentDeniedReasonsAndDocumentAndFilesRoutes(List<DocumentModel> list, String filePath, boolean previewOnly) {
+        var previewPath = "/api/file/preview/";
         Optional.ofNullable(list)
                 .ifPresent(documentModels -> documentModels.forEach(documentModel -> {
-                    documentModel.setName(domain + "/" + path + "/" + documentModel.getName());
+                    if (documentModel.getName() != null) {
+                        documentModel.setName(domain + "/" + path + "/" + documentModel.getName());
+                    }
                     DocumentDeniedReasonsModel documentDeniedReasonsModel = documentModel.getDocumentDeniedReasons();
                     if (documentDeniedReasonsModel != null) {
+                        List<SelectedOption> selectedOptionList = new ArrayList<>();
                         if (documentDeniedReasonsModel.isMessageData()) {
-                            List<SelectedOption> selectedOptionList = new ArrayList<>();
                             for (int i = 0; i < documentDeniedReasonsModel.getCheckedOptions().size(); i++) {
                                 String checkedOption = documentDeniedReasonsModel.getCheckedOptions().get(i);
                                 Integer checkedOptionsId = documentDeniedReasonsModel.getCheckedOptionsId().get(i);
@@ -69,24 +87,26 @@ public abstract class TenantMapper {
                                         .id(checkedOptionsId)
                                         .label(checkedOption).build());
                             }
-                            documentDeniedReasonsModel.setSelectedOptions(selectedOptionList);
-                            documentDeniedReasonsModel.setCheckedOptions(null);
-                            documentDeniedReasonsModel.setCheckedOptionsId(null);
-                            documentModel.setDocumentDeniedReasons(documentDeniedReasonsModel);
                         } else {
-                            List<SelectedOption> selectedOptionList = new ArrayList<>();
                             for (int i = 0; i < documentDeniedReasonsModel.getCheckedOptions().size(); i++) {
                                 String checkedOption = documentDeniedReasonsModel.getCheckedOptions().get(i);
                                 selectedOptionList.add(SelectedOption.builder().id(null).label(checkedOption).build());
                             }
-                            documentDeniedReasonsModel.setSelectedOptions(selectedOptionList);
-                            documentDeniedReasonsModel.setCheckedOptions(null);
-                            documentDeniedReasonsModel.setCheckedOptionsId(null);
-                            documentModel.setDocumentDeniedReasons(documentDeniedReasonsModel);
                         }
+                        documentDeniedReasonsModel.setSelectedOptions(selectedOptionList);
+                        documentDeniedReasonsModel.setCheckedOptions(null);
+                        documentDeniedReasonsModel.setCheckedOptionsId(null);
+                        documentModel.setDocumentDeniedReasons(documentDeniedReasonsModel);
                     }
                     Optional.ofNullable(documentModel.getFiles())
-                            .ifPresent(fileModels -> fileModels.forEach(fileModel -> fileModel.setPath(domain + filePath + fileModel.getId())));
+                            .ifPresent(fileModels -> fileModels.forEach(fileModel -> {
+                                if (previewOnly) {
+                                    fileModel.setPath("");
+                                } else {
+                                    fileModel.setPath(domain + filePath + fileModel.getId());
+                                }
+                                fileModel.setPreview(domain + previewPath + fileModel.getPreview());
+                            }));
                 }));
     }
 
