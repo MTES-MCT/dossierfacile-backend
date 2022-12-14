@@ -347,10 +347,10 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
     }
 
     public boolean test1(Taxes taxes, String lastName, String firstName, String unaccentFirstName, String unaccentLastName) {
-        boolean result1 = (taxes.getNmUsaDec1() != null && (StringUtils.containsIgnoreCase(taxes.getNmUsaDec1(), lastName) ||
-                taxes.getNmNaiDec1() != null && taxes.getPrnmDec1() != null &&
-                        StringUtils.containsIgnoreCase(taxes.getNmNaiDec1(), lastName)) &&
-                StringUtils.containsIgnoreCase(taxes.getPrnmDec1(), firstName))
+        boolean result1 = (taxes.getNmUsaDec1() != null && StringUtils.containsIgnoreCase(taxes.getNmUsaDec1(), lastName) ||
+                taxes.getNmNaiDec1() != null &&
+                        StringUtils.containsIgnoreCase(taxes.getNmNaiDec1(), lastName)) && taxes.getPrnmDec1() != null &&
+                StringUtils.containsIgnoreCase(taxes.getPrnmDec1(), firstName)
                 ||
                 (taxes.getNmUsaDec2() != null && (StringUtils.containsIgnoreCase(taxes.getNmUsaDec2(), lastName) ||
                         taxes.getNmNaiDec2() != null && taxes.getPrnmDec2() != null &&
