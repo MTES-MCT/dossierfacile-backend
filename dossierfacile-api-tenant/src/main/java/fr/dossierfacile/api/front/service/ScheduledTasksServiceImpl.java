@@ -12,6 +12,7 @@ import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.api.front.service.interfaces.ScheduledTasksService;
 import fr.dossierfacile.common.entity.ConfirmationToken;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
@@ -19,6 +20,7 @@ import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -125,7 +127,17 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
         if (tenantsToNotificate != null && tenantsToNotificate.size() > 0) {
             log.info(tenantsToNotificate.size() + " tenants found, to be notified because account is still declination after " + daysForAccountCompletionReminder + " days of account declined");
             for (Tenant tenant : tenantsToNotificate) {
-                mailService.sendEmailWhenAccountIsStillDeclined(tenant);
+                if (StringUtils.isNotBlank(tenant.getEmail())) {
+                    mailService.sendEmailWhenAccountIsStillDeclined(tenant);
+                }
+                if (tenant.getApartmentSharing().getApplicationType() == ApplicationType.COUPLE) {
+                    tenant.getApartmentSharing().getTenants().stream()
+                            .filter(user ->
+                                    user.getId() != tenant.getId()
+                                            && StringUtils.isNotBlank(user.getEmail())
+                                            && user.getStatus() == TenantFileStatus.VALIDATED)
+                            .forEach(user -> mailService.sendEmailWhenAccountIsStillDeclined(user));
+                }
             }
         }
     }
