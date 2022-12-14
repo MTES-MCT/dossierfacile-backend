@@ -69,10 +69,8 @@ public class Utility {
                 if (Character.isDigit(c)) {
                     number.append(c);
                 } else if (!number.toString().equals("")) {
-                    if (numbers.get(number.toString()) != null) {
-                        numbers.put(number.toString(), numbers.get(number.toString()) + 1);
-                    } else {
-                        numbers.put(number.toString(), 1);
+                    if (numbers.get(number.toString()) == null && number.length() <= 9) {
+                        numbers.put(number.toString(), Integer.valueOf(number.toString()));
                     }
                     number = new StringBuilder();
                 }

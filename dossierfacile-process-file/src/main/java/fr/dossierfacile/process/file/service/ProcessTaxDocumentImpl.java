@@ -219,6 +219,8 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
                     })
                     .reduce("", String::concat);
 
+            result.append(text);
+
             if (StringUtils.isBlank(fiscalNumber)) {
                 fiscalNumber = Utility.extractFiscalNumber(text);
             }
@@ -378,7 +380,8 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
         }
         Map<String, Integer> map = Utility.extractNumbersText(stringBuilder.toString());
         int salaryApi = Integer.parseInt(taxes.getRfr());
-        return map.containsKey(String.valueOf(salaryApi));
+        Optional<Map.Entry<String, Integer>> any = map.entrySet().stream().filter(e -> e.getValue() > salaryApi * 0.9 && e.getValue() < salaryApi * 1.1).findAny();
+        return any.isPresent();
     }
 
     private boolean oldTest2(Taxes taxes, StringBuilder stringBuilder) {
