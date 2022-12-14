@@ -429,6 +429,11 @@
                                     <td>Clarification</td>
                                     <td th:text="${tenant.getClarification()}"></td>
                                 </tr>
+                                <tr>
+                                    <td>Consentement API impôts</td>
+                                    <td th:if="${tenant.allowCheckTax}"><span class="fa fa-check text-success">OK</span></td>
+                                    <td th:unless="${tenant.allowCheckTax}"><span  class="fa fa-times text-danger">Non accepté</span</td>
+                                </tr>
                             </table>
                         </div>
 
@@ -608,6 +613,19 @@
                                             <div class="col-md-12 top-buffer margin-bottom">
                                                 Reference number:
                                                 <span th:text="${result.getReferenceNumber()}"></span>
+                                            </div>
+                                            <div class="col-md-12 top-buffer margin-bottom">
+                                                Reference number:
+                                                <span th:text="${result.getReferenceNumber()}"></span>
+                                            </div>
+                                            <div class="col-md-12 top-buffer margin-bottom">
+                                                Consentement API impôts :
+                                                <span class="fa fa-check text-success"
+                                                      th:if="${tenant.allowCheckTax}">OK
+                                                         </span>
+                                                <span class="fa fa-times text-danger"
+                                                      th:unless="${tenant.allowCheckTax}">Non accepté
+                                                        </span>
                                             </div>
                                         </div>
                                         <div th:if="${result.qrContent}==null" class="table-responsive">
