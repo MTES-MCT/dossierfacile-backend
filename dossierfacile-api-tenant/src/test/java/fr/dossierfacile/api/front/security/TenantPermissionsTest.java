@@ -110,18 +110,18 @@ class TenantPermissionsTest {
     }
 
     private static Tenant buildTenant(long id, ApplicationType applicationType) {
-        Tenant tenant = new Tenant();
-        tenant.setId(id);
-        ApartmentSharing apartmentSharing = new ApartmentSharing();
-        apartmentSharing.setApplicationType(applicationType);
-        tenant.setApartmentSharing(apartmentSharing);
-        return tenant;
+        ApartmentSharing apartmentSharing = ApartmentSharing.builder()
+                .applicationType(applicationType)
+                .build();
+        return Tenant.builder()
+                .id(id)
+                .apartmentSharing(apartmentSharing)
+                .build();
     }
 
     private Tenant buildTenantWithRoommate(long tenantId, ApplicationType applicationType, long roommateId) {
         Tenant tenant = buildTenant(tenantId, applicationType);
-        Tenant roommate = new Tenant();
-        roommate.setId(roommateId);
+        Tenant roommate = Tenant.builder().id(roommateId).build();
         tenant.getApartmentSharing().setTenants(List.of(roommate));
         return tenant;
     }
