@@ -5,11 +5,11 @@ import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.validator.anotation.tenant.application.v2.UniqueCoTenantsEmail;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Component
@@ -26,14 +26,17 @@ public class UniqueCoTenantsEmailValidator implements ConstraintValidator<Unique
 
     @Override
     public boolean isValid(ApplicationFormV2 applicationForm, ConstraintValidatorContext constraintValidatorContext) {
+        var emails = applicationForm.getCoTenants().stream()
+                .map(t -> t.getEmail())
+                .filter(StringUtils::isNotBlank)
+                .collect(Collectors.toList());
+        if (emails.isEmpty())
+            return true;
+
         var tenant = authenticationFacade.getTenant(applicationForm.getTenantId());
         if (tenant == null) {
             return true;
         }
-        var emails = applicationForm.getCoTenants().stream()
-                .map(t -> t.getEmail())
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
 
         var existingEmails = tenantRepository.findByEmailInAndApartmentSharingNot(emails, tenant.getApartmentSharing())
                 .stream()
