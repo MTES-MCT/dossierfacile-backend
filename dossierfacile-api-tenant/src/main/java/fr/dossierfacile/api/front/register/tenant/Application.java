@@ -126,7 +126,6 @@ public class Application implements SaveStep<ApplicationFormV2> {
     }
 
     TenantModel saveStep(Tenant tenant, ApplicationType applicationType, List<Tenant> tenantToDelete, List<CoTenantForm> tenantToCreate) {
-        //tenant.getApartmentSharing().getTenants()
         ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
         apartmentSharing.setApplicationType(applicationType);
         apartmentSharingService.resetDossierPdfGenerated(apartmentSharing);
@@ -144,9 +143,9 @@ public class Application implements SaveStep<ApplicationFormV2> {
         // check if email account exist
         // Currently we cannot add existing user
         List<String> emailsExistTenants = tenants.stream()
-                .filter(tenant -> StringUtils.isNotBlank(tenant.getEmail()))
-                .filter(tenant -> tenantRepository.existsByEmail(tenant.getEmail()))
-                .map(tenant -> tenant.getEmail())
+                .map(CoTenantForm::getEmail)
+                .filter(StringUtils::isNotBlank)
+                .filter(tenantRepository::existsByEmail)
                 .collect(Collectors.toList());
 
         if (!emailsExistTenants.isEmpty())
@@ -160,8 +159,9 @@ public class Application implements SaveStep<ApplicationFormV2> {
                             tenant.getPreferredName(),
                             StringUtils.isBlank(tenant.getEmail()) ? null : tenant.getEmail(),
                             apartmentSharing);
-                    if (Boolean.TRUE.equals(tenantCreate.getHonorDeclaration())) {
-                        joinTenant.setHonorDeclaration(true);
+                    if (apartmentSharing.getApplicationType() == ApplicationType.COUPLE) {
+                        joinTenant.setHonorDeclaration(tenantCreate.getHonorDeclaration());
+                        joinTenant.setAllowCheckTax(tenantCreate.getAllowCheckTax());
                     }
                     tenantRepository.save(joinTenant);
 
@@ -200,6 +200,5 @@ public class Application implements SaveStep<ApplicationFormV2> {
         apartmentSharing.getTenants().removeAll(tenantToDelete);
         apartmentSharingRepository.save(apartmentSharing);
     }
-
 
 }
