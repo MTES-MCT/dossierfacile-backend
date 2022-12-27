@@ -35,6 +35,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         // @formatter:off
         http
+                .requiresChannel()
+                .anyRequest()
+                .requiresSecure()
+                .and()
                 .csrf()
                 .csrfTokenRepository(csrfTokenRepository())
                 .and()
@@ -45,10 +49,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .cacheControl()
                 .and()
-                .httpStrictTransportSecurity()
-                .and()
                 .contentSecurityPolicy("frame-ancestors 'none'; frame-src 'none'; child-src 'none'; upgrade-insecure-requests; default-src 'none'; script-src 'self'; style-src 'self' fonts.googleapis.com 'unsafe-inline'; object-src 'none'; img-src 'self' data:; font-src 'self' fonts.gstatic.com; connect-src *.dossierfacile.fr; base-uri 'self'; form-action 'none'; media-src 'none'; worker-src 'none'; manifest-src 'none'; prefetch-src 'none';")
                 .and()
+                .httpStrictTransportSecurity().disable()// Scalingo force https and add this policy
                 .frameOptions()
                 .sameOrigin()
                 .and()
