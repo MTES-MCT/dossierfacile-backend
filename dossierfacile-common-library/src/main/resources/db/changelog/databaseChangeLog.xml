@@ -69,4 +69,5 @@
     <include file="db/migration/202209230000-add-column-allow-tax-check.xml"/>
     <include file="db/migration/202210170000-add-table-feedback.xml"/>
     <include file="db/migration/202211250000-add-column-preview.xml"/>
+    <include file="db/migration/202212290000-encryption-key-add-version.xml"/>
 </databaseChangeLog>

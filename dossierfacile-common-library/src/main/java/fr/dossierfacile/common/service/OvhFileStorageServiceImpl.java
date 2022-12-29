@@ -1,11 +1,13 @@
 package fr.dossierfacile.common.service;
 
+import fr.dossierfacile.common.entity.EncryptionKey;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.exceptions.FileCannotUploadedException;
 import fr.dossierfacile.common.exceptions.OvhConnectionFailedException;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import io.sentry.Sentry;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.api.exceptions.AuthenticationException;
@@ -23,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
+import javax.crypto.spec.GCMParameterSpec;
 import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -137,9 +140,16 @@ public class OvhFileStorageServiceImpl implements FileStorageService {
         InputStream in = object.download().getInputStream();
         if (key != null) {
             try {
-                Cipher aes = Cipher.getInstance("AES/ECB/PKCS5Padding");
-                aes.init(Cipher.DECRYPT_MODE, key);
-
+                Cipher aes;
+                if (key instanceof EncryptionKey && ((EncryptionKey) key).getVersion() == 0) {
+                    aes = Cipher.getInstance("AES/ECB/PKCS5Padding");
+                    aes.init(Cipher.DECRYPT_MODE, key);
+                } else {
+                    byte[] iv = DigestUtils.md5(path); // arbitrary set the filename to build IV
+                    GCMParameterSpec gcmParamSpec = new GCMParameterSpec(128, iv);
+                    aes = Cipher.getInstance("AES/GCM/NoPadding");
+                    aes.init(Cipher.DECRYPT_MODE, key, gcmParamSpec);
+                }
                 in = new CipherInputStream(in, aes);
             } catch (Exception e) {
                 throw new IOException(e);
@@ -164,8 +174,10 @@ public class OvhFileStorageServiceImpl implements FileStorageService {
     public void upload(String ovhPath, InputStream inputStream, Key key) throws IOException {
         if (key != null) {
             try {
-                Cipher aes = Cipher.getInstance("AES/ECB/PKCS5Padding");
-                aes.init(Cipher.ENCRYPT_MODE, key);
+                byte[] iv = DigestUtils.md5(ovhPath);
+                GCMParameterSpec gcmParamSpec = new GCMParameterSpec(128, iv);
+                Cipher aes = Cipher.getInstance("AES/GCM/NoPadding");
+                aes.init(Cipher.ENCRYPT_MODE, key, gcmParamSpec);
 
                 inputStream = new CipherInputStream(inputStream, aes);
 
