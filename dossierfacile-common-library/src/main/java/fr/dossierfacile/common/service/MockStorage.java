@@ -3,6 +3,7 @@ package fr.dossierfacile.common.service;
 import fr.dossierfacile.common.exceptions.FileCannotUploadedException;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,11 +14,18 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.NoSuchPaddingException;
-import java.io.*;
+import javax.crypto.spec.GCMParameterSpec;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
@@ -67,8 +75,10 @@ public class MockStorage implements FileStorageService {
         InputStream in = Files.newInputStream(Path.of(filePath + filename));
         if (key != null) {
             try {
-                Cipher aes = Cipher.getInstance("AES/ECB/PKCS5Padding");
-                aes.init(Cipher.DECRYPT_MODE, key);
+                byte[] iv = DigestUtils.md5(filename);
+                GCMParameterSpec gcmParamSpec = new GCMParameterSpec(128, iv);
+                Cipher aes = Cipher.getInstance("AES/GCM/NoPadding");
+                aes.init(Cipher.DECRYPT_MODE, key, gcmParamSpec);
 
                 in = new CipherInputStream(in, aes);
             } catch (NoSuchPaddingException e) {
@@ -76,6 +86,8 @@ public class MockStorage implements FileStorageService {
             } catch (NoSuchAlgorithmException e) {
                 throw new IOException(e);
             } catch (InvalidKeyException e) {
+                throw new IOException(e);
+            } catch (InvalidAlgorithmParameterException e) {
                 throw new IOException(e);
             }
         }
@@ -91,8 +103,11 @@ public class MockStorage implements FileStorageService {
     public void upload(String ovhPath, InputStream inputStream, Key key) throws IOException {
         if (key != null) {
             try {
-                Cipher aes = Cipher.getInstance("AES/ECB/PKCS5Padding");
-                aes.init(Cipher.ENCRYPT_MODE, key);
+
+                byte[] iv = DigestUtils.md5(ovhPath);
+                GCMParameterSpec gcmParamSpec = new GCMParameterSpec(128, iv);
+                Cipher aes = Cipher.getInstance("AES/GCM/NoPadding");
+                aes.init(Cipher.ENCRYPT_MODE, key, gcmParamSpec);
 
                 inputStream = new CipherInputStream(inputStream, aes);
             } catch (Exception e) {

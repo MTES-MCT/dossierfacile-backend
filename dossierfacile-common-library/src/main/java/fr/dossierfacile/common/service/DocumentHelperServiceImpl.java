@@ -3,7 +3,6 @@ package fr.dossierfacile.common.service;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.EncryptionKey;
 import fr.dossierfacile.common.entity.File;
-import fr.dossierfacile.common.exceptions.FileCannotUploadedException;
 import fr.dossierfacile.common.repository.SharedFileRepository;
 import fr.dossierfacile.common.service.interfaces.DocumentHelperService;
 import fr.dossierfacile.common.service.interfaces.EncryptionKeyService;
@@ -15,7 +14,6 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
