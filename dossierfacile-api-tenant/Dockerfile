@@ -1,4 +1,4 @@
-FROM amd64/amazoncorretto:15
+FROM amazoncorretto:15
 ENV TZ=Europe/Paris
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 COPY fonts/* usr/share/fonts/
