@@ -47,10 +47,10 @@ public class ApiParticulierImpl implements ApiParticulier {
     @Deprecated
     @Override
     public ResponseEntity<Taxes> particulierApi(String fiscalNumber, String taxReference) {
-                    HttpHeaders headers = new HttpHeaders();
+        HttpHeaders headers = new HttpHeaders();
         headers.set("X-Api-Key", apiToken);
         HttpEntity<String> entity = new HttpEntity<>(headers);
-            try {
+        try {
             String url = oldApiURL + "/v2/avis-imposition?numeroFiscal=" + fiscalNumber + "&referenceAvis=" + taxReference;
             log.info("\nurl: {}", url);
             log.info("\ntoken: {}", apiToken);
@@ -58,14 +58,14 @@ public class ApiParticulierImpl implements ApiParticulier {
             ResponseEntity<Taxes> response = restTemplate.exchange(url, HttpMethod.GET, entity, Taxes.class);
             log.info("Time call api particuler " + (System.currentTimeMillis() - time) + " ms");
             return ResponseEntity.ok(response.getBody());
-            } catch (Exception e) {
-                log.error(EXCEPTION + Sentry.captureException(e));
-                log.error(e.getMessage(), e.getCause());
-                return ResponseEntity.notFound().build();
-            }
+        } catch (Exception e) {
+            log.error(EXCEPTION + Sentry.captureException(e));
+            log.error(e.getMessage(), e.getCause());
+            return ResponseEntity.notFound().build();
         }
+    }
 
-        @Override
+    @Override
     public ResponseEntity<Taxes> particulierApi(String fiscalNumber) {
         var bearerToken = "";
         try {
