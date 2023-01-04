@@ -1,7 +1,6 @@
 package fr.dossierfacile.api.front.service;
 
 import fr.dossierfacile.api.front.exception.DocumentNotFoundException;
-import fr.dossierfacile.api.front.exception.FileNotFoundException;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.repository.FileRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
@@ -9,64 +8,83 @@ import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
+import fr.dossierfacile.common.entity.Person;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
+
+import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import javax.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
+@RequiredArgsConstructor(onConstructor_ = {@Lazy})
 public class DocumentServiceImpl implements DocumentService {
 
     private final DocumentRepository documentRepository;
     private final FileRepository fileRepository;
     private final FileStorageService fileStorageService;
+    @Lazy
     private final TenantService tenantService;
     private final ApartmentSharingService apartmentSharingService;
 
     @Override
-    public void delete(Long documentId, Tenant tenant) {
-        Document document = documentRepository.findByIdForApartmentSharing(documentId, tenant.getApartmentSharing().getId())
+    @Transactional
+    public void changeDocumentStatus(Document document, DocumentStatus newStatus) {
+        document.setDocumentStatus(newStatus);
+
+        if (newStatus == DocumentStatus.TO_PROCESS) {
+            document.setDocumentDeniedReasons(null);
+            Tenant tenantOfDocument = Optional.ofNullable(document.getTenant()).orElseGet(() -> document.getGuarantor().getTenant());
+
+            List<DocumentCategory> categoriesToChange = List.of(DocumentCategory.PROFESSIONAL, DocumentCategory.FINANCIAL, DocumentCategory.TAX);
+            if (categoriesToChange.contains(document.getDocumentCategory())) {
+                if (tenantOfDocument.getStatus() == TenantFileStatus.VALIDATED) {
+                    List<Document> documentList = Optional.<Person>ofNullable(document.getTenant()).orElse(document.getGuarantor()).getDocuments();
+                    resetValidatedDocumentsStatusOfSpecifiedCategoriesToToProcess(documentList, categoriesToChange);
+                }
+            }
+            documentRepository.save(document);
+            tenantService.updateTenantStatus(tenantOfDocument);
+            apartmentSharingService.resetDossierPdfGenerated(tenantOfDocument.getApartmentSharing());
+        } else {
+            throw new UnsupportedOperationException("Not implemented");
+        }
+    }
+
+    @Override
+    @Transactional
+    public void delete(Long documentId, Tenant referenceTenant) {
+        Document document = documentRepository.findByIdForApartmentSharing(documentId, referenceTenant.getApartmentSharing().getId())
                 .orElseThrow(() -> new DocumentNotFoundException(documentId));
 
-        List<Document> documentList = new ArrayList<>();
-        if (document.getTenant() != null) {
-            documentList = document.getTenant().getDocuments();
-        } else if (document.getGuarantor() != null) {
-            documentList = document.getGuarantor().getDocuments();
-        }
+        Person ownerOfDocument = Optional.<Person>ofNullable(document.getTenant()).orElse(document.getGuarantor());
+        Tenant tenantOfDocument = Optional.ofNullable(document.getTenant()).orElseGet(() -> document.getGuarantor().getTenant());
 
         List<DocumentCategory> categoriesToChange = List.of(DocumentCategory.PROFESSIONAL, DocumentCategory.FINANCIAL, DocumentCategory.TAX);
         if (categoriesToChange.contains(document.getDocumentCategory())) {
-            if (document.getTenant() != null && document.getTenant().getStatus() == TenantFileStatus.VALIDATED ||
-                document.getGuarantor() != null && document.getGuarantor().getTenant().getStatus() == TenantFileStatus.VALIDATED) {
+            if (tenantOfDocument.getStatus() == TenantFileStatus.VALIDATED) {
+                List<Document> documentList = ownerOfDocument.getDocuments();
                 resetValidatedDocumentsStatusOfSpecifiedCategoriesToToProcess(documentList, categoriesToChange);
             }
         }
 
         fileStorageService.delete(document.getFiles().stream().map(File::getPath).collect(Collectors.toList()));
+        ownerOfDocument.getDocuments().removeIf(d -> d.getId() == document.getId());
         documentRepository.delete(document);
+        tenantService.updateTenantStatus(tenantOfDocument);
+        apartmentSharingService.resetDossierPdfGenerated(tenantOfDocument.getApartmentSharing());
 
-        if (document.getTenant() != null) {
-            tenant.getDocuments().remove(document);
-        } else if (document.getGuarantor() != null) {
-            tenant.getGuarantors().stream().filter(g -> Objects.equals(document.getGuarantor().getId(), g.getId())).findFirst().ifPresent(guarantor -> guarantor.getDocuments().remove(document));
-        }
-
-        tenantService.updateTenantStatus(tenant);
-        apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
     }
 
     @Override
@@ -84,42 +102,6 @@ public class DocumentServiceImpl implements DocumentService {
     public void initializeFieldsToProcessPdfGeneration(long documentId) {
         Document document = documentRepository.findById(documentId).orElseThrow(() -> new DocumentNotFoundException(documentId));
         initializeFieldsToProcessPdfGeneration(document);
-    }
-
-    @Override
-    public void resetValidatedDocumentsStatusToToProcess(Tenant tenant) {
-        if (tenant.getStatus().equals(TenantFileStatus.VALIDATED)) {
-            Optional.ofNullable(tenant.getDocuments())
-                    .orElse(new ArrayList<>())
-                    .forEach(document -> {
-                        document.setDocumentStatus(DocumentStatus.TO_PROCESS);
-                        document.setDocumentDeniedReasons(null);
-                        documentRepository.save(document);
-                    });
-            Optional.ofNullable(tenant.getGuarantors())
-                    .orElse(new ArrayList<>())
-                    .forEach(guarantor -> Optional.ofNullable(guarantor.getDocuments())
-                            .orElse(new ArrayList<>())
-                            .forEach(document -> {
-                                document.setDocumentStatus(DocumentStatus.TO_PROCESS);
-                                document.setDocumentDeniedReasons(null);
-                                documentRepository.save(document);
-                            }));
-
-        }
-    }
-
-    @Override
-    public void resetValidatedAndDeniedDocumentsStatusToToProcess(List<Document> documentList) {
-        Optional.ofNullable(documentList)
-                .orElse(new ArrayList<>())
-                .forEach(document -> {
-                    if (!document.getDocumentStatus().equals(DocumentStatus.TO_PROCESS)) {
-                        document.setDocumentStatus(DocumentStatus.TO_PROCESS);
-                        document.setDocumentDeniedReasons(null);
-                        documentRepository.save(document);
-                    }
-                });
     }
 
     @Override
