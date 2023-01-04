@@ -77,13 +77,13 @@ public class ApartmentSharing implements Serializable {
 
     public TenantFileStatus getStatus() {
         for (Tenant tenant : tenants) {
-            if (tenant.getStatus() == TenantFileStatus.INCOMPLETE) {
-                return TenantFileStatus.INCOMPLETE;
+            if (tenant.getStatus() == TenantFileStatus.DECLINED) {
+                return TenantFileStatus.DECLINED;
             }
         }
         for (Tenant tenant : tenants) {
-            if (tenant.getStatus() == TenantFileStatus.DECLINED) {
-                return TenantFileStatus.DECLINED;
+            if (tenant.getStatus() == TenantFileStatus.INCOMPLETE) {
+                return TenantFileStatus.INCOMPLETE;
             }
         }
         for (Tenant tenant : tenants) {
