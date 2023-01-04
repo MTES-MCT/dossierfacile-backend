@@ -1,7 +1,6 @@
 package fr.dossierfacile.common.entity;
 
 import fr.dossierfacile.common.enums.DocumentCategory;
-import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.enums.TenantSituation;
 import fr.dossierfacile.common.enums.TenantType;
@@ -14,27 +13,18 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.OrderBy;
-import javax.persistence.Table;
+import javax.persistence.*;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static fr.dossierfacile.common.enums.DocumentStatus.DECLINED;
+import static fr.dossierfacile.common.enums.DocumentStatus.TO_PROCESS;
 
 @Entity
 @Table(name = "tenant")
@@ -45,7 +35,7 @@ import java.util.Objects;
 @AllArgsConstructor
 @SuperBuilder
 @Slf4j
-public class Tenant extends User implements Serializable {
+public class Tenant extends User implements Person, Serializable {
 
     private static final long serialVersionUID = -3603815939883106021L;
 
@@ -118,43 +108,22 @@ public class Tenant extends User implements Serializable {
 
     public TenantFileStatus computeStatus() {
         log.info("Computing status for tenant with ID [" + getId() + "]...");
-        if (!honorDeclaration) {
-            return TenantFileStatus.INCOMPLETE;
-        }
-        if (!isAllCategories()) {
+
+        // Gets all tenant documents
+        List<Document> allDocuments = (guarantors == null) ?
+                documents :
+                Stream.concat(documents.stream(),
+                                guarantors.parallelStream()
+                                        .map(g -> g.getDocuments())
+                                        .flatMap(List::stream))
+                        .collect(Collectors.toList());
+        // Check documents status
+        if (allDocuments.stream().anyMatch(d -> d.getDocumentStatus() == DECLINED)) {
             return TenantFileStatus.DECLINED;
-        }
-        List<Document> docs = getDocuments();
-
-        //If at least one document is tenant or his guarantors is DECLINED then tenant status is DECLINED
-        for (Document document : docs) {
-            if (document.getDocumentStatus() == DocumentStatus.DECLINED) {
-                return TenantFileStatus.DECLINED;
-            }
-        }
-        for (Guarantor guarantor : guarantors) {
-            List<Document> guarantorDocs = guarantor.getDocuments();
-            for (Document document : guarantorDocs) {
-                if (document.getDocumentStatus() == DocumentStatus.DECLINED) {
-                    return TenantFileStatus.DECLINED;
-                }
-            }
-        }
-
-        // At this point we are sure that no Document is DECLINED so only VALIDATED or TO_PROCESS left
-        //If at least one document is tenant or his guarantors is TO_PROCESS then tenant status is TO_PROCESS
-        for (Document document : docs) {
-            if (document.getDocumentStatus() == DocumentStatus.TO_PROCESS) {
-                return TenantFileStatus.TO_PROCESS;
-            }
-        }
-        for (Guarantor guarantor : guarantors) {
-            docs = guarantor.getDocuments();
-            for (Document document : docs) {
-                if (document.getDocumentStatus() == DocumentStatus.TO_PROCESS) {
-                    return TenantFileStatus.TO_PROCESS;
-                }
-            }
+        } else if (!honorDeclaration || !isAllCategories()) {
+            return TenantFileStatus.INCOMPLETE;
+        } else if (allDocuments.stream().anyMatch(d -> d.getDocumentStatus() == TO_PROCESS)) {
+            return TenantFileStatus.TO_PROCESS;
         }
 
         return TenantFileStatus.VALIDATED;

@@ -46,15 +46,8 @@ public class FileServiceImpl implements FileService {
             documentService.delete(document.getId(), document.getTenant() != null ? document.getTenant() : document.getGuarantor().getTenant());
             return null;
         } else {
-            document.setDocumentStatus(DocumentStatus.TO_PROCESS);
-            document.setDocumentDeniedReasons(null);
-            Document documentSaved = documentRepository.saveAndFlush(document);
-            if (document.getTenant() != null && !tenant.getId().equals(document.getTenant().getId())) {
-                tenantService.updateTenantStatus(document.getTenant());
-            }
-            tenantService.updateTenantStatus(tenant);
-            apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
-            return documentSaved;
+            documentService.changeDocumentStatus(document, DocumentStatus.TO_PROCESS);
+            return document;
         }
     }
 

@@ -33,7 +33,7 @@ import java.util.Objects;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Guarantor implements Serializable {
+public class Guarantor implements Person, Serializable {
 
     private static final long serialVersionUID = -3601815435883206221L;
 
