@@ -28,6 +28,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -175,6 +176,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
     }
 
     @Scheduled(cron = "0 0 8 * * 5")
+    @Transactional
     public void accountWarningsForDocumentDeletion() {
         log.info("accountWarnings. Executing scheduled task for account warnings at [" + LocalDateTime.now() + "]");
 
