@@ -21,14 +21,6 @@ public class MessageService {
         return messageRepository.findByFromUserOrToUserOrderByCreationDateTimeDesc(tenant, tenant);
     }
 
-    public Message findLastMessageFromUser(Tenant tenant) {
-        return messageRepository.findFirstByFromUserAndCustomMessageOrderByCreationDateTimeDesc(tenant, false);
-    }
-
-    public Message findLastMessageToUser(Tenant tenant) {
-        return messageRepository.findFirstByToUserAndCustomMessageOrderByCreationDateTimeDesc(tenant, false);
-    }
-
     public Message create(MessageDTO messageDTO, Tenant tenant, boolean isUser, boolean isCustomsMessage) {
         Message message = Message.builder()
                 .messageBody(messageDTO.getMessage())

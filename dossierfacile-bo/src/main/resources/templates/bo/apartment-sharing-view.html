@@ -257,12 +257,20 @@
                                        th:href="@{/bo/tenant/} + ${tenant.getId()} + '/processFile'">
                                         Traiter les documents
                                     </a>
-                                    <div th:if="${tenant.getApartmentSharing().getTenants().size()} > 1">
+                                    <div th:if="${ tenant.getTenantType().toString() == 'JOIN' }">
+                                        <a class="btn btn-warning bo-btn"
+                                           style="margin-right: 10px;float: right"
+                                           th:attrappend="data-id=${tenant.getId()}"
+                                           th:href="@{/bo/tenant/setAsTenantCreate/} + ${tenant.getId()}"
+                                           th:text="'Fixer comme locataire principal'"
+                                        ></a>
+                                    </div>
+                                    <div th:if="${ tenant.getTenantType().toString() != 'CREATE'}">
                                         <a class="btn btn-danger bo-btn btn-deleteCotenant"
                                            style="margin-right: 10px;float: right"
                                            th:attrappend="data-id=${tenant.getId()}"
                                            th:href="@{/bo/tenant/deleteCoTenant/} + ${tenant.getId()}"
-                                           th:text="${tenant.getTenantType().toString() == 'CREATE'}?'Supprimer le locataire':'Supprimer le colocataire'"
+                                           th:text="'Supprimer le colocataire'"
                                         ></a>
                                     </div>
                                 </div>
@@ -420,6 +428,11 @@
                                 <tr>
                                     <td>Clarification</td>
                                     <td th:text="${tenant.getClarification()}"></td>
+                                </tr>
+                                <tr>
+                                    <td>Consentement API impôts</td>
+                                    <td th:if="${tenant.allowCheckTax}"><span class="fa fa-check text-success">OK</span></td>
+                                    <td th:unless="${tenant.allowCheckTax}"><span  class="fa fa-times text-danger">Non accepté</span</td>
                                 </tr>
                             </table>
                         </div>
@@ -601,20 +614,33 @@
                                                 Reference number:
                                                 <span th:text="${result.getReferenceNumber()}"></span>
                                             </div>
+                                            <div class="col-md-12 top-buffer margin-bottom">
+                                                Consentement API impôts :
+                                                <span class="fa fa-check text-success"
+                                                      th:if="${tenant.allowCheckTax}">OK
+                                                         </span>
+                                                <span class="fa fa-times text-danger"
+                                                      th:unless="${tenant.allowCheckTax}">Non accepté
+                                                        </span>
+                                            </div>
+                                            <div class="col-md-12 top-buffer margin-bottom">
+                                                Type de vérification :
+                                                <span th:text="${result.fileExtractionType}"></span>
+                                            </div>
                                         </div>
                                         <div th:if="${result.qrContent}==null" class="table-responsive">
                                             <table class="table table-striped table-bordered table-hover">
                                                 <thead>
                                                 <tr>
                                                     <th></th>
-                                                    <th>File</th>
+                                                    <th>Validité</th>
                                                     <th>API</th>
-                                                    <th>Account Form</th>
+                                                    <th>Formulaire</th>
                                                 </tr>
                                                 </thead>
                                                 <tbody>
                                                 <tr>
-                                                    <td>Name</td>
+                                                    <td>Nom</td>
                                                     <td>
 
                                                         <span class="fa fa-check text-success"
@@ -623,7 +649,6 @@
                                                         <span class="fa fa-times text-danger"
                                                               th:unless="${result.isTest1()}">
                                                         </span>
-
                                                     </td>
                                                     <td>
                                                         <span th:text="${result.getDeclarant1()}"></span><br/>
@@ -631,10 +656,9 @@
                                                     </td>
                                                     <td th:text="${tenant.getFullName()}">
                                                     </td>
-
                                                 </tr>
                                                 <tr>
-                                                    <td>Annual Salary</td>
+                                                    <td>Salaire annuel</td>
                                                     <td>
                                                         <span class="fa fa-check text-success"
                                                               th:if="${result.isTest2()}">
@@ -642,10 +666,6 @@
                                                         <span class="fa fa-times text-danger"
                                                               th:unless="${result.isTest2()}">
                                                          </span>
-                                                        <span>
-                                                            (DOCUMENT value == API value)
-                                                        </span>
-
                                                     </td>
                                                     <td>
                                                         <span th:text="${result.getAnualSalary()}"></span>

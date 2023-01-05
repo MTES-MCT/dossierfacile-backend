@@ -7,6 +7,8 @@ import fr.dossierfacile.common.enums.ApplicationType;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
+/** deprecated  since 202209 */
+@Deprecated
 public class CheckTenantTypeAcceptAccessValidator implements ConstraintValidator<CheckTenantTypeAcceptAccess, ApplicationForm> {
     @Override
     public void initialize(CheckTenantTypeAcceptAccess constraintAnnotation) {

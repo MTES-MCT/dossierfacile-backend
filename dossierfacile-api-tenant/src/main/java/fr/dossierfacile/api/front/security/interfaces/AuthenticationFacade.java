@@ -6,6 +6,8 @@ public interface AuthenticationFacade {
 
     String getKeycloakUserId();
 
+    Tenant getLoggedTenant();
+
     Tenant getTenant(Long id);
 
     String getKeycloakClientId();

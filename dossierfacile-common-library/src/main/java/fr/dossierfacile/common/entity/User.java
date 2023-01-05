@@ -1,12 +1,14 @@
 package fr.dossierfacile.common.entity;
 
-import com.google.common.base.Strings;
 import fr.dossierfacile.common.enums.AuthProvider;
-import java.io.Serializable;
-import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import fr.dossierfacile.common.enums.UserType;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -23,11 +25,14 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import fr.dossierfacile.common.enums.UserType;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.hibernate.annotations.UpdateTimestamp;
+import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
+
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 @Entity
 @Table(name = "user_account")
@@ -37,7 +42,9 @@ import org.hibernate.annotations.UpdateTimestamp;
 @Getter
 @Setter
 @NoArgsConstructor
-public class User implements Serializable {
+@AllArgsConstructor
+@SuperBuilder
+public abstract class User implements Serializable {
 
     private static final long serialVersionUID = -3603815439883206021L;
 
@@ -71,6 +78,8 @@ public class User implements Serializable {
     @Column(name = "last_login_date")
     private LocalDateTime lastLoginDate = LocalDateTime.now();
 
+    /** use Keycloak service */
+    @Deprecated
     @Column(columnDefinition = "boolean default true")
     private boolean enabled = false;
 
@@ -104,15 +113,16 @@ public class User implements Serializable {
         this.email = email;
     }
 
-    public User(UserType userType, String firstName, String lastName, String email) {
+    public User(UserType userType, String firstName, String lastName, String preferredName, String email) {
         this.userType = userType;
         this.firstName = firstName;
         this.lastName = lastName;
+        this.preferredName = preferredName;
         this.email = email;
     }
 
     public String getFullName() {
-        String displayName = Strings.isNullOrEmpty(preferredName) ? lastName : preferredName;
-        return firstName != null && displayName != null ? String.join(" ", firstName, displayName) : "";
+        String displayName = isBlank(preferredName) ? lastName : preferredName;
+        return isNotBlank(firstName) && isNotBlank(displayName) ? String.join(" ", firstName, displayName) : "";
     }
 }

@@ -13,6 +13,7 @@ import fr.dossierfacile.api.front.validator.group.DocumentIdentificationGuaranto
 import fr.dossierfacile.api.front.validator.group.Dossier;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.LogType;
+import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -48,6 +49,7 @@ public class ApiPartnerRegisterGuarantorLegalPersonController {
     }
 
     //TODO REMOVE, wrong name
+    @ApiOperation("Deprecated - Please use /documentRepresentantIdentification endpoint ")
     @PostMapping("/documentRepresentanIdentification")
     public ResponseEntity<TenantModel> documentIdentificationRepresentan(@Validated({Dossier.class, DocumentIdentificationGuarantor.class}) DocumentIdentificationRepresentanGuarantorLegalPersonForm documentIdentificationRepresentantGuarantorLegalPersonForm) {
         Tenant tenant = authenticationFacade.getTenant(documentIdentificationRepresentantGuarantorLegalPersonForm.getTenantId());

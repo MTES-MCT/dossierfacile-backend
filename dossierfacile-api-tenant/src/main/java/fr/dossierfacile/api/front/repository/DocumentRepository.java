@@ -27,15 +27,17 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
 
     @Query(value = "select d1.*\n" +
             "from document d1\n" +
-            "where d1.tenant_id = :tenantId\n" +
+            "  join tenant t on t.id = d1.tenant_id\n" +
+            "where t.apartment_sharing_id = :apartId\n" +
             "  and d1.id = :documentId\n" +
             "union\n" +
             "select d2.*\n" +
             "from document d2\n" +
-            "         join guarantor g on d2.guarantor_id = g.id\n" +
-            "where g.tenant_id = :tenantId\n" +
+            "  join guarantor g on d2.guarantor_id = g.id\n" +
+            "  join tenant t on t.id = g.tenant_id\n" +
+            "where t.apartment_sharing_id = :apartId\n" +
             "  and d2.id = :documentId", nativeQuery = true)
-    Optional<Document> findByIdAssociatedToTenantId(@Param("documentId") Long documentId, @Param("tenantId") Long tenantId);
+    Optional<Document> findByIdForApartmentSharing(@Param("documentId") Long documentId, @Param("apartId") Long apartmentSharing);
 
     Optional<Document> findFirstByName(String documentName);
 

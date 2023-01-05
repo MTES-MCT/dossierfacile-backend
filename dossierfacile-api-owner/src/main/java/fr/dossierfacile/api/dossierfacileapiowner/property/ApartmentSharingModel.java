@@ -21,4 +21,5 @@ public class ApartmentSharingModel {
     private Integer totalSalary;
     private Integer totalGuarantorSalary;
     private String token;
+    private String status;
 }

@@ -23,7 +23,7 @@ public class JoinApartmentSharingByMailValidator implements ConstraintValidator<
 
     @Override
     public boolean isValid(String email, ConstraintValidatorContext constraintValidatorContext) {
-        Tenant tenant = tenantRepository.findOneByEmail(email.toLowerCase());
+        Tenant tenant = tenantRepository.findByEmail(email.toLowerCase()).get();
         return tenant != null && tenant.getApartmentSharing() != null;
     }
 }

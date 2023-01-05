@@ -3,6 +3,7 @@ package fr.dossierfacile.common.repository;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.TenantFileStatus;
+import org.apache.commons.lang3.function.Failable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -17,11 +18,9 @@ import java.util.List;
 import java.util.Optional;
 
 public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
+    Optional<Tenant> findByEmail(String email);
 
-    //region Used in BO
-    Tenant findOneByEmail(String email);
-
-    List<Tenant> findByLastLoginDateBetween(LocalDateTime startLogin, LocalDateTime endLogin);
+    boolean existsByEmail(String email);
 
     @Query("select distinct t FROM Tenant t where concat(LOWER(t.firstName),' ',LOWER(t.lastName)) like CONCAT('%',:nameUser,'%') ")
     List<Tenant> findTenantByFirstNameOrLastNameOrFullName(@Param("nameUser") String nameUser);
@@ -102,8 +101,6 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
 
     @Query("from Tenant t where t.email in :emails")
     List<Tenant> findByListEmail(@Param("emails") List<String> emails);
-
-    Optional<Tenant> findByEmail(String name);
 
     List<Tenant> findAllByEnabledIsFalseAndCreationDateTimeIsBetween(LocalDateTime initDate, LocalDateTime endDate);
 
@@ -192,9 +189,9 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
     @Modifying
     @Query("UPDATE Tenant t SET t.warnings = 0 where t.id = :tenantId")
     void resetWarnings(@Param("tenantId") Long tenantId);
-    //endregion
 
-    //region Used in BO and FO
     List<Tenant> findAllByApartmentSharing(ApartmentSharing apartmentSharing);
-    //endregion
+    List<Tenant> findByEmailInAndApartmentSharingNot(List<String> coTenantEmail, ApartmentSharing apartmentSharing);
+
+    Tenant findByKeycloakId(String keycloakId);
 }

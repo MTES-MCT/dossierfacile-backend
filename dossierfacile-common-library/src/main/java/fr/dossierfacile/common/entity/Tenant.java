@@ -7,13 +7,16 @@ import fr.dossierfacile.common.enums.TenantSituation;
 import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.enums.TypeGuarantor;
 import fr.dossierfacile.common.enums.UserType;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
+import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -35,9 +38,12 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "tenant")
+@DiscriminatorValue("TENANT")
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@SuperBuilder
 @Slf4j
 public class Tenant extends User implements Serializable {
 
@@ -97,8 +103,8 @@ public class Tenant extends User implements Serializable {
         this.tenantType = TenantType.CREATE;
     }
 
-    public Tenant(String email, ApartmentSharing apartmentSharing) {
-        super(UserType.TENANT, email);
+    public Tenant(String firstName, String lastName, String preferredName, String email, ApartmentSharing apartmentSharing) {
+        super(UserType.TENANT, firstName, lastName, preferredName, email);
         this.apartmentSharing = apartmentSharing;
         this.tenantType = TenantType.JOIN;
     }

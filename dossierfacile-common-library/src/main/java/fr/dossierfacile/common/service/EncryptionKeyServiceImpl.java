@@ -7,6 +7,7 @@ import fr.dossierfacile.common.service.interfaces.EncryptionKeyService;
 import io.sentry.Sentry;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.KeyGenerator;
@@ -32,6 +33,7 @@ public class EncryptionKeyServiceImpl implements EncryptionKeyService {
                                 .format(key.getFormat())
                                 .encodedSecret(key.getEncoded())
                                 .status(EncryptionKeyStatus.CURRENT)
+                                .version(1)
                                 .build());
 
             } catch (NoSuchAlgorithmException e) {
@@ -41,4 +43,5 @@ public class EncryptionKeyServiceImpl implements EncryptionKeyService {
             return null;
         });
     }
+
 }

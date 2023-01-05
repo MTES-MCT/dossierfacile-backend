@@ -43,7 +43,7 @@ public class FileController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        var tenant = authenticationFacade.getTenant(null);
+        var tenant = authenticationFacade.getLoggedTenant();
         Document document = fileService.delete(id, tenant);
         if (document != null) {
             documentService.initializeFieldsToProcessPdfGeneration(document);
@@ -57,8 +57,8 @@ public class FileController {
 
     @GetMapping(value = "/resource/{id}", produces = {MediaType.APPLICATION_PDF_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
     public void getPrivateFileAsByteArray(HttpServletResponse response, @PathVariable Long id) {
-        Tenant tenant = authenticationFacade.getTenant(null);
-        File file = fileRepository.findByIdAndTenant(id, tenant.getId()).orElseThrow(() -> new FileNotFoundException(id));
+        Tenant tenant = authenticationFacade.getLoggedTenant();
+        File file = fileRepository.findByIdForTenant(id, tenant.getId()).orElseThrow(() -> new FileNotFoundException(id));
 
         try (InputStream in = fileStorageService.download(file)) {
             response.setContentType(file.getComputedContentType());
@@ -74,7 +74,7 @@ public class FileController {
 
     @GetMapping(value = "/download/{fileName:.+}", produces = {MediaType.APPLICATION_PDF_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
     public void getFileAsByteArray(HttpServletResponse response, @PathVariable String fileName) {
-        Key key = sharedFileService.findByPath(fileName).map(f -> f.getKey()).orElse(null);
+        Key key = sharedFileService.findByPath(fileName).map(File::getKey).orElse(null);
 
         try (InputStream in = fileStorageService.download(fileName, key)) {
             response.setContentType(FileUtility.computeMediaType(fileName));
@@ -85,6 +85,21 @@ public class FileController {
         } catch (IOException e){
             log.error("File cannot be downloaded - 408 - Too long?", e);
             response.setStatus(408);
+        }
+    }
+
+    @GetMapping(value = "/preview/{imageName:.+}")
+    public void getPreview(HttpServletResponse response, @PathVariable String imageName) {
+        Key key = fileRepository.findByPreview(imageName).map(fr.dossierfacile.common.entity.File::getKey).orElse(null);
+        try (InputStream in = fileStorageService.download(imageName, key)) {
+            response.setContentType(MediaType.IMAGE_JPEG_VALUE);
+            IOUtils.copy(in, response.getOutputStream());
+        } catch(java.io.FileNotFoundException e) {
+            log.error(FILE_NO_EXIST);
+            response.setStatus(404);
+        } catch (IOException e) {
+            log.error("Cannot download file" , e);
+            response.setStatus(404);
         }
     }
 }

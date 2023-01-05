@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -155,7 +156,9 @@ public class MailServiceImpl implements MailService {
 
         SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
         sendSmtpEmailTo.setEmail(user.getEmail());
-        if (!Strings.isNullOrEmpty(user.getFullName())) {
+        if (StringUtils.isBlank(user.getFullName())) {
+            sendSmtpEmailTo.setName(user.getEmail());
+        } else {
             sendSmtpEmailTo.setName(user.getFullName());
         }
 

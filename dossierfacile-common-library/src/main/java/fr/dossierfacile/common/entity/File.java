@@ -48,6 +48,8 @@ public class File implements Serializable {
 
     private int numberOfPages;
 
+    private String preview;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "document_id")
     @ToString.Exclude

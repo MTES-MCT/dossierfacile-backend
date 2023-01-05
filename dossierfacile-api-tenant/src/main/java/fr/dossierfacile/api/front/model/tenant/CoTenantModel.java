@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @Builder
 @AllArgsConstructor
@@ -17,7 +19,12 @@ public class CoTenantModel {
     private Long id;
     private String firstName;
     private String lastName;
+    private String preferredName;
     private String email;
     private TenantType tenantType;
     private TenantFileStatus status;
+    private List<DocumentModel> documents;
+    private List<GuarantorModel> guarantors;
+    private boolean franceConnect;
+    private Boolean allowCheckTax;
 }

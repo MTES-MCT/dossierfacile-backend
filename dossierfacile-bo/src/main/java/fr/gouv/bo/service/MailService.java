@@ -6,6 +6,8 @@ import fr.dossierfacile.common.entity.User;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+
+import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,7 +30,11 @@ public class MailService {
     @Value("${sendinblue.template.id.account.deleted}")
     private Long templateIdAccountDeleted;
     @Value("${sendinblue.template.id.dossier.validated}")
-    private Long templateIDDossierValidated;
+    private Long templateIdDossierValidated;
+    @Value("${sendinblue.template.id.dossier.fully.validated}")
+    private Long templateIdDossierFullyValidated;
+    @Value("${sendinblue.template.id.dossier.tenant.denied}")
+    private Long templateIdDossierTenantDenied;
 
     @Async
     public void sendEmailAccountDeleted(User user) {
@@ -80,6 +86,31 @@ public class MailService {
     }
 
     @Async
+    public void sendEmailToTenantAfterValidateAllDocumentsOfTenant(Tenant tenant) {
+        Map<String, String> variables = new HashMap<>();
+        variables.put("PRENOM", tenant.getFirstName());
+        variables.put("NOM", Strings.isNullOrEmpty(tenant.getPreferredName()) ? tenant.getLastName() : tenant.getPreferredName());
+        variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
+
+        SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
+        sendSmtpEmailTo.setEmail(tenant.getEmail());
+        if (!Strings.isNullOrEmpty(tenant.getFullName())) {
+            sendSmtpEmailTo.setName(tenant.getFullName());
+        }
+
+        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
+        sendSmtpEmail.templateId(templateIdDossierValidated);
+        sendSmtpEmail.params(variables);
+        sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
+
+        try {
+            apiInstance.sendTransacEmail(sendSmtpEmail);
+        } catch (ApiException e) {
+            log.error("Email Api Exception" + Sentry.captureException(e), e);
+        }
+    }
+    
+    @Async
     public void sendEmailToTenantAfterValidateAllDocuments(Tenant tenant) {
         Map<String, String> variables = new HashMap<>();
         variables.put("PRENOM", tenant.getFirstName());
@@ -93,14 +124,39 @@ public class MailService {
         }
 
         SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
-        sendSmtpEmail.templateId(templateIDDossierValidated);
+        sendSmtpEmail.templateId(templateIdDossierFullyValidated);
         sendSmtpEmail.params(variables);
         sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
 
         try {
             apiInstance.sendTransacEmail(sendSmtpEmail);
         } catch (ApiException e) {
-            log.error("Email api exception", e);
+            log.error("Email Api Exception" + Sentry.captureException(e), e);
+        }    
+    }
+    
+    @Async
+    public void sendEmailToTenantAfterTenantDenied(Tenant user, Tenant deniedTenant) {
+        Map<String, String> variables = new HashMap<>();
+        variables.put("PRENOM", deniedTenant.getFirstName());
+        variables.put("NOM", Strings.isNullOrEmpty(deniedTenant.getPreferredName()) ? deniedTenant.getLastName() : deniedTenant.getPreferredName());
+        variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
+
+        SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
+        sendSmtpEmailTo.setEmail(user.getEmail());
+        if (!Strings.isNullOrEmpty(user.getFullName())) {
+            sendSmtpEmailTo.setName(user.getFullName());
+        }
+
+        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
+        sendSmtpEmail.templateId(templateIdDossierTenantDenied);
+        sendSmtpEmail.params(variables);
+        sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
+
+        try {
+            apiInstance.sendTransacEmail(sendSmtpEmail);
+        } catch (ApiException e) {
+            log.error("Email Api Exception" + Sentry.captureException(e), e);
         }
     }
 }

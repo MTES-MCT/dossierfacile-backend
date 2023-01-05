@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 public class FileModel {
     private Long id;
     private String path;
+    private String preview;
     private String originalName;
     private Long size;
     private int numberOfPages;

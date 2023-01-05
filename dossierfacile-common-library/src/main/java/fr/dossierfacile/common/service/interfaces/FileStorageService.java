@@ -37,4 +37,5 @@ public interface FileStorageService {
 
     String uploadFile(MultipartFile file, Key key);
 
+    String uploadByteArray(byte[] file, String extension, Key key);
 }

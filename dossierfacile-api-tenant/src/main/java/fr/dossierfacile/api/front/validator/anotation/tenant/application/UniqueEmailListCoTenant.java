@@ -9,15 +9,16 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/** deprecated  since 202209 */
+@Deprecated
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-
 @Constraint(
         validatedBy = {UniqueEmailListCoTenantValidator.class}
 )
 public @interface UniqueEmailListCoTenant {
 
-    String message() default "the emails are already being used";
+    String message() default "the emails %s are already being used";
 
     Class<?>[] groups() default {};
 

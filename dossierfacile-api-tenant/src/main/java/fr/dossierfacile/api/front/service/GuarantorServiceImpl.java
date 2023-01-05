@@ -19,10 +19,11 @@ public class GuarantorServiceImpl implements GuarantorService {
 
     @Override
     public void delete(Long id, Tenant tenant) {
-        Guarantor guarantor = guarantorRepository.findByIdAndTenant(id, tenant)
+        Guarantor guarantor = guarantorRepository.findByIdForApartmentSharing(id, tenant.getApartmentSharing().getId())
                 .orElseThrow(() -> new GuarantorNotFoundException(id));
         guarantorRepository.delete(guarantor);
         guarantorRepository.flush();
+        tenantService.updateTenantStatus(guarantor.getTenant());
         tenantService.updateTenantStatus(tenant);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
     }
@@ -30,5 +31,10 @@ public class GuarantorServiceImpl implements GuarantorService {
     @Override
     public void deleteAllGuaratorsAssociatedToTenant(Tenant tenant) {
         guarantorRepository.deleteAll(guarantorRepository.findGuarantorsByTenant(tenant));
+    }
+
+    @Override
+    public Guarantor findById(Long id) {
+        return guarantorRepository.findById(id).orElseThrow(GuarantorNotFoundException::new);
     }
 }

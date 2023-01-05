@@ -3,20 +3,13 @@ package fr.dossierfacile.api.front.partner.controller;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.enums.StepRegister;
 import fr.dossierfacile.api.front.register.form.partner.AccountPartnerForm;
-import fr.dossierfacile.api.front.register.form.tenant.ApplicationForm;
-import fr.dossierfacile.api.front.register.form.tenant.DocumentFinancialForm;
-import fr.dossierfacile.api.front.register.form.tenant.DocumentIdentificationForm;
-import fr.dossierfacile.api.front.register.form.tenant.DocumentProfessionalForm;
-import fr.dossierfacile.api.front.register.form.tenant.DocumentResidencyForm;
-import fr.dossierfacile.api.front.register.form.tenant.DocumentTaxForm;
-import fr.dossierfacile.api.front.register.form.tenant.GuarantorTypeForm;
-import fr.dossierfacile.api.front.register.form.tenant.HonorDeclarationForm;
-import fr.dossierfacile.api.front.register.form.tenant.NamesForm;
+import fr.dossierfacile.api.front.register.form.tenant.*;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.LogService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.validator.group.ApiPartner;
 import fr.dossierfacile.common.enums.LogType;
+import io.swagger.annotations.ApiOperation;
 import lombok.AllArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -52,8 +45,18 @@ public class ApiPartnerRegisterController {
         return ok(tenantModel);
     }
 
+    @ApiOperation("Depretated since 2022.09.15 - use /application/v2")
+    @Deprecated
     @PostMapping(value = "/application", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TenantModel> application(@Validated(ApiPartner.class) @RequestBody ApplicationForm applicationForm) {
+        var tenant = authenticationFacade.getTenant(applicationForm.getTenantId());
+        var tenantModel = tenantService.saveStepRegister(tenant, applicationForm, StepRegister.APPLICATION_V1);
+        logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
+        return ok(tenantModel);
+    }
+
+    @PostMapping(value = "/application/v2", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<TenantModel> application(@Validated(ApiPartner.class) @RequestBody ApplicationFormV2 applicationForm) {
         var tenant = authenticationFacade.getTenant(applicationForm.getTenantId());
         var tenantModel = tenantService.saveStepRegister(tenant, applicationForm, StepRegister.APPLICATION);
         logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());

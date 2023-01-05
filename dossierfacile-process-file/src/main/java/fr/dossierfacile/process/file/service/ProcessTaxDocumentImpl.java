@@ -78,6 +78,10 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
             doc.setFileExtractionType(TaxFileExtractionType.NONE);
             return doc;
         }
+        if (existingResultRetrievedViaFranceConnect(document)) {
+            return document.getTaxProcessResult();
+        }
+
         log.info("Starting with process of tax document");
         List<File> files = document.getFiles();
         TaxDocument taxDocument = processTaxDocumentWithQRCode(files);
@@ -94,6 +98,12 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
 
         log.info("Finishing with process of tax document");
         return taxDocument;
+    }
+
+    private boolean existingResultRetrievedViaFranceConnect(Document document) {
+        TaxDocument taxProcessResult = document.getTaxProcessResult();
+        return taxProcessResult != null &&
+                taxProcessResult.getFileExtractionType() == TaxFileExtractionType.FRANCE_CONNECT;
     }
 
     private TaxDocument processTaxDocumentWithQRCode(List<File> files) {
@@ -208,6 +218,8 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
                         return extractedText;
                     })
                     .reduce("", String::concat);
+
+            result.append(text);
 
             if (StringUtils.isBlank(fiscalNumber)) {
                 fiscalNumber = Utility.extractFiscalNumber(text);
@@ -337,10 +349,10 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
     }
 
     public boolean test1(Taxes taxes, String lastName, String firstName, String unaccentFirstName, String unaccentLastName) {
-        boolean result1 = (taxes.getNmUsaDec1() != null && (StringUtils.containsIgnoreCase(taxes.getNmUsaDec1(), lastName) ||
-                taxes.getNmNaiDec1() != null && taxes.getPrnmDec1() != null &&
-                        StringUtils.containsIgnoreCase(taxes.getNmNaiDec1(), lastName)) &&
-                StringUtils.containsIgnoreCase(taxes.getPrnmDec1(), firstName))
+        boolean result1 = (taxes.getNmUsaDec1() != null && StringUtils.containsIgnoreCase(taxes.getNmUsaDec1(), lastName) ||
+                taxes.getNmNaiDec1() != null &&
+                        StringUtils.containsIgnoreCase(taxes.getNmNaiDec1(), lastName)) && taxes.getPrnmDec1() != null &&
+                StringUtils.containsIgnoreCase(taxes.getPrnmDec1(), firstName)
                 ||
                 (taxes.getNmUsaDec2() != null && (StringUtils.containsIgnoreCase(taxes.getNmUsaDec2(), lastName) ||
                         taxes.getNmNaiDec2() != null && taxes.getPrnmDec2() != null &&
@@ -368,7 +380,8 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
         }
         Map<String, Integer> map = Utility.extractNumbersText(stringBuilder.toString());
         int salaryApi = Integer.parseInt(taxes.getRfr());
-        return map.containsKey(String.valueOf(salaryApi));
+        Optional<Map.Entry<String, Integer>> any = map.entrySet().stream().filter(e -> e.getValue() > salaryApi * 0.9 && e.getValue() < salaryApi * 1.1).findAny();
+        return any.isPresent();
     }
 
     private boolean oldTest2(Taxes taxes, StringBuilder stringBuilder) {

@@ -1,5 +1,6 @@
 package fr.gouv.bo.controller;
 
+import fr.dossierfacile.common.entity.BOUser;
 import fr.dossierfacile.common.entity.User;
 import fr.gouv.bo.dto.UserDTO;
 import fr.gouv.bo.service.UserRoleService;
@@ -32,7 +33,7 @@ public class BOAdminController {
 
     @GetMapping("")
     public String index(Model model) {
-        List<User> adminList = userService.findAllAdmins();
+        List<BOUser> adminList = userService.findAllAdmins();
         model.addAttribute("adminList", adminList);
         return "bo/admin";
     }

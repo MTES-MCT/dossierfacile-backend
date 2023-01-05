@@ -27,6 +27,8 @@ public class EncryptionKey implements Key {
     @Column(name = "encoded", length = 128)
     private byte[] encodedSecret;
 
+    private int version;
+
     public byte[] getEncoded() {
         return encodedSecret.clone();
     }

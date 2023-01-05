@@ -1,6 +1,7 @@
 package fr.dossierfacile.api.front.repository;
 
 import fr.dossierfacile.common.entity.File;
+import fr.dossierfacile.common.entity.Guarantor;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.TypeGuarantor;
@@ -76,7 +77,6 @@ public interface FileRepository extends JpaRepository<File, Long> {
             @Param("tenant") Tenant tenant,
             @Param("documentId") Long documentId);
 
-
     @Query("select sum(f.size) from File f " +
             "join f.document d join d.guarantor g join g.tenant t " +
             "where d.documentCategory =:documentCategory and g.id =:guarantorId and g.typeGuarantor =:typeGuarantor and t=:tenant")
@@ -86,20 +86,43 @@ public interface FileRepository extends JpaRepository<File, Long> {
             @Param("typeGuarantor") TypeGuarantor typeGuarantor,
             @Param("tenant") Tenant tenant);
 
-    @Query(value = "select f.*\n" +
-            "from file f\n" +
-            "         join document d on f.document_id = d.id\n" +
-            "where d.tenant_id = :t\n" +
-            "  and f.id = :id\n" +
-            "union\n" +
-            "select f2.*\n" +
-            "from file f2\n" +
-            "         join document d2 on f2.document_id = d2.id\n" +
-            "         join guarantor g on d2.guarantor_id = g.id\n" +
-            "where g.tenant_id = :t\n" +
-            "  and f2.id = :id", nativeQuery = true)
-    Optional<File> findByIdAndTenant(@Param("id") Long id, @Param("t") Long t);
+    @Query(value = """
+            select f.*
+            from file f
+              join document d on f.document_id = d.id
+              join tenant t on t.id = d.tenant_id
+            where t.id = :t
+              and f.id = :id
+            union
+            select f2.*
+            from file f2
+              join document d2 on f2.document_id = d2.id
+              join guarantor g on d2.guarantor_id = g.id
+              join tenant t on t.id = g.tenant_id
+            where t.id = :t
+              and f2.id = :id""", nativeQuery = true)
+    Optional<File> findByIdForTenant(@Param("id") Long id, @Param("t") Long tenantId);
 
     @Query(value = "select path FROM file WHERE document_id = :documentId", nativeQuery = true)
     List<String> getFilePathsByDocumentId(@Param("documentId") Long documentId);
+
+    Optional<File> findByPreview(String preview);
+
+    @Query(value = """
+            select f.*
+            from file f
+              join document d on f.document_id = d.id
+              join tenant t on t.id = d.tenant_id
+            where t.apartment_sharing_id = :apartId
+              and f.id = :fileId
+            union
+            select f2.*
+            from file f2
+              join document d2 on f2.document_id = d2.id
+              join guarantor g on d2.guarantor_id = g.id
+              join tenant t2 on t2.id = g.tenant_id
+            where t2.apartment_sharing_id = :apartId
+              and f2.id = :fileId
+            """, nativeQuery = true)
+    Optional<File> findByIdForAppartmentSharing(@Param("fileId") Long id, @Param("apartId") Long apartId);
 }

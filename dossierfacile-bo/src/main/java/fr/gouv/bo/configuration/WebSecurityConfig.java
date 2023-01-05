@@ -35,6 +35,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         // @formatter:off
         http
+                .requiresChannel()
+                .anyRequest()
+                .requiresSecure()
+                .and()
                 .csrf()
                 .csrfTokenRepository(csrfTokenRepository())
                 .and()
@@ -45,9 +49,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .cacheControl()
                 .and()
-                .httpStrictTransportSecurity()
+                .contentSecurityPolicy("frame-ancestors *.dossierfacile.fr; frame-src *.dossierfacile.fr; child-src 'none'; upgrade-insecure-requests; default-src 'none'; script-src 'self'; style-src 'self' fonts.googleapis.com 'unsafe-inline'; object-src *.dossierfacile.fr; img-src 'self' data:; font-src 'self' fonts.gstatic.com; connect-src *.dossierfacile.fr; base-uri 'self'; media-src 'none'; worker-src *.dossierfacile.fr; manifest-src 'none'; prefetch-src 'none';")
                 .and()
-                .addHeaderWriter(new StaticHeadersWriter("X-Content-Security-Policy", "script-src 'self'"))
+                .httpStrictTransportSecurity().disable()// Scalingo force https and add this policy
                 .frameOptions()
                 .sameOrigin()
                 .and()
@@ -56,7 +60,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .httpBasic()
                 .disable()
                 .authorizeRequests()
-                .antMatchers("/", "/login", "/login/auth/**", "/login/oauth2/**,", "/actuator/health")
+                .antMatchers("/", "/login", "/login/auth/**", "/login/oauth2/**,", "/actuator/health", "/assets/public/**")
                 .permitAll()
                 .antMatchers("/bo/userApi", "/bo/userApi/**", "/bo/admin", "/bo/admin/**", "/bo/statistic/admin", "/bo/timeServeTenant", "/bo/deleteAccount", "/bo/sleepMode", "/bo/create/admin").access("hasAnyRole('ROLE_ADMIN')")
                 .antMatchers("/bo/nextApplicationQuickly").access("hasAnyRole('ROLE_OPERATOR','ROLE_ADMIN')")
