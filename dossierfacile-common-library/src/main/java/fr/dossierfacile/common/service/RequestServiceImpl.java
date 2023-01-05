@@ -59,9 +59,9 @@ public class RequestServiceImpl implements RequestService {
     }
 
     private <T> void sendRequest(HttpEntity<T> request, String urlCallback) {
-        ResponseEntity<HashMap> response;
+        ResponseEntity<String> response;
         try {
-            response = restTemplate.exchange(urlCallback, HttpMethod.POST, request, HashMap.class);
+            response = restTemplate.exchange(urlCallback, HttpMethod.POST, request, String.class);
             log.info(CALL_BACK_RESPONSE, response.getStatusCode());
         } catch (RestClientException e) {
             log.error(EXCEPTION + Sentry.captureException(e));
@@ -70,7 +70,7 @@ public class RequestServiceImpl implements RequestService {
                 try {
                     log.warn("Trying to send the request again without SSL Verification, to the urlCallBack: " + urlCallback);
                     addExceptionOfSecurity();
-                    response = restTemplate.exchange(urlCallback, HttpMethod.POST, request, HashMap.class);
+                    response = restTemplate.exchange(urlCallback, HttpMethod.POST, request, String.class);
                     log.info(CALL_BACK_RESPONSE, response.getStatusCode());
                 } catch (GeneralSecurityException | ResourceAccessException e1) {
                     log.error(EXCEPTION + Sentry.captureException(e1));
