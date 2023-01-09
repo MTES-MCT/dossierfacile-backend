@@ -81,14 +81,16 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         BufferedImage preview;
         if ("pdf".equals(imageExtension)) {
-            try (PDDocument document = PDDocument.load(multipartFile.getInputStream())) {
-                PDFRenderer pdfRenderer = new PDFRenderer(document);
-                BufferedImage bufferedImage = pdfRenderer.renderImageWithDPI(0, 600, ImageType.RGB);
-                preview = resizeImage(bufferedImage);
-            } catch (Exception e) {
-                log.error(e.getMessage(), e);
-                return "";
-            }
+            return "";
+            // TODO : fix out of memory error
+//            try (PDDocument document = PDDocument.load(multipartFile.getInputStream())) {
+//                PDFRenderer pdfRenderer = new PDFRenderer(document);
+//                BufferedImage bufferedImage = pdfRenderer.renderImageWithDPI(0, 600, ImageType.RGB);
+//                preview = resizeImage(bufferedImage);
+//            } catch (Exception e) {
+//                log.error(e.getMessage(), e);
+//                return "";
+//            }
         } else {
             try {
                 preview = resizeImage(ImageIO.read(multipartFile.getInputStream()));
