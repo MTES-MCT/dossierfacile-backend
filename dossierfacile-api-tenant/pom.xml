@@ -23,6 +23,7 @@
         <lombok.version>1.18.20</lombok.version>
         <dossierfacile.common.version>0.0.1-SNAPSHOT</dossierfacile.common.version>
         <junit-jupiter.version>5.9.1</junit-jupiter.version>
+        <pdfbox.tools.version>2.0.27</pdfbox.tools.version>
     </properties>
 
     <dependencyManagement>
@@ -40,7 +41,7 @@
             <dependency>
                 <groupId>org.apache.pdfbox</groupId>
                 <artifactId>pdfbox</artifactId>
-                <version>2.0.24</version>
+                <version>${pdfbox.tools.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.google.guava</groupId>
@@ -55,7 +56,7 @@
             <dependency>
                 <groupId>org.apache.pdfbox</groupId>
                 <artifactId>pdfbox-debugger</artifactId>
-                <version>2.0.25</version>
+	        <version>${pdfbox.tools.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.springframework</groupId>
