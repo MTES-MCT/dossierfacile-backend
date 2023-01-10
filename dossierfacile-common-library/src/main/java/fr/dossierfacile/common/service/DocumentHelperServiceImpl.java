@@ -81,10 +81,14 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         BufferedImage preview;
         if ("pdf".equals(imageExtension)) {
+            long startTime = System.currentTimeMillis();
             try (PDDocument document = PDDocument.load(multipartFile.getInputStream())) {
                 PDFRenderer pdfRenderer = new PDFRenderer(document);
                 BufferedImage bufferedImage = pdfRenderer.renderImageWithDPI(0, 200, ImageType.RGB);
                 preview = resizeImage(bufferedImage);
+                long endTime = System.currentTimeMillis();
+                long duration = (endTime - startTime);
+                log.info("resize pdf duration : " + duration);
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
                 return "";
@@ -108,6 +112,7 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
     }
 
     BufferedImage resizeImage(BufferedImage image) throws IOException {
+        long startTime = System.currentTimeMillis();
         float originalWidth = image.getWidth();
         float originalHeight = image.getHeight();
         int targetWidth = 300;
@@ -116,6 +121,9 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
         Graphics2D graphics2D = resizedImage.createGraphics();
         graphics2D.drawImage(image, 0, 0, targetWidth, targetHeight, null);
         graphics2D.dispose();
+        long endTime = System.currentTimeMillis();
+        long duration = (endTime - startTime);
+        log.info("resize image duration : " + duration);
         return resizedImage;
     }
 
