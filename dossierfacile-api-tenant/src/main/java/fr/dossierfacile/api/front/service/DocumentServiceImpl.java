@@ -5,7 +5,7 @@ import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.repository.FileRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
-import fr.dossierfacile.api.front.service.interfaces.TenantService;
+import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Person;
@@ -16,7 +16,6 @@ import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -28,14 +27,13 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor(onConstructor_ = {@Lazy})
+@RequiredArgsConstructor
 public class DocumentServiceImpl implements DocumentService {
 
     private final DocumentRepository documentRepository;
     private final FileRepository fileRepository;
     private final FileStorageService fileStorageService;
-    @Lazy
-    private final TenantService tenantService;
+    private final TenantStatusService tenantStatusService;
     private final ApartmentSharingService apartmentSharingService;
 
     @Override
@@ -55,7 +53,7 @@ public class DocumentServiceImpl implements DocumentService {
                 }
             }
             documentRepository.save(document);
-            tenantService.updateTenantStatus(tenantOfDocument);
+            tenantStatusService.updateTenantStatus(tenantOfDocument);
             apartmentSharingService.resetDossierPdfGenerated(tenantOfDocument.getApartmentSharing());
         } else {
             throw new UnsupportedOperationException("Not implemented");
@@ -82,7 +80,7 @@ public class DocumentServiceImpl implements DocumentService {
         fileStorageService.delete(document.getFiles().stream().map(File::getPath).collect(Collectors.toList()));
         ownerOfDocument.getDocuments().removeIf(d -> d.getId() == document.getId());
         documentRepository.delete(document);
-        tenantService.updateTenantStatus(tenantOfDocument);
+        tenantStatusService.updateTenantStatus(tenantOfDocument);
         apartmentSharingService.resetDossierPdfGenerated(tenantOfDocument.getApartmentSharing());
 
     }

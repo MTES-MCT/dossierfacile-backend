@@ -11,6 +11,7 @@ import fr.dossierfacile.api.front.repository.GuarantorRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
+import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentPdfGenerationLog;
 import fr.dossierfacile.common.entity.Guarantor;
@@ -38,7 +39,7 @@ public class DocumentIdentificationGuarantorOrganism implements SaveStep<Documen
     private final TenantMapper tenantMapper;
     private final GuarantorRepository guarantorRepository;
     private final DocumentService documentService;
-    private final TenantService tenantService;
+    private final TenantStatusService tenantStatusService;
     private final Producer producer;
     private final ApartmentSharingService apartmentSharingService;
     private final DocumentPdfGenerationLogRepository documentPdfGenerationLogRepository;
@@ -74,7 +75,7 @@ public class DocumentIdentificationGuarantorOrganism implements SaveStep<Documen
 
         documentService.initializeFieldsToProcessPdfGeneration(document);
         tenant.lastUpdateDateProfile(LocalDateTime.now(), DocumentCategory.IDENTIFICATION);
-        tenantService.updateTenantStatus(tenant);
+        tenantStatusService.updateTenantStatus(tenant);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         tenantRepository.save(tenant);
         return document;

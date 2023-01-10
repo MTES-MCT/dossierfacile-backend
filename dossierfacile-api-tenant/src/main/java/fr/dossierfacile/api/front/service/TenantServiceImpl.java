@@ -32,7 +32,6 @@ import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import io.sentry.Sentry;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -42,12 +41,11 @@ import java.time.LocalDateTime;
 
 @Slf4j
 @Service
-@AllArgsConstructor(onConstructor_ = {@Lazy})
+@AllArgsConstructor
 public class TenantServiceImpl implements TenantService {
     private final ApartmentSharingRepository apartmentSharingRepository;
     private final ConfirmationTokenService confirmationTokenService;
     private final ConfirmationTokenRepository confirmationTokenRepository;
-    @Lazy
     private final DocumentService documentService;
     private final LogService logService;
     private final MailService mailService;
@@ -79,29 +77,6 @@ public class TenantServiceImpl implements TenantService {
         } else {
             throw new IllegalStateException("Tenant is not the main tenant");
         }
-    }
-
-    @Override
-    public Tenant updateTenantStatus(Tenant tenant) {
-        TenantFileStatus previousStatus = tenant.getStatus();
-        log.info("Updating status of tenant with ID [" + tenant.getId() + "] to [" + tenant.getStatus() + "]");
-        tenant.setStatus(tenant.computeStatus());
-        tenant = tenantRepository.save(tenant);
-
-        if (previousStatus != tenant.getStatus()) {
-            switch (tenant.getStatus()) {
-                case VALIDATED -> partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.VERIFIED_ACCOUNT);
-
-                case DECLINED -> partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.DENIED_ACCOUNT);
-
-                case TO_PROCESS -> {
-                    if (previousStatus == TenantFileStatus.INCOMPLETE) {
-                        partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.CREATED_ACCOUNT);
-                    }
-                }
-            }
-        }
-        return tenant;
     }
 
     @Override
