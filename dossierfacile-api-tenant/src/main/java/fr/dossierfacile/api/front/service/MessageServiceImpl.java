@@ -6,7 +6,7 @@ import fr.dossierfacile.api.front.model.MessageModel;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.repository.MessageRepository;
 import fr.dossierfacile.api.front.service.interfaces.MessageService;
-import fr.dossierfacile.api.front.service.interfaces.TenantService;
+import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
 import fr.dossierfacile.common.entity.Message;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentStatus;
@@ -25,7 +25,7 @@ public class MessageServiceImpl implements MessageService {
     private final MessageRepository messageRepository;
     private final MessageMapper messageMapper;
     private final DocumentRepository documentRepository;
-    private final TenantService tenantService;
+    private final TenantStatusService tenantStatusService;
 
     @Override
     public List<MessageModel> findAll(Tenant tenant) {
@@ -72,6 +72,6 @@ public class MessageServiceImpl implements MessageService {
                                 documentRepository.save(document);
                             }
                         }));
-        tenantService.updateTenantStatus(principalAuthTenant);
+        tenantStatusService.updateTenantStatus(principalAuthTenant);
     }
 }

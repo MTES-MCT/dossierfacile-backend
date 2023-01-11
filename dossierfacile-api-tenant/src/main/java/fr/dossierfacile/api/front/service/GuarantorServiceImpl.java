@@ -5,6 +5,7 @@ import fr.dossierfacile.api.front.repository.GuarantorRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.GuarantorService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
+import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
 import fr.dossierfacile.common.entity.Guarantor;
 import fr.dossierfacile.common.entity.Tenant;
 import lombok.AllArgsConstructor;
@@ -14,7 +15,7 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class GuarantorServiceImpl implements GuarantorService {
     private final GuarantorRepository guarantorRepository;
-    private final TenantService tenantService;
+    private final TenantStatusService tenantStatusService;
     private final ApartmentSharingService apartmentSharingService;
 
     @Override
@@ -23,8 +24,8 @@ public class GuarantorServiceImpl implements GuarantorService {
                 .orElseThrow(() -> new GuarantorNotFoundException(id));
         guarantorRepository.delete(guarantor);
         guarantorRepository.flush();
-        tenantService.updateTenantStatus(guarantor.getTenant());
-        tenantService.updateTenantStatus(tenant);
+        tenantStatusService.updateTenantStatus(guarantor.getTenant());
+        tenantStatusService.updateTenantStatus(tenant);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
     }
 
