@@ -99,6 +99,9 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
                 return "";
             }
         }
+        if (preview == null) {
+            return "";
+        }
         try {
             ImageIO.write(preview, "jpg", baos);
         } catch (IOException e) {
@@ -110,6 +113,9 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
     }
 
     BufferedImage resizeImage(BufferedImage image) throws IOException {
+        if (image == null) {
+            return null;
+        }
         float originalWidth = image.getWidth();
         float originalHeight = image.getHeight();
         int targetWidth = 300;
