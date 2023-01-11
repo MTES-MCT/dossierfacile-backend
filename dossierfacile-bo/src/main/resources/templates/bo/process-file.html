@@ -15,18 +15,14 @@
               th:method="post" th:object="${customMessage}">
             <div class="back-color"
                  style="text-align: left; padding-left: 20px; margin-right: 0; margin-left: -20px; position: fixed; top: 60px; width: 100%; z-index: 1">
-                <div class="col-md-4" style="margin-top: 16px">
-                    <span class="panel-heading file1-background-color bold letter col-md-8"
-                          style="display: block ruby; overflow-x: auto"
-                          th:text="'Name: ' + ${tenant.getFullName()}"></span>
-                    <span class="col-md-4 bold letter panel-title"
-                          style="text-align: right;float: right;margin-right: -37px; margin-top: 10px"
-                          th:if="${!partnerList.isEmpty()}">Partenaires:</span>
-                </div>
-                <div class=" col-md-4" style="margin-top:19px">
-                    <div class="scrollmenu" th:style="${partnerList.isEmpty()}?'display:none':''">
-                        <a href="#" th:each="item : ${partnerList}" th:text="${item}"></a>
-                    </div>
+                <div class="col-md-8" style="margin-top: 16px;">
+                    <div class="panel-heading file1-background-color bold letter col-md-4 margin-right"
+                         th:text="'Nom : ' + ${tenant.getFullName()}"></div>
+                    <div class="panel-heading file1-background-color bold letter col-md-2 margin-right"
+                         th:text="'Type : ' + ${applicationType}"></div>
+                    <div class="panel-heading file1-background-color bold letter col-md-4"
+                         th:if="${!partnerList.isBlank()}"
+                         th:text="'Partenaire : ' + ${partnerList}"></div>
                 </div>
 
                 <div class="margin-bottom col-md-4" style="margin-top: 19px">
