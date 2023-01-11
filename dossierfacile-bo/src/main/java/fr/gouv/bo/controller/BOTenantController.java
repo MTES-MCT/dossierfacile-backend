@@ -64,6 +64,7 @@ public class BOTenantController {
     private static final String TENANT = "tenant";
     private static final String GUARANTOR = "guarantor";
     private static final String NEW_MESSAGE = "newMessage";
+    private static final String APPLICATION_TYPE = "applicationType";
     private static final String PARTNER_LIST = "partnerList";
     private static final String REDIRECT_BO = "redirect:/bo";
     private static final String CUSTOM_MESSAGE = "customMessage";
@@ -195,7 +196,8 @@ public class BOTenantController {
         }
         EmailDTO emailDTO = new EmailDTO();
         model.addAttribute(EMAIL, emailDTO);
-        model.addAttribute(PARTNER_LIST, getPartnersListTenant(id));
+        model.addAttribute(APPLICATION_TYPE, tenant.getApartmentSharing().getApplicationType());
+        model.addAttribute(PARTNER_LIST, String.join(", ", getPartnersListTenant(id)));
         model.addAttribute(NEW_MESSAGE, findNewMessageFromTenant(id));
         model.addAttribute(TENANT, tenant);
         model.addAttribute(CUSTOM_MESSAGE, getCustomMessage(tenant));
