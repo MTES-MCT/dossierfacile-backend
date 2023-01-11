@@ -9,6 +9,7 @@ import io.sentry.Sentry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.api.exceptions.AuthenticationException;
 import org.openstack4j.api.exceptions.ClientResponseException;
@@ -40,7 +41,6 @@ import java.util.UUID;
 @Slf4j
 @Profile("!mockOvh")
 public class OvhFileStorageServiceImpl implements FileStorageService {
-    private static final String OVH_CONNECT = "OVH connect. ";
     private static final String EXCEPTION = "Sentry ID Exception: ";
 
     @Value("${ovh.project.domain:default}")
@@ -62,11 +62,11 @@ public class OvhFileStorageServiceImpl implements FileStorageService {
     private String tokenId;
 
     private OSClient.OSClientV3 connect() {
-        OSClient.OSClientV3 os = null;
         Identifier domainIdentifier = Identifier.byId(ovhProjectDomain);
-        int attempts = 0;
-        while (attempts++ < ovhConnectionReattempts && os == null) {
+
+        for (int i = 0; i <= ovhConnectionReattempts; i++) {
             try {
+                OSClient.OSClientV3 os;
                 if (tokenId == null) {
                     os = OSFactory.builderV3()
                             .endpoint(ovhAuthUrl)
@@ -83,28 +83,15 @@ public class OvhFileStorageServiceImpl implements FileStorageService {
                             .authenticate();
                     os.useRegion(ovhRegion);
                 }
+                return os;
             } catch (AuthenticationException | ClientResponseException e) {
-                if (e instanceof ClientResponseException) {
-                    log.error(e.toString());
-                }
-                os = OSFactory.builderV3()
-                        .endpoint(ovhAuthUrl)
-                        .credentials(ovhUsername, ovhPassword, domainIdentifier)
-                        .scopeToProject(Identifier.byName(ovhProjectName), Identifier.byName(ovhProjectDomain))
-                        .authenticate();
-                os.useRegion(ovhRegion);
-                tokenId = os.getToken().getId();
+                log.error("ObjectStorage authentication failed - reset tokenId. (" + i + "/" + ovhConnectionReattempts + ")" + EXCEPTION + Sentry.captureException(e), e);
+                tokenId = null;
             } catch (Exception e) {
-                log.error(e.getMessage());
-                if (attempts == ovhConnectionReattempts) {
-                    log.error(OVH_CONNECT + EXCEPTION + Sentry.captureException(e));
-                    log.error(e.getClass().getName());
-                    String customExceptionMessage = OVH_CONNECT + "Could not connect to the storage provider after " + attempts + " attempts with given credentials";
-                    throw new OvhConnectionFailedException(customExceptionMessage, e.getCause());
-                }
+                log.error("ObjectStorage failed. (" + i + "/" + ovhConnectionReattempts + ")" + EXCEPTION + Sentry.captureException(e), e);
             }
         }
-        return os;
+        throw new OvhConnectionFailedException("ObjectStorage Max attempts reached ");
     }
 
     @Override
@@ -186,14 +173,17 @@ public class OvhFileStorageServiceImpl implements FileStorageService {
                 throw new IOException(e);
             }
         }
-        connect().objectStorage().objects().put(ovhContainerName, ovhPath, Payloads.create(inputStream));
+        String eTag = connect().objectStorage().objects().put(ovhContainerName, ovhPath, Payloads.create(inputStream));
+        if (StringUtils.isEmpty(eTag)) {
+            throw new IOException("ETag is empty - download failed!" + ovhPath);
+        }
     }
 
     @Override
     public String uploadFile(MultipartFile file, Key key) {
         String name = UUID.randomUUID() + "." + Objects.requireNonNull(FilenameUtils.getExtension(file.getOriginalFilename())).toLowerCase(Locale.ROOT);
-        try {
-            upload(name, file.getInputStream(), key);
+        try (InputStream is = file.getInputStream()) {
+            upload(name, is, key);
         } catch (IOException e) {
             throw new FileCannotUploadedException();
         }
@@ -203,8 +193,7 @@ public class OvhFileStorageServiceImpl implements FileStorageService {
     @Override
     public String uploadByteArray(byte[] file, String extension, Key key) {
         String name = UUID.randomUUID() + "." + Objects.requireNonNull(extension).toLowerCase(Locale.ROOT);
-        try {
-            InputStream targetStream = new ByteArrayInputStream(file);
+        try (InputStream targetStream = new ByteArrayInputStream(file)) {
             upload(name, targetStream, key);
         } catch (IOException e) {
             throw new FileCannotUploadedException();
