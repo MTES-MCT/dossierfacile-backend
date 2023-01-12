@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.front.service;
 
+import fr.dossierfacile.api.front.amqp.MinifyFileProducer;
 import fr.dossierfacile.api.front.exception.DocumentNotFoundException;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.repository.FileRepository;
@@ -13,10 +14,12 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.TenantFileStatus;
+import fr.dossierfacile.common.service.interfaces.DocumentHelperService;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
@@ -35,6 +38,8 @@ public class DocumentServiceImpl implements DocumentService {
     private final FileStorageService fileStorageService;
     private final TenantStatusService tenantStatusService;
     private final ApartmentSharingService apartmentSharingService;
+    private final DocumentHelperService documentHelperService;
+    private final MinifyFileProducer minifyFileProducer;
 
     @Override
     @Transactional
@@ -138,5 +143,11 @@ public class DocumentServiceImpl implements DocumentService {
             log.info("Removing document from storage with path [" + document.getName() + "]");
             fileStorageService.delete(document.getName());
         }
+    }
+
+    @Override
+    public void addFile(MultipartFile multipartFile, Document document) {
+        File file = documentHelperService.addFile(multipartFile, document);
+        minifyFileProducer.minifyFile(file.getId());
     }
 }

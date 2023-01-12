@@ -18,7 +18,6 @@ import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.repository.DocumentPdfGenerationLogRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
-import fr.dossierfacile.common.service.interfaces.DocumentHelperService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -31,7 +30,6 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class DocumentIdentification implements SaveStep<DocumentIdentificationForm> {
 
-    private final DocumentHelperService documentHelperService;
     private final TenantCommonRepository tenantRepository;
     private final DocumentRepository documentRepository;
     private final TenantMapper tenantMapper;
@@ -67,7 +65,7 @@ public class DocumentIdentification implements SaveStep<DocumentIdentificationFo
 
         documentIdentificationForm.getDocuments().stream()
                 .filter(f -> !f.isEmpty())
-                .forEach(multipartFile -> documentHelperService.addFile(multipartFile, document)
+                .forEach(multipartFile -> documentService.addFile(multipartFile, document)
                 );
 
         documentService.initializeFieldsToProcessPdfGeneration(document);

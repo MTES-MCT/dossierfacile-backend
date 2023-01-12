@@ -10,16 +10,17 @@ import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.repository.GuarantorRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
-import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
-import fr.dossierfacile.common.entity.*;
+import fr.dossierfacile.common.entity.Document;
+import fr.dossierfacile.common.entity.DocumentPdfGenerationLog;
+import fr.dossierfacile.common.entity.Guarantor;
+import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.TypeGuarantor;
 import fr.dossierfacile.common.repository.DocumentPdfGenerationLogRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
-import fr.dossierfacile.common.service.interfaces.DocumentHelperService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -32,7 +33,6 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class DocumentIdentificationGuarantorNaturalPerson implements SaveStep<DocumentIdentificationGuarantorNaturalPersonForm> {
 
-    private final DocumentHelperService documentHelperService;
     private final TenantCommonRepository tenantRepository;
     private final DocumentRepository documentRepository;
     private final TenantMapper tenantMapper;
@@ -76,7 +76,7 @@ public class DocumentIdentificationGuarantorNaturalPerson implements SaveStep<Do
 
         documentIdentificationGuarantorNaturalPersonForm.getDocuments().stream()
                         .filter(f -> !f.isEmpty())
-                        .forEach( multipartFile -> documentHelperService.addFile(multipartFile, document));
+                        .forEach( multipartFile -> documentService.addFile(multipartFile, document));
 
         documentService.initializeFieldsToProcessPdfGeneration(document);
         tenant.lastUpdateDateProfile(LocalDateTime.now(), DocumentCategory.IDENTIFICATION);
