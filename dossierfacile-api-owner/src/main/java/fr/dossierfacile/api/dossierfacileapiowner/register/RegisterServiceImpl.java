@@ -12,6 +12,7 @@ import fr.dossierfacile.common.entity.PasswordRecoveryToken;
 import fr.dossierfacile.common.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -65,6 +66,13 @@ public class RegisterServiceImpl implements RegisterService {
     public void forgotPassword(String email) {
         Owner owner = ownerRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException(email));
+
+        if (StringUtils.isBlank(owner.getKeycloakId()) || keycloakService.isKeycloakUser(owner.getKeycloakId())) {
+            log.warn("User has not a valid keycloakId - ownerId" + owner.getId());
+            var keycloakId = keycloakService.createKeycloakUser(email);
+            owner.setKeycloakId(keycloakId);
+        }
+        ownerRepository.save(owner);
         PasswordRecoveryToken passwordRecoveryToken = passwordRecoveryTokenService.create(owner);
         mailService.sendEmailNewPassword(owner, passwordRecoveryToken);
     }
@@ -91,8 +99,7 @@ public class RegisterServiceImpl implements RegisterService {
         userRepository.save(user);
 
         passwordRecoveryTokenRepository.delete(passwordRecoveryToken);
-        return ownerMapper.toOwnerModel(ownerRepository.findById(user.getId()).orElseThrow(UserNotFoundException::new))
-        ;
+        return ownerMapper.toOwnerModel(ownerRepository.findById(user.getId()).orElseThrow(UserNotFoundException::new));
     }
 
 }
