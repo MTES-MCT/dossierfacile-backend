@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.UUID;
 
 import static org.springframework.http.ResponseEntity.accepted;
@@ -56,14 +57,26 @@ public class ApplicationController {
         } catch (ApartmentSharingNotFoundException e) {
             log.error(e.getMessage(), e.getCause());
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+        } catch (IllegalStateException e) {
+            log.warn("ApartmentSharing full pdf in not available yet");
+            try {
+                response.sendError(HttpServletResponse.SC_CONFLICT, "File is not yet available retry later");
+            } catch (IOException ex) {
+                log.error("Something wrong on response status enrichment", ex);
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            }
         } catch (FileNotFoundException e) {
             log.error(e.getMessage(), e.getCause());
-            response.setStatus(HttpServletResponse.SC_EXPECTATION_FAILED);
-        } catch (Exception e) {
+            try {
+                response.sendError(HttpServletResponse.SC_CONFLICT, "File is not available - check status");
+            } catch (IOException ex) {
+                log.error("Something wrong on response status enrichment", ex);
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            }
+        } catch (IOException e) {
             log.error(e.getMessage(), e.getCause());
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
-
     }
 
     @PostMapping(value = "/fullPdf/{token}", produces = MediaType.APPLICATION_PDF_VALUE)
