@@ -4,6 +4,8 @@ import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.InputStream;
+
 public interface DocumentHelperService {
     /**
      * Build, upload and add the file inside the document.
@@ -20,4 +22,6 @@ public interface DocumentHelperService {
      * Delete files contained in document.
      */
     void deleteFiles(Document document);
+
+    String generatePreview(InputStream fileInputStream, String originalName);
 }

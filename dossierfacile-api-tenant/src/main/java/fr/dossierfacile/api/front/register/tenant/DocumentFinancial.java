@@ -74,7 +74,7 @@ public class DocumentFinancial implements SaveStep<DocumentFinancialForm> {
             if (documentFinancialForm.getDocuments().size() > 0) {
                 documentFinancialForm.getDocuments().stream()
                         .filter(f -> !f.isEmpty())
-                        .forEach(multipartFile -> documentHelperService.addFile(multipartFile, document));
+                        .forEach(multipartFile -> documentService.addFile(multipartFile, document));
                 document.setCustomText(null);
             } else {
                 log.info("Refreshing info in [FINANCIAL] document with ID [" + documentFinancialForm.getId() + "]");

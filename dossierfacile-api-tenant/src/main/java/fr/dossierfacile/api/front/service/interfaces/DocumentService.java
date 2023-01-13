@@ -4,6 +4,7 @@ import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentStatus;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -19,4 +20,6 @@ public interface DocumentService {
     void deleteAllDocumentsAssociatedToTenant(Tenant tenant);
 
     void changeDocumentStatus(Document document, DocumentStatus toProcess);
+
+    void addFile(MultipartFile multipartFile, Document document);
 }

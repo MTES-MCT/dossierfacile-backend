@@ -18,7 +18,6 @@ import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.repository.DocumentPdfGenerationLogRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
-import fr.dossierfacile.common.service.interfaces.DocumentHelperService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,7 +29,6 @@ import java.util.List;
 @AllArgsConstructor
 public class DocumentProfessional implements SaveStep<DocumentProfessionalForm> {
 
-    private final DocumentHelperService documentHelperService;
     private final TenantCommonRepository tenantRepository;
     private final DocumentRepository documentRepository;
     private final TenantMapper tenantMapper;
@@ -65,7 +63,7 @@ public class DocumentProfessional implements SaveStep<DocumentProfessionalForm> 
 
         documentProfessionalForm.getDocuments().stream()
                 .filter(f -> !f.isEmpty())
-                .forEach(multipartFile -> documentHelperService.addFile(multipartFile, document));
+                .forEach(multipartFile -> documentService.addFile(multipartFile, document));
 
         documentService.initializeFieldsToProcessPdfGeneration(document);
         tenant.lastUpdateDateProfile(LocalDateTime.now(), DocumentCategory.PROFESSIONAL);

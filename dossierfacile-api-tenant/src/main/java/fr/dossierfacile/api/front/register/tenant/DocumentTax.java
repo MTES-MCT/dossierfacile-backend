@@ -84,7 +84,7 @@ public class DocumentTax implements SaveStep<DocumentTaxForm> {
             if (documentTaxForm.getDocuments().size() > 0) {
                 documentTaxForm.getDocuments().stream()
                         .filter(f -> !f.isEmpty())
-                        .forEach(multipartFile -> documentHelperService.addFile(multipartFile, document));
+                        .forEach(multipartFile -> documentService.addFile(multipartFile, document));
             } else {
                 log.info("Refreshing info in [TAX] document with ID [" + document.getId() + "]");
             }

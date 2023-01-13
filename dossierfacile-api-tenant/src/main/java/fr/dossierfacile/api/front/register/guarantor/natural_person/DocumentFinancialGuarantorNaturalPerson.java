@@ -83,7 +83,7 @@ public class DocumentFinancialGuarantorNaturalPerson implements SaveStep<Documen
 
                 documentFinancialGuarantorNaturalPersonForm.getDocuments().stream()
                         .filter(f -> !f.isEmpty())
-                        .forEach(multipartFile -> documentHelperService.addFile(multipartFile, document));
+                        .forEach(multipartFile -> documentService.addFile(multipartFile, document));
                 document.setCustomText(null);
             } else {
                 log.info("Refreshing info in [FINANCIAL] document with ID [" + documentFinancialGuarantorNaturalPersonForm.getDocumentId() + "]");
