@@ -157,7 +157,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
         //endregion
     }
 
-    @Scheduled(cron = "0 0 8 * * 5")
+    @Scheduled(cron = "${cron.process.warnings}")
     public void accountWarningsForDocumentDeletion() {
         log.info("accountWarnings. Executing scheduled task for account warnings at [" + LocalDateTime.now() + "]");
         LocalDateTime localDateTime = LocalDateTime.now().minusMonths(monthsForDeletionOfDocuments);
