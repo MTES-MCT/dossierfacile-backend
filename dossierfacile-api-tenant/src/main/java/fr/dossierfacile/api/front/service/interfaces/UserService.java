@@ -22,11 +22,7 @@ public interface UserService {
 
     Boolean deleteCoTenant(Tenant tenant, Long id);
 
-    void linkTenantToPartner(Tenant tenant, PartnerForm partnerForm);
-
-    void linkTenantToPartner(Tenant tenant, String partner);
-
-    void linkTenantToApiPartner(Tenant tenant, String partner);
+    void linkTenantToPartner(Tenant tenant, String partner, String internalPartnerId);
 
     void logout(Tenant tenant);
 

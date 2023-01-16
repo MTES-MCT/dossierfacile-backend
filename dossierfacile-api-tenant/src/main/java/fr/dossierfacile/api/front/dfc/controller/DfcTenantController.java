@@ -28,7 +28,7 @@ public class DfcTenantController {
     public ResponseEntity<ConnectedTenantModel> profilePartner() {
         var tenant = authenticationFacade.getLoggedTenant();
         var partner = authenticationFacade.getKeycloakClientId();
-        userService.linkTenantToPartner(tenant, partner);
+        userService.linkTenantToPartner(tenant, partner, null);
         return ok(tenantMapper.toTenantModelDfc(tenant));
     }
 

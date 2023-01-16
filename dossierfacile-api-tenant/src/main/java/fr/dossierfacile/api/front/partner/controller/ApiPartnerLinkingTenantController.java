@@ -27,7 +27,7 @@ public class ApiPartnerLinkingTenantController {
     @GetMapping(value = {"/{clientId}"}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TenantModel> linkTenantToPartner(@PathVariable String clientId) {
         Tenant tenantLogged = authenticationFacade.getLoggedTenant();
-        userService.linkTenantToApiPartner(tenantLogged, clientId);
+        userService.linkTenantToPartner(tenantLogged, clientId, null);
         return ok(tenantMapper.toTenantModel(tenantLogged));
     }
 }

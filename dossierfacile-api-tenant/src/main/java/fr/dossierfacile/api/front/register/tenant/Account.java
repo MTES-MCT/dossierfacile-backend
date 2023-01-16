@@ -16,14 +16,14 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
-
-import java.time.LocalDateTime;
-
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -55,8 +55,10 @@ public class Account implements SaveStep<AccountForm> {
             }
             tenant.setPreferredName(accountForm.getPreferredName());
             tenantRepository.save(tenant);
-            UserApi userApi = this.sourceService.findOrCreate(accountForm.getSource());
-            partnerCallBackService.registerTenant(accountForm.getInternalPartnerId(), tenant, userApi);
+            Optional<UserApi> userApi = this.sourceService.findByName(accountForm.getSource());
+            if (userApi.isPresent()) {
+                partnerCallBackService.registerTenant(accountForm.getInternalPartnerId(), tenant, userApi.get());
+            }
         }
         tenant.setKeycloakId(keycloakService.createKeycloakUserAccountCreation(accountForm, tenant));
 

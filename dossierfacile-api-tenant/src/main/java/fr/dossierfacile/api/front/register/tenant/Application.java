@@ -178,7 +178,7 @@ public class Application implements SaveStep<ApplicationFormV2> {
                     // Relating all the clients related to tenant CREATE to tenant JOIN
                     Optional.ofNullable(tenantCreate.getTenantsUserApi())
                             .orElse(new ArrayList<>())
-                            .forEach(tenantUserApi -> partnerCallBackService.linkTenantToPartner(null, joinTenant, tenantUserApi.getUserApi()));
+                            .forEach(tenantUserApi -> partnerCallBackService.registerTenant(null, joinTenant, tenantUserApi.getUserApi()));
 
                     logService.saveLog(LogType.ACCOUNT_CREATED, joinTenant.getId());
                     return joinTenant;
