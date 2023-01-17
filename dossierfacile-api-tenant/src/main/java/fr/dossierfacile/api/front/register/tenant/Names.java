@@ -7,6 +7,7 @@ import fr.dossierfacile.api.front.register.form.tenant.NamesForm;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
+import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.TenantFileStatus;
@@ -27,7 +28,7 @@ public class Names implements SaveStep<NamesForm> {
     private final TenantMapper tenantMapper;
     private final ApartmentSharingService apartmentSharingService;
     private final DocumentService documentService;
-    private final TenantService tenantService;
+    private final TenantStatusService tenantStatusService;
 
     @Override
     @Transactional
@@ -48,7 +49,7 @@ public class Names implements SaveStep<NamesForm> {
         tenant.setZipCode(namesForm.getZipCode());
         tenant.lastUpdateDateProfile(LocalDateTime.now(), null);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
-        tenant = tenantService.updateTenantStatus(tenant);
+        tenant = tenantStatusService.updateTenantStatus(tenant);
         return tenantMapper.toTenantModel(tenantRepository.save(tenant));
     }
 }

@@ -8,7 +8,7 @@ import fr.dossierfacile.api.front.register.form.tenant.DocumentProfessionalForm;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
-import fr.dossierfacile.api.front.service.interfaces.TenantService;
+import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentPdfGenerationLog;
 import fr.dossierfacile.common.entity.Tenant;
@@ -18,7 +18,6 @@ import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.repository.DocumentPdfGenerationLogRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
-import fr.dossierfacile.common.service.interfaces.DocumentHelperService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,12 +29,11 @@ import java.util.List;
 @AllArgsConstructor
 public class DocumentProfessional implements SaveStep<DocumentProfessionalForm> {
 
-    private final DocumentHelperService documentHelperService;
     private final TenantCommonRepository tenantRepository;
     private final DocumentRepository documentRepository;
     private final TenantMapper tenantMapper;
     private final DocumentService documentService;
-    private final TenantService tenantService;
+    private final TenantStatusService tenantStatusService;
     private final Producer producer;
     private final ApartmentSharingService apartmentSharingService;
     private final DocumentPdfGenerationLogRepository documentPdfGenerationLogRepository;
@@ -65,14 +63,14 @@ public class DocumentProfessional implements SaveStep<DocumentProfessionalForm> 
 
         documentProfessionalForm.getDocuments().stream()
                 .filter(f -> !f.isEmpty())
-                .forEach(multipartFile -> documentHelperService.addFile(multipartFile, document));
+                .forEach(multipartFile -> documentService.addFile(multipartFile, document));
 
         documentService.initializeFieldsToProcessPdfGeneration(document);
         tenant.lastUpdateDateProfile(LocalDateTime.now(), DocumentCategory.PROFESSIONAL);
         if (tenant.getStatus() == TenantFileStatus.VALIDATED) {
             documentService.resetValidatedDocumentsStatusOfSpecifiedCategoriesToToProcess(tenant.getDocuments(), List.of(DocumentCategory.PROFESSIONAL, DocumentCategory.FINANCIAL, DocumentCategory.TAX));
         }
-        tenantService.updateTenantStatus(tenant);
+        tenantStatusService.updateTenantStatus(tenant);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         tenantRepository.save(tenant);
         return document;

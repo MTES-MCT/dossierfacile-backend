@@ -129,7 +129,7 @@ public class MockStorage implements FileStorageService {
 
     @Override
     public String uploadFile(MultipartFile file, Key key) {
-        String name = file.getOriginalFilename() + UUID.randomUUID() + "." + Objects.requireNonNull(FilenameUtils.getExtension(file.getOriginalFilename())).toLowerCase(Locale.ROOT);
+        String name = UUID.randomUUID() + "." + Objects.requireNonNull(FilenameUtils.getExtension(file.getOriginalFilename())).toLowerCase(Locale.ROOT);
         try {
             upload(name, file.getInputStream(), key);
         } catch (IOException e) {

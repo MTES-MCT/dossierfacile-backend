@@ -1,6 +1,5 @@
 package fr.dossierfacile.process.file.configuration;
 
-import fr.dossierfacile.process.file.amqp.Receiver;
 import org.aopalliance.aop.Advice;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
@@ -8,8 +7,6 @@ import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
-import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
-import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
 import org.springframework.amqp.rabbit.retry.RejectAndDontRequeueRecoverer;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,8 +22,14 @@ public class AMQPConfig {
     @Value("${rabbitmq.queue.file.process.tax}")
     private String queueName;
 
+    @Value("${rabbitmq.queue.file.minify}")
+    private String minifyQueueName;
+
     @Value("${rabbitmq.routing.key.file.process.tax}")
     private String routingKey;
+
+    @Value("${rabbitmq.routing.key.file.minify}")
+    private String minifyRoutingKey;
 
     @Value("${rabbitmq.prefetch}")
     private Integer prefetch;
@@ -42,8 +45,18 @@ public class AMQPConfig {
     }
 
     @Bean
-    Binding bindingQueueProcessFilesOcrExchangeFileProcess(Queue queueFileProcessOcr, TopicExchange exchangeFileProcess) {
-        return BindingBuilder.bind(queueFileProcessOcr).to(exchangeFileProcess).with(routingKey);
+    Queue queueFileMinify() {
+        return new Queue(minifyQueueName, true);
+    }
+
+    @Bean
+    Binding bindingQueueProcessFilesOcrExchangeFileProcess(Queue queueFileProcessTax, TopicExchange exchangeFileProcess) {
+        return BindingBuilder.bind(queueFileProcessTax).to(exchangeFileProcess).with(routingKey);
+    }
+
+    @Bean
+    Binding bindingQueueProcessMinifyFileProcess(Queue queueFileMinify, TopicExchange exchangeFileProcess) {
+        return BindingBuilder.bind(queueFileMinify).to(exchangeFileProcess).with(minifyRoutingKey);
     }
 
     // next step: use DLQ for unblocking retry instead of this blocking way - 3 retry - x5

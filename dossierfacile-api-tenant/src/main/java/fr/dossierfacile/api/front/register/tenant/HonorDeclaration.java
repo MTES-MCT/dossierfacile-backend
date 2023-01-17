@@ -8,6 +8,7 @@ import fr.dossierfacile.api.front.register.form.tenant.HonorDeclarationForm;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
+import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
@@ -28,7 +29,7 @@ public class HonorDeclaration implements SaveStep<HonorDeclarationForm> {
     private final TenantMapper tenantMapper;
     private final Producer producer;
     private final MailService mailService;
-    private final TenantService tenantService;
+    private final TenantStatusService tenantStatusService;
     private final ApartmentSharingService apartmentSharingService;
 
     @Override
@@ -40,7 +41,7 @@ public class HonorDeclaration implements SaveStep<HonorDeclarationForm> {
         getTenantOrPartners(tenant)
                 .forEach(t -> {
                     t.lastUpdateDateProfile(LocalDateTime.now(), null);
-                    tenantService.updateTenantStatus(t);
+                    tenantStatusService.updateTenantStatus(t);
                 });
         Tenant tenantSaved = tenantRepository.save(tenant);
 

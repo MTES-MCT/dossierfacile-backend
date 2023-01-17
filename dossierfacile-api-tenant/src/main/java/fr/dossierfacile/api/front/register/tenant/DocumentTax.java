@@ -8,7 +8,7 @@ import fr.dossierfacile.api.front.register.form.tenant.DocumentTaxForm;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
-import fr.dossierfacile.api.front.service.interfaces.TenantService;
+import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentPdfGenerationLog;
@@ -42,7 +42,7 @@ public class DocumentTax implements SaveStep<DocumentTaxForm> {
     private final DocumentRepository documentRepository;
     private final TenantMapper tenantMapper;
     private final DocumentService documentService;
-    private final TenantService tenantService;
+    private final TenantStatusService tenantStatusService;
     private final Producer producer;
     private final ApartmentSharingService apartmentSharingService;
     private final DocumentPdfGenerationLogRepository documentPdfGenerationLogRepository;
@@ -84,7 +84,7 @@ public class DocumentTax implements SaveStep<DocumentTaxForm> {
             if (documentTaxForm.getDocuments().size() > 0) {
                 documentTaxForm.getDocuments().stream()
                         .filter(f -> !f.isEmpty())
-                        .forEach(multipartFile -> documentHelperService.addFile(multipartFile, document));
+                        .forEach(multipartFile -> documentService.addFile(multipartFile, document));
             } else {
                 log.info("Refreshing info in [TAX] document with ID [" + document.getId() + "]");
             }
@@ -98,7 +98,7 @@ public class DocumentTax implements SaveStep<DocumentTaxForm> {
         if (tenant.getStatus() == TenantFileStatus.VALIDATED) {
             documentService.resetValidatedDocumentsStatusOfSpecifiedCategoriesToToProcess(tenant.getDocuments(), List.of(DocumentCategory.PROFESSIONAL, DocumentCategory.FINANCIAL, DocumentCategory.TAX));
         }
-        tenantService.updateTenantStatus(tenant);
+        tenantStatusService.updateTenantStatus(tenant);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         tenantRepository.save(tenant);
         return document;

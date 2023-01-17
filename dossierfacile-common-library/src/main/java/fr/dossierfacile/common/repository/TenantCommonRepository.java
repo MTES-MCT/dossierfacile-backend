@@ -184,7 +184,13 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
             "where t.lastLoginDate < :localDateTime " +
             "and t.warnings = :warnings " +
             "and t.id in (select d.tenant.id from Document d where d.tenant.id is not null)")
-    Page<Tenant> findByLastLoginDateIsBeforeAndHasDocuments(Pageable pageable, @Param("localDateTime") LocalDateTime localDateTime, Integer warnings);
+    Page<Tenant> findByLastLoginDateIsBeforeAndHasDocuments(Pageable pageable, @Param("localDateTime") LocalDateTime localDateTime, @Param("warnings") Integer warnings);
+
+    @Query(value = "select count(*) from Tenant t " +
+            "where t.lastLoginDate < :localDateTime " +
+            "and t.warnings = :warnings " +
+            "and t.id in (select d.tenant.id from Document d where d.tenant.id is not null)")
+    long countByLastLoginDateIsBeforeAndHasDocuments(@Param("localDateTime") LocalDateTime localDateTime, @Param("warnings") Integer warnings);
 
     @Modifying
     @Query("UPDATE Tenant t SET t.warnings = 0 where t.id = :tenantId")

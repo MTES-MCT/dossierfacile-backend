@@ -8,7 +8,6 @@ import fr.dossierfacile.common.service.interfaces.DocumentHelperService;
 import fr.dossierfacile.common.service.interfaces.EncryptionKeyService;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.common.utils.FileUtility;
-import io.sentry.Sentry;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -22,6 +21,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -48,13 +48,6 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
                 .key(encryptionKey)
                 .numberOfPages(FileUtility.countNumberOfPagesOfPdfDocument(multipartFile))
                 .build();
-        try {
-            String preview = generatePreview(multipartFile);
-            file.setPreview(preview);
-        } catch (Exception e) {
-            log.error(e.getMessage(), e.getCause());
-            Sentry.captureException(e);
-        }
         file = fileRepository.save(file);
         document.getFiles().add(file);
         return file;
@@ -75,25 +68,28 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
         return fileStorageService.uploadByteArray(file, extension, encryptionKey);
     }
 
-    private String generatePreview(MultipartFile multipartFile) {
-        String imageExtension = Objects.requireNonNull(multipartFile.getOriginalFilename()).substring(multipartFile.getOriginalFilename().lastIndexOf(".") + 1);
+    @Override
+    public String generatePreview(InputStream fileInputStream, String originalName) {
+        String imageExtension = Objects.requireNonNull(originalName).substring(originalName.lastIndexOf(".") + 1);
         byte[] compressImage;
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         BufferedImage preview;
-        if ("pdf".equals(imageExtension)) {
-            return "";
-            // TODO : fix out of memory error
-//            try (PDDocument document = PDDocument.load(multipartFile.getInputStream())) {
-//                PDFRenderer pdfRenderer = new PDFRenderer(document);
-//                BufferedImage bufferedImage = pdfRenderer.renderImageWithDPI(0, 600, ImageType.RGB);
-//                preview = resizeImage(bufferedImage);
-//            } catch (Exception e) {
-//                log.error(e.getMessage(), e);
-//                return "";
-//            }
+        if ("pdf".equalsIgnoreCase(imageExtension)) {
+            long startTime = System.currentTimeMillis();
+            try (PDDocument document = PDDocument.load(fileInputStream)) {
+                PDFRenderer pdfRenderer = new PDFRenderer(document);
+                BufferedImage bufferedImage = pdfRenderer.renderImageWithDPI(0, 200, ImageType.RGB);
+                preview = resizeImage(bufferedImage);
+                long endTime = System.currentTimeMillis();
+                long duration = (endTime - startTime);
+                log.info("resize pdf duration : " + duration);
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+                return "";
+            }
         } else {
             try {
-                preview = resizeImage(ImageIO.read(multipartFile.getInputStream()));
+                preview = resizeImage(ImageIO.read(fileInputStream));
             } catch (IOException e) {
                 log.error(e.getMessage(), e);
                 return "";
@@ -116,6 +112,7 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
         if (image == null) {
             return null;
         }
+        long startTime = System.currentTimeMillis();
         float originalWidth = image.getWidth();
         float originalHeight = image.getHeight();
         int targetWidth = 300;
@@ -124,6 +121,9 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
         Graphics2D graphics2D = resizedImage.createGraphics();
         graphics2D.drawImage(image, 0, 0, targetWidth, targetHeight, null);
         graphics2D.dispose();
+        long endTime = System.currentTimeMillis();
+        long duration = (endTime - startTime);
+        log.info("resize image duration : " + duration);
         return resizedImage;
     }
 

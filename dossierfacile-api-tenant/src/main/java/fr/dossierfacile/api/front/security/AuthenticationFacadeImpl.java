@@ -8,6 +8,7 @@ import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
 import fr.dossierfacile.api.front.service.interfaces.LogService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
+import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
 import fr.dossierfacile.api.front.util.Obfuscator;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
@@ -41,6 +42,7 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
 
     private final TenantCommonRepository tenantRepository;
     private final TenantUserApiRepository tenantUserApiRepository;
+    private final TenantStatusService tenantStatusService;
     private final TenantService tenantService;
     private final KeycloakService keycloakService;
     private final LogService logService;
@@ -170,7 +172,7 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
             tenant.setFirstName(getFirstName());
             tenant.setLastName(getLastName());
             tenant.setPreferredName(getPreferredName() == null ? tenant.getPreferredName() : getPreferredName());
-            tenantService.updateTenantStatus(tenant);
+            tenantStatusService.updateTenantStatus(tenant);
         }
         return tenantRepository.saveAndFlush(tenant);
     }

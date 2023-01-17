@@ -10,7 +10,7 @@ import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.repository.GuarantorRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
-import fr.dossierfacile.api.front.service.interfaces.TenantService;
+import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentPdfGenerationLog;
 import fr.dossierfacile.common.entity.Guarantor;
@@ -23,12 +23,13 @@ import fr.dossierfacile.common.enums.TypeGuarantor;
 import fr.dossierfacile.common.repository.DocumentPdfGenerationLogRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.DocumentHelperService;
-import java.time.LocalDateTime;
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 import static fr.dossierfacile.common.enums.DocumentSubCategory.MY_NAME;
 import static fr.dossierfacile.common.enums.DocumentSubCategory.OTHER_TAX;
@@ -44,7 +45,7 @@ public class DocumentTaxGuarantorNaturalPerson implements SaveStep<DocumentTaxGu
     private final TenantMapper tenantMapper;
     private final GuarantorRepository guarantorRepository;
     private final DocumentService documentService;
-    private final TenantService tenantService;
+    private final TenantStatusService tenantStatusService;
     private final Producer producer;
     private final ApartmentSharingService apartmentSharingService;
     private final DocumentPdfGenerationLogRepository documentPdfGenerationLogRepository;
@@ -88,7 +89,7 @@ public class DocumentTaxGuarantorNaturalPerson implements SaveStep<DocumentTaxGu
             if (documentTaxGuarantorNaturalPersonForm.getDocuments().size() > 0) {
                 documentTaxGuarantorNaturalPersonForm.getDocuments().stream()
                         .filter(f -> !f.isEmpty())
-                        .forEach(multipartFile -> documentHelperService.addFile(multipartFile, document));
+                        .forEach(multipartFile -> documentService.addFile(multipartFile, document));
             } else {
                 log.info("Refreshing info in [TAX] document with ID [" + document.getId() + "]");
             }
@@ -102,7 +103,7 @@ public class DocumentTaxGuarantorNaturalPerson implements SaveStep<DocumentTaxGu
         if (tenant.getStatus() == TenantFileStatus.VALIDATED) {
             documentService.resetValidatedDocumentsStatusOfSpecifiedCategoriesToToProcess(guarantor.getDocuments(), List.of(DocumentCategory.PROFESSIONAL, DocumentCategory.FINANCIAL, DocumentCategory.TAX));
         }
-        tenantService.updateTenantStatus(tenant);
+        tenantStatusService.updateTenantStatus(tenant);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         tenantRepository.save(tenant);
         return document;
