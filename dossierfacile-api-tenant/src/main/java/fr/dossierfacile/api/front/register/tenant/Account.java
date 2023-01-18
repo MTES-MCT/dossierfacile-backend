@@ -69,4 +69,5 @@ public class Account implements SaveStep<AccountForm> {
         tenant.lastUpdateDateProfile(LocalDateTime.now(), null);
         return tenantMapper.toTenantModel(tenantRepository.save(tenant));
     }
+
 }

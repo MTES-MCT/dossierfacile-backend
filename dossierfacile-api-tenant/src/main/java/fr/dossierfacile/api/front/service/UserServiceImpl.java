@@ -197,7 +197,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void logout(Tenant tenant) {
-        keycloakService.logout(tenant);
+        keycloakService.logout(tenant.getKeycloakId());
     }
 
     @Override

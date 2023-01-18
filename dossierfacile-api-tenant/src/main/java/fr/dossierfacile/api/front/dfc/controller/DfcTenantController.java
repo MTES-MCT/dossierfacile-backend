@@ -3,6 +3,9 @@ package fr.dossierfacile.api.front.dfc.controller;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.dfc.tenant.ConnectedTenantModel;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
+import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
+import fr.dossierfacile.api.front.model.KeycloakUser;
+import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.service.interfaces.UserService;
 import fr.dossierfacile.common.entity.Tenant;
 import lombok.AllArgsConstructor;
@@ -21,14 +24,20 @@ import static org.springframework.http.ResponseEntity.ok;
 public class DfcTenantController {
 
     private final AuthenticationFacade authenticationFacade;
+    private final KeycloakService keycloakService;
     private final TenantMapper tenantMapper;
+    private final TenantService tenantService;
     private final UserService userService;
 
     @GetMapping(value = "/profile", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ConnectedTenantModel> profilePartner() {
-        var tenant = authenticationFacade.getLoggedTenant();
-        var partner = authenticationFacade.getKeycloakClientId();
-        userService.linkTenantToPartner(tenant, partner, null);
+        String partner = authenticationFacade.getKeycloakClientId();
+        Tenant tenant = tenantService.findByKeycloakId(authenticationFacade.getKeycloakUserId());
+
+        if (tenant == null) {
+            KeycloakUser kcUser = authenticationFacade.getKeycloakUser();
+            tenant = tenantService.registerFromKeycloakUser(kcUser, partner);
+        }
         return ok(tenantMapper.toTenantModelDfc(tenant));
     }
 

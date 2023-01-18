@@ -1,6 +1,7 @@
 package fr.dossierfacile.api.front.service.interfaces;
 
 import fr.dossierfacile.api.front.form.SubscriptionApartmentSharingOfTenantForm;
+import fr.dossierfacile.api.front.model.KeycloakUser;
 import fr.dossierfacile.api.front.model.tenant.EmailExistsModel;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.enums.StepRegister;
@@ -28,4 +29,6 @@ public interface TenantService {
 
     @Transactional
     void processWarningsBatch(LocalDateTime localDateTime, int warnings, Pageable page);
+
+    Tenant registerFromKeycloakUser(KeycloakUser kcUser, String partner);
 }

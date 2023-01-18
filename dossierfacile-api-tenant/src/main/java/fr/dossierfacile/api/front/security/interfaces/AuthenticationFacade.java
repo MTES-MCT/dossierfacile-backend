@@ -1,9 +1,9 @@
 package fr.dossierfacile.api.front.security.interfaces;
 
+import fr.dossierfacile.api.front.model.KeycloakUser;
 import fr.dossierfacile.common.entity.Tenant;
 
 public interface AuthenticationFacade {
-
     String getKeycloakUserId();
 
     Tenant getLoggedTenant();
@@ -13,4 +13,6 @@ public interface AuthenticationFacade {
     String getKeycloakClientId();
 
     String getFranceConnectLink(String redirectUri);
+
+    KeycloakUser getKeycloakUser();
 }
