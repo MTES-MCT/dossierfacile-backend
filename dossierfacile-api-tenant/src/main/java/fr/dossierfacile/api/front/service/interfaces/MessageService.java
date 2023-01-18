@@ -9,6 +9,8 @@ import java.util.List;
 public interface MessageService {
     List<MessageModel> findAll(Tenant principalAuthTenant);
 
+    List<MessageModel> markMessagesAsRead(Tenant tenant);
+
     MessageModel create(Tenant principalAuthTenant, MessageForm messageForm, boolean isCustomMessage);
 
     void updateStatusOfDeniedDocuments(Tenant principalAuthTenant);

@@ -2,6 +2,7 @@ package fr.dossierfacile.api.front.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import fr.dossierfacile.common.enums.MessageStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,4 +24,5 @@ public class MessageModel {
     @JsonIgnore
     private Long toUser;
     private TypeMessage typeMessage;
+    private MessageStatus status;
 }
