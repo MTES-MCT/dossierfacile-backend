@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +31,19 @@ public class MessageServiceImpl implements MessageService {
     @Override
     public List<MessageModel> findAll(Tenant tenant) {
         return messageMapper.toListMessageModel(messageRepository.findByFromUserOrToUserOrderByCreationDateTimeDesc(tenant, tenant));
+    }
+
+    @Override
+    public List<MessageModel> markMessagesAsRead(Tenant tenant) {
+        List<Message> messagesToTenant = messageRepository.findByFromUserOrToUserOrderByCreationDateTimeDesc(tenant, tenant)
+                .stream()
+                .filter(message -> message.getFromUser() == null)
+                .collect(Collectors.toList());
+        messagesToTenant.forEach(
+                message -> message.setMessageStatus(MessageStatus.READ)
+        );
+        messageRepository.saveAll(messagesToTenant);
+        return messageMapper.toListMessageModel(messagesToTenant);
     }
 
     @Override
