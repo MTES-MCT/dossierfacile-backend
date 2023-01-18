@@ -118,7 +118,7 @@ public class Tenant extends User implements Person, Serializable {
                                         .flatMap(List::stream))
                         .collect(Collectors.toList());
         // Check documents status
-        if (allDocuments.stream().anyMatch(d -> d.getDocumentStatus() == DECLINED)) {
+        if (allDocuments != null && allDocuments.stream().anyMatch(d -> d.getDocumentStatus() == DECLINED)) {
             return TenantFileStatus.DECLINED;
         } else if (!honorDeclaration || !isAllCategories()) {
             return TenantFileStatus.INCOMPLETE;

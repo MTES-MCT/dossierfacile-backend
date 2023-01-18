@@ -77,7 +77,7 @@ public class TenantController {
     @PostMapping(value = "/linkTenantToPartner", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> linkTenantToPartner(@Validated @RequestBody PartnerForm partnerForm) {
         Tenant tenant = authenticationFacade.getLoggedTenant();
-        userService.linkTenantToPartner(tenant, partnerForm);
+        userService.linkTenantToPartner(tenant, partnerForm.getSource(), partnerForm.getInternalPartnerId());
         return ok().build();
     }
 
