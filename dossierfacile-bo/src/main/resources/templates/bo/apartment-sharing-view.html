@@ -290,7 +290,7 @@
                                                  style="max-height: 80vh;overflow-y: auto; background: aliceblue;height: auto">
                                                 <div style="background: antiquewhite; display: grid; padding: 7px;margin-bottom: 10px;"
                                                      th:each="log: ${logser.getLogById(tenant.getId())}">
-                                                    <p style="font-weight: bold;" th:text="${log.getLogType()}">
+                                                    <p style="font-weight: bold;" th:text="${log.getLogType()} + ${ (log.getOperatorId() != null)? ' by opId: ' + log.getOperatorId() : ''}">
                                                     </p>
                                                     <span style="padding-left: 5px;"
                                                           th:text="'date: ' + ${log.getCreationDateTime().getYear()} + '-' + ${log.getCreationDateTime().getMonthValue()} + '-' + ${log.getCreationDateTime().getDayOfMonth()} + ' ' + ${log.getCreationDateTime().getHour()} + ':' + ${log.getCreationDateTime().getMinute()} + ':' + ${log.getCreationDateTime().getSecond()}">
