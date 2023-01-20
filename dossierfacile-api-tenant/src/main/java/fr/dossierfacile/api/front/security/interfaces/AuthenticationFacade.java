@@ -4,6 +4,8 @@ import fr.dossierfacile.api.front.model.KeycloakUser;
 import fr.dossierfacile.common.entity.Tenant;
 
 public interface AuthenticationFacade {
+    String getUserEmail();
+
     String getKeycloakUserId();
 
     Tenant getLoggedTenant();
