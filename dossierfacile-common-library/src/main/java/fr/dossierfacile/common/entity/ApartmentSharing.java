@@ -4,6 +4,7 @@ package fr.dossierfacile.common.entity;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.FileStatus;
 import fr.dossierfacile.common.enums.TenantFileStatus;
+
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -20,6 +21,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -34,8 +36,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @Builder
 public class ApartmentSharing implements Serializable {
-
-    private static final long serialVersionUID = -3603815439883206021L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -71,6 +71,7 @@ public class ApartmentSharing implements Serializable {
 
     public ApartmentSharing(Tenant tenant) {
         tenants.add(tenant);
+        this.applicationType = ApplicationType.ALONE;
         this.token = UUID.randomUUID().toString();
         this.tokenPublic = UUID.randomUUID().toString();
     }
