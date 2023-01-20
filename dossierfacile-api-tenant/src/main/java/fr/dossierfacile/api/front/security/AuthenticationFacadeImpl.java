@@ -55,7 +55,8 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
     @Value("${keycloak.server.realm}")
     private String realm;
 
-    private String getUserEmail() {
+    @Override
+    public String getUserEmail() {
         return ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClaimAsString("email");
     }
 

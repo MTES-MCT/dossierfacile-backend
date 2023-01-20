@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.front.partner.controller;
 
+import fr.dossierfacile.api.front.aop.annotation.MethodLog;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.enums.StepRegister;
 import fr.dossierfacile.api.front.register.form.partner.AccountPartnerForm;
@@ -24,6 +25,7 @@ import static org.springframework.http.ResponseEntity.ok;
 @RestController
 @AllArgsConstructor
 @RequestMapping(value = "/api-partner/register", produces = MediaType.APPLICATION_JSON_VALUE)
+@MethodLog
 public class ApiPartnerRegisterController {
 
     private final TenantService tenantService;

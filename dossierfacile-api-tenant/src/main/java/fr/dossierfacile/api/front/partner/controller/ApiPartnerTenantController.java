@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.front.partner.controller;
 
+import fr.dossierfacile.api.front.aop.annotation.MethodLog;
 import fr.dossierfacile.api.front.form.SubscriptionApartmentSharingOfTenantForm;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
@@ -26,6 +27,7 @@ import static org.springframework.http.ResponseEntity.status;
 @RestController
 @AllArgsConstructor
 @RequestMapping("/api-partner/tenant/{tenantId}")
+@MethodLog
 public class ApiPartnerTenantController {
 
     private final AuthenticationFacade authenticationFacade;
