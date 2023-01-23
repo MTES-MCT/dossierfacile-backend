@@ -605,20 +605,14 @@ public class TenantService {
         return "redirect:/bo/colocation/" + tenant.getApartmentSharing().getId() + "#tenant" + tenant.getId();
     }
 
-    public void updateTenantStatus(Tenant tenant) {
+    public void updateTenantStatus(Tenant tenant, User operator) {
         TenantFileStatus previousStatus = tenant.getStatus();
         tenant.setStatus(tenant.computeStatus());
         tenantRepository.save(tenant);
         if (previousStatus != tenant.getStatus()) {
             switch (tenant.getStatus()) {
-                case VALIDATED: {
-                    partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.VERIFIED_ACCOUNT);
-                    break;
-                }
-                case DECLINED: {
-                    partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.DENIED_ACCOUNT);
-                    break;
-                }
+                case VALIDATED -> changeTenantStatusToValidated(tenant, operator);
+                case DECLINED -> changeTenantStatusToDeclined(tenant, operator, null);
             }
         }
     }
