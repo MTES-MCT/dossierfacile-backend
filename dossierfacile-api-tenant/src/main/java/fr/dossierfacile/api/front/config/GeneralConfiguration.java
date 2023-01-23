@@ -20,7 +20,7 @@ public class GeneralConfiguration {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(10);
         executor.setMaxPoolSize(10);
-        executor.setQueueCapacity(500);
+        executor.setQueueCapacity(100000);
         executor.setThreadNamePrefix("DossierFacile-Executor-");
         executor.initialize();
         return executor;
