@@ -30,12 +30,14 @@ import fr.gouv.bo.service.TenantService;
 import fr.gouv.bo.service.TenantUserApiService;
 import fr.gouv.bo.service.UserApiService;
 import fr.gouv.bo.service.UserService;
+
 import java.io.IOException;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.ObjectNotFoundException;
@@ -98,7 +100,7 @@ public class BOTenantController {
     @GetMapping("/deleteCoTenant/{id}")
     public String deleteCoTenant(@PathVariable Long id) {
         Tenant tenant = tenantService.findTenantById(id);
-        if (tenant.getTenantType() == TenantType.CREATE ) {
+        if (tenant.getTenantType() == TenantType.CREATE) {
             throw new IllegalArgumentException("Delete main tenant is not allowed - set another user as main tenant before OR delete the entire apartmentSharing");
         }
         userService.deleteCoTenant(tenant);
@@ -164,18 +166,20 @@ public class BOTenantController {
     }
 
     @GetMapping("/delete/document/{id}")
-    public String deleteDocument(@PathVariable("id") Long id) {
+    public String deleteDocument(@PathVariable("id") Long id, Principal principal) {
         Tenant tenant = documentService.deleteDocument(id);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
-        tenantService.updateTenantStatus(tenant);
+        User operator = userService.findUserByEmail(principal.getName());
+        tenantService.updateTenantStatus(tenant, operator);
         return "redirect:/bo/colocation/" + tenant.getApartmentSharing().getId() + "#tenant" + tenant.getId();
     }
 
     @GetMapping("/status/{id}")
-    public String changeStatusOfDocument(@PathVariable("id") Long id, MessageDTO messageDTO) {
+    public String changeStatusOfDocument(@PathVariable("id") Long id, MessageDTO messageDTO, Principal principal) {
         Tenant tenant = documentService.changeStatusOfDocument(id, messageDTO);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
-        tenantService.updateTenantStatus(tenant);
+        User operator = userService.findUserByEmail(principal.getName());
+        tenantService.updateTenantStatus(tenant, operator);
         return "redirect:/bo/colocation/" + tenant.getApartmentSharing().getId() + "#tenant" + tenant.getId();
     }
 
@@ -197,10 +201,11 @@ public class BOTenantController {
     }
 
     @GetMapping("/delete/guarantor/{guarantorId}")
-    public String deleteGuarantor(@PathVariable("guarantorId") Long guarantorId) {
+    public String deleteGuarantor(@PathVariable("guarantorId") Long guarantorId, Principal principal) {
         Tenant tenant = guarantorService.deleteById(guarantorId);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
-        tenantService.updateTenantStatus(tenant);
+        User operator = userService.findUserByEmail(principal.getName());
+        tenantService.updateTenantStatus(tenant, operator);
         return "redirect:/bo/colocation/" + tenant.getApartmentSharing().getId() + "#tenant" + tenant.getId();
     }
 
