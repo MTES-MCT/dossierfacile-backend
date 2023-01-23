@@ -141,7 +141,7 @@ public class TenantServiceImpl implements TenantService {
                     log.info("accountWarnings. Found [" + tenantList.getTotalElements() + "] tenants whose documents will be deleted");
         }
 
-        tenantList.stream().parallel().forEach(t -> {
+        tenantList.stream().forEach(t -> {
             try {
                 handleTenantWarning(t, warnings);
             } catch (Exception e) {
