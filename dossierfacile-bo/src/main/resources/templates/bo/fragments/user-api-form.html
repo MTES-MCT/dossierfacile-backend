@@ -77,6 +77,19 @@
                 </div>
             </div>
             <div class="row">
+                <div class="form-group col-md-6">
+                    <div>
+                    <input autocomplete="off"
+                           th:field="*{disabled}"
+                           type="checkbox"/><span>Disabled</span>
+                    </div>
+                    <span class="help-block color--error" th:errors="*{disabled}"
+                          th:if="${#fields.hasErrors('disabled')}"></span>
+                </div>
+                <div class="form-group col-md-6">
+                </div>
+            </div>
+            <div class="row">
                 <div class="col-md-2">
                     <button class="btn btn-primary bo-btn" type="submit">Update/Create</button>
                 </div>

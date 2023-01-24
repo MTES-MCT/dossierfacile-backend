@@ -19,6 +19,7 @@ import fr.dossierfacile.common.repository.TenantUserApiRepository;
 import fr.dossierfacile.common.service.interfaces.CallbackLogService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.dossierfacile.common.service.interfaces.RequestService;
+import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -74,9 +75,7 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
     public void sendCallBack(Tenant tenant, PartnerCallBackType partnerCallBackType) {
         tenant.getApartmentSharing().groupingAllTenantUserApisInTheApartment().forEach(tenantUserApi -> {
             UserApi userApi = tenantUserApi.getUserApi();
-            if (userApi.getVersion() != null && userApi.getUrlCallback() != null) {
-                sendCallBack(tenant, userApi, partnerCallBackType);
-            }
+            sendCallBack(tenant, userApi, partnerCallBackType);
         });
     }
 
@@ -89,6 +88,15 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
 
     public void sendCallBack(Tenant tenant, UserApi userApi, PartnerCallBackType partnerCallBackType) {
         ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
+        if (userApi.isDisabled() || userApi.getUrlCallback() == null) {
+            log.warn("UserApi call has not effect for " + userApi.getName());
+            return;
+        }
+        if (userApi.getVersion() == null) {
+            log.error("Unable to send callback to tenant " + tenant.getId() + " due to userApi version NULL");
+            Sentry.captureMessage("userApi version is NULL for " + userApi.getName());
+            return;
+        }
 
         switch (userApi.getVersion()) {
             case 1: {
