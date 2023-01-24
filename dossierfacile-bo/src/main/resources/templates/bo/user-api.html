@@ -21,6 +21,7 @@
                 <thead>
                 <tr>
                     <th>id</th>
+                    <th>disabled</th>
                     <th>name</th>
                     <th>name2</th>
                     <th>site</th>
@@ -36,6 +37,9 @@
 
                 <tr th:each="userApi : ${userApiList}">
                     <td th:text="${userApi.id}"></td>
+                    <td>
+                        <input type="checkbox" th:checked="${userApi.disabled == true}" disabled />
+                    </td>
                     <td th:text="${userApi.name}?: '-'"></td>
                     <td th:text="${userApi.name2}?: '-'"></td>
                     <td th:text="${userApi.site}?: '-'"></td>
