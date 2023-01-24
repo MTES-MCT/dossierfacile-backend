@@ -10,8 +10,6 @@ import java.util.List;
 
 public interface UserApiRepository extends JpaRepository<UserApi, Long> {
 
-    UserApi findOneByName(String source);
-
     List<UserApi> findAllByTypeUserApi(TypeUserApi light);
 
     UserApi findOneById(Long id);

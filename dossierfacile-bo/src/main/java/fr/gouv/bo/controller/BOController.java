@@ -121,12 +121,6 @@ public class BOController {
         return REDIRECT_BO;
     }
 
-    @GetMapping("/callback/manually/locserviceids")
-    public String callBackManuallyToLocserviceIds() {
-        tenantService.callBackManuallyToLocserviceIds();
-        return REDIRECT_BO;
-    }
-
     @GetMapping("/computeStatusOfAllTenants")
     public String computeStatusOfAllTenants() {
         tenantService.computeStatusOfAllTenants();
