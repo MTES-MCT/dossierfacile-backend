@@ -174,6 +174,9 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
         }
         int lengthOfPage = 100;
         int numberOfPage = (int) (numberOfTenantsToProcess / lengthOfPage);
+        if (numberOfPage>100) {
+            numberOfPage = 100;
+        }
         for (int i = numberOfPage; i >= 0; i--) {
             Pageable page = PageRequest.of(i, lengthOfPage, Sort.Direction.DESC, "id");
             tenantService.processWarningsBatch(localDateTime, warnings, page);
