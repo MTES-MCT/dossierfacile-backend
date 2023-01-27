@@ -20,7 +20,7 @@ public interface UserService {
 
     void deleteAccount(Tenant tenant);
 
-    Boolean deleteCoTenant(Tenant tenant, Long id);
+    Boolean deleteCoTenant(Tenant tenant, Long coTenantId);
 
     void linkTenantToPartner(Tenant tenant, String partner, String internalPartnerId);
 
