@@ -172,13 +172,13 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
                     });
                 }
                 applicationModel.setPartnerCallBackType(partnerCallBackType);
+                applicationModel.setOnTenantId(tenant.getId());
                 requestService.send(applicationModel, userApi.getUrlCallback(), userApi.getPartnerApiKeyCallback());
                 callbackLogService.createCallbackLogForPartnerModel(tenant, userApi.getId(), tenant.getStatus(), applicationModel);
                 break;
             }
             default:
                 log.error("send Callback failed");
-                break;
         }
     }
 
