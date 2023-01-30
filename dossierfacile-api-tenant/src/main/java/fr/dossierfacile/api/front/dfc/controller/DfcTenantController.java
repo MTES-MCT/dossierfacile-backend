@@ -2,10 +2,10 @@ package fr.dossierfacile.api.front.dfc.controller;
 
 import fr.dossierfacile.api.front.aop.annotation.MethodLog;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
+import fr.dossierfacile.api.front.model.KeycloakUser;
 import fr.dossierfacile.api.front.model.dfc.tenant.ConnectedTenantModel;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
-import fr.dossierfacile.api.front.model.KeycloakUser;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.service.interfaces.UserService;
 import fr.dossierfacile.common.entity.Tenant;
@@ -39,11 +39,13 @@ public class DfcTenantController {
         if (tenant == null) {
             KeycloakUser kcUser = authenticationFacade.getKeycloakUser();
             tenant = tenantService.registerFromKeycloakUser(kcUser, partner);
+        } else {
+            userService.linkTenantToPartner(tenant, partner, null);
         }
         return ok(tenantMapper.toTenantModelDfc(tenant));
     }
 
-    @RequestMapping(path="/logout", method = {RequestMethod.GET, RequestMethod.POST})
+    @RequestMapping(path = "/logout", method = {RequestMethod.GET, RequestMethod.POST})
     public ResponseEntity<Void> logout() {
         Tenant tenant = authenticationFacade.getLoggedTenant();
         userService.logout(tenant);
