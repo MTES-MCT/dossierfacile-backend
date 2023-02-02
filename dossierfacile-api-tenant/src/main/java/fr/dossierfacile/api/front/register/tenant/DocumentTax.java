@@ -48,6 +48,7 @@ public class DocumentTax implements SaveStep<DocumentTaxForm> {
     private final DocumentPdfGenerationLogRepository documentPdfGenerationLogRepository;
 
     @Override
+    @Transactional
     public TenantModel saveStep(Tenant tenant, DocumentTaxForm documentTaxForm) {
         Document document = saveDocument(tenant, documentTaxForm);
 
@@ -61,8 +62,7 @@ public class DocumentTax implements SaveStep<DocumentTaxForm> {
         return tenantMapper.toTenantModel(document.getTenant());
     }
 
-    @Transactional
-    Document saveDocument(Tenant tenant, DocumentTaxForm documentTaxForm) {
+    private Document saveDocument(Tenant tenant, DocumentTaxForm documentTaxForm) {
         DocumentSubCategory documentSubCategory = documentTaxForm.getTypeDocumentTax();
         Document document = documentRepository.findFirstByDocumentCategoryAndTenant(DocumentCategory.TAX, tenant)
                 .orElse(Document.builder()

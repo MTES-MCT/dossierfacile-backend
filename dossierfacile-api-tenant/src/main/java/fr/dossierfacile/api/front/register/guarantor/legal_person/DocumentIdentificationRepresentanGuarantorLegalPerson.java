@@ -42,6 +42,7 @@ public class DocumentIdentificationRepresentanGuarantorLegalPerson implements Sa
     private final DocumentPdfGenerationLogRepository documentPdfGenerationLogRepository;
 
     @Override
+    @Transactional
     public TenantModel saveStep(Tenant tenant, DocumentIdentificationRepresentanGuarantorLegalPersonForm documentIdentificationRepresentanGuarantorLegalPersonForm) {
         Document document = saveDocument(tenant, documentIdentificationRepresentanGuarantorLegalPersonForm);
         producer.generatePdf(document.getId(),
@@ -51,8 +52,7 @@ public class DocumentIdentificationRepresentanGuarantorLegalPerson implements Sa
         return tenantMapper.toTenantModel(document.getGuarantor().getTenant());
     }
 
-    @Transactional
-    Document saveDocument(Tenant tenant, DocumentIdentificationRepresentanGuarantorLegalPersonForm documentIdentificationRepresentanGuarantorLegalPersonForm) {
+    private Document saveDocument(Tenant tenant, DocumentIdentificationRepresentanGuarantorLegalPersonForm documentIdentificationRepresentanGuarantorLegalPersonForm) {
         Guarantor guarantor = guarantorRepository.findByTenantAndTypeGuarantorAndId(tenant, TypeGuarantor.LEGAL_PERSON, documentIdentificationRepresentanGuarantorLegalPersonForm.getGuarantorId())
                 .orElseThrow(() -> new GuarantorNotFoundException(documentIdentificationRepresentanGuarantorLegalPersonForm.getGuarantorId()));
         guarantor.setFirstName(documentIdentificationRepresentanGuarantorLegalPersonForm.getFirstName());

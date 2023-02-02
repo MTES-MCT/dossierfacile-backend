@@ -39,6 +39,7 @@ public class DocumentProfessional implements SaveStep<DocumentProfessionalForm> 
     private final DocumentPdfGenerationLogRepository documentPdfGenerationLogRepository;
 
     @Override
+    @Transactional
     public TenantModel saveStep(Tenant tenant, DocumentProfessionalForm documentProfessionalForm) {
         Document document = saveDocument(tenant, documentProfessionalForm);
         producer.generatePdf(document.getId(),
@@ -48,8 +49,7 @@ public class DocumentProfessional implements SaveStep<DocumentProfessionalForm> 
         return tenantMapper.toTenantModel(document.getTenant());
     }
 
-    @Transactional
-    Document saveDocument(Tenant tenant, DocumentProfessionalForm documentProfessionalForm) {
+    private Document saveDocument(Tenant tenant, DocumentProfessionalForm documentProfessionalForm) {
         DocumentSubCategory documentSubCategory = documentProfessionalForm.getTypeDocumentProfessional();
         Document document = documentRepository.findFirstByDocumentCategoryAndTenant(DocumentCategory.PROFESSIONAL, tenant)
                 .orElse(Document.builder()
