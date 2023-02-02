@@ -41,6 +41,7 @@ public class DocumentIdentification implements SaveStep<DocumentIdentificationFo
     private final FileService fileService;
 
     @Override
+    @Transactional
     public TenantModel saveStep(Tenant tenant, DocumentIdentificationForm documentIdentificationForm) {
         Document document = saveDocument(tenant, documentIdentificationForm);
         producer.generatePdf(document.getId(),
@@ -50,8 +51,7 @@ public class DocumentIdentification implements SaveStep<DocumentIdentificationFo
         return tenantMapper.toTenantModel(document.getTenant());
     }
 
-    @Transactional
-    Document saveDocument(Tenant tenant, DocumentIdentificationForm documentIdentificationForm) {
+    private Document saveDocument(Tenant tenant, DocumentIdentificationForm documentIdentificationForm) {
         DocumentSubCategory documentSubCategory = documentIdentificationForm.getTypeDocumentIdentification();
         Document document = documentRepository.findFirstByDocumentCategoryAndTenant(DocumentCategory.IDENTIFICATION, tenant)
                 .orElse(Document.builder()

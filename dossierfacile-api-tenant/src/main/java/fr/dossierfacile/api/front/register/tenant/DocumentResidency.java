@@ -37,6 +37,7 @@ public class DocumentResidency implements SaveStep<DocumentResidencyForm> {
     private final DocumentPdfGenerationLogRepository documentPdfGenerationLogRepository;
 
     @Override
+    @Transactional
     public TenantModel saveStep(Tenant tenant, DocumentResidencyForm documentResidencyForm) {
         Document document = saveDocument(tenant, documentResidencyForm);
         producer.generatePdf(document.getId(),
@@ -46,8 +47,7 @@ public class DocumentResidency implements SaveStep<DocumentResidencyForm> {
         return tenantMapper.toTenantModel(document.getTenant());
     }
 
-    @Transactional
-    Document saveDocument(Tenant tenant, DocumentResidencyForm documentResidencyForm) {
+    private Document saveDocument(Tenant tenant, DocumentResidencyForm documentResidencyForm) {
         DocumentSubCategory documentSubCategory = documentResidencyForm.getTypeDocumentResidency();
         Document document = documentRepository.findFirstByDocumentCategoryAndTenant(DocumentCategory.RESIDENCY, tenant)
                 .orElse(Document.builder()
