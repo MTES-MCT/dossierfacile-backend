@@ -55,10 +55,11 @@ public class DocumentTaxGuarantorNaturalPerson implements SaveStep<DocumentTaxGu
     @Transactional
     public TenantModel saveStep(Tenant tenant, DocumentTaxGuarantorNaturalPersonForm documentTaxGuarantorNaturalPersonForm) {
         Document document = saveDocument(tenant, documentTaxGuarantorNaturalPersonForm);
-        TransactionalUtil.afterCommit(() -> producer.generatePdf(document.getId(),
-                documentPdfGenerationLogRepository.save(DocumentPdfGenerationLog.builder()
-                        .documentId(document.getId())
-                        .build()).getId()));
+        Long logId = documentPdfGenerationLogRepository.save(DocumentPdfGenerationLog
+                .builder()
+                .documentId(document.getId())
+                .build()).getId();
+        TransactionalUtil.afterCommit(() -> producer.generatePdf(document.getId(), logId));
         if (Boolean.TRUE.equals(tenant.getHonorDeclaration())) {
             TransactionalUtil.afterCommit(() -> producer.processFileTax(documentTaxGuarantorNaturalPersonForm.getOptionalTenantId().orElse(tenant.getId())));
         }

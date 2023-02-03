@@ -1,8 +1,8 @@
 package fr.dossierfacile.api.front.register.tenant;
 
 import fr.dossierfacile.api.front.amqp.Producer;
-import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
+import fr.dossierfacile.api.front.register.AbstractDocumentSaveStep;
 import fr.dossierfacile.api.front.register.SaveStep;
 import fr.dossierfacile.api.front.register.form.tenant.DocumentTaxForm;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
@@ -12,13 +12,11 @@ import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
 import fr.dossierfacile.api.front.util.TransactionalUtil;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Document;
-import fr.dossierfacile.common.entity.DocumentPdfGenerationLog;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.TenantFileStatus;
-import fr.dossierfacile.common.repository.DocumentPdfGenerationLogRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.DocumentHelperService;
 import lombok.AllArgsConstructor;
@@ -36,34 +34,29 @@ import static java.util.Collections.singletonList;
 @Slf4j
 @Service
 @AllArgsConstructor
-public class DocumentTax implements SaveStep<DocumentTaxForm> {
+public class DocumentTax extends AbstractDocumentSaveStep<DocumentTaxForm> implements SaveStep<DocumentTaxForm> {
 
     private final DocumentHelperService documentHelperService;
     private final TenantCommonRepository tenantRepository;
     private final DocumentRepository documentRepository;
-    private final TenantMapper tenantMapper;
+
     private final DocumentService documentService;
     private final TenantStatusService tenantStatusService;
     private final Producer producer;
     private final ApartmentSharingService apartmentSharingService;
-    private final DocumentPdfGenerationLogRepository documentPdfGenerationLogRepository;
 
     @Override
     @Transactional
     public TenantModel saveStep(Tenant tenant, DocumentTaxForm documentTaxForm) {
-        Document document = saveDocument(tenant, documentTaxForm);
 
-        TransactionalUtil.afterCommit(() -> producer.generatePdf(document.getId(),
-                documentPdfGenerationLogRepository.save(DocumentPdfGenerationLog.builder()
-                        .documentId(document.getId())
-                        .build()).getId()));
         if (Boolean.TRUE.equals(tenant.getHonorDeclaration())) {
             TransactionalUtil.afterCommit(() -> producer.processFileTax(documentTaxForm.getOptionalTenantId().orElse(tenant.getId())));
         }
-        return tenantMapper.toTenantModel(document.getTenant());
+        return super.saveStep(tenant, documentTaxForm);
     }
 
-    private Document saveDocument(Tenant tenant, DocumentTaxForm documentTaxForm) {
+    @Override
+    protected Document saveDocument(Tenant tenant, DocumentTaxForm documentTaxForm) {
         DocumentSubCategory documentSubCategory = documentTaxForm.getTypeDocumentTax();
         Document document = documentRepository.findFirstByDocumentCategoryAndTenant(DocumentCategory.TAX, tenant)
                 .orElse(Document.builder()

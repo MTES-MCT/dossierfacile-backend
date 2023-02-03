@@ -1,9 +1,7 @@
 package fr.dossierfacile.api.front.register.guarantor.organism;
 
-import fr.dossierfacile.api.front.amqp.Producer;
 import fr.dossierfacile.api.front.exception.GuarantorNotFoundException;
-import fr.dossierfacile.api.front.mapper.TenantMapper;
-import fr.dossierfacile.api.front.model.tenant.TenantModel;
+import fr.dossierfacile.api.front.register.AbstractDocumentSaveStep;
 import fr.dossierfacile.api.front.register.SaveStep;
 import fr.dossierfacile.api.front.register.form.guarantor.organism.DocumentIdentificationGuarantorOrganismForm;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
@@ -11,49 +9,34 @@ import fr.dossierfacile.api.front.repository.GuarantorRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
-import fr.dossierfacile.api.front.util.TransactionalUtil;
 import fr.dossierfacile.common.entity.Document;
-import fr.dossierfacile.common.entity.DocumentPdfGenerationLog;
 import fr.dossierfacile.common.entity.Guarantor;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.TypeGuarantor;
-import fr.dossierfacile.common.repository.DocumentPdfGenerationLogRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
-public class DocumentIdentificationGuarantorOrganism implements SaveStep<DocumentIdentificationGuarantorOrganismForm> {
+public class DocumentIdentificationGuarantorOrganism
+        extends AbstractDocumentSaveStep<DocumentIdentificationGuarantorOrganismForm>
+        implements SaveStep<DocumentIdentificationGuarantorOrganismForm> {
 
     private final TenantCommonRepository tenantRepository;
     private final DocumentRepository documentRepository;
-    private final TenantMapper tenantMapper;
     private final GuarantorRepository guarantorRepository;
     private final DocumentService documentService;
     private final TenantStatusService tenantStatusService;
-    private final Producer producer;
     private final ApartmentSharingService apartmentSharingService;
-    private final DocumentPdfGenerationLogRepository documentPdfGenerationLogRepository;
 
     @Override
-    @Transactional
-    public TenantModel saveStep(Tenant tenant, DocumentIdentificationGuarantorOrganismForm documentIdentificationGuarantorOrganismForm) {
-        Document document = saveDocument(tenant, documentIdentificationGuarantorOrganismForm);
-        TransactionalUtil.afterCommit(() -> producer.generatePdf(document.getId(),
-                documentPdfGenerationLogRepository.save(DocumentPdfGenerationLog.builder()
-                        .documentId(document.getId())
-                        .build()).getId()));
-        return tenantMapper.toTenantModel(document.getGuarantor().getTenant());
-    }
-
-    private Document saveDocument(Tenant tenant, DocumentIdentificationGuarantorOrganismForm documentIdentificationGuarantorOrganismForm) {
+    protected Document saveDocument(Tenant tenant, DocumentIdentificationGuarantorOrganismForm documentIdentificationGuarantorOrganismForm) {
         Guarantor guarantor = guarantorRepository.findByTenantAndTypeGuarantorAndId(tenant, TypeGuarantor.ORGANISM, documentIdentificationGuarantorOrganismForm.getGuarantorId())
                 .orElseThrow(() -> new GuarantorNotFoundException(documentIdentificationGuarantorOrganismForm.getGuarantorId()));
 

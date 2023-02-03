@@ -1,8 +1,6 @@
 package fr.dossierfacile.api.front.register.tenant;
 
-import fr.dossierfacile.api.front.amqp.Producer;
-import fr.dossierfacile.api.front.mapper.TenantMapper;
-import fr.dossierfacile.api.front.model.tenant.TenantModel;
+import fr.dossierfacile.api.front.register.AbstractDocumentSaveStep;
 import fr.dossierfacile.api.front.register.SaveStep;
 import fr.dossierfacile.api.front.register.form.tenant.DocumentIdentificationForm;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
@@ -10,49 +8,36 @@ import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.FileService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
-import fr.dossierfacile.api.front.util.TransactionalUtil;
 import fr.dossierfacile.common.entity.Document;
-import fr.dossierfacile.common.entity.DocumentPdfGenerationLog;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
-import fr.dossierfacile.common.repository.DocumentPdfGenerationLogRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
-public class DocumentIdentification implements SaveStep<DocumentIdentificationForm> {
+public class DocumentIdentification extends AbstractDocumentSaveStep<DocumentIdentificationForm> implements SaveStep<DocumentIdentificationForm> {
+    @Autowired
+    private TenantCommonRepository tenantRepository;
+    @Autowired
+    private DocumentRepository documentRepository;
+    @Autowired
+    private DocumentService documentService;
+    @Autowired
+    private TenantStatusService tenantStatusService;
+    @Autowired
+    private ApartmentSharingService apartmentSharingService;
+    @Autowired
+    private FileService fileService;
 
-    private final TenantCommonRepository tenantRepository;
-    private final DocumentRepository documentRepository;
-    private final TenantMapper tenantMapper;
-    private final DocumentService documentService;
-    private final TenantStatusService tenantStatusService;
-    private final Producer producer;
-    private final ApartmentSharingService apartmentSharingService;
-    private final DocumentPdfGenerationLogRepository documentPdfGenerationLogRepository;
-    private final FileService fileService;
 
-    @Override
-    @Transactional
-    public TenantModel saveStep(Tenant tenant, DocumentIdentificationForm documentIdentificationForm) {
-        Document document = saveDocument(tenant, documentIdentificationForm);
-        TransactionalUtil.afterCommit(() -> producer.generatePdf(document.getId(),
-                documentPdfGenerationLogRepository.save(DocumentPdfGenerationLog.builder()
-                        .documentId(document.getId())
-                        .build()).getId()));
-        return tenantMapper.toTenantModel(document.getTenant());
-    }
-
-    private Document saveDocument(Tenant tenant, DocumentIdentificationForm documentIdentificationForm) {
+    protected Document saveDocument(Tenant tenant, DocumentIdentificationForm documentIdentificationForm) {
         DocumentSubCategory documentSubCategory = documentIdentificationForm.getTypeDocumentIdentification();
         Document document = documentRepository.findFirstByDocumentCategoryAndTenant(DocumentCategory.IDENTIFICATION, tenant)
                 .orElse(Document.builder()
