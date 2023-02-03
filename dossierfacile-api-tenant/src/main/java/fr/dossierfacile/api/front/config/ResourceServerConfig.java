@@ -56,6 +56,7 @@ public class ResourceServerConfig {
                         "/api/document/**", "/api/file/download/**", "/api/file/preview/**", "/api/application/full/**", "/api/application/light/**",
                         "/api/application/fullPdf/**", "/api/tenant/property/**",
                         "/api/support/email",
+                        "/api/stats/**",
                         "/actuator/health")
                 .permitAll()
                 .antMatchers("/api-partner-linking/**").hasAuthority("SCOPE_api-partner-linking")
