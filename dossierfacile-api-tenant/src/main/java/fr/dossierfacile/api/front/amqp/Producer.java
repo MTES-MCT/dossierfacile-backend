@@ -12,6 +12,8 @@ import org.springframework.amqp.core.MessageProperties;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
 import java.util.TreeMap;
@@ -37,13 +39,15 @@ public class Producer {
     @Value("${rabbitmq.routing.key.pdf.generator.apartment-sharing}")
     private String routingKeyPdfGeneratorApartmentSharing;
 
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Async
     public void processFileTax(Long id) {
         TenantModel tenantModel = TenantModel.builder().id(id).build();
-        log.info("Send process file");
+        log.info("Send process file For tenantId [" + id + "]");
         amqpTemplate.convertAndSend(exchangeFileProcess, routingKeyFieProcessTax, gson.toJson(tenantModel));
     }
 
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Async
     public void generatePdf(Long documentId, Long logId) {
         DocumentModel documentModel = DocumentModel.builder().id(documentId).logId(logId).build();
@@ -51,11 +55,12 @@ public class Producer {
         amqpTemplate.convertAndSend(exchangePdfGenerator, routingKeyPdfGenerator, gson.toJson(documentModel));
     }
 
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Async
     public void generateFullPdf(Long apartmentSharingId) {
         Map<String, String> body = new TreeMap<>();
         body.putIfAbsent("id", String.valueOf(apartmentSharingId));
-        Message msg  =  new Message( gson.toJson(body).getBytes(), new MessageProperties());
+        Message msg = new Message(gson.toJson(body).getBytes(), new MessageProperties());
 
         log.info("Sending apartmentSharing with ID [" + apartmentSharingId + "] for Full PDF generation");
         amqpTemplate.send(exchangePdfGenerator, routingKeyPdfGeneratorApartmentSharing, msg);

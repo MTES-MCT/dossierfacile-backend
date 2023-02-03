@@ -35,6 +35,5 @@ public interface MailService {
 
     void sendEmailToSupport(ContactForm form);
 
-    @Async
     void sendEmailWelcomeForPartnerUser(User user, UserApi userApi);
 }
