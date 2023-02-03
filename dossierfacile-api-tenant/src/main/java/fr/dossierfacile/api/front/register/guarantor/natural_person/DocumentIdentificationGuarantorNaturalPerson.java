@@ -11,6 +11,7 @@ import fr.dossierfacile.api.front.repository.GuarantorRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
+import fr.dossierfacile.api.front.util.TransactionalUtil;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentPdfGenerationLog;
 import fr.dossierfacile.common.entity.Guarantor;
@@ -47,10 +48,10 @@ public class DocumentIdentificationGuarantorNaturalPerson implements SaveStep<Do
     @Transactional
     public TenantModel saveStep(Tenant tenant, DocumentIdentificationGuarantorNaturalPersonForm documentIdentificationGuarantorNaturalPersonForm) {
         Document document = saveDocument(tenant, documentIdentificationGuarantorNaturalPersonForm);
-        producer.generatePdf(document.getId(),
+        TransactionalUtil.afterCommit(() -> producer.generatePdf(document.getId(),
                 documentPdfGenerationLogRepository.save(DocumentPdfGenerationLog.builder()
                         .documentId(document.getId())
-                        .build()).getId());
+                        .build()).getId()));
         return tenantMapper.toTenantModel(document.getGuarantor().getTenant());
     }
 
@@ -75,8 +76,8 @@ public class DocumentIdentificationGuarantorNaturalPerson implements SaveStep<Do
 
 
         documentIdentificationGuarantorNaturalPersonForm.getDocuments().stream()
-                        .filter(f -> !f.isEmpty())
-                        .forEach( multipartFile -> documentService.addFile(multipartFile, document));
+                .filter(f -> !f.isEmpty())
+                .forEach(multipartFile -> documentService.addFile(multipartFile, document));
 
         documentService.initializeFieldsToProcessPdfGeneration(document);
         tenant.lastUpdateDateProfile(LocalDateTime.now(), DocumentCategory.IDENTIFICATION);

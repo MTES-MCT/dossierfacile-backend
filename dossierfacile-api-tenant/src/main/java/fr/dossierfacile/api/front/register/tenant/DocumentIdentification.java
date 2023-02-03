@@ -10,6 +10,7 @@ import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.FileService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
+import fr.dossierfacile.api.front.util.TransactionalUtil;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentPdfGenerationLog;
 import fr.dossierfacile.common.entity.Tenant;
@@ -44,10 +45,10 @@ public class DocumentIdentification implements SaveStep<DocumentIdentificationFo
     @Transactional
     public TenantModel saveStep(Tenant tenant, DocumentIdentificationForm documentIdentificationForm) {
         Document document = saveDocument(tenant, documentIdentificationForm);
-        producer.generatePdf(document.getId(),
+        TransactionalUtil.afterCommit(() -> producer.generatePdf(document.getId(),
                 documentPdfGenerationLogRepository.save(DocumentPdfGenerationLog.builder()
                         .documentId(document.getId())
-                        .build()).getId());
+                        .build()).getId()));
         return tenantMapper.toTenantModel(document.getTenant());
     }
 
