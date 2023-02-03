@@ -9,6 +9,7 @@ import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
+import fr.dossierfacile.api.front.util.TransactionalUtil;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentPdfGenerationLog;
 import fr.dossierfacile.common.entity.Tenant;
@@ -21,6 +22,8 @@ import fr.dossierfacile.common.repository.TenantCommonRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -42,10 +45,10 @@ public class DocumentProfessional implements SaveStep<DocumentProfessionalForm> 
     @Transactional
     public TenantModel saveStep(Tenant tenant, DocumentProfessionalForm documentProfessionalForm) {
         Document document = saveDocument(tenant, documentProfessionalForm);
-        producer.generatePdf(document.getId(),
+        TransactionalUtil.afterCommit(() -> producer.generatePdf(document.getId(),
                 documentPdfGenerationLogRepository.save(DocumentPdfGenerationLog.builder()
                         .documentId(document.getId())
-                        .build()).getId());
+                        .build()).getId()));
         return tenantMapper.toTenantModel(document.getTenant());
     }
 

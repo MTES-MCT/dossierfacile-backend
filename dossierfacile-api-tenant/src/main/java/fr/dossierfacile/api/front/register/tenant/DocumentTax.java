@@ -9,6 +9,7 @@ import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
+import fr.dossierfacile.api.front.util.TransactionalUtil;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentPdfGenerationLog;
@@ -52,12 +53,12 @@ public class DocumentTax implements SaveStep<DocumentTaxForm> {
     public TenantModel saveStep(Tenant tenant, DocumentTaxForm documentTaxForm) {
         Document document = saveDocument(tenant, documentTaxForm);
 
-        producer.generatePdf(document.getId(),
+        TransactionalUtil.afterCommit(() -> producer.generatePdf(document.getId(),
                 documentPdfGenerationLogRepository.save(DocumentPdfGenerationLog.builder()
                         .documentId(document.getId())
-                        .build()).getId());
+                        .build()).getId()));
         if (Boolean.TRUE.equals(tenant.getHonorDeclaration())) {
-            producer.processFileTax(documentTaxForm.getOptionalTenantId().orElse(tenant.getId()));
+            TransactionalUtil.afterCommit(() -> producer.processFileTax(documentTaxForm.getOptionalTenantId().orElse(tenant.getId())));
         }
         return tenantMapper.toTenantModel(document.getTenant());
     }

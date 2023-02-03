@@ -9,6 +9,7 @@ import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
+import fr.dossierfacile.api.front.util.TransactionalUtil;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentPdfGenerationLog;
 import fr.dossierfacile.common.entity.Tenant;
@@ -40,10 +41,10 @@ public class DocumentResidency implements SaveStep<DocumentResidencyForm> {
     @Transactional
     public TenantModel saveStep(Tenant tenant, DocumentResidencyForm documentResidencyForm) {
         Document document = saveDocument(tenant, documentResidencyForm);
-        producer.generatePdf(document.getId(),
+        TransactionalUtil.afterCommit(() -> producer.generatePdf(document.getId(),
                 documentPdfGenerationLogRepository.save(DocumentPdfGenerationLog.builder()
                         .documentId(document.getId())
-                        .build()).getId());
+                        .build()).getId()));
         return tenantMapper.toTenantModel(document.getTenant());
     }
 
