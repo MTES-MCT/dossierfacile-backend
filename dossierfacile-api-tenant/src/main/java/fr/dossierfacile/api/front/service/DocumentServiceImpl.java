@@ -2,6 +2,7 @@ package fr.dossierfacile.api.front.service;
 
 import fr.dossierfacile.api.front.amqp.MinifyFileProducer;
 import fr.dossierfacile.api.front.exception.DocumentNotFoundException;
+import fr.dossierfacile.api.front.repository.ApartmentSharingRepository;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.repository.FileRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
@@ -18,6 +19,7 @@ import fr.dossierfacile.common.service.interfaces.DocumentHelperService;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -40,6 +42,7 @@ public class DocumentServiceImpl implements DocumentService {
     private final ApartmentSharingService apartmentSharingService;
     private final DocumentHelperService documentHelperService;
     private final MinifyFileProducer minifyFileProducer;
+    private final ApartmentSharingRepository apartmentSharingRepository;
 
     @Override
     @Transactional
@@ -128,6 +131,16 @@ public class DocumentServiceImpl implements DocumentService {
         Optional.ofNullable(documentList)
                 .orElse(new ArrayList<>())
                 .forEach(this::deleteFilesFromStorage);
+
+        if (StringUtils.isNotBlank(tenant.getApartmentSharing().getUrlDossierPdfDocument())) {
+            try {
+                fileStorageService.delete(tenant.getApartmentSharing().getUrlDossierPdfDocument());
+                tenant.getApartmentSharing().setUrlDossierPdfDocument("");
+                apartmentSharingRepository.save(tenant.getApartmentSharing());
+            } catch (Exception e) {
+                log.error("Couldn't delete object [" + tenant.getApartmentSharing().getUrlDossierPdfDocument() + "] from apartment_sharing [" + tenant.getApartmentSharing().getId() + "]");
+            }
+        }
 
         documentRepository.deleteAll(Optional.ofNullable(documentList)
                 .orElse(new ArrayList<>()));
