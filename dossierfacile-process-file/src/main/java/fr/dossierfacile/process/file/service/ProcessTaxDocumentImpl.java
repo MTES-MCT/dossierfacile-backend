@@ -9,10 +9,10 @@ import fr.dossierfacile.common.enums.TaxFileExtractionType;
 import fr.dossierfacile.common.type.TaxDocument;
 import fr.dossierfacile.process.file.model.Taxes;
 import fr.dossierfacile.process.file.model.TwoDDoc;
-import fr.dossierfacile.process.file.service.interfaces.ApiMonFranceConnect;
 import fr.dossierfacile.process.file.service.interfaces.ApiParticulier;
 import fr.dossierfacile.process.file.service.interfaces.ApiTesseract;
 import fr.dossierfacile.process.file.service.interfaces.ProcessTaxDocument;
+import fr.dossierfacile.process.file.service.mfc.MonFranceConnectClient;
 import fr.dossierfacile.process.file.util.Utility;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,7 +40,7 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
     private final ApiParticulier apiParticulier;
     private final Utility utility;
     private final ApiTesseract apiTesseract;
-    private final ApiMonFranceConnect apiMonFranceConnect;
+    private final MonFranceConnectClient monFranceConnectClient;
 
     @Value("${application.domain}")
     private String applicationDomain;
@@ -170,7 +170,7 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
     }
 
     private StringBuilder getMonFranceConnectCodeContent(TaxDocument taxDocument, StringBuilder currentQrContent, File pdf, String url) {
-        ResponseEntity<List> response = apiMonFranceConnect.monFranceConnect(url);
+        ResponseEntity<List> response = monFranceConnectClient.fetchDocumentContent(url);
         if (response.getStatusCode() == HttpStatus.OK) {
             log.info("Api MonFranceConnect Response {}", response.getStatusCodeValue());
 
