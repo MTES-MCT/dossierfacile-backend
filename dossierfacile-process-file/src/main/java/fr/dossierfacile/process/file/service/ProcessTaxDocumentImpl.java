@@ -116,8 +116,9 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
         List<File> pdfs = files.stream().filter(file -> FilenameUtils.getExtension(file.getPath()).equals("pdf")).collect(Collectors.toList());
         if (!pdfs.isEmpty()) {
             for (File pdf : pdfs) {
-                String url = utility.extractQRCodeInfo(pdf);
-                if (url != null && !url.isBlank()) {
+                Optional<String> qrCode = utility.extractQRCodeInfo(pdf);
+                if (qrCode.isPresent()) {
+                    String url = qrCode.get();
                     currentQrContent = getMonFranceConnectCodeContent(taxDocument, currentQrContent, pdf, url);
                 }
             }
