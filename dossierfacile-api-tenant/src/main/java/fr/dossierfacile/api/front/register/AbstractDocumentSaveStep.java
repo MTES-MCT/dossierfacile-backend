@@ -31,7 +31,7 @@ public abstract class AbstractDocumentSaveStep<T extends DocumentForm> implement
                         .documentId(document.getId())
                         .build()).getId();
         TransactionalUtil.afterCommit(() -> producer.generatePdf(document.getId(), logId));
-        return tenantMapper.toTenantModel(document.getTenant());
+        return tenantMapper.toTenantModel(document.getTenant() != null ? document.getTenant() : document.getGuarantor().getTenant());
     }
 
     protected abstract Document saveDocument(Tenant tenant, T documentForm);

@@ -24,7 +24,9 @@ import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
-public class DocumentIdentificationGuarantorLegalPerson extends AbstractDocumentSaveStep<DocumentIdentificationGuarantorLegalPersonForm> implements SaveStep<DocumentIdentificationGuarantorLegalPersonForm> {
+public class DocumentIdentificationGuarantorLegalPerson
+        extends AbstractDocumentSaveStep<DocumentIdentificationGuarantorLegalPersonForm>
+        implements SaveStep<DocumentIdentificationGuarantorLegalPersonForm> {
 
     private final TenantCommonRepository tenantRepository;
     private final DocumentRepository documentRepository;
