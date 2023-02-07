@@ -6,6 +6,7 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.TypeGuarantor;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -106,6 +107,9 @@ public interface FileRepository extends JpaRepository<File, Long> {
     @Query(value = "select path FROM file WHERE document_id = :documentId", nativeQuery = true)
     List<String> getFilePathsByDocumentId(@Param("documentId") Long documentId);
 
+    @Query(value = "select preview FROM file WHERE document_id = :documentId and preview is not null and preview <> ''", nativeQuery = true)
+    List<String> getFilePreviewsByDocumentId(@Param("documentId") Long documentId);
+
     Optional<File> findByPreview(String preview);
 
     @Query(value = """
@@ -125,4 +129,8 @@ public interface FileRepository extends JpaRepository<File, Long> {
               and f2.id = :fileId
             """, nativeQuery = true)
     Optional<File> findByIdForAppartmentSharing(@Param("fileId") Long id, @Param("apartId") Long apartId);
+
+    @Modifying
+    @Query(value="delete from File f where f.document.id=:documentId")
+    void deleteDocumentFiles(@Param("documentId") Long documentId);
 }
