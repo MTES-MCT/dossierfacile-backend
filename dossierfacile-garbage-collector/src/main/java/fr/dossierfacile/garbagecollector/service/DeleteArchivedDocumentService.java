@@ -30,9 +30,7 @@ public class DeleteArchivedDocumentService {
 
 //    @Scheduled(cron="0 0 8 3 * ?")
     public void deleteApartmentSharingPdfTask() {
-        //check if there is connection to ovh
-        if (ovhService.getObjectStorage() == null) {
-            log.warn("No connection to OVH " + "\n");
+        if(!ovhService.hasConnection()) {
             return;
         }
         List<ApartmentSharing> apartmentSharings = apartmentSharingRepository.getArchivedAptWithPdf(LIMIT_OBJECTS_TO_DELETE);
@@ -52,9 +50,7 @@ public class DeleteArchivedDocumentService {
 
 //    @Scheduled(fixedDelay = 5000)
     public void deleteDocumentTask() {
-        //check if there is connection to ovh
-        if (ovhService.getObjectStorage() == null) {
-            log.warn("No connection to OVH " + "\n");
+        if(!ovhService.hasConnection()) {
             return;
         }
         List<Document> documents = documentRepository.getArchivedDocumentWithPdf(LIMIT_OBJECTS_TO_DELETE);
@@ -75,9 +71,7 @@ public class DeleteArchivedDocumentService {
 
 //    @Scheduled(fixedDelay = 5000)
     public void deleteFileTask() {
-        //check if there is connection to ovh
-        if (ovhService.getObjectStorage() == null) {
-            log.warn("No connection to OVH " + "\n");
+        if(!ovhService.hasConnection()) {
             return;
         }
         List<File> files = fileRepository.getArchivedFile(LIMIT_OBJECTS_TO_DELETE);
