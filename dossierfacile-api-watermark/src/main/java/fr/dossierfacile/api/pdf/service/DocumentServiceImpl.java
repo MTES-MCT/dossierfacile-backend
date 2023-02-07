@@ -58,6 +58,7 @@ public class DocumentServiceImpl implements DocumentService {
     private final FileStorageService fileStorageService;
 
     @Override
+    @Transactional
     public ResponseEntity<UploadFilesResponse> uploadFiles(DocumentForm documentForm) {
         if (documentForm.getFiles().stream().allMatch(MultipartFile::isEmpty)) {
             throw new DocumentBadRequestException("you must add some file");
@@ -122,6 +123,7 @@ public class DocumentServiceImpl implements DocumentService {
     }
 
     @Override
+    @Transactional
     public void downloadPdfWatermarked(String token, HttpServletResponse response) {
         DocumentToken documentToken = documentTokenRepository.findFirstByToken(token)
                 .orElseThrow(() -> new DocumentTokenNotFoundException(token));
@@ -158,7 +160,6 @@ public class DocumentServiceImpl implements DocumentService {
         }
     }
 
-    @Transactional
     Document createDocument(DocumentForm documentForm) {
         //a new document is created.
         Document document = Document.builder()
@@ -180,8 +181,7 @@ public class DocumentServiceImpl implements DocumentService {
         return document;
     }
 
-    @Transactional
-    DocumentToken createDocumentToken(Document document) {
+    private DocumentToken createDocumentToken(Document document) {
         DocumentToken documentToken = documentTokenRepository.findFirstByDocumentId(document.getId())
                 .orElse(DocumentToken.builder()
                         .creationDate(LocalDateTime.now())
@@ -191,8 +191,7 @@ public class DocumentServiceImpl implements DocumentService {
         return documentTokenRepository.save(documentToken);
     }
 
-    @Transactional
-    List<String> deleteDataFromDB(DocumentToken documentToken, Document document) {
+    private List<String> deleteDataFromDB(DocumentToken documentToken, Document document) {
         List<File> fileList = document.getFiles();
         List<String> result = new ArrayList<>();
         if (fileList != null && !fileList.isEmpty()) {

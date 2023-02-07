@@ -6,6 +6,7 @@ import fr.dossierfacile.api.front.exception.TenantUserApiNotFoundException;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
+import fr.dossierfacile.api.front.model.KeycloakUser;
 import fr.dossierfacile.api.front.service.interfaces.LogService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
@@ -54,7 +55,8 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
     @Value("${keycloak.server.realm}")
     private String realm;
 
-    private String getUserEmail() {
+    @Override
+    public String getUserEmail() {
         return ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClaimAsString("email");
     }
 
@@ -131,6 +133,9 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
     @Override
     public Tenant getLoggedTenant() {
         String email = getUserEmail();
+        if (!Boolean.TRUE.equals(((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClaimAsBoolean("email_verified"))) {
+            throw new AccessDeniedException("Email has not been verified");
+        }
         Optional<Tenant> tenantOptional = tenantRepository.findByEmail(email);
         Tenant tenant;
         if (tenantOptional.isPresent()) {
@@ -198,5 +203,18 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
                 .queryParam("hash", hash)
                 .queryParam("client_id", clientId)
                 .queryParam("redirect_uri", redirectUri).build(realm, provider).toString();
+    }
+
+    @Override
+    public KeycloakUser getKeycloakUser(){
+        var jwt = ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+        return KeycloakUser.builder()
+                .keycloakId(jwt.getClaimAsString("sub"))
+                .email(jwt.getClaimAsString("email"))
+                .givenName(jwt.getClaimAsString("given_name"))
+                .familyName(jwt.getClaimAsString("family_name"))
+                .preferredUsername(getPreferredName())
+                .franceConnect(Boolean.TRUE.equals(jwt.getClaimAsBoolean("france-connect")))
+                .build();
     }
 }

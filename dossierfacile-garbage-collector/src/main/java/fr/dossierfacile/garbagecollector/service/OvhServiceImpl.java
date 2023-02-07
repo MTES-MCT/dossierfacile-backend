@@ -150,4 +150,14 @@ public class OvhServiceImpl implements OvhService {
         }
     }
 
+    @Override
+    public boolean hasConnection() {
+    //check if there is connection to ovh
+        if (getObjectStorage() == null) {
+            log.warn("No connection to OVH " + "\n");
+            return false;
+        }
+        return true;
+    }
+
 }

@@ -11,6 +11,7 @@ import fr.dossierfacile.api.front.repository.GuarantorRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
+import fr.dossierfacile.api.front.util.TransactionalUtil;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentPdfGenerationLog;
 import fr.dossierfacile.common.entity.Guarantor;
@@ -51,20 +52,21 @@ public class DocumentTaxGuarantorNaturalPerson implements SaveStep<DocumentTaxGu
     private final DocumentPdfGenerationLogRepository documentPdfGenerationLogRepository;
 
     @Override
+    @Transactional
     public TenantModel saveStep(Tenant tenant, DocumentTaxGuarantorNaturalPersonForm documentTaxGuarantorNaturalPersonForm) {
         Document document = saveDocument(tenant, documentTaxGuarantorNaturalPersonForm);
-        producer.generatePdf(document.getId(),
-                documentPdfGenerationLogRepository.save(DocumentPdfGenerationLog.builder()
-                        .documentId(document.getId())
-                        .build()).getId());
+        Long logId = documentPdfGenerationLogRepository.save(DocumentPdfGenerationLog
+                .builder()
+                .documentId(document.getId())
+                .build()).getId();
+        TransactionalUtil.afterCommit(() -> producer.generatePdf(document.getId(), logId));
         if (Boolean.TRUE.equals(tenant.getHonorDeclaration())) {
-            producer.processFileTax(documentTaxGuarantorNaturalPersonForm.getOptionalTenantId().orElse(tenant.getId()));
+            TransactionalUtil.afterCommit(() -> producer.processFileTax(documentTaxGuarantorNaturalPersonForm.getOptionalTenantId().orElse(tenant.getId())));
         }
         return tenantMapper.toTenantModel(document.getGuarantor().getTenant());
     }
 
-    @Transactional
-    Document saveDocument(Tenant tenant, DocumentTaxGuarantorNaturalPersonForm documentTaxGuarantorNaturalPersonForm) {
+    private Document saveDocument(Tenant tenant, DocumentTaxGuarantorNaturalPersonForm documentTaxGuarantorNaturalPersonForm) {
         Guarantor guarantor = guarantorRepository.findByTenantAndTypeGuarantorAndId(tenant, TypeGuarantor.NATURAL_PERSON, documentTaxGuarantorNaturalPersonForm.getGuarantorId())
                 .orElseThrow(() -> new GuarantorNotFoundException(documentTaxGuarantorNaturalPersonForm.getGuarantorId()));
 

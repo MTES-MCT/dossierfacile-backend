@@ -9,7 +9,9 @@ public interface KeycloakService {
 
     String createKeycloakUserAccountCreation(AccountForm accountForm, Tenant tenant);
 
-    /** @return created user's keycloakId */
+    /**
+     * @return created user's keycloakId
+     */
     String createKeycloakUser(String email);
 
     void deleteKeycloakUsers(List<Tenant> tenants);
@@ -24,7 +26,9 @@ public interface KeycloakService {
 
     String getKeycloakId(String email);
 
-    void logout(Tenant tenant);
+    void logout(String keycloakUserId);
 
     void unlinkFranceConnect(Tenant tenant);
+
+    void disableAccount(String keycloakId);
 }

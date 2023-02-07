@@ -19,6 +19,7 @@ import fr.dossierfacile.common.repository.TenantUserApiRepository;
 import fr.dossierfacile.common.service.interfaces.CallbackLogService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.dossierfacile.common.service.interfaces.RequestService;
+import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -71,31 +72,10 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
         }
     }
 
-    @Override
-    public void linkTenantToPartner(String internalPartnerId, Tenant tenant, UserApi userApi) {
-        TenantUserApi tenantUserApi = tenantUserApiRepository.findFirstByTenantAndUserApi(tenant, userApi).orElse(
-                TenantUserApi.builder()
-                        .id(new TenantUserApiKey(tenant.getId(), userApi.getId()))
-                        .tenant(tenant)
-                        .userApi(userApi)
-                        .build()
-        );
-        if (internalPartnerId != null && !internalPartnerId.isEmpty()) {
-            if (tenantUserApi.getAllInternalPartnerId() == null) {
-                tenantUserApi.setAllInternalPartnerId(Collections.singletonList(internalPartnerId));
-            } else if (!tenantUserApi.getAllInternalPartnerId().contains(internalPartnerId)) {
-                tenantUserApi.getAllInternalPartnerId().add(internalPartnerId);
-            }
-        }
-        tenantUserApiRepository.save(tenantUserApi);
-    }
-
     public void sendCallBack(Tenant tenant, PartnerCallBackType partnerCallBackType) {
         tenant.getApartmentSharing().groupingAllTenantUserApisInTheApartment().forEach(tenantUserApi -> {
             UserApi userApi = tenantUserApi.getUserApi();
-            if (userApi.getVersion() != null && userApi.getUrlCallback() != null) {
-                sendCallBack(tenant, userApi, partnerCallBackType);
-            }
+            sendCallBack(tenant, userApi, partnerCallBackType);
         });
     }
 
@@ -108,6 +88,15 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
 
     public void sendCallBack(Tenant tenant, UserApi userApi, PartnerCallBackType partnerCallBackType) {
         ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
+        if (userApi.isDisabled() || userApi.getUrlCallback() == null) {
+            log.warn("UserApi call has not effect for " + userApi.getName());
+            return;
+        }
+        if (userApi.getVersion() == null) {
+            log.error("Unable to send callback to tenant " + tenant.getId() + " due to userApi version NULL");
+            Sentry.captureMessage("userApi version is NULL for " + userApi.getName());
+            return;
+        }
 
         switch (userApi.getVersion()) {
             case 1: {
@@ -183,13 +172,13 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
                     });
                 }
                 applicationModel.setPartnerCallBackType(partnerCallBackType);
+                applicationModel.setOnTenantId(tenant.getId());
                 requestService.send(applicationModel, userApi.getUrlCallback(), userApi.getPartnerApiKeyCallback());
                 callbackLogService.createCallbackLogForPartnerModel(tenant, userApi.getId(), tenant.getStatus(), applicationModel);
                 break;
             }
             default:
                 log.error("send Callback failed");
-                break;
         }
     }
 

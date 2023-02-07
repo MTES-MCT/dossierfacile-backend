@@ -443,36 +443,6 @@ public class TenantService {
         }
     }
 
-    public void callBackManuallyToLocserviceIds() {
-        synchronized (this) {
-            UserApi userApi = userApiRepository.findOneById(2L);
-
-            List<Integer> ints = Arrays.asList(5701, 5537, 5383, 5290, 5033, 4998, 4922, 4895, 4890, 4668, 4029, 3133, 3120, 3107, 3101, 3093, 3064, 3061, 2968, 2965, 2963, 2946, 2873, 2867, 2848, 2818, 2813, 2808, 2804, 2786, 2784, 2772, 2765, 2756, 2741, 2740, 2723, 2711, 2702, 2692, 2685, 2678, 2674, 2655, 2645, 2640, 2636, 2624, 2608, 2580, 2563, 2539, 2521, 2507, 2490, 2480, 2478, 2472, 2451, 2435, 2387, 2357, 2314, 2282, 2275, 2259, 2258, 2251, 2248, 2242, 2235, 2234, 2217, 2154, 2122, 2089, 2086, 2082, 2067, 2066, 2056, 2049, 2046, 1999, 1983, 1974, 1937, 1936, 1919, 1916, 1829, 1815, 1793, 1777, 1767, 1761, 1742, 1722, 1720, 1699, 1645, 1633, 1632, 1625, 1618, 1612, 1549, 1526, 1494, 1466, 1461, 1441, 1403, 1384, 1379, 1378, 1373, 1359, 1353, 1286, 1270, 1262, 1260, 1259, 1257, 1256, 1254, 1225, 1219, 1198, 1172, 1136, 1123, 1062, 1046, 1032, 1008, 1006, 960, 950, 939, 933, 930, 891, 864, 833, 814, 750, 742, 702, 698, 684, 675, 665, 656, 651, 643, 642, 631, 560, 554, 545, 538, 521, 475, 472, 462, 429, 417, 374, 358, 352, 347, 321, 320, 319, 275, 202, 186, 165, 148, 147, 146, 108);
-            List<Long> longs = ints.stream()
-                    .mapToLong(Integer::longValue)
-                    .boxed().collect(Collectors.toList());
-            int numberOfTotalCalls = longs.size();
-            log.info(numberOfTotalCalls + " tenants pending to send the validation information to the partner.");
-            int indexCall = 1;
-            for (Long id : longs) {
-                Tenant tenant = tenantRepository.findOneById(id);
-                partnerCallBackService.sendCallBack(tenant, userApi, PartnerCallBackType.VERIFIED_ACCOUNT);
-
-                if (indexCall < numberOfTotalCalls) {
-                    try {
-                        indexCall++;
-                        log.info("Waiting 50ms for the next call...");
-
-                        this.wait(50);
-                    } catch (InterruptedException e) {
-                        log.error("InterruptedException callBackManually ", e);
-                        Thread.currentThread().interrupt();
-                    }
-                }
-            }
-        }
-    }
-
     @Transactional
     public void computeStatusOfAllTenants() {
         int numberOfUpdate = 1;
@@ -605,20 +575,14 @@ public class TenantService {
         return "redirect:/bo/colocation/" + tenant.getApartmentSharing().getId() + "#tenant" + tenant.getId();
     }
 
-    public void updateTenantStatus(Tenant tenant) {
+    public void updateTenantStatus(Tenant tenant, User operator) {
         TenantFileStatus previousStatus = tenant.getStatus();
         tenant.setStatus(tenant.computeStatus());
         tenantRepository.save(tenant);
         if (previousStatus != tenant.getStatus()) {
             switch (tenant.getStatus()) {
-                case VALIDATED: {
-                    partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.VERIFIED_ACCOUNT);
-                    break;
-                }
-                case DECLINED: {
-                    partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.DENIED_ACCOUNT);
-                    break;
-                }
+                case VALIDATED -> changeTenantStatusToValidated(tenant, operator);
+                case DECLINED -> changeTenantStatusToDeclined(tenant, operator, null);
             }
         }
     }

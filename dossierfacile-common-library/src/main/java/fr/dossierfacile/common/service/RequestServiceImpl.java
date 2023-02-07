@@ -19,6 +19,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
@@ -38,6 +40,7 @@ public class RequestServiceImpl implements RequestService {
     private static final String EXCEPTION = "Sentry ID Exception: ";
     private final RestTemplate restTemplate;
 
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Async
     public void send(LightAPIInfoModel lightAPIInfo, String urlCallback, String partnerApiKeyCallback) {
         HttpHeaders headers = new HttpHeaders();
@@ -48,6 +51,7 @@ public class RequestServiceImpl implements RequestService {
         sendRequest(new HttpEntity<>(lightAPIInfo, headers), urlCallback);
     }
 
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Async
     public void send(ApplicationModel applicationModel, String urlCallback, String partnerApiKeyCallback) {
         HttpHeaders headers = new HttpHeaders();

@@ -157,6 +157,7 @@ public class UserServiceImpl implements UserService {
         ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
         if (tenant.getTenantType() == TenantType.CREATE || apartmentSharing.getNumberOfTenants() == 1) {
             log.info("Removing apartment_sharing with id [" + apartmentSharing.getId() + "] with [" + apartmentSharing.getNumberOfTenants() + "] tenants");
+            logService.saveLog(LogType.ACCOUNT_DELETE, tenant.getId());
             keycloakService.deleteKeycloakUsers(apartmentSharing.getTenants());
             apartmentSharingRepository.delete(apartmentSharing);
         } else {
@@ -168,10 +169,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Boolean deleteCoTenant(Tenant tenant, Long id) {
+    public Boolean deleteCoTenant(Tenant tenant, Long coTenantId) {
         if (tenant.getTenantType().equals(TenantType.CREATE)) {
             ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
-            Tenant coTenant = apartmentSharing.getTenants().stream().filter(t -> t.getId().equals(id) && t.getTenantType().equals(TenantType.JOIN)).findFirst().orElseThrow(null);
+            Tenant coTenant = apartmentSharing.getTenants().stream().filter(t -> t.getId().equals(coTenantId) && t.getTenantType().equals(TenantType.JOIN)).findFirst().orElseThrow(null);
             if (coTenant != null) {
                 partnerCallBackService.sendCallBack(coTenant, PartnerCallBackType.DELETED_ACCOUNT);
                 if (coTenant.getKeycloakId() != null) {
@@ -182,38 +183,22 @@ public class UserServiceImpl implements UserService {
                 apartmentSharing.getTenants().remove(coTenant);
                 updateApplicationTypeOfApartmentAfterDeletionOfCotenant(apartmentSharing);
                 apartmentSharingService.resetDossierPdfGenerated(apartmentSharing);
-                logService.saveLog(LogType.ACCOUNT_DELETE, id);
+                logService.saveLog(LogType.ACCOUNT_DELETE, coTenantId);
                 return true;
             }
         }
         return false;
     }
 
-
     @Override
-    public void linkTenantToPartner(Tenant tenant, PartnerForm partnerForm) {
-        if (partnerForm.getSource() != null) {
-            UserApi userApi = sourceService.findOrCreate(partnerForm.getSource());
-            partnerCallBackService.registerTenant(partnerForm.getInternalPartnerId(), tenant, userApi);
-        }
-    }
-
-    @Override
-    public void linkTenantToPartner(Tenant tenant, String partner) {
-        sourceService.findByName(partner).ifPresent(userApi -> partnerCallBackService.registerTenant(null, tenant, userApi));
-    }
-
-    @Override
-    public void linkTenantToApiPartner(Tenant tenant, String partner) {
-        if (partner != null) {
-            UserApi userApi = sourceService.findOrCreate(partner);
-            partnerCallBackService.linkTenantToPartner(null, tenant, userApi);
-        }
+    public void linkTenantToPartner(Tenant tenant, String partner, String internalPartnerId) {
+        sourceService.findByName(partner)
+                .ifPresent(userApi -> partnerCallBackService.registerTenant(internalPartnerId, tenant, userApi));
     }
 
     @Override
     public void logout(Tenant tenant) {
-        keycloakService.logout(tenant);
+        keycloakService.logout(tenant.getKeycloakId());
     }
 
     @Override

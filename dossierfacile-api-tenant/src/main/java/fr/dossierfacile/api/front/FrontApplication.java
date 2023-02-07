@@ -18,7 +18,6 @@ import java.lang.management.MemoryMXBean;
 @EnableJpaRepositories(basePackages = "fr.dossierfacile")
 @ComponentScan(nameGenerator = FullyQualifiedAnnotationBeanNameGenerator.class, basePackages = "fr.dossierfacile")
 @EnableScheduling
-@EnableAsync
 @Slf4j
 public class FrontApplication {
 

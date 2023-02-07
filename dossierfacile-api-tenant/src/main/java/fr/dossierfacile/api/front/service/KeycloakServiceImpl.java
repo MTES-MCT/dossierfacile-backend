@@ -75,14 +75,23 @@ public class KeycloakServiceImpl implements KeycloakService {
     }
 
     @Override
-    public void logout(Tenant tenant) {
-        realmResource.users().get(tenant.getKeycloakId()).logout();
+    public void logout(String keycloakUserId) {
+        realmResource.users().get(keycloakUserId).logout();
     }
+
     @Override
     public void unlinkFranceConnect(Tenant tenant) {
         var userRepresentation = realmResource.users().get(tenant.getKeycloakId()).toRepresentation();
         userRepresentation.singleAttribute("france-connect", "false");
         realmResource.users().get(tenant.getKeycloakId()).update(userRepresentation);
+    }
+
+    @Override
+    public void disableAccount(String keycloakId) {
+        var userRepresentation = realmResource.users().get(keycloakId).toRepresentation();
+        userRepresentation.setEnabled(false);
+        userRepresentation.setEmailVerified(false);
+        realmResource.users().get(keycloakId).update(userRepresentation);
     }
 
 

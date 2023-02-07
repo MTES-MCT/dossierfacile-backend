@@ -13,6 +13,8 @@ import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import java.time.LocalDateTime;
+import java.util.Optional;
+
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -34,10 +36,10 @@ public class AccountApiPartner implements SaveStep<AccountPartnerForm> {
     public TenantModel saveStep(Tenant t, AccountPartnerForm accountForm) {
         String email = accountForm.getEmail().toLowerCase();
         Tenant tenant = findOrCreateTenant(email);
-        UserApi userApi = this.sourceService.findOrCreate(authenticationFacade.getKeycloakClientId());
-        partnerCallBackService.registerTenant(accountForm.getInternalPartnerId(), tenant, userApi);
+        Optional<UserApi> userApi = this.sourceService.findByName(authenticationFacade.getKeycloakClientId());
+        partnerCallBackService.registerTenant(accountForm.getInternalPartnerId(), tenant, userApi.get());
 
-        mailService.sendEmailWelcomeForPartnerUser(tenant, userApi);
+        mailService.sendEmailWelcomeForPartnerUser(tenant, userApi.get());
 
         tenant.lastUpdateDateProfile(LocalDateTime.now(), null);
         return tenantMapper.toTenantModel(tenantRepository.save(tenant));

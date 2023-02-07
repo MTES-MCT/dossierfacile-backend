@@ -18,6 +18,7 @@ public interface MessageMapper {
 
     @Mapping(source = "fromUser.id", target = "fromUser")
     @Mapping(source = "toUser.id", target = "toUser")
+    @Mapping(source = "messageStatus", target = "status")
     MessageModel toMessageModel(Message message);
 
     @AfterMapping

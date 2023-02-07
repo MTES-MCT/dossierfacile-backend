@@ -39,6 +39,8 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
     private Long daysForSatisfactionEmail;
     @Value("${months_for_deletion_of_documents}")
     private Integer monthsForDeletionOfDocuments;
+    @Value("${warnings.max.pages:200}")
+    private Integer warningMaxPages;
 
     /**
      * Email notifications, if needed, will begin at 12:10 am every day
@@ -174,8 +176,8 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
         }
         int lengthOfPage = 100;
         int numberOfPage = (int) (numberOfTenantsToProcess / lengthOfPage);
-        if (numberOfPage>100) {
-            numberOfPage = 100;
+        if (numberOfPage > warningMaxPages) {
+            numberOfPage = warningMaxPages;
         }
         for (int i = numberOfPage; i >= 0; i--) {
             Pageable page = PageRequest.of(i, lengthOfPage, Sort.Direction.DESC, "id");

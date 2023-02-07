@@ -31,5 +31,6 @@ public class UserApiDTO {
     private String partnerApiKeyCallback;
     @NotNull
     private Integer version;
+    private boolean disabled;
 
 }

@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.front.partner.controller;
 
+import fr.dossierfacile.api.front.aop.annotation.MethodLog;
 import fr.dossierfacile.api.front.model.tenant.EmailExistsModel;
 import fr.dossierfacile.api.front.register.form.partner.EmailExistsForm;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 @AllArgsConstructor
 @RequestMapping("/api-partner")
 @Validated
+@MethodLog
 public class ApiPartnerUserController {
 
     private final TenantService tenantService;

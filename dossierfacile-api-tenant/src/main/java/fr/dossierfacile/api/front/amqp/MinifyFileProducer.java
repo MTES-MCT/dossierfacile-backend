@@ -10,6 +10,8 @@ import org.springframework.amqp.core.MessageProperties;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
 import java.util.TreeMap;
@@ -26,6 +28,7 @@ public class MinifyFileProducer {
     @Value("${rabbitmq.routing.key.file.minify}")
     private String routingKeyMinify;
 
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Async
     public void minifyFile(Long fileId) {
         Map<String, String> body = new TreeMap<>();

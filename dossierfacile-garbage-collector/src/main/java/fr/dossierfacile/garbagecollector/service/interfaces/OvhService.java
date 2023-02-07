@@ -14,4 +14,6 @@ public interface OvhService {
     ObjectStorageObjectService getObjectStorage();
 
     void renameFile(String oldName, String newName);
+
+    boolean hasConnection();
 }

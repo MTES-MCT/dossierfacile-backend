@@ -1,8 +1,6 @@
 package fr.dossierfacile.api.front.register.tenant;
 
-import fr.dossierfacile.api.front.amqp.Producer;
-import fr.dossierfacile.api.front.mapper.TenantMapper;
-import fr.dossierfacile.api.front.model.tenant.TenantModel;
+import fr.dossierfacile.api.front.register.AbstractDocumentSaveStep;
 import fr.dossierfacile.api.front.register.SaveStep;
 import fr.dossierfacile.api.front.register.form.tenant.DocumentProfessionalForm;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
@@ -10,46 +8,31 @@ import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
 import fr.dossierfacile.common.entity.Document;
-import fr.dossierfacile.common.entity.DocumentPdfGenerationLog;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.TenantFileStatus;
-import fr.dossierfacile.common.repository.DocumentPdfGenerationLogRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 @AllArgsConstructor
-public class DocumentProfessional implements SaveStep<DocumentProfessionalForm> {
+public class DocumentProfessional extends AbstractDocumentSaveStep<DocumentProfessionalForm>
+        implements SaveStep<DocumentProfessionalForm> {
 
     private final TenantCommonRepository tenantRepository;
     private final DocumentRepository documentRepository;
-    private final TenantMapper tenantMapper;
     private final DocumentService documentService;
     private final TenantStatusService tenantStatusService;
-    private final Producer producer;
     private final ApartmentSharingService apartmentSharingService;
-    private final DocumentPdfGenerationLogRepository documentPdfGenerationLogRepository;
 
     @Override
-    public TenantModel saveStep(Tenant tenant, DocumentProfessionalForm documentProfessionalForm) {
-        Document document = saveDocument(tenant, documentProfessionalForm);
-        producer.generatePdf(document.getId(),
-                documentPdfGenerationLogRepository.save(DocumentPdfGenerationLog.builder()
-                        .documentId(document.getId())
-                        .build()).getId());
-        return tenantMapper.toTenantModel(document.getTenant());
-    }
-
-    @Transactional
-    Document saveDocument(Tenant tenant, DocumentProfessionalForm documentProfessionalForm) {
+    protected Document saveDocument(Tenant tenant, DocumentProfessionalForm documentProfessionalForm) {
         DocumentSubCategory documentSubCategory = documentProfessionalForm.getTypeDocumentProfessional();
         Document document = documentRepository.findFirstByDocumentCategoryAndTenant(DocumentCategory.PROFESSIONAL, tenant)
                 .orElse(Document.builder()

@@ -69,14 +69,7 @@ public class UserApi implements Serializable {
     @OneToMany(mappedBy = "userApi", fetch = FetchType.LAZY)
     private List<TenantUserApi> tenantsUserApi = new ArrayList<>();
 
-    public UserApi(String name, String url, String site, String name2, String textModal) {
-        this.name = name;
-        this.urlCallback = url;
-        this.site = site;
-        this.name2 = name2;
-        this.textModal = textModal;
-        this.version = 1;
-    }
+    private boolean disabled;
 
     @Override
     public String toString() {

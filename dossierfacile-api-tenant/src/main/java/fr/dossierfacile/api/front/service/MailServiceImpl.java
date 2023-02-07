@@ -17,6 +17,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import sendinblue.ApiException;
 import sibApi.TransactionalEmailsApi;
 import sibModel.SendSmtpEmail;
@@ -63,7 +65,6 @@ public class MailServiceImpl implements MailService {
     @Value("${sendinblue.template.id.contact.support}")
     private Long templateIdContactSupport;
 
-    @Async
     @Override
     public void sendEmailConfirmAccount(User user, ConfirmationToken confirmationToken) {
         Map<String, String> variables = new HashMap<>();
@@ -89,7 +90,6 @@ public class MailServiceImpl implements MailService {
         }
     }
 
-    @Async
     @Override
     public void sendEmailNewPassword(User user, PasswordRecoveryToken passwordRecoveryToken) {
         Map<String, String> variables = new HashMap<>();
@@ -115,7 +115,6 @@ public class MailServiceImpl implements MailService {
         }
     }
 
-    @Async
     @Override
     public void sendEmailForFlatmates(User flatmate, User guest, PasswordRecoveryToken passwordRecoveryToken, ApplicationType applicationType) {
         Map<String, String> variables = new HashMap<>();
@@ -147,6 +146,7 @@ public class MailServiceImpl implements MailService {
         }
     }
 
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Async
     @Override
     public void sendEmailAccountDeleted(User user) {
@@ -174,6 +174,7 @@ public class MailServiceImpl implements MailService {
         }
     }
 
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Async
     @Override
     public void sendEmailAccountCompleted(User user) {
@@ -200,6 +201,7 @@ public class MailServiceImpl implements MailService {
         }
     }
 
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Async
     @Override
     public void sendEmailWhenEmailAccountNotYetValidated(User user, ConfirmationToken confirmationToken) {
@@ -227,6 +229,7 @@ public class MailServiceImpl implements MailService {
         }
     }
 
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Async
     @Override
     public void sendEmailWhenAccountNotYetCompleted(User user) {
@@ -253,6 +256,7 @@ public class MailServiceImpl implements MailService {
         }
     }
 
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Async
     @Override
     public void sendEmailWhenAccountIsStillDeclined(User user) {
@@ -377,7 +381,6 @@ public class MailServiceImpl implements MailService {
         }
     }
 
-    @Async
     @Override
     public void sendEmailToSupport(ContactForm form) {
         Map<String, String> variables = new HashMap<>();
@@ -408,6 +411,7 @@ public class MailServiceImpl implements MailService {
         }
     }
 
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Async
     @Override
     public void sendEmailWelcomeForPartnerUser(User user, UserApi userApi) {

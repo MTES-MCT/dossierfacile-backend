@@ -2,6 +2,7 @@ package fr.dossierfacile.api.front.service;
 
 import fr.dossierfacile.api.front.exception.ConfirmationTokenNotFoundException;
 import fr.dossierfacile.api.front.form.SubscriptionApartmentSharingOfTenantForm;
+import fr.dossierfacile.api.front.model.KeycloakUser;
 import fr.dossierfacile.api.front.model.tenant.EmailExistsModel;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.RegisterFactory;
@@ -13,9 +14,11 @@ import fr.dossierfacile.api.front.repository.PropertyApartmentSharingRepository;
 import fr.dossierfacile.api.front.service.interfaces.ConfirmationTokenService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.GuarantorService;
+import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
 import fr.dossierfacile.api.front.service.interfaces.LogService;
 import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.api.front.service.interfaces.PropertyService;
+import fr.dossierfacile.api.front.service.interfaces.SourceService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.util.Obfuscator;
 import fr.dossierfacile.common.entity.ApartmentSharing;
@@ -23,6 +26,7 @@ import fr.dossierfacile.common.entity.ConfirmationToken;
 import fr.dossierfacile.common.entity.Property;
 import fr.dossierfacile.common.entity.PropertyApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
@@ -38,6 +42,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -55,6 +60,8 @@ public class TenantServiceImpl implements TenantService {
     private final PropertyService propertyService;
     private final RegisterFactory registerFactory;
     private final TenantCommonRepository tenantRepository;
+    private final KeycloakService keycloakService;
+    private final SourceService sourceService;
 
     @Override
     public <T> TenantModel saveStepRegister(Tenant tenant, T formStep, StepRegister step) {
@@ -178,4 +185,35 @@ public class TenantServiceImpl implements TenantService {
         }
         tenantRepository.save(t);
     }
+
+    @Override
+    @Transactional
+    public Tenant registerFromKeycloakUser(KeycloakUser kcUser, String partner) {
+        Tenant tenant = Tenant.builder()
+                .keycloakId(kcUser.getKeycloakId())
+                .email(kcUser.getEmail())
+                .firstName(kcUser.getGivenName())
+                .lastName(kcUser.getFamilyName())
+                .preferredName(kcUser.getPreferredUsername())
+                .franceConnect(kcUser.isFranceConnect())
+                .honorDeclaration(false)
+                .build();
+        tenant = create(tenant);
+
+        if (!kcUser.isEmailVerified()) {
+            // createdAccount without verified email should be deactivated
+            keycloakService.disableAccount(kcUser.getKeycloakId());
+            mailService.sendEmailConfirmAccount(tenant, confirmationTokenService.createToken(tenant));
+        }
+        Optional<UserApi> userApi = sourceService.findByName(partner);
+        if (userApi.isPresent()) {
+            partnerCallBackService.registerTenant(null, tenant, userApi.get());
+        }
+
+        tenant.lastUpdateDateProfile(LocalDateTime.now(), null);
+
+        logService.saveLog(LogType.ACCOUNT_CREATED, tenant.getId());
+        return tenantRepository.save(tenant);
+    }
+
 }

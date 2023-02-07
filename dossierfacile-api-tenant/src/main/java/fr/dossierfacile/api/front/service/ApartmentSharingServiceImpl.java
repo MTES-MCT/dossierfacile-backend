@@ -15,6 +15,7 @@ import fr.dossierfacile.common.mapper.ApplicationLightMapper;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
+import io.sentry.Sentry;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -68,6 +69,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
         //region generate PDF before to get it
         if ( apartmentSharing.getDossierPdfDocumentStatus() != FileStatus.COMPLETED
                 && !apartmentSharing.groupingAllTenantUserApisInTheApartment().isEmpty()){
+            Sentry.captureMessage("GenerateFullPdfOnGet:" + token);
             // generate the pdf file and wait the treatment
             createFullPdf(token);
             try {
