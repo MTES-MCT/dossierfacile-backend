@@ -25,4 +25,5 @@ public class File implements Serializable {
     private Long id;
 
     private String path;
+    private String preview;
 }
