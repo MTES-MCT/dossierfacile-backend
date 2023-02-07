@@ -15,9 +15,4 @@ public interface ApartmentSharingRepository extends JpaRepository<ApartmentShari
             " ORDER BY apartment_sharing.id LIMIT :limit", nativeQuery = true)
     List<ApartmentSharing> getArchivedAptWithPdf(@Param("limit") Integer limit);
 
-    @Query(value = "SELECT distinct document.* FROM document " +
-            "left join tenant on document.tenant_id=tenant.id " +
-            " where tenant.status='ARCHIVED' and document.name is not null and document.name <> '' " +
-            " ORDER BY document.id LIMIT :limit", nativeQuery = true)
-    List<ApartmentSharing> getArchivedAptWithDocumentWithPdf(@Param("limit") Integer limit);
 }
