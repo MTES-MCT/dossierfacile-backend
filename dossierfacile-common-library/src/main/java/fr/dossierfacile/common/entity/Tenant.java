@@ -7,8 +7,8 @@ import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.enums.TypeGuarantor;
 import fr.dossierfacile.common.enums.UserType;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +31,6 @@ import static fr.dossierfacile.common.enums.DocumentStatus.TO_PROCESS;
 @DiscriminatorValue("TENANT")
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
 @Slf4j
@@ -66,6 +65,7 @@ public class Tenant extends User implements Person, Serializable {
 
     private String zipCode;
 
+    @Builder.Default
     private Boolean honorDeclaration = Boolean.FALSE;
 
     private LocalDateTime lastUpdateDate;
@@ -88,15 +88,8 @@ public class Tenant extends User implements Person, Serializable {
     @Column(name = "allow_check_tax")
     private Boolean allowCheckTax;
 
-    public Tenant(String email) {
-        super(UserType.TENANT, email);
-        this.tenantType = TenantType.CREATE;
-    }
-
-    public Tenant(String firstName, String lastName, String preferredName, String email, ApartmentSharing apartmentSharing) {
-        super(UserType.TENANT, firstName, lastName, preferredName, email);
-        this.apartmentSharing = apartmentSharing;
-        this.tenantType = TenantType.JOIN;
+    public Tenant() {
+        super(UserType.TENANT);
     }
 
     public TenantFileStatus getStatus() {

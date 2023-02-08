@@ -19,6 +19,7 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.enums.PartnerCallBackType;
+import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import lombok.AllArgsConstructor;
@@ -153,12 +154,14 @@ public class Application implements SaveStep<ApplicationFormV2> {
 
         Set<Tenant> joinTenants = tenants.stream().map(
                 tenant -> {
-                    Tenant joinTenant = new Tenant(
-                            tenant.getFirstName(),
-                            tenant.getLastName(),
-                            tenant.getPreferredName(),
-                            StringUtils.isBlank(tenant.getEmail()) ? null : tenant.getEmail(),
-                            apartmentSharing);
+                    Tenant joinTenant = Tenant.builder()
+                            .tenantType(TenantType.JOIN)
+                            .firstName(tenant.getFirstName())
+                            .lastName(tenant.getLastName())
+                            .preferredName(tenant.getPreferredName())
+                            .email(StringUtils.isBlank(tenant.getEmail()) ? null : tenant.getEmail())
+                            .apartmentSharing(apartmentSharing)
+                            .build();
                     if (apartmentSharing.getApplicationType() == ApplicationType.COUPLE) {
                         joinTenant.setHonorDeclaration(tenantCreate.getHonorDeclaration());
                         joinTenant.setAllowCheckTax(tenantCreate.getAllowCheckTax());

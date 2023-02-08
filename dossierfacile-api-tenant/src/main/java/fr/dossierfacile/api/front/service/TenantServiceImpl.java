@@ -190,6 +190,7 @@ public class TenantServiceImpl implements TenantService {
     @Transactional
     public Tenant registerFromKeycloakUser(KeycloakUser kcUser, String partner) {
         Tenant tenant = Tenant.builder()
+                .tenantType(TenantType.CREATE)
                 .keycloakId(kcUser.getKeycloakId())
                 .email(kcUser.getEmail())
                 .firstName(kcUser.getGivenName())

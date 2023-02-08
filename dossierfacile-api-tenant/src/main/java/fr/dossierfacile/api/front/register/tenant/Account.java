@@ -14,6 +14,7 @@ import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.service.interfaces.UserRoleService;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
+import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import lombok.AllArgsConstructor;
@@ -46,7 +47,8 @@ public class Account implements SaveStep<AccountForm> {
     @Transactional
     public TenantModel saveStep(Tenant t, AccountForm accountForm) {
         String email = accountForm.getEmail().toLowerCase();
-        Tenant tenant = tenantRepository.findByEmailAndEnabledFalse(email).orElseGet(() -> tenantService.create(new Tenant(email)));
+        Tenant tenant = tenantRepository.findByEmailAndEnabledFalse(email)
+                .orElseGet(() -> tenantService.create(Tenant.builder().tenantType(TenantType.CREATE).email(email).build()));
         tenant.setPassword(bCryptPasswordEncoder.encode(accountForm.getPassword()));
         if (!Strings.isNullOrEmpty(accountForm.getSource())) {
             if (!tenant.getFranceConnect()) {
