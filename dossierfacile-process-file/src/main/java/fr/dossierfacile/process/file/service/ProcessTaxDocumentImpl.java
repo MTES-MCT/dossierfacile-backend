@@ -12,7 +12,9 @@ import fr.dossierfacile.process.file.model.TwoDDoc;
 import fr.dossierfacile.process.file.service.interfaces.ApiParticulier;
 import fr.dossierfacile.process.file.service.interfaces.ApiTesseract;
 import fr.dossierfacile.process.file.service.interfaces.ProcessTaxDocument;
+import fr.dossierfacile.process.file.service.mfc.DocumentVerifiedContent;
 import fr.dossierfacile.process.file.service.mfc.MonFranceConnectClient;
+import fr.dossierfacile.process.file.service.mfc.MonFranceConnectDocument;
 import fr.dossierfacile.process.file.util.Utility;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -107,15 +109,20 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
 
         TaxDocument taxDocument = new TaxDocument();
 
-        List<String> filesContent = files.stream()
+        List<MonFranceConnectDocument> mfcDocuments = files.stream()
                 .filter(file -> FilenameUtils.getExtension(file.getPath()).equals("pdf"))
-                .map(pdf -> getDocumentContentIfMonFranceConnect(taxDocument, pdf))
+                .map(this::getDocumentContentIfMonFranceConnect)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .collect(Collectors.toList());
 
-        if (!filesContent.isEmpty()) {
-            String extractedContent = StringUtils.join(filesContent, ", ");
+        boolean areDocumentsValid = mfcDocuments.stream()
+                .map(doc -> checkIfInfoBehindQrContentMatchesPdfContent(doc.getFile(), doc.getContent()))
+                .anyMatch(isValid -> !isValid);
+        taxDocument.setTaxContentValid(areDocumentsValid);
+
+        if (!mfcDocuments.isEmpty()) {
+            String extractedContent = StringUtils.join(mfcDocuments, ", ");
             taxDocument.setQrContent(extractedContent);
             log.info("Extracted QR content : {}", extractedContent);
         }
@@ -163,23 +170,10 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
         return taxDocument;
     }
 
-    private Optional<String> getDocumentContentIfMonFranceConnect(TaxDocument taxDocument, File pdf) {
-        Optional<String> qrCode = utility.extractQRCodeInfo(pdf);
-        if (qrCode.isEmpty()) {
-            return Optional.empty();
-        }
-        ResponseEntity<List> response = monFranceConnectClient.fetchDocumentContent(qrCode.get());
-        if (response.getStatusCode() == HttpStatus.OK) {
-            log.info("Api MonFranceConnect Response {}", response.getStatusCodeValue());
-
-            checkIfInfoBehindQrContentMatchesPdfContent(pdf, response, taxDocument);
-
-            return Optional.ofNullable(response.getBody())
-                    .map(Object::toString);
-        } else {
-            log.warn("Api MonFranceConnect Response {}", response.getStatusCodeValue());
-            return Optional.empty();
-        }
+    private Optional<MonFranceConnectDocument> getDocumentContentIfMonFranceConnect(File file) {
+        return utility.extractQRCodeInfo(file)
+                .flatMap(qrCodeUrl -> monFranceConnectClient.fetchDocumentContent(qrCodeUrl)
+                .map(content -> new MonFranceConnectDocument(file, content)));
     }
 
     private TaxDocument processTaxDocumentWithOCR(List<File> files, String lastName, String firstName, String unaccentFirstName, String unaccentLastName) {
@@ -275,8 +269,8 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
         return taxDocument;
     }
 
-    private void checkIfInfoBehindQrContentMatchesPdfContent(File pdf, ResponseEntity<List> response, TaxDocument taxDocument) {
-        List<String> listResponse = Objects.requireNonNull(response.getBody());
+    private boolean checkIfInfoBehindQrContentMatchesPdfContent(File pdf, DocumentVerifiedContent response) {
+        List<String> listResponse = response.getDocumentContent();
 
         String result = utility.extractInfoFromPDFFirstPage(pdf);
         AtomicInteger i = new AtomicInteger();
@@ -288,7 +282,7 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
             });
             if (listResponse.size() == i.get()) {
                 log.info("QR content VALID for PDF with ID [" + pdf.getId() + "]");
-                taxDocument.setTaxContentValid(Boolean.TRUE);
+                return true;
             } else {
                 java.io.File tmpFile = utility.getTemporaryFile(pdf);
                 String tesseractResult = apiTesseract.extractText(tmpFile);
@@ -308,13 +302,14 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
                 });
                 if (listResponse.size() == ii.get()) {
                     log.info("QR content VALID for PDF with ID [" + pdf.getId() + "]");
-                    taxDocument.setTaxContentValid(Boolean.TRUE);
+                    return true;
                 } else {
-                    taxDocument.setTaxContentValid(Boolean.FALSE);
                     log.warn("QR content NOT VALID for the PDF with ID [" + pdf.getId() + "]");
+                    return false;
                 }
             }
         }
+        return false;
     }
 
     //check if the name is OK
