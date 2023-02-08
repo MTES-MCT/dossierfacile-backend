@@ -3,6 +3,7 @@ package fr.dossierfacile.common.entity;
 import fr.dossierfacile.common.enums.AuthProvider;
 import fr.dossierfacile.common.enums.UserType;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -95,6 +96,7 @@ public abstract class User implements Serializable {
     private String imageUrl;
 
     private String keycloakId;
+    @Builder.Default
     private Boolean franceConnect = false;
     private String franceConnectSub;
     private String franceConnectBirthDate;
@@ -107,6 +109,10 @@ public abstract class User implements Serializable {
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private ConfirmationToken confirmationToken;
+
+    public User(UserType userType){
+        this.userType = userType;
+    }
 
     public User(UserType userType, String email) {
         this.userType = userType;

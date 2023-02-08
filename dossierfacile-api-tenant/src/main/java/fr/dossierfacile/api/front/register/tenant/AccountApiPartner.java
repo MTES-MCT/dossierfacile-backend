@@ -10,6 +10,7 @@ import fr.dossierfacile.api.front.service.interfaces.SourceService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
+import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import java.time.LocalDateTime;
@@ -47,7 +48,7 @@ public class AccountApiPartner implements SaveStep<AccountPartnerForm> {
 
     private Tenant findOrCreateTenant(String email) {
         Tenant tenant = tenantRepository.findByEmailAndEnabledFalse(email)
-                .orElseGet(() -> tenantService.create(new Tenant(email)));
+                .orElseGet(() -> tenantService.create(Tenant.builder().email(email).tenantType(TenantType.CREATE).build()));
         tenant.setEnabled(true);
         tenantRepository.save(tenant);
         return tenant;

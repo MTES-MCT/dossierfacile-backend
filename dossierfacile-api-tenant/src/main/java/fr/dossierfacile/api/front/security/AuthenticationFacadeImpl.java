@@ -3,10 +3,10 @@ package fr.dossierfacile.api.front.security;
 import com.google.common.base.Strings;
 import fr.dossierfacile.api.front.exception.TenantNotFoundException;
 import fr.dossierfacile.api.front.exception.TenantUserApiNotFoundException;
+import fr.dossierfacile.api.front.model.KeycloakUser;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
-import fr.dossierfacile.api.front.model.KeycloakUser;
 import fr.dossierfacile.api.front.service.interfaces.LogService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
@@ -15,6 +15,7 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
+import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.repository.TenantUserApiRepository;
 import lombok.RequiredArgsConstructor;
@@ -147,7 +148,7 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
         } else {
             if (keycloakService.isKeycloakUser(getKeycloakUserId())) {
                 log.warn("Tenant " + Obfuscator.email(email) + " not exist - create it");
-                tenant = new Tenant(email);
+                tenant = Tenant.builder().tenantType(TenantType.CREATE).email(email).build();
                 tenant.setKeycloakId(getKeycloakUserId());
                 tenant = tenantService.create(tenant);
                 if (isFranceConnect()) {
@@ -206,7 +207,7 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
     }
 
     @Override
-    public KeycloakUser getKeycloakUser(){
+    public KeycloakUser getKeycloakUser() {
         var jwt = ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
         return KeycloakUser.builder()
                 .keycloakId(jwt.getClaimAsString("sub"))
