@@ -36,16 +36,11 @@ import java.util.stream.Collectors;
 @Slf4j
 @RequiredArgsConstructor
 public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
-    private static final String URL_DELIMITER = "/";
+
     private final ApiParticulier apiParticulier;
     private final Utility utility;
     private final ApiTesseract apiTesseract;
     private final MonFranceConnectClient monFranceConnectClient;
-
-    @Value("${application.domain}")
-    private String applicationDomain;
-    @Value("${application.file.path}")
-    private String applicationFilePath;
 
     @Value("${feature.toggle.new.api}")
     private boolean newApi;
@@ -112,21 +107,19 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
 
         TaxDocument taxDocument = new TaxDocument();
 
-        StringBuilder currentQrContent = new StringBuilder();
-        List<File> pdfs = files.stream().filter(file -> FilenameUtils.getExtension(file.getPath()).equals("pdf")).collect(Collectors.toList());
-        if (!pdfs.isEmpty()) {
-            for (File pdf : pdfs) {
-                Optional<String> qrCode = utility.extractQRCodeInfo(pdf);
-                if (qrCode.isPresent()) {
-                    String url = qrCode.get();
-                    currentQrContent = getMonFranceConnectCodeContent(taxDocument, currentQrContent, pdf, url);
-                }
-            }
+        List<String> filesContent = files.stream()
+                .filter(file -> FilenameUtils.getExtension(file.getPath()).equals("pdf"))
+                .map(pdf -> getDocumentContentIfMonFranceConnect(taxDocument, pdf))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toList());
+
+        if (!filesContent.isEmpty()) {
+            String extractedContent = StringUtils.join(filesContent, ", ");
+            taxDocument.setQrContent(extractedContent);
+            log.info("Extracted QR content : {}", extractedContent);
         }
-        if (!currentQrContent.toString().isBlank()) {
-            taxDocument.setQrContent(currentQrContent.toString());
-        }
-        log.info("Extracted QR content : {}", currentQrContent);
+
         long milliseconds = System.currentTimeMillis() - time;
         log.info("Finishing with extraction of QR content of document in {} ms", milliseconds);
         taxDocument.setTime(milliseconds);
@@ -170,24 +163,23 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
         return taxDocument;
     }
 
-    private StringBuilder getMonFranceConnectCodeContent(TaxDocument taxDocument, StringBuilder currentQrContent, File pdf, String url) {
-        ResponseEntity<List> response = monFranceConnectClient.fetchDocumentContent(url);
+    private Optional<String> getDocumentContentIfMonFranceConnect(TaxDocument taxDocument, File pdf) {
+        Optional<String> qrCode = utility.extractQRCodeInfo(pdf);
+        if (qrCode.isEmpty()) {
+            return Optional.empty();
+        }
+        ResponseEntity<List> response = monFranceConnectClient.fetchDocumentContent(qrCode.get());
         if (response.getStatusCode() == HttpStatus.OK) {
             log.info("Api MonFranceConnect Response {}", response.getStatusCodeValue());
 
             checkIfInfoBehindQrContentMatchesPdfContent(pdf, response, taxDocument);
 
-            String bodyResponse = Objects.requireNonNull(response.getBody()).toString();
-            if (!currentQrContent.toString().isBlank()) {
-                currentQrContent.append(", ").append(bodyResponse);
-            } else {
-                currentQrContent = new StringBuilder(bodyResponse);
-            }
+            return Optional.ofNullable(response.getBody())
+                    .map(Object::toString);
         } else {
             log.warn("Api MonFranceConnect Response {}", response.getStatusCodeValue());
+            return Optional.empty();
         }
-//        log stats mon france connect
-        return currentQrContent;
     }
 
     private TaxDocument processTaxDocumentWithOCR(List<File> files, String lastName, String firstName, String unaccentFirstName, String unaccentLastName) {
