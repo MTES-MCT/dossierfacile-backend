@@ -1,4 +1,4 @@
-package fr.dossierfacile.process.file.service.mfc;
+package fr.dossierfacile.process.file.service.monfranceconnect.client;
 
 import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;

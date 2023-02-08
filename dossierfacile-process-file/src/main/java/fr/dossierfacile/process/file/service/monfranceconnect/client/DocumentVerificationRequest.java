@@ -1,4 +1,4 @@
-package fr.dossierfacile.process.file.service.mfc;
+package fr.dossierfacile.process.file.service.monfranceconnect.client;
 
 import lombok.Builder;
 import org.apache.http.NameValuePair;

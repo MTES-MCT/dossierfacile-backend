@@ -1,4 +1,4 @@
-package fr.dossierfacile.process.file.service.mfc;
+package fr.dossierfacile.process.file.service.monfranceconnect.client;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,7 +13,7 @@ import java.util.Optional;
 @AllArgsConstructor
 public class DocumentVerifiedContent {
 
-    private final List<String> documentContent;
+    private final List<String> elements;
 
     static Optional<DocumentVerifiedContent> from(ResponseEntity<String[]> response) {
         return Optional.ofNullable(response)
