@@ -1,4 +1,4 @@
-package fr.dossierfacile.process.file.service.mfc;
+package fr.dossierfacile.process.file.service.monfranceconnect.client;
 
 import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +10,7 @@ import org.apache.http.ssl.TrustStrategy;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
@@ -21,13 +22,12 @@ import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
-import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class MonFranceConnectClient {
-    private static final String EXCEPTION = "Sentry ID Exception: ";
 
     @Value("${monfranceconnect.api.url}")
     private String monFranceConnectBaseUrl;
@@ -54,20 +54,20 @@ public class MonFranceConnectClient {
         return new RestTemplate(requestFactory);
     }
 
-    public ResponseEntity<List> fetchDocumentContent(String url) {
+    public Optional<DocumentVerifiedContent> fetchDocumentContent(String url) {
         DocumentVerificationRequest request = DocumentVerificationRequest.forQrCodeContent(url);
         URI uri = request.getUri(monFranceConnectBaseUrl);
         HttpEntity<String> entity = request.getHttpEntity();
         try {
-            long time = System.currentTimeMillis();
-            ResponseEntity<List> response = restTemplateIgnoringHttps().exchange(uri, HttpMethod.POST, entity, List.class);
-            long milliseconds = System.currentTimeMillis() - time;
-            log.info("Time call api MonFranceConnect " + milliseconds + " milliseconds");
-            return response;
+            ResponseEntity<String[]> response = restTemplateIgnoringHttps().exchange(uri, HttpMethod.POST, entity, String[].class);
+            if (response.getStatusCode() == HttpStatus.OK) {
+                return DocumentVerifiedContent.from(response);
+            }
+            log.error("MonFranceConnect responded with status {}", response.getStatusCode());
+            return Optional.empty();
         } catch (Exception e) {
-            log.error(EXCEPTION + Sentry.captureException(e));
-            log.error(e.getMessage(), e.getCause());
-            return ResponseEntity.notFound().build();
+            log.error("Error while calling MonFranceConnect (sentry id: {})", Sentry.captureException(e), e);
+            return Optional.empty();
         }
     }
 }

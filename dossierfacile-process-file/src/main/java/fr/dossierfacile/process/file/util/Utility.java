@@ -1,11 +1,15 @@
 package fr.dossierfacile.process.file.util;
 
-import com.google.zxing.*;
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.BinaryBitmap;
+import com.google.zxing.DecodeHintType;
+import com.google.zxing.MultiFormatReader;
+import com.google.zxing.NotFoundException;
+import com.google.zxing.Result;
 import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.multi.GenericMultipleBarcodeReader;
 import com.google.zxing.multi.MultipleBarcodeReader;
-import com.google.zxing.qrcode.QRCodeReader;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.process.file.model.TwoDDoc;
@@ -30,6 +34,7 @@ import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -138,38 +143,14 @@ public class Utility {
         return pdfFileInText;
     }
 
-    public String extractQRCodeInfo(File dfFile) {
-        String qrCodeInfo = "";
+    public Optional<String> extractQRCodeInfo(File dfFile) {
         try (InputStream inputStream = fileStorageService.download(dfFile)) {
-            try (PDDocument document = PDDocument.load(inputStream)) {
-                if (!document.isEncrypted()) {
-                    PDFRenderer pdfRenderer = new PDFRenderer(document);
-
-                    float dpi = (1058 / document.getPage(0).getMediaBox().getWidth()) * 300;
-                    dpi = Math.min(600, dpi);
-                    BufferedImage bufferedImage = pdfRenderer.renderImageWithDPI(0, dpi, ImageType.ARGB);
-
-                    BinaryBitmap binaryBitmap = new BinaryBitmap(
-                            new HybridBinarizer(
-                                    new BufferedImageLuminanceSource(bufferedImage)
-                            ));
-                    long time = System.currentTimeMillis();
-                    Result result = new QRCodeReader().decode(binaryBitmap);
-                    String decoded = result.getText();
-                    log.info("DECODED QR : " + decoded + ", in " + (System.currentTimeMillis() - time) + "ms");
-                    qrCodeInfo = decoded != null ? decoded : "";
-                }
-            } catch (IOException | NotFoundException | ChecksumException | FormatException e) {
-                log.error(EXCEPTION_MESSAGE2, e);
-                log.error(EXCEPTION + Sentry.captureException(e));
-                log.error(e.getMessage(), e.getCause());
-            }
+            return QrCodeReader.extractQrContentFrom(inputStream);
         } catch (IOException e) {
             log.error("Unable to download file " + dfFile.getPath(), e);
             Sentry.captureMessage("Unable to download file " + dfFile.getPath());
         }
-
-        return qrCodeInfo;
+        return Optional.empty();
     }
 
     public String extractTax2DDoc(File dfFile) {
