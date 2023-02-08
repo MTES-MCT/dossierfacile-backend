@@ -29,6 +29,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -88,7 +89,8 @@ public class DocumentServiceImpl implements DocumentService {
         }
 
         fileStorageService.delete(document.getFiles().stream().map(File::getPath).collect(Collectors.toList()));
-        ownerOfDocument.getDocuments().removeIf(d -> d.getId() == document.getId());
+        fileStorageService.delete(document.getName());
+        ownerOfDocument.getDocuments().removeIf(d -> Objects.equals(d.getId(), document.getId()));
         documentRepository.delete(document);
         tenantStatusService.updateTenantStatus(tenantOfDocument);
         apartmentSharingService.resetDossierPdfGenerated(tenantOfDocument.getApartmentSharing());
