@@ -40,12 +40,13 @@ public class MonFranceConnectDocumentValidator {
 
     private MonFranceConnectDocument buildDocument(File file, DocumentVerifiedContent content) {
         boolean isDocumentValid = isActualContentMatchingWithVerifiedContent(file, content);
+        log.info("MFC document with ID {} is {}matching with data from API", file.getId(), isDocumentValid ? "" : "NOT ");
         return new MonFranceConnectDocument(file, content, isDocumentValid);
     }
 
     private boolean isActualContentMatchingWithVerifiedContent(File pdf, DocumentVerifiedContent verifiedContent) {
         String fileContent = utility.extractInfoFromPDFFirstPage(pdf);
-        if (verifiedContent.isMatchingWithFile(pdf.getId(), fileContent)) {
+        if (verifiedContent.isMatchingWith(fileContent)) {
             return true;
         }
 
@@ -59,7 +60,7 @@ public class MonFranceConnectDocumentValidator {
             log.warn("Unable to delete file", e);
         }
 
-        return verifiedContent.isMatchingWithFile(pdf.getId(), extractedContentWithOcr);
+        return verifiedContent.isMatchingWith(extractedContentWithOcr);
     }
 
 }
