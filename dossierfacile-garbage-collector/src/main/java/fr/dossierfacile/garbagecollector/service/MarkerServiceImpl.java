@@ -1,6 +1,7 @@
 package fr.dossierfacile.garbagecollector.service;
 
 import fr.dossierfacile.garbagecollector.model.marker.Marker;
+import fr.dossierfacile.garbagecollector.model.object.Object;
 import fr.dossierfacile.garbagecollector.repo.file.FileRepository;
 import fr.dossierfacile.garbagecollector.repo.marker.MarkerRepository;
 import fr.dossierfacile.garbagecollector.repo.object.ObjectRepository;
@@ -10,6 +11,7 @@ import fr.dossierfacile.garbagecollector.transactions.interfaces.MarkerTransacti
 import fr.dossierfacile.garbagecollector.transactions.interfaces.ObjectTransactions;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,8 +28,8 @@ import org.springframework.util.Assert;
 @RequiredArgsConstructor
 public class MarkerServiceImpl implements MarkerService {
 
-    private static final int PAGE_SIZE = 10;
-    private static final String MARKER_FOR_DELETION = "GARBAGE_";
+    private static final int PAGE_SIZE = 100;
+    public static final String MARKER_FOR_DELETION = "GARBAGE_";
 
     private final OvhService ovhService;
     private final MarkerTransactions markerTransactions;
@@ -109,7 +111,10 @@ public class MarkerServiceImpl implements MarkerService {
                     break;
                 }
                 //get list of object from OVH
+                long start1 = System.currentTimeMillis();
                 objects = objService.list(ovhContainerName, listOptions);
+                long end1 = System.currentTimeMillis();
+                System.out.println("Elapsed Time for get object list in mili seconds: " + (end1 - start1));
                 //save marker
                 if (!objects.isEmpty()) {
                     String nameLastElement = objects.get(objects.size() - 1).getName();
@@ -117,17 +122,34 @@ public class MarkerServiceImpl implements MarkerService {
 
                     markerTransactions.saveMarkerIfNotYetSaved(nameLastElement);
 
-                    //copy the names of objects from OVH to DB
-                    for (final SwiftObject swiftObject : objects) {
+                    start1 = System.currentTimeMillis();
+                    List<Object> existingObjects = objectRepository.findObjectsByPaths(objects.stream().map(SwiftObject::getName).collect(Collectors.toList()));
+                    objects = objects.stream().filter(o -> existingObjects.stream().filter(e -> e.getPath().equals(o.getName())).findAny().isEmpty()).collect(Collectors.toList());
+
+                    end1 = System.currentTimeMillis();
+                    System.out.println("Elapsed Time for object filtering in mili seconds: " + (end1 - start1));
+
+                    start1 = System.currentTimeMillis();
+                    List<String> names = objects.stream()
+                            .map(SwiftObject::getName)
+                            .filter(name -> !name.startsWith(MARKER_FOR_DELETION))
+                            .collect(Collectors.toList());
+                    List<String> matchingFilesInDB = fileRepository.existingFiles(names);
+                    end1 = System.currentTimeMillis();
+                    System.out.println("Elapsed Time for get existing files in mili seconds: " + (end1 - start1));
+
+                    objects.parallelStream().forEach(swiftObject -> {
                         if (isCanceled) {
-                            break;
+                            return;
                         }
                         String nameFile = swiftObject.getName();
                         if (!nameFile.startsWith(MARKER_FOR_DELETION)) {
-                            nameFile = renameFileIfNotInDatabase(nameFile);
+                            nameFile = renameFileIfNotInDatabase(nameFile, matchingFilesInDB);
                         }
-                        objectTransactions.saveObjectIfNotYetSaved(nameFile);
-                    }
+                        objectTransactions.saveObject(nameFile);
+                    });
+
+                    //copy the names of objects from OVH to DB
                     if (isCanceled) {
                         break;
                     }
@@ -176,8 +198,8 @@ public class MarkerServiceImpl implements MarkerService {
         return listOptions;
     }
 
-    private String renameFileIfNotInDatabase(String nameFile) {
-        if (!fileRepository.existsObject(nameFile)) {
+    private String renameFileIfNotInDatabase(String nameFile, List<String> names) {
+        if (!names.contains(nameFile)) {
             String oldName = nameFile;
             nameFile = MARKER_FOR_DELETION + nameFile;
             ovhService.renameFile(oldName, nameFile);

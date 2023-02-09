@@ -15,6 +15,13 @@ public interface FileRepository extends JpaRepository<File, Long> {
             "EXISTS (select apt from apartment_sharing apt where apt.url_dossier_pdf_document=:path)", nativeQuery = true)
     boolean existsObject(@Param("path") String path);
 
+    @Query(value = """
+            select path from File f where f.path in (:path)\s
+            UNION select preview from File f where f.preview in (:path)\s
+            UNION select name from Document d where d.name in (:path)\s
+            UNION select url_dossier_pdf_document from apartment_sharing apt where apt.url_dossier_pdf_document in (:path)""", nativeQuery = true)
+    List<String> existingFiles(@Param("path") List<String> path);
+
     @Query(value = "SELECT distinct file.* " +
             "FROM file left join document on file.document_id=document.id " +
             "left join tenant on document.tenant_id=tenant.id " +

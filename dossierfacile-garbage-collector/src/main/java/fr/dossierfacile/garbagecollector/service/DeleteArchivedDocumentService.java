@@ -28,7 +28,7 @@ public class DeleteArchivedDocumentService {
     private final ObjectTransactions objectTransactions;
     private final OvhService ovhService;
 
-//    @Scheduled(cron="0 0 8 3 * ?")
+//    @Scheduled(fixedDelay = 2000)
     public void deleteApartmentSharingPdfTask() {
         if(!ovhService.hasConnection()) {
             return;
@@ -48,14 +48,14 @@ public class DeleteArchivedDocumentService {
         }
     }
 
-//    @Scheduled(fixedDelay = 5000)
+//    @Scheduled(fixedDelay = 1000)
     public void deleteDocumentTask() {
         if(!ovhService.hasConnection()) {
             return;
         }
         List<Document> documents = documentRepository.getArchivedDocumentWithPdf(LIMIT_OBJECTS_TO_DELETE);
 
-        for (Document document : documents) {
+        documents.parallelStream().forEach((document) -> {
             try {
                 log.info("delete document " + document.getId());
                 log.info("delete  " + document.getName());
@@ -65,21 +65,21 @@ public class DeleteArchivedDocumentService {
             } catch (Exception e) {
                 log.error("Couldn't delete document [" + document.getName() + "] from document [" + document.getId() + "]");
             }
-        }
+        });
     }
 
 
-//    @Scheduled(fixedDelay = 5000)
+//    @Scheduled(fixedDelay = 1000)
     public void deleteFileTask() {
         if(!ovhService.hasConnection()) {
             return;
         }
         List<File> files = fileRepository.getArchivedFile(LIMIT_OBJECTS_TO_DELETE);
 
-        for (File file : files) {
+        files.parallelStream().forEach((file) -> {
             try {
-                log.info("delete document " + file.getId());
-                log.info("delete  " + file.getPath());
+                log.info("delete file " + file.getId());
+                log.info("delete " + file.getPath());
                 ovhService.delete(file.getPath());
                 if (StringUtils.isNotBlank(file.getPreview())) {
                     ovhService.delete(file.getPreview());
@@ -88,6 +88,6 @@ public class DeleteArchivedDocumentService {
             } catch (Exception e) {
                 log.error("Couldn't delete file [" + file.getPath() + "] from file [" + file.getId() + "]");
             }
-        }
+        });
     }
 }
