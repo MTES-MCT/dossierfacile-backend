@@ -59,14 +59,15 @@ public class MonFranceConnectClient {
         URI uri = request.getUri(monFranceConnectBaseUrl);
         HttpEntity<String> entity = request.getHttpEntity();
         try {
+            log.info("Calling MonFranceConnect at {} with body {}", uri, entity.getBody());
             ResponseEntity<String[]> response = restTemplateIgnoringHttps().exchange(uri, HttpMethod.POST, entity, String[].class);
             if (response.getStatusCode() == HttpStatus.OK) {
                 return DocumentVerifiedContent.from(response);
             }
-            log.error("MonFranceConnect responded with status {}", response.getStatusCode());
+            log.warn("MonFranceConnect responded with status {}", response.getStatusCode());
             return Optional.empty();
         } catch (Exception e) {
-            log.error("Error while calling MonFranceConnect (sentry id: {})", Sentry.captureException(e), e);
+            log.warn("Error while calling MonFranceConnect (sentry id: {})", Sentry.captureException(e), e);
             return Optional.empty();
         }
     }
