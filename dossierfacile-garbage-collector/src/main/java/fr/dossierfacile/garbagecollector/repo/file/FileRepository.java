@@ -25,9 +25,18 @@ public interface FileRepository extends JpaRepository<File, Long> {
     @Query(value = "SELECT distinct file.* " +
             "FROM file left join document on file.document_id=document.id " +
             "left join tenant on document.tenant_id=tenant.id " +
-            "left outer join tenant_userapi on tenant.id=tenant_userapi.tenant_id " +
             "where tenant.status='ARCHIVED' " +
             "and file.path is not null and file.path <> '' " +
-            "and tenant_userapi.tenant_id is null limit :limit", nativeQuery = true)
+            " limit :limit", nativeQuery = true)
     List<File> getArchivedFile(@Param("limit") Integer limit);
+
+    @Query(value = "SELECT distinct file.* " +
+            "FROM file left join document on file.document_id=document.id " +
+            "left join guarantor on document.guarantor_id=guarantor.id " +
+            "left join tenant on guarantor.tenant_id=tenant.id " +
+            "where tenant.status='ARCHIVED' " +
+            "and file.path is not null and file.path <> '' " +
+            " limit :limit", nativeQuery = true)
+    List<File> getGuarantorArchivedFile(@Param("limit") Integer limit);
+
 }

@@ -145,6 +145,10 @@ public class Tenant extends User implements Person, Serializable {
 
         //I setup the list of currently existing categories on the tenant
         List<DocumentCategory> tenantCategories = new ArrayList<>();
+        List<Document> documentList = getDocuments();
+        if (documentList == null) {
+            return false;
+        }
         for (Document document : getDocuments()) {
             tenantCategories.add(document.getDocumentCategory());
         }

@@ -9,6 +9,7 @@ import org.openstack4j.api.exceptions.AuthenticationException;
 import org.openstack4j.api.exceptions.ClientResponseException;
 import org.openstack4j.api.storage.ObjectStorageObjectService;
 import org.openstack4j.core.transport.Config;
+import org.openstack4j.model.common.ActionResponse;
 import org.openstack4j.model.common.Identifier;
 import org.openstack4j.model.storage.object.SwiftObject;
 
@@ -119,8 +120,8 @@ public class OvhServiceImpl implements OvhService {
     @Override
     public void renameFile(String oldName, String newName) {
         int attempts = 0;
-        while (attempts++ < ovhConnectionReattempts) {
-            try {
+//        while (attempts++ < ovhConnectionReattempts) {
+//            try {
                 final ObjectStorageObjectService objService = getObjectStorage();
                 String eTag = objService.copy(ObjectLocation.create(ovhContainerName, oldName), ObjectLocation.create(ovhContainerName, newName));
                 if (eTag != null && !eTag.isEmpty()) {
@@ -128,26 +129,27 @@ public class OvhServiceImpl implements OvhService {
                     log.info("[" + oldName + "] renamed to [" + newName + "]");
                     return;
                 }
+                log.info(eTag);
                 log.error("[" + oldName + "] was not renamed successfully");
                 String customExceptionMessage = OVH_CONNECT + "Could not rename the file [" + oldName + "]";
                 throw new OvhConnectionFailedException(customExceptionMessage);
-            } catch (Exception e) {
-                log.error(e.getMessage());
-                if (attempts == ovhConnectionReattempts) {
-                    log.error(OVH_CONNECT + EXCEPTION + Sentry.captureException(e));
-                    log.error(e.getClass().getName());
-                    String customExceptionMessage = OVH_CONNECT + "Could not connect to the storage provider after " + attempts + " attempts with given credentials";
-                    throw new OvhConnectionFailedException(customExceptionMessage, e.getCause());
-                }
-                try {
-                    log.info("Waiting 60 seconds for the next retry...");
-                    Thread.sleep(60000);
-                } catch (InterruptedException b) {
-                    log.error(b.getMessage());
-                    log.error("Unable to sleep the process");
-                }
-            }
-        }
+//            } catch (Exception e) {
+//                log.error(e.getMessage());
+//                if (attempts == ovhConnectionReattempts) {
+//                    log.error(OVH_CONNECT + EXCEPTION + Sentry.captureException(e));
+//                    log.error(e.getClass().getName());
+//                    String customExceptionMessage = OVH_CONNECT + "Could not connect to the storage provider after " + attempts + " attempts with given credentials";
+//                    throw new OvhConnectionFailedException(customExceptionMessage, e.getCause());
+//                }
+//                try {
+//                    log.info("Waiting 60 seconds for the next retry...");
+//                    Thread.sleep(60000);
+//                } catch (InterruptedException b) {
+//                    log.error(b.getMessage());
+//                    log.error("Unable to sleep the process");
+//                }
+//            }
+//        }
     }
 
     @Override

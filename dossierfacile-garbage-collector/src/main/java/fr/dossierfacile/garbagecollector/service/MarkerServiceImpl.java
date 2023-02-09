@@ -28,7 +28,7 @@ import org.springframework.util.Assert;
 @RequiredArgsConstructor
 public class MarkerServiceImpl implements MarkerService {
 
-    private static final int PAGE_SIZE = 100;
+    private static final int PAGE_SIZE = 50;
     public static final String MARKER_FOR_DELETION = "GARBAGE_";
 
     private final OvhService ovhService;
@@ -143,10 +143,14 @@ public class MarkerServiceImpl implements MarkerService {
                             return;
                         }
                         String nameFile = swiftObject.getName();
-                        if (!nameFile.startsWith(MARKER_FOR_DELETION)) {
-                            nameFile = renameFileIfNotInDatabase(nameFile, matchingFilesInDB);
+                        try {
+                            if (!nameFile.startsWith(MARKER_FOR_DELETION)) {
+                                nameFile = renameFileIfNotInDatabase(nameFile, matchingFilesInDB);
+                            }
+                            objectTransactions.saveObject(nameFile);
+                        } catch (Exception e) {
+                            log.error(e.getMessage(), e);
                         }
-                        objectTransactions.saveObject(nameFile);
                     });
 
                     //copy the names of objects from OVH to DB
@@ -159,6 +163,7 @@ public class MarkerServiceImpl implements MarkerService {
                     log.info("\n\n" + textIteration +
                             "\nTotal objects read : " + totalObjectsRead +
                             "\n" + "-".repeat(textIteration.length()) + "\n");
+                    Thread.sleep(1000);
                 } else {
                     log.info("SCANNING FINISHED\n");
                 }
