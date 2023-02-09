@@ -73,4 +73,5 @@
     <include file="db/migration/202301230000-user-api-add-column.xml"/>
     <include file="db/migration/202302060000-stats-init.xml"/>
     <include file="db/migration/202302160000-create-table-monfranceconnect_validation_result.xml"/>
+    <include file="db/migration/202302090000-create-storage-file.xml"/>
 </databaseChangeLog>
