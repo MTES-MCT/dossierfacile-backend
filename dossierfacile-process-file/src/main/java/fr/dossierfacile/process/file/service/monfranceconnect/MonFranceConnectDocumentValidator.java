@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -44,47 +43,23 @@ public class MonFranceConnectDocumentValidator {
         return new MonFranceConnectDocument(file, content, isDocumentValid);
     }
 
-    private boolean isActualContentMatchingWithVerifiedContent(File pdf, DocumentVerifiedContent content) {
-        List<String> listResponse = content.getElements();
-
-        String result = utility.extractInfoFromPDFFirstPage(pdf);
-        AtomicInteger i = new AtomicInteger();
-        if (!listResponse.isEmpty()) {
-            listResponse.forEach(element -> {
-                if (result.contains(element)) {
-                    i.getAndIncrement();
-                }
-            });
-            if (listResponse.size() == i.get()) {
-                log.info("QR content VALID for PDF with ID [" + pdf.getId() + "]");
-                return true;
-            } else {
-                java.io.File tmpFile = utility.getTemporaryFile(pdf);
-                String tesseractResult = apiTesseract.extractText(tmpFile);
-                try {
-                    if (!tmpFile.delete()) {
-                        log.warn("Unable to delete file");
-                    }
-                } catch (Exception e) {
-                    log.warn("Unable to delete file", e);
-                }
-
-                AtomicInteger ii = new AtomicInteger();
-                listResponse.forEach(element -> {
-                    if (tesseractResult.contains(element)) {
-                        ii.getAndIncrement();
-                    }
-                });
-                if (listResponse.size() == ii.get()) {
-                    log.info("QR content VALID for PDF with ID [" + pdf.getId() + "]");
-                    return true;
-                } else {
-                    log.warn("QR content NOT VALID for the PDF with ID [" + pdf.getId() + "]");
-                    return false;
-                }
-            }
+    private boolean isActualContentMatchingWithVerifiedContent(File pdf, DocumentVerifiedContent verifiedContent) {
+        String fileContent = utility.extractInfoFromPDFFirstPage(pdf);
+        if (verifiedContent.isMatchingWithFile(pdf.getId(), fileContent)) {
+            return true;
         }
-        return false;
+
+        java.io.File tmpFile = utility.getTemporaryFile(pdf);
+        String extractedContentWithOcr = apiTesseract.extractText(tmpFile);
+        try {
+            if (!tmpFile.delete()) {
+                log.warn("Unable to delete file");
+            }
+        } catch (Exception e) {
+            log.warn("Unable to delete file", e);
+        }
+
+        return verifiedContent.isMatchingWithFile(pdf.getId(), extractedContentWithOcr);
     }
 
 }
