@@ -9,6 +9,6 @@ import java.util.Optional;
 public interface StatsRepository extends JpaRepository<Stats, Long> {
     Optional<Stats> findByKey(String key);
 
-    @Query(value = "SELECT count(distinct tenant_id) FROM tenant_log WHERE log_type='ACCOUNT_VALIDATED'", nativeQuery = true)
+    @Query(value = "SELECT count(*) FROM tenant_log WHERE log_type='ACCOUNT_VALIDATED'", nativeQuery = true)
     Long countValidatedDossier();
 }
