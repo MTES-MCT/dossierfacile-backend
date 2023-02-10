@@ -2,6 +2,7 @@ package fr.dossierfacile.common.service.interfaces;
 
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
+import fr.dossierfacile.common.entity.StorageFile;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
@@ -14,14 +15,9 @@ public interface DocumentHelperService {
     File addFile(MultipartFile multipartFile, Document document);
 
     /**
-     * Upload byte array to s3.
-     */
-    String addByteArrayToS3(byte[] file, String extension);
-
-    /**
      * Delete files contained in document.
      */
     void deleteFiles(Document document);
 
-    String generatePreview(InputStream fileInputStream, String originalName);
+    StorageFile generatePreview(InputStream fileInputStream, String originalName);
 }

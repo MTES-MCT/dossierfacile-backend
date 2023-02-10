@@ -4,8 +4,10 @@ import fr.dossierfacile.api.front.model.dfc.tenant.ConnectedTenantModel;
 import fr.dossierfacile.api.front.model.tenant.ApartmentSharingModel;
 import fr.dossierfacile.api.front.model.tenant.DocumentDeniedReasonsModel;
 import fr.dossierfacile.api.front.model.tenant.DocumentModel;
+import fr.dossierfacile.api.front.model.tenant.FileModel;
 import fr.dossierfacile.api.front.model.tenant.SelectedOption;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
+import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import org.mapstruct.AfterMapping;
@@ -26,7 +28,7 @@ import java.util.Optional;
 @Mapper(componentModel = "spring")
 public abstract class TenantMapper {
     @Value("${application.domain}")
-    private String domain;
+    protected String domain;
     @Value("${application.file.path}")
     private String path;
 
@@ -35,6 +37,9 @@ public abstract class TenantMapper {
 
     @Mapping(target = "connectedTenantId", source = "id")
     public abstract ConnectedTenantModel toTenantModelDfc(Tenant tenant);
+
+    @Mapping(target = "preview", expression = "java((documentFile.getPreview() != null )? domain + \"/api/file/preview/\" + documentFile.getId() : null)")
+    public abstract FileModel toFileModel(File documentFile);
 
     @AfterMapping
     void modificationsAfterMapping(@MappingTarget TenantModel.TenantModelBuilder tenantModelBuilder) {
@@ -70,7 +75,6 @@ public abstract class TenantMapper {
     }
 
     private void setDocumentDeniedReasonsAndDocumentAndFilesRoutes(List<DocumentModel> list, String filePath, boolean previewOnly) {
-        var previewPath = "/api/file/preview/";
         Optional.ofNullable(list)
                 .ifPresent(documentModels -> documentModels.forEach(documentModel -> {
                     if (documentModel.getName() != null) {
@@ -105,7 +109,6 @@ public abstract class TenantMapper {
                                 } else {
                                     fileModel.setPath(domain + filePath + fileModel.getId());
                                 }
-                                fileModel.setPreview(domain + previewPath + fileModel.getPreview());
                             }));
                 }));
     }

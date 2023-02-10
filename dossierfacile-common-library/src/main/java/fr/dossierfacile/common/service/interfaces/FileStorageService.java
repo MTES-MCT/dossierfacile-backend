@@ -1,6 +1,7 @@
 package fr.dossierfacile.common.service.interfaces;
 
-import fr.dossierfacile.common.entity.File;
+import fr.dossierfacile.common.entity.StorageFile;
+import fr.dossierfacile.common.entity.shared.StoredFile;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -30,12 +31,12 @@ public interface FileStorageService {
      * Get the downloaded file's inputStream.
      * Using decrypt information inside the File object if present.
      */
-    InputStream download(File file) throws IOException;
+    InputStream download(StoredFile file) throws IOException;
 
     void upload(String ovhPath, InputStream inputStream, Key key) throws IOException;
 
 
     String uploadFile(MultipartFile file, Key key);
 
-    String uploadByteArray(byte[] file, String extension, Key key);
+    StorageFile upload(InputStream inputStream, StorageFile storageFile) throws IOException;
 }

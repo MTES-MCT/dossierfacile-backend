@@ -19,7 +19,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -49,8 +53,8 @@ public class FileController {
             documentService.initializeFieldsToProcessPdfGeneration(document);
             producer.generatePdf(document.getId(),
                     documentPdfGenerationLogRepository.save(DocumentPdfGenerationLog.builder()
-                    .documentId(document.getId())
-                    .build()).getId());
+                            .documentId(document.getId())
+                            .build()).getId());
         }
         return ResponseEntity.ok().build();
     }
@@ -82,24 +86,26 @@ public class FileController {
         } catch (final java.io.FileNotFoundException e) {
             log.error(FILE_NO_EXIST, e);
             response.setStatus(404);
-        } catch (IOException e){
+        } catch (IOException e) {
             log.error("File cannot be downloaded - 408 - Too long?", e);
             response.setStatus(408);
         }
     }
 
-    @GetMapping(value = "/preview/{imageName:.+}")
-    public void getPreview(HttpServletResponse response, @PathVariable String imageName) {
-        Key key = fileRepository.findByPreview(imageName).map(fr.dossierfacile.common.entity.File::getKey).orElse(null);
-        try (InputStream in = fileStorageService.download(imageName, key)) {
-            response.setContentType(MediaType.IMAGE_JPEG_VALUE);
+    @GetMapping(value = "/preview/{fileId}")
+    public void getPreviewFromFileIdAsByteArray(HttpServletResponse response, @PathVariable Long fileId) {
+        Tenant tenant = authenticationFacade.getLoggedTenant();
+        File file = fileRepository.findByIdForAppartmentSharing(fileId, tenant.getApartmentSharing().getId()).orElseThrow(() -> new FileNotFoundException(fileId));
+
+        try (InputStream in = fileStorageService.download(file.getPreview())) {
+            response.setContentType(file.getComputedContentType());
             IOUtils.copy(in, response.getOutputStream());
-        } catch(java.io.FileNotFoundException e) {
-            log.error(FILE_NO_EXIST);
+        } catch (final java.io.FileNotFoundException e) {
+            log.error(FILE_NO_EXIST, e);
             response.setStatus(404);
         } catch (IOException e) {
-            log.error("Cannot download file" , e);
-            response.setStatus(404);
+            log.error("File cannot be downloaded - 408 - Too long?", e);
+            response.setStatus(408);
         }
     }
 }
