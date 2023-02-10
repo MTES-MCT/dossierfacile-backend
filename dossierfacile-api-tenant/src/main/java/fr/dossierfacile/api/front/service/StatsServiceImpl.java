@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class StatsServiceImpl implements StatsService {
     private static final String VALIDATED_DOSSIER_COUNT = "VALIDATED_DOSSIER_COUNT";
-    private static final Long VALIDATED_DOSSIER_COUNT_PRE_MIGRATION = 51785L;
+    private static final Long VALIDATED_DOSSIER_COUNT_PRE_MIGRATION = 67174L;
     private final StatsRepository statsRepository;
 
     @Override
