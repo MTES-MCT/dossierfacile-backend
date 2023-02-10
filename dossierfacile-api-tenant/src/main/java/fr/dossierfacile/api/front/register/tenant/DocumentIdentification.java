@@ -33,8 +33,6 @@ public class DocumentIdentification extends AbstractDocumentSaveStep<DocumentIde
     private TenantStatusService tenantStatusService;
     @Autowired
     private ApartmentSharingService apartmentSharingService;
-    @Autowired
-    private FileService fileService;
 
 
     protected Document saveDocument(Tenant tenant, DocumentIdentificationForm documentIdentificationForm) {

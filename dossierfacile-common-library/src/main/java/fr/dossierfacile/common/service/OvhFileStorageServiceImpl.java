@@ -1,9 +1,12 @@
 package fr.dossierfacile.common.service;
 
 import fr.dossierfacile.common.entity.EncryptionKey;
-import fr.dossierfacile.common.entity.File;
+import fr.dossierfacile.common.entity.ObjectStorageProvider;
+import fr.dossierfacile.common.entity.StorageFile;
+import fr.dossierfacile.common.entity.shared.StoredFile;
 import fr.dossierfacile.common.exceptions.FileCannotUploadedException;
 import fr.dossierfacile.common.exceptions.OvhConnectionFailedException;
+import fr.dossierfacile.common.repository.StorageFileRepository;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import io.sentry.Sentry;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +21,7 @@ import org.openstack4j.model.common.Payloads;
 import org.openstack4j.model.storage.object.SwiftObject;
 import org.openstack4j.model.storage.object.options.ObjectListOptions;
 import org.openstack4j.openstack.OSFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Async;
@@ -27,7 +31,6 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.spec.GCMParameterSpec;
-import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -60,6 +63,9 @@ public class OvhFileStorageServiceImpl implements FileStorageService {
     @Value("${ovh.connection.reattempts:3}")
     private Integer ovhConnectionReattempts;
     private String tokenId;
+
+    @Autowired
+    private StorageFileRepository storageFileRepository;
 
     private OSClient.OSClientV3 connect() {
         Identifier domainIdentifier = Identifier.byId(ovhProjectDomain);
@@ -146,8 +152,8 @@ public class OvhFileStorageServiceImpl implements FileStorageService {
     }
 
     @Override
-    public InputStream download(File file) throws IOException {
-        return download(file.getPath(), file.getKey());
+    public InputStream download(StoredFile file) throws IOException {
+        return download(file.getPath(), file.getEncryptionKey());
     }
 
     private List<? extends SwiftObject> getListObject(String folderName) {
@@ -191,13 +197,23 @@ public class OvhFileStorageServiceImpl implements FileStorageService {
     }
 
     @Override
-    public String uploadByteArray(byte[] file, String extension, Key key) {
-        String name = UUID.randomUUID() + "." + Objects.requireNonNull(extension).toLowerCase(Locale.ROOT);
-        try (InputStream targetStream = new ByteArrayInputStream(file)) {
-            upload(name, targetStream, key);
-        } catch (IOException e) {
-            throw new FileCannotUploadedException();
+    public StorageFile upload(InputStream inputStream, StorageFile storageFile) throws IOException {
+        if (inputStream == null)
+            return null;
+        if (storageFile == null) {
+            log.warn("fallback on uploadfile");
+            storageFile = StorageFile.builder()
+                    .name("undefined")
+                    .provider(ObjectStorageProvider.OVH)
+                    .build();
         }
-        return name;
+
+        if (StringUtils.isBlank(storageFile.getPath())) {
+            storageFile.setPath(UUID.randomUUID().toString());
+        }
+        upload(storageFile.getPath(), inputStream, storageFile.getEncryptionKey());
+
+        return storageFileRepository.save(storageFile);
+
     }
 }

@@ -18,6 +18,7 @@ import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.service.interfaces.DocumentHelperService;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
+import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -132,9 +133,6 @@ public class DocumentServiceImpl implements DocumentService {
     @Override
     public void deleteAllDocumentsAssociatedToTenant(Tenant tenant) {
         List<Document> documentList = documentRepository.findAllAssociatedToTenantId(tenant.getId());
-        Optional.ofNullable(documentList)
-                .orElse(new ArrayList<>())
-                .forEach(this::deleteFilesFromStorage);
 
         if (StringUtils.isNotBlank(tenant.getApartmentSharing().getUrlDossierPdfDocument())) {
             try {
@@ -148,28 +146,6 @@ public class DocumentServiceImpl implements DocumentService {
 
         documentRepository.deleteAll(Optional.ofNullable(documentList)
                 .orElse(new ArrayList<>()));
-    }
-
-    private void deleteFilesFromStorage(Document document) {
-        try {
-            List<String> pathFiles = fileRepository.getFilePathsByDocumentId(document.getId());
-            if (pathFiles != null && !pathFiles.isEmpty()) {
-                log.info("Removing files from storage of document with id [" + document.getId() + "]");
-                fileStorageService.delete(pathFiles);
-            }
-            List<String> previews = fileRepository.getFilePreviewsByDocumentId(document.getId());
-            if (previews != null && !previews.isEmpty()) {
-                log.info("Removing files previews from storage of document with id [" + document.getId() + "]");
-                fileStorageService.delete(previews);
-            }
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-        }
-        fileRepository.deleteDocumentFiles(document.getId());
-        if (document.getName() != null && !document.getName().isBlank()) {
-            log.info("Removing document from storage with path [" + document.getName() + "]");
-            fileStorageService.delete(document.getName());
-        }
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)

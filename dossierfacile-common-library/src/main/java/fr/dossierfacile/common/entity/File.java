@@ -1,5 +1,6 @@
 package fr.dossierfacile.common.entity;
 
+import fr.dossierfacile.common.entity.shared.StoredFile;
 import fr.dossierfacile.common.utils.FileUtility;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,15 +11,7 @@ import lombok.ToString;
 import org.hibernate.Hibernate;
 
 import javax.annotation.Nullable;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
+import javax.persistence.*;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
@@ -31,7 +24,7 @@ import java.util.Objects;
 @Setter
 @ToString
 @Builder
-public class File implements Serializable {
+public class File implements StoredFile, Serializable {
 
     @Serial
     private static final long serialVersionUID = -1328132958302637660L;
@@ -50,7 +43,9 @@ public class File implements Serializable {
 
     private int numberOfPages;
 
-    private String preview;
+    @OneToOne(cascade = CascadeType.REMOVE)
+    @JoinColumn(name = "preview_file_id")
+    private StorageFile preview;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "document_id")
@@ -83,8 +78,12 @@ public class File implements Serializable {
     }
 
     public String getComputedContentType() {
-        if (contentType == null)
-            return FileUtility.computeMediaType(this.getPath());
+        if (contentType == null) return FileUtility.computeMediaType(this.getPath());
         return contentType;
+    }
+
+    @Override
+    public EncryptionKey getEncryptionKey() {
+        return getKey();
     }
 }

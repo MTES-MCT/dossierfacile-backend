@@ -1,11 +1,16 @@
 package fr.dossierfacile.common.service;
 
+import fr.dossierfacile.common.entity.ObjectStorageProvider;
+import fr.dossierfacile.common.entity.StorageFile;
+import fr.dossierfacile.common.entity.shared.StoredFile;
 import fr.dossierfacile.common.exceptions.FileCannotUploadedException;
+import fr.dossierfacile.common.repository.StorageFileRepository;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
@@ -15,7 +20,6 @@ import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.GCMParameterSpec;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -41,9 +45,11 @@ import static java.lang.String.format;
 @Profile("mockOvh")
 public class MockStorage implements FileStorageService {
     private final String filePath;
+    private StorageFileRepository storageFileRepository;
 
-    public MockStorage(@Value("${mock.storage.path:./mockstorage/}") String filePath) {
+    public MockStorage(@Value("${mock.storage.path:./mockstorage/}") String filePath, StorageFileRepository storageFileRepository) {
         this.filePath = filePath;
+        this.storageFileRepository = storageFileRepository;
         new File(filePath).mkdirs();
     }
 
@@ -95,15 +101,14 @@ public class MockStorage implements FileStorageService {
     }
 
     @Override
-    public InputStream download(fr.dossierfacile.common.entity.File file) throws IOException {
-        return download(file.getPath(), file.getKey());
+    public InputStream download(StoredFile file) throws IOException {
+        return download(file.getPath(), file.getEncryptionKey());
     }
 
     @Override
     public void upload(String ovhPath, InputStream inputStream, Key key) throws IOException {
         if (key != null) {
             try {
-
                 byte[] iv = DigestUtils.md5(ovhPath);
                 GCMParameterSpec gcmParamSpec = new GCMParameterSpec(128, iv);
                 Cipher aes = Cipher.getInstance("AES/GCM/NoPadding");
@@ -139,14 +144,22 @@ public class MockStorage implements FileStorageService {
     }
 
     @Override
-    public String uploadByteArray(byte[] file, String extension, Key key) {
-        String name = UUID.randomUUID() + "." + Objects.requireNonNull(extension).toLowerCase(Locale.ROOT);
-        try {
-            InputStream targetStream = new ByteArrayInputStream(file);
-            upload(name, targetStream, key);
-        } catch (IOException e) {
-            throw new FileCannotUploadedException();
+    public StorageFile upload(InputStream inputStream, StorageFile storageFile) throws IOException {
+        if (inputStream == null)
+            return null;
+        if (storageFile == null) {
+            log.warn("fallback on uploadfile");
+            storageFile = StorageFile.builder()
+                    .name("undefined")
+                    .provider(ObjectStorageProvider.OVH)
+                    .build();
         }
-        return name;
+
+        if (StringUtils.isBlank(storageFile.getPath())) {
+            storageFile.setPath(UUID.randomUUID().toString());
+        }
+        upload(storageFile.getPath(), inputStream, storageFile.getEncryptionKey());
+
+        return storageFileRepository.save(storageFile);
     }
 }
