@@ -75,7 +75,7 @@ class ApplicationV1Test {
     }
 
     private static Tenant buildTenantWith(Tenant... existingCoTenants) {
-        Tenant tenant = new Tenant();
+        Tenant tenant = Tenant.builder().build();
         ApartmentSharing apartmentSharing = new ApartmentSharing();
         tenant.setApartmentSharing(apartmentSharing);
         apartmentSharing.setTenants(List.of(existingCoTenants));

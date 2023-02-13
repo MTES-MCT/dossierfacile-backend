@@ -74,7 +74,7 @@ class PdfGeneratorServiceImplTest {
     }
 
     private Tenant buildTenant() {
-        Tenant tenant = new Tenant();
+        Tenant tenant = Tenant.builder().build();
         tenant.setId(1L);
         tenant.setFirstName("Dr");
         tenant.setLastName("Who");
