@@ -106,7 +106,7 @@ public class TenantService {
         }
         if (emailDTO.getEmail().contains("@")) {
             tenantList.add(tenantRepository.findByEmail(emailDTO.getEmail()).get());
-            tenantList.add(new Tenant());
+            tenantList.add(Tenant.builder().build());
             return tenantList;
         }
         return searchTenantByName(emailDTO);

@@ -17,7 +17,7 @@ class UserTest {
             "'', '', '', ''",
     })
     void should_return_full_name(String firstName, String lastName, String preferredName, String expectedFullName) {
-        User user = new Tenant();
+        User user = Tenant.builder().build();
         user.setFirstName(firstName);
         user.setLastName(lastName);
         user.setPreferredName(preferredName);
