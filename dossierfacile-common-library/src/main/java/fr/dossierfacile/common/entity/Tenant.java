@@ -9,6 +9,7 @@ import fr.dossierfacile.common.enums.UserType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +33,8 @@ import static fr.dossierfacile.common.enums.DocumentStatus.TO_PROCESS;
 @Getter
 @Setter
 @AllArgsConstructor
-@SuperBuilder
+@NoArgsConstructor
+@SuperBuilder(builderMethodName = "lombokBuilder")
 @Slf4j
 public class Tenant extends User implements Person, Serializable {
 
@@ -57,9 +59,11 @@ public class Tenant extends User implements Person, Serializable {
     @Enumerated(EnumType.STRING)
     private TenantType tenantType;
 
+    @Builder.Default
     @OneToMany(mappedBy = "tenant", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     private List<TenantUserApi> tenantsUserApi = new ArrayList<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "tenant", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     private List<Document> documents = new ArrayList<>();
 
@@ -88,8 +92,10 @@ public class Tenant extends User implements Person, Serializable {
     @Column(name = "allow_check_tax")
     private Boolean allowCheckTax;
 
-    public Tenant() {
-        super(UserType.TENANT);
+    public static TenantBuilder<?, ?> builder() {
+        TenantBuilder<?, ?> tenantBuilder = Tenant.lombokBuilder();
+        tenantBuilder.userType(UserType.TENANT);
+        return tenantBuilder;
     }
 
     public TenantFileStatus getStatus() {

@@ -65,9 +65,11 @@ public abstract class User implements Serializable {
     @Column
     private String password;
 
+    @Builder.Default
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     private Set<UserRole> userRoles = new HashSet<>();
 
+    @Builder.Default
     @Column(name = "creation_date")
     private LocalDateTime creationDateTime = LocalDateTime.now();
 
@@ -76,19 +78,24 @@ public abstract class User implements Serializable {
     @UpdateTimestamp
     private Date updateDateTime;
 
+    @Builder.Default
     @Column(name = "last_login_date")
     private LocalDateTime lastLoginDate = LocalDateTime.now();
 
     /** use Keycloak service */
+    @Builder.Default
     @Deprecated
     @Column(columnDefinition = "boolean default true")
     private boolean enabled = false;
 
+    @Builder.Default
     @OneToMany(mappedBy = "fromUser", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     private Set<Message> sentMessages = new HashSet<>();
+    @Builder.Default
     @OneToMany(mappedBy = "toUser", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     private Set<Message> receivedMessages = new HashSet<>();
 
+    @Builder.Default
     @Column(length = 20, columnDefinition = "varchar(20) default 'local'")
     @Enumerated(EnumType.STRING)
     private AuthProvider provider = AuthProvider.local;

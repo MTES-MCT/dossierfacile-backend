@@ -58,7 +58,7 @@ class ProcessTenantIT {
     }
 
     private Tenant givenTenant(String firstName, String lastName) {
-        Tenant tenant = new Tenant();
+        Tenant tenant = Tenant.builder().build();
         tenant.setFirstName(firstName);
         tenant.setLastName(lastName);
         return tenantRepository.save(tenant);
