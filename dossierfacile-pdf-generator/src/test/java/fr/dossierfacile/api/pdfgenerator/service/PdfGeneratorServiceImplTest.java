@@ -84,6 +84,13 @@ class PdfGeneratorServiceImplTest {
         tenant.setHonorDeclaration(true);
         tenant.setTenantType(TenantType.CREATE);
         tenant.setEmail("dr@tardis.fr");
+        tenant.setClarification("""
+                Bonjour test truc anrs anruiste anruise tanruiset arnusiet arnusi etaurnsiet arnuiset
+                anruise tanruiset anruise tanrusiet anruiset anrusiet anruset nrauist rste aurnsiet anrusiet anrsa ute narusix rauia anuxrisa aurnanruise tanruiset anruise tanrusiet anruiset anrusiet anruset nrauist rste aurnsiet anrusiet anrsa ute narusix rauia anuxrisa aurn
+
+                test smiley \uD83D\uDE08 auie
+                test smiley \uD83D\uDE08 xi
+                """);
 
         List<Document> documents = buildDocuments(tenant);
 

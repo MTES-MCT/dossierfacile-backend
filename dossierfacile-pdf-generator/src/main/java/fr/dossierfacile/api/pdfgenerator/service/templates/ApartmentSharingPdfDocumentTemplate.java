@@ -30,7 +30,6 @@ import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject;
-import org.apache.pdfbox.pdmodel.graphics.image.JPEGFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionGoTo;
@@ -56,7 +55,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -136,6 +134,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
     private static final Resource FONT_SPECTRAL_BOLD = new ClassPathResource("static/fonts/Spectral-Bold.ttf");
     private static final Resource FONT_SPECTRAL_EXTRA_BOLD = new ClassPathResource("static/fonts/Spectral-ExtraBold.ttf");
     private static final Resource FONT_SPECTRAL_ITALIC = new ClassPathResource("static/fonts/Spectral-Italic.ttf");
+    public static final Resource FONT_NOTO = new ClassPathResource("static/fonts/Noto/NotoEmoji-Medium.ttf");
 
     //endregion
     //region First templates
@@ -294,6 +293,8 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
             PDType0Font font3 = PDType0Font.load(doc, FONT_SPECTRAL_EXTRA_BOLD.getInputStream());
 
             PDType0Font font4 = PDType0Font.load(doc, FONT_SPECTRAL_ITALIC.getInputStream());
+
+            PDType0Font font5 = PDType0Font.load(doc, FONT_NOTO.getInputStream());
             //endregion
 
             PDPage pageTemplate = doc.getPage(0);
@@ -341,21 +342,19 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
                 contentStream4.newLine();
                 contentStream4.newLine();
                 contentStream4.newLine();
-
-                bodyText = StringUtils.normalizeSpace(bodyText);
+                contentStream4.endText();
 
                 float marginX = LEFT_MARGIN_FOR_CLARIFICATION_TEXT;
-                Utility.addParagraph(
+                Utility.addText(
                         contentStream4,
                         C_WIDTH_AVAILABLE_AREA_TEMPLATE - 2 * marginX,
                         X_MARGIN_RIGHT_AVAILABLE_AREA_TEMPLATE + marginX,
                         B_HEIGHT_TEMPLATE - Y_MARGIN_TOP_AVAILABLE_AREA_TEMPLATE,
-                        Collections.singletonList(bodyText),
-                        true,
+                        bodyText,
                         font4,
-                        FONT_SIZE_FOR_CLARIFICATION_TEXT
+                        FONT_SIZE_FOR_CLARIFICATION_TEXT,
+                        font5
                 );
-                contentStream4.endText();
                 contentStream4.close();
             }
             //endregion
