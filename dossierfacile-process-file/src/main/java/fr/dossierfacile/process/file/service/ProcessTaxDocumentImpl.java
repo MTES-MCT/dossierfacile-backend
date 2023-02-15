@@ -107,7 +107,7 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
 
         TaxDocument taxDocument = new TaxDocument();
 
-        List<ValidationResult> mfcDocuments = mfcFileValidator.validate(files);
+        List<ValidationResult> mfcDocuments = validateMonFranceConnectFiles(files);
 
         if (!mfcDocuments.isEmpty()) {
             String documentsContentAsString = mfcDocuments.stream()
@@ -124,6 +124,16 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
         taxDocument.setTime(milliseconds);
         taxDocument.setFileExtractionType(TaxFileExtractionType.MON_FRANCE_CONNECT);
         return taxDocument;
+    }
+
+    private List<ValidationResult> validateMonFranceConnectFiles(List<File> files) {
+        return files.stream()
+                .filter(file -> FilenameUtils.getExtension(file.getPath()).equals("pdf"))
+                .map(file -> utility.extractQrCode(file)
+                        .map(qrCode -> mfcFileValidator.validate(file, qrCode)))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toList());
     }
 
     @VisibleForTesting
