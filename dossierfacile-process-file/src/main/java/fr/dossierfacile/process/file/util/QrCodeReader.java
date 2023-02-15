@@ -21,7 +21,7 @@ import java.util.Optional;
 @Slf4j
 public class QrCodeReader {
 
-    public static Optional<String> extractQrContentFrom(InputStream inputStream) {
+    public static Optional<QrCode> extractQrContentFrom(InputStream inputStream) {
         try (PDDocument document = PDDocument.load(inputStream)) {
             if (document.isEncrypted()) {
                 return Optional.empty();
@@ -31,7 +31,7 @@ public class QrCodeReader {
             String qrCodeContent = new QRCodeReader().decode(binaryBitmap).getText();
             log.info("Found QR code on document (content: {})", qrCodeContent);
 
-            return Optional.ofNullable(qrCodeContent);
+            return Optional.ofNullable(qrCodeContent).map(QrCode::new);
         } catch (NotFoundException e) {
             log.info("No QR code found on document");
         } catch (IOException | ChecksumException | FormatException e) {

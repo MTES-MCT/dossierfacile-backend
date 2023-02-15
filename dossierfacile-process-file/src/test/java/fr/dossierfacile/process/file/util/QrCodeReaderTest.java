@@ -19,15 +19,15 @@ class QrCodeReaderTest {
     })
     void should_read_qr_code_on_pdf_file(String fileName, String expectedDocumentId) {
         InputStream pdfInputStream = getAsStream(fileName);
-        Optional<String> qrCodeContent = QrCodeReader.extractQrContentFrom(pdfInputStream);
+        Optional<QrCode> optionalQrCode = QrCodeReader.extractQrContentFrom(pdfInputStream);
 
-        assertThat(qrCodeContent).isPresent()
-                .hasValueSatisfying(expectedDocumentId::contains);
+        assertThat(optionalQrCode).isPresent()
+                .hasValueSatisfying(qrCode -> assertThat(qrCode.getContent()).contains(expectedDocumentId));
     }
 
     @Test
     void should_return_empty_if_no_qr_code_found() {
-        Optional<String> result = QrCodeReader.extractQrContentFrom(getAsStream("blank-document.pdf"));
+        Optional<QrCode> result = QrCodeReader.extractQrContentFrom(getAsStream("blank-document.pdf"));
         assertThat(result).isEmpty();
     }
 

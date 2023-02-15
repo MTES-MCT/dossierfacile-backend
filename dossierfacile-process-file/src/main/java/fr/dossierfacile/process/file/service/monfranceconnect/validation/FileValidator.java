@@ -1,9 +1,10 @@
-package fr.dossierfacile.process.file.service.monfranceconnect;
+package fr.dossierfacile.process.file.service.monfranceconnect.validation;
 
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.process.file.service.interfaces.ApiTesseract;
 import fr.dossierfacile.process.file.service.monfranceconnect.client.DocumentVerifiedContent;
 import fr.dossierfacile.process.file.service.monfranceconnect.client.MonFranceConnectClient;
+import fr.dossierfacile.process.file.util.QrCode;
 import fr.dossierfacile.process.file.util.Utility;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,13 +18,13 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @AllArgsConstructor
-public class MonFranceConnectDocumentValidator {
+public class FileValidator {
 
     private final MonFranceConnectClient mfcClient;
     private final Utility utility;
     private final ApiTesseract apiTesseract;
 
-    public List<MonFranceConnectDocument> validate(List<File> files) {
+    public List<ValidationResult> validate(List<File> files) {
         return files.stream()
                 .filter(file -> FilenameUtils.getExtension(file.getPath()).equals("pdf"))
                 .map(this::validateDocumentIfMonFranceConnect)
@@ -32,16 +33,16 @@ public class MonFranceConnectDocumentValidator {
                 .collect(Collectors.toList());
     }
 
-    private Optional<MonFranceConnectDocument> validateDocumentIfMonFranceConnect(File file) {
-        return utility.extractQRCodeInfo(file)
-                .flatMap(qrCodeUrl -> mfcClient.fetchDocumentContent(qrCodeUrl)
-                        .map(content -> buildDocument(file, content)));
+    private Optional<ValidationResult> validateDocumentIfMonFranceConnect(File file) {
+        return utility.extractQrCode(file)
+                .flatMap(qrCode -> mfcClient.fetchDocumentContent(qrCode)
+                        .map(content -> buildResult(file, content, qrCode)));
     }
 
-    private MonFranceConnectDocument buildDocument(File file, DocumentVerifiedContent content) {
+    private ValidationResult buildResult(File file, DocumentVerifiedContent content, QrCode qrCode) {
         boolean isDocumentValid = isActualContentMatchingWithVerifiedContent(file, content);
         log.info("MFC document with ID {} is {}matching with data from API", file.getId(), isDocumentValid ? "" : "NOT ");
-        return new MonFranceConnectDocument(file, content, isDocumentValid);
+        return new ValidationResult(file, content, qrCode, isDocumentValid);
     }
 
     private boolean isActualContentMatchingWithVerifiedContent(File pdf, DocumentVerifiedContent verifiedContent) {

@@ -12,8 +12,8 @@ import fr.dossierfacile.process.file.model.TwoDDoc;
 import fr.dossierfacile.process.file.service.interfaces.ApiParticulier;
 import fr.dossierfacile.process.file.service.interfaces.ApiTesseract;
 import fr.dossierfacile.process.file.service.interfaces.ProcessTaxDocument;
-import fr.dossierfacile.process.file.service.monfranceconnect.MonFranceConnectDocument;
-import fr.dossierfacile.process.file.service.monfranceconnect.MonFranceConnectDocumentValidator;
+import fr.dossierfacile.process.file.service.monfranceconnect.validation.ValidationResult;
+import fr.dossierfacile.process.file.service.monfranceconnect.validation.FileValidator;
 import fr.dossierfacile.process.file.util.Utility;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,7 +40,7 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
     private final ApiParticulier apiParticulier;
     private final Utility utility;
     private final ApiTesseract apiTesseract;
-    private final MonFranceConnectDocumentValidator mfcDocumentValidator;
+    private final FileValidator mfcFileValidator;
 
     @Value("${feature.toggle.new.api}")
     private boolean newApi;
@@ -107,15 +107,15 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
 
         TaxDocument taxDocument = new TaxDocument();
 
-        List<MonFranceConnectDocument> mfcDocuments = mfcDocumentValidator.validate(files);
+        List<ValidationResult> mfcDocuments = mfcFileValidator.validate(files);
 
         if (!mfcDocuments.isEmpty()) {
             String documentsContentAsString = mfcDocuments.stream()
-                    .map(MonFranceConnectDocument::getContentAsString)
+                    .map(ValidationResult::getContentAsString)
                     .collect(Collectors.joining(", "));
             taxDocument.setQrContent(documentsContentAsString);
 
-            boolean isValid = mfcDocuments.stream().allMatch(MonFranceConnectDocument::isValid);
+            boolean isValid = mfcDocuments.stream().allMatch(ValidationResult::isValid);
             taxDocument.setTaxContentValid(isValid);
         }
 
