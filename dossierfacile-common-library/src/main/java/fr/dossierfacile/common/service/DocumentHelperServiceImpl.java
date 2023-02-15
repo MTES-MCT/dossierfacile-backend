@@ -14,6 +14,9 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
@@ -33,6 +36,7 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
     private final SharedFileRepository fileRepository;
     private final EncryptionKeyService encryptionKeyService;
 
+    @Transactional(propagation = Propagation.SUPPORTS)
     @Override
     public File addFile(MultipartFile multipartFile, Document document) {
         EncryptionKey encryptionKey = encryptionKeyService.getCurrentKey();
@@ -49,7 +53,9 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
                 .numberOfPages(FileUtility.countNumberOfPagesOfPdfDocument(multipartFile))
                 .build();
         file = fileRepository.save(file);
-        document.getFiles().add(file);
+        if (!document.getFiles().contains(file)){
+            document.getFiles().add(file);
+        }
         return file;
     }
 
