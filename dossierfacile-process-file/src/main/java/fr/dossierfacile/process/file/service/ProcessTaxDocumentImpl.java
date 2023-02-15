@@ -101,6 +101,11 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
                 taxProcessResult.getFileExtractionType() == TaxFileExtractionType.FRANCE_CONNECT;
     }
 
+    @Deprecated
+    /**
+     * TODO remove when {@link fr.dossierfacile.process.file.service.monfranceconnect.validation.ValidationResult}
+     * content is displayed in the BO for MFC documents
+     */
     private TaxDocument processTaxDocumentFromMonFranceConnect(List<File> files) {
         long time = System.currentTimeMillis();
         log.info("Extracting QR content from tax document");

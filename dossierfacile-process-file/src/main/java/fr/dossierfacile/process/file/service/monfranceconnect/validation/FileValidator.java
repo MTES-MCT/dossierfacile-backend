@@ -1,6 +1,7 @@
 package fr.dossierfacile.process.file.service.monfranceconnect.validation;
 
 import fr.dossierfacile.common.entity.File;
+import fr.dossierfacile.common.enums.MonFranceConnectValidationStatus;
 import fr.dossierfacile.process.file.service.interfaces.ApiTesseract;
 import fr.dossierfacile.process.file.service.monfranceconnect.client.DocumentVerifiedContent;
 import fr.dossierfacile.process.file.service.monfranceconnect.client.MonFranceConnectClient;
@@ -28,7 +29,8 @@ public class FileValidator {
     private ValidationResult buildResult(File file, QrCode qrCode, DocumentVerifiedContent content) {
         boolean isDocumentValid = isActualContentMatchingWithVerifiedContent(file, content);
         log.info("MFC document with ID {} is {}matching with data from API", file.getId(), isDocumentValid ? "" : "NOT ");
-        return new ValidationResult(file, content, qrCode, ValidationStatus.of(isDocumentValid));
+        var status = MonFranceConnectValidationStatus.of(isDocumentValid);
+        return new ValidationResult(file, content, qrCode, status);
     }
 
     private boolean isActualContentMatchingWithVerifiedContent(File pdf, DocumentVerifiedContent verifiedContent) {
