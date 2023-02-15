@@ -9,6 +9,7 @@ import fr.dossierfacile.process.file.repository.TenantRepository;
 import fr.dossierfacile.process.file.service.interfaces.DocumentService;
 import fr.dossierfacile.process.file.service.interfaces.ProcessTaxDocument;
 import fr.dossierfacile.process.file.service.interfaces.ProcessTenant;
+import fr.dossierfacile.process.file.service.monfranceconnect.MonFranceConnectDocumentsProcessor;
 import fr.dossierfacile.process.file.util.Documents;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,12 +30,21 @@ public class ProcessTenantImpl implements ProcessTenant {
     private final TenantRepository tenantRepository;
     private final ProcessTaxDocument processTaxDocument;
     private final DocumentService documentService;
+    private final MonFranceConnectDocumentsProcessor monFranceConnectDocumentsProcessor;
 
     @Override
     public void process(Long tenantId) {
         tenantRepository.findByIdAndFirstNameIsNotNullAndLastNameIsNotNull(tenantId)
                 .filter(tenant -> isNotBlank(tenant.getFirstName()) && isNotBlank(tenant.getLastName()))
-                .ifPresent(this::processTaxDocument);
+                .ifPresent(tenant -> {
+                    processMonFranceConnectDocuments(tenant);
+                    processTaxDocument(tenant);
+                });
+    }
+
+    private void processMonFranceConnectDocuments(Tenant tenant) {
+        Documents documents = Documents.ofTenantAndGuarantors(tenant);
+        monFranceConnectDocumentsProcessor.process(documents);
     }
 
     private void processTaxDocument(Tenant tenant) {
