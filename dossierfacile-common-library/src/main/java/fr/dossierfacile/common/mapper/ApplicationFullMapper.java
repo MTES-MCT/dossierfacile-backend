@@ -1,6 +1,7 @@
 package fr.dossierfacile.common.mapper;
 
 import fr.dossierfacile.common.entity.ApartmentSharing;
+import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.BeforeMapping;
@@ -25,7 +26,9 @@ public abstract class ApplicationFullMapper {
 
     @BeforeMapping
     void enrichModelWithDossierPdfUrl(ApartmentSharing apartmentSharing, @MappingTarget ApplicationModel.ApplicationModelBuilder applicationModelBuilder) {
-        applicationModelBuilder.dossierPdfUrl(domain + "/api/application/fullPdf/" + apartmentSharing.getToken());
+        if (apartmentSharing.getStatus() == TenantFileStatus.VALIDATED) {
+            applicationModelBuilder.dossierPdfUrl(domain + "/api/application/fullPdf/" + apartmentSharing.getToken());
+        }
     }
 
     @AfterMapping

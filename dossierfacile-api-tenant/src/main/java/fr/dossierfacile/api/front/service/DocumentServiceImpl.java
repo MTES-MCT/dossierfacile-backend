@@ -8,6 +8,7 @@ import fr.dossierfacile.api.front.repository.FileRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
+import fr.dossierfacile.api.front.util.TransactionalUtil;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Person;
@@ -21,9 +22,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -168,9 +170,10 @@ public class DocumentServiceImpl implements DocumentService {
         }
     }
 
+    @Transactional(propagation = Propagation.SUPPORTS)
     @Override
     public void addFile(MultipartFile multipartFile, Document document) {
         File file = documentHelperService.addFile(multipartFile, document);
-        minifyFileProducer.minifyFile(file.getId());
+        TransactionalUtil.afterCommit(() -> minifyFileProducer.minifyFile(file.getId()));
     }
 }
