@@ -3,7 +3,7 @@ package fr.dossierfacile.common.repository;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.TenantFileStatus;
-import org.apache.commons.lang3.function.Failable;
+import fr.dossierfacile.common.model.TenantUpdate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -200,4 +200,15 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
     List<Tenant> findByEmailInAndApartmentSharingNot(List<String> coTenantEmail, ApartmentSharing apartmentSharing);
 
     Tenant findByKeycloakId(String keycloakId);
+
+    @Query(value = """
+            SELECT t.id as id, t.last_update_date as lastUpdateDate  
+            FROM  tenant t
+            INNER JOIN tenant_userapi tua ON tua.tenant_id = t.id  
+            where t.last_update_date > :lastUpdateStart 
+            AND tua.userapi_id = :partnerId 
+            ORDER BY t.last_update_date
+            """, nativeQuery = true
+            )
+    List<TenantUpdate> findTenantUpdateByLastUpdateAndPartner(@Param("lastUpdateStart") LocalDateTime lastUpdateStart, @Param("partnerId") Long partnerId);
 }

@@ -31,6 +31,7 @@ import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.enums.TenantType;
+import fr.dossierfacile.common.model.TenantUpdate;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import io.sentry.Sentry;
@@ -42,6 +43,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -215,6 +217,12 @@ public class TenantServiceImpl implements TenantService {
 
         logService.saveLog(LogType.ACCOUNT_CREATED, tenant.getId());
         return tenantRepository.save(tenant);
+    }
+
+    @Override
+    public List<TenantUpdate> findTenantUpdateByLastUpdateAndPartner(LocalDateTime updateDateTime, UserApi partner) {
+        List<TenantUpdate> list = tenantRepository.findTenantUpdateByLastUpdateAndPartner(updateDateTime, partner.getId());
+        return list;
     }
 
 }
