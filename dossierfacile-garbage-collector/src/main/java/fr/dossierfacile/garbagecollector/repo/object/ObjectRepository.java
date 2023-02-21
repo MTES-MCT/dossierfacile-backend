@@ -12,6 +12,9 @@ public interface ObjectRepository extends DataTablesRepository<Object, Long> {
 
     Object findObjectByPath(String path);
 
+    @Query(value = "SELECT * FROM object where object.path in (:paths)", nativeQuery = true)
+    List<Object> findObjectsByPaths(List<String> paths);
+
     void deleteByPath(String path);
 
     long countByToDeleteIsTrue();

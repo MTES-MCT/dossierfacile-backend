@@ -29,6 +29,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -88,7 +89,8 @@ public class DocumentServiceImpl implements DocumentService {
         }
 
         fileStorageService.delete(document.getFiles().stream().map(File::getPath).collect(Collectors.toList()));
-        ownerOfDocument.getDocuments().removeIf(d -> d.getId() == document.getId());
+        fileStorageService.delete(document.getName());
+        ownerOfDocument.getDocuments().removeIf(d -> Objects.equals(d.getId(), document.getId()));
         documentRepository.delete(document);
         tenantStatusService.updateTenantStatus(tenantOfDocument);
         apartmentSharingService.resetDossierPdfGenerated(tenantOfDocument.getApartmentSharing());
@@ -149,11 +151,21 @@ public class DocumentServiceImpl implements DocumentService {
     }
 
     private void deleteFilesFromStorage(Document document) {
-        List<String> pathFiles = fileRepository.getFilePathsByDocumentId(document.getId());
-        if (pathFiles != null && !pathFiles.isEmpty()) {
-            log.info("Removing files from storage of document with id [" + document.getId() + "]");
-            fileStorageService.delete(pathFiles);
+        try {
+            List<String> pathFiles = fileRepository.getFilePathsByDocumentId(document.getId());
+            if (pathFiles != null && !pathFiles.isEmpty()) {
+                log.info("Removing files from storage of document with id [" + document.getId() + "]");
+                fileStorageService.delete(pathFiles);
+            }
+            List<String> previews = fileRepository.getFilePreviewsByDocumentId(document.getId());
+            if (previews != null && !previews.isEmpty()) {
+                log.info("Removing files previews from storage of document with id [" + document.getId() + "]");
+                fileStorageService.delete(previews);
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
         }
+        fileRepository.deleteDocumentFiles(document.getId());
         if (document.getName() != null && !document.getName().isBlank()) {
             log.info("Removing document from storage with path [" + document.getName() + "]");
             fileStorageService.delete(document.getName());

@@ -3,6 +3,7 @@ package fr.dossierfacile.api.front.service;
 import fr.dossierfacile.api.front.repository.ConfirmationTokenRepository;
 import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.api.front.service.interfaces.ScheduledTasksService;
+import fr.dossierfacile.api.front.service.interfaces.StatsService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.ApplicationType;
@@ -29,6 +30,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
     private final TenantService tenantService;
     private final ConfirmationTokenRepository confirmationTokenRepository;
     private final MailService mailService;
+    private final StatsService statsService;
     @Value("${days_for_email_account_validation_reminder}")
     private Long daysForEmailAccountValidationReminder;
     @Value("${days_for_account_completion_reminder}")
@@ -183,5 +185,10 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
             Pageable page = PageRequest.of(i, lengthOfPage, Sort.Direction.DESC, "id");
             tenantService.processWarningsBatch(localDateTime, warnings, page);
         }
+    }
+
+    @Scheduled(cron = "0 0 5 * * *")
+    public void updateStats() {
+        statsService.updateStats();
     }
 }

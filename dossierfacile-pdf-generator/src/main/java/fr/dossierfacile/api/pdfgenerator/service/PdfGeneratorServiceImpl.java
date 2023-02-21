@@ -35,7 +35,11 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.rmi.UnexpectedException;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static fr.dossierfacile.common.enums.DocumentCategory.IDENTIFICATION;
