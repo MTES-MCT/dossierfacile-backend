@@ -4,7 +4,7 @@ import fr.dossierfacile.garbagecollector.model.object.Object;
 import java.util.List;
 
 public interface ObjectTransactions {
-    void saveObjectIfNotYetSaved(String nameFile);
+    void saveObject(String nameFile);
     void deleteAllObjects();
     void deleteListObjects(List<Object> objectList);
     void deleteObjectsMayorThan(String path);
