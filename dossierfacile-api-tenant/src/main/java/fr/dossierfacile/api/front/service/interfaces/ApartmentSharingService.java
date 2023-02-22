@@ -4,6 +4,7 @@ import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Optional;
 
 public interface ApartmentSharingService {
 
@@ -16,4 +17,6 @@ public interface ApartmentSharingService {
     void resetDossierPdfGenerated(ApartmentSharing apartmentSharing);
 
     void createFullPdf(String token);
+
+    Optional<ApartmentSharing> findById(Long apartmentSharingId);
 }
