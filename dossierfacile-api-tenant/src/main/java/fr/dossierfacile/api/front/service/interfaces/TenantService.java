@@ -35,5 +35,5 @@ public interface TenantService {
 
     Tenant registerFromKeycloakUser(KeycloakUser kcUser, String partner);
 
-    List<TenantUpdate> findTenantUpdateByLastUpdateAndPartner(LocalDateTime updateDateTime, UserApi partner);
+    List<TenantUpdate> findTenantUpdateByLastUpdateIntervalAndPartner(LocalDateTime updateDateTimeSince, LocalDateTime updateDateTimeTo, UserApi partner);
 }

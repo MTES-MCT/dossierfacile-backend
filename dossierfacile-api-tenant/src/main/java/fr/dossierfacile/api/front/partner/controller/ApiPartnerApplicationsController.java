@@ -27,7 +27,7 @@ import static org.springframework.http.ResponseEntity.status;
 
 @RestController
 @AllArgsConstructor
-@RequestMapping("/api-partner/applications")
+@RequestMapping("/api-partner/apartmentSharing")
 @Validated
 @MethodLog
 public class ApiPartnerApplicationsController {
@@ -37,7 +37,7 @@ public class ApiPartnerApplicationsController {
 
     private final ApplicationFullMapper applicationFullMapper;
 
-    @GetMapping(value = "{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ApplicationModel> getApartmentSharing(@PathVariable("id") Long apartmentSharingId) {
 
         Optional<UserApi> userApi = this.userApiService.findByName(authenticationFacade.getKeycloakClientId());
