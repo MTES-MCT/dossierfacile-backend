@@ -34,6 +34,6 @@ public class TenantModel {
     private List<String> allInternalPartnerId;
     private Boolean allowCheckTax;
     @JsonSerialize(using = LocalDateTimeSerializer.class)
-    @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ss")
+    @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ss.SSSSSS")
     private LocalDateTime lastUpdateDate;
 }
