@@ -202,7 +202,7 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
     Tenant findByKeycloakId(String keycloakId);
 
     @Query(value = """
-            SELECT t.id as id, t.last_update_date as lastUpdateDate  
+            SELECT t.id as id, t.apartment_sharing_id as apartmentSharingId, t.last_update_date as lastUpdateDate 
             FROM  tenant t
             INNER JOIN tenant_userapi tua ON tua.tenant_id = t.id  
             where t.last_update_date > :lastUpdateStart 
