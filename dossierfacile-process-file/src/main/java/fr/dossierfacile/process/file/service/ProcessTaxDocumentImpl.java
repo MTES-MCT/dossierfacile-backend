@@ -12,8 +12,6 @@ import fr.dossierfacile.process.file.model.TwoDDoc;
 import fr.dossierfacile.process.file.service.interfaces.ApiParticulier;
 import fr.dossierfacile.process.file.service.interfaces.ApiTesseract;
 import fr.dossierfacile.process.file.service.interfaces.ProcessTaxDocument;
-import fr.dossierfacile.process.file.service.monfranceconnect.validation.ValidationResult;
-import fr.dossierfacile.process.file.service.monfranceconnect.validation.FileValidator;
 import fr.dossierfacile.process.file.util.Utility;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,7 +38,6 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
     private final ApiParticulier apiParticulier;
     private final Utility utility;
     private final ApiTesseract apiTesseract;
-    private final FileValidator mfcFileValidator;
 
     @Value("${feature.toggle.new.api}")
     private boolean newApi;
@@ -49,12 +46,9 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
     public TaxDocument process(Document document, Guarantor guarantor) {
         log.info("Starting with process of guarantor tax document");
         List<File> files = Optional.ofNullable(document.getFiles()).orElse(new ArrayList<>());
-        TaxDocument taxDocument = processTaxDocumentFromMonFranceConnect(files);
 
-        if (taxDocument.getQrContent() == null) {
-            taxDocument = processTaxDocumentWith2DCode(files, guarantor.getLastName(), guarantor.getFirstName(),
-                    Utility.normalize(guarantor.getFirstName()), Utility.normalize(guarantor.getLastName()));
-        }
+        TaxDocument taxDocument = processTaxDocumentWith2DCode(files, guarantor.getLastName(), guarantor.getFirstName(),
+                Utility.normalize(guarantor.getFirstName()), Utility.normalize(guarantor.getLastName()));
 
         if (taxDocument.getQrContent() == null) {
             taxDocument = processTaxDocumentWithOCR(files, guarantor.getLastName(), guarantor.getFirstName(),
@@ -79,12 +73,9 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
 
         log.info("Starting with process of tax document");
         List<File> files = document.getFiles();
-        TaxDocument taxDocument = processTaxDocumentFromMonFranceConnect(files);
 
-        if (taxDocument.getQrContent() == null) {
-            taxDocument = processTaxDocumentWith2DCode(files, tenant.getLastName(), tenant.getFirstName(),
-                    Utility.normalize(tenant.getFirstName()), Utility.normalize(tenant.getLastName()));
-        }
+        TaxDocument taxDocument = processTaxDocumentWith2DCode(files, tenant.getLastName(), tenant.getFirstName(),
+                Utility.normalize(tenant.getFirstName()), Utility.normalize(tenant.getLastName()));
 
         if (taxDocument.getQrContent() == null) {
             taxDocument = processTaxDocumentWithOCR(files, tenant.getLastName(), tenant.getFirstName(),
@@ -99,46 +90,6 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
         TaxDocument taxProcessResult = document.getTaxProcessResult();
         return taxProcessResult != null &&
                 taxProcessResult.getFileExtractionType() == TaxFileExtractionType.FRANCE_CONNECT;
-    }
-
-    @Deprecated
-    /**
-     * TODO remove when {@link fr.dossierfacile.process.file.service.monfranceconnect.validation.ValidationResult}
-     * content is displayed in the BO for MFC documents
-     */
-    private TaxDocument processTaxDocumentFromMonFranceConnect(List<File> files) {
-        long time = System.currentTimeMillis();
-        log.info("Extracting QR content from tax document");
-
-        TaxDocument taxDocument = new TaxDocument();
-
-        List<ValidationResult> mfcDocuments = validateMonFranceConnectFiles(files);
-
-        if (!mfcDocuments.isEmpty()) {
-            String documentsContentAsString = mfcDocuments.stream()
-                    .map(ValidationResult::getContentAsString)
-                    .collect(Collectors.joining(", "));
-            taxDocument.setQrContent(documentsContentAsString);
-
-            boolean isValid = mfcDocuments.stream().allMatch(ValidationResult::isValid);
-            taxDocument.setTaxContentValid(isValid);
-        }
-
-        long milliseconds = System.currentTimeMillis() - time;
-        log.info("Finishing with extraction of QR content of document in {} ms", milliseconds);
-        taxDocument.setTime(milliseconds);
-        taxDocument.setFileExtractionType(TaxFileExtractionType.MON_FRANCE_CONNECT);
-        return taxDocument;
-    }
-
-    private List<ValidationResult> validateMonFranceConnectFiles(List<File> files) {
-        return files.stream()
-                .filter(file -> FilenameUtils.getExtension(file.getPath()).equals("pdf"))
-                .map(file -> utility.extractQrCode(file)
-                        .map(qrCode -> mfcFileValidator.validate(file, qrCode)))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .collect(Collectors.toList());
     }
 
     @VisibleForTesting

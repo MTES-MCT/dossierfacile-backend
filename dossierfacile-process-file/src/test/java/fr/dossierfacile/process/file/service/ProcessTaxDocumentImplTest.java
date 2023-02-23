@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ExtendWith(MockitoExtension.class)
 class ProcessTaxDocumentImplTest {
 
-    private final ProcessTaxDocument processTaxDocument = new ProcessTaxDocumentImpl(null, null, null, null);
+    private final ProcessTaxDocument processTaxDocument = new ProcessTaxDocumentImpl(null, null, null);
 
     @Test
     void test1() {
