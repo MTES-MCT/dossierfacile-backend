@@ -67,13 +67,18 @@ public class MockStorage implements FileStorageService {
     }
 
     @Override
-    public void delete(List<String> name) {
-        name.forEach(this::delete);
+    public void delete(StorageFile storageFile) {
+        delete(storageFile.getPath());
     }
 
     @Override
-    public void deleteAllFiles(String path) {
-        throw new UnsupportedOperationException("deleteAllFiles");
+    public void deleteAll(List<StorageFile> storageFiles) {
+        storageFiles.forEach(this::delete);
+    }
+
+    @Override
+    public void delete(List<String> name) {
+        name.forEach(this::delete);
     }
 
     @Override
@@ -98,6 +103,11 @@ public class MockStorage implements FileStorageService {
             }
         }
         return in;
+    }
+
+    @Override
+    public InputStream download(StorageFile storageFile) throws IOException {
+        return download(storageFile.getPath(), storageFile.getEncryptionKey());
     }
 
     @Override

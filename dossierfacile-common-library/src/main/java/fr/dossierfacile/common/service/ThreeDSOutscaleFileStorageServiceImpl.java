@@ -41,7 +41,7 @@ import java.util.UUID;
 
 @Service
 @Slf4j
-public class OvhFileStorageServiceImpl implements StorageProviderService {
+public class ThreeDSOutscaleFileStorageServiceImpl implements StorageProviderService {
     private static final String EXCEPTION = "Sentry ID Exception: ";
 
     @Value("${ovh.project.domain:default}")
@@ -150,10 +150,10 @@ public class OvhFileStorageServiceImpl implements StorageProviderService {
     }
 
     @Override
-    public void upload(String ovhPath, InputStream inputStream, Key key) throws IOException {
+    public void upload(String name, InputStream inputStream, Key key) throws IOException {
         if (key != null) {
             try {
-                byte[] iv = DigestUtils.md5(ovhPath);
+                byte[] iv = DigestUtils.md5(name);
                 GCMParameterSpec gcmParamSpec = new GCMParameterSpec(128, iv);
                 Cipher aes = Cipher.getInstance("AES/GCM/NoPadding");
                 aes.init(Cipher.ENCRYPT_MODE, key, gcmParamSpec);
@@ -165,9 +165,9 @@ public class OvhFileStorageServiceImpl implements StorageProviderService {
                 throw new IOException(e);
             }
         }
-        String eTag = connect().objectStorage().objects().put(ovhContainerName, ovhPath, Payloads.create(inputStream));
+        String eTag = connect().objectStorage().objects().put(ovhContainerName, name, Payloads.create(inputStream));
         if (StringUtils.isEmpty(eTag)) {
-            throw new IOException("ETag is empty - download failed!" + ovhPath);
+            throw new IOException("ETag is empty - download failed!" + name);
         }
     }
 
@@ -190,7 +190,7 @@ public class OvhFileStorageServiceImpl implements StorageProviderService {
             log.warn("fallback on uploadfile");
             storageFile = StorageFile.builder()
                     .name("undefined")
-                    .provider(ObjectStorageProvider.OVH)
+                    .provider(ObjectStorageProvider.THREEDS_OUTSCALE)
                     .build();
         }
 

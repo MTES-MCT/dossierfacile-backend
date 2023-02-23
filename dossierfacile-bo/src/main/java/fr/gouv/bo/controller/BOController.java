@@ -344,7 +344,7 @@ public class BOController {
         if (result.hasErrors()) {
             return "bo/deleteFile";
         }
-        fileStorageService.deleteAllFiles(fileForm.getPath());
+//        fileStorageService.deleteAllFiles(fileForm.getPath());
         return "redirect:/bo/deleteFile";
     }
 
