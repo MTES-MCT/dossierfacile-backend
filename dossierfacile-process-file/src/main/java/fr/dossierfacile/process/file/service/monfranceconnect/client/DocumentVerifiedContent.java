@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class DocumentVerifiedContent {
 
+    private static final String UNKNOWN_ERROR_RESPONSE = "Cette URL n'est pas valide pour Mon FranceConnect";
     private static final String COMMA = ",";
 
     private final List<String> elements;
@@ -45,6 +46,10 @@ public class DocumentVerifiedContent {
             }
         }
         return true;
+    }
+
+    public boolean isDocumentUnknown() {
+        return elements.get(0).contains(UNKNOWN_ERROR_RESPONSE);
     }
 
 }

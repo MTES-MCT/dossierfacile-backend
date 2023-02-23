@@ -11,6 +11,9 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import static fr.dossierfacile.common.enums.MonFranceConnectValidationStatus.UNKNOWN_DOCUMENT;
+import static fr.dossierfacile.common.enums.MonFranceConnectValidationStatus.of;
+
 @Slf4j
 @Service
 @AllArgsConstructor
@@ -27,9 +30,12 @@ public class FileValidator {
     }
 
     private ValidationResult buildResult(File file, QrCode qrCode, DocumentVerifiedContent content) {
+        if (content.isDocumentUnknown()) {
+            return new ValidationResult(file, content, qrCode, UNKNOWN_DOCUMENT);
+        }
         boolean isDocumentValid = isActualContentMatchingWithVerifiedContent(file, content);
         log.info("MFC document with ID {} is {}matching with data from API", file.getId(), isDocumentValid ? "" : "NOT ");
-        var status = MonFranceConnectValidationStatus.of(isDocumentValid);
+        MonFranceConnectValidationStatus status = of(isDocumentValid);
         return new ValidationResult(file, content, qrCode, status);
     }
 
