@@ -109,8 +109,25 @@
                                 <h4 th:if="${messageItem.taxDocument}!=null">Type de vérification :
                                     <span th:text="${messageItem.taxDocument.fileExtractionType}"></span>
                                 </h4>
+
+                                <div th:if="${messageItem.monFranceConnectAnalysis.isNotEmpty()}"
+                                     th:with="results=${messageItem.monFranceConnectAnalysis.results}">
+                                    <h4>Justificatifs MonFranceConnect :</h4>
+                                    <ul>
+                                        <li th:each="entry : ${results}"
+                                            th:with="result=${entry.value},isValid=${result.validationStatus.name() == 'VALID'}">
+                                            <span th:text="'Fichier n°' + ${entry.key} + ' :'"></span>
+                                            <span class="fa" th:classappend="${isValid ? 'fa-check text-success' : 'fa-times text-danger'}"
+                                                  th:text="${result.validationStatus}"></span>
+                                            <br/>
+                                            <span class="small" th:if="${!isValid}"
+                                                  th:text="'Devrait contenir : ' + ${result.apiResponse}"></span>
+                                        </li>
+                                    </ul>
+                                </div>
+
                                 <div class="table-responsive"
-                                     th:if="${messageItem.taxDocument}!=null and ${messageItem.taxDocument.qrContent}==null">
+                                     th:if="${messageItem.taxDocument}!=null and ${messageItem.taxDocument.qrContent}==null and ${messageItem.monFranceConnectAnalysis.isEmpty()}">
                                     <table class="table table-striped table-bordered table-hover"
                                            style="border: 1px solid gray;">
                                         <thead>
@@ -293,8 +310,25 @@
                                         <input th:field="*{guarantorItems[__${k.index}__].guarantorId}"
                                                th:value="${guarantorItem.getGuarantorId()}" type="hidden"/>
                                     </div>
+
+                                    <div th:if="${messageItem.monFranceConnectAnalysis.isNotEmpty()}"
+                                         th:with="results=${messageItem.monFranceConnectAnalysis.results}">
+                                        <h4>Justificatifs MonFranceConnect :</h4>
+                                        <ul>
+                                            <li th:each="entry : ${results}"
+                                                th:with="result=${entry.value},isValid=${result.validationStatus.name() == 'VALID'}">
+                                                <span th:text="'Fichier n°' + ${entry.key} + ' :'"></span>
+                                                <span class="fa" th:classappend="${isValid ? 'fa-check text-success' : 'fa-times text-danger'}"
+                                                      th:text="${result.validationStatus}"></span>
+                                                <br/>
+                                                <span class="small" th:if="${!isValid}"
+                                                      th:text="'Devrait contenir : ' + ${result.apiResponse}"></span>
+                                            </li>
+                                        </ul>
+                                    </div>
+
                                     <div class="table-responsive"
-                                         th:if="${messageItem.taxDocument}!=null and ${messageItem.taxDocument.qrContent}==null">
+                                         th:if="${messageItem.taxDocument}!=null and ${messageItem.taxDocument.qrContent}==null and ${messageItem.monFranceConnectAnalysis.isEmpty()}">
                                         <table class="table table-striped table-bordered table-hover"
                                                style="border: 1px solid gray;">
                                             <thead>

@@ -66,7 +66,7 @@ public class File implements Serializable {
     private EncryptionKey key;
 
     @Nullable
-    @OneToOne(mappedBy = "file")
+    @OneToOne(mappedBy = "file", fetch = FetchType.LAZY)
     private MonFranceConnectValidationResult mfcValidationResult;
 
     @Override
