@@ -1,9 +1,9 @@
 package fr.dossierfacile.process.file.service.monfranceconnect.validation;
 
 import fr.dossierfacile.common.entity.File;
+import fr.dossierfacile.common.entity.MonFranceConnectValidationResult;
 import fr.dossierfacile.common.enums.MonFranceConnectValidationStatus;
 import fr.dossierfacile.process.file.service.monfranceconnect.client.DocumentVerifiedContent;
-import fr.dossierfacile.common.entity.MonFranceConnectValidationResult;
 import fr.dossierfacile.process.file.util.QrCode;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,7 +11,7 @@ import lombok.ToString;
 
 import java.util.Optional;
 
-import static fr.dossierfacile.common.enums.MonFranceConnectValidationStatus.*;
+import static fr.dossierfacile.common.enums.MonFranceConnectValidationStatus.API_ERROR;
 
 @Getter
 @ToString
@@ -25,14 +25,6 @@ public class ValidationResult {
 
     static ValidationResult error(File file, QrCode qrCode) {
         return new ValidationResult(file, null, qrCode, API_ERROR);
-    }
-
-    public String getContentAsString() {
-        return content.getElements().toString();
-    }
-
-    public boolean isValid() {
-        return validationStatus == VALID;
     }
 
     public MonFranceConnectValidationResult toEntity() {
