@@ -1,5 +1,6 @@
 package fr.dossierfacile.process.file.service.monfranceconnect.client;
 
+import fr.dossierfacile.process.file.util.QrCode;
 import lombok.Builder;
 import org.apache.http.NameValuePair;
 import org.springframework.http.HttpEntity;
@@ -19,8 +20,9 @@ public class DocumentVerificationRequest {
     private final String documentId;
     private final String documentData;
 
-    static DocumentVerificationRequest forQrCodeContent(String url) {
-        List<NameValuePair> params = parse(URI.create(url), StandardCharsets.UTF_8);
+    static DocumentVerificationRequest forDocumentWith(QrCode qrCode) {
+        URI uri = URI.create(qrCode.getContent());
+        List<NameValuePair> params = parse(uri, StandardCharsets.UTF_8);
         DocumentVerificationRequestBuilder builder = DocumentVerificationRequest.builder();
         for (NameValuePair param : params) {
             switch (param.getName()) {

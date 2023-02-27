@@ -30,4 +30,6 @@ public class MessageItem {
     private String documentName;
     @Builder.Default
     private List<File> files = new ArrayList<>();
+    private MonFranceConnectAnalysis monFranceConnectAnalysis;
+
 }

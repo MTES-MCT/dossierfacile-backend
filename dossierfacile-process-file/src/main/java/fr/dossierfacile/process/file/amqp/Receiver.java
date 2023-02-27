@@ -21,7 +21,6 @@ public class Receiver {
     @RabbitListener(queues = "${rabbitmq.queue.file.process.tax}", containerFactory = "retryContainerFactory")
     public void processFileTax(String message) {
         try {
-            log.info("Receive process file");
             TenantModel tenantModel = gson.fromJson(message, TenantModel.class);
             log.info("Tenant ID received [" + tenantModel.getId() + "]");
             processTenant.process(tenantModel.getId());

@@ -1,0 +1,19 @@
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+    <changeSet id="202302160000" author="juliette">
+        <sql>
+            CREATE TABLE public.monfranceconnect_validation_result
+            (
+                id                bigserial    NOT NULL,
+                file_id           bigint       NOT NULL,
+                qr_code_content   varchar(510) NOT NULL,
+                api_response      jsonb,
+                validation_status varchar(255),
+                CONSTRAINT monfranceconnect_validation_result_pkey PRIMARY KEY (id),
+                CONSTRAINT monfranceconnect_validation_result_fkey FOREIGN KEY (file_id) REFERENCES file (id) ON DELETE CASCADE
+            );
+        </sql>
+    </changeSet>
+</databaseChangeLog>

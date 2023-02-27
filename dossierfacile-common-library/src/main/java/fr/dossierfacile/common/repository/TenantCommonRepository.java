@@ -197,18 +197,20 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
     void resetWarnings(@Param("tenantId") Long tenantId);
 
     List<Tenant> findAllByApartmentSharing(ApartmentSharing apartmentSharing);
+
     List<Tenant> findByEmailInAndApartmentSharingNot(List<String> coTenantEmail, ApartmentSharing apartmentSharing);
 
     Tenant findByKeycloakId(String keycloakId);
 
     @Query(value = """
-            SELECT t.id as id, t.last_update_date as lastUpdateDate  
+            SELECT t.id as id, t.apartment_sharing_id as apartmentSharingId, t.last_update_date as lastUpdateDate 
             FROM  tenant t
             INNER JOIN tenant_userapi tua ON tua.tenant_id = t.id  
-            where t.last_update_date > :lastUpdateStart 
+            WHERE t.last_update_date >= :lastUpdateSince
+            AND t.last_update_date < :lastUpdateBefore 
             AND tua.userapi_id = :partnerId 
             ORDER BY t.last_update_date
             """, nativeQuery = true
-            )
-    List<TenantUpdate> findTenantUpdateByLastUpdateAndPartner(@Param("lastUpdateStart") LocalDateTime lastUpdateStart, @Param("partnerId") Long partnerId);
+    )
+    List<TenantUpdate> findTenantUpdateByLastUpdateIntervalAndPartner(@Param("lastUpdateSince") LocalDateTime lastUpdateSince, @Param("lastUpdateBefore") LocalDateTime lastUpdateBefore, @Param("partnerId") Long partnerId);
 }

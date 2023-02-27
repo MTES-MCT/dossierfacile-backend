@@ -9,6 +9,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.Hibernate;
 
+import javax.annotation.Nullable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -17,6 +18,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
@@ -62,6 +64,10 @@ public class File implements Serializable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "encryption_key_id", nullable = true)
     private EncryptionKey key;
+
+    @Nullable
+    @OneToOne(mappedBy = "file", fetch = FetchType.LAZY)
+    private MonFranceConnectValidationResult mfcValidationResult;
 
     @Override
     public boolean equals(Object o) {

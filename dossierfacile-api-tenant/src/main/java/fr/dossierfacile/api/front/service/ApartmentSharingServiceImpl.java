@@ -27,6 +27,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.UnknownServiceException;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -111,6 +112,11 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
             apartmentSharing.setDossierPdfDocumentStatus(FileStatus.DELETED);
             apartmentSharingRepository.save(apartmentSharing);
         }
+    }
+
+    @Override
+    public Optional<ApartmentSharing> findById(Long apartmentSharingId){
+        return apartmentSharingRepository.findById(apartmentSharingId);
     }
 
     private void saveLinkLog(ApartmentSharing apartmentSharing, String token, LinkType linkType) {

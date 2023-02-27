@@ -143,7 +143,7 @@ public class Utility {
         return pdfFileInText;
     }
 
-    public Optional<String> extractQRCodeInfo(File dfFile) {
+    public Optional<QrCode> extractQrCode(File dfFile) {
         try (InputStream inputStream = fileStorageService.download(dfFile)) {
             return QrCodeReader.extractQrContentFrom(inputStream);
         } catch (IOException e) {

@@ -21,6 +21,7 @@ import fr.gouv.bo.dto.GuarantorItem;
 import fr.gouv.bo.dto.ItemDetail;
 import fr.gouv.bo.dto.MessageDTO;
 import fr.gouv.bo.dto.MessageItem;
+import fr.gouv.bo.dto.MonFranceConnectAnalysis;
 import fr.gouv.bo.dto.PartnerDTO;
 import fr.gouv.bo.service.ApartmentSharingService;
 import fr.gouv.bo.service.DocumentService;
@@ -30,14 +31,6 @@ import fr.gouv.bo.service.TenantService;
 import fr.gouv.bo.service.TenantUserApiService;
 import fr.gouv.bo.service.UserApiService;
 import fr.gouv.bo.service.UserService;
-
-import java.io.IOException;
-import java.security.Principal;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.ObjectNotFoundException;
@@ -49,6 +42,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+
+import java.io.IOException;
+import java.security.Principal;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 import static org.springframework.http.ResponseEntity.ok;
 
@@ -263,6 +263,7 @@ public class BOTenantController {
                         .documentId(document.getId())
                         .documentName(document.getName())
                         .files(document.getDocumentCategory() == DocumentCategory.IDENTIFICATION ? document.getFiles() : Collections.emptyList())
+                        .monFranceConnectAnalysis(MonFranceConnectAnalysis.of(document.getFiles()))
                         .build());
             }
         }
@@ -289,6 +290,7 @@ public class BOTenantController {
                             .itemDetailList(getItemDetailForSubcategoryOfDocument(document.getDocumentSubCategory(), GUARANTOR))
                             .documentId(document.getId())
                             .documentName(document.getName())
+                            .monFranceConnectAnalysis(MonFranceConnectAnalysis.of(document.getFiles()))
                             .build());
                 }
             }
