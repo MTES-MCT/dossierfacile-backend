@@ -30,20 +30,19 @@ public interface FileStorageService {
      */
     InputStream download(StoredFile file) throws IOException;
 
-    void upload(String ovhPath, InputStream inputStream, Key key) throws IOException;
-
-
-    StorageFile upload(InputStream inputStream, StorageFile storageFile) throws IOException;
-    String uploadFile(MultipartFile file, Key key);
-
     /*
      * Use Storagefile to have the provider
      */
     @Deprecated
     InputStream download(String filepath, Key key) throws IOException;
+
+    StorageFile upload(InputStream inputStream, StorageFile storageFile) throws IOException;
+
+    String uploadFile(MultipartFile file, Key key);
     @Deprecated
     void delete(String filename);
     @Deprecated
     void delete(List<String> filenames);
 
+    void upload(String name, InputStream inputStream, Key key, String contentType) throws IOException;
 }

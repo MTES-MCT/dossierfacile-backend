@@ -3,7 +3,6 @@ package fr.dossierfacile.common.service;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.EncryptionKey;
 import fr.dossierfacile.common.entity.File;
-import fr.dossierfacile.common.entity.ObjectStorageProvider;
 import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.repository.SharedFileRepository;
 import fr.dossierfacile.common.service.interfaces.DocumentHelperService;
@@ -21,7 +20,6 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
@@ -31,6 +29,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -58,7 +57,7 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
                 .numberOfPages(FileUtility.countNumberOfPagesOfPdfDocument(multipartFile))
                 .build();
         file = fileRepository.save(file);
-        if (!document.getFiles().contains(file)){
+        if (!document.getFiles().contains(file)) {
             document.getFiles().add(file);
         }
         return file;
@@ -98,12 +97,11 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
 
             StorageFile storageFile = StorageFile.builder()
                     .name(originalName)
+                    .path("minified_" + UUID.randomUUID() + ".jpg")
                     .contentType(MediaType.IMAGE_JPEG_VALUE)
-                    .provider(ObjectStorageProvider.OVH)
                     .encryptionKey(encryptionKeyService.getCurrentKey())
                     .build();
 
-            // TODO - Next step use Factory for having multiple storage services
             // storageFile StorageFactory.getStorageService().upload(compressImage, storageFile);
             try (InputStream is = new ByteArrayInputStream(baos.toByteArray())) {
                 return fileStorageService.upload(is, storageFile);

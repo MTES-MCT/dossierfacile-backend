@@ -92,13 +92,8 @@ public class MockStorage implements FileStorageService {
                 aes.init(Cipher.DECRYPT_MODE, key, gcmParamSpec);
 
                 in = new CipherInputStream(in, aes);
-            } catch (NoSuchPaddingException e) {
-                throw new IOException(e);
-            } catch (NoSuchAlgorithmException e) {
-                throw new IOException(e);
-            } catch (InvalidKeyException e) {
-                throw new IOException(e);
-            } catch (InvalidAlgorithmParameterException e) {
+            } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException |
+                     InvalidAlgorithmParameterException e) {
                 throw new IOException(e);
             }
         }
@@ -116,7 +111,7 @@ public class MockStorage implements FileStorageService {
     }
 
     @Override
-    public void upload(String ovhPath, InputStream inputStream, Key key) throws IOException {
+    public void upload(String ovhPath, InputStream inputStream, Key key, String contentType) throws IOException {
         if (key != null) {
             try {
                 byte[] iv = DigestUtils.md5(ovhPath);
@@ -146,7 +141,7 @@ public class MockStorage implements FileStorageService {
     public String uploadFile(MultipartFile file, Key key) {
         String name = UUID.randomUUID() + "." + Objects.requireNonNull(FilenameUtils.getExtension(file.getOriginalFilename())).toLowerCase(Locale.ROOT);
         try {
-            upload(name, file.getInputStream(), key);
+            upload(name, file.getInputStream(), key, file.getContentType());
         } catch (IOException e) {
             throw new FileCannotUploadedException();
         }
@@ -168,7 +163,7 @@ public class MockStorage implements FileStorageService {
         if (StringUtils.isBlank(storageFile.getPath())) {
             storageFile.setPath(UUID.randomUUID().toString());
         }
-        upload(storageFile.getPath(), inputStream, storageFile.getEncryptionKey());
+        upload(storageFile.getPath(), inputStream, storageFile.getEncryptionKey(), storageFile.getContentType());
 
         return storageFileRepository.save(storageFile);
     }

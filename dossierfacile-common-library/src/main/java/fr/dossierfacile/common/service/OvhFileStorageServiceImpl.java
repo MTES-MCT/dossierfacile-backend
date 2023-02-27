@@ -7,7 +7,7 @@ import fr.dossierfacile.common.entity.shared.StoredFile;
 import fr.dossierfacile.common.exceptions.FileCannotUploadedException;
 import fr.dossierfacile.common.exceptions.OvhConnectionFailedException;
 import fr.dossierfacile.common.repository.StorageFileRepository;
-import fr.dossierfacile.common.service.interfaces.StorageProviderService;
+import fr.dossierfacile.common.service.interfaces.OvhFileStorageService;
 import io.sentry.Sentry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -41,7 +41,7 @@ import java.util.UUID;
 
 @Service
 @Slf4j
-public class OvhFileStorageServiceImpl implements StorageProviderService {
+public class OvhFileStorageServiceImpl implements OvhFileStorageService {
     private static final String EXCEPTION = "Sentry ID Exception: ";
 
     @Value("${ovh.project.domain:default}")
@@ -150,7 +150,7 @@ public class OvhFileStorageServiceImpl implements StorageProviderService {
     }
 
     @Override
-    public void upload(String ovhPath, InputStream inputStream, Key key) throws IOException {
+    public void upload(String ovhPath, InputStream inputStream, Key key, String contentType) throws IOException {
         if (key != null) {
             try {
                 byte[] iv = DigestUtils.md5(ovhPath);
@@ -175,7 +175,7 @@ public class OvhFileStorageServiceImpl implements StorageProviderService {
     public String uploadFile(MultipartFile file, Key key) {
         String name = UUID.randomUUID() + "." + Objects.requireNonNull(FilenameUtils.getExtension(file.getOriginalFilename())).toLowerCase(Locale.ROOT);
         try (InputStream is = file.getInputStream()) {
-            upload(name, is, key);
+            upload(name, is, key, null);
         } catch (IOException e) {
             throw new FileCannotUploadedException();
         }
@@ -197,7 +197,7 @@ public class OvhFileStorageServiceImpl implements StorageProviderService {
         if (StringUtils.isBlank(storageFile.getPath())) {
             storageFile.setPath(UUID.randomUUID().toString());
         }
-        upload(storageFile.getPath(), inputStream, storageFile.getEncryptionKey());
+        upload(storageFile.getPath(), inputStream, storageFile.getEncryptionKey(), null);
 
         return storageFileRepository.save(storageFile);
 

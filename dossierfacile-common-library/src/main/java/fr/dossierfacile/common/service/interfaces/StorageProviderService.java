@@ -21,9 +21,8 @@ public interface StorageProviderService {
 
     InputStream download(StoredFile file) throws IOException;
 
-    void upload(String ovhPath, InputStream inputStream, Key key) throws IOException;
-
     String uploadFile(MultipartFile file, Key key);
 
     StorageFile upload(InputStream inputStream, StorageFile storageFile) throws IOException;
+     void upload(String ovhPath, InputStream inputStream, Key key, String contentType) throws IOException;
 }

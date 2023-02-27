@@ -6,10 +6,15 @@ import fr.dossierfacile.common.entity.shared.StoredFile;
 import fr.dossierfacile.common.exceptions.FileCannotUploadedException;
 import fr.dossierfacile.common.repository.StorageFileRepository;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
+import fr.dossierfacile.common.service.interfaces.OvhFileStorageService;
+import fr.dossierfacile.common.service.interfaces.ThreeDSOutscaleFileStorageService;
+import io.sentry.Sentry;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -25,17 +30,21 @@ import java.util.Objects;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 @Slf4j
 @Profile("!mockOvh")
-public class GenericFileStorageServiceImpl implements FileStorageService {
+public class FileStorageServiceImpl implements FileStorageService {
     private static final String EXCEPTION = "Sentry ID Exception: ";
-    private String tokenId;
-
-    private OvhFileStorageServiceImpl ovhFileStorageService;
-    private ThreeDSOutscaleFileStorageServiceImpl threeDSOutscaleFileStorageService;
+    @Autowired
+    private OvhFileStorageService ovhFileStorageService;
+    @Autowired
+    private ThreeDSOutscaleFileStorageService threeDSOutscaleFileStorageService;
 
     @Autowired
     private StorageFileRepository storageFileRepository;
+
+    @Value("#{'${storage.provider.list}'.split(',')}")
+    private List<ObjectStorageProvider> providers;
 
     @Override
     @Async
@@ -50,14 +59,11 @@ public class GenericFileStorageServiceImpl implements FileStorageService {
     @Override
     @Async
     public void delete(StorageFile storageFile) {
-        if (ObjectStorageProvider.OVH.equals(storageFile.getProvider())) {
-            ovhFileStorageService.delete(storageFile.getPath());
-            return;
-        } else if (ObjectStorageProvider.THREEDS_OUTSCALE.equals(storageFile.getProvider())) {
-            threeDSOutscaleFileStorageService.delete(storageFile.getPath());
-            return;
+        switch (storageFile.getProvider()) {
+            case OVH -> ovhFileStorageService.delete(storageFile.getPath());
+            case THREEDS_OUTSCALE -> threeDSOutscaleFileStorageService.delete(storageFile.getPath());
+            default -> throw new ProviderNotFoundException();
         }
-        throw new ProviderNotFoundException();
     }
 
     @Override
@@ -74,39 +80,40 @@ public class GenericFileStorageServiceImpl implements FileStorageService {
 
     @Override
     public InputStream download(StorageFile storageFile) throws IOException {
-        if (ObjectStorageProvider.OVH.equals(storageFile.getProvider())) {
-            return ovhFileStorageService.download(storageFile.getPath(), storageFile.getEncryptionKey());
-        } else if (ObjectStorageProvider.THREEDS_OUTSCALE.equals(storageFile.getProvider())) {
-            return threeDSOutscaleFileStorageService.download(storageFile.getPath(), storageFile.getEncryptionKey());
+        InputStream in;
+        switch (storageFile.getProvider()) {
+            case OVH -> in = ovhFileStorageService.download(storageFile.getPath(), storageFile.getEncryptionKey());
+            case THREEDS_OUTSCALE ->
+                    in = threeDSOutscaleFileStorageService.download(storageFile.getPath(), storageFile.getEncryptionKey());
+            default -> throw new ProviderNotFoundException();
         }
-        throw new ProviderNotFoundException();
+        return in;
     }
 
     @Override
+    @Deprecated
     public InputStream download(String path, Key key) throws IOException {
         return ovhFileStorageService.download(path, key);
     }
 
+    /**
+     * @deprecated use upload with StorageFile to handle multiple storage service
+     */
+    @Deprecated
     @Override
     public InputStream download(StoredFile file) throws IOException {
         return download(file.getPath(), file.getEncryptionKey());
     }
 
-    @Override
-    public void upload(String name, InputStream inputStream, Key key) throws IOException {
-        // Default to 3DS Outscale but fallback to ovh
-        try {
-            threeDSOutscaleFileStorageService.upload(name, inputStream, key);
-        } catch (Exception e) {
-            ovhFileStorageService.upload(name, inputStream, key);
-        }
-    }
-
+    /**
+     * @deprecated use upload with StorageFile to handle multiple storage service
+     */
+    @Deprecated
     @Override
     public String uploadFile(MultipartFile file, Key key) {
         String name = UUID.randomUUID() + "." + Objects.requireNonNull(FilenameUtils.getExtension(file.getOriginalFilename())).toLowerCase(Locale.ROOT);
         try (InputStream is = file.getInputStream()) {
-            upload(name, is, key);
+            ovhFileStorageService.upload(name, is, key, file.getContentType());
         } catch (IOException e) {
             throw new FileCannotUploadedException();
         }
@@ -114,23 +121,49 @@ public class GenericFileStorageServiceImpl implements FileStorageService {
     }
 
     @Override
-    public StorageFile upload(InputStream inputStream, StorageFile storageFile) throws IOException {
+    public StorageFile upload(InputStream inputStream, StorageFile storageFile) {
         if (inputStream == null)
             return null;
         if (storageFile == null) {
             log.warn("fallback on uploadfile");
             storageFile = StorageFile.builder()
                     .name("undefined")
-                    .provider(ObjectStorageProvider.OVH)
                     .build();
         }
 
         if (StringUtils.isBlank(storageFile.getPath())) {
             storageFile.setPath(UUID.randomUUID().toString());
         }
-        upload(storageFile.getPath(), inputStream, storageFile.getEncryptionKey());
+
+        for (ObjectStorageProvider provider : providers) {
+            try {
+                switch (provider) {
+                    case OVH ->
+                            ovhFileStorageService.upload(storageFile.getPath(), inputStream, storageFile.getEncryptionKey(), storageFile.getContentType());
+                    case THREEDS_OUTSCALE ->
+                            threeDSOutscaleFileStorageService.upload(storageFile.getPath(), inputStream, storageFile.getEncryptionKey(), storageFile.getContentType());
+                    default -> throw new ProviderNotFoundException();
+                }
+                storageFile.setProvider(provider);
+                break;
+            } catch (Exception e) {
+                log.error("Unable to save to provider : " + provider, e);
+                Sentry.captureException(e);
+            }
+        }
 
         return storageFileRepository.save(storageFile);
 
     }
+
+    @Override
+    public void upload(String name, InputStream inputStream, Key key, String contentType) throws IOException {
+        try {
+            ovhFileStorageService.upload(name, inputStream, key, contentType);
+        } catch (Exception e) {
+            log.error("Unable to save to provider : OVH", e);
+            Sentry.captureException(e);
+        }
+    }
+
 }
