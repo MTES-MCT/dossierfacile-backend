@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+
+    <changeSet id="202303010000-01" author="fabien (manual)">
+        <sql>
+            <![CDATA[
+            UPDATE tenant
+            SET last_update_date = (SELECT creation_date
+                FROM  user_account
+                WHERE tenant.id = user_account.id AND tenant.last_update_date is NULL)
+            WHERE tenant.last_update_date is NULL;
+          ]]>
+        </sql>
+    </changeSet>
+</databaseChangeLog>
