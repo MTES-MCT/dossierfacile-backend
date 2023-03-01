@@ -3,9 +3,15 @@ package fr.dossierfacile.common.entity.shared;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.domain.Auditable;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.lang.Nullable;
 
+import javax.persistence.EntityListeners;
 import javax.persistence.MappedSuperclass;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -20,16 +26,21 @@ import java.util.Optional;
 @AllArgsConstructor
 @NoArgsConstructor
 @SuperBuilder
+@EntityListeners(AuditingEntityListener.class)
 public abstract class AbstractAuditable<U extends Serializable, ID> implements Auditable<U, ID, LocalDateTime> {
     @Nullable
+    @CreatedBy
     private U createdBy;
     @Temporal(TemporalType.TIMESTAMP)
     @Nullable
+    @CreatedDate
     private Date createdDate;
     @Nullable
+    @LastModifiedBy
     private U lastModifiedBy;
     @Temporal(TemporalType.TIMESTAMP)
     @Nullable
+    @LastModifiedDate
     private Date lastModifiedDate;
 
     public Optional<U> getCreatedBy() {
