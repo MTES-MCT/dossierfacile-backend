@@ -16,6 +16,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -54,12 +55,15 @@ public class ApiPartnerTenantController {
         }
         return ok(tenantService.findTenantUpdateByLastUpdateIntervalAndPartner(lastUpdateSince, lastUpdateBefore, userApi.get()));
     }
+
+    @PreAuthorize("clientCanAccess(#tenantId)")
     @GetMapping(value = {"/{tenantId}/profile"}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TenantModel> profile(@PathVariable Long tenantId) {
         Tenant tenant = authenticationFacade.getTenant(tenantId);
         return ok(tenantMapper.toTenantModel(tenant));
     }
 
+    @PreAuthorize("clientCanAccess(#tenantId)")
     @PostMapping(value = "/{tenantId}/subscribe/{token}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> subscribeTenant(@PathVariable("token") String propertyToken,
                                                 @Validated @RequestBody SubscriptionApartmentSharingOfTenantForm subscriptionApartmentSharingOfTenantForm,
@@ -69,6 +73,7 @@ public class ApiPartnerTenantController {
         return ok().build();
     }
 
+    @PreAuthorize("clientCanAccess(#tenantId)")
     @DeleteMapping("/{tenantId}/deleteCoTenant/{id}")
     public ResponseEntity<Void> deleteCoTenant(@PathVariable Long id, @PathVariable Long tenantId) {
         Tenant tenant = authenticationFacade.getTenant(tenantId);
