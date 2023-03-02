@@ -1,40 +1,35 @@
 package fr.dossierfacile.api.front.security;
 
-import fr.dossierfacile.api.front.service.interfaces.TenantService;
-import fr.dossierfacile.common.entity.ApartmentSharing;
-import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.api.front.service.interfaces.TenantPermissionsService;
 import org.springframework.security.access.expression.SecurityExpressionRoot;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionOperations;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 
-import java.util.function.Predicate;
-
 public class CustomMethodSecurityExpressionRoot extends SecurityExpressionRoot implements MethodSecurityExpressionOperations {
-    TenantService tenantService;
+    TenantPermissionsService tenantPermissionsService;
 
-    public CustomMethodSecurityExpressionRoot(Authentication authentication, TenantService tenantService) {
+    public CustomMethodSecurityExpressionRoot(Authentication authentication, TenantPermissionsService tenantPermissionsService) {
         super(authentication);
-        this.tenantService = tenantService;
+        this.tenantPermissionsService = tenantPermissionsService;
     }
 
     private String getKeycloakId() {
         return ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getSubject();
     }
 
+    private String getKeycloakClientId() {
+        return ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClaimAsString("azp");
+    }
+
     public boolean hasPermissionOnTenant(Long tenantId) {
-        Tenant tenant = tenantService.findByKeycloakId(getKeycloakId());
-        TenantPermissions permissions = new TenantPermissions(tenant);
-        return permissions.canAccess(tenantId);
+        return tenantPermissionsService.canAccess(getKeycloakId(), tenantId);
     }
 
-    public void setTenantService(TenantService tenantService) {
-        this.tenantService = tenantService;
-    }
-    @Override
-    public void setFilterObject(Object o) {
 
+    public boolean clientHasPermissionOnTenant(Long tenantId) {
+        return tenantPermissionsService.clientCanAccess(getKeycloakClientId(), tenantId);
     }
 
     @Override
@@ -43,13 +38,18 @@ public class CustomMethodSecurityExpressionRoot extends SecurityExpressionRoot i
     }
 
     @Override
-    public void setReturnObject(Object o) {
+    public void setFilterObject(Object o) {
 
     }
 
     @Override
     public Object getReturnObject() {
         return null;
+    }
+
+    @Override
+    public void setReturnObject(Object o) {
+
     }
 
     @Override

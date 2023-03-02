@@ -1,6 +1,6 @@
 package fr.dossierfacile.api.front.security;
 
-import fr.dossierfacile.api.front.service.interfaces.TenantService;
+import fr.dossierfacile.api.front.service.interfaces.TenantPermissionsService;
 import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
@@ -10,17 +10,17 @@ import org.springframework.security.authentication.AuthenticationTrustResolverIm
 import org.springframework.security.core.Authentication;
 
 public class CustomMethodSecurityExpressionHandler
-  extends DefaultMethodSecurityExpressionHandler {
+        extends DefaultMethodSecurityExpressionHandler {
 
     private ApplicationContext applicationContext;
-    private AuthenticationTrustResolver trustResolver =
-      new AuthenticationTrustResolverImpl();
+    private final AuthenticationTrustResolver trustResolver =
+            new AuthenticationTrustResolverImpl();
 
     @Override
     protected MethodSecurityExpressionOperations createSecurityExpressionRoot(
             Authentication authentication, MethodInvocation invocation) {
-        CustomMethodSecurityExpressionRoot root = 
-          new CustomMethodSecurityExpressionRoot(authentication,applicationContext.getBean(TenantService.class));
+        CustomMethodSecurityExpressionRoot root =
+                new CustomMethodSecurityExpressionRoot(authentication, applicationContext.getBean(TenantPermissionsService.class));
         root.setPermissionEvaluator(getPermissionEvaluator());
         root.setTrustResolver(this.trustResolver);
         root.setRoleHierarchy(getRoleHierarchy());
@@ -28,7 +28,7 @@ public class CustomMethodSecurityExpressionHandler
     }
 
     @Override
-    public void setApplicationContext(ApplicationContext applicationContext){
+    public void setApplicationContext(ApplicationContext applicationContext) {
         super.setApplicationContext(applicationContext);
         this.applicationContext = applicationContext;
     }
