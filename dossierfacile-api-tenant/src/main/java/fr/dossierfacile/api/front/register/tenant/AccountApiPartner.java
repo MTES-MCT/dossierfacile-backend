@@ -6,19 +6,19 @@ import fr.dossierfacile.api.front.register.SaveStep;
 import fr.dossierfacile.api.front.register.form.partner.AccountPartnerForm;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.MailService;
-import fr.dossierfacile.api.front.service.interfaces.SourceService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
+import fr.dossierfacile.api.front.service.interfaces.UserApiService;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
-import java.time.LocalDateTime;
-import java.util.Optional;
-
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -29,7 +29,7 @@ public class AccountApiPartner implements SaveStep<AccountPartnerForm> {
     private final TenantService tenantService;
     private final TenantMapper tenantMapper;
     private final AuthenticationFacade authenticationFacade;
-    private final SourceService sourceService;
+    private final UserApiService userApiService;
     private final PartnerCallBackService partnerCallBackService;
     private final MailService mailService;
 
@@ -37,7 +37,7 @@ public class AccountApiPartner implements SaveStep<AccountPartnerForm> {
     public TenantModel saveStep(Tenant t, AccountPartnerForm accountForm) {
         String email = accountForm.getEmail().toLowerCase();
         Tenant tenant = findOrCreateTenant(email);
-        Optional<UserApi> userApi = this.sourceService.findByName(authenticationFacade.getKeycloakClientId());
+        Optional<UserApi> userApi = userApiService.findByName(authenticationFacade.getKeycloakClientId());
         partnerCallBackService.registerTenant(accountForm.getInternalPartnerId(), tenant, userApi.get());
 
         mailService.sendEmailWelcomeForPartnerUser(tenant, userApi.get());

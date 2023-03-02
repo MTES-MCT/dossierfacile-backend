@@ -11,15 +11,7 @@ import fr.dossierfacile.api.front.register.form.partner.EmailExistsForm;
 import fr.dossierfacile.api.front.repository.ApartmentSharingRepository;
 import fr.dossierfacile.api.front.repository.ConfirmationTokenRepository;
 import fr.dossierfacile.api.front.repository.PropertyApartmentSharingRepository;
-import fr.dossierfacile.api.front.service.interfaces.ConfirmationTokenService;
-import fr.dossierfacile.api.front.service.interfaces.DocumentService;
-import fr.dossierfacile.api.front.service.interfaces.GuarantorService;
-import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
-import fr.dossierfacile.api.front.service.interfaces.LogService;
-import fr.dossierfacile.api.front.service.interfaces.MailService;
-import fr.dossierfacile.api.front.service.interfaces.PropertyService;
-import fr.dossierfacile.api.front.service.interfaces.SourceService;
-import fr.dossierfacile.api.front.service.interfaces.TenantService;
+import fr.dossierfacile.api.front.service.interfaces.*;
 import fr.dossierfacile.api.front.util.Obfuscator;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.ConfirmationToken;
@@ -63,7 +55,7 @@ public class TenantServiceImpl implements TenantService {
     private final RegisterFactory registerFactory;
     private final TenantCommonRepository tenantRepository;
     private final KeycloakService keycloakService;
-    private final SourceService sourceService;
+    private final UserApiService userApiService;
 
     @Override
     public <T> TenantModel saveStepRegister(Tenant tenant, T formStep, StepRegister step) {
@@ -208,7 +200,7 @@ public class TenantServiceImpl implements TenantService {
             keycloakService.disableAccount(kcUser.getKeycloakId());
             mailService.sendEmailConfirmAccount(tenant, confirmationTokenService.createToken(tenant));
         }
-        Optional<UserApi> userApi = sourceService.findByName(partner);
+        Optional<UserApi> userApi = userApiService.findByName(partner);
         if (userApi.isPresent()) {
             partnerCallBackService.registerTenant(null, tenant, userApi.get());
         }
