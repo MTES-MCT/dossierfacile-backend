@@ -7,7 +7,7 @@ import fr.dossierfacile.common.entity.shared.StoredFile;
 import fr.dossierfacile.common.exceptions.FileCannotUploadedException;
 import fr.dossierfacile.common.exceptions.OvhConnectionFailedException;
 import fr.dossierfacile.common.repository.StorageFileRepository;
-import fr.dossierfacile.common.service.interfaces.FileStorageService;
+import fr.dossierfacile.common.service.interfaces.OvhFileStorageService;
 import io.sentry.Sentry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -23,7 +23,6 @@ import org.openstack4j.model.storage.object.options.ObjectListOptions;
 import org.openstack4j.openstack.OSFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -42,8 +41,7 @@ import java.util.UUID;
 
 @Service
 @Slf4j
-@Profile("!mockOvh")
-public class OvhFileStorageServiceImpl implements FileStorageService {
+public class OvhFileStorageServiceImpl implements OvhFileStorageService {
     private static final String EXCEPTION = "Sentry ID Exception: ";
 
     @Value("${ovh.project.domain:default}")
@@ -113,18 +111,6 @@ public class OvhFileStorageServiceImpl implements FileStorageService {
     }
 
     @Override
-    public void deleteAllFiles(String path) {
-        if (!path.contains("/")) {
-            List<? extends SwiftObject> swiftObjects = getListObject(path);
-            for (SwiftObject swiftObject : swiftObjects) {
-                delete(swiftObject.getName());
-            }
-        } else {
-            delete(path);
-        }
-    }
-
-    @Override
     public InputStream download(String path, Key key) throws IOException {
         SwiftObject object = connect().objectStorage().objects().get(ovhContainerName, path);
         if (object == null)
@@ -164,7 +150,7 @@ public class OvhFileStorageServiceImpl implements FileStorageService {
     }
 
     @Override
-    public void upload(String ovhPath, InputStream inputStream, Key key) throws IOException {
+    public void upload(String ovhPath, InputStream inputStream, Key key, String contentType) throws IOException {
         if (key != null) {
             try {
                 byte[] iv = DigestUtils.md5(ovhPath);
@@ -189,7 +175,7 @@ public class OvhFileStorageServiceImpl implements FileStorageService {
     public String uploadFile(MultipartFile file, Key key) {
         String name = UUID.randomUUID() + "." + Objects.requireNonNull(FilenameUtils.getExtension(file.getOriginalFilename())).toLowerCase(Locale.ROOT);
         try (InputStream is = file.getInputStream()) {
-            upload(name, is, key);
+            upload(name, is, key, null);
         } catch (IOException e) {
             throw new FileCannotUploadedException();
         }
@@ -211,7 +197,7 @@ public class OvhFileStorageServiceImpl implements FileStorageService {
         if (StringUtils.isBlank(storageFile.getPath())) {
             storageFile.setPath(UUID.randomUUID().toString());
         }
-        upload(storageFile.getPath(), inputStream, storageFile.getEncryptionKey());
+        upload(storageFile.getPath(), inputStream, storageFile.getEncryptionKey(), null);
 
         return storageFileRepository.save(storageFile);
 

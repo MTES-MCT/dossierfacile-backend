@@ -10,22 +10,19 @@ import java.security.Key;
 import java.util.List;
 
 public interface FileStorageService {
-    void delete(String filename);
+    void delete(StorageFile storageFile);
 
-    void delete(List<String> filenames);
-
-    void deleteAllFiles(String path);
+    void deleteAll(List<StorageFile> storageFiles);
 
     /**
      * Get the downloaded file's inputStream.
      * If {@code key} is null then the inputStream is directly returned without decrypt operation.
      *
-     * @param filepath path in the used storage
-     * @param key      Encryption key - can be {@code null}
+     * @param storageFile StorageFile (path and key) in the used storage
      * @return Encoded (or clear) inputStream
      * @throws IOException If something wrong happen during the download process.
      */
-    InputStream download(String filepath, Key key) throws IOException;
+    InputStream download(StorageFile storageFile) throws IOException;
 
     /**
      * Get the downloaded file's inputStream.
@@ -33,10 +30,19 @@ public interface FileStorageService {
      */
     InputStream download(StoredFile file) throws IOException;
 
-    void upload(String ovhPath, InputStream inputStream, Key key) throws IOException;
-
-
-    String uploadFile(MultipartFile file, Key key);
+    /*
+     * Use Storagefile to have the provider
+     */
+    @Deprecated
+    InputStream download(String filepath, Key key) throws IOException;
 
     StorageFile upload(InputStream inputStream, StorageFile storageFile) throws IOException;
+
+    String uploadFile(MultipartFile file, Key key);
+    @Deprecated
+    void delete(String filename);
+    @Deprecated
+    void delete(List<String> filenames);
+
+    void upload(String name, InputStream inputStream, Key key, String contentType) throws IOException;
 }

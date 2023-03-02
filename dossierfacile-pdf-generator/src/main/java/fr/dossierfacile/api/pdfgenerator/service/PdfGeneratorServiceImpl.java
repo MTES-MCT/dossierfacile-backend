@@ -169,7 +169,7 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
         try (InputStream documentInputStream = renderBODocumentPdf(document)) {
 
             String name = document.getName() == null || document.getName().isBlank() ? UUID.randomUUID() + ".pdf" : document.getName();
-            fileStorageService.upload(name, documentInputStream, null);
+            fileStorageService.upload(name, documentInputStream, null, "application/pdf");
             document.setName(name);
             document.setProcessingEndTime(LocalDateTime.now());
 
@@ -212,7 +212,7 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
             String url = apartSharing.getUrlDossierPdfDocument();
             try {
                 InputStream render = apartmentSharingPdfDocumentTemplate.render(apartSharing);
-                fileStorageService.upload(url, render, null);
+                fileStorageService.upload(url, render, null, "application/pdf");
                 apartmentSharingService.setDossierPdfDocumentStatus(apartSharing.getId(), FileStatus.COMPLETED);
             } catch (Exception e) {
                 log.error("Unable to generate the dossierPdfDocument: " + e.getMessage(), e);
