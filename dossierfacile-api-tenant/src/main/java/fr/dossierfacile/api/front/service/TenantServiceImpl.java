@@ -11,7 +11,15 @@ import fr.dossierfacile.api.front.register.form.partner.EmailExistsForm;
 import fr.dossierfacile.api.front.repository.ApartmentSharingRepository;
 import fr.dossierfacile.api.front.repository.ConfirmationTokenRepository;
 import fr.dossierfacile.api.front.repository.PropertyApartmentSharingRepository;
-import fr.dossierfacile.api.front.service.interfaces.*;
+import fr.dossierfacile.api.front.service.interfaces.ConfirmationTokenService;
+import fr.dossierfacile.api.front.service.interfaces.DocumentService;
+import fr.dossierfacile.api.front.service.interfaces.GuarantorService;
+import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
+import fr.dossierfacile.api.front.service.interfaces.LogService;
+import fr.dossierfacile.api.front.service.interfaces.MailService;
+import fr.dossierfacile.api.front.service.interfaces.PropertyService;
+import fr.dossierfacile.api.front.service.interfaces.TenantService;
+import fr.dossierfacile.api.front.service.interfaces.UserApiService;
 import fr.dossierfacile.api.front.util.Obfuscator;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.ConfirmationToken;
@@ -216,4 +224,8 @@ public class TenantServiceImpl implements TenantService {
         return tenantRepository.findTenantUpdateByLastUpdateIntervalAndPartner(updateDateTimeSince, updateDateTimeTo, partner.getId());
     }
 
+    @Override
+    public Optional<Tenant> findByEmail(String email) {
+        return tenantRepository.findByEmail(email);
+    }
 }
