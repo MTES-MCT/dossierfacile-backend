@@ -111,6 +111,8 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
 
     @Query(
             "select distinct t2 from Tenant t2 " +
+                    " join fetch t2.apartmentSharing a " +
+                    " join fetch a.tenants ts " +
                     " join Log l on t2.id = l.tenantId " +
                     " where " +
                     " t2.lastUpdateDate < :startDate " +
