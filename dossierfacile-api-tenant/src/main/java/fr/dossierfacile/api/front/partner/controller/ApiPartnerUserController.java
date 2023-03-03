@@ -56,7 +56,7 @@ public class ApiPartnerUserController {
         Optional<UserApi> userApi = this.userApiService.findByName(authenticationFacade.getKeycloakClientId());
         boolean hasReadAccess = userApiService.anyTenantIsAssociated(userApi.get(), Collections.singletonList(tenant.get()));
         if (!hasReadAccess) {
-            return status(HttpStatus.UNAUTHORIZED).build();
+            return status(HttpStatus.FORBIDDEN).build();
         }
         return ok(tenantMapperForPartner.toTenantModel(tenant.get()));
     }
