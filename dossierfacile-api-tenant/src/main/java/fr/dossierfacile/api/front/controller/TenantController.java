@@ -71,7 +71,7 @@ public class TenantController {
     @DeleteMapping("/deleteCoTenant/{id}")
     public ResponseEntity<Void> deleteCoTenant(@PathVariable Long id) {
         Tenant tenant = authenticationFacade.getLoggedTenant();
-        return (userService.deleteCoTenant(tenant, id) ? ok() : status(HttpStatus.UNAUTHORIZED)).build();
+        return (userService.deleteCoTenant(tenant, id) ? ok() : status(HttpStatus.FORBIDDEN)).build();
     }
 
     @PostMapping(value = "/linkTenantToPartner", consumes = MediaType.APPLICATION_JSON_VALUE)

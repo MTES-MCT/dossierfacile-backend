@@ -77,6 +77,6 @@ public class ApiPartnerTenantController {
     @DeleteMapping("/{tenantId}/deleteCoTenant/{id}")
     public ResponseEntity<Void> deleteCoTenant(@PathVariable Long id, @PathVariable Long tenantId) {
         Tenant tenant = authenticationFacade.getTenant(tenantId);
-        return (userService.deleteCoTenant(tenant, id) ? ok() : status(HttpStatus.UNAUTHORIZED)).build();
+        return (userService.deleteCoTenant(tenant, id) ? ok() : status(HttpStatus.FORBIDDEN)).build();
     }
 }
