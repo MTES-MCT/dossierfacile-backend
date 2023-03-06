@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.front.controller;
 
+import fr.dossierfacile.api.front.aop.annotation.MethodLog;
 import fr.dossierfacile.api.front.form.PartnerForm;
 import fr.dossierfacile.api.front.form.SubscriptionApartmentSharingOfTenantForm;
 import fr.dossierfacile.api.front.mapper.PropertyOMapper;
@@ -74,6 +75,7 @@ public class TenantController {
         return (userService.deleteCoTenant(tenant, id) ? ok() : status(HttpStatus.FORBIDDEN)).build();
     }
 
+    @MethodLog
     @PostMapping(value = "/linkTenantToPartner", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> linkTenantToPartner(@Validated @RequestBody PartnerForm partnerForm) {
         Tenant tenant = authenticationFacade.getLoggedTenant();
