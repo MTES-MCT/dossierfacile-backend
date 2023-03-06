@@ -118,7 +118,7 @@
                                             th:with="result=${entry.value},isValid=${result.validationStatus.name() == 'VALID'}">
                                             <span th:text="'Fichier n°' + ${entry.key} + ' :'"></span>
                                             <span class="fa" th:classappend="${isValid ? 'fa-check text-success' : 'fa-times text-danger'}"
-                                                  th:text="${result.validationStatus}"></span>
+                                                  th:text="${isValid ? 'Authentifié' : 'Non authentifié'}"></span>
                                             <br/>
                                             <span class="small" th:if="${!isValid}"
                                                   th:text="'Devrait contenir : ' + ${result.apiResponse}"></span>
