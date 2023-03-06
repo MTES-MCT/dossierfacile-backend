@@ -52,8 +52,7 @@ public class MonFranceConnectDocumentsProcessor {
             log.info("File {} is not issued by MonFranceConnect", file.getId());
             return Optional.empty();
         }
-        ValidationResult validationResult = documentValidator.validate(file, qrCode.get());
-        return Optional.of(validationResult);
+        return documentValidator.validate(file, qrCode.get());
     }
 
     private void saveResult(ValidationResult validationResult) {

@@ -10,34 +10,42 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.apache.http.client.utils.URLEncodedUtils.parse;
 
 @Builder
 public class DocumentVerificationRequest {
 
+    private static final String PATH = "/verif-justificatif";
+    private static final String ID_PARAM = "id";
+    private static final String DATA_PARAM = "data";
+
     private final String documentId;
     private final String documentData;
 
-    static DocumentVerificationRequest forDocumentWith(QrCode qrCode) {
+    public static Optional<DocumentVerificationRequest> forDocumentWith(QrCode qrCode) {
         URI uri = URI.create(qrCode.getContent());
-        List<NameValuePair> params = parse(uri, StandardCharsets.UTF_8);
-        DocumentVerificationRequestBuilder builder = DocumentVerificationRequest.builder();
-        for (NameValuePair param : params) {
-            switch (param.getName()) {
-                case "id":
-                    builder.documentId(param.getValue());
-                case "data":
-                    builder.documentData(param.getValue());
-            }
+        Map<String, String> queryParams = parse(uri, StandardCharsets.UTF_8).stream()
+                .collect(Collectors.toMap(NameValuePair::getName, NameValuePair::getValue));
+        if (isMonFranceConnectUrl(uri, queryParams)) {
+            var request = new DocumentVerificationRequest(queryParams.get("id"), queryParams.get("data"));
+            return Optional.of(request);
         }
-        return builder.build();
+        return Optional.empty();
+    }
+
+    private static boolean isMonFranceConnectUrl(URI uri, Map<String, String> queryParams) {
+        return PATH.equals(uri.getPath()) &&
+                queryParams.containsKey(ID_PARAM) &&
+                queryParams.containsKey(DATA_PARAM);
     }
 
     URI getUri(String host) {
         return UriComponentsBuilder.fromUriString(host)
-                .path("/verif-justificatif")
+                .path(PATH)
                 .queryParam("idJustificatif", documentId)
                 .build().toUri();
     }
