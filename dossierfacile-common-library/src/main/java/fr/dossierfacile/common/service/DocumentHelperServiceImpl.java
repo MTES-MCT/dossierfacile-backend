@@ -3,29 +3,33 @@ package fr.dossierfacile.common.service;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.EncryptionKey;
 import fr.dossierfacile.common.entity.File;
+import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.repository.SharedFileRepository;
 import fr.dossierfacile.common.service.interfaces.DocumentHelperService;
 import fr.dossierfacile.common.service.interfaces.EncryptionKeyService;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.common.utils.FileUtility;
+import io.sentry.Sentry;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -53,7 +57,7 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
                 .numberOfPages(FileUtility.countNumberOfPagesOfPdfDocument(multipartFile))
                 .build();
         file = fileRepository.save(file);
-        if (!document.getFiles().contains(file)){
+        if (!document.getFiles().contains(file)) {
             document.getFiles().add(file);
         }
         return file;
@@ -69,49 +73,43 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
     }
 
     @Override
-    public String addByteArrayToS3(byte[] file, String extension) {
-        EncryptionKey encryptionKey = encryptionKeyService.getCurrentKey();
-        return fileStorageService.uploadByteArray(file, extension, encryptionKey);
-    }
-
-    @Override
-    public String generatePreview(InputStream fileInputStream, String originalName) {
-        String imageExtension = Objects.requireNonNull(originalName).substring(originalName.lastIndexOf(".") + 1);
-        byte[] compressImage;
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        BufferedImage preview;
-        if ("pdf".equalsIgnoreCase(imageExtension)) {
-            long startTime = System.currentTimeMillis();
-            try (PDDocument document = PDDocument.load(fileInputStream)) {
-                PDFRenderer pdfRenderer = new PDFRenderer(document);
-                BufferedImage bufferedImage = pdfRenderer.renderImageWithDPI(0, 200, ImageType.RGB);
-                preview = resizeImage(bufferedImage);
-                long endTime = System.currentTimeMillis();
-                long duration = (endTime - startTime);
-                log.info("resize pdf duration : " + duration);
-            } catch (Exception e) {
-                log.error(e.getMessage(), e);
-                return "";
-            }
-        } else {
-            try {
-                preview = resizeImage(ImageIO.read(fileInputStream));
-            } catch (IOException e) {
-                log.error(e.getMessage(), e);
-                return "";
-            }
-        }
-        if (preview == null) {
-            return "";
-        }
+    public StorageFile generatePreview(InputStream fileInputStream, String originalName) {
         try {
+            String imageExtension = FilenameUtils.getExtension(originalName);
+            BufferedImage preview;
+            if ("pdf".equalsIgnoreCase(imageExtension)) {
+                long startTime = System.currentTimeMillis();
+                try (PDDocument document = PDDocument.load(fileInputStream)) {
+                    PDFRenderer pdfRenderer = new PDFRenderer(document);
+                    BufferedImage bufferedImage = pdfRenderer.renderImageWithDPI(0, 200, ImageType.RGB);
+                    preview = resizeImage(bufferedImage);
+                    log.info("resize pdf duration : " + (System.currentTimeMillis() - startTime));
+                }
+            } else {
+                preview = resizeImage(ImageIO.read(fileInputStream));
+            }
+            if (preview == null) {
+                return null;
+            }
+
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
             ImageIO.write(preview, "jpg", baos);
-        } catch (IOException e) {
-            log.error(e.getMessage(), e);
-            return "";
+
+            StorageFile storageFile = StorageFile.builder()
+                    .name(originalName)
+                    .path("minified_" + UUID.randomUUID() + ".jpg")
+                    .contentType(MediaType.IMAGE_JPEG_VALUE)
+                    .encryptionKey(encryptionKeyService.getCurrentKey())
+                    .build();
+
+            // storageFile StorageFactory.getStorageService().upload(compressImage, storageFile);
+            try (InputStream is = new ByteArrayInputStream(baos.toByteArray())) {
+                return fileStorageService.upload(is, storageFile);
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage() + " " + Sentry.captureException(e), e);
         }
-        compressImage = baos.toByteArray();
-        return addByteArrayToS3(compressImage, imageExtension);
+        return null;
     }
 
     BufferedImage resizeImage(BufferedImage image) throws IOException {
@@ -122,7 +120,7 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
         float originalWidth = image.getWidth();
         float originalHeight = image.getHeight();
         int targetWidth = 300;
-        int targetHeight = targetWidth < originalWidth ? (int)(targetWidth / originalWidth * originalHeight) : 300;
+        int targetHeight = targetWidth < originalWidth ? (int) (targetWidth / originalWidth * originalHeight) : 300;
         BufferedImage resizedImage = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_RGB);
         Graphics2D graphics2D = resizedImage.createGraphics();
         graphics2D.drawImage(image, 0, 0, targetWidth, targetHeight, null);

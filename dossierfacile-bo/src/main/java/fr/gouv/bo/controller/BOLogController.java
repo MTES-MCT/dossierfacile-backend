@@ -8,6 +8,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -36,7 +37,7 @@ public class BOLogController {
                         @RequestParam("page") Optional<Integer> page, @RequestParam("tenantId") Optional<String> tenantId) {
 
         PageRequest pageable = PageRequest.of(page.orElse(INITIAL_PAGE) - 1,
-                pageSize.orElse(INITIAL_PAGE_SIZE));
+                pageSize.orElse(INITIAL_PAGE_SIZE), Sort.by("creationDateTime").descending());
 
         Page<Log> logs;
         if (tenantId.isPresent() && StringUtils.isNotBlank(tenantId.get())) {

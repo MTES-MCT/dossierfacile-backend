@@ -72,7 +72,8 @@ public class Tenant extends User implements Person, Serializable {
     @Builder.Default
     private Boolean honorDeclaration = Boolean.FALSE;
 
-    private LocalDateTime lastUpdateDate;
+    @Builder.Default
+    private LocalDateTime lastUpdateDate = LocalDateTime.now();;
 
     @Column(length = 2000)
     @Size(max = 2000)

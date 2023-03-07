@@ -46,7 +46,7 @@ public class ApiPartnerApplicationsController {
         // access rules - at least one tenant is linked to the apartmentSharing
         boolean hasReadAccess = this.userApiService.anyTenantIsAssociated(userApi.get(), apartSharing.getTenants());
         if (!hasReadAccess) {
-            return status(HttpStatus.UNAUTHORIZED).build();
+            return status(HttpStatus.FORBIDDEN).build();
         }
 
         return ok(applicationFullMapper.toApplicationModel(apartSharing));

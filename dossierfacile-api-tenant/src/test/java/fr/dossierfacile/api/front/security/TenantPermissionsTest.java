@@ -1,5 +1,7 @@
 package fr.dossierfacile.api.front.security;
 
+import fr.dossierfacile.api.front.service.TenantPermissionsServiceImpl;
+import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.ApplicationType;
@@ -7,6 +9,7 @@ import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
+import org.mockito.Mockito;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -103,9 +106,11 @@ class TenantPermissionsTest {
         }
 
         private boolean hasPermissionOn(Long tenantId) {
-            return new TenantPermissions(tenantToTest()).canAccess(tenantId);
+            TenantService tenantService = Mockito.mock(TenantService.class);
+            Mockito.when(tenantService.findByKeycloakId(Mockito.any())).thenReturn(tenantToTest());
+            TenantPermissionsServiceImpl permissionsService = new TenantPermissionsServiceImpl(tenantService, null);
+            return permissionsService.canAccess("userKeycloakId", tenantId);
         }
-
 
     }
 

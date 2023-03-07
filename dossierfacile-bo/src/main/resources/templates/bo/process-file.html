@@ -115,12 +115,12 @@
                                     <h4>Justificatifs MonFranceConnect :</h4>
                                     <ul>
                                         <li th:each="entry : ${results}"
-                                            th:with="result=${entry.value},isValid=${result.validationStatus.name() == 'VALID'}">
+                                            th:with="result=${entry.value},status=${result.validationStatus.name()}">
                                             <span th:text="'Fichier n°' + ${entry.key} + ' :'"></span>
-                                            <span class="fa" th:classappend="${isValid ? 'fa-check text-success' : 'fa-times text-danger'}"
-                                                  th:text="${result.validationStatus}"></span>
+                                            <span class="fa" th:classappend="${status == 'VALID' ? 'fa-check text-success' : 'fa-times text-danger'}"
+                                                  th:text="' ' + ${result.validationStatus.label}"></span>
                                             <br/>
-                                            <span class="small" th:if="${!isValid}"
+                                            <span class="small" th:if="${status == 'INVALID'}"
                                                   th:text="'Devrait contenir : ' + ${result.apiResponse}"></span>
                                         </li>
                                     </ul>
@@ -316,12 +316,12 @@
                                         <h4>Justificatifs MonFranceConnect :</h4>
                                         <ul>
                                             <li th:each="entry : ${results}"
-                                                th:with="result=${entry.value},isValid=${result.validationStatus.name() == 'VALID'}">
+                                                th:with="result=${entry.value},status=${result.validationStatus.name()}">
                                                 <span th:text="'Fichier n°' + ${entry.key} + ' :'"></span>
-                                                <span class="fa" th:classappend="${isValid ? 'fa-check text-success' : 'fa-times text-danger'}"
-                                                      th:text="${result.validationStatus}"></span>
+                                                <span class="fa" th:classappend="${status == 'VALID' ? 'fa-check text-success' : 'fa-times text-danger'}"
+                                                      th:text="' ' + ${result.validationStatus.label}"></span>
                                                 <br/>
-                                                <span class="small" th:if="${!isValid}"
+                                                <span class="small" th:if="${status == 'INVALID'}"
                                                       th:text="'Devrait contenir : ' + ${result.apiResponse}"></span>
                                             </li>
                                         </ul>

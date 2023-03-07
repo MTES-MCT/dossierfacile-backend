@@ -1,7 +1,7 @@
 package fr.gouv.bo.controller;
 
-import fr.dossierfacile.common.service.interfaces.SharedFileService;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
+import fr.dossierfacile.common.service.interfaces.SharedFileService;
 import fr.dossierfacile.common.utils.FileUtility;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

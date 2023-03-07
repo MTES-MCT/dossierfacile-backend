@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface TenantService {
     <T> TenantModel saveStepRegister(Tenant tenant, T formStep, StepRegister step);
@@ -36,4 +37,6 @@ public interface TenantService {
     Tenant registerFromKeycloakUser(KeycloakUser kcUser, String partner);
 
     List<TenantUpdate> findTenantUpdateByLastUpdateIntervalAndPartner(LocalDateTime updateDateTimeSince, LocalDateTime updateDateTimeTo, UserApi partner);
+
+    Optional<Tenant> findByEmail(String email);
 }

@@ -1,6 +1,5 @@
 package fr.dossierfacile.process.file.service.monfranceconnect.client;
 
-import fr.dossierfacile.process.file.util.QrCode;
 import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -55,10 +54,9 @@ public class MonFranceConnectClient {
         return new RestTemplate(requestFactory);
     }
 
-    public Optional<DocumentVerifiedContent> fetchDocumentContent(QrCode monFranceConnectQrCode) {
-        DocumentVerificationRequest request = DocumentVerificationRequest.forDocumentWith(monFranceConnectQrCode);
-        URI uri = request.getUri(monFranceConnectBaseUrl);
-        HttpEntity<String> entity = request.getHttpEntity();
+    public Optional<DocumentVerifiedContent> verifyDocument(DocumentVerificationRequest verificationRequest) {
+        URI uri = verificationRequest.getUri(monFranceConnectBaseUrl);
+        HttpEntity<String> entity = verificationRequest.getHttpEntity();
         try {
             log.info("Calling MonFranceConnect at {} with body {}", uri, entity.getBody());
             ResponseEntity<String[]> response = restTemplateIgnoringHttps().exchange(uri, HttpMethod.POST, entity, String[].class);

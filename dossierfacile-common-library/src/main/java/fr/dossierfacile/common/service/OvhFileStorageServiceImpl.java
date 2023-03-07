@@ -1,10 +1,13 @@
 package fr.dossierfacile.common.service;
 
 import fr.dossierfacile.common.entity.EncryptionKey;
-import fr.dossierfacile.common.entity.File;
+import fr.dossierfacile.common.entity.ObjectStorageProvider;
+import fr.dossierfacile.common.entity.StorageFile;
+import fr.dossierfacile.common.entity.shared.StoredFile;
 import fr.dossierfacile.common.exceptions.FileCannotUploadedException;
 import fr.dossierfacile.common.exceptions.OvhConnectionFailedException;
-import fr.dossierfacile.common.service.interfaces.FileStorageService;
+import fr.dossierfacile.common.repository.StorageFileRepository;
+import fr.dossierfacile.common.service.interfaces.OvhFileStorageService;
 import io.sentry.Sentry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -18,8 +21,8 @@ import org.openstack4j.model.common.Payloads;
 import org.openstack4j.model.storage.object.SwiftObject;
 import org.openstack4j.model.storage.object.options.ObjectListOptions;
 import org.openstack4j.openstack.OSFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,7 +30,6 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.spec.GCMParameterSpec;
-import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,8 +41,7 @@ import java.util.UUID;
 
 @Service
 @Slf4j
-@Profile("!mockOvh")
-public class OvhFileStorageServiceImpl implements FileStorageService {
+public class OvhFileStorageServiceImpl implements OvhFileStorageService {
     private static final String EXCEPTION = "Sentry ID Exception: ";
 
     @Value("${ovh.project.domain:default}")
@@ -60,6 +61,9 @@ public class OvhFileStorageServiceImpl implements FileStorageService {
     @Value("${ovh.connection.reattempts:3}")
     private Integer ovhConnectionReattempts;
     private String tokenId;
+
+    @Autowired
+    private StorageFileRepository storageFileRepository;
 
     private OSClient.OSClientV3 connect() {
         Identifier domainIdentifier = Identifier.byId(ovhProjectDomain);
@@ -107,18 +111,6 @@ public class OvhFileStorageServiceImpl implements FileStorageService {
     }
 
     @Override
-    public void deleteAllFiles(String path) {
-        if (!path.contains("/")) {
-            List<? extends SwiftObject> swiftObjects = getListObject(path);
-            for (SwiftObject swiftObject : swiftObjects) {
-                delete(swiftObject.getName());
-            }
-        } else {
-            delete(path);
-        }
-    }
-
-    @Override
     public InputStream download(String path, Key key) throws IOException {
         SwiftObject object = connect().objectStorage().objects().get(ovhContainerName, path);
         if (object == null)
@@ -146,8 +138,8 @@ public class OvhFileStorageServiceImpl implements FileStorageService {
     }
 
     @Override
-    public InputStream download(File file) throws IOException {
-        return download(file.getPath(), file.getKey());
+    public InputStream download(StoredFile file) throws IOException {
+        return download(file.getPath(), file.getEncryptionKey());
     }
 
     private List<? extends SwiftObject> getListObject(String folderName) {
@@ -158,7 +150,7 @@ public class OvhFileStorageServiceImpl implements FileStorageService {
     }
 
     @Override
-    public void upload(String ovhPath, InputStream inputStream, Key key) throws IOException {
+    public void upload(String ovhPath, InputStream inputStream, Key key, String contentType) throws IOException {
         if (key != null) {
             try {
                 byte[] iv = DigestUtils.md5(ovhPath);
@@ -183,7 +175,7 @@ public class OvhFileStorageServiceImpl implements FileStorageService {
     public String uploadFile(MultipartFile file, Key key) {
         String name = UUID.randomUUID() + "." + Objects.requireNonNull(FilenameUtils.getExtension(file.getOriginalFilename())).toLowerCase(Locale.ROOT);
         try (InputStream is = file.getInputStream()) {
-            upload(name, is, key);
+            upload(name, is, key, null);
         } catch (IOException e) {
             throw new FileCannotUploadedException();
         }
@@ -191,13 +183,23 @@ public class OvhFileStorageServiceImpl implements FileStorageService {
     }
 
     @Override
-    public String uploadByteArray(byte[] file, String extension, Key key) {
-        String name = UUID.randomUUID() + "." + Objects.requireNonNull(extension).toLowerCase(Locale.ROOT);
-        try (InputStream targetStream = new ByteArrayInputStream(file)) {
-            upload(name, targetStream, key);
-        } catch (IOException e) {
-            throw new FileCannotUploadedException();
+    public StorageFile upload(InputStream inputStream, StorageFile storageFile) throws IOException {
+        if (inputStream == null)
+            return null;
+        if (storageFile == null) {
+            log.warn("fallback on uploadfile");
+            storageFile = StorageFile.builder()
+                    .name("undefined")
+                    .provider(ObjectStorageProvider.OVH)
+                    .build();
         }
-        return name;
+
+        if (StringUtils.isBlank(storageFile.getPath())) {
+            storageFile.setPath(UUID.randomUUID().toString());
+        }
+        upload(storageFile.getPath(), inputStream, storageFile.getEncryptionKey(), null);
+
+        return storageFileRepository.save(storageFile);
+
     }
 }

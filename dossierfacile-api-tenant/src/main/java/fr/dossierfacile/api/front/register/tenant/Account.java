@@ -9,8 +9,8 @@ import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.ConfirmationTokenService;
 import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
 import fr.dossierfacile.api.front.service.interfaces.MailService;
-import fr.dossierfacile.api.front.service.interfaces.SourceService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
+import fr.dossierfacile.api.front.service.interfaces.UserApiService;
 import fr.dossierfacile.api.front.service.interfaces.UserRoleService;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
@@ -37,7 +37,7 @@ public class Account implements SaveStep<AccountForm> {
     private final TenantMapper tenantMapper;
     private final ApartmentSharingService apartmentSharingService;
     private final TenantService tenantService;
-    private final SourceService sourceService;
+    private final UserApiService userApiService;
     private final PartnerCallBackService partnerCallBackService;
     private final MailService mailService;
     private final ConfirmationTokenService confirmationTokenService;
@@ -57,7 +57,7 @@ public class Account implements SaveStep<AccountForm> {
             }
             tenant.setPreferredName(accountForm.getPreferredName());
             tenantRepository.save(tenant);
-            Optional<UserApi> userApi = this.sourceService.findByName(accountForm.getSource());
+            Optional<UserApi> userApi = userApiService.findByName(accountForm.getSource());
             if (userApi.isPresent()) {
                 partnerCallBackService.registerTenant(accountForm.getInternalPartnerId(), tenant, userApi.get());
             }

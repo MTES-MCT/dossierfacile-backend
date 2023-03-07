@@ -9,15 +9,19 @@ import java.util.List;
 
 public interface FileRepository extends JpaRepository<File, Long> {
 
-    @Query(value = "select\n" +
-            "EXISTS (select d from Document d where d.name=:path) or \n" +
-            "EXISTS (select f from File f where f.path=:path or f.preview=:path) or \n" +
-            "EXISTS (select apt from apartment_sharing apt where apt.url_dossier_pdf_document=:path)", nativeQuery = true)
+    @Query(value = """
+            SELECT
+            EXISTS (select d from Document d where d.name=:path) OR
+            EXISTS (select f from File f where f.path=:path) OR
+            EXISTS (select sf from StorageFile sf where sf.path=:path) OR
+            EXISTS (select apt from apartment_sharing apt where apt.url_dossier_pdf_document=:path)
+            """, nativeQuery = true)
     boolean existsObject(@Param("path") String path);
 
     @Query(value = """
             select path from File f where f.path in (:path)\s
             UNION select preview from File f where f.preview in (:path)\s
+            UNION select path from StorageFile sf where sf.path in (:path)\s
             UNION select name from Document d where d.name in (:path)\s
             UNION select url_dossier_pdf_document from apartment_sharing apt where apt.url_dossier_pdf_document in (:path)""", nativeQuery = true)
     List<String> existingFiles(@Param("path") List<String> path);

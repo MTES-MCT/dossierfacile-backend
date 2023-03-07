@@ -5,7 +5,6 @@ import com.google.gson.GsonBuilder;
 import fr.dossierfacile.api.front.exception.ConfirmationTokenNotFoundException;
 import fr.dossierfacile.api.front.exception.PasswordRecoveryTokenNotFoundException;
 import fr.dossierfacile.api.front.exception.UserNotFoundException;
-import fr.dossierfacile.api.front.form.PartnerForm;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.form.tenant.FranceConnectTaxForm;
@@ -20,7 +19,7 @@ import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
 import fr.dossierfacile.api.front.service.interfaces.LogService;
 import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.api.front.service.interfaces.PasswordRecoveryTokenService;
-import fr.dossierfacile.api.front.service.interfaces.SourceService;
+import fr.dossierfacile.api.front.service.interfaces.UserApiService;
 import fr.dossierfacile.api.front.service.interfaces.UserService;
 import fr.dossierfacile.api.front.util.LocalDateTimeTypeAdapter;
 import fr.dossierfacile.common.entity.AccountDeleteLog;
@@ -31,7 +30,6 @@ import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.PasswordRecoveryToken;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.User;
-import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.LogType;
@@ -85,20 +83,17 @@ public class UserServiceImpl implements UserService {
     private final TenantCommonRepository tenantRepository;
     private final LogService logService;
     private final KeycloakService keycloakService;
-    private final SourceService sourceService;
+    private final UserApiService userApiService;
     private final PartnerCallBackService partnerCallBackService;
     private final ApartmentSharingService apartmentSharingService;
     private final DocumentRepository documentRepository;
-
+    private final RestTemplate restTemplate;
     @Value("${dgfip.token}")
     private String dgfipToken;
     @Value("${dgfip.api.url}")
     private String dgfipApiUrl;
-
     @Value("${dgfip.id.teleservice}")
     private String idTeleservice;
-
-    private final RestTemplate restTemplate;
 
     @Override
     @Transactional
@@ -144,7 +139,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void forgotPassword(String email) {
-        Tenant tenant = tenantRepository.findByEmail(email).orElseThrow( () -> new UserNotFoundException(email));
+        Tenant tenant = tenantRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(email));
 
         PasswordRecoveryToken passwordRecoveryToken = passwordRecoveryTokenService.create(tenant);
         mailService.sendEmailNewPassword(tenant, passwordRecoveryToken);
@@ -192,7 +187,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void linkTenantToPartner(Tenant tenant, String partner, String internalPartnerId) {
-        sourceService.findByName(partner)
+        userApiService.findByName(partner)
                 .ifPresent(userApi -> partnerCallBackService.registerTenant(internalPartnerId, tenant, userApi));
     }
 

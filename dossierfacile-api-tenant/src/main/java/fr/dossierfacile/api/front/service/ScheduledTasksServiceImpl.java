@@ -9,6 +9,7 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
+import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -49,10 +51,26 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
      */
     @Scheduled(cron = "0 10 0 * * ?")
     public void sendRemindingEmailNotifications() {
-        emailAccountValidationReminder();
-        accountCompletionReminder();
-        accountDeclinationReminder();
-        satisfactionEmails();
+        try {
+            emailAccountValidationReminder();
+        } catch (Exception e) {
+            log.error(e.getMessage(), Sentry.captureException(e));
+        }
+        try {
+            accountCompletionReminder();
+        } catch (Exception e) {
+            log.error(e.getMessage(), Sentry.captureException(e));
+        }
+        try {
+            accountDeclinationReminder();
+        } catch (Exception e) {
+            log.error(e.getMessage(), Sentry.captureException(e));
+        }
+        try {
+            satisfactionEmails();
+        } catch (Exception e) {
+            log.error(e.getMessage(), Sentry.captureException(e));
+        }
     }
 
     @Override
@@ -120,10 +138,10 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
                 if (tenant.getApartmentSharing().getApplicationType() == ApplicationType.COUPLE) {
                     tenant.getApartmentSharing().getTenants().stream()
                             .filter(user ->
-                                    user.getId() != tenant.getId()
+                                    !Objects.equals(user.getId(), tenant.getId())
                                             && StringUtils.isNotBlank(user.getEmail())
                                             && user.getStatus() == TenantFileStatus.VALIDATED)
-                            .forEach(user -> mailService.sendEmailWhenAccountIsStillDeclined(user));
+                            .forEach(mailService::sendEmailWhenAccountIsStillDeclined);
                 }
             }
         }
