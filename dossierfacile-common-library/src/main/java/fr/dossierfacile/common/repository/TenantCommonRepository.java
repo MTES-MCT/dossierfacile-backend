@@ -69,10 +69,11 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
     @Query(
             value = "select distinct tl.tenant_id from tenant_log as tl \n" +
                     "left join tenant_userapi tu on tl.tenant_id = tu.tenant_id \n" +
-                    "where tu.userapi_id=:id and tl.log_type = 'ACCOUNT_VALIDATED'",
+                    "where tu.userapi_id=:id and tl.log_type = 'ACCOUNT_VALIDATED' \n" +
+                    "and tl.creation_date >= :since",
             nativeQuery = true
     )
-    List<Long> listIdTenantsAccountCompletedPendingToSendCallBack(@Param("id") Long userApiId);
+    List<Long> listIdTenantsAccountCompletedPendingToSendCallBack(@Param("id") Long userApiId, @Param("since") LocalDateTime lastUpdateSince);
 
     @Query("SELECT t FROM Tenant t ORDER BY t.id DESC")
     Page<Tenant> findAllTenants(Pageable page);
