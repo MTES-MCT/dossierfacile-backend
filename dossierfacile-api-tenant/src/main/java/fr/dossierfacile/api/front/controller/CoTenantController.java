@@ -3,7 +3,6 @@ package fr.dossierfacile.api.front.controller;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
-import fr.dossierfacile.api.front.service.interfaces.LogService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.common.entity.Tenant;
 import lombok.AllArgsConstructor;

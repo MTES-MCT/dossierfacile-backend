@@ -1,9 +1,9 @@
 package fr.dossierfacile.api.pdfgenerator.service;
 
-import fr.dossierfacile.api.pdfgenerator.repository.ApartmentSharingRepository;
 import fr.dossierfacile.api.pdfgenerator.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.enums.FileStatus;
+import fr.dossierfacile.common.repository.ApartmentSharingRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

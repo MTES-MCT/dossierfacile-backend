@@ -31,9 +31,6 @@ public interface TenantService {
 
     Tenant findByKeycloakId(String keycloakId);
 
-    @Transactional
-    void processWarningsBatch(LocalDateTime localDateTime, int warnings, Pageable page);
-
     Tenant registerFromKeycloakUser(KeycloakUser kcUser, String partner);
 
     List<TenantUpdate> findTenantUpdateByLastUpdateIntervalAndPartner(LocalDateTime updateDateTimeSince, LocalDateTime updateDateTimeTo, UserApi partner);

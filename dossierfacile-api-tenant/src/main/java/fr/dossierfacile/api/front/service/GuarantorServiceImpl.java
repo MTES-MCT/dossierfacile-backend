@@ -30,11 +30,6 @@ public class GuarantorServiceImpl implements GuarantorService {
     }
 
     @Override
-    public void deleteAllGuaratorsAssociatedToTenant(Tenant tenant) {
-        guarantorRepository.deleteAll(guarantorRepository.findGuarantorsByTenant(tenant));
-    }
-
-    @Override
     public Guarantor findById(Long id) {
         return guarantorRepository.findById(id).orElseThrow(GuarantorNotFoundException::new);
     }

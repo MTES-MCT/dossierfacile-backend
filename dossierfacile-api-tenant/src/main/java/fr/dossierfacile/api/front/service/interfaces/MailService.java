@@ -29,10 +29,6 @@ public interface MailService {
 
     void sendEmailWhenTenantYESAssociatedToPartnersAndValidatedXDaysAgo(User user);
 
-    void sendEmailFirstWarningForDeletionOfDocuments(User user, ConfirmationToken confirmationToken);
-
-    void sendEmailSecondWarningForDeletionOfDocuments(User user, ConfirmationToken confirmationToken);
-
     void sendEmailToSupport(ContactForm form);
 
     void sendEmailWelcomeForPartnerUser(User user, UserApi userApi);

@@ -1,19 +1,19 @@
 package fr.dossierfacile.garbagecollector.repo.file;
 
-import fr.dossierfacile.garbagecollector.model.file.File;
+import fr.dossierfacile.garbagecollector.model.file.GarbageFile;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
-public interface FileRepository extends JpaRepository<File, Long> {
+public interface FileRepository extends JpaRepository<GarbageFile, Long> {
 
     @Query(value = """
             SELECT
             EXISTS (select d from Document d where d.name=:path) OR
             EXISTS (select f from File f where f.path=:path) OR
-            EXISTS (select sf from StorageFile sf where sf.path=:path) OR
+            EXISTS (select sf from storage_file sf where sf.path=:path) OR
             EXISTS (select apt from apartment_sharing apt where apt.url_dossier_pdf_document=:path)
             """, nativeQuery = true)
     boolean existsObject(@Param("path") String path);
@@ -21,7 +21,7 @@ public interface FileRepository extends JpaRepository<File, Long> {
     @Query(value = """
             select path from File f where f.path in (:path)\s
             UNION select preview from File f where f.preview in (:path)\s
-            UNION select path from StorageFile sf where sf.path in (:path)\s
+            UNION select path from storage_file sf where sf.path in (:path)\s
             UNION select name from Document d where d.name in (:path)\s
             UNION select url_dossier_pdf_document from apartment_sharing apt where apt.url_dossier_pdf_document in (:path)""", nativeQuery = true)
     List<String> existingFiles(@Param("path") List<String> path);
@@ -32,7 +32,7 @@ public interface FileRepository extends JpaRepository<File, Long> {
             "where tenant.status='ARCHIVED' " +
             "and file.path is not null and file.path <> '' " +
             " limit :limit", nativeQuery = true)
-    List<File> getArchivedFile(@Param("limit") Integer limit);
+    List<GarbageFile> getArchivedFile(@Param("limit") Integer limit);
 
     @Query(value = "SELECT distinct file.* " +
             "FROM file left join document on file.document_id=document.id " +
@@ -41,6 +41,6 @@ public interface FileRepository extends JpaRepository<File, Long> {
             "where tenant.status='ARCHIVED' " +
             "and file.path is not null and file.path <> '' " +
             " limit :limit", nativeQuery = true)
-    List<File> getGuarantorArchivedFile(@Param("limit") Integer limit);
+    List<GarbageFile> getGuarantorArchivedFile(@Param("limit") Integer limit);
 
 }
