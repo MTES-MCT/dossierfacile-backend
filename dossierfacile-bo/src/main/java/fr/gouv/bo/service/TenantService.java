@@ -416,12 +416,12 @@ public class TenantService {
         changeTenantStatusToDeclined(tenant, operator, null);
     }
 
-    public void sendCallBacksManuallyToUserApi(Long userApiId) {
+    public void sendCallBacksManuallyToUserApi(Long userApiId, LocalDateTime since) {
         synchronized (this) {
             UserApi userApi = userApiRepository.findOneById(userApiId);
 
             //Finding the IDs of tenants pending to send info for partner with ID 2.
-            List<Long> ids = tenantRepository.listIdTenantsAccountCompletedPendingToSendCallBack(userApiId);
+            List<Long> ids = tenantRepository.listIdTenantsAccountCompletedPendingToSendCallBack(userApiId, since);
             int numberOfTotalCalls = ids.size();
             log.info(numberOfTotalCalls + " tenants pending to send the validation information to the partner.");
             int indexCall = 1;
