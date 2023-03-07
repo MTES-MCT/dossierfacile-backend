@@ -13,6 +13,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -216,4 +217,30 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
             """, nativeQuery = true
     )
     List<TenantUpdate> findTenantUpdateByLastUpdateIntervalAndPartner(@Param("lastUpdateSince") LocalDateTime lastUpdateSince, @Param("lastUpdateBefore") LocalDateTime lastUpdateBefore, @Param("partnerId") Long partnerId);
+
+    @Query(value = """
+            SELECT t.id as id, t.apartment_sharing_id as apartmentSharingId, t.last_update_date as lastUpdateDate, ua.creation_date as creationDate 
+            FROM  tenant t
+            INNER JOIN user_account ua ON ua.id = t.id
+            INNER JOIN tenant_userapi tua ON tua.tenant_id = t.id  
+            WHERE tua.userapi_id = :partnerId
+            AND ( CAST( CAST(:lastUpdateSince AS text) AS timestamp) IS NULL OR t.last_update_date > CAST( CAST(:lastUpdateSince AS text) AS timestamp))
+            ORDER BY t.last_update_date ASC
+            LIMIT :limit
+            """, nativeQuery = true
+    )
+    List<TenantUpdate> findTenantUpdateByLastUpdateAndPartner(@Param("lastUpdateSince") LocalDateTime since, @Param("partnerId") Long id, @Param("limit") Long limit);
+
+    @Query(value = """
+            SELECT t.id as id, t.apartment_sharing_id as apartmentSharingId, t.last_update_date as lastUpdateDate, ua.creation_date as creationDate 
+            FROM  user_account ua 
+            INNER JOIN tenant t ON t.id = ua.id
+            INNER JOIN tenant_userapi tua ON tua.tenant_id = t.id  
+            WHERE tua.userapi_id = :partnerId
+            AND ( CAST( CAST(:creationDateSince AS text) AS timestamp) IS NULL OR ua.creation_date > CAST( CAST(:creationDateSince AS text) AS timestamp))
+            ORDER BY ua.creation_date ASC
+            LIMIT :limit
+            """, nativeQuery = true
+    )
+    List<TenantUpdate> findTenantUpdateByCreationDateAndPartner(@Param("creationDateSince") LocalDateTime since, @Param("partnerId") Long id, @Param("limit") Long limit);
 }
