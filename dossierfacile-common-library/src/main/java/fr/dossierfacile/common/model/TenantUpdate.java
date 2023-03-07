@@ -6,4 +6,5 @@ public interface TenantUpdate {
     Long getId();
     Long getApartmentSharingId();
     LocalDateTime getLastUpdateDate();
+    LocalDateTime getCreationDate();
 }

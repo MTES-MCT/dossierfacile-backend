@@ -36,7 +36,12 @@ public interface TenantService {
 
     Tenant registerFromKeycloakUser(KeycloakUser kcUser, String partner);
 
+    @Deprecated// TODO remove
     List<TenantUpdate> findTenantUpdateByLastUpdateIntervalAndPartner(LocalDateTime updateDateTimeSince, LocalDateTime updateDateTimeTo, UserApi partner);
 
     Optional<Tenant> findByEmail(String email);
+
+    List<TenantUpdate> findTenantUpdateByCreatedAndPartner(LocalDateTime since, UserApi userApi, Long limit);
+
+    List<TenantUpdate> findTenantUpdateByLastUpdateAndPartner(LocalDateTime since, UserApi userApi, Long limit);
 }
