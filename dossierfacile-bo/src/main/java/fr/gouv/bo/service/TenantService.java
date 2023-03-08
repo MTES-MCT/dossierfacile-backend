@@ -30,7 +30,7 @@ import fr.gouv.bo.dto.MessageItem;
 import fr.gouv.bo.exception.DocumentNotFoundException;
 import fr.gouv.bo.lambda_interfaces.StringCustomMessage;
 import fr.gouv.bo.lambda_interfaces.StringCustomMessageGuarantor;
-import fr.gouv.bo.repository.ApartmentSharingRepository;
+import fr.gouv.bo.repository.BOApartmentSharingRepository;
 import fr.gouv.bo.repository.DocumentDeniedReasonsRepository;
 import fr.gouv.bo.repository.DocumentRepository;
 import fr.gouv.bo.repository.OperatorLogRepository;
@@ -88,7 +88,7 @@ public class TenantService {
     private final DocumentDeniedReasonsRepository documentDeniedReasonsRepository;
     private final UserApiRepository userApiRepository;
     private final MessageService messageService;
-    private final ApartmentSharingRepository apartmentSharingRepository;
+    private final BOApartmentSharingRepository apartmentSharingRepository;
     private final OperatorLogRepository operatorLogRepository;
     private final LogActionTenantStatusService logService;
     private final DocumentDeniedReasonsService documentDeniedReasonsService;

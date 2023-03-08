@@ -7,7 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-public interface ApartmentSharingRepository extends JpaRepository<ApartmentSharing, Long> {
+public interface BOApartmentSharingRepository extends JpaRepository<ApartmentSharing, Long> {
 
     @Query(value = "select a.id as id,\n" +
             "       (select count(*) from tenant_userapi where tenant_id = t.id) as countUserApis,\n" +
