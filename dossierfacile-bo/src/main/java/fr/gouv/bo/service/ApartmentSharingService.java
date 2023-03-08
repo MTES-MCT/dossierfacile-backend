@@ -4,7 +4,7 @@ import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.enums.FileStatus;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.gouv.bo.dto.ApartmentSharingDTO01;
-import fr.gouv.bo.repository.ApartmentSharingRepository;
+import fr.gouv.bo.repository.BOApartmentSharingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class ApartmentSharingService {
 
-    private final ApartmentSharingRepository apartmentSharingRepository;
+    private final BOApartmentSharingRepository apartmentSharingRepository;
     private final FileStorageService fileStorageService;
 
     public ApartmentSharing find(Long id) {
