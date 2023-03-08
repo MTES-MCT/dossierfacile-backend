@@ -4,6 +4,7 @@ import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.Guarantor;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
+import fr.dossierfacile.process.file.IntegrationTest;
 import fr.dossierfacile.process.file.repository.DocumentRepository;
 import fr.dossierfacile.process.file.repository.TenantRepository;
 import fr.dossierfacile.process.file.service.interfaces.ProcessTaxDocument;
@@ -11,13 +12,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
-@SpringBootTest
+@IntegrationTest
 class ProcessTenantIT {
 
     @Autowired
@@ -61,6 +65,7 @@ class ProcessTenantIT {
         Tenant tenant = Tenant.builder().build();
         tenant.setFirstName(firstName);
         tenant.setLastName(lastName);
+        tenant.setAllowCheckTax(true);
         return tenantRepository.save(tenant);
     }
 
