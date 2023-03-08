@@ -1,6 +1,5 @@
 package fr.dossierfacile.api.dossierfacileapiowner.property;
 
-import fr.dossierfacile.api.dossierfacileapiowner.log.LogService;
 import fr.dossierfacile.api.dossierfacileapiowner.register.AuthenticationFacade;
 import fr.dossierfacile.api.dossierfacileapiowner.user.OwnerMapper;
 import fr.dossierfacile.api.dossierfacileapiowner.user.OwnerModel;
@@ -8,6 +7,7 @@ import fr.dossierfacile.common.entity.Owner;
 import fr.dossierfacile.common.entity.Property;
 import fr.dossierfacile.common.entity.PropertyApartmentSharing;
 import fr.dossierfacile.common.enums.LogType;
+import fr.dossierfacile.common.service.interfaces.LogService;
 import lombok.AllArgsConstructor;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
