@@ -93,7 +93,10 @@ public class TenantServiceImpl implements TenantService {
     @Transactional
     public Tenant create(Tenant tenant) {
         if (tenantRepository.findByEmail(tenant.getEmail()).isPresent()) {
-            throw new IllegalStateException("Tenant " + Obfuscator.email(tenant.getEmail()) + " already exists");
+            throw new IllegalStateException("Tenant " + Obfuscator.email(tenant.getEmail()) + " already exists (same mail)");
+        }
+        if (tenant.getKeycloakId() != null && tenantRepository.findByKeycloakId(tenant.getKeycloakId()) != null) {
+            throw new IllegalStateException("Tenant " + Obfuscator.email(tenant.getEmail()) + " already exists (same keycloak id)");
         }
         tenant.setApartmentSharing(new ApartmentSharing(tenant));
         apartmentSharingRepository.save(tenant.getApartmentSharing());
