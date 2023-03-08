@@ -2,7 +2,6 @@ package fr.dossierfacile.api.front.service;
 
 import fr.dossierfacile.api.front.amqp.MinifyFileProducer;
 import fr.dossierfacile.api.front.exception.DocumentNotFoundException;
-import fr.dossierfacile.api.front.repository.ApartmentSharingRepository;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.repository.FileRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
@@ -16,6 +15,7 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.TenantFileStatus;
+import fr.dossierfacile.common.repository.ApartmentSharingRepository;
 import fr.dossierfacile.common.service.interfaces.DocumentHelperService;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import lombok.RequiredArgsConstructor;
@@ -39,13 +39,11 @@ import java.util.stream.Collectors;
 public class DocumentServiceImpl implements DocumentService {
 
     private final DocumentRepository documentRepository;
-    private final FileRepository fileRepository;
     private final FileStorageService fileStorageService;
     private final TenantStatusService tenantStatusService;
     private final ApartmentSharingService apartmentSharingService;
     private final DocumentHelperService documentHelperService;
     private final MinifyFileProducer minifyFileProducer;
-    private final ApartmentSharingRepository apartmentSharingRepository;
 
     @Override
     @Transactional
@@ -127,24 +125,6 @@ public class DocumentServiceImpl implements DocumentService {
                         documentRepository.save(document);
                     }
                 });
-    }
-
-    @Override
-    public void deleteAllDocumentsAssociatedToTenant(Tenant tenant) {
-        List<Document> documentList = documentRepository.findAllAssociatedToTenantId(tenant.getId());
-
-        if (StringUtils.isNotBlank(tenant.getApartmentSharing().getUrlDossierPdfDocument())) {
-            try {
-                fileStorageService.delete(tenant.getApartmentSharing().getUrlDossierPdfDocument());
-                tenant.getApartmentSharing().setUrlDossierPdfDocument("");
-                apartmentSharingRepository.save(tenant.getApartmentSharing());
-            } catch (Exception e) {
-                log.error("Couldn't delete object [" + tenant.getApartmentSharing().getUrlDossierPdfDocument() + "] from apartment_sharing [" + tenant.getApartmentSharing().getId() + "]");
-            }
-        }
-
-        documentRepository.deleteAll(Optional.ofNullable(documentList)
-                .orElse(new ArrayList<>()));
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)

@@ -1,4 +1,4 @@
-package fr.dossierfacile.api.front.service.interfaces;
+package fr.dossierfacile.common.service.interfaces;
 
 import fr.dossierfacile.common.enums.LogType;
 

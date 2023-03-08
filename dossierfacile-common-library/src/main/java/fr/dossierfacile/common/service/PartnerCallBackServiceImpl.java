@@ -10,10 +10,12 @@ import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
+import fr.dossierfacile.common.exceptions.NotFoundException;
 import fr.dossierfacile.common.mapper.ApplicationFullMapper;
 import fr.dossierfacile.common.model.LightAPIInfoModel;
 import fr.dossierfacile.common.model.TenantLightAPIInfoModel;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
+import fr.dossierfacile.common.repository.ApartmentSharingRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.repository.TenantUserApiRepository;
 import fr.dossierfacile.common.service.interfaces.CallbackLogService;
@@ -31,6 +33,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -42,6 +45,7 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
     private final ApplicationFullMapper applicationFullMapper;
     private final RequestService requestService;
     private final CallbackLogService callbackLogService;
+    private final ApartmentSharingRepository apartmentSharingRepository;
 
     @Value("${callback.domain:default}")
     private String callbackDomain;
@@ -87,7 +91,7 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
     }
 
     public void sendCallBack(Tenant tenant, UserApi userApi, PartnerCallBackType partnerCallBackType) {
-        ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
+        ApartmentSharing apartmentSharing = apartmentSharingRepository.findByTenant(tenant.getId()).orElseThrow(() -> new NotFoundException("Apartment sharing not found"));
         if (userApi.isDisabled() || userApi.getUrlCallback() == null) {
             log.warn("UserApi call has not effect for " + userApi.getName());
             return;

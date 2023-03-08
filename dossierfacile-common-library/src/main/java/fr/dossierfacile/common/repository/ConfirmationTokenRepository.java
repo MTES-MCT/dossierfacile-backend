@@ -1,4 +1,4 @@
-package fr.dossierfacile.api.front.repository;
+package fr.dossierfacile.common.repository;
 
 import fr.dossierfacile.common.entity.ConfirmationToken;
 import fr.dossierfacile.common.entity.User;

@@ -21,7 +21,7 @@ import java.util.HashMap;
 @EnableTransactionManagement
 @PropertySource({"classpath:application.properties"})
 @EnableJpaRepositories(entityManagerFactoryRef = "dossierEntityManager", transactionManagerRef = "dossierTransactionManager",
-        basePackages = { "fr.dossierfacile.garbagecollector.repo.document","fr.dossierfacile.garbagecollector.repo.file","fr.dossierfacile.garbagecollector.repo.apartment"})
+        basePackages = {"fr.dossierfacile.garbagecollector.repo.guarantor","fr.dossierfacile.garbagecollector.repo.document", "fr.dossierfacile.garbagecollector.repo.file", "fr.dossierfacile.garbagecollector.repo.apartment", "fr.dossierfacile.common"})
 public class DataSourceDossierConfiguration {
     @Autowired
     private Environment env;
@@ -32,7 +32,7 @@ public class DataSourceDossierConfiguration {
                 = new LocalContainerEntityManagerFactoryBean();
         em.setDataSource(productDataSource());
         em.setPackagesToScan(
-                new String[]{"fr.dossierfacile.garbagecollector.model.document","fr.dossierfacile.garbagecollector.model.file","fr.dossierfacile.garbagecollector.model.apartment"});
+                "fr.dossierfacile.garbagecollector.repo.guarantor", "fr.dossierfacile.garbagecollector.model.document", "fr.dossierfacile.garbagecollector.model.file", "fr.dossierfacile.garbagecollector.model.apartment", "fr.dossierfacile.common");
 
         HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
         em.setJpaVendorAdapter(vendorAdapter);

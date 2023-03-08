@@ -11,11 +11,11 @@ import fr.dossierfacile.api.front.register.form.guarantor.natural_person.Documen
 import fr.dossierfacile.api.front.register.form.guarantor.natural_person.DocumentTaxGuarantorNaturalPersonForm;
 import fr.dossierfacile.api.front.register.form.guarantor.natural_person.NameGuarantorNaturalPersonForm;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
-import fr.dossierfacile.api.front.service.interfaces.LogService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.validator.group.Dossier;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.LogType;
+import fr.dossierfacile.common.service.interfaces.LogService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;

@@ -1,9 +1,9 @@
-package fr.dossierfacile.api.front.service;
+package fr.dossierfacile.common.service;
 
-import fr.dossierfacile.api.front.repository.LogRepository;
-import fr.dossierfacile.api.front.service.interfaces.LogService;
 import fr.dossierfacile.common.entity.Log;
 import fr.dossierfacile.common.enums.LogType;
+import fr.dossierfacile.common.repository.LogRepository;
+import fr.dossierfacile.common.service.interfaces.LogService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 

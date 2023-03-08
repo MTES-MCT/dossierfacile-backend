@@ -1,9 +1,9 @@
-package fr.dossierfacile.api.front.service;
+package fr.dossierfacile.common.service;
 
-import fr.dossierfacile.api.front.repository.ConfirmationTokenRepository;
-import fr.dossierfacile.api.front.service.interfaces.ConfirmationTokenService;
 import fr.dossierfacile.common.entity.ConfirmationToken;
 import fr.dossierfacile.common.entity.User;
+import fr.dossierfacile.common.repository.ConfirmationTokenRepository;
+import fr.dossierfacile.common.service.interfaces.ConfirmationTokenService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
