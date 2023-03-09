@@ -112,6 +112,7 @@ public class UserService {
 
         apartmentSharing.getTenants().remove(tenant);
         updateApplicationTypeOfApartmentAfterDeletionOfCotenant(apartmentSharing);
+        apartmentSharingService.refreshUpdateDate(apartmentSharing);
         apartmentSharingService.resetDossierPdfGenerated(apartmentSharing);
     }
 

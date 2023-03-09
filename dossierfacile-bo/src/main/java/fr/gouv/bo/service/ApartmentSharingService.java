@@ -11,6 +11,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
+
 @RequiredArgsConstructor
 @Service
 public class ApartmentSharingService {
@@ -47,5 +49,10 @@ public class ApartmentSharingService {
             apartmentSharing.setDossierPdfDocumentStatus(FileStatus.DELETED);
             apartmentSharingRepository.save(apartmentSharing);
         }
+    }
+
+    public void refreshUpdateDate(ApartmentSharing apartmentSharing) {
+        apartmentSharing.setLastUpdateDate(new Date());
+        apartmentSharingRepository.save(apartmentSharing);
     }
 }

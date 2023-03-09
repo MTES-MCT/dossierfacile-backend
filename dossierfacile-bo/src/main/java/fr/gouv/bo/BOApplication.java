@@ -7,6 +7,7 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -17,6 +18,7 @@ import java.lang.management.MemoryMXBean;
 @SpringBootApplication(scanBasePackages = {"fr.gouv", "fr.dossierfacile"})
 @EntityScan(basePackages = "fr.dossierfacile")
 @EnableJpaRepositories(basePackages = {"fr.gouv", "fr.dossierfacile"})
+@EnableJpaAuditing
 @ComponentScan(basePackages = {"fr.gouv", "fr.dossierfacile"})
 @EnableScheduling
 @EnableAsync

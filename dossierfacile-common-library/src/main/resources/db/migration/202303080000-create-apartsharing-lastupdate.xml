@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+
+    <changeSet id="202303080000-01" author="fabien (manual)">
+        <addColumn tableName="apartment_sharing">
+            <column name="last_update_date" type="TIMESTAMP WITHOUT TIME ZONE"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="202303080000-02" author="fabien (manual)">
+        <sql>
+            <![CDATA[
+                UPDATE apartment_sharing a
+                SET last_update_date = te.last_update_date
+                FROM tenant as te
+                WHERE a.id = te.apartment_sharing_id AND a.last_update_date is null;
+          ]]>
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
