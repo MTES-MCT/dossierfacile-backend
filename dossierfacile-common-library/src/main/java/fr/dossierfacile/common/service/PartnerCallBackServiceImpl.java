@@ -51,28 +51,30 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
     private String callbackDomain;
 
     public void registerTenant(String internalPartnerId, Tenant tenant, UserApi userApi) {
-        TenantUserApi tenantUserApi = tenantUserApiRepository.findFirstByTenantAndUserApi(tenant, userApi).orElse(
-                TenantUserApi.builder()
-                        .id(new TenantUserApiKey(tenant.getId(), userApi.getId()))
-                        .tenant(tenant)
-                        .userApi(userApi)
-                        .build()
-        );
-        if (internalPartnerId != null && !internalPartnerId.isEmpty()) {
-            if (tenantUserApi.getAllInternalPartnerId() == null) {
-                tenantUserApi.setAllInternalPartnerId(Collections.singletonList(internalPartnerId));
-            } else if (!tenantUserApi.getAllInternalPartnerId().contains(internalPartnerId)) {
-                tenantUserApi.getAllInternalPartnerId().add(internalPartnerId);
-            }
-        }
-        tenantUserApiRepository.save(tenantUserApi);
+        Optional<TenantUserApi> optionalTenantUserApi = tenantUserApiRepository.findFirstByTenantAndUserApi(tenant, userApi);
+        if (!optionalTenantUserApi.isPresent()) {
+            TenantUserApi tenantUserApi = TenantUserApi.builder()
+                    .id(new TenantUserApiKey(tenant.getId(), userApi.getId()))
+                    .tenant(tenant)
+                    .userApi(userApi)
+                    .build();
 
-        if (userApi.getVersion() != null && userApi.getUrlCallback() != null && (
-                tenant.getStatus() == TenantFileStatus.VALIDATED
-                        || tenant.getStatus() == TenantFileStatus.TO_PROCESS)) {
-            sendCallBack(tenant, userApi, tenant.getStatus() == TenantFileStatus.VALIDATED ?
-                    PartnerCallBackType.VERIFIED_ACCOUNT :
-                    PartnerCallBackType.CREATED_ACCOUNT);
+            if (internalPartnerId != null && !internalPartnerId.isEmpty()) {
+                if (tenantUserApi.getAllInternalPartnerId() == null) {
+                    tenantUserApi.setAllInternalPartnerId(Collections.singletonList(internalPartnerId));
+                } else if (!tenantUserApi.getAllInternalPartnerId().contains(internalPartnerId)) {
+                    tenantUserApi.getAllInternalPartnerId().add(internalPartnerId);
+                }
+            }
+            tenantUserApiRepository.save(tenantUserApi);
+
+            if (userApi.getVersion() != null && userApi.getUrlCallback() != null && (
+                    tenant.getStatus() == TenantFileStatus.VALIDATED
+                            || tenant.getStatus() == TenantFileStatus.TO_PROCESS)) {
+                sendCallBack(tenant, userApi, tenant.getStatus() == TenantFileStatus.VALIDATED ?
+                        PartnerCallBackType.VERIFIED_ACCOUNT :
+                        PartnerCallBackType.CREATED_ACCOUNT);
+            }
         }
     }
 

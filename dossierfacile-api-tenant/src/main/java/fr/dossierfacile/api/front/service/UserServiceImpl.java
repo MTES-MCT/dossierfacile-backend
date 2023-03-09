@@ -188,7 +188,16 @@ public class UserServiceImpl implements UserService {
     @Override
     public void linkTenantToPartner(Tenant tenant, String partner, String internalPartnerId) {
         userApiService.findByName(partner)
-                .ifPresent(userApi -> partnerCallBackService.registerTenant(internalPartnerId, tenant, userApi));
+                .ifPresent(userApi -> {
+                    if (tenant.getApartmentSharing().getApplicationType() == ApplicationType.COUPLE) {
+                        tenant.getApartmentSharing().getTenants()
+                                .stream()
+                                .forEach(t -> partnerCallBackService.registerTenant(
+                                        (tenant.getId() == t.getId()) ? internalPartnerId : null, t, userApi));
+                    } else {
+                        partnerCallBackService.registerTenant(internalPartnerId, tenant, userApi);
+                    }
+                });
     }
 
     @Override

@@ -28,6 +28,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -167,6 +168,15 @@ public class Application implements SaveStep<ApplicationFormV2> {
                         joinTenant.setAllowCheckTax(tenantCreate.getAllowCheckTax());
                     }
                     tenantRepository.save(joinTenant);
+
+                    if (apartmentSharing.getApplicationType() == ApplicationType.COUPLE) {
+                        if (!CollectionUtils.isEmpty(tenantCreate.getTenantsUserApi())) {
+                            tenantCreate.getTenantsUserApi().stream()
+                                    .forEach(tenantUserApi -> {
+                                        partnerCallBackService.registerTenant(null, joinTenant, tenantUserApi.getUserApi());
+                                    });
+                        }
+                    }
 
                     if (StringUtils.isNotBlank(tenant.getEmail())) {
                         // create keycloak user
