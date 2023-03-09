@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @Service
@@ -61,8 +62,7 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
 
     @Override
     public TaxDocument process(Document document, Tenant tenant) {
-        if (!Boolean.TRUE.equals(tenant.getAllowCheckTax())
-                || CollectionUtils.isEmpty(document.getFiles())) {
+        if (CollectionUtils.isEmpty(document.getFiles())) {
             TaxDocument doc = new TaxDocument();
             doc.setFileExtractionType(TaxFileExtractionType.NONE);
             return doc;
@@ -99,7 +99,8 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
 
         TaxDocument taxDocument = new TaxDocument();
 
-        List<File> pdfs = files.stream().filter(file -> FilenameUtils.getExtension(file.getPath()).equals("pdf")).collect(Collectors.toList());
+        List<File> pdfs = selectFilesToProcess(files);
+
         if (!pdfs.isEmpty()) {
             for (File pdf : pdfs) {
                 String twoDDocContent = utility.extractTax2DDoc(pdf);
@@ -133,7 +134,7 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
         log.info("Processing tax document without QR code");
 
         StringBuilder result = new StringBuilder();
-        List<File> pdfs = files.stream().filter(file -> FilenameUtils.getExtension(file.getPath()).equals("pdf")).collect(Collectors.toList());
+        List<File> pdfs = selectFilesToProcess(files);
         if (!pdfs.isEmpty()) {
             for (File pdf : pdfs) {
                 result.append(utility.extractInfoFromPDFFirstPage(pdf));
@@ -174,6 +175,14 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
         taxDocument.setTime(milliseconds);
         taxDocument.setFileExtractionType(TaxFileExtractionType.OCR);
         return taxDocument;
+    }
+
+    private List<File> selectFilesToProcess(List<File> files) {
+        Predicate<File> isNotFromMonFranceConnect = file -> file.getMfcValidationResult() == null;
+        return files.stream()
+                .filter(file -> FilenameUtils.getExtension(file.getPath()).equals("pdf"))
+                .filter(isNotFromMonFranceConnect)
+                .collect(Collectors.toList());
     }
 
     private TaxDocument getTaxDocument(String lastName, String firstName, String unaccentFirstName, String unaccentLastName, StringBuilder result, String fiscalNumber, String referenceNumber) {
