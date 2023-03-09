@@ -77,4 +77,6 @@
     <include file="db/migration/202302100000-update-file-column-preview.xml"/>
     <include file="db/migration/202303010000-update-tenant-lastupdate.xml"/>
     <include file="db/migration/202303080000-create-apartsharing-lastupdate.xml"/>
+    <include file="db/migration/202303090000-insert-tenant-userapi-for-couple.xml"/>
+
 </databaseChangeLog>
