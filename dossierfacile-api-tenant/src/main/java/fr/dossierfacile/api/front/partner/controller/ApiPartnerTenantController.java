@@ -5,6 +5,7 @@ import fr.dossierfacile.api.front.form.SubscriptionApartmentSharingOfTenantForm;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.ListMetadata;
 import fr.dossierfacile.api.front.model.ResponseWrapper;
+import fr.dossierfacile.api.front.model.TenantSortType;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
@@ -49,36 +50,26 @@ public class ApiPartnerTenantController {
     private final UserApiService userApiService;
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<TenantUpdate>> list(@RequestParam("lastUpdateSince") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime lastUpdateSince,
-                                                   @RequestParam(value = "lastUpdateBefore", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime lastUpdateBefore) {
-        Optional<UserApi> userApi = this.userApiService.findByName(authenticationFacade.getKeycloakClientId());
-        if (lastUpdateBefore == null) {
-            lastUpdateBefore = LocalDateTime.now();
-        }
-        return ok(tenantService.findTenantUpdateByLastUpdateIntervalAndPartner(lastUpdateSince, lastUpdateBefore, userApi.get()));
-    }
-
-    @GetMapping(value = "/x", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ResponseWrapper<List<TenantUpdate>, ListMetadata>> listAll(@RequestParam(value = "since", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime since,
-                                                                                     @RequestParam(value = "limit", defaultValue = "1000") Long limit,
-                                                                                     @RequestParam(value = "orderBy", defaultValue = "CREATED_DATE") TenantSortType orderBy
+    public ResponseEntity<ResponseWrapper<List<TenantUpdate>, ListMetadata>> list(@RequestParam(value = "after", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime after,
+                                                                                  @RequestParam(value = "limit", defaultValue = "1000") Long limit,
+                                                                                  @RequestParam(value = "orderBy", defaultValue = "LAST_UPDATE_DATE") TenantSortType orderBy
     ) {
         Optional<UserApi> userApi = this.userApiService.findByName(authenticationFacade.getKeycloakClientId());
         List<TenantUpdate> result;
         LocalDateTime nextTimeToken;
         switch (orderBy) {
-            case CREATED_DATE -> {
-                result = tenantService.findTenantUpdateByCreatedAndPartner(since, userApi.get(), limit);
-                nextTimeToken = (result.size() == 0) ? since : result.get(result.size() - 1).getCreationDate();
+            case CREATION_DATE -> {
+                result = tenantService.findTenantUpdateByCreatedAndPartner(after, userApi.get(), limit);
+                nextTimeToken = (result.size() == 0) ? after : result.get(result.size() - 1).getCreationDate();
             }
             case LAST_UPDATE_DATE -> {
-                result = tenantService.findTenantUpdateByLastUpdateAndPartner(since, userApi.get(), limit);
-                nextTimeToken = (result.size() == 0) ? since : result.get(result.size() - 1).getLastUpdateDate();
+                result = tenantService.findTenantUpdateByLastUpdateAndPartner(after, userApi.get(), limit);
+                nextTimeToken = (result.size() == 0) ? after : result.get(result.size() - 1).getLastUpdateDate();
             }
             default -> throw new IllegalArgumentException();
         }
 
-        String nextLink = "/api-partner/tenant/x?limit=" + limit + "&orderBy=" + orderBy + "&since=" + nextTimeToken;
+        String nextLink = "/api-partner/tenant?limit=" + limit + "&orderBy=" + orderBy + "&after=" + nextTimeToken;
         return ok(ResponseWrapper.<List<TenantUpdate>, ListMetadata>builder()
                 .metadata(ListMetadata.builder()
                         .limit(limit)
@@ -113,9 +104,4 @@ public class ApiPartnerTenantController {
         Tenant tenant = authenticationFacade.getTenant(tenantId);
         return (userService.deleteCoTenant(tenant, id) ? ok() : status(HttpStatus.FORBIDDEN)).build();
     }
-
-    enum TenantSortType {
-        CREATED_DATE, LAST_UPDATE_DATE
-    }
-
 }

@@ -4,6 +4,7 @@ import fr.dossierfacile.api.front.aop.annotation.MethodLog;
 import fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException;
 import fr.dossierfacile.api.front.model.ListMetadata;
 import fr.dossierfacile.api.front.model.ResponseWrapper;
+import fr.dossierfacile.api.front.model.TenantSortType;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.UserApiService;
@@ -59,14 +60,14 @@ public class ApiPartnerApartmentSharingController {
     }
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ResponseWrapper<List<ApplicationModel>, ListMetadata>> listAll(@RequestParam(value = "after", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime after,
-                                                                                         @RequestParam(value = "limit", defaultValue = "100") Long limit,
-                                                                                         @RequestParam(value = "orderBy", defaultValue = "LAST_UPDATE_DATE") ApiPartnerTenantController.TenantSortType orderBy
+    public ResponseEntity<ResponseWrapper<List<ApplicationModel>, ListMetadata>> list(@RequestParam(value = "after", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime after,
+                                                                                      @RequestParam(value = "limit", defaultValue = "100") Long limit,
+                                                                                      @RequestParam(value = "orderBy", defaultValue = "LAST_UPDATE_DATE") TenantSortType orderBy
     ) {
         Optional<UserApi> userApi = this.userApiService.findByName(authenticationFacade.getKeycloakClientId());
         List<ApplicationModel> result;
         LocalDateTime nextTimeToken;
-        if (orderBy == ApiPartnerTenantController.TenantSortType.LAST_UPDATE_DATE) {
+        if (orderBy == TenantSortType.LAST_UPDATE_DATE) {
             result = apartmentSharingService.findApartmentSharingByLastUpdateDateAndPartner(after, userApi.get(), limit);
             nextTimeToken = (result.size() == 0) ? after : result.get(result.size() - 1).getLastUpdateDate();
         } else {

@@ -30,6 +30,6 @@ public interface ApartmentSharingRepository extends JpaRepository<ApartmentShari
             ORDER BY t.lastUpdateDate ASC
             """
     )
-    List<ApartmentSharing> findByLastUpdateDateAndPartner(@Param("lastUpdateDate") LocalDateTime lastUpdateDate, @Param("partner") UserApi partner, Pageable pageable);
+    List<ApartmentSharing> findByLastUpdateDateAndPartner(@Param("lastUpdateDate") LocalDateTime lastUpdateDateFrom, @Param("partner") UserApi partner, Pageable pageable);
 
 }
