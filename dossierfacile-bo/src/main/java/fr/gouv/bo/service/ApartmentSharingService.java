@@ -11,7 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @RequiredArgsConstructor
 @Service
@@ -36,10 +36,6 @@ public class ApartmentSharingService {
         return apartmentSharingRepository.findAllByOrderByIdDesc(pageable);
     }
 
-    public ApartmentSharing findOne(Long id) {
-        return apartmentSharingRepository.getOne(id);
-    }
-
     @Transactional
     public void resetDossierPdfGenerated(ApartmentSharing apartmentSharing) {
         String currentUrl = apartmentSharing.getUrlDossierPdfDocument();
@@ -52,7 +48,7 @@ public class ApartmentSharingService {
     }
 
     public void refreshUpdateDate(ApartmentSharing apartmentSharing) {
-        apartmentSharing.setLastUpdateDate(new Date());
+        apartmentSharing.setLastUpdateDate(LocalDateTime.now());
         apartmentSharingRepository.save(apartmentSharing);
     }
 }
