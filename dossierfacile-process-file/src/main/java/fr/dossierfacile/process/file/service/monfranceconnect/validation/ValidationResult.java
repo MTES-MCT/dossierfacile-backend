@@ -12,6 +12,7 @@ import lombok.ToString;
 import java.util.Optional;
 
 import static fr.dossierfacile.common.enums.MonFranceConnectValidationStatus.API_ERROR;
+import static fr.dossierfacile.common.enums.MonFranceConnectValidationStatus.WRONG_CATEGORY;
 
 @Getter
 @ToString
@@ -25,6 +26,10 @@ public class ValidationResult {
 
     static ValidationResult error(File file, QrCode qrCode) {
         return new ValidationResult(file, null, qrCode, API_ERROR);
+    }
+
+    public static ValidationResult wrongCategory(File file, QrCode qrCode) {
+        return new ValidationResult(file, null, qrCode, WRONG_CATEGORY);
     }
 
     public MonFranceConnectValidationResult toEntity() {

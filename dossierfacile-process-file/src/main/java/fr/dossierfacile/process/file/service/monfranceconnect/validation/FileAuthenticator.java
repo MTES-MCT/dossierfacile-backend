@@ -19,11 +19,11 @@ import static fr.dossierfacile.common.enums.MonFranceConnectValidationStatus.of;
 @Slf4j
 @Service
 @AllArgsConstructor
-public class FileValidator {
+public class FileAuthenticator {
 
     private final MonFranceConnectClient mfcClient;
 
-    public Optional<ValidationResult> validate(File file, InMemoryPdfFile inMemoryPdfFile, QrCode qrCode) {
+    public Optional<ValidationResult> authenticate(File file, InMemoryPdfFile inMemoryPdfFile, QrCode qrCode) {
         return DocumentVerificationRequest.forDocumentWith(qrCode)
                 .map(verificationRequest -> mfcClient.verifyDocument(verificationRequest)
                         .map(verifiedContent -> compareContents(inMemoryPdfFile, file, qrCode, verifiedContent))
