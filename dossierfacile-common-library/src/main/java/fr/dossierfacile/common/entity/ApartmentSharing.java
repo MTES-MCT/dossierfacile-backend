@@ -24,12 +24,9 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -75,9 +72,8 @@ public class ApartmentSharing implements Serializable {
     @Enumerated(EnumType.STRING)
     private FileStatus dossierPdfDocumentStatus;
 
-    @Temporal(TemporalType.TIMESTAMP)
     @LastModifiedDate
-    private Date lastUpdateDate;
+    private LocalDateTime lastUpdateDate;
 
     public ApartmentSharing(Tenant tenant) {
         tenants.add(tenant);

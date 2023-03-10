@@ -3,6 +3,7 @@ package fr.dossierfacile.api.front.partner.controller;
 import fr.dossierfacile.api.front.aop.annotation.MethodLog;
 import fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException;
 import fr.dossierfacile.api.front.model.ListMetadata;
+import fr.dossierfacile.api.front.model.MappingFormat;
 import fr.dossierfacile.api.front.model.ResponseWrapper;
 import fr.dossierfacile.api.front.model.TenantSortType;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
@@ -62,19 +63,20 @@ public class ApiPartnerApartmentSharingController {
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResponseWrapper<List<ApplicationModel>, ListMetadata>> list(@RequestParam(value = "after", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime after,
                                                                                       @RequestParam(value = "limit", defaultValue = "100") Long limit,
-                                                                                      @RequestParam(value = "orderBy", defaultValue = "LAST_UPDATE_DATE") TenantSortType orderBy
+                                                                                      @RequestParam(value = "orderBy", defaultValue = "LAST_UPDATE_DATE") TenantSortType orderBy,
+                                                                                      @RequestParam(value = "format", defaultValue = "NORMAL") MappingFormat format
     ) {
         Optional<UserApi> userApi = this.userApiService.findByName(authenticationFacade.getKeycloakClientId());
         List<ApplicationModel> result;
         LocalDateTime nextTimeToken;
         if (orderBy == TenantSortType.LAST_UPDATE_DATE) {
-            result = apartmentSharingService.findApartmentSharingByLastUpdateDateAndPartner(after, userApi.get(), limit);
+            result = apartmentSharingService.findApartmentSharingByLastUpdateDateAndPartner(after, userApi.get(), limit, format);
             nextTimeToken = (result.size() == 0) ? after : result.get(result.size() - 1).getLastUpdateDate();
         } else {
             throw new IllegalArgumentException();
         }
 
-        String nextLink = "/api-partner/apartmentSharing?limit=" + limit + "&orderBy=" + orderBy + "&after=" + nextTimeToken;
+        String nextLink = "/api-partner/apartmentSharing?limit=" + limit + "&orderBy=" + orderBy + "&format=" + format + "&after=" + nextTimeToken;
         return ok(ResponseWrapper.<List<ApplicationModel>, ListMetadata>builder()
                 .metadata(ListMetadata.builder()
                         .limit(limit)

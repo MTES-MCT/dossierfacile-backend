@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Mapper(componentModel = "spring")
-public interface ApplicationLightMapper {
+public interface ApplicationLightMapper extends ApartmentSharingMapper {
     ApplicationModel toApplicationModel(ApartmentSharing apartmentSharing);
 
     @Mapping(target = "name", source="name", ignore = true)

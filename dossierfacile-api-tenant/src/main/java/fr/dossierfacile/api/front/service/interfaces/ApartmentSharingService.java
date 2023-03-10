@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.front.service.interfaces;
 
+import fr.dossierfacile.api.front.model.MappingFormat;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
@@ -25,7 +26,7 @@ public interface ApartmentSharingService {
 
     Optional<ApartmentSharing> findById(Long apartmentSharingId);
 
-    List<ApplicationModel> findApartmentSharingByLastUpdateDateAndPartner(LocalDateTime lastUpdateDate, UserApi userApi, long limit);
+    List<ApplicationModel> findApartmentSharingByLastUpdateDateAndPartner(LocalDateTime lastUpdateDate, UserApi userApi, long limit, MappingFormat format);
 
     void refreshUpdateDate(ApartmentSharing apartmentSharing);
 }

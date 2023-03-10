@@ -3,6 +3,7 @@ package fr.dossierfacile.api.front.service;
 import fr.dossierfacile.api.front.amqp.Producer;
 import fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException;
 import fr.dossierfacile.api.front.exception.ApartmentSharingUnexpectedException;
+import fr.dossierfacile.api.front.model.MappingFormat;
 import fr.dossierfacile.api.front.repository.LinkLogRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.common.entity.ApartmentSharing;
@@ -10,6 +11,8 @@ import fr.dossierfacile.common.entity.LinkLog;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.FileStatus;
 import fr.dossierfacile.common.enums.LinkType;
+import fr.dossierfacile.common.mapper.ApartmentSharingMapper;
+import fr.dossierfacile.common.mapper.ApplicationBasicMapper;
 import fr.dossierfacile.common.mapper.ApplicationFullMapper;
 import fr.dossierfacile.common.mapper.ApplicationLightMapper;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
@@ -30,7 +33,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.UnknownServiceException;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -44,6 +46,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
     private final TenantCommonRepository tenantRepository;
     private final ApplicationFullMapper applicationFullMapper;
     private final ApplicationLightMapper applicationLightMapper;
+    private final ApplicationBasicMapper applicationBasicMapper;
     private final FileStorageService fileStorageService;
     private final LinkLogRepository linkLogRepository;
     private final Producer producer;
@@ -149,14 +152,16 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
 
     @Override
     public void refreshUpdateDate(ApartmentSharing apartmentSharing) {
-        apartmentSharing.setLastUpdateDate(new Date());
+        apartmentSharing.setLastUpdateDate(LocalDateTime.now());
         apartmentSharingRepository.save(apartmentSharing);
     }
 
     @Override
-    public List<ApplicationModel> findApartmentSharingByLastUpdateDateAndPartner(LocalDateTime lastUpdateDate, UserApi userApi, long limit) {
+    public List<ApplicationModel> findApartmentSharingByLastUpdateDateAndPartner(LocalDateTime lastUpdateDate, UserApi userApi, long limit, MappingFormat format) {
+        ApartmentSharingMapper mapper = (format == MappingFormat.EXTENDED) ? applicationFullMapper : applicationBasicMapper;
+
         return apartmentSharingRepository.findByLastUpdateDateAndPartner(lastUpdateDate, userApi, PageRequest.of(0, (int) limit)).stream().map(a ->
-                applicationLightMapper.toApplicationModel(a)).collect(Collectors.toList());
+                mapper.toApplicationModel(a)).collect(Collectors.toList());
     }
 
     private void checkingAllTenantsInTheApartmentAreValidatedAndAllDocumentsAreNotNull(long apartmentSharingId, String token) {
