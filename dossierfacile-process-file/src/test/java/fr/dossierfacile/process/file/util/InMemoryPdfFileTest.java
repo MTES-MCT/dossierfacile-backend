@@ -3,6 +3,7 @@ package fr.dossierfacile.process.file.util;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.shared.StoredFile;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
+import fr.dossierfacile.process.file.TestFilesUtil;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -50,7 +51,7 @@ class InMemoryPdfFileTest {
         FileStorageService fileStorageService = mock(FileStorageService.class);
         when(fileStorageService.download(any(StoredFile.class))).thenAnswer(invocation -> {
             File file = invocation.getArgument(0, File.class);
-            return getClass().getClassLoader().getResourceAsStream("documents/" + file.getPath());
+            return TestFilesUtil.getFileAsStream(file.getPath());
         });
         return fileStorageService;
     }

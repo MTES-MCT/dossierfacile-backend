@@ -10,7 +10,9 @@ public enum MonFranceConnectValidationStatus {
     VALID("Authentifié"),
     INVALID("Non authentifié"),
     API_ERROR("Erreur lors de l'appel à MonFranceConnect"),
-    UNKNOWN_DOCUMENT("Non reconnu par MonFranceConnect (peut-être expiré)");
+    UNKNOWN_DOCUMENT("Non reconnu par MonFranceConnect (peut-être expiré)"),
+    WRONG_CATEGORY("Ne correspond pas à la catégorie")
+    ;
 
     private final String label;
 
