@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.Collections.singletonList;
@@ -64,7 +65,7 @@ public class HonorDeclaration implements SaveStep<HonorDeclarationForm> {
     private static List<Tenant> getTenantOrPartners(Tenant tenant) {
         ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
         return switch (apartmentSharing.getApplicationType()) {
-            case COUPLE -> apartmentSharing.getTenants();
+            case COUPLE -> new ArrayList<>(apartmentSharing.getTenants());
             case ALONE, GROUP -> singletonList(tenant);
         };
     }
