@@ -18,6 +18,7 @@ import fr.dossierfacile.api.front.service.interfaces.PasswordRecoveryTokenServic
 import fr.dossierfacile.api.front.service.interfaces.UserApiService;
 import fr.dossierfacile.api.front.service.interfaces.UserService;
 import fr.dossierfacile.api.front.util.LocalDateTimeTypeAdapter;
+import fr.dossierfacile.api.front.util.Obfuscator;
 import fr.dossierfacile.common.entity.AccountDeleteLog;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.ConfirmationToken;
@@ -116,6 +117,9 @@ public class UserServiceImpl implements UserService {
         user.setPassword(bCryptPasswordEncoder.encode(password));
         if (user.getKeycloakId() == null) {
             var keycloakId = keycloakService.getKeycloakId(user.getEmail());
+            if (tenantRepository.findByKeycloakId(keycloakId) != null) {
+                throw new IllegalStateException("Tenant " + Obfuscator.email(user.getEmail()) + " already exists (same keycloak id)");
+            }
             keycloakService.createKeyCloakPassword(keycloakId, password);
             user.setKeycloakId(keycloakId);
         } else {

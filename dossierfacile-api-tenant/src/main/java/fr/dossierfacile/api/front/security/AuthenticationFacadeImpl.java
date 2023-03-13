@@ -146,11 +146,20 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
                 logService.saveLog(LogType.FC_ACCOUNT_LINK, tenant.getId());
             }
         } else {
-            if (keycloakService.isKeycloakUser(getKeycloakUserId())) {
-                log.warn("Tenant " + Obfuscator.email(email) + " not exist - create it");
-                tenant = Tenant.builder().tenantType(TenantType.CREATE).email(email).build();
-                tenant.setKeycloakId(getKeycloakUserId());
-                tenant = tenantService.create(tenant);
+            String keycloakUserId = getKeycloakUserId();
+            if (keycloakService.isKeycloakUser(keycloakUserId)) {
+                Tenant tenantWithSameId = tenantRepository.findByKeycloakId(keycloakUserId);
+                if (tenantWithSameId != null) {
+                    log.warn("Tenant " + Obfuscator.email(email) + " had a wrong email, we update it");
+                    tenant = tenantWithSameId;
+                    tenant.setEmail(email);
+                    tenant = tenantRepository.save(tenant);
+                } else {
+                    log.warn("Tenant " + Obfuscator.email(email) + " not exist - create it");
+                    tenant = Tenant.builder().tenantType(TenantType.CREATE).email(email).build();
+                    tenant.setKeycloakId(getKeycloakUserId());
+                    tenant = tenantService.create(tenant);
+                }
                 if (isFranceConnect()) {
                     log.info("Local account creation via FranceConnect account, for tenant with ID {}", tenant.getId());
                     logService.saveLog(LogType.FC_ACCOUNT_CREATION, tenant.getId());
