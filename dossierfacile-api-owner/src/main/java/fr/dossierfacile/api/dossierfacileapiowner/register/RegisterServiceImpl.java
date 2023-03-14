@@ -58,6 +58,7 @@ public class RegisterServiceImpl implements RegisterService {
         // TODO : useless ?
         owner.setPassword(bCryptPasswordEncoder.encode(accountForm.getPassword()));
         owner.setKeycloakId(keycloakService.createKeycloakUserAccountCreation(accountForm, owner));
+        owner.setFranceConnect(false);
         ownerRepository.save(owner);
         mailService.sendEmailConfirmAccount(owner, confirmationTokenService.createToken(owner));
         userRoleService.createRole(owner);
