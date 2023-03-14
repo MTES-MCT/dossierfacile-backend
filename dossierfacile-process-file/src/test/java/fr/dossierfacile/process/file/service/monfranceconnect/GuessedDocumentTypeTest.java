@@ -19,8 +19,11 @@ class GuessedDocumentTypeTest {
 
     @ParameterizedTest
     @CsvSource({
-            "monfranceconnect/tax-document.pdf, TAX",
+            "monfranceconnect/tax-document.pdf, TAXABLE_INCOME",
+            "monfranceconnect/student-document.pdf, STUDENT_STATUS",
             "monfranceconnect/scholarship-document.pdf, SCHOLARSHIP",
+            "monfranceconnect/unemployment-document.pdf, UNEMPLOYMENT_STATUS",
+            "monfranceconnect/unemployment-benefit-document.pdf, UNEMPLOYMENT_BENEFIT",
             "test-document.pdf, UNKNOWN"
     })
     void should_guess_document_type_based_on_title(String fileName, GuessedDocumentType expectedType) throws IOException {
@@ -30,8 +33,11 @@ class GuessedDocumentTypeTest {
 
     @ParameterizedTest
     @CsvSource({
-        "tax-document.pdf, TAX, MY_NAME",
-        "scholarship-document.pdf, FINANCIAL, SCHOLARSHIP",
+            "tax-document.pdf, TAX, MY_NAME",
+            "student-document.pdf, PROFESSIONAL, STUDENT",
+            "scholarship-document.pdf, FINANCIAL, SCHOLARSHIP",
+            "unemployment-document.pdf, PROFESSIONAL, UNEMPLOYED",
+            "unemployment-benefit-document.pdf, FINANCIAL, SOCIAL_SERVICE",
     })
     void should_match_with_the_actual_category(String fileName, DocumentCategory category, DocumentSubCategory subCategory) throws IOException {
         file = getPdfFile("monfranceconnect/" + fileName);
@@ -43,8 +49,11 @@ class GuessedDocumentTypeTest {
 
     @ParameterizedTest
     @CsvSource({
-        "tax-document.pdf, FINANCIAL, MY_NAME",
-        "scholarship-document.pdf, FINANCIAL, SALARY",
+            "tax-document.pdf, FINANCIAL, MY_NAME",
+            "student-document.pdf, FINANCIAL, STUDENT",
+            "scholarship-document.pdf, FINANCIAL, SALARY",
+            "unemployment-document.pdf, PROFESSIONAL, CDI",
+            "unemployment-benefit-document.pdf, TAX, SOCIAL_SERVICE",
     })
     void should_not_match_with_the_actual_category(String fileName, DocumentCategory category, DocumentSubCategory subCategory) throws IOException {
         file = getPdfFile("monfranceconnect/" + fileName);

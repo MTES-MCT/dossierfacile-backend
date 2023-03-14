@@ -8,11 +8,22 @@ import lombok.AllArgsConstructor;
 
 import java.util.Arrays;
 
+import static fr.dossierfacile.common.enums.DocumentCategory.FINANCIAL;
+import static fr.dossierfacile.common.enums.DocumentCategory.PROFESSIONAL;
+import static fr.dossierfacile.common.enums.DocumentCategory.TAX;
+import static fr.dossierfacile.common.enums.DocumentSubCategory.MY_NAME;
+import static fr.dossierfacile.common.enums.DocumentSubCategory.SOCIAL_SERVICE;
+import static fr.dossierfacile.common.enums.DocumentSubCategory.STUDENT;
+import static fr.dossierfacile.common.enums.DocumentSubCategory.UNEMPLOYED;
+
 @AllArgsConstructor
 public enum GuessedDocumentType {
 
-    TAX("Justificatif de revenus imposables"),
+    TAXABLE_INCOME("Justificatif de revenus imposables"),
     SCHOLARSHIP("Justificatif de statut étudiant boursier"),
+    STUDENT_STATUS("Justificatif de statut étudiant"),
+    UNEMPLOYMENT_STATUS("Justificatif d'inscription à Pôle emploi"),
+    UNEMPLOYMENT_BENEFIT("Justificatif d'indemnisation à Pôle emploi"),
     UNKNOWN("")
     ;
 
@@ -29,10 +40,18 @@ public enum GuessedDocumentType {
 
     public boolean isMatchingCategoryOf(Document document) {
         return switch (this) {
-            case TAX -> document.getDocumentCategory() == DocumentCategory.TAX;
-            case SCHOLARSHIP -> document.getDocumentSubCategory() == DocumentSubCategory.SCHOLARSHIP;
+            case TAXABLE_INCOME -> hasCategory(document, TAX, MY_NAME);
+            case SCHOLARSHIP -> hasCategory(document, FINANCIAL, DocumentSubCategory.SCHOLARSHIP);
+            case STUDENT_STATUS -> hasCategory(document, PROFESSIONAL, STUDENT);
+            case UNEMPLOYMENT_STATUS -> hasCategory(document, PROFESSIONAL, UNEMPLOYED);
+            case UNEMPLOYMENT_BENEFIT -> hasCategory(document, FINANCIAL, SOCIAL_SERVICE);
             case UNKNOWN -> true;
         };
+    }
+
+    private static boolean hasCategory(Document document, DocumentCategory category, DocumentSubCategory subCategory) {
+        return document.getDocumentCategory() == category &&
+                document.getDocumentSubCategory() == subCategory;
     }
 
 }

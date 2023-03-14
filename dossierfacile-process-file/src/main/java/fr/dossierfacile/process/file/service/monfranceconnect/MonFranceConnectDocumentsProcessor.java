@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static fr.dossierfacile.common.enums.DocumentCategory.FINANCIAL;
+import static fr.dossierfacile.common.enums.DocumentCategory.PROFESSIONAL;
 import static fr.dossierfacile.common.enums.DocumentCategory.TAX;
 
 @Slf4j
@@ -27,7 +28,7 @@ import static fr.dossierfacile.common.enums.DocumentCategory.TAX;
 @AllArgsConstructor
 public class MonFranceConnectDocumentsProcessor {
 
-    private static final List<DocumentCategory> CATEGORIES_TO_PROCESS = List.of(TAX, FINANCIAL);
+    private static final List<DocumentCategory> CATEGORIES_TO_PROCESS = List.of(TAX, FINANCIAL, PROFESSIONAL);
     private final String PDF_TYPE = "application/pdf";
 
     private final FileAuthenticator documentValidator;
