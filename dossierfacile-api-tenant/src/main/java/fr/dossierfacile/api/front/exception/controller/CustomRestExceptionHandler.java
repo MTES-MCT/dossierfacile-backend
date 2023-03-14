@@ -2,13 +2,13 @@ package fr.dossierfacile.api.front.exception.controller;
 
 import fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException;
 import fr.dossierfacile.api.front.exception.ApartmentSharingUnexpectedException;
-import fr.dossierfacile.api.front.exception.ConfirmationTokenNotFoundException;
 import fr.dossierfacile.api.front.exception.DocumentNotFoundException;
 import fr.dossierfacile.api.front.exception.FileNotFoundException;
 import fr.dossierfacile.api.front.exception.GuarantorNotFoundException;
 import fr.dossierfacile.api.front.exception.PasswordRecoveryTokenNotFoundException;
 import fr.dossierfacile.api.front.exception.UserNotFoundException;
 import fr.dossierfacile.api.front.exception.model.ApiError;
+import fr.dossierfacile.common.exceptions.ConfirmationTokenNotFoundException;
 import io.sentry.Sentry;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.http.HttpHeaders;

@@ -34,6 +34,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.ResolvableType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
@@ -50,6 +51,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.validation.Valid;
 import java.security.Principal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -116,8 +118,8 @@ public class BOController {
     }
 
     @GetMapping("/callback/manually/{userApiId}")
-    public String callBackManuallyToUserApi(@PathVariable("userApiId") Long userApiId) {
-        tenantService.sendCallBacksManuallyToUserApi(userApiId);
+    public String callBackManuallyToUserApi(@PathVariable("userApiId") Long userApiId, @RequestParam("since") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime since) {
+        tenantService.sendCallBacksManuallyToUserApi(userApiId, since);
         return REDIRECT_BO;
     }
 

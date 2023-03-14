@@ -17,8 +17,6 @@ public interface DocumentService {
 
     void resetValidatedDocumentsStatusOfSpecifiedCategoriesToToProcess(List<Document> documentList, List<DocumentCategory> categoriesToChange);
 
-    void deleteAllDocumentsAssociatedToTenant(Tenant tenant);
-
     void changeDocumentStatus(Document document, DocumentStatus toProcess);
 
     void addFile(MultipartFile multipartFile, Document document);

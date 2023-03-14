@@ -31,12 +31,11 @@ public interface TenantService {
 
     Tenant findByKeycloakId(String keycloakId);
 
-    @Transactional
-    void processWarningsBatch(LocalDateTime localDateTime, int warnings, Pageable page);
-
     Tenant registerFromKeycloakUser(KeycloakUser kcUser, String partner);
 
-    List<TenantUpdate> findTenantUpdateByLastUpdateIntervalAndPartner(LocalDateTime updateDateTimeSince, LocalDateTime updateDateTimeTo, UserApi partner);
-
     Optional<Tenant> findByEmail(String email);
+
+    List<TenantUpdate> findTenantUpdateByCreatedAndPartner(LocalDateTime from, UserApi userApi, Long limit);
+
+    List<TenantUpdate> findTenantUpdateByLastUpdateAndPartner(LocalDateTime from, UserApi userApi, Long limit);
 }

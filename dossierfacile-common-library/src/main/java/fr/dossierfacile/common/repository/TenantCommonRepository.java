@@ -13,6 +13,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -69,10 +70,11 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
     @Query(
             value = "select distinct tl.tenant_id from tenant_log as tl \n" +
                     "left join tenant_userapi tu on tl.tenant_id = tu.tenant_id \n" +
-                    "where tu.userapi_id=:id and tl.log_type = 'ACCOUNT_VALIDATED'",
+                    "where tu.userapi_id=:id and tl.log_type = 'ACCOUNT_VALIDATED' \n" +
+                    "and tl.creation_date >= :since",
             nativeQuery = true
     )
-    List<Long> listIdTenantsAccountCompletedPendingToSendCallBack(@Param("id") Long userApiId);
+    List<Long> listIdTenantsAccountCompletedPendingToSendCallBack(@Param("id") Long userApiId, @Param("since") LocalDateTime lastUpdateSince);
 
     @Query("SELECT t FROM Tenant t ORDER BY t.id DESC")
     Page<Tenant> findAllTenants(Pageable page);
@@ -205,14 +207,28 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
     Tenant findByKeycloakId(String keycloakId);
 
     @Query(value = """
-            SELECT t.id as id, t.apartment_sharing_id as apartmentSharingId, t.last_update_date as lastUpdateDate 
+            SELECT t.id as id, t.apartment_sharing_id as apartmentSharingId, t.last_update_date as lastUpdateDate, ua.creation_date as creationDate 
             FROM  tenant t
+            INNER JOIN user_account ua ON ua.id = t.id
             INNER JOIN tenant_userapi tua ON tua.tenant_id = t.id  
-            WHERE t.last_update_date >= :lastUpdateSince
-            AND t.last_update_date < :lastUpdateBefore 
-            AND tua.userapi_id = :partnerId 
-            ORDER BY t.last_update_date
+            WHERE tua.userapi_id = :partnerId
+            AND ( CAST( CAST(:lastUpdateFrom AS text) AS timestamp) IS NULL OR t.last_update_date > CAST( CAST(:lastUpdateFrom AS text) AS timestamp))
+            ORDER BY t.last_update_date ASC
+            LIMIT :limit
             """, nativeQuery = true
     )
-    List<TenantUpdate> findTenantUpdateByLastUpdateIntervalAndPartner(@Param("lastUpdateSince") LocalDateTime lastUpdateSince, @Param("lastUpdateBefore") LocalDateTime lastUpdateBefore, @Param("partnerId") Long partnerId);
+    List<TenantUpdate> findTenantUpdateByLastUpdateAndPartner(@Param("lastUpdateFrom") LocalDateTime from, @Param("partnerId") Long id, @Param("limit") Long limit);
+
+    @Query(value = """
+            SELECT t.id as id, t.apartment_sharing_id as apartmentSharingId, t.last_update_date as lastUpdateDate, ua.creation_date as creationDate 
+            FROM  user_account ua 
+            INNER JOIN tenant t ON t.id = ua.id
+            INNER JOIN tenant_userapi tua ON tua.tenant_id = t.id  
+            WHERE tua.userapi_id = :partnerId
+            AND ( CAST( CAST(:creationDateFrom AS text) AS timestamp) IS NULL OR ua.creation_date > CAST( CAST(:creationDateFrom AS text) AS timestamp))
+            ORDER BY ua.creation_date ASC
+            LIMIT :limit
+            """, nativeQuery = true
+    )
+    List<TenantUpdate> findTenantUpdateByCreationDateAndPartner(@Param("creationDateFrom") LocalDateTime from, @Param("partnerId") Long id, @Param("limit") Long limit);
 }

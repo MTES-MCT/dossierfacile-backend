@@ -7,7 +7,6 @@ import fr.dossierfacile.api.front.model.KeycloakUser;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
-import fr.dossierfacile.api.front.service.interfaces.LogService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
 import fr.dossierfacile.api.front.util.Obfuscator;
@@ -18,6 +17,7 @@ import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.repository.TenantUserApiRepository;
+import fr.dossierfacile.common.service.interfaces.LogService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -146,11 +146,20 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
                 logService.saveLog(LogType.FC_ACCOUNT_LINK, tenant.getId());
             }
         } else {
-            if (keycloakService.isKeycloakUser(getKeycloakUserId())) {
-                log.warn("Tenant " + Obfuscator.email(email) + " not exist - create it");
-                tenant = Tenant.builder().tenantType(TenantType.CREATE).email(email).build();
-                tenant.setKeycloakId(getKeycloakUserId());
-                tenant = tenantService.create(tenant);
+            String keycloakUserId = getKeycloakUserId();
+            if (keycloakService.isKeycloakUser(keycloakUserId)) {
+                Tenant tenantWithSameId = tenantRepository.findByKeycloakId(keycloakUserId);
+                if (tenantWithSameId != null) {
+                    log.warn("Tenant " + Obfuscator.email(email) + " had a wrong email, we update it");
+                    tenant = tenantWithSameId;
+                    tenant.setEmail(email);
+                    tenant = tenantRepository.save(tenant);
+                } else {
+                    log.warn("Tenant " + Obfuscator.email(email) + " not exist - create it");
+                    tenant = Tenant.builder().tenantType(TenantType.CREATE).email(email).build();
+                    tenant.setKeycloakId(getKeycloakUserId());
+                    tenant = tenantService.create(tenant);
+                }
                 if (isFranceConnect()) {
                     log.info("Local account creation via FranceConnect account, for tenant with ID {}", tenant.getId());
                     logService.saveLog(LogType.FC_ACCOUNT_CREATION, tenant.getId());

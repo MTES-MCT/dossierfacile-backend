@@ -1,22 +1,18 @@
 package fr.dossierfacile.api.front.service;
 
-import fr.dossierfacile.api.front.repository.ConfirmationTokenRepository;
 import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.api.front.service.interfaces.ScheduledTasksService;
 import fr.dossierfacile.api.front.service.interfaces.StatsService;
-import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
+import fr.dossierfacile.common.repository.ConfirmationTokenRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -29,7 +25,6 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class ScheduledTasksServiceImpl implements ScheduledTasksService {
     private final TenantCommonRepository tenantRepository;
-    private final TenantService tenantService;
     private final ConfirmationTokenRepository confirmationTokenRepository;
     private final MailService mailService;
     private final StatsService statsService;
@@ -41,10 +36,6 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
     private Long daysForAccountDeclinationReminder;
     @Value("${days_for_satisfaction_email}")
     private Long daysForSatisfactionEmail;
-    @Value("${months_for_deletion_of_documents}")
-    private Integer monthsForDeletionOfDocuments;
-    @Value("${warnings.max.pages:200}")
-    private Integer warningMaxPages;
 
     /**
      * Email notifications, if needed, will begin at 12:10 am every day
@@ -177,32 +168,6 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
             }
         }
         //endregion
-    }
-
-    @Scheduled(cron = "${cron.process.warnings}")
-    public void accountWarningsForDocumentDeletion() {
-        log.info("accountWarnings. Executing scheduled task for account warnings at [" + LocalDateTime.now() + "]");
-        LocalDateTime localDateTime = LocalDateTime.now().minusMonths(monthsForDeletionOfDocuments);
-        processAllWarnings(localDateTime, 2);
-        processAllWarnings(localDateTime, 1);
-        processAllWarnings(localDateTime, 0);
-        log.info("accountWarnings. Account warnings' task was finished");
-    }
-
-    private void processAllWarnings(LocalDateTime localDateTime, int warnings) {
-        long numberOfTenantsToProcess = tenantRepository.countByLastLoginDateIsBeforeAndHasDocuments(localDateTime, warnings);
-        if (numberOfTenantsToProcess == 0) {
-            return;
-        }
-        int lengthOfPage = 100;
-        int numberOfPage = (int) (numberOfTenantsToProcess / lengthOfPage);
-        if (numberOfPage > warningMaxPages) {
-            numberOfPage = warningMaxPages;
-        }
-        for (int i = numberOfPage; i >= 0; i--) {
-            Pageable page = PageRequest.of(i, lengthOfPage, Sort.Direction.DESC, "id");
-            tenantService.processWarningsBatch(localDateTime, warnings, page);
-        }
     }
 
     @Scheduled(cron = "0 0 5 * * *")

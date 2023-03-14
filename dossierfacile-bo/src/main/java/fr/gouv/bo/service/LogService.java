@@ -1,7 +1,7 @@
 package fr.gouv.bo.service;
 
 import fr.dossierfacile.common.entity.Log;
-import fr.gouv.bo.repository.LogRepository;
+import fr.gouv.bo.repository.BoLogRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -14,7 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 public class LogService {
 
-    private final LogRepository logRepository;
+    private final BoLogRepository logRepository;
 
     public List<Log> getLogById(Long id) {
         List<Log> logList = logRepository.findLogsByTenantId(id);

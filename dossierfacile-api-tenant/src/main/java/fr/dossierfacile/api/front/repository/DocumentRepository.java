@@ -10,7 +10,6 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.util.List;
 import java.util.Optional;
 
 public interface DocumentRepository extends JpaRepository<Document, Long> {
@@ -40,16 +39,6 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
     Optional<Document> findByIdForApartmentSharing(@Param("documentId") Long documentId, @Param("apartId") Long apartmentSharing);
 
     Optional<Document> findFirstByName(String documentName);
-
-    @Query(value = "select d1.*\n" +
-            "from document d1\n" +
-            "where d1.tenant_id = :tenantId\n" +
-            "union\n" +
-            "select d2.*\n" +
-            "from document d2\n" +
-            "         join guarantor g on d2.guarantor_id = g.id\n" +
-            "where g.tenant_id = :tenantId", nativeQuery = true)
-    List<Document> findAllAssociatedToTenantId(Long tenantId);
 
     @Modifying
     @Query("UPDATE Document d SET d.taxProcessResult = :taxProcessResult where d.id = :documentId")

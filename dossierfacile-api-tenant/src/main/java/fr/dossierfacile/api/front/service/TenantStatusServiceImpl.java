@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.front.service;
 
+import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.PartnerCallBackType;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 @Service
 @AllArgsConstructor
 public class TenantStatusServiceImpl implements TenantStatusService {
+    private ApartmentSharingService apartmentSharingService;
     private final PartnerCallBackService partnerCallBackService;
     private final TenantCommonRepository tenantRepository;
 
@@ -35,6 +37,7 @@ public class TenantStatusServiceImpl implements TenantStatusService {
                 }
 
             }
+            apartmentSharingService.refreshUpdateDate(tenant.getApartmentSharing());
         }
         return tenant;
     }

@@ -10,6 +10,8 @@ import fr.dossierfacile.common.entity.ConfirmationToken;
 import fr.dossierfacile.common.entity.Owner;
 import fr.dossierfacile.common.entity.PasswordRecoveryToken;
 import fr.dossierfacile.common.entity.User;
+import fr.dossierfacile.common.repository.ConfirmationTokenRepository;
+import fr.dossierfacile.common.service.interfaces.ConfirmationTokenService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -56,6 +58,7 @@ public class RegisterServiceImpl implements RegisterService {
         // TODO : useless ?
         owner.setPassword(bCryptPasswordEncoder.encode(accountForm.getPassword()));
         owner.setKeycloakId(keycloakService.createKeycloakUserAccountCreation(accountForm, owner));
+        owner.setFranceConnect(false);
         ownerRepository.save(owner);
         mailService.sendEmailConfirmAccount(owner, confirmationTokenService.createToken(owner));
         userRoleService.createRole(owner);

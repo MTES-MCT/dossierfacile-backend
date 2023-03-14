@@ -2,26 +2,23 @@ package fr.dossierfacile.api.front.service;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import fr.dossierfacile.api.front.exception.ConfirmationTokenNotFoundException;
 import fr.dossierfacile.api.front.exception.PasswordRecoveryTokenNotFoundException;
 import fr.dossierfacile.api.front.exception.UserNotFoundException;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.form.tenant.FranceConnectTaxForm;
 import fr.dossierfacile.api.front.repository.AccountDeleteLogRepository;
-import fr.dossierfacile.api.front.repository.ApartmentSharingRepository;
-import fr.dossierfacile.api.front.repository.ConfirmationTokenRepository;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.repository.PasswordRecoveryTokenRepository;
 import fr.dossierfacile.api.front.repository.UserRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
-import fr.dossierfacile.api.front.service.interfaces.LogService;
 import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.api.front.service.interfaces.PasswordRecoveryTokenService;
 import fr.dossierfacile.api.front.service.interfaces.UserApiService;
 import fr.dossierfacile.api.front.service.interfaces.UserService;
 import fr.dossierfacile.api.front.util.LocalDateTimeTypeAdapter;
+import fr.dossierfacile.api.front.util.Obfuscator;
 import fr.dossierfacile.common.entity.AccountDeleteLog;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.ConfirmationToken;
@@ -36,8 +33,12 @@ import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.TaxFileExtractionType;
 import fr.dossierfacile.common.enums.TenantType;
+import fr.dossierfacile.common.exceptions.ConfirmationTokenNotFoundException;
+import fr.dossierfacile.common.repository.ApartmentSharingRepository;
+import fr.dossierfacile.common.repository.ConfirmationTokenRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
+import fr.dossierfacile.common.service.interfaces.LogService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.dossierfacile.common.type.TaxDocument;
 import lombok.RequiredArgsConstructor;
@@ -116,6 +117,9 @@ public class UserServiceImpl implements UserService {
         user.setPassword(bCryptPasswordEncoder.encode(password));
         if (user.getKeycloakId() == null) {
             var keycloakId = keycloakService.getKeycloakId(user.getEmail());
+            if (tenantRepository.findByKeycloakId(keycloakId) != null) {
+                throw new IllegalStateException("Tenant " + Obfuscator.email(user.getEmail()) + " already exists (same keycloak id)");
+            }
             keycloakService.createKeyCloakPassword(keycloakId, password);
             user.setKeycloakId(keycloakId);
         } else {
@@ -188,7 +192,16 @@ public class UserServiceImpl implements UserService {
     @Override
     public void linkTenantToPartner(Tenant tenant, String partner, String internalPartnerId) {
         userApiService.findByName(partner)
-                .ifPresent(userApi -> partnerCallBackService.registerTenant(internalPartnerId, tenant, userApi));
+                .ifPresent(userApi -> {
+                    if (tenant.getApartmentSharing().getApplicationType() == ApplicationType.COUPLE) {
+                        tenant.getApartmentSharing().getTenants()
+                                .stream()
+                                .forEach(t -> partnerCallBackService.registerTenant(
+                                        (tenant.getId() == t.getId()) ? internalPartnerId : null, t, userApi));
+                    } else {
+                        partnerCallBackService.registerTenant(internalPartnerId, tenant, userApi);
+                    }
+                });
     }
 
     @Override
