@@ -6,6 +6,7 @@ import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.process.file.service.monfranceconnect.repository.ValidationResultRepository;
 import fr.dossierfacile.process.file.service.monfranceconnect.validation.FileAuthenticator;
+import fr.dossierfacile.process.file.service.monfranceconnect.validation.MonFranceConnectDocumentType;
 import fr.dossierfacile.process.file.service.monfranceconnect.validation.ValidationResult;
 import fr.dossierfacile.process.file.util.Documents;
 import fr.dossierfacile.process.file.util.InMemoryPdfFile;
@@ -42,7 +43,7 @@ public class MonFranceConnectDocumentsProcessor {
             document.getFiles().stream()
                     .filter(this::hasNotAlreadyBeenProcessed)
                     .filter(file -> PDF_TYPE.equals(file.getContentType()))
-                    .forEach(file -> downloadAndValidate(file, document).ifPresent(this::saveResult));
+                    .forEach(file -> downloadAndValidate(file, document));
         }
     }
 
@@ -51,34 +52,31 @@ public class MonFranceConnectDocumentsProcessor {
         return !resultExists;
     }
 
-    private Optional<ValidationResult> downloadAndValidate(File file, Document document) {
+    private void downloadAndValidate(File file, Document document) {
         try (InMemoryPdfFile inMemoryPdfFile = InMemoryPdfFile.create(file, fileStorageService)) {
-            return validateFile(file, inMemoryPdfFile, document);
+            inMemoryPdfFile.findQrCode()
+                    .ifPresent(qrCode -> validateFile(inMemoryPdfFile, qrCode, document)
+                            .ifPresent(result -> saveResult(result, file, qrCode)));
         } catch (IOException e) {
             log.error("Unable to download file " + file.getPath(), e);
             Sentry.captureMessage("Unable to download file " + file.getPath());
         }
-        return Optional.empty();
     }
 
-    private Optional<ValidationResult> validateFile(File file, InMemoryPdfFile inMemoryPdfFile, Document document) {
-        Optional<QrCode> qrCode = inMemoryPdfFile.findQrCode();
-        if (qrCode.isEmpty()) {
-            log.info("File {} is not issued by MonFranceConnect", file.getId());
-            return Optional.empty();
+    private Optional<ValidationResult> validateFile(InMemoryPdfFile inMemoryPdfFile, QrCode qrCode, Document document) {
+        boolean isAllowedInCurrentCategory = MonFranceConnectDocumentType.of(inMemoryPdfFile)
+                .getCategory()
+                .map(guess -> guess.isMatchingCategoryOf(document))
+                .orElse(true);
+        if (!isAllowedInCurrentCategory) {
+            return Optional.of(ValidationResult.wrongCategory());
         }
 
-        GuessedDocumentType guessedType = GuessedDocumentType.of(inMemoryPdfFile);
-        boolean isInWrongCategory = !guessedType.isMatchingCategoryOf(document);
-        if (isInWrongCategory) {
-            return Optional.of(ValidationResult.wrongCategory(file, qrCode.get()));
-        }
-
-        return documentValidator.authenticate(file, inMemoryPdfFile, qrCode.get());
+        return documentValidator.authenticate(inMemoryPdfFile, qrCode);
     }
 
-    private void saveResult(ValidationResult validationResult) {
-        resultRepository.save(validationResult.toEntity());
+    private void saveResult(ValidationResult validationResult, File file, QrCode qrCode) {
+        resultRepository.save(validationResult.toEntity(file, qrCode));
     }
 
 }

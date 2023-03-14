@@ -24,14 +24,17 @@ public class InMemoryPdfFile implements AutoCloseable {
     }
 
     public String readContentAsString() {
+        return readContentAsString(Integer.MAX_VALUE);
+    }
+
+    public String readContentAsString(int endPage) {
         if (pdfBoxDocument.isEncrypted()) {
             return "";
         }
         try {
             PDFTextStripper reader = new PDFTextStripper();
             reader.setAddMoreFormatting(true);
-            reader.setStartPage(1);
-            reader.setEndPage(1);
+            reader.setEndPage(endPage);
             return reader.getText(pdfBoxDocument);
         } catch (IOException e) {
             return "";
