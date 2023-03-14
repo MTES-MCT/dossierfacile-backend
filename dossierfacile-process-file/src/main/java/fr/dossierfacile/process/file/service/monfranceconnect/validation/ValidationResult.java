@@ -19,20 +19,18 @@ import static fr.dossierfacile.common.enums.MonFranceConnectValidationStatus.WRO
 @AllArgsConstructor
 public class ValidationResult {
 
-    private final File file;
     private final DocumentVerifiedContent content;
-    private final QrCode qrCode;
     private final MonFranceConnectValidationStatus validationStatus;
 
-    static ValidationResult error(File file, QrCode qrCode) {
-        return new ValidationResult(file, null, qrCode, API_ERROR);
+    static ValidationResult error() {
+        return new ValidationResult( null, API_ERROR);
     }
 
-    public static ValidationResult wrongCategory(File file, QrCode qrCode) {
-        return new ValidationResult(file, null, qrCode, WRONG_CATEGORY);
+    public static ValidationResult wrongCategory() {
+        return new ValidationResult(null, WRONG_CATEGORY);
     }
 
-    public MonFranceConnectValidationResult toEntity() {
+    public MonFranceConnectValidationResult toEntity(File file, QrCode qrCode) {
         MonFranceConnectValidationResult entity = new MonFranceConnectValidationResult();
         entity.setFile(file);
         entity.setQrCodeContent(qrCode.getContent());

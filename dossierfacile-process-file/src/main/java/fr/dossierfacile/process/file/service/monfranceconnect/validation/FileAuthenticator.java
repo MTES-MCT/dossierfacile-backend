@@ -1,6 +1,5 @@
 package fr.dossierfacile.process.file.service.monfranceconnect.validation;
 
-import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.enums.MonFranceConnectValidationStatus;
 import fr.dossierfacile.process.file.service.monfranceconnect.client.DocumentVerificationRequest;
 import fr.dossierfacile.process.file.service.monfranceconnect.client.DocumentVerifiedContent;
@@ -23,23 +22,22 @@ public class FileAuthenticator {
 
     private final MonFranceConnectClient mfcClient;
 
-    public Optional<ValidationResult> authenticate(File file, InMemoryPdfFile inMemoryPdfFile, QrCode qrCode) {
+    public Optional<ValidationResult> authenticate(InMemoryPdfFile inMemoryPdfFile, QrCode qrCode) {
         return DocumentVerificationRequest.forDocumentWith(qrCode)
                 .map(verificationRequest -> mfcClient.verifyDocument(verificationRequest)
-                        .map(verifiedContent -> compareContents(inMemoryPdfFile, file, qrCode, verifiedContent))
-                        .orElseGet(() -> ValidationResult.error(file, qrCode)));
+                        .map(verifiedContent -> compareContents(inMemoryPdfFile, verifiedContent))
+                        .orElseGet(ValidationResult::error));
     }
 
-    private ValidationResult compareContents(InMemoryPdfFile inMemoryPdfFile, File file, QrCode qrCode, DocumentVerifiedContent content) {
+    private ValidationResult compareContents(InMemoryPdfFile inMemoryPdfFile, DocumentVerifiedContent content) {
         if (content.isDocumentUnknown()) {
-            return new ValidationResult(file, content, qrCode, UNKNOWN_DOCUMENT);
+            return new ValidationResult(content, UNKNOWN_DOCUMENT);
         }
 
         boolean isDocumentValid = content.isMatchingWith(inMemoryPdfFile.readContentAsString());
-        log.info("MFC file with ID {} is {}matching with data from API", file.getId(), isDocumentValid ? "" : "NOT ");
 
         MonFranceConnectValidationStatus status = of(isDocumentValid);
-        return new ValidationResult(file, content, qrCode, status);
+        return new ValidationResult(content, status);
     }
 
 }
