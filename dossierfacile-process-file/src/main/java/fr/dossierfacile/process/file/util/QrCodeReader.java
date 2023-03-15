@@ -20,8 +20,7 @@ import java.util.Optional;
 @Slf4j
 public class QrCodeReader {
 
-    public static Optional<QrCode> findQrCodeOn(InMemoryPdfFile inMemoryPdfFile) {
-        PDDocument document = inMemoryPdfFile.getPdfBoxDocument();
+    public static Optional<QrCode> findQrCodeOn(PDDocument document) {
         if (document.isEncrypted()) {
             return Optional.empty();
         }

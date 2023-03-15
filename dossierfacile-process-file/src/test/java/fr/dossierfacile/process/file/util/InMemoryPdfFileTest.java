@@ -21,7 +21,7 @@ class InMemoryPdfFileTest {
 
         InMemoryPdfFile inMemoryPdfFile = InMemoryPdfFile.create(file, classpathStorageService());
 
-        assertThat(inMemoryPdfFile.findQrCode()).isPresent();
+        assertThat(inMemoryPdfFile.hasQrCode()).isTrue();
         assertThat(inMemoryPdfFile.readContentAsString()).isNotEmpty();
     }
 
@@ -31,7 +31,7 @@ class InMemoryPdfFileTest {
 
         InMemoryPdfFile inMemoryPdfFile = InMemoryPdfFile.create(file, classpathStorageService());
 
-        assertThat(inMemoryPdfFile.findQrCode()).isEmpty();
+        assertThat(inMemoryPdfFile.hasQrCode()).isFalse();
         assertThat(inMemoryPdfFile.readContentAsString()).isEqualTo("""
 
 
