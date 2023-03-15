@@ -16,8 +16,12 @@ public class TestFilesUtil {
     }
 
     public static InMemoryPdfFile getPdfFile(String fileName) throws IOException {
+        return new InMemoryPdfFile(getPdfBoxDocument(fileName));
+    }
+
+    public static PDDocument getPdfBoxDocument(String fileName) throws IOException {
         try (InputStream inputStream = getFileAsStream(fileName)) {
-            return new InMemoryPdfFile(PDDocument.load(inputStream));
+            return PDDocument.load(inputStream);
         }
     }
 

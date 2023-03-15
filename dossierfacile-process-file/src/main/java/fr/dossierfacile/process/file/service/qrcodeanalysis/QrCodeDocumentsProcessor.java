@@ -10,6 +10,7 @@ import fr.dossierfacile.process.file.service.qrcodeanalysis.monfranceconnect.Fil
 import fr.dossierfacile.process.file.service.qrcodeanalysis.monfranceconnect.MonFranceConnectDocumentType;
 import fr.dossierfacile.process.file.util.Documents;
 import fr.dossierfacile.process.file.util.InMemoryPdfFile;
+import fr.dossierfacile.process.file.util.QrCode;
 import io.sentry.Sentry;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -57,16 +58,17 @@ public class QrCodeDocumentsProcessor {
     }
 
     private Optional<QrCodeFileAnalysis> analyze(File file, Document document, InMemoryPdfFile inMemoryPdfFile) {
-        return inMemoryPdfFile.findQrCode()
-                .flatMap(qrCode -> {
-                    boolean isAllowedInCurrentCategory = MonFranceConnectDocumentType.of(inMemoryPdfFile)
-                            .getCategory()
-                            .map(guess -> guess.isMatchingCategoryOf(document))
-                            .orElse(true);
+        if (!inMemoryPdfFile.hasQrCode()) {
+            return Optional.empty();
+        }
+        boolean isAllowedInCurrentCategory = MonFranceConnectDocumentType.of(inMemoryPdfFile)
+                .getCategory()
+                .map(guess -> guess.isMatchingCategoryOf(document))
+                .orElse(true);
 
-                    return fileAuthenticator.authenticate(inMemoryPdfFile, qrCode)
-                            .map(result -> result.toAnalysisResult(file, qrCode, isAllowedInCurrentCategory));
-                });
+        QrCode qrCode = inMemoryPdfFile.getQrCode();
+        return fileAuthenticator.authenticate(inMemoryPdfFile, qrCode)
+                .map(result -> result.toAnalysisResult(file, qrCode, isAllowedInCurrentCategory));
     }
 
 }
