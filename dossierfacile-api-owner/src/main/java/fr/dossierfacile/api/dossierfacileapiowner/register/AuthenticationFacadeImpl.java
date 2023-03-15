@@ -78,8 +78,8 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
         }
         Owner owner = optionalOwner.orElse(new Owner("", "", getUserEmail()));
         owner.setKeycloakId(getKeycloakUserId());
+        owner.setFranceConnect(isFranceConnect());
         if (isFranceConnect()) {
-            owner.setFranceConnect(isFranceConnect());
             owner.setFranceConnectSub(getFranceConnectSub());
             owner.setFranceConnectBirthCountry(getFranceConnectBirthCountry());
             owner.setFranceConnectBirthPlace(getFranceConnectBirthPlace());
