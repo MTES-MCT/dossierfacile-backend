@@ -1,7 +1,7 @@
 package fr.dossierfacile.common.entity;
 
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
-import fr.dossierfacile.common.enums.QrCodeFileStatus;
+import fr.dossierfacile.common.enums.FileAuthenticationStatus;
 import lombok.Data;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
@@ -21,7 +21,7 @@ import java.util.List;
 
 @Data
 @Entity
-@Table(name = "monfranceconnect_validation_result")
+@Table(name = "qrcode_file_analysis")
 @TypeDef(name = "jsonb", typeClass = JsonBinaryType.class)
 public class QrCodeFileAnalysis {
     @Id
@@ -32,6 +32,9 @@ public class QrCodeFileAnalysis {
     @JoinColumn(name = "file_id")
     private File file;
 
+    @Enumerated(EnumType.STRING)
+    private DocumentIssuer issuerName;
+
     private String qrCodeContent;
 
     @Type(type = "jsonb")
@@ -39,6 +42,8 @@ public class QrCodeFileAnalysis {
     private List<String> apiResponse;
 
     @Enumerated(EnumType.STRING)
-    private QrCodeFileStatus validationStatus;
+    private FileAuthenticationStatus authenticationStatus;
+
+    private boolean allowedInDocumentCategory;
 
 }
