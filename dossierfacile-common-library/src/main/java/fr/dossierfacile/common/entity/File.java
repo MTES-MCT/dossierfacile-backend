@@ -62,7 +62,7 @@ public class File implements StoredFile, Serializable {
 
     @Nullable
     @OneToOne(mappedBy = "file", fetch = FetchType.LAZY)
-    private MonFranceConnectValidationResult mfcValidationResult;
+    private QrCodeFileAnalysis fileAnalysis;
 
     @Override
     public boolean equals(Object o) {

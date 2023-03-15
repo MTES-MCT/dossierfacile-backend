@@ -1,4 +1,4 @@
-package fr.dossierfacile.process.file.service.monfranceconnect.client;
+package fr.dossierfacile.process.file.service.qrcodeanalysis.monfranceconnect.client;
 
 import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;

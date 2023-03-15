@@ -5,18 +5,18 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public enum MonFranceConnectValidationStatus {
+public enum QrCodeFileStatus {
 
     VALID("Authentifié"),
     INVALID("Non authentifié"),
-    API_ERROR("Erreur lors de l'appel à MonFranceConnect"),
-    UNKNOWN_DOCUMENT("Non reconnu par MonFranceConnect (peut-être expiré)"),
+    API_ERROR("Erreur lors de l'authentification"),
+    UNKNOWN_DOCUMENT("Non reconnu ou expiré"),
     WRONG_CATEGORY("Ne correspond pas à la catégorie")
     ;
 
     private final String label;
 
-    public static MonFranceConnectValidationStatus of(boolean isValid) {
+    public static QrCodeFileStatus of(boolean isValid) {
         return isValid ? VALID : INVALID;
     }
 

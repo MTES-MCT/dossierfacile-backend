@@ -1,7 +1,7 @@
-package fr.dossierfacile.process.file.service.monfranceconnect.validation;
+package fr.dossierfacile.process.file.service.qrcodeanalysis.monfranceconnect;
 
 import fr.dossierfacile.common.enums.DocumentSubCategory;
-import fr.dossierfacile.process.file.service.monfranceconnect.GuessedDocumentCategory;
+import fr.dossierfacile.process.file.service.qrcodeanalysis.GuessedDocumentCategory;
 import fr.dossierfacile.process.file.util.InMemoryPdfFile;
 import lombok.AllArgsConstructor;
 

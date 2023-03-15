@@ -1,13 +1,13 @@
-package fr.dossierfacile.process.file.service.monfranceconnect;
+package fr.dossierfacile.process.file.service.qrcodeanalysis;
 
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
+import fr.dossierfacile.common.entity.QrCodeFileAnalysis;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
-import fr.dossierfacile.process.file.service.monfranceconnect.repository.ValidationResultRepository;
-import fr.dossierfacile.process.file.service.monfranceconnect.validation.FileAuthenticator;
-import fr.dossierfacile.process.file.service.monfranceconnect.validation.MonFranceConnectDocumentType;
-import fr.dossierfacile.process.file.service.monfranceconnect.validation.ValidationResult;
+import fr.dossierfacile.process.file.repository.QrCodeFileAnalysisRepository;
+import fr.dossierfacile.process.file.service.qrcodeanalysis.monfranceconnect.FileAuthenticator;
+import fr.dossierfacile.process.file.service.qrcodeanalysis.monfranceconnect.MonFranceConnectDocumentType;
 import fr.dossierfacile.process.file.util.Documents;
 import fr.dossierfacile.process.file.util.InMemoryPdfFile;
 import fr.dossierfacile.process.file.util.QrCode;
@@ -23,17 +23,18 @@ import java.util.Optional;
 import static fr.dossierfacile.common.enums.DocumentCategory.FINANCIAL;
 import static fr.dossierfacile.common.enums.DocumentCategory.PROFESSIONAL;
 import static fr.dossierfacile.common.enums.DocumentCategory.TAX;
+import static fr.dossierfacile.common.enums.QrCodeFileStatus.WRONG_CATEGORY;
 
 @Slf4j
 @Service
 @AllArgsConstructor
-public class MonFranceConnectDocumentsProcessor {
+public class QrCodeDocumentsProcessor {
 
     private static final List<DocumentCategory> CATEGORIES_TO_PROCESS = List.of(TAX, FINANCIAL, PROFESSIONAL);
     private final String PDF_TYPE = "application/pdf";
 
-    private final FileAuthenticator documentValidator;
-    private final ValidationResultRepository resultRepository;
+    private final FileAuthenticator fileAuthenticator;
+    private final QrCodeFileAnalysisRepository analysisRepository;
     private final FileStorageService fileStorageService;
 
     public void process(Documents documents) {
@@ -48,7 +49,7 @@ public class MonFranceConnectDocumentsProcessor {
     }
 
     private boolean hasNotAlreadyBeenProcessed(File file) {
-        boolean resultExists = resultRepository.existsByFileId(file.getId());
+        boolean resultExists = analysisRepository.existsByFileId(file.getId());
         return !resultExists;
     }
 
@@ -63,20 +64,21 @@ public class MonFranceConnectDocumentsProcessor {
         }
     }
 
-    private Optional<ValidationResult> validateFile(InMemoryPdfFile inMemoryPdfFile, QrCode qrCode, Document document) {
+    private Optional<AuthenticationResult> validateFile(InMemoryPdfFile inMemoryPdfFile, QrCode qrCode, Document document) {
         boolean isAllowedInCurrentCategory = MonFranceConnectDocumentType.of(inMemoryPdfFile)
                 .getCategory()
                 .map(guess -> guess.isMatchingCategoryOf(document))
                 .orElse(true);
         if (!isAllowedInCurrentCategory) {
-            return Optional.of(ValidationResult.wrongCategory());
+            return Optional.of(new AuthenticationResult(null, WRONG_CATEGORY));
         }
 
-        return documentValidator.authenticate(inMemoryPdfFile, qrCode);
+        return fileAuthenticator.authenticate(inMemoryPdfFile, qrCode);
     }
 
-    private void saveResult(ValidationResult validationResult, File file, QrCode qrCode) {
-        resultRepository.save(validationResult.toEntity(file, qrCode));
+    private void saveResult(AuthenticationResult authenticationResult, File file, QrCode qrCode) {
+        QrCodeFileAnalysis qrCodeFileAnalysis = authenticationResult.toAnalysisResult(file, qrCode);
+        analysisRepository.save(qrCodeFileAnalysis);
     }
 
 }

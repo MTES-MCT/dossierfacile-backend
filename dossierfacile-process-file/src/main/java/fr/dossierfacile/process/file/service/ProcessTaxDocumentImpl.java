@@ -178,7 +178,7 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
     }
 
     private List<File> selectFilesToProcess(List<File> files) {
-        Predicate<File> isNotFromMonFranceConnect = file -> file.getMfcValidationResult() == null;
+        Predicate<File> isNotFromMonFranceConnect = file -> file.getFileAnalysis() == null;
         return files.stream()
                 .filter(file -> FilenameUtils.getExtension(file.getPath()).equals("pdf"))
                 .filter(isNotFromMonFranceConnect)
