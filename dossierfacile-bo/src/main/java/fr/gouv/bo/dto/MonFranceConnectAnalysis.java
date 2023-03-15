@@ -1,7 +1,7 @@
 package fr.gouv.bo.dto;
 
 import fr.dossierfacile.common.entity.File;
-import fr.dossierfacile.common.entity.MonFranceConnectValidationResult;
+import fr.dossierfacile.common.entity.QrCodeFileAnalysis;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -13,12 +13,12 @@ import java.util.Map;
 @AllArgsConstructor
 public class MonFranceConnectAnalysis {
 
-    private final Map<Integer, MonFranceConnectValidationResult> results;
+    private final Map<Integer, QrCodeFileAnalysis> results;
 
     public static MonFranceConnectAnalysis of(List<File> files) {
-        Map<Integer, MonFranceConnectValidationResult> results = new HashMap<>();
+        Map<Integer, QrCodeFileAnalysis> results = new HashMap<>();
         for (int i = 0; i < files.size(); i++) {
-            MonFranceConnectValidationResult result = files.get(i).getMfcValidationResult();
+            QrCodeFileAnalysis result = files.get(i).getFileAnalysis();
             if (result != null) {
                 results.put(i + 1, result);
             }

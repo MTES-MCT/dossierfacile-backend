@@ -1,8 +1,8 @@
-package fr.dossierfacile.process.file.service.monfranceconnect;
+package fr.dossierfacile.process.file.service.qrcodeanalysis.monfranceconnect;
 
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
-import fr.dossierfacile.process.file.service.monfranceconnect.validation.MonFranceConnectDocumentType;
+import fr.dossierfacile.process.file.service.qrcodeanalysis.GuessedDocumentCategory;
 import fr.dossierfacile.process.file.util.InMemoryPdfFile;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.params.ParameterizedTest;

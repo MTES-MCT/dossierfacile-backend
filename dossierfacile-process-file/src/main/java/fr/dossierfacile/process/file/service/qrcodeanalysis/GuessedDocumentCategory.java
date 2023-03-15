@@ -1,4 +1,4 @@
-package fr.dossierfacile.process.file.service.monfranceconnect;
+package fr.dossierfacile.process.file.service.qrcodeanalysis;
 
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.enums.DocumentCategory;

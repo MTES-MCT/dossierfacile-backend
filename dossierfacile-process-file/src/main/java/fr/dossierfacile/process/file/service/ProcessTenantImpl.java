@@ -9,7 +9,7 @@ import fr.dossierfacile.process.file.repository.TenantRepository;
 import fr.dossierfacile.process.file.service.interfaces.DocumentService;
 import fr.dossierfacile.process.file.service.interfaces.ProcessTaxDocument;
 import fr.dossierfacile.process.file.service.interfaces.ProcessTenant;
-import fr.dossierfacile.process.file.service.monfranceconnect.MonFranceConnectDocumentsProcessor;
+import fr.dossierfacile.process.file.service.qrcodeanalysis.QrCodeDocumentsProcessor;
 import fr.dossierfacile.process.file.util.Documents;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,21 +30,21 @@ public class ProcessTenantImpl implements ProcessTenant {
     private final TenantRepository tenantRepository;
     private final ProcessTaxDocument processTaxDocument;
     private final DocumentService documentService;
-    private final MonFranceConnectDocumentsProcessor monFranceConnectDocumentsProcessor;
+    private final QrCodeDocumentsProcessor qrCodeDocumentsProcessor;
 
     @Override
     public void process(Long tenantId) {
         tenantRepository.findByIdAndFirstNameIsNotNullAndLastNameIsNotNull(tenantId)
                 .filter(tenant -> isNotBlank(tenant.getFirstName()) && isNotBlank(tenant.getLastName()))
                 .ifPresent(tenant -> {
-                    processMonFranceConnectDocuments(tenant);
+                    processDocumentsWithQrCode(tenant);
                     processTaxDocument(tenant);
                 });
     }
 
-    private void processMonFranceConnectDocuments(Tenant tenant) {
+    private void processDocumentsWithQrCode(Tenant tenant) {
         Documents documents = Documents.ofTenantAndGuarantors(tenant);
-        monFranceConnectDocumentsProcessor.process(documents);
+        qrCodeDocumentsProcessor.process(documents);
     }
 
     private void processTaxDocument(Tenant tenant) {
