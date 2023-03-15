@@ -1,6 +1,6 @@
 package fr.dossierfacile.process.file.service.qrcodeanalysis.monfranceconnect;
 
-import fr.dossierfacile.common.enums.QrCodeFileStatus;
+import fr.dossierfacile.common.enums.FileAuthenticationStatus;
 import fr.dossierfacile.process.file.service.qrcodeanalysis.AuthenticationResult;
 import fr.dossierfacile.process.file.service.qrcodeanalysis.monfranceconnect.client.DocumentVerificationRequest;
 import fr.dossierfacile.process.file.service.qrcodeanalysis.monfranceconnect.client.DocumentVerifiedContent;
@@ -13,9 +13,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
-import static fr.dossierfacile.common.enums.QrCodeFileStatus.API_ERROR;
-import static fr.dossierfacile.common.enums.QrCodeFileStatus.UNKNOWN_DOCUMENT;
-import static fr.dossierfacile.common.enums.QrCodeFileStatus.of;
+import static fr.dossierfacile.common.enums.FileAuthenticationStatus.API_ERROR;
+import static fr.dossierfacile.common.enums.FileAuthenticationStatus.UNKNOWN_DOCUMENT;
+import static fr.dossierfacile.common.enums.FileAuthenticationStatus.of;
 
 @Slf4j
 @Service
@@ -36,9 +36,9 @@ public class FileAuthenticator {
             return new AuthenticationResult(content, UNKNOWN_DOCUMENT);
         }
 
-        boolean isDocumentValid = content.isMatchingWith(inMemoryPdfFile.readContentAsString());
+        boolean isAuthentic = content.isMatchingWith(inMemoryPdfFile.readContentAsString());
 
-        QrCodeFileStatus status = of(isDocumentValid);
+        FileAuthenticationStatus status = of(isAuthentic);
         return new AuthenticationResult(content, status);
     }
 

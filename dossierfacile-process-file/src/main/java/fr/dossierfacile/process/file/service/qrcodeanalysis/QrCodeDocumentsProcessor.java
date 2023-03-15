@@ -10,7 +10,6 @@ import fr.dossierfacile.process.file.service.qrcodeanalysis.monfranceconnect.Fil
 import fr.dossierfacile.process.file.service.qrcodeanalysis.monfranceconnect.MonFranceConnectDocumentType;
 import fr.dossierfacile.process.file.util.Documents;
 import fr.dossierfacile.process.file.util.InMemoryPdfFile;
-import fr.dossierfacile.process.file.util.QrCode;
 import io.sentry.Sentry;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +22,6 @@ import java.util.Optional;
 import static fr.dossierfacile.common.enums.DocumentCategory.FINANCIAL;
 import static fr.dossierfacile.common.enums.DocumentCategory.PROFESSIONAL;
 import static fr.dossierfacile.common.enums.DocumentCategory.TAX;
-import static fr.dossierfacile.common.enums.QrCodeFileStatus.WRONG_CATEGORY;
 
 @Slf4j
 @Service
@@ -42,43 +40,33 @@ public class QrCodeDocumentsProcessor {
 
         for (Document document : documentsToProcess) {
             document.getFiles().stream()
-                    .filter(this::hasNotAlreadyBeenProcessed)
+                    .filter(analysisRepository::hasNotAlreadyBeenAnalyzed)
                     .filter(file -> PDF_TYPE.equals(file.getContentType()))
-                    .forEach(file -> downloadAndValidate(file, document));
+                    .forEach(file -> downloadAndAnalyze(file, document).ifPresent(analysisRepository::save));
         }
     }
 
-    private boolean hasNotAlreadyBeenProcessed(File file) {
-        boolean resultExists = analysisRepository.existsByFileId(file.getId());
-        return !resultExists;
-    }
-
-    private void downloadAndValidate(File file, Document document) {
+    private Optional<QrCodeFileAnalysis> downloadAndAnalyze(File file, Document document) {
         try (InMemoryPdfFile inMemoryPdfFile = InMemoryPdfFile.create(file, fileStorageService)) {
-            inMemoryPdfFile.findQrCode()
-                    .ifPresent(qrCode -> validateFile(inMemoryPdfFile, qrCode, document)
-                            .ifPresent(result -> saveResult(result, file, qrCode)));
+            return analyze(file, document, inMemoryPdfFile);
         } catch (IOException e) {
             log.error("Unable to download file " + file.getPath(), e);
             Sentry.captureMessage("Unable to download file " + file.getPath());
         }
+        return Optional.empty();
     }
 
-    private Optional<AuthenticationResult> validateFile(InMemoryPdfFile inMemoryPdfFile, QrCode qrCode, Document document) {
-        boolean isAllowedInCurrentCategory = MonFranceConnectDocumentType.of(inMemoryPdfFile)
-                .getCategory()
-                .map(guess -> guess.isMatchingCategoryOf(document))
-                .orElse(true);
-        if (!isAllowedInCurrentCategory) {
-            return Optional.of(new AuthenticationResult(null, WRONG_CATEGORY));
-        }
+    private Optional<QrCodeFileAnalysis> analyze(File file, Document document, InMemoryPdfFile inMemoryPdfFile) {
+        return inMemoryPdfFile.findQrCode()
+                .flatMap(qrCode -> {
+                    boolean isAllowedInCurrentCategory = MonFranceConnectDocumentType.of(inMemoryPdfFile)
+                            .getCategory()
+                            .map(guess -> guess.isMatchingCategoryOf(document))
+                            .orElse(true);
 
-        return fileAuthenticator.authenticate(inMemoryPdfFile, qrCode);
-    }
-
-    private void saveResult(AuthenticationResult authenticationResult, File file, QrCode qrCode) {
-        QrCodeFileAnalysis qrCodeFileAnalysis = authenticationResult.toAnalysisResult(file, qrCode);
-        analysisRepository.save(qrCodeFileAnalysis);
+                    return fileAuthenticator.authenticate(inMemoryPdfFile, qrCode)
+                            .map(result -> result.toAnalysisResult(file, qrCode, isAllowedInCurrentCategory));
+                });
     }
 
 }

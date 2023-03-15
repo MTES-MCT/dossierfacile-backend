@@ -5,18 +5,17 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public enum QrCodeFileStatus {
+public enum FileAuthenticationStatus {
 
     VALID("Authentifié"),
     INVALID("Non authentifié"),
     API_ERROR("Erreur lors de l'authentification"),
-    UNKNOWN_DOCUMENT("Non reconnu ou expiré"),
-    WRONG_CATEGORY("Ne correspond pas à la catégorie")
+    UNKNOWN_DOCUMENT("Non reconnu ou expiré")
     ;
 
     private final String label;
 
-    public static QrCodeFileStatus of(boolean isValid) {
+    public static FileAuthenticationStatus of(boolean isValid) {
         return isValid ? VALID : INVALID;
     }
 
