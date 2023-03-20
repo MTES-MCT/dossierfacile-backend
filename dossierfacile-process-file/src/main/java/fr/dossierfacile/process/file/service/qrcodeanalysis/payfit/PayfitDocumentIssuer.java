@@ -47,16 +47,17 @@ public class PayfitDocumentIssuer extends QrCodeDocumentIssuer<PayfitAuthenticat
     protected AuthenticationResult authenticate(InMemoryPdfFile pdfFile, PayfitAuthenticationRequest authenticationRequest) {
         return client.getVerifiedContent(authenticationRequest)
                 .map(response -> buildResult(pdfFile, response))
-                .orElseGet(PayfitDocumentIssuer::error);
+                .orElseGet(this::error);
     }
 
-    private static AuthenticationResult buildResult(InMemoryPdfFile pdfFile, PayfitResponse response) {
-        String content = pdfFile.readContentAsString();
-        boolean isAuthentic = PaySlipVerifiedContent.from(response).isMatchingWith(content);
-        return new AuthenticationResult(PAYFIT, response, FileAuthenticationStatus.of(isAuthentic));
+    private AuthenticationResult buildResult(InMemoryPdfFile pdfFile, PayfitResponse response) {
+        String actualContent = pdfFile.readContentAsString();
+        PaySlipVerifiedContent verifiedContent = PaySlipVerifiedContent.from(response);
+        boolean isAuthentic = verifiedContent.isMatchingWith(actualContent);
+        return new AuthenticationResult(PAYFIT, verifiedContent, FileAuthenticationStatus.of(isAuthentic));
     }
 
-    private static AuthenticationResult error() {
+    private AuthenticationResult error() {
         return new AuthenticationResult(PAYFIT, null, FileAuthenticationStatus.API_ERROR);
     }
 

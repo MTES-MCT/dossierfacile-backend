@@ -1,6 +1,7 @@
 package fr.dossierfacile.process.file.service.qrcodeanalysis.payfit.client;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -8,6 +9,7 @@ import java.util.List;
 
 @Getter
 @NoArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class PayfitResponse {
 
     private Content content;
@@ -28,7 +30,6 @@ public class PayfitResponse {
     public static class Info {
 
         private String label;
-        private int order;
         private String value;
 
     }
