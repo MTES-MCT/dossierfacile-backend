@@ -2,8 +2,10 @@ package fr.gouv.bo.controller;
 
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentDeniedOptions;
+import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Guarantor;
 import fr.dossierfacile.common.entity.Message;
+import fr.dossierfacile.common.entity.QrCodeFileAnalysis;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.User;
 import fr.dossierfacile.common.entity.UserApi;
@@ -16,12 +18,12 @@ import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.gouv.bo.dto.CustomMessage;
+import fr.gouv.bo.dto.DisplayableQrCodeFileAnalysis;
 import fr.gouv.bo.dto.EmailDTO;
 import fr.gouv.bo.dto.GuarantorItem;
 import fr.gouv.bo.dto.ItemDetail;
 import fr.gouv.bo.dto.MessageDTO;
 import fr.gouv.bo.dto.MessageItem;
-import fr.gouv.bo.dto.MonFranceConnectAnalysis;
 import fr.gouv.bo.dto.PartnerDTO;
 import fr.gouv.bo.service.ApartmentSharingService;
 import fr.gouv.bo.service.DocumentService;
@@ -263,7 +265,7 @@ public class BOTenantController {
                         .documentId(document.getId())
                         .documentName(document.getName())
                         .files(document.getDocumentCategory() == DocumentCategory.IDENTIFICATION ? document.getFiles() : Collections.emptyList())
-                        .monFranceConnectAnalysis(MonFranceConnectAnalysis.of(document.getFiles()))
+                        .qrCodeFilesAnalysis(getDisplayableAnalysis(document))
                         .build());
             }
         }
@@ -290,7 +292,7 @@ public class BOTenantController {
                             .itemDetailList(getItemDetailForSubcategoryOfDocument(document.getDocumentSubCategory(), GUARANTOR))
                             .documentId(document.getId())
                             .documentName(document.getName())
-                            .monFranceConnectAnalysis(MonFranceConnectAnalysis.of(document.getFiles()))
+                            .qrCodeFilesAnalysis(getDisplayableAnalysis(document))
                             .build());
                 }
             }
@@ -298,4 +300,17 @@ public class BOTenantController {
         }
         return customMessage;
     }
+
+    private List<DisplayableQrCodeFileAnalysis> getDisplayableAnalysis(Document document) {
+        List<File> files = document.getFiles();
+        List<DisplayableQrCodeFileAnalysis> results = new ArrayList<>();
+        for (int i = 0; i < files.size(); i++) {
+            QrCodeFileAnalysis result = files.get(i).getFileAnalysis();
+            if (result != null) {
+                results.add(new DisplayableQrCodeFileAnalysis(i + 1, result));
+            }
+        }
+        return results;
+    }
+
 }
