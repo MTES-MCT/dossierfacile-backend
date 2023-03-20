@@ -29,7 +29,7 @@ public enum MonFranceConnectDocumentType {
     private final String documentTitle;
 
     public static MonFranceConnectDocumentType of(InMemoryPdfFile file) {
-        String contentAsString = file.readContentAsString(1);
+        String contentAsString = file.getContentAsString();
         return Arrays.stream(MonFranceConnectDocumentType.values())
                 .filter(type -> !type.equals(UNKNOWN))
                 .filter(type -> contentAsString.contains(type.documentTitle))

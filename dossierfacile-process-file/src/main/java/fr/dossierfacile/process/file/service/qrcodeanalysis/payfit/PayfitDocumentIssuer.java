@@ -33,7 +33,7 @@ public class PayfitDocumentIssuer extends QrCodeDocumentIssuer<PayfitAuthenticat
     @Override
     protected Optional<PayfitAuthenticationRequest> buildAuthenticationRequestFor(InMemoryPdfFile pdfFile) {
         QrCode qrCode = pdfFile.getQrCode();
-        String content = pdfFile.readContentAsString();
+        String content = pdfFile.getContentAsString();
         return PayfitAuthenticationRequest.forDocumentWith(qrCode, content);
     }
 
@@ -51,7 +51,7 @@ public class PayfitDocumentIssuer extends QrCodeDocumentIssuer<PayfitAuthenticat
     }
 
     private AuthenticationResult buildResult(InMemoryPdfFile pdfFile, PayfitResponse response) {
-        String actualContent = pdfFile.readContentAsString();
+        String actualContent = pdfFile.getContentAsString();
         PaySlipVerifiedContent verifiedContent = PaySlipVerifiedContent.from(response);
         boolean isAuthentic = verifiedContent.isMatchingWith(actualContent);
         return new AuthenticationResult(PAYFIT, verifiedContent, FileAuthenticationStatus.of(isAuthentic));
