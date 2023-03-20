@@ -4,6 +4,7 @@ import fr.dossierfacile.api.front.register.form.tenant.AccountForm;
 import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
 import fr.dossierfacile.common.entity.Tenant;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
@@ -15,6 +16,7 @@ import java.util.List;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class KeycloakServiceImpl implements KeycloakService {
 
     private final RealmResource realmResource;
@@ -60,7 +62,11 @@ public class KeycloakServiceImpl implements KeycloakService {
 
     @Override
     public void deleteKeycloakUser(Tenant tenant) {
-        realmResource.users().delete(tenant.getKeycloakId());
+        if (tenant.getKeycloakId() != null) {
+            realmResource.users().delete(tenant.getKeycloakId());
+        } else {
+            log.warn("Trying to delete tenant without keycloakId:" + tenant.getEmail());
+        }
     }
 
     @Override
