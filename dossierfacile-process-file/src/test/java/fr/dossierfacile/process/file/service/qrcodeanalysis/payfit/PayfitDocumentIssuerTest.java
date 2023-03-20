@@ -57,7 +57,7 @@ class PayfitDocumentIssuerTest {
                 .hasValueSatisfying(result -> assertAll(
                         () -> assertThat(result.getIssuerName()).isEqualTo(PAYFIT),
                         () -> assertThat(result.getAuthenticationStatus()).isEqualTo(VALID),
-                        () -> assertThat(result.getApiResponse()).isInstanceOf(PayfitResponse.class)
+                        () -> assertThat(result.getApiResponse()).isInstanceOf(PaySlipVerifiedContent.class)
                 ));
     }
 

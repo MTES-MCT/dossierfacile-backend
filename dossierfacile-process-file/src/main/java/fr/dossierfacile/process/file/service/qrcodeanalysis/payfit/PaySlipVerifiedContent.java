@@ -2,18 +2,20 @@ package fr.dossierfacile.process.file.service.qrcodeanalysis.payfit;
 
 import fr.dossierfacile.process.file.service.qrcodeanalysis.payfit.client.PayfitResponse;
 import lombok.Builder;
+import lombok.Getter;
 
 import java.util.List;
 import java.util.stream.Stream;
 
 @Builder
+@Getter
 public class PaySlipVerifiedContent {
 
     private final String companyName;
     private final String companySiret;
     private final String employeeName;
-    private final PayfitAmount netSalary;
-    private final PayfitAmount grossSalary;
+    private final String netSalary;
+    private final String grossSalary;
 
     public static PaySlipVerifiedContent from(PayfitResponse payFitResponse) {
         var companyInfo = payFitResponse.getContent().getCompanyInfo();
@@ -28,7 +30,7 @@ public class PaySlipVerifiedContent {
     }
 
     public boolean isMatchingWith(String fileContent) {
-        return Stream.of(companyName, companySiret, employeeName, netSalary.format(), grossSalary.format())
+        return Stream.of(companyName, companySiret, employeeName, netSalary, grossSalary)
                 .allMatch(fileContent::contains);
     }
 
@@ -40,8 +42,9 @@ public class PaySlipVerifiedContent {
                 .orElse("");
     }
 
-    private static PayfitAmount extractAmountFrom(List<PayfitResponse.Info> list, String label) {
-        return new PayfitAmount(extractFrom(list, label));
+    private static String extractAmountFrom(List<PayfitResponse.Info> list, String label) {
+        PayfitAmount amount = new PayfitAmount(extractFrom(list, label));
+        return amount.format();
     }
 
 }
