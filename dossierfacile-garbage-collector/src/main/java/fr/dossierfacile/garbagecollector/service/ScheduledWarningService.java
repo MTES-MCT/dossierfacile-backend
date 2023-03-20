@@ -20,9 +20,9 @@ import java.time.LocalDateTime;
 @Service
 @RequiredArgsConstructor
 public class ScheduledWarningService {
-    @Value("${months_for_deletion_of_documents}")
+    @Value("${months_for_deletion_of_documents:3}")
     private Integer monthsForDeletionOfDocuments;
-    @Value("${warnings.max.pages:200}")
+    @Value("${warnings.max.pages:1}")
     private Integer warningMaxPages;
     private final TenantCommonRepository tenantRepository;
     private final TenantWarningService tenantWarningService;
