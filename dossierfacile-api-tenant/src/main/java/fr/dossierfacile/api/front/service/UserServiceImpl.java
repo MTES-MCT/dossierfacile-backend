@@ -150,39 +150,30 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void deleteAccount(Tenant tenant) {
         partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.DELETED_ACCOUNT);
         saveAndDeleteInfoByTenant(tenant);
-        ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
-        if (tenant.getTenantType() == TenantType.CREATE || apartmentSharing.getNumberOfTenants() == 1) {
-            log.info("Removing apartment_sharing with id [" + apartmentSharing.getId() + "] with [" + apartmentSharing.getNumberOfTenants() + "] tenants");
-            logService.saveLog(LogType.ACCOUNT_DELETE, tenant.getId());
-            keycloakService.deleteKeycloakUsers(apartmentSharing.getTenants());
-            apartmentSharingRepository.delete(apartmentSharing);
+        logService.saveLog(LogType.ACCOUNT_DELETE, tenant.getId());
+        if (tenant.getTenantType() == TenantType.CREATE) {
+            keycloakService.deleteKeycloakUsers(tenant.getApartmentSharing().getTenants());
+            apartmentSharingService.delete(tenant.getApartmentSharing());
         } else {
-            log.info("Removing user/tenant with id [" + tenant.getId() + "]");
-            logService.saveLog(LogType.ACCOUNT_DELETE, tenant.getId());
             keycloakService.deleteKeycloakUser(tenant);
             userRepository.delete(tenant);
+            apartmentSharingService.removeTenant(tenant.getApartmentSharing(), tenant);
         }
     }
 
     @Override
+    @Transactional
     public Boolean deleteCoTenant(Tenant tenant, Long coTenantId) {
         if (tenant.getTenantType().equals(TenantType.CREATE)) {
             ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
-            Tenant coTenant = apartmentSharing.getTenants().stream().filter(t -> t.getId().equals(coTenantId) && t.getTenantType().equals(TenantType.JOIN)).findFirst().orElseThrow(null);
-            if (coTenant != null) {
-                partnerCallBackService.sendCallBack(coTenant, PartnerCallBackType.DELETED_ACCOUNT);
-                if (coTenant.getKeycloakId() != null) {
-                    keycloakService.deleteKeycloakUser(coTenant);
-                }
-                saveAndDeleteInfoByTenant(coTenant);
-                userRepository.delete(coTenant);
-                apartmentSharing.getTenants().remove(coTenant);
-                updateApplicationTypeOfApartmentAfterDeletionOfCotenant(apartmentSharing);
-                apartmentSharingService.resetDossierPdfGenerated(apartmentSharing);
-                logService.saveLog(LogType.ACCOUNT_DELETE, coTenantId);
+            Optional<Tenant> coTenant = apartmentSharing.getTenants().stream()
+                    .filter(t -> t.getId().equals(coTenantId) && t.getTenantType().equals(TenantType.JOIN)).findFirst();
+            if (coTenant.isPresent()) {
+                deleteAccount(coTenant.get());
                 return true;
             }
         }
@@ -255,26 +246,6 @@ public class UserServiceImpl implements UserService {
         if (document.getName() != null && !document.getName().isBlank()) {
             log.info("Removing document from storage with path [" + document.getName() + "]");
             fileStorageService.delete(document.getName());
-        }
-    }
-
-    private void updateApplicationTypeOfApartmentAfterDeletionOfCotenant(ApartmentSharing apartmentSharing) {
-        ApplicationType nextApplicationType = ApplicationType.ALONE;
-
-        //Current application can only be in this point [COUPLE] or [GROUP]
-        ApplicationType previousApplicationType = apartmentSharing.getApplicationType();
-
-        //If previous application was a [GROUP] and after deletion of 1 cotenant, it has now (>=2) tenants then,
-        // it will stay as an application [GROUP]. Otherwise it will become an application [ALONE]
-        if (previousApplicationType == ApplicationType.GROUP
-                && apartmentSharing.getNumberOfTenants() >= 2) {
-            nextApplicationType = ApplicationType.GROUP;
-        }
-
-        if (previousApplicationType != nextApplicationType) {
-            log.info("Changing applicationType of apartment with ID [" + apartmentSharing.getId() + "] from [" + previousApplicationType.name() + "] to [" + nextApplicationType.name() + "]");
-            apartmentSharing.setApplicationType(nextApplicationType);
-            apartmentSharingRepository.save(apartmentSharing);
         }
     }
 

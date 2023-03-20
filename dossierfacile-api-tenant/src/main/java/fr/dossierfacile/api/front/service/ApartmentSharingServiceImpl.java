@@ -8,7 +8,9 @@ import fr.dossierfacile.api.front.repository.LinkLogRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.LinkLog;
+import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
+import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.FileStatus;
 import fr.dossierfacile.common.enums.LinkType;
 import fr.dossierfacile.common.mapper.ApartmentSharingMapper;
@@ -25,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.ByteArrayOutputStream;
@@ -112,7 +115,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.SUPPORTS)
     public void resetDossierPdfGenerated(ApartmentSharing apartmentSharing) {
         String currentUrl = apartmentSharing.getUrlDossierPdfDocument();
         if (currentUrl != null) {
@@ -154,6 +157,21 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
     public void refreshUpdateDate(ApartmentSharing apartmentSharing) {
         apartmentSharing.setLastUpdateDate(LocalDateTime.now());
         apartmentSharingRepository.save(apartmentSharing);
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.SUPPORTS)
+    public void removeTenant(ApartmentSharing apartmentSharing, Tenant tenant) {
+        apartmentSharing.getTenants().remove(tenant);
+        apartmentSharing.setApplicationType((apartmentSharing.getNumberOfTenants() >= 2) ? ApplicationType.GROUP : ApplicationType.ALONE);
+        resetDossierPdfGenerated(apartmentSharing);
+        apartmentSharingRepository.save(apartmentSharing);
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.SUPPORTS)
+    public void delete(ApartmentSharing apartmentSharing) {
+        apartmentSharingRepository.delete(apartmentSharing);
     }
 
     @Override
