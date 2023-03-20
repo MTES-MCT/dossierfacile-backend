@@ -2,6 +2,7 @@ package fr.dossierfacile.process.file.util;
 
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
+import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -18,6 +19,7 @@ public class InMemoryPdfFile implements AutoCloseable {
 
     private boolean hasQrCodeBeenSearched = false;
     private QrCode qrCode;
+    private String contentAsString;
 
     public static InMemoryPdfFile create(File file, FileStorageService fileStorageService) throws IOException {
         try (InputStream inputStream = fileStorageService.download(file)) {
@@ -25,20 +27,23 @@ public class InMemoryPdfFile implements AutoCloseable {
         }
     }
 
-    public String readContentAsString() {
-        return readContentAsString(Integer.MAX_VALUE);
+    public String getContentAsString() {
+        if (contentAsString == null) {
+            contentAsString = readContentAsString();
+        }
+        return contentAsString;
     }
 
-    public String readContentAsString(int endPage) {
+    private String readContentAsString() {
         if (pdfBoxDocument.isEncrypted()) {
             return "";
         }
         try {
             PDFTextStripper reader = new PDFTextStripper();
             reader.setAddMoreFormatting(true);
-            reader.setEndPage(endPage);
             return reader.getText(pdfBoxDocument);
         } catch (IOException e) {
+            Sentry.captureException(e);
             return "";
         }
     }

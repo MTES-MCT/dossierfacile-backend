@@ -54,7 +54,7 @@ public class MonFranceConnectDocumentIssuer extends QrCodeDocumentIssuer<MonFran
             return authenticationResult(content, UNKNOWN_DOCUMENT);
         }
 
-        boolean isAuthentic = content.isMatchingWith(pdfFile.readContentAsString());
+        boolean isAuthentic = content.isMatchingWith(pdfFile.getContentAsString());
 
         FileAuthenticationStatus status = of(isAuthentic);
         return authenticationResult(content, status);

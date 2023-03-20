@@ -22,7 +22,7 @@ class InMemoryPdfFileTest {
         InMemoryPdfFile inMemoryPdfFile = InMemoryPdfFile.create(file, classpathStorageService());
 
         assertThat(inMemoryPdfFile.hasQrCode()).isTrue();
-        assertThat(inMemoryPdfFile.readContentAsString()).isNotEmpty();
+        assertThat(inMemoryPdfFile.getContentAsString()).isNotEmpty();
     }
 
     @Test
@@ -32,7 +32,7 @@ class InMemoryPdfFileTest {
         InMemoryPdfFile inMemoryPdfFile = InMemoryPdfFile.create(file, classpathStorageService());
 
         assertThat(inMemoryPdfFile.hasQrCode()).isFalse();
-        assertThat(inMemoryPdfFile.readContentAsString()).isEqualTo("""
+        assertThat(inMemoryPdfFile.getContentAsString()).isEqualTo("""
 
 
                 Test document

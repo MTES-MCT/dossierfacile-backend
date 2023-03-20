@@ -124,7 +124,7 @@ public class Utility {
     public String extractInfoFromPDFFirstPage(File dfFile) {
         String pdfFileInText = null;
         try (InMemoryPdfFile inMemoryPdfFile = InMemoryPdfFile.create(dfFile, fileStorageService)) {
-            pdfFileInText = inMemoryPdfFile.readContentAsString(1);
+            pdfFileInText = inMemoryPdfFile.getContentAsString();
         } catch (IOException e) {
             log.error(EXCEPTION_MESSAGE2, e);
             log.error(EXCEPTION + Sentry.captureException(e));
