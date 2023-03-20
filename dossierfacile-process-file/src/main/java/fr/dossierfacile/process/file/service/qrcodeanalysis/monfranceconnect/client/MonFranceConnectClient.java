@@ -54,14 +54,19 @@ public class MonFranceConnectClient {
         return new RestTemplate(requestFactory);
     }
 
-    public Optional<DocumentVerifiedContent> verifyDocument(DocumentVerificationRequest verificationRequest) {
+    public Optional<DocumentVerifiedContent> getVerifiedContent(MonFranceConnectAuthenticationRequest verificationRequest) {
         URI uri = verificationRequest.getUri(monFranceConnectBaseUrl);
         HttpEntity<String> entity = verificationRequest.getHttpEntity();
+        return callMonFranceConnect(uri, entity)
+                .flatMap(DocumentVerifiedContent::from);
+    }
+
+    private static Optional<ResponseEntity<String[]>> callMonFranceConnect(URI uri, HttpEntity<String> entity) {
         try {
             log.info("Calling MonFranceConnect at {} with body {}", uri, entity.getBody());
             ResponseEntity<String[]> response = restTemplateIgnoringHttps().exchange(uri, HttpMethod.POST, entity, String[].class);
             if (response.getStatusCode() == HttpStatus.OK) {
-                return DocumentVerifiedContent.from(response);
+                return Optional.of(response);
             }
             log.warn("MonFranceConnect responded with status {}", response.getStatusCode());
             return Optional.empty();

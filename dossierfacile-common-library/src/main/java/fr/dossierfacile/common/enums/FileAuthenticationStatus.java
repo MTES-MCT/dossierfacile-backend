@@ -15,8 +15,8 @@ public enum FileAuthenticationStatus {
 
     private final String label;
 
-    public static FileAuthenticationStatus of(boolean isValid) {
-        return isValid ? VALID : INVALID;
+    public static FileAuthenticationStatus of(boolean isAuthentic) {
+        return isAuthentic ? VALID : INVALID;
     }
 
 }
