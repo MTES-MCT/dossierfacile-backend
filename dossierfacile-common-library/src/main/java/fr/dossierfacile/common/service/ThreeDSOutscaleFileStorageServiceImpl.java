@@ -128,7 +128,7 @@ public class ThreeDSOutscaleFileStorageServiceImpl implements ThreeDSOutscaleFil
 
         AmazonS3 s3client = threeDSOutscaleConfig.getAmazonS3Client();
         PutObjectResult putObjectResult = s3client.putObject(
-                "dossierfacile-preprod",
+                bucket,
                 name,
                 inputStream,
                 objectMetadata);
