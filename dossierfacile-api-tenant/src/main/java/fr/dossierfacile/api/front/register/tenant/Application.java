@@ -11,13 +11,12 @@ import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
 import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.api.front.service.interfaces.PasswordRecoveryTokenService;
 import fr.dossierfacile.api.front.service.interfaces.UserRoleService;
-import fr.dossierfacile.api.front.util.Obfuscator;
+import fr.dossierfacile.api.front.service.interfaces.UserService;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.PasswordRecoveryToken;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.LogType;
-import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.repository.ApartmentSharingRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
@@ -56,6 +55,7 @@ public class Application implements SaveStep<ApplicationFormV2> {
     private final KeycloakService keycloakService;
     private final ApartmentSharingService apartmentSharingService;
     private final PartnerCallBackService partnerCallBackService;
+    private final UserService userService;
 
     @Override
     @Transactional
@@ -123,7 +123,7 @@ public class Application implements SaveStep<ApplicationFormV2> {
                     Tenant existingTenant = tenantRepository.findByKeycloakId(keycloakId);
                     if (existingTenant != null) {
                         // A tenant already exists, should never happen here because we have already checked existing email
-                        String msg ="Cannot update a tenant with an existing email: " + String.join(",", emailsExistTenants);
+                        String msg = "Cannot update a tenant with an existing email: " + String.join(",", emailsExistTenants);
                         log.error(msg + Sentry.captureMessage(msg));
                         throw new IllegalArgumentException(msg);
                     }
@@ -145,8 +145,8 @@ public class Application implements SaveStep<ApplicationFormV2> {
         apartmentSharing.setApplicationType(applicationType);
         apartmentSharingService.resetDossierPdfGenerated(apartmentSharing);
 
-        deleteCoTenant(tenant, tenantToDelete, apartmentSharing);
-        createCoTenant(tenant, tenantToCreate, apartmentSharing);
+        deleteCoTenants(tenantToDelete);
+        createCoTenants(tenant, tenantToCreate, apartmentSharing);
 
         LocalDateTime now = LocalDateTime.now();
         tenant.lastUpdateDateProfile(now, null);
@@ -154,7 +154,7 @@ public class Application implements SaveStep<ApplicationFormV2> {
         return tenantMapper.toTenantModel(tenant);
     }
 
-    private void createCoTenant(Tenant tenantCreate, List<CoTenantForm> tenants, ApartmentSharing apartmentSharing) {
+    private void createCoTenants(Tenant tenantCreate, List<CoTenantForm> tenants, ApartmentSharing apartmentSharing) {
         // check if email account exist
         // Currently we cannot add existing user
         List<String> emailsExistTenants = tenants.stream()
@@ -200,7 +200,7 @@ public class Application implements SaveStep<ApplicationFormV2> {
                         if (existingTenant != null) {
                             // A tenant already exists, should never happen here because we cannot add existing user
                             tenantRepository.delete(joinTenant);
-                            String msg ="Cannot add a cotenant with an existing account: " + String.join(",", emailsExistTenants);
+                            String msg = "Cannot add a cotenant with an existing account: " + String.join(",", emailsExistTenants);
                             log.error(msg + Sentry.captureMessage(msg));
                             throw new IllegalArgumentException(msg);
                         }
@@ -226,16 +226,8 @@ public class Application implements SaveStep<ApplicationFormV2> {
         apartmentSharingRepository.save(apartmentSharing);
     }
 
-    private void deleteCoTenant(Tenant tenantCreate, List<Tenant> tenantToDelete, ApartmentSharing apartmentSharing) {
-
-        partnerCallBackService.sendCallBack(tenantToDelete, PartnerCallBackType.DELETED_ACCOUNT);
-        keycloakService.deleteKeycloakUsers(tenantToDelete);
-
-        tenantRepository.deleteAll(tenantToDelete);
-        tenantRepository.save(tenantCreate);
-
-        apartmentSharing.getTenants().removeAll(tenantToDelete);
-        apartmentSharingRepository.save(apartmentSharing);
+    private void deleteCoTenants(List<Tenant> tenantToDelete) {
+        tenantToDelete.stream().forEach(t -> userService.deleteAccount(t));
     }
 
 }
