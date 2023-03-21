@@ -14,29 +14,30 @@
               th:action="@{/bo/tenant/} + ${tenant.getId()} + '/processFile'"
               th:method="post" th:object="${customMessage}">
             <div class="back-color"
-                 style="text-align: left; padding-left: 20px; margin-right: 0; margin-left: -20px; position: fixed; top: 60px; width: 100%; z-index: 1">
-                <div class="col-md-8" style="margin-top: 16px;">
-                    <div class="panel-heading file1-background-color bold letter col-md-4 margin-right"
-                         th:text="'Nom : ' + ${tenant.getFullName()}"></div>
-                    <div class="panel-heading file1-background-color bold letter col-md-2 margin-right"
-                         th:text="'Type : ' + ${applicationType}"></div>
-                    <div class="panel-heading file1-background-color bold letter col-md-4"
-                         th:if="${!partnerList.isBlank()}"
-                         th:text="'Partenaire : ' + ${partnerList}"></div>
-                </div>
-
-                <div class="margin-bottom col-md-4" style="margin-top: 19px">
-                    <a class="btn btn-warning bo-btn"
-                       style="float: left; margin-right: 10px"
-                       th:href="@{/bo/colocation/} + ${tenant.getApartmentSharing().getId()} + '#tenant' + ${tenant.getId()}">
-                        Voir le Dossier
-                    </a>
-                    <a class="btn btn-success bo-btn"
-                       th:href="@{/bo/colocation/} + ${tenant.getApartmentSharing().getId()} + '#tenant-message' + ${tenant.getId()}"
-
-                       th:style="${newMessage} ? 'visibility: visible; float: left; margin-right: 10px' : 'display: none'">
-                        Voir les messages
-                    </a>
+                 style="position: fixed; top: 60px; width: 100%; z-index: 1">
+                <div style="margin: 10px 0; padding: 0 5px; display: flex; justify-content: space-between;">
+                    <div style="display: flex; justify-content: start; flex: 2.1">
+                        <div th:each="element : ${header.elements}"
+                             th:if="${!element.value.isBlank()}"
+                             class="panel-heading file1-background-color letter"
+                             style="margin: 0 5px"
+                        >
+                            <span th:text="${element.label} + ' : '" style="font-size: 12px; line-height: 20px"></span>
+                            <br/>
+                            <span th:text="${element.value}" class="bold"></span>
+                        </div>
+                    </div>
+                    <div style="align-self: center; flex: 1;">
+                        <a class="btn btn-warning bo-btn"
+                           th:href="@{/bo/colocation/} + ${tenant.getApartmentSharing().getId()} + '#tenant' + ${tenant.getId()}">
+                            Voir le Dossier
+                        </a>
+                        <a class="btn btn-success bo-btn"
+                           th:href="@{/bo/colocation/} + ${tenant.getApartmentSharing().getId()} + '#tenant-message' + ${tenant.getId()}"
+                           th:if="${newMessage}">
+                            Voir les messages
+                        </a>
+                    </div>
                 </div>
             </div>
             <div style="margin-top: 150px">

@@ -25,6 +25,7 @@ import fr.gouv.bo.dto.ItemDetail;
 import fr.gouv.bo.dto.MessageDTO;
 import fr.gouv.bo.dto.MessageItem;
 import fr.gouv.bo.dto.PartnerDTO;
+import fr.gouv.bo.dto.TenantInfoHeader;
 import fr.gouv.bo.service.ApartmentSharingService;
 import fr.gouv.bo.service.DocumentService;
 import fr.gouv.bo.service.GuarantorService;
@@ -64,8 +65,7 @@ public class BOTenantController {
     private static final String TENANT = "tenant";
     private static final String GUARANTOR = "guarantor";
     private static final String NEW_MESSAGE = "newMessage";
-    private static final String APPLICATION_TYPE = "applicationType";
-    private static final String PARTNER_LIST = "partnerList";
+    private static final String HEADER = "header";
     private static final String REDIRECT_BO = "redirect:/bo";
     private static final String CUSTOM_MESSAGE = "customMessage";
     private static final String REDIRECT_ERROR = "redirect:/error";
@@ -196,8 +196,7 @@ public class BOTenantController {
         }
         EmailDTO emailDTO = new EmailDTO();
         model.addAttribute(EMAIL, emailDTO);
-        model.addAttribute(APPLICATION_TYPE, tenant.getApartmentSharing().getApplicationType());
-        model.addAttribute(PARTNER_LIST, String.join(", ", getPartnersListTenant(id)));
+        model.addAttribute(HEADER, TenantInfoHeader.build(tenant, userApiService.findPartnersLinkedToTenant(id)));
         model.addAttribute(NEW_MESSAGE, findNewMessageFromTenant(id));
         model.addAttribute(TENANT, tenant);
         model.addAttribute(CUSTOM_MESSAGE, getCustomMessage(tenant));
@@ -211,10 +210,6 @@ public class BOTenantController {
         User operator = userService.findUserByEmail(principal.getName());
         tenantService.updateTenantStatus(tenant, operator);
         return "redirect:/bo/colocation/" + tenant.getApartmentSharing().getId() + "#tenant" + tenant.getId();
-    }
-
-    private List<String> getPartnersListTenant(Long id) {
-        return userApiService.getNamesOfPartnerByTenantId(id);
     }
 
     private Boolean findNewMessageFromTenant(Long id) {
