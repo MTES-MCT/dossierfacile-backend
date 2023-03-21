@@ -115,6 +115,12 @@ public class Property implements Serializable {
     private PropertyFurniture furniture;
 
     @Column
+    private Integer energyConsumption;
+
+    @Column
+    private Integer co2Emission;
+
+    @Column
     private String address;
 
     public Property(Owner owner, String name, String propertyId) {
