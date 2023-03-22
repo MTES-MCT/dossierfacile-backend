@@ -11,15 +11,28 @@ import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import javax.ws.rs.NotFoundException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
 @Slf4j
 public class KeycloakServiceImpl implements KeycloakService {
-
     private final RealmResource realmResource;
+
+    @Override
+    public UserRepresentation getKeyCloakUser(String keycloakId) {
+        try {
+            return Optional.ofNullable(keycloakId)
+                    .map(kid -> realmResource.users().get(kid))
+                    .map(userResource -> userResource.toRepresentation())
+                    .orElse(null);
+        } catch (NotFoundException e) {
+            return null;
+        }
+    }
 
     @Override
     public String createKeycloakUserAccountCreation(AccountForm accountForm, Tenant tenant) {

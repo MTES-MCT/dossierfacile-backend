@@ -8,6 +8,7 @@ import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
 import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.api.front.service.interfaces.PasswordRecoveryTokenService;
 import fr.dossierfacile.api.front.service.interfaces.UserRoleService;
+import fr.dossierfacile.api.front.service.interfaces.UserService;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.ApplicationType;
@@ -32,7 +33,6 @@ import java.util.List;
 @ExtendWith(MockitoExtension.class)
 public class ApplicationTest {
 
-
     @Mock
     ApartmentSharingService apartmentSharingService;
     @Mock
@@ -43,6 +43,8 @@ public class ApplicationTest {
     TenantCommonRepository tenantCommonRepository;
     @Mock
     ApartmentSharingRepository apartmentSharingRepository;
+    @Mock
+    UserService userService;
     @Mock
     UserRoleService userRoleService;
     @Mock
