@@ -29,6 +29,7 @@ import fr.gouv.bo.dto.TenantInfoHeader;
 import fr.gouv.bo.service.ApartmentSharingService;
 import fr.gouv.bo.service.DocumentService;
 import fr.gouv.bo.service.GuarantorService;
+import fr.gouv.bo.service.LogService;
 import fr.gouv.bo.service.MessageService;
 import fr.gouv.bo.service.TenantService;
 import fr.gouv.bo.service.TenantUserApiService;
@@ -79,6 +80,7 @@ public class BOTenantController {
     private final PartnerCallBackService partnerCallBackService;
     private final UserService userService;
     private final ApartmentSharingService apartmentSharingService;
+    private final LogService logService;
 
     @Value("${bo.message-tenant.location}")
     String locationMessageTenant;
@@ -194,9 +196,12 @@ public class BOTenantController {
             log.error("BOTenantController processFile not found tenant with id : {}", id);
             return REDIRECT_ERROR;
         }
+        TenantInfoHeader header = TenantInfoHeader.build(tenant,
+                userApiService.findPartnersLinkedToTenant(id),
+                logService.getLogByTenantId(id));
         EmailDTO emailDTO = new EmailDTO();
         model.addAttribute(EMAIL, emailDTO);
-        model.addAttribute(HEADER, TenantInfoHeader.build(tenant, userApiService.findPartnersLinkedToTenant(id)));
+        model.addAttribute(HEADER, header);
         model.addAttribute(NEW_MESSAGE, findNewMessageFromTenant(id));
         model.addAttribute(TENANT, tenant);
         model.addAttribute(CUSTOM_MESSAGE, getCustomMessage(tenant));

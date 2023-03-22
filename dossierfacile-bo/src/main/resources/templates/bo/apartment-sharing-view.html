@@ -289,7 +289,7 @@
                                             <div class="modal-body"
                                                  style="max-height: 80vh;overflow-y: auto; background: aliceblue;height: auto">
                                                 <div style="background: antiquewhite; display: grid; padding: 7px;margin-bottom: 10px;"
-                                                     th:each="log: ${logser.getLogById(tenant.getId())}">
+                                                     th:each="log: ${logser.getLogByTenantId(tenant.getId())}">
                                                     <p style="font-weight: bold;" th:text="${log.getLogType()} + ${ (log.getOperatorId() != null)? ' by opId: ' + log.getOperatorId() : ''}">
                                                     </p>
                                                     <span style="padding-left: 5px;"
