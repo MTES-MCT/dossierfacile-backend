@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.front.service;
 
+import fr.dossierfacile.api.front.exception.TenantNotFoundException;
 import fr.dossierfacile.api.front.form.SubscriptionApartmentSharingOfTenantForm;
 import fr.dossierfacile.api.front.model.KeycloakUser;
 import fr.dossierfacile.api.front.model.tenant.EmailExistsModel;
@@ -124,7 +125,11 @@ public class TenantServiceImpl implements TenantService {
     @Override
     @Transactional
     public Tenant registerFromKeycloakUser(KeycloakUser kcUser, String partner) {
-        Tenant tenant = Tenant.builder()
+        // check user still exists in keycloak
+        if (keycloakService.getKeyCloakUser(kcUser.getKeycloakId()) == null) {
+            throw new TenantNotFoundException("User doesn't exist anymore in KC - token is out-of-date");
+        }
+        Tenant tenant = create(Tenant.builder()
                 .tenantType(TenantType.CREATE)
                 .keycloakId(kcUser.getKeycloakId())
                 .email(kcUser.getEmail())
@@ -133,22 +138,25 @@ public class TenantServiceImpl implements TenantService {
                 .preferredName(kcUser.getPreferredUsername())
                 .franceConnect(kcUser.isFranceConnect())
                 .honorDeclaration(false)
-                .build();
-        tenant = create(tenant);
+                .build());
 
         if (!kcUser.isEmailVerified()) {
             // createdAccount without verified email should be deactivated
             keycloakService.disableAccount(kcUser.getKeycloakId());
             mailService.sendEmailConfirmAccount(tenant, confirmationTokenService.createToken(tenant));
         }
-        Optional<UserApi> userApi = userApiService.findByName(partner);
-        if (userApi.isPresent()) {
-            partnerCallBackService.registerTenant(null, tenant, userApi.get());
+        if (partner != null) {
+            userApiService.findByName(partner)
+                    .ifPresent(userApi -> partnerCallBackService.registerTenant(null, tenant, userApi));
         }
 
         tenant.lastUpdateDateProfile(LocalDateTime.now(), null);
 
-        logService.saveLog(LogType.ACCOUNT_CREATED, tenant.getId());
+        if (kcUser.isFranceConnect()) {
+            logService.saveLog(LogType.FC_ACCOUNT_CREATION, tenant.getId());
+        } else {
+            logService.saveLog(LogType.ACCOUNT_CREATED, tenant.getId());
+        }
         return tenantRepository.save(tenant);
     }
 

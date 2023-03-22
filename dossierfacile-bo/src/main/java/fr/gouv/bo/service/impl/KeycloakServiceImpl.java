@@ -1,6 +1,5 @@
 package fr.gouv.bo.service.impl;
 
-import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.User;
 import fr.gouv.bo.service.KeycloakService;
 import lombok.AllArgsConstructor;
@@ -9,6 +8,7 @@ import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.stereotype.Service;
 
+import javax.ws.rs.NotFoundException;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,10 +21,14 @@ public class KeycloakServiceImpl implements KeycloakService {
 
     @Override
     public UserRepresentation getKeyCloakUser(String keycloakId) {
-        return Optional.ofNullable(keycloakId)
-                .map(kid -> realmResource.users().get(kid))
-                .map(userResource -> userResource.toRepresentation())
-                .orElse(null);
+        try {
+            return Optional.ofNullable(keycloakId)
+                    .map(kid -> realmResource.users().get(kid))
+                    .map(userResource -> userResource.toRepresentation())
+                    .orElse(null);
+        } catch (NotFoundException e) {
+            return null;
+        }
     }
 
     @Override
