@@ -5,11 +5,13 @@ import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.KeycloakUser;
 import fr.dossierfacile.api.front.model.dfc.tenant.ConnectedTenantModel;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
-import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.service.interfaces.UserService;
+import fr.dossierfacile.api.front.util.SentryUtil;
 import fr.dossierfacile.common.entity.Tenant;
+import io.sentry.SentryLevel;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,11 +24,11 @@ import static org.springframework.http.ResponseEntity.ok;
 @RestController
 @AllArgsConstructor
 @RequestMapping("/dfc/tenant")
+@Slf4j
 @MethodLog
 public class DfcTenantController {
 
     private final AuthenticationFacade authenticationFacade;
-    private final KeycloakService keycloakService;
     private final TenantMapper tenantMapper;
     private final TenantService tenantService;
     private final UserService userService;
@@ -35,6 +37,10 @@ public class DfcTenantController {
     public ResponseEntity<ConnectedTenantModel> profilePartner() {
         String partner = authenticationFacade.getKeycloakClientId();
         Tenant tenant = tenantService.findByKeycloakId(authenticationFacade.getKeycloakUserId());
+        if (tenant == null) {
+            log.error(SentryUtil.captureMessage("User try to connect with not found keycloakId " + authenticationFacade.getUserEmail(), SentryLevel.ERROR));
+            tenant = tenantService.findByEmail(authenticationFacade.getUserEmail()).orElse(null);
+        }
 
         if (tenant == null) {
             KeycloakUser kcUser = authenticationFacade.getKeycloakUser();
