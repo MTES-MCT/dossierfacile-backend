@@ -32,7 +32,7 @@ class TenantInfoHeaderTest {
         assertThat(header.getElements()).containsExactlyElementsOf(
                 headerElements(
                         "Nom", "John Doe",
-                        "Dossier", "En couple",
+                        "Dossier", "En couple avec Jane Doe",
                         "Partenaires", "",
                         "Passages en BO", "1"
                 )
@@ -106,12 +106,17 @@ class TenantInfoHeaderTest {
     }
 
     private Tenant tenant(ApplicationType applicationType) {
-        return Tenant.builder()
-                .firstName("John")
-                .lastName("Doe")
-                .apartmentSharing(ApartmentSharing.builder()
-                        .applicationType(applicationType)
-                        .build())
+        ApartmentSharing apartmentSharing = ApartmentSharing.builder()
+                .applicationType(applicationType)
+                .tenants(emptyList())
+                .build();
+        if (applicationType != ALONE) {
+            Tenant cotenant = Tenant.builder().id(2L).firstName("Jane").lastName("Doe").build();
+            apartmentSharing.setTenants(List.of(cotenant));
+        }
+        return Tenant.builder().id(1L)
+                .firstName("John").lastName("Doe")
+                .apartmentSharing(apartmentSharing)
                 .build();
     }
 

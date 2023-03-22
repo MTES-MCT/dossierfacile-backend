@@ -1,7 +1,9 @@
 package fr.gouv.bo.dto;
 
+import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Log;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.entity.User;
 import fr.dossierfacile.common.entity.UserApi;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
@@ -40,10 +42,15 @@ public class TenantInfoHeader {
     }
 
     private static String getApplicationType(Tenant tenant) {
-        return switch (tenant.getApartmentSharing().getApplicationType()) {
+        ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
+        String cotenantNames = apartmentSharing.getTenants().stream()
+                .filter(cotenant -> !cotenant.getId().equals(tenant.getId()))
+                .map(User::getFullName)
+                .collect(Collectors.joining(", "));
+        return switch (apartmentSharing.getApplicationType()) {
             case ALONE -> "Seul·e";
-            case COUPLE -> "En couple";
-            case GROUP -> "En colocation";
+            case COUPLE -> "En couple avec " + cotenantNames;
+            case GROUP -> "En colocation avec " + cotenantNames;
         };
     }
 
