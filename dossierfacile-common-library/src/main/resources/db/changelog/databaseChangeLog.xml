@@ -81,5 +81,6 @@
     <include file="db/migration/202303150000-alter-qrcode-file-analysis-table.xml"/>
     <include file="db/migration/202303210000-add-dpe-columns-in-property.xml"/>
     <include file="db/migration/202303210000-add-dpe-emission-columns-in-property.xml"/>
+    <include file="db/migration/202303210000-changetype.xml"/>
 
 </databaseChangeLog>
