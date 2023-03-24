@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+
+    <changeSet id="202303210000-01" author="Matthieu">
+        <addColumn tableName="property">
+            <column name="co2emission" type="number"/>
+        </addColumn>
+        <dropColumn tableName="property">
+            <column name="co2_emission" type="number"/>
+        </dropColumn>
+    </changeSet>
+
+</databaseChangeLog>
