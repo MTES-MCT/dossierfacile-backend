@@ -3,6 +3,7 @@ package fr.dossierfacile.api.front.validator.tenant.profesional;
 import fr.dossierfacile.api.front.register.form.tenant.DocumentProfessionalForm;
 import fr.dossierfacile.api.front.repository.FileRepository;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
+import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.validator.anotation.tenant.profesional.NumberOfDocumentProfesional;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
@@ -17,7 +18,7 @@ import javax.validation.ConstraintValidatorContext;
 @RequiredArgsConstructor
 public class NumberOfDocumentProfesionalValidator implements ConstraintValidator<NumberOfDocumentProfesional, DocumentProfessionalForm> {
 
-    private final AuthenticationFacade authenticationFacade;
+    private final TenantService tenantService;
     private final FileRepository fileRepository;
     private int max;
     private int min;
@@ -30,7 +31,7 @@ public class NumberOfDocumentProfesionalValidator implements ConstraintValidator
 
     @Override
     public boolean isValid(DocumentProfessionalForm documentProfessionalForm, ConstraintValidatorContext constraintValidatorContext) {
-        Tenant tenant = authenticationFacade.getTenant(documentProfessionalForm.getTenantId());
+        Tenant tenant = tenantService.findById(documentProfessionalForm.getTenantId());
         var files = documentProfessionalForm.getDocuments();
         long sizeOldDoc = 0;
         long countOld = fileRepository.countFileByDocumentCategoryTenant(DocumentCategory.PROFESSIONAL, tenant);

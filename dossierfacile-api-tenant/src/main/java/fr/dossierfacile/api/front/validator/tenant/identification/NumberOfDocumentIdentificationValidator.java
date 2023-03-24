@@ -2,7 +2,7 @@ package fr.dossierfacile.api.front.validator.tenant.identification;
 
 import fr.dossierfacile.api.front.register.form.tenant.DocumentIdentificationForm;
 import fr.dossierfacile.api.front.repository.FileRepository;
-import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
+import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.validator.anotation.tenant.identification.NumberOfDocumentIdentification;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +16,7 @@ import javax.validation.ConstraintValidatorContext;
 @RequiredArgsConstructor
 public class NumberOfDocumentIdentificationValidator implements ConstraintValidator<NumberOfDocumentIdentification, DocumentIdentificationForm> {
 
-    private final AuthenticationFacade authenticationFacade;
+    private final TenantService tenantService;
     private final FileRepository fileRepository;
     private int max;
     private int min;
@@ -29,7 +29,7 @@ public class NumberOfDocumentIdentificationValidator implements ConstraintValida
 
     @Override
     public boolean isValid(DocumentIdentificationForm documentIdentificationForm, ConstraintValidatorContext constraintValidatorContext) {
-        var tenant = authenticationFacade.getTenant(documentIdentificationForm.getTenantId());
+        var tenant = tenantService.findById(documentIdentificationForm.getTenantId());
         var files = documentIdentificationForm.getDocuments();
         long sizeOldDoc = 0;
         long countOld = fileRepository.countFileByDocumentCategoryTenant(DocumentCategory.IDENTIFICATION, tenant);

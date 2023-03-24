@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.front.config;
 
+import fr.dossierfacile.api.front.security.CustomWebSecurityExpressionHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -24,8 +25,8 @@ public class ResourceServerConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .headers()
-                    .addHeaderWriter(new StaticHeadersWriter("X-Content-Type-Options","nosniff"))
-                    .contentTypeOptions()
+                .addHeaderWriter(new StaticHeadersWriter("X-Content-Type-Options", "nosniff"))
+                .contentTypeOptions()
                 .and()
                 .xssProtection()
                 .and()
@@ -51,17 +52,19 @@ public class ResourceServerConfig {
                 .cors()
                 .and()
                 .authorizeRequests()
+                .expressionHandler(new CustomWebSecurityExpressionHandler())
                 .antMatchers("/swagger-ui/**", "/swagger-resources/**", "/v2/api-docs", "/api/register/account", "/api/register/confirmAccount/**",
                         "/api/auth/**", "/api/user/forgotPassword", "/api/user/createPassword/**",
-                        "/api/document/**", "/api/file/download/**", "/api/file/preview/**", "/api/application/full/**", "/api/application/light/**",
+                        "/api/document/**", "/api/file/download/**", "/api/application/full/**", "/api/application/light/**",
                         "/api/application/fullPdf/**", "/api/tenant/property/**",
                         "/api/support/email",
                         "/api/stats/**",
                         "/actuator/health")
                 .permitAll()
                 .antMatchers("/api-partner-linking/**").hasAuthority("SCOPE_api-partner-linking")
-                .antMatchers("/api-partner/**").hasAuthority("SCOPE_api-partner")
-                .antMatchers("/dfc/tenant/**").hasAuthority("SCOPE_dfc")
+                .antMatchers("/api-partner/**").access("hasAuthority(\"SCOPE_api-partner\") && isClient()")
+                .antMatchers("/dfc/**").hasAuthority("SCOPE_dfc")
+                .antMatchers("/dfc/api/**").access("isClient()")
                 .anyRequest().hasAuthority("SCOPE_dossier")
                 .and()
                 .oauth2ResourceServer()

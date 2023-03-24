@@ -17,6 +17,7 @@ public interface GuarantorRepository extends JpaRepository<Guarantor, Long> {
 
     Optional<Guarantor> findByTenantAndTypeGuarantorAndId(Tenant tenant, TypeGuarantor typeGuarantor, Long id);
 
+    // TODO check if tenant_id can be used instead
     boolean existsByIdAndTenantAndTypeGuarantor(Long guarantorId, Tenant tenant, TypeGuarantor typeGuarantor);
 
     Optional<Guarantor> findByIdAndTenant(Long id, Tenant tenant);

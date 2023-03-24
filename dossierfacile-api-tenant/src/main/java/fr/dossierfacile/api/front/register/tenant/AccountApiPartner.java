@@ -4,7 +4,7 @@ import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.SaveStep;
 import fr.dossierfacile.api.front.register.form.partner.AccountPartnerForm;
-import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
+import fr.dossierfacile.api.front.security.interfaces.ClientAuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.service.interfaces.UserApiService;
@@ -28,7 +28,7 @@ public class AccountApiPartner implements SaveStep<AccountPartnerForm> {
     private final TenantCommonRepository tenantRepository;
     private final TenantService tenantService;
     private final TenantMapper tenantMapper;
-    private final AuthenticationFacade authenticationFacade;
+    private final ClientAuthenticationFacade clientAuthenticationFacade;
     private final UserApiService userApiService;
     private final PartnerCallBackService partnerCallBackService;
     private final MailService mailService;
@@ -36,17 +36,17 @@ public class AccountApiPartner implements SaveStep<AccountPartnerForm> {
     @Override
     public TenantModel saveStep(Tenant t, AccountPartnerForm accountForm) {
         String email = accountForm.getEmail().toLowerCase();
-        Tenant tenant = findOrCreateTenant(email);
-        Optional<UserApi> userApi = userApiService.findByName(authenticationFacade.getKeycloakClientId());
-        partnerCallBackService.registerTenant(accountForm.getInternalPartnerId(), tenant, userApi.get());
+        Tenant tenant = findDisabledTenantOrCreateTenant(email);
+        UserApi userApi = clientAuthenticationFacade.getClient();
+        partnerCallBackService.registerTenant(accountForm.getInternalPartnerId(), tenant, userApi);
 
-        mailService.sendEmailWelcomeForPartnerUser(tenant, userApi.get());
+        mailService.sendEmailWelcomeForPartnerUser(tenant, userApi);
 
         tenant.lastUpdateDateProfile(LocalDateTime.now(), null);
         return tenantMapper.toTenantModel(tenantRepository.save(tenant));
     }
 
-    private Tenant findOrCreateTenant(String email) {
+    private Tenant findDisabledTenantOrCreateTenant(String email) {
         Tenant tenant = tenantRepository.findByEmailAndEnabledFalse(email)
                 .orElseGet(() -> tenantService.create(Tenant.builder().email(email).tenantType(TenantType.CREATE).build()));
         tenant.setEnabled(true);

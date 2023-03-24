@@ -3,6 +3,7 @@ package fr.dossierfacile.api.front.validator.tenant.application.v2;
 
 import fr.dossierfacile.api.front.register.form.tenant.ApplicationFormV2;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
+import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.validator.anotation.tenant.application.v2.DeniedJoinTenant;
 import fr.dossierfacile.common.enums.TenantType;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +15,7 @@ import javax.validation.ConstraintValidatorContext;
 @Component
 @RequiredArgsConstructor
 public class DeniedJoinTenantValidator implements ConstraintValidator<DeniedJoinTenant, ApplicationFormV2> {
-    private final AuthenticationFacade authenticationFacade;
+    private final TenantService tenantService;
 
     @Override
     public void initialize(DeniedJoinTenant constraintAnnotation) {
@@ -23,7 +24,7 @@ public class DeniedJoinTenantValidator implements ConstraintValidator<DeniedJoin
 
     @Override
     public boolean isValid(ApplicationFormV2 applicationForm, ConstraintValidatorContext constraintValidatorContext) {
-        var tenant = authenticationFacade.getTenant(applicationForm.getTenantId());
+        var tenant = tenantService.findById(applicationForm.getTenantId());
         if (tenant == null) {
             return true;
         }

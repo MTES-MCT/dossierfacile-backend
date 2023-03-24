@@ -8,7 +8,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 
 public class CustomMethodSecurityExpressionRoot extends SecurityExpressionRoot implements MethodSecurityExpressionOperations {
-    TenantPermissionsService tenantPermissionsService;
+    private final TenantPermissionsService tenantPermissionsService;
 
     public CustomMethodSecurityExpressionRoot(Authentication authentication, TenantPermissionsService tenantPermissionsService) {
         super(authentication);
@@ -20,16 +20,21 @@ public class CustomMethodSecurityExpressionRoot extends SecurityExpressionRoot i
     }
 
     private String getKeycloakClientId() {
-        return ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClaimAsString("azp");
+        try {
+            return ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClaimAsString("clientId");
+        } catch (Throwable t) {
+            return null;
+        }
+    }
+
+    public boolean isClient() {
+        return getKeycloakClientId() != null;
     }
 
     public boolean hasPermissionOnTenant(Long tenantId) {
-        return tenantPermissionsService.canAccess(getKeycloakId(), tenantId);
-    }
-
-
-    public boolean clientHasPermissionOnTenant(Long tenantId) {
-        return tenantPermissionsService.clientCanAccess(getKeycloakClientId(), tenantId);
+        return (isClient()) ?
+                tenantPermissionsService.clientCanAccess(getKeycloakClientId(), tenantId) :
+                tenantPermissionsService.canAccess(getKeycloakId(), tenantId);
     }
 
     @Override

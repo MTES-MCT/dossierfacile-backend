@@ -1,7 +1,7 @@
 package fr.dossierfacile.api.front.validator.tenant.name;
 
 import fr.dossierfacile.api.front.register.form.tenant.NamesForm;
-import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
+import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.validator.anotation.tenant.name.CheckFranceConnect;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -13,7 +13,7 @@ import javax.validation.ConstraintValidatorContext;
 @RequiredArgsConstructor
 public class CheckFranceConnectValidator implements ConstraintValidator<CheckFranceConnect, NamesForm> {
 
-    private final AuthenticationFacade authenticationFacade;
+    private final TenantService tenantService;
 
     @Override
     public void initialize(CheckFranceConnect constraintAnnotation) {
@@ -22,7 +22,7 @@ public class CheckFranceConnectValidator implements ConstraintValidator<CheckFra
 
     @Override
     public boolean isValid(NamesForm namesForm, ConstraintValidatorContext constraintValidatorContext) {
-        var tenant = authenticationFacade.getTenant(namesForm.getTenantId());
+        var tenant = tenantService.findById(namesForm.getTenantId());
         return (!Boolean.TRUE.equals(tenant.getFranceConnect()) ||
                 (tenant.getFirstName().equals(namesForm.getFirstName()) && tenant.getLastName().equals(namesForm.getLastName())));
     }

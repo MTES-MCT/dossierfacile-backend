@@ -1,7 +1,7 @@
 package fr.dossierfacile.api.front.validator.tenant.application.v2;
 
 import fr.dossierfacile.api.front.register.form.tenant.ApplicationFormV2;
-import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
+import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.validator.anotation.tenant.application.v2.UniqueCoTenantsEmail;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import lombok.AllArgsConstructor;
@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 public class UniqueCoTenantsEmailValidator implements ConstraintValidator<UniqueCoTenantsEmail, ApplicationFormV2> {
 
     private final TenantCommonRepository tenantRepository;
-    private final AuthenticationFacade authenticationFacade;
+    private final TenantService tenantService;
 
     @Override
     public void initialize(UniqueCoTenantsEmail constraintAnnotation) {
@@ -33,7 +33,7 @@ public class UniqueCoTenantsEmailValidator implements ConstraintValidator<Unique
         if (emails.isEmpty())
             return true;
 
-        var tenant = authenticationFacade.getTenant(applicationForm.getTenantId());
+        var tenant = tenantService.findById(applicationForm.getTenantId());
         if (tenant == null) {
             return true;
         }

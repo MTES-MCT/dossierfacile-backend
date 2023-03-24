@@ -2,7 +2,7 @@ package fr.dossierfacile.api.front.validator.guarantor.natural_person.tax;
 
 import fr.dossierfacile.api.front.register.form.guarantor.natural_person.DocumentTaxGuarantorNaturalPersonForm;
 import fr.dossierfacile.api.front.repository.FileRepository;
-import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
+import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.validator.anotation.guarantor.natural_person.tax.NumberOfDocumentTaxGuarantorNaturalPerson;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
@@ -21,7 +21,7 @@ public class NumberOfDocumentTaxGuarantorNaturalPersonValidator implements Const
     private static final String DOCUMENTS = "documents";
     private static final String RESPONSE = "number of document must be less than 15";
 
-    private final AuthenticationFacade authenticationFacade;
+    private final TenantService tenantService;
     private final FileRepository fileRepository;
 
     @Override
@@ -31,7 +31,7 @@ public class NumberOfDocumentTaxGuarantorNaturalPersonValidator implements Const
 
     @Override
     public boolean isValid(DocumentTaxGuarantorNaturalPersonForm documentTaxGuarantorNaturalPersonForm, ConstraintValidatorContext constraintValidatorContext) {
-        Tenant tenant = authenticationFacade.getTenant(documentTaxGuarantorNaturalPersonForm.getTenantId());
+        Tenant tenant = tenantService.findById(documentTaxGuarantorNaturalPersonForm.getTenantId());
         long countOld = fileRepository.countFileByDocumentCategoryGuarantorIdTypeGuarantorTenant(
                 DocumentCategory.TAX,
                 documentTaxGuarantorNaturalPersonForm.getGuarantorId(),

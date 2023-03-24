@@ -2,7 +2,7 @@ package fr.dossierfacile.api.front.validator.guarantor;
 
 import fr.dossierfacile.api.front.register.form.guarantor.DocumentGuarantorFormAbstract;
 import fr.dossierfacile.api.front.repository.GuarantorRepository;
-import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
+import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.validator.anotation.guarantor.natural_person.ExistGuarantor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -14,7 +14,7 @@ import javax.validation.ConstraintValidatorContext;
 @RequiredArgsConstructor
 public class ExistGuarantorValidator implements ConstraintValidator<ExistGuarantor, DocumentGuarantorFormAbstract> {
 
-    private final AuthenticationFacade authenticationFacade;
+    private final TenantService tenantService;
     private final GuarantorRepository guarantorRepository;
 
     @Override
@@ -29,7 +29,7 @@ public class ExistGuarantorValidator implements ConstraintValidator<ExistGuarant
         if (guarantorId == null) {
             return true;
         }
-        var tenant = authenticationFacade.getTenant(documentGuarantorFormAbstract.getTenantId());
+        var tenant = tenantService.findById(documentGuarantorFormAbstract.getTenantId());
         return guarantorRepository.existsByIdAndTenantAndTypeGuarantor(guarantorId, tenant, typeGuarantor);
     }
 }

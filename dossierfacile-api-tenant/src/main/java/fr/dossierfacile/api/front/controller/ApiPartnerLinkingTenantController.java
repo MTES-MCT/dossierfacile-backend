@@ -1,4 +1,4 @@
-package fr.dossierfacile.api.front.partner.controller;
+package fr.dossierfacile.api.front.controller;
 
 import fr.dossierfacile.api.front.aop.annotation.MethodLog;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
