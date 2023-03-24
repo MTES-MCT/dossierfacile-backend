@@ -1,5 +1,6 @@
 package fr.dossierfacile.garbagecollector.service;
 
+import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.repository.ApartmentSharingRepository;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
@@ -27,8 +28,12 @@ public class DocumentServiceImpl implements DocumentService {
     @Override
     public void deleteAllDocumentsAssociatedToTenant(Tenant tenant) {
         List<GarbageDocument> documentList = documentRepository.findAllAssociatedToTenantId(tenant.getId());
+        Optional<ApartmentSharing> apartmentSharing = apartmentSharingRepository.findByTenant(tenant.getId());
+        if (apartmentSharing.isEmpty()) {
+            return;
+        }
 
-        if (StringUtils.isNotBlank(tenant.getApartmentSharing().getUrlDossierPdfDocument())) {
+        if (StringUtils.isNotBlank(apartmentSharing.get().getUrlDossierPdfDocument())) {
             try {
                 fileStorageService.delete(tenant.getApartmentSharing().getUrlDossierPdfDocument());
                 tenant.getApartmentSharing().setUrlDossierPdfDocument("");
