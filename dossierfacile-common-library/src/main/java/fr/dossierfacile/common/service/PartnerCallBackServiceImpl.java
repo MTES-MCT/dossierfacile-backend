@@ -79,7 +79,11 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
     }
 
     public void sendCallBack(Tenant tenant, PartnerCallBackType partnerCallBackType) {
-        tenant.getApartmentSharing().groupingAllTenantUserApisInTheApartment().forEach(tenantUserApi -> {
+        Optional<ApartmentSharing> apartmentSharing = apartmentSharingRepository.findByTenant(tenant.getId());
+        if (apartmentSharing.isEmpty()) {
+            return;
+        }
+        apartmentSharing.get().groupingAllTenantUserApisInTheApartment().forEach(tenantUserApi -> {
             UserApi userApi = tenantUserApi.getUserApi();
             sendCallBack(tenant, userApi, partnerCallBackType);
         });

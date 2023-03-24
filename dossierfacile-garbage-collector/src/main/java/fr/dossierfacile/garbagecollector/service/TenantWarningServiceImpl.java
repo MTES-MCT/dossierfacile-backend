@@ -54,12 +54,12 @@ public class TenantWarningServiceImpl implements TenantWarningService {
         t.setClarification("");
 
         ConfirmationToken confirmationToken = confirmationTokenRepository.findByUser(t).orElseThrow(() -> new ConfirmationTokenNotFoundException(t.getId()));
-        confirmationTokenRepository.delete(confirmationToken);
 
         documentService.deleteAllDocumentsAssociatedToTenant(t);
         guarantorService.deleteAllGuaratorsAssociatedToTenant(t);
         logService.saveLog(LogType.DOCUMENT_DELETION_AFTER_2_ACCOUNT_WARNINGS, t.getId());
         partnerCallBackService.sendCallBack(t, PartnerCallBackType.ARCHIVED_ACCOUNT);
+        confirmationTokenRepository.delete(confirmationToken);
     }
 
     private void handleWarning1(Tenant t) {
