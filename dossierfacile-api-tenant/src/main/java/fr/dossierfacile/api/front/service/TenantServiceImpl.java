@@ -3,6 +3,7 @@ package fr.dossierfacile.api.front.service;
 import fr.dossierfacile.api.front.exception.TenantNotFoundException;
 import fr.dossierfacile.api.front.form.SubscriptionApartmentSharingOfTenantForm;
 import fr.dossierfacile.api.front.model.KeycloakUser;
+import fr.dossierfacile.api.front.model.MappingFormat;
 import fr.dossierfacile.api.front.model.tenant.EmailExistsModel;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.RegisterFactory;

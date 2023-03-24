@@ -7,7 +7,7 @@ import fr.dossierfacile.api.front.register.form.guarantor.natural_person.Documen
 import fr.dossierfacile.api.front.register.form.tenant.DocumentFinancialForm;
 import fr.dossierfacile.api.front.register.form.tenant.DocumentTaxForm;
 import fr.dossierfacile.api.front.repository.FileRepository;
-import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
+import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.util.Utility;
 import fr.dossierfacile.api.front.validator.anotation.NumberOfPages;
 import fr.dossierfacile.common.entity.Tenant;
@@ -32,7 +32,7 @@ public class NumberOfPagesValidator implements ConstraintValidator<NumberOfPages
     private static final String PAGES = "documents";
     private static final String RESPONSE = "The number of new pages must be greater than 0";
 
-    private final AuthenticationFacade authenticationFacade;
+    private final TenantService tenantService;
     private final FileRepository fileRepository;
     private DocumentCategory documentCategory;
     private int max;
@@ -103,7 +103,7 @@ public class NumberOfPagesValidator implements ConstraintValidator<NumberOfPages
 
         //region Counting total old pages
         int numberOfOldPages = 0;
-        Tenant tenant = authenticationFacade.getTenant(documentForm.getTenantId());
+        Tenant tenant = tenantService.findById(documentForm.getTenantId());
         if (documentForm instanceof DocumentGuarantorFormAbstract) {
             Long guarantorId = ((DocumentGuarantorFormAbstract) documentForm).getGuarantorId();
             if (documentForm instanceof DocumentFinancialGuarantorNaturalPersonForm) {

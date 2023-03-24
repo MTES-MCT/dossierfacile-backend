@@ -1,7 +1,7 @@
 package fr.dossierfacile.api.front.validator.tenant.type_guarantor;
 
 import fr.dossierfacile.api.front.register.form.tenant.GuarantorTypeForm;
-import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
+import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.validator.anotation.tenant.type_guarantor.MaxGuarantor;
 import fr.dossierfacile.common.entity.Guarantor;
 import fr.dossierfacile.common.enums.TypeGuarantor;
@@ -16,7 +16,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MaxGuarantorValidator implements ConstraintValidator<MaxGuarantor, GuarantorTypeForm> {
 
-    private final AuthenticationFacade authenticationFacade;
+    private final TenantService tenantService;
 
     @Override
     public void initialize(MaxGuarantor constraintAnnotation) {
@@ -25,7 +25,7 @@ public class MaxGuarantorValidator implements ConstraintValidator<MaxGuarantor, 
 
     @Override
     public boolean isValid(GuarantorTypeForm guarantorTypeForm, ConstraintValidatorContext constraintValidatorContext) {
-        var tenant = authenticationFacade.getTenant(guarantorTypeForm.getTenantId());
+        var tenant = tenantService.findById(guarantorTypeForm.getTenantId());
         if (tenant == null) {
             return true;
         }

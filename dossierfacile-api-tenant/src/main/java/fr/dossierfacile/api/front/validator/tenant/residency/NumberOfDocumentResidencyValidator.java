@@ -2,7 +2,7 @@ package fr.dossierfacile.api.front.validator.tenant.residency;
 
 import fr.dossierfacile.api.front.register.form.tenant.DocumentResidencyForm;
 import fr.dossierfacile.api.front.repository.FileRepository;
-import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
+import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.validator.anotation.tenant.residency.NumberOfDocumentResidency;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
@@ -17,7 +17,7 @@ import javax.validation.ConstraintValidatorContext;
 @RequiredArgsConstructor
 public class NumberOfDocumentResidencyValidator implements ConstraintValidator<NumberOfDocumentResidency, DocumentResidencyForm> {
     private final FileRepository fileRepository;
-    private final AuthenticationFacade authenticationFacade;
+    private final TenantService tenantService;
 
     @Override
     public void initialize(NumberOfDocumentResidency constraintAnnotation) {
@@ -26,7 +26,7 @@ public class NumberOfDocumentResidencyValidator implements ConstraintValidator<N
 
     @Override
     public boolean isValid(DocumentResidencyForm documentResidencyForm, ConstraintValidatorContext constraintValidatorContext) {
-        Tenant tenant = authenticationFacade.getTenant(documentResidencyForm.getTenantId());
+        Tenant tenant = tenantService.findById(documentResidencyForm.getTenantId());
         long sizeOldDoc = 0;
         long countOld = fileRepository.countFileByDocumentCategoryTenant(DocumentCategory.RESIDENCY, tenant);
         long countNew = documentResidencyForm.getDocuments()

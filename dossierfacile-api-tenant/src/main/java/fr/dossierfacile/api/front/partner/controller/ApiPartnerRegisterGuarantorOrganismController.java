@@ -12,6 +12,7 @@ import fr.dossierfacile.common.service.interfaces.LogService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,12 +25,12 @@ import static org.springframework.http.ResponseEntity.ok;
 @RequestMapping(value = "/api-partner/register/guarantorOrganism", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 public class ApiPartnerRegisterGuarantorOrganismController {
     private final TenantService tenantService;
-    private final AuthenticationFacade authenticationFacade;
     private final LogService logService;
 
+    @PreAuthorize("hasPermissionOnTenant(#documentIdentificationGuarantorOrganismForm.tenantId)")
     @PostMapping("/documentIdentification")
     public ResponseEntity<TenantModel> documentIdentification(@Validated({ApiPartner.class, DocumentIdentificationGuarantor.class}) DocumentIdentificationGuarantorOrganismForm documentIdentificationGuarantorOrganismForm) {
-        var tenant = authenticationFacade.getTenant(documentIdentificationGuarantorOrganismForm.getTenantId());
+        var tenant = tenantService.findById(documentIdentificationGuarantorOrganismForm.getTenantId());
         var tenantModel = tenantService.saveStepRegister(tenant, documentIdentificationGuarantorOrganismForm, StepRegister.DOCUMENT_IDENTIFICATION_GUARANTOR_ORGANISM);
         logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
         return ok(tenantModel);

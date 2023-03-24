@@ -1,10 +1,10 @@
 package fr.dossierfacile.api.front.security;
 
 import fr.dossierfacile.api.front.exception.TenantNotFoundException;
-import fr.dossierfacile.api.front.exception.TenantUserApiNotFoundException;
 import fr.dossierfacile.api.front.model.KeycloakUser;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
+import fr.dossierfacile.api.front.service.interfaces.TenantPermissionsService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
 import fr.dossierfacile.api.front.util.SentryUtil;
@@ -13,7 +13,6 @@ import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
-import fr.dossierfacile.common.repository.TenantUserApiRepository;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import io.sentry.SentryLevel;
 import lombok.RequiredArgsConstructor;
@@ -41,7 +40,7 @@ import java.util.UUID;
 public class AuthenticationFacadeImpl implements AuthenticationFacade {
 
     private final TenantCommonRepository tenantRepository;
-    private final TenantUserApiRepository tenantUserApiRepository;
+    private final TenantPermissionsService tenantPermissionsService;
     private final TenantStatusService tenantStatusService;
     private final TenantService tenantService;
     private final LogService logService;
@@ -91,26 +90,18 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
     }
 
     @Override
-    public Tenant getTenant(Long id) {
-        if (id != null) {
-            if (SecurityContextHolder.getContext().getAuthentication().getAuthorities().contains(new SimpleGrantedAuthority("SCOPE_api-partner"))
-            ) {
-                var keycloakClientId = getKeycloakClientId();
-                //Tenant supposedly already linked with the client/partner
-                return tenantUserApiRepository.findFirstByTenantIdAndUserApiName(id, keycloakClientId)
-                        .orElseThrow(() -> new TenantUserApiNotFoundException(id, keycloakClientId))
-                        .getTenant();
-            }
-            if (SecurityContextHolder.getContext().getAuthentication().getAuthorities().contains(new SimpleGrantedAuthority("SCOPE_dossier"))) {
-                return tenantRepository.findById(id)
-                        .orElseThrow(() -> new TenantNotFoundException(id));
-
-            } else {
-                throw new AccessDeniedException("Access denied id=" + id);
-            }
-        } else {
-            return getLoggedTenant();
+    public Tenant getTenant(Long tenantId) {
+        if (!SecurityContextHolder.getContext().getAuthentication().getAuthorities().contains(new SimpleGrantedAuthority("SCOPE_dossier"))) {
+            throw new AccessDeniedException("Access denied id=" + tenantId);
         }
+        if (tenantId != null) {
+            if (!tenantPermissionsService.canAccess(getKeycloakUserId(), tenantId)) {
+                throw new AccessDeniedException("Access denied id=" + tenantId);
+            }
+            return tenantRepository.findById(tenantId)
+                    .orElseThrow(() -> new TenantNotFoundException(tenantId));
+        }
+        return getLoggedTenant();
     }
 
     @Override
