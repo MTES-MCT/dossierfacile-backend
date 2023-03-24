@@ -1,4 +1,4 @@
-package fr.dossierfacile.process.file.service.monfranceconnect.client;
+package fr.dossierfacile.process.file.service.qrcodeanalysis.monfranceconnect.client;
 
 import fr.dossierfacile.process.file.util.QrCode;
 import org.junit.jupiter.api.Test;
@@ -10,13 +10,13 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class DocumentVerificationRequestTest {
+class MonFranceConnectAuthenticationRequestTest {
 
     private static final QrCode MFC_QR_CODE = new QrCode("https://mfc.fr/verif-justificatif?id=ecbfd395-b77a-44ca-9626-efb3898424a8&data=6juDifWw5wQJzqff0ZZae8B3WZwyfQE2ufLFetiXTJKjSnKApiQ70DeXfvStUf8WCYam4OixOl3dR%2BB4G6WjiGx0zUGSwuCWPSy7ubNUKyD2TKh5VvWgOjs8c%2BxICcjvk0BY%2FfWhs41IvA%3D%3D");
 
     @Test
     void should_build_uri_to_call() {
-        DocumentVerificationRequest request = DocumentVerificationRequest.forDocumentWith(MFC_QR_CODE).get();
+        MonFranceConnectAuthenticationRequest request = MonFranceConnectAuthenticationRequest.forDocumentWith(MFC_QR_CODE).get();
 
         assertThat(request.getUri("https://api.mfc.fr"))
                 .hasScheme("https")
@@ -27,7 +27,7 @@ class DocumentVerificationRequestTest {
 
     @Test
     void should_build_http_entity() {
-        DocumentVerificationRequest request = DocumentVerificationRequest.forDocumentWith(MFC_QR_CODE).get();
+        MonFranceConnectAuthenticationRequest request = MonFranceConnectAuthenticationRequest.forDocumentWith(MFC_QR_CODE).get();
         HttpEntity<String> httpEntity = request.getHttpEntity();
 
         assertThat(httpEntity.getHeaders())
@@ -45,7 +45,7 @@ class DocumentVerificationRequestTest {
     })
     void should_not_build_request_if_the_qr_code_is_not_from_MonFranceConnect(String qrCodeContent) {
         QrCode qrCode = new QrCode(qrCodeContent);
-        assertThat(DocumentVerificationRequest.forDocumentWith(qrCode)).isEmpty();
+        assertThat(MonFranceConnectAuthenticationRequest.forDocumentWith(qrCode)).isEmpty();
     }
 
 }

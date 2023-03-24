@@ -35,12 +35,12 @@ public class DeleteArchivedDocumentService {
         for (GarbageApartmentSharing apartmentSharing : apartmentSharings) {
             try {
                 log.info("delete apt " + apartmentSharing.getId());
-                log.info("delete  " + apartmentSharing.getUrl_dossier_pdf_document());
-                ovhService.delete(apartmentSharing.getUrl_dossier_pdf_document());
-                apartmentSharing.setUrl_dossier_pdf_document("");
+                log.info("delete  " + apartmentSharing.getUrlDossierPdfDocument());
+                ovhService.delete(apartmentSharing.getUrlDossierPdfDocument());
+                apartmentSharing.setUrlDossierPdfDocument("");
                 apartmentSharingRepository.save(apartmentSharing);
             } catch (Exception e) {
-                log.error("Couldn't delete object [" + apartmentSharing.getUrl_dossier_pdf_document() + "] from apartment_sharing [" + apartmentSharing.getId() + "]");
+                log.error("Couldn't delete object [" + apartmentSharing.getUrlDossierPdfDocument() + "] from apartment_sharing [" + apartmentSharing.getId() + "]");
             }
         }
     }

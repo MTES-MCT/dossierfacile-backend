@@ -12,6 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -26,7 +27,13 @@ public class UserApiService {
     }
 
     public List<String> getNamesOfPartnerByTenantId(Long id) {
-        return userApiRepository.getNamesOfPartnerByTenantId(id);
+        return findPartnersLinkedToTenant(id).stream()
+                .map(UserApi::getName)
+                .collect(Collectors.toList());
+    }
+
+    public List<UserApi> findPartnersLinkedToTenant(Long id) {
+        return userApiRepository.findPartnersLinkedToTenant(id);
     }
 
     public List<UserApi> findAll() {

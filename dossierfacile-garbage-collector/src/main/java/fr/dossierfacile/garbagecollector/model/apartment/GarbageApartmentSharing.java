@@ -29,6 +29,6 @@ public class GarbageApartmentSharing implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "url_dossier_pdf_document")
-    private String url_dossier_pdf_document;
+    @Column
+    private String urlDossierPdfDocument;
 }

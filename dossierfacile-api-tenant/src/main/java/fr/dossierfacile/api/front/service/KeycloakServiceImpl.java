@@ -4,20 +4,35 @@ import fr.dossierfacile.api.front.register.form.tenant.AccountForm;
 import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
 import fr.dossierfacile.common.entity.Tenant;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import javax.ws.rs.NotFoundException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class KeycloakServiceImpl implements KeycloakService {
-
     private final RealmResource realmResource;
+
+    @Override
+    public UserRepresentation getKeyCloakUser(String keycloakId) {
+        try {
+            return Optional.ofNullable(keycloakId)
+                    .map(kid -> realmResource.users().get(kid))
+                    .map(userResource -> userResource.toRepresentation())
+                    .orElse(null);
+        } catch (NotFoundException e) {
+            return null;
+        }
+    }
 
     @Override
     public String createKeycloakUserAccountCreation(AccountForm accountForm, Tenant tenant) {
@@ -60,7 +75,11 @@ public class KeycloakServiceImpl implements KeycloakService {
 
     @Override
     public void deleteKeycloakUser(Tenant tenant) {
-        realmResource.users().delete(tenant.getKeycloakId());
+        if (tenant.getKeycloakId() != null) {
+            realmResource.users().delete(tenant.getKeycloakId());
+        } else {
+            log.warn("Trying to delete tenant without keycloakId:" + tenant.getEmail());
+        }
     }
 
     @Override

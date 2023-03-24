@@ -1,4 +1,4 @@
-package fr.dossierfacile.process.file.service.monfranceconnect.client;
+package fr.dossierfacile.process.file.service.qrcodeanalysis.monfranceconnect.client;
 
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;

@@ -16,15 +16,18 @@ public class LogService {
 
     private final BoLogRepository logRepository;
 
-    public List<Log> getLogById(Long id) {
-        List<Log> logList = logRepository.findLogsByTenantId(id);
+    public List<Log> getLogByTenantId(Long tenantId) {
+        List<Log> logList = logRepository.findLogsByTenantId(tenantId);
         logList.sort(Comparator.comparing(Log::getCreationDateTime).reversed());
         return logList;
     }
+
     public Page<Log> findAllPageable(PageRequest page) {
         return logRepository.findAll(page);
     }
+
     public Page<Log> findAllByTenantIdPageable(Long tenantId, PageRequest page) {
         return logRepository.findAllByTenantId(tenantId, page);
     }
+
 }

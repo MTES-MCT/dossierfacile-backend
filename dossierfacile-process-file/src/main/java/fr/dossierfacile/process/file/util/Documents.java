@@ -12,6 +12,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.singletonList;
+import static org.apache.commons.lang3.BooleanUtils.isNotTrue;
+
 @AllArgsConstructor
 public class Documents {
 
@@ -37,16 +40,13 @@ public class Documents {
     }
 
     public List<Document> byCategory(DocumentCategory documentCategory) {
-        return documents.stream()
-                .filter(doc -> doc.getDocumentCategory() == documentCategory)
-                .filter(doc -> !doc.getNoDocument())
-                .collect(Collectors.toList());
+        return byCategories(singletonList(documentCategory));
     }
 
     public List<Document> byCategories(List<DocumentCategory> documentCategories) {
         return documents.stream()
                 .filter(doc -> documentCategories.contains(doc.getDocumentCategory()))
-                .filter(doc -> !doc.getNoDocument())
+                .filter(doc -> isNotTrue(doc.getNoDocument()))
                 .collect(Collectors.toList());
     }
 

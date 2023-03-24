@@ -6,7 +6,6 @@ import lombok.Data;
 @Data
 @Builder
 public class KeycloakUser {
-
     String keycloakId;
     String email;
     boolean emailVerified;
@@ -14,5 +13,9 @@ public class KeycloakUser {
     String givenName;
     String familyName;
     boolean franceConnect;
+    String franceConnectSub;
+    String franceConnectBirthCountry;
+    String franceConnectBirthPlace;
+    String franceConnectBirthDate;
 
 }

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+
+    <changeSet id="202303150000-01" author="juliette">
+        <renameTable oldTableName="monfranceconnect_validation_result"
+                     newTableName="qrcode_file_analysis"/>
+        <renameColumn tableName="qrcode_file_analysis"
+                      oldColumnName="validation_status"
+                      newColumnName="authentication_status"/>
+    </changeSet>
+
+    <changeSet id="202303150000-02" author="juliette">
+        <addColumn tableName="qrcode_file_analysis">
+            <column name="issuer_name" type="varchar(255)"/>
+        </addColumn>
+        <sql>
+            DELETE FROM qrcode_file_analysis
+                WHERE qr_code_content not like '%mon.franceconnect%';
+            UPDATE qrcode_file_analysis
+                SET issuer_name = 'MON_FRANCE_CONNECT';
+        </sql>
+        <addNotNullConstraint tableName="qrcode_file_analysis" columnName="issuer_name"/>
+    </changeSet>
+
+    <changeSet id="202303150000-03" author="juliette">
+        <addColumn tableName="qrcode_file_analysis">
+            <column name="allowed_in_document_category" type="boolean"/>
+        </addColumn>
+        <sql>
+            DELETE FROM qrcode_file_analysis
+                WHERE authentication_status = 'WRONG_CATEGORY';
+            UPDATE qrcode_file_analysis
+                SET allowed_in_document_category = 'true';
+        </sql>
+        <addNotNullConstraint tableName="qrcode_file_analysis" columnName="allowed_in_document_category"/>
+    </changeSet>
+
+</databaseChangeLog>
