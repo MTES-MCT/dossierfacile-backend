@@ -1,5 +1,10 @@
 package fr.dossierfacile.process.file.configuration;
 
+import com.google.gson.Gson;
+import fr.dossierfacile.process.file.amqp.MinifyFileReceiver;
+import fr.dossierfacile.process.file.amqp.Receiver;
+import fr.dossierfacile.process.file.service.interfaces.MinifyFile;
+import fr.dossierfacile.process.file.service.interfaces.ProcessTenant;
 import org.aopalliance.aop.Advice;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
@@ -12,8 +17,10 @@ import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.retry.interceptor.RetryInterceptorBuilder;
 
+@Profile("!noRabbit")
 @Configuration
 public class AMQPConfig {
     @Value("${rabbitmq.exchange.file.process}")
@@ -75,4 +82,15 @@ public class AMQPConfig {
         factory.setPrefetchCount(prefetch);
         return factory;
     }
+
+    @Bean
+    Receiver receiver(Gson gson, ProcessTenant processTenant) {
+        return new Receiver(gson, processTenant);
+    }
+
+    @Bean
+    MinifyFileReceiver minifyFileReceiver(MinifyFile minifyFile) {
+        return new MinifyFileReceiver(minifyFile);
+    }
+
 }

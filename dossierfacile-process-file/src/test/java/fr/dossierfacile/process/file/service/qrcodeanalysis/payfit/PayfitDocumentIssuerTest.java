@@ -3,7 +3,6 @@ package fr.dossierfacile.process.file.service.qrcodeanalysis.payfit;
 import fr.dossierfacile.process.file.IntegrationTest;
 import fr.dossierfacile.process.file.TestFilesUtil;
 import fr.dossierfacile.process.file.service.qrcodeanalysis.AuthenticationResult;
-import fr.dossierfacile.process.file.service.qrcodeanalysis.payfit.client.PayfitResponse;
 import fr.dossierfacile.process.file.util.InMemoryPdfFile;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
