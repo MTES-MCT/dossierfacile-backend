@@ -79,7 +79,7 @@ public class ApiPartnerRegisterController {
         return ok(tenantModel);
     }
 
-    @PreAuthorize("hasPermissionOnTenant(#applicationForm.tenantId)")
+    @PreAuthorize("hasPermissionOnTenant(#honorDeclarationForm.tenantId)")
     @PostMapping(value = "/honorDeclaration", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TenantModel> honorDeclaration(@Validated(ApiPartner.class) @RequestBody HonorDeclarationForm honorDeclarationForm) {
         var tenant = tenantService.findById(honorDeclarationForm.getTenantId());
