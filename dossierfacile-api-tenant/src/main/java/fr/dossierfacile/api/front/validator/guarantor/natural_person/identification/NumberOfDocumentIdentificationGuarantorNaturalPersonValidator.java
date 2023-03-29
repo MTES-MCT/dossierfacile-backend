@@ -3,6 +3,7 @@ package fr.dossierfacile.api.front.validator.guarantor.natural_person.identifica
 import fr.dossierfacile.api.front.register.form.guarantor.natural_person.DocumentIdentificationGuarantorNaturalPersonForm;
 import fr.dossierfacile.api.front.repository.FileRepository;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
+import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.validator.anotation.guarantor.natural_person.identification.NumberOfDocumentIdentificationGuarantorNaturalPerson;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
@@ -17,7 +18,7 @@ import javax.validation.ConstraintValidatorContext;
 @RequiredArgsConstructor
 public class NumberOfDocumentIdentificationGuarantorNaturalPersonValidator implements ConstraintValidator<NumberOfDocumentIdentificationGuarantorNaturalPerson, DocumentIdentificationGuarantorNaturalPersonForm> {
 
-    private final AuthenticationFacade authenticationFacade;
+    private final TenantService tenantService;
     private final FileRepository fileRepository;
 
     @Override
@@ -27,7 +28,7 @@ public class NumberOfDocumentIdentificationGuarantorNaturalPersonValidator imple
 
     @Override
     public boolean isValid(DocumentIdentificationGuarantorNaturalPersonForm documentIdentificationGuarantorNaturalPersonForm, ConstraintValidatorContext constraintValidatorContext) {
-        Tenant tenant = authenticationFacade.getTenant(documentIdentificationGuarantorNaturalPersonForm.getTenantId());
+        Tenant tenant = tenantService.findById(documentIdentificationGuarantorNaturalPersonForm.getTenantId());
         long countOld = fileRepository.countFileByDocumentCategoryGuarantorIdTypeGuarantorTenant(
                 DocumentCategory.IDENTIFICATION,
                 documentIdentificationGuarantorNaturalPersonForm.getGuarantorId(),

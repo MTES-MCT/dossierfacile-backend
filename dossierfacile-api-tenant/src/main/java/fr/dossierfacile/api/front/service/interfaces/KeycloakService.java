@@ -2,10 +2,13 @@ package fr.dossierfacile.api.front.service.interfaces;
 
 import fr.dossierfacile.api.front.register.form.tenant.AccountForm;
 import fr.dossierfacile.common.entity.Tenant;
+import org.keycloak.representations.idm.UserRepresentation;
 
 import java.util.List;
 
 public interface KeycloakService {
+
+    UserRepresentation getKeyCloakUser(String keycloakId);
 
     String createKeycloakUserAccountCreation(AccountForm accountForm, Tenant tenant);
 

@@ -1,6 +1,5 @@
 package fr.dossierfacile.api.pdfgenerator.service;
 
-import fr.dossierfacile.api.pdfgenerator.repository.ApartmentSharingRepository;
 import fr.dossierfacile.api.pdfgenerator.service.interfaces.PdfGeneratorService;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Document;
@@ -11,6 +10,7 @@ import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.enums.TenantType;
+import fr.dossierfacile.common.repository.ApartmentSharingRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;

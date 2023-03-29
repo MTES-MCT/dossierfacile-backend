@@ -20,7 +20,6 @@ import org.apache.logging.log4j.util.Strings;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
-import org.apache.pdfbox.text.PDFTextStripper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -34,7 +33,6 @@ import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -125,32 +123,14 @@ public class Utility {
 
     public String extractInfoFromPDFFirstPage(File dfFile) {
         String pdfFileInText = null;
-        try (InputStream fileInputStream = fileStorageService.download(dfFile)) {
-            try (PDDocument document = PDDocument.load(fileInputStream)) {
-                if (!document.isEncrypted()) {
-                    PDFTextStripper reader = new PDFTextStripper();
-                    reader.setAddMoreFormatting(true);
-                    reader.setStartPage(1);
-                    reader.setEndPage(1);
-                    pdfFileInText = reader.getText(document);
-                }
-            }
+        try (InMemoryPdfFile inMemoryPdfFile = InMemoryPdfFile.create(dfFile, fileStorageService)) {
+            pdfFileInText = inMemoryPdfFile.getContentAsString();
         } catch (IOException e) {
             log.error(EXCEPTION_MESSAGE2, e);
             log.error(EXCEPTION + Sentry.captureException(e));
             log.error(e.getMessage(), e.getCause());
         }
         return pdfFileInText;
-    }
-
-    public Optional<QrCode> extractQrCode(File dfFile) {
-        try (InputStream inputStream = fileStorageService.download(dfFile)) {
-            return QrCodeReader.extractQrContentFrom(inputStream);
-        } catch (IOException e) {
-            log.error("Unable to download file " + dfFile.getPath(), e);
-            Sentry.captureMessage("Unable to download file " + dfFile.getPath());
-        }
-        return Optional.empty();
     }
 
     public String extractTax2DDoc(File dfFile) {

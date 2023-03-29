@@ -42,6 +42,19 @@ class DocumentsTest {
     }
 
     @Test
+    void should_filter_out_elements_with_no_documents() {
+        Documents documents = new Documents(List.of(
+                document(1L, TAX, false),
+                document(2L, TAX, null),
+                document(3L, TAX, true)
+        ));
+
+        assertThat(documents.byCategory(TAX))
+                .hasSize(2)
+                .are(documentsWithId(1L, 2L));
+    }
+
+    @Test
     void should_select_documents_of_tenant_and_guarantors() {
         Tenant tenant = Tenant.builder()
                 .documents(List.of(document(1L, TAX, false)))
@@ -57,7 +70,7 @@ class DocumentsTest {
                 .are(documentsWithId(1L, 2L, 3L));
     }
 
-    private static Document document(long id, DocumentCategory category, boolean noDocument) {
+    private static Document document(long id, DocumentCategory category, Boolean noDocument) {
         return Document.builder()
                 .id(id)
                 .documentCategory(category)

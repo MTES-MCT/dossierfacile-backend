@@ -3,6 +3,7 @@ package fr.dossierfacile.api.front.validator.tenant.tax;
 import fr.dossierfacile.api.front.register.form.tenant.DocumentTaxForm;
 import fr.dossierfacile.api.front.repository.FileRepository;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
+import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.validator.anotation.tenant.tax.NumberOfDocumentTax;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
@@ -20,7 +21,7 @@ public class NumberOfDocumentTaxValidator implements ConstraintValidator<NumberO
     private static final String DOCUMENTS = "documents";
     private static final String RESPONSE = "number of document must be less than 15";
 
-    private final AuthenticationFacade authenticationFacade;
+    private final TenantService tenantService;
     private final FileRepository fileRepository;
 
     @Override
@@ -31,7 +32,7 @@ public class NumberOfDocumentTaxValidator implements ConstraintValidator<NumberO
     @Override
     public boolean isValid(DocumentTaxForm documentTaxForm, ConstraintValidatorContext constraintValidatorContext) {
 
-        Tenant tenant = authenticationFacade.getTenant(documentTaxForm.getTenantId());
+        Tenant tenant = tenantService.findById(documentTaxForm.getTenantId());
         long countOld = fileRepository.countFileByDocumentCategoryTenant(DocumentCategory.TAX, tenant);
         long countNew = documentTaxForm.getDocuments().stream().filter(f -> !f.isEmpty()).count();
 

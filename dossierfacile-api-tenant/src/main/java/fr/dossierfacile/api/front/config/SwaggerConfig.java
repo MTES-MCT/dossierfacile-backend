@@ -20,9 +20,6 @@ import java.util.List;
 @Configuration
 @EnableSwagger2
 public class SwaggerConfig {
-    private static final String URL = "www.example.com";
-    private static final String LI = "<li>";
-    private static final String LI_CLOSE = "</li>";
 
     @Bean
     public Docket api() {
@@ -79,14 +76,8 @@ public class SwaggerConfig {
     private ApiInfo apiInfo() {
         return new ApiInfo(
                 "DossierFacile REST API",
-                "<h3>Description of the api</h3>\n" +
-                        "<div>\n" +
-                        "    <ul>\n" +
-                        LI + "\n" +
-                        "       TODO: (PUT HERE YOUR DESCRIPTION).\n" +
-                        LI_CLOSE + "\n" +
-                        "    </ul>\n" +
-                        "</div>",
+                "<h3>Private API</h3>\n" +
+                        "<div> This API is for internal use </div>",
                 "1.0",
                 "",
                 ApiInfo.DEFAULT_CONTACT,
@@ -96,18 +87,13 @@ public class SwaggerConfig {
     private ApiInfo apiDossierFacileConnectInfo() {
         return new ApiInfo(
                 "DossierFacile REST API DossierFacileConnect (DFC)",
-                "<h3>Description of the api</h3>\n" +
-                        "<div>\n" +
-                        "    <ul>\n" +
-                        LI + "\n" +
-                        "       TODO: (PUT HERE YOUR DESCRIPTION).\n" +
-                        LI_CLOSE + "\n" +
-                        "    </ul>\n" +
+                "<h3>DFC allows DossierFacile's users to share tenant's data to a partner</h3>\n" +
+                        "<div> The link with the partner requires to call the /profile endpoint after the user consent" +
                         "</div>",
                 "1.0",
                 "",
                 ApiInfo.DEFAULT_CONTACT,
-                "", "", Collections.emptyList());
+                "MIT", "", Collections.emptyList());
     }
 
     private ApiInfo apiPartnerInfo() {
@@ -116,9 +102,6 @@ public class SwaggerConfig {
                 "<h3>Description of the api</h3>\n" +
                         "<div>\n" +
                         "    <ul>\n" +
-                        LI + "\n" +
-                        "       TODO: (PUT HERE YOUR DESCRIPTION).\n" +
-                        LI_CLOSE + "\n" +
                         "    </ul>\n" +
                         "</div>",
                 "1.0",
@@ -133,9 +116,6 @@ public class SwaggerConfig {
                 "<h3>Description of the api</h3>\n" +
                         "<div>\n" +
                         "    <ul>\n" +
-                        LI + "\n" +
-                        "       TODO: (PUT HERE YOUR DESCRIPTION).\n" +
-                        LI_CLOSE + "\n" +
                         "    </ul>\n" +
                         "</div>",
                 "1.0",

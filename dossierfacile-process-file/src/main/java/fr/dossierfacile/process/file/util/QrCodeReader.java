@@ -15,18 +15,16 @@ import org.apache.pdfbox.rendering.PDFRenderer;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Optional;
 
 @Slf4j
 public class QrCodeReader {
 
-    public static Optional<QrCode> extractQrContentFrom(InputStream inputStream) {
-        try (PDDocument document = PDDocument.load(inputStream)) {
-            if (document.isEncrypted()) {
-                return Optional.empty();
-            }
-
+    public static Optional<QrCode> findQrCodeOn(PDDocument document) {
+        if (document.isEncrypted()) {
+            return Optional.empty();
+        }
+        try {
             BinaryBitmap binaryBitmap = buildBinaryBitmap(document);
             String qrCodeContent = new QRCodeReader().decode(binaryBitmap).getText();
             log.info("Found QR code on document (content: {})", qrCodeContent);

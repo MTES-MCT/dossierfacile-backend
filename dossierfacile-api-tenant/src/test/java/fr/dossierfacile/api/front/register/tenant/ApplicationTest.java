@@ -3,17 +3,18 @@ package fr.dossierfacile.api.front.register.tenant;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.register.form.tenant.ApplicationFormV2;
 import fr.dossierfacile.api.front.register.form.tenant.CoTenantForm;
-import fr.dossierfacile.api.front.repository.ApartmentSharingRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
-import fr.dossierfacile.api.front.service.interfaces.LogService;
 import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.api.front.service.interfaces.PasswordRecoveryTokenService;
 import fr.dossierfacile.api.front.service.interfaces.UserRoleService;
+import fr.dossierfacile.api.front.service.interfaces.UserService;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.ApplicationType;
+import fr.dossierfacile.common.repository.ApartmentSharingRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
+import fr.dossierfacile.common.service.interfaces.LogService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.junit.jupiter.api.Test;
@@ -32,7 +33,6 @@ import java.util.List;
 @ExtendWith(MockitoExtension.class)
 public class ApplicationTest {
 
-
     @Mock
     ApartmentSharingService apartmentSharingService;
     @Mock
@@ -43,6 +43,8 @@ public class ApplicationTest {
     TenantCommonRepository tenantCommonRepository;
     @Mock
     ApartmentSharingRepository apartmentSharingRepository;
+    @Mock
+    UserService userService;
     @Mock
     UserRoleService userRoleService;
     @Mock

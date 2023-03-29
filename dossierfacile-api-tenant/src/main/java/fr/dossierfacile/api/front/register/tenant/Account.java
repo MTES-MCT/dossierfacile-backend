@@ -6,17 +6,19 @@ import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.SaveStep;
 import fr.dossierfacile.api.front.register.form.tenant.AccountForm;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
-import fr.dossierfacile.api.front.service.interfaces.ConfirmationTokenService;
 import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
 import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.service.interfaces.UserApiService;
 import fr.dossierfacile.api.front.service.interfaces.UserRoleService;
+import fr.dossierfacile.api.front.util.Obfuscator;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
+import fr.dossierfacile.common.service.interfaces.ConfirmationTokenService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
+import io.sentry.Sentry;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -47,9 +49,25 @@ public class Account implements SaveStep<AccountForm> {
     @Transactional
     public TenantModel saveStep(Tenant t, AccountForm accountForm) {
         String email = accountForm.getEmail().toLowerCase();
-        Tenant tenant = tenantRepository.findByEmailAndEnabledFalse(email)
-                .orElseGet(() -> tenantService.create(Tenant.builder().tenantType(TenantType.CREATE).email(email).build()));
+        Optional<Tenant> existingEmailTenant = tenantRepository.findByEmailAndEnabledFalse(email);
+        if (existingEmailTenant.isPresent()) {
+            throw new IllegalStateException("Tenant " + Obfuscator.email(email) + " already exists (same email)");
+        }
+
+        Tenant tenant = tenantService.create(Tenant.builder().tenantType(TenantType.CREATE).email(email).build());
         tenant.setPassword(bCryptPasswordEncoder.encode(accountForm.getPassword()));
+        String newKeycloakId = keycloakService.createKeycloakUserAccountCreation(accountForm, tenant);
+
+        Tenant existingTenant = tenantRepository.findByKeycloakId(newKeycloakId);
+        if (existingTenant != null) {
+            // A tenant already exists, should never happen here because we have already checked existing email
+            // and there is no FranceConnect
+            String msg = "Tenant " + Obfuscator.email(email) + " already exists (same keycloak id) ";
+            log.error(msg + Sentry.captureMessage(msg));
+            throw new IllegalStateException("Tenant " + Obfuscator.email(tenant.getEmail()) + " already exists (same keycloak id)");
+        }
+
+        tenant.setKeycloakId(newKeycloakId);
         if (!Strings.isNullOrEmpty(accountForm.getSource())) {
             if (!tenant.getFranceConnect()) {
                 tenant.setFirstName(accountForm.getFirstName());
@@ -58,11 +76,8 @@ public class Account implements SaveStep<AccountForm> {
             tenant.setPreferredName(accountForm.getPreferredName());
             tenantRepository.save(tenant);
             Optional<UserApi> userApi = userApiService.findByName(accountForm.getSource());
-            if (userApi.isPresent()) {
-                partnerCallBackService.registerTenant(accountForm.getInternalPartnerId(), tenant, userApi.get());
-            }
+            userApi.ifPresent(api -> partnerCallBackService.registerTenant(accountForm.getInternalPartnerId(), tenant, api));
         }
-        tenant.setKeycloakId(keycloakService.createKeycloakUserAccountCreation(accountForm, tenant));
 
         tenantRepository.save(tenant);
         mailService.sendEmailConfirmAccount(tenant, confirmationTokenService.createToken(tenant));

@@ -4,15 +4,18 @@ package fr.dossierfacile.common.entity;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.FileStatus;
 import fr.dossierfacile.common.enums.TenantFileStatus;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.io.Serializable;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
@@ -21,12 +24,11 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
-
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table(name = "apartment_sharing")
@@ -35,6 +37,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@EntityListeners(AuditingEntityListener.class)
 public class ApartmentSharing implements Serializable {
 
     @Id
@@ -68,6 +71,9 @@ public class ApartmentSharing implements Serializable {
     @Column
     @Enumerated(EnumType.STRING)
     private FileStatus dossierPdfDocumentStatus;
+
+    @LastModifiedDate
+    private LocalDateTime lastUpdateDate;
 
     public ApartmentSharing(Tenant tenant) {
         tenants.add(tenant);

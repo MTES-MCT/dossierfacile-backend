@@ -2,7 +2,7 @@ package fr.dossierfacile.api.front.validator.tenant.honor_declaration;
 
 
 import fr.dossierfacile.api.front.register.form.tenant.HonorDeclarationForm;
-import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
+import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.validator.anotation.tenant.honor_declaration.CheckHonorDeclarationClarification;
 import fr.dossierfacile.common.enums.TenantType;
 import lombok.AllArgsConstructor;
@@ -15,7 +15,7 @@ import javax.validation.ConstraintValidatorContext;
 @AllArgsConstructor
 public class CheckHonorDeclarationClarificationValidator implements ConstraintValidator<CheckHonorDeclarationClarification, HonorDeclarationForm> {
 
-    private final AuthenticationFacade authenticationFacade;
+    private final TenantService tenantService;
 
     @Override
     public void initialize(CheckHonorDeclarationClarification constraintAnnotation) {
@@ -24,7 +24,7 @@ public class CheckHonorDeclarationClarificationValidator implements ConstraintVa
 
     @Override
     public boolean isValid(HonorDeclarationForm honorDeclarationForm, ConstraintValidatorContext constraintValidatorContext) {
-        var tenant = authenticationFacade.getTenant(honorDeclarationForm.getTenantId());
+        var tenant = tenantService.findById(honorDeclarationForm.getTenantId());
         boolean isValid = tenant.getTenantType().name().equals(TenantType.CREATE.name());
         if (!isValid && honorDeclarationForm.getClarification() == null) {
             return true;

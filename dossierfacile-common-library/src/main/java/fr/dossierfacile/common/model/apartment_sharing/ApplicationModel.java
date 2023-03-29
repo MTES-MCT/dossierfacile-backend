@@ -10,6 +10,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -26,4 +27,5 @@ public class ApplicationModel {
     private FileStatus dossierPdfDocumentStatus;
     private TenantFileStatus status;
     private List<TenantModel> tenants;
+    private LocalDateTime lastUpdateDate;
 }

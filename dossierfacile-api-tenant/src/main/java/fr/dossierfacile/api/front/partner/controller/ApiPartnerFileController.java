@@ -3,9 +3,9 @@ package fr.dossierfacile.api.front.partner.controller;
 import fr.dossierfacile.api.front.amqp.Producer;
 import fr.dossierfacile.api.front.exception.FileNotFoundException;
 import fr.dossierfacile.api.front.repository.FileRepository;
-import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.FileService;
+import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentPdfGenerationLog;
 import fr.dossierfacile.common.entity.File;
@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -36,14 +37,15 @@ public class ApiPartnerFileController {
     private final FileService fileService;
     private final DocumentService documentService;
     private final Producer producer;
-    private final AuthenticationFacade authenticationFacade;
+    private final TenantService tenantService;
     private final FileRepository fileRepository;
     private final FileStorageService fileStorageService;
     private final DocumentPdfGenerationLogRepository documentPdfGenerationLogRepository;
 
+    @PreAuthorize("hasPermissionOnTenant(#tenantId)")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id, @PathVariable Long tenantId) {
-        var tenant = authenticationFacade.getTenant(tenantId);
+        var tenant = tenantService.findById(tenantId);
         Document document = fileService.delete(id, tenant);
         if (document != null) {
             documentService.initializeFieldsToProcessPdfGeneration(document);
@@ -55,9 +57,10 @@ public class ApiPartnerFileController {
         return ResponseEntity.ok().build();
     }
 
+    @PreAuthorize("hasPermissionOnTenant(#tenantId)")
     @GetMapping(value = "/resource/{id}", produces = {MediaType.APPLICATION_PDF_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
     public void getPrivateFileAsByteArray(HttpServletResponse response, @PathVariable Long id, @PathVariable Long tenantId) {
-        Tenant tenant = authenticationFacade.getTenant(tenantId);
+        Tenant tenant = tenantService.findById(tenantId);
         File file = fileRepository.findByIdForTenant(id, tenant.getId()).orElseThrow(() -> new FileNotFoundException(id));
 
         try (InputStream in = fileStorageService.download(file) ) {

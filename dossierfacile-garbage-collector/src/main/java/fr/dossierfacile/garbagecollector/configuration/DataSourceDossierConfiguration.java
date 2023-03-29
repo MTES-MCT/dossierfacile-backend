@@ -2,6 +2,8 @@ package fr.dossierfacile.garbagecollector.configuration;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy;
+import org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
@@ -21,7 +23,7 @@ import java.util.HashMap;
 @EnableTransactionManagement
 @PropertySource({"classpath:application.properties"})
 @EnableJpaRepositories(entityManagerFactoryRef = "dossierEntityManager", transactionManagerRef = "dossierTransactionManager",
-        basePackages = { "fr.dossierfacile.garbagecollector.repo.document","fr.dossierfacile.garbagecollector.repo.file","fr.dossierfacile.garbagecollector.repo.apartment"})
+        basePackages = {"fr.dossierfacile.garbagecollector.repo.guarantor","fr.dossierfacile.garbagecollector.repo.document", "fr.dossierfacile.garbagecollector.repo.file", "fr.dossierfacile.garbagecollector.repo.apartment", "fr.dossierfacile.common"})
 public class DataSourceDossierConfiguration {
     @Autowired
     private Environment env;
@@ -32,7 +34,7 @@ public class DataSourceDossierConfiguration {
                 = new LocalContainerEntityManagerFactoryBean();
         em.setDataSource(productDataSource());
         em.setPackagesToScan(
-                new String[]{"fr.dossierfacile.garbagecollector.model.document","fr.dossierfacile.garbagecollector.model.file","fr.dossierfacile.garbagecollector.model.apartment"});
+                "fr.dossierfacile.garbagecollector.repo.guarantor", "fr.dossierfacile.garbagecollector.model.document", "fr.dossierfacile.garbagecollector.model.file", "fr.dossierfacile.garbagecollector.model.apartment", "fr.dossierfacile.common");
 
         HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
         em.setJpaVendorAdapter(vendorAdapter);
@@ -41,6 +43,8 @@ public class DataSourceDossierConfiguration {
                 env.getProperty("hibernate.hbm2ddl.auto"));
         properties.put("hibernate.dialect",
                 env.getProperty("hibernate.dialect"));
+        properties.put("hibernate.physical_naming_strategy", SpringPhysicalNamingStrategy.class.getName());
+        properties.put("hibernate.implicit_naming_strategy", SpringImplicitNamingStrategy.class.getName());
         em.setJpaPropertyMap(properties);
 
         return em;

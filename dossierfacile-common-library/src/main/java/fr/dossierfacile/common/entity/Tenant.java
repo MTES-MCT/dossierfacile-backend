@@ -93,6 +93,8 @@ public class Tenant extends User implements Person, Serializable {
     @Column(name = "allow_check_tax")
     private Boolean allowCheckTax;
 
+    private transient String warningMessage;
+
     public static TenantBuilder<?, ?> builder() {
         TenantBuilder<?, ?> tenantBuilder = Tenant.lombokBuilder();
         tenantBuilder.userType(UserType.TENANT);

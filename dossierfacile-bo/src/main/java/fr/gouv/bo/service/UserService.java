@@ -22,7 +22,7 @@ import fr.gouv.bo.dto.UserDTO;
 import fr.gouv.bo.mapper.TenantMapper;
 import fr.gouv.bo.model.tenant.TenantModel;
 import fr.gouv.bo.repository.AccountDeleteLogRepository;
-import fr.gouv.bo.repository.ApartmentSharingRepository;
+import fr.gouv.bo.repository.BOApartmentSharingRepository;
 import fr.gouv.bo.repository.BOUserRepository;
 import fr.gouv.bo.repository.PropertyApartmentSharingRepository;
 import lombok.RequiredArgsConstructor;
@@ -54,7 +54,7 @@ public class UserService {
     private final TenantMapper tenantMapper;
     private final AccountDeleteLogRepository accountDeleteLogRepository;
     private final KeycloakService keycloakService;
-    private final ApartmentSharingRepository apartmentSharingRepository;
+    private final BOApartmentSharingRepository apartmentSharingRepository;
     private final PropertyApartmentSharingRepository propertyApartmentSharingRepository;
     private final ApartmentSharingService apartmentSharingService;
     private final PartnerCallBackService partnerCallBackService;
@@ -112,6 +112,7 @@ public class UserService {
 
         apartmentSharing.getTenants().remove(tenant);
         updateApplicationTypeOfApartmentAfterDeletionOfCotenant(apartmentSharing);
+        apartmentSharingService.refreshUpdateDate(apartmentSharing);
         apartmentSharingService.resetDossierPdfGenerated(apartmentSharing);
     }
 

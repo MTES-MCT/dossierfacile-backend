@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+
+    <changeSet id="202303090000-01" author="fabien (manual)">
+        <sql>
+            <![CDATA[
+                INSERT INTO tenant_userapi(tenant_id, userapi_id, all_internal_partner_id)
+                SELECT tcouple.id, tua.userapi_id, '[]'
+                FROM tenant t
+                INNER JOIN tenant tcouple ON tcouple.apartment_sharing_id = t.apartment_sharing_id AND tcouple.tenant_type = 'JOIN'
+                INNER JOIN apartment_sharing a ON t.apartment_sharing_id = a.id
+                INNER JOIN tenant_userapi tua ON tua.tenant_id = t.id
+                LEFT JOIN tenant_userapi tuacouple ON tuacouple.tenant_id = tcouple.id
+                WHERE t.tenant_type = 'CREATE'
+                AND a.application_type = 'COUPLE'
+                AND tuacouple.tenant_id is null;
+          ]]>
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

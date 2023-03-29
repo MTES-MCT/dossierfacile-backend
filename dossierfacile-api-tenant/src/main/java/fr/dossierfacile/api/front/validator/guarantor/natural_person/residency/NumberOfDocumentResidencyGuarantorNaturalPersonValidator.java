@@ -2,7 +2,7 @@ package fr.dossierfacile.api.front.validator.guarantor.natural_person.residency;
 
 import fr.dossierfacile.api.front.register.form.guarantor.natural_person.DocumentResidencyGuarantorNaturalPersonForm;
 import fr.dossierfacile.api.front.repository.FileRepository;
-import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
+import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.validator.anotation.guarantor.natural_person.residency.NumberOfDocumentResidencyGuarantorNaturalPerson;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
@@ -18,7 +18,7 @@ import javax.validation.ConstraintValidatorContext;
 @RequiredArgsConstructor
 public class NumberOfDocumentResidencyGuarantorNaturalPersonValidator implements ConstraintValidator<NumberOfDocumentResidencyGuarantorNaturalPerson, DocumentResidencyGuarantorNaturalPersonForm> {
 
-    private final AuthenticationFacade authenticationFacade;
+    private final TenantService tenantService;
     private final FileRepository fileRepository;
 
     @Override
@@ -28,7 +28,7 @@ public class NumberOfDocumentResidencyGuarantorNaturalPersonValidator implements
 
     @Override
     public boolean isValid(DocumentResidencyGuarantorNaturalPersonForm documentResidencyGuarantorNaturalPersonForm, ConstraintValidatorContext constraintValidatorContext) {
-        Tenant tenant = authenticationFacade.getTenant(documentResidencyGuarantorNaturalPersonForm.getTenantId());
+        Tenant tenant = tenantService.findById(documentResidencyGuarantorNaturalPersonForm.getTenantId());
         long sizeOldDoc = 0;
         long countOld = fileRepository.countFileByDocumentCategoryGuarantorIdTypeGuarantorTenant(
                 DocumentCategory.RESIDENCY,
@@ -40,7 +40,7 @@ public class NumberOfDocumentResidencyGuarantorNaturalPersonValidator implements
                 .stream()
                 .filter(f -> !f.isEmpty())
                 .count();
-        if(countOld > 0){
+        if (countOld > 0) {
             sizeOldDoc = fileRepository.sumSizeOfAllFilesInDocumentForGuarantorTenant(
                     DocumentCategory.RESIDENCY,
                     documentResidencyGuarantorNaturalPersonForm.getGuarantorId(),

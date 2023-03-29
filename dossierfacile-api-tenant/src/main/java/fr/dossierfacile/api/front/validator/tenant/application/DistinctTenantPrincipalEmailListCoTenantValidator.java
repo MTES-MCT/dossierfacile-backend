@@ -1,7 +1,7 @@
 package fr.dossierfacile.api.front.validator.tenant.application;
 
 import fr.dossierfacile.api.front.register.form.tenant.ApplicationForm;
-import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
+import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.validator.anotation.tenant.application.DistinctTenantPrincipalEmailListCoTenant;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -9,13 +9,15 @@ import org.springframework.stereotype.Component;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
-/** deprecated  since 202209 */
+/**
+ * deprecated  since 202209
+ */
 @Deprecated
 @Component
 @AllArgsConstructor
 public class DistinctTenantPrincipalEmailListCoTenantValidator implements ConstraintValidator<DistinctTenantPrincipalEmailListCoTenant, ApplicationForm> {
 
-    private final AuthenticationFacade authenticationFacade;
+    private final TenantService tenantService;
 
     @Override
     public void initialize(DistinctTenantPrincipalEmailListCoTenant constraintAnnotation) {
@@ -24,7 +26,7 @@ public class DistinctTenantPrincipalEmailListCoTenantValidator implements Constr
 
     @Override
     public boolean isValid(ApplicationForm applicationForm, ConstraintValidatorContext constraintValidatorContext) {
-        var tenant = authenticationFacade.getTenant(applicationForm.getTenantId());
+        var tenant = tenantService.findById(applicationForm.getTenantId());
         if (tenant == null) {
             return true;
         }

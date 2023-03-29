@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+
+    <changeSet id="202303210000-01" author="Matthieu">
+        <dropColumn tableName="property">
+            <column name="energy_consumption" type="integer"/>
+        </dropColumn>
+        <dropColumn tableName="property">
+            <column name="co2emission" type="integer"/>
+        </dropColumn>
+        <addColumn tableName="property">
+            <column name="energy_consumption" type="integer"/>
+        </addColumn>
+        <addColumn tableName="property">
+            <column name="co2emission" type="integer"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

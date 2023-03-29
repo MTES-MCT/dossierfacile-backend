@@ -74,6 +74,12 @@ public class PropertyServiceImpl implements PropertyService {
         if (propertyForm.getLivingSpace() != null && propertyForm.getLivingSpace() >= 0) {
             property.setLivingSpace(propertyForm.getLivingSpace());
         }
+        if (propertyForm.getCo2Emission() != null && propertyForm.getCo2Emission() >= 0) {
+            property.setCo2Emission(propertyForm.getCo2Emission());
+        }
+        if (propertyForm.getEnergyConsumption() != null && propertyForm.getEnergyConsumption() >= 0) {
+            property.setEnergyConsumption(propertyForm.getEnergyConsumption());
+        }
         if (propertyForm.getValidated() != null && propertyForm.getValidated()) {
             property.setValidated(true);
         }

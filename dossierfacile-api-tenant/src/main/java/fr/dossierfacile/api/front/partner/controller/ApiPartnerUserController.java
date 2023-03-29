@@ -6,7 +6,7 @@ import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.tenant.EmailExistsModel;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.form.partner.EmailExistsForm;
-import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
+import fr.dossierfacile.api.front.security.interfaces.ClientAuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.service.interfaces.UserApiService;
 import fr.dossierfacile.api.front.service.interfaces.UserService;
@@ -17,6 +17,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -43,8 +44,7 @@ public class ApiPartnerUserController {
     private final TenantMapper tenantMapperForPartner;
     private final UserApiService userApiService;
     private final UserService userService;
-    private final AuthenticationFacade authenticationFacade;
-
+    private final ClientAuthenticationFacade clientAuthenticationFacade;
 
     @GetMapping(value = "/email/{email}/tenant")
     public ResponseEntity<TenantModel> getTenantByEmail(@JsonDeserialize(using = EmailDeserializer.class) @PathVariable String email) {
@@ -53,8 +53,8 @@ public class ApiPartnerUserController {
             return status(HttpStatus.NOT_FOUND).build();
         }
         // access rules
-        Optional<UserApi> userApi = this.userApiService.findByName(authenticationFacade.getKeycloakClientId());
-        boolean hasReadAccess = userApiService.anyTenantIsAssociated(userApi.get(), Collections.singletonList(tenant.get()));
+        UserApi userApi = clientAuthenticationFacade.getClient();
+        boolean hasReadAccess = userApiService.anyTenantIsAssociated(userApi, Collections.singletonList(tenant.get()));
         if (!hasReadAccess) {
             return status(HttpStatus.FORBIDDEN).build();
         }
@@ -70,9 +70,10 @@ public class ApiPartnerUserController {
         return ok(tenantService.emailExists(emailExistsForm));
     }
 
+    @PreAuthorize("hasPermissionOnTenant(#tenantId)")
     @DeleteMapping("/tenant/{tenantId}/user/deleteAccount")
     public ResponseEntity<Void> deleteAccount(@PathVariable Long tenantId) {
-        Tenant tenant = authenticationFacade.getTenant(tenantId);
+        Tenant tenant = tenantService.findById(tenantId);
         userService.deleteAccount(tenant);
         return ok().build();
     }

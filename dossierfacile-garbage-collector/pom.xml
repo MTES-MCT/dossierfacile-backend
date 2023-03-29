@@ -16,8 +16,14 @@
     <packaging>${packaging.type}</packaging>
     <properties>
         <java.version>15</java.version>
+        <dossierfacile.common.version>0.0.1-SNAPSHOT</dossierfacile.common.version>
     </properties>
     <dependencies>
+        <dependency>
+            <groupId>fr.dossierfacile</groupId>
+            <artifactId>dossierfacile-common-library</artifactId>
+            <version>${dossierfacile.common.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
@@ -49,20 +55,13 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.20</version>
+            <version>1.18.22</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>3.11</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-            <exclusions>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -121,6 +120,12 @@
             <groupId>com.github.darrachequesne</groupId>
             <artifactId>spring-data-jpa-datatables</artifactId>
             <version>5.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sendinblue</groupId>
+            <artifactId>sib-api-v3-sdk</artifactId>
+            <version>6.0.0</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 

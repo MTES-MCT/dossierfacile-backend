@@ -30,7 +30,7 @@ import fr.gouv.bo.dto.MessageItem;
 import fr.gouv.bo.exception.DocumentNotFoundException;
 import fr.gouv.bo.lambda_interfaces.StringCustomMessage;
 import fr.gouv.bo.lambda_interfaces.StringCustomMessageGuarantor;
-import fr.gouv.bo.repository.ApartmentSharingRepository;
+import fr.gouv.bo.repository.BOApartmentSharingRepository;
 import fr.gouv.bo.repository.DocumentDeniedReasonsRepository;
 import fr.gouv.bo.repository.DocumentRepository;
 import fr.gouv.bo.repository.OperatorLogRepository;
@@ -88,7 +88,7 @@ public class TenantService {
     private final DocumentDeniedReasonsRepository documentDeniedReasonsRepository;
     private final UserApiRepository userApiRepository;
     private final MessageService messageService;
-    private final ApartmentSharingRepository apartmentSharingRepository;
+    private final BOApartmentSharingRepository apartmentSharingRepository;
     private final OperatorLogRepository operatorLogRepository;
     private final LogActionTenantStatusService logService;
     private final DocumentDeniedReasonsService documentDeniedReasonsService;
@@ -416,12 +416,12 @@ public class TenantService {
         changeTenantStatusToDeclined(tenant, operator, null);
     }
 
-    public void sendCallBacksManuallyToUserApi(Long userApiId) {
+    public void sendCallBacksManuallyToUserApi(Long userApiId, LocalDateTime since) {
         synchronized (this) {
             UserApi userApi = userApiRepository.findOneById(userApiId);
 
             //Finding the IDs of tenants pending to send info for partner with ID 2.
-            List<Long> ids = tenantRepository.listIdTenantsAccountCompletedPendingToSendCallBack(userApiId);
+            List<Long> ids = tenantRepository.listIdTenantsAccountCompletedPendingToSendCallBack(userApiId, since);
             int numberOfTotalCalls = ids.size();
             log.info(numberOfTotalCalls + " tenants pending to send the validation information to the partner.");
             int indexCall = 1;

@@ -15,7 +15,7 @@ import java.util.Optional;
 
 @Component
 @Mapper(componentModel = "spring")
-public abstract class ApplicationFullMapper {
+public abstract class ApplicationFullMapper implements ApartmentSharingMapper {
 
     @Value("${application.domain:default}")
     private String domain;

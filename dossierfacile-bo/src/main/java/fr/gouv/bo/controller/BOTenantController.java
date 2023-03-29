@@ -2,8 +2,10 @@ package fr.gouv.bo.controller;
 
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentDeniedOptions;
+import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Guarantor;
 import fr.dossierfacile.common.entity.Message;
+import fr.dossierfacile.common.entity.QrCodeFileAnalysis;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.User;
 import fr.dossierfacile.common.entity.UserApi;
@@ -16,16 +18,18 @@ import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.gouv.bo.dto.CustomMessage;
+import fr.gouv.bo.dto.DisplayableQrCodeFileAnalysis;
 import fr.gouv.bo.dto.EmailDTO;
 import fr.gouv.bo.dto.GuarantorItem;
 import fr.gouv.bo.dto.ItemDetail;
 import fr.gouv.bo.dto.MessageDTO;
 import fr.gouv.bo.dto.MessageItem;
-import fr.gouv.bo.dto.MonFranceConnectAnalysis;
 import fr.gouv.bo.dto.PartnerDTO;
+import fr.gouv.bo.dto.TenantInfoHeader;
 import fr.gouv.bo.service.ApartmentSharingService;
 import fr.gouv.bo.service.DocumentService;
 import fr.gouv.bo.service.GuarantorService;
+import fr.gouv.bo.service.LogService;
 import fr.gouv.bo.service.MessageService;
 import fr.gouv.bo.service.TenantService;
 import fr.gouv.bo.service.TenantUserApiService;
@@ -62,7 +66,7 @@ public class BOTenantController {
     private static final String TENANT = "tenant";
     private static final String GUARANTOR = "guarantor";
     private static final String NEW_MESSAGE = "newMessage";
-    private static final String PARTNER_LIST = "partnerList";
+    private static final String HEADER = "header";
     private static final String REDIRECT_BO = "redirect:/bo";
     private static final String CUSTOM_MESSAGE = "customMessage";
     private static final String REDIRECT_ERROR = "redirect:/error";
@@ -76,6 +80,7 @@ public class BOTenantController {
     private final PartnerCallBackService partnerCallBackService;
     private final UserService userService;
     private final ApartmentSharingService apartmentSharingService;
+    private final LogService logService;
 
     @Value("${bo.message-tenant.location}")
     String locationMessageTenant;
@@ -191,9 +196,12 @@ public class BOTenantController {
             log.error("BOTenantController processFile not found tenant with id : {}", id);
             return REDIRECT_ERROR;
         }
+        TenantInfoHeader header = TenantInfoHeader.build(tenant,
+                userApiService.findPartnersLinkedToTenant(id),
+                logService.getLogByTenantId(id));
         EmailDTO emailDTO = new EmailDTO();
         model.addAttribute(EMAIL, emailDTO);
-        model.addAttribute(PARTNER_LIST, getPartnersListTenant(id));
+        model.addAttribute(HEADER, header);
         model.addAttribute(NEW_MESSAGE, findNewMessageFromTenant(id));
         model.addAttribute(TENANT, tenant);
         model.addAttribute(CUSTOM_MESSAGE, getCustomMessage(tenant));
@@ -207,10 +215,6 @@ public class BOTenantController {
         User operator = userService.findUserByEmail(principal.getName());
         tenantService.updateTenantStatus(tenant, operator);
         return "redirect:/bo/colocation/" + tenant.getApartmentSharing().getId() + "#tenant" + tenant.getId();
-    }
-
-    private List<String> getPartnersListTenant(Long id) {
-        return userApiService.getNamesOfPartnerByTenantId(id);
     }
 
     private Boolean findNewMessageFromTenant(Long id) {
@@ -263,7 +267,7 @@ public class BOTenantController {
                         .documentId(document.getId())
                         .documentName(document.getName())
                         .files(document.getDocumentCategory() == DocumentCategory.IDENTIFICATION ? document.getFiles() : Collections.emptyList())
-                        .monFranceConnectAnalysis(MonFranceConnectAnalysis.of(document.getFiles()))
+                        .qrCodeFilesAnalysis(getDisplayableAnalysis(document))
                         .build());
             }
         }
@@ -290,7 +294,7 @@ public class BOTenantController {
                             .itemDetailList(getItemDetailForSubcategoryOfDocument(document.getDocumentSubCategory(), GUARANTOR))
                             .documentId(document.getId())
                             .documentName(document.getName())
-                            .monFranceConnectAnalysis(MonFranceConnectAnalysis.of(document.getFiles()))
+                            .qrCodeFilesAnalysis(getDisplayableAnalysis(document))
                             .build());
                 }
             }
@@ -298,4 +302,17 @@ public class BOTenantController {
         }
         return customMessage;
     }
+
+    private List<DisplayableQrCodeFileAnalysis> getDisplayableAnalysis(Document document) {
+        List<File> files = document.getFiles();
+        List<DisplayableQrCodeFileAnalysis> results = new ArrayList<>();
+        for (int i = 0; i < files.size(); i++) {
+            QrCodeFileAnalysis result = files.get(i).getFileAnalysis();
+            if (result != null) {
+                results.add(new DisplayableQrCodeFileAnalysis(i + 1, result));
+            }
+        }
+        return results;
+    }
+
 }

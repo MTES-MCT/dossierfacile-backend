@@ -31,4 +31,8 @@ public class PropertyForm {
     private PropertyFurniture furniture;
 
     private String address;
+
+    private Integer co2Emission;
+
+    private Integer energyConsumption;
 }

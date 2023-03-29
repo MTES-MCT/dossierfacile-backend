@@ -330,58 +330,6 @@ public class MailServiceImpl implements MailService {
     }
 
     @Override
-    public void sendEmailFirstWarningForDeletionOfDocuments(User user, ConfirmationToken confirmationToken) {
-        Map<String, String> variables = new HashMap<>();
-        variables.put("PRENOM", user.getFirstName());
-        variables.put("NOM", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
-        variables.put("confirmToken", confirmationToken.getToken());
-        variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
-
-        SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
-        sendSmtpEmailTo.setEmail(user.getEmail());
-        if (!Strings.isNullOrEmpty(user.getFullName())) {
-            sendSmtpEmailTo.setName(user.getFullName());
-        }
-
-        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
-        sendSmtpEmail.templateId(templateFirstWarningForDeletionOfDocuments);
-        sendSmtpEmail.params(variables);
-        sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
-
-        try {
-            apiInstance.sendTransacEmail(sendSmtpEmail);
-        } catch (ApiException e) {
-            log.error("Email api exception", e);
-        }
-    }
-
-    @Override
-    public void sendEmailSecondWarningForDeletionOfDocuments(User user, ConfirmationToken confirmationToken) {
-        Map<String, String> variables = new HashMap<>();
-        variables.put("PRENOM", user.getFirstName());
-        variables.put("NOM", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
-        variables.put("confirmToken", confirmationToken.getToken());
-        variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
-
-        SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
-        sendSmtpEmailTo.setEmail(user.getEmail());
-        if (!Strings.isNullOrEmpty(user.getFullName())) {
-            sendSmtpEmailTo.setName(user.getFullName());
-        }
-
-        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
-        sendSmtpEmail.templateId(templateSecondWarningForDeletionOfDocuments);
-        sendSmtpEmail.params(variables);
-        sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
-
-        try {
-            apiInstance.sendTransacEmail(sendSmtpEmail);
-        } catch (ApiException e) {
-            log.error("Email api exception", e);
-        }
-    }
-
-    @Override
     public void sendEmailToSupport(ContactForm form) {
         Map<String, String> variables = new HashMap<>();
         variables.put("firstname", form.getFirstname());
