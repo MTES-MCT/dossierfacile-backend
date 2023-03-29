@@ -132,7 +132,7 @@ public class DocumentServiceImpl implements DocumentService {
         File file = documentHelperService.addFile(multipartFile, document);
         TransactionalUtil.afterCommit(() -> {
             minifyFileProducer.minifyFile(file.getId());
-            producer.sendFileForAnalysis(file);
+            producer.analyzeFile(file);
         });
     }
 }
