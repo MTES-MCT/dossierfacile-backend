@@ -3,7 +3,6 @@ package fr.dossierfacile.api.front.service;
 import fr.dossierfacile.api.front.exception.TenantNotFoundException;
 import fr.dossierfacile.api.front.form.SubscriptionApartmentSharingOfTenantForm;
 import fr.dossierfacile.api.front.model.KeycloakUser;
-import fr.dossierfacile.api.front.model.MappingFormat;
 import fr.dossierfacile.api.front.model.tenant.EmailExistsModel;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.RegisterFactory;
@@ -35,6 +34,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -43,6 +43,7 @@ import java.util.Optional;
 @Slf4j
 @Service
 @AllArgsConstructor
+@Validated
 public class TenantServiceImpl implements TenantService {
     private final ApartmentSharingRepository apartmentSharingRepository;
     private final ConfirmationTokenService confirmationTokenService;

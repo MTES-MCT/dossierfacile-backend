@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.front.register.form;
 
+import fr.dossierfacile.api.front.form.interfaces.FormWithTenantId;
 import fr.dossierfacile.api.front.validator.anotation.Extension;
 import fr.dossierfacile.api.front.validator.anotation.SizeFile;
 import fr.dossierfacile.api.front.validator.enums.TypeDocumentValidation;
@@ -14,7 +15,7 @@ import java.util.Optional;
 
 @Data
 @Extension
-public abstract class DocumentForm {
+public abstract class DocumentForm implements FormWithTenantId {
 
     @NotNull(groups = ApiPartner.class)
     private Long tenantId;

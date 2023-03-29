@@ -4,6 +4,7 @@ import fr.dossierfacile.api.front.register.form.guarantor.DocumentGuarantorFormA
 import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.repository.GuarantorRepository;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
+import fr.dossierfacile.api.front.validator.TenantConstraintValidator;
 import fr.dossierfacile.api.front.validator.anotation.guarantor.NumberOfDocumentGuarantor;
 import fr.dossierfacile.common.entity.Tenant;
 import lombok.RequiredArgsConstructor;
@@ -15,9 +16,8 @@ import java.util.concurrent.atomic.AtomicLong;
 
 @Component
 @RequiredArgsConstructor
-public class NumberOfDocumentGuarantorValidator implements ConstraintValidator<NumberOfDocumentGuarantor, DocumentGuarantorFormAbstract> {
+public class NumberOfDocumentGuarantorValidator extends TenantConstraintValidator<NumberOfDocumentGuarantor, DocumentGuarantorFormAbstract> {
 
-    private final TenantService tenantService;
     private final DocumentRepository documentRepository;
     private final GuarantorRepository guarantorRepository;
     private int max;
@@ -31,7 +31,7 @@ public class NumberOfDocumentGuarantorValidator implements ConstraintValidator<N
 
     @Override
     public boolean isValid(DocumentGuarantorFormAbstract documentGuarantorFormAbstract, ConstraintValidatorContext constraintValidatorContext) {
-        Tenant tenant = tenantService.findById(documentGuarantorFormAbstract.getTenantId());
+        Tenant tenant = getTenant(documentGuarantorFormAbstract);
         AtomicLong countOld = new AtomicLong();
         guarantorRepository.findFirstByTenantAndTypeGuarantor(tenant, documentGuarantorFormAbstract.getTypeGuarantor())
                 .ifPresent(g -> countOld.set(documentRepository.countByDocumentCategoryAndGuarantor(documentGuarantorFormAbstract.getDocumentCategory(), g)));

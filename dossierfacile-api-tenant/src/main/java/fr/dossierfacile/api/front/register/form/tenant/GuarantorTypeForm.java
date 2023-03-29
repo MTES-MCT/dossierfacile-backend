@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.front.register.form.tenant;
 
+import fr.dossierfacile.api.front.form.interfaces.FormWithTenantId;
 import fr.dossierfacile.api.front.validator.anotation.tenant.type_guarantor.MaxGuarantor;
 import fr.dossierfacile.api.front.validator.group.ApiPartner;
 import fr.dossierfacile.api.front.validator.group.Dossier;
@@ -15,7 +16,7 @@ import javax.validation.constraints.Null;
 @AllArgsConstructor
 @NoArgsConstructor
 @MaxGuarantor
-public class GuarantorTypeForm {
+public class GuarantorTypeForm implements FormWithTenantId {
 
     @NotNull(groups = ApiPartner.class)
     private Long tenantId;

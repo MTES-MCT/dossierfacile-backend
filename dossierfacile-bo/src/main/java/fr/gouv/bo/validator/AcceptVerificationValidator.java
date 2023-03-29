@@ -12,9 +12,6 @@ import javax.validation.ConstraintValidatorContext;
 @Component
 public class AcceptVerificationValidator implements ConstraintValidator<AcceptVerification, Boolean> {
 
-    @Autowired
-    TenantCommonRepository tenantRepository;
-
     @Override
     public void initialize(AcceptVerification acceptVerification) {
         //this method is empty

@@ -63,16 +63,11 @@ public class RegisterController {
     @PreAuthorize("hasPermissionOnTenant(#namesForm.tenantId)")
     @PostMapping(value = "/names", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TenantModel> names(@Validated(Dossier.class) @RequestBody NamesForm namesForm) throws IllegalAccessException {
-        var loggedTenant = authenticationFacade.getLoggedTenant();
-        var tenant = (namesForm.getTenantId() == null) ? loggedTenant :
-                loggedTenant.getApartmentSharing().getTenants().stream()
-                        .filter(t -> t.getId().equals(namesForm.getTenantId()))
-                        .findFirst()
-                        .orElseThrow(() -> new IllegalAccessException("You are not authorize to see this tenant"));
+        var tenant = authenticationFacade.getTenant(namesForm.getTenantId() );
 
         TenantModel tenantModel = tenantService.saveStepRegister(tenant, namesForm, StepRegister.NAMES);
         logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
-
+        Tenant loggedTenant = (namesForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
         return ok(tenantMapper.toTenantModel(loggedTenant));
     }
 

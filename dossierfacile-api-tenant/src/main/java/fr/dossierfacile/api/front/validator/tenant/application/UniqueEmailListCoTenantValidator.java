@@ -3,6 +3,7 @@ package fr.dossierfacile.api.front.validator.tenant.application;
 import fr.dossierfacile.api.front.register.form.tenant.ApplicationForm;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
+import fr.dossierfacile.api.front.validator.TenantConstraintValidator;
 import fr.dossierfacile.api.front.validator.anotation.tenant.application.UniqueEmailListCoTenant;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import lombok.AllArgsConstructor;
@@ -15,19 +16,13 @@ import java.util.stream.Collectors;
 @Deprecated
 @Component
 @AllArgsConstructor
-public class UniqueEmailListCoTenantValidator implements ConstraintValidator<UniqueEmailListCoTenant, ApplicationForm> {
+public class UniqueEmailListCoTenantValidator extends TenantConstraintValidator<UniqueEmailListCoTenant, ApplicationForm> {
 
     private final TenantCommonRepository tenantRepository;
-    private final TenantService tenantService;
-
-    @Override
-    public void initialize(UniqueEmailListCoTenant constraintAnnotation) {
-        //this method is empty
-    }
 
     @Override
     public boolean isValid(ApplicationForm applicationForm, ConstraintValidatorContext constraintValidatorContext) {
-        var tenant = tenantService.findById(applicationForm.getTenantId());
+        var tenant = getTenant(applicationForm);
         if (tenant == null) {
             return true;
         }

@@ -2,7 +2,7 @@ package fr.dossierfacile.api.front.validator.guarantor.natural_person.tax;
 
 import fr.dossierfacile.api.front.register.form.guarantor.natural_person.DocumentTaxGuarantorNaturalPersonForm;
 import fr.dossierfacile.api.front.repository.FileRepository;
-import fr.dossierfacile.api.front.service.interfaces.TenantService;
+import fr.dossierfacile.api.front.validator.TenantConstraintValidator;
 import fr.dossierfacile.api.front.validator.anotation.guarantor.natural_person.tax.NumberOfDocumentTaxGuarantorNaturalPerson;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
@@ -11,27 +11,20 @@ import fr.dossierfacile.common.enums.TypeGuarantor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
 @Component
 @RequiredArgsConstructor
-public class NumberOfDocumentTaxGuarantorNaturalPersonValidator implements ConstraintValidator<NumberOfDocumentTaxGuarantorNaturalPerson, DocumentTaxGuarantorNaturalPersonForm> {
+public class NumberOfDocumentTaxGuarantorNaturalPersonValidator extends TenantConstraintValidator<NumberOfDocumentTaxGuarantorNaturalPerson, DocumentTaxGuarantorNaturalPersonForm> {
 
     private static final String DOCUMENTS = "documents";
     private static final String RESPONSE = "number of document must be less than 15";
 
-    private final TenantService tenantService;
     private final FileRepository fileRepository;
 
     @Override
-    public void initialize(NumberOfDocumentTaxGuarantorNaturalPerson constraintAnnotation) {
-        //this method is empty
-    }
-
-    @Override
     public boolean isValid(DocumentTaxGuarantorNaturalPersonForm documentTaxGuarantorNaturalPersonForm, ConstraintValidatorContext constraintValidatorContext) {
-        Tenant tenant = tenantService.findById(documentTaxGuarantorNaturalPersonForm.getTenantId());
+        Tenant tenant = getTenant(documentTaxGuarantorNaturalPersonForm);
         long countOld = fileRepository.countFileByDocumentCategoryGuarantorIdTypeGuarantorTenant(
                 DocumentCategory.TAX,
                 documentTaxGuarantorNaturalPersonForm.getGuarantorId(),

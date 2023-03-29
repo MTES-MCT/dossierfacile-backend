@@ -2,7 +2,7 @@ package fr.dossierfacile.api.front.validator.tenant.residency;
 
 import fr.dossierfacile.api.front.register.form.tenant.DocumentResidencyForm;
 import fr.dossierfacile.api.front.repository.FileRepository;
-import fr.dossierfacile.api.front.service.interfaces.TenantService;
+import fr.dossierfacile.api.front.validator.TenantConstraintValidator;
 import fr.dossierfacile.api.front.validator.anotation.tenant.residency.NumberOfDocumentResidency;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
@@ -10,23 +10,16 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
 @Component
 @RequiredArgsConstructor
-public class NumberOfDocumentResidencyValidator implements ConstraintValidator<NumberOfDocumentResidency, DocumentResidencyForm> {
+public class NumberOfDocumentResidencyValidator extends TenantConstraintValidator<NumberOfDocumentResidency, DocumentResidencyForm> {
     private final FileRepository fileRepository;
-    private final TenantService tenantService;
-
-    @Override
-    public void initialize(NumberOfDocumentResidency constraintAnnotation) {
-        //this method is empty
-    }
 
     @Override
     public boolean isValid(DocumentResidencyForm documentResidencyForm, ConstraintValidatorContext constraintValidatorContext) {
-        Tenant tenant = tenantService.findById(documentResidencyForm.getTenantId());
+        Tenant tenant = getTenant(documentResidencyForm);
         long sizeOldDoc = 0;
         long countOld = fileRepository.countFileByDocumentCategoryTenant(DocumentCategory.RESIDENCY, tenant);
         long countNew = documentResidencyForm.getDocuments()

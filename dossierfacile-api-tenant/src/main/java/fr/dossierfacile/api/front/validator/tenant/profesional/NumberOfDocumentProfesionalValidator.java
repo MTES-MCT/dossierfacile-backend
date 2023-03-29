@@ -2,8 +2,7 @@ package fr.dossierfacile.api.front.validator.tenant.profesional;
 
 import fr.dossierfacile.api.front.register.form.tenant.DocumentProfessionalForm;
 import fr.dossierfacile.api.front.repository.FileRepository;
-import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
-import fr.dossierfacile.api.front.service.interfaces.TenantService;
+import fr.dossierfacile.api.front.validator.TenantConstraintValidator;
 import fr.dossierfacile.api.front.validator.anotation.tenant.profesional.NumberOfDocumentProfesional;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
@@ -11,14 +10,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
 @Component
 @RequiredArgsConstructor
-public class NumberOfDocumentProfesionalValidator implements ConstraintValidator<NumberOfDocumentProfesional, DocumentProfessionalForm> {
+public class NumberOfDocumentProfesionalValidator extends TenantConstraintValidator<NumberOfDocumentProfesional, DocumentProfessionalForm> {
 
-    private final TenantService tenantService;
     private final FileRepository fileRepository;
     private int max;
     private int min;
@@ -31,7 +28,7 @@ public class NumberOfDocumentProfesionalValidator implements ConstraintValidator
 
     @Override
     public boolean isValid(DocumentProfessionalForm documentProfessionalForm, ConstraintValidatorContext constraintValidatorContext) {
-        Tenant tenant = tenantService.findById(documentProfessionalForm.getTenantId());
+        Tenant tenant = getTenant(documentProfessionalForm);
         var files = documentProfessionalForm.getDocuments();
         long sizeOldDoc = 0;
         long countOld = fileRepository.countFileByDocumentCategoryTenant(DocumentCategory.PROFESSIONAL, tenant);
