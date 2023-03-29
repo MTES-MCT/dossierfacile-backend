@@ -76,9 +76,7 @@ public class DocumentTax extends AbstractDocumentSaveStep<DocumentTaxForm> imple
         if (documentSubCategory == MY_NAME
                 || (documentSubCategory == OTHER_TAX && !documentTaxForm.getNoDocument())) {
             if (documentTaxForm.getDocuments().size() > 0) {
-                documentTaxForm.getDocuments().stream()
-                        .filter(f -> !f.isEmpty())
-                        .forEach(multipartFile -> documentService.addFile(multipartFile, document));
+                saveFiles(documentTaxForm, document);
             } else {
                 log.info("Refreshing info in [TAX] document with ID [" + document.getId() + "]");
             }

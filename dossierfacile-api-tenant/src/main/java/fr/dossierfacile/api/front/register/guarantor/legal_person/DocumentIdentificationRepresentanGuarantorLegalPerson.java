@@ -55,9 +55,7 @@ public class DocumentIdentificationRepresentanGuarantorLegalPerson
         document.setDocumentDeniedReasons(null);
         documentRepository.save(document);
 
-        documentIdentificationRepresentanGuarantorLegalPersonForm.getDocuments().stream()
-                .filter(f -> !f.isEmpty())
-                .forEach(multipartFile -> documentService.addFile(multipartFile, document));
+        saveFiles(documentIdentificationRepresentanGuarantorLegalPersonForm, document);
 
         documentService.initializeFieldsToProcessPdfGeneration(document);
         tenant.lastUpdateDateProfile(LocalDateTime.now(), DocumentCategory.IDENTIFICATION);

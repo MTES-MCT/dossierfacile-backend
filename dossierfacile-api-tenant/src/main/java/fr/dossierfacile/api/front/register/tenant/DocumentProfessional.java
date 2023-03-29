@@ -44,9 +44,7 @@ public class DocumentProfessional extends AbstractDocumentSaveStep<DocumentProfe
         document.setDocumentSubCategory(documentSubCategory);
         documentRepository.save(document);
 
-        documentProfessionalForm.getDocuments().stream()
-                .filter(f -> !f.isEmpty())
-                .forEach(multipartFile -> documentService.addFile(multipartFile, document));
+        saveFiles(documentProfessionalForm, document);
 
         documentService.initializeFieldsToProcessPdfGeneration(document);
         tenant.lastUpdateDateProfile(LocalDateTime.now(), DocumentCategory.PROFESSIONAL);

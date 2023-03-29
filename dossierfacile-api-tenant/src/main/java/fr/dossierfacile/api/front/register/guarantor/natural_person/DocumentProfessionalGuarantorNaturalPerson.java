@@ -46,7 +46,7 @@ public class DocumentProfessionalGuarantorNaturalPerson extends AbstractDocument
         document.setDocumentSubCategory(documentSubCategory);
         documentRepository.save(document);
 
-        documentProfessionalGuarantorNaturalPersonForm.getDocuments().stream().filter(f -> !f.isEmpty()).forEach(multipartFile -> documentService.addFile(multipartFile, document));
+        saveFiles(documentProfessionalGuarantorNaturalPersonForm, document);
 
         documentService.initializeFieldsToProcessPdfGeneration(document);
         tenant.lastUpdateDateProfile(LocalDateTime.now(), DocumentCategory.PROFESSIONAL);

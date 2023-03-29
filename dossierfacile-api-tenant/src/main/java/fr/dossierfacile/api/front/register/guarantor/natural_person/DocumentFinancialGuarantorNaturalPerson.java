@@ -62,10 +62,7 @@ public class DocumentFinancialGuarantorNaturalPerson extends AbstractDocumentSav
 
         if (Boolean.FALSE.equals(documentFinancialGuarantorNaturalPersonForm.getNoDocument())) {
             if (documentFinancialGuarantorNaturalPersonForm.getDocuments().size() > 0) {
-
-                documentFinancialGuarantorNaturalPersonForm.getDocuments().stream()
-                        .filter(f -> !f.isEmpty())
-                        .forEach(multipartFile -> documentService.addFile(multipartFile, document));
+                saveFiles(documentFinancialGuarantorNaturalPersonForm, document);
                 document.setCustomText(null);
             } else {
                 log.info("Refreshing info in [FINANCIAL] document with ID [" + documentFinancialGuarantorNaturalPersonForm.getDocumentId() + "]");
