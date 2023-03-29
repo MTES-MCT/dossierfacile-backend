@@ -29,7 +29,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
+
+import static org.apache.commons.lang3.BooleanUtils.isNotTrue;
 
 @Service
 @Slf4j
@@ -42,6 +45,27 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
 
     @Value("${feature.toggle.new.api}")
     private boolean newApi;
+
+    @Override
+    public Optional<TaxDocument> process(Document document) {
+        Tenant tenant = document.getTenant();
+        if (tenant != null) {
+            return ifTenantHasAllowedTaxCheck(tenant, () -> process(document, tenant));
+        }
+        Guarantor guarantor = document.getGuarantor();
+        if (guarantor != null) {
+            return ifTenantHasAllowedTaxCheck(guarantor.getTenant(), () -> process(document, guarantor));
+        }
+        return Optional.empty();
+    }
+
+    private Optional<TaxDocument> ifTenantHasAllowedTaxCheck(Tenant tenant, Supplier<TaxDocument> taxDocumentSupplier) {
+        if (isNotTrue(tenant.getAllowCheckTax())) {
+            log.info("Ignoring document of tenant {} because they have not allowed automatic tax verification", tenant.getId());
+            return Optional.empty();
+        }
+        return Optional.of(taxDocumentSupplier.get());
+    }
 
     @Override
     public TaxDocument process(Document document, Guarantor guarantor) {

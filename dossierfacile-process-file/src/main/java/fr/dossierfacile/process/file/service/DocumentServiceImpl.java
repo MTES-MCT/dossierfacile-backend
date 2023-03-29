@@ -1,5 +1,6 @@
 package fr.dossierfacile.process.file.service;
 
+import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.type.TaxDocument;
 import fr.dossierfacile.process.file.repository.DocumentRepository;
 import fr.dossierfacile.process.file.service.interfaces.DocumentService;
@@ -17,8 +18,10 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Override
     @Transactional
-    public void updateTaxProcessResult(TaxDocument taxProcessResult, Long documentId) {
+    public void updateTaxProcessResult(TaxDocument taxProcessResult, Document document) {
+        Long documentId = document.getId();
         log.info("Updating tax result for document with ID [" + documentId + "]");
         documentRepository.updateTaxProcessResult(taxProcessResult, documentId);
     }
+
 }
