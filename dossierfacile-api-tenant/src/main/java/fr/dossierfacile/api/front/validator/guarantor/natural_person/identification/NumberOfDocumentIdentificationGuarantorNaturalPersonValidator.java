@@ -4,6 +4,7 @@ import fr.dossierfacile.api.front.register.form.guarantor.natural_person.Documen
 import fr.dossierfacile.api.front.repository.FileRepository;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
+import fr.dossierfacile.api.front.validator.TenantConstraintValidator;
 import fr.dossierfacile.api.front.validator.anotation.guarantor.natural_person.identification.NumberOfDocumentIdentificationGuarantorNaturalPerson;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
@@ -16,19 +17,13 @@ import javax.validation.ConstraintValidatorContext;
 
 @Component
 @RequiredArgsConstructor
-public class NumberOfDocumentIdentificationGuarantorNaturalPersonValidator implements ConstraintValidator<NumberOfDocumentIdentificationGuarantorNaturalPerson, DocumentIdentificationGuarantorNaturalPersonForm> {
+public class NumberOfDocumentIdentificationGuarantorNaturalPersonValidator extends TenantConstraintValidator<NumberOfDocumentIdentificationGuarantorNaturalPerson, DocumentIdentificationGuarantorNaturalPersonForm> {
 
-    private final TenantService tenantService;
     private final FileRepository fileRepository;
 
     @Override
-    public void initialize(NumberOfDocumentIdentificationGuarantorNaturalPerson constraintAnnotation) {
-        //this method is empty
-    }
-
-    @Override
     public boolean isValid(DocumentIdentificationGuarantorNaturalPersonForm documentIdentificationGuarantorNaturalPersonForm, ConstraintValidatorContext constraintValidatorContext) {
-        Tenant tenant = tenantService.findById(documentIdentificationGuarantorNaturalPersonForm.getTenantId());
+        Tenant tenant = getTenant(documentIdentificationGuarantorNaturalPersonForm);
         long countOld = fileRepository.countFileByDocumentCategoryGuarantorIdTypeGuarantorTenant(
                 DocumentCategory.IDENTIFICATION,
                 documentIdentificationGuarantorNaturalPersonForm.getGuarantorId(),

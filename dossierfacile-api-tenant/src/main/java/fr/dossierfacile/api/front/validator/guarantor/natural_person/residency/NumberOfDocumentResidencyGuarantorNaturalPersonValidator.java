@@ -2,7 +2,7 @@ package fr.dossierfacile.api.front.validator.guarantor.natural_person.residency;
 
 import fr.dossierfacile.api.front.register.form.guarantor.natural_person.DocumentResidencyGuarantorNaturalPersonForm;
 import fr.dossierfacile.api.front.repository.FileRepository;
-import fr.dossierfacile.api.front.service.interfaces.TenantService;
+import fr.dossierfacile.api.front.validator.TenantConstraintValidator;
 import fr.dossierfacile.api.front.validator.anotation.guarantor.natural_person.residency.NumberOfDocumentResidencyGuarantorNaturalPerson;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
@@ -11,24 +11,17 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
 @Component
 @RequiredArgsConstructor
-public class NumberOfDocumentResidencyGuarantorNaturalPersonValidator implements ConstraintValidator<NumberOfDocumentResidencyGuarantorNaturalPerson, DocumentResidencyGuarantorNaturalPersonForm> {
+public class NumberOfDocumentResidencyGuarantorNaturalPersonValidator extends TenantConstraintValidator<NumberOfDocumentResidencyGuarantorNaturalPerson, DocumentResidencyGuarantorNaturalPersonForm> {
 
-    private final TenantService tenantService;
     private final FileRepository fileRepository;
 
     @Override
-    public void initialize(NumberOfDocumentResidencyGuarantorNaturalPerson constraintAnnotation) {
-        //this method is empty
-    }
-
-    @Override
     public boolean isValid(DocumentResidencyGuarantorNaturalPersonForm documentResidencyGuarantorNaturalPersonForm, ConstraintValidatorContext constraintValidatorContext) {
-        Tenant tenant = tenantService.findById(documentResidencyGuarantorNaturalPersonForm.getTenantId());
+        Tenant tenant = getTenant(documentResidencyGuarantorNaturalPersonForm);
         long sizeOldDoc = 0;
         long countOld = fileRepository.countFileByDocumentCategoryGuarantorIdTypeGuarantorTenant(
                 DocumentCategory.RESIDENCY,

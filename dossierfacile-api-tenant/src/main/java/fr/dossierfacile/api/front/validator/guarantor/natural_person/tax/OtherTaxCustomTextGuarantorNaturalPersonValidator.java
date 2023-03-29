@@ -8,10 +8,6 @@ import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
 public class OtherTaxCustomTextGuarantorNaturalPersonValidator implements ConstraintValidator<OtherTaxCustomTextGuarantorNaturalPerson, DocumentTaxGuarantorNaturalPersonForm> {
-    @Override
-    public void initialize(OtherTaxCustomTextGuarantorNaturalPerson constraintAnnotation) {
-        //this method is empty
-    }
 
     @Override
     public boolean isValid(DocumentTaxGuarantorNaturalPersonForm documentTaxGuarantorNaturalPersonForm, ConstraintValidatorContext constraintValidatorContext) {

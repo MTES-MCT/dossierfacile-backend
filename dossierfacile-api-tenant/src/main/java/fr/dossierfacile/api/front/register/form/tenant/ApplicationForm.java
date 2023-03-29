@@ -1,6 +1,7 @@
 package fr.dossierfacile.api.front.register.form.tenant;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import fr.dossierfacile.api.front.form.interfaces.FormWithTenantId;
 import fr.dossierfacile.api.front.validator.anotation.tenant.application.CheckTenantTypeAcceptAccess;
 import fr.dossierfacile.api.front.validator.anotation.tenant.application.CheckTenantTypeCountListCoTenant;
 import fr.dossierfacile.api.front.validator.anotation.tenant.application.DeniedJoinTenant;
@@ -29,10 +30,9 @@ import java.util.List;
 @DeniedJoinTenant
 @UniqueEmailListCoTenant
 @DistinctTenantPrincipalEmailListCoTenant
-public class ApplicationForm {
+public class ApplicationForm implements FormWithTenantId {
 
-    @Null(groups = Dossier.class)
-    @NotNull(groups = ApiPartner.class)
+    @NotNull
     private Long tenantId;
 
     @NotNull

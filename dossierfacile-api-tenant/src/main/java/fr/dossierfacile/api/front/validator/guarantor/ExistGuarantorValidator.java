@@ -3,6 +3,7 @@ package fr.dossierfacile.api.front.validator.guarantor;
 import fr.dossierfacile.api.front.register.form.guarantor.DocumentGuarantorFormAbstract;
 import fr.dossierfacile.api.front.repository.GuarantorRepository;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
+import fr.dossierfacile.api.front.validator.TenantConstraintValidator;
 import fr.dossierfacile.api.front.validator.anotation.guarantor.natural_person.ExistGuarantor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -12,15 +13,9 @@ import javax.validation.ConstraintValidatorContext;
 
 @Component
 @RequiredArgsConstructor
-public class ExistGuarantorValidator implements ConstraintValidator<ExistGuarantor, DocumentGuarantorFormAbstract> {
+public class ExistGuarantorValidator extends TenantConstraintValidator<ExistGuarantor, DocumentGuarantorFormAbstract> {
 
-    private final TenantService tenantService;
     private final GuarantorRepository guarantorRepository;
-
-    @Override
-    public void initialize(ExistGuarantor constraintAnnotation) {
-        //this method is empty
-    }
 
     @Override
     public boolean isValid(DocumentGuarantorFormAbstract documentGuarantorFormAbstract, ConstraintValidatorContext constraintValidatorContext) {
@@ -29,7 +24,7 @@ public class ExistGuarantorValidator implements ConstraintValidator<ExistGuarant
         if (guarantorId == null) {
             return true;
         }
-        var tenant = tenantService.findById(documentGuarantorFormAbstract.getTenantId());
+        var tenant = getTenant(documentGuarantorFormAbstract);
         return guarantorRepository.existsByIdAndTenantAndTypeGuarantor(guarantorId, tenant, typeGuarantor);
     }
 }

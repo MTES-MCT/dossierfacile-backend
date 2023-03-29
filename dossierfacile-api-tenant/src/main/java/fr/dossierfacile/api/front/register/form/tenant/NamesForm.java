@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.front.register.form.tenant;
 
+import fr.dossierfacile.api.front.form.interfaces.FormWithTenantId;
 import fr.dossierfacile.api.front.validator.anotation.tenant.name.CheckFranceConnect;
 import fr.dossierfacile.api.front.validator.group.ApiPartner;
 import fr.dossierfacile.api.front.validator.group.Dossier;
@@ -15,9 +16,9 @@ import javax.validation.constraints.Null;
 @AllArgsConstructor
 @NoArgsConstructor
 @CheckFranceConnect(groups = Dossier.class)
-public class NamesForm {
+public class NamesForm implements FormWithTenantId {
 
-    @NotNull(groups = ApiPartner.class)
+    @NotNull
     private Long tenantId;
 
     @NotBlank

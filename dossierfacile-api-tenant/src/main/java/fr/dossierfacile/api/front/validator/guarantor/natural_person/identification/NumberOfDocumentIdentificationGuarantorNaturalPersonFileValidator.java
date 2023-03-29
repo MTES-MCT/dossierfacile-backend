@@ -3,6 +3,7 @@ package fr.dossierfacile.api.front.validator.guarantor.natural_person.identifica
 import fr.dossierfacile.api.front.register.form.guarantor.natural_person.DocumentIdentificationGuarantorNaturalPersonFileForm;
 import fr.dossierfacile.api.front.repository.FileRepository;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
+import fr.dossierfacile.api.front.validator.TenantConstraintValidator;
 import fr.dossierfacile.api.front.validator.anotation.guarantor.natural_person.identification.NumberOfDocumentIdentificationGuarantorNaturalPersonFile;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
@@ -15,19 +16,13 @@ import javax.validation.ConstraintValidatorContext;
 
 @Component
 @RequiredArgsConstructor
-public class NumberOfDocumentIdentificationGuarantorNaturalPersonFileValidator implements ConstraintValidator<NumberOfDocumentIdentificationGuarantorNaturalPersonFile, DocumentIdentificationGuarantorNaturalPersonFileForm> {
+public class NumberOfDocumentIdentificationGuarantorNaturalPersonFileValidator extends TenantConstraintValidator<NumberOfDocumentIdentificationGuarantorNaturalPersonFile, DocumentIdentificationGuarantorNaturalPersonFileForm> {
 
-    private final TenantService tenantService;
     private final FileRepository fileRepository;
 
     @Override
-    public void initialize(NumberOfDocumentIdentificationGuarantorNaturalPersonFile constraintAnnotation) {
-        //this method is empty
-    }
-
-    @Override
     public boolean isValid(DocumentIdentificationGuarantorNaturalPersonFileForm documentIdentificationGuarantorNaturalPersonFileForm, ConstraintValidatorContext constraintValidatorContext) {
-        Tenant tenant = tenantService.findById(documentIdentificationGuarantorNaturalPersonFileForm.getTenantId());
+        Tenant tenant = getTenant(documentIdentificationGuarantorNaturalPersonFileForm);
         long countOld = fileRepository.countFileByDocumentCategoryGuarantorIdTypeGuarantorTenant(
                 DocumentCategory.IDENTIFICATION,
                 documentIdentificationGuarantorNaturalPersonFileForm.getGuarantorId(),

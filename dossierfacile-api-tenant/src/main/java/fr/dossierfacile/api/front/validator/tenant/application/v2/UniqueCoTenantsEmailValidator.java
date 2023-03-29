@@ -1,28 +1,21 @@
 package fr.dossierfacile.api.front.validator.tenant.application.v2;
 
 import fr.dossierfacile.api.front.register.form.tenant.ApplicationFormV2;
-import fr.dossierfacile.api.front.service.interfaces.TenantService;
+import fr.dossierfacile.api.front.validator.TenantConstraintValidator;
 import fr.dossierfacile.api.front.validator.anotation.tenant.application.v2.UniqueCoTenantsEmail;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
-import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 import java.util.stream.Collectors;
 
 @Component
 @AllArgsConstructor
-public class UniqueCoTenantsEmailValidator implements ConstraintValidator<UniqueCoTenantsEmail, ApplicationFormV2> {
+public class UniqueCoTenantsEmailValidator extends TenantConstraintValidator<UniqueCoTenantsEmail, ApplicationFormV2> {
 
     private final TenantCommonRepository tenantRepository;
-    private final TenantService tenantService;
-
-    @Override
-    public void initialize(UniqueCoTenantsEmail constraintAnnotation) {
-        //this method is empty
-    }
 
     @Override
     public boolean isValid(ApplicationFormV2 applicationForm, ConstraintValidatorContext constraintValidatorContext) {
@@ -33,7 +26,7 @@ public class UniqueCoTenantsEmailValidator implements ConstraintValidator<Unique
         if (emails.isEmpty())
             return true;
 
-        var tenant = tenantService.findById(applicationForm.getTenantId());
+        var tenant = getTenant(applicationForm);
         if (tenant == null) {
             return true;
         }

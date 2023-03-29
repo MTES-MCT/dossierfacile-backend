@@ -7,6 +7,7 @@ import fr.dossierfacile.api.front.model.tenant.EmailExistsModel;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.enums.StepRegister;
 import fr.dossierfacile.api.front.register.form.partner.EmailExistsForm;
+import fr.dossierfacile.api.front.register.form.tenant.NamesForm;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.model.TenantUpdate;
