@@ -6,7 +6,11 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.type.TaxDocument;
 import fr.dossierfacile.process.file.model.Taxes;
 
+import java.util.Optional;
+
 public interface ProcessTaxDocument {
+    Optional<TaxDocument> process(Document document);
+
     TaxDocument process(Document document, Guarantor guarantor);
 
     TaxDocument process(Document d, Tenant tenant);

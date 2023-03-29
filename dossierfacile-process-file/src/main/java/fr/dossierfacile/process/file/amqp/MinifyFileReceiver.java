@@ -19,9 +19,8 @@ public class MinifyFileReceiver {
     @RabbitListener(queues = "${rabbitmq.queue.file.minify}", containerFactory = "retryContainerFactory")
     public void processFileTax(Map<String, String> item) {
         try {
-            log.info("Receive minify file");
             Long fileId = Long.valueOf(item.get("id"));
-            log.info("File ID received [" + fileId + "]");
+            log.info("Received file [{}] to minify", fileId);
             minifyFile.process(fileId);
 
         } catch (Exception e) {

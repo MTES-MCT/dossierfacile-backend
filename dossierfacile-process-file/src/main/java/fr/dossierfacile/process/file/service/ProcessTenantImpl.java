@@ -9,7 +9,7 @@ import fr.dossierfacile.process.file.repository.TenantRepository;
 import fr.dossierfacile.process.file.service.interfaces.DocumentService;
 import fr.dossierfacile.process.file.service.interfaces.ProcessTaxDocument;
 import fr.dossierfacile.process.file.service.interfaces.ProcessTenant;
-import fr.dossierfacile.process.file.service.qrcodeanalysis.QrCodeDocumentsProcessor;
+import fr.dossierfacile.process.file.service.qrcodeanalysis.QrCodeFileProcessor;
 import fr.dossierfacile.process.file.util.Documents;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +30,7 @@ public class ProcessTenantImpl implements ProcessTenant {
     private final TenantRepository tenantRepository;
     private final ProcessTaxDocument processTaxDocument;
     private final DocumentService documentService;
-    private final QrCodeDocumentsProcessor qrCodeDocumentsProcessor;
+    private final QrCodeFileProcessor qrCodeDocumentsProcessor;
 
     @Override
     public void process(Long tenantId) {
@@ -55,7 +55,7 @@ public class ProcessTenantImpl implements ProcessTenant {
         Documents.of(tenant).byCategory(DocumentCategory.TAX)
                 .forEach(document -> {
                     TaxDocument result = processTaxDocument.process(document, tenant);
-                    documentService.updateTaxProcessResult(result, document.getId());
+                    documentService.updateTaxProcessResult(result, document);
                 });
         getGuarantorPersonsOf(tenant).forEach(this::processTaxDocument);
     }
@@ -64,7 +64,7 @@ public class ProcessTenantImpl implements ProcessTenant {
         Documents.of(guarantor).byCategory(DocumentCategory.TAX)
                 .forEach(document -> {
                     TaxDocument result = processTaxDocument.process(document, guarantor);
-                    documentService.updateTaxProcessResult(result, document.getId());
+                    documentService.updateTaxProcessResult(result, document);
                 });
     }
 

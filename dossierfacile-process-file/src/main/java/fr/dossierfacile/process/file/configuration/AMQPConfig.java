@@ -1,8 +1,10 @@
 package fr.dossierfacile.process.file.configuration;
 
 import com.google.gson.Gson;
+import fr.dossierfacile.process.file.amqp.AnalyzeFileReceiver;
 import fr.dossierfacile.process.file.amqp.MinifyFileReceiver;
 import fr.dossierfacile.process.file.amqp.Receiver;
+import fr.dossierfacile.process.file.service.AnalyzeFile;
 import fr.dossierfacile.process.file.service.interfaces.MinifyFile;
 import fr.dossierfacile.process.file.service.interfaces.ProcessTenant;
 import org.aopalliance.aop.Advice;
@@ -29,11 +31,17 @@ public class AMQPConfig {
     @Value("${rabbitmq.queue.file.process.tax}")
     private String queueName;
 
+    @Value("${rabbitmq.queue.file.analyze}")
+    private String analyzeQueueName;
+
     @Value("${rabbitmq.queue.file.minify}")
     private String minifyQueueName;
 
     @Value("${rabbitmq.routing.key.file.process.tax}")
     private String routingKey;
+
+    @Value("${rabbitmq.routing.key.file.analyze}")
+    private String analyzeRoutingKey;
 
     @Value("${rabbitmq.routing.key.file.minify}")
     private String minifyRoutingKey;
@@ -52,6 +60,11 @@ public class AMQPConfig {
     }
 
     @Bean
+    Queue queueFileAnalyze() {
+        return new Queue(analyzeQueueName, true);
+    }
+
+    @Bean
     Queue queueFileMinify() {
         return new Queue(minifyQueueName, true);
     }
@@ -59,6 +72,11 @@ public class AMQPConfig {
     @Bean
     Binding bindingQueueProcessFilesOcrExchangeFileProcess(Queue queueFileProcessTax, TopicExchange exchangeFileProcess) {
         return BindingBuilder.bind(queueFileProcessTax).to(exchangeFileProcess).with(routingKey);
+    }
+
+    @Bean
+    Binding bindingQueueAnalyzeFile(Queue queueFileAnalyze, TopicExchange exchangeFileProcess) {
+        return BindingBuilder.bind(queueFileAnalyze).to(exchangeFileProcess).with(analyzeRoutingKey);
     }
 
     @Bean
@@ -86,6 +104,11 @@ public class AMQPConfig {
     @Bean
     Receiver receiver(Gson gson, ProcessTenant processTenant) {
         return new Receiver(gson, processTenant);
+    }
+
+    @Bean
+    AnalyzeFileReceiver analyzeFileReceiver(AnalyzeFile analyzeFile) {
+        return new AnalyzeFileReceiver(analyzeFile);
     }
 
     @Bean

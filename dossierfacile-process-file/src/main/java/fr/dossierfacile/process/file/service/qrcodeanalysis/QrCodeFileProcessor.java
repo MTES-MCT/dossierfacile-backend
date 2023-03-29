@@ -25,29 +25,32 @@ import static fr.dossierfacile.common.enums.DocumentCategory.TAX;
 @Slf4j
 @Service
 @AllArgsConstructor
-public class QrCodeDocumentsProcessor {
+public class QrCodeFileProcessor {
 
     private static final List<DocumentCategory> CATEGORIES_TO_PROCESS = List.of(TAX, FINANCIAL, PROFESSIONAL);
-    private final String PDF_TYPE = "application/pdf";
+    private static final String PDF_TYPE = "application/pdf";
 
     private final List<QrCodeDocumentIssuer<? extends AuthenticationRequest>> issuers;
 
     private final QrCodeFileAnalysisRepository analysisRepository;
     private final FileStorageService fileStorageService;
 
+    @Deprecated
     public void process(Documents documents) {
-        List<Document> documentsToProcess = documents.byCategories(CATEGORIES_TO_PROCESS);
+        documents.byCategories(CATEGORIES_TO_PROCESS)
+                .forEach(document -> document.getFiles().forEach(this::process));
+    }
 
-        for (Document document : documentsToProcess) {
-            document.getFiles().stream()
-                    .filter(analysisRepository::hasNotAlreadyBeenAnalyzed)
-                    .filter(file -> PDF_TYPE.equals(file.getContentType()))
-                    .forEach(file -> downloadAndAnalyze(file, document)
-                            .ifPresent(analysis -> save(file, analysis)));
+    public void process(File file) {
+        if (analysisRepository.hasNotAlreadyBeenAnalyzed(file) &&
+                PDF_TYPE.equals(file.getContentType())) {
+            downloadAndAnalyze(file)
+                    .ifPresent(analysis -> save(file, analysis));
         }
     }
 
-    private Optional<QrCodeFileAnalysis> downloadAndAnalyze(File file, Document document) {
+    private Optional<QrCodeFileAnalysis> downloadAndAnalyze(File file) {
+        Document document = file.getDocument();
         try (InMemoryPdfFile inMemoryPdfFile = InMemoryPdfFile.create(file, fileStorageService)) {
             return analyze(document, inMemoryPdfFile);
         } catch (IOException e) {
@@ -90,5 +93,4 @@ public class QrCodeDocumentsProcessor {
         analysis.setAllowedInDocumentCategory(isAllowedInDocumentCategory);
         return analysis;
     }
-
 }
