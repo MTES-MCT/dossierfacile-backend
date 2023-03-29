@@ -4,6 +4,8 @@ package fr.dossierfacile.api.front.amqp;
 import com.google.gson.Gson;
 import fr.dossierfacile.api.front.amqp.model.DocumentModel;
 import fr.dossierfacile.api.front.amqp.model.TenantModel;
+import fr.dossierfacile.common.FileAnalysisCriteria;
+import fr.dossierfacile.common.entity.File;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.AmqpTemplate;
@@ -30,6 +32,8 @@ public class Producer {
     private String exchangeFileProcess;
     @Value("${rabbitmq.routing.key.tax}")
     private String routingKeyFieProcessTax;
+    @Value("${rabbitmq.routing.key.file.analyze}")
+    private String routingKeyAnalyzeFile;
 
     //Pdf generation
     @Value("${rabbitmq.exchange.pdf.generator}")
@@ -41,6 +45,7 @@ public class Producer {
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Async
+    @Deprecated
     public void processFileTax(Long id) {
         TenantModel tenantModel = TenantModel.builder().id(id).build();
         log.info("Send process file For tenantId [" + id + "]");
@@ -58,12 +63,25 @@ public class Producer {
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Async
     public void generateFullPdf(Long apartmentSharingId) {
-        Map<String, String> body = new TreeMap<>();
-        body.putIfAbsent("id", String.valueOf(apartmentSharingId));
-        Message msg = new Message(gson.toJson(body).getBytes(), new MessageProperties());
-
+        Message msg = messageWithId(apartmentSharingId);
         log.info("Sending apartmentSharing with ID [" + apartmentSharingId + "] for Full PDF generation");
         amqpTemplate.send(exchangePdfGenerator, routingKeyPdfGeneratorApartmentSharing, msg);
+    }
+
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    @Async
+    public void sendFileForAnalysis(File file) {
+        if (FileAnalysisCriteria.shouldBeAnalyzed(file)) {
+            Long fileId = file.getId();
+            log.info("Sending file with ID [{}] for analysis", fileId);
+            amqpTemplate.send(exchangeFileProcess, routingKeyAnalyzeFile, messageWithId(fileId));
+        }
+    }
+
+    private Message messageWithId(Long id) {
+        Map<String, String> body = new TreeMap<>();
+        body.putIfAbsent("id", String.valueOf(id));
+        return new Message(gson.toJson(body).getBytes(), new MessageProperties());
     }
 
 }

@@ -1,8 +1,6 @@
 package fr.dossierfacile.api.front.register.guarantor.natural_person;
 
-import fr.dossierfacile.api.front.amqp.Producer;
 import fr.dossierfacile.api.front.exception.GuarantorNotFoundException;
-import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.AbstractDocumentSaveStep;
 import fr.dossierfacile.api.front.register.form.guarantor.natural_person.DocumentTaxGuarantorNaturalPersonForm;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
@@ -10,7 +8,6 @@ import fr.dossierfacile.api.front.repository.GuarantorRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
-import fr.dossierfacile.api.front.util.TransactionalUtil;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.Guarantor;
 import fr.dossierfacile.common.entity.Tenant;
@@ -24,7 +21,6 @@ import fr.dossierfacile.common.service.interfaces.DocumentHelperService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -43,17 +39,7 @@ public class DocumentTaxGuarantorNaturalPerson extends AbstractDocumentSaveStep<
     private final GuarantorRepository guarantorRepository;
     private final DocumentService documentService;
     private final TenantStatusService tenantStatusService;
-    private final Producer producer;
     private final ApartmentSharingService apartmentSharingService;
-
-    @Override
-    @Transactional
-    public TenantModel saveStep(Tenant tenant, DocumentTaxGuarantorNaturalPersonForm documentTaxGuarantorNaturalPersonForm) {
-        if (Boolean.TRUE.equals(tenant.getHonorDeclaration())) {
-            TransactionalUtil.afterCommit(() -> producer.processFileTax(documentTaxGuarantorNaturalPersonForm.getOptionalTenantId().orElse(tenant.getId())));
-        }
-        return super.saveStep(tenant, documentTaxGuarantorNaturalPersonForm);
-    }
 
     @Override
     protected Document saveDocument(Tenant tenant, DocumentTaxGuarantorNaturalPersonForm documentTaxGuarantorNaturalPersonForm) {
