@@ -1,9 +1,9 @@
 package fr.dossierfacile.api.front.service;
 
 import fr.dossierfacile.api.front.amqp.MinifyFileProducer;
+import fr.dossierfacile.api.front.amqp.Producer;
 import fr.dossierfacile.api.front.exception.DocumentNotFoundException;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
-import fr.dossierfacile.api.front.repository.FileRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
@@ -15,12 +15,10 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.TenantFileStatus;
-import fr.dossierfacile.common.repository.ApartmentSharingRepository;
 import fr.dossierfacile.common.service.interfaces.DocumentHelperService;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,6 +42,7 @@ public class DocumentServiceImpl implements DocumentService {
     private final ApartmentSharingService apartmentSharingService;
     private final DocumentHelperService documentHelperService;
     private final MinifyFileProducer minifyFileProducer;
+    private final Producer producer;
 
     @Override
     @Transactional
@@ -131,6 +130,9 @@ public class DocumentServiceImpl implements DocumentService {
     @Override
     public void addFile(MultipartFile multipartFile, Document document) {
         File file = documentHelperService.addFile(multipartFile, document);
-        TransactionalUtil.afterCommit(() -> minifyFileProducer.minifyFile(file.getId()));
+        TransactionalUtil.afterCommit(() -> {
+            minifyFileProducer.minifyFile(file.getId());
+            producer.sendFileForAnalysis(file);
+        });
     }
 }
