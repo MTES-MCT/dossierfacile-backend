@@ -54,9 +54,7 @@ public class DocumentIdentificationGuarantorNaturalPersonFile extends AbstractDo
 
         documentRepository.save(document);
 
-        documentIdentificationGuarantorNaturalPersonFileForm.getDocuments().stream()
-                .filter(f -> !f.isEmpty())
-                .forEach(multipartFile -> documentService.addFile(multipartFile, document));
+        saveFiles(documentIdentificationGuarantorNaturalPersonFileForm, document);
 
         documentService.initializeFieldsToProcessPdfGeneration(document);
         tenant.lastUpdateDateProfile(LocalDateTime.now(), DocumentCategory.IDENTIFICATION);
