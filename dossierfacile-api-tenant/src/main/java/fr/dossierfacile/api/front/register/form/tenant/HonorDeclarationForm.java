@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.front.register.form.tenant;
 
+import fr.dossierfacile.api.front.form.interfaces.FormWithTenantId;
 import fr.dossierfacile.api.front.validator.anotation.tenant.honor_declaration.CheckHonorDeclarationClarification;
 import fr.dossierfacile.api.front.validator.group.ApiPartner;
 import fr.dossierfacile.api.front.validator.group.Dossier;
@@ -16,7 +17,7 @@ import javax.validation.constraints.Size;
 @AllArgsConstructor
 @NoArgsConstructor
 @CheckHonorDeclarationClarification
-public class HonorDeclarationForm {
+public class HonorDeclarationForm implements FormWithTenantId {
 
     @NotNull(groups = ApiPartner.class)
     private Long tenantId;

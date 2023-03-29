@@ -2,8 +2,7 @@ package fr.dossierfacile.api.front.validator.tenant.financial;
 
 import fr.dossierfacile.api.front.register.form.tenant.DocumentFinancialForm;
 import fr.dossierfacile.api.front.repository.FileRepository;
-import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
-import fr.dossierfacile.api.front.service.interfaces.TenantService;
+import fr.dossierfacile.api.front.validator.TenantConstraintValidator;
 import fr.dossierfacile.api.front.validator.anotation.tenant.financial.NumberOfDocumentFinancial;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
@@ -11,14 +10,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
 @Component
 @RequiredArgsConstructor
-public class NumberOfDocumentFinancialValidator implements ConstraintValidator<NumberOfDocumentFinancial, DocumentFinancialForm> {
+public class NumberOfDocumentFinancialValidator extends TenantConstraintValidator<NumberOfDocumentFinancial, DocumentFinancialForm> {
     private final FileRepository fileRepository;
-    private final TenantService tenantService;
 
     @Override
     public void initialize(NumberOfDocumentFinancial constraintAnnotation) {
@@ -27,7 +24,7 @@ public class NumberOfDocumentFinancialValidator implements ConstraintValidator<N
 
     @Override
     public boolean isValid(DocumentFinancialForm documentFinancialForm, ConstraintValidatorContext constraintValidatorContext) {
-        Tenant tenant = tenantService.findById(documentFinancialForm.getTenantId());
+        Tenant tenant = getTenant(documentFinancialForm);
         long sizeOldDoc = 0;
         long countOld = fileRepository.countFileByDocumentCategoryTenantDocumentId(DocumentCategory.FINANCIAL, tenant, documentFinancialForm.getId());
         long countNew = documentFinancialForm.getDocuments().stream().filter(f -> !f.isEmpty()).count();

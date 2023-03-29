@@ -27,12 +27,11 @@ import java.util.stream.Collectors;
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class NumberOfPagesValidator implements ConstraintValidator<NumberOfPages, DocumentForm> {
+public class NumberOfPagesValidator extends TenantConstraintValidator<NumberOfPages, DocumentForm> {
 
     private static final String PAGES = "documents";
     private static final String RESPONSE = "The number of new pages must be greater than 0";
 
-    private final TenantService tenantService;
     private final FileRepository fileRepository;
     private DocumentCategory documentCategory;
     private int max;
@@ -103,7 +102,7 @@ public class NumberOfPagesValidator implements ConstraintValidator<NumberOfPages
 
         //region Counting total old pages
         int numberOfOldPages = 0;
-        Tenant tenant = tenantService.findById(documentForm.getTenantId());
+        Tenant tenant = getTenant(documentForm);
         if (documentForm instanceof DocumentGuarantorFormAbstract) {
             Long guarantorId = ((DocumentGuarantorFormAbstract) documentForm).getGuarantorId();
             if (documentForm instanceof DocumentFinancialGuarantorNaturalPersonForm) {
