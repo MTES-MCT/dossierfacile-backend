@@ -108,7 +108,7 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
     public Tenant getLoggedTenant() {
         KeycloakUser kcUser = getKeycloakUser();
         if (!kcUser.isEmailVerified() && !kcUser.isFranceConnect()) {
-            throw new AccessDeniedException("Email has not been verified");
+            throw new AccessDeniedException("Email is not verified" + kcUser.getEmail());
         }
         Tenant tenant = tenantRepository.findByKeycloakId(kcUser.getKeycloakId());
         if (tenant == null) {
