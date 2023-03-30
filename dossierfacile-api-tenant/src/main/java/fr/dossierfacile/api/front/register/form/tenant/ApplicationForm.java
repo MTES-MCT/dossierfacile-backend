@@ -18,7 +18,6 @@ import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Null;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,7 +31,7 @@ import java.util.List;
 @DistinctTenantPrincipalEmailListCoTenant
 public class ApplicationForm implements FormWithTenantId {
 
-    @NotNull
+    @NotNull(groups = ApiPartner.class)
     private Long tenantId;
 
     @NotNull
