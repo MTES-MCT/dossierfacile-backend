@@ -58,15 +58,11 @@ public class RegisterGuarantorNaturalPersonController {
 
     @PreAuthorize("hasPermissionOnTenant(#nameGuarantorNaturalPersonForm.tenantId)")
     @PostMapping("/name")
-    public ResponseEntity<TenantModel> guarantorName(NameGuarantorNaturalPersonForm nameGuarantorNaturalPersonForm) throws IllegalAccessException {
-        var loggedTenant = authenticationFacade.getLoggedTenant();
-        var tenant = (nameGuarantorNaturalPersonForm.getTenantId() == null) ? loggedTenant :
-                loggedTenant.getApartmentSharing().getTenants().stream()
-                        .filter(t -> t.getId().equals(nameGuarantorNaturalPersonForm.getTenantId()))
-                        .findFirst()
-                        .orElseThrow(() -> new IllegalAccessException("You are not authorize to see this tenant"));
+    public ResponseEntity<TenantModel> guarantorName(NameGuarantorNaturalPersonForm nameGuarantorNaturalPersonForm) {
+        var tenant = authenticationFacade.getTenant(nameGuarantorNaturalPersonForm.getTenantId());
         var tenantModel = tenantService.saveStepRegister(tenant, nameGuarantorNaturalPersonForm, StepRegister.NAME_GUARANTOR_NATURAL_PERSON);
         logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
+        Tenant loggedTenant = (nameGuarantorNaturalPersonForm.getTenantId() ==  null) ? tenant : authenticationFacade.getLoggedTenant();
         return ok(tenantMapper.toTenantModel(loggedTenant));
     }
 

@@ -1,14 +1,6 @@
 package fr.dossierfacile.api.front.exception.controller;
 
-import fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException;
-import fr.dossierfacile.api.front.exception.ApartmentSharingUnexpectedException;
-import fr.dossierfacile.api.front.exception.DocumentNotFoundException;
-import fr.dossierfacile.api.front.exception.FileNotFoundException;
-import fr.dossierfacile.api.front.exception.GuarantorNotFoundException;
-import fr.dossierfacile.api.front.exception.PasswordRecoveryTokenNotFoundException;
-import fr.dossierfacile.api.front.exception.UserNotFoundException;
 import fr.dossierfacile.api.front.exception.model.ApiError;
-import fr.dossierfacile.common.exceptions.ConfirmationTokenNotFoundException;
 import io.sentry.Sentry;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.http.HttpHeaders;
@@ -188,94 +180,12 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
     }
 
-    @ExceptionHandler({GuarantorNotFoundException.class})
-    public ResponseEntity<Object> handleGuarantorNotFoundException(final GuarantorNotFoundException ex) {
-        logger.error(MESSAGE + Sentry.captureException(ex));
-        logger.error(ex.getMessage(), ex);
-
-        final ApiError apiError = new ApiError(HttpStatus.NOT_FOUND, ex.getLocalizedMessage());
-        ex.printStackTrace();
-        return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
-    }
-
-    @ExceptionHandler({UserNotFoundException.class})
-    public ResponseEntity<Object> handleUserNotFoundException(final UserNotFoundException ex) {
-        logger.error(MESSAGE + Sentry.captureException(ex));
-        logger.error(ex.getMessage(), ex);
-
-        final ApiError apiError = new ApiError(HttpStatus.NOT_FOUND, ex.getLocalizedMessage());
-        return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
-    }
-
-    @ExceptionHandler({PasswordRecoveryTokenNotFoundException.class})
-    public ResponseEntity<Object> handlePasswordRecoveryTokenNotFoundException(final PasswordRecoveryTokenNotFoundException ex) {
-        logger.error(MESSAGE + Sentry.captureException(ex));
-        logger.error(ex.getMessage(), ex);
-
-        final ApiError apiError = new ApiError(HttpStatus.NOT_FOUND, ex.getLocalizedMessage());
-        return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
-    }
-
-    @ExceptionHandler({FileNotFoundException.class})
-    public ResponseEntity<Object> handleFileNotFoundException(final FileNotFoundException ex) {
-        logger.error(MESSAGE + Sentry.captureException(ex));
-        logger.error(ex.getMessage(), ex);
-
-        final ApiError apiError = new ApiError(HttpStatus.NOT_FOUND, ex.getLocalizedMessage());
-        return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
-    }
-
-    @ExceptionHandler({DocumentNotFoundException.class})
-    public ResponseEntity<Object> handleDocumentNotFoundException(final DocumentNotFoundException ex) {
-        logger.error(MESSAGE + Sentry.captureException(ex));
-        logger.error(ex.getMessage(), ex);
-
-        final ApiError apiError = new ApiError(HttpStatus.NOT_FOUND, ex.getLocalizedMessage());
-        return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
-    }
-
-    @ExceptionHandler({ConfirmationTokenNotFoundException.class})
-    public ResponseEntity<Object> handleConfirmationTokenNotFoundException(final ConfirmationTokenNotFoundException ex) {
-        logger.error(MESSAGE + Sentry.captureException(ex));
-        logger.error(ex.getMessage(), ex);
-
-        final ApiError apiError = new ApiError(HttpStatus.NOT_FOUND, ex.getLocalizedMessage());
-        return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
-    }
-
-    @ExceptionHandler({ApartmentSharingNotFoundException.class})
-    public ResponseEntity<Object> handleApartmentSharingNotFoundException(final ApartmentSharingNotFoundException ex) {
-        logger.error(MESSAGE + Sentry.captureException(ex));
-        logger.error(ex.getMessage(), ex);
-
-        final ApiError apiError = new ApiError(HttpStatus.NOT_FOUND, ex.getLocalizedMessage());
-        return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
-    }
-
-    @ExceptionHandler({ApartmentSharingUnexpectedException.class})
-    public ResponseEntity<Object> handleApartmentSharingUnexpectedException(final ApartmentSharingUnexpectedException ex) {
-        logger.error(MESSAGE + Sentry.captureException(ex));
-        logger.error(ex.getMessage(), ex);
-
-        final ApiError apiError = new ApiError(HttpStatus.EXPECTATION_FAILED, ex.getLocalizedMessage());
-        return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
-    }
-
     @ExceptionHandler({AccessDeniedException.class})
     public ResponseEntity<Object> handleAccessDeniedException(final AccessDeniedException ex) {
         logger.error(MESSAGE + Sentry.captureException(ex));
         logger.error(ex.getMessage(), ex);
 
         final ApiError apiError = new ApiError(HttpStatus.FORBIDDEN, ex.getLocalizedMessage());
-        return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
-    }
-
-    @ExceptionHandler({Exception.class})
-    public ResponseEntity<Object> handleAll(final Exception ex) {
-        logger.error(MESSAGE + Sentry.captureException(ex));
-        logger.error(ex.getMessage(), ex);
-
-        final ApiError apiError = new ApiError(HttpStatus.INTERNAL_SERVER_ERROR, ex.getLocalizedMessage(), "error occurred");
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
     }
 
