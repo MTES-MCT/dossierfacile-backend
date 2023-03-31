@@ -598,10 +598,23 @@
                                         <span th:text="${'Custom text: '+document.getCustomText()}"></span>
                                     </div>
 
-                                    <div style="margin-top: 5px" th:each="file,i : ${document.getFiles()}">
-                                        <a th:href="${'/files/'+file.getId()}"
-                                           th:text="${'-File ' + (i.index+1)}"></a>
-                                    </div>
+                                    <ul>
+                                        <li style="margin-top: 5px" th:each="file : ${filesByDocument.get(document.getId())}">
+                                            <a th:href="${'/files/' + file.getId()}"
+                                               th:text="${file.summary}"></a>
+                                            <span th:if="${file.hasBeenAnalyzed()}" th:with="analysis=${file.analysis}">
+                                                <span class="fa" th:classappend="${analysis.authenticationStatusCssClass}"
+                                                      th:text="' ' + ${analysis.authenticationStatus}"></span>
+                                                <span class="fa fa-times text-danger" th:if="${analysis.isInWrongCategory}"
+                                                > Mauvaise catégorie</span>
+                                                <br/>
+                                                <span class="small" th:if="${analysis.isNotAuthenticated}">
+                                                    <span class="bold">Devrait contenir : </span>
+                                                    <span th:text="${analysis.authenticatedContent}"></span>
+                                                </span>
+                                            </span>
+                                        </li>
+                                    </ul>
                                     <div th:if="${document.getDocumentCategory().name()=='TAX'} and ${document.getTaxProcessResult()!=null}"
                                          th:remove="tag"
                                          th:with="result=${document.getTaxProcessResult()}">
@@ -911,10 +924,23 @@
                                     <div th:if="${document.getCustomText()!=null}">
                                         <span th:text="${'Custom text: '+document.getCustomText()}"></span>
                                     </div>
-                                    <div th:each="file,i : ${document.getFiles()}">
-                                        <a th:href="${'/files/'+file.getId()}"
-                                           th:text="${'-File ' + (i.index+1)}"></a>
-                                    </div>
+                                    <ul>
+                                        <li style="margin-top: 5px" th:each="file : ${filesByDocument.get(document.getId())}">
+                                            <a th:href="${'/files/' + file.getId()}"
+                                               th:text="${file.summary}"></a>
+                                            <span th:if="${file.hasBeenAnalyzed()}" th:with="analysis=${file.analysis}">
+                                                <span class="fa" th:classappend="${analysis.authenticationStatusCssClass}"
+                                                      th:text="' ' + ${analysis.authenticationStatus}"></span>
+                                                <span class="fa fa-times text-danger" th:if="${analysis.isInWrongCategory}"
+                                                > Mauvaise catégorie</span>
+                                                <br/>
+                                                <span class="small" th:if="${analysis.isNotAuthenticated}">
+                                                    <span class="bold">Devrait contenir : </span>
+                                                    <span th:text="${analysis.authenticatedContent}"></span>
+                                                </span>
+                                            </span>
+                                        </li>
+                                    </ul>
                                     <div th:if="${document.getDocumentCategory().name()=='TAX'} and ${document.getTaxProcessResult()!=null}"
                                          th:remove="tag"
                                          th:with="result=${document.getTaxProcessResult()}">

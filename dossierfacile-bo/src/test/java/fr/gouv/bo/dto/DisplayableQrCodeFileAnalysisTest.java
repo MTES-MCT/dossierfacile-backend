@@ -18,7 +18,7 @@ class DisplayableQrCodeFileAnalysisTest {
                 ["2021", "Angela Claire Louise, DUBOIS", "Philippe, DUBOIS", "Marié(e)", "20 avenue de Ségur", "82357   €", "88185   €", "2,5", "1,0"]
                 """);
 
-        var displayableAnalysis = new DisplayableQrCodeFileAnalysis(1, analysis);
+        var displayableAnalysis = new DisplayableQrCodeFileAnalysis(analysis);
 
         assertThat(displayableAnalysis.getAuthenticatedContent())
                 .isEqualTo("2021, Angela Claire Louise, DUBOIS, Philippe, DUBOIS, Marié(e), 20 avenue de Ségur, 82357   €, 88185   €, 2,5, 1,0");
@@ -36,7 +36,7 @@ class DisplayableQrCodeFileAnalysisTest {
                 }
                 """);
 
-        var displayableAnalysis = new DisplayableQrCodeFileAnalysis(1, analysis);
+        var displayableAnalysis = new DisplayableQrCodeFileAnalysis(analysis);
 
         assertThat(displayableAnalysis.getAuthenticatedContent())
                 .isEqualTo("entreprise = Some Company, employé = John Doe, net = 1 895,39 €");
