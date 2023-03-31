@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class DisplayableFile {
 
+    private final Long id;
     private final int order;
     private final DisplayableQrCodeFileAnalysis analysis;
 
@@ -20,8 +21,9 @@ public class DisplayableFile {
         List<File> files = document.getFiles();
         List<DisplayableFile> results = new ArrayList<>();
         for (int i = 0; i < files.size(); i++) {
-            var analysis = DisplayableQrCodeFileAnalysis.of(files.get(i)).orElse(null);
-            results.add(new DisplayableFile(i + 1, analysis));
+            File file = files.get(i);
+            var analysis = DisplayableQrCodeFileAnalysis.of(file).orElse(null);
+            results.add(new DisplayableFile(file.getId(), i + 1, analysis));
         }
         return results;
     }

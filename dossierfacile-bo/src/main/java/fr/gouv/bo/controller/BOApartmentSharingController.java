@@ -1,6 +1,8 @@
 package fr.gouv.bo.controller;
 
+import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.gouv.bo.dto.DisplayableFile;
 import fr.gouv.bo.dto.EmailDTO;
 import fr.gouv.bo.dto.MessageDTO;
 import fr.gouv.bo.dto.PartnerDTO;
@@ -17,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Controller
 @AllArgsConstructor
@@ -35,6 +39,7 @@ public class BOApartmentSharingController {
     private static final String APARTMENT_SHARING = "apartmentSharing";
     private static final String PARTNER_LIST_BY_TENANT = "partnerListByTenant";
     private static final String NOW = "now";
+    private static final String FILES_BY_DOCUMENT = "filesByDocument";
 
     private final TenantService tenantService;
     private final UserApiService userApiService;
@@ -65,8 +70,24 @@ public class BOApartmentSharingController {
         model.addAttribute(PARTNERS_LIST, userApiService.getAllPartners());
         model.addAttribute(APARTMENT_SHARING, tenants.get(0).getApartmentSharing());
         model.addAttribute(NOW, LocalDateTime.now());
+        model.addAttribute(FILES_BY_DOCUMENT, getFilesByDocument(tenants));
 
         return "bo/apartment-sharing-view";
+    }
+
+    private Map<Long, List<DisplayableFile>> getFilesByDocument(List<Tenant> tenants) {
+        return tenants.stream()
+                .flatMap(tenant -> getAllDocuments(tenant).stream())
+                .collect(Collectors.toMap(Document::getId, DisplayableFile::allOf));
+    }
+
+    private static List<Document> getAllDocuments(Tenant tenant) {
+        List<Document> documents = tenant.getDocuments();
+        List<Document> guarantorDocs = tenant.getGuarantors().stream()
+                .flatMap(guarantor -> guarantor.getDocuments().stream())
+                .collect(Collectors.toList());
+        documents.addAll(guarantorDocs);
+        return documents;
     }
 
 }
