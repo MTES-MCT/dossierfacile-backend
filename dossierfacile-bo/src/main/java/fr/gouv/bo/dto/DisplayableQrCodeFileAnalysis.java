@@ -3,12 +3,14 @@ package fr.gouv.bo.dto;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.QrCodeFileAnalysis;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Optional;
 
 import static fr.dossierfacile.common.enums.FileAuthenticationStatus.INVALID;
 import static fr.dossierfacile.common.enums.FileAuthenticationStatus.VALID;
@@ -16,11 +18,15 @@ import static fr.dossierfacile.common.enums.FileAuthenticationStatus.VALID;
 @AllArgsConstructor
 public class DisplayableQrCodeFileAnalysis {
 
-    private final int order;
     private final QrCodeFileAnalysis analysis;
 
-    public String getSummary() {
-        return "Fichier n°" + order + " (" + analysis.getIssuerName().getLabel() + ") :";
+    public static Optional<DisplayableQrCodeFileAnalysis> of(File file) {
+        return Optional.ofNullable(file.getFileAnalysis())
+                .map(DisplayableQrCodeFileAnalysis::new);
+    }
+
+    public String getIssuerName() {
+        return analysis.getIssuerName().getLabel();
     }
 
     public String getAuthenticationStatusCssClass() {
