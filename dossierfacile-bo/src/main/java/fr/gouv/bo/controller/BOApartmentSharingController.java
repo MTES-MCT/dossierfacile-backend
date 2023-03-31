@@ -21,6 +21,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Controller
 @AllArgsConstructor
@@ -77,17 +78,15 @@ public class BOApartmentSharingController {
 
     private Map<Long, List<DisplayableFile>> getFilesByDocument(List<Tenant> tenants) {
         return tenants.stream()
-                .flatMap(tenant -> getAllDocuments(tenant).stream())
+                .flatMap(BOApartmentSharingController::getAllDocuments)
                 .collect(Collectors.toMap(Document::getId, DisplayableFile::allOf));
     }
 
-    private static List<Document> getAllDocuments(Tenant tenant) {
-        List<Document> documents = tenant.getDocuments();
-        List<Document> guarantorDocs = tenant.getGuarantors().stream()
-                .flatMap(guarantor -> guarantor.getDocuments().stream())
-                .collect(Collectors.toList());
-        documents.addAll(guarantorDocs);
-        return documents;
+    private static Stream<Document> getAllDocuments(Tenant tenant) {
+        Stream<Document> tenantDocuments = tenant.getDocuments().stream();
+        Stream<Document> guarantorDocuments = tenant.getGuarantors().stream()
+                .flatMap(guarantor -> guarantor.getDocuments().stream());
+        return Stream.concat(tenantDocuments, guarantorDocuments);
     }
 
 }
