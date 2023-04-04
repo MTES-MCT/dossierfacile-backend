@@ -1,19 +1,14 @@
 package fr.dossierfacile.api.front.register.guarantor.natural_person;
 
-import fr.dossierfacile.api.front.amqp.Producer;
 import fr.dossierfacile.api.front.exception.GuarantorNotFoundException;
-import fr.dossierfacile.api.front.mapper.TenantMapper;
-import fr.dossierfacile.api.front.model.tenant.TenantModel;
-import fr.dossierfacile.api.front.register.SaveStep;
+import fr.dossierfacile.api.front.register.AbstractDocumentSaveStep;
 import fr.dossierfacile.api.front.register.form.guarantor.natural_person.DocumentTaxGuarantorNaturalPersonForm;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.repository.GuarantorRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
-import fr.dossierfacile.api.front.util.TransactionalUtil;
 import fr.dossierfacile.common.entity.Document;
-import fr.dossierfacile.common.entity.DocumentPdfGenerationLog;
 import fr.dossierfacile.common.entity.Guarantor;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
@@ -21,13 +16,11 @@ import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.enums.TypeGuarantor;
-import fr.dossierfacile.common.repository.DocumentPdfGenerationLogRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.DocumentHelperService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -38,35 +31,18 @@ import static fr.dossierfacile.common.enums.DocumentSubCategory.OTHER_TAX;
 @Slf4j
 @Service
 @AllArgsConstructor
-public class DocumentTaxGuarantorNaturalPerson implements SaveStep<DocumentTaxGuarantorNaturalPersonForm> {
+public class DocumentTaxGuarantorNaturalPerson extends AbstractDocumentSaveStep<DocumentTaxGuarantorNaturalPersonForm> {
 
     private final DocumentHelperService documentHelperService;
     private final TenantCommonRepository tenantRepository;
     private final DocumentRepository documentRepository;
-    private final TenantMapper tenantMapper;
     private final GuarantorRepository guarantorRepository;
     private final DocumentService documentService;
     private final TenantStatusService tenantStatusService;
-    private final Producer producer;
     private final ApartmentSharingService apartmentSharingService;
-    private final DocumentPdfGenerationLogRepository documentPdfGenerationLogRepository;
 
     @Override
-    @Transactional
-    public TenantModel saveStep(Tenant tenant, DocumentTaxGuarantorNaturalPersonForm documentTaxGuarantorNaturalPersonForm) {
-        Document document = saveDocument(tenant, documentTaxGuarantorNaturalPersonForm);
-        Long logId = documentPdfGenerationLogRepository.save(DocumentPdfGenerationLog
-                .builder()
-                .documentId(document.getId())
-                .build()).getId();
-        TransactionalUtil.afterCommit(() -> producer.generatePdf(document.getId(), logId));
-        if (Boolean.TRUE.equals(tenant.getHonorDeclaration())) {
-            TransactionalUtil.afterCommit(() -> producer.processFileTax(documentTaxGuarantorNaturalPersonForm.getOptionalTenantId().orElse(tenant.getId())));
-        }
-        return tenantMapper.toTenantModel(document.getGuarantor().getTenant());
-    }
-
-    private Document saveDocument(Tenant tenant, DocumentTaxGuarantorNaturalPersonForm documentTaxGuarantorNaturalPersonForm) {
+    protected Document saveDocument(Tenant tenant, DocumentTaxGuarantorNaturalPersonForm documentTaxGuarantorNaturalPersonForm) {
         Guarantor guarantor = guarantorRepository.findByTenantAndTypeGuarantorAndId(tenant, TypeGuarantor.NATURAL_PERSON, documentTaxGuarantorNaturalPersonForm.getGuarantorId())
                 .orElseThrow(() -> new GuarantorNotFoundException(documentTaxGuarantorNaturalPersonForm.getGuarantorId()));
 
@@ -89,9 +65,7 @@ public class DocumentTaxGuarantorNaturalPerson implements SaveStep<DocumentTaxGu
         if (documentSubCategory == MY_NAME
                 || (documentSubCategory == OTHER_TAX && !documentTaxGuarantorNaturalPersonForm.getNoDocument())) {
             if (documentTaxGuarantorNaturalPersonForm.getDocuments().size() > 0) {
-                documentTaxGuarantorNaturalPersonForm.getDocuments().stream()
-                        .filter(f -> !f.isEmpty())
-                        .forEach(multipartFile -> documentService.addFile(multipartFile, document));
+                saveFiles(documentTaxGuarantorNaturalPersonForm, document);
             } else {
                 log.info("Refreshing info in [TAX] document with ID [" + document.getId() + "]");
             }

@@ -1,6 +1,5 @@
 package fr.gouv.bo.dto;
 
-import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.type.TaxDocument;
@@ -29,7 +28,6 @@ public class MessageItem {
     private Long documentId;
     private String documentName;
     @Builder.Default
-    private List<File> files = new ArrayList<>();
-    private List<DisplayableQrCodeFileAnalysis> qrCodeFilesAnalysis;
+    private List<DisplayableFile> analyzedFiles = new ArrayList<>();
 
 }

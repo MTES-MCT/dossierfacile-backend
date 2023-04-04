@@ -27,11 +27,7 @@ public class CoTenantController {
 
     @PreAuthorize("hasPermissionOnTenant(#coTenantId)")
     @GetMapping(value = "/{id}/profile", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<TenantModel> tenantProfile(@PathVariable("id") Long coTenantId) throws IllegalAccessException {
-        Tenant tenant = authenticationFacade.getLoggedTenant();
-        if (tenant.getApartmentSharing().getTenants().stream().noneMatch(t -> t.getId().equals(coTenantId))){
-            throw new IllegalAccessException("You are not authorize to see this tenant");
-        }
+    public ResponseEntity<TenantModel> tenantProfile(@PathVariable("id") Long coTenantId) {
         Tenant coTenant = tenantService.findById(coTenantId);
         tenantService.updateLastLoginDateAndResetWarnings(coTenant);
         return ok(tenantMapper.toTenantModel(coTenant));

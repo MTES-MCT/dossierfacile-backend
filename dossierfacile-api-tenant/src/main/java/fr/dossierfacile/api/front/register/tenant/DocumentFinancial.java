@@ -54,9 +54,7 @@ public class DocumentFinancial extends AbstractDocumentSaveStep<DocumentFinancia
 
         if (Boolean.FALSE.equals(documentFinancialForm.getNoDocument())) {
             if (documentFinancialForm.getDocuments().size() > 0) {
-                documentFinancialForm.getDocuments().stream()
-                        .filter(f -> !f.isEmpty())
-                        .forEach(multipartFile -> documentService.addFile(multipartFile, document));
+                saveFiles(documentFinancialForm, document);
                 document.setCustomText(null);
             } else {
                 log.info("Refreshing info in [FINANCIAL] document with ID [" + documentFinancialForm.getId() + "]");

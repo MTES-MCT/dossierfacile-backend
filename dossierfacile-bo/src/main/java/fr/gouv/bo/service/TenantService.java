@@ -35,6 +35,7 @@ import fr.gouv.bo.repository.DocumentDeniedReasonsRepository;
 import fr.gouv.bo.repository.DocumentRepository;
 import fr.gouv.bo.repository.OperatorLogRepository;
 import fr.gouv.bo.repository.UserApiRepository;
+import fr.gouv.bo.security.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -46,6 +47,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -97,6 +99,9 @@ public class TenantService {
     private int forTenant = 0;
     @Value("${time.reprocess.application.minutes}")
     private int timeReprocessApplicationMinutes;
+
+    @Value("${specialized.operator.email:ops@dossiefacile.fr}")
+    private String specializedOperatorEmail;
 
     public List<Tenant> getTenantByIdOrEmail(EmailDTO emailDTO) {
         List<Tenant> tenantList = new ArrayList<>();
@@ -153,7 +158,14 @@ public class TenantService {
         LocalDateTime localDateTime = LocalDateTime.now().minusMinutes(timeReprocessApplicationMinutes);
         Tenant tenant;
         if (tenantId == null) {
-            tenant = tenantRepository.findNextApplication(localDateTime);
+            if (((UserPrincipal)((OAuth2AuthenticationToken)principal).getPrincipal()).getEmail().equals(specializedOperatorEmail)) {
+                tenant = tenantRepository.findNextApplicationByProfessional(localDateTime, Arrays.asList(DocumentSubCategory.CDI, DocumentSubCategory.PUBLIC));
+                if (tenant == null) {
+                    tenant = tenantRepository.findNextApplication(localDateTime);
+                }
+            } else {
+                tenant = tenantRepository.findNextApplication(localDateTime);
+            }
         } else {
             tenant = find(tenantId);
         }

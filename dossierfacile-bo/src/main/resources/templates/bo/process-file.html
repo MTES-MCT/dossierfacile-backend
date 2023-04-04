@@ -107,26 +107,26 @@
                                     <span th:text="${messageItem.taxDocument.fileExtractionType}"></span>
                                 </h4>
 
-                                <div th:if="${!messageItem.qrCodeFilesAnalysis.isEmpty()}">
+                                <div th:if="${!messageItem.analyzedFiles.isEmpty()}">
                                     <h4>Justificatifs analysés :</h4>
                                     <ul>
-                                        <li th:each="fileAnalysis : ${messageItem.qrCodeFilesAnalysis}" class="margin-bottom-10px">
-                                            <span th:text="${fileAnalysis.summary}"></span>
-                                            <span class="fa" th:classappend="${fileAnalysis.authenticationStatusCssClass}"
-                                                  th:text="' ' + ${fileAnalysis.authenticationStatus}"></span>
-                                            <span class="fa fa-times text-danger" th:if="${fileAnalysis.isInWrongCategory}"
+                                        <li th:each="file : ${messageItem.analyzedFiles}" th:with="analysis=${file.analysis}" class="margin-bottom-10px">
+                                            <span th:text="${file.summary}"></span>
+                                            <span class="fa" th:classappend="${analysis.authenticationStatusCssClass}"
+                                                  th:text="' ' + ${analysis.authenticationStatus}"></span>
+                                            <span class="fa fa-times text-danger" th:if="${analysis.isInWrongCategory}"
                                                 > Mauvaise catégorie</span>
                                             <br/>
-                                            <div class="small" th:if="${fileAnalysis.isNotAuthenticated}">
+                                            <div class="small" th:if="${analysis.isNotAuthenticated}">
                                                 <span class="bold">Devrait contenir : </span>
-                                                <span th:text="${fileAnalysis.authenticatedContent}"></span>
+                                                <span th:text="${analysis.authenticatedContent}"></span>
                                             </div>
                                         </li>
                                     </ul>
                                 </div>
 
                                 <div class="table-responsive"
-                                     th:if="${messageItem.taxDocument}!=null and ${messageItem.taxDocument.qrContent}==null and ${messageItem.qrCodeFilesAnalysis.isEmpty()}">
+                                     th:if="${messageItem.taxDocument}!=null and ${messageItem.taxDocument.qrContent}==null and ${messageItem.analyzedFiles.isEmpty()}">
                                     <table class="table table-striped table-bordered table-hover"
                                            style="border: 1px solid gray;">
                                         <thead>
@@ -310,26 +310,26 @@
                                                th:value="${guarantorItem.getGuarantorId()}" type="hidden"/>
                                     </div>
 
-                                    <div th:if="${!messageItem.qrCodeFilesAnalysis.isEmpty()}">
+                                    <div th:if="${!messageItem.analyzedFiles.isEmpty()}">
                                         <h4>Justificatifs analysés :</h4>
                                         <ul>
-                                            <li th:each="fileAnalysis : ${messageItem.qrCodeFilesAnalysis}" class="margin-bottom-10px">
-                                                <span th:text="${fileAnalysis.summary}"></span>
-                                                <span class="fa" th:classappend="${fileAnalysis.authenticationStatusCssClass}"
-                                                      th:text="' ' + ${fileAnalysis.authenticationStatus}"></span>
-                                                <span class="fa fa-times text-danger" th:if="${fileAnalysis.isInWrongCategory}"
+                                            <li th:each="file : ${messageItem.analyzedFiles}" th:with="analysis=${file.analysis}" class="margin-bottom-10px">
+                                                <span th:text="${file.summary}"></span>
+                                                <span class="fa" th:classappend="${analysis.authenticationStatusCssClass}"
+                                                      th:text="' ' + ${analysis.authenticationStatus}"></span>
+                                                <span class="fa fa-times text-danger" th:if="${analysis.isInWrongCategory}"
                                                 > Mauvaise catégorie</span>
                                                 <br/>
-                                                <div class="small" th:if="${fileAnalysis.isNotAuthenticated}">
+                                                <div class="small" th:if="${analysis.isNotAuthenticated}">
                                                     <span class="bold">Devrait contenir : </span>
-                                                    <span th:text="${fileAnalysis.authenticatedContent}"></span>
+                                                    <span th:text="${analysis.authenticatedContent}"></span>
                                                 </div>
                                             </li>
                                         </ul>
                                     </div>
 
                                     <div class="table-responsive"
-                                         th:if="${messageItem.taxDocument}!=null and ${messageItem.taxDocument.qrContent}==null and ${messageItem.qrCodeFilesAnalysis.isEmpty()}">
+                                         th:if="${messageItem.taxDocument}!=null and ${messageItem.taxDocument.qrContent}==null and ${messageItem.analyzedFiles.isEmpty()}">
                                         <table class="table table-striped table-bordered table-hover"
                                                style="border: 1px solid gray;">
                                             <thead>

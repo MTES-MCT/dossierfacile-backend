@@ -54,9 +54,7 @@ public class DocumentIdentificationGuarantorLegalPerson
         document.setDocumentSubCategory(documentSubCategory);
         documentRepository.save(document);
 
-        documentIdentificationGuarantorLegalPersonForm.getDocuments().stream()
-                .filter(f -> !f.isEmpty())
-                .forEach(multipartFile -> documentService.addFile(multipartFile, document));
+        saveFiles(documentIdentificationGuarantorLegalPersonForm, document);
 
         documentService.initializeFieldsToProcessPdfGeneration(document);
         tenant.lastUpdateDateProfile(LocalDateTime.now(), DocumentCategory.IDENTIFICATION_LEGAL_PERSON);

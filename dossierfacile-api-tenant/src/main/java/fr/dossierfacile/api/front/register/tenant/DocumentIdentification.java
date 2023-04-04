@@ -6,7 +6,6 @@ import fr.dossierfacile.api.front.register.form.tenant.DocumentIdentificationFor
 import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
-import fr.dossierfacile.api.front.service.interfaces.FileService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.Tenant;
@@ -47,10 +46,7 @@ public class DocumentIdentification extends AbstractDocumentSaveStep<DocumentIde
         document.setDocumentSubCategory(documentSubCategory);
         documentRepository.save(document);
 
-        documentIdentificationForm.getDocuments().stream()
-                .filter(f -> !f.isEmpty())
-                .forEach(multipartFile -> documentService.addFile(multipartFile, document)
-                );
+        saveFiles(documentIdentificationForm, document);
 
         documentService.initializeFieldsToProcessPdfGeneration(document);
         tenant.lastUpdateDateProfile(LocalDateTime.now(), DocumentCategory.IDENTIFICATION);
@@ -59,4 +55,5 @@ public class DocumentIdentification extends AbstractDocumentSaveStep<DocumentIde
         tenantRepository.save(tenant);
         return document;
     }
+
 }

@@ -2,6 +2,7 @@ package fr.dossierfacile.common.repository;
 
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.model.TenantUpdate;
 import org.springframework.data.domain.Page;
@@ -15,6 +16,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,6 +44,26 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
 
     default Tenant findNextApplication(LocalDateTime localDateTime) {
         Page<Tenant> page = findNextApplication(localDateTime, PageRequest.of(0, 1, Sort.Direction.ASC, "lastUpdateDate"));
+        if (!page.isEmpty()) {
+            return page.get().findFirst().orElse(null);
+        }
+        return null;
+    }
+
+    @Query("select t from Tenant t " +
+            " where (t.operatorDateTime is null or t.operatorDateTime < :localDateTime) and t.status = 'TO_PROCESS' and t.honorDeclaration = true " +
+            " and" +
+            " t.id not in (select t.id from Tenant t join t.documents d WHERE d.name is null)" +
+            " and" +
+            " t.id in (select t.id from Tenant t join t.documents d WHERE d.documentSubCategory IN (:categories) )" +
+            " and" +
+            " t.id not in (select t.id from Tenant t join t.guarantors g join g.documents d WHERE d.name is null)" +
+            " order by t.lastUpdateDate")
+    Page<Tenant> findNextApplicationByProfessional(@Param("localDateTime") LocalDateTime localDateTime, @Param("categories") List<DocumentSubCategory> categories, Pageable pageable);
+
+
+    default Tenant findNextApplicationByProfessional(LocalDateTime localDateTime, List<DocumentSubCategory> categories) {
+        Page<Tenant> page = findNextApplicationByProfessional(localDateTime, categories, PageRequest.of(0, 1, Sort.Direction.ASC, "lastUpdateDate"));
         if (!page.isEmpty()) {
             return page.get().findFirst().orElse(null);
         }

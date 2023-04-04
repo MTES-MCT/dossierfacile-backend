@@ -41,9 +41,7 @@ public class DocumentResidency extends AbstractDocumentSaveStep<DocumentResidenc
         document.setDocumentSubCategory(documentSubCategory);
         documentRepository.save(document);
 
-        documentResidencyForm.getDocuments().stream()
-                .filter(f -> !f.isEmpty())
-                .forEach(multipartFile -> documentService.addFile(multipartFile, document));
+        saveFiles(documentResidencyForm, document);
 
         documentService.initializeFieldsToProcessPdfGeneration(document);
         tenant.lastUpdateDateProfile(LocalDateTime.now(), DocumentCategory.RESIDENCY);

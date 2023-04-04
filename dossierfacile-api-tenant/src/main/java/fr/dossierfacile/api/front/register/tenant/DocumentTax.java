@@ -1,7 +1,5 @@
 package fr.dossierfacile.api.front.register.tenant;
 
-import fr.dossierfacile.api.front.amqp.Producer;
-import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.AbstractDocumentSaveStep;
 import fr.dossierfacile.api.front.register.SaveStep;
 import fr.dossierfacile.api.front.register.form.tenant.DocumentTaxForm;
@@ -9,7 +7,6 @@ import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
-import fr.dossierfacile.api.front.util.TransactionalUtil;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.Tenant;
@@ -22,7 +19,6 @@ import fr.dossierfacile.common.service.interfaces.DocumentHelperService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -42,18 +38,7 @@ public class DocumentTax extends AbstractDocumentSaveStep<DocumentTaxForm> imple
 
     private final DocumentService documentService;
     private final TenantStatusService tenantStatusService;
-    private final Producer producer;
     private final ApartmentSharingService apartmentSharingService;
-
-    @Override
-    @Transactional
-    public TenantModel saveStep(Tenant tenant, DocumentTaxForm documentTaxForm) {
-
-        if (Boolean.TRUE.equals(tenant.getHonorDeclaration())) {
-            TransactionalUtil.afterCommit(() -> producer.processFileTax(documentTaxForm.getOptionalTenantId().orElse(tenant.getId())));
-        }
-        return super.saveStep(tenant, documentTaxForm);
-    }
 
     @Override
     protected Document saveDocument(Tenant tenant, DocumentTaxForm documentTaxForm) {
@@ -76,9 +61,7 @@ public class DocumentTax extends AbstractDocumentSaveStep<DocumentTaxForm> imple
         if (documentSubCategory == MY_NAME
                 || (documentSubCategory == OTHER_TAX && !documentTaxForm.getNoDocument())) {
             if (documentTaxForm.getDocuments().size() > 0) {
-                documentTaxForm.getDocuments().stream()
-                        .filter(f -> !f.isEmpty())
-                        .forEach(multipartFile -> documentService.addFile(multipartFile, document));
+                saveFiles(documentTaxForm, document);
             } else {
                 log.info("Refreshing info in [TAX] document with ID [" + document.getId() + "]");
             }

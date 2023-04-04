@@ -1,13 +1,13 @@
 package fr.dossierfacile.api.front.register.tenant;
 
 import fr.dossierfacile.api.front.amqp.Producer;
+import fr.dossierfacile.api.front.exception.TenantIllegalStateException;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.SaveStep;
 import fr.dossierfacile.api.front.register.form.tenant.HonorDeclarationForm;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.MailService;
-import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.Collections.singletonList;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 @Service
 @AllArgsConstructor
@@ -33,17 +34,25 @@ public class HonorDeclaration implements SaveStep<HonorDeclarationForm> {
     private final TenantStatusService tenantStatusService;
     private final ApartmentSharingService apartmentSharingService;
 
+    private static List<Tenant> getTenantOrPartners(Tenant tenant) {
+        ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
+        return switch (apartmentSharing.getApplicationType()) {
+            case COUPLE -> new ArrayList<>(apartmentSharing.getTenants());
+            case ALONE, GROUP -> singletonList(tenant);
+        };
+    }
+
     @Override
     @Transactional
     public TenantModel saveStep(Tenant tenant, HonorDeclarationForm honorDeclarationForm) {
-        updateHonorDeclaration(tenant, honorDeclarationForm.isHonorDeclaration());
         tenant.setClarification(honorDeclarationForm.getClarification());
+        for (Tenant t : getTenantOrPartners(tenant)) {
+            checkTenantValidity(t);
+            tenant.setHonorDeclaration(honorDeclarationForm.isHonorDeclaration());
+            t.lastUpdateDateProfile(LocalDateTime.now(), null);
+            tenantStatusService.updateTenantStatus(t);
+        }
 
-        getTenantOrPartners(tenant)
-                .forEach(t -> {
-                    t.lastUpdateDateProfile(LocalDateTime.now(), null);
-                    tenantStatusService.updateTenantStatus(t);
-                });
         Tenant tenantSaved = tenantRepository.save(tenant);
 
         sendFileToBeProcessed(tenant);
@@ -52,21 +61,22 @@ public class HonorDeclaration implements SaveStep<HonorDeclarationForm> {
         return tenantMapper.toTenantModel(tenantSaved);
     }
 
-    private static void updateHonorDeclaration(Tenant loggedTenant, boolean honorDeclaration) {
-        getTenantOrPartners(loggedTenant)
-                .forEach(tenant -> tenant.setHonorDeclaration(honorDeclaration));
+    private void checkTenantValidity(Tenant tenant) {
+        if (isBlank(tenant.getFirstName()) || isBlank(tenant.getLastName())) {
+            throw new TenantIllegalStateException("Firstname or Lastname should be filled");
+        }
+        if (tenant.getGuarantors().stream().anyMatch(
+                g -> switch (g.getTypeGuarantor()) {
+                    case NATURAL_PERSON -> isBlank(g.getFirstName()) || isBlank(g.getLastName());
+                    case LEGAL_PERSON -> isBlank(g.getFirstName()) || isBlank(g.getLegalPersonName());
+                    default -> false;
+                })) {
+            throw new TenantIllegalStateException("Guarantor's Information should be filled");
+        }
     }
 
     private void sendFileToBeProcessed(Tenant loggedTenant) {
         getTenantOrPartners(loggedTenant)
                 .forEach(tenant -> producer.processFileTax(tenant.getId()));
-    }
-
-    private static List<Tenant> getTenantOrPartners(Tenant tenant) {
-        ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
-        return switch (apartmentSharing.getApplicationType()) {
-            case COUPLE -> new ArrayList<>(apartmentSharing.getTenants());
-            case ALONE, GROUP -> singletonList(tenant);
-        };
     }
 }

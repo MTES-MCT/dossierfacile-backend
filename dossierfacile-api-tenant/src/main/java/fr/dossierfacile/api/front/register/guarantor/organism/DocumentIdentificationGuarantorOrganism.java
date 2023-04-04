@@ -50,9 +50,7 @@ public class DocumentIdentificationGuarantorOrganism
         document.setDocumentSubCategory(DocumentSubCategory.CERTIFICATE_VISA);
         documentRepository.save(document);
 
-        documentIdentificationGuarantorOrganismForm.getDocuments().stream()
-                .filter(f -> !f.isEmpty())
-                .forEach(multipartFile -> documentService.addFile(multipartFile, document));
+        saveFiles(documentIdentificationGuarantorOrganismForm, document);
 
         documentService.initializeFieldsToProcessPdfGeneration(document);
         tenant.lastUpdateDateProfile(LocalDateTime.now(), DocumentCategory.IDENTIFICATION);

@@ -51,9 +51,7 @@ public class DocumentResidencyGuarantorNaturalPerson
         document.setDocumentSubCategory(documentSubCategory);
         documentRepository.save(document);
 
-        documentResidencyGuarantorNaturalPersonForm.getDocuments().stream()
-                .filter(f -> !f.isEmpty())
-                .forEach(multipartFile -> documentService.addFile(multipartFile, document));
+        saveFiles(documentResidencyGuarantorNaturalPersonForm, document);
 
         documentService.initializeFieldsToProcessPdfGeneration(document);
         tenant.lastUpdateDateProfile(LocalDateTime.now(), DocumentCategory.RESIDENCY);
