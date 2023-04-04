@@ -1,6 +1,5 @@
 package fr.dossierfacile.api.front.register.tenant;
 
-import fr.dossierfacile.api.front.amqp.Producer;
 import fr.dossierfacile.api.front.exception.TenantIllegalStateException;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
@@ -29,7 +28,6 @@ public class HonorDeclaration implements SaveStep<HonorDeclarationForm> {
 
     private final TenantCommonRepository tenantRepository;
     private final TenantMapper tenantMapper;
-    private final Producer producer;
     private final MailService mailService;
     private final TenantStatusService tenantStatusService;
     private final ApartmentSharingService apartmentSharingService;
@@ -55,7 +53,6 @@ public class HonorDeclaration implements SaveStep<HonorDeclarationForm> {
 
         Tenant tenantSaved = tenantRepository.save(tenant);
 
-        sendFileToBeProcessed(tenant);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         mailService.sendEmailAccountCompleted(tenantSaved);
         return tenantMapper.toTenantModel(tenantSaved);
@@ -73,10 +70,5 @@ public class HonorDeclaration implements SaveStep<HonorDeclarationForm> {
                 })) {
             throw new TenantIllegalStateException("Guarantor's Information should be filled");
         }
-    }
-
-    private void sendFileToBeProcessed(Tenant loggedTenant) {
-        getTenantOrPartners(loggedTenant)
-                .forEach(tenant -> producer.processFileTax(tenant.getId()));
     }
 }

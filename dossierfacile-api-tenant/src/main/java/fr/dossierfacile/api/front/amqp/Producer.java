@@ -3,7 +3,6 @@ package fr.dossierfacile.api.front.amqp;
 
 import com.google.gson.Gson;
 import fr.dossierfacile.api.front.amqp.model.DocumentModel;
-import fr.dossierfacile.api.front.amqp.model.TenantModel;
 import fr.dossierfacile.common.FileAnalysisCriteria;
 import fr.dossierfacile.common.entity.File;
 import lombok.RequiredArgsConstructor;
@@ -30,8 +29,6 @@ public class Producer {
     //File process
     @Value("${rabbitmq.exchange.file.process}")
     private String exchangeFileProcess;
-    @Value("${rabbitmq.routing.key.tax}")
-    private String routingKeyFieProcessTax;
     @Value("${rabbitmq.routing.key.file.analyze}")
     private String routingKeyAnalyzeFile;
 
@@ -42,15 +39,6 @@ public class Producer {
     private String routingKeyPdfGenerator;
     @Value("${rabbitmq.routing.key.pdf.generator.apartment-sharing}")
     private String routingKeyPdfGeneratorApartmentSharing;
-
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    @Async
-    @Deprecated
-    public void processFileTax(Long id) {
-        TenantModel tenantModel = TenantModel.builder().id(id).build();
-        log.info("Send process file For tenantId [" + id + "]");
-        amqpTemplate.convertAndSend(exchangeFileProcess, routingKeyFieProcessTax, gson.toJson(tenantModel));
-    }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Async
@@ -70,7 +58,7 @@ public class Producer {
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Async
-    public void sendFileForAnalysis(File file) {
+    public void analyzeFile(File file) {
         if (FileAnalysisCriteria.shouldBeAnalyzed(file)) {
             Long fileId = file.getId();
             log.info("Sending file with ID [{}] for analysis", fileId);

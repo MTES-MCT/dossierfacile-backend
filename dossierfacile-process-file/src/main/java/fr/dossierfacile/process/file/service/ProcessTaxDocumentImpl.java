@@ -67,8 +67,7 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
         return Optional.of(taxDocumentSupplier.get());
     }
 
-    @Override
-    public TaxDocument process(Document document, Guarantor guarantor) {
+    private TaxDocument process(Document document, Guarantor guarantor) {
         log.info("Starting with process of guarantor tax document");
         List<File> files = Optional.ofNullable(document.getFiles()).orElse(new ArrayList<>());
 
@@ -84,8 +83,7 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
         return taxDocument;
     }
 
-    @Override
-    public TaxDocument process(Document document, Tenant tenant) {
+    private TaxDocument process(Document document, Tenant tenant) {
         if (CollectionUtils.isEmpty(document.getFiles())) {
             TaxDocument doc = new TaxDocument();
             doc.setFileExtractionType(TaxFileExtractionType.NONE);
