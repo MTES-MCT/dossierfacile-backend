@@ -42,6 +42,8 @@ public class PropertyServiceImpl implements PropertyService {
     private String keycloakTokenUrl;
     @Value("${tenant.api.url}")
     private String tenantApiUrl;
+    @Value("${tenant.api.port:443}")
+    private Integer tenantApiPort;
 
     @Override
     public PropertyModel createOrUpdate(PropertyForm propertyForm) {
@@ -125,7 +127,7 @@ public class PropertyServiceImpl implements PropertyService {
         }
 
         UriComponents uriComponents = UriComponentsBuilder.newInstance()
-                .scheme("https").host(tenantApiUrl).path("/api-partner/tenant/{tenantId}/subscribe/{token}")
+                .scheme("https").host(tenantApiUrl).port(tenantApiPort).path("/api-partner/tenant/{tenantId}/subscribe/{token}")
                 .buildAndExpand(tenantId, token);
 
         Map<String, String> data = new HashMap<>();

@@ -1,6 +1,7 @@
 package fr.dossierfacile.garbagecollector.service;
 
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.garbagecollector.service.interfaces.TenantWarningService;
 import io.sentry.Sentry;
@@ -15,6 +16,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -22,6 +24,8 @@ import java.time.LocalDateTime;
 public class ScheduledWarningService {
     @Value("${months_for_deletion_of_documents:3}")
     private Integer monthsForDeletionOfDocuments;
+    @Value("${months_for_deletion_of_archived_tenants:12}")
+    private Integer monthsForDeletionOfTenants;
     @Value("${warnings.max.pages:1}")
     private Integer warningMaxPages;
     private final TenantCommonRepository tenantRepository;
@@ -31,6 +35,7 @@ public class ScheduledWarningService {
     public void accountWarningsForDocumentDeletion() {
         log.info("accountWarnings. Executing scheduled task for account warnings at [" + LocalDateTime.now() + "]");
         LocalDateTime localDateTime = LocalDateTime.now().minusMonths(monthsForDeletionOfDocuments);
+        tenantWarningService.deleteOldArchivedWarnings(LocalDateTime.now().minusMonths(monthsForDeletionOfTenants));
         processAllWarnings(localDateTime, 2);
         processAllWarnings(localDateTime, 1);
         processAllWarnings(localDateTime, 0);
