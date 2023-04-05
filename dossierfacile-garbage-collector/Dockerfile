@@ -1,4 +1,4 @@
-FROM amazoncorretto:15
+FROM amazoncorretto:17
 ENV TZ=Europe/Paris
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 ADD target/checker-0.0.1-SNAPSHOT.jar checker-0.0.1-SNAPSHOT.jar

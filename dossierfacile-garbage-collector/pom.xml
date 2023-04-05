@@ -15,7 +15,7 @@
     <description>Object Checker project for Spring Boot</description>
     <packaging>${packaging.type}</packaging>
     <properties>
-        <java.version>15</java.version>
+        <java.version>17</java.version>
         <dossierfacile.common.version>0.0.1-SNAPSHOT</dossierfacile.common.version>
     </properties>
     <dependencies>

@@ -14,7 +14,7 @@
     <name>dossierfacile-api-owner</name>
     <description>Owner api for DossierFacile</description>
     <properties>
-        <java.version>15</java.version>
+        <java.version>17</java.version>
         <org.mapstruct.version>1.4.2.Final</org.mapstruct.version>
         <lombok.version>1.18.22</lombok.version>
     </properties>
@@ -125,8 +125,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.7.0</version>
                 <configuration>
-                    <source>15</source>
-                    <target>15</target>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>
