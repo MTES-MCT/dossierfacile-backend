@@ -29,7 +29,7 @@
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <jackson.version>2.11.0</jackson.version>
         <org.mapstruct.version>1.4.2.Final</org.mapstruct.version>
-        <lombok.version>1.18.20</lombok.version>
+        <lombok.version>1.18.26</lombok.version>
         <dossierfacile.common.version>0.0.1-SNAPSHOT</dossierfacile.common.version>
         <thymeleaf.version>3.0.15.RELEASE</thymeleaf.version>
         <pdfbox.tools.version>2.0.27</pdfbox.tools.version>
