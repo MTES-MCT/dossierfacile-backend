@@ -35,40 +35,38 @@ public class UserApi implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     @Column
     private String urlCallback;
-
     @Column
     private String name;
-
     @Column
     private String name2;
-
     @Column
     private String site;
-
     @Column
     private String apiKey;
-
     @Column
     private TypeUserApi typeUserApi;
-
-    private String textModal;
-
-    @Builder.Default
-    @Column(columnDefinition = "boolean default false")
-    private boolean logo = false;
-
+    @Column
     private String partnerApiKeyCallback;
-
+    @Column
     private Integer version;
+    @Column
+    private String logoUrl;
+    @Column
+    private String welcomeUrl;
+    @Column
+    private String completedUrl;
+    @Column
+    private String deniedUrl;
+    @Column
+    private String validatedUrl;
 
     @JsonIgnore
     @Builder.Default
     @OneToMany(mappedBy = "userApi", fetch = FetchType.LAZY)
     private List<TenantUserApi> tenantsUserApi = new ArrayList<>();
-
+    @Column
     private boolean disabled;
 
     @Override

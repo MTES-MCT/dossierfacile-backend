@@ -49,7 +49,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .cacheControl()
                 .and()
-                .contentSecurityPolicy("frame-ancestors *.dossierfacile.fr; frame-src *.dossierfacile.fr; child-src 'none'; upgrade-insecure-requests; default-src 'none'; script-src 'self'; style-src 'self' fonts.googleapis.com 'unsafe-inline'; object-src *.dossierfacile.fr; img-src 'self' data:; font-src 'self' fonts.gstatic.com; connect-src *.dossierfacile.fr; base-uri 'self'; media-src 'none'; worker-src *.dossierfacile.fr; manifest-src 'none'; prefetch-src 'none';")
+                .contentSecurityPolicy("frame-ancestors *.dossierfacile.fr; frame-src *.dossierfacile.fr; child-src 'none'; upgrade-insecure-requests; default-src 'none'; script-src 'self'; style-src 'self' fonts.googleapis.com 'unsafe-inline'; object-src *.dossierfacile.fr; img-src 'self' *.dossierfacile.fr data:; font-src 'self' fonts.gstatic.com; connect-src *.dossierfacile.fr; base-uri 'self'; media-src 'none'; worker-src *.dossierfacile.fr; manifest-src 'none'; prefetch-src 'none';")
                 .and()
                 .httpStrictTransportSecurity().disable()// Scalingo force https and add this policy
                 .frameOptions()
