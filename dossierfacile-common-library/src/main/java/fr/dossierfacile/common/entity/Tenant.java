@@ -235,4 +235,8 @@ public class Tenant extends User implements Person, Serializable {
     public int getGuarantorsTotalSalary() {
         return guarantors.stream().map(Guarantor::getTotalSalary).reduce(0, Integer::sum);
     }
+
+    public boolean isBelongToPartner() {
+        return this.getKeycloakId() == null && this.getTenantsUserApi().size() == 1;
+    }
 }

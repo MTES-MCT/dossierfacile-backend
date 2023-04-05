@@ -3,6 +3,7 @@ package fr.dossierfacile.api.front.service.interfaces;
 import fr.dossierfacile.api.front.form.ContactForm;
 import fr.dossierfacile.common.entity.ConfirmationToken;
 import fr.dossierfacile.common.entity.PasswordRecoveryToken;
+import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.User;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.ApplicationType;
@@ -17,7 +18,7 @@ public interface MailService {
 
     void sendEmailAccountDeleted(User user);
 
-    void sendEmailAccountCompleted(User user);
+    void sendEmailAccountCompleted(Tenant tenant);
 
     void sendEmailWhenEmailAccountNotYetValidated(User user, ConfirmationToken confirmationToken);
 

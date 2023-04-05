@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+
+    <changeSet id="202304030000-01" author="fabien(manual)">
+        <addColumn tableName="user_api">
+            <column name="logo_url" type="VARCHAR(255)"/>
+        </addColumn>
+        <addColumn tableName="user_api">
+            <column name="welcome_url" type="VARCHAR(255)"/>
+        </addColumn>
+        <addColumn tableName="user_api">
+            <column name="completed_url" type="VARCHAR(255)"/>
+        </addColumn>
+        <addColumn tableName="user_api">
+            <column name="denied_url" type="VARCHAR(255)"/>
+        </addColumn>
+        <addColumn tableName="user_api">
+            <column name="validated_url" type="VARCHAR(255)"/>
+        </addColumn>
+        <dropColumn tableName="user_api">
+            <column name="text_modal"/>
+        </dropColumn>
+        <dropColumn tableName="user_api">
+            <column name="logo"/>
+        </dropColumn>
+    </changeSet>
+
+</databaseChangeLog>

@@ -5,6 +5,19 @@
         <form enctype="multipart/form-data" th:action="@{/bo/userApi/} + ${userApiDTO.getId() != null ? userApiDTO.getId() : ''}" th:method="post" th:object="${userApiDTO}">
             <div class="row">
                 <div class="form-group col-md-6">
+                    <img height="40px" alt="" th:src="*{logoUrl}" />
+                </div>
+                <div class="form-group col-md-6">
+                    <input type="text" id="logoUrl"
+                           th:field="*{logoUrl}"
+                           class="form-control form-control-formatted form-control-untouched"
+                           placeholder="logoUrl"/>
+                    <span class="help-block color--error" th:errors="*{logoUrl}"
+                          th:if="${#fields.hasErrors('logoUrl')}"></span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group col-md-6">
                     <input required="required" type="text" id="name"
                            th:field="*{name}"
                            class="form-control form-control-formatted form-control-untouched"
@@ -13,7 +26,7 @@
                           th:if="${#fields.hasErrors('name')}"></span>
                 </div>
                 <div class="form-group col-md-6">
-                    <input required="required" type="text" id="name2"
+                    <input type="text" id="name2"
                            th:field="*{name2}"
                            class="form-control form-control-formatted form-control-untouched"
                            placeholder="name2"/>
@@ -31,7 +44,7 @@
                           th:if="${#fields.hasErrors('site')}"></span>
                 </div>
                 <div class="form-group col-md-6">
-                    <input required="required" type="url" id="urlCallback" autocomplete="off"
+                    <input type="url" id="urlCallback" autocomplete="off"
                            th:field="*{urlCallback}"
                            class="form-control form-control-formatted form-control-untouched"
                            placeholder="urlCallback"/>
@@ -40,14 +53,6 @@
                 </div>
             </div>
             <div class="row">
-                <div class="form-group col-md-6">
-                    <input autocomplete="off" class="form-control form-control-formatted form-control-untouched"
-                           placeholder="textModal"
-                           th:field="*{textModal}"
-                           type="text"/>
-                    <span class="help-block color--error" th:errors="*{textModal}"
-                          th:if="${#fields.hasErrors('textModal')}"></span>
-                </div>
 
                 <div class="form-group col-md-6">
                     <input autocomplete="off" class="form-control form-control-formatted form-control-untouched"
@@ -60,7 +65,7 @@
             </div>
             <div class="row">
                 <div class="form-group col-md-6">
-                    <input autocomplete="off" class="form-control form-control-formatted form-control-untouched"
+                    <input required="required" autocomplete="off" class="form-control form-control-formatted form-control-untouched"
                            placeholder="version"
                            th:field="*{version}"
                            type="text"/>
@@ -68,12 +73,48 @@
                           th:if="${#fields.hasErrors('version')}"></span>
                 </div>
                 <div class="form-group col-md-6">
-                    <input autocomplete="off" class="form-control form-control-formatted form-control-untouched"
+                    <input required="required" autocomplete="off" class="form-control form-control-formatted form-control-untouched"
                            placeholder="typeUserApi"
                            th:field="*{typeUserApi}"
                            type="text"/>
                     <span class="help-block color--error" th:errors="*{typeUserApi}"
                           th:if="${#fields.hasErrors('typeUserApi')}"></span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group col-md-6">
+                    <input autocomplete="off" class="form-control form-control-formatted form-control-untouched"
+                           placeholder="welcomeUrl"
+                           th:field="*{welcomeUrl}"
+                           type="text"/>
+                    <span class="help-block color--error" th:errors="*{welcomeUrl}"
+                          th:if="${#fields.hasErrors('welcomeUrl')}"></span>
+                </div>
+                <div class="form-group col-md-6">
+                    <input autocomplete="off" class="form-control form-control-formatted form-control-untouched"
+                           placeholder="completedUrl"
+                           th:field="*{completedUrl}"
+                           type="text"/>
+                    <span class="help-block color--error" th:errors="*{completedUrl}"
+                          th:if="${#fields.hasErrors('completedUrl')}"></span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group col-md-6">
+                    <input autocomplete="off" class="form-control form-control-formatted form-control-untouched"
+                           placeholder="validatedUrl"
+                           th:field="*{validatedUrl}"
+                           type="text"/>
+                    <span class="help-block color--error" th:errors="*{validatedUrl}"
+                          th:if="${#fields.hasErrors('validatedUrl')}"></span>
+                </div>
+                <div class="form-group col-md-6">
+                    <input autocomplete="off" class="form-control form-control-formatted form-control-untouched"
+                           placeholder="deniedUrl"
+                           th:field="*{deniedUrl}"
+                           type="text"/>
+                    <span class="help-block color--error" th:errors="*{deniedUrl}"
+                          th:if="${#fields.hasErrors('deniedUrl')}"></span>
                 </div>
             </div>
             <div class="row">

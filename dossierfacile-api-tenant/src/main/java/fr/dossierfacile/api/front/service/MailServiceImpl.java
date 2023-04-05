@@ -5,15 +5,14 @@ import fr.dossierfacile.api.front.form.ContactForm;
 import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.common.entity.ConfirmationToken;
 import fr.dossierfacile.common.entity.PasswordRecoveryToken;
+import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.User;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.ApplicationType;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import fr.dossierfacile.common.utils.OptionalString;
+import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -24,6 +23,10 @@ import sibApi.TransactionalEmailsApi;
 import sibModel.SendSmtpEmail;
 import sibModel.SendSmtpEmailReplyTo;
 import sibModel.SendSmtpEmailTo;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -48,6 +51,8 @@ public class MailServiceImpl implements MailService {
     private Long templateIdAccountDeleted;
     @Value("${sendinblue.template.id.account.completed}")
     private Long templateIdAccountCompleted;
+    @Value("${sendinblue.template.id.account.completed.with.partner}")
+    private Long templateIdAccountCompletedWithPartner;
     @Value("${sendinblue.template.id.account.email.validation.reminder}")
     private Long templateEmailWhenEmailAccountNotYetValidated;
     @Value("${sendinblue.template.id.account.incomplete.reminder}")
@@ -65,29 +70,35 @@ public class MailServiceImpl implements MailService {
     @Value("${sendinblue.template.id.contact.support}")
     private Long templateIdContactSupport;
 
+    @Value("${link.after.completed.default}")
+    private String defaultCompletedUrl;
+
+    private void sendEmailToTenant(User tenant, Map<String, String> params, Long templateId) {
+        SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
+        sendSmtpEmailTo.setEmail(tenant.getEmail());
+        if (!Strings.isNullOrEmpty(tenant.getFullName())) {
+            sendSmtpEmailTo.setName(tenant.getFullName());
+        }
+        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
+        sendSmtpEmail.templateId(templateId);
+        sendSmtpEmail.params(params);
+        sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
+
+        try {
+            apiInstance.sendTransacEmail(sendSmtpEmail);
+        } catch (ApiException e) {
+            log.error("Email Api Exception" + Sentry.captureException(e), e);
+        }
+    }
+
+
     @Override
     public void sendEmailConfirmAccount(User user, ConfirmationToken confirmationToken) {
         Map<String, String> variables = new HashMap<>();
         variables.put("confirmToken", confirmationToken.getToken());
         variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
 
-        SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
-        sendSmtpEmailTo.setEmail(user.getEmail());
-        if (!Strings.isNullOrEmpty(user.getFullName())) {
-            sendSmtpEmailTo.setName(user.getFullName());
-        }
-
-        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
-        sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
-
-        sendSmtpEmail.templateId(templateIDWelcome);
-        sendSmtpEmail.params(variables);
-
-        try {
-            apiInstance.sendTransacEmail(sendSmtpEmail);
-        } catch (ApiException e) {
-            log.error("Email api exception", e);
-        }
+        sendEmailToTenant(user, variables, templateIDWelcome);
     }
 
     @Override
@@ -97,22 +108,7 @@ public class MailServiceImpl implements MailService {
         variables.put("PRENOM", user.getFirstName());
         variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
 
-        SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
-        sendSmtpEmailTo.setEmail(user.getEmail());
-        if (!Strings.isNullOrEmpty(user.getFullName())) {
-            sendSmtpEmailTo.setName(user.getFullName());
-        }
-
-        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
-        sendSmtpEmail.templateId(templateIdNewPassword);
-        sendSmtpEmail.params(variables);
-        sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
-
-        try {
-            apiInstance.sendTransacEmail(sendSmtpEmail);
-        } catch (ApiException e) {
-            log.error("Email api exception", e);
-        }
+        sendEmailToTenant(user, variables, templateIdNewPassword);
     }
 
     @Override
@@ -128,22 +124,7 @@ public class MailServiceImpl implements MailService {
             templateId = templateIdGroupApplication;
         }
 
-        SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
-        sendSmtpEmailTo.setEmail(guest.getEmail());
-        if (!Strings.isNullOrEmpty(guest.getFullName())) {
-            sendSmtpEmailTo.setName(guest.getFullName());
-        }
-
-        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
-        sendSmtpEmail.templateId(templateId);
-        sendSmtpEmail.params(variables);
-        sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
-
-        try {
-            apiInstance.sendTransacEmail(sendSmtpEmail);
-        } catch (ApiException e) {
-            log.error("Email api exception", e);
-        }
+        sendEmailToTenant(guest, variables, templateId);
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
@@ -154,50 +135,27 @@ public class MailServiceImpl implements MailService {
         variables.put("PRENOM", user.getFirstName());
         variables.put("NOM", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
 
-        SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
-        sendSmtpEmailTo.setEmail(user.getEmail());
-        if (StringUtils.isBlank(user.getFullName())) {
-            sendSmtpEmailTo.setName(user.getEmail());
-        } else {
-            sendSmtpEmailTo.setName(user.getFullName());
-        }
-
-        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
-        sendSmtpEmail.templateId(templateIdAccountDeleted);
-        sendSmtpEmail.params(variables);
-        sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
-
-        try {
-            apiInstance.sendTransacEmail(sendSmtpEmail);
-        } catch (ApiException e) {
-            log.error("Email api exception", e);
-        }
+        sendEmailToTenant(user, variables, templateIdAccountDeleted);
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Async
     @Override
-    public void sendEmailAccountCompleted(User user) {
+    public void sendEmailAccountCompleted(Tenant tenant) {
         Map<String, String> variables = new HashMap<>();
-        variables.put("PRENOM", user.getFirstName());
-        variables.put("NOM", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
-        variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
+        variables.put("PRENOM", tenant.getFirstName());
+        variables.put("NOM", Strings.isNullOrEmpty(tenant.getPreferredName()) ? tenant.getLastName() : tenant.getPreferredName());
 
-        SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
-        sendSmtpEmailTo.setEmail(user.getEmail());
-        if (!Strings.isNullOrEmpty(user.getFullName())) {
-            sendSmtpEmailTo.setName(user.getFullName());
-        }
+        if (tenant.isBelongToPartner()) {
+            UserApi userApi = tenant.getTenantsUserApi().get(0).getUserApi();
+            variables.put("partnerName", userApi.getName2());
+            variables.put("logoUrl", userApi.getLogoUrl());
+            variables.put("callToActionUrl", OptionalString.of(userApi.getCompletedUrl()).orElse(defaultCompletedUrl));
 
-        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
-        sendSmtpEmail.templateId(templateIdAccountCompleted);
-        sendSmtpEmail.params(variables);
-        sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
-
-        try {
-            apiInstance.sendTransacEmail(sendSmtpEmail);
-        } catch (ApiException e) {
-            log.error("Email api exception", e);
+            sendEmailToTenant(tenant, variables, templateIdAccountCompletedWithPartner);
+        } else {
+            variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
+            sendEmailToTenant(tenant, variables, templateIdAccountCompleted);
         }
     }
 
@@ -211,22 +169,7 @@ public class MailServiceImpl implements MailService {
         variables.put("confirmToken", confirmationToken.getToken());
         variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
 
-        SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
-        sendSmtpEmailTo.setEmail(user.getEmail());
-        if (!Strings.isNullOrEmpty(user.getFullName())) {
-            sendSmtpEmailTo.setName(user.getFullName());
-        }
-
-        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
-        sendSmtpEmail.templateId(templateEmailWhenEmailAccountNotYetValidated);
-        sendSmtpEmail.params(variables);
-        sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
-
-        try {
-            apiInstance.sendTransacEmail(sendSmtpEmail);
-        } catch (ApiException e) {
-            log.error("Email api exception", e);
-        }
+        sendEmailToTenant(user, variables, templateEmailWhenEmailAccountNotYetValidated);
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
@@ -238,22 +181,7 @@ public class MailServiceImpl implements MailService {
         variables.put("NOM", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
         variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
 
-        SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
-        sendSmtpEmailTo.setEmail(user.getEmail());
-        if (!Strings.isNullOrEmpty(user.getFullName())) {
-            sendSmtpEmailTo.setName(user.getFullName());
-        }
-
-        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
-        sendSmtpEmail.templateId(templateEmailWhenAccountNotYetCompleted);
-        sendSmtpEmail.params(variables);
-        sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
-
-        try {
-            apiInstance.sendTransacEmail(sendSmtpEmail);
-        } catch (ApiException e) {
-            log.error("Email api exception", e);
-        }
+        sendEmailToTenant(user, variables, templateEmailWhenAccountNotYetCompleted);
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
@@ -265,22 +193,7 @@ public class MailServiceImpl implements MailService {
         variables.put("NOM", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
         variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
 
-        SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
-        sendSmtpEmailTo.setEmail(user.getEmail());
-        if (!Strings.isNullOrEmpty(user.getFullName())) {
-            sendSmtpEmailTo.setName(user.getFullName());
-        }
-
-        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
-        sendSmtpEmail.templateId(templateEmailWhenAccountIsStillDeclined);
-        sendSmtpEmail.params(variables);
-        sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
-
-        try {
-            apiInstance.sendTransacEmail(sendSmtpEmail);
-        } catch (ApiException e) {
-            log.error("Email api exception", e);
-        }
+        sendEmailToTenant(user, variables, templateEmailWhenAccountIsStillDeclined);
     }
 
     @Override
@@ -288,22 +201,7 @@ public class MailServiceImpl implements MailService {
         Map<String, String> variables = new HashMap<>();
         variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
 
-        SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
-        sendSmtpEmailTo.setEmail(user.getEmail());
-        if (!Strings.isNullOrEmpty(user.getFullName())) {
-            sendSmtpEmailTo.setName(user.getFullName());
-        }
-
-        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
-        sendSmtpEmail.templateId(templateEmailWhenTenantNOTAssociatedToPartnersAndValidated);
-        sendSmtpEmail.params(variables);
-        sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
-
-        try {
-            apiInstance.sendTransacEmail(sendSmtpEmail);
-        } catch (ApiException e) {
-            log.error("Email api exception", e);
-        }
+        sendEmailToTenant(user, variables, templateEmailWhenTenantNOTAssociatedToPartnersAndValidated);
     }
 
     @Override
@@ -311,22 +209,7 @@ public class MailServiceImpl implements MailService {
         Map<String, String> variables = new HashMap<>();
         variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
 
-        SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
-        sendSmtpEmailTo.setEmail(user.getEmail());
-        if (!Strings.isNullOrEmpty(user.getFullName())) {
-            sendSmtpEmailTo.setName(user.getFullName());
-        }
-
-        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
-        sendSmtpEmail.templateId(templateEmailWhenTenantYESAssociatedToPartnersAndValidated);
-        sendSmtpEmail.params(variables);
-        sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
-
-        try {
-            apiInstance.sendTransacEmail(sendSmtpEmail);
-        } catch (ApiException e) {
-            log.error("Email api exception", e);
-        }
+        sendEmailToTenant(user, variables, templateEmailWhenTenantYESAssociatedToPartnersAndValidated);
     }
 
     @Override
@@ -365,23 +248,9 @@ public class MailServiceImpl implements MailService {
     public void sendEmailWelcomeForPartnerUser(User user, UserApi userApi) {
         Map<String, String> variables = new HashMap<>();
         variables.put("partnerName", userApi.getName2());
-        variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
+        variables.put("logoUrl", userApi.getLogoUrl());
+        variables.put("callToActionUrl", userApi.getWelcomeUrl());
 
-        SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
-        sendSmtpEmailTo.setEmail(user.getEmail());
-        if (!Strings.isNullOrEmpty(user.getFullName())) {
-            sendSmtpEmailTo.setName(user.getFullName());
-        }
-
-        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
-        sendSmtpEmail.templateId(templateIDWelcomePartner);
-        sendSmtpEmail.params(variables);
-        sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
-
-        try {
-            apiInstance.sendTransacEmail(sendSmtpEmail);
-        } catch (ApiException e) {
-            log.error("Email api exception", e);
-        }
+        sendEmailToTenant(user, variables, templateIDWelcomePartner);
     }
 }

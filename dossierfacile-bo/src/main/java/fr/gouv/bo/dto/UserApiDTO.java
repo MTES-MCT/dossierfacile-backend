@@ -14,23 +14,21 @@ import javax.validation.constraints.NotNull;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserApiDTO {
-
     private Long id;
-
-    @NotBlank
     private String urlCallback;
-
     @NotBlank
     private String name;
-
     private String name2;
     private String site;
     @NotNull
     private TypeUserApi typeUserApi;
-    private String textModal;
     private String partnerApiKeyCallback;
     @NotNull
     private Integer version;
     private boolean disabled;
-
+    private String logoUrl;
+    private String welcomeUrl;
+    private String completedUrl;
+    private String deniedUrl;
+    private String validatedUrl;
 }
