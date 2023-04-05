@@ -12,7 +12,6 @@ import fr.dossierfacile.common.service.interfaces.ConfirmationTokenService;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.dossierfacile.common.service.interfaces.TenantCommonService;
-import fr.dossierfacile.garbagecollector.service.interfaces.DocumentService;
 import fr.dossierfacile.garbagecollector.service.interfaces.GuarantorService;
 import fr.dossierfacile.garbagecollector.service.interfaces.MailService;
 import fr.dossierfacile.garbagecollector.service.interfaces.TenantWarningService;
@@ -33,7 +32,6 @@ public class TenantWarningServiceImpl implements TenantWarningService {
     private final MailService mailService;
     private final ConfirmationTokenService confirmationTokenService;
     private final ConfirmationTokenRepository confirmationTokenRepository;
-    private final DocumentService documentService;
     private final GuarantorService guarantorService;
     private final TenantCommonRepository tenantRepository;
     private final PartnerCallBackService partnerCallBackService;
