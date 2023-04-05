@@ -19,6 +19,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import javax.servlet.http.HttpServletResponse;
 
+import java.time.LocalDateTime;
+
 import static org.springframework.http.ResponseEntity.ok;
 
 @RestController
@@ -55,6 +57,7 @@ public class OwnerController {
     @GetMapping(value = "/profile")
     public ResponseEntity<OwnerModel> profile() {
         Owner owner = authenticationFacade.getOwner();
+        ownerService.updateLastLoginDate(owner);
         return ok(ownerMapper.toOwnerModel(owner));
     }
 

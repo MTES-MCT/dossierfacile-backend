@@ -9,6 +9,8 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 @Slf4j
 @Service
 @AllArgsConstructor
@@ -34,6 +36,12 @@ public class OwnerServiceImpl implements OwnerService {
         logService.saveLog(LogType.ACCOUNT_DELETE, owner.getId());
         keycloakService.deleteKeycloakUser(owner);
         ownerRepository.delete(owner);
+    }
+
+    @Override
+    public void updateLastLoginDate(Owner owner) {
+        owner.setLastLoginDate(LocalDateTime.now());
+        ownerRepository.save(owner);
     }
 
 }
