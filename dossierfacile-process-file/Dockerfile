@@ -1,6 +1,6 @@
-FROM ubuntu:18.04
+FROM ubuntu:23.04
 RUN apt-get update \
-    && apt-get install -y openjdk-17-jre-headless \
+    && apt-get install -y openjdk-20-jre-headless \
     && apt-get install tesseract-ocr -y \
     && apt-get install tesseract-ocr-fra -y \
     && apt-get install tesseract-ocr-eng -y
