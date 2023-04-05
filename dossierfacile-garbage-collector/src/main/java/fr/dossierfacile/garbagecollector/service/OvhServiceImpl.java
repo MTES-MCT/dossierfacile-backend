@@ -9,10 +9,8 @@ import org.openstack4j.api.exceptions.AuthenticationException;
 import org.openstack4j.api.exceptions.ClientResponseException;
 import org.openstack4j.api.storage.ObjectStorageObjectService;
 import org.openstack4j.core.transport.Config;
-import org.openstack4j.model.common.ActionResponse;
 import org.openstack4j.model.common.Identifier;
 import org.openstack4j.model.storage.object.SwiftObject;
-
 import org.openstack4j.model.storage.object.options.ObjectLocation;
 import org.openstack4j.openstack.OSFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -119,42 +117,22 @@ public class OvhServiceImpl implements OvhService {
 
     @Override
     public void renameFile(String oldName, String newName) {
-        int attempts = 0;
-//        while (attempts++ < ovhConnectionReattempts) {
-//            try {
-                final ObjectStorageObjectService objService = getObjectStorage();
-                String eTag = objService.copy(ObjectLocation.create(ovhContainerName, oldName), ObjectLocation.create(ovhContainerName, newName));
-                if (eTag != null && !eTag.isEmpty()) {
-                    objService.delete(ovhContainerName, oldName);
-                    log.info("[" + oldName + "] renamed to [" + newName + "]");
-                    return;
-                }
-                log.info(eTag);
-                log.error("[" + oldName + "] was not renamed successfully");
-                String customExceptionMessage = OVH_CONNECT + "Could not rename the file [" + oldName + "]";
-                throw new OvhConnectionFailedException(customExceptionMessage);
-//            } catch (Exception e) {
-//                log.error(e.getMessage());
-//                if (attempts == ovhConnectionReattempts) {
-//                    log.error(OVH_CONNECT + EXCEPTION + Sentry.captureException(e));
-//                    log.error(e.getClass().getName());
-//                    String customExceptionMessage = OVH_CONNECT + "Could not connect to the storage provider after " + attempts + " attempts with given credentials";
-//                    throw new OvhConnectionFailedException(customExceptionMessage, e.getCause());
-//                }
-//                try {
-//                    log.info("Waiting 60 seconds for the next retry...");
-//                    Thread.sleep(60000);
-//                } catch (InterruptedException b) {
-//                    log.error(b.getMessage());
-//                    log.error("Unable to sleep the process");
-//                }
-//            }
-//        }
+        final ObjectStorageObjectService objService = getObjectStorage();
+        String eTag = objService.copy(ObjectLocation.create(ovhContainerName, oldName), ObjectLocation.create(ovhContainerName, newName));
+        if (eTag != null && !eTag.isEmpty()) {
+            objService.delete(ovhContainerName, oldName);
+            log.info("[" + oldName + "] renamed to [" + newName + "]");
+            return;
+        }
+        log.info(eTag);
+        log.error("[" + oldName + "] was not renamed successfully");
+        String customExceptionMessage = OVH_CONNECT + "Could not rename the file [" + oldName + "]";
+        throw new OvhConnectionFailedException(customExceptionMessage);
     }
 
     @Override
     public boolean hasConnection() {
-    //check if there is connection to ovh
+        //check if there is connection to ovh
         if (getObjectStorage() == null) {
             log.warn("No connection to OVH " + "\n");
             return false;
