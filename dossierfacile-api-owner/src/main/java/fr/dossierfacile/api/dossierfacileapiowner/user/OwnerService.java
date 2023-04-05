@@ -7,4 +7,6 @@ public interface OwnerService {
     OwnerModel setNames(NamesForm namesForm);
 
     void deleteAccount(Owner owner);
+
+    void updateLastLoginDate(Owner owner);
 }
