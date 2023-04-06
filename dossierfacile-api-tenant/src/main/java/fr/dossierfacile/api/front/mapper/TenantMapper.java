@@ -27,18 +27,19 @@ import java.util.Optional;
 @Component
 @Mapper(componentModel = "spring")
 public abstract class TenantMapper {
+    private static final String PATH = "api/document/resource";
+    private static final String PREVIEW_PATH = "/api/file/preview/";
+
     @Value("${application.domain}")
     protected String domain;
-    @Value("${application.file.path}")
-    private String path;
 
-    @Mapping(target="passwordEnabled", expression="java(tenant.getPassword() != null)")
+    @Mapping(target = "passwordEnabled", expression = "java(tenant.getPassword() != null)")
     public abstract TenantModel toTenantModel(Tenant tenant);
 
     @Mapping(target = "connectedTenantId", source = "id")
     public abstract ConnectedTenantModel toTenantModelDfc(Tenant tenant);
 
-    @Mapping(target = "preview", expression = "java((documentFile.getPreview() != null )? domain + \"/api/file/preview/\" + documentFile.getId() : null)")
+    @Mapping(target = "preview", expression = "java((documentFile.getPreview() != null )? domain + \"" + PREVIEW_PATH + "\" + documentFile.getId() : null)")
     public abstract FileModel toFileModel(File documentFile);
 
     @AfterMapping
@@ -56,7 +57,7 @@ public abstract class TenantMapper {
         var filePath = isDossierUser ? "/api/file/resource/" : "/api-partner/tenant/" + tenantModel.getId() + "/file/resource/";
         setDocumentDeniedReasonsAndDocumentAndFilesRoutes(tenantModel.getDocuments(), filePath, false);
 
-        tenantModel.getApartmentSharing().getTenants().stream().filter( t -> Objects.equals(t.getId(), tenantModel.getId())).forEach(
+        tenantModel.getApartmentSharing().getTenants().stream().filter(t -> Objects.equals(t.getId(), tenantModel.getId())).forEach(
                 t -> {
                     t.setDocuments(null);
                     t.setGuarantors(null);
@@ -78,7 +79,7 @@ public abstract class TenantMapper {
         Optional.ofNullable(list)
                 .ifPresent(documentModels -> documentModels.forEach(documentModel -> {
                     if (documentModel.getName() != null) {
-                        documentModel.setName(domain + "/" + path + "/" + documentModel.getName());
+                        documentModel.setName(domain + "/" + PATH + "/" + documentModel.getName());
                     }
                     DocumentDeniedReasonsModel documentDeniedReasonsModel = documentModel.getDocumentDeniedReasons();
                     if (documentDeniedReasonsModel != null) {
@@ -162,7 +163,7 @@ public abstract class TenantMapper {
                             documentModel.setDocumentDeniedReasons(documentDeniedReasonsModel);
                         }
                     }
-                    documentModel.setName(domain + "/" + path + "/" + documentModel.getName());
+                    documentModel.setName(domain + "/" + PATH + "/" + documentModel.getName());
                 }));
     }
 }

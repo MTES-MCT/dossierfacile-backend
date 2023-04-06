@@ -53,9 +53,8 @@ public class MailService {
     private void sendEmailToTenant(User tenant, Map<String, String> params, Long templateId) {
         SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
         sendSmtpEmailTo.setEmail(tenant.getEmail());
-        if (!Strings.isNullOrEmpty(tenant.getFullName())) {
-            sendSmtpEmailTo.setName(tenant.getFullName());
-        }
+        OptionalString.of(tenant.getFullName()).ifNotBlank( name -> sendSmtpEmailTo.setName(name));
+
         SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
         sendSmtpEmail.templateId(templateId);
         sendSmtpEmail.params(params);

@@ -18,8 +18,6 @@ import java.util.Optional;
 public abstract class TenantMapper {
     @Value("${application.domain}")
     private String domain;
-    @Value("${application.file.path}")
-    private String path;
 
     public abstract TenantModel toTenantModel(Tenant tenant);
 
