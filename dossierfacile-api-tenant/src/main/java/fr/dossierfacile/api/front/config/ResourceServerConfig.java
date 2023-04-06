@@ -55,7 +55,7 @@ public class ResourceServerConfig {
                 .expressionHandler(new CustomWebSecurityExpressionHandler())
                 .antMatchers("/swagger-ui/**", "/swagger-resources/**", "/v2/api-docs", "/api/register/account", "/api/register/confirmAccount/**",
                         "/api/auth/**", "/api/user/forgotPassword", "/api/user/createPassword/**",
-                        "/api/document/**", "/api/file/download/**", "/api/application/full/**", "/api/application/light/**",
+                        "/api/document/**", "/api/application/full/**", "/api/application/light/**",
                         "/api/application/fullPdf/**", "/api/tenant/property/**",
                         "/api/support/email",
                         "/api/stats/**",

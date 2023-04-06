@@ -60,8 +60,7 @@ public class ApiPartnerFileController {
     @PreAuthorize("hasPermissionOnTenant(#tenantId)")
     @GetMapping(value = "/resource/{id}", produces = {MediaType.APPLICATION_PDF_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
     public void getPrivateFileAsByteArray(HttpServletResponse response, @PathVariable Long id, @PathVariable Long tenantId) {
-        Tenant tenant = tenantService.findById(tenantId);
-        File file = fileRepository.findByIdForTenant(id, tenant.getId()).orElseThrow(() -> new FileNotFoundException(id));
+        File file = fileRepository.findByIdForTenant(id, tenantId).orElseThrow(() -> new FileNotFoundException(id));
 
         try (InputStream in = fileStorageService.download(file) ) {
             response.setContentType(file.getComputedContentType());
@@ -70,6 +69,5 @@ public class ApiPartnerFileController {
             log.error(FILE_NO_EXIST);
             response.setStatus(404);
         }
-
     }
 }

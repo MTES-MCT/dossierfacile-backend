@@ -2,6 +2,8 @@ package fr.dossierfacile.common.utils;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.function.Consumer;
+
 public class OptionalString {
     private final String str;
 
@@ -24,5 +26,10 @@ public class OptionalString {
 
     public String get() {
         return str;
+    }
+
+    public void ifNotBlank(Consumer<? super String> action) {
+        if (StringUtils.isNotBlank(str))
+            action.accept(str);
     }
 }
