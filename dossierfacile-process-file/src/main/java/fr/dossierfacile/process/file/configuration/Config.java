@@ -1,6 +1,5 @@
 package fr.dossierfacile.process.file.configuration;
 
-import com.google.gson.Gson;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.AuditorAware;
@@ -12,10 +11,6 @@ import java.util.Optional;
 @Configuration
 @EnableJpaAuditing
 public class Config {
-    @Bean
-    public Gson gson() {
-        return new Gson();
-    }
 
     @Bean
     public String configPDFBox() {

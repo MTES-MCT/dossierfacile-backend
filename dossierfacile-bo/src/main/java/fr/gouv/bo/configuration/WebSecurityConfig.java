@@ -1,6 +1,8 @@
 package fr.gouv.bo.configuration;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import fr.dossierfacile.common.utils.LocalDateTimeTypeAdapter;
 import nz.net.ultraq.thymeleaf.LayoutDialect;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,10 +21,10 @@ import org.springframework.security.oauth2.client.web.HttpSessionOAuth2Authoriza
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
-import org.springframework.security.web.header.writers.StaticHeadersWriter;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.RequestContextListener;
 
+import java.time.LocalDateTime;
 import java.util.concurrent.Executor;
 
 @Configuration
@@ -128,7 +130,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     public Gson gson() {
-        return new Gson();
+        GsonBuilder builder = new GsonBuilder();
+        builder.registerTypeAdapter(LocalDateTime.class, new LocalDateTimeTypeAdapter());
+        return builder.create();
     }
 
     @Bean
