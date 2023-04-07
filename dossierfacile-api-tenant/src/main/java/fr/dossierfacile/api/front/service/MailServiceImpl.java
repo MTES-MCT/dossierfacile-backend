@@ -69,9 +69,10 @@ public class MailServiceImpl implements MailService {
     private Long templateSecondWarningForDeletionOfDocuments;
     @Value("${sendinblue.template.id.contact.support}")
     private Long templateIdContactSupport;
-
     @Value("${link.after.completed.default}")
     private String defaultCompletedUrl;
+    @Value("${link.after.created.default}")
+    private String defaultCreatedUrl;
 
     private void sendEmailToTenant(User tenant, Map<String, String> params, Long templateId) {
         SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
@@ -249,7 +250,7 @@ public class MailServiceImpl implements MailService {
         Map<String, String> variables = new HashMap<>();
         variables.put("partnerName", userApi.getName2());
         variables.put("logoUrl", userApi.getLogoUrl());
-        variables.put("callToActionUrl", userApi.getWelcomeUrl());
+        variables.put("callToActionUrl", OptionalString.of(userApi.getWelcomeUrl()).orElse(defaultCreatedUrl));
 
         sendEmailToTenant(user, variables, templateIDWelcomePartner);
     }
