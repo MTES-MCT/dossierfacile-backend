@@ -1,11 +1,15 @@
 package fr.dossierfacile.api.front.config;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import fr.dossierfacile.common.utils.LocalDateTimeTypeAdapter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDateTime;
 import java.util.concurrent.Executor;
 
 @Configuration
@@ -32,4 +36,12 @@ public class GeneralConfiguration {
         threadPoolTaskScheduler.setThreadNamePrefix("DF-Sch-Exec-");
         return threadPoolTaskScheduler;
     }
+
+    @Bean
+    public Gson gson() {
+        GsonBuilder builder = new GsonBuilder();
+        builder.registerTypeAdapter(LocalDateTime.class, new LocalDateTimeTypeAdapter());
+        return builder.create();
+    }
+
 }
