@@ -1,6 +1,8 @@
 package fr.gouv.bo.configuration;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import fr.dossierfacile.common.utils.LocalDateTimeTypeAdapter;
 import nz.net.ultraq.thymeleaf.LayoutDialect;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,10 +21,10 @@ import org.springframework.security.oauth2.client.web.HttpSessionOAuth2Authoriza
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
-import org.springframework.security.web.header.writers.StaticHeadersWriter;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.RequestContextListener;
 
+import java.time.LocalDateTime;
 import java.util.concurrent.Executor;
 
 @Configuration
@@ -49,7 +51,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .cacheControl()
                 .and()
-                .contentSecurityPolicy("frame-ancestors *.dossierfacile.fr; frame-src *.dossierfacile.fr; child-src 'none'; upgrade-insecure-requests; default-src 'none'; script-src 'self'; style-src 'self' fonts.googleapis.com 'unsafe-inline'; object-src *.dossierfacile.fr; img-src 'self' data:; font-src 'self' fonts.gstatic.com; connect-src *.dossierfacile.fr; base-uri 'self'; media-src 'none'; worker-src *.dossierfacile.fr; manifest-src 'none'; prefetch-src 'none';")
+                .contentSecurityPolicy("frame-ancestors *.dossierfacile.fr; frame-src *.dossierfacile.fr; child-src 'none'; upgrade-insecure-requests; default-src 'none'; script-src 'self'; style-src 'self' fonts.googleapis.com 'unsafe-inline'; object-src *.dossierfacile.fr; img-src 'self' *.dossierfacile.fr data:; font-src 'self' fonts.gstatic.com; connect-src *.dossierfacile.fr; base-uri 'self'; media-src 'none'; worker-src *.dossierfacile.fr; manifest-src 'none'; prefetch-src 'none';")
                 .and()
                 .httpStrictTransportSecurity().disable()// Scalingo force https and add this policy
                 .frameOptions()
@@ -128,7 +130,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     public Gson gson() {
-        return new Gson();
+        GsonBuilder builder = new GsonBuilder();
+        builder.registerTypeAdapter(LocalDateTime.class, new LocalDateTimeTypeAdapter());
+        return builder.create();
     }
 
     @Bean

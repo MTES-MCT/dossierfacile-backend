@@ -25,11 +25,16 @@
                     <th>name</th>
                     <th>name2</th>
                     <th>site</th>
+                    <th>logo</th>
                     <th>urlCallback</th>
                     <th>partnerApiKeyCallback</th>
                     <th>typeUserApi</th>
-                    <th>textModal</th>
                     <th>version</th>
+                    <th>welcomeUrl</th>
+                    <th>completedUrl</th>
+                    <th>deniedUrl</th>
+                    <th>validatedUrl</th>
+
                     <th>Edit</th>
                 </tr>
                 </thead>
@@ -43,12 +48,17 @@
                     <td th:text="${userApi.name}?: '-'"></td>
                     <td th:text="${userApi.name2}?: '-'"></td>
                     <td th:text="${userApi.site}?: '-'"></td>
+                    <td><img height="20px" alt="" th:src="${userApi.logoUrl}"/></td>
                     <td th:text="${userApi.urlCallback}?: '-'"></td>
                     <td th:text="${userApi.partnerApiKeyCallback}?: '-'"></td>
 
                     <td th:text="${userApi.typeUserApi}?: '-'"></td>
-                    <td th:text="${userApi.textModal}?: '-'"></td>
                     <td th:text="${userApi.version}?: '-'"></td>
+                    <td th:text="${userApi.welcomeUrl}?: '-'"></td>
+                    <td th:text="${userApi.completedUrl}?: '-'"></td>
+                    <td th:text="${userApi.deniedUrl}?: '-'"></td>
+                    <td th:text="${userApi.validatedUrl}?: '-'"></td>
+
                     <td><a class="fa fa-pencil nounderline" th:href="@{/bo/userApi/} + ${userApi.id}"></a></td>
                 </tr>
                 </tbody>

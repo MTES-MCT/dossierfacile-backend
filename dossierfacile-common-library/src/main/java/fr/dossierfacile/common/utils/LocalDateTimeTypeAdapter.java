@@ -1,4 +1,4 @@
-package fr.dossierfacile.api.front.util;
+package fr.dossierfacile.common.utils;
 
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;

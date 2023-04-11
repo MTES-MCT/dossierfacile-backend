@@ -16,11 +16,10 @@ import java.util.Optional;
 @Component
 @Mapper(componentModel = "spring")
 public abstract class ApplicationFullMapper implements ApartmentSharingMapper {
+    private static final String PATH = "api/document/resource";
 
     @Value("${application.domain:default}")
     private String domain;
-    @Value("${application.file.path:default}")
-    private String path;
 
     public abstract ApplicationModel toApplicationModel(ApartmentSharing apartmentSharing);
 
@@ -39,13 +38,13 @@ public abstract class ApplicationFullMapper implements ApartmentSharingMapper {
                 .forEach(tenantModel -> {
                     Optional.ofNullable(tenantModel.getDocuments())
                             .orElse(new ArrayList<>())
-                            .forEach(documentModel -> documentModel.setName(domain + "/" + path + "/" + documentModel.getName()));
+                            .forEach(documentModel -> documentModel.setName(domain + "/" + PATH + "/" + documentModel.getName()));
                     Optional.ofNullable(tenantModel.getGuarantors())
                             .orElse(new ArrayList<>())
                             .forEach(guarantorModel ->
                                     Optional.ofNullable(guarantorModel.getDocuments())
                                             .orElse(new ArrayList<>())
-                                            .forEach(documentModel -> documentModel.setName(domain + "/" + path + "/" + documentModel.getName())));
+                                            .forEach(documentModel -> documentModel.setName(domain + "/" + PATH + "/" + documentModel.getName())));
                 });
     }
 }

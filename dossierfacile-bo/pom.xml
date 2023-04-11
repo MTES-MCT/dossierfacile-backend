@@ -24,12 +24,12 @@
         <log4j2.version>2.17.1</log4j2.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <java.version>15</java.version>
-        <maven.compiler.source>15</maven.compiler.source>
-        <maven.compiler.target>15</maven.compiler.target>
+        <java.version>19</java.version>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
         <jackson.version>2.11.0</jackson.version>
         <org.mapstruct.version>1.4.2.Final</org.mapstruct.version>
-        <lombok.version>1.18.20</lombok.version>
+        <lombok.version>1.18.26</lombok.version>
         <dossierfacile.common.version>0.0.1-SNAPSHOT</dossierfacile.common.version>
         <thymeleaf.version>3.0.15.RELEASE</thymeleaf.version>
         <pdfbox.tools.version>2.0.27</pdfbox.tools.version>

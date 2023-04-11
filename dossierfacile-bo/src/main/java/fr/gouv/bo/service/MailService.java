@@ -3,10 +3,8 @@ package fr.gouv.bo.service;
 import com.google.common.base.Strings;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.User;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
+import fr.dossierfacile.common.entity.UserApi;
+import fr.dossierfacile.common.utils.OptionalString;
 import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +15,10 @@ import sendinblue.ApiException;
 import sibApi.TransactionalEmailsApi;
 import sibModel.SendSmtpEmail;
 import sibModel.SendSmtpEmailTo;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -35,128 +37,117 @@ public class MailService {
     private Long templateIdDossierFullyValidated;
     @Value("${sendinblue.template.id.dossier.tenant.denied}")
     private Long templateIdDossierTenantDenied;
+    @Value("${sendinblue.template.id.message.notification.with.partner}")
+    private Long templateIDMessageNotificationWithPartner;
+    @Value("${sendinblue.template.id.dossier.validated.with.partner}")
+    private Long templateIdDossierValidatedWithPartner;
+    @Value("${sendinblue.template.id.dossier.fully.validated.with.partner}")
+    private Long templateIdDossierFullyValidatedWithPartner;
+    @Value("${sendinblue.template.id.dossier.tenant.denied.with.partner}")
+    private Long templateIdDossierTenantDeniedWithPartner;
+    @Value("${link.after.denied.default}")
+    private String defaultDeniedUrl;
+    @Value("${link.after.validated.default}")
+    private String defaultValidatedUrl;
 
-    @Async
-    public void sendEmailAccountDeleted(User user) {
-        Map<String, String> variables = new HashMap<>();
-        variables.put("PRENOM", user.getFirstName());
-        variables.put("NOM", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
-
+    private void sendEmailToTenant(User tenant, Map<String, String> params, Long templateId) {
         SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
-        sendSmtpEmailTo.setEmail(user.getEmail());
-        if (!Strings.isNullOrEmpty(user.getFullName())) {
-            sendSmtpEmailTo.setName(user.getFullName());
-        }
+        sendSmtpEmailTo.setEmail(tenant.getEmail());
+        OptionalString.of(tenant.getFullName()).ifNotBlank( name -> sendSmtpEmailTo.setName(name));
 
         SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
-        sendSmtpEmail.templateId(templateIdAccountDeleted);
-        sendSmtpEmail.params(variables);
+        sendSmtpEmail.templateId(templateId);
+        sendSmtpEmail.params(params);
         sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
 
         try {
             apiInstance.sendTransacEmail(sendSmtpEmail);
         } catch (ApiException e) {
-            log.error("Email api exception", e);
+            log.error("Email Api Exception" + Sentry.captureException(e), e);
         }
     }
 
     @Async
-    public void sendMailNotificationAfterDeny(User user) {
-        Map<String, String> variables = new HashMap<>();
-        variables.put("PRENOM", user.getFirstName());
-        variables.put("NOM", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
-        variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
+    public void sendEmailAccountDeleted(Tenant tenant) {
+        Map<String, String> params = new HashMap<>();
+        params.put("PRENOM", tenant.getFirstName());
+        params.put("NOM", OptionalString.of(tenant.getPreferredName()).orElse(tenant.getLastName()));
+        sendEmailToTenant(tenant, params, templateIdAccountDeleted);
+    }
 
-        SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
-        sendSmtpEmailTo.setEmail(user.getEmail());
-        if (!Strings.isNullOrEmpty(user.getFullName())) {
-            sendSmtpEmailTo.setName(user.getFullName());
-        }
+    @Async
+    public void sendMailNotificationAfterDeny(Tenant tenant) {
+        Map<String, String> params = new HashMap<>();
+        params.put("PRENOM", tenant.getFirstName());
+        params.put("NOM", OptionalString.of(tenant.getPreferredName()).orElse(tenant.getLastName()));
+        params.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
 
-        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
-        sendSmtpEmail.templateId(templateIDMessageNotification);
-        sendSmtpEmail.params(variables);
-        sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
+        if (tenant.isBelongToPartner()) {
+            UserApi userApi = tenant.getTenantsUserApi().get(0).getUserApi();
+            params.put("partnerName", userApi.getName2());
+            params.put("logoUrl", userApi.getLogoUrl());
+            params.put("callToActionUrl", OptionalString.of(userApi.getDeniedUrl()).orElse(defaultDeniedUrl));
 
-        try {
-            apiInstance.sendTransacEmail(sendSmtpEmail);
-        } catch (ApiException e) {
-            log.error("Email api exception", e);
+            sendEmailToTenant(tenant, params, templateIDMessageNotificationWithPartner);
+        } else {
+            sendEmailToTenant(tenant, params, templateIDMessageNotification);
         }
     }
 
     @Async
     public void sendEmailToTenantAfterValidateAllDocumentsOfTenant(Tenant tenant) {
-        Map<String, String> variables = new HashMap<>();
-        variables.put("PRENOM", tenant.getFirstName());
-        variables.put("NOM", Strings.isNullOrEmpty(tenant.getPreferredName()) ? tenant.getLastName() : tenant.getPreferredName());
-        variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
+        Map<String, String> params = new HashMap<>();
+        params.put("PRENOM", tenant.getFirstName());
+        params.put("NOM", OptionalString.of(tenant.getPreferredName()).orElse(tenant.getLastName()));
+        params.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
 
-        SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
-        sendSmtpEmailTo.setEmail(tenant.getEmail());
-        if (!Strings.isNullOrEmpty(tenant.getFullName())) {
-            sendSmtpEmailTo.setName(tenant.getFullName());
-        }
+        if (tenant.isBelongToPartner()) {
+            UserApi userApi = tenant.getTenantsUserApi().get(0).getUserApi();
+            params.put("partnerName", userApi.getName2());
+            params.put("logoUrl", userApi.getLogoUrl());
+            params.put("callToActionUrl", OptionalString.of(userApi.getValidatedUrl()).orElse(defaultValidatedUrl));
 
-        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
-        sendSmtpEmail.templateId(templateIdDossierValidated);
-        sendSmtpEmail.params(variables);
-        sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
-
-        try {
-            apiInstance.sendTransacEmail(sendSmtpEmail);
-        } catch (ApiException e) {
-            log.error("Email Api Exception" + Sentry.captureException(e), e);
+            sendEmailToTenant(tenant, params, templateIdDossierValidatedWithPartner);
+        } else {
+            sendEmailToTenant(tenant, params, templateIdDossierValidated);
         }
     }
-    
+
     @Async
     public void sendEmailToTenantAfterValidateAllDocuments(Tenant tenant) {
-        Map<String, String> variables = new HashMap<>();
-        variables.put("PRENOM", tenant.getFirstName());
-        variables.put("NOM", Strings.isNullOrEmpty(tenant.getPreferredName()) ? tenant.getLastName() : tenant.getPreferredName());
-        variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
+        Map<String, String> params = new HashMap<>();
+        params.put("PRENOM", tenant.getFirstName());
+        params.put("NOM", OptionalString.of(tenant.getPreferredName()).orElse(tenant.getLastName()));
+        params.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
 
-        SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
-        sendSmtpEmailTo.setEmail(tenant.getEmail());
-        if (!Strings.isNullOrEmpty(tenant.getFullName())) {
-            sendSmtpEmailTo.setName(tenant.getFullName());
+        if (tenant.isBelongToPartner()) {
+            UserApi userApi = tenant.getTenantsUserApi().get(0).getUserApi();
+            params.put("partnerName", userApi.getName2());
+            params.put("logoUrl", userApi.getLogoUrl());
+            params.put("callToActionUrl", OptionalString.of(userApi.getValidatedUrl()).orElse(defaultValidatedUrl));
+
+            sendEmailToTenant(tenant, params, templateIdDossierFullyValidatedWithPartner);
+        } else {
+            sendEmailToTenant(tenant, params, templateIdDossierFullyValidated);
         }
-
-        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
-        sendSmtpEmail.templateId(templateIdDossierFullyValidated);
-        sendSmtpEmail.params(variables);
-        sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
-
-        try {
-            apiInstance.sendTransacEmail(sendSmtpEmail);
-        } catch (ApiException e) {
-            log.error("Email Api Exception" + Sentry.captureException(e), e);
-        }    
     }
-    
+
     @Async
-    public void sendEmailToTenantAfterTenantDenied(Tenant user, Tenant deniedTenant) {
-        Map<String, String> variables = new HashMap<>();
-        variables.put("PRENOM", deniedTenant.getFirstName());
-        variables.put("NOM", Strings.isNullOrEmpty(deniedTenant.getPreferredName()) ? deniedTenant.getLastName() : deniedTenant.getPreferredName());
-        variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
+    public void sendEmailToTenantAfterTenantDenied(Tenant tenant, Tenant deniedTenant) {
+        Map<String, String> params = new HashMap<>();
+        params.put("PRENOM", deniedTenant.getFirstName());
+        params.put("NOM", Strings.isNullOrEmpty(deniedTenant.getPreferredName()) ? deniedTenant.getLastName() : deniedTenant.getPreferredName());
+        params.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
 
-        SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
-        sendSmtpEmailTo.setEmail(user.getEmail());
-        if (!Strings.isNullOrEmpty(user.getFullName())) {
-            sendSmtpEmailTo.setName(user.getFullName());
-        }
+        if (tenant.isBelongToPartner()) {
+            UserApi userApi = tenant.getTenantsUserApi().get(0).getUserApi();
+            params.put("partnerName", userApi.getName2());
+            params.put("logoUrl", userApi.getLogoUrl());
+            params.put("callToActionUrl", OptionalString.of(userApi.getDeniedUrl()).orElse(defaultDeniedUrl));
 
-        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
-        sendSmtpEmail.templateId(templateIdDossierTenantDenied);
-        sendSmtpEmail.params(variables);
-        sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
-
-        try {
-            apiInstance.sendTransacEmail(sendSmtpEmail);
-        } catch (ApiException e) {
-            log.error("Email Api Exception" + Sentry.captureException(e), e);
+            sendEmailToTenant(tenant, params, templateIdDossierTenantDeniedWithPartner);
+        } else {
+            sendEmailToTenant(tenant, params, templateIdDossierTenantDenied);
         }
     }
 }

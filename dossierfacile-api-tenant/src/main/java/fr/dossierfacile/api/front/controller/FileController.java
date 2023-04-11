@@ -76,22 +76,6 @@ public class FileController {
         }
     }
 
-    @GetMapping(value = "/download/{fileName:.+}", produces = {MediaType.APPLICATION_PDF_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
-    public void getFileAsByteArray(HttpServletResponse response, @PathVariable String fileName) {
-        Key key = sharedFileService.findByPath(fileName).map(File::getKey).orElse(null);
-
-        try (InputStream in = fileStorageService.download(fileName, key)) {
-            response.setContentType(FileUtility.computeMediaType(fileName));
-            IOUtils.copy(in, response.getOutputStream());
-        } catch (final java.io.FileNotFoundException e) {
-            log.error(FILE_NO_EXIST, e);
-            response.setStatus(404);
-        } catch (IOException e) {
-            log.error("File cannot be downloaded - 408 - Too long?", e);
-            response.setStatus(408);
-        }
-    }
-
     @GetMapping(value = "/preview/{fileId}")
     public void getPreviewFromFileIdAsByteArray(HttpServletResponse response, @PathVariable Long fileId) {
         Tenant tenant = authenticationFacade.getLoggedTenant();

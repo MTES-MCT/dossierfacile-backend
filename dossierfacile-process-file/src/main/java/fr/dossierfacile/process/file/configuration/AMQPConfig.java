@@ -1,12 +1,9 @@
 package fr.dossierfacile.process.file.configuration;
 
-import com.google.gson.Gson;
 import fr.dossierfacile.process.file.amqp.AnalyzeFileReceiver;
 import fr.dossierfacile.process.file.amqp.MinifyFileReceiver;
-import fr.dossierfacile.process.file.amqp.Receiver;
 import fr.dossierfacile.process.file.service.AnalyzeFile;
 import fr.dossierfacile.process.file.service.interfaces.MinifyFile;
-import fr.dossierfacile.process.file.service.interfaces.ProcessTenant;
 import org.aopalliance.aop.Advice;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
@@ -28,17 +25,11 @@ public class AMQPConfig {
     @Value("${rabbitmq.exchange.file.process}")
     private String exchangeName;
 
-    @Value("${rabbitmq.queue.file.process.tax}")
-    private String queueName;
-
     @Value("${rabbitmq.queue.file.analyze}")
     private String analyzeQueueName;
 
     @Value("${rabbitmq.queue.file.minify}")
     private String minifyQueueName;
-
-    @Value("${rabbitmq.routing.key.file.process.tax}")
-    private String routingKey;
 
     @Value("${rabbitmq.routing.key.file.analyze}")
     private String analyzeRoutingKey;
@@ -55,11 +46,6 @@ public class AMQPConfig {
     }
 
     @Bean
-    Queue queueFileProcessTax() {
-        return new Queue(queueName, true);
-    }
-
-    @Bean
     Queue queueFileAnalyze() {
         return new Queue(analyzeQueueName, true);
     }
@@ -67,11 +53,6 @@ public class AMQPConfig {
     @Bean
     Queue queueFileMinify() {
         return new Queue(minifyQueueName, true);
-    }
-
-    @Bean
-    Binding bindingQueueProcessFilesOcrExchangeFileProcess(Queue queueFileProcessTax, TopicExchange exchangeFileProcess) {
-        return BindingBuilder.bind(queueFileProcessTax).to(exchangeFileProcess).with(routingKey);
     }
 
     @Bean
@@ -99,11 +80,6 @@ public class AMQPConfig {
         factory.setAdviceChain(adviceChain);
         factory.setPrefetchCount(prefetch);
         return factory;
-    }
-
-    @Bean
-    Receiver receiver(Gson gson, ProcessTenant processTenant) {
-        return new Receiver(gson, processTenant);
     }
 
     @Bean

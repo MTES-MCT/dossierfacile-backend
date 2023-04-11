@@ -15,7 +15,7 @@
     <description>Object Checker project for Spring Boot</description>
     <packaging>${packaging.type}</packaging>
     <properties>
-        <java.version>15</java.version>
+        <java.version>19</java.version>
         <dossierfacile.common.version>0.0.1-SNAPSHOT</dossierfacile.common.version>
     </properties>
     <dependencies>
@@ -87,9 +87,14 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
+            <groupId>com.github.openstack4j.core</groupId>
+            <artifactId>openstack4j-core</artifactId>
+            <version>3.11</version>
+        </dependency>
+        <dependency>
             <groupId>com.github.openstack4j.core.connectors</groupId>
             <artifactId>openstack4j-okhttp</artifactId>
-            <version>3.10</version>
+            <version>3.11</version>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
@@ -131,11 +136,6 @@
 
     <dependencyManagement>
         <dependencies>
-            <dependency>
-                <groupId>com.google.code.gson</groupId>
-                <artifactId>gson</artifactId>
-                <version>2.8.9</version>
-            </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson</groupId>
                 <artifactId>jackson-bom</artifactId>

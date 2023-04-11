@@ -46,13 +46,11 @@ public class UserApiService {
             String apiKey = UtilsLocatio.generateRandomString(20);
             userApi.setApiKey(apiKey);
         }
-        userApi.setLogo(false);
         return userApiRepository.save(userApi);
     }
 
     public void save(UserApiDTO userApiDTO) {
         UserApi userApi = mapper.convertValue(userApiDTO, UserApi.class);
-        userApi.setLogo(false);
         userApiRepository.save(userApi);
     }
 
