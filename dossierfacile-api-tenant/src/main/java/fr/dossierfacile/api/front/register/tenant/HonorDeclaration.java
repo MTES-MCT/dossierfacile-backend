@@ -46,7 +46,7 @@ public class HonorDeclaration implements SaveStep<HonorDeclarationForm> {
         tenant.setClarification(honorDeclarationForm.getClarification());
         for (Tenant t : getTenantOrPartners(tenant)) {
             checkTenantValidity(t);
-            tenant.setHonorDeclaration(honorDeclarationForm.isHonorDeclaration());
+            t.setHonorDeclaration(honorDeclarationForm.isHonorDeclaration());
             t.lastUpdateDateProfile(LocalDateTime.now(), null);
             tenantStatusService.updateTenantStatus(t);
         }
