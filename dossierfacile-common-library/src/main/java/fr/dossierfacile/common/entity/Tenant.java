@@ -111,6 +111,10 @@ public class Tenant extends User implements Person, Serializable {
     public TenantFileStatus computeStatus() {
         log.info("Computing status for tenant with ID [" + getId() + "]...");
 
+        if (status == TenantFileStatus.ARCHIVED) {
+            return TenantFileStatus.ARCHIVED;
+        }
+
         // Gets all tenant documents
         List<Document> allDocuments = (guarantors == null) ?
                 documents :
