@@ -2,7 +2,6 @@ package fr.dossierfacile.api.front.controller;
 
 import fr.dossierfacile.api.front.aop.annotation.MethodLog;
 import fr.dossierfacile.api.front.form.PartnerForm;
-import fr.dossierfacile.api.front.form.SubscriptionApartmentSharingOfTenantForm;
 import fr.dossierfacile.api.front.mapper.PropertyOMapper;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.property.PropertyOModel;
@@ -53,13 +52,6 @@ public class TenantController {
         Tenant tenant = authenticationFacade.getLoggedTenant();
         tenantService.updateLastLoginDateAndResetWarnings(tenant);
         return ok(tenantMapper.toTenantModel(tenant));
-    }
-
-    @PostMapping(value = "/subscribe/{token}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> subscribeApartmentSharingOfTenantToPropertyOfOwner(@PathVariable("token") String propertyToken, @Validated @RequestBody SubscriptionApartmentSharingOfTenantForm subscriptionApartmentSharingOfTenantForm) {
-        Tenant tenant = authenticationFacade.getLoggedTenant();
-        tenantService.subscribeApartmentSharingOfTenantToPropertyOfOwner(propertyToken, subscriptionApartmentSharingOfTenantForm, tenant);
-        return ok().build();
     }
 
     @GetMapping(value = "/property/{token}", produces = MediaType.APPLICATION_JSON_VALUE)

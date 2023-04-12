@@ -13,6 +13,7 @@ import fr.dossierfacile.common.repository.AccountDeleteLogCommonRepository;
 import fr.dossierfacile.common.repository.ApartmentSharingRepository;
 import fr.dossierfacile.common.repository.DocumentCommonRepository;
 import fr.dossierfacile.common.repository.FileCommonRepository;
+import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.common.service.interfaces.TenantCommonService;
 import fr.dossierfacile.common.utils.LocalDateTimeTypeAdapter;
@@ -38,6 +39,8 @@ public class TenantCommonServiceImpl implements TenantCommonService {
     private final ApartmentSharingRepository apartmentSharingRepository;
     private final DocumentCommonRepository documentRepository;
     private final FileCommonRepository fileRepository;
+
+    private final TenantCommonRepository tenantCommonRepository;
 
     @Override
     public void recordAndDeleteTenantData(Tenant tenant) {
@@ -94,5 +97,8 @@ public class TenantCommonServiceImpl implements TenantCommonService {
         }
         documentRepository.delete(document);
     }
-
+    @Override
+    public Tenant findByKeycloakId(String keycloakId) {
+        return tenantCommonRepository.findByKeycloakId(keycloakId);
+    }
 }

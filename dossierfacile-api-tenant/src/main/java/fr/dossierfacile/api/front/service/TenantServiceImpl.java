@@ -1,14 +1,12 @@
 package fr.dossierfacile.api.front.service;
 
 import fr.dossierfacile.api.front.exception.TenantNotFoundException;
-import fr.dossierfacile.api.front.form.SubscriptionApartmentSharingOfTenantForm;
 import fr.dossierfacile.api.front.model.KeycloakUser;
 import fr.dossierfacile.api.front.model.tenant.EmailExistsModel;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.RegisterFactory;
 import fr.dossierfacile.api.front.register.enums.StepRegister;
 import fr.dossierfacile.api.front.register.form.partner.EmailExistsForm;
-import fr.dossierfacile.api.front.repository.PropertyApartmentSharingRepository;
 import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
 import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.api.front.service.interfaces.PropertyService;
@@ -16,8 +14,6 @@ import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.service.interfaces.UserApiService;
 import fr.dossierfacile.api.front.util.Obfuscator;
 import fr.dossierfacile.common.entity.ApartmentSharing;
-import fr.dossierfacile.common.entity.Property;
-import fr.dossierfacile.common.entity.PropertyApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.LogType;
@@ -49,7 +45,6 @@ public class TenantServiceImpl implements TenantService {
     private final ConfirmationTokenService confirmationTokenService;
     private final LogService logService;
     private final MailService mailService;
-    private final PropertyApartmentSharingRepository propertyApartmentSharingRepository;
     private final PartnerCallBackService partnerCallBackService;
     private final PropertyService propertyService;
     private final RegisterFactory registerFactory;
@@ -60,24 +55,6 @@ public class TenantServiceImpl implements TenantService {
     @Override
     public <T> TenantModel saveStepRegister(Tenant tenant, T formStep, StepRegister step) {
         return registerFactory.get(step.getLabel()).saveStep(tenant, formStep);
-    }
-
-    @Override
-    public void subscribeApartmentSharingOfTenantToPropertyOfOwner(String propertyToken, SubscriptionApartmentSharingOfTenantForm subscriptionApartmentSharingOfTenantForm, Tenant tenant) {
-        if (tenant.getTenantType() == TenantType.CREATE) {
-            Property property = propertyService.getPropertyByToken(propertyToken);
-            PropertyApartmentSharing propertyApartmentSharing = propertyApartmentSharingRepository.findByPropertyAndApartmentSharing(property, tenant.getApartmentSharing()).orElse(
-                    PropertyApartmentSharing.builder()
-                            .accessFull(subscriptionApartmentSharingOfTenantForm.getAccess())
-                            .token(subscriptionApartmentSharingOfTenantForm.getAccess() ? tenant.getApartmentSharing().getToken() : tenant.getApartmentSharing().getTokenPublic())
-                            .property(property)
-                            .apartmentSharing(tenant.getApartmentSharing())
-                            .build()
-            );
-            propertyApartmentSharingRepository.save(propertyApartmentSharing);
-        } else {
-            throw new IllegalStateException("Tenant is not the main tenant");
-        }
     }
 
     @Override
