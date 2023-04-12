@@ -2,14 +2,18 @@ package fr.dossierfacile.api.dossierfacileapiowner.property;
 
 import fr.dossierfacile.common.entity.Property;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpResponseException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.springframework.http.ResponseEntity.ok;
@@ -17,6 +21,7 @@ import static org.springframework.http.ResponseEntity.ok;
 @RestController
 @AllArgsConstructor
 @RequestMapping("/api/property/public")
+@Slf4j
 public class PublicPropertyController {
 
     private final PropertyService propertyService;
@@ -31,18 +36,14 @@ public class PublicPropertyController {
         throw new HttpResponseException(404, "No property found");
     }
 
-    @PostMapping("/subscribe/{token}/{tenantId}")
-    public ResponseEntity<Object> subscribe(@PathVariable String token, @PathVariable Long tenantId ) throws HttpResponseException, InterruptedException {
+    @PostMapping("/subscribe/{propertyToken}")
+    public ResponseEntity<Object> subscribe(@PathVariable String propertyToken, @Valid @RequestBody SubscriptionApartmentSharingOfTenantForm subscribeForm) throws HttpResponseException, InterruptedException {
         try {
-            propertyService.subscribeTenantToProperty(token, tenantId);
+            propertyService.subscribeTenantToProperty(propertyToken, subscribeForm.getKcToken());
             return ok().build();
-        } catch (HttpResponseException e) {
-            throw e;
-        } catch (InterruptedException ie) {
-            Thread.currentThread().interrupt();
-            throw ie;
         } catch (Exception e) {
-            throw new HttpResponseException(403, "Couldn't subscribe");
+            log.error("Couldn't subscribe", e);
+            throw new HttpResponseException(403, "Couldn't subscribe " + e.getMessage());
         }
     }
 }
