@@ -61,7 +61,6 @@ public class ResourceServerConfig {
                         "/api/stats/**",
                         "/actuator/health")
                 .permitAll()
-                .antMatchers("/api-partner-linking/**").hasAuthority("SCOPE_api-partner-linking")
                 .antMatchers("/api-partner/**").access("hasAuthority(\"SCOPE_api-partner\") && isClient()")
                 .antMatchers("/dfc/**").hasAuthority("SCOPE_dfc")
                 .antMatchers("/dfc/api/**").access("isClient()")
