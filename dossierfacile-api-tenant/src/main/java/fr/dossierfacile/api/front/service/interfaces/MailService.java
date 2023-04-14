@@ -33,4 +33,6 @@ public interface MailService {
     void sendEmailToSupport(ContactForm form);
 
     void sendEmailWelcomeForPartnerUser(User user, UserApi userApi);
+
+    void sendFileByMail(String url, String email, String tenantName);
 }

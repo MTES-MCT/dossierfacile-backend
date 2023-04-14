@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+
+    <changeSet id="202304180000-01" author="Matthieu(manual)">
+        <sql>
+            CREATE TABLE public.apartment_sharing_link
+            (
+            id bigserial NOT NULL,
+            creation_date timestamp NULL,
+            apartment_sharing_id bigint NOT NULL,
+            token varchar(255) NULL DEFAULT NULL::character varying,
+            full_data bool NOT NULL,
+            disabled bool NOT NULL,
+            link_type varchar(255) NOT NULL,
+            mail_sent bool NOT NULL,
+
+            CONSTRAINT apartment_sharing_link_fkey FOREIGN KEY (apartment_sharing_id) REFERENCES apartment_sharing (id)
+            ON DELETE CASCADE
+            );
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

@@ -75,6 +75,9 @@ public class ApartmentSharing implements Serializable {
     @LastModifiedDate
     private LocalDateTime lastUpdateDate;
 
+    @OneToMany(mappedBy = "apartmentSharing", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    private List<ApartmentSharingLink> apartmentSharingLinks = new ArrayList<>();
+
     public ApartmentSharing(Tenant tenant) {
         tenants.add(tenant);
         this.applicationType = ApplicationType.ALONE;

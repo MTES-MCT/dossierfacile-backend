@@ -7,6 +7,7 @@ import fr.dossierfacile.api.front.model.MappingFormat;
 import fr.dossierfacile.api.front.repository.LinkLogRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.common.entity.ApartmentSharing;
+import fr.dossierfacile.common.entity.ApartmentSharingLink;
 import fr.dossierfacile.common.entity.LinkLog;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
@@ -18,6 +19,7 @@ import fr.dossierfacile.common.mapper.ApplicationBasicMapper;
 import fr.dossierfacile.common.mapper.ApplicationFullMapper;
 import fr.dossierfacile.common.mapper.ApplicationLightMapper;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
+import fr.dossierfacile.common.repository.ApartmentSharingLinkRepository;
 import fr.dossierfacile.common.repository.ApartmentSharingRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
@@ -47,6 +49,7 @@ import java.util.stream.Collectors;
 public class ApartmentSharingServiceImpl implements ApartmentSharingService {
 
     private final ApartmentSharingRepository apartmentSharingRepository;
+    private final ApartmentSharingLinkRepository apartmentSharingLinkRepository;
     private final TenantCommonRepository tenantRepository;
     private final ApplicationFullMapper applicationFullMapper;
     private final ApplicationLightMapper applicationLightMapper;
@@ -58,20 +61,31 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
 
     @Override
     public ApplicationModel full(String token) {
-        ApartmentSharing apartmentSharing = apartmentSharingRepository.findByToken(token)
-                .orElseThrow(() -> new ApartmentSharingNotFoundException(token));
+        ApartmentSharing apartmentSharing = apartmentSharingRepository.findByToken(token).orElse(null);
+        if (apartmentSharing == null) {
+            Optional<ApartmentSharingLink> apartmentSharingLink = apartmentSharingLinkRepository.findByTokenAndFullDataAndDisabledIsFalse(token, true);
+            if (apartmentSharingLink.isEmpty()) {
+                throw new ApartmentSharingNotFoundException(token);
+            }
+            apartmentSharing = apartmentSharingLink.get().getApartmentSharing();
+        }
         saveLinkLog(apartmentSharing, token, LinkType.FULL_APPLICATION);
         return applicationFullMapper.toApplicationModel(apartmentSharing);
     }
 
     @Override
     public ApplicationModel light(String token) {
-        ApartmentSharing apartmentSharing = apartmentSharingRepository.findByTokenPublic(token)
-                .orElseThrow(() -> new ApartmentSharingNotFoundException(token));
+        ApartmentSharing apartmentSharing = apartmentSharingRepository.findByTokenPublic(token).orElse(null);
+        if (apartmentSharing == null) {
+            Optional<ApartmentSharingLink> apartmentSharingLink = apartmentSharingLinkRepository.findByTokenAndFullDataAndDisabledIsFalse(token, false);
+            if (apartmentSharingLink.isEmpty()) {
+                throw new ApartmentSharingNotFoundException(token);
+            }
+            apartmentSharing = apartmentSharingLink.get().getApartmentSharing();
+        }
         saveLinkLog(apartmentSharing, token, LinkType.LIGHT_APPLICATION);
         return applicationLightMapper.toApplicationModel(apartmentSharing);
     }
-
 
     @Override
     public ByteArrayOutputStream fullPdf(String token) throws IOException {
@@ -136,7 +150,14 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
 
     @Override
     public void createFullPdf(String token) {
-        ApartmentSharing apartmentSharing = apartmentSharingRepository.findByToken(token).orElseThrow(() -> new ApartmentSharingNotFoundException(token));
+        ApartmentSharing apartmentSharing = apartmentSharingRepository.findByToken(token).orElse(null);
+        if (apartmentSharing == null) {
+            Optional<ApartmentSharingLink> apartmentSharingLink = apartmentSharingLinkRepository.findByTokenAndFullDataAndDisabledIsFalse(token, true);
+            if (apartmentSharingLink.isEmpty()) {
+                throw new ApartmentSharingNotFoundException(token);
+            }
+            apartmentSharing = apartmentSharingLink.get().getApartmentSharing();
+        }
 
         checkingAllTenantsInTheApartmentAreValidatedAndAllDocumentsAreNotNull(apartmentSharing.getId(), token);
 
