@@ -39,7 +39,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Slf4j
 public class PartnerCallBackServiceImpl implements PartnerCallBackService {
-
     private final TenantCommonRepository tenantRepository;
     private final TenantUserApiRepository tenantUserApiRepository;
     private final ApplicationFullMapper applicationFullMapper;

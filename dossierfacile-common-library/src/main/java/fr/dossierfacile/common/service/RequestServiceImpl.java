@@ -14,6 +14,7 @@ import org.apache.http.ssl.TrustStrategy;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
@@ -28,7 +29,6 @@ import org.springframework.web.client.RestTemplate;
 import javax.net.ssl.SSLContext;
 import java.security.GeneralSecurityException;
 import java.security.cert.X509Certificate;
-import java.util.HashMap;
 
 @Service
 @RequiredArgsConstructor
@@ -63,13 +63,12 @@ public class RequestServiceImpl implements RequestService {
     }
 
     private <T> void sendRequest(HttpEntity<T> request, String urlCallback) {
-        ResponseEntity<String> response;
+        ResponseEntity<String> response = null;
         try {
             response = restTemplate.exchange(urlCallback, HttpMethod.POST, request, String.class);
             log.info(CALL_BACK_RESPONSE, response.getStatusCode());
         } catch (RestClientException e) {
-            log.error(EXCEPTION + Sentry.captureException(e));
-            log.error("Error occurs during the call to :" + urlCallback, e);
+            log.error("Error occurs during the call to :" + urlCallback +" sentry:" + Sentry.captureException(e), e);
             if (e instanceof ResourceAccessException) {
                 try {
                     log.warn("Trying to send the request again without SSL Verification, to the urlCallBack: " + urlCallback);
@@ -81,6 +80,9 @@ public class RequestServiceImpl implements RequestService {
                     log.error(e1.getClass().getName());
                 }
             }
+        }
+        if ( response != null && HttpStatus.OK != response.getStatusCode() && HttpStatus.ACCEPTED != response.getStatusCode()) {
+            log.error("Failure on partner callback url:" + urlCallback + "- Status:" + response.getStatusCode());
         }
     }
 
