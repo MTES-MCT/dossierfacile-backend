@@ -8,6 +8,7 @@ target/
 mockstorage/
 .DS_Store
 static-front/
+logs/
 
 ### STS ###
 .apt_generated

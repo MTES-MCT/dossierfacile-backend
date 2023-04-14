@@ -74,6 +74,11 @@
 				<artifactId>spring-core</artifactId>
 				<version>5.3.20</version>
 			</dependency>
+			<dependency>
+				<groupId>net.logstash.logback</groupId>
+				<artifactId>logstash-logback-encoder</artifactId>
+				<version>7.3</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
