@@ -54,7 +54,8 @@ public class RegisterServiceImpl implements RegisterService {
     @Transactional
     public OwnerModel register(AccountForm accountForm) {
         String email = accountForm.getEmail();
-        Owner owner = ownerRepository.findByEmailAndEnabledFalse(email).orElse(new Owner("", "", email));
+        Owner owner = ownerRepository.findByEmailAndEnabledFalse(email)
+                .orElse(Owner.builder().email(email).build());
         // TODO : useless ?
         owner.setPassword(bCryptPasswordEncoder.encode(accountForm.getPassword()));
         owner.setKeycloakId(keycloakService.createKeycloakUserAccountCreation(accountForm, owner));
