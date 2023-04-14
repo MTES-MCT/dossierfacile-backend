@@ -5,8 +5,11 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
 
-    <changeSet id="202303280000-01" author="fabien(manual)">
-        <addNotNullConstraint tableName="user_account" columnName="keycloak_id"/>
+    <changeSet id="202304130000-01" author="fabien(manual)">
+        <addUniqueConstraint tableName="user_account"
+                             columnNames="keycloak_id"
+                             constraintName="uc_keycloak_id"
+        />
     </changeSet>
 
 </databaseChangeLog>
