@@ -46,6 +46,7 @@
                 <levelValue>[ignore]</levelValue>
             </fieldNames>
             <customFields>{"application":"${APPLICATION_NAME}", "environment":"${ENVIRONMENT}", "profiles":"${APPLICATION_PROFILES}"}</customFields>
+            <includeMdcKeyName>uri</includeMdcKeyName>
             <includeMdcKeyName>client</includeMdcKeyName>
             <includeMdcKeyName>user</includeMdcKeyName>
         </encoder>
