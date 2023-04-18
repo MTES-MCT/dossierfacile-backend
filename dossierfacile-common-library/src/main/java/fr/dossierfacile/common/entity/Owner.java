@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 import org.apache.commons.lang3.RandomStringUtils;
 
 import javax.persistence.CascadeType;
@@ -28,7 +29,7 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@SuperBuilder(builderMethodName = "lombokBuilder")
 public class Owner extends User implements Serializable {
 
     private static final long serialVersionUID = -4711959104392579912L;
@@ -46,8 +47,10 @@ public class Owner extends User implements Serializable {
     @Column(columnDefinition = "boolean default false")
     private boolean example = true;
 
-    public Owner(String firstName, String lastName, String email) {
-        super(UserType.OWNER, firstName, lastName, "", email);
+    public static Owner.OwnerBuilder<?, ?> builder() {
+        Owner.OwnerBuilder<?, ?> builder = Owner.lombokBuilder();
+        builder.userType(UserType.OWNER);
+        return builder;
     }
 
     public Property lastProperty() {

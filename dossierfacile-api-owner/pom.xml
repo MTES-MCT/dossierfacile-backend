@@ -103,6 +103,11 @@
             <version>6.0.0</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>net.logstash.logback</groupId>
+            <artifactId>logstash-logback-encoder</artifactId>
+            <version>7.3</version>
+        </dependency>
     </dependencies>
 
     <build>

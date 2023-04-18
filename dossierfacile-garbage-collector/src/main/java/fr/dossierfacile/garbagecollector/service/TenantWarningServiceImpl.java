@@ -1,5 +1,6 @@
 package fr.dossierfacile.garbagecollector.service;
 
+import fr.dossierfacile.common.entity.AccountDeleteLog;
 import fr.dossierfacile.common.entity.ConfirmationToken;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.LogType;
@@ -90,7 +91,11 @@ public class TenantWarningServiceImpl implements TenantWarningService {
         log.info("Delete archived tenants");
         while (tenantList.size() > 0) {
             total += tenantList.size();
-            tenantList.forEach(tenantRepository::delete);
+            tenantList.forEach(tenant -> {
+                log.info("Deleting tenant " + tenant.getId());
+                tenantCommonService.addDeleteLogIfMissing(tenant.getId());
+                tenantRepository.delete(tenant);
+            });
             tenantList = tenantRepository.findByStatusAndLastUpdateDate(TenantFileStatus.ARCHIVED, limitDate, pageRequest);
         }
         log.info("Deleted " + total + " archived tenants");

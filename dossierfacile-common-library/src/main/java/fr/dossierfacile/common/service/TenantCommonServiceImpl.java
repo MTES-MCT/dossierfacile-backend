@@ -13,6 +13,7 @@ import fr.dossierfacile.common.repository.AccountDeleteLogCommonRepository;
 import fr.dossierfacile.common.repository.ApartmentSharingRepository;
 import fr.dossierfacile.common.repository.DocumentCommonRepository;
 import fr.dossierfacile.common.repository.FileCommonRepository;
+import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.common.service.interfaces.TenantCommonService;
 import fr.dossierfacile.common.utils.LocalDateTimeTypeAdapter;
@@ -20,6 +21,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -38,6 +40,7 @@ public class TenantCommonServiceImpl implements TenantCommonService {
     private final ApartmentSharingRepository apartmentSharingRepository;
     private final DocumentCommonRepository documentRepository;
     private final FileCommonRepository fileRepository;
+    private final TenantCommonRepository tenantCommonRepository;
 
     @Override
     public void recordAndDeleteTenantData(Tenant tenant) {
@@ -80,6 +83,20 @@ public class TenantCommonServiceImpl implements TenantCommonService {
                 );
     }
 
+
+    @Override
+    @Transactional
+    public void addDeleteLogIfMissing(Long tenantId) {
+        Tenant tenant = tenantCommonRepository.findOneById(tenantId);
+        TenantModel tenantModel = tenantCommonMapper.toTenantModel(tenant);
+        List<AccountDeleteLog> accountDeleteLog = accountDeleteLogRepository.findByUserId(tenantModel.getId());
+        if (accountDeleteLog.isEmpty()) {
+            GsonBuilder builder = new GsonBuilder();
+            builder.registerTypeAdapter(LocalDateTime.class, new LocalDateTimeTypeAdapter());
+            Gson gson = builder.create();
+            accountDeleteLogRepository.save(AccountDeleteLog.builder().userId(tenantModel.getId()).deletionDate(LocalDateTime.now()).jsonProfileBeforeDeletion(gson.toJson(tenantModel)).build());
+        }
+    }
     private void deleteFilesFromStorage(Document document) {
         List<File> files = document.getFiles();
         if (files != null && !files.isEmpty()) {
@@ -94,5 +111,8 @@ public class TenantCommonServiceImpl implements TenantCommonService {
         }
         documentRepository.delete(document);
     }
-
+    @Override
+    public Tenant findByKeycloakId(String keycloakId) {
+        return tenantCommonRepository.findByKeycloakId(keycloakId);
+    }
 }

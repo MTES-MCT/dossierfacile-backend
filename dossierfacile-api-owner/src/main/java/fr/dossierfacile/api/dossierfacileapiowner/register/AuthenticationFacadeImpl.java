@@ -6,7 +6,6 @@ import fr.dossierfacile.common.entity.Owner;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
@@ -69,14 +68,14 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
 
     @Override
     public Owner getOwner() {
-        if (! keycloakService.isKeycloakUser(getKeycloakUserId())) {
+        if (!keycloakService.isKeycloakUser(getKeycloakUserId())) {
             throw new AccessDeniedException("invalid token");
         }
         Optional<Owner> optionalOwner = ownerRepository.findByKeycloakId(getKeycloakUserId());
         if (optionalOwner.isEmpty()) {
             optionalOwner = ownerRepository.findByEmail(getUserEmail());
         }
-        Owner owner = optionalOwner.orElse(new Owner("", "", getUserEmail()));
+        Owner owner = optionalOwner.orElse(Owner.builder().email(getUserEmail()).build());
         owner.setKeycloakId(getKeycloakUserId());
         owner.setFranceConnect(isFranceConnect());
         if (isFranceConnect()) {

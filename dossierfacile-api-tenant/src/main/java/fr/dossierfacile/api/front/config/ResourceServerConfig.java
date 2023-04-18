@@ -8,6 +8,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.security.web.header.writers.StaticHeadersWriter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -24,6 +25,7 @@ public class ResourceServerConfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .addFilterBefore(new ConnectionContextFilter(), FilterSecurityInterceptor.class)
                 .headers()
                 .addHeaderWriter(new StaticHeadersWriter("X-Content-Type-Options", "nosniff"))
                 .contentTypeOptions()
@@ -61,7 +63,6 @@ public class ResourceServerConfig {
                         "/api/stats/**",
                         "/actuator/health")
                 .permitAll()
-                .antMatchers("/api-partner-linking/**").hasAuthority("SCOPE_api-partner-linking")
                 .antMatchers("/api-partner/**").access("hasAuthority(\"SCOPE_api-partner\") && isClient()")
                 .antMatchers("/dfc/**").hasAuthority("SCOPE_dfc")
                 .antMatchers("/dfc/api/**").access("isClient()")
@@ -69,6 +70,7 @@ public class ResourceServerConfig {
                 .and()
                 .oauth2ResourceServer()
                 .jwt();
+
         return http.build();
     }
 
