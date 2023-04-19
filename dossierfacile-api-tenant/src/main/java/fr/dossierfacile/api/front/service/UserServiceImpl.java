@@ -201,7 +201,7 @@ public class UserServiceImpl implements UserService {
 
     private void saveAndDeleteInfoByTenant(Tenant tenant) {
         mailService.sendEmailAccountDeleted(tenant);
-        tenantCommonService.recordAndDeleteTenantData(tenant);
+        tenantCommonService.recordAndDeleteTenantData(tenant.getId());
     }
 
     @Override
