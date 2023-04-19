@@ -53,7 +53,7 @@ public class TenantWarningServiceImpl implements TenantWarningService {
     private void handleWarning2(Tenant t) {
         log.info("accountWarnings. Documents deletion for tenant with ID [" + t.getId() + "]");
 
-        tenantCommonService.recordAndDeleteTenantData(t);
+        tenantCommonService.recordAndDeleteTenantData(t.getId());
 
         t.setWarnings(0);
         t.setConfirmationToken(null);
