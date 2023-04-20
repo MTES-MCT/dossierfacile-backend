@@ -20,6 +20,7 @@ import fr.dossierfacile.common.mapper.ApplicationLightMapper;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
 import fr.dossierfacile.common.repository.ApartmentSharingRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
+import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import io.sentry.Sentry;
 import lombok.AllArgsConstructor;
@@ -53,6 +54,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
     private final FileStorageService fileStorageService;
     private final LinkLogRepository linkLogRepository;
     private final Producer producer;
+    private final ApartmentSharingCommonService apartmentSharingCommonService;
 
     @Override
     public ApplicationModel full(String token) {
@@ -115,15 +117,8 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.SUPPORTS)
     public void resetDossierPdfGenerated(ApartmentSharing apartmentSharing) {
-        String currentUrl = apartmentSharing.getUrlDossierPdfDocument();
-        if (currentUrl != null) {
-            fileStorageService.delete(currentUrl);
-            apartmentSharing.setUrlDossierPdfDocument(null);
-            apartmentSharing.setDossierPdfDocumentStatus(FileStatus.DELETED);
-            apartmentSharingRepository.save(apartmentSharing);
-        }
+        apartmentSharingCommonService.resetDossierPdfGenerated(apartmentSharing);
     }
 
     @Override
@@ -160,18 +155,13 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.SUPPORTS)
     public void removeTenant(ApartmentSharing apartmentSharing, Tenant tenant) {
-        apartmentSharing.getTenants().remove(tenant);
-        apartmentSharing.setApplicationType((apartmentSharing.getNumberOfTenants() >= 2) ? ApplicationType.GROUP : ApplicationType.ALONE);
-        resetDossierPdfGenerated(apartmentSharing);
-        apartmentSharingRepository.save(apartmentSharing);
+        apartmentSharingCommonService.removeTenant(apartmentSharing, tenant);
     }
 
     @Override
-    @Transactional(propagation = Propagation.SUPPORTS)
     public void delete(ApartmentSharing apartmentSharing) {
-        apartmentSharingRepository.delete(apartmentSharing);
+        apartmentSharingCommonService.delete(apartmentSharing);
     }
 
     @Override
