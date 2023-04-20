@@ -1,7 +1,6 @@
 package fr.dossierfacile.api.front.partner.controller;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import fr.dossierfacile.api.front.aop.annotation.MethodLog;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.tenant.EmailExistsModel;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
@@ -37,7 +36,6 @@ import static org.springframework.http.ResponseEntity.status;
 @AllArgsConstructor
 @RequestMapping("/api-partner")
 @Validated
-@MethodLog
 public class ApiPartnerUserController {
 
     private final TenantService tenantService;

@@ -49,6 +49,7 @@
             <includeMdcKeyName>uri</includeMdcKeyName>
             <includeMdcKeyName>client</includeMdcKeyName>
             <includeMdcKeyName>user</includeMdcKeyName>
+            <includeMdcKeyName>email</includeMdcKeyName>
         </encoder>
     </appender>
 
