@@ -1,6 +1,6 @@
 package fr.dossierfacile.api.front.partner.controller;
 
-import fr.dossierfacile.api.front.aop.annotation.MethodLog;
+import fr.dossierfacile.api.front.aop.annotation.MethodLogTime;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.ListMetadata;
 import fr.dossierfacile.api.front.model.ResponseWrapper;
@@ -34,7 +34,6 @@ import static org.springframework.http.ResponseEntity.status;
 @RestController
 @AllArgsConstructor
 @RequestMapping("/api-partner/tenant")
-@MethodLog
 public class ApiPartnerTenantController {
 
     private final ClientAuthenticationFacade clientAuthenticationFacade;
@@ -42,6 +41,7 @@ public class ApiPartnerTenantController {
     private final TenantMapper tenantMapper;
     private final UserService userService;
 
+    @MethodLogTime
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResponseWrapper<List<TenantUpdate>, ListMetadata>> list(@RequestParam(value = "after", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime after,
                                                                                   @RequestParam(value = "limit", defaultValue = "1000") Long limit,
