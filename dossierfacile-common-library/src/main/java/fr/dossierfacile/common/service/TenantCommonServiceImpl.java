@@ -89,6 +89,10 @@ public class TenantCommonServiceImpl implements TenantCommonService {
     @Transactional
     public void addDeleteLogIfMissing(Long tenantId) {
         Tenant tenant = tenantCommonRepository.findOneById(tenantId);
+        if (tenant == null) {
+            log.info("Tenant already deleted");
+            return;
+        }
         TenantModel tenantModel = tenantCommonMapper.toTenantModel(tenant);
         List<AccountDeleteLog> accountDeleteLog = accountDeleteLogRepository.findByUserId(tenantModel.getId());
         if (accountDeleteLog.isEmpty()) {

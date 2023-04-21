@@ -35,12 +35,26 @@ public class ScheduledWarningService {
     public void accountWarningsForDocumentDeletion() {
         log.info("accountWarnings. Executing scheduled task for account warnings at [" + LocalDateTime.now() + "]");
         LocalDateTime localDateTime = LocalDateTime.now().minusMonths(monthsForDeletionOfDocuments);
-        tenantWarningService.deleteOldArchivedWarnings(LocalDateTime.now().minusMonths(monthsForDeletionOfTenants));
+        deleteOldArchivedAccount();
         processAllWarnings(localDateTime, 2);
         processAllWarnings(localDateTime, 1);
         processAllWarnings(localDateTime, 0);
         log.info("accountWarnings. Account warnings' task was finished");
     }
+
+    private void deleteOldArchivedAccount() {
+        LocalDateTime limitDate = LocalDateTime.now().minusMonths(monthsForDeletionOfTenants);
+        int total = 0;
+        PageRequest pageRequest = PageRequest.of(0, 100);
+        List<Tenant> tenantList = tenantRepository.findByStatusAndLastUpdateDate(TenantFileStatus.ARCHIVED, limitDate, pageRequest);
+        log.info("Delete archived tenants");
+        while (tenantList.size() > 0) {
+            total += tenantList.size();
+            tenantWarningService.deleteOldArchivedWarnings(tenantList);
+            tenantList = tenantRepository.findByStatusAndLastUpdateDate(TenantFileStatus.ARCHIVED, limitDate, pageRequest);
+        }
+        log.info("Deleted " + total + " archived tenants");
+}
 
     private void processAllWarnings(LocalDateTime localDateTime, int warnings) {
         long numberOfTenantsToProcess = tenantRepository.countByLastLoginDateIsBeforeAndHasDocuments(localDateTime, warnings);
