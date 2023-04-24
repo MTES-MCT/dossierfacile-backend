@@ -76,7 +76,7 @@ public class KeycloakServiceImpl implements KeycloakService {
     private String createUserAndReturnId(UserRepresentation userRepresentation) {
         try (var response = realmResource.users().create(userRepresentation)) {
             if (response.getStatus() == HttpStatus.CONFLICT.value()) {
-                var keycloakUser = realmResource.users().search(userRepresentation.getEmail()).get(0);
+                var keycloakUser = realmResource.users().search(userRepresentation.getUsername()).get(0);
                 return keycloakUser.getId();
             }
             var split = response.getHeaderString("Location").split("/");
