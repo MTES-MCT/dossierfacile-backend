@@ -72,7 +72,7 @@ public class RegisterServiceImpl implements RegisterService {
                 .orElseThrow(() -> new UserNotFoundException(email));
 
         if (StringUtils.isBlank(owner.getKeycloakId()) || keycloakService.isKeycloakUser(owner.getKeycloakId())) {
-            log.warn("User has not a valid keycloakId - ownerId" + owner.getId());
+            log.warn("User has not a valid keycloakId - ownerId : " + owner.getId() + ", keycloakId: " + owner.getKeycloakId());
             var keycloakId = keycloakService.createKeycloakUser(email);
             owner.setKeycloakId(keycloakId);
         }
