@@ -71,7 +71,7 @@ public class RegisterServiceImpl implements RegisterService {
         Owner owner = ownerRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException(email));
 
-        if (StringUtils.isBlank(owner.getKeycloakId()) || keycloakService.isKeycloakUser(owner.getKeycloakId())) {
+        if (StringUtils.isBlank(owner.getKeycloakId()) || !keycloakService.isKeycloakUser(owner.getKeycloakId())) {
             log.warn("User has not a valid keycloakId - ownerId : " + owner.getId() + ", keycloakId: " + owner.getKeycloakId());
             var keycloakId = keycloakService.createKeycloakUser(email);
             owner.setKeycloakId(keycloakId);
