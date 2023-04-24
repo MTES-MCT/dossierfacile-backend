@@ -9,7 +9,7 @@ public enum TenantFileStatus {
     ARCHIVED("");
 
 
-    String label;
+    private final String label;
 
     TenantFileStatus(String label) {
         this.label = label;
