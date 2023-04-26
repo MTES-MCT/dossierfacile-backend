@@ -1,6 +1,6 @@
 package fr.dossierfacile.api.front.partner.controller;
 
-import fr.dossierfacile.api.front.aop.annotation.MethodLog;
+import fr.dossierfacile.api.front.aop.annotation.MethodLogTime;
 import fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException;
 import fr.dossierfacile.api.front.model.ListMetadata;
 import fr.dossierfacile.api.front.model.MappingFormat;
@@ -36,7 +36,7 @@ import static org.springframework.http.ResponseEntity.status;
 @AllArgsConstructor
 @RequestMapping("/api-partner/apartmentSharing")
 @Validated
-@MethodLog
+@MethodLogTime
 public class ApiPartnerApartmentSharingController {
     private final ClientAuthenticationFacade clientAuthenticationFacade;
     private final ApartmentSharingService apartmentSharingService;

@@ -1,6 +1,6 @@
 package fr.dossierfacile.api.front.controller;
 
-import fr.dossierfacile.api.front.aop.annotation.MethodLog;
+import fr.dossierfacile.api.front.aop.annotation.MethodLogTime;
 import fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException;
 import fr.dossierfacile.api.front.exception.ApartmentSharingUnexpectedException;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
@@ -43,7 +43,7 @@ public class ApplicationController {
         return ok(applicationModel);
     }
 
-    @MethodLog
+    @MethodLogTime
     @GetMapping(value = "/fullPdf/{token}", produces = MediaType.APPLICATION_PDF_VALUE)
     public void downloadFullPdf(@PathVariable("token") String token, HttpServletResponse response) {
         try {

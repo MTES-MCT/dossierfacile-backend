@@ -43,7 +43,8 @@ public class TenantCommonServiceImpl implements TenantCommonService {
     private final TenantCommonRepository tenantCommonRepository;
 
     @Override
-    public void recordAndDeleteTenantData(Tenant tenant) {
+    public void recordAndDeleteTenantData(Long tenantId) {
+        Tenant tenant = tenantCommonRepository.findOneById(tenantId);
         TenantModel tenantModel = tenantCommonMapper.toTenantModel(tenant);
         GsonBuilder builder = new GsonBuilder();
         builder.registerTypeAdapter(LocalDateTime.class, new LocalDateTimeTypeAdapter());
@@ -88,6 +89,10 @@ public class TenantCommonServiceImpl implements TenantCommonService {
     @Transactional
     public void addDeleteLogIfMissing(Long tenantId) {
         Tenant tenant = tenantCommonRepository.findOneById(tenantId);
+        if (tenant == null) {
+            log.info("Tenant already deleted");
+            return;
+        }
         TenantModel tenantModel = tenantCommonMapper.toTenantModel(tenant);
         List<AccountDeleteLog> accountDeleteLog = accountDeleteLogRepository.findByUserId(tenantModel.getId());
         if (accountDeleteLog.isEmpty()) {
@@ -103,7 +108,6 @@ public class TenantCommonServiceImpl implements TenantCommonService {
             log.info("Removing files from storage of document with id [" + document.getId() + "]");
             fileStorageService.delete(files.stream().map(File::getPath).collect(Collectors.toList()));
             files.forEach(file -> fileStorageService.delete(file.getPreview()));
-            files.forEach(fileRepository::delete);
         }
         if (document.getName() != null && !document.getName().isBlank()) {
             log.info("Removing document from storage with path [" + document.getName() + "]");

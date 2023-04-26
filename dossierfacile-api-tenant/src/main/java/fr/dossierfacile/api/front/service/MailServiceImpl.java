@@ -73,6 +73,8 @@ public class MailServiceImpl implements MailService {
     private String defaultCompletedUrl;
     @Value("${link.after.created.default}")
     private String defaultCreatedUrl;
+    @Value("${sendinblue.template.id.share.file}")
+    private Long templateIdShareFile;
 
     private void sendEmailToTenant(User tenant, Map<String, String> params, Long templateId) {
         SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
@@ -253,5 +255,27 @@ public class MailServiceImpl implements MailService {
         variables.put("callToActionUrl", OptionalString.of(userApi.getWelcomeUrl()).orElse(defaultCreatedUrl));
 
         sendEmailToTenant(user, variables, templateIDWelcomePartner);
+    }
+
+    @Override
+    public void sendFileByMail(String url, String email, String tenantName, String fullName) {
+        Map<String, String> variables = new HashMap<>();
+        variables.put("url", sendinBlueUrlDomain + url);
+        variables.put("tenantName", tenantName);
+        variables.put("fullName", fullName);
+
+        SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
+        sendSmtpEmailTo.setEmail(email);
+
+        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
+        sendSmtpEmail.templateId(templateIdShareFile);
+        sendSmtpEmail.params(variables);
+        sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
+
+        try {
+            apiInstance.sendTransacEmail(sendSmtpEmail);
+        } catch (ApiException e) {
+            log.error("Email Api Exception" + Sentry.captureException(e), e);
+        }
     }
 }

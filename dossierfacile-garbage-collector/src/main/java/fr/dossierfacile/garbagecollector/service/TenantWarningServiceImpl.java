@@ -1,15 +1,21 @@
 package fr.dossierfacile.garbagecollector.service;
 
 import fr.dossierfacile.common.entity.AccountDeleteLog;
+import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.ConfirmationToken;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
+import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.exceptions.ConfirmationTokenNotFoundException;
+import fr.dossierfacile.common.exceptions.NotFoundException;
+import fr.dossierfacile.common.repository.ApartmentSharingRepository;
 import fr.dossierfacile.common.repository.ConfirmationTokenRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
+import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
 import fr.dossierfacile.common.service.interfaces.ConfirmationTokenService;
+import fr.dossierfacile.common.service.interfaces.KeycloakCommonService;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.dossierfacile.common.service.interfaces.TenantCommonService;
@@ -24,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -38,6 +45,9 @@ public class TenantWarningServiceImpl implements TenantWarningService {
     private final PartnerCallBackService partnerCallBackService;
 
     private final TenantCommonService tenantCommonService;
+    private final ApartmentSharingCommonService apartmentSharingCommonService;
+    private final ApartmentSharingRepository apartmentSharingRepository;
+    private final KeycloakCommonService keycloakCommonService;
 
     @Transactional
     @Override
@@ -53,7 +63,7 @@ public class TenantWarningServiceImpl implements TenantWarningService {
     private void handleWarning2(Tenant t) {
         log.info("accountWarnings. Documents deletion for tenant with ID [" + t.getId() + "]");
 
-        tenantCommonService.recordAndDeleteTenantData(t);
+        tenantCommonService.recordAndDeleteTenantData(t.getId());
 
         t.setWarnings(0);
         t.setConfirmationToken(null);
@@ -84,21 +94,28 @@ public class TenantWarningServiceImpl implements TenantWarningService {
     }
 
     @Override
-    public void deleteOldArchivedWarnings(LocalDateTime limitDate) {
-        int total = 0;
-        PageRequest pageRequest = PageRequest.of(0, 100);
-        List<Tenant> tenantList = tenantRepository.findByStatusAndLastUpdateDate(TenantFileStatus.ARCHIVED, limitDate, pageRequest);
-        log.info("Delete archived tenants");
-        while (tenantList.size() > 0) {
-            total += tenantList.size();
-            tenantList.forEach(tenant -> {
-                log.info("Deleting tenant " + tenant.getId());
-                tenantCommonService.addDeleteLogIfMissing(tenant.getId());
+    @Transactional
+    public void deleteOldArchivedWarnings(List<Tenant> tenantList) {
+        tenantList.forEach(tenant -> {
+            log.info("Deleting tenant " + tenant.getId());
+            tenantCommonService.addDeleteLogIfMissing(tenant.getId());
+            Optional<ApartmentSharing> optionalApartmentSharing = apartmentSharingRepository.findByTenant(tenant.getId());
+            ApartmentSharing apartmentSharing;
+            if (optionalApartmentSharing.isPresent()) {
+                apartmentSharing = optionalApartmentSharing.get();
+            } else {
+                return;
+            }
+            if (tenant.getTenantType() == TenantType.CREATE) {
+                keycloakCommonService.deleteKeycloakUsers(apartmentSharing.getTenants());
+                apartmentSharingCommonService.delete(apartmentSharing);
+            } else {
+                keycloakCommonService.deleteKeycloakUser(tenant);
                 tenantRepository.delete(tenant);
-            });
-            tenantList = tenantRepository.findByStatusAndLastUpdateDate(TenantFileStatus.ARCHIVED, limitDate, pageRequest);
-        }
-        log.info("Deleted " + total + " archived tenants");
+                apartmentSharingCommonService.removeTenant(apartmentSharing, tenant);
+            }
+
+        });
     }
 
 }

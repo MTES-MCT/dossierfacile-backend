@@ -1,7 +1,7 @@
 package fr.dossierfacile.api.front.controller;
 
-import fr.dossierfacile.api.front.aop.annotation.MethodLog;
 import fr.dossierfacile.api.front.form.PartnerForm;
+import fr.dossierfacile.api.front.form.ShareFileByMailForm;
 import fr.dossierfacile.api.front.mapper.PropertyOMapper;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.property.PropertyOModel;
@@ -66,7 +66,6 @@ public class TenantController {
         return (userService.deleteCoTenant(tenant, id) ? ok() : status(HttpStatus.FORBIDDEN)).build();
     }
 
-    @MethodLog
     @PostMapping(value = "/linkTenantToPartner", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> linkTenantToPartner(@Validated @RequestBody PartnerForm partnerForm) {
         Tenant tenant = authenticationFacade.getLoggedTenant();
@@ -96,5 +95,15 @@ public class TenantController {
         return ok(link);
     }
 
+    @PostMapping(value="/sendFileByMail", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> sendFileByMail(@RequestBody ShareFileByMailForm shareFileByMailForm) {
+        Tenant tenant = authenticationFacade.getLoggedTenant();
+        try {
+            tenantService.sendFileByMail(tenant, shareFileByMailForm.getEmail(), shareFileByMailForm.getShareType());
+        } catch (Exception e) {
+            return badRequest().build();
+        }
+        return ok("");
+    }
 
 }

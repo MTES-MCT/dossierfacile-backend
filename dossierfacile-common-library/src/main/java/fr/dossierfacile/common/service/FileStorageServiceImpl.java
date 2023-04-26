@@ -59,6 +59,9 @@ public class FileStorageServiceImpl implements FileStorageService {
     @Override
     @Async
     public void delete(StorageFile storageFile) {
+        if (storageFile == null) {
+            return;
+        }
         switch (storageFile.getProvider()) {
             case OVH -> ovhFileStorageService.delete(storageFile.getPath());
             case THREEDS_OUTSCALE -> threeDSOutscaleFileStorageService.delete(storageFile.getPath());
