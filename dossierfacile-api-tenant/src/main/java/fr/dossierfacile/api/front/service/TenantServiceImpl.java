@@ -176,7 +176,7 @@ public class TenantServiceImpl implements TenantService {
         if ("resume".equals(shareType)) {
             url = "/public-file/" + apartmentSharingLink.getToken();
         }
-        mailService.sendFileByMail(url, email, tenant.getFirstName());
+        mailService.sendFileByMail(url, email, tenant.getFirstName(), tenant.getFullName());
     }
 
     @Override

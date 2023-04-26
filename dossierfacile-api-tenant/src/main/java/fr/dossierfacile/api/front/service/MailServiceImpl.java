@@ -258,10 +258,11 @@ public class MailServiceImpl implements MailService {
     }
 
     @Override
-    public void sendFileByMail(String url, String email, String tenantName) {
+    public void sendFileByMail(String url, String email, String tenantName, String fullName) {
         Map<String, String> variables = new HashMap<>();
         variables.put("url", sendinBlueUrlDomain + url);
         variables.put("tenantName", tenantName);
+        variables.put("fullName", fullName);
 
         SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
         sendSmtpEmailTo.setEmail(email);
