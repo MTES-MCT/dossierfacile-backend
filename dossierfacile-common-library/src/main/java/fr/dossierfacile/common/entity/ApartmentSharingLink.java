@@ -58,4 +58,7 @@ public class ApartmentSharingLink implements Serializable {
     @Column
     private boolean mailSent = false;
 
+    @Column
+    private String email;
+
 }
