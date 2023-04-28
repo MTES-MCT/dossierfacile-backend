@@ -33,5 +33,5 @@ public interface MailService {
 
     void sendEmailWelcomeForPartnerUser(User user, UserApi userApi);
 
-    void sendFileByMail(String url, String email, String tenantName, String fullName);
+    void sendFileByMail(String url, String email, String tenantName, String fullName, String tenantEmail);
 }
