@@ -170,13 +170,14 @@ public class TenantServiceImpl implements TenantService {
                 .fullData("full".equals(shareType))
                 .token(token)
                 .linkType(ApartmentSharingLinkType.MAIL)
+                .email(email)
                 .mailSent(false).build();
         apartmentSharingLink = apartmentSharingLinkRepository.save(apartmentSharingLink);
         String url = "/file/" + apartmentSharingLink.getToken();
         if ("resume".equals(shareType)) {
             url = "/public-file/" + apartmentSharingLink.getToken();
         }
-        mailService.sendFileByMail(url, email, tenant.getFirstName(), tenant.getFullName());
+        mailService.sendFileByMail(url, email, tenant.getFirstName(), tenant.getFullName(), tenant.getEmail());
     }
 
     @Override
