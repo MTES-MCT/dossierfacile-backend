@@ -82,14 +82,20 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.openstack4j.core</groupId>
-            <artifactId>openstack4j-core</artifactId>
-            <version>3.11</version>
-        </dependency>
-        <dependency>
             <groupId>com.github.openstack4j.core.connectors</groupId>
             <artifactId>openstack4j-okhttp</artifactId>
             <version>3.11</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.squareup.okhttp3</groupId>
+                    <artifactId>okhttp</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>3.14.9</version>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
