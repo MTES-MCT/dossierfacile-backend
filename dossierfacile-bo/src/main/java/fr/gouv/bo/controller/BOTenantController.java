@@ -283,6 +283,7 @@ public class BOTenantController {
                 if (document.getDocumentStatus().equals(DocumentStatus.TO_PROCESS)) {
                     guarantorItem.getMessageItems().add(MessageItem.builder()
                             .monthlySum(document.getMonthlySum())
+                            .avisDetected(document.getAvisDetected())
                             .customTex(document.getCustomText())
                             .taxDocument(document.getTaxProcessResult())
                             .documentCategory(document.getDocumentCategory())
