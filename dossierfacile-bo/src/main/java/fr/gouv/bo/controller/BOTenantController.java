@@ -257,6 +257,7 @@ public class BOTenantController {
                         .monthlySum(document.getMonthlySum())
                         .customTex(document.getCustomText())
                         .taxDocument(document.getTaxProcessResult())
+                        .avisDetected(document.getAvisDetected())
                         .documentCategory(document.getDocumentCategory())
                         .documentSubCategory(document.getDocumentSubCategory())
                         .itemDetailList(getItemDetailForSubcategoryOfDocument(document.getDocumentSubCategory(), TENANT))

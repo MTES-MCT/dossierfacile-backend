@@ -93,6 +93,10 @@
                                         <span th:text="'Valid tax information : ' + ${messageItem.taxDocument.taxContentValid}"></span>
                                     </h4>
                                 </div>
+                                <h4 class="panel-title letter" style="padding: 7px"
+                                    th:if="${messageItem.avisDetected}!=null and ${messageItem.avisDetected}==true">
+                                    <span>Attention, un avis de situation a été détécté</span>
+                                </h4>
 
                                 <h4 th:if="${messageItem.taxDocument}!=null">Consentement API impôts :
                                     <span class="fa fa-check text-success"

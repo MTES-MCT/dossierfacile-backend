@@ -110,6 +110,9 @@ public class Document implements Serializable {
     @ToString.Exclude
     private DocumentDeniedReasons documentDeniedReasons;
 
+    @Builder.Default
+    private Boolean avisDetected = false;
+
     @Basic(fetch = FetchType.LAZY)
     public boolean isLocked() {
         return locked;

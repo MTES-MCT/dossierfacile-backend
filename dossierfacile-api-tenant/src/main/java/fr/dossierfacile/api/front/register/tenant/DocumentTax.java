@@ -56,6 +56,9 @@ public class DocumentTax extends AbstractDocumentSaveStep<DocumentTaxForm> imple
             deleteFilesIfExistedBefore(document);
         }
         document.setNoDocument(documentTaxForm.getNoDocument());
+        if (Boolean.TRUE.equals(documentTaxForm.getAvisDetected())) {
+            document.setAvisDetected(true);
+        }
         documentRepository.save(document);
 
         if (documentSubCategory == MY_NAME
