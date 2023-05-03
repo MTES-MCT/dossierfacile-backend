@@ -72,11 +72,11 @@ public class TenantWarningServiceImpl implements TenantWarningService {
         t.setZipCode("");
         t.setClarification("");
 
-        ConfirmationToken confirmationToken = confirmationTokenRepository.findByUser(t).orElseThrow(() -> new ConfirmationTokenNotFoundException(t.getId()));
-
         logService.saveLog(LogType.DOCUMENT_DELETION_AFTER_2_ACCOUNT_WARNINGS, t.getId());
         partnerCallBackService.sendCallBack(t, PartnerCallBackType.ARCHIVED_ACCOUNT);
-        confirmationTokenRepository.delete(confirmationToken);
+
+        Optional<ConfirmationToken> confirmationToken = confirmationTokenRepository.findByUser(t);
+        confirmationToken.ifPresent(confirmationTokenRepository::delete);
     }
 
     private void handleWarning1(Tenant t) {

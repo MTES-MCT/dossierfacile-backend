@@ -35,6 +35,7 @@ public class ApartmentSharingLink implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Builder.Default
     @Column(name = "creation_date")
     private LocalDateTime creationDate = LocalDateTime.now();
 
