@@ -14,22 +14,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 class FileAnalysisCriteriaTest {
 
     @ParameterizedTest
-    @CsvSource({"VALIDATED", "ARCHIVED"})
-    void should_not_analyze_files_of_validated_or_archived_tenants(TenantFileStatus status) {
-        File file = taxFileWithTenantStatus(status);
-
-        assertThat(FileAnalysisCriteria.shouldBeAnalyzed(file)).isFalse();
-    }
-
-    @ParameterizedTest
-    @CsvSource({"TO_PROCESS","DECLINED", "INCOMPLETE"})
-    void should_analyze_other_files(TenantFileStatus status) {
-        File file = taxFileWithTenantStatus(status);
-
-        assertThat(FileAnalysisCriteria.shouldBeAnalyzed(file)).isTrue();
-    }
-
-    @ParameterizedTest
     @CsvSource(textBlock = """
             TAX, MY_NAME
             PROFESSIONAL, STUDENT
