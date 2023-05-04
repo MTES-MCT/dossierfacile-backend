@@ -1,11 +1,11 @@
 package fr.gouv.bo.service;
 
 import fr.dossierfacile.common.entity.ApartmentSharing;
-import fr.dossierfacile.common.enums.FileStatus;
-import fr.dossierfacile.common.service.interfaces.FileStorageService;
+import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
 import fr.gouv.bo.dto.ApartmentSharingDTO01;
 import fr.gouv.bo.repository.BOApartmentSharingRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -14,14 +14,14 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 
 @RequiredArgsConstructor
+@Slf4j
 @Service
 public class ApartmentSharingService {
-
     private final BOApartmentSharingRepository apartmentSharingRepository;
-    private final FileStorageService fileStorageService;
+    private final ApartmentSharingCommonService apartmentSharingCommonService;
 
     public ApartmentSharing find(Long id) {
-        return apartmentSharingRepository.getOne(id);
+        return apartmentSharingCommonService.findById(id).get();
     }
 
     public void delete(ApartmentSharing apartmentSharing) {
@@ -38,13 +38,7 @@ public class ApartmentSharingService {
 
     @Transactional
     public void resetDossierPdfGenerated(ApartmentSharing apartmentSharing) {
-        String currentUrl = apartmentSharing.getUrlDossierPdfDocument();
-        if (currentUrl != null) {
-            fileStorageService.delete(currentUrl);
-            apartmentSharing.setUrlDossierPdfDocument(null);
-            apartmentSharing.setDossierPdfDocumentStatus(FileStatus.DELETED);
-            apartmentSharingRepository.save(apartmentSharing);
-        }
+        apartmentSharingCommonService.resetDossierPdfGenerated(apartmentSharing);
     }
 
     public void refreshUpdateDate(ApartmentSharing apartmentSharing) {

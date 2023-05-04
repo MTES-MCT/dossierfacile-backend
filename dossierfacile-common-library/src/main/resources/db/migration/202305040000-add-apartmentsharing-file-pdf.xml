@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+    <changeSet id="202305040000-01" author="fabien (manual)">
+        <addColumn tableName="apartment_sharing">
+            <column name="pdf_dossier_file_id"
+                    type="BIGINT"
+            />
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="202305040000-02" author="fabien (manual)">
+        <addForeignKeyConstraint baseColumnNames="pdf_dossier_file_id" baseTableName="apartment_sharing"
+                                 constraintName="fk_pdf_dossier_file_on_storage_file" deferrable="false"
+                                 initiallyDeferred="false" referencedColumnNames="id" referencedTableName="storage_file"
+                                 validate="true"/>
+    </changeSet>
+    <changeSet id="202305040000-03" author="fabien (manual)">
+        <sql>
+            <![CDATA[
+                INSERT INTO storage_file (path, name, content_type, size, provider)
+                    SELECT url_dossier_pdf_document, url_dossier_pdf_document, 'application/pdf', 0, 'OVH'
+                    FROM apartment_sharing
+                    WHERE url_dossier_pdf_document is not null OR url_dossier_pdf_document <> '';
+
+          ]]>
+        </sql>
+    </changeSet>
+    <changeSet id="202305040000-04" author="fabien (manual)">
+        <sql>
+            <![CDATA[
+                UPDATE apartment_sharing
+                SET pdf_dossier_file_id = st.id
+                FROM storage_file as st
+                WHERE (url_dossier_pdf_document is not null OR url_dossier_pdf_document <> '')
+                AND pdf_dossier_file_id is null
+                AND dossier_pdf_document_status = 'COMPLETED'
+                AND apartment_sharing.url_dossier_pdf_document = st.path;
+          ]]>
+        </sql>
+    </changeSet>
+</databaseChangeLog>

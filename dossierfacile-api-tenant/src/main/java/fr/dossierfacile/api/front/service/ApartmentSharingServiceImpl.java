@@ -114,16 +114,16 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
         if (apartmentSharing.getDossierPdfDocumentStatus() != FileStatus.COMPLETED) {
             throw new FileNotFoundException("Full PDF doesn't exist - FileStatus " + apartmentSharing.getDossierPdfDocumentStatus());
         } else {
-            try (InputStream fileIS = fileStorageService.download(apartmentSharing.getUrlDossierPdfDocument(), null)) {
+            try (InputStream fileIS = fileStorageService.download(apartmentSharing.getPdfDossierFile())) {
                 log.info("Dossier PDF downloaded for ApartmentSharing with ID [" + apartmentSharing.getId() + "]");
                 IOUtils.copy(fileIS, outputStreamResult);
                 saveLinkLog(apartmentSharing, token, LinkType.DOCUMENT);
 
             } catch (FileNotFoundException e) {
-                log.error("Unable to download Dossier pdf [" + apartmentSharing.getUrlDossierPdfDocument() + "].");
+                log.error("Unable to download Dossier pdf from apartmentSharing [" + apartmentSharing.getId() + "].");
                 throw e;
             } catch (IOException e) {
-                log.error("Unable to download Dossier pdf [" + apartmentSharing.getUrlDossierPdfDocument() + "].");
+                log.error("Unable to download Dossier pdf [" + apartmentSharing.getId() + "].");
                 throw new UnknownServiceException("Unable to get Full PDF from Storage");
             }
         }

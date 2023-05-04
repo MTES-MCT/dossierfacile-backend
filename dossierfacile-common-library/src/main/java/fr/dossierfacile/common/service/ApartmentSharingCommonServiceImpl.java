@@ -1,6 +1,7 @@
 package fr.dossierfacile.common.service;
 
 import fr.dossierfacile.common.entity.ApartmentSharing;
+import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.FileStatus;
@@ -13,6 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Service
 @AllArgsConstructor
 @Slf4j
@@ -23,15 +26,19 @@ public class ApartmentSharingCommonServiceImpl implements ApartmentSharingCommon
     @Override
     @Transactional(propagation = Propagation.SUPPORTS)
     public void resetDossierPdfGenerated(ApartmentSharing apartmentSharing) {
-        String currentUrl = apartmentSharing.getUrlDossierPdfDocument();
-        if (currentUrl != null) {
-            fileStorageService.delete(currentUrl);
-            apartmentSharing.setUrlDossierPdfDocument(null);
-            apartmentSharing.setDossierPdfDocumentStatus(FileStatus.DELETED);
-            apartmentSharingRepository.save(apartmentSharing);
+        StorageFile pdfFile = apartmentSharing.getPdfDossierFile();
+        apartmentSharing.setPdfDossierFile(null);
+        apartmentSharing.setDossierPdfDocumentStatus(FileStatus.DELETED);
+        apartmentSharingRepository.save(apartmentSharing);
+
+        if (pdfFile != null) {
+            try {
+                fileStorageService.delete(pdfFile);
+            } catch (Exception e) {
+                log.error("Unable to delete pdfFile appartmentSharing:" + apartmentSharing.getId());
+            }
         }
     }
-
     @Override
     @Transactional(propagation = Propagation.SUPPORTS)
     public void removeTenant(ApartmentSharing apartmentSharing, Tenant tenant) {
@@ -47,4 +54,15 @@ public class ApartmentSharingCommonServiceImpl implements ApartmentSharingCommon
         apartmentSharingRepository.delete(apartmentSharing);
     }
 
+    @Override
+    @Transactional(propagation = Propagation.SUPPORTS)
+    public Optional<ApartmentSharing> findById(Long apartmentSharingId) {
+        return apartmentSharingRepository.findById(apartmentSharingId);
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.SUPPORTS)
+    public ApartmentSharing save(ApartmentSharing apartmentSharing) {
+        return apartmentSharingRepository.save(apartmentSharing);
+    }
 }

@@ -72,11 +72,6 @@ public class MockStorage implements FileStorageService {
     }
 
     @Override
-    public void deleteAll(List<StorageFile> storageFiles) {
-        storageFiles.forEach(this::delete);
-    }
-
-    @Override
     public void delete(List<String> name) {
         name.forEach(this::delete);
     }

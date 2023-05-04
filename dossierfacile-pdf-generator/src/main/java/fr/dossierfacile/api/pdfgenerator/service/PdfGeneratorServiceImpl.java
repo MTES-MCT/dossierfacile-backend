@@ -4,9 +4,7 @@ import fr.dossierfacile.api.pdfgenerator.amqp.Producer;
 import fr.dossierfacile.api.pdfgenerator.model.FileInputStream;
 import fr.dossierfacile.api.pdfgenerator.repository.DocumentRepository;
 import fr.dossierfacile.api.pdfgenerator.repository.FileRepository;
-import fr.dossierfacile.api.pdfgenerator.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.pdfgenerator.service.interfaces.DocumentPdfGenerationLogService;
-import fr.dossierfacile.api.pdfgenerator.service.interfaces.DownloadService;
 import fr.dossierfacile.api.pdfgenerator.service.interfaces.PdfGeneratorService;
 import fr.dossierfacile.api.pdfgenerator.service.templates.ApartmentSharingPdfDocumentTemplate;
 import fr.dossierfacile.api.pdfgenerator.service.templates.BOIdentificationPdfDocumentTemplate;
@@ -16,9 +14,9 @@ import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentPdfGenerationLog;
 import fr.dossierfacile.common.entity.File;
+import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
-import fr.dossierfacile.common.enums.FileStatus;
 import fr.dossierfacile.common.repository.DocumentPdfGenerationLogRepository;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import io.sentry.Sentry;
@@ -27,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -65,10 +64,7 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
     @Qualifier("boIdentificationPdfDocumentTemplate")
     private final BOIdentificationPdfDocumentTemplate identificationPdfDocumentTemplate;
     private final ApartmentSharingPdfDocumentTemplate apartmentSharingPdfDocumentTemplate;
-    private final ApartmentSharingService apartmentSharingService;
-
-
-    private final DownloadService downloadService;
+    private final ApartmentSharingPdfDossierFileGenerationServiceImpl pdfFileGenerationService;
 
     @Value("${pdf.generation.reattempts}")
     private Integer maxRetries;
@@ -130,7 +126,7 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
         List<File> files = fileRepository.findAllByDocumentId(document.getId());
         if (!CollectionUtils.isEmpty(files)) {
             BOPdfDocumentTemplate pdfDocumentTemplateToUse = (documentCategory == IDENTIFICATION
-                    || documentCategory == IDENTIFICATION_LEGAL_PERSON)? identificationPdfDocumentTemplate : boPdfDocumentTemplate;
+                    || documentCategory == IDENTIFICATION_LEGAL_PERSON) ? identificationPdfDocumentTemplate : boPdfDocumentTemplate;
 
             return pdfDocumentTemplateToUse.render(files.stream()
                     .map(file -> {
@@ -207,21 +203,22 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
 
     @Override
     public void generateFullDossierPdf(Long apartmentSharingId) {
-        ApartmentSharing apartSharing = apartmentSharingService.initialiseApartmentSharingForPdfGeneration(apartmentSharingId);
-        if (apartSharing != null) {
-            String url = apartSharing.getUrlDossierPdfDocument();
+        ApartmentSharing apartmentSharing = pdfFileGenerationService.initialize(apartmentSharingId);
+
+        if (apartmentSharing != null) {
+            StorageFile pdfFile = null;
             try {
-                InputStream render = apartmentSharingPdfDocumentTemplate.render(apartSharing);
-                fileStorageService.upload(url, render, null, "application/pdf");
-                apartmentSharingService.setDossierPdfDocumentStatus(apartSharing.getId(), FileStatus.COMPLETED);
+                StorageFile storageFile = StorageFile.builder()
+                        .name("dossier_" + apartmentSharingId)
+                        .path("dossier_pdf_" + UUID.randomUUID() + ".pdf")
+                        .contentType(MediaType.APPLICATION_PDF_VALUE)
+                        .build();
+                InputStream pdfStream = apartmentSharingPdfDocumentTemplate.render(apartmentSharing);
+                pdfFile = fileStorageService.upload(pdfStream, storageFile);
+                pdfFileGenerationService.complete(apartmentSharingId, pdfFile);
             } catch (Exception e) {
                 log.error("Unable to generate the dossierPdfDocument: " + e.getMessage(), e);
-                apartmentSharingService.setDossierPdfDocumentStatus(apartSharing.getId(), FileStatus.FAILED);
-                try {
-                    fileStorageService.delete(url);
-                } catch (Exception ex) {
-                    log.error("Unable to delete file on storage service");
-                }
+                pdfFileGenerationService.fail(apartmentSharingId, pdfFile);
             }
         }
     }

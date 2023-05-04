@@ -12,8 +12,6 @@ import java.util.List;
 public interface FileStorageService {
     void delete(StorageFile storageFile);
 
-    void deleteAll(List<StorageFile> storageFiles);
-
     /**
      * Get the downloaded file's inputStream.
      * If {@code key} is null then the inputStream is directly returned without decrypt operation.
