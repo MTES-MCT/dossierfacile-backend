@@ -125,7 +125,7 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
 
         if (!pdfs.isEmpty()) {
             for (File pdf : pdfs) {
-                String twoDDocContent = utility.extractTax2DDoc(pdf);
+                String twoDDocContent = utility.extractTax2DDoc(pdf.getStorageFile());
                 if (StringUtils.isNotBlank(twoDDocContent)) {
                     StringBuilder result = new StringBuilder(utility.extractInfoFromPDFFirstPage(pdf));
                     taxDocument = getTaxApiCodeContent(twoDDocContent, lastName, firstName, unaccentFirstName, unaccentLastName, result);
@@ -202,7 +202,7 @@ public class ProcessTaxDocumentImpl implements ProcessTaxDocument {
     private List<File> selectFilesToProcess(List<File> files) {
         Predicate<File> isNotFromMonFranceConnect = file -> file.getFileAnalysis() == null;
         return files.stream()
-                .filter(file -> FilenameUtils.getExtension(file.getPath()).equals("pdf"))
+                .filter(file -> FilenameUtils.getExtension(file.getStorageFile().getPath()).equals("pdf"))
                 .filter(isNotFromMonFranceConnect)
                 .collect(Collectors.toList());
     }

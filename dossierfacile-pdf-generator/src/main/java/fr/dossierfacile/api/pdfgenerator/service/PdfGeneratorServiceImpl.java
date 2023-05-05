@@ -34,6 +34,7 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.rmi.UnexpectedException;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -131,11 +132,12 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
             return pdfDocumentTemplateToUse.render(files.stream()
                     .map(file -> {
                         try {
-                            String extension = FilenameUtils.getExtension(file.getPath()).toLowerCase(Locale.ROOT);
-                            if (!extension.matches("pdf|jpg|jpeg|png|jfif")) {
-                                throw new UnexpectedException("Unexpected extension for file with path [" + file.getPath() + "]");
+                            String extension = FilenameUtils.getExtension(file.getStorageFile().getPath()).toLowerCase(Locale.ROOT);
+                            MediaType mediaType = MediaType.valueOf(file.getStorageFile().getContentType());
+                            if ( ! mediaType.isPresentIn(Arrays.asList(MediaType.IMAGE_JPEG, MediaType.IMAGE_PNG, MediaType.IMAGE_GIF,MediaType.APPLICATION_PDF))){
+                                throw new UnexpectedException("Unexpected MediaType for storagefile with id [" + file.getStorageFile().getId() + "]");
                             }
-                            return new FileInputStream(fileStorageService.download(file), extension);
+                            return new FileInputStream(fileStorageService.download(file.getStorageFile()), extension);
 
                         } catch (Exception e) {
                             log.error(e.getMessage() + ". It will not be added to the pdf of document [" + documentCategory.name() + "] with ID [" + documentId + "]");

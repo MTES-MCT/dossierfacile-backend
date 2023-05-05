@@ -3,15 +3,12 @@ package fr.dossierfacile.common.service;
 import fr.dossierfacile.common.entity.EncryptionKey;
 import fr.dossierfacile.common.entity.ObjectStorageProvider;
 import fr.dossierfacile.common.entity.StorageFile;
-import fr.dossierfacile.common.entity.shared.StoredFile;
-import fr.dossierfacile.common.exceptions.FileCannotUploadedException;
 import fr.dossierfacile.common.exceptions.OvhConnectionFailedException;
 import fr.dossierfacile.common.repository.StorageFileRepository;
 import fr.dossierfacile.common.service.interfaces.OvhFileStorageService;
 import io.sentry.Sentry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.api.exceptions.AuthenticationException;
@@ -19,13 +16,11 @@ import org.openstack4j.api.exceptions.ClientResponseException;
 import org.openstack4j.model.common.Identifier;
 import org.openstack4j.model.common.Payloads;
 import org.openstack4j.model.storage.object.SwiftObject;
-import org.openstack4j.model.storage.object.options.ObjectListOptions;
 import org.openstack4j.openstack.OSFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
@@ -35,8 +30,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.Key;
 import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -138,18 +131,6 @@ public class OvhFileStorageServiceImpl implements OvhFileStorageService {
     }
 
     @Override
-    public InputStream download(StoredFile file) throws IOException {
-        return download(file.getPath(), file.getEncryptionKey());
-    }
-
-    private List<? extends SwiftObject> getListObject(String folderName) {
-        OSClient.OSClientV3 os = connect();
-        return os.objectStorage().objects().list(ovhContainerName, ObjectListOptions.create()
-                .path(folderName)
-        );
-    }
-
-    @Override
     public void upload(String ovhPath, InputStream inputStream, Key key, String contentType) throws IOException {
         if (key != null) {
             try {
@@ -169,17 +150,6 @@ public class OvhFileStorageServiceImpl implements OvhFileStorageService {
         if (StringUtils.isEmpty(eTag)) {
             throw new IOException("ETag is empty - download failed!" + ovhPath);
         }
-    }
-
-    @Override
-    public String uploadFile(MultipartFile file, Key key) {
-        String name = UUID.randomUUID() + "." + Objects.requireNonNull(FilenameUtils.getExtension(file.getOriginalFilename())).toLowerCase(Locale.ROOT);
-        try (InputStream is = file.getInputStream()) {
-            upload(name, is, key, null);
-        } catch (IOException e) {
-            throw new FileCannotUploadedException();
-        }
-        return name;
     }
 
     @Override

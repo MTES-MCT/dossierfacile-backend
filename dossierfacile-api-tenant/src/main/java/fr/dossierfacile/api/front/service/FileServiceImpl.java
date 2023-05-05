@@ -1,17 +1,15 @@
 package fr.dossierfacile.api.front.service;
 
 import fr.dossierfacile.api.front.exception.FileNotFoundException;
-import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.repository.FileRepository;
-import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.FileService;
-import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentStatus;
-import fr.dossierfacile.common.service.interfaces.FileStorageService;
+import fr.dossierfacile.common.enums.LogType;
+import fr.dossierfacile.common.service.interfaces.LogService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -21,13 +19,9 @@ import org.springframework.transaction.annotation.Transactional;
 @AllArgsConstructor
 @Slf4j
 public class FileServiceImpl implements FileService {
-
-    private final FileStorageService fileStorageService;
     private final FileRepository fileRepository;
-    private final DocumentRepository documentRepository;
     private final DocumentService documentService;
-    private final TenantService tenantService;
-    private final ApartmentSharingService apartmentSharingService;
+    private final LogService logService;
 
     @Override
     @Transactional
@@ -35,10 +29,10 @@ public class FileServiceImpl implements FileService {
         File file = fileRepository.findByIdForAppartmentSharing(id, tenant.getApartmentSharing().getId()).orElseThrow(() -> new FileNotFoundException(id, tenant));
 
         Document document = file.getDocument();
-
-        fileStorageService.delete(file.getPath());
         fileRepository.delete(file);
         document.getFiles().remove(file);
+
+        logService.saveLog(LogType.ACCOUNT_EDITED, tenant.getId());
 
         if (document.getFiles().isEmpty()) {
             documentService.delete(document.getId(), document.getTenant() != null ? document.getTenant() : document.getGuarantor().getTenant());
@@ -48,6 +42,4 @@ public class FileServiceImpl implements FileService {
             return document;
         }
     }
-
-
 }

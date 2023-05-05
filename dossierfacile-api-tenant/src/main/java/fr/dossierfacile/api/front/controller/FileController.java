@@ -64,8 +64,8 @@ public class FileController {
         Tenant tenant = authenticationFacade.getLoggedTenant();
         File file = fileRepository.findByIdForTenant(id, tenant.getId()).orElseThrow(() -> new FileNotFoundException(id));
 
-        try (InputStream in = fileStorageService.download(file)) {
-            response.setContentType(file.getComputedContentType());
+        try (InputStream in = fileStorageService.download(file.getStorageFile())) {
+            response.setContentType(file.getStorageFile().getContentType());
             IOUtils.copy(in, response.getOutputStream());
         } catch (final java.io.FileNotFoundException e) {
             log.error(FILE_NO_EXIST, e);
@@ -82,7 +82,7 @@ public class FileController {
         File file = fileRepository.findByIdForAppartmentSharing(fileId, tenant.getApartmentSharing().getId()).orElseThrow(() -> new FileNotFoundException(fileId));
 
         try (InputStream in = fileStorageService.download(file.getPreview())) {
-            response.setContentType(file.getComputedContentType());
+            response.setContentType(file.getPreview().getContentType());
             IOUtils.copy(in, response.getOutputStream());
         } catch (final java.io.FileNotFoundException e) {
             log.error(FILE_NO_EXIST, e);

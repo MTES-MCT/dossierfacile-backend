@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+    <changeSet id="202305050000-01" author="fabien (manual)">
+        <addColumn tableName="file">
+            <column name="storage_file_id"
+                    type="BIGINT"
+            />
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="202305050000-02" author="fabien (manual)">
+        <addForeignKeyConstraint baseColumnNames="storage_file_id" baseTableName="file"
+                                 constraintName="fk_storage_file_id_on_storage_file" deferrable="false"
+                                 initiallyDeferred="false" referencedColumnNames="id" referencedTableName="storage_file"
+                                 validate="true"/>
+    </changeSet>
+    <changeSet id="202305050000-03"  author="fabien (manual)">
+        <dropNotNullConstraint columnDataType="varchar"
+                               columnName="path"
+                               tableName="file"/>
+    </changeSet>
+    <changeSet id="202305050000-04" author="fabien (manual)">
+        <sql>
+            <![CDATA[
+                INSERT INTO storage_file (path, name, content_type, size, provider, encryption_key_id)
+                    SELECT path, original_name, content_type, size, 'OVH', encryption_key_id
+                    FROM file
+                    WHERE (file.path is not null OR file.path <> '' ) AND storage_file_id is null ;
+          ]]>
+        </sql>
+    </changeSet>
+    <!-- Script will be execute manually otherwise it will take too long time
+    <changeSet id="202305050000-05" author="fabien (manual)">
+        <sql>
+            <![CDATA[
+                UPDATE file
+                SET storage_file_id = st.id
+                FROM storage_file as st
+                WHERE (file.path is not null AND file.path <> '')
+                AND file.storage_file_id is null
+                AND file.path = st.path;
+          ]]>
+        </sql>
+    </changeSet>
+     -->
+</databaseChangeLog>
