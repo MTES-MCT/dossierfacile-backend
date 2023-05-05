@@ -22,7 +22,7 @@ public class InMemoryPdfFile implements AutoCloseable {
     private String contentAsString;
 
     public static InMemoryPdfFile create(File file, FileStorageService fileStorageService) throws IOException {
-        try (InputStream inputStream = fileStorageService.download(file)) {
+        try (InputStream inputStream = fileStorageService.download(file.getStorageFile())) {
             return new InMemoryPdfFile(PDDocument.load(inputStream));
         }
     }

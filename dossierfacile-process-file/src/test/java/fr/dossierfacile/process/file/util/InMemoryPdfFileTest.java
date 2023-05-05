@@ -1,7 +1,7 @@
 package fr.dossierfacile.process.file.util;
 
 import fr.dossierfacile.common.entity.File;
-import fr.dossierfacile.common.entity.shared.StoredFile;
+import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.process.file.TestFilesUtil;
 import org.junit.jupiter.api.Test;
@@ -14,6 +14,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class InMemoryPdfFileTest {
+
+    private static File fileWithPath(String path) {
+        return File.builder().storageFile(StorageFile.builder().path(path).build()).build();
+    }
 
     @Test
     void file_with_qr_code() throws IOException {
@@ -41,16 +45,10 @@ class InMemoryPdfFileTest {
                 """);
     }
 
-    private static File fileWithPath(String path) {
-        File file = new File();
-        file.setPath(path);
-        return file;
-    }
-
     private FileStorageService classpathStorageService() throws IOException {
         FileStorageService fileStorageService = mock(FileStorageService.class);
-        when(fileStorageService.download(any(StoredFile.class))).thenAnswer(invocation -> {
-            File file = invocation.getArgument(0, File.class);
+        when(fileStorageService.download(any(StorageFile.class))).thenAnswer(invocation -> {
+            StorageFile file = invocation.getArgument(0, StorageFile.class);
             return TestFilesUtil.getFileAsStream(file.getPath());
         });
         return fileStorageService;

@@ -6,6 +6,7 @@ import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 public interface DocumentService {
@@ -19,5 +20,5 @@ public interface DocumentService {
 
     void changeDocumentStatus(Document document, DocumentStatus toProcess);
 
-    void addFile(MultipartFile multipartFile, Document document);
+    void addFile(MultipartFile multipartFile, Document document) throws IOException;
 }

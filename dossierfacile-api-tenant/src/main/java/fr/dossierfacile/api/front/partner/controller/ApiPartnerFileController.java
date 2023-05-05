@@ -62,8 +62,8 @@ public class ApiPartnerFileController {
     public void getPrivateFileAsByteArray(HttpServletResponse response, @PathVariable Long id, @PathVariable Long tenantId) {
         File file = fileRepository.findByIdForTenant(id, tenantId).orElseThrow(() -> new FileNotFoundException(id));
 
-        try (InputStream in = fileStorageService.download(file) ) {
-            response.setContentType(file.getComputedContentType());
+        try (InputStream in = fileStorageService.download(file.getStorageFile()) ) {
+            response.setContentType(file.getStorageFile().getContentType());
             IOUtils.copy(in, response.getOutputStream());
         } catch (final IOException e) {
             log.error(FILE_NO_EXIST);

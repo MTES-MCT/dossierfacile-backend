@@ -31,8 +31,8 @@ public class FileController {
     public void getOriginalFileAsByteArray(HttpServletResponse response, @PathVariable Long id) {
         fileService.findById(id).ifPresentOrElse(
                 file -> {
-                    try (InputStream in = fileStorageService.download(file)) {
-                        response.setContentType(file.getComputedContentType());
+                    try (InputStream in = fileStorageService.download(file.getStorageFile())) {
+                        response.setContentType(file.getStorageFile().getContentType());
                         IOUtils.copy(in, response.getOutputStream());
                     } catch (final FileNotFoundException e) {
                         log.error(FILE_NO_EXIST, e);

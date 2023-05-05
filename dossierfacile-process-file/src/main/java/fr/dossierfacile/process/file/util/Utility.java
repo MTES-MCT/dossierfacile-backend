@@ -11,6 +11,7 @@ import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.multi.GenericMultipleBarcodeReader;
 import com.google.zxing.multi.MultipleBarcodeReader;
 import fr.dossierfacile.common.entity.File;
+import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.process.file.model.TwoDDoc;
 import io.sentry.Sentry;
@@ -94,7 +95,7 @@ public class Utility {
     }
 
     public java.io.File getTemporaryFile(File dfFile) {
-        try (InputStream fileInputStream = fileStorageService.download(dfFile)) {
+        try (InputStream fileInputStream = fileStorageService.download(dfFile.getStorageFile())) {
             java.io.File myFilesDirectory = new java.io.File(ocrDirectoryPath);
             try {
                 if (!myFilesDirectory.exists()) {
@@ -108,7 +109,7 @@ public class Utility {
                 throw e;
             }
 
-            java.io.File tempFile = java.io.File.createTempFile("tmp", dfFile.getPath(), myFilesDirectory );
+            java.io.File tempFile = java.io.File.createTempFile("tmp", dfFile.getStorageFile().getPath(), myFilesDirectory );
 
             Files.copy(fileInputStream, tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
             tempFile.deleteOnExit();
@@ -133,8 +134,8 @@ public class Utility {
         return pdfFileInText;
     }
 
-    public String extractTax2DDoc(File dfFile) {
-        try (InputStream inputStream = fileStorageService.download(dfFile)) {
+    public String extractTax2DDoc(StorageFile file) {
+        try (InputStream inputStream = fileStorageService.download(file)) {
             try (PDDocument document = PDDocument.load(inputStream)) {
                 if (!document.isEncrypted()) {
                     int scale = Math.max(1 , (int) (2048 / document.getPage(0).getMediaBox().getWidth()));
@@ -163,7 +164,7 @@ public class Utility {
                     return decoded != null ? decoded : "";
                 }
             } catch (NotFoundException e) {
-                log.warn("Unable to parse 2DDoc code - file Id:" + dfFile.getId(), e);
+                log.warn("Unable to parse 2DDoc code - file Id:" + file.getId(), e);
                 Sentry.captureMessage("Unable to parse 2DDoc code - Not found");
             } catch (IOException e) {
                 log.warn(EXCEPTION_MESSAGE2, e);
@@ -171,8 +172,8 @@ public class Utility {
                 log.error(e.getMessage(), e.getCause());
             }
         } catch (IOException e) {
-            log.error("Unable to download file " + dfFile.getPath(), e);
-            Sentry.captureMessage("Unable to download file " + dfFile.getPath());
+            log.error("Unable to download file " + file.getPath(), e);
+            Sentry.captureMessage("Unable to download file " + file.getPath());
         }
 
         return "";

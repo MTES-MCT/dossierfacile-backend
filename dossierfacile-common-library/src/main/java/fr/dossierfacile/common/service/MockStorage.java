@@ -2,19 +2,15 @@ package fr.dossierfacile.common.service;
 
 import fr.dossierfacile.common.entity.ObjectStorageProvider;
 import fr.dossierfacile.common.entity.StorageFile;
-import fr.dossierfacile.common.entity.shared.StoredFile;
-import fr.dossierfacile.common.exceptions.FileCannotUploadedException;
 import fr.dossierfacile.common.repository.StorageFileRepository;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
@@ -34,8 +30,6 @@ import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
 import java.util.UUID;
 
 import static java.lang.String.format;
@@ -45,7 +39,7 @@ import static java.lang.String.format;
 @Profile("mockOvh")
 public class MockStorage implements FileStorageService {
     private final String filePath;
-    private StorageFileRepository storageFileRepository;
+    private final StorageFileRepository storageFileRepository;
 
     public MockStorage(@Value("${mock.storage.path:./mockstorage/}") String filePath, StorageFileRepository storageFileRepository) {
         this.filePath = filePath;
@@ -101,11 +95,6 @@ public class MockStorage implements FileStorageService {
     }
 
     @Override
-    public InputStream download(StoredFile file) throws IOException {
-        return download(file.getPath(), file.getEncryptionKey());
-    }
-
-    @Override
     public void upload(String ovhPath, InputStream inputStream, Key key, String contentType) throws IOException {
         if (key != null) {
             try {
@@ -130,17 +119,6 @@ public class MockStorage implements FileStorageService {
             log.error("Mock - Unable to uploadFile", e);
             throw new IOException(e);
         }
-    }
-
-    @Override
-    public String uploadFile(MultipartFile file, Key key) {
-        String name = UUID.randomUUID() + "." + Objects.requireNonNull(FilenameUtils.getExtension(file.getOriginalFilename())).toLowerCase(Locale.ROOT);
-        try {
-            upload(name, file.getInputStream(), key, file.getContentType());
-        } catch (IOException e) {
-            throw new FileCannotUploadedException();
-        }
-        return name;
     }
 
     @Override

@@ -1,8 +1,6 @@
 package fr.dossierfacile.common.service.interfaces;
 
 import fr.dossierfacile.common.entity.StorageFile;
-import fr.dossierfacile.common.entity.shared.StoredFile;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,12 +20,6 @@ public interface FileStorageService {
      */
     InputStream download(StorageFile storageFile) throws IOException;
 
-    /**
-     * Get the downloaded file's inputStream.
-     * Using decrypt information inside the File object if present.
-     */
-    InputStream download(StoredFile file) throws IOException;
-
     /*
      * Use Storagefile to have the provider
      */
@@ -36,9 +28,9 @@ public interface FileStorageService {
 
     StorageFile upload(InputStream inputStream, StorageFile storageFile) throws IOException;
 
-    String uploadFile(MultipartFile file, Key key);
     @Deprecated
     void delete(String filename);
+
     @Deprecated
     void delete(List<String> filenames);
 

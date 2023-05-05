@@ -30,7 +30,7 @@ public class QrCodeFileProcessor {
 
     public void process(File file) {
         if (analysisRepository.hasNotAlreadyBeenAnalyzed(file) &&
-                PDF_TYPE.equals(file.getContentType())) {
+                PDF_TYPE.equals(file.getStorageFile().getContentType())) {
             downloadAndAnalyze(file)
                     .ifPresent(analysis -> save(file, analysis));
         }
@@ -41,8 +41,8 @@ public class QrCodeFileProcessor {
         try (InMemoryPdfFile inMemoryPdfFile = InMemoryPdfFile.create(file, fileStorageService)) {
             return analyze(document, inMemoryPdfFile);
         } catch (IOException e) {
-            log.error("Unable to download file " + file.getPath(), e);
-            Sentry.captureMessage("Unable to download file " + file.getPath());
+            log.error("Unable to download file " + file.getStorageFile().getPath(), e);
+            Sentry.captureMessage("Unable to download file " + file.getStorageFile().getPath());
         }
         return Optional.empty();
     }

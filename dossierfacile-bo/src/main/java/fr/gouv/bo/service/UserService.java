@@ -120,15 +120,6 @@ public class UserService {
         mailService.sendEmailAccountDeleted(tenant);
         this.savingJsonProfileBeforeDeletion(tenantMapper.toTenantModel(tenant));
 
-        Optional.ofNullable(tenant.getDocuments())
-                .orElse(new ArrayList<>())
-                .forEach(this::deleteFilesFromStorage);
-        Optional.ofNullable(tenant.getGuarantors())
-                .orElse(new ArrayList<>())
-                .forEach(guarantor -> Optional.ofNullable(guarantor.getDocuments())
-                        .orElse(new ArrayList<>())
-                        .forEach(this::deleteFilesFromStorage)
-                );
     }
 
 
@@ -161,18 +152,6 @@ public class UserService {
                         .jsonProfileBeforeDeletion(gson.toJson(tenantModel))
                         .build()
         );
-    }
-
-    private void deleteFilesFromStorage(Document document) {
-        List<File> files = document.getFiles();
-        if (files != null && !files.isEmpty()) {
-            log.info("Removing files from storage of document with id [" + document.getId() + "]");
-            fileStorageService.delete(files.stream().map(File::getPath).collect(Collectors.toList()));
-        }
-        if (document.getName() != null && !document.getName().isBlank()) {
-            log.info("Removing document from storage with path [" + document.getName() + "]");
-            fileStorageService.delete(document.getName());
-        }
     }
 
     public void deleteApartmentSharing(Tenant tenant) {
