@@ -1,8 +1,12 @@
 package fr.dossierfacile.api.dossierfacileapiowner.property;
 
+import fr.dossierfacile.common.entity.ApartmentSharing;
+import fr.dossierfacile.common.entity.Property;
 import fr.dossierfacile.common.entity.PropertyApartmentSharing;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface PropertyApartmentSharingRepository extends CrudRepository<PropertyApartmentSharing, Long> {
+import java.util.Optional;
 
+public interface PropertyApartmentSharingRepository extends JpaRepository<PropertyApartmentSharing, Long> {
+    Optional<PropertyApartmentSharing> findByPropertyAndApartmentSharing(Property property, ApartmentSharing apartmentSharing);
 }

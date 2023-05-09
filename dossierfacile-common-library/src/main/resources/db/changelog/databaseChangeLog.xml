@@ -84,5 +84,10 @@
     <include file="db/migration/202303210000-changetype.xml"/>
     <include file="db/migration/202303270000-changetype.xml"/>
     <include file="db/migration/202304030000-add-apiuser-calltoactionurl.xml"/>
+    <include file="db/migration/202304130000-add-useraccount-constraint-keycloakid.xml"/>
+    <include file="db/migration/202304180000-add-apartment-sharing-link.xml"/>
+    <include file="db/migration/202304280000-add-apartment-sharing-link-mail.xml"/>
+    <include file="db/migration/202304280000-add-avis-detected.xml"/>
+    <include file="db/migration/202305040000-add-apartmentsharing-file-pdf.xml"/>
 
 </databaseChangeLog>

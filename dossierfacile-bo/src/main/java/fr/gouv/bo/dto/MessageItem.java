@@ -29,5 +29,6 @@ public class MessageItem {
     private String documentName;
     @Builder.Default
     private List<DisplayableFile> analyzedFiles = new ArrayList<>();
+    private Boolean avisDetected;
 
 }

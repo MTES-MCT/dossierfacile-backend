@@ -1,6 +1,5 @@
 package fr.dossierfacile.api.front.dfc.controller;
 
-import fr.dossierfacile.api.front.aop.annotation.MethodLog;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.KeycloakUser;
 import fr.dossierfacile.api.front.model.dfc.tenant.ConnectedTenantModel;
@@ -26,7 +25,6 @@ import static org.springframework.http.ResponseEntity.ok;
 @AllArgsConstructor
 @RequestMapping("/dfc/tenant")
 @Slf4j
-@MethodLog
 public class DfcTenantController {
 
     private final AuthenticationFacade authenticationFacade;

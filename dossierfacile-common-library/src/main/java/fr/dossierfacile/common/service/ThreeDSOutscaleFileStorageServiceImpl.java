@@ -157,9 +157,9 @@ public class ThreeDSOutscaleFileStorageServiceImpl implements ThreeDSOutscaleFil
             log.warn("fallback on uploadfile");
             storageFile = StorageFile.builder()
                     .name("undefined")
-                    .provider(ObjectStorageProvider.THREEDS_OUTSCALE)
                     .build();
         }
+        storageFile.setProvider(ObjectStorageProvider.THREEDS_OUTSCALE);
 
         if (StringUtils.isBlank(storageFile.getPath())) {
             storageFile.setPath(UUID.randomUUID().toString());

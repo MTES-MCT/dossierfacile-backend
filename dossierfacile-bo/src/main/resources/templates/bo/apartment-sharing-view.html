@@ -615,6 +615,9 @@
                                             </span>
                                         </li>
                                     </ul>
+                                    <div th:if="${document.avisDetected}">
+                                        - Attention, un avis de situation a été détecté !
+                                    </div>
                                     <div th:if="${document.getDocumentCategory().name()=='TAX'} and ${document.getTaxProcessResult()!=null}"
                                          th:remove="tag"
                                          th:with="result=${document.getTaxProcessResult()}">
@@ -941,6 +944,9 @@
                                             </span>
                                         </li>
                                     </ul>
+                                    <div th:if="${document.avisDetected}">
+                                        - Attention, un avis de situation a été détecté !
+                                    </div>
                                     <div th:if="${document.getDocumentCategory().name()=='TAX'} and ${document.getTaxProcessResult()!=null}"
                                          th:remove="tag"
                                          th:with="result=${document.getTaxProcessResult()}">

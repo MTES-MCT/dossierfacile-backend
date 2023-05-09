@@ -59,17 +59,14 @@ public class FileStorageServiceImpl implements FileStorageService {
     @Override
     @Async
     public void delete(StorageFile storageFile) {
+        if (storageFile == null) {
+            return;
+        }
         switch (storageFile.getProvider()) {
             case OVH -> ovhFileStorageService.delete(storageFile.getPath());
             case THREEDS_OUTSCALE -> threeDSOutscaleFileStorageService.delete(storageFile.getPath());
             default -> throw new ProviderNotFoundException();
         }
-    }
-
-    @Override
-    @Async
-    public void deleteAll(List<StorageFile> storageFiles) {
-        storageFiles.forEach(this::delete);
     }
 
     @Override
@@ -138,10 +135,8 @@ public class FileStorageServiceImpl implements FileStorageService {
         for (ObjectStorageProvider provider : providers) {
             try {
                 switch (provider) {
-                    case OVH ->
-                            ovhFileStorageService.upload(storageFile.getPath(), inputStream, storageFile.getEncryptionKey(), storageFile.getContentType());
-                    case THREEDS_OUTSCALE ->
-                            threeDSOutscaleFileStorageService.upload(storageFile.getPath(), inputStream, storageFile.getEncryptionKey(), storageFile.getContentType());
+                    case OVH -> ovhFileStorageService.upload(inputStream, storageFile);
+                    case THREEDS_OUTSCALE -> threeDSOutscaleFileStorageService.upload(inputStream, storageFile);
                     default -> throw new ProviderNotFoundException();
                 }
                 storageFile.setProvider(provider);

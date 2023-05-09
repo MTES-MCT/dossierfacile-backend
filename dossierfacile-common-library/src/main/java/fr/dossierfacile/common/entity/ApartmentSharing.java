@@ -22,7 +22,9 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -66,7 +68,12 @@ public class ApartmentSharing implements Serializable {
     @Enumerated(EnumType.STRING)
     private ApplicationType applicationType;
 
+    @Deprecated // TODO delete at next MEP
     private String urlDossierPdfDocument;
+
+    @OneToOne(cascade = CascadeType.REMOVE)
+    @JoinColumn(name = "pdf_dossier_file_id")
+    private StorageFile pdfDossierFile;
 
     @Column
     @Enumerated(EnumType.STRING)
@@ -74,6 +81,9 @@ public class ApartmentSharing implements Serializable {
 
     @LastModifiedDate
     private LocalDateTime lastUpdateDate;
+
+    @OneToMany(mappedBy = "apartmentSharing", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    private List<ApartmentSharingLink> apartmentSharingLinks = new ArrayList<>();
 
     public ApartmentSharing(Tenant tenant) {
         tenants.add(tenant);

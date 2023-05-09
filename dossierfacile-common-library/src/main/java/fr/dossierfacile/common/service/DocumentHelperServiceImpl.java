@@ -102,7 +102,6 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
                     .encryptionKey(encryptionKeyService.getCurrentKey())
                     .build();
 
-            // storageFile StorageFactory.getStorageService().upload(compressImage, storageFile);
             try (InputStream is = new ByteArrayInputStream(baos.toByteArray())) {
                 return fileStorageService.upload(is, storageFile);
             }

@@ -11,7 +11,7 @@ public interface GarbageApartmentSharingRepository extends JpaRepository<Garbage
 
     @Query(value = "SELECT distinct apartment_sharing.* FROM apartment_sharing " +
             "left join tenant on apartment_sharing.id=tenant.apartment_sharing_id " +
-            " where tenant.status='ARCHIVED' and apartment_sharing.url_dossier_pdf_document is not null and apartment_sharing.url_dossier_pdf_document <> '' " +
+            " where tenant.status='ARCHIVED' and apartment_sharing.pdf_dossier_file_id is not null " +
             " ORDER BY apartment_sharing.id LIMIT :limit", nativeQuery = true)
     List<GarbageApartmentSharing> getArchivedAptWithPdf(@Param("limit") Integer limit);
 

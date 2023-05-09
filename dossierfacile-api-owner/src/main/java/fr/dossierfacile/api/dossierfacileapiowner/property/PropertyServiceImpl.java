@@ -1,28 +1,19 @@
 package fr.dossierfacile.api.dossierfacileapiowner.property;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.dossierfacile.api.dossierfacileapiowner.register.AuthenticationFacade;
 import fr.dossierfacile.common.entity.Owner;
 import fr.dossierfacile.common.entity.Property;
-import lombok.AllArgsConstructor;
+import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.service.interfaces.TenantCommonService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.client.HttpResponseException;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.util.UriComponents;
-import org.springframework.web.util.UriComponentsBuilder;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -33,24 +24,18 @@ public class PropertyServiceImpl implements PropertyService {
     private final AuthenticationFacade authenticationFacade;
     private final PropertyRepository propertyRepository;
     private final OwnerPropertyMapper propertyMapper;
-
-    @Value("${keycloak.partner.client.id}")
-    private String clientId;
-    @Value("${keycloak.partner.client.secret}")
-    private String clientSecret;
-    @Value("${keycloak.partner.keycloak.token.url}")
-    private String keycloakTokenUrl;
-    @Value("${tenant.api.url}")
-    private String tenantApiUrl;
-    @Value("${tenant.api.port:443}")
-    private Integer tenantApiPort;
+    private final PropertyApartmentSharingService propertyApartmentSharingService;
+    private final TenantCommonService tenantService;
+    @Qualifier("tenantJwtDecoder")
+    @Autowired
+    private JwtDecoder tenantJwtDecoder;
 
     @Override
     public PropertyModel createOrUpdate(PropertyForm propertyForm) {
         Owner owner = authenticationFacade.getOwner();
         Property property;
         if (propertyForm.getId() != null) {
-             property = propertyRepository.findByIdAndOwnerId(propertyForm.getId(), owner.getId()).orElse(new Property());
+            property = propertyRepository.findByIdAndOwnerId(propertyForm.getId(), owner.getId()).orElse(new Property());
         } else {
             property = new Property();
             property.setName("Propriété");
@@ -115,55 +100,15 @@ public class PropertyServiceImpl implements PropertyService {
     }
 
     @Override
-    public HttpResponse<String> subscribeTenantToProperty(String token, Long tenantId) throws IOException, InterruptedException {
-        String openIdToken;
-        try {
-            openIdToken = getOpenIdToken();
-        } catch (InterruptedException ie) {
-            Thread.currentThread().interrupt();
-            throw ie;
-        } catch (Exception e) {
-            throw new HttpResponseException(500, "Couldn't get token");
-        }
+    public void subscribeTenantToProperty(String propertyToken, String kcTenantToken) {
+        // get tenant from jwt, then tenant give his consent
+        Jwt jwt = tenantJwtDecoder.decode(kcTenantToken);
+        String tenantKeycloakId = jwt.getClaimAsString("sub");
+        Tenant tenant = tenantService.findByKeycloakId(tenantKeycloakId);
 
-        UriComponents uriComponents = UriComponentsBuilder.newInstance()
-                .scheme("https").host(tenantApiUrl).port(tenantApiPort).path("/api-partner/tenant/{tenantId}/subscribe/{token}")
-                .buildAndExpand(tenantId, token);
+        Property property = getPropertyByToken(propertyToken).get();
 
-        Map<String, String> data = new HashMap<>();
-        data.put("access", "true");
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        String requestBody = objectMapper
-                .writerWithDefaultPrettyPrinter()
-                .writeValueAsString(data);
-
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(uriComponents.toUri())
-                .setHeader("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(requestBody))
-                .header(HttpHeaders.AUTHORIZATION, "Bearer "+openIdToken)
-                .build();
-        HttpClient client = HttpClient.newHttpClient();
-        return client.send(request, HttpResponse.BodyHandlers.ofString());
+        propertyApartmentSharingService.subscribeTenantApartmentSharingToProperty(tenant, property, true);
     }
 
-    private String getOpenIdToken() throws IOException, InterruptedException, URISyntaxException {
-        String data = "grant_type=client_credentials&client_id="+clientId+"&client_secret="+clientSecret;
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(new URI(keycloakTokenUrl))
-                .setHeader("Content-Type", "application/x-www-form-urlencoded")
-                .POST(HttpRequest.BodyPublishers.ofString(data))
-                .build();
-        HttpClient client = HttpClient.newHttpClient();
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        if (response.statusCode() != 200) {
-            throw new HttpResponseException(500, "Couldn't get token");
-        }
-
-        @SuppressWarnings("unchecked")
-        HashMap<String, Object> body =  new ObjectMapper().readValue(response.body(), HashMap.class);
-
-        return (String) body.get("access_token");
-    }
 }

@@ -93,6 +93,12 @@
                                         <span th:text="'Valid tax information : ' + ${messageItem.taxDocument.taxContentValid}"></span>
                                     </h4>
                                 </div>
+                                <h4 class="panel-title letter" style="padding: 7px"
+                                    th:if="${messageItem.avisDetected}!=null and ${messageItem.avisDetected}==true">
+                                    <span class="fa fa-times text-danger" >
+                                    </span>
+                                    <span>Attention, un avis de situation a été détecté</span>
+                                </h4>
 
                                 <h4 th:if="${messageItem.taxDocument}!=null">Consentement API impôts :
                                     <span class="fa fa-check text-success"
@@ -265,6 +271,13 @@
                                     <div class="panel-heading file1-border-color file1-background-color bold">
                                         <h4 class="panel-title letter" style="color: #0a0808">
                                             <span th:text="#{${messageItem.getDocumentCategory().getLabel()}}"></span>
+                                        </h4>
+                                    </div>
+                                    <div class="panel-heading file1-border-color file1-background-color bold" th:if="${messageItem.avisDetected}!=null and ${messageItem.avisDetected}==true">
+                                        <h4 class="panel-title letter" style="color: #0a0808">
+                                            <span class="fa fa-times text-danger" >
+                                            </span>
+                                            Attention, un avis de situation a été détecté
                                         </h4>
                                     </div>
                                     <div class="panel-heading file1-border-color file1-background-color">

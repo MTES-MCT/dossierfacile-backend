@@ -41,4 +41,6 @@ public class DocumentTaxGuarantorNaturalPersonForm extends DocumentGuarantorForm
     private String customText;
 
     private TypeGuarantor typeGuarantor = TypeGuarantor.NATURAL_PERSON;
+
+    private Boolean avisDetected;
 }

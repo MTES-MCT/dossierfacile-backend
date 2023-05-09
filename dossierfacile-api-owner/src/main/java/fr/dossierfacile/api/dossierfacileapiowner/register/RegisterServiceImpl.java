@@ -54,7 +54,8 @@ public class RegisterServiceImpl implements RegisterService {
     @Transactional
     public OwnerModel register(AccountForm accountForm) {
         String email = accountForm.getEmail();
-        Owner owner = ownerRepository.findByEmailAndEnabledFalse(email).orElse(new Owner("", "", email));
+        Owner owner = ownerRepository.findByEmailAndEnabledFalse(email)
+                .orElse(Owner.builder().email(email).build());
         // TODO : useless ?
         owner.setPassword(bCryptPasswordEncoder.encode(accountForm.getPassword()));
         owner.setKeycloakId(keycloakService.createKeycloakUserAccountCreation(accountForm, owner));
@@ -70,8 +71,8 @@ public class RegisterServiceImpl implements RegisterService {
         Owner owner = ownerRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException(email));
 
-        if (StringUtils.isBlank(owner.getKeycloakId()) || keycloakService.isKeycloakUser(owner.getKeycloakId())) {
-            log.warn("User has not a valid keycloakId - ownerId" + owner.getId());
+        if (StringUtils.isBlank(owner.getKeycloakId()) || !keycloakService.isKeycloakUser(owner.getKeycloakId())) {
+            log.warn("User has not a valid keycloakId - ownerId : " + owner.getId() + ", keycloakId: " + owner.getKeycloakId());
             var keycloakId = keycloakService.createKeycloakUser(email);
             owner.setKeycloakId(keycloakId);
         }

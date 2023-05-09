@@ -7,7 +7,6 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.User;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.ApplicationType;
-import org.springframework.scheduling.annotation.Async;
 
 public interface MailService {
     void sendEmailConfirmAccount(User user, ConfirmationToken confirmationToken);
@@ -33,4 +32,6 @@ public interface MailService {
     void sendEmailToSupport(ContactForm form);
 
     void sendEmailWelcomeForPartnerUser(User user, UserApi userApi);
+
+    void sendFileByMail(String url, String email, String tenantName, String fullName, String tenantEmail);
 }

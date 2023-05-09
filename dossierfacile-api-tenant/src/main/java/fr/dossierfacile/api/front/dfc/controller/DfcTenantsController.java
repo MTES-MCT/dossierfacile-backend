@@ -1,6 +1,6 @@
 package fr.dossierfacile.api.front.dfc.controller;
 
-import fr.dossierfacile.api.front.aop.annotation.MethodLog;
+import fr.dossierfacile.api.front.aop.annotation.MethodLogTime;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.ListMetadata;
 import fr.dossierfacile.api.front.model.ResponseWrapper;
@@ -32,7 +32,7 @@ import static org.springframework.http.ResponseEntity.ok;
 @AllArgsConstructor
 @RequestMapping(DfcTenantsController.PATH)
 @Slf4j
-@MethodLog
+@MethodLogTime
 public class DfcTenantsController {
     static final String PATH = "/dfc/api/v1/tenants";
     private final ClientAuthenticationFacade clientAuthenticationFacade;

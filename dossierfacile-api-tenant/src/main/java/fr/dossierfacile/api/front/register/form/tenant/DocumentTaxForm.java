@@ -15,6 +15,8 @@ import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotNull;
 
+import java.util.List;
+
 import static fr.dossierfacile.common.enums.DocumentSubCategory.LESS_THAN_YEAR;
 import static fr.dossierfacile.common.enums.DocumentSubCategory.MY_NAME;
 import static fr.dossierfacile.common.enums.DocumentSubCategory.MY_PARENTS;
@@ -39,4 +41,6 @@ public class DocumentTaxForm extends DocumentForm {
 
     @LengthOfText(max = 1355)
     private String customText;
+
+    private Boolean avisDetected;
 }

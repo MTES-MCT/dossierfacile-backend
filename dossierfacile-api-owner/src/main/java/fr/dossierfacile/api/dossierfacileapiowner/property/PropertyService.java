@@ -2,8 +2,6 @@ package fr.dossierfacile.api.dossierfacileapiowner.property;
 
 import fr.dossierfacile.common.entity.Property;
 
-import java.io.IOException;
-import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,5 +17,5 @@ public interface PropertyService {
 
     Optional<Property> getPropertyByToken(String token);
 
-    HttpResponse<String> subscribeTenantToProperty(String token, Long tenantId) throws IOException, InterruptedException;
+    void subscribeTenantToProperty(String token, String kcTenantToken);
 }

@@ -8,8 +8,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @Builder
 @NoArgsConstructor
@@ -25,4 +23,6 @@ public class LightPropertyModel {
     private PropertyType type;
     private PropertyFurniture furniture;
     private String address;
+    private Integer co2Emission;
+    private Integer energyConsumption;
 }

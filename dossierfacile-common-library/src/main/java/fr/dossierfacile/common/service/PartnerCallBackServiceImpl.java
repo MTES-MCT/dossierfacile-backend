@@ -39,7 +39,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Slf4j
 public class PartnerCallBackServiceImpl implements PartnerCallBackService {
-
     private final TenantCommonRepository tenantRepository;
     private final TenantUserApiRepository tenantUserApiRepository;
     private final ApplicationFullMapper applicationFullMapper;
@@ -109,7 +108,7 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
         }
 
         switch (userApi.getVersion()) {
-            case 1: {
+            case 1 -> {
                 String fullAccessUrl = (partnerCallBackType == PartnerCallBackType.VERIFIED_ACCOUNT) ? (callbackDomain + "/file/" + apartmentSharing.getToken()) : "";
                 String publicAccessUrl = (partnerCallBackType == PartnerCallBackType.VERIFIED_ACCOUNT) ? (callbackDomain + "/public-file/" + apartmentSharing.getTokenPublic()) : "";
 
@@ -166,9 +165,8 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
 
                 requestService.send(lightAPIInfoModel, userApi.getUrlCallback(), userApi.getPartnerApiKeyCallback());
                 callbackLogService.createCallbackLogForInternalPartnerLight(tenant, userApi.getId(), tenant.getStatus(), lightAPIInfoModel);
-                break;
             }
-            case 2: {
+            case 2 -> {
                 ApplicationModel applicationModel = applicationFullMapper.toApplicationModel(apartmentSharing);
                 List<Tenant> tenantList = tenantRepository.findAllByApartmentSharing(apartmentSharing);
                 for (Tenant t : tenantList) {
@@ -185,10 +183,8 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
                 applicationModel.setOnTenantId(tenant.getId());
                 requestService.send(applicationModel, userApi.getUrlCallback(), userApi.getPartnerApiKeyCallback());
                 callbackLogService.createCallbackLogForPartnerModel(tenant, userApi.getId(), tenant.getStatus(), applicationModel);
-                break;
             }
-            default:
-                log.error("send Callback failed");
+            default -> log.error("send Callback failed");
         }
     }
 

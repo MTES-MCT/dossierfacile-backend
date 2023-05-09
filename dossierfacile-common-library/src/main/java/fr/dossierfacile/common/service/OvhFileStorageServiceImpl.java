@@ -190,14 +190,15 @@ public class OvhFileStorageServiceImpl implements OvhFileStorageService {
             log.warn("fallback on uploadfile");
             storageFile = StorageFile.builder()
                     .name("undefined")
-                    .provider(ObjectStorageProvider.OVH)
                     .build();
         }
+        storageFile.setProvider(ObjectStorageProvider.OVH);
 
         if (StringUtils.isBlank(storageFile.getPath())) {
             storageFile.setPath(UUID.randomUUID().toString());
         }
-        upload(storageFile.getPath(), inputStream, storageFile.getEncryptionKey(), null);
+
+        upload(storageFile.getPath(), inputStream, storageFile.getEncryptionKey(), storageFile.getContentType());
 
         return storageFileRepository.save(storageFile);
 

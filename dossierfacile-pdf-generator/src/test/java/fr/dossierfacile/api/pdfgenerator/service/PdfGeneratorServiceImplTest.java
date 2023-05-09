@@ -8,10 +8,13 @@ import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
+import fr.dossierfacile.common.enums.FileStatus;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.repository.ApartmentSharingRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
+import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
@@ -24,6 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @SpringBootTest
 class PdfGeneratorServiceImplTest {
@@ -32,7 +36,7 @@ class PdfGeneratorServiceImplTest {
     PdfGeneratorService pdfGeneratorService;
 
     @MockBean
-    ApartmentSharingRepository repository;
+    ApartmentSharingCommonService apartmentSharingCommonService;
 
     @MockBean
     TenantCommonRepository tenantRepository;
@@ -50,15 +54,19 @@ class PdfGeneratorServiceImplTest {
         }
 
         ApartmentSharing apartmentSharing = buildApartmentSharing();
-        Mockito.when(repository.getById(1L)).thenReturn(apartmentSharing);
-        Mockito.when(repository.save(ArgumentMatchers.any())).thenAnswer(i -> i.getArguments()[0]);
+        Mockito.when(apartmentSharingCommonService.findById(1L)).thenReturn(Optional.of(apartmentSharing));
+        Mockito.when(apartmentSharingCommonService.save(ArgumentMatchers.any())).thenAnswer(i -> i.getArguments()[0]);
 
         Mockito.when(tenantRepository.countTenantsInTheApartmentNotValidatedOrWithSomeNullDocument(1L)).thenReturn(0);
 
         pdfGeneratorService.generateFullDossierPdf(1L);
 
-        file = new File(filePath + "/7fdad8b1-6a9e-40dc-acab-d698701f76db.pdf");
-        assert (file.exists());
+
+        Assertions.assertEquals(FileStatus.COMPLETED, apartmentSharing.getDossierPdfDocumentStatus());
+        Assertions.assertNotNull( apartmentSharing.getPdfDossierFile());
+
+        file = new File( filePath +  apartmentSharing.getPdfDossierFile().getPath());
+        Assertions.assertTrue (file.exists());
     }
 
     private ApartmentSharing buildApartmentSharing() {

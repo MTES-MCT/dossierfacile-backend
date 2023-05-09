@@ -1,14 +1,13 @@
 package fr.dossierfacile.api.front.service;
 
+import fr.dossierfacile.api.front.exception.MailSentLimitException;
 import fr.dossierfacile.api.front.exception.TenantNotFoundException;
-import fr.dossierfacile.api.front.form.SubscriptionApartmentSharingOfTenantForm;
 import fr.dossierfacile.api.front.model.KeycloakUser;
 import fr.dossierfacile.api.front.model.tenant.EmailExistsModel;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.RegisterFactory;
 import fr.dossierfacile.api.front.register.enums.StepRegister;
 import fr.dossierfacile.api.front.register.form.partner.EmailExistsForm;
-import fr.dossierfacile.api.front.repository.PropertyApartmentSharingRepository;
 import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
 import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.api.front.service.interfaces.PropertyService;
@@ -16,15 +15,16 @@ import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.service.interfaces.UserApiService;
 import fr.dossierfacile.api.front.util.Obfuscator;
 import fr.dossierfacile.common.entity.ApartmentSharing;
-import fr.dossierfacile.common.entity.Property;
-import fr.dossierfacile.common.entity.PropertyApartmentSharing;
+import fr.dossierfacile.common.entity.ApartmentSharingLink;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
+import fr.dossierfacile.common.enums.ApartmentSharingLinkType;
 import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.model.TenantUpdate;
+import fr.dossierfacile.common.repository.ApartmentSharingLinkRepository;
 import fr.dossierfacile.common.repository.ApartmentSharingRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.ConfirmationTokenService;
@@ -39,6 +39,7 @@ import org.springframework.validation.annotation.Validated;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -46,10 +47,10 @@ import java.util.Optional;
 @Validated
 public class TenantServiceImpl implements TenantService {
     private final ApartmentSharingRepository apartmentSharingRepository;
+    private final ApartmentSharingLinkRepository apartmentSharingLinkRepository;
     private final ConfirmationTokenService confirmationTokenService;
     private final LogService logService;
     private final MailService mailService;
-    private final PropertyApartmentSharingRepository propertyApartmentSharingRepository;
     private final PartnerCallBackService partnerCallBackService;
     private final PropertyService propertyService;
     private final RegisterFactory registerFactory;
@@ -60,24 +61,6 @@ public class TenantServiceImpl implements TenantService {
     @Override
     public <T> TenantModel saveStepRegister(Tenant tenant, T formStep, StepRegister step) {
         return registerFactory.get(step.getLabel()).saveStep(tenant, formStep);
-    }
-
-    @Override
-    public void subscribeApartmentSharingOfTenantToPropertyOfOwner(String propertyToken, SubscriptionApartmentSharingOfTenantForm subscriptionApartmentSharingOfTenantForm, Tenant tenant) {
-        if (tenant.getTenantType() == TenantType.CREATE) {
-            Property property = propertyService.getPropertyByToken(propertyToken);
-            PropertyApartmentSharing propertyApartmentSharing = propertyApartmentSharingRepository.findByPropertyAndApartmentSharing(property, tenant.getApartmentSharing()).orElse(
-                    PropertyApartmentSharing.builder()
-                            .accessFull(subscriptionApartmentSharingOfTenantForm.getAccess())
-                            .token(subscriptionApartmentSharingOfTenantForm.getAccess() ? tenant.getApartmentSharing().getToken() : tenant.getApartmentSharing().getTokenPublic())
-                            .property(property)
-                            .apartmentSharing(tenant.getApartmentSharing())
-                            .build()
-            );
-            propertyApartmentSharingRepository.save(propertyApartmentSharing);
-        } else {
-            throw new IllegalStateException("Tenant is not the main tenant");
-        }
     }
 
     @Override
@@ -170,6 +153,31 @@ public class TenantServiceImpl implements TenantService {
     @Override
     public List<TenantUpdate> findTenantUpdateByLastUpdateAndPartner(LocalDateTime since, UserApi userApi, Long limit) {
         return tenantRepository.findTenantUpdateByLastUpdateAndPartner(since, userApi.getId(), limit);
+    }
+
+    @Override
+    public void sendFileByMail(Tenant tenant, String email, String shareType) {
+        String token = UUID.randomUUID().toString();
+        LocalDateTime date = LocalDateTime.now().minusDays(1);
+        List<ApartmentSharingLink> existingASL = apartmentSharingLinkRepository.findByApartmentSharingAndCreationDateIsBefore(tenant.getApartmentSharing(), date );
+        if (existingASL.size() > 10) {
+            throw new MailSentLimitException();
+        }
+
+        ApartmentSharingLink apartmentSharingLink = ApartmentSharingLink.builder()
+                .apartmentSharing(tenant.getApartmentSharing())
+                .disabled(false)
+                .fullData("full".equals(shareType))
+                .token(token)
+                .linkType(ApartmentSharingLinkType.MAIL)
+                .email(email)
+                .mailSent(false).build();
+        apartmentSharingLink = apartmentSharingLinkRepository.save(apartmentSharingLink);
+        String url = "/file/" + apartmentSharingLink.getToken();
+        if ("resume".equals(shareType)) {
+            url = "/public-file/" + apartmentSharingLink.getToken();
+        }
+        mailService.sendFileByMail(url, email, tenant.getFirstName(), tenant.getFullName(), tenant.getEmail());
     }
 
     @Override
