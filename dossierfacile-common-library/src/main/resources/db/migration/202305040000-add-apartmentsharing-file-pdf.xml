@@ -35,7 +35,7 @@
                 UPDATE apartment_sharing
                 SET pdf_dossier_file_id = st.id
                 FROM storage_file as st
-                WHERE (url_dossier_pdf_document is not null OR url_dossier_pdf_document <> '')
+                WHERE (url_dossier_pdf_document is not null AND url_dossier_pdf_document <> '')
                 AND pdf_dossier_file_id is null
                 AND dossier_pdf_document_status = 'COMPLETED'
                 AND apartment_sharing.url_dossier_pdf_document = st.path;
