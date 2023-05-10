@@ -9,6 +9,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.MessageSource;
+import org.springframework.http.MediaType;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -41,7 +42,7 @@ public class BOPdfDocumentTemplateTest {
 
         FileInputStream data = FileInputStream
                 .builder()
-                .extension("pdf")
+                .mediaType(MediaType.APPLICATION_PDF)
                 .inputStream(is)
                 .build();
 
@@ -62,7 +63,7 @@ public class BOPdfDocumentTemplateTest {
 
         FileInputStream data = FileInputStream
                 .builder()
-                .extension("pdf")
+                .mediaType(MediaType.APPLICATION_PDF)
                 .inputStream(is)
                 .build();
 
@@ -85,22 +86,22 @@ public class BOPdfDocumentTemplateTest {
 
         FileInputStream data = FileInputStream
                 .builder()
-                .extension("pdf")
+                .mediaType(MediaType.APPLICATION_PDF)
                 .inputStream(is)
                 .build();
         FileInputStream data2 = FileInputStream
                 .builder()
-                .extension("jpg")
+                .mediaType(MediaType.IMAGE_JPEG)
                 .inputStream(isJPG)
                 .build();
         FileInputStream data3 = FileInputStream
                 .builder()
-                .extension("pdf")
+                .mediaType(MediaType.APPLICATION_PDF)
                 .inputStream(isTextPdf)
                 .build();
         FileInputStream data4 = FileInputStream
                 .builder()
-                .extension("pdf")
+                .mediaType(MediaType.APPLICATION_PDF)
                 .inputStream(isOpen)
                 .build();
 
@@ -120,7 +121,7 @@ public class BOPdfDocumentTemplateTest {
 
         FileInputStream data = FileInputStream
                 .builder()
-                .extension("pdf")
+                .mediaType(MediaType.APPLICATION_PDF)
                 .inputStream(is)
                 .build();
 
@@ -142,17 +143,17 @@ public class BOPdfDocumentTemplateTest {
 
         FileInputStream data = FileInputStream
                 .builder()
-                .extension("jpg")
+                .mediaType(MediaType.IMAGE_JPEG)
                 .inputStream(is)
                 .build();
         FileInputStream data2 = FileInputStream
                 .builder()
-                .extension("jpg")
+                .mediaType(MediaType.IMAGE_JPEG)
                 .inputStream(is2)
                 .build();
         FileInputStream data3 = FileInputStream
                 .builder()
-                .extension("jpg")
+                .mediaType(MediaType.IMAGE_JPEG)
                 .inputStream(is3)
                 .build();
         File resultFile = new File("target/resultTestJpeg.pdf");

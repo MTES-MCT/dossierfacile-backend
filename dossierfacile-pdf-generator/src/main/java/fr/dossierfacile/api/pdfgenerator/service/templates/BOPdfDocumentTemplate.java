@@ -25,6 +25,7 @@ import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
 import javax.imageio.ImageIO;
@@ -86,7 +87,7 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
     private List<BufferedImage> convertToImages(FileInputStream fileInputStream) {
         try {
 
-            if ("pdf".equalsIgnoreCase(fileInputStream.getExtension())) {
+            if (MediaType.APPLICATION_PDF.equalsTypeAndSubtype(fileInputStream.getMediaType())) {
 
                 try (PDDocument document = PDDocument.load(fileInputStream.getInputStream())) {
                     PDFRenderer pdfRenderer = new PDFRenderer(document);

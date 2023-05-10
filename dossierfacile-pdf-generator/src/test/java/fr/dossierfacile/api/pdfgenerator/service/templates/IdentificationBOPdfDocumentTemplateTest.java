@@ -12,6 +12,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.MessageSource;
+import org.springframework.http.MediaType;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -45,7 +46,7 @@ public class IdentificationBOPdfDocumentTemplateTest {
 
         FileInputStream data = FileInputStream
                 .builder()
-                .extension("jpeg")
+                .mediaType(MediaType.IMAGE_JPEG)
                 .inputStream(is)
                 .build();
 
@@ -66,7 +67,7 @@ public class IdentificationBOPdfDocumentTemplateTest {
 
         FileInputStream data = FileInputStream
                 .builder()
-                .extension("pdf")
+                .mediaType(MediaType.APPLICATION_PDF)
                 .inputStream(is)
                 .build();
 
@@ -86,13 +87,13 @@ public class IdentificationBOPdfDocumentTemplateTest {
 
         FileInputStream data = FileInputStream
                 .builder()
-                .extension("pdf")
+                .mediaType(MediaType.APPLICATION_PDF)
                 .inputStream(is)
                 .build();
         InputStream is2 = IdentificationBOPdfDocumentTemplateTest.class.getClassLoader().getResourceAsStream("landscapeid2.pdf");
         FileInputStream data2 = FileInputStream
                 .builder()
-                .extension("pdf")
+                .mediaType(MediaType.APPLICATION_PDF)
                 .inputStream(is2)
                 .build();
 
@@ -117,28 +118,28 @@ public class IdentificationBOPdfDocumentTemplateTest {
         List<FileInputStream> dataList =
                 Arrays.asList(FileInputStream
                                 .builder()
-                                .extension("pdf")
+                                .mediaType(MediaType.APPLICATION_PDF)
                                 .inputStream(is)
                                 .build(),
                         FileInputStream
                                 .builder()
-                                .extension("jpg")
+                                .mediaType(MediaType.IMAGE_JPEG)
                                 .inputStream(isJPG)
                                 .build(),
                         FileInputStream
                                 .builder()
-                                .extension("jpg")
+                                .mediaType(MediaType.IMAGE_JPEG)
                                 .inputStream(isHJPG)
                                 .build(),
 
                         FileInputStream
                                 .builder()
-                                .extension("pdf")
+                                .mediaType(MediaType.APPLICATION_PDF)
                                 .inputStream(isTextPdf)
                                 .build(),
                         FileInputStream
                                 .builder()
-                                .extension("pdf")
+                                .mediaType(MediaType.APPLICATION_PDF)
                                 .inputStream(isOpen)
                                 .build());
 
