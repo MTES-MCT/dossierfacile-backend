@@ -3,6 +3,7 @@ package fr.dossierfacile.api.pdfgenerator.model;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 
 import java.io.InputStream;
 
@@ -11,5 +12,5 @@ import java.io.InputStream;
 @Getter
 public class FileInputStream {
     private final InputStream inputStream;
-    private final String extension;
+    private final MediaType mediaType;
 }

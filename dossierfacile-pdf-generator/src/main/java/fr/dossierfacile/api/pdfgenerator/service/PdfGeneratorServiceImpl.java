@@ -137,7 +137,7 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
                             if ( ! mediaType.isPresentIn(Arrays.asList(MediaType.IMAGE_JPEG, MediaType.IMAGE_PNG, MediaType.IMAGE_GIF,MediaType.APPLICATION_PDF))){
                                 throw new UnexpectedException("Unexpected MediaType for storagefile with id [" + file.getStorageFile().getId() + "]");
                             }
-                            return new FileInputStream(fileStorageService.download(file.getStorageFile()), extension);
+                            return new FileInputStream(fileStorageService.download(file.getStorageFile()), mediaType);
 
                         } catch (Exception e) {
                             log.error(e.getMessage() + ". It will not be added to the pdf of document [" + documentCategory.name() + "] with ID [" + documentId + "]");
