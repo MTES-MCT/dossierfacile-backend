@@ -110,7 +110,7 @@ public class TenantService {
             return tenantList;
         }
         if (emailDTO.getEmail().contains("@")) {
-            tenantList.add(tenantRepository.findByEmail(emailDTO.getEmail()).get());
+            tenantList.add(tenantRepository.findByEmailIgnoreCase(emailDTO.getEmail()).get());
             tenantList.add(Tenant.builder().build());
             return tenantList;
         }
