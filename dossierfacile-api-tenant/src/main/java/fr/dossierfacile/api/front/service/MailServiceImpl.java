@@ -267,10 +267,13 @@ public class MailServiceImpl implements MailService {
 
         SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
         sendSmtpEmailTo.setEmail(email);
+        SendSmtpEmailReplyTo sendSmtpEmailReplyTo = new SendSmtpEmailReplyTo();
+        sendSmtpEmailReplyTo.setEmail(tenantEmail);
 
         SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
         sendSmtpEmail.templateId(templateIdShareFile);
         sendSmtpEmail.params(variables);
+        sendSmtpEmail.replyTo(sendSmtpEmailReplyTo);
         sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
 
         try {
