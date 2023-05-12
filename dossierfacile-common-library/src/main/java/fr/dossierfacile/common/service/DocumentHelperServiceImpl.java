@@ -112,7 +112,7 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
         return null;
     }
 
-    BufferedImage resizeImage(BufferedImage image) throws IOException {
+    BufferedImage resizeImage(BufferedImage image) {
         if (image == null) {
             return null;
         }
@@ -123,6 +123,8 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
         int targetHeight = targetWidth < originalWidth ? (int) (targetWidth / originalWidth * originalHeight) : 300;
         BufferedImage resizedImage = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_RGB);
         Graphics2D graphics2D = resizedImage.createGraphics();
+        graphics2D.setColor(Color.WHITE);
+        graphics2D.fillRect(0, 0, targetWidth, targetHeight);
         graphics2D.drawImage(image, 0, 0, targetWidth, targetHeight, null);
         graphics2D.dispose();
         long endTime = System.currentTimeMillis();
