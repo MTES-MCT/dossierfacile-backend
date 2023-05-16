@@ -22,6 +22,7 @@ import java.util.Optional;
 
 public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
     Optional<Tenant> findByEmail(String email);
+    Optional<Tenant> findByEmailIgnoreCase(String email);
 
     boolean existsByEmail(String email);
 

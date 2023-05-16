@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -85,8 +86,6 @@ public class DocumentServiceImpl implements DocumentService {
             }
         }
 
-        fileStorageService.delete(document.getFiles().stream().map(File::getPath).collect(Collectors.toList()));
-        fileStorageService.delete(document.getName());
         ownerOfDocument.getDocuments().removeIf(d -> Objects.equals(d.getId(), document.getId()));
         documentRepository.delete(document);
         tenantStatusService.updateTenantStatus(tenantOfDocument);
@@ -128,7 +127,7 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Transactional(propagation = Propagation.SUPPORTS)
     @Override
-    public void addFile(MultipartFile multipartFile, Document document) {
+    public void addFile(MultipartFile multipartFile, Document document) throws IOException {
         File file = documentHelperService.addFile(multipartFile, document);
         TransactionalUtil.afterCommit(() -> {
             minifyFileProducer.minifyFile(file.getId());

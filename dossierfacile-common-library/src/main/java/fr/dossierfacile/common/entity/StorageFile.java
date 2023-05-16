@@ -1,7 +1,6 @@
 package fr.dossierfacile.common.entity;
 
 import fr.dossierfacile.common.entity.shared.AbstractAuditable;
-import fr.dossierfacile.common.entity.shared.StoredFile;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,7 +19,7 @@ import java.io.Serial;
 @Setter
 @ToString
 @SuperBuilder
-public class StorageFile extends AbstractAuditable<String, Long> implements StoredFile {
+public class StorageFile extends AbstractAuditable<String, Long> {
     @Serial
     private static final long serialVersionUID = 1L;
 

@@ -11,10 +11,14 @@ import fr.dossierfacile.common.entity.DocumentPdfGenerationLog;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.repository.DocumentPdfGenerationLogRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
+
 @RequiredArgsConstructor
+@Slf4j
 public abstract class AbstractDocumentSaveStep<T extends DocumentForm> implements SaveStep<T> {
     @Autowired
     private TenantMapper tenantMapper;
@@ -42,7 +46,14 @@ public abstract class AbstractDocumentSaveStep<T extends DocumentForm> implement
     protected final void saveFiles(DocumentForm documentForm, Document document) {
         documentForm.getDocuments().stream()
                 .filter(file -> !file.isEmpty())
-                .forEach(file -> documentService.addFile(file, document));
+                .forEach(file -> {
+                    try {
+                        // TODO -> We must find a way to inform user there is a failure
+                        documentService.addFile(file, document);
+                    } catch (IOException ioe) {
+                        log.error("Unable to add File ", ioe);
+                    }
+                });
     }
 
 }

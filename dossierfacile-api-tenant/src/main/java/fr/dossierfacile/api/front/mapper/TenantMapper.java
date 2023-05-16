@@ -40,6 +40,9 @@ public abstract class TenantMapper {
     public abstract ConnectedTenantModel toTenantModelDfc(Tenant tenant);
 
     @Mapping(target = "preview", expression = "java((documentFile.getPreview() != null )? domain + \"" + PREVIEW_PATH + "\" + documentFile.getId() : null)")
+    @Mapping(target = "size", source = "documentFile.storageFile.size")
+    @Mapping(target = "contentType", source = "documentFile.storageFile.contentType")
+    @Mapping(target = "originalName", source = "documentFile.storageFile.name")
     public abstract FileModel toFileModel(File documentFile);
 
     @AfterMapping

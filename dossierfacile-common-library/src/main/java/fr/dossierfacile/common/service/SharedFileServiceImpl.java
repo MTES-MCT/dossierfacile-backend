@@ -14,11 +14,6 @@ public class SharedFileServiceImpl implements SharedFileService {
     private final SharedFileRepository repository;
 
     @Override
-    public Optional<File> findByPath(String filename) {
-        return repository.findByPath(filename);
-    }
-
-    @Override
     public Optional<File> findById(Long id) {
         return repository.findById(id);
     }

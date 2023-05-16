@@ -29,13 +29,13 @@ public interface FileRepository extends JpaRepository<File, Long> {
     @Query("select sum(f.numberOfPages) from File f join f.document d join d.guarantor g join g.tenant t where d.id =:documentId and g.id =:guarantorId and t=:tenant")
     Integer countNumberOfPagesByDocumentIdAndGuarantorIdAndTenant(@Param("documentId") long documentId, @Param("guarantorId") long guarantorId, @Param("tenant") Tenant tenant);
 
-    @Query("select sum(f.size) from File f join f.document d join d.tenant t where d.documentCategory =:documentCategory and t=:tenant")
+    @Query("select sum(sf.size) from File f join f.storageFile sf join f.document d join d.tenant t where d.documentCategory =:documentCategory and t=:tenant")
     long sumSizeOfAllFilesForDocument(@Param("documentCategory") DocumentCategory documentCategory, @Param("tenant") Tenant tenant);
 
     @Query("select count(f) from File f join f.document d join d.tenant t where d.documentCategory =:documentCategory and t=:tenant and d.id=:documentId")
     long countFileByDocumentCategoryTenantDocumentId(@Param("documentCategory") DocumentCategory documentCategory, @Param("tenant") Tenant tenant, @Param("documentId") Long documentId);
 
-    @Query("select sum(f.size) from File f join f.document d join d.tenant t where d.documentCategory =:documentCategory and t=:tenant and d.id=:documentId")
+    @Query("select sum(sf.size) from File f join f.storageFile sf join f.document d join d.tenant t where d.documentCategory =:documentCategory and t=:tenant and d.id=:documentId")
     long sumSizeOfAllFilesForDocumentId(@Param("documentCategory") DocumentCategory documentCategory, @Param("tenant") Tenant tenant, @Param("documentId") Long documentId);
 
     @Query("select count(f) from File f " +
@@ -47,9 +47,11 @@ public interface FileRepository extends JpaRepository<File, Long> {
             @Param("typeGuarantor") TypeGuarantor typeGuarantor,
             @Param("tenant") Tenant tenant);
 
-    @Query("select sum(f.size) from File f " +
-            "join f.document d join d.guarantor g join g.tenant t " +
-            "where d.documentCategory =:documentCategory and g.id =:guarantorId and g.typeGuarantor =:typeGuarantor and t=:tenant")
+    @Query("""
+              select sum(sf.size) from File f 
+              join f.storageFile sf 
+              join f.document d join d.guarantor g join g.tenant t 
+              where d.documentCategory =:documentCategory and g.id =:guarantorId and g.typeGuarantor =:typeGuarantor and t=:tenant""")
     long sumSizeOfAllFilesInDocumentForGuarantorTenantId(
             @Param("documentCategory") DocumentCategory documentCategory,
             @Param("guarantorId") Long guarantorId,
@@ -68,9 +70,11 @@ public interface FileRepository extends JpaRepository<File, Long> {
             @Param("documentId") Long documentId);
 
 
-    @Query("select sum(f.size) from File f " +
-            "join f.document d join d.guarantor g join g.tenant t " +
-            "where d.documentCategory =:documentCategory and g.id =:guarantorId and g.typeGuarantor =:typeGuarantor and t=:tenant and d.id=:documentId")
+    @Query("""
+            select sum(sf.size) from File f 
+            join f.storageFile sf
+            join f.document d join d.guarantor g join g.tenant t 
+            where d.documentCategory =:documentCategory and g.id =:guarantorId and g.typeGuarantor =:typeGuarantor and t=:tenant and d.id=:documentId""")
     long sumSizeOfAllFilesInDocumentForGuarantorTenantId(
             @Param("documentCategory") DocumentCategory documentCategory,
             @Param("guarantorId") Long guarantorId,
@@ -78,9 +82,11 @@ public interface FileRepository extends JpaRepository<File, Long> {
             @Param("tenant") Tenant tenant,
             @Param("documentId") Long documentId);
 
-    @Query("select sum(f.size) from File f " +
-            "join f.document d join d.guarantor g join g.tenant t " +
-            "where d.documentCategory =:documentCategory and g.id =:guarantorId and g.typeGuarantor =:typeGuarantor and t=:tenant")
+    @Query("""
+            select sum(sf.size) from File f
+            join f.storageFile sf
+            join f.document d join d.guarantor g join g.tenant t 
+            where d.documentCategory =:documentCategory and g.id =:guarantorId and g.typeGuarantor =:typeGuarantor and t=:tenant""")
     long sumSizeOfAllFilesInDocumentForGuarantorTenant(
             @Param("documentCategory") DocumentCategory documentCategory,
             @Param("guarantorId") Long guarantorId,

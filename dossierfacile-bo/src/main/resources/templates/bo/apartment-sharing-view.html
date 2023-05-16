@@ -514,6 +514,9 @@
                                                 <span style="color:white; background-color: limegreen; font-weight: bolder"
                                                       th:if="${document.getProcessingStartTime().plusHours(1).isAfter(now)}">
                                                     IN PROGRESS
+                                                    <button th:class="'btn-regenerate-pdf'">
+                                                        <a th:href="@{/bo/regeneratePdfDocument/} + ${document.getId()}">Force update PDF</a>
+                                                    </button>
                                                 </span>
                                             </span>
                                         </div>
@@ -845,6 +848,9 @@
                                                 <span style="color:white; background-color: limegreen; font-weight: bolder"
                                                       th:if="${document.getProcessingStartTime().plusHours(1).isAfter(now)}">
                                                     IN PROGRESS
+                                                    <button th:class="'btn-regenerate-pdf'">
+                                                        <a th:href="@{/bo/regeneratePdfDocument/} + ${document.getId()}">Force update PDF</a>
+                                                    </button>
                                                 </span>
                                             </span>
                                         </div>

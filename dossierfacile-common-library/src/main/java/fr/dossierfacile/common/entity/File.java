@@ -1,7 +1,5 @@
 package fr.dossierfacile.common.entity;
 
-import fr.dossierfacile.common.entity.shared.StoredFile;
-import fr.dossierfacile.common.utils.FileUtility;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -24,7 +22,7 @@ import java.util.Objects;
 @Setter
 @ToString
 @Builder
-public class File implements StoredFile, Serializable {
+public class File implements Serializable {
 
     @Serial
     private static final long serialVersionUID = -1328132958302637660L;
@@ -33,13 +31,9 @@ public class File implements StoredFile, Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String path;
-
-    private String originalName;
-
-    private Long size;
-
-    private String contentType;
+    @OneToOne(cascade = CascadeType.REMOVE)
+    @JoinColumn(name = "storage_file_id")
+    private StorageFile storageFile;
 
     private int numberOfPages;
 
@@ -55,10 +49,6 @@ public class File implements StoredFile, Serializable {
     @Builder.Default
     @Column(name = "creation_date")
     private Date creationDateTime = new Date();
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "encryption_key_id", nullable = true)
-    private EncryptionKey key;
 
     @Nullable
     @OneToOne(mappedBy = "file", fetch = FetchType.LAZY)
@@ -77,13 +67,4 @@ public class File implements StoredFile, Serializable {
         return getClass().hashCode();
     }
 
-    public String getComputedContentType() {
-        if (contentType == null) return FileUtility.computeMediaType(this.getPath());
-        return contentType;
-    }
-
-    @Override
-    public EncryptionKey getEncryptionKey() {
-        return getKey();
-    }
 }
