@@ -83,9 +83,9 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
                 .emailVerified(jwt.getClaimAsBoolean("email_verified"))
                 .franceConnect(Boolean.TRUE.equals(jwt.getClaimAsBoolean("france-connect")))
                 .franceConnectSub(jwt.getClaimAsString("france-connect-sub"))
-                .franceConnectBirthCountry("birthcountry")
-                .franceConnectBirthPlace("birthplace")
-                .franceConnectBirthDate("birthdate")
+                .franceConnectBirthCountry(jwt.getClaimAsString("birthcountry"))
+                .franceConnectBirthPlace(jwt.getClaimAsString("birthplace"))
+                .franceConnectBirthDate(jwt.getClaimAsString("birthdate"))
                 .build();
     }
 
