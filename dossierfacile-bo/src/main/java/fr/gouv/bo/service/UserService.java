@@ -4,11 +4,8 @@ import com.google.gson.Gson;
 import fr.dossierfacile.common.entity.AccountDeleteLog;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.BOUser;
-import fr.dossierfacile.common.entity.Document;
-import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.PropertyApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
-import fr.dossierfacile.common.entity.User;
 import fr.dossierfacile.common.entity.UserRole;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.AuthProvider;
@@ -16,9 +13,9 @@ import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.Role;
 import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
-import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.gouv.bo.dto.UserDTO;
+import fr.gouv.bo.exception.ResourceNotFoundException;
 import fr.gouv.bo.mapper.TenantMapper;
 import fr.gouv.bo.model.tenant.TenantModel;
 import fr.gouv.bo.repository.AccountDeleteLogRepository;
@@ -33,10 +30,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -50,7 +45,6 @@ public class UserService {
     private final TenantCommonRepository tenantRepository;
     private final ModelMapper modelMapper;
     private final MailService mailService;
-    private final FileStorageService fileStorageService;
     private final TenantMapper tenantMapper;
     private final AccountDeleteLogRepository accountDeleteLogRepository;
     private final KeycloakService keycloakService;
@@ -62,26 +56,26 @@ public class UserService {
     @Value("${authorize.domain.bo}")
     private String ad;
 
-    public List<BOUser> findAllAdmins() {
-        return userRepository.findAllAdmins(ad);
+    public List<BOUser> findAll() {
+        return userRepository.findAll();
     }
 
-    public User findUserByEmail(String email) {
-        return userRepository.findByEmail(email).get();
+    public BOUser findUserByEmail(String email) {
+        return userRepository.findByEmail(email).orElse( null );
     }
 
-    public User save(UserDTO userDTO) {
-        User user = modelMapper.map(userDTO, User.class);
+    public BOUser save(UserDTO userDTO) {
+        BOUser user = modelMapper.map(userDTO, BOUser.class);
         user.setProvider(AuthProvider.google);
         return userRepository.save(user);
     }
 
-    public User findOne(Long id) {
-        return userRepository.getOne(id);
+    public BOUser findOne(Long id) {
+        return userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("bo user", "id", id));
     }
 
-    public User update(UserDTO userDTO) {
-        User user = findOne(userDTO.getId());
+    public BOUser update(UserDTO userDTO) {
+        BOUser user = findOne(userDTO.getId());
         user.setFirstName(userDTO.getFirstName());
         user.setLastName(userDTO.getLastName());
         Set<UserRole> userRoleSet = new HashSet<>();
@@ -104,7 +98,7 @@ public class UserService {
 
         ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
         partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.DELETED_ACCOUNT);
-        if (tenant.getKeycloakId() != null ){
+        if (tenant.getKeycloakId() != null) {
             keycloakService.deleteKeycloakSingleUser(tenant);
         }
         saveAndDeleteInfoByTenant(tenant);
@@ -119,9 +113,7 @@ public class UserService {
     private void saveAndDeleteInfoByTenant(Tenant tenant) {
         mailService.sendEmailAccountDeleted(tenant);
         this.savingJsonProfileBeforeDeletion(tenantMapper.toTenantModel(tenant));
-
     }
-
 
     public Tenant setAsTenantCreate(Tenant tenant) {
         ApartmentSharing apartmentSharing = tenant.getApartmentSharing();

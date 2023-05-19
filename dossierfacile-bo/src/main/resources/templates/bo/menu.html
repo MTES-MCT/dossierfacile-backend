@@ -31,8 +31,6 @@
         <br sec:authorize="hasRole('ROLE_ADMIN')"/>
         <a sec:authorize="hasRole('ROLE_ADMIN')" href="/bo/timeServeTenant">TimeServeTenant</a>
         <br sec:authorize="hasRole('ROLE_ADMIN')"/>
-        <a sec:authorize="hasRole('ROLE_ADMIN')" href="/bo/admin">Admins</a>
-        <br sec:authorize="hasRole('ROLE_ADMIN')"/>
         <a sec:authorize="hasRole('ROLE_ADMIN')"
            th:href="@{/bo/statistic/admin(date=${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}, days=7)}">Statistics
             operators</a>

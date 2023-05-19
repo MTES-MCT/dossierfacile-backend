@@ -24,14 +24,9 @@ public class UserRoleService {
         }
     }
 
-    public void createRoleAdminByEmail(String userEmail, @NotNull User user, String create_user) {
-        UserRole newUserRole;
-        if(create_user.equals("create_admin")){
-            newUserRole = new UserRole(user, Role.ROLE_ADMIN);
-        } else{
-            newUserRole = new UserRole(user, Role.ROLE_OPERATOR);
-        }
-
-        userRoleRepository.save(newUserRole);
+    public UserRole createRoleAdminByEmail(@NotNull User user, @NotNull Role role) {
+        UserRole userRole = userRoleRepository.save(new UserRole(user, role));
+        user.getUserRoles().add(userRole);
+        return userRole;
     }
 }
