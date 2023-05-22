@@ -31,7 +31,7 @@ public class ResourceServerConfig {
                 .authorizeRequests()
                 .antMatchers("/v3/**", "/swagger-ui/**", "/api/register/account", "/api/register/confirmAccount/**",
                         "/api/auth/**", "/api/register/forgotPassword", "/api/register/createPassword/**",
-                        "/actuator/health", "/api/property/public/**")
+                        "/actuator/health", "/api/property/public/**", "/webhook/**")
                 .permitAll()
                 .anyRequest().hasAuthority("SCOPE_dossier")
                 .and()
