@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+
+    <changeSet id="202305220000-01" author="fabien (manual)">
+        <sql>
+            <![CDATA[
+                UPDATE user_account
+                SET email = REPLACE (email , 'é', 'e')
+                WHERE email like '%é%';
+
+                UPDATE user_account
+                SET email = REPLACE (email , 'è', 'e')
+                WHERE email like '%è%';
+
+                UPDATE user_account
+                SET email = REPLACE (email , 'ê', 'e')
+                WHERE email like '%ê%';
+
+                UPDATE user_account
+                SET email = REPLACE (email , 'ë', 'e')
+                WHERE email like '%ë%';
+
+                UPDATE user_account
+                SET email = REPLACE (email , 'ï', 'i')
+                WHERE email like '%ï%';
+
+                UPDATE user_account
+                SET email = REPLACE (email , 'î', 'i')
+                WHERE email like '%î%';
+
+                UPDATE user_account
+                SET email = REPLACE (email , 'ö', 'o')
+                WHERE email like '%ö%';
+
+                UPDATE user_account
+                SET email = REPLACE (email , 'ô', 'o')
+                WHERE email like '%ô%';
+
+                UPDATE user_account
+                SET email = REPLACE (email , 'û', 'u')
+                WHERE email like '%û%';
+
+                UPDATE user_account
+                SET email = REPLACE (email , 'ù', 'u')
+                WHERE email like '%ù%';
+
+                UPDATE user_account
+                SET email = REPLACE (email , 'à', 'a')
+                WHERE email like '%à%';
+
+                UPDATE user_account
+                SET email = REPLACE (email , 'ç', 'c')
+                WHERE email like '%ç%';
+          ]]>
+        </sql>
+    </changeSet>
+</databaseChangeLog>

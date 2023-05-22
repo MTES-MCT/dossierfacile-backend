@@ -20,6 +20,6 @@ public class EmailDeserializer extends StdDeserializer<String> {
 
     @Override
     public String deserialize(JsonParser jsonparser, DeserializationContext context) throws IOException {
-        return (StringUtils.isEmpty(jsonparser.getText())) ? null : jsonparser.getText().toLowerCase(Locale.ROOT);
+        return (StringUtils.isEmpty(jsonparser.getText())) ? null : StringUtils.stripAccents(jsonparser.getText().toLowerCase(Locale.ROOT));
     }
 }
