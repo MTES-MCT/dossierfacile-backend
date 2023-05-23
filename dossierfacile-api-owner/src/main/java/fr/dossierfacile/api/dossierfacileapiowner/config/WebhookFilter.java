@@ -28,12 +28,10 @@ public class WebhookFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull FilterChain filterChain) throws IOException, ServletException {
         String apiKey = getApiKey(request);
-        if(apiKey != null) {
-            if(!apiKey.equals(token)) {
+        if(apiKey != null && !apiKey.equals(token)) {
                 response.setStatus(401);
                 response.getWriter().write("Invalid API Key");
                 return;
-            }
         }
 
         filterChain.doFilter(request, response);
