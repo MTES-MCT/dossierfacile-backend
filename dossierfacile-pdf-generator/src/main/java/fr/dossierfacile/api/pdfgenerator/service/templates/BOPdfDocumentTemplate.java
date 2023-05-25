@@ -136,7 +136,7 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
                 Metadata metadata = ImageMetadataReader.readMetadata(imageInputForMeta);
                 Directory dir = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
                 int orientation = dir != null && dir.getInteger(ExifIFD0Directory.TAG_ORIENTATION) != null
-                        ? dir.getInteger(ExifIFD0Directory.TAG_ORIENTATION) : 0;
+                        ? dir.getInt(ExifIFD0Directory.TAG_ORIENTATION) : 0;
 
                 return switch (orientation) {
                     case 2 -> ImageUtil.createFlipped(image, ImageUtil.FLIP_HORIZONTAL);
@@ -144,12 +144,12 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
                     case 4 -> ImageUtil.createFlipped(image, ImageUtil.FLIP_VERTICAL);
                     case 5 -> ImageUtil.createRotated(
                             ImageUtil.createFlipped(image, ImageUtil.FLIP_VERTICAL),
+                            ImageUtil.ROTATE_90_CW);
+                    case 6 -> ImageUtil.createRotated(image, ImageUtil.ROTATE_90_CW);
+                    case 7 -> ImageUtil.createRotated(
+                            ImageUtil.createFlipped(image, ImageUtil.FLIP_VERTICAL),
                             ImageUtil.ROTATE_90_CCW);
-                    case 6 -> ImageUtil.createRotated(image, ImageUtil.ROTATE_90_CCW);
-                    case 7 -> ImageUtil.createFlipped(
-                            ImageUtil.createRotated(image, ImageUtil.ROTATE_90_CW),
-                            ImageUtil.FLIP_VERTICAL);
-                    case 8 -> ImageUtil.createRotated(image, ImageUtil.ROTATE_90_CW);
+                    case 8 -> ImageUtil.createRotated(image, ImageUtil.ROTATE_90_CCW);
                     default -> image; // 0,1 included
                 };
 
