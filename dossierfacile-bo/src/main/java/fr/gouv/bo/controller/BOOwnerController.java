@@ -1,20 +1,27 @@
 package fr.gouv.bo.controller;
 
-import fr.dossierfacile.common.entity.Log;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import fr.dossierfacile.common.entity.Owner;
 import fr.gouv.bo.dto.EmailDTO;
 import fr.gouv.bo.dto.Pager;
-import fr.gouv.bo.service.LogService;
+import fr.gouv.bo.mapper.OwnerMapper;
+import fr.gouv.bo.model.owner.OwnerModel;
 import fr.gouv.bo.service.OwnerService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -32,7 +39,8 @@ public class BOOwnerController {
 
     @Autowired
     private OwnerService ownerService;
-
+    @Autowired
+    private OwnerMapper ownerMapper;
 
     @GetMapping("")
     public String index(Model model, @RequestParam("pageSize") Optional<Integer> pageSize,
@@ -43,7 +51,7 @@ public class BOOwnerController {
 
         Page<Owner> owners;
         if (email.isPresent() && StringUtils.isNotBlank(email.get())) {
-            owners = ownerService.findAllByEmailExpressionPageable( email.get(), pageable);
+            owners = ownerService.findAllByEmailExpressionPageable(email.get(), pageable);
         } else {
             owners = ownerService.findAllPageable(pageable);
         }
@@ -59,5 +67,21 @@ public class BOOwnerController {
 
         model.addAttribute(EMAIL, new EmailDTO());
         return "bo/owners";
+    }
+
+    @GetMapping("/{id}")
+    public String get(Model model, @PathVariable("id") Long id) throws JsonProcessingException {
+        Owner owner = ownerService.findById(id).get();
+        OwnerModel ownerModel = ownerMapper.toOwnerModel(owner);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        JsonElement je = JsonParser.parseString(objectMapper.writeValueAsString(ownerModel));
+
+        model.addAttribute("item", gson.toJson(je));
+        model.addAttribute(EMAIL, new EmailDTO());
+        return "bo/item";
     }
 }
