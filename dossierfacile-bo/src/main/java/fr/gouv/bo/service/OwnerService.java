@@ -8,6 +8,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -20,5 +22,9 @@ public class OwnerService {
 
     public Page<Owner> findAllByEmailExpressionPageable(String email, PageRequest page) {
         return ownerRepository.findAllByEmailContaining(email, page);
+    }
+
+    public Optional<Owner> findById(Long id) {
+        return ownerRepository.findById(id);
     }
 }
