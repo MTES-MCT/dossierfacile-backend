@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 public class TwoDDocReader {
@@ -32,34 +33,39 @@ public class TwoDDocReader {
 		HINTS.put(DecodeHintType.POSSIBLE_FORMATS, EnumSet.allOf(BarcodeFormat.class));
 	}
 
-	public static String find2DDocOn(PDDocument document) throws IOException, NotFoundException {
-		if (!document.isEncrypted()) {
-			int scale = Math.max(1 , (int) (2048 / document.getPage(0).getMediaBox().getWidth()));
-
-			PDFRenderer pdfRenderer = new PDFRenderer(document);
-			BufferedImage bufferedImage = pdfRenderer.renderImage(0, scale, ImageType.BINARY);
-
-			// Crop image to have better recognition by the BarcodeReader library
-			int x = 180 * bufferedImage.getWidth() / 1000;
-			int y = 105 * bufferedImage.getWidth() / 1000;
-			int width = 220 * bufferedImage.getWidth() / 1000;
-			BufferedImage cropImg = bufferedImage.getSubimage(x, y, width, width);
-
-			BinaryBitmap binaryBitmap = new BinaryBitmap(
-					new HybridBinarizer(
-							new BufferedImageLuminanceSource(cropImg)
-					));
-			long time = System.currentTimeMillis();
-
-			MultipleBarcodeReader multiReader = new GenericMultipleBarcodeReader(new MultiFormatReader());
-			Result[] theResults = multiReader.decodeMultiple(binaryBitmap, HINTS);
-			String decoded = theResults[0].getText();
-
-			log.debug("DECODED QR : " + decoded + ", in " + (System.currentTimeMillis() - time) + "ms");
-
-			return decoded != null ? decoded : "";
+	public static Optional<TwoDDocRawContent> find2DDocOn(PDDocument document) throws IOException {
+		if (document.isEncrypted()) {
+			return Optional.empty();
 		}
-		return "";
+
+		BinaryBitmap binaryBitmap = buildBinaryBitmap(document);
+		MultipleBarcodeReader multiReader = new GenericMultipleBarcodeReader(new MultiFormatReader());
+
+		try {
+			Result[] results = multiReader.decodeMultiple(binaryBitmap, HINTS);
+			return Optional.ofNullable(results[0].getText())
+					.map(TwoDDocRawContent::new);
+		} catch (NotFoundException e) {
+			return Optional.empty();
+		}
+	}
+
+	private static BinaryBitmap buildBinaryBitmap(PDDocument document) throws IOException {
+		int scale = Math.max(1, (int) (2048 / document.getPage(0).getMediaBox().getWidth()));
+
+		PDFRenderer pdfRenderer = new PDFRenderer(document);
+		BufferedImage bufferedImage = pdfRenderer.renderImage(0, scale, ImageType.BINARY);
+
+		// Crop image to have better recognition by the BarcodeReader library
+		int x = 180 * bufferedImage.getWidth() / 1000;
+		int y = 105 * bufferedImage.getWidth() / 1000;
+		int width = 220 * bufferedImage.getWidth() / 1000;
+		BufferedImage cropImg = bufferedImage.getSubimage(x, y, width, width);
+
+		return new BinaryBitmap(
+				new HybridBinarizer(
+						new BufferedImageLuminanceSource(cropImg)
+				));
 	}
 
 }

@@ -115,10 +115,9 @@ public class Utility {
     public String extractTax2DDoc(StorageFile file) {
         try (InputStream inputStream = fileStorageService.download(file)) {
             try (PDDocument document = PDDocument.load(inputStream)) {
-                return TwoDDocReader.find2DDocOn(document);
-            } catch (NotFoundException e) {
-                log.warn("Unable to parse 2DDoc code - file Id:" + file.getId(), e);
-                Sentry.captureMessage("Unable to parse 2DDoc code - Not found");
+                return TwoDDocReader.find2DDocOn(document)
+                        .map(TwoDDocRawContent::rawContent)
+                        .orElse("");
             } catch (IOException e) {
                 log.warn(EXCEPTION_MESSAGE2, e);
                 log.error(EXCEPTION + Sentry.captureException(e));
