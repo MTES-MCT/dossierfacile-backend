@@ -1,8 +1,6 @@
 package fr.dossierfacile.process.file.barcode.twoddoc;
 
 import fr.dossierfacile.process.file.TestFilesUtil;
-import fr.dossierfacile.process.file.barcode.twoddoc.TwoDDocRawContent;
-import fr.dossierfacile.process.file.barcode.twoddoc.TwoDDocReader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

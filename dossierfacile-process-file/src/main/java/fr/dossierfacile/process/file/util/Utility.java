@@ -3,7 +3,7 @@ package fr.dossierfacile.process.file.util;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
-import fr.dossierfacile.process.file.barcode.twoddoc.TwoDDocIdEnum;
+import fr.dossierfacile.process.file.barcode.twoddoc.TwoDDocContentParser;
 import fr.dossierfacile.process.file.barcode.twoddoc.TwoDDocRawContent;
 import fr.dossierfacile.process.file.barcode.twoddoc.TwoDDocReader;
 import fr.dossierfacile.process.file.barcode.twoddoc.TwoDDoc;
@@ -34,8 +34,6 @@ public class Utility {
     private final FileStorageService fileStorageService;
     @Value("${directory.ocr.path:/app/ocr}")
     private String ocrDirectoryPath;
-    private static final char ASCII_GROUP_SEPARATOR = (char)29;
-    private static final char ASCII_UNIT_SEPARATOR = (char)31;
 
     public static String normalize(String s) {
         return Normalizer
@@ -158,58 +156,8 @@ public class Utility {
     }
 
 
-    public TwoDDoc parseTwoDDoc(String twoDDocContent) {
-        TwoDDoc twoDDoc = new TwoDDoc();
-
-        if (twoDDocContent == null || twoDDocContent.length() < 26) {
-            return twoDDoc;
-        }
-
-        int version = Integer.parseInt(twoDDocContent.substring(2,4));
-        if (version != 4) {
-            return twoDDoc;
-        }
-
-        twoDDoc.setIDFlag(twoDDocContent.substring(0,2));
-        twoDDoc.setVersion(version);
-        twoDDoc.setIssuer(twoDDocContent.substring(4,8));
-        twoDDoc.setCertId(twoDDocContent.substring(8, 12));
-        twoDDoc.setDocumentDate(twoDDocContent.substring(12, 16));
-        twoDDoc.setSignatureDate(twoDDocContent.substring(16, 20));
-        twoDDoc.setDocumentTypeId(twoDDocContent.substring(20, 22));
-        twoDDoc.setPerimeterId(twoDDocContent.substring(22, 24));
-        twoDDoc.setCountryId(twoDDocContent.substring(24, 26));
-
-        String remain = twoDDocContent.substring(26);
-        String[] unitParts = remain.split(String.valueOf(ASCII_UNIT_SEPARATOR));
-        String data = unitParts[0];
-        String signature = unitParts[1];
-
-        while (data.length() > 0) {
-            int separatorLength = 0;
-            String id = data.substring(0, 2);
-            data = data.substring(2);
-            TwoDDocIdEnum docId = TwoDDocIdEnum.valueOf("ID_"+id);
-            if (docId.getMinSize() == docId.getMaxSize()) {
-                twoDDoc.getData().put(id, data.substring(0, docId.getMaxSize()));
-                data = data.substring(docId.getMaxSize());
-            } else {
-                String potentialResult = data;
-                if (docId.getMaxSize() > 0) {
-                    potentialResult = data.substring(0, docId.getMaxSize());
-                }
-                int pos = potentialResult.indexOf(ASCII_GROUP_SEPARATOR);
-                if (pos < 0) {
-                    pos = potentialResult.length();
-                } else {
-                    separatorLength = 1;
-                }
-                String result = data.substring(0, pos);
-                data = data.substring(pos+separatorLength);
-                twoDDoc.getData().put(id, result);
-            }
-        }
-
-        return twoDDoc;
+    public TwoDDoc parseTwoDDoc(String content) {
+        return TwoDDocContentParser.parse(new TwoDDocRawContent(content));
     }
+
 }
