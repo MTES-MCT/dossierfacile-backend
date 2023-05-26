@@ -1,15 +1,6 @@
 package fr.dossierfacile.process.file.util;
 
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.BinaryBitmap;
-import com.google.zxing.DecodeHintType;
-import com.google.zxing.MultiFormatReader;
 import com.google.zxing.NotFoundException;
-import com.google.zxing.Result;
-import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
-import com.google.zxing.common.HybridBinarizer;
-import com.google.zxing.multi.GenericMultipleBarcodeReader;
-import com.google.zxing.multi.MultipleBarcodeReader;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
@@ -19,19 +10,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.rendering.ImageType;
-import org.apache.pdfbox.rendering.PDFRenderer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.text.Normalizer;
-import java.util.EnumMap;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -48,14 +34,6 @@ public class Utility {
     private String ocrDirectoryPath;
     private static final char ASCII_GROUP_SEPARATOR = (char)29;
     private static final char ASCII_UNIT_SEPARATOR = (char)31;
-
-    private static final Map<DecodeHintType, Object> HINTS;
-
-    static {
-        HINTS = new EnumMap<>(DecodeHintType.class);
-        HINTS.put(DecodeHintType.TRY_HARDER, Boolean.TRUE);
-        HINTS.put(DecodeHintType.POSSIBLE_FORMATS, EnumSet.allOf(BarcodeFormat.class));
-    }
 
     public static String normalize(String s) {
         return Normalizer
@@ -137,32 +115,7 @@ public class Utility {
     public String extractTax2DDoc(StorageFile file) {
         try (InputStream inputStream = fileStorageService.download(file)) {
             try (PDDocument document = PDDocument.load(inputStream)) {
-                if (!document.isEncrypted()) {
-                    int scale = Math.max(1 , (int) (2048 / document.getPage(0).getMediaBox().getWidth()));
-
-                    PDFRenderer pdfRenderer = new PDFRenderer(document);
-                    BufferedImage bufferedImage = pdfRenderer.renderImage(0, scale, ImageType.BINARY);
-
-                    // Crop image to have better recognition by the BarcodeReader library
-                    int x = 180 * bufferedImage.getWidth() / 1000;
-                    int y = 105 * bufferedImage.getWidth() / 1000;
-                    int width = 220 * bufferedImage.getWidth() / 1000;
-                    BufferedImage cropImg = bufferedImage.getSubimage(x, y, width, width);
-
-                    BinaryBitmap binaryBitmap = new BinaryBitmap(
-                            new HybridBinarizer(
-                                    new BufferedImageLuminanceSource(cropImg)
-                            ));
-                    long time = System.currentTimeMillis();
-
-                    MultipleBarcodeReader multiReader = new GenericMultipleBarcodeReader(new MultiFormatReader());
-                    Result[] theResults = multiReader.decodeMultiple(binaryBitmap, HINTS);
-                    String decoded = theResults[0].getText();
-
-                    log.debug("DECODED QR : " + decoded + ", in " + (System.currentTimeMillis() - time) + "ms");
-
-                    return decoded != null ? decoded : "";
-                }
+                return TwoDDocReader.find2DDocOn(document);
             } catch (NotFoundException e) {
                 log.warn("Unable to parse 2DDoc code - file Id:" + file.getId(), e);
                 Sentry.captureMessage("Unable to parse 2DDoc code - Not found");
