@@ -9,5 +9,5 @@ import java.util.Optional;
 public interface UserApiService {
     UserApi findById(Long id);
     Optional<UserApi> findByName(String partner);
-    boolean anyTenantIsAssociated(UserApi partner, List<Tenant> tenants);
+    boolean anyTenantIsLinked(UserApi partner, List<Tenant> tenants);
 }

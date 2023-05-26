@@ -52,7 +52,7 @@ public class ApiPartnerUserController {
         }
         // access rules
         UserApi userApi = clientAuthenticationFacade.getClient();
-        boolean hasReadAccess = userApiService.anyTenantIsAssociated(userApi, Collections.singletonList(tenant.get()));
+        boolean hasReadAccess = userApiService.anyTenantIsLinked(userApi, Collections.singletonList(tenant.get()));
         if (!hasReadAccess) {
             return status(HttpStatus.FORBIDDEN).build();
         }
