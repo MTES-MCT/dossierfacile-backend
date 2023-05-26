@@ -1,11 +1,12 @@
 package fr.gouv.bo.controller;
 
+import com.amazonaws.services.memorydb.model.UserAlreadyExistsException;
 import fr.dossierfacile.common.entity.ApartmentSharing;
+import fr.dossierfacile.common.entity.BOUser;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentPdfGenerationLog;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.User;
-import fr.dossierfacile.common.entity.UserRole;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.Role;
@@ -78,6 +79,7 @@ public class BOController {
     private final ApartmentSharingService apartmentSharingService;
     private final TenantService tenantService;
     private final UserService userService;
+
     private final FileStorageService fileStorageService;
     private final DocumentService documentService;
     private final Producer producer;
@@ -176,13 +178,6 @@ public class BOController {
         return "bo/index";
     }
 
-    @GetMapping("/bo/create/admin")
-    public String getAdmin(Model model) {
-        EmailDTO emailDTO1 = new EmailDTO();
-        model.addAttribute(EMAIL, emailDTO1);
-        return "bo/create-admin";
-    }
-
     @GetMapping("/bo/regroup")
     public String getRegroupTenants(RedirectAttributes redirectAttributes, Model model, ReGroupDTO reGroupDTO, @ModelAttribute("showAlert") BooleanDTO booleanDTO) {
         EmailDTO emailDTO1 = new EmailDTO();
@@ -224,33 +219,29 @@ public class BOController {
         return "redirect:/bo/regroup/";
     }
 
-    @PostMapping("/bo/create/admin")
-    public String createOrUpdateUserToAdmin(EmailDTO emailDTO, Model model, @RequestParam(name = "action") String create_user) {
+    @GetMapping("/bo/create/user")
+    public String getBOUser(Model model) {
         EmailDTO emailDTO1 = new EmailDTO();
-        User user = userService.findUserByEmail(emailDTO.getEmail());
-        if (user != null) {
-            if (user.getUserRoles().isEmpty()) {
-                userRoleService.createRoleAdminByEmail(emailDTO.getEmail(), user, create_user);
-            } else {
-                UserRole userRole1;
-                if (create_user.equals("create_admin")) {
-                    userRole1 = user.getUserRoles().stream().filter(userRole -> userRole.getRole().name().equals(Role.ROLE_ADMIN.name())).findFirst().orElse(null);
-                } else {
-                    userRole1 = user.getUserRoles().stream().filter(userRole -> userRole.getRole().name().equals(Role.ROLE_OPERATOR.name())).findFirst().orElse(null);
-                }
-                if (userRole1 == null) {
-                    userRoleService.createRoleAdminByEmail(emailDTO.getEmail(), user, create_user);
-                }
-            }
-        } else {
+        model.addAttribute(EMAIL, emailDTO1);
+        model.addAttribute("users", userService.findAll());
+        return "bo/create-user";
+    }
+
+    @PostMapping("/bo/create/user")
+    public String createBOUser(EmailDTO emailDTO, Model model, @RequestParam(defaultValue = "ROLE_OPERATOR", name = "action") Role role) {
+        BOUser user = userService.findUserByEmail(emailDTO.getEmail());
+        if (user == null) {
             UserDTO userDTO = new UserDTO();
             userDTO.setEmail(emailDTO.getEmail());
-            userService.save(userDTO);
-            userRoleService.createRoleAdminByEmail(userDTO.getEmail(), null, create_user);
+            user = userService.save(userDTO);
+            userRoleService.createRoleAdminByEmail(user, role);
+        } else {
+            throw new UserAlreadyExistsException("Utilisateur existe déjà");
         }
 
-        model.addAttribute(EMAIL, emailDTO1);
-        return "bo/create-admin";
+        model.addAttribute(EMAIL, new EmailDTO());
+        model.addAttribute("users", userService.findAll());
+        return "bo/create-user";
     }
 
     @GetMapping("/bo/searchTenant")
@@ -322,8 +313,7 @@ public class BOController {
             return "bo/delete-account";
         }
         User user = userService.findUserByEmail(deleteUser.getEmail());
-        if (user instanceof Tenant) {
-            Tenant tenant = (Tenant) user;
+        if (user instanceof Tenant tenant) {
             partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.DELETED_ACCOUNT);
             apartmentSharingService.delete(tenant.getApartmentSharing());
         } else {

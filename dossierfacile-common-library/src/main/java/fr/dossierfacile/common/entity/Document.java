@@ -84,7 +84,12 @@ public class Document implements Serializable {
     @Builder.Default
     private DocumentStatus documentStatus = DocumentStatus.TO_PROCESS;
 
+    // TODO use watermarkFile in next iteration
     private String name;
+
+    @OneToOne(cascade = CascadeType.REMOVE)
+    @JoinColumn(name = "watermark_file_id")
+    private StorageFile watermarkFile;
 
     @Column(columnDefinition = "text")
     @Convert(converter = TaxDocumentConverter.class)

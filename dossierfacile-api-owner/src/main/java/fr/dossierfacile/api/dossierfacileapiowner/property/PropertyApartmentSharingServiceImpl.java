@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.dossierfacileapiowner.property;
 
+import fr.dossierfacile.api.dossierfacileapiowner.mail.MailService;
 import fr.dossierfacile.common.entity.Property;
 import fr.dossierfacile.common.entity.PropertyApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class PropertyApartmentSharingServiceImpl implements PropertyApartmentSharingService {
     private final PropertyApartmentSharingRepository propertyApartmentSharingRepository;
+    private final MailService mailService;
 
     @Override
     public void deletePropertyApartmentSharing(PropertyApartmentSharing propertyApartmentSharing) {
@@ -22,7 +24,6 @@ public class PropertyApartmentSharingServiceImpl implements PropertyApartmentSha
     @Override
     public void subscribeTenantApartmentSharingToProperty(Tenant tenant, Property property, boolean hasAccess) {
         if (tenant.getTenantType() == TenantType.CREATE) {
-
             PropertyApartmentSharing propertyApartmentSharing = propertyApartmentSharingRepository
                     .findByPropertyAndApartmentSharing(property, tenant.getApartmentSharing())
                     .orElse(PropertyApartmentSharing.builder()
@@ -33,6 +34,7 @@ public class PropertyApartmentSharingServiceImpl implements PropertyApartmentSha
                             .build()
                     );
             propertyApartmentSharingRepository.save(propertyApartmentSharing);
+            mailService.sendEmailNewApplicant(tenant, property.getOwner());
         } else {
             throw new IllegalStateException("Tenant is not the main tenant");
         }

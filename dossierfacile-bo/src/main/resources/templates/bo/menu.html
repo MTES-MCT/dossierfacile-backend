@@ -31,8 +31,6 @@
         <br sec:authorize="hasRole('ROLE_ADMIN')"/>
         <a sec:authorize="hasRole('ROLE_ADMIN')" href="/bo/timeServeTenant">TimeServeTenant</a>
         <br sec:authorize="hasRole('ROLE_ADMIN')"/>
-        <a sec:authorize="hasRole('ROLE_ADMIN')" href="/bo/admin">Admins</a>
-        <br sec:authorize="hasRole('ROLE_ADMIN')"/>
         <a sec:authorize="hasRole('ROLE_ADMIN')"
            th:href="@{/bo/statistic/admin(date=${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}, days=7)}">Statistics
             operators</a>
@@ -44,8 +42,6 @@
         <a href="#" data-toggle="modal" data-target="#addProspect">Add a prospect</a>
         <br sec:authorize="hasRole('ROLE_ADMIN')"/>
         <a href="/bo/sleepMode" sec:authorize="hasRole('ROLE_ADMIN')">Sleep mode</a>
-        <br/>
-        <a href="/bo/callback">Send callback</a>
         <br/>
         <a href="/bo/statistic/blurStatistic">Blur statistics</a>
         <br/>
