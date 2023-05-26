@@ -187,7 +187,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
         ApartmentSharingMapper mapper = (format == MappingFormat.EXTENDED) ? applicationFullMapper : applicationBasicMapper;
 
         return apartmentSharingRepository.findByLastUpdateDateAndPartner(lastUpdateDate, userApi, PageRequest.of(0, (int) limit)).stream().map(a ->
-                mapper.toApplicationModel(a)).collect(Collectors.toList());
+                mapper.toApplicationModel(a, userApi)).collect(Collectors.toList());
     }
 
     private void checkingAllTenantsInTheApartmentAreValidatedAndAllDocumentsAreNotNull(long apartmentSharingId, String token) {

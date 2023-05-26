@@ -23,7 +23,7 @@ public interface ApartmentSharingRepository extends JpaRepository<ApartmentShari
     @Query(value = """
             SELECT a 
             FROM ApartmentSharing a
-            JOIN FETCH a.tenants t
+            JOIN a.tenants t
             JOIN t.tenantsUserApi tua
             WHERE tua.userApi =:partner
             AND ( cast(cast(:lastUpdateDate as text) as timestamp) is null or a.lastUpdateDate > cast(cast(:lastUpdateDate as text) as timestamp))

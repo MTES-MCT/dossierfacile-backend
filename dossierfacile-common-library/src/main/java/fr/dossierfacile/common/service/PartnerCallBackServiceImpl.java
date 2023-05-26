@@ -167,7 +167,7 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
                 callbackLogService.createCallbackLogForInternalPartnerLight(tenant, userApi.getId(), tenant.getStatus(), lightAPIInfoModel);
             }
             case 2 -> {
-                ApplicationModel applicationModel = applicationFullMapper.toApplicationModel(apartmentSharing);
+                ApplicationModel applicationModel = applicationFullMapper.toApplicationModel(apartmentSharing, userApi);
                 List<Tenant> tenantList = tenantRepository.findAllByApartmentSharing(apartmentSharing);
                 for (Tenant t : tenantList) {
                     tenantUserApiRepository.findFirstByTenantAndUserApi(t, userApi).ifPresent(tenantUserApi -> {
