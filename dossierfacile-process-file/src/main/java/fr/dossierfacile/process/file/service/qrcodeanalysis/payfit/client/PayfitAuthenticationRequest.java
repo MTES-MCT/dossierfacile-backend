@@ -1,7 +1,7 @@
 package fr.dossierfacile.process.file.service.qrcodeanalysis.payfit.client;
 
 import fr.dossierfacile.process.file.service.qrcodeanalysis.AuthenticationRequest;
-import fr.dossierfacile.process.file.util.QrCode;
+import fr.dossierfacile.process.file.barcode.qrcode.QrCode;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

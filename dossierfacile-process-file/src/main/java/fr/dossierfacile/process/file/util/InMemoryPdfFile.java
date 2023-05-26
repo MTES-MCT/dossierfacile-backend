@@ -2,6 +2,8 @@ package fr.dossierfacile.process.file.util;
 
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
+import fr.dossierfacile.process.file.barcode.qrcode.QrCode;
+import fr.dossierfacile.process.file.barcode.qrcode.QrCodeReader;
 import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

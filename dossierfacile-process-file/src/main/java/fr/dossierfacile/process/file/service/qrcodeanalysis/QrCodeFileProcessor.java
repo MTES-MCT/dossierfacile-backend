@@ -6,7 +6,7 @@ import fr.dossierfacile.common.entity.QrCodeFileAnalysis;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.process.file.repository.QrCodeFileAnalysisRepository;
 import fr.dossierfacile.process.file.util.InMemoryPdfFile;
-import fr.dossierfacile.process.file.util.QrCode;
+import fr.dossierfacile.process.file.barcode.qrcode.QrCode;
 import io.sentry.Sentry;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

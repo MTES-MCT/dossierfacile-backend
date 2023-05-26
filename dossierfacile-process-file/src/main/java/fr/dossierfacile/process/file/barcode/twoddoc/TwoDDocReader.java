@@ -25,7 +25,7 @@ import java.util.Optional;
 @Slf4j
 public class TwoDDocReader {
 
-    private static final Map<DecodeHintType, Object> HINTS;
+	private static final Map<DecodeHintType, Object> HINTS;
 
     static {
         HINTS = new EnumMap<>(DecodeHintType.class);

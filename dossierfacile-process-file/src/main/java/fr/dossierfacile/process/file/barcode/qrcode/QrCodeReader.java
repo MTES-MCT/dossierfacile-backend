@@ -1,4 +1,4 @@
-package fr.dossierfacile.process.file.util;
+package fr.dossierfacile.process.file.barcode.qrcode;
 
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.ChecksumException;

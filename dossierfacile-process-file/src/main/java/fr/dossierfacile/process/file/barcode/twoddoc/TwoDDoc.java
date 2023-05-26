@@ -1,4 +1,4 @@
-package fr.dossierfacile.process.file.model;
+package fr.dossierfacile.process.file.barcode.twoddoc;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

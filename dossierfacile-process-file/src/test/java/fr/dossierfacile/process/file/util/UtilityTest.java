@@ -1,6 +1,6 @@
 package fr.dossierfacile.process.file.util;
 
-import fr.dossierfacile.process.file.model.TwoDDoc;
+import fr.dossierfacile.process.file.barcode.twoddoc.TwoDDoc;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

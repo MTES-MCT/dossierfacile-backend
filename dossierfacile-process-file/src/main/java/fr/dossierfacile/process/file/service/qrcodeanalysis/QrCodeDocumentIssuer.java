@@ -2,7 +2,6 @@ package fr.dossierfacile.process.file.service.qrcodeanalysis;
 
 import fr.dossierfacile.common.entity.DocumentIssuer;
 import fr.dossierfacile.process.file.util.InMemoryPdfFile;
-import fr.dossierfacile.process.file.util.QrCode;
 
 import java.util.Optional;
 

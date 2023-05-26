@@ -1,10 +1,12 @@
 package fr.dossierfacile.process.file.util;
 
-import com.google.zxing.NotFoundException;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
-import fr.dossierfacile.process.file.model.TwoDDoc;
+import fr.dossierfacile.process.file.barcode.twoddoc.TwoDDocIdEnum;
+import fr.dossierfacile.process.file.barcode.twoddoc.TwoDDocRawContent;
+import fr.dossierfacile.process.file.barcode.twoddoc.TwoDDocReader;
+import fr.dossierfacile.process.file.barcode.twoddoc.TwoDDoc;
 import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

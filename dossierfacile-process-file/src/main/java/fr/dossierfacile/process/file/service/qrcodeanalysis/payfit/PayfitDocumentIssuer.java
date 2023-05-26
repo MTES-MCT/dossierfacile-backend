@@ -11,7 +11,7 @@ import fr.dossierfacile.process.file.service.qrcodeanalysis.payfit.client.Payfit
 import fr.dossierfacile.process.file.service.qrcodeanalysis.payfit.client.PayfitClient;
 import fr.dossierfacile.process.file.service.qrcodeanalysis.payfit.client.PayfitResponse;
 import fr.dossierfacile.process.file.util.InMemoryPdfFile;
-import fr.dossierfacile.process.file.util.QrCode;
+import fr.dossierfacile.process.file.barcode.qrcode.QrCode;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 

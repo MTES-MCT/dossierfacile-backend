@@ -9,7 +9,7 @@ import fr.dossierfacile.process.file.service.qrcodeanalysis.monfranceconnect.cli
 import fr.dossierfacile.process.file.service.qrcodeanalysis.monfranceconnect.client.DocumentVerifiedContent;
 import fr.dossierfacile.process.file.service.qrcodeanalysis.monfranceconnect.client.MonFranceConnectClient;
 import fr.dossierfacile.process.file.util.InMemoryPdfFile;
-import fr.dossierfacile.process.file.util.QrCode;
+import fr.dossierfacile.process.file.barcode.qrcode.QrCode;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 

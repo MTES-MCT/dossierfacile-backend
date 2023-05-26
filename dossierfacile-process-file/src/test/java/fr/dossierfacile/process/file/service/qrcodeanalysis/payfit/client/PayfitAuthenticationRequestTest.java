@@ -1,6 +1,6 @@
 package fr.dossierfacile.process.file.service.qrcodeanalysis.payfit.client;
 
-import fr.dossierfacile.process.file.util.QrCode;
+import fr.dossierfacile.process.file.barcode.qrcode.QrCode;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
