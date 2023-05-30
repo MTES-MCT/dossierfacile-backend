@@ -103,6 +103,18 @@ public class ApartmentSharing implements Serializable {
                 return TenantFileStatus.INCOMPLETE;
             }
         }
+        int archivedTenantCount = 0;
+        for (Tenant tenant : tenants) {
+            if (tenant.getStatus() == TenantFileStatus.ARCHIVED) {
+                archivedTenantCount++;
+            }
+        }
+        if (archivedTenantCount > 0) {
+            if (archivedTenantCount == tenants.size()) {
+                return TenantFileStatus.ARCHIVED;
+            }
+            return TenantFileStatus.INCOMPLETE;
+        }
         for (Tenant tenant : tenants) {
             if (tenant.getStatus() == TenantFileStatus.TO_PROCESS) {
                 return TenantFileStatus.TO_PROCESS;
