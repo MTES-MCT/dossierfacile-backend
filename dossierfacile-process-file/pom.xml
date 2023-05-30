@@ -22,6 +22,9 @@
         <spring.boot.version>2.5.2</spring.boot.version>
         <lombok.version>1.18.26</lombok.version>
         <pdfbox.tools.version>2.0.27</pdfbox.tools.version>
+        <jbig2.imageio.version>3.0.3</jbig2.imageio.version>
+        <jai-imageio-jpeg2000.version>1.4.0</jai-imageio-jpeg2000.version>
+        <jai-imageio-core.version>1.4.0</jai-imageio-core.version>
 
         <!--DossierFacile libraries-->
         <dossierfacile.common.version>0.0.1-SNAPSHOT</dossierfacile.common.version>
@@ -45,11 +48,28 @@
             <version>${spring.boot.version}</version>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>pdfbox-tools</artifactId>
             <version>${pdfbox.tools.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>jbig2-imageio</artifactId>
+            <version>${jbig2.imageio.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.jai-imageio</groupId>
+            <artifactId>jai-imageio-core</artifactId>
+            <version>${jai-imageio-core.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.jai-imageio</groupId>
+            <artifactId>jai-imageio-jpeg2000</artifactId>
+            <version>${jai-imageio-jpeg2000.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
