@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="fr"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="bo/layout-bo">
+<head>
+    <title>DossierFacile</title>
+</head>
+<body>
+<div layout:fragment="content" th:remove="tag">
+
+    <div class="container">
+        <pre th:utext="${item}">
+        </pre>
+    </div>
+</div>
+
+</body>
+</html>

@@ -9,12 +9,20 @@ import fr.dossierfacile.api.front.util.TransactionalUtil;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentPdfGenerationLog;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.enums.PartnerCallBackType;
+import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.repository.DocumentPdfGenerationLogRepository;
+import fr.dossierfacile.common.repository.TenantCommonRepository;
+import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
+
 @RequiredArgsConstructor
+@Slf4j
 public abstract class AbstractDocumentSaveStep<T extends DocumentForm> implements SaveStep<T> {
     @Autowired
     private TenantMapper tenantMapper;
@@ -24,10 +32,19 @@ public abstract class AbstractDocumentSaveStep<T extends DocumentForm> implement
     private DocumentPdfGenerationLogRepository documentPdfGenerationLogRepository;
     @Autowired
     private DocumentService documentService;
+    @Autowired
+    private PartnerCallBackService partnerCallBackService;
+    @Autowired
+    private TenantCommonRepository tenantCommonRepository;
 
     @Override
     @Transactional
     public TenantModel saveStep(Tenant tenant, T documentForm) {
+        if (tenant.getStatus() == TenantFileStatus.ARCHIVED) {
+            tenant.setStatus(TenantFileStatus.INCOMPLETE);
+            tenant = tenantCommonRepository.save(tenant);
+            partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.RETURNED_ACCOUNT);
+        }
         Document document = saveDocument(tenant, documentForm);
         Long logId = documentPdfGenerationLogRepository.save(
                 DocumentPdfGenerationLog.builder()
@@ -42,7 +59,14 @@ public abstract class AbstractDocumentSaveStep<T extends DocumentForm> implement
     protected final void saveFiles(DocumentForm documentForm, Document document) {
         documentForm.getDocuments().stream()
                 .filter(file -> !file.isEmpty())
-                .forEach(file -> documentService.addFile(file, document));
+                .forEach(file -> {
+                    try {
+                        // TODO -> We must find a way to inform user there is a failure
+                        documentService.addFile(file, document);
+                    } catch (IOException ioe) {
+                        log.error("Unable to add File ", ioe);
+                    }
+                });
     }
 
 }

@@ -86,7 +86,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     }
 
     private BOUser registerNewUser(OAuth2UserRequest oAuth2UserRequest, OAuth2UserInfo oAuth2UserInfo) {
-        BOUser user = new BOUser();
+        BOUser user = BOUser.builder().build();
 
         user.setProvider(AuthProvider.valueOf(oAuth2UserRequest.getClientRegistration().getRegistrationId()));
         user.setProviderId(oAuth2UserInfo.getId());

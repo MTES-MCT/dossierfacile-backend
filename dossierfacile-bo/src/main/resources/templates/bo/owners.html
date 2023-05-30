@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="fr"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="bo/layout-bo">
+<head>
+  <title>DossierFacile</title>
+</head>
+<body>
+<div layout:fragment="content" th:remove="tag">
+
+  <div class="container actions-section">
+    <div class="row">
+      <form method="get"
+            th:action="@{/bo/owners(pageSize=${selectedPageSize}, page=1, ownerEmail=${ownerEmail})}"
+            class="filter">
+                <span>
+                    <label>email:</label><input type="text" th:value="*{ownerEmail}" name="ownerEmail"/>
+                    <button type="submit" class="btn btn-info">Filtrer</button>
+                </span>
+      </form>
+    </div>
+    <div class="row table-nav">
+      <div class="form-group col-md-1">
+        <select class="form-control pagination pageSizeSelect" th:field="*{selectedPageSize}" data-url="/bo/owners">
+          <option th:each="pageSize : ${pageSizes}" th:text="${pageSize}" th:value="${pageSize}"
+                  th:selected="${pageSize} == ${selectedPageSize}"></option>
+        </select>
+      </div>
+      <div th:if="${owners.totalPages != 1}" class="form-group col-md-11 pagination-centered">
+        <ul class="pagination">
+          <li th:class="${owners.number == 0} ? disabled">
+            <a class="pageLink" th:href="@{/bo/owners(pageSize=${selectedPageSize}, page=1, ownerEmail=${ownerEmail})}">&laquo;</a>
+          </li>
+          <li th:class="${owners.number == 0} ? disabled">
+            <a class="pageLink"
+               th:href="@{/bo/owners(pageSize=${selectedPageSize}, page=${owners.number}, ownerEmail=${ownerEmail})}">&larr;</a>
+          </li>
+          <li th:class="${owners.number == (page - 1)} ? 'active pointer-disabled'"
+              th:each="page : ${#numbers.sequence(pager.startPage, pager.endPage)}">
+            <a class="pageLink" th:href="@{/bo/owners(pageSize=${selectedPageSize}, page=${page}, ownerEmail=${ownerEmail})}"
+               th:text="${page}"></a>
+          </li>
+          <li th:class="${owners.number + 1 == owners.totalPages} ? disabled">
+            <a class="pageLink"
+               th:href="@{/bo/owners(pageSize=${selectedPageSize}, page=${owners.number + 2}, ownerEmail=${ownerEmail})}">&rarr;</a>
+          </li>
+          <li th:class="${owners.number + 1 == owners.totalPages} ? disabled">
+            <a class="pageLink"
+               th:href="@{/bo/owners(pageSize=${selectedPageSize}, page=${owners.totalPages}, ownerEmail=${ownerEmail})}">&raquo;</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="container">
+    <div></div>
+    <div class="table-responsive">
+      <table class="table table-striped table-bordered table-hover">
+        <thead>
+        <tr>
+          <th>Creation date</th>
+          <th>id</th>
+          <th>Owner email</th>
+          <th>First name</th>
+          <th>Last name</th>
+        </tr>
+        </thead>
+        <tbody>
+
+        <tr th:each="owner : ${owners}">
+          <td th:utext="${owner.getCreationDateTime()}"></td>
+          <td th:text="${owner.id}"></td>
+          <td th:text="${owner.email}"></td>
+          <td th:text="${owner.firstName}"></td>
+          <td th:text="${owner.lastName}"></td>
+          <td >
+            <a  th:href="@{/bo/owners/}+${owner.id}" >
+              <span class="fa fa-eye"></span>
+            </a>
+          </td>
+        </tbody>
+      </table>
+    </div>
+    <div class="row table-nav">
+      <div class="form-group col-md-1">
+        <select class="form-control pagination pageSizeSelect" th:field="*{selectedPageSize}" data-url="/bo/owners">
+          <option th:each="pageSize : ${pageSizes}" th:text="${pageSize}" th:value="${pageSize}"
+                  th:selected="${pageSize} == ${selectedPageSize}"></option>
+        </select>
+      </div>
+      <div th:if="${owners.totalPages != 1}" class="form-group col-md-11 pagination-centered">
+        <ul class="pagination">
+          <li th:class="${owners.number == 0} ? disabled">
+            <a class="pageLink" th:href="@{/bo/owners(pageSize=${selectedPageSize}, page=1, ownerEmail=${ownerEmail})}">&laquo;</a>
+          </li>
+          <li th:class="${owners.number == 0} ? disabled">
+            <a class="pageLink"
+               th:href="@{/bo/owners(pageSize=${selectedPageSize}, page=${owners.number}, ownerEmail=${ownerEmail})}">&larr;</a>
+          </li>
+          <li th:class="${owners.number == (page - 1)} ? 'active pointer-disabled'"
+              th:each="page : ${#numbers.sequence(pager.startPage, pager.endPage)}">
+            <a class="pageLink" th:href="@{/bo/owners(pageSize=${selectedPageSize}, page=${page}, ownerEmail=${ownerEmail})}"
+               th:text="${page}"></a>
+          </li>
+          <li th:class="${owners.number + 1 == owners.totalPages} ? disabled">
+            <a class="pageLink"
+               th:href="@{/bo/owners(pageSize=${selectedPageSize}, page=${owners.number + 2}, ownerEmail=${ownerEmail})}">&rarr;</a>
+          </li>
+          <li th:class="${owners.number + 1 == owners.totalPages} ? disabled">
+            <a class="pageLink"
+               th:href="@{/bo/owners(pageSize=${selectedPageSize}, page=${owners.totalPages}, ownerEmail=${ownerEmail})}">&raquo;</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

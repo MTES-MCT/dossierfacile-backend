@@ -8,6 +8,6 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface FileRepository extends JpaRepository<File, Long> {
-    @Query("from File f left join fetch f.key where document_id = :documentId")
+    @Query("from File f join fetch f.storageFile sf left join fetch sf.encryptionKey where document_id = :documentId")
     List<File> findAllByDocumentId(@Param("documentId") Long documentId);
 }

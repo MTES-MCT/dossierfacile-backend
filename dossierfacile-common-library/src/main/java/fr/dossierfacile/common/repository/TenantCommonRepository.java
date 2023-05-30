@@ -14,14 +14,13 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
     Optional<Tenant> findByEmail(String email);
+    Optional<Tenant> findByEmailIgnoreCase(String email);
 
     boolean existsByEmail(String email);
 

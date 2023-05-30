@@ -10,8 +10,6 @@ import fr.dossierfacile.common.config.ThreeDSOutscaleConfig;
 import fr.dossierfacile.common.entity.EncryptionKey;
 import fr.dossierfacile.common.entity.ObjectStorageProvider;
 import fr.dossierfacile.common.entity.StorageFile;
-import fr.dossierfacile.common.entity.shared.StoredFile;
-import fr.dossierfacile.common.exceptions.FileCannotUploadedException;
 import fr.dossierfacile.common.exceptions.OldKeyException;
 import fr.dossierfacile.common.repository.StorageFileRepository;
 import fr.dossierfacile.common.service.interfaces.ThreeDSOutscaleFileStorageService;
@@ -19,14 +17,12 @@ import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
@@ -102,11 +98,6 @@ public class ThreeDSOutscaleFileStorageServiceImpl implements ThreeDSOutscaleFil
         return in;
     }
 
-    @Override
-    public InputStream download(StoredFile file) throws IOException {
-        return download(file.getPath(), file.getEncryptionKey());
-    }
-
     public void upload(String name, InputStream inputStream, Key key, String contentType) throws IOException {
         if (key != null) {
             try {
@@ -135,18 +126,6 @@ public class ThreeDSOutscaleFileStorageServiceImpl implements ThreeDSOutscaleFil
         if (StringUtils.isEmpty(putObjectResult.getETag())) {
             throw new IOException("ETag is empty - download failed!" + name);
         }
-    }
-
-    @Override
-    public String uploadFile(MultipartFile file, Key key) {
-        String name = UUID.randomUUID() + "." + Objects.requireNonNull(FilenameUtils.getExtension(file.getOriginalFilename())).toLowerCase(Locale.ROOT);
-        String contentType = file.getContentType();
-        try (InputStream is = file.getInputStream()) {
-            upload(name, is, key, contentType);
-        } catch (IOException e) {
-            throw new FileCannotUploadedException();
-        }
-        return name;
     }
 
     @Override

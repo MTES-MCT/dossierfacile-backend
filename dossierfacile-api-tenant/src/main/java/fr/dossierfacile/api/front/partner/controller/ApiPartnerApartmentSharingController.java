@@ -50,12 +50,12 @@ public class ApiPartnerApartmentSharingController {
         ApartmentSharing apartSharing = apartmentSharingService.findById(apartmentSharingId).orElseThrow(() -> new ApartmentSharingNotFoundException("applicaton is not found"));
 
         // access rules - at least one tenant is linked to the apartmentSharing
-        boolean hasReadAccess = this.userApiService.anyTenantIsAssociated(userApi, apartSharing.getTenants());
+        boolean hasReadAccess = this.userApiService.anyTenantIsLinked(userApi, apartSharing.getTenants());
         if (!hasReadAccess) {
             return status(HttpStatus.FORBIDDEN).build();
         }
 
-        return ok(applicationFullMapper.toApplicationModel(apartSharing));
+        return ok(applicationFullMapper.toApplicationModel(apartSharing, userApi));
     }
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)

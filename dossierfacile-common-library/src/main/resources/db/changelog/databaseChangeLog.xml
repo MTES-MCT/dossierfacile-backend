@@ -89,5 +89,8 @@
     <include file="db/migration/202304280000-add-apartment-sharing-link-mail.xml"/>
     <include file="db/migration/202304280000-add-avis-detected.xml"/>
     <include file="db/migration/202305040000-add-apartmentsharing-file-pdf.xml"/>
+    <include file="db/migration/202305050000-add-file-storage-file.xml" />
+    <include file="db/migration/202305110000-add-document-watermark-storage-file.xml" />
+    <include file="db/migration/202305220000-update-useraccount-specialchars.xml" />
 
 </databaseChangeLog>

@@ -41,7 +41,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -170,7 +169,13 @@ public class DocumentServiceImpl implements DocumentService {
         try {
             documentForm.getFiles().stream()
                     .filter(f -> !f.isEmpty())
-                    .forEach(multipartFile -> documentHelperService.addFile(multipartFile, document));
+                    .forEach(multipartFile -> {
+                        try {
+                            documentHelperService.addFile(multipartFile, document);
+                        } catch (Exception e) {
+                            log.error("Unable to add file to document " + multipartFile.getOriginalFilename(), e);
+                        }
+                    });
         } catch (OvhConnectionFailedException e) {
             log.error(e.getMessage());
             log.error("Deleting document with ID [" + document.getId() + "] after error FOUND saving its files");
@@ -195,7 +200,7 @@ public class DocumentServiceImpl implements DocumentService {
         List<File> fileList = document.getFiles();
         List<String> result = new ArrayList<>();
         if (fileList != null && !fileList.isEmpty()) {
-            result = fileList.stream().map(File::getPath).collect(Collectors.toList());
+            fileList.stream().forEach(df -> fileStorageService.delete(df.getStorageFile()));
         }
         documentTokenRepository.delete(documentToken);
         documentRepository.delete(document);

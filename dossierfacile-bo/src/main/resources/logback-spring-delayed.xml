@@ -51,13 +51,11 @@
         </encoder>
     </appender>
 
-
     <root level="${LOG_LEVEL}">
-        <appender-ref ref="LOGSTASH"/>
-        <appender-ref ref="STDOUT"/>
-        <springProfile name="dev">
-            <appender-ref ref="FILE"/>
+        <springProfile name="!dev">
+            <appender-ref ref="LOGSTASH"/>
         </springProfile>
+        <appender-ref ref="STDOUT"/>
     </root>
 
 </configuration>

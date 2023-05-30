@@ -19,8 +19,8 @@
         <div class="row">
             <div class="" style="display: inline-grid;grid-auto-columns: max-content; margin-left: 20px; float: left">
                 <div th:if="${isUserAdmin} == true">
-                    <a href="/bo/create/admin" class="btn" id="nextApplication2" style="background: #e63d3d;padding: 10px 16px 12px;float: left;color: aliceblue;font-size: large;margin-left: 10px;">
-                        Ajouter un admin
+                    <a href="/bo/create/user" class="btn" id="nextApplication2" style="background: #e63d3d;padding: 10px 16px 12px;float: left;color: aliceblue;font-size: large;margin-left: 10px;">
+                        Gestion Utilisateurs BO
                     </a>
                 </div>
                 <div th:if="${isUserAdmin} == true">
@@ -36,6 +36,11 @@
                 <div th:if="${isUserAdmin} == true">
                     <a href="/bo/log" class="btn" id="displayLogs" style="background: #e63d3d;padding: 10px 16px 12px;float: left;color: aliceblue;font-size: large;margin-left: 10px;margin-top: 10px">
                         Afficher les logs
+                    </a>
+                </div>
+                <div>
+                    <a href="/bo/owners" class="btn" id="displayOwner" style="background: #1f6685;padding: 10px 16px 12px;float: left;color: aliceblue;font-size: large;margin-left: 10px;margin-top: 10px">
+                        Listing des owners
                     </a>
                 </div>
                 <div style="margin-top: 10px">

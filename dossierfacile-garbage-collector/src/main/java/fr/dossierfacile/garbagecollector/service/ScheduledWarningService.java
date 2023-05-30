@@ -50,11 +50,15 @@ public class ScheduledWarningService {
         log.info("Delete archived tenants");
         while (tenantList.size() > 0) {
             total += tenantList.size();
-            tenantWarningService.deleteOldArchivedWarnings(tenantList);
+            try {
+                tenantWarningService.deleteOldArchivedWarnings(tenantList);
+            } catch (Exception e) {
+                log.error("error while deleting old accounts", e);
+            }
             tenantList = tenantRepository.findByStatusAndLastUpdateDate(TenantFileStatus.ARCHIVED, limitDate, pageRequest);
         }
         log.info("Deleted " + total + " archived tenants");
-}
+    }
 
     private void processAllWarnings(LocalDateTime localDateTime, int warnings) {
         long numberOfTenantsToProcess = tenantRepository.countByLastLoginDateIsBeforeAndHasDocuments(localDateTime, warnings);

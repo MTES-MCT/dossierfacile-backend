@@ -36,9 +36,6 @@ public class DeleteFileInterceptor extends EmptyInterceptor implements Hibernate
             if (entity instanceof StorageFile) {
                 log.info("delete storage file in storage" + ((StorageFile) entity).getPath());
                 fileStorageService.delete((StorageFile) entity);
-            } else if (entity instanceof File) {
-                log.info("delete file in storage" + ((File) entity).getPath());
-                fileStorageService.delete(((File) entity).getPath());
             } else if (entity instanceof Document) {
                 String path = ((Document) entity).getName();
                 log.info("try to delete document in storage but already empty");

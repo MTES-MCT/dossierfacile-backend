@@ -97,12 +97,6 @@ public class TenantCommonServiceImpl implements TenantCommonService {
     }
 
     private void deleteFilesFromStorage(Document document) {
-        List<File> files = document.getFiles();
-        if (files != null && !files.isEmpty()) {
-            log.info("Removing files from storage of document with id [" + document.getId() + "]");
-            fileStorageService.delete(files.stream().map(File::getPath).collect(Collectors.toList()));
-            files.forEach(file -> fileStorageService.delete(file.getPreview()));
-        }
         if (document.getName() != null && !document.getName().isBlank()) {
             log.info("Removing document from storage with path [" + document.getName() + "]");
             fileStorageService.delete(document.getName());

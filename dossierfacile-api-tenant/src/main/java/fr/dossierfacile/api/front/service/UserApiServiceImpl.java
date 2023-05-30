@@ -30,7 +30,7 @@ public class UserApiServiceImpl implements UserApiService {
         return userApiRepository.findByName(partner);
     }
     @Override
-    public boolean anyTenantIsAssociated(UserApi partner, List<Tenant> tenants) {
+    public boolean anyTenantIsLinked(UserApi partner, List<Tenant> tenants) {
         Optional<TenantUserApi> result = tenantUserApiRepository.findFirstByUserApiAndTenantIn(partner, tenants);
         return result.isPresent();
     }

@@ -1,6 +1,7 @@
 package fr.gouv.bo.service;
 
 import fr.dossierfacile.common.entity.ApartmentSharing;
+import fr.dossierfacile.common.entity.BOUser;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentDeniedReasons;
 import fr.dossierfacile.common.entity.Guarantor;
@@ -110,7 +111,7 @@ public class TenantService {
             return tenantList;
         }
         if (emailDTO.getEmail().contains("@")) {
-            tenantList.add(tenantRepository.findByEmail(emailDTO.getEmail()).get());
+            tenantList.add(tenantRepository.findByEmailIgnoreCase(emailDTO.getEmail()).get());
             tenantList.add(Tenant.builder().build());
             return tenantList;
         }
@@ -201,7 +202,7 @@ public class TenantService {
     @Transactional
     public void validateTenantFile(Principal principal, Long tenantId) {
         Tenant tenant = find(tenantId);
-        User operator = userService.findUserByEmail(principal.getName());
+        BOUser operator = userService.findUserByEmail(principal.getName());
 
         Optional.ofNullable(tenant.getDocuments())
                 .orElse(new ArrayList<>())

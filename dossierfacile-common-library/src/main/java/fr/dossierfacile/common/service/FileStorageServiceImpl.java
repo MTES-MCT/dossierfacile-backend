@@ -2,8 +2,6 @@ package fr.dossierfacile.common.service;
 
 import fr.dossierfacile.common.entity.ObjectStorageProvider;
 import fr.dossierfacile.common.entity.StorageFile;
-import fr.dossierfacile.common.entity.shared.StoredFile;
-import fr.dossierfacile.common.exceptions.FileCannotUploadedException;
 import fr.dossierfacile.common.repository.StorageFileRepository;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.common.service.interfaces.OvhFileStorageService;
@@ -11,22 +9,18 @@ import fr.dossierfacile.common.service.interfaces.ThreeDSOutscaleFileStorageServ
 import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.ProviderNotFoundException;
 import java.security.Key;
 import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -91,30 +85,6 @@ public class FileStorageServiceImpl implements FileStorageService {
     @Deprecated
     public InputStream download(String path, Key key) throws IOException {
         return ovhFileStorageService.download(path, key);
-    }
-
-    /**
-     * @deprecated use upload with StorageFile to handle multiple storage service
-     */
-    @Deprecated
-    @Override
-    public InputStream download(StoredFile file) throws IOException {
-        return download(file.getPath(), file.getEncryptionKey());
-    }
-
-    /**
-     * @deprecated use upload with StorageFile to handle multiple storage service
-     */
-    @Deprecated
-    @Override
-    public String uploadFile(MultipartFile file, Key key) {
-        String name = UUID.randomUUID() + "." + Objects.requireNonNull(FilenameUtils.getExtension(file.getOriginalFilename())).toLowerCase(Locale.ROOT);
-        try (InputStream is = file.getInputStream()) {
-            ovhFileStorageService.upload(name, is, key, file.getContentType());
-        } catch (IOException e) {
-            throw new FileCannotUploadedException();
-        }
-        return name;
     }
 
     @Override
