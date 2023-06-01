@@ -1,37 +1,25 @@
 package fr.dossierfacile.process.file.barcode.twoddoc;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import fr.dossierfacile.process.file.barcode.twoddoc.parsing.TwoDDocData;
+import fr.dossierfacile.process.file.barcode.twoddoc.parsing.TwoDDocHeader;
+import fr.dossierfacile.process.file.barcode.twoddoc.parsing.TwoDDocSignature;
 
-import java.util.HashMap;
+import static fr.dossierfacile.process.file.barcode.twoddoc.parsing.TwoDDocDataType.ID_42;
+import static fr.dossierfacile.process.file.barcode.twoddoc.parsing.TwoDDocDataType.ID_47;
 
-@Data
-@Builder
-@RequiredArgsConstructor
-@AllArgsConstructor
-public class TwoDDoc {
-
-    private String iDFlag;
-    private int version;
-    private String issuer;
-    private String certId;
-    private String documentDate;
-    private String signatureDate;
-    private String documentTypeId;
-    private String perimeterId;
-    private String countryId;
-
-    private HashMap<String, String> data = new HashMap<>();
+public record TwoDDoc(
+        TwoDDocHeader header,
+        TwoDDocData data,
+        TwoDDocSignature signature,
+        String annexe
+) {
 
     public String getFiscalNumber() {
-        return data.get("47");
+        return data.get(ID_47);
     }
 
     public String getReferenceNumber() {
-        return data.get("42");
+        return data.get(ID_42);
     }
 
-    private String signature;
 }

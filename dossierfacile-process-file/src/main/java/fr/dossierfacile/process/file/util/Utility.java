@@ -3,7 +3,7 @@ package fr.dossierfacile.process.file.util;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
-import fr.dossierfacile.process.file.barcode.twoddoc.TwoDDocContentParser;
+import fr.dossierfacile.process.file.barcode.twoddoc.parsing.TwoDDocC40Parser;
 import fr.dossierfacile.process.file.barcode.twoddoc.TwoDDocRawContent;
 import fr.dossierfacile.process.file.barcode.twoddoc.TwoDDocReader;
 import fr.dossierfacile.process.file.barcode.twoddoc.TwoDDoc;
@@ -157,7 +157,7 @@ public class Utility {
 
 
     public TwoDDoc parseTwoDDoc(String content) {
-        return TwoDDocContentParser.parse(new TwoDDocRawContent(content));
+        return TwoDDocC40Parser.parse(new TwoDDocRawContent(content));
     }
 
 }
