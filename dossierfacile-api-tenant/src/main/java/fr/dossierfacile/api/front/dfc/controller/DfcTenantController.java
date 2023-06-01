@@ -53,8 +53,8 @@ public class DfcTenantController {
 
     @RequestMapping(path = "/logout", method = {RequestMethod.GET, RequestMethod.POST})
     public ResponseEntity<Void> logout() {
-        Tenant tenant = authenticationFacade.getLoggedTenant();
-        userService.logout(tenant);
+
+        userService.logout(authenticationFacade.getKeycloakUserId());
         return ok().build();
     }
 }

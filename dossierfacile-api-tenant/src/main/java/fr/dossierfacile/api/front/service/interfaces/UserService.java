@@ -1,9 +1,6 @@
 package fr.dossierfacile.api.front.service.interfaces;
 
-import fr.dossierfacile.api.front.form.PartnerForm;
-import fr.dossierfacile.api.front.model.tenant.EmailExistsModel;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
-import fr.dossierfacile.api.front.register.form.partner.EmailExistsForm;
 import fr.dossierfacile.api.front.register.form.tenant.FranceConnectTaxForm;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.User;
@@ -24,7 +21,7 @@ public interface UserService {
 
     void linkTenantToPartner(Tenant tenant, String partner, String internalPartnerId);
 
-    void logout(Tenant tenant);
+    void logout(String keycloakId);
 
     void unlinkFranceConnect(Tenant tenant);
 
