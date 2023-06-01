@@ -63,8 +63,7 @@ public class UserController {
 
     @PostMapping("/logout")
     public ResponseEntity<Void> logout() {
-        Tenant tenant = authenticationFacade.getLoggedTenant();
-        userService.logout(tenant);
+        userService.logout(authenticationFacade.getKeycloakUserId());
         return ok().build();
     }
 }
