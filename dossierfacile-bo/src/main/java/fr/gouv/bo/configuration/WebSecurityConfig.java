@@ -66,7 +66,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .antMatchers("/", "/login", "/login/auth/**", "/login/oauth2/**,", "/actuator/health", "/assets/public/**")
                 .permitAll()
-                .antMatchers("/bo/userApi", "/bo/userApi/**", "/bo/admin", "/bo/admin/**", "/bo/statistic/admin", "/bo/timeServeTenant", "/bo/deleteAccount", "/bo/sleepMode", "/bo/create/user").access("hasAnyRole('ROLE_ADMIN')")
+                .antMatchers("/bo/userApi", "/bo/userApi/**", "/bo/admin", "/bo/admin/**", "/bo/statistic/admin", "/bo/timeServeTenant", "/bo/deleteAccount", "/bo/sleepMode", "/bo/users", "/bo/users/**").access("hasAnyRole('ROLE_ADMIN')")
                 .antMatchers("/bo/nextApplicationQuickly").access("hasAnyRole('ROLE_OPERATOR','ROLE_ADMIN')")
                 .antMatchers("/bo/**", "/bo").access("hasAnyRole('ROLE_OPERATOR','ROLE_ADMIN','ROLE_OPERATOR_AWAY')")
                 .anyRequest()

@@ -22,16 +22,22 @@ import fr.gouv.bo.repository.AccountDeleteLogRepository;
 import fr.gouv.bo.repository.BOApartmentSharingRepository;
 import fr.gouv.bo.repository.BOUserRepository;
 import fr.gouv.bo.repository.PropertyApartmentSharingRepository;
+import fr.gouv.bo.repository.UserRoleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -42,6 +48,7 @@ public class UserService {
 
     private final Gson gson;
     private final BOUserRepository userRepository;
+    private final UserRoleRepository userRoleRepository;
     private final TenantCommonRepository tenantRepository;
     private final ModelMapper modelMapper;
     private final MailService mailService;
@@ -57,33 +64,11 @@ public class UserService {
     private String ad;
 
     public List<BOUser> findAll() {
-        return userRepository.findAll();
+        return userRepository.findAll(Sort.by("email"));
     }
 
     public BOUser findUserByEmail(String email) {
-        return userRepository.findByEmail(email).orElse( null );
-    }
-
-    public BOUser save(UserDTO userDTO) {
-        BOUser user = modelMapper.map(userDTO, BOUser.class);
-        user.setProvider(AuthProvider.google);
-        return userRepository.save(user);
-    }
-
-    public BOUser findOne(Long id) {
-        return userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("bo user", "id", id));
-    }
-
-    public BOUser update(UserDTO userDTO) {
-        BOUser user = findOne(userDTO.getId());
-        user.setFirstName(userDTO.getFirstName());
-        user.setLastName(userDTO.getLastName());
-        Set<UserRole> userRoleSet = new HashSet<>();
-        for (Role role : userDTO.getRole()) {
-            userRoleSet.add(new UserRole(user, role));
-        }
-        user.setUserRoles(userRoleSet);
-        return userRepository.save(user);
+        return userRepository.findByEmail(email).orElse(null);
     }
 
     public void delete(Long id) {
@@ -183,6 +168,36 @@ public class UserService {
             apartmentSharing.setApplicationType(nextApplicationType);
             apartmentSharingRepository.save(apartmentSharing);
         }
+    }
+
+    @Transactional
+    public void deleteRoles(BOUser user, List<Role> roles) {
+        roles.stream().forEach(r -> {
+            Optional<UserRole> role = user.getUserRoles().stream()
+                    .filter(userRole -> userRole.getRole() == r)
+                    .findFirst();
+            if (role.isPresent()) {
+                user.getUserRoles().remove(role.get());
+                userRoleRepository.delete(role.get());
+            }
+        });
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void addRoles(BOUser user, List<Role> roles) {
+        roles.stream().forEach(r -> {
+            if (user.getUserRoles().stream().noneMatch(userRole -> userRole.getRole() == r)) {
+                user.getUserRoles().add(userRoleRepository.save(new UserRole(user, r)));
+            }
+        });
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void createUserByEmail(String email, Role role) {
+        BOUser user = BOUser.builder().email(email).build();
+        addRoles(userRepository.save(user), Collections.singletonList(role));
     }
 }
 
