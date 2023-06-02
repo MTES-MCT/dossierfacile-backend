@@ -25,13 +25,15 @@ public class BOConnectionContextFilter implements Filter {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws ServletException, IOException {
         try {
             HttpServletRequest httpServletRequest = (HttpServletRequest) request;
-            MDC.put(URI, httpServletRequest.getRequestURI());
+            if ( !httpServletRequest.getRequestURI().matches("(/assets/|/js/|/css/|/fonts/|/webjars/:?).*") ) {
+                MDC.put(URI, httpServletRequest.getRequestURI());
 
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            if (authentication != null && authentication.getPrincipal() != null && authentication.getPrincipal() instanceof UserPrincipal) {
-                MDC.put(EMAIL, ((UserPrincipal) authentication.getPrincipal()).getEmail());
+                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                if (authentication != null && authentication.getPrincipal() != null && authentication.getPrincipal() instanceof UserPrincipal) {
+                    MDC.put(EMAIL, ((UserPrincipal) authentication.getPrincipal()).getEmail());
+                }
+                log.info("Call " + httpServletRequest.getRequestURI());
             }
-            log.info("Call " + httpServletRequest.getRequestURI());
         } catch (Exception e) {
             // Something wrong but service should stay up
             log.error("Unable to inject data in MDC !!!");
