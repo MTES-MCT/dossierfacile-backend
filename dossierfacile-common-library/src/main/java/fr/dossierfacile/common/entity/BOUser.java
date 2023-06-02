@@ -1,7 +1,10 @@
 package fr.dossierfacile.common.entity;
 
 import fr.dossierfacile.common.enums.UserType;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 import javax.persistence.DiscriminatorValue;

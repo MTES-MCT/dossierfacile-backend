@@ -13,7 +13,7 @@
         .container{
             padding: 20px;
         }
-        .container form{
+        .container > form{
             margin: 5% 25%;
             padding: 50px;
             background-color: #eaeaf3;
@@ -23,13 +23,13 @@
             overflow: hidden;
             /*width: 40%;*/
         }
-        .container form label{
+        .container > form label{
             color: #395870;
             display: block;
             font-weight: bold;
             margin-top: 20px;
         }
-        .container form input{
+        .container > form input{
             width: 100%;
             background: #fff;
             border: 1px solid #c6cbd3;
@@ -40,10 +40,18 @@
             display: block;
             border-radius: 6px;
         }
+        .btn-add {
+            border: 1px solid transparent;
+            background: none;
+        }
+        .btn-delete{
+            border: 1px solid transparent;
+            background: none;
+        }
     </style>
     <div>
         <div class="container">
-            <form th:method="post" th:action="@{/bo/create/user}" th:object="${email}" >
+            <form th:method="post" th:action="@{/bo/users}" th:object="${email}" >
                 <label for="name" id="">Email:</label>
                 <input pattern="[\w.%+-]+@dossierfacile\.fr" required type="text" name="name" id="name" placeholder="on domain dossierfacile.fr ..."
                        oninvalid="this.setCustomValidity('wrong entry')"
@@ -61,6 +69,7 @@
                             <th>ID</th>
                             <th>email</th>
                             <th>Roles</th>
+                            <th>Operations</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -69,10 +78,31 @@
                             <td th:text="${user.email}"></td>
                             <td>
                                 <span th:each="role: ${user.userRoles}">
-                                    <span th:text="${role.role}"></span>&nbsp;
+                                    <div>
+                                        <form th:action="@{/bo/users/{email}/roles/{role}(email=${user.email},role=${role.role})}" th:method="delete">
+                                            <span th:text="${role.role}"> </span>
+
+                                            <button class="btn-delete" type="submit"><span style="color:red" class="fa fa-minus-circle"></span></button>
+                                        </form>
+                                    </div>
                                 </span>
                             </td>
-                        </span>
+                            <td>
+                                <form style="display:inline-flex;" th:action="@{/bo/users/{email}/roles(email=${user.email})}" th:method="post">
+
+                                        <option th:each="category : ${documentSubCategories}"
+                                                th:value="${category}" th:text="${category}">
+                                        </option>
+                                    </select>
+                                    <select name='role' class="form-control dropdown">
+                                        <option value="#">Select role...</option>
+                                        <option value="ROLE_ADMIN">ROLE_ADMIN</option>
+                                        <option value="ROLE_OPERATOR">ROLE_OPERATOR</option>
+                                    </select>
+                                    <button class="btn-add" type="submit"><span style="color:green" class="fa fa-plus-circle"></span></button>
+                                </form>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
