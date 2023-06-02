@@ -271,46 +271,6 @@ public class BOController {
         return tenantService.redirectToApplication(principal, tenantId);
     }
 
-    @GetMapping("/bo/deleteAccount")
-    public String getDeleteAccount(Model model) {
-        DeleteUserDTO deleteUser = new DeleteUserDTO();
-        model.addAttribute("deleteUser", deleteUser);
-        return "bo/delete-account";
-    }
-
-    @PostMapping("/bo/deleteAccount")
-    public String postDeleteAccount(@Validated @ModelAttribute("deleteUser") DeleteUserDTO deleteUser, BindingResult result, Principal principal) {
-        if (result.hasErrors()) {
-            return "bo/delete-account";
-        }
-        User user = userService.findUserByEmail(deleteUser.getEmail());
-        if (user instanceof Tenant tenant) {
-            partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.DELETED_ACCOUNT);
-            apartmentSharingService.delete(tenant.getApartmentSharing());
-        } else {
-            if (!principal.getName().equals(deleteUser.getEmail())) {
-                userService.delete(user.getId());
-            }
-        }
-        return "redirect:/bo/deleteAccount";
-    }
-
-    @GetMapping("/bo/deleteFile")
-    public String deleteFileForm(Model model) {
-        FileForm fileForm = new FileForm();
-        model.addAttribute("fileForm", fileForm);
-        return "bo/delete-file";
-    }
-
-    @PostMapping("/bo/deleteFile")
-    public String deleteFileProcess(@Valid @ModelAttribute FileForm fileForm, BindingResult result) {
-        if (result.hasErrors()) {
-            return "bo/deleteFile";
-        }
-//        fileStorageService.deleteAllFiles(fileForm.getPath());
-        return "redirect:/bo/deleteFile";
-    }
-
     @GetMapping("/bo/regeneratePdfDocument/{id}")
     public String regeneratePdfDocument(@PathVariable Long id) {
         Document document = documentService.findDocumentById(id);
@@ -350,12 +310,6 @@ public class BOController {
         model.addAttribute("tenantList", emailDTO);
         model.addAttribute(EMAIL, emailDTO);
         return "bo/compute-status";
-    }
-
-    @GetMapping("/bo/deleteAccountsNotProperlyDeleted")
-    public String deleteAccountsNotProperlyDeleted() {
-        tenantService.deleteAccountsNotProperlyDeleted();
-        return REDIRECT_BO;
     }
 
     @GetMapping("/update/documents/creationDate")
