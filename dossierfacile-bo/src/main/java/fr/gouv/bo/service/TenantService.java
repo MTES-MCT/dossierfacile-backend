@@ -740,30 +740,6 @@ public class TenantService {
     }
 
     @Transactional
-    public void deleteAccountsNotProperlyDeleted() {
-        int numberOfDeletionPage = 1;
-        int lengthOfPage = 100;
-        Pageable page = PageRequest.of(0, lengthOfPage, Sort.Direction.DESC, "id");
-        Page<ApartmentSharing> apartmentSharingsToDelete = apartmentSharingRepository.findAllByUserIdInAccountDeleteLog(page);
-        long totalToDelete = apartmentSharingsToDelete.getTotalElements();
-
-        while (!apartmentSharingsToDelete.isEmpty()) {
-            page = page.next();
-
-            deletePageOfApartmentSharing(numberOfDeletionPage++, apartmentSharingsToDelete);
-
-            apartmentSharingsToDelete = apartmentSharingRepository.findAllByUserIdInAccountDeleteLog(page);
-        }
-        log.info("Deletion for [" + totalToDelete + "] apartments sharing finished");
-    }
-
-
-    private void deletePageOfApartmentSharing(int numberOfDeletionPage, Page<ApartmentSharing> apartmentSharingPage) {
-        apartmentSharingRepository.deleteAll(apartmentSharingPage);
-        log.info("Deletion page number [" + numberOfDeletionPage + "] for " + apartmentSharingPage.getNumberOfElements() + " apartment_sharing finished");
-    }
-
-    @Transactional
     public void updateDocumentsWithNullCreationDateTime() {
         int numberOfUpdate = 1;
         int lengthOfPage = 1000;

@@ -64,6 +64,4 @@ public interface BOApartmentSharingRepository extends JpaRepository<ApartmentSha
 
     ApartmentSharing findOneByTokenPublic(String token);
 
-    @Query("SELECT a FROM ApartmentSharing a JOIN Tenant t ON t.apartmentSharing.id=a.id JOIN AccountDeleteLog adl ON adl.userId=t.id WHERE t.tenantType = 'CREATE' ORDER BY a.id DESC")
-    Page<ApartmentSharing> findAllByUserIdInAccountDeleteLog(Pageable page);
 }
