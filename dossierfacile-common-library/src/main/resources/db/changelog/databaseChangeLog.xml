@@ -93,5 +93,7 @@
     <include file="db/migration/202305110000-add-document-watermark-storage-file.xml" />
     <include file="db/migration/202305220000-update-useraccount-specialchars.xml" />
     <include file="db/migration/202306010000-update-bo-user.xml" />
+    <include file="db/migration/202306050000-drop-columns-file.xml" />
+    <include file="db/migration/202306050001-drop-column-apartmentsharing.xml" />
 
 </databaseChangeLog>

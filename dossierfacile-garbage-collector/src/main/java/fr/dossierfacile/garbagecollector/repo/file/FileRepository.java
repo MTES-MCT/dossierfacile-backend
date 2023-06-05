@@ -28,7 +28,7 @@ public interface FileRepository extends JpaRepository<GarbageFile, Long> {
             "FROM file left join document on file.document_id=document.id " +
             "left join tenant on document.tenant_id=tenant.id " +
             "where tenant.status='ARCHIVED' " +
-            "and file.path is not null and file.path <> '' " +
+            "and file.storage_file_id is not null" +
             " limit :limit", nativeQuery = true)
     List<GarbageFile> getArchivedFile(@Param("limit") Integer limit);
 
@@ -37,7 +37,7 @@ public interface FileRepository extends JpaRepository<GarbageFile, Long> {
             "left join guarantor on document.guarantor_id=guarantor.id " +
             "left join tenant on guarantor.tenant_id=tenant.id " +
             "where tenant.status='ARCHIVED' " +
-            "and file.path is not null and file.path <> '' " +
+            "and file.storage_file_id is not null" +
             " limit :limit", nativeQuery = true)
     List<GarbageFile> getGuarantorArchivedFile(@Param("limit") Integer limit);
 
