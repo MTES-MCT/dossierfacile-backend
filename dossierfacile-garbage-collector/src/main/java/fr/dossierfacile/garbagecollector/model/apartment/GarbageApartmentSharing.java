@@ -1,16 +1,23 @@
 package fr.dossierfacile.garbagecollector.model.apartment;
 
 
+import fr.dossierfacile.common.entity.StorageFile;
+import fr.dossierfacile.common.enums.FileStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import java.io.Serializable;
 
@@ -29,6 +36,10 @@ public class GarbageApartmentSharing implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @JoinColumn(name = "pdf_dossier_file_id")
+    private StorageFile pdfDossierFile;
+
     @Column
-    private String urlDossierPdfDocument;
+    @Enumerated(EnumType.STRING)
+    private FileStatus dossierPdfDocumentStatus;
 }

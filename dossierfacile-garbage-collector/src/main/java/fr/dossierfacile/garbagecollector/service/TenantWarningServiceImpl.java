@@ -1,6 +1,5 @@
 package fr.dossierfacile.garbagecollector.service;
 
-import fr.dossierfacile.common.entity.AccountDeleteLog;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.ConfirmationToken;
 import fr.dossierfacile.common.entity.Tenant;
@@ -8,8 +7,6 @@ import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.enums.TenantType;
-import fr.dossierfacile.common.exceptions.ConfirmationTokenNotFoundException;
-import fr.dossierfacile.common.exceptions.NotFoundException;
 import fr.dossierfacile.common.repository.ApartmentSharingRepository;
 import fr.dossierfacile.common.repository.ConfirmationTokenRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
@@ -19,16 +16,13 @@ import fr.dossierfacile.common.service.interfaces.KeycloakCommonService;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.dossierfacile.common.service.interfaces.TenantCommonService;
-import fr.dossierfacile.garbagecollector.service.interfaces.GuarantorService;
 import fr.dossierfacile.garbagecollector.service.interfaces.MailService;
 import fr.dossierfacile.garbagecollector.service.interfaces.TenantWarningService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -40,7 +34,6 @@ public class TenantWarningServiceImpl implements TenantWarningService {
     private final MailService mailService;
     private final ConfirmationTokenService confirmationTokenService;
     private final ConfirmationTokenRepository confirmationTokenRepository;
-    private final GuarantorService guarantorService;
     private final TenantCommonRepository tenantRepository;
     private final PartnerCallBackService partnerCallBackService;
 

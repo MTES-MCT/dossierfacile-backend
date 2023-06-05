@@ -68,9 +68,6 @@ public class ApartmentSharing implements Serializable {
     @Enumerated(EnumType.STRING)
     private ApplicationType applicationType;
 
-    @Deprecated // TODO delete at next MEP
-    private String urlDossierPdfDocument;
-
     @OneToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(name = "pdf_dossier_file_id")
     private StorageFile pdfDossierFile;
