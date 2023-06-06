@@ -15,6 +15,7 @@ import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.gouv.bo.dto.CustomMessage;
+import fr.gouv.bo.dto.DeleteUserDTO;
 import fr.gouv.bo.dto.DisplayableFile;
 import fr.gouv.bo.dto.EmailDTO;
 import fr.gouv.bo.dto.GuarantorItem;
@@ -39,7 +40,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -77,11 +82,6 @@ public class BOTenantController {
     private final UserService userService;
     private final ApartmentSharingService apartmentSharingService;
     private final LogService logService;
-
-    @Value("${bo.message-tenant.location}")
-    String locationMessageTenant;
-    @Value("${bo.message-guarantor.location}")
-    String locationMessageGuarantor;
 
     @GetMapping("/{id}")
     public String getTenant(@PathVariable Long id) {
@@ -129,13 +129,6 @@ public class BOTenantController {
         return "redirect:/bo/colocation/" + tenant.getApartmentSharing().getId();
     }
 
-    @GetMapping("/{id}/showResult")
-    public String showResult(Model model, @PathVariable("id") Long id) {
-        Tenant tenant = tenantService.find(id);
-        model.addAttribute(TENANT, tenant);
-        return "include/process-files-result:: process-files-result";
-    }
-
     @PostMapping("/{id}/validate")
     public ResponseEntity<Void> validateTenantFile(@PathVariable("id") Long tenantId, Principal principal) {
         tenantService.validateTenantFile(principal, tenantId);
@@ -146,19 +139,6 @@ public class BOTenantController {
     public ResponseEntity<Void> declineTenantFile(@PathVariable("id") Long tenantId, Principal principal) {
         tenantService.declineTenant(principal, tenantId);
         return ok().build();
-    }
-
-    @GetMapping("/{id}/customMessage")
-    public String customEmailForm(@PathVariable("id") Long id, Model model) throws IOException {
-        Tenant tenant = tenantService.find(id);
-        if (tenant == null) {
-            log.error("BOTenantController customEmailForm not found tenant with id {}", id);
-            return REDIRECT_ERROR;
-        }
-
-        model.addAttribute("customMessage", getCustomMessage(tenant));
-        model.addAttribute(TENANT, tenant);
-        return "bo/tenant-custom-message-form";
     }
 
     @PostMapping("/{id}/customMessage")

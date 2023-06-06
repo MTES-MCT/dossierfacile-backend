@@ -1,5 +1,7 @@
 package fr.dossierfacile.garbagecollector.service;
 
+import fr.dossierfacile.common.enums.FileStatus;
+import fr.dossierfacile.common.repository.StorageFileRepository;
 import fr.dossierfacile.garbagecollector.model.apartment.GarbageApartmentSharing;
 import fr.dossierfacile.garbagecollector.model.document.GarbageDocument;
 import fr.dossierfacile.garbagecollector.model.file.GarbageFile;
@@ -9,7 +11,6 @@ import fr.dossierfacile.garbagecollector.repo.file.FileRepository;
 import fr.dossierfacile.garbagecollector.service.interfaces.OvhService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,23 +25,24 @@ public class DeleteArchivedDocumentService {
     private final DocumentRepository documentRepository;
     private final FileRepository fileRepository;
     private final OvhService ovhService;
+    private final StorageFileRepository storageFileRepository;
 
     //    @Scheduled(fixedDelay = 2000)
     public void deleteApartmentSharingPdfTask() {
-        if (!ovhService.hasConnection()) {
-            return;
-        }
+
         List<GarbageApartmentSharing> apartmentSharings = apartmentSharingRepository.getArchivedAptWithPdf(LIMIT_OBJECTS_TO_DELETE);
 
         for (GarbageApartmentSharing apartmentSharing : apartmentSharings) {
             try {
                 log.info("delete apt " + apartmentSharing.getId());
-                log.info("delete  " + apartmentSharing.getUrlDossierPdfDocument());
-                ovhService.delete(apartmentSharing.getUrlDossierPdfDocument());
-                apartmentSharing.setUrlDossierPdfDocument("");
+                log.info("delete  " + apartmentSharing.getPdfDossierFile());
+
+                storageFileRepository.delete(apartmentSharing.getPdfDossierFile());
+                apartmentSharing.setPdfDossierFile(null);
+                apartmentSharing.setDossierPdfDocumentStatus(FileStatus.DELETED);
                 apartmentSharingRepository.save(apartmentSharing);
             } catch (Exception e) {
-                log.error("Couldn't delete object [" + apartmentSharing.getUrlDossierPdfDocument() + "] from apartment_sharing [" + apartmentSharing.getId() + "]");
+                log.error("Couldn't delete object [" + apartmentSharing.getPdfDossierFile() + "] from apartment_sharing [" + apartmentSharing.getId() + "]");
             }
         }
     }
@@ -88,44 +90,28 @@ public class DeleteArchivedDocumentService {
 
 //        @Scheduled(fixedDelay = 1000)
     public void deleteFileTask() {
-        if (!ovhService.hasConnection()) {
-            return;
-        }
         List<GarbageFile> files = fileRepository.getArchivedFile(LIMIT_OBJECTS_TO_DELETE);
 
         files.parallelStream().forEach((file) -> {
             try {
                 log.info("delete file " + file.getId());
-                log.info("delete " + file.getPath());
-                ovhService.delete(file.getPath());
-                if (StringUtils.isNotBlank(file.getPreview())) {
-                    ovhService.delete(file.getPreview());
-                }
                 fileRepository.delete(file);
             } catch (Exception e) {
-                log.error("Couldn't delete file [" + file.getPath() + "] from file [" + file.getId() + "]");
+                log.error("Couldn't delete file [" + file.getId() + "]");
             }
         });
     }
 
 //            @Scheduled(fixedDelay = 1000)
     public void deleteGuarantorFileTask() {
-        if (!ovhService.hasConnection()) {
-            return;
-        }
         List<GarbageFile> files = fileRepository.getGuarantorArchivedFile(LIMIT_OBJECTS_TO_DELETE);
 
         files.parallelStream().forEach((file) -> {
             try {
                 log.info("delete file " + file.getId());
-                log.info("delete " + file.getPath());
-                ovhService.delete(file.getPath());
-                if (StringUtils.isNotBlank(file.getPreview())) {
-                    ovhService.delete(file.getPreview());
-                }
                 fileRepository.delete(file);
             } catch (Exception e) {
-                log.error("Couldn't delete file [" + file.getPath() + "] from file [" + file.getId() + "]");
+                log.error("Couldn't delete file [" + file.getId() + "]");
             }
         });
     }

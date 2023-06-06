@@ -37,4 +37,5 @@ public class TenantModel {
     @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ss.SSSSSS")
     private LocalDateTime lastUpdateDate;
     private Boolean partnerLinked;
+    private Boolean honorDeclaration;
 }

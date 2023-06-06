@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+    <changeSet id="2023060500000-01" author="fle (manual)">
+        <dropColumn schemaName="public"
+                    tableName="file">
+            <column name="path"/>
+            <column name="original_name"/>
+            <column name="size"/>
+            <column name="content_type"/>
+            <column name="preview"/>
+            <column name="encryption_key_id"/>
+        </dropColumn>
+    </changeSet>
+
+</databaseChangeLog>

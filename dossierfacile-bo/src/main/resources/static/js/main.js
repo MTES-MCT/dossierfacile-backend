@@ -1,8 +1,16 @@
 $(document).ready(function () {
 
+
+    $('.btn-modal-confirm-before-submit').on('click', function (e) {
+        e.preventDefault();
+        var form = $(this).closest('form');
+        var modal = form.find('.modal');
+        $(modal).modal('show');
+    });
+
     $('.change-status').on('click', function (e) {
         e.preventDefault();
-        console.log("action cahnge status");
+        console.log("action change status");
     })
 
     $('.btnPartner').on('click', function (e) {

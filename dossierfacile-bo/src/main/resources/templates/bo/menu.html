@@ -25,10 +25,6 @@
         <br/>
         <a href="/bo/agent">Agents</a>
         <br sec:authorize="hasRole('ROLE_ADMIN')"/>
-        <a sec:authorize="hasRole('ROLE_ADMIN')" href="/bo/userApi">User API</a>
-        <br sec:authorize="hasRole('ROLE_ADMIN')"/>
-        <a sec:authorize="hasRole('ROLE_ADMIN')" href="/bo/deleteAccount">Delete Account</a>
-        <br sec:authorize="hasRole('ROLE_ADMIN')"/>
         <a sec:authorize="hasRole('ROLE_ADMIN')" href="/bo/timeServeTenant">TimeServeTenant</a>
         <br sec:authorize="hasRole('ROLE_ADMIN')"/>
         <a sec:authorize="hasRole('ROLE_ADMIN')"
@@ -38,17 +34,7 @@
         <a href="/bo/feedback">Feedback</a>
         <br/>
         <a href="/bo/properties-pro">Properties-pro</a>
-        <br/>
-        <a href="#" data-toggle="modal" data-target="#addProspect">Add a prospect</a>
-        <br sec:authorize="hasRole('ROLE_ADMIN')"/>
-        <a href="/bo/sleepMode" sec:authorize="hasRole('ROLE_ADMIN')">Sleep mode</a>
-        <br/>
-        <a href="/bo/statistic/blurStatistic">Blur statistics</a>
-        <br/>
-        <a href="/bo/deleteFile">Delete file</a>
-        <br/>
-        <a href="/bo/statistic/tenant">Tenant statistics</a>
-        <br/><br/><br/>
+        <br/><br/>
     </div>
 </div>
 

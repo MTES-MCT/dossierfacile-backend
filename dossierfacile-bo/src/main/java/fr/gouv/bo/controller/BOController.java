@@ -1,8 +1,6 @@
 package fr.gouv.bo.controller;
 
-import com.amazonaws.services.memorydb.model.UserAlreadyExistsException;
 import fr.dossierfacile.common.entity.ApartmentSharing;
-import fr.dossierfacile.common.entity.BOUser;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentPdfGenerationLog;
 import fr.dossierfacile.common.entity.Tenant;
@@ -20,12 +18,10 @@ import fr.gouv.bo.dto.EmailDTO;
 import fr.gouv.bo.dto.Pager;
 import fr.gouv.bo.dto.ReGroupDTO;
 import fr.gouv.bo.dto.ResultDTO;
-import fr.gouv.bo.dto.UserDTO;
 import fr.gouv.bo.model.FileForm;
 import fr.gouv.bo.service.ApartmentSharingService;
 import fr.gouv.bo.service.DocumentService;
 import fr.gouv.bo.service.TenantService;
-import fr.gouv.bo.service.UserRoleService;
 import fr.gouv.bo.service.UserService;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -83,7 +79,6 @@ public class BOController {
     private final FileStorageService fileStorageService;
     private final DocumentService documentService;
     private final Producer producer;
-    private final UserRoleService userRoleService;
     private final PartnerCallBackService partnerCallBackService;
     private final DocumentPdfGenerationLogRepository documentPdfGenerationLogRepository;
     private final ClientRegistrationRepository clientRegistrationRepository;
@@ -219,30 +214,6 @@ public class BOController {
         return "redirect:/bo/regroup/";
     }
 
-    @GetMapping("/bo/create/user")
-    public String getBOUser(Model model) {
-        EmailDTO emailDTO1 = new EmailDTO();
-        model.addAttribute(EMAIL, emailDTO1);
-        model.addAttribute("users", userService.findAll());
-        return "bo/create-user";
-    }
-
-    @PostMapping("/bo/create/user")
-    public String createBOUser(EmailDTO emailDTO, Model model, @RequestParam(defaultValue = "ROLE_OPERATOR", name = "action") Role role) {
-        BOUser user = userService.findUserByEmail(emailDTO.getEmail());
-        if (user == null) {
-            UserDTO userDTO = new UserDTO();
-            userDTO.setEmail(emailDTO.getEmail());
-            user = userService.save(userDTO);
-            userRoleService.createRoleAdminByEmail(user, role);
-        } else {
-            throw new UserAlreadyExistsException("Utilisateur existe déjà");
-        }
-
-        model.addAttribute(EMAIL, new EmailDTO());
-        model.addAttribute("users", userService.findAll());
-        return "bo/create-user";
-    }
 
     @GetMapping("/bo/searchTenant")
     public String searchTenant(Model model, EmailDTO emailDTO, RedirectAttributes redirectAttributes) {
@@ -300,46 +271,6 @@ public class BOController {
         return tenantService.redirectToApplication(principal, tenantId);
     }
 
-    @GetMapping("/bo/deleteAccount")
-    public String getDeleteAccount(Model model) {
-        DeleteUserDTO deleteUser = new DeleteUserDTO();
-        model.addAttribute("deleteUser", deleteUser);
-        return "bo/delete-account";
-    }
-
-    @PostMapping("/bo/deleteAccount")
-    public String postDeleteAccount(@Validated @ModelAttribute("deleteUser") DeleteUserDTO deleteUser, BindingResult result, Principal principal) {
-        if (result.hasErrors()) {
-            return "bo/delete-account";
-        }
-        User user = userService.findUserByEmail(deleteUser.getEmail());
-        if (user instanceof Tenant tenant) {
-            partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.DELETED_ACCOUNT);
-            apartmentSharingService.delete(tenant.getApartmentSharing());
-        } else {
-            if (!principal.getName().equals(deleteUser.getEmail())) {
-                userService.delete(user.getId());
-            }
-        }
-        return "redirect:/bo/deleteAccount";
-    }
-
-    @GetMapping("/bo/deleteFile")
-    public String deleteFileForm(Model model) {
-        FileForm fileForm = new FileForm();
-        model.addAttribute("fileForm", fileForm);
-        return "bo/delete-file";
-    }
-
-    @PostMapping("/bo/deleteFile")
-    public String deleteFileProcess(@Valid @ModelAttribute FileForm fileForm, BindingResult result) {
-        if (result.hasErrors()) {
-            return "bo/deleteFile";
-        }
-//        fileStorageService.deleteAllFiles(fileForm.getPath());
-        return "redirect:/bo/deleteFile";
-    }
-
     @GetMapping("/bo/regeneratePdfDocument/{id}")
     public String regeneratePdfDocument(@PathVariable Long id) {
         Document document = documentService.findDocumentById(id);
@@ -379,12 +310,6 @@ public class BOController {
         model.addAttribute("tenantList", emailDTO);
         model.addAttribute(EMAIL, emailDTO);
         return "bo/compute-status";
-    }
-
-    @GetMapping("/bo/deleteAccountsNotProperlyDeleted")
-    public String deleteAccountsNotProperlyDeleted() {
-        tenantService.deleteAccountsNotProperlyDeleted();
-        return REDIRECT_BO;
     }
 
     @GetMapping("/update/documents/creationDate")
