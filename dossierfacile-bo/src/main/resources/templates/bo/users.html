@@ -82,24 +82,39 @@
                                         <form th:action="@{/bo/users/{email}/roles/{role}(email=${user.email},role=${role.role})}" th:method="delete">
                                             <span th:text="${role.role}"> </span>
 
-                                            <button class="btn-delete" type="submit"><span style="color:red" class="fa fa-minus-circle"></span></button>
+                                            <button class="btn-delete btn-modal-confirm-before-submit" type="button">
+                                                <span style="color:red" class="fa fa-minus-circle"></span>
+                                            </button>
+                                            <div class="modal" role="dialog" tabindex="-1">
+                                                <div class="modal-dialog" role="document">
+                                                    <div class="modal-content">
+                                                        <div class="modal-body">
+                                                            <div class="modal-body">
+                                                                Voulez-vous supprimer le role <span th:text="${role.role}"/>  de <span th:text="${user.email}"/>?
+                                                            </div>
+
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                                                                <button class="btn  btn-primary " type="submit">Valider</button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </form>
                                     </div>
                                 </span>
                             </td>
                             <td>
                                 <form style="display:inline-flex;" th:action="@{/bo/users/{email}/roles(email=${user.email})}" th:method="post">
-
-                                        <option th:each="category : ${documentSubCategories}"
-                                                th:value="${category}" th:text="${category}">
-                                        </option>
-                                    </select>
                                     <select name='role' class="form-control dropdown">
-                                        <option value="#">Select role...</option>
-                                        <option value="ROLE_ADMIN">ROLE_ADMIN</option>
-                                        <option value="ROLE_OPERATOR">ROLE_OPERATOR</option>
+                                        <option value="ROLE_ADMIN">ADMIN</option>
+                                        <option value="ROLE_OPERATOR">OPERATOR</option>
                                     </select>
                                     <button class="btn-add" type="submit"><span style="color:green" class="fa fa-plus-circle"></span></button>
+
+
+
                                 </form>
                             </td>
                         </tr>
