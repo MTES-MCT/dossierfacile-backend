@@ -143,7 +143,6 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void deleteAccount(Tenant tenant) {
-        partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.DELETED_ACCOUNT);
         saveAndDeleteInfoByTenant(tenant);
         logService.saveLog(LogType.ACCOUNT_DELETE, tenant.getId());
         if (tenant.getTenantType() == TenantType.CREATE) {
@@ -154,6 +153,7 @@ public class UserServiceImpl implements UserService {
             userRepository.delete(tenant);
             apartmentSharingService.removeTenant(tenant.getApartmentSharing(), tenant);
         }
+        partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.DELETED_ACCOUNT);
     }
 
     @Override
