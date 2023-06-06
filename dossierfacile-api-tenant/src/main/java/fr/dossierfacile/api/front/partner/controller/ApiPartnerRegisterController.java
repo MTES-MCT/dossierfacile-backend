@@ -20,6 +20,7 @@ import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import io.swagger.annotations.ApiOperation;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -35,6 +36,7 @@ import static org.springframework.http.ResponseEntity.ok;
 @AllArgsConstructor
 @RequestMapping(value = "/api-partner/register", produces = MediaType.APPLICATION_JSON_VALUE)
 @MethodLogTime
+@Slf4j
 public class ApiPartnerRegisterController {
 
     private final TenantService tenantService;
@@ -79,6 +81,7 @@ public class ApiPartnerRegisterController {
     @PreAuthorize("hasPermissionOnTenant(#honorDeclarationForm.tenantId)")
     @PostMapping(value = "/honorDeclaration", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TenantModel> honorDeclaration(@Validated(ApiPartner.class) @RequestBody HonorDeclarationForm honorDeclarationForm) {
+        log.info("Tenant Id:" + honorDeclarationForm.getTenantId());
         var tenant = tenantService.findById(honorDeclarationForm.getTenantId());
         var tenantModel = tenantService.saveStepRegister(tenant, honorDeclarationForm, StepRegister.HONOR_DECLARATION);
         logService.saveLog(LogType.ACCOUNT_COMPLETED, tenantModel.getId());
