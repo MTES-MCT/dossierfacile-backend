@@ -20,6 +20,7 @@ import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.enums.TenantType;
+import fr.dossierfacile.common.model.WebhookDTO;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.gouv.bo.dto.CustomMessage;
@@ -440,7 +441,8 @@ public class TenantService {
             int indexCall = 1;
             for (Long id : ids) {
                 Tenant tenant = tenantRepository.findOneById(id);
-                partnerCallBackService.sendCallBack(tenant, userApi, PartnerCallBackType.VERIFIED_ACCOUNT);
+                WebhookDTO webhookDTO = partnerCallBackService.getWebhookDTO(tenant, userApi, PartnerCallBackType.VERIFIED_ACCOUNT);
+                partnerCallBackService.sendCallBack(tenant, webhookDTO);
 
                 if (indexCall < numberOfTotalCalls) {
                     try {
