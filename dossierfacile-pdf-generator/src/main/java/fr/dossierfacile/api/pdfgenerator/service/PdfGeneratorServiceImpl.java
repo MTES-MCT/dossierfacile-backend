@@ -15,9 +15,13 @@ import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentPdfGenerationLog;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.StorageFile;
+import fr.dossierfacile.common.entity.WatermarkDocument;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
+import fr.dossierfacile.common.enums.FileStatus;
 import fr.dossierfacile.common.repository.DocumentPdfGenerationLogRepository;
+import fr.dossierfacile.common.repository.StorageFileRepository;
+import fr.dossierfacile.common.repository.WatermarkDocumentRepository;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +39,7 @@ import java.io.InputStream;
 import java.rmi.UnexpectedException;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -58,6 +63,8 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
     private final DocumentPdfGenerationLogRepository documentPdfGenerationLogRepository;
     private final FileRepository fileRepository;
     private final FileStorageService fileStorageService;
+    private final WatermarkDocumentRepository watermarkDocumentRepository;
+    private final StorageFileRepository storageFileRepository;
     private final Producer producer;
 
     private final EmptyBOPdfDocumentTemplate emptyBOPdfDocumentTemplate;
@@ -66,6 +73,7 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
     private final BOIdentificationPdfDocumentTemplate identificationPdfDocumentTemplate;
     private final ApartmentSharingPdfDocumentTemplate apartmentSharingPdfDocumentTemplate;
     private final ApartmentSharingPdfDossierFileGenerationServiceImpl pdfFileGenerationService;
+
 
     @Value("${pdf.generation.reattempts}")
     private Integer maxRetries;
@@ -95,6 +103,52 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
                 //New attempt
                 generateBOPdfDocument(document, logId);
             }
+        }
+    }
+
+    private InputStream inputStream(Collection<StorageFile> files) throws Exception {
+        return boPdfDocumentTemplate.render(files.stream()
+                .map(file -> {
+                    try {
+                        MediaType mediaType = MediaType.valueOf(file.getContentType());
+                        if (!mediaType.isPresentIn(Arrays.asList(MediaType.IMAGE_JPEG, MediaType.IMAGE_PNG, MediaType.IMAGE_GIF, MediaType.APPLICATION_PDF))) {
+                            throw new UnexpectedException("Unexpected MediaType for storagefile with id [" + file.getId() + "]");
+                        }
+                        return new FileInputStream(fileStorageService.download(file), mediaType);
+
+                    } catch (Exception e) {
+                        log.error("File [" + file.getId() + "] won't be added to the pdf " + e.getMessage() + " - SEntry:" + Sentry.captureException(e));
+                    }
+                    return null;
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList())
+        );
+    }
+
+    public void processPdfGenerationFormWatermark(Long documentId) {
+        WatermarkDocument document = watermarkDocumentRepository.findById(documentId).orElse(null);
+
+        document.setPdfStatus(FileStatus.IN_PROGRESS);
+        watermarkDocumentRepository.saveAndFlush(document);
+
+        try (InputStream inputStream = this.inputStream(document.getFiles())) {
+
+            StorageFile pdfFile = StorageFile.builder()
+                    .name("dossierfacile-watermark-" + UUID.randomUUID() + ".pdf")
+                    .contentType(MediaType.APPLICATION_PDF_VALUE)
+                    .build();
+            document.setPdfFile(fileStorageService.upload(inputStream, pdfFile));
+
+            document.setPdfStatus(FileStatus.COMPLETED);
+            Collection<StorageFile> files = document.getFiles();
+            document.setFiles(null);
+            watermarkDocumentRepository.save(document);
+            storageFileRepository.deleteAll(files);
+        } catch (Exception e) {
+            document.setPdfStatus(FileStatus.FAILED);
+        } finally {
+            watermarkDocumentRepository.save(document);
         }
     }
 
@@ -134,7 +188,7 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
                         try {
                             String extension = FilenameUtils.getExtension(file.getStorageFile().getPath()).toLowerCase(Locale.ROOT);
                             MediaType mediaType = MediaType.valueOf(file.getStorageFile().getContentType());
-                            if ( ! mediaType.isPresentIn(Arrays.asList(MediaType.IMAGE_JPEG, MediaType.IMAGE_PNG, MediaType.IMAGE_GIF,MediaType.APPLICATION_PDF))){
+                            if (!mediaType.isPresentIn(Arrays.asList(MediaType.IMAGE_JPEG, MediaType.IMAGE_PNG, MediaType.IMAGE_GIF, MediaType.APPLICATION_PDF))) {
                                 throw new UnexpectedException("Unexpected MediaType for storagefile with id [" + file.getStorageFile().getId() + "]");
                             }
                             return new FileInputStream(fileStorageService.download(file.getStorageFile()), mediaType);

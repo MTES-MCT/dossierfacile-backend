@@ -9,4 +9,5 @@ import org.springframework.web.multipart.MultipartFile;
 @Data
 public class DocumentForm {
     private List<MultipartFile> files = new ArrayList<>();
+    private String watermark;
 }

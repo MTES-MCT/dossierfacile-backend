@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 @Slf4j
 public class WatermarkPdfConsumer {
-    private static final String EXCEPTION = "Sentry ID Exception: ";
     private final Gson gson;
     private final PdfGeneratorService pdfGeneratorService;
 
@@ -23,10 +22,9 @@ public class WatermarkPdfConsumer {
         log.info("Received message on watermark.generic API WM to process:" + message);
         try {
             DocumentModel documentModel = gson.fromJson(message, DocumentModel.class);
-            pdfGeneratorService.processPdfGenerationOfDocument(documentModel.getId(), documentModel.getLogId());
+            pdfGeneratorService.processPdfGenerationFormWatermark(documentModel.getId());
         } catch (Exception e) {
-            log.error(EXCEPTION + Sentry.captureException(e));
-            log.error(e.getMessage(), e.getCause());
+            log.error(e.getMessage() + " - Sentry ID: " + Sentry.captureException(e), e.getCause());
             throw e;
         }
     }
