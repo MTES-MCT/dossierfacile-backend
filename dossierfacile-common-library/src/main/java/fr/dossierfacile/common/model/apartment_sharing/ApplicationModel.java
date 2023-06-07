@@ -5,6 +5,7 @@ import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.FileStatus;
 import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
+import fr.dossierfacile.common.model.WebhookDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,7 +19,7 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ApplicationModel {
+public class ApplicationModel extends WebhookDTO {
     private Long id;
     private ApplicationType applicationType;
     private PartnerCallBackType partnerCallBackType;

@@ -10,7 +10,7 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class LightAPIInfoModel {
+public class LightAPIInfoModel extends WebhookDTO {
 
     private PartnerCallBackType partnerCallBackType;
     private String url;

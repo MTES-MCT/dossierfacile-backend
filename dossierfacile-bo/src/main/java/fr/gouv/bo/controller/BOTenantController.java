@@ -13,6 +13,7 @@ import fr.dossierfacile.common.enums.MessageStatus;
 import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.enums.TenantType;
+import fr.dossierfacile.common.model.WebhookDTO;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.gouv.bo.dto.CustomMessage;
 import fr.gouv.bo.dto.DeleteUserDTO;
@@ -117,14 +118,15 @@ public class BOTenantController {
 
     @GetMapping("/partner/{id}")
     public String addNewPartnerInfo(@PathVariable("id") Long id, PartnerDTO partnerDTO) {
-
         Tenant tenant = tenantService.find(id);
 
         UserApi userApi = userApiService.findById(partnerDTO.getPartner());
         tenantUserApiService.addInternalPartnerIdToTenantUserApi(tenant, partnerDTO.getPartner(), partnerDTO.getInternalPartnerId());
-        partnerCallBackService.sendCallBack(tenant, userApi, tenant.getStatus() == TenantFileStatus.VALIDATED ?
+        PartnerCallBackType partnerCallBackType = tenant.getStatus() == TenantFileStatus.VALIDATED ?
                 PartnerCallBackType.VERIFIED_ACCOUNT :
-                PartnerCallBackType.CREATED_ACCOUNT);
+                PartnerCallBackType.CREATED_ACCOUNT;
+        WebhookDTO webhookDTO = partnerCallBackService.getWebhookDTO(tenant, userApi, partnerCallBackType);
+        partnerCallBackService.sendCallBack(tenant, webhookDTO);
 
         return "redirect:/bo/colocation/" + tenant.getApartmentSharing().getId();
     }

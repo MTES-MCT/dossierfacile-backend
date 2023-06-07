@@ -8,14 +8,11 @@ import fr.dossierfacile.common.entity.PropertyApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserRole;
 import fr.dossierfacile.common.enums.ApplicationType;
-import fr.dossierfacile.common.enums.AuthProvider;
 import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.Role;
 import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
-import fr.gouv.bo.dto.UserDTO;
-import fr.gouv.bo.exception.ResourceNotFoundException;
 import fr.gouv.bo.mapper.TenantMapper;
 import fr.gouv.bo.model.tenant.TenantModel;
 import fr.gouv.bo.repository.AccountDeleteLogRepository;
@@ -33,12 +30,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
