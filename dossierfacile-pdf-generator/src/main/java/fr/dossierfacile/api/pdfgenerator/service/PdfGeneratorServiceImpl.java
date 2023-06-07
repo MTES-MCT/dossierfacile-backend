@@ -214,15 +214,18 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
         long time = System.currentTimeMillis();
         long documentId = document.getId();
         DocumentCategory documentCategory = document.getDocumentCategory();
-        DocumentSubCategory documentSubCategory = document.getDocumentSubCategory();
         String documentCategoryName = documentCategory.name();
         log.info("Generating PDF for document [" + documentCategoryName + "] with ID [" + documentId + "]");
 
         try (InputStream documentInputStream = renderBODocumentPdf(document)) {
 
-            String name = document.getName() == null || document.getName().isBlank() ? UUID.randomUUID() + ".pdf" : document.getName();
-            fileStorageService.upload(name, documentInputStream, null, "application/pdf");
-            document.setName(name);
+            StorageFile pdfFile = StorageFile.builder()
+                    .name("dossierfacile-pdf-" + document.getId())
+                    .path("dossierfacile_pdf_" + UUID.randomUUID() + ".pdf")
+                    .contentType(MediaType.APPLICATION_PDF_VALUE)
+                    .build();
+            document.setWatermarkFile(fileStorageService.upload(documentInputStream, pdfFile));
+
             document.setProcessingEndTime(LocalDateTime.now());
 
             //region unlock document after successful generation
@@ -237,7 +240,7 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
                 long milliseconds = System.currentTimeMillis() - time;
                 log.info("Sucessful PDF generation. Document [" + documentCategoryName + "] with ID [" + documentId + "] after [" + milliseconds + "] ms");
             } else {
-                fileStorageService.delete(name);
+                fileStorageService.delete(pdfFile);
                 long milliseconds = System.currentTimeMillis() - time;
                 log.info("Failed PDF generation. Document [" + documentCategoryName + "] with ID [" + documentId + "] has been deleted during its PDF generation. Elapsed time [" + milliseconds + "] ms");
             }

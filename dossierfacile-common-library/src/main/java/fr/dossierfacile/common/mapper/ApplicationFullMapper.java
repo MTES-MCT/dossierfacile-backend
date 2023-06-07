@@ -26,9 +26,9 @@ public abstract class ApplicationFullMapper implements ApartmentSharingMapper {
 
     public abstract ApplicationModel toApplicationModel(ApartmentSharing apartmentSharing);
 
-    public abstract ApplicationModel toApplicationModel(ApartmentSharing car, @Context UserApi userApi);
+    public abstract ApplicationModel toApplicationModel(ApartmentSharing apartmentSharing, @Context UserApi userApi);
 
-    @Mapping(target = "name", expression = "java((document.getName() != null )? domain + \"/\" + PATH + \"/\" + document.getName() : null)")
+    @Mapping(target = "name", expression = "java((document.getWatermarkFile() != null )? domain + \"/\" + PATH + \"/\" + document.getName() : null)")
     public abstract DocumentModel toDocumentModel(Document document);
 
     @Mapping(target = "partnerLinked", expression = "java((userApi == null)? null : tenant.getTenantsUserApi() != null && tenant.getTenantsUserApi().stream().anyMatch( t -> t.getUserApi().getId() == userApi.getId()))")

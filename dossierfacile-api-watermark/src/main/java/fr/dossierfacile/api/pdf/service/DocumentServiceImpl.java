@@ -128,7 +128,9 @@ public class DocumentServiceImpl implements DocumentService {
         StorageFile pdfFile = document.getPdfFile();
         document.setPdfFile(null);
         watermarkDocumentRepository.save(document);
-        storageFileRepository.delete(pdfFile);
+        if (pdfFile != null) {
+            storageFileRepository.delete(pdfFile);
+        }
     }
 
     @Override

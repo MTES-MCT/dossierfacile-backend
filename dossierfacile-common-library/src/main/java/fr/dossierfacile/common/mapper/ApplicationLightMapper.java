@@ -13,6 +13,8 @@ import org.springframework.stereotype.Component;
 public interface ApplicationLightMapper extends ApartmentSharingMapper {
     ApplicationModel toApplicationModel(ApartmentSharing apartmentSharing);
 
-    @Mapping(target = "name", source="name", ignore = true)
+    @Mapping(target = "name",  ignore = true)
     DocumentModel documentToDocumentModel(Document document);
+
+
 }

@@ -10,17 +10,8 @@ import java.util.List;
 public interface FileRepository extends JpaRepository<GarbageFile, Long> {
 
     @Query(value = """
-            SELECT
-            EXISTS (select d from Document d where d.name=:path) OR
-            EXISTS (select f from File f where f.path=:path) OR
-            EXISTS (select sf from storage_file sf where sf.path=:path)
-            """, nativeQuery = true)
-    boolean existsObject(@Param("path") String path);
-
-    @Query(value = """
             select path from File f where f.path in (:path)\s
-            UNION select path from storage_file sf where sf.path in (:path)\s
-            UNION select name from Document d where d.name in (:path)
+            UNION select path from storage_file sf where sf.path in (:path)
             """, nativeQuery = true)
     List<String> existingFiles(@Param("path") List<String> path);
 

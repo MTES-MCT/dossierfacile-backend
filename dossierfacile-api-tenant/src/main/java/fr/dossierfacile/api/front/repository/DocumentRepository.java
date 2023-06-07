@@ -38,9 +38,9 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
             "  and d2.id = :documentId", nativeQuery = true)
     Optional<Document> findByIdForApartmentSharing(@Param("documentId") Long documentId, @Param("apartId") Long apartmentSharing);
 
-    Optional<Document> findFirstByName(String documentName);
-
     @Modifying
     @Query("UPDATE Document d SET d.taxProcessResult = :taxProcessResult where d.id = :documentId")
     void updateTaxProcessResult(@Param("taxProcessResult") TaxDocument taxProcessResult, @Param("documentId") Long documentId);
+
+    Optional<Document> findFirstByName(String name);
 }
