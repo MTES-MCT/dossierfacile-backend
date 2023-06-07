@@ -3,6 +3,7 @@ package fr.dossierfacile.api.pdfgenerator.service;
 import fr.dossierfacile.api.pdfgenerator.service.interfaces.PdfGeneratorService;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Document;
+import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.DocumentCategory;
@@ -113,7 +114,7 @@ class PdfGeneratorServiceImplTest {
         professional.setDocumentSubCategory(DocumentSubCategory.CDI);
         professional.setDocumentStatus(DocumentStatus.VALIDATED);
         professional.setTenant(tenant);
-        professional.setName("CNI.pdf");
+        professional.setWatermarkFile(StorageFile.builder().path("CNI.pdf").build());
 
         Document financial = new Document();
         financial.setDocumentCategory(DocumentCategory.FINANCIAL);
@@ -121,28 +122,28 @@ class PdfGeneratorServiceImplTest {
         financial.setDocumentStatus(DocumentStatus.VALIDATED);
         financial.setTenant(tenant);
         financial.setMonthlySum(3000);
-        financial.setName("CNI.pdf");
+        financial.setWatermarkFile(StorageFile.builder().path("CNI.pdf").build());
 
         Document tax = new Document();
         tax.setDocumentCategory(DocumentCategory.TAX);
         tax.setDocumentSubCategory(DocumentSubCategory.LESS_THAN_YEAR);
         tax.setDocumentStatus(DocumentStatus.VALIDATED);
         tax.setTenant(tenant);
-        tax.setName("CNI.pdf");
+        tax.setWatermarkFile(StorageFile.builder().path("CNI.pdf").build());
 
         Document identification = new Document();
         identification.setDocumentCategory(DocumentCategory.IDENTIFICATION);
         identification.setDocumentSubCategory(DocumentSubCategory.FRENCH_PASSPORT);
         identification.setDocumentStatus(DocumentStatus.VALIDATED);
         identification.setTenant(tenant);
-        identification.setName("CNI.pdf");
+        identification.setWatermarkFile(StorageFile.builder().path("CNI.pdf").build());
 
         Document residency = new Document();
         residency.setDocumentCategory(DocumentCategory.RESIDENCY);
         residency.setDocumentSubCategory(DocumentSubCategory.TENANT);
         residency.setDocumentStatus(DocumentStatus.VALIDATED);
         residency.setTenant(tenant);
-        residency.setName("CNI.pdf");
+        residency.setWatermarkFile(StorageFile.builder().path("CNI.pdf").build());
 
         return List.of(professional, financial, tax, identification, residency);
     }

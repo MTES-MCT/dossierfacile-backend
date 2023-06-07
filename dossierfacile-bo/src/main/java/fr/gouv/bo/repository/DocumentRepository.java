@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 public interface DocumentRepository extends JpaRepository<Document, Long> {
 
@@ -17,7 +18,7 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
     Page<Document> findDocumentsByCreationDateTimeIsNull(Pageable pageable);
 
     @Query("SELECT d.id FROM Document d " +
-            "WHERE d.name is null " +
+            "WHERE d.watermarkFile is null " +
             "and d.processingStartTime is not null " +
             "and d.processingEndTime is null " +
             "and d.processingStartTime < :timeAgo " +
@@ -26,17 +27,18 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
 
     @Modifying
     @Query(value = "UPDATE document SET retries = 0, locked = false, locked_by = null where id in (" +
-            "SELECT d.id FROM document d WHERE d.name is null and d.processing_start_time is not null and d.processing_end_time is null and d.processing_start_time < now() - (interval '12' hour)" +
+            "SELECT d.id FROM document d WHERE d.watermark_file_id is null and d.processing_start_time is not null and d.processing_end_time is null and d.processing_start_time < now() - (interval '12' hour)" +
             ")", nativeQuery = true)
     void unlockFailedPdfDocumentsGeneratedUsingButtonRequest();
 
     @Modifying
     @Query(value = "UPDATE document SET retries = 0, locked = false, locked_by = null where id in (" +
-            "SELECT d.id FROM document d WHERE d.name is null and d.processing_start_time is not null and d.processing_end_time is null and d.processing_start_time < now() - (interval '24' hour)" +
+            "SELECT d.id FROM document d WHERE d.watermark_file_id is null and d.processing_start_time is not null and d.processing_end_time is null and d.processing_start_time < now() - (interval '24' hour)" +
             ")", nativeQuery = true)
     void unlockFailedPdfDocumentsGeneratedUsingScheduledTask();
 
     @Modifying
     @Query("UPDATE Document d SET d.documentDeniedReasons = :documentDeniedReasons where d.id = :documentId")
     void updateDocumentWithDocumentDeniedReasons(@Param("documentDeniedReasons") DocumentDeniedReasons documentDeniedReasons, @Param("documentId") Long documentId);
+
 }

@@ -16,7 +16,6 @@ import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.model.WebhookDTO;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.gouv.bo.dto.CustomMessage;
-import fr.gouv.bo.dto.DeleteUserDTO;
 import fr.gouv.bo.dto.DisplayableFile;
 import fr.gouv.bo.dto.EmailDTO;
 import fr.gouv.bo.dto.GuarantorItem;
@@ -37,15 +36,10 @@ import fr.gouv.bo.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.ObjectNotFoundException;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -244,7 +238,6 @@ public class BOTenantController {
                         .documentSubCategory(document.getDocumentSubCategory())
                         .itemDetailList(getItemDetailForSubcategoryOfDocument(document.getDocumentSubCategory(), TENANT))
                         .documentId(document.getId())
-                        .documentName(document.getName())
                         .analyzedFiles(DisplayableFile.onlyAnalyzedFilesOf(document))
                         .build());
             }
@@ -272,7 +265,6 @@ public class BOTenantController {
                             .documentSubCategory(document.getDocumentSubCategory())
                             .itemDetailList(getItemDetailForSubcategoryOfDocument(document.getDocumentSubCategory(), GUARANTOR))
                             .documentId(document.getId())
-                            .documentName(document.getName())
                             .analyzedFiles(DisplayableFile.onlyAnalyzedFilesOf(document))
                             .build());
                 }

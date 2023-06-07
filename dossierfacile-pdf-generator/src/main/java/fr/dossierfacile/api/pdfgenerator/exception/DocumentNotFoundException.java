@@ -8,6 +8,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 public class DocumentNotFoundException extends RuntimeException {
 
     public DocumentNotFoundException(Document document) {
-        super("Could not find document [ " + document.getId() + " , " + ((document.getDocumentCategory() == null) ? "-" : document.getDocumentCategory().name()) + " , " + document.getName() + "] ");
+        super("Could not find document [ " + document.getId() + " , " + ((document.getDocumentCategory() == null) ? "-" : document.getDocumentCategory().name()) + "] ");
     }
 }

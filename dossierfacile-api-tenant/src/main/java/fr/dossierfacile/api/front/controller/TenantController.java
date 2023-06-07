@@ -16,10 +16,12 @@ import fr.dossierfacile.api.front.service.interfaces.UserService;
 import fr.dossierfacile.common.entity.Property;
 import fr.dossierfacile.common.entity.Tenant;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.retry.policy.ExceptionClassifierRetryPolicy;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -36,6 +38,7 @@ import static org.springframework.http.ResponseEntity.status;
 @RestController
 @AllArgsConstructor
 @RequestMapping("/api/tenant")
+@Slf4j
 public class TenantController {
 
     private final AuthenticationFacade authenticationFacade;
@@ -79,7 +82,11 @@ public class TenantController {
         Boolean allow = BooleanUtils.toBooleanObject(allowTax, "allow", "disallow", "");
         documentTaxService.updateAutomaticTaxVerificationConsent(tenant, allow);
         if (allow && tenant.getFranceConnect()) {
-            userService.checkDGFIPApi(tenant, franceConnectTaxForm);
+            try {
+                userService.checkDGFIPApi(tenant, franceConnectTaxForm);
+            } catch(Exception e){
+                log.error("Error during the check DGFIP process", e.getMessage());
+            }
         }
         TenantModel tenantModel = tenantMapper.toTenantModel(tenant);
         return ok(tenantModel);

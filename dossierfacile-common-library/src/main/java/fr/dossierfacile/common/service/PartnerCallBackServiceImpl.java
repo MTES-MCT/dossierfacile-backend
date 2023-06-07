@@ -3,6 +3,7 @@ package fr.dossierfacile.common.service;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.Guarantor;
+import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.TenantUserApi;
 import fr.dossierfacile.common.entity.TenantUserApiKey;
@@ -119,9 +120,11 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
 
         switch (userApi.getVersion()) {
             case 1 -> {
+
                 if (webhookDTO instanceof LightAPIInfoModel) {
                     requestService.send((LightAPIInfoModel) webhookDTO, userApi.getUrlCallback(), userApi.getPartnerApiKeyCallback());
                     callbackLogService.createCallbackLogForInternalPartnerLight(tenant, userApi.getId(), tenant.getStatus(), (LightAPIInfoModel) webhookDTO);
+
                 }
             }
             case 2 -> {
@@ -200,7 +203,7 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
 
             List<Document> tenantDocuments = t.getDocuments();
             for (Document d : tenantDocuments) {
-                hashMapFiles.put("tenantFile" + auxiliarDocumentCategory(d.getDocumentCategory()), d.getName());
+                hashMapFiles.put("tenantFile" + auxiliarDocumentCategory(d.getDocumentCategory()), Optional.ofNullable(d.getWatermarkFile()).orElse(StorageFile.builder().build()).getName());
             }
 
             List<Guarantor> guarantors = t.getGuarantors();
@@ -209,7 +212,7 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
                 for (Guarantor g : guarantors) {
                     List<Document> documents = g.getDocuments();
                     for (Document d : documents) {
-                        String pathToDocument = d.getName();
+                        String pathToDocument = Optional.ofNullable(d.getWatermarkFile()).orElse(StorageFile.builder().build()).getPath();
                         hashMapFiles.put("guarantorFile" + auxiliarDocumentCategory(d.getDocumentCategory()), pathToDocument);
                     }
                 }

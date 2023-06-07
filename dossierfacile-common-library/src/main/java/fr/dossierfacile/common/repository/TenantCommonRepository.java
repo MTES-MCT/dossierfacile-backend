@@ -32,13 +32,16 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
             " order by t.lastUpdateDate")
     Page<Tenant> findTenantsToProcess(@Param("localDateTime") LocalDateTime localDateTime, Pageable pageable);
 
-    @Query("select t from Tenant t " +
-            " where (t.operatorDateTime is null or t.operatorDateTime < :localDateTime) and t.status = 'TO_PROCESS' and t.honorDeclaration = true " +
-            " and" +
-            " t.id not in (select t.id from Tenant t join t.documents d WHERE d.name is null)" +
-            " and" +
-            " t.id not in (select t.id from Tenant t join t.guarantors g join g.documents d WHERE d.name is null)" +
-            " order by t.lastUpdateDate")
+    @Query("""
+            SELECT t
+            FROM Tenant t
+            WHERE (t.operatorDateTime IS NULL OR t.operatorDateTime < :localDateTime)
+              AND t.status = 'TO_PROCESS'
+              AND t.honorDeclaration = true
+              AND NOT EXISTS ( SELECT 1 FROM Tenant t2 JOIN t2.documents d WHERE t2.id = t.id AND d.watermarkFile IS NULL )
+              AND NOT EXISTS ( SELECT 1 FROM Tenant t3 JOIN t3.guarantors g JOIN g.documents d2 WHERE t3.id = t.id AND d2.watermarkFile IS NULL )
+            ORDER BY t.lastUpdateDate
+            """)
     Page<Tenant> findNextApplication(@Param("localDateTime") LocalDateTime localDateTime, Pageable pageable);
 
     default Tenant findNextApplication(LocalDateTime localDateTime) {
@@ -52,11 +55,11 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
     @Query("select t from Tenant t " +
             " where (t.operatorDateTime is null or t.operatorDateTime < :localDateTime) and t.status = 'TO_PROCESS' and t.honorDeclaration = true " +
             " and" +
-            " t.id not in (select t.id from Tenant t join t.documents d WHERE d.name is null)" +
+            " t.id not in (select t.id from Tenant t join t.documents d WHERE d.watermarkFile is null)" +
             " and" +
             " t.id in (select t.id from Tenant t join t.documents d WHERE d.documentSubCategory IN (:categories) )" +
             " and" +
-            " t.id not in (select t.id from Tenant t join t.guarantors g join g.documents d WHERE d.name is null)" +
+            " t.id not in (select t.id from Tenant t join t.guarantors g join g.documents d WHERE d.watermarkFile is null)" +
             " order by t.lastUpdateDate")
     Page<Tenant> findNextApplicationByProfessional(@Param("localDateTime") LocalDateTime localDateTime, @Param("categories") List<DocumentSubCategory> categories, Pageable pageable);
 
@@ -100,20 +103,40 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
     @Query("SELECT t FROM Tenant t ORDER BY t.id DESC")
     Page<Tenant> findAllTenants(Pageable page);
 
-    @Query(value = "SELECT count(distinct t.id) from tenant t where t.id in (SELECT t2.id from tenant t2 join document d " +
-            "on d.tenant_id = t2.id WHERE d.name is null and d.processing_start_time is not null " +
-            "and d.processing_end_time is null and d.processing_start_time  < now() - (interval '12' hour)) " +
-            "or t.id in (SELECT t3.id from tenant t3 join guarantor g on g.tenant_id = t3.id join document d " +
-            "on d.guarantor_id = g.id WHERE d.name is null and d.processing_start_time is not null and d.processing_end_time is null " +
-            "and d.processing_start_time  < now() - (interval '12' hour))", nativeQuery = true)
+    @Query(value = """
+            SELECT COUNT(DISTINCT t.id)
+            FROM tenant t
+            LEFT JOIN document d ON d.tenant_id = t.id OR d.guarantor_id = t.id
+            WHERE d.watermark_file_id IS NULL
+              AND d.processing_start_time IS NOT NULL
+              AND d.processing_end_time IS NULL
+              AND d.processing_start_time < NOW() - INTERVAL '12' HOUR
+            """, nativeQuery = true)
     long countAllTenantsWithFailedGeneratedPdfDocument();
 
-    @Query(value = "SELECT * from tenant t join user_account u on t.id = u.id where t.id IN ((SELECT t2.id from tenant t2 join document d " +
-            "on d.tenant_id = t2.id WHERE d.name is null and d.processing_start_time is not null " +
-            "and d.processing_end_time is null and d.processing_start_time < now() - (interval '12' hour)) " +
-            "union distinct (SELECT t3.id from tenant t3 join guarantor g on g.tenant_id = t3.id join document d " +
-            "on d.guarantor_id = g.id WHERE d.name is null and d.processing_start_time is not null and d.processing_end_time is null " +
-            "and d.processing_start_time < now() - (interval '12' hour)))", nativeQuery = true)
+    @Query(value = """
+            SELECT *
+            FROM tenant t
+            JOIN user_account u ON t.id = u.id
+            WHERE t.id IN (
+              SELECT t2.id
+              FROM tenant t2
+              JOIN document d ON d.tenant_id = t2.id
+              WHERE d.watermark_file_id IS NULL
+                AND d.processing_start_time IS NOT NULL
+                AND d.processing_end_time IS NULL
+                AND d.processing_start_time < NOW() - INTERVAL '12' HOUR
+              UNION DISTINCT
+              SELECT t3.id
+              FROM tenant t3
+              JOIN guarantor g ON g.tenant_id = t3.id
+              JOIN document d ON d.guarantor_id = g.id
+              WHERE d.watermark_file_id IS NULL
+                AND d.processing_start_time IS NOT NULL
+                AND d.processing_end_time IS NULL
+                AND d.processing_start_time < NOW() - INTERVAL '12' HOUR
+            )
+            """, nativeQuery = true)
     Page<Tenant> findAllTenantsWithFailedGeneratedPdfDocument(Pageable pageable);
 
     long countAllByStatus(TenantFileStatus tenantFileStatus);
@@ -163,29 +186,25 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
     )
     List<Tenant> findAllDeclinedSinceXDaysAgo(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 
-    @Query(value = "SELECT count(t.id) from tenant t " +
-            "where " +
-            "t.apartment_sharing_id =:apartmentSharingId " +
-            "and (" +
-            "  t.status != 'VALIDATED' " +
-            "  or " +
-            "  t.id in (SELECT t2.id from tenant t2 join document d on d.tenant_id = t2.id WHERE d.name is null) " +
-            "  or " +
-            "  t.id in (SELECT t2.id from tenant t2 join guarantor g on g.tenant_id = t2.id join document d on d.guarantor_id = g.id WHERE d.name is null)" +
-            "    )", nativeQuery = true)
+    @Query(value = """
+            SELECT COUNT(t.id)
+            FROM tenant t
+            LEFT JOIN document d ON d.tenant_id = t.id OR d.guarantor_id = t.id
+            WHERE t.apartment_sharing_id = :apartmentSharingId
+              AND ( t.status != 'VALIDATED' OR d.watermark_file_id IS NULL )
+            """, nativeQuery = true)
     int countTenantsInTheApartmentNotValidatedOrWithSomeNullDocument(@Param("apartmentSharingId") long apartmentSharingId);
 
-    @Query(
-            "select distinct t from Tenant t " +
-                    " join Log l on t.id = l.tenantId " +
-                    " where " +
-                    " t.linkedKeycloakClients is null " +
-                    " and " +
-                    " t.id not in (select tu.tenant.id from TenantUserApi tu)" +
-                    " and " +
-                    " l.creationDateTime between :startDate and :endDate " +
-                    " and " +
-                    " l.logType = 'ACCOUNT_VALIDATED' "
+    @Query("""
+            SELECT DISTINCT t
+            FROM Tenant t
+            JOIN Log l ON t.id = l.tenantId
+            LEFT JOIN TenantUserApi tu ON t.id = tu.tenant.id
+            WHERE t.linkedKeycloakClients IS NULL
+              AND tu.tenant.id IS NULL
+              AND l.creationDateTime BETWEEN :startDate AND :endDate
+              AND l.logType = 'ACCOUNT_VALIDATED'
+            """
     )
     List<Tenant> findAllTenantsNotAssociatedToPartnersAndValidatedSinceXDaysAgo(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 

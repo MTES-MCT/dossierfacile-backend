@@ -7,6 +7,7 @@ import fr.dossierfacile.api.front.model.tenant.DocumentModel;
 import fr.dossierfacile.api.front.model.tenant.FileModel;
 import fr.dossierfacile.api.front.model.tenant.SelectedOption;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
+import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.TenantFileStatus;
@@ -35,6 +36,12 @@ public abstract class TenantMapper {
 
     @Mapping(target = "passwordEnabled", expression = "java(tenant.getPassword() != null)")
     public abstract TenantModel toTenantModel(Tenant tenant);
+
+    @Mapping(target = "name", expression = "java((document.getWatermarkFile() != null )? domain + \"/" + PATH + "/\" + document.getName() : null)")
+    public abstract DocumentModel toDocumentModel(Document document);
+
+    @Mapping(target = "name", expression = "java((document.getWatermarkFile() != null )? domain + \"/" + PATH + "/\" + document.getName() : null)")
+    public abstract fr.dossierfacile.api.front.model.dfc.apartment_sharing.DocumentModel documentToDocumentModel(Document document);
 
     @Mapping(target = "connectedTenantId", source = "id")
     public abstract ConnectedTenantModel toTenantModelDfc(Tenant tenant);
@@ -81,9 +88,6 @@ public abstract class TenantMapper {
     private void setDocumentDeniedReasonsAndDocumentAndFilesRoutes(List<DocumentModel> list, String filePath, boolean previewOnly) {
         Optional.ofNullable(list)
                 .ifPresent(documentModels -> documentModels.forEach(documentModel -> {
-                    if (documentModel.getName() != null) {
-                        documentModel.setName(domain + "/" + PATH + "/" + documentModel.getName());
-                    }
                     DocumentDeniedReasonsModel documentDeniedReasonsModel = documentModel.getDocumentDeniedReasons();
                     if (documentDeniedReasonsModel != null) {
                         List<SelectedOption> selectedOptionList = new ArrayList<>();
@@ -166,7 +170,6 @@ public abstract class TenantMapper {
                             documentModel.setDocumentDeniedReasons(documentDeniedReasonsModel);
                         }
                     }
-                    documentModel.setName(domain + "/" + PATH + "/" + documentModel.getName());
                 }));
     }
 }

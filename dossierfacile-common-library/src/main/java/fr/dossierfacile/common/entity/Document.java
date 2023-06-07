@@ -49,6 +49,10 @@ public class Document implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Builder.Default
+    @Column(name = "name")
+    private String name = java.util.UUID.randomUUID().toString();
+
     @Enumerated(EnumType.STRING)
     private DocumentCategory documentCategory;
 
@@ -83,9 +87,6 @@ public class Document implements Serializable {
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private DocumentStatus documentStatus = DocumentStatus.TO_PROCESS;
-
-    // TODO use watermarkFile in next iteration
-    private String name;
 
     @OneToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(name = "watermark_file_id")
