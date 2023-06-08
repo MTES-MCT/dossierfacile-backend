@@ -97,5 +97,6 @@
     <include file="db/migration/202306050001-drop-column-apartmentsharing.xml" />
     <include file="db/migration/202306070000-create-watermark-document.xml" />
     <include file="db/migration/202306090000-migrate-document-name.xml" />
+    <include file="db/migration/202306080000-create-indexes-on-fk.xml" />
 
 </databaseChangeLog>
