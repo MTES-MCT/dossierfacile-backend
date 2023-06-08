@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+    <changeSet id="202306080000-01" author="fle (manual)">
+        <sql>
+            <![CDATA[
+                CREATE INDEX IF NOT EXISTS storage_file_id_index ON file ( storage_file_id );
+                CREATE INDEX IF NOT EXISTS preview_file_id_index ON file ( preview_file_id );
+                ]]>
+        </sql>
+    </changeSet>
+    <changeSet id="202306080000-02" author="fle (manual)">
+        <sql>
+            <![CDATA[
+                CREATE INDEX IF NOT EXISTS watermark_file_id_index ON document ( watermark_file_id );
+                ]]>
+        </sql>
+    </changeSet>
+    <changeSet id="202306080000-03" author="fle (manual)">
+        <sql>
+            <![CDATA[
+                CREATE INDEX IF NOT EXISTS pdf_dossier_file_id_index ON apartment_sharing ( pdf_dossier_file_id );
+                ]]>
+        </sql>
+    </changeSet>
+    <changeSet id="202306080000-04" author="fle (manual)">
+        <sql>
+            <![CDATA[
+                CREATE INDEX IF NOT EXISTS tenant_id_index ON tenant_log ( tenant_id );
+                ]]>
+        </sql>
+    </changeSet>
+</databaseChangeLog>
