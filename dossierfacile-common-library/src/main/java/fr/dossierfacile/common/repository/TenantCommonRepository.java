@@ -274,4 +274,13 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
 
     @Query("FROM Tenant t WHERE t.status = :status AND t.lastUpdateDate < :before")
     List<Tenant> findByStatusAndLastUpdateDate(@Param("status") TenantFileStatus status, @Param("before") LocalDateTime before, Pageable pageable);
+
+    @Query("""
+            SELECT DISTINCT t
+            FROM Tenant t
+            JOIN Log l ON t.id = l.tenantId
+            WHERE l.logType = 'ACCOUNT_VALIDATED' OR l.logType = 'ACCOUNT_DENIED' 
+            """
+    )
+    List<Tenant> findTenantsToExtract( Pageable pageable);
 }

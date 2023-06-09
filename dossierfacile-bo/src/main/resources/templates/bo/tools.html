@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="bo/layout-bo">
+<head>
+    <title>DossierFacile</title>
+</head>
+<body>
+<div layout:fragment="content" th:remove="tag">
+    <div>
+        <div class="container">
+            <form th:method="post" th:action="@{/bo/tools/lamanufacture}">
+                <label for="count" id="count">Nombre de dossier a recupérer:</label>
+                <input type="text" name="count" placeholder="Ex: 100, 200" required="required"/>
+                <button class="btn" type="submit">Exécuter</span>
+                </button>
+            </form>
+            <div th:if="${!files.isEmpty()}">
+                <h4>Fichiers :</h4>
+                <ul>
+                    <li th:each="file : ${files}" class="margin-bottom-10px">
+                        <span th:text="${file.createdDate}"></span>
+                        <span th:text="${file.path}"></span>
+                        <a th:href="@{'/bo/tools/lamanufacture/files/' + ${file.getId()}}"
+                           th:text="${'cliques ici pour le zip ' + file.getName()}"></a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+<div layout:fragment="javascripts" th:remove="tag">
+    <script src="/js/bo/index.js"></script>
+</div>
+</body>
+</html>
