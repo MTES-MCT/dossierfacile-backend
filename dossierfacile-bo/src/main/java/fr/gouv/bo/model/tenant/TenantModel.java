@@ -1,6 +1,9 @@
 package fr.gouv.bo.model.tenant;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.enums.TenantType;
 import lombok.AllArgsConstructor;
@@ -26,6 +29,8 @@ public class TenantModel {
     private TenantType tenantType;
     private TenantFileStatus status;
     private boolean honorDeclaration;
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ss.SSSSSS")
     private LocalDateTime lastUpdateDate;
     private String clarification;
     private ApartmentSharingModel apartmentSharing;
