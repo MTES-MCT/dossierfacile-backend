@@ -40,7 +40,18 @@
                     </div>
                 </div>
             </div>
-            <div style="margin-top: 150px">
+            <div style="margin-top: 140px">
+            </div>
+
+            <div>
+                <div th:if="${!tenant.getClarification().isBlank()}"
+                     class="panel-heading file1-background-color letter col-md-8"
+                     style="margin: 0 0 20px 10px"
+                >
+                    <span style="font-size: 12px; line-height: 20px">Mot du locataire :</span>
+                    <br/>
+                    <span th:text="${tenant.getClarification()}" class="bold"></span>
+                </div>
             </div>
 
             <div th:each="messageItem, i:${customMessage.getMessageItems()}" th:remove="tag">
