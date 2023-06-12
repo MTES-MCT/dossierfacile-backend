@@ -31,6 +31,7 @@ class TenantInfoHeaderTest {
 
         assertThat(header.getElements()).containsExactlyElementsOf(
                 headerElements(
+                        "FC", "Non",
                         "Nom", "John Doe",
                         "Dossier", "En couple avec Jane Doe",
                         "Partenaires", "",
@@ -49,6 +50,7 @@ class TenantInfoHeaderTest {
 
         assertThat(header.getElements()).containsExactlyElementsOf(
                 headerElements(
+                        "FC", "Non",
                         "Nom", "John Doe",
                         "Dossier", "Seul·e",
                         "Partenaires", "Pretty Name 1, technical-name2",
@@ -64,6 +66,7 @@ class TenantInfoHeaderTest {
 
         assertThat(header.getElements()).containsExactlyElementsOf(
                 headerElements(
+                        "FC", "Non",
                         "Nom", "John Doe",
                         "Dossier", "Seul·e",
                         "Partenaires", "",
@@ -128,12 +131,14 @@ class TenantInfoHeaderTest {
     }
 
     private List<HeaderElement> headerElements(String label1, String value1, String label2, String value2,
-                                               String label3, String value3, String label4, String value4) {
+                                               String label3, String value3, String label4, String value4,
+                                               String label5, String value5) {
         return List.of(
                 new HeaderElement(label1, value1),
                 new HeaderElement(label2, value2),
                 new HeaderElement(label3, value3),
-                new HeaderElement(label4, value4)
+                new HeaderElement(label4, value4),
+                new HeaderElement(label5, value5)
         );
     }
 
