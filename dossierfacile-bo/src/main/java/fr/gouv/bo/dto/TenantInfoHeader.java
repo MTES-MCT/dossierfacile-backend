@@ -27,6 +27,7 @@ public class TenantInfoHeader {
 
     public static TenantInfoHeader build(Tenant tenant, List<UserApi> partners, List<Log> tenantLogs) {
         List<HeaderElement> elements = List.of(
+                new HeaderElement("FC",(tenant.getFranceConnect() == Boolean.TRUE)? "Oui" : "Non"),
                 new HeaderElement("Nom", tenant.getFullName()),
                 new HeaderElement("Dossier", getApplicationType(tenant)),
                 new HeaderElement("Partenaires", getPartnerNames(partners)),
