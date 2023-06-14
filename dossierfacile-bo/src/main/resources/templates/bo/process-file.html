@@ -44,7 +44,7 @@
             </div>
 
             <div>
-                <div th:if="${!tenant.getClarification().isBlank()}"
+                <div th:if="${tenant.getClarification() != null && !tenant.getClarification().isBlank()}"
                      class="panel-heading file1-background-color letter col-md-8"
                      style="margin: 0 0 20px 10px"
                 >
