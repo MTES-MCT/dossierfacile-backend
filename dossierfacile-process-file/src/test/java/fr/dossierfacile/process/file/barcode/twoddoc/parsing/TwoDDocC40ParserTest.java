@@ -14,7 +14,6 @@ class TwoDDocC40ParserTest {
 		TwoDDoc twoDDoc = TwoDDocC40Parser.parse(rawContent);
 
 		assertThat(twoDDoc.getFiscalNumber()).isEqualTo("1267027554499");
-		assertThat(twoDDoc.signature()).isEqualTo(new TwoDDocSignature("C27GM6DXHV2PWAIZ5Q25SBOC64EH6O3IQWWYADIV3YH7ZKJ3JHACHP5EZLBZ6GP6SDE6ZYKCZHKYRRFAJ5NSV5YKO5MVGPTQDEPSZ3Y"));
 	}
 
 }

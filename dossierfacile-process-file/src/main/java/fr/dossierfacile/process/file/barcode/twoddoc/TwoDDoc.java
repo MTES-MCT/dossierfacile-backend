@@ -11,7 +11,8 @@ public record TwoDDoc(
         TwoDDocHeader header,
         TwoDDocData data,
         TwoDDocSignature signature,
-        String annexe
+        String annexe,
+        String rawSignedMessage
 ) {
 
     public String getFiscalNumber() {
@@ -20,6 +21,10 @@ public record TwoDDoc(
 
     public String getReferenceNumber() {
         return data.get(ID_42);
+    }
+
+    public byte[] getSignedBytes() {
+        return rawSignedMessage.getBytes();
     }
 
 }
