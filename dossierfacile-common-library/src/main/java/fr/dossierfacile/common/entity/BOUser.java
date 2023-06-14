@@ -1,5 +1,6 @@
 package fr.dossierfacile.common.entity;
 
+import fr.dossierfacile.common.enums.AuthProvider;
 import fr.dossierfacile.common.enums.UserType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -22,6 +23,7 @@ public class BOUser extends User implements Serializable {
     public static BOUser.BOUserBuilder<?, ?> builder() {
         BOUser.BOUserBuilder<?, ?> builder = BOUser.lombokBuilder();
         builder.userType(UserType.BO);
+        builder.provider(AuthProvider.google);
         return builder;
     }
 }
