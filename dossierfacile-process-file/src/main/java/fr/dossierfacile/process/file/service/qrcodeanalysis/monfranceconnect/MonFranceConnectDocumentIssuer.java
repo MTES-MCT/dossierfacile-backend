@@ -2,14 +2,13 @@ package fr.dossierfacile.process.file.service.qrcodeanalysis.monfranceconnect;
 
 import fr.dossierfacile.common.entity.DocumentIssuer;
 import fr.dossierfacile.common.enums.FileAuthenticationStatus;
+import fr.dossierfacile.process.file.barcode.qrcode.QrCode;
 import fr.dossierfacile.process.file.service.qrcodeanalysis.AuthenticationResult;
-import fr.dossierfacile.process.file.service.qrcodeanalysis.GuessedDocumentCategory;
 import fr.dossierfacile.process.file.service.qrcodeanalysis.QrCodeDocumentIssuer;
-import fr.dossierfacile.process.file.service.qrcodeanalysis.monfranceconnect.client.MonFranceConnectAuthenticationRequest;
 import fr.dossierfacile.process.file.service.qrcodeanalysis.monfranceconnect.client.DocumentVerifiedContent;
+import fr.dossierfacile.process.file.service.qrcodeanalysis.monfranceconnect.client.MonFranceConnectAuthenticationRequest;
 import fr.dossierfacile.process.file.service.qrcodeanalysis.monfranceconnect.client.MonFranceConnectClient;
 import fr.dossierfacile.process.file.util.InMemoryPdfFile;
-import fr.dossierfacile.process.file.barcode.qrcode.QrCode;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -35,11 +34,6 @@ public class MonFranceConnectDocumentIssuer extends QrCodeDocumentIssuer<MonFran
     protected Optional<MonFranceConnectAuthenticationRequest> buildAuthenticationRequestFor(InMemoryPdfFile pdfFile) {
         QrCode qrCode = pdfFile.getQrCode();
         return MonFranceConnectAuthenticationRequest.forDocumentWith(qrCode);
-    }
-
-    @Override
-    protected Optional<GuessedDocumentCategory> guessCategory(InMemoryPdfFile pdfFile) {
-        return MonFranceConnectDocumentType.of(pdfFile).getCategory();
     }
 
     @Override

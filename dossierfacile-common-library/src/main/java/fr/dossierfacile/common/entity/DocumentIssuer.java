@@ -8,7 +8,9 @@ import lombok.Getter;
 public enum DocumentIssuer {
 
     MON_FRANCE_CONNECT("Mon FranceConnect"),
-    PAYFIT("PayFit")
+    PAYFIT("PayFit"),
+    DGFIP("DGFIP"),
+    UNKNOWN("Unknown"),
     ;
 
     private final String label;

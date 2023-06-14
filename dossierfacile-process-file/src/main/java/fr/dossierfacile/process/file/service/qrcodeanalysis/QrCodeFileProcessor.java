@@ -37,9 +37,14 @@ public class QrCodeFileProcessor {
     }
 
     private Optional<QrCodeFileAnalysis> downloadAndAnalyze(File file) {
-        Document document = file.getDocument();
         try (InMemoryPdfFile inMemoryPdfFile = InMemoryPdfFile.create(file, fileStorageService)) {
-            return analyze(document, inMemoryPdfFile);
+            return analyze(inMemoryPdfFile)
+                    .map(analysis -> {
+                        var guess = GuessedDocumentCategory.forFile(inMemoryPdfFile, analysis.getIssuerName());
+                        boolean isAllowed = guess.isMatchingCategoryOf(file.getDocument());
+                        analysis.setAllowedInDocumentCategory(isAllowed);
+                        return analysis;
+                    });
         } catch (IOException e) {
             log.error("Unable to download file " + file.getStorageFile().getPath(), e);
             Sentry.captureMessage("Unable to download file " + file.getStorageFile().getPath());
@@ -47,7 +52,7 @@ public class QrCodeFileProcessor {
         return Optional.empty();
     }
 
-    private Optional<QrCodeFileAnalysis> analyze(Document document, InMemoryPdfFile file) {
+    private Optional<QrCodeFileAnalysis> analyze(InMemoryPdfFile file) {
         if (!file.hasQrCode()) {
             return Optional.empty();
         }
@@ -55,10 +60,7 @@ public class QrCodeFileProcessor {
         for (QrCodeDocumentIssuer<?> issuer : issuers) {
             Optional<AuthenticationResult> result = issuer.tryToAuthenticate(file);
             if (result.isPresent()) {
-                boolean allowedInCurrentCategory = issuer.guessCategory(file)
-                        .map(guess -> guess.isMatchingCategoryOf(document))
-                        .orElse(true);
-                QrCodeFileAnalysis fileAnalysis = buildAnalysis(result.get(), file.getQrCode(), allowedInCurrentCategory);
+                QrCodeFileAnalysis fileAnalysis = buildAnalysis(result.get(), file.getQrCode());
                 return Optional.of(fileAnalysis);
             }
         }
@@ -71,13 +73,13 @@ public class QrCodeFileProcessor {
         analysisRepository.save(analysis);
     }
 
-    public QrCodeFileAnalysis buildAnalysis(AuthenticationResult result, QrCode qrCode, boolean isAllowedInDocumentCategory) {
+    public QrCodeFileAnalysis buildAnalysis(AuthenticationResult result, QrCode qrCode) {
         QrCodeFileAnalysis analysis = new QrCodeFileAnalysis();
         analysis.setIssuerName(result.getIssuerName());
         analysis.setQrCodeContent(qrCode.getContent());
         analysis.setApiResponse(result.getApiResponse());
         analysis.setAuthenticationStatus(result.getAuthenticationStatus());
-        analysis.setAllowedInDocumentCategory(isAllowedInDocumentCategory);
+        analysis.setAllowedInDocumentCategory(true);
         return analysis;
     }
 }

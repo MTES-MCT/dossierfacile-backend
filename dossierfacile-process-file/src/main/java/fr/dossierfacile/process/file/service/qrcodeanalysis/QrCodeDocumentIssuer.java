@@ -11,8 +11,6 @@ public abstract class QrCodeDocumentIssuer<REQUEST extends AuthenticationRequest
 
     protected abstract Optional<REQUEST> buildAuthenticationRequestFor(InMemoryPdfFile pdfFile);
 
-    protected abstract Optional<GuessedDocumentCategory> guessCategory(InMemoryPdfFile pdfFile);
-
     protected abstract AuthenticationResult authenticate(InMemoryPdfFile pdfFile, REQUEST authenticationRequest);
 
     public Optional<AuthenticationResult> tryToAuthenticate(InMemoryPdfFile pdfFile) {

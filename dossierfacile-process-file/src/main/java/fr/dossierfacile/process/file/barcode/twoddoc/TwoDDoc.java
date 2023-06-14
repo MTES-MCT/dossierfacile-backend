@@ -1,5 +1,6 @@
 package fr.dossierfacile.process.file.barcode.twoddoc;
 
+import fr.dossierfacile.common.entity.DocumentIssuer;
 import fr.dossierfacile.process.file.barcode.twoddoc.parsing.TwoDDocData;
 import fr.dossierfacile.process.file.barcode.twoddoc.parsing.TwoDDocHeader;
 import fr.dossierfacile.process.file.barcode.twoddoc.parsing.TwoDDocSignature;
@@ -25,6 +26,13 @@ public record TwoDDoc(
 
     public byte[] getSignedBytes() {
         return rawSignedMessage.getBytes();
+    }
+
+    public DocumentIssuer getIssuer() {
+        return switch (header.issuer()) {
+            case "FR04" -> DocumentIssuer.DGFIP;
+            default -> DocumentIssuer.UNKNOWN;
+        };
     }
 
 }

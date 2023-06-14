@@ -51,6 +51,7 @@ public class DisplayableQrCodeFileAnalysis {
         return switch (analysis.getIssuerName()) {
             case MON_FRANCE_CONNECT -> String.join(", ", (List<String>) apiResponse);
             case PAYFIT -> PayfitAuthenticatedContent.format(apiResponse);
+            default -> apiResponse.toString();
         };
     }
 
