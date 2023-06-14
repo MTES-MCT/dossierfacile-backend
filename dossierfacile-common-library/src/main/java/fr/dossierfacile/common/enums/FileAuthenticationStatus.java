@@ -9,8 +9,9 @@ public enum FileAuthenticationStatus {
 
     VALID("Authentifié"),
     INVALID("Non authentifié"),
-    API_ERROR("Erreur lors de l'authentification"),
-    UNKNOWN_DOCUMENT("Non reconnu ou expiré")
+    API_ERROR("Erreur lors de l'appel à un service externe"),
+    ERROR("Erreur lors de l'authentification"),
+    UNKNOWN_DOCUMENT("Non reconnu ou expiré"),
     ;
 
     private final String label;

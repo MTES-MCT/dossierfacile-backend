@@ -52,7 +52,7 @@ public class File implements Serializable {
 
     @Nullable
     @OneToOne(mappedBy = "file", fetch = FetchType.LAZY)
-    private QrCodeFileAnalysis fileAnalysis;
+    private BarCodeFileAnalysis fileAnalysis;
 
     @Override
     public boolean equals(Object o) {

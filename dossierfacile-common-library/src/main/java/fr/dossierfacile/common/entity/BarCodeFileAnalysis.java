@@ -2,7 +2,10 @@ package fr.dossierfacile.common.entity;
 
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import fr.dossierfacile.common.enums.FileAuthenticationStatus;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 
@@ -19,10 +22,13 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 @Data
+@Builder
 @Entity
-@Table(name = "qrcode_file_analysis")
+@Table(name = "barcode_file_analysis")
 @TypeDef(name = "jsonb", typeClass = JsonBinaryType.class)
-public class QrCodeFileAnalysis {
+@AllArgsConstructor
+@NoArgsConstructor
+public class BarCodeFileAnalysis {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -34,15 +40,18 @@ public class QrCodeFileAnalysis {
     @Enumerated(EnumType.STRING)
     private DocumentIssuer issuerName;
 
-    private String qrCodeContent;
+    private String barCodeContent;
 
     @Type(type = "jsonb")
     @Column(columnDefinition = "jsonb")
-    private Object apiResponse;
+    private Object verifiedData;
 
     @Enumerated(EnumType.STRING)
     private FileAuthenticationStatus authenticationStatus;
 
-    private boolean allowedInDocumentCategory;
+    private boolean allowedInDocumentCategory = true;
+
+    @Enumerated(EnumType.STRING)
+    private BarCodeType barCodeType;
 
 }

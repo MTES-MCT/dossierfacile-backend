@@ -4,6 +4,12 @@ import fr.dossierfacile.common.entity.DocumentIssuer;
 import fr.dossierfacile.process.file.barcode.twoddoc.parsing.TwoDDocData;
 import fr.dossierfacile.process.file.barcode.twoddoc.parsing.TwoDDocHeader;
 import fr.dossierfacile.process.file.barcode.twoddoc.parsing.TwoDDocSignature;
+import fr.dossierfacile.process.file.barcode.twoddoc.validation.SignatureAlgorithm;
+
+import java.security.InvalidKeyException;
+import java.security.Signature;
+import java.security.SignatureException;
+import java.security.cert.X509Certificate;
 
 import static fr.dossierfacile.process.file.barcode.twoddoc.parsing.TwoDDocDataType.ID_42;
 import static fr.dossierfacile.process.file.barcode.twoddoc.parsing.TwoDDocDataType.ID_47;
@@ -24,15 +30,18 @@ public record TwoDDoc(
         return data.get(ID_42);
     }
 
-    public byte[] getSignedBytes() {
-        return rawSignedMessage.getBytes();
-    }
-
     public DocumentIssuer getIssuer() {
         return switch (header.issuer()) {
             case "FR04" -> DocumentIssuer.DGFIP;
             default -> DocumentIssuer.UNKNOWN;
         };
+    }
+
+    public boolean isSignedBy(X509Certificate signingCertificate) throws InvalidKeyException, SignatureException {
+        Signature signatureVerifier = SignatureAlgorithm.of(signingCertificate).getInstance();
+        signatureVerifier.initVerify(signingCertificate.getPublicKey());
+        signatureVerifier.update(rawSignedMessage.getBytes());
+        return signatureVerifier.verify(this.signature.encodeDer());
     }
 
 }

@@ -3,12 +3,12 @@ package fr.gouv.bo.dto;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.dossierfacile.common.entity.DocumentIssuer;
-import fr.dossierfacile.common.entity.QrCodeFileAnalysis;
+import fr.dossierfacile.common.entity.BarCodeFileAnalysis;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class DisplayableQrCodeFileAnalysisTest {
+class DisplayableBarCodeFileAnalysisTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -42,10 +42,10 @@ class DisplayableQrCodeFileAnalysisTest {
                 .isEqualTo("entreprise = Some Company, employé = John Doe, net = 1 895,39 €");
     }
 
-    private QrCodeFileAnalysis buildAnalysis(DocumentIssuer issuer, String content) throws JsonProcessingException {
-        QrCodeFileAnalysis analysis = new QrCodeFileAnalysis();
+    private BarCodeFileAnalysis buildAnalysis(DocumentIssuer issuer, String content) throws JsonProcessingException {
+        BarCodeFileAnalysis analysis = new BarCodeFileAnalysis();
         analysis.setIssuerName(issuer);
-        analysis.setApiResponse(objectMapper.readValue(content, Object.class));
+        analysis.setVerifiedData(objectMapper.readValue(content, Object.class));
         return analysis;
     }
 
