@@ -162,6 +162,7 @@ public class DocumentServiceImpl implements DocumentService {
 
         return watermarkDocumentRepository.save(WatermarkDocument.builder()
                 .token(UUID.randomUUID().toString())
+                .text(documentForm.getWatermark())
                 .files(files)
                 .pdfStatus(FileStatus.NONE)
                 .build());
