@@ -10,6 +10,7 @@ import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.multi.GenericMultipleBarcodeReader;
 import com.google.zxing.multi.MultipleBarcodeReader;
+import io.sentry.Sentry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.ImageType;
@@ -33,19 +34,21 @@ public class TwoDDocReader {
         HINTS.put(DecodeHintType.POSSIBLE_FORMATS, EnumSet.allOf(BarcodeFormat.class));
     }
 
-    public static Optional<TwoDDocRawContent> find2DDocOn(PDDocument document) throws IOException {
+    public static Optional<TwoDDocRawContent> find2DDocOn(PDDocument document) {
         if (document.isEncrypted()) {
             return Optional.empty();
         }
 
-        BinaryBitmap binaryBitmap = buildBinaryBitmap(document);
-        MultipleBarcodeReader multiReader = new GenericMultipleBarcodeReader(new MultiFormatReader());
-
         try {
+            BinaryBitmap binaryBitmap = buildBinaryBitmap(document);
+            MultipleBarcodeReader multiReader = new GenericMultipleBarcodeReader(new MultiFormatReader());
             Result[] results = multiReader.decodeMultiple(binaryBitmap, HINTS);
             return Optional.ofNullable(results[0].getText())
                     .map(TwoDDocRawContent::new);
         } catch (NotFoundException e) {
+            return Optional.empty();
+        } catch (IOException e) {
+            log.error("Exception while trying to extract 2D-Doc from pdf (Sentry ID: {})", Sentry.captureException(e), e);
             return Optional.empty();
         }
     }
