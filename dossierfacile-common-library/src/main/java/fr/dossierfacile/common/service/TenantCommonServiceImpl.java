@@ -4,8 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import fr.dossierfacile.common.entity.AccountDeleteLog;
 import fr.dossierfacile.common.entity.ApartmentSharing;
-import fr.dossierfacile.common.entity.Document;
-import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.mapper.TenantCommonMapper;
 import fr.dossierfacile.common.model.apartment_sharing.TenantModel;
@@ -26,7 +24,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -66,15 +63,11 @@ public class TenantCommonServiceImpl implements TenantCommonService {
             apartmentSharingCommonService.resetDossierPdfGenerated(apartmentSharing.get());
         }
 
-        Optional.ofNullable(tenant.getDocuments())
-                .orElse(new ArrayList<>())
-                .forEach(this::deleteFilesFromStorage);
+        documentRepository.deleteAll(tenant.getDocuments());
+
         Optional.ofNullable(tenant.getGuarantors())
                 .orElse(new ArrayList<>())
-                .forEach(guarantor -> Optional.ofNullable(guarantor.getDocuments())
-                        .orElse(new ArrayList<>())
-                        .forEach(this::deleteFilesFromStorage)
-                );
+                .forEach(guarantor -> documentRepository.deleteAll(guarantor.getDocuments()));
     }
 
 
@@ -94,14 +87,6 @@ public class TenantCommonServiceImpl implements TenantCommonService {
             Gson gson = builder.create();
             accountDeleteLogRepository.save(AccountDeleteLog.builder().userId(tenantModel.getId()).deletionDate(LocalDateTime.now()).jsonProfileBeforeDeletion(gson.toJson(tenantModel)).build());
         }
-    }
-
-    private void deleteFilesFromStorage(Document document) {
-        if (document.getName() != null && !document.getName().isBlank()) {
-            log.info("Removing document from storage with path [" + document.getName() + "]");
-            fileStorageService.delete(document.getName());
-        }
-        documentRepository.delete(document);
     }
 
     @Override

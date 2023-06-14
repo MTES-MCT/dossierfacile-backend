@@ -21,6 +21,7 @@ import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.PasswordRecoveryToken;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.User;
+import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.LogType;
@@ -28,6 +29,7 @@ import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.TaxFileExtractionType;
 import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.exceptions.ConfirmationTokenNotFoundException;
+import fr.dossierfacile.common.model.WebhookDTO;
 import fr.dossierfacile.common.repository.ConfirmationTokenRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.LogService;
@@ -51,8 +53,10 @@ import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -140,7 +144,12 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void deleteAccount(Tenant tenant) {
-        partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.DELETED_ACCOUNT);
+        List<WebhookDTO> webhookDTOList = new ArrayList<>();
+        ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
+        apartmentSharing.groupingAllTenantUserApisInTheApartment().forEach((tenantUserApi) -> {
+            UserApi userApi = tenantUserApi.getUserApi();
+            webhookDTOList.add(partnerCallBackService.getWebhookDTO(tenant, userApi, PartnerCallBackType.DELETED_ACCOUNT));
+        });
         saveAndDeleteInfoByTenant(tenant);
         logService.saveLog(LogType.ACCOUNT_DELETE, tenant.getId());
         if (tenant.getTenantType() == TenantType.CREATE) {
@@ -150,6 +159,9 @@ public class UserServiceImpl implements UserService {
             keycloakService.deleteKeycloakUser(tenant);
             userRepository.delete(tenant);
             apartmentSharingService.removeTenant(tenant.getApartmentSharing(), tenant);
+        }
+        for (WebhookDTO webhookDTO : webhookDTOList) {
+            partnerCallBackService.sendCallBack(tenant, webhookDTO);
         }
     }
 

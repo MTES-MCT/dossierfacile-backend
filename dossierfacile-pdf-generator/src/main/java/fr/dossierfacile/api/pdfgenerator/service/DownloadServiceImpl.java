@@ -20,12 +20,12 @@ public class DownloadServiceImpl implements DownloadService {
 
     @Override
     public InputStream getDocumentInputStream(Document document) {
-        log.info("Downloading document [" + document.getDocumentCategory() + ", " + document.getName() + "]");
-        if (StringUtils.isBlank(document.getName())) {
+        log.info("Downloading document [" + document.getId() + "]");
+        if (document.getWatermarkFile() == null) {
             throw new DocumentNotFoundException(document);
         }
         try {
-            return fileStorageService.download(document.getName(), null);
+            return fileStorageService.download(document.getWatermarkFile());
         } catch (Exception e) {
             throw new FileDownloadException(document);
         }

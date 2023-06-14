@@ -11,12 +11,13 @@ import fr.dossierfacile.api.front.util.TransactionalUtil;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Person;
+import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.TenantFileStatus;
+import fr.dossierfacile.common.repository.StorageFileRepository;
 import fr.dossierfacile.common.service.interfaces.DocumentHelperService;
-import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -30,7 +31,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
 public class DocumentServiceImpl implements DocumentService {
 
     private final DocumentRepository documentRepository;
-    private final FileStorageService fileStorageService;
+    private final StorageFileRepository storageFileRepository;
     private final TenantStatusService tenantStatusService;
     private final ApartmentSharingService apartmentSharingService;
     private final DocumentHelperService documentHelperService;
@@ -95,13 +95,17 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Override
     public void initializeFieldsToProcessPdfGeneration(Document document) {
-        document.setName(null);
+        StorageFile watermarkFile = document.getWatermarkFile();
+        document.setWatermarkFile(null);
         document.setProcessingStartTime(LocalDateTime.now());
         document.setProcessingEndTime(null);
         document.setLocked(false);
         document.setLockedBy(null);
         document.setRetries(0);
         documentRepository.save(document);
+        if (watermarkFile != null) {
+            storageFileRepository.delete(watermarkFile);
+        }
     }
 
     @Override

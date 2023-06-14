@@ -4,11 +4,12 @@ import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentDeniedOptions;
 import fr.dossierfacile.common.entity.DocumentDeniedReasons;
 import fr.dossierfacile.common.entity.DocumentPdfGenerationLog;
-import fr.dossierfacile.common.entity.File;
+import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.repository.DocumentPdfGenerationLogRepository;
+import fr.dossierfacile.common.repository.StorageFileRepository;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.gouv.bo.amqp.Producer;
 import fr.gouv.bo.dto.MessageDTO;
@@ -26,15 +27,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class DocumentService {
 
-    public final DocumentRepository documentRepository;
-    public final FileStorageService fileStorageService;
+    private final DocumentRepository documentRepository;
+    private final FileStorageService fileStorageService;
+    private final StorageFileRepository storageFileRepository;
     private final Producer producer;
     private final DocumentPdfGenerationLogRepository documentPdfGenerationLogRepository;
     private final DocumentDeniedOptionsRepository documentDeniedOptionsRepository;
@@ -53,7 +54,6 @@ public class DocumentService {
             tenant = document.getTenant();
         }
 
-        deleteFromStorage(document);
         documentRepository.delete(document);
         return tenant;
     }
@@ -81,19 +81,16 @@ public class DocumentService {
     }
 
     public void initializeFieldsToProcessPdfGeneration(Document document) {
-        document.setName(null);
+        StorageFile watermarkFile = document.getWatermarkFile();
+        document.setWatermarkFile(null);
         document.setProcessingStartTime(LocalDateTime.now());
         document.setProcessingEndTime(null);
         document.setRetries(0);
         document.setLocked(false);
         document.setLockedBy(null);
         documentRepository.save(document);
-    }
-
-    public void deleteFromStorage(Document document) {
-        if (document.getName() != null && !document.getName().isBlank()) {
-            log.info("Removing document from storage with path [" + document.getName() + "]");
-            fileStorageService.delete(document.getName());
+        if (watermarkFile != null) {
+            storageFileRepository.delete(watermarkFile);
         }
     }
 

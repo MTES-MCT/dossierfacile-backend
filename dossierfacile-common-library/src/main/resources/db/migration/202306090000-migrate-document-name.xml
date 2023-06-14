@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+    <!-- Script will be to execute manually otherwise it will take too long time
+    Migrate document.name to document.watermark_file_id
+
+    INSERT INTO storage_file (path, name, content_type, size, provider, encryption_key_id)
+        SELECT name, name, 'application/pdf', null, 'OVH', null
+        FROM document
+        WHERE (name is not null OR name <> '' ) AND watermark_file_id is null ;
+
+        UPDATE document
+        SET watermark_file_id = st.id
+        FROM storage_file as st
+        WHERE (document.name is not null AND document.name <> '')
+        AND document.watermark_file_id is null
+        AND document.name = st.path;
+
+        UPDATE document
+        SET name = id
+        WHERE name is null
+    -->
+
+</databaseChangeLog>

@@ -8,6 +8,6 @@ public class FileDownloadException extends RuntimeException {
     }
 
     public FileDownloadException(Document document) {
-        super("Could not download document [ " + document.getDocumentCategory().name() + " , " + document.getName() + ", " + " ," + document.getId());
+        super("Could not download document [ " + document.getDocumentCategory().name() + " ," + document.getId());
     }
 }

@@ -1,8 +1,11 @@
 package fr.gouv.bo.controller;
 
+import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.common.service.interfaces.SharedFileService;
 import fr.dossierfacile.common.utils.FileUtility;
+import fr.gouv.bo.exception.DocumentNotFoundException;
+import fr.gouv.bo.repository.DocumentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
@@ -23,6 +26,7 @@ public class FileController {
 
     private static final String FILE_NO_EXIST = "The file does not exist";
 
+    private final DocumentRepository documentRepository;
     private final FileStorageService fileStorageService;
     private final SharedFileService fileService;
 
@@ -51,11 +55,12 @@ public class FileController {
     /**
      * This endpoint does not allow decrypting protected file
      */
-    @GetMapping("/tenants_files/{fileName:.+}")
-    public void getFileAsByteArray(HttpServletResponse response, @PathVariable String fileName) {
+    @GetMapping("/documents/{id:.+}")
+    public void getFileAsByteArray(HttpServletResponse response, @PathVariable Long id) {
+        Document document = documentRepository.findById(id).orElseThrow(() -> new DocumentNotFoundException(id));
 
-        try (InputStream in = fileStorageService.download(fileName, null)) {
-            response.setContentType(FileUtility.computeMediaType(fileName));
+        try (InputStream in = fileStorageService.download(document.getWatermarkFile())) {
+            response.setContentType(document.getWatermarkFile().getContentType());
             IOUtils.copy(in, response.getOutputStream());
         } catch (final FileNotFoundException e) {
             log.error(FILE_NO_EXIST, e);

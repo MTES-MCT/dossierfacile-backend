@@ -1,7 +1,6 @@
 package fr.dossierfacile.api.pdfgenerator.service.templates;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import fr.dossierfacile.api.pdfgenerator.service.DownloadServiceTest;
 import fr.dossierfacile.api.pdfgenerator.service.DownloadServiceImpl;
 
 import fr.dossierfacile.common.entity.ApartmentSharing;
@@ -40,7 +39,7 @@ public class ApartmentSharingPdfDocumentTemplateTest {
     void init_mocks() throws IOException {
         Mockito.when(tenantRepository.countTenantsInTheApartmentNotValidatedOrWithSomeNullDocument(anyLong())).thenReturn(0);
         Mockito.when(messageSource.getMessage(anyString(), any(), any())).thenAnswer(answer -> answer.getArguments()[0]);
-        Mockito.when(downloadService.getDocumentInputStream(any())).then(answer -> DownloadServiceTest.class.getResourceAsStream("/CNI.pdf"));
+        Mockito.when(downloadService.getDocumentInputStream(any())).then(answer -> ApartmentSharingPdfDocumentTemplateTest.class.getResourceAsStream("/CNI.pdf"));
 
         this.apartmentSharing = loadApartmentSharing("/apartmentSharing.json");
     }

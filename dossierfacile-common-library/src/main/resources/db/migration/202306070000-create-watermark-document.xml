@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+    <changeSet id="202306070000-01" author="fle (manual)">
+        <createTable tableName="watermark_document">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_watermark_document"/>
+            </column>
+            <column name="created_date" type="TIMESTAMP WITHOUT TIME ZONE"/>
+            <column name="token" type="VARCHAR(255)"/>
+            <column name="pdf_status" type="VARCHAR(64)"/>
+            <column name="pdf_file_id" type="BIGINT"/>
+            <column name="text" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="202306070000-02" author="fle (manual)">
+        <createTable tableName="watermark_document_storage_file">
+            <column name="watermark_document_id" type="BIGINT"/>
+            <column name="storage_file_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="202306070000-03" author="fabien (manual)">
+        <addForeignKeyConstraint baseColumnNames="storage_file_id" baseTableName="watermark_document_storage_file"
+                                 constraintName="fk_storage_file_id_on_watermark_dsf" deferrable="false"
+                                 initiallyDeferred="false" referencedColumnNames="id" referencedTableName="storage_file"
+                                 validate="true"/>
+    </changeSet>
+    <changeSet id="202306070000-04" author="fabien (manual)">
+        <addForeignKeyConstraint baseColumnNames="watermark_document_id" baseTableName="watermark_document_storage_file"
+                                 constraintName="fk_watermark_document_id_on_watermark_dsf" deferrable="false"
+                                 initiallyDeferred="false" referencedColumnNames="id"
+                                 referencedTableName="watermark_document"
+                                 validate="true"/>
+    </changeSet>
+    <changeSet id="202306070000-05" author="fabien (manual)">
+        <addForeignKeyConstraint baseColumnNames="pdf_file_id" baseTableName="watermark_document"
+                                 constraintName="fk_storage_file_id_on_watermark_document_pdf_file_id"
+                                 deferrable="false"
+                                 initiallyDeferred="false" referencedColumnNames="id" referencedTableName="storage_file"
+                                 validate="true"/>
+    </changeSet>
+
+    <changeSet id="202306070000-06" author="fabien (manual)">
+        <dropTable cascadeConstraints="true"
+                   schemaName="public"
+                   tableName="document_token"/>
+    </changeSet>
+
+</databaseChangeLog>

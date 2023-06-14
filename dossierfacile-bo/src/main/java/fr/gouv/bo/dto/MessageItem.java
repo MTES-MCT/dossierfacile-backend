@@ -26,7 +26,6 @@ public class MessageItem {
     @Builder.Default
     private List<ItemDetail> itemDetailList = new ArrayList<>();
     private Long documentId;
-    private String documentName;
     @Builder.Default
     private List<DisplayableFile> analyzedFiles = new ArrayList<>();
     private Boolean avisDetected;

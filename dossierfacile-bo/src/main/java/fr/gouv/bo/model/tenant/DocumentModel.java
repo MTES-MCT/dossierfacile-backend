@@ -25,4 +25,5 @@ public class DocumentModel {
     private Integer monthlySum;
     private DocumentStatus documentStatus;
     private List<FileModel> files;
+    private String name;
 }
