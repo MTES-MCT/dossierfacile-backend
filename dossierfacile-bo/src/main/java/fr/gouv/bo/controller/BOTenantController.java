@@ -65,6 +65,7 @@ public class BOTenantController {
     private static final String HEADER = "header";
     private static final String REDIRECT_BO = "redirect:/bo";
     private static final String CUSTOM_MESSAGE = "customMessage";
+    private static final String CLARIFICATION = "clarification";
     private static final String REDIRECT_ERROR = "redirect:/error";
 
     private final TenantService tenantService;
@@ -177,6 +178,7 @@ public class BOTenantController {
         model.addAttribute(NEW_MESSAGE, findNewMessageFromTenant(id));
         model.addAttribute(TENANT, tenant);
         model.addAttribute(CUSTOM_MESSAGE, getCustomMessage(tenant));
+        model.addAttribute(CLARIFICATION, tenant.getClarification().split("\n"));
         return "bo/process-file";
     }
 

@@ -46,11 +46,10 @@
             <div>
                 <div th:if="${tenant.getClarification() != null && !tenant.getClarification().isBlank()}"
                      class="panel-heading file1-background-color letter col-md-8"
-                     style="margin: 0 0 20px 10px"
+                     style="margin: 0 0 20px 10px; padding-top: 15px; line-height: 20px"
                 >
-                    <span style="font-size: 12px; line-height: 20px">Mot du locataire :</span>
-                    <br/>
-                    <span th:text="${tenant.getClarification()}" class="bold"></span>
+                    <p style="font-size: 12px">Mot du locataire :</p>
+                    <p th:each="paragraph : ${clarification}" th:text="${paragraph}"></p>
                 </div>
             </div>
 
@@ -124,8 +123,8 @@
                                     <span th:text="${messageItem.taxDocument.fileExtractionType}"></span>
                                 </h4>
 
-                                <div th:if="${!messageItem.analyzedFiles.isEmpty()}">
-                                    <h4>Justificatifs analysés :</h4>
+                                <div th:if="${!messageItem.analyzedFiles.isEmpty()}" style="padding-left: 15px">
+                                    <h4>Vérifications automatiques :</h4>
                                     <ul>
                                         <li th:each="file : ${messageItem.analyzedFiles}" th:with="analysis=${file.analysis}" class="margin-bottom-10px">
                                             <span th:text="${file.summary}"></span>
@@ -338,8 +337,8 @@
                                                th:value="${guarantorItem.getGuarantorId()}" type="hidden"/>
                                     </div>
 
-                                    <div th:if="${!messageItem.analyzedFiles.isEmpty()}">
-                                        <h4>Justificatifs analysés :</h4>
+                                    <div th:if="${!messageItem.analyzedFiles.isEmpty()}" style="padding-left: 15px">
+                                        <h4>Vérifications automatiques :</h4>
                                         <ul>
                                             <li th:each="file : ${messageItem.analyzedFiles}" th:with="analysis=${file.analysis}" class="margin-bottom-10px">
                                                 <span th:text="${file.summary}"></span>
