@@ -2,6 +2,8 @@ package fr.dossierfacile.process.file.barcode.twoddoc.parsing;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.Map;
+
 import static fr.dossierfacile.process.file.barcode.twoddoc.parsing.TwoDDocDataType.ID_0A;
 import static fr.dossierfacile.process.file.barcode.twoddoc.parsing.TwoDDocDataType.ID_41;
 import static fr.dossierfacile.process.file.barcode.twoddoc.parsing.TwoDDocDataType.ID_43;
@@ -29,6 +31,21 @@ class TwoDDocDataTest {
                 () -> assertThat(data.get(ID_47)).isEqualTo("1267027554499"),
                 () -> assertThat(data.get(ID_4A)).isEqualTo("31042022")
         );
+    }
+
+    @Test
+    void should_format_2ddoc_data() {
+        TwoDDocData data = TwoDDocData.parse("431,5\u001D444237A1861133245202146DOE JOHN\u001D4A310420224712670275544994142000\u001D");
+
+        assertThat(data.withLabels()).containsAllEntriesOf(Map.of(
+                "Année des revenus", "2021",
+                "Date de mise en recouvrement", "31042022",
+                "Déclarant 1", "DOE JOHN",
+                "Nombre de parts", "1,5",
+                "Numéro fiscal du déclarant 1", "1267027554499",
+                "Revenu fiscal de référence", "42000",
+                "Référence d’avis d’impôt", "4237A18611332"
+        ));
     }
 
 }

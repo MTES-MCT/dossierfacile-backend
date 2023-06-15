@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static fr.dossierfacile.process.file.barcode.twoddoc.parsing.TwoDDocC40Parser.ASCII_GROUP_SEPARATOR;
 
@@ -22,6 +23,14 @@ public record TwoDDocData(Map<TwoDDocDataType, String> data) {
         return new TwoDDocData(parsedData);
     }
 
+    public Map<String, String> withLabels() {
+        return data.entrySet()
+                .stream()
+                .collect(Collectors.toMap(
+                        entry -> entry.getKey().getLabel(),
+                        Map.Entry::getValue)
+                );
+    }
 
     @RequiredArgsConstructor
     private static class RawDataReader {
