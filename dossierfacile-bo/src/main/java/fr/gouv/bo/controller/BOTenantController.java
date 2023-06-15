@@ -47,6 +47,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -178,7 +180,7 @@ public class BOTenantController {
         model.addAttribute(NEW_MESSAGE, findNewMessageFromTenant(id));
         model.addAttribute(TENANT, tenant);
         model.addAttribute(CUSTOM_MESSAGE, getCustomMessage(tenant));
-        model.addAttribute(CLARIFICATION, tenant.getClarification().split("\n"));
+        model.addAttribute(CLARIFICATION, getClarificationParagraphs(tenant));
         return "bo/process-file";
     }
 
@@ -274,6 +276,15 @@ public class BOTenantController {
             customMessage.getGuarantorItems().add(guarantorItem);
         }
         return customMessage;
+    }
+
+    private static List<String> getClarificationParagraphs(Tenant tenant) {
+        if (tenant.getClarification() == null) {
+            return Collections.emptyList();
+        }
+        return Arrays.stream(tenant.getClarification().split("\n"))
+                .filter(paragraph -> !paragraph.isBlank())
+                .toList();
     }
 
 }
