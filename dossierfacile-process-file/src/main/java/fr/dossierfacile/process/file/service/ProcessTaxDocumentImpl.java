@@ -8,7 +8,7 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.TaxFileExtractionType;
 import fr.dossierfacile.common.type.TaxDocument;
 import fr.dossierfacile.process.file.model.Taxes;
-import fr.dossierfacile.process.file.model.TwoDDoc;
+import fr.dossierfacile.process.file.barcode.twoddoc.TwoDDoc;
 import fr.dossierfacile.process.file.service.interfaces.ApiParticulier;
 import fr.dossierfacile.process.file.service.interfaces.ApiTesseract;
 import fr.dossierfacile.process.file.service.interfaces.ProcessTaxDocument;

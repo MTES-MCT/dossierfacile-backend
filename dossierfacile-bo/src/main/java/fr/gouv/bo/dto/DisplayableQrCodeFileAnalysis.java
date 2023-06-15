@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.dossierfacile.common.entity.File;
-import fr.dossierfacile.common.entity.QrCodeFileAnalysis;
+import fr.dossierfacile.common.entity.BarCodeFileAnalysis;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,7 +18,7 @@ import static fr.dossierfacile.common.enums.FileAuthenticationStatus.VALID;
 @AllArgsConstructor
 public class DisplayableQrCodeFileAnalysis {
 
-    private final QrCodeFileAnalysis analysis;
+    private final BarCodeFileAnalysis analysis;
 
     public static Optional<DisplayableQrCodeFileAnalysis> of(File file) {
         return Optional.ofNullable(file.getFileAnalysis())
@@ -47,10 +47,11 @@ public class DisplayableQrCodeFileAnalysis {
 
     @SuppressWarnings("unchecked")
     public String getAuthenticatedContent() {
-        Object apiResponse = analysis.getApiResponse();
+        Object apiResponse = analysis.getVerifiedData();
         return switch (analysis.getIssuerName()) {
             case MON_FRANCE_CONNECT -> String.join(", ", (List<String>) apiResponse);
             case PAYFIT -> PayfitAuthenticatedContent.format(apiResponse);
+            default -> apiResponse.toString();
         };
     }
 

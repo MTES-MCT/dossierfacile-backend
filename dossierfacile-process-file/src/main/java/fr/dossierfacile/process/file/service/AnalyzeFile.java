@@ -6,7 +6,7 @@ import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.process.file.repository.FileRepository;
 import fr.dossierfacile.process.file.service.interfaces.DocumentService;
 import fr.dossierfacile.process.file.service.interfaces.ProcessTaxDocument;
-import fr.dossierfacile.process.file.service.qrcodeanalysis.QrCodeFileProcessor;
+import fr.dossierfacile.process.file.service.qrcodeanalysis.BarCodeFileProcessor;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,14 +16,14 @@ public class AnalyzeFile {
 
     private final ProcessTaxDocument processTaxDocument;
     private final DocumentService documentService;
-    private final QrCodeFileProcessor qrCodeFileProcessor;
+    private final BarCodeFileProcessor barCodeFileProcessor;
     private final FileRepository fileRepository;
 
     public void processFile(Long fileId) {
         fileRepository.findById(fileId)
                 .filter(FileAnalysisCriteria::shouldBeAnalyzed)
                 .ifPresent(file -> {
-                    qrCodeFileProcessor.process(file);
+                    barCodeFileProcessor.process(file);
                     processTaxDocument(file.getDocument());
                 });
     }

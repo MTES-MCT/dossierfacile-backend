@@ -1,9 +1,10 @@
-package fr.dossierfacile.process.file.util;
+package fr.dossierfacile.process.file.barcode.twoddoc.parsing;
 
 import lombok.Getter;
 
 @Getter
-public enum TwoDDocIdEnum {
+public enum TwoDDocDataType {
+
     ID_01("01", 0, -1),
     ID_02("02", 0, -1),
     ID_03("03", 0, -1),
@@ -233,9 +234,18 @@ public enum TwoDDocIdEnum {
     private final int minSize;
     private final int maxSize;
 
-    TwoDDocIdEnum(String id, int minSize, int maxSize) {
+    TwoDDocDataType(String id, int minSize, int maxSize) {
         this.id = id;
         this.minSize = minSize;
         this.maxSize = maxSize;
     }
+
+    static TwoDDocDataType of(String id) {
+        return TwoDDocDataType.valueOf("ID_" + id);
+    }
+
+    boolean hasFixedSize() {
+        return minSize == maxSize;
+    }
+
 }

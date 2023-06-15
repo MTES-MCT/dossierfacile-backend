@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+
+    <changeSet id="202306140000-01" author="juliette">
+        <renameTable oldTableName="qrcode_file_analysis"
+                     newTableName="barcode_file_analysis"/>
+        <renameColumn tableName="barcode_file_analysis"
+                      oldColumnName="qr_code_content"
+                      newColumnName="bar_code_content"/>
+        <renameColumn tableName="barcode_file_analysis"
+                      oldColumnName="api_response"
+                      newColumnName="verified_data"/>
+    </changeSet>
+
+    <changeSet id="202306140000-02" author="juliette">
+        <addColumn tableName="barcode_file_analysis">
+            <column name="bar_code_type" type="varchar(255)"/>
+        </addColumn>
+        <sql>
+            UPDATE barcode_file_analysis
+                SET bar_code_type = 'QR_CODE';
+        </sql>
+        <addNotNullConstraint tableName="barcode_file_analysis" columnName="bar_code_type"/>
+    </changeSet>
+
+</databaseChangeLog>
