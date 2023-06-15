@@ -87,12 +87,12 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
     //region Sentences by category documents in the header of Attachments template
     private static final String BEGIN_OF_TEXT_HEADER = "Le dossier de ";
     private static final String TENANT_IDENTIFICATION_TEXT_HEADER = "La pièce d'identité de ";
-    private static final String TENANT_RESIDENCY_TEXT_HEADER = "Le justificatif de situation d'hÃ©bergement de ";
+    private static final String TENANT_RESIDENCY_TEXT_HEADER = "Le justificatif de situation d'hébergement de ";
     private static final String TENANT_PROFESSIONAL_TEXT_HEADER = "Le justificatif de situation professionnelle de ";
     private static final String TENANT_FINANCIAL_TEXT_HEADER = "Le justificatif de ressources n°";
     private static final String TENANT_TAX_TEXT_HEADER = "L'avis d'imposition conforme de ";
     private static final String NATURAL_GUARANTOR_IDENTIFICATION_TEXT_HEADER = "La pièce d'identité du garant ";
-    private static final String NATURAL_GUARANTOR_RESIDENCY_TEXT_HEADER = "Le justificatif de situation d'hÃ©bergement du garant ";
+    private static final String NATURAL_GUARANTOR_RESIDENCY_TEXT_HEADER = "Le justificatif de situation d'hébergement du garant ";
     private static final String NATURAL_GUARANTOR_PROFESSIONAL_TEXT_HEADER = "Le justificatif de situation professionnelle du garant ";
     private static final String NATURAL_GUARANTOR_FINANCIAL_TEXT_HEADER = "Le justificatif de ressources n°";
     private static final String NATURAL_GUARANTOR_TAX_TEXT_HEADER = "L'avis d'imposition conforme du garant ";
