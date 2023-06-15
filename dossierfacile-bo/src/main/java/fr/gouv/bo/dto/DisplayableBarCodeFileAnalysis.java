@@ -3,26 +3,30 @@ package fr.gouv.bo.dto;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.BarCodeFileAnalysis;
+import fr.dossierfacile.common.entity.File;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
+import static fr.dossierfacile.common.entity.BarCodeType.TWO_D_DOC;
 import static fr.dossierfacile.common.enums.FileAuthenticationStatus.INVALID;
 import static fr.dossierfacile.common.enums.FileAuthenticationStatus.VALID;
 
 @AllArgsConstructor
-public class DisplayableQrCodeFileAnalysis {
+public class DisplayableBarCodeFileAnalysis {
 
     private final BarCodeFileAnalysis analysis;
 
-    public static Optional<DisplayableQrCodeFileAnalysis> of(File file) {
+    public static Optional<DisplayableBarCodeFileAnalysis> of(File file) {
         return Optional.ofNullable(file.getFileAnalysis())
-                .map(DisplayableQrCodeFileAnalysis::new);
+                .map(DisplayableBarCodeFileAnalysis::new);
     }
 
     public String getIssuerName() {
@@ -34,7 +38,13 @@ public class DisplayableQrCodeFileAnalysis {
     }
 
     public String getAuthenticationStatus() {
-        return analysis.getAuthenticationStatus().getLabel();
+        return switch (analysis.getAuthenticationStatus()) {
+            case VALID -> "Authentifié";
+            case INVALID -> analysis.getBarCodeType() == TWO_D_DOC ? "Falsifié" : "Non authentifié";
+            case API_ERROR -> "Impossible de vérifier l'authenticité auprès de l'émetteur";
+            case ERROR -> "Erreur lors de l'authentification";
+            case UNKNOWN_DOCUMENT -> "Non reconnu ou expiré";
+        };
     }
 
     public boolean isNotAuthenticated() {
@@ -47,12 +57,19 @@ public class DisplayableQrCodeFileAnalysis {
 
     @SuppressWarnings("unchecked")
     public String getAuthenticatedContent() {
-        Object apiResponse = analysis.getVerifiedData();
+        Object verifiedData = analysis.getVerifiedData();
+        if (analysis.getBarCodeType() == TWO_D_DOC) {
+            return formatToList((Map<String, String>) verifiedData);
+        }
         return switch (analysis.getIssuerName()) {
-            case MON_FRANCE_CONNECT -> String.join(", ", (List<String>) apiResponse);
-            case PAYFIT -> PayfitAuthenticatedContent.format(apiResponse);
-            default -> apiResponse.toString();
+            case MON_FRANCE_CONNECT -> formatToList((List<String>) verifiedData);
+            case PAYFIT -> PayfitAuthenticatedContent.format(verifiedData);
+            default -> verifiedData.toString();
         };
+    }
+
+    public boolean is2DDoc() {
+        return analysis.getBarCodeType() == TWO_D_DOC;
     }
 
     @Getter
@@ -78,11 +95,28 @@ public class DisplayableQrCodeFileAnalysis {
 
         @Override
         public String toString() {
-            return "entreprise = " + companyName +
-                    ", employé = " + employeeName +
-                    ", net = " + netSalary;
+            Map<String, String> map = new HashMap<>();
+            map.put("Entreprise", companyName);
+            map.put("Employé", employeeName);
+            map.put("Salaire net", netSalary);
+            return formatToList(map);
         }
 
+    }
+
+    private static String formatToList(List<String> data) {
+        String listElements = data.stream()
+                .map(element -> "<li>" + element + "</li>")
+                .collect(Collectors.joining());
+        return "<ul>" + listElements + "</ul>";
+    }
+
+    private static String formatToList(Map<String, String> data) {
+        return formatToList(
+                data.entrySet().stream()
+                        .map(entry -> entry.getKey() + " : " + entry.getValue())
+                        .collect(Collectors.toList())
+        );
     }
 
 }

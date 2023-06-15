@@ -31,7 +31,7 @@ public class TwoDDocFileAuthenticator {
         return BarCodeFileAnalysis.builder()
                 .issuerName(issuer)
                 .barCodeContent(twoDDocContent.rawContent())
-                .verifiedData(twoDDoc.data())
+                .verifiedData(twoDDoc.data().withLabels())
                 .authenticationStatus(status)
                 .barCodeType(BarCodeType.TWO_D_DOC)
                 .build();
