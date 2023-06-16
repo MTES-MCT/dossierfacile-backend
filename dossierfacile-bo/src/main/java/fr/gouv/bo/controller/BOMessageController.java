@@ -60,15 +60,5 @@ public class BOMessageController {
         return tenantService.updateStatusOfTenantFromAdmin(principal, messageDTO, tenantId);
     }
 
-    @PostMapping("/mistake/{id}")
-    public String mistakeMessage(@PathVariable Long id, Principal principal) {
-        Tenant tenant = tenantService.findTenantById(id);
-        if (tenant == null) {
-            return "redirect:/error";
-        }
-        messageService.createMistakeMessage(tenant);
-        tenantService.validateTenantFile(principal, tenant.getId());
-        return "redirect:/bo";
-    }
 }
 
