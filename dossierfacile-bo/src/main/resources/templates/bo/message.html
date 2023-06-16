@@ -17,7 +17,7 @@
                             >
                                 <div th:if="${message.getFromUser()==null}" class="message-you" >
                                     <div class="avatar">
-                                        <i style="background-color: rgb(87 91 95);">Y</i>
+                                        <i style="background-color: rgb(87 91 95);">M</i>
                                     </div>
                                     <div class="container-message-you">
                                         <div class="title-header-you col-md-10">
@@ -33,7 +33,9 @@
                                 </div>
                                 <div th:if="${message.getFromUser()!=null}" class="message">
                                     <div class="avatar">
-                                        <i style="background-color: rgb(183 175 175);">U</i>
+                                        <i style="background-color: rgb(183 175 175);"
+                                           th:text="${tenant.getFirstName() != null && !tenant.getFirstName().isBlank() ? tenant.getFirstName().charAt(0) : 'U'}">
+                                        </i>
                                     </div>
                                     <div class="container-message">
                                         <div class="title-header col-md-10">
@@ -51,46 +53,25 @@
                         </ul>
                     </div>
                 </div>
-                <div class="hidden-xs">
+                <div class="row hidden-xs" style="margin-top: 15px">
                     <form th:object="${message}" th:action="@{/message/new/} + ${tenant.id}"
                           th:id="'messageForm'+${tenant.id}" th:method="post"
                           th:attr="data-id=${aptSharingId}"
                     >
-                        <div style="display: flex;">
-                            <div class="col-md-12 col-sm-12 col-xs-12">
-                                <textarea type="text" rows="10"
-                                          th:id="'message'+${tenant.id}"
-                                          th:field="*{message}"
-                                          class="form-control text-area-bo" style="height: 170px;">
-                                </textarea>
-                            </div>
-                            <div>
-                                <button id="formChat" type="submit" class="btn btn-primary bo-btn" >Envoyer</button>
-                                <script>
-                                    function reloadThePage(){
-                                        window.location.reload(true);
-                                    }
-                                </script>
-
-                            </div>
-                        </div>
-                    </form>
-                    <div class="row">
-                        <div class="col-md-12">
-                            <form class="form-inline" style="float: left"
-                                  th:action="@{/bo/message/mistake/}+${tenant.id}" th:method="post">
-                                <button class="btn btn-success bo-btn"
-                                        style="margin-top: 10px;margin-left: 15px;margin-bottom: 10px;">
-                                    Valider &amp; répondre
-                                </button>
-                            </form>
-                            <button class="btn btn-primary bo-btn"
-                                    style="margin-top: 10px;margin-left: 15px;margin-bottom: 10px;"
-                                    th:id="'manuscrit'+${tenant.id}">
-                                manuscrit
+                        <div class="col-md-12 col-sm-12 col-xs-12">
+                            <textarea type="text" rows="10"
+                                      th:id="'message'+${tenant.id}"
+                                      th:field="*{message}"
+                                      lang="fr"
+                                      class="form-control text-area-bo" style="height: 170px;">
+                            </textarea>
+                            <button id="formChat" type="submit"
+                                    class="btn btn-primary bo-btn"
+                                    style="margin: 15px 0">
+                                Envoyer
                             </button>
                         </div>
-                    </div>
+                    </form>
                 </div>
             </div>
         </div>
