@@ -189,7 +189,7 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
             g.drawImage(bim, 0, 0, null);
 
             //Create a watermark overlay
-            String watermark = watermarkText.repeat((64 / watermarkText.length()) * 3);
+            String watermark = watermarkText.repeat(1 + ( 128 / watermarkText.length()));
 
             g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
             g.setColor(Color.DARK_GRAY);
