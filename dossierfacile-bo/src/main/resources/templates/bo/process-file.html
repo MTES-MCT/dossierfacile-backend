@@ -240,7 +240,8 @@
                                                th:value="${itemDetail.getIdOptionMessage()}"
                                                type="hidden"/>
                                         <p class="span1" style="display:block;"
-                                           th:utext="${itemDetail.getMessage()}"></p>
+                                           th:utext="${itemDetail.getFormattedMessage()}">
+                                        </p>
                                     </label>
                                 </div>
                             </div>
