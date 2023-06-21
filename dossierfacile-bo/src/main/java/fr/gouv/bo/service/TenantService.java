@@ -123,10 +123,6 @@ public class TenantService {
         return tenantRepository.findTenantByFirstNameOrLastNameOrFullName(emailDTO.getEmail().toLowerCase(Locale.ROOT));
     }
 
-    public Tenant findTenantCreate(Long id) {
-        return tenantRepository.findAllByApartmentSharingId(id).stream().filter(c -> c.getTenantType().equals(TenantType.CREATE)).findFirst().orElse(null);
-    }
-
     public Tenant findTenantById(Long id) {
         return tenantRepository.findOneById(id);
     }
@@ -182,10 +178,6 @@ public class TenantService {
         } else {
             return "redirect:/bo";
         }
-    }
-
-    public Long countUploadedFiles() {
-        return tenantRepository.countTotalUploadedFiles();
     }
 
     public List<Tenant> findAllTenantsByApartmentSharingAndReorderDocumentsByCategory(Long id) {
@@ -277,7 +269,6 @@ public class TenantService {
     }
 
     public Message sendCustomMessage(Tenant tenant, CustomMessage customMessage, int messageFrom) {
-
         createStylesInMessages(customMessage);
         StringCustomMessage fileNameWithBold = str -> "<b>" + messageSource.getMessage(str, null, locale) + BOLD_CLOSE;
         StringCustomMessageGuarantor fileNameWithBoldGuarantor = str -> "<b>" + messageSource.getMessage(str, null, locale) + " du garant</b> ";
@@ -297,7 +288,7 @@ public class TenantService {
                     if (itemDetail.isCheck()) {
                         mailMessage.append(LI_P);
                         mailMessage.append(fileNameWithBold.getFileNameWithBold(messageItem.getDocumentCategory().getLabel()));
-                        mailMessage.append(itemDetail.getMessage());
+                        mailMessage.append(itemDetail.getFormattedMessage());
                         mailMessage.append(P_LI);
                         documentDeniedReasons.getCheckedOptions().add(itemDetail.getMessage());
                         documentDeniedReasons.getCheckedOptionsId().add(itemDetail.getIdOptionMessage());
@@ -386,8 +377,7 @@ public class TenantService {
     }
 
     public void createStylesInMessages(CustomMessage customMessage) {
-
-
+        // TODO edit document denied options and delete
         customMessage.getMessageItems().forEach(messageItem -> messageItem.getItemDetailList().forEach(itemDetail -> {
             if (messageItem.getDocumentCategory().equals(DocumentCategory.IDENTIFICATION) && itemDetail.getMessage().contains(IDENTITY_KEY)) {
                 itemDetail.setMessage(itemDetail.getMessage().replace(IDENTITY_KEY, IDENTITY_REPLACE));
