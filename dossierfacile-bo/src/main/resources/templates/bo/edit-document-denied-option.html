@@ -72,6 +72,17 @@
                         <label for="messageValue">Message</label>
                         <textarea id="messageValue" class="input" rows="4" required
                                   th:field="*{messageValue}"></textarea>
+                        <div style="font-size: 12px">
+                            <p>
+                                <strong>Note :</strong>
+                                Le format <a style="text-decoration: underline" href="https://www.markdownguide.org/basic-syntax">markdown</a> est supporté dans le message.
+                            </p>
+                            <ul>
+                                <li>Pour faire un lien : <code>[texte du lien](url)</code></li>
+                                <li>Pour mettre en italique : <code>*texte*</code></li>
+                                <li>Pour mettre en gras : <code>**texte**</code></li>
+                            </ul>
+                        </div>
                     </div>
                     <button type="submit" class="btn btn-info btn-save">Sauvegarder</button>
                 </form>
