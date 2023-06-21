@@ -71,16 +71,6 @@ public class TenantService {
     private static final String LI_P = "<li><p>";
     private static final String P_LI = "</p></li>";
     private static final String BOLD_CLOSE = "</b> ";
-    private static final String IDENTITY_KEY = "documentation";
-    private static final String IDENTITY_REPLACE = "<a target=\"_blank\" style=\"color: black;font-weight: bolder\" rel=\"nofollow\" href=\"https://docs.dossierfacile.fr/guide-dutilisation-de-dossierfacile/ajouter-un.e-conjoint.e\">documentation</a>";
-    private static final String TENANT_KEY = "pour les trois derniers mois";
-    private static final String TENANT_REPLACE = "<mark style=\"font-weight: bolder; background:none\">pour les trois derniers mois</mark>";
-    private static final String SOCIAL_KEY = "vos trois derniers justificatifs";
-    private static final String SOCIAL_REPLACE = "<mark style=\"font-weight: bolder; background:none\">vos trois derniers justificatifs</mark>";
-    private static final String SALARY_KEY = "des 3 derniers mois";
-    private static final String SALARY_REPLACE = "<mark style=\"font-weight: bolder; background:none\">des 3 derniers mois</mark>";
-    private static final String GUEST_PARENTS_KEY = "#Lien vers modèle";
-    private static final String GUEST_PARENTS_REPLACE = "<a target=\"_blank\" href=\"https://www.service-public.fr/particuliers/vosdroits/R39697\">Lien vers modèle</a>";
 
     private final Locale locale = LocaleContextHolder.getLocale();
     private final TenantCommonRepository tenantRepository;
@@ -269,7 +259,6 @@ public class TenantService {
     }
 
     public Message sendCustomMessage(Tenant tenant, CustomMessage customMessage, int messageFrom) {
-        createStylesInMessages(customMessage);
         StringCustomMessage fileNameWithBold = str -> "<b>" + messageSource.getMessage(str, null, locale) + BOLD_CLOSE;
         StringCustomMessageGuarantor fileNameWithBoldGuarantor = str -> "<b>" + messageSource.getMessage(str, null, locale) + " du garant</b> ";
 
@@ -374,29 +363,6 @@ public class TenantService {
             return message;
         }
         return null;
-    }
-
-    public void createStylesInMessages(CustomMessage customMessage) {
-        // TODO edit document denied options and delete
-        customMessage.getMessageItems().forEach(messageItem -> messageItem.getItemDetailList().forEach(itemDetail -> {
-            if (messageItem.getDocumentCategory().equals(DocumentCategory.IDENTIFICATION) && itemDetail.getMessage().contains(IDENTITY_KEY)) {
-                itemDetail.setMessage(itemDetail.getMessage().replace(IDENTITY_KEY, IDENTITY_REPLACE));
-            }
-            if (messageItem.getDocumentSubCategory().equals(DocumentSubCategory.SOCIAL_SERVICE) && itemDetail.getMessage().contains(SOCIAL_KEY)) {
-                itemDetail.setMessage(itemDetail.getMessage().replace(SOCIAL_KEY, SOCIAL_REPLACE));
-            }
-            if (messageItem.getDocumentSubCategory().equals(DocumentSubCategory.TENANT) && itemDetail.getMessage().contains(TENANT_KEY)) {
-                itemDetail.setMessage(itemDetail.getMessage().replace(TENANT_KEY, TENANT_REPLACE));
-            }
-            if (messageItem.getDocumentSubCategory().equals(DocumentSubCategory.SALARY) && itemDetail.getMessage().contains(SALARY_KEY)) {
-                itemDetail.setMessage(itemDetail.getMessage().replace(SALARY_KEY, SALARY_REPLACE));
-            }
-            if ((messageItem.getDocumentSubCategory().equals(DocumentSubCategory.GUEST_PARENTS) ||
-                    messageItem.getDocumentSubCategory().equals(DocumentSubCategory.GUEST))
-                    && itemDetail.getMessage().contains(GUEST_PARENTS_KEY)) {
-                itemDetail.setMessage(itemDetail.getMessage().replace(GUEST_PARENTS_KEY, GUEST_PARENTS_REPLACE));
-            }
-        }));
     }
 
     public void declineTenant(Principal principal, Long tenantId) {

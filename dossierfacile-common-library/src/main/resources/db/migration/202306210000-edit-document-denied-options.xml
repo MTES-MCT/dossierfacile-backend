@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+
+    <changeSet id="202306210000-01" author="juliette">
+        <sql>
+            UPDATE document_denied_options SET message_value = 'Merci de joindre uniquement les documents de la personne ayant créé le dossier et de supprimer les documents qui ne sont pas à votre nom. Vous pouvez les ajouter sur le dossier de votre conjoint(e). Pour plus d’infos, consulter notre [documentation](https://docs.dossierfacile.fr/guide-dutilisation-de-dossierfacile/ajouter-un.e-conjoint.e).'
+                                           WHERE code = 'T_FRENCH_IDENTITY_CARD_006'
+                                           OR code = 'T_FRENCH_PASSPORT_006'
+                                           OR code = 'T_FRENCH_RESIDENCE_PERMIT_006'
+                                           OR code = 'T_OTHER_IDENTIFICATION_006';
+
+            UPDATE document_denied_options SET message_value = 'Veuillez fournir **vos trois derniers justificatifs** de versement de prestations sociales (ARE, CAF, Crous…), un justificatif d’ouverture des droits, ou une attestation de simulation pour les aides au logement.'
+                                           WHERE code = 'T_SOCIAL_SERVICE_001';
+
+            UPDATE document_denied_options SET message_value = 'Veuillez fournir vos quittances de loyer **pour les trois derniers mois** ou une attestation de bon paiement de loyers de moins de 3 mois. Votre propriétaire ou votre bailleur est légalement tenu de vous les fournir. Ces quittances sont importantes aux yeux de votre futur propriétaire : elles montrent que vous payez régulièrement vos loyers.'
+                                           WHERE code = 'T_TENANT_001';
+
+            UPDATE document_denied_options SET message_value = 'Veuillez fournir une copie de vos fiches de paie **des 3 derniers mois**, un justificatif de vos indemnités de stage, une attestation de versement URSSAF (indépendants) ou vos deux derniers bilans comptables (non-salariés).'
+                                           WHERE code = 'T_SALARY_001';
+
+            UPDATE document_denied_options SET message_value = 'Veuillez fournir une attestation d’hébergement signée et datée de moins de 3 mois. Vous pouvez utiliser [ce modèle](https://www.service-public.fr/particuliers/vosdroits/R39697).'
+                                           WHERE code = 'T_GUEST_001';
+
+            UPDATE document_denied_options SET message_value = 'Veuillez fournir une attestation d’hébergement d’un de vos parents signée et datée de moins de 3 mois. Vous pouvez utiliser [ce modèle](https://www.service-public.fr/particuliers/vosdroits/R39697).'
+                                           WHERE code = 'T_GUEST_PARENTS_001';
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
