@@ -42,19 +42,4 @@ public class MessageService {
         messageRepository.markReadAdmin(tenant);
     }
 
-    public void createMistakeMessage(Tenant tenant) {
-        String m = "Bonjour," +
-                "<br/>" +
-                "Au temps pour nous! Merci pour vos précisions, je valide tout de suite votre dossier." +
-                "<br/>" +
-                "En vous souhaitant une très bonne journée,<br/>" +
-                "Marie pour l’équipe DossierFacile";
-        Message message = Message.builder()
-                .messageBody(m)
-                .toUser(tenant)
-                .creationDateTime(LocalDateTime.now())
-                .messageStatus(MessageStatus.UNREAD)
-                .build();
-        messageRepository.save(message);
-    }
 }

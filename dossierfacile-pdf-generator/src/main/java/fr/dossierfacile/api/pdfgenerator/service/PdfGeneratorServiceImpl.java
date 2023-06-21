@@ -106,23 +106,24 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
         }
     }
 
-    private InputStream inputStream(Collection<StorageFile> files) throws Exception {
+    private InputStream inputStreamOfPdfResult(Collection<StorageFile> files, String watermarkText) throws Exception {
         return boPdfDocumentTemplate.render(files.stream()
-                .map(file -> {
-                    try {
-                        MediaType mediaType = MediaType.valueOf(file.getContentType());
-                        if (!mediaType.isPresentIn(Arrays.asList(MediaType.IMAGE_JPEG, MediaType.IMAGE_PNG, MediaType.IMAGE_GIF, MediaType.APPLICATION_PDF))) {
-                            throw new UnexpectedException("Unexpected MediaType for storagefile with id [" + file.getId() + "]");
-                        }
-                        return new FileInputStream(fileStorageService.download(file), mediaType);
+                        .map(file -> {
+                            try {
+                                MediaType mediaType = MediaType.valueOf(file.getContentType());
+                                if (!mediaType.isPresentIn(Arrays.asList(MediaType.IMAGE_JPEG, MediaType.IMAGE_PNG, MediaType.IMAGE_GIF, MediaType.APPLICATION_PDF))) {
+                                    throw new UnexpectedException("Unexpected MediaType for storagefile with id [" + file.getId() + "]");
+                                }
+                                return new FileInputStream(fileStorageService.download(file), mediaType);
 
-                    } catch (Exception e) {
-                        log.error("File [" + file.getId() + "] won't be added to the pdf " + e.getMessage() + " - SEntry:" + Sentry.captureException(e));
-                    }
-                    return null;
-                })
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList())
+                            } catch (Exception e) {
+                                log.error("File [" + file.getId() + "] won't be added to the pdf " + e.getMessage() + " - SEntry:" + Sentry.captureException(e));
+                            }
+                            return null;
+                        })
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList()),
+                watermarkText
         );
     }
 
@@ -132,7 +133,7 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
         document.setPdfStatus(FileStatus.IN_PROGRESS);
         watermarkDocumentRepository.saveAndFlush(document);
 
-        try (InputStream inputStream = this.inputStream(document.getFiles())) {
+        try (InputStream inputStream = this.inputStreamOfPdfResult(document.getFiles(), document.getText())) {
 
             StorageFile pdfFile = StorageFile.builder()
                     .name("dossierfacile-watermark-" + UUID.randomUUID() + ".pdf")
@@ -186,7 +187,6 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
             return pdfDocumentTemplateToUse.render(files.stream()
                     .map(file -> {
                         try {
-                            String extension = FilenameUtils.getExtension(file.getStorageFile().getPath()).toLowerCase(Locale.ROOT);
                             MediaType mediaType = MediaType.valueOf(file.getStorageFile().getContentType());
                             if (!mediaType.isPresentIn(Arrays.asList(MediaType.IMAGE_JPEG, MediaType.IMAGE_PNG, MediaType.IMAGE_GIF, MediaType.APPLICATION_PDF))) {
                                 throw new UnexpectedException("Unexpected MediaType for storagefile with id [" + file.getStorageFile().getId() + "]");

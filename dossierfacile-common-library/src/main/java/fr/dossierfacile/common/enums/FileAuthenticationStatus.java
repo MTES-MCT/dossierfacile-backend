@@ -7,13 +7,12 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum FileAuthenticationStatus {
 
-    VALID("Authentifié"),
-    INVALID("Non authentifié"),
-    API_ERROR("Erreur lors de l'authentification"),
-    UNKNOWN_DOCUMENT("Non reconnu ou expiré")
+    VALID,
+    INVALID,
+    API_ERROR,
+    ERROR,
+    UNKNOWN_DOCUMENT,
     ;
-
-    private final String label;
 
     public static FileAuthenticationStatus of(boolean isAuthentic) {
         return isAuthentic ? VALID : INVALID;

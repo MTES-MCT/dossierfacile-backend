@@ -11,7 +11,6 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Data
 @Extension
@@ -22,9 +21,5 @@ public abstract class DocumentForm implements FormWithTenantId {
 
     @SizeFile(max = 10, typeDocumentValidation = TypeDocumentValidation.PER_FILE)
     private List<MultipartFile> documents = new ArrayList<>();
-
-    public Optional<Long> getOptionalTenantId() {
-        return Optional.ofNullable(tenantId);
-    }
 
 }

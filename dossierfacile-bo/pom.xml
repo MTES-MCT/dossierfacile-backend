@@ -32,6 +32,7 @@
         <dossierfacile.common.version>0.0.1-SNAPSHOT</dossierfacile.common.version>
         <thymeleaf.version>3.0.15.RELEASE</thymeleaf.version>
         <pdfbox.tools.version>2.0.27</pdfbox.tools.version>
+        <commonmark.version>0.21.0</commonmark.version>
     </properties>
 
     <dependencyManagement>
@@ -277,6 +278,11 @@
             <groupId>net.logstash.logback</groupId>
             <artifactId>logstash-logback-encoder</artifactId>
             <version>7.3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.commonmark</groupId>
+            <artifactId>commonmark</artifactId>
+            <version>${commonmark.version}</version>
         </dependency>
     </dependencies>
 

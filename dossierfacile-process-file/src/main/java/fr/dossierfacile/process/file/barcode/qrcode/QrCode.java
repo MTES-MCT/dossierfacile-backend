@@ -1,4 +1,4 @@
-package fr.dossierfacile.process.file.util;
+package fr.dossierfacile.process.file.barcode.qrcode;
 
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;

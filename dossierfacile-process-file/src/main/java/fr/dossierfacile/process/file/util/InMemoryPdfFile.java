@@ -2,6 +2,10 @@ package fr.dossierfacile.process.file.util;
 
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
+import fr.dossierfacile.process.file.barcode.qrcode.QrCode;
+import fr.dossierfacile.process.file.barcode.qrcode.QrCodeReader;
+import fr.dossierfacile.process.file.barcode.twoddoc.TwoDDocRawContent;
+import fr.dossierfacile.process.file.barcode.twoddoc.TwoDDocReader;
 import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +22,11 @@ public class InMemoryPdfFile implements AutoCloseable {
     private final PDDocument pdfBoxDocument;
 
     private boolean hasQrCodeBeenSearched = false;
+    private boolean has2DDocBeenSearched = false;
+
     private QrCode qrCode;
+    private TwoDDocRawContent twoDDoc;
+
     private String contentAsString;
 
     public static InMemoryPdfFile create(File file, FileStorageService fileStorageService) throws IOException {
@@ -58,6 +66,18 @@ public class InMemoryPdfFile implements AutoCloseable {
             hasQrCodeBeenSearched = true;
         }
         return qrCode;
+    }
+
+    public boolean has2DDoc() {
+        return get2DDoc() != null;
+    }
+
+    public TwoDDocRawContent get2DDoc() {
+        if (!has2DDocBeenSearched) {
+            twoDDoc = TwoDDocReader.find2DDocOn(pdfBoxDocument).orElse(null);
+            has2DDocBeenSearched = true;
+        }
+        return twoDDoc;
     }
 
     @Override

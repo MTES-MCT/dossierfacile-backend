@@ -243,15 +243,6 @@ $(document).ready(function () {
                 }
             );
 
-            $('#manuscrit' + id).click(function (e) {
-                $('#message' + id).val('Merci pour votre message. \n' +
-                    '\n' +
-                    'Nous comprenons bien votre situation. Pour que vos futurs propriétaires puissent la comprendre du premier coup d\'oeil, pourriez-vous ajouter aux documents concernés un mot manuscrit et signé qui leur expliquera votre situation ?\n' +
-                    '\n' +
-                    'En vous souhaitant une très bonne fin de journée,\n' +
-                    'Marie pour l\'équipe DossierFacile')
-            });
-
         });
     });
 

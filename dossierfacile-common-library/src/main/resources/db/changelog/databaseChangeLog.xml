@@ -98,5 +98,7 @@
     <include file="db/migration/202306070000-create-watermark-document.xml" />
     <include file="db/migration/202306090000-migrate-document-name.xml" />
     <include file="db/migration/202306080000-create-indexes-on-fk.xml" />
+    <include file="db/migration/202306140000-alter-barcode-file-analysis-table.xml" />
+    <include file="db/migration/202306210000-edit-document-denied-options.xml" />
 
 </databaseChangeLog>

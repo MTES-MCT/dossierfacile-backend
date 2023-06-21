@@ -2,7 +2,6 @@ package fr.dossierfacile.process.file.service.qrcodeanalysis;
 
 import fr.dossierfacile.common.entity.DocumentIssuer;
 import fr.dossierfacile.process.file.util.InMemoryPdfFile;
-import fr.dossierfacile.process.file.util.QrCode;
 
 import java.util.Optional;
 
@@ -11,8 +10,6 @@ public abstract class QrCodeDocumentIssuer<REQUEST extends AuthenticationRequest
     protected abstract DocumentIssuer getName();
 
     protected abstract Optional<REQUEST> buildAuthenticationRequestFor(InMemoryPdfFile pdfFile);
-
-    protected abstract Optional<GuessedDocumentCategory> guessCategory(InMemoryPdfFile pdfFile);
 
     protected abstract AuthenticationResult authenticate(InMemoryPdfFile pdfFile, REQUEST authenticationRequest);
 

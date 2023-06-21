@@ -47,6 +47,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -65,6 +67,7 @@ public class BOTenantController {
     private static final String HEADER = "header";
     private static final String REDIRECT_BO = "redirect:/bo";
     private static final String CUSTOM_MESSAGE = "customMessage";
+    private static final String CLARIFICATION = "clarification";
     private static final String REDIRECT_ERROR = "redirect:/error";
 
     private final TenantService tenantService;
@@ -177,6 +180,7 @@ public class BOTenantController {
         model.addAttribute(NEW_MESSAGE, findNewMessageFromTenant(id));
         model.addAttribute(TENANT, tenant);
         model.addAttribute(CUSTOM_MESSAGE, getCustomMessage(tenant));
+        model.addAttribute(CLARIFICATION, getClarificationParagraphs(tenant));
         return "bo/process-file";
     }
 
@@ -272,6 +276,15 @@ public class BOTenantController {
             customMessage.getGuarantorItems().add(guarantorItem);
         }
         return customMessage;
+    }
+
+    private static List<String> getClarificationParagraphs(Tenant tenant) {
+        if (tenant.getClarification() == null) {
+            return Collections.emptyList();
+        }
+        return Arrays.stream(tenant.getClarification().split("\n"))
+                .filter(paragraph -> !paragraph.isBlank())
+                .toList();
     }
 
 }

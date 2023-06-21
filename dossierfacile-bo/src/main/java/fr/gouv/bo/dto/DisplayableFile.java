@@ -15,14 +15,14 @@ public class DisplayableFile {
 
     private final Long id;
     private final int order;
-    private final DisplayableQrCodeFileAnalysis analysis;
+    private final DisplayableBarCodeFileAnalysis analysis;
 
     public static List<DisplayableFile> allOf(Document document) {
         List<File> files = document.getFiles();
         List<DisplayableFile> results = new ArrayList<>();
         for (int i = 0; i < files.size(); i++) {
             File file = files.get(i);
-            var analysis = DisplayableQrCodeFileAnalysis.of(file).orElse(null);
+            var analysis = DisplayableBarCodeFileAnalysis.of(file).orElse(null);
             results.add(new DisplayableFile(file.getId(), i + 1, analysis));
         }
         return results;

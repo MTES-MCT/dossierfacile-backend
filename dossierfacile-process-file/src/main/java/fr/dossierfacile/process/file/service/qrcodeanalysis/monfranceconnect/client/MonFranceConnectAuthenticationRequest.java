@@ -1,7 +1,7 @@
 package fr.dossierfacile.process.file.service.qrcodeanalysis.monfranceconnect.client;
 
 import fr.dossierfacile.process.file.service.qrcodeanalysis.AuthenticationRequest;
-import fr.dossierfacile.process.file.util.QrCode;
+import fr.dossierfacile.process.file.barcode.qrcode.QrCode;
 import lombok.Builder;
 import org.apache.http.NameValuePair;
 import org.springframework.http.HttpEntity;

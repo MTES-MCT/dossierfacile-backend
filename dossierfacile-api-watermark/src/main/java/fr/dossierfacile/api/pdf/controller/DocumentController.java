@@ -31,7 +31,7 @@ public class DocumentController {
     }
 
     @GetMapping(value = "/url/{token}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<DocumentUrlResponse> urlPdf(@PathVariable("token") String documentToken) {
+    public ResponseEntity<?> urlPdf(@PathVariable("token") String documentToken) {
         return documentService.urlPdfDocument(documentToken);
     }
 

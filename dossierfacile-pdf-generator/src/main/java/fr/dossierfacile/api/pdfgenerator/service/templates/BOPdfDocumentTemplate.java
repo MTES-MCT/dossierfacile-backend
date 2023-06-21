@@ -12,6 +12,7 @@ import fr.dossierfacile.api.pdfgenerator.service.interfaces.PdfTemplate;
 import io.sentry.Sentry;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
@@ -55,6 +56,13 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
 
     @Override
     public InputStream render(List<FileInputStream> data) throws IOException {
+        return this.render(data,
+                messageSource.getMessage("tenant.pdf.watermark", null, DEFAULT_WATERMARK, locale));
+    }
+
+    public InputStream render(List<FileInputStream> data, String watermarkText) throws IOException {
+        final String watermarkToApply = StringUtils.isNotBlank(watermarkText) ? watermarkText + "   " :
+                messageSource.getMessage("tenant.pdf.watermark.default", null, " https://filigrane.beta.gouv.fr/   ", locale);
 
         try (PDDocument document = new PDDocument()) {
 
@@ -63,7 +71,7 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
                     .flatMap(Collection::stream)
                     .map(bim -> smartCrop(bim))
                     .map(bim -> fitImageToPage(bim))
-                    .map(bim -> applyWatermark(bim))
+                    .map(bim -> applyWatermark(bim, watermarkToApply))
                     .forEach(bim -> addImageAsPageToDocument(document, bim));
 
             try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
@@ -175,13 +183,13 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
      * @param bim source image
      * @return result image
      */
-    private BufferedImage applyWatermark(BufferedImage bim) {
+    private BufferedImage applyWatermark(BufferedImage bim, String watermarkText) {
         try {
             Graphics2D g = bim.createGraphics();
             g.drawImage(bim, 0, 0, null);
 
             //Create a watermark overlay
-            String watermark = messageSource.getMessage("tenant.pdf.watermark", null, DEFAULT_WATERMARK, locale).repeat(3);
+            String watermark = watermarkText.repeat(1 + ( 128 / watermarkText.length()));
 
             g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
             g.setColor(Color.DARK_GRAY);

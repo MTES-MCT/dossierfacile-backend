@@ -3,8 +3,6 @@ package fr.dossierfacile.api.pdf.service;
 import fr.dossierfacile.api.pdf.amqp.Producer;
 import fr.dossierfacile.api.pdf.exceptions.DocumentBadRequestException;
 import fr.dossierfacile.api.pdf.exceptions.DocumentTokenNotFoundException;
-import fr.dossierfacile.api.pdf.exceptions.ExpectationFailedException;
-import fr.dossierfacile.api.pdf.exceptions.InProgressException;
 import fr.dossierfacile.api.pdf.form.DocumentForm;
 import fr.dossierfacile.api.pdf.response.DocumentUrlResponse;
 import fr.dossierfacile.api.pdf.response.UploadFilesResponse;
@@ -76,16 +74,20 @@ public class DocumentServiceImpl implements DocumentService {
      * @return { "url" : "<name_of_pdf>.pdf" } -> Example: { "url" : "as9d8a89sa7sd87asd87a8sd8a7d8as.pdf" }
      */
     @Override
-    public ResponseEntity<DocumentUrlResponse> urlPdfDocument(String token) {
+    public ResponseEntity<?> urlPdfDocument(String token) {
         WatermarkDocument document = watermarkDocumentRepository.findOneByToken(token)
                 .orElseThrow(() -> new DocumentTokenNotFoundException(token));
 
         switch (document.getPdfStatus()) {
-            case IN_PROGRESS ->
-                    throw new InProgressException("PDF generation still IN PROGRESS for Document with ID [" + "]");
-            case FAILED -> throw new ExpectationFailedException("Document with ID [" + "] not generated due to error");
-            case DELETED -> throw new ExpectationFailedException("Document with ID [" + "] has been deleted");
-            case NONE -> throw new ExpectationFailedException("Document with ID [" + "] not generated");
+            case IN_PROGRESS:
+                return ResponseEntity.status(HttpStatus.CONFLICT).body("PDF generation still IN PROGRESS for Document with ID [" + "]");
+            case FAILED:
+                return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body("Document with ID [" + "] not generated due to error");
+            case DELETED:
+                return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body("Document with ID [" + "] has been deleted");
+            case NONE:
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Document with ID [" + "] not generated");
+            default: // continue
         }
 
         DocumentUrlResponse documentUrlResponse = DocumentUrlResponse.builder()
@@ -162,6 +164,7 @@ public class DocumentServiceImpl implements DocumentService {
 
         return watermarkDocumentRepository.save(WatermarkDocument.builder()
                 .token(UUID.randomUUID().toString())
+                .text(documentForm.getWatermark())
                 .files(files)
                 .pdfStatus(FileStatus.NONE)
                 .build());

@@ -1,5 +1,7 @@
-package fr.dossierfacile.process.file.util;
+package fr.dossierfacile.process.file.barcode.qrcode;
 
+import fr.dossierfacile.process.file.barcode.qrcode.QrCode;
+import fr.dossierfacile.process.file.barcode.qrcode.QrCodeReader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
