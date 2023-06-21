@@ -38,7 +38,7 @@ public class ConnectionContextFilter implements Filter {
             log.info("Call " + httpServletRequest.getRequestURI());
         } catch (Exception e) {
             // Something wrong but service should stay up
-            log.error("Unable to inject data in MDC !!!");
+            log.warn("Unable to inject data in MDC !!!");
         }
         try {
             chain.doFilter(request, response);
