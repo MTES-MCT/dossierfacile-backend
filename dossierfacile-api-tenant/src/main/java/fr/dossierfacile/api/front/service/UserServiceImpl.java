@@ -38,6 +38,7 @@ import fr.dossierfacile.common.service.interfaces.TenantCommonService;
 import fr.dossierfacile.common.type.TaxDocument;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -105,27 +106,23 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public TenantModel createPassword(User user, String password) {
-        user.setEnabled(true);
-        user.setPassword(bCryptPasswordEncoder.encode(password));
-        if (user.getKeycloakId() == null) {
-            var keycloakId = keycloakService.getKeycloakId(user.getEmail());
-            if (tenantRepository.findByKeycloakId(keycloakId) != null) {
-                throw new IllegalStateException("Tenant " + Obfuscator.email(user.getEmail()) + " already exists (same keycloak id)");
-            }
-            keycloakService.createKeyCloakPassword(keycloakId, password);
-            user.setKeycloakId(keycloakId);
-        } else {
-            keycloakService.createKeyCloakPassword(user.getKeycloakId(), password);
-        }
-        userRepository.save(user);
-
-        return tenantMapper.toTenantModel(tenantRepository.getOne(user.getId()));
+        keycloakService.createKeyCloakPassword(user.getKeycloakId(), password);
+        return tenantMapper.toTenantModel(tenantRepository.getById(user.getId()));
     }
 
     @Override
     public TenantModel createPassword(String token, String password) {
         PasswordRecoveryToken passwordRecoveryToken = passwordRecoveryTokenRepository.findByToken(token)
                 .orElseThrow(() -> new PasswordRecoveryTokenNotFoundException(token));
+
+        // check if keycloak is correctly synchronised
+        User user = passwordRecoveryToken.getUser();
+        var keycloakId = keycloakService.getKeycloakId(user.getEmail());
+        if (!StringUtils.equals(keycloakId, user.getKeycloakId())){
+            log.warn("Tenant keycloakId has been synchronized - user_id: " + user.getId());
+            user.setKeycloakId(keycloakId);
+            userRepository.save(user);
+        }
 
         TenantModel tenantModel = createPassword(passwordRecoveryToken.getUser(), password);
 
