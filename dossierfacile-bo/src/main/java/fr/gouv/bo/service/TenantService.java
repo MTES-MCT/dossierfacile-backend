@@ -279,7 +279,7 @@ public class TenantService {
                         mailMessage.append(fileNameWithBold.getFileNameWithBold(messageItem.getDocumentCategory().getLabel()));
                         mailMessage.append(itemDetail.getFormattedMessage());
                         mailMessage.append(P_LI);
-                        documentDeniedReasons.getCheckedOptions().add(itemDetail.getMessage());
+                        documentDeniedReasons.getCheckedOptions().add(itemDetail.getFormattedMessage());
                         documentDeniedReasons.getCheckedOptionsId().add(itemDetail.getIdOptionMessage());
                     }
                 }
