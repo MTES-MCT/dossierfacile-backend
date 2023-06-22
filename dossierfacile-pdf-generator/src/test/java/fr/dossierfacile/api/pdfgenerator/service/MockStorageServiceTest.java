@@ -44,7 +44,7 @@ class MockStorageServiceTest {
         EncryptionKey key = encryptionKeyService.getCurrentKey();
 
         StorageFile file = fileStorageService.upload(new ByteArrayInputStream(new byte[]{1, 2, 3}), StorageFile.builder().name("test").encryptionKey(key).build());
-        InputStream result = fileStorageService.download(file.getPath(), key);
+        InputStream result = fileStorageService.download(file);
         Assertions.assertArrayEquals(new byte[]{1, 2, 3}, IOUtils.toByteArray(result));
     }
 }

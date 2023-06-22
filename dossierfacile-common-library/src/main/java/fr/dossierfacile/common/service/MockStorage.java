@@ -48,30 +48,19 @@ public class MockStorage implements FileStorageService {
     }
 
     @Override
-    public void delete(String name) {
+    public void delete(StorageFile storageFile) {
         try {
-            Files.delete(Path.of(filePath + name));
+            Files.delete(Path.of(filePath + storageFile.getPath()));
         } catch (NoSuchFileException e) {
-            log.error(format("File %s does not exist", filePath + name), e);
+            log.error(format("File %s does not exist", filePath + storageFile.getPath()), e);
         } catch (DirectoryNotEmptyException e) {
-            log.error(format("File %s is a non empty directory", filePath + name), e);
+            log.error(format("File %s is a non empty directory", filePath + storageFile.getPath()), e);
         } catch (IOException e) {
-            log.error(format("File %s cannot be deleted", filePath + name), e);
+            log.error(format("File %s cannot be deleted", filePath + storageFile.getPath()), e);
         }
     }
 
-    @Override
-    public void delete(StorageFile storageFile) {
-        delete(storageFile.getPath());
-    }
-
-    @Override
-    public void delete(List<String> name) {
-        name.forEach(this::delete);
-    }
-
-    @Override
-    public InputStream download(String filename, Key key) throws IOException {
+    private InputStream download(String filename, Key key) throws IOException {
         InputStream in = Files.newInputStream(Path.of(filePath + filename));
         if (key != null) {
             try {
@@ -94,7 +83,6 @@ public class MockStorage implements FileStorageService {
         return download(storageFile.getPath(), storageFile.getEncryptionKey());
     }
 
-    @Override
     public void upload(String ovhPath, InputStream inputStream, Key key, String contentType) throws IOException {
         if (key != null) {
             try {

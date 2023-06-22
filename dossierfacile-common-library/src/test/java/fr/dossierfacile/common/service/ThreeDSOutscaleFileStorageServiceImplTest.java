@@ -2,7 +2,7 @@ package fr.dossierfacile.common.service;
 
 import fr.dossierfacile.common.entity.EncryptionKey;
 import fr.dossierfacile.common.entity.EncryptionKeyStatus;
-import fr.dossierfacile.common.service.interfaces.ThreeDSOutscaleFileStorageService;
+import fr.dossierfacile.common.exceptions.RetryableOperationException;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,11 +20,11 @@ import java.security.NoSuchAlgorithmException;
 class ThreeDSOutscaleFileStorageServiceImplTest {
 
     @Mock
-    ThreeDSOutscaleFileStorageService threeDSOutscaleFileStorageService;
+    OutscaleFileStorageServiceImpl threeDSOutscaleFileStorageService;
 
     @Test
     @Disabled
-    void connect3DS() throws IOException, NoSuchAlgorithmException {
+    void connect3DS() throws IOException, NoSuchAlgorithmException, RetryableOperationException {
         InputStream fileInputStream = ThreeDSOutscaleFileStorageServiceImplTest.class.getClassLoader().getResourceAsStream("hello.txt");
         KeyGenerator keygen = KeyGenerator.getInstance("AES");
         SecretKey key = keygen.generateKey();
