@@ -19,7 +19,7 @@
 		<java.version>19</java.version>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
-		<spring.boot.version>2.5.2</spring.boot.version>
+		<spring.boot.version>3.0.8</spring.boot.version>
 		<lombok.version>1.18.26</lombok.version>
 		<gson.version>2.10.1</gson.version>
 
