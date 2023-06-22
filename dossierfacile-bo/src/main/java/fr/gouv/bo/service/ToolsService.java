@@ -60,7 +60,7 @@ public class ToolsService {
             ObjectMapper objectMapper = new ObjectMapper();
             objectMapper.registerModule(new JavaTimeModule());
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
-            String zipName = "zip-" + UUID.randomUUID();
+            String zipName = "zip-" + UUID.randomUUID() +".zip";
             // Création d'un flux de sortie vers le fichier ZIP
             FileOutputStream fos = new FileOutputStream(zipName);
             ZipOutputStream zos = new ZipOutputStream(fos);
@@ -72,29 +72,12 @@ public class ToolsService {
 
                 // on traite les fichiers
                 for (Document d : tenant.getDocuments()) {
-                    try (InputStream fileInputStream = fileStorageService.download(d.getWatermarkFile())) {
+                    for(fr.dossierfacile.common.entity.File f : d.getFiles()) {
+                        try (InputStream fileInputStream = fileStorageService.download(f.getStorageFile())) {
 
-                        zos.putNextEntry(new ZipEntry("tid-" + t.getId() + "/" + d.getWatermarkFile().getPath() + ".pdf"));
+                            zos.putNextEntry(new ZipEntry("tid-" + t.getId() + "/doc-" + d.getId() + "/" + f.getStorageFile().getPath()));
 
-                        byte[] buffer = new byte[1024];
-                        int length;
-                        while ((length = fileInputStream.read(buffer)) > 0) {
-                            zos.write(buffer, 0, length);
-                        }
-                        zos.closeEntry();
-                    } catch (Exception e) {
-                        log.error("Error manufacture", e);
-                        zos.closeEntry();
-                    }
-                }
-                // guarantor
-                for (Guarantor g : tenant.getGuarantors()) {
-                    for (Document d : g.getDocuments()) {
-                        try (InputStream fileInputStream = fileStorageService.download(d.getWatermarkFile())) {
-
-                            zos.putNextEntry(new ZipEntry("tid-" + t.getId() + "/" + d.getWatermarkFile().getPath() + ".pdf"));
-
-                            byte[] buffer = new byte[1024];
+                            byte[] buffer = new byte[4096];
                             int length;
                             while ((length = fileInputStream.read(buffer)) > 0) {
                                 zos.write(buffer, 0, length);
@@ -103,6 +86,29 @@ public class ToolsService {
                         } catch (Exception e) {
                             log.error("Error manufacture", e);
                             zos.closeEntry();
+                        }
+                        log.info("Fichier File traitré id:" + f.getId());
+                    }
+                }
+                // guarantor
+                for (Guarantor g : tenant.getGuarantors()) {
+                    for (Document d : g.getDocuments()) {
+                        for(fr.dossierfacile.common.entity.File f : d.getFiles()) {
+                            try (InputStream fileInputStream = fileStorageService.download(f.getStorageFile())) {
+
+                                zos.putNextEntry(new ZipEntry("tid-" + t.getId() + "/doc-" + d.getId() + "/" + f.getStorageFile().getPath()));
+
+                                byte[] buffer = new byte[4096];
+                                int length;
+                                while ((length = fileInputStream.read(buffer)) > 0) {
+                                    zos.write(buffer, 0, length);
+                                }
+                                zos.closeEntry();
+                            } catch (Exception e) {
+                                log.error("Error manufacture", e);
+                                zos.closeEntry();
+                            }
+                            log.info("Fichier File traitré id:" + f.getId());
                         }
                     }
                 }
@@ -113,7 +119,7 @@ public class ToolsService {
 
                 try {
                     zos.putNextEntry(new ZipEntry("tid-" + t.getId() + ".json"));
-                    byte[] buffer = new byte[1024];
+                    byte[] buffer = new byte[4096];
                     int length;
                     while ((length = inputStream.read(buffer)) > 0) {
                         zos.write(buffer, 0, length);
@@ -128,6 +134,7 @@ public class ToolsService {
 
             zos.close();
 
+            log.info("ZIP NAME = " + zipName);
             //then push the zip
             try {
                 File file = new File(zipName);
