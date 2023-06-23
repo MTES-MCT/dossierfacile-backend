@@ -40,7 +40,7 @@
                 </div>
                 <div>
                     <a href="/bo/owners" class="btn" id="displayOwner" style="background: #1f6685;padding: 10px 16px 12px;float: left;color: aliceblue;font-size: large;margin-left: 10px;margin-top: 10px">
-                        Listing des owners
+                        Liste des comptes propriétaires
                     </a>
                 </div>
                 <div style="margin-top: 10px">
@@ -72,7 +72,7 @@
             <span th:text="${tenants.getTotalElements()} +' DOSSIERS A VALIDER'"></span>
         </div>
         <div class="text-center margin-bottom">
-            <a th:href="@{/bo/nextApplication}" class="btn btn-primary" id="nextApplication">Next Application</a>
+            <a th:href="@{/bo/nextApplication}" class="btn btn-primary" id="nextApplication">Traiter un dossier</a>
         </div>
         <div class="clearfix"></div>
         <div class="table-responsive">
@@ -81,20 +81,22 @@
                 <tr>
                     <td></td>
                     <td>Id</td>
-                    <td>Creation date</td>
-                    <td>First name</td>
-                    <td>Last Name</td>
+                    <td>Dernière modification</td>
+                    <td>Prénom</td>
+                    <td>Nom</td>
                     <td>Email</td>
                 </tr>
                 </thead>
                 <tr th:each="tenant : ${tenants}">
                     <td><a class="btn btn-warning bo-btn" th:href="'/bo/nextApplication?tenant_id='+${tenant.getId()}">
-                        Vérifier pièce par pièce
+                        Traiter le dossier
                     </a></td>
                     <td>
                         <span th:text="${tenant.getId()}"></span>
                     </td>
-                    <td th:text="${#temporals.format(tenant.getCreationDateTime(), 'yyyy-MM-dd HH:mm:ss')}"></td>
+                    <td
+                      th:with="formattedDate=${T(fr.gouv.bo.utils.DateFormatUtil).relativeToNow(tenant.getLastUpdateDate())}"
+                      th:text="${formattedDate}"></td>
                     <td th:text="${tenant.getFirstName()}"></td>
                     <td th:text="${tenant.getLastName()}"></td>
                     <td th:text="${tenant.getEmail()}"></td>
