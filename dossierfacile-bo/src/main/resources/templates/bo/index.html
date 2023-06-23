@@ -47,19 +47,41 @@
                     <a href="/bo/regroup" class="btn" id="nextApplication3" style="background: #1f6685;padding: 10px 10px 12px;float: left;color: aliceblue;font-size: large;margin-left: 10px;">Regrouper deux locataires</a>
                 </div>
             </div>
-            <div class="" style="display: inline-grid;grid-auto-columns: max-content;
-            justify-content: right; margin-right: 10px; float: right">
-                <div class="counter" style="float: right;font-family: 'Poppins', sans-serif;position: relative;z-index: 1;background: bisque;">
-                    <h3 style="font-size: 18px;color: red;padding: 10px 10px 6px;margin-top: -2px;">Tenants to process:
-                        <span class="counter-value" style="font-size: large; font-weight: bold; color: black;" th:text="${numberOfTenantsToProcess}"></span></h3>
+
+            <div style="display: inline-grid; justify-content: right; margin-right: 20px; float: right;">
+                <div th:if="${oldestApplication.isPresent()}"
+                     th:with="tenant=${oldestApplication.get()}">
+                    <div style="background: bisque; padding: 10px; font-size: 16px">
+                        <p style="color: red; font-weight: bold;">
+                            Dossier à traiter le plus ancien :
+                        </p>
+                        <span
+                          th:with="date=${tenant.getLastUpdateDate()},
+                                   formattedDate=${T(fr.gouv.bo.utils.DateFormatUtil).relativeToNow(date)}"
+                          th:text="'Modifié ' + ${formattedDate}"
+                        ></span>
+                    </div>
+                    <div>
+                        <a th:href="'/bo/nextApplication?tenant_id='+${tenant.getId()}">
+                            <button style="border-radius: 5px; width: 100%" class="btn btn-danger bo-btn" name="action" type="submit">
+                                Traiter le dossier
+                            </button>
+                        </a>
+                    </div>
                 </div>
-                <div class="counter" style="float: right;font-family: 'Poppins', sans-serif;text-align: center;position: relative;z-index: 1;background: bisque;margin-top: 10px;">
-                    <a class="btn button2" th:href="@{/bo/documentFailedList}"  style="transition-duration: 0.4s;cursor: pointer;border-radius: inherit;border-bottom: solid; font-size: 18px; color: red; padding: 10px; margin-top: -2px;">Tenants with failed PDF generation:
-                        <span th:text="${TenantsWithFailedGeneratedPdf}" class="counter-value" style="font-size: large; font-weight: bold; color: black;"></span></a>
+                <div style="background: bisque; padding: 10px; font-size: 16px; margin-top: 15px;">
+                    <a th:href="@{/bo/documentFailedList}" style="text-decoration: none;">
+                        <span>
+                            <span style="color: red; font-weight: bold;">PDFs en erreur :</span>
+                            <span th:text="${TenantsWithFailedGeneratedPdf}"></span>
+                        </span>
+                    </a>
                 </div>
-                <div style="margin-top: 5px;" th:if="${TenantsWithFailedGeneratedPdf != 0}">
+                <div th:if="${TenantsWithFailedGeneratedPdf != 0}">
                     <form th:action="@{/bo/regeneratePdfDocument}" th:method="post">
-                        <button style="border-radius: 5px; width: 100%" class="btn btn-danger bo-btn" name="action" type="submit">retry failed PDF</button>
+                        <button style="border-radius: 5px; width: 100%" class="btn btn-danger bo-btn" name="action" type="submit">
+                            Relancer la génération
+                        </button>
                     </form>
                 </div>
             </div>
@@ -69,7 +91,7 @@
 
     <div class="container">
         <div class="text-center margin-bottom">
-            <span th:text="${tenants.getTotalElements()} +' DOSSIERS A VALIDER'"></span>
+            <span th:text="${numberOfTenantsToProcess} +' DOSSIERS A VALIDER'"></span>
         </div>
         <div class="text-center margin-bottom">
             <a th:href="@{/bo/nextApplication}" class="btn btn-primary" id="nextApplication">Traiter un dossier</a>

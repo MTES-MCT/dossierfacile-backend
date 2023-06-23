@@ -72,20 +72,16 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
         return null;
     }
 
-    @Query(value = "select sum(count)\n" +
-            "from (SELECT COUNT(upload1) AS count FROM tenant where upload1 is not null\n" +
-            "      UNION ALL SELECT COUNT(upload2) AS count FROM tenant where upload2 is not null\n" +
-            "      UNION ALL SELECT COUNT(upload3) AS count FROM tenant where upload3 is not null\n" +
-            "      UNION ALL SELECT COUNT(upload4) AS count FROM tenant where upload4 is not null\n" +
-            "      UNION ALL SELECT COUNT(upload5) AS count FROM tenant where upload5 is not null\n" +
-            "      UNION ALL SELECT COUNT(upload1) AS count FROM guarantor where upload1 is not null\n" +
-            "      UNION ALL SELECT COUNT(upload2) AS count FROM guarantor where upload2 is not null\n" +
-            "      UNION ALL SELECT COUNT(upload3) AS count FROM guarantor where upload3 is not null\n" +
-            "      UNION ALL SELECT COUNT(upload4) AS count FROM guarantor where upload4 is not null\n" +
-            "      UNION ALL SELECT COUNT(upload5) AS count FROM guarantor where upload5 is not null) as total", nativeQuery = true)
-    Long countTotalUploadedFiles();
-
     Page<Tenant> findByFirstNameContainingOrLastNameContainingOrEmailContaining(String q, String q1, String q2, Pageable pageable);
+
+    @Query("""
+            SELECT t
+            FROM Tenant t
+            WHERE t.status = 'TO_PROCESS'
+              AND t.honorDeclaration = true
+            ORDER BY t.lastUpdateDate ASC
+            """)
+    Page<Tenant> findToProcessApplicationsByOldestUpdateDate(Pageable pageable);
 
     List<Tenant> findAllByApartmentSharingId(Long ap);
 

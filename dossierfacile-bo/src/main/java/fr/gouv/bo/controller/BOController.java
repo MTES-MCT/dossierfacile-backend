@@ -9,17 +9,13 @@ import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.Role;
 import fr.dossierfacile.common.repository.DocumentPdfGenerationLogRepository;
-import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.gouv.bo.amqp.Producer;
 import fr.gouv.bo.dto.BooleanDTO;
-import fr.gouv.bo.dto.DeleteUserDTO;
 import fr.gouv.bo.dto.EmailDTO;
 import fr.gouv.bo.dto.Pager;
 import fr.gouv.bo.dto.ReGroupDTO;
 import fr.gouv.bo.dto.ResultDTO;
-import fr.gouv.bo.model.FileForm;
-import fr.gouv.bo.service.ApartmentSharingService;
 import fr.gouv.bo.service.DocumentService;
 import fr.gouv.bo.service.TenantService;
 import fr.gouv.bo.service.UserService;
@@ -37,8 +33,6 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -46,7 +40,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import javax.validation.Valid;
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -65,6 +58,7 @@ public class BOController {
     private static final String PAGER = "pager";
     private static final String PAGE_SIZES_STRING = "pageSizes";
     private static final String SELECTED_PAGE_SIZE = "selectedPageSize";
+    private static final String OLDEST_APPLICATION = "oldestApplication";
     private static final String REDIRECT_BO_COLOCATION = "redirect:/bo/colocation/";
     private static final String SHOW_ALERT = "showAlert";
 
@@ -72,11 +66,8 @@ public class BOController {
     private static final int INITIAL_PAGE_SIZE = 100;
     private static final int[] PAGE_SIZES = {100, 200};
     private static final String REDIRECT_BO = "redirect:/bo";
-    private final ApartmentSharingService apartmentSharingService;
     private final TenantService tenantService;
     private final UserService userService;
-
-    private final FileStorageService fileStorageService;
     private final DocumentService documentService;
     private final Producer producer;
     private final PartnerCallBackService partnerCallBackService;
@@ -170,6 +161,7 @@ public class BOController {
         model.addAttribute(PAGE_SIZES_STRING, PAGE_SIZES);
         model.addAttribute(PAGER, pager);
         model.addAttribute(EMAIL, emailDTO);
+        model.addAttribute(OLDEST_APPLICATION, tenantService.getOldestToProcessApplication());
         return "bo/index";
     }
 
