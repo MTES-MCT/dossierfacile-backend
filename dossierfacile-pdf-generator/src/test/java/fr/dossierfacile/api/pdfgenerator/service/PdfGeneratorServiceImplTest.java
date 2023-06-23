@@ -12,9 +12,9 @@ import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.FileStatus;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.enums.TenantType;
-import fr.dossierfacile.common.repository.ApartmentSharingRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
@@ -45,15 +45,10 @@ class PdfGeneratorServiceImplTest {
     @Value("${mock.storage.path}")
     private String filePath;
 
+    private File file;
+
     @Test
     void generateFullDossierPdf() throws IOException {
-        File file = new File(filePath + "/7fdad8b1-6a9e-40dc-acab-d698701f76db.pdf");
-        try {
-            file.delete();
-        } catch (Exception e) {
-            // Normal case
-        }
-
         ApartmentSharing apartmentSharing = buildApartmentSharing();
         Mockito.when(apartmentSharingCommonService.findById(1L)).thenReturn(Optional.of(apartmentSharing));
         Mockito.when(apartmentSharingCommonService.save(ArgumentMatchers.any())).thenAnswer(i -> i.getArguments()[0]);
@@ -68,6 +63,11 @@ class PdfGeneratorServiceImplTest {
 
         file = new File( filePath +  apartmentSharing.getPdfDossierFile().getPath());
         Assertions.assertTrue (file.exists());
+    }
+
+    @AfterEach
+    void tearDown() {
+        file.delete();
     }
 
     private ApartmentSharing buildApartmentSharing() {
