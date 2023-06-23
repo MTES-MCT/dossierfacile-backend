@@ -6,10 +6,8 @@ import fr.dossierfacile.common.exceptions.RetryableOperationException;
 import fr.dossierfacile.common.repository.StorageFileRepository;
 import fr.dossierfacile.common.service.interfaces.FileStorageProviderService;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
@@ -22,20 +20,22 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 @Profile("!mockOvh")
 public class FileStorageServiceImpl implements FileStorageService {
-    @Qualifier("ovhFileStorageProvider")
-    private FileStorageProviderService ovhFileStorageService;
-    @Qualifier("outscaleFileStorageProvider")
-    private FileStorageProviderService outscaleFileStorageService;
-
-    @Autowired
-    private StorageFileRepository storageFileRepository;
-
+    private final FileStorageProviderService ovhFileStorageService;
+    private final FileStorageProviderService outscaleFileStorageService;
+    private final StorageFileRepository storageFileRepository;
     @Value("#{'${storage.provider.list}'.split(',')}")
     private List<ObjectStorageProvider> providers;
+
+    public FileStorageServiceImpl(@Qualifier("ovhFileStorageProvider") FileStorageProviderService ovhFileStorageService,
+                                  @Qualifier("outscaleFileStorageProvider") FileStorageProviderService outscaleFileStorageService,
+                                  StorageFileRepository storageFileRepository) {
+        this.ovhFileStorageService = ovhFileStorageService;
+        this.outscaleFileStorageService = outscaleFileStorageService;
+        this.storageFileRepository = storageFileRepository;
+    }
 
     private FileStorageProviderService getStorageService(ObjectStorageProvider storageProvider) {
         return switch (storageProvider) {
