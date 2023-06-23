@@ -762,5 +762,14 @@ public class TenantService {
 
         apartmentSharingRepository.delete(apartmentToDelete);
     }
+
+    public Optional<Tenant> getOldestToProcessApplication() {
+        Page<Tenant> page = tenantRepository.findToProcessApplicationsByOldestUpdateDate(PageRequest.of(0, 1));
+        if (!page.isEmpty()) {
+            return page.get().findFirst();
+        }
+        return Optional.empty();
+    }
+
 }
 
