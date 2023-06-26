@@ -60,8 +60,8 @@ public class DocumentTaxGuarantorNaturalPerson extends AbstractDocumentSaveStep<
             deleteFilesIfExistedBefore(document);
         }
         document.setNoDocument(documentTaxGuarantorNaturalPersonForm.getNoDocument());
-        if (Boolean.TRUE.equals(documentTaxGuarantorNaturalPersonForm.getAvisDetected())) {
-            document.setAvisDetected(true);
+        if (documentTaxGuarantorNaturalPersonForm.getAvisDetected() != null) {
+            document.setAvisDetected(documentTaxGuarantorNaturalPersonForm.getAvisDetected());
         }
         documentRepository.save(document);
 
