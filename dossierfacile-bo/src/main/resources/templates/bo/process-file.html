@@ -457,7 +457,9 @@
                                             <input th:field="*{guarantorItems[__${k.index}__].messageItems[__${i.index}__].itemDetailList[__${j.index}__].idOptionMessage}"
                                                    th:value="${itemDetail.getIdOptionMessage()}"
                                                    type="hidden"/>
-                                            <span class="span1" th:text="${itemDetail.getMessage()}"></span>
+                                            <p class="span1" style="display:block;"
+                                               th:utext="${itemDetail.getFormattedMessage()}">
+                                            </p>
                                         </label>
                                     </div>
                                 </div>

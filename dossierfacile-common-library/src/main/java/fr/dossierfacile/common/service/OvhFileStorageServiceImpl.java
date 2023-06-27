@@ -1,11 +1,9 @@
 package fr.dossierfacile.common.service;
 
 import fr.dossierfacile.common.entity.EncryptionKey;
-import fr.dossierfacile.common.entity.ObjectStorageProvider;
-import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.exceptions.OvhConnectionFailedException;
-import fr.dossierfacile.common.repository.StorageFileRepository;
-import fr.dossierfacile.common.service.interfaces.OvhFileStorageService;
+import fr.dossierfacile.common.exceptions.RetryableOperationException;
+import fr.dossierfacile.common.service.interfaces.FileStorageProviderService;
 import io.sentry.Sentry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -17,8 +15,8 @@ import org.openstack4j.model.common.Identifier;
 import org.openstack4j.model.common.Payloads;
 import org.openstack4j.model.storage.object.SwiftObject;
 import org.openstack4j.openstack.OSFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -29,12 +27,11 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.Key;
-import java.util.List;
-import java.util.UUID;
 
-@Service
+@Service("ovhFileStorageProvider")
 @Slf4j
-public class OvhFileStorageServiceImpl implements OvhFileStorageService {
+@Profile("!mockOvh")
+public class OvhFileStorageServiceImpl implements FileStorageProviderService {
     private static final String EXCEPTION = "Sentry ID Exception: ";
 
     @Value("${ovh.project.domain:default}")
@@ -54,9 +51,6 @@ public class OvhFileStorageServiceImpl implements OvhFileStorageService {
     @Value("${ovh.connection.reattempts:3}")
     private Integer ovhConnectionReattempts;
     private String tokenId;
-
-    @Autowired
-    private StorageFileRepository storageFileRepository;
 
     private OSClient.OSClientV3 connect() {
         Identifier domainIdentifier = Identifier.byId(ovhProjectDomain);
@@ -98,12 +92,6 @@ public class OvhFileStorageServiceImpl implements OvhFileStorageService {
     }
 
     @Override
-    @Async
-    public void delete(List<String> name) {
-        name.forEach(this::delete);
-    }
-
-    @Override
     public InputStream download(String path, Key key) throws IOException {
         SwiftObject object = connect().objectStorage().objects().get(ovhContainerName, path);
         if (object == null)
@@ -131,7 +119,7 @@ public class OvhFileStorageServiceImpl implements OvhFileStorageService {
     }
 
     @Override
-    public void upload(String ovhPath, InputStream inputStream, Key key, String contentType) throws IOException {
+    public void upload(String ovhPath, InputStream inputStream, Key key, String contentType) throws RetryableOperationException, IOException {
         if (key != null) {
             try {
                 byte[] iv = DigestUtils.md5(ovhPath);
@@ -143,34 +131,18 @@ public class OvhFileStorageServiceImpl implements OvhFileStorageService {
 
             } catch (Exception e) {
                 log.error("Unable to encrypt file", e);
-                throw new IOException(e);
+                throw new RetryableOperationException("Unable to encrypt file", e);
             }
         }
-        String eTag = connect().objectStorage().objects().put(ovhContainerName, ovhPath, Payloads.create(inputStream));
-        if (StringUtils.isEmpty(eTag)) {
-            throw new IOException("ETag is empty - download failed!" + ovhPath);
-        }
-    }
-
-    @Override
-    public StorageFile upload(InputStream inputStream, StorageFile storageFile) throws IOException {
-        if (inputStream == null)
-            return null;
-        if (storageFile == null) {
-            log.warn("fallback on uploadfile");
-            storageFile = StorageFile.builder()
-                    .name("undefined")
-                    .build();
-        }
-        storageFile.setProvider(ObjectStorageProvider.OVH);
-
-        if (StringUtils.isBlank(storageFile.getPath())) {
-            storageFile.setPath(UUID.randomUUID().toString());
+        try {
+            String eTag = connect().objectStorage().objects().put(ovhContainerName, ovhPath, Payloads.create(inputStream));
+            if (StringUtils.isEmpty(eTag)) {
+                throw new IOException("ETag is empty - download failed!" + ovhPath);
+            }
+        } catch (OvhConnectionFailedException e) {
+            throw new RetryableOperationException("Ovh Connection Failed", e);
         }
 
-        upload(storageFile.getPath(), inputStream, storageFile.getEncryptionKey(), storageFile.getContentType());
-
-        return storageFileRepository.save(storageFile);
 
     }
 }

@@ -317,7 +317,7 @@ public class TenantService {
                         if (itemDetail.isCheck()) {
                             mailMessage.append(LI_P);
                             mailMessage.append(fileNameWithBoldGuarantor.getFileNameWithBold(messageItem.getDocumentCategory().getLabel()));
-                            mailMessage.append(itemDetail.getMessage());
+                            mailMessage.append(itemDetail.getFormattedMessage());
                             mailMessage.append(P_LI);
                             documentDeniedReasons.getCheckedOptions().add(itemDetail.getMessage());
                             documentDeniedReasons.getCheckedOptionsId().add(itemDetail.getIdOptionMessage());
@@ -762,5 +762,14 @@ public class TenantService {
 
         apartmentSharingRepository.delete(apartmentToDelete);
     }
+
+    public Optional<Tenant> getOldestToProcessApplication() {
+        Page<Tenant> page = tenantRepository.findToProcessApplicationsByOldestUpdateDate(PageRequest.of(0, 1));
+        if (!page.isEmpty()) {
+            return page.get().findFirst();
+        }
+        return Optional.empty();
+    }
+
 }
 
