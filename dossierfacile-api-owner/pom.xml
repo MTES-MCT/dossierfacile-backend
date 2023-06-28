@@ -85,7 +85,7 @@
         <dependency>
             <groupId>org.keycloak</groupId>
             <artifactId>keycloak-admin-client</artifactId>
-            <version>19.0.2</version>
+            <version>21.1.2</version>
         </dependency>
         <dependency>
             <groupId>org.mapstruct</groupId>
