@@ -1,9 +1,11 @@
 package fr.dossierfacile.process.file.barcode.twoddoc.validation;
 
+import fr.dossierfacile.process.file.barcode.twoddoc.parsing.TwoDDocHeader;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -22,31 +24,37 @@ public class TwoDDocCertificationAuthorities {
     private final Map<String, X509Certificate> certificates = new HashMap<>();
     private final RestTemplate restTemplate;
 
-    public X509Certificate getCertificateOf(String certificationAuthorityId) {
-        if (!certificates.containsKey(certificationAuthorityId)) {
-            X509Certificate certificate = fetchCertificateOf(certificationAuthorityId);
-            certificates.put(certificationAuthorityId, certificate);
+    public X509Certificate getCertificateUsedFor(TwoDDocHeader twoDDocHeader) {
+        String certId = twoDDocHeader.certId();
+        if (!certificates.containsKey(certId)) {
+            X509Certificate certificate = fetchCertificate(twoDDocHeader);
+            certificates.put(certId, certificate);
         }
-        return certificates.get(certificationAuthorityId);
+        return certificates.get(certId);
     }
 
-    private X509Certificate fetchCertificateOf(String certificationAuthorityId) {
+    private X509Certificate fetchCertificate(TwoDDocHeader twoDDocHeader) {
         try {
-            ResponseEntity<byte[]> entity = restTemplate.getForEntity(uriOf(certificationAuthorityId), byte[].class);
+            URI uri = getCertificateUri(twoDDocHeader);
+            ResponseEntity<byte[]> entity = restTemplate.getForEntity(uri, byte[].class);
             X509Certificate certificate = parseX509Certificate(entity.getBody());
             certificate.checkValidity();
             return certificate;
         } catch (CertificateException e) {
-            throw new TwoDDocValidationException("Invalid signing certificate for authority " + certificationAuthorityId, e);
+            throw new TwoDDocValidationException("Invalid signing certificate for " + twoDDocHeader, e);
         }
     }
 
-    private URI uriOf(String certificationAuthorityId) {
+    private URI getCertificateUri(TwoDDocHeader twoDDocHeader) {
         // TODO use ANTS TLS instead of hard coded urls
-        return switch (certificationAuthorityId) {
-            case "FPE3" -> URI.create("http://pki-g2.ariadnext.fr/pki-2ddoc.der?name=" + certificationAuthorityId);
+        String baseUri = switch (twoDDocHeader.issuer()) {
+            case "FR03" -> "http://certificates.certigna.fr/search.php?iHash=xvNLC1KMs03t%2FgxzdBYParPnf%2BM";
+            case "FR04" -> "http://pki-g2.ariadnext.fr/pki-2ddoc.der";
             default -> throw new TwoDDocValidationException("Unsupported certification authority");
         };
+        return UriComponentsBuilder.fromUriString(baseUri)
+                .queryParam("name", twoDDocHeader.certId())
+                .build().toUri();
     }
 
     private X509Certificate parseX509Certificate(byte[] bytes) throws CertificateException {
