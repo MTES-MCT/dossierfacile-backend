@@ -95,6 +95,13 @@ public class TenantService {
     @Value("${specialized.operator.email:ops@dossiefacile.fr}")
     private String specializedOperatorEmail;
 
+    @Value("${process.max.dossier.time.interval:10}")
+    private Long timeInterval;
+    @Value("${process.max.dossier.by.interval:20}")
+    private Long maxDossiersByInterval;
+    @Value("${process.max.dossier.by.day:600}")
+    private Long maxDossiersByDay;
+
     public List<Tenant> getTenantByIdOrEmail(EmailDTO emailDTO) {
         List<Tenant> tenantList = new ArrayList<>();
         if (StringUtils.isNumeric(emailDTO.getEmail())) {
@@ -142,11 +149,21 @@ public class TenantService {
         return tenantRepository.save(tenant);
     }
 
+
     public synchronized String redirectToApplication(Principal principal, Long tenantId) {
         LocalDateTime localDateTime = LocalDateTime.now().minusMinutes(timeReprocessApplicationMinutes);
         Tenant tenant;
         if (tenantId == null) {
-            if (((UserPrincipal)((OAuth2AuthenticationToken)principal).getPrincipal()).getEmail().equals(specializedOperatorEmail)) {
+            Long operatorId = ((UserPrincipal) ((OAuth2AuthenticationToken) principal).getPrincipal()).getId();
+            // check less than x process are currently starting during the n lastMinutes
+            if (operatorLogRepository.countByOperatorIdAndActionOperatorTypeAndCreationDateGreaterThanEqual(operatorId, ActionOperatorType.START_PROCESS, LocalDateTime.now().minusMinutes(timeInterval)) > maxDossiersByInterval) {
+                throw new IllegalStateException("Vous ne pouvez pas ouvrir plus de " + maxDossiersByInterval + " dossiers pour traitement toutes les " + timeInterval + " minutes");
+            }
+            if (operatorLogRepository.countByOperatorIdAndActionOperatorTypeAndCreationDateGreaterThanEqual(operatorId, ActionOperatorType.START_PROCESS, LocalDateTime.now().toLocalDate().atStartOfDay()) > maxDossiersByDay) {
+                throw new IllegalStateException("Vous ne pouvez pas ouvrir plus de " + maxDossiersByDay + " dossiers par jour");
+            }
+
+            if (((UserPrincipal) ((OAuth2AuthenticationToken) principal).getPrincipal()).getEmail().equals(specializedOperatorEmail)) {
                 tenant = tenantRepository.findNextApplicationByProfessional(localDateTime, Arrays.asList(DocumentSubCategory.CDI, DocumentSubCategory.PUBLIC));
                 if (tenant == null) {
                     tenant = tenantRepository.findNextApplication(localDateTime);

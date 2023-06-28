@@ -53,7 +53,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .cacheControl()
                 .and()
-                .contentSecurityPolicy("frame-ancestors *.dossierfacile.fr; frame-src *.dossierfacile.fr; child-src 'none'; upgrade-insecure-requests; default-src 'none'; script-src 'self'; style-src 'self' fonts.googleapis.com 'unsafe-inline'; object-src *.dossierfacile.fr; img-src 'self' *.dossierfacile.fr data:; font-src 'self' fonts.gstatic.com; connect-src *.dossierfacile.fr; base-uri 'self'; media-src 'none'; worker-src *.dossierfacile.fr; manifest-src 'none'; prefetch-src 'none';")
+                .contentSecurityPolicy("frame-ancestors *.dossierfacile.fr; frame-src *.dossierfacile.fr; child-src 'none'; upgrade-insecure-requests; default-src 'none'; script-src 'self'; style-src 'self' fonts.googleapis.com 'unsafe-inline'; object-src *.dossierfacile.fr; img-src 'self' *.dossierfacile.fr data:; font-src 'self' fonts.gstatic.com; connect-src *.dossierfacile.fr; base-uri 'self'; media-src 'none'; worker-src *.dossierfacile.fr; manifest-src 'none';")
                 .and()
                 .httpStrictTransportSecurity().disable()// Scalingo force https and add this policy
                 .frameOptions()
@@ -67,8 +67,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/", "/login", "/login/auth/**", "/login/oauth2/**,", "/actuator/health", "/assets/public/**")
                 .permitAll()
                 .antMatchers("/bo/userApi", "/bo/userApi/**", "/bo/admin", "/bo/admin/**", "/bo/statistic/admin", "/bo/timeServeTenant", "/bo/users", "/bo/users/**").access("hasAnyRole('ROLE_ADMIN')")
-                .antMatchers("/bo/nextApplicationQuickly").access("hasAnyRole('ROLE_OPERATOR','ROLE_ADMIN')")
-                .antMatchers("/bo/**", "/bo").access("hasAnyRole('ROLE_OPERATOR','ROLE_ADMIN','ROLE_OPERATOR_AWAY')")
+                .antMatchers("/bo/**", "/bo").access("hasAnyRole('ROLE_OPERATOR','ROLE_ADMIN')")
                 .anyRequest()
                 .authenticated()
                 .and()
