@@ -22,7 +22,7 @@ public record GuessedDocumentCategory(
     public static Optional<GuessedDocumentCategory> forFile(InMemoryPdfFile pdfFile, DocumentIssuer issuerName) {
         var guess = switch (issuerName) {
             case MON_FRANCE_CONNECT -> MonFranceConnectDocumentType.of(pdfFile).getCategory().orElse(null);
-            case PAYFIT -> new GuessedDocumentCategory(FINANCIAL, SALARY);
+            case PAYFIT, SNCF -> new GuessedDocumentCategory(FINANCIAL, SALARY);
             case DGFIP -> new GuessedDocumentCategory(TAX, MY_NAME);
             case UNKNOWN -> null;
         };
