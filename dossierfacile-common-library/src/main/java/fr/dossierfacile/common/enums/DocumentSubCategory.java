@@ -13,6 +13,7 @@ public enum DocumentSubCategory {
     FRENCH_IDENTITY_CARD,
     FRENCH_PASSPORT,
     FRENCH_RESIDENCE_PERMIT,
+    DRIVERS_LICENSE,
     OTHER_IDENTIFICATION,
     CERTIFICATE_VISA,
 
@@ -67,6 +68,7 @@ public enum DocumentSubCategory {
     public DocumentSubCategory getOnlyOldCategories() {
         return switch (this) {
             case INTERMITTENT, STAY_AT_HOME_PARENT, NO_ACTIVITY, ARTIST -> OTHER;
+            case DRIVERS_LICENSE -> OTHER_IDENTIFICATION;
             default -> this;
         };
     }
