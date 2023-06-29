@@ -47,7 +47,7 @@ public class TwoDDocFileAuthenticator {
     }
 
     private boolean isAuthentic(TwoDDoc twoDDoc) throws InvalidKeyException, SignatureException {
-        X509Certificate signingCertificate = certificationAuthorities.getCertificateOf(twoDDoc.header().certId());
+        X509Certificate signingCertificate = certificationAuthorities.getCertificateUsedFor(twoDDoc.header());
         return twoDDoc.isSignedBy(signingCertificate);
     }
 

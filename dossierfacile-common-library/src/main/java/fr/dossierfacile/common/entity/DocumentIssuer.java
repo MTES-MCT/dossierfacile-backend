@@ -10,6 +10,7 @@ public enum DocumentIssuer {
     MON_FRANCE_CONNECT("Mon FranceConnect"),
     PAYFIT("PayFit"),
     DGFIP("DGFIP"),
+    SNCF("SNCF"),
     UNKNOWN("Unknown"),
     ;
 

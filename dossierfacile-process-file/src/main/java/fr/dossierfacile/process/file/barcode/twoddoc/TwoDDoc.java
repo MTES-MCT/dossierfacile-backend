@@ -31,8 +31,9 @@ public record TwoDDoc(
     }
 
     public DocumentIssuer getIssuer() {
-        return switch (header.issuer()) {
-            case "FR04" -> DocumentIssuer.DGFIP;
+        return switch (header.certId()) {
+            case "FPE3" -> DocumentIssuer.DGFIP;
+            case "SNC2" -> DocumentIssuer.SNCF;
             default -> DocumentIssuer.UNKNOWN;
         };
     }
