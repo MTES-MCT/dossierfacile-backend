@@ -237,8 +237,7 @@ $(document).ready(function () {
                     var id1 = $(this).attr('data-id');
 
                     sendNewMessage(e, "/bo/message/new/" + id, $(this), nameAdmin, id, function () {
-
-                        window.reloadThePage();
+                        location.reload();
                     })
                 }
             );
