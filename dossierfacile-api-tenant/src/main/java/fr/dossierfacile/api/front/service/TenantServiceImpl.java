@@ -99,7 +99,7 @@ public class TenantServiceImpl implements TenantService {
 
     @Override
     public Tenant findById(Long id) {
-        return tenantRepository.findById(id).get();
+        return tenantRepository.findById(id).orElse(null);
     }
 
     @Override
