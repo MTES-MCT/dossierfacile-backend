@@ -17,7 +17,8 @@ public class ClientAuthenticationFacadeImpl implements ClientAuthenticationFacad
 
     private final UserApiService userApiService;
 
-    private String getKeycloakClientId() {
+    @Override
+    public String getKeycloakClientId() {
         try {
             return ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClaimAsString("clientId");
         } catch (Throwable t) {
