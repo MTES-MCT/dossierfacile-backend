@@ -15,8 +15,6 @@ import java.util.Collections;
 @Configuration
 @EnableSwagger2
 public class SwaggerConfig {
-    private static final String LI = "<li>";
-    private static final String LI_CLOSE = "</li>";
 
     @Bean
     public Docket api() {
@@ -31,18 +29,13 @@ public class SwaggerConfig {
 
     private ApiInfo apiInfo() {
         return new ApiInfo(
-                "DossierFacile REST Document API",
-                "<h3>Description of the api</h3>\n" +
-                        "<div>\n" +
-                        "    <ul>\n" +
-                        LI + "\n" +
-                        "       TODO: (PUT HERE YOUR DESCRIPTION).\n" +
-                        LI_CLOSE + "\n" +
-                        "    </ul>\n" +
-                        "</div>",
+                "API Watermark",
+                "<h3>Cette API est ouverte, elle permet de protéger ses documents PDF par l'ajout d'un filigrane</h3>\n" +
+                        "<div> Les fichiers acceptés sont les : png, jpg et pdf</div>" +
+                        "<div> Le fichier en sortie est un PDF</div>",
                 "1.0",
                 "",
                 ApiInfo.DEFAULT_CONTACT,
-                "", "", Collections.emptyList());
+                "MIT", "", Collections.emptyList());
     }
 }
