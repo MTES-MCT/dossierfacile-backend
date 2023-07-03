@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd">
+
+    <changeSet id="202307030001-01" author="fle (manual)">
+        <createTable tableName="quota">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="email" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="endpoint_path" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="max_daily_requests" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="used_daily_requests" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="current_day" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="202307030001-02" author="fle (manual)">
+        <insert tableName="quota">
+            <column name="email" value="default"/>
+            <column name="endpoint_path" value="/documents/**"/>
+            <column name="max_daily_requests" value="5000"/>
+            <column name="used_daily_requests" value="0"/>
+            <column name="current_day" value="2023-07-03"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>
