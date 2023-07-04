@@ -9,26 +9,31 @@
 <body>
 
 <div layout:fragment="content" th:remove="tag">
-    <!--    <div th:replace="bo/menu :: menu">...</div>-->
-    <div class="" style="text-align: -webkit-center;font-size: 22px;padding-bottom: 13px;"><label style="color: red;" th:text="'Tenant With Failed Pdfs ' + '(' + ${tenantList.getNumberOfElements()} + ')'"></label></div>
     <div class="container">
+        <h3 style="color: red;" th:text="'PDFs en erreur (' + ${tenantList.getNumberOfElements()} + ')'"></h3>
         <div class="table-responsive">
             <table th:object="${tenantList}" id="userTable" class="table table-striped table-bordered table-hover">
                 <thead>
                 <tr>
+                    <td></td>
                     <td>Id</td>
-                    <td>Creation date</td>
-                    <td>First name</td>
-                    <td>Last Name</td>
+                    <td>Dernière modification</td>
+                    <td>Prénom</td>
+                    <td>Nom</td>
                     <td>Email</td>
-                    <td>Status</td>
+                    <td>Statut</td>
                 </tr>
                 </thead>
                 <tr th:each="tenant : ${tenantList}">
+                    <td><a class="btn btn-warning bo-btn" th:href="'/bo/nextApplication?tenant_id='+${tenant.getId()}">
+                        Traiter
+                    </a></td>
                     <td>
                         <span th:text="${tenant.getId()}"></span>
                     </td>
-                    <td th:utext="${tenant.getCreationDateTime()}"></td>
+                    <td
+                      th:with="formattedDate=${T(fr.gouv.bo.utils.DateFormatUtil).relativeToNow(tenant.getLastUpdateDate())}"
+                      th:text="${formattedDate}"></td>
                     <td th:text="${tenant.getFirstName()}"></td>
                     <td th:text="${tenant.getLastName()}"></td>
                     <td th:text="${tenant.getEmail()}"></td>
