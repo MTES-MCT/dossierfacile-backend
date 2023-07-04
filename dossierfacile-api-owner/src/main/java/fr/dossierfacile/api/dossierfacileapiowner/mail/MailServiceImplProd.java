@@ -105,6 +105,7 @@ public class MailServiceImplProd implements MailService {
         List<Tenant> tenants = tenantCommonRepository.findAllById(tenantIds);
         Optional<Tenant> tenant = tenants.stream().filter(t -> TenantType.CREATE.equals(t.getTenantType())).findAny();
         if (tenant.isEmpty()) {
+            log.error("Unable to find CREATE tenants {}", tenantIds);
             return;
         }
 

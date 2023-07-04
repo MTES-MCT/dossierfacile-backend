@@ -14,15 +14,19 @@ import lombok.NoArgsConstructor;
 import javax.validation.constraints.NotNull;
 
 import static fr.dossierfacile.common.enums.DocumentSubCategory.ALTERNATION;
+import static fr.dossierfacile.common.enums.DocumentSubCategory.ARTIST;
 import static fr.dossierfacile.common.enums.DocumentSubCategory.CDD;
 import static fr.dossierfacile.common.enums.DocumentSubCategory.CDI;
 import static fr.dossierfacile.common.enums.DocumentSubCategory.CDI_TRIAL;
 import static fr.dossierfacile.common.enums.DocumentSubCategory.CTT;
 import static fr.dossierfacile.common.enums.DocumentSubCategory.INDEPENDENT;
+import static fr.dossierfacile.common.enums.DocumentSubCategory.INTERMITTENT;
 import static fr.dossierfacile.common.enums.DocumentSubCategory.INTERNSHIP;
+import static fr.dossierfacile.common.enums.DocumentSubCategory.NO_ACTIVITY;
 import static fr.dossierfacile.common.enums.DocumentSubCategory.OTHER;
 import static fr.dossierfacile.common.enums.DocumentSubCategory.PUBLIC;
 import static fr.dossierfacile.common.enums.DocumentSubCategory.RETIRED;
+import static fr.dossierfacile.common.enums.DocumentSubCategory.STAY_AT_HOME_PARENT;
 import static fr.dossierfacile.common.enums.DocumentSubCategory.STUDENT;
 import static fr.dossierfacile.common.enums.DocumentSubCategory.UNEMPLOYED;
 
@@ -36,6 +40,7 @@ public class DocumentProfessionalForm extends DocumentForm {
 
     @NotNull
     @DocumentSubcategorySubset(anyOf =
-            {CDI, CDI_TRIAL, CDD, ALTERNATION, INTERNSHIP, STUDENT, PUBLIC, CTT, RETIRED, UNEMPLOYED, INDEPENDENT, OTHER})
+            {CDI, CDI_TRIAL, CDD, ALTERNATION, INTERNSHIP, STUDENT, PUBLIC, CTT, RETIRED, UNEMPLOYED, INDEPENDENT,
+                    INTERMITTENT, STAY_AT_HOME_PARENT, NO_ACTIVITY, ARTIST, OTHER})
     private DocumentSubCategory typeDocumentProfessional;
 }

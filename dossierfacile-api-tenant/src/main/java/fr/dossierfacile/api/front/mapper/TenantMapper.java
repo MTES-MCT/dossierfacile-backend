@@ -38,6 +38,8 @@ public abstract class TenantMapper {
     public abstract TenantModel toTenantModel(Tenant tenant);
 
     @Mapping(target = "name", expression = "java((document.getWatermarkFile() != null )? domain + \"/" + PATH + "/\" + document.getName() : null)")
+    @Mapping(target = "subCategory", source = "documentSubCategory")
+    @Mapping(target = "documentSubCategory", expression = "java(document.getDocumentSubCategory().getOnlyOldCategories())")
     public abstract DocumentModel toDocumentModel(Document document);
 
     @Mapping(target = "name", expression = "java((document.getWatermarkFile() != null )? domain + \"/" + PATH + "/\" + document.getName() : null)")

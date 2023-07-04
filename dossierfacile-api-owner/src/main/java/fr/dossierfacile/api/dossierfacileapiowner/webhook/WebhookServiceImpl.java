@@ -3,6 +3,7 @@ package fr.dossierfacile.api.dossierfacileapiowner.webhook;
 import fr.dossierfacile.api.dossierfacileapiowner.mail.MailService;
 import fr.dossierfacile.api.dossierfacileapiowner.property.PropertyRepository;
 import fr.dossierfacile.common.entity.Property;
+import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
 import fr.dossierfacile.common.model.apartment_sharing.TenantModel;
@@ -19,9 +20,11 @@ import java.util.stream.Collectors;
 public class WebhookServiceImpl implements WebhookService {
     private final PropertyRepository propertyRepository;
     private final MailService mailService;
+
     @Override
     public void handleWebhook(ApplicationModel applicationModel) {
-        if (applicationModel.getStatus() == TenantFileStatus.VALIDATED) {
+        if (applicationModel.getPartnerCallBackType() == PartnerCallBackType.VERIFIED_ACCOUNT
+                && applicationModel.getStatus() == TenantFileStatus.VALIDATED) {
             List<Long> tenantIds = applicationModel.getTenants().stream().map(TenantModel::getId).collect(Collectors.toList());
             List<Property> associatedProperties = propertyRepository.findAllByTenantIds(tenantIds);
             for (Property associatedProperty : associatedProperties) {

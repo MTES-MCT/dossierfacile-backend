@@ -6,6 +6,7 @@ import fr.dossierfacile.api.front.model.ListMetadata;
 import fr.dossierfacile.api.front.model.ResponseWrapper;
 import fr.dossierfacile.api.front.model.dfc.tenant.ConnectedTenantModel;
 import fr.dossierfacile.api.front.security.interfaces.ClientAuthenticationFacade;
+import fr.dossierfacile.api.front.service.interfaces.TenantPermissionsService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
@@ -14,9 +15,9 @@ import io.swagger.annotations.ApiOperation;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -38,6 +39,7 @@ public class DfcTenantsController {
     private final ClientAuthenticationFacade clientAuthenticationFacade;
     private final TenantService tenantService;
     private final TenantMapper tenantMapper;
+    private final TenantPermissionsService tenantPermissionsService;
 
     @ApiOperation(value = "Gets a list of tenants associated",
             notes = "Result is ordered by last_update_date. Use 'after' parameter to define a starting point")
@@ -61,10 +63,15 @@ public class DfcTenantsController {
     }
 
     @ApiOperation(value = "Gets tenant by ID")
-    @PreAuthorize("hasPermissionOnTenant(#tenantId)")
     @GetMapping(value = "/{tenantId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ConnectedTenantModel> get(@PathVariable Long tenantId) {
         Tenant tenant = tenantService.findById(tenantId);
+        if (tenant == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        if (!tenantPermissionsService.clientCanAccess(clientAuthenticationFacade.getKeycloakClientId(), tenant.getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         return ok(tenantMapper.toTenantModelDfc(tenant));
     }
 }
