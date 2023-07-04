@@ -74,7 +74,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/", "/login", "/login/auth/**", "/login/oauth2/**", "/actuator/health", "/assets/public/**")
                 .permitAll()
                 .antMatchers("/bo/userApi", "/bo/userApi/**", "/bo/admin", "/bo/admin/**", "/bo/statistic/admin", "/bo/timeServeTenant", "/bo/users", "/bo/users/**").access("hasAnyRole('ROLE_ADMIN')")
-                .antMatchers("/bo/**", "/bo")
+                .antMatchers("/bo/**", "/bo", "/documents/**")
                 .access("hasAnyRole('ROLE_OPERATOR','ROLE_ADMIN')")
                 .anyRequest()
                 .authenticated()
