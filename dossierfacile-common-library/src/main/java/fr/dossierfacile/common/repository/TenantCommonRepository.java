@@ -133,6 +133,7 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
                 AND d.processing_end_time IS NULL
                 AND d.processing_start_time < NOW() - INTERVAL '12' HOUR
             )
+            ORDER BY t.last_update_date DESC
             """, nativeQuery = true)
     Page<Tenant> findAllTenantsWithFailedGeneratedPdfDocument(Pageable pageable);
 

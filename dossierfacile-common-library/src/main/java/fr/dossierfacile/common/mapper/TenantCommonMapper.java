@@ -13,5 +13,7 @@ import org.springframework.stereotype.Component;
 public abstract class TenantCommonMapper {
     public abstract TenantModel toTenantModel(Tenant tenant);
     @Mapping(target = "name", expression = "java((document.getWatermarkFile() != null )? document.getWatermarkFile().getName() : null)")
+    @Mapping(target = "subCategory", source = "documentSubCategory")
+    @HideNewSubCategories
     public abstract DocumentModel toDocumentModel(Document document);
 }

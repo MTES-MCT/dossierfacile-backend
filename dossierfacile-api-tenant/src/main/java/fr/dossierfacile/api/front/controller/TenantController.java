@@ -21,7 +21,6 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.retry.policy.ExceptionClassifierRetryPolicy;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -81,13 +80,6 @@ public class TenantController {
         Tenant tenant = authenticationFacade.getLoggedTenant();
         Boolean allow = BooleanUtils.toBooleanObject(allowTax, "allow", "disallow", "");
         documentTaxService.updateAutomaticTaxVerificationConsent(tenant, allow);
-        if (allow && tenant.getFranceConnect()) {
-            try {
-                userService.checkDGFIPApi(tenant, franceConnectTaxForm);
-            } catch(Exception e){
-                log.error("Error during the check DGFIP process", e.getMessage());
-            }
-        }
         TenantModel tenantModel = tenantMapper.toTenantModel(tenant);
         return ok(tenantModel);
     }

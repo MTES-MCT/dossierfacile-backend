@@ -14,6 +14,8 @@ public interface ApplicationLightMapper extends ApartmentSharingMapper {
     ApplicationModel toApplicationModel(ApartmentSharing apartmentSharing);
 
     @Mapping(target = "name",  ignore = true)
+    @Mapping(target = "subCategory", source = "documentSubCategory")
+    @HideNewSubCategories
     DocumentModel documentToDocumentModel(Document document);
 
 

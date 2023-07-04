@@ -3,6 +3,8 @@ package fr.gouv.bo.configuration;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import fr.dossierfacile.common.utils.LocalDateTimeTypeAdapter;
+import fr.gouv.bo.service.QuotaService;
+import lombok.AllArgsConstructor;
 import nz.net.ultraq.thymeleaf.LayoutDialect;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +12,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -32,7 +35,10 @@ import java.util.concurrent.Executor;
 @EnableWebSecurity
 @EnableAsync
 @EnableGlobalMethodSecurity(securedEnabled = true, prePostEnabled = true)
+@AllArgsConstructor
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+
+    private QuotaService quotaService;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -64,10 +70,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .httpBasic()
                 .disable()
                 .authorizeRequests()
-                .antMatchers("/", "/login", "/login/auth/**", "/login/oauth2/**,", "/actuator/health", "/assets/public/**")
+                .antMatchers("/login", "/login/auth/**", "/login/oauth2/**", "/actuator/health", "/assets/public/**")
                 .permitAll()
                 .antMatchers("/bo/userApi", "/bo/userApi/**", "/bo/admin", "/bo/admin/**", "/bo/statistic/admin", "/bo/timeServeTenant", "/bo/users", "/bo/users/**").access("hasAnyRole('ROLE_ADMIN')")
-                .antMatchers("/bo/**", "/bo").access("hasAnyRole('ROLE_OPERATOR','ROLE_ADMIN')")
+                .antMatchers("/bo/**", "/bo", "/documents/**")
+                .access("hasAnyRole('ROLE_OPERATOR','ROLE_ADMIN')")
                 .anyRequest()
                 .authenticated()
                 .and()
@@ -79,6 +86,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID", "JWT", "_csrf");
         // @formatter:on
+    }
+
+    @Bean
+    public AccessDecisionManager accessDecisionManager() {
+        return new QuotaAccessDecisionManager(quotaService);
     }
 
     @Bean
