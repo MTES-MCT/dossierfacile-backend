@@ -73,6 +73,9 @@ public class FileStorageServiceImpl implements FileStorageService {
             storageFile.setPath(UUID.randomUUID().toString());
         }
 
+        if (inputStream.markSupported()) {
+            inputStream.mark(100000000);
+        }
         for (ObjectStorageProvider provider : providers) {
             try {
                 getStorageService(provider)
@@ -82,6 +85,11 @@ public class FileStorageServiceImpl implements FileStorageService {
                 break;
             } catch (RetryableOperationException e) {
                 log.warn("Provider " + provider + " Failed - Retry with the next provider if exists.", e);
+                if(inputStream.markSupported()) {
+                    inputStream.reset();
+                } else {
+                    break;
+                }
             }
         }
         if (storageFile.getProvider() == null)
