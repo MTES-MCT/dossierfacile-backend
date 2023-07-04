@@ -154,7 +154,8 @@ public class TenantService {
         LocalDateTime localDateTime = LocalDateTime.now().minusMinutes(timeReprocessApplicationMinutes);
         Tenant tenant;
         if (tenantId == null) {
-            Long operatorId = ((UserPrincipal) ((OAuth2AuthenticationToken) principal).getPrincipal()).getId();
+            UserPrincipal operator = (UserPrincipal) ((OAuth2AuthenticationToken) principal).getPrincipal();
+            Long operatorId = operator.getId();
             // check less than x process are currently starting during the n lastMinutes
             if (operatorLogRepository.countByOperatorIdAndActionOperatorTypeAndCreationDateGreaterThanEqual(operatorId, ActionOperatorType.START_PROCESS, LocalDateTime.now().minusMinutes(timeInterval)) > maxDossiersByInterval) {
                 throw new IllegalStateException("Vous ne pouvez pas ouvrir plus de " + maxDossiersByInterval + " dossiers pour traitement toutes les " + timeInterval + " minutes");
@@ -163,7 +164,9 @@ public class TenantService {
                 throw new IllegalStateException("Vous ne pouvez pas ouvrir plus de " + maxDossiersByDay + " dossiers par jour");
             }
 
-            if (((UserPrincipal) ((OAuth2AuthenticationToken) principal).getPrincipal()).getEmail().equals(specializedOperatorEmail)) {
+            List<String> specializedOperators = Arrays.asList(specializedOperatorEmail.split(","));
+            log.info("options: " + specializedOperators.contains(operator.getEmail()));
+            if (specializedOperators.contains(operator.getEmail())) {
                 tenant = tenantRepository.findNextApplicationByProfessional(localDateTime, Arrays.asList(DocumentSubCategory.CDI, DocumentSubCategory.PUBLIC));
                 if (tenant == null) {
                     tenant = tenantRepository.findNextApplication(localDateTime);
