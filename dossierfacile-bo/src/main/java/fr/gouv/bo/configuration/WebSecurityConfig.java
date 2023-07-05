@@ -3,32 +3,30 @@ package fr.gouv.bo.configuration;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import fr.dossierfacile.common.utils.LocalDateTimeTypeAdapter;
-import fr.gouv.bo.service.QuotaService;
+import fr.gouv.bo.security.QuotaAccessVoter;
 import lombok.AllArgsConstructor;
 import nz.net.ultraq.thymeleaf.LayoutDialect;
-import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.access.AccessDecisionManager;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.access.AccessDecisionVoter;
+import org.springframework.security.access.vote.UnanimousBased;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.oauth2.client.web.HttpSessionOAuth2AuthorizationRequestRepository;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.expression.WebExpressionVoter;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.context.request.RequestContextListener;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.Executor;
 
 @Configuration
@@ -36,13 +34,12 @@ import java.util.concurrent.Executor;
 @EnableAsync
 @EnableGlobalMethodSecurity(securedEnabled = true, prePostEnabled = true)
 @AllArgsConstructor
-public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+public class WebSecurityConfig {
 
-    private QuotaService quotaService;
+    private QuotaAccessVoter quotaAccessVoter;
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        // @formatter:off
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .addFilterBefore(new BOConnectionContextFilter(), FilterSecurityInterceptor.class)
                 .requiresChannel()
@@ -70,11 +67,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .httpBasic()
                 .disable()
                 .authorizeRequests()
+                .accessDecisionManager(accessDecisionManager())
                 .antMatchers("/login", "/login/auth/**", "/login/oauth2/**", "/actuator/health", "/assets/public/**")
                 .permitAll()
-                .antMatchers("/bo/userApi", "/bo/userApi/**", "/bo/admin", "/bo/admin/**", "/bo/statistic/admin", "/bo/timeServeTenant", "/bo/users", "/bo/users/**").access("hasAnyRole('ROLE_ADMIN')")
+                .antMatchers("/bo/userApi", "/bo/userApi/**", "/bo/admin", "/bo/admin/**", "/bo/statistic/admin", "/bo/timeServeTenant", "/bo/users", "/bo/users/**")
+                .hasRole("ADMIN")
                 .antMatchers("/bo/**", "/bo", "/documents/**")
-                .access("hasAnyRole('ROLE_OPERATOR','ROLE_ADMIN')")
+                .hasAnyRole("ADMIN", "OPERATOR")
                 .anyRequest()
                 .authenticated()
                 .and()
@@ -85,44 +84,24 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .logout()
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID", "JWT", "_csrf");
-        // @formatter:on
+
+        return http.build();
     }
 
     @Bean
     public AccessDecisionManager accessDecisionManager() {
-        return new QuotaAccessDecisionManager(quotaService);
+        List<AccessDecisionVoter<?>> decisionVoters = Arrays.asList(
+                new WebExpressionVoter(),
+                quotaAccessVoter
+        );
+        return new UnanimousBased(decisionVoters);
     }
 
-    @Bean
-    public HttpSessionOAuth2AuthorizationRequestRepository httpSessionOAuth2AuthorizationRequestRepository() {
-        return new HttpSessionOAuth2AuthorizationRequestRepository();
-    }
-
-    @Bean
-    public RequestContextListener requestContextListener() {
-        return new RequestContextListener();
-    }
-
-    @Bean
-    public BCryptPasswordEncoder bCryptPasswordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
 
     private CsrfTokenRepository csrfTokenRepository() {
         HttpSessionCsrfTokenRepository repository = new HttpSessionCsrfTokenRepository();
         repository.setSessionAttributeName("_csrf");
         return repository;
-    }
-
-    @Autowired
-    public void registerGlobalAuthentication(AuthenticationManagerBuilder auth) throws Exception {
-        auth.inMemoryAuthentication();
-    }
-
-    @Bean
-    @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return super.authenticationManagerBean();
     }
 
     @Bean
@@ -146,11 +125,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         GsonBuilder builder = new GsonBuilder();
         builder.registerTypeAdapter(LocalDateTime.class, new LocalDateTimeTypeAdapter());
         return builder.create();
-    }
-
-    @Bean
-    public ModelMapper modelMapper() {
-        return new ModelMapper();
     }
 
     @Bean
