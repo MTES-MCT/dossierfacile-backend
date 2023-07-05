@@ -23,7 +23,6 @@ import fr.gouv.bo.repository.UserRoleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.representations.idm.UserRepresentation;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -44,7 +43,6 @@ public class UserService {
     private final BOUserRepository userRepository;
     private final UserRoleRepository userRoleRepository;
     private final TenantCommonRepository tenantRepository;
-    private final ModelMapper modelMapper;
     private final MailService mailService;
     private final TenantMapper tenantMapper;
     private final AccountDeleteLogRepository accountDeleteLogRepository;
