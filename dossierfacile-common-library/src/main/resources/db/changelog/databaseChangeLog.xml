@@ -103,5 +103,6 @@
     <include file="db/migration/202306290000-create-indexes-on-tenant_userapi.xml" />
     <include file="db/migration/202307030000-create-index-on-property.xml" />
     <include file="db/migration/202307030001-create-quota.xml" />
+    <include file="db/migration/202307060000-add_property_log_table.xml" />
 
 </databaseChangeLog>
