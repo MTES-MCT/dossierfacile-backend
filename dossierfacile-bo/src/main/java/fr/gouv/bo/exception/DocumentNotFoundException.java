@@ -8,4 +8,8 @@ public class DocumentNotFoundException extends RuntimeException {
     public DocumentNotFoundException(Long id) {
         super("Could not find document with id " + id);
     }
+
+    public DocumentNotFoundException(String name) {
+        super("Could not find document with name " + name);
+    }
 }
