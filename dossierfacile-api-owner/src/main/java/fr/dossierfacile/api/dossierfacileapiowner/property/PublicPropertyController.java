@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
-import java.util.Map;
 import java.util.Optional;
 
 import static org.springframework.http.ResponseEntity.ok;
@@ -30,7 +29,9 @@ public class PublicPropertyController {
     @GetMapping("/{token}")
     public ResponseEntity<LightPropertyModel> get(@PathVariable String token) throws HttpResponseException {
         Optional<Property> property = propertyService.getPropertyByToken(token);
+
         if (property.isPresent()) {
+            propertyService.logAccess(property.get());
             return ok(ownerPropertyMapper.toLightPropertyModel(property.get()));
         }
         throw new HttpResponseException(404, "No property found");

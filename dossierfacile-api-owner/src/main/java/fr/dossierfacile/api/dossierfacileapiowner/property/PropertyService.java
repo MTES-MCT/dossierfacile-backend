@@ -18,4 +18,6 @@ public interface PropertyService {
     Optional<Property> getPropertyByToken(String token);
 
     void subscribeTenantToProperty(String token, String kcTenantToken);
+
+    void logAccess(Property property);
 }
