@@ -162,8 +162,9 @@
                                 <div class="modal-dialog" role="document">
                                     <div class="modal-content">
                                         <div class="modal-header" style="background: #f18686;padding: 10px;">
-                                            <h5 class="modal-title bold" style="width: 80%;float: left;">Confirm
-                                                delete</h5>
+                                            <h5 class="modal-title bold" style="width: 80%;float: left;">
+                                                Confirmation
+                                            </h5>
                                             <button aria-label="Close" class="close" data-dismiss="modal"
                                                     type="button">
                                                 <span aria-hidden="true">&times;</span>
@@ -171,17 +172,19 @@
                                         </div>
                                         <div class="modal-body"
                                              style="background: aliceblue;text-shadow: 0 0 black;">
-                                            <p>Are you sure you want delete this ApartmentSharing and all tenants ?</p>
+                                            <p>Êtes-vous sûr de vouloir supprimer ce dossier ainsi que tous ses candidats ?</p>
                                         </div>
                                         <div class="modal-footer" style="background: aliceblue;padding: 5px;">
                                             <a class="btn btn-primary"
                                                id="idRefApt"
                                                style="border-radius: 50px;font-size: 15px;line-height: 1;padding: 5px 8px 7px;"
-                                               th:href="@{/bo/tenant/deleteApartmentSharing/} + ${tenantPrincipal.getId()}">Delete</a>
+                                               th:href="@{/bo/tenant/deleteApartmentSharing/} + ${tenantPrincipal.getId()}">
+                                                Oui
+                                            </a>
                                             <button class="btn btn-secondary" data-dismiss="modal"
                                                     style="border-radius: 50px;font-size: 15px;line-height: 1;padding: 5px 8px 7px;"
                                                     type="button">
-                                                Close
+                                                Annuler
                                             </button>
                                         </div>
                                     </div>
@@ -244,7 +247,7 @@
                                             th:id="'form-denied' + ${tenant.getId()}"
                                             th:method="post">
                                         <button class="btn btn-danger bo-btn" name="action" type="submit">
-                                            Décline
+                                            Refuser le dossier
                                         </button>
                                     </form>
                                     <a class="btn btn-success bo-btn" data-toggle="modal"
@@ -313,8 +316,9 @@
                                     <div class="modal-dialog" role="document">
                                         <div class="modal-content">
                                             <div class="modal-header" style="background: lavender;padding: 10px;">
-                                                <h5 class="modal-title bold" style="width: 80%;float: left;">Confirm
-                                                    delete</h5>
+                                                <h5 class="modal-title bold" style="width: 80%;float: left;">
+                                                    Confirmation
+                                                </h5>
                                                 <button aria-label="Close" class="close" data-dismiss="modal"
                                                         type="button">
                                                     <span aria-hidden="true">&times;</span>
@@ -322,17 +326,22 @@
                                             </div>
                                             <div class="modal-body"
                                                  style="background: aliceblue;text-shadow: 0 0 black;">
-                                                <p>Are you sure you want delete this tenant ?</p>
+                                                <p>
+                                                    Êtes-vous sûr de vouloir supprimer le dossier de
+                                                    <span th:text="${tenant.getFullName()}"></span> ?
+                                                </p>
                                             </div>
                                             <div class="modal-footer" style="background: aliceblue;padding: 5px;">
                                                 <a class="btn btn-primary"
                                                    style="border-radius: 50px;font-size: 15px;line-height: 1;padding: 5px 8px 7px;"
                                                    th:href="@{/bo/tenant/deleteCoTenant/} + ${tenant.getId()}"
-                                                   th:id="'deleteRefCo' + ${tenant.getId()}">Delete</a>
+                                                   th:id="'deleteRefCo' + ${tenant.getId()}">
+                                                    Oui
+                                                </a>
                                                 <button class="btn btn-secondary" data-dismiss="modal"
                                                         style="border-radius: 50px;font-size: 15px;line-height: 1;padding: 5px 8px 7px;"
                                                         type="button">
-                                                    Close
+                                                    Annuler
                                                 </button>
                                             </div>
                                         </div>
@@ -368,15 +377,15 @@
                                     <td th:text="${tenant.getId()}"></td>
                                 </tr>
                                 <tr>
-                                    <td>First Name</td>
+                                    <td>Prénom</td>
                                     <td th:text="${tenant.getFirstName()}"></td>
                                 </tr>
                                 <tr>
-                                    <td>Last Name</td>
+                                    <td>Nom</td>
                                     <td th:text="${tenant.getLastName()}"></td>
                                 </tr>
                                 <tr>
-                                    <td>Preferred Name</td>
+                                    <td>Nom d'usage</td>
                                     <td th:text="${tenant.getPreferredName()}"></td>
                                 </tr>
                                 <tr>
@@ -387,15 +396,18 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td>ZipCode</td>
+                                    <td>Code postal</td>
                                     <td th:text="${tenant.getZipCode()}"></td>
                                 </tr>
                                 <tr>
-                                    <td>Tenant type</td>
-                                    <td th:text="${tenant.getTenantType()}"></td>
+                                    <td>Type de compte</td>
+                                    <td th:text="${tenant.getTenantType().toString() == 'CREATE' ?
+                                        'Utilisateur principal (initiateur du dossier)' :
+                                        'Utilisateur invité (pas initiateur du dossier)'}">
+                                    </td>
                                 </tr>
                                 <tr>
-                                    <td>Tenant Status</td>
+                                    <td>Statut du dossier</td>
                                     <td th:text="${tenant.getStatus()}"></td>
                                 </tr>
                             </table>
@@ -405,10 +417,10 @@
 
                             <table class="table table-striped table-bordered table-hover">
                                 <tr>
-                                    <td>Type guarantor</td>
-                                    <td>First name</td>
-                                    <td>Last name</td>
-                                    <td>Legal person name</td>
+                                    <td>Type de garant</td>
+                                    <td>Prénom</td>
+                                    <td>Nom</td>
+                                    <td>Nom de la personne morale</td>
                                 </tr>
                                 <tr th:each="guarantor : ${tenant.getGuarantors()}">
                                     <td th:text="${guarantor.getTypeGuarantor()}"></td>
@@ -422,11 +434,11 @@
                         <div class="table-responsive">
                             <table class="table table-striped table-bordered table-hover">
                                 <tr>
-                                    <td style="width: 20%">Honor Declaration</td>
+                                    <td style="width: 20%">Déclaration sur l'honneur</td>
                                     <td th:text="${tenant.getHonorDeclaration()}"></td>
                                 </tr>
                                 <tr>
-                                    <td>Clarification</td>
+                                    <td>Mot du locataire</td>
                                     <td th:text="${tenant.getClarification()}"></td>
                                 </tr>
                             </table>
@@ -622,8 +634,9 @@
                                     <div class="modal-dialog" role="document">
                                         <div class="modal-content">
                                             <div class="modal-header" style="background: lavender;padding: 10px;">
-                                                <h5 class="modal-title bold" style="width: 80%;float: left;">Confirm
-                                                    delete</h5>
+                                                <h5 class="modal-title bold" style="width: 80%;float: left;">
+                                                    Confirmation
+                                                </h5>
                                                 <button aria-label="Close" class="close" data-dismiss="modal"
                                                         type="button">
                                                     <span aria-hidden="true">&times;</span>
@@ -631,17 +644,19 @@
                                             </div>
                                             <div class="modal-body"
                                                  style="background: aliceblue;text-shadow: 0 0 black;">
-                                                <p>Are you sure you want delete this document ?</p>
+                                                <p>Êtes-vous sûr de vouloir supprimer ce document ?</p>
                                             </div>
                                             <div class="modal-footer" style="background: aliceblue;padding: 5px;">
                                                 <a class="btn btn-primary"
                                                    style="border-radius: 50px;font-size: 15px;line-height: 1;padding: 5px 8px 7px;"
                                                    th:href="@{/bo/tenant/delete/document/} + ${document.getId()}"
-                                                   th:id="'deleteRef' + ${document.getId()}">Delete</a>
+                                                   th:id="'deleteRef' + ${document.getId()}">
+                                                    Oui
+                                                </a>
                                                 <button class="btn btn-secondary" data-dismiss="modal"
                                                         style="border-radius: 50px;font-size: 15px;line-height: 1;padding: 5px 8px 7px;"
                                                         type="button">
-                                                    Close
+                                                    Annuler
                                                 </button>
                                             </div>
                                         </div>
@@ -650,7 +665,7 @@
                             </div>
                         </div>
 
-                        <h3 th:unless="${tenant.getGuarantors().isEmpty()}">Guarantors</h3>
+                        <h3 th:unless="${tenant.getGuarantors().isEmpty()}">Garants</h3>
                         <div class="medium-space-separator" th:each="guarantor : ${tenant.getGuarantors()}">
                             <span style="display: ruby-text;">
                                 <h4 th:text="${guarantor.getTypeGuarantor()}"></h4>
