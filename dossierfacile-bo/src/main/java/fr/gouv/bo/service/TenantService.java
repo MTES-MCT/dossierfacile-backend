@@ -165,7 +165,6 @@ public class TenantService {
             }
 
             List<String> specializedOperators = Arrays.asList(specializedOperatorEmail.split(","));
-            log.info("options: " + specializedOperators.contains(operator.getEmail()));
             if (specializedOperators.contains(operator.getEmail())) {
                 tenant = tenantRepository.findNextApplicationByProfessional(localDateTime, Arrays.asList(DocumentSubCategory.CDI, DocumentSubCategory.PUBLIC));
                 if (tenant == null) {
@@ -753,8 +752,8 @@ public class TenantService {
         return tenantRepository.countAllTenantsWithFailedGeneratedPdfDocument();
     }
 
-    public Page<Tenant> getAllTenantsWithFailedGeneratedPdfDocument(Pageable pageable) {
-        return new PageImpl<>(tenantRepository.findAllTenantsWithFailedGeneratedPdfDocument(pageable).toList());
+    public Page<Tenant> getAllTenantsToProcessWithFailedGeneratedPdfDocument(Pageable pageable) {
+        return new PageImpl<>(tenantRepository.findAllTenantsToProcessWithFailedGeneratedPdfDocument(pageable).toList());
     }
 
     public long countTenantsWithStatusInToProcess() {
