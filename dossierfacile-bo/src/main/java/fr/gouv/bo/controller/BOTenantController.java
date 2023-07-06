@@ -242,6 +242,7 @@ public class BOTenantController {
                         .documentSubCategory(document.getDocumentSubCategory())
                         .itemDetailList(getItemDetailForSubcategoryOfDocument(document.getDocumentSubCategory(), TENANT))
                         .documentId(document.getId())
+                        .documentName(document.getName())
                         .analyzedFiles(DisplayableFile.onlyAnalyzedFilesOf(document))
                         .build());
             }
@@ -269,6 +270,7 @@ public class BOTenantController {
                             .documentSubCategory(document.getDocumentSubCategory())
                             .itemDetailList(getItemDetailForSubcategoryOfDocument(document.getDocumentSubCategory(), GUARANTOR))
                             .documentId(document.getId())
+                            .documentName(document.getName())
                             .analyzedFiles(DisplayableFile.onlyAnalyzedFilesOf(document))
                             .build());
                 }

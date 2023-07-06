@@ -41,4 +41,5 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
     @Query("UPDATE Document d SET d.documentDeniedReasons = :documentDeniedReasons where d.id = :documentId")
     void updateDocumentWithDocumentDeniedReasons(@Param("documentDeniedReasons") DocumentDeniedReasons documentDeniedReasons, @Param("documentId") Long documentId);
 
+    Optional<Document> findByName(String name);
 }

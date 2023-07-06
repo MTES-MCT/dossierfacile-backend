@@ -44,6 +44,10 @@ public class DocumentService {
         return documentRepository.findById(documentId).orElseThrow(() -> new DocumentNotFoundException(documentId));
     }
 
+    public Document findDocumentByName(String documentName) {
+        return documentRepository.findByName(documentName).orElseThrow(() -> new DocumentNotFoundException(documentName));
+    }
+
     public Tenant deleteDocument(Long documentId) {
         Document document = findDocumentById(documentId);
 
