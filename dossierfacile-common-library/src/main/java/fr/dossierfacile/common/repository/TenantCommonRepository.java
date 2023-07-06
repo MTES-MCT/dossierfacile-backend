@@ -115,7 +115,7 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
             SELECT *
             FROM tenant t
             JOIN user_account u ON t.id = u.id
-            WHERE t.id IN (
+            WHERE t.status = 'TO_PROCESS' AND t.id IN (
               SELECT t2.id
               FROM tenant t2
               JOIN document d ON d.tenant_id = t2.id
@@ -135,7 +135,7 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
             )
             ORDER BY t.last_update_date DESC
             """, nativeQuery = true)
-    Page<Tenant> findAllTenantsWithFailedGeneratedPdfDocument(Pageable pageable);
+    Page<Tenant> findAllTenantsToProcessWithFailedGeneratedPdfDocument(Pageable pageable);
 
     long countAllByStatus(TenantFileStatus tenantFileStatus);
     //endregion

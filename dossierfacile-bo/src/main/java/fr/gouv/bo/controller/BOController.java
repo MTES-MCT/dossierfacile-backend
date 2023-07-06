@@ -126,7 +126,7 @@ public class BOController {
             val = page.get() - 1;
         }
         int evalPage = (page.orElse(0) < 1) ? INITIAL_PAGE : val;
-        Page<Tenant> tenants = tenantService.getAllTenantsWithFailedGeneratedPdfDocument(PageRequest.of(evalPage, evalPageSize));
+        Page<Tenant> tenants = tenantService.getAllTenantsToProcessWithFailedGeneratedPdfDocument(PageRequest.of(evalPage, evalPageSize));
         Pager pager = new Pager(tenants.getTotalPages(), tenants.getNumber(), BUTTONS_TO_SHOW);
         model.addAttribute(EMAIL, emailDTO);
         model.addAttribute(PAGER, pager);
