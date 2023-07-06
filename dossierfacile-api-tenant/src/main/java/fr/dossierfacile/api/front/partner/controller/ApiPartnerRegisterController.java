@@ -68,7 +68,7 @@ public class ApiPartnerRegisterController {
         logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
         return ok(tenantModel);
     }
-
+    @ApiOperation("En cas de couple(COUPLE), le nom et le prénom sont requis mais pas l'email.<br/>En cas de colocation(GROUP): nom, prénom et email sont requis")
     @PreAuthorize("hasPermissionOnTenant(#applicationForm.tenantId)")
     @PostMapping(value = "/application/v2", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TenantModel> application(@Validated(ApiPartner.class) @RequestBody ApplicationFormV2 applicationForm) {
