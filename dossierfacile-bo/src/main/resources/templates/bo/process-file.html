@@ -32,10 +32,9 @@
                            th:href="@{/bo/colocation/} + ${tenant.getApartmentSharing().getId()} + '#tenant' + ${tenant.getId()}">
                             Voir le Dossier
                         </a>
-                        <a class="btn btn-success bo-btn"
+                        <a class="btn btn-warning bo-btn" th:classappend="${newMessage ? 'btn-danger' : 'btn-warning'}"
                            th:href="@{/bo/colocation/} + ${tenant.getApartmentSharing().getId()} + '#tenant-message' + ${tenant.getId()}"
-                           th:if="${newMessage}">
-                            Voir les messages
+                           th:text="${newMessage ? 'Voir les messages non lus' : 'Voir la messagerie'}">
                         </a>
                     </div>
                 </div>
