@@ -4,14 +4,15 @@ import fr.dossierfacile.common.entity.EncryptionKey;
 import fr.dossierfacile.common.exceptions.OvhConnectionFailedException;
 import fr.dossierfacile.common.exceptions.RetryableOperationException;
 import fr.dossierfacile.common.service.interfaces.FileStorageProviderService;
-import io.sentry.Sentry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.api.exceptions.AuthenticationException;
 import org.openstack4j.api.exceptions.ClientResponseException;
+import org.openstack4j.api.exceptions.ConnectionException;
 import org.openstack4j.model.common.Identifier;
+import org.openstack4j.model.common.Payload;
 import org.openstack4j.model.common.Payloads;
 import org.openstack4j.model.storage.object.SwiftObject;
 import org.openstack4j.openstack.OSFactory;
@@ -32,8 +33,6 @@ import java.security.Key;
 @Slf4j
 @Profile("!mockOvh")
 public class OvhFileStorageServiceImpl implements FileStorageProviderService {
-    private static final String EXCEPTION = "Sentry ID Exception: ";
-
     @Value("${ovh.project.domain:default}")
     private String ovhProjectDomain;
     @Value("${ovh.auth.url:default}")
@@ -50,52 +49,59 @@ public class OvhFileStorageServiceImpl implements FileStorageProviderService {
     private String ovhContainerName;
     @Value("${ovh.connection.reattempts:3}")
     private Integer ovhConnectionReattempts;
-    private String tokenId;
+    private final ThreadLocal<OSClient.OSClientV3> osClientThreadLocal = new ThreadLocal<>();
 
-    private OSClient.OSClientV3 connect() {
-        Identifier domainIdentifier = Identifier.byId(ovhProjectDomain);
-
+    private synchronized OSClient.OSClientV3 authenticate() {
+        osClientThreadLocal.set(null);
         for (int i = 0; i <= ovhConnectionReattempts; i++) {
             try {
-                OSClient.OSClientV3 os;
-                if (tokenId == null) {
-                    os = OSFactory.builderV3()
-                            .endpoint(ovhAuthUrl)
-                            .credentials(ovhUsername, ovhPassword, domainIdentifier)
-                            .scopeToProject(Identifier.byName(ovhProjectName), Identifier.byName(ovhProjectDomain))
-                            .authenticate();
-                    os.useRegion(ovhRegion);
-                    tokenId = os.getToken().getId();
-                } else {
-                    os = OSFactory.builderV3()
-                            .endpoint(ovhAuthUrl)
-                            .token(tokenId)
-                            .scopeToProject(Identifier.byName(ovhProjectName), Identifier.byName(ovhProjectDomain))
-                            .authenticate();
-                    os.useRegion(ovhRegion);
-                }
-                return os;
+                osClientThreadLocal.set(OSFactory.builderV3()
+                        .endpoint(ovhAuthUrl)
+                        .credentials(ovhUsername, ovhPassword, Identifier.byId(ovhProjectDomain))
+                        .scopeToProject(Identifier.byName(ovhProjectName), Identifier.byName(ovhProjectDomain))
+                        .authenticate());
+                osClientThreadLocal.get().useRegion(ovhRegion);
+
             } catch (AuthenticationException | ClientResponseException e) {
-                log.error("ObjectStorage authentication failed - reset tokenId. (" + i + "/" + ovhConnectionReattempts + ")" + EXCEPTION + Sentry.captureException(e), e);
-                tokenId = null;
-            } catch (Exception e) {
-                log.error("ObjectStorage failed. (" + i + "/" + ovhConnectionReattempts + ")" + EXCEPTION + Sentry.captureException(e), e);
+                log.error("ObjectStorage authentication failed.", e);
+                break;
+            } catch (ConnectionException e) {
+                log.error("ObjectStorage failed. (" + i + "/" + ovhConnectionReattempts + ")", e);
             }
         }
-        throw new OvhConnectionFailedException("ObjectStorage Max attempts reached ");
+        if (osClientThreadLocal.get() == null) {
+            throw new OvhConnectionFailedException("ObjectStorage Max attempts reached ");
+        }
+        return osClientThreadLocal.get();
+    }
+
+    private OSClient.OSClientV3 getClient() {
+        if (osClientThreadLocal.get() != null) return osClientThreadLocal.get();
+        return authenticate();
     }
 
     @Override
     @Async
-    public void delete(String name) {
-        connect().objectStorage().objects().delete(ovhContainerName, name);
+    public void delete(String path) {
+        try {
+            getClient().objectStorage().objects().delete(ovhContainerName, path);
+        } catch (AuthenticationException e) {
+            log.error("ObjectStorage authentication failed.", e);
+            authenticate().objectStorage().objects().delete(ovhContainerName, path);
+        }
     }
 
     @Override
     public InputStream download(String path, Key key) throws IOException {
-        SwiftObject object = connect().objectStorage().objects().get(ovhContainerName, path);
-        if (object == null)
-            throw new FileNotFoundException("File " + path + " not found");
+        SwiftObject object;
+        try {
+            object = getClient().objectStorage().objects().get(ovhContainerName, path);
+        } catch (AuthenticationException e) {
+            log.error("ObjectStorage authentication failed.", e);
+            object = authenticate().objectStorage().objects().get(ovhContainerName, path);
+        }
+
+        if (object == null) throw new FileNotFoundException("File " + path + " not found");
 
         InputStream in = object.download().getInputStream();
         if (key != null) {
@@ -134,15 +140,19 @@ public class OvhFileStorageServiceImpl implements FileStorageProviderService {
                 throw new RetryableOperationException("Unable to encrypt file", e);
             }
         }
+
+        String eTag;
+        Payload<InputStream> payload = Payloads.create(inputStream);
         try {
-            String eTag = connect().objectStorage().objects().put(ovhContainerName, ovhPath, Payloads.create(inputStream));
-            if (StringUtils.isEmpty(eTag)) {
-                throw new IOException("ETag is empty - download failed!" + ovhPath);
-            }
+            eTag = getClient().objectStorage().objects().put(ovhContainerName, ovhPath, payload);
+        } catch (AuthenticationException e) {
+            log.error("ObjectStorage authentication failed.", e);
+            eTag = authenticate().objectStorage().objects().put(ovhContainerName, ovhPath, payload);
         } catch (OvhConnectionFailedException e) {
             throw new RetryableOperationException("Ovh Connection Failed", e);
         }
-
-
+        if (StringUtils.isEmpty(eTag)) {
+            throw new IOException("ETag is empty - download failed!" + ovhPath);
+        }
     }
 }
