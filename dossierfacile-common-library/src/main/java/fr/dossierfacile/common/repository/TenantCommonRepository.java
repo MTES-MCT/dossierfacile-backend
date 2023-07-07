@@ -198,29 +198,11 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
             FROM Tenant t
             JOIN Log l ON t.id = l.tenantId
             LEFT JOIN TenantUserApi tu ON t.id = tu.tenant.id
-            WHERE t.linkedKeycloakClients IS NULL
-              AND tu.tenant.id IS NULL
-              AND l.creationDateTime BETWEEN :startDate AND :endDate
+            WHERE l.creationDateTime BETWEEN :startDate AND :endDate
               AND l.logType = 'ACCOUNT_VALIDATED'
             """
     )
-    List<Tenant> findAllTenantsNotAssociatedToPartnersAndValidatedSinceXDaysAgo(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
-
-    @Query(
-            "select distinct t from Tenant t " +
-                    " join Log l on t.id = l.tenantId " +
-                    " where " +
-                    " ( " +
-                    "     t.linkedKeycloakClients is not null " +
-                    "     or " +
-                    "     t.id in (select tu.tenant.id from TenantUserApi tu)" +
-                    " ) " +
-                    " and " +
-                    " l.creationDateTime between :startDate and :endDate " +
-                    " and " +
-                    " l.logType = 'ACCOUNT_VALIDATED' "
-    )
-    List<Tenant> findAllTenantsYESAssociatedToPartnersAndValidatedSinceXDaysAgo(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+    List<Tenant> findAllTenantsValidatedSinceXDaysAgo(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 
     @Query(value = "from Tenant t " +
             "where t.lastLoginDate < :localDateTime " +

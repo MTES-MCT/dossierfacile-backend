@@ -3,6 +3,7 @@ package fr.dossierfacile.api.front.service;
 import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.api.front.service.interfaces.ScheduledTasksService;
 import fr.dossierfacile.api.front.service.interfaces.StatsService;
+import fr.dossierfacile.common.entity.ConfirmationToken;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
@@ -17,9 +18,14 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
+//
+// TODO Attention cela n'est pas compatible avec plusieurs instance !!!
+//
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -28,6 +34,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
     private final ConfirmationTokenRepository confirmationTokenRepository;
     private final MailService mailService;
     private final StatsService statsService;
+    private final Object sendEmailLock = new Object();
     @Value("${days_for_email_account_validation_reminder}")
     private Long daysForEmailAccountValidationReminder;
     @Value("${days_for_account_completion_reminder}")
@@ -37,137 +44,101 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
     @Value("${days_for_satisfaction_email}")
     private Long daysForSatisfactionEmail;
 
-    /**
-     * Email notifications, if needed, will begin at 12:10 am every day
-     */
     @Scheduled(cron = "0 10 0 * * ?")
-    public void sendRemindingEmailNotifications() {
-        try {
-            emailAccountValidationReminder();
-        } catch (Exception e) {
-            log.error(e.getMessage(), Sentry.captureException(e));
-        }
-        try {
-            accountCompletionReminder();
-        } catch (Exception e) {
-            log.error(e.getMessage(), Sentry.captureException(e));
-        }
-        try {
-            accountDeclinationReminder();
-        } catch (Exception e) {
-            log.error(e.getMessage(), Sentry.captureException(e));
-        }
-        try {
-            satisfactionEmails();
-        } catch (Exception e) {
-            log.error(e.getMessage(), Sentry.captureException(e));
-        }
-    }
-
     @Override
     public void emailAccountValidationReminder() {
-        LocalDateTime startDate = LocalDateTime.now()
-                .minusDays(daysForEmailAccountValidationReminder)
-                .withHour(0)
-                .withMinute(0)
-                .withSecond(0);
-        LocalDateTime endDate = LocalDateTime.now()
-                .minusDays(daysForEmailAccountValidationReminder)
-                .withHour(23)
-                .withMinute(59)
-                .withSecond(59);
-        List<Tenant> tenantsToNotificate = tenantRepository.findAllByEnabledIsFalseAndCreationDateTimeIsBetween(startDate, endDate);
-        if (tenantsToNotificate != null && tenantsToNotificate.size() > 0) {
-            log.info(tenantsToNotificate.size() + " tenants found, to be notified because account email not yet validated after " + daysForEmailAccountValidationReminder + " days of account registration");
-            for (Tenant tenant : tenantsToNotificate) {
-                confirmationTokenRepository.findByUser(tenant)
-                        .ifPresent(confirmationToken -> mailService.sendEmailWhenEmailAccountNotYetValidated(tenant, confirmationToken));
+        synchronized (sendEmailLock) {
+            try {
+                LocalDateTime startDate = LocalDateTime.now().minusDays(daysForEmailAccountValidationReminder).with(LocalTime.MIN);
+                LocalDateTime endDate = LocalDateTime.now().minusDays(daysForEmailAccountValidationReminder).with(LocalTime.MAX);
+
+                List<Tenant> tenantsToNotificate = tenantRepository.findAllByEnabledIsFalseAndCreationDateTimeIsBetween(startDate, endDate);
+                if (tenantsToNotificate != null && tenantsToNotificate.size() > 0) {
+                    log.info(tenantsToNotificate.size() + " tenants found, to be notified because account email not yet validated after " + daysForEmailAccountValidationReminder + " days of account registration");
+                    for (Tenant tenant : tenantsToNotificate) {
+                        Optional<ConfirmationToken> optional = confirmationTokenRepository.findByUser(tenant);
+                        if (optional.isPresent()) {
+                            mailService.sendEmailWhenEmailAccountNotYetValidated(tenant, optional.get());
+                            Thread.sleep(1000);// avoid to spam - softBounce
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                log.error(e.getMessage() + Sentry.captureException(e), e);
             }
         }
     }
 
+    @Scheduled(cron = "1 10 0 * * ?")
     @Override
     public void accountCompletionReminder() {
-        LocalDateTime startDate = LocalDateTime.now()
-                .minusDays(daysForAccountCompletionReminder)
-                .withHour(0)
-                .withMinute(0)
-                .withSecond(0);
-        LocalDateTime endDate = LocalDateTime.now()
-                .minusDays(daysForAccountCompletionReminder)
-                .withHour(23)
-                .withMinute(59)
-                .withSecond(59);
-        List<Tenant> tenantsToNotificate = tenantRepository.findAllByHonorDeclarationIsFalseAndCompletionDateTimeIsBetween(startDate, endDate);
-        if (tenantsToNotificate != null && tenantsToNotificate.size() > 0) {
-            log.info(tenantsToNotificate.size() + " tenants found, to be notified because account not yet completed after " + daysForAccountCompletionReminder + " days of account email validation");
-            for (Tenant tenant : tenantsToNotificate) {
-                mailService.sendEmailWhenAccountNotYetCompleted(tenant);
+        synchronized (sendEmailLock) {
+            try {
+                LocalDateTime startDate = LocalDateTime.now().minusDays(daysForAccountCompletionReminder).with(LocalTime.MIN);
+                LocalDateTime endDate = LocalDateTime.now().minusDays(daysForAccountCompletionReminder).with(LocalTime.MAX);
+
+                List<Tenant> tenantsToNotificate = tenantRepository.findAllByHonorDeclarationIsFalseAndCompletionDateTimeIsBetween(startDate, endDate);
+                if (tenantsToNotificate != null && tenantsToNotificate.size() > 0) {
+                    log.info(tenantsToNotificate.size() + " tenants found, to be notified because account not yet completed after " + daysForAccountCompletionReminder + " days of account email validation");
+                    for (Tenant tenant : tenantsToNotificate) {
+                        mailService.sendEmailWhenAccountNotYetCompleted(tenant);
+                        Thread.sleep(1000);// avoid to spam - softBounce
+                    }
+                }
+            } catch (Exception e) {
+                log.error(e.getMessage() + Sentry.captureException(e), e);
             }
         }
     }
 
+    @Scheduled(cron = "2 10 0 * * ?")
     @Override
     public void accountDeclinationReminder() {
-        LocalDateTime startDate = LocalDateTime.now()
-                .minusDays(daysForAccountDeclinationReminder)
-                .withHour(0)
-                .withMinute(0)
-                .withSecond(0);
-        LocalDateTime endDate = LocalDateTime.now()
-                .minusDays(daysForAccountDeclinationReminder)
-                .withHour(23)
-                .withMinute(59)
-                .withSecond(59);
-        List<Tenant> tenantsToNotificate = tenantRepository.findAllDeclinedSinceXDaysAgo(startDate, endDate);
-        if (tenantsToNotificate != null && tenantsToNotificate.size() > 0) {
-            log.info(tenantsToNotificate.size() + " tenants found, to be notified because account is still declination after " + daysForAccountCompletionReminder + " days of account declined");
-            for (Tenant tenant : tenantsToNotificate) {
-                if (StringUtils.isNotBlank(tenant.getEmail())) {
-                    mailService.sendEmailWhenAccountIsStillDeclined(tenant);
+        synchronized (sendEmailLock) {
+            try {
+                LocalDateTime startDate = LocalDateTime.now().minusDays(daysForAccountDeclinationReminder).with(LocalTime.MIN);
+                LocalDateTime endDate = LocalDateTime.now().minusDays(daysForAccountDeclinationReminder).with(LocalTime.MAX);
+
+                List<Tenant> tenantsToNotificate = tenantRepository.findAllDeclinedSinceXDaysAgo(startDate, endDate);
+                if (tenantsToNotificate != null && tenantsToNotificate.size() > 0) {
+                    log.info(tenantsToNotificate.size() + " tenants found, to be notified because account is still declination after " + daysForAccountCompletionReminder + " days of account declined");
+                    for (Tenant tenant : tenantsToNotificate) {
+                        if (StringUtils.isNotBlank(tenant.getEmail())) {
+                            mailService.sendEmailWhenAccountIsStillDeclined(tenant);
+                            Thread.sleep(1000);// avoid to spam - softBounce
+                        }
+                        if (tenant.getApartmentSharing().getApplicationType() == ApplicationType.COUPLE) {
+                            tenant.getApartmentSharing().getTenants().stream().filter(user -> !Objects.equals(user.getId(), tenant.getId()) && StringUtils.isNotBlank(user.getEmail()) && user.getStatus() == TenantFileStatus.VALIDATED).forEach(mailService::sendEmailWhenAccountIsStillDeclined);
+                        }
+                    }
                 }
-                if (tenant.getApartmentSharing().getApplicationType() == ApplicationType.COUPLE) {
-                    tenant.getApartmentSharing().getTenants().stream()
-                            .filter(user ->
-                                    !Objects.equals(user.getId(), tenant.getId())
-                                            && StringUtils.isNotBlank(user.getEmail())
-                                            && user.getStatus() == TenantFileStatus.VALIDATED)
-                            .forEach(mailService::sendEmailWhenAccountIsStillDeclined);
-                }
+            } catch (Exception e) {
+                log.error(e.getMessage() + Sentry.captureException(e), e);
             }
         }
     }
 
+    @Scheduled(cron = "3 10 0 * * ?")
     @Override
     public void satisfactionEmails() {
-        LocalDateTime startDate = LocalDateTime.now()
-                .minusDays(daysForSatisfactionEmail)
-                .withHour(0)
-                .withMinute(0)
-                .withSecond(0);
-        LocalDateTime endDate = LocalDateTime.now()
-                .minusDays(daysForSatisfactionEmail)
-                .withHour(23)
-                .withMinute(59)
-                .withSecond(59);
-        //region Notification to Tenants NOT associated to any partner
-        List<Tenant> tenantsToNotificate1 = tenantRepository.findAllTenantsNotAssociatedToPartnersAndValidatedSinceXDaysAgo(startDate, endDate);
-        if (tenantsToNotificate1 != null && tenantsToNotificate1.size() > 0) {
-            log.info(tenantsToNotificate1.size() + " tenants NOT associated to partners and validated since  " + daysForSatisfactionEmail + " days ago");
-            for (Tenant tenant : tenantsToNotificate1) {
-                mailService.sendEmailWhenTenantNOTAssociatedToPartnersAndValidatedXDaysAgo(tenant);
+        synchronized (sendEmailLock) {
+            try {
+                LocalDateTime startDate = LocalDateTime.now().minusDays(daysForSatisfactionEmail).with(LocalTime.MIN);
+                LocalDateTime endDate = LocalDateTime.now().minusDays(daysForSatisfactionEmail).with(LocalTime.MAX);
+
+                List<Tenant> tenants = tenantRepository.findAllTenantsValidatedSinceXDaysAgo(startDate, endDate);
+                for (Tenant tenant : tenants) {
+                    if (tenant.getTenantsUserApi().size() > 0) {
+                        mailService.sendEmailWhenTenantYESAssociatedToPartnersAndValidatedXDaysAgo(tenant);
+                    } else {
+                        mailService.sendEmailWhenTenantNOTAssociatedToPartnersAndValidatedXDaysAgo(tenant);
+                    }
+                    Thread.sleep(1000);// avoid to spam - softBounce
+                }
+            } catch (Exception e) {
+                log.error(e.getMessage() + Sentry.captureException(e), e);
             }
         }
-        //endregion
-        //region Notification to Tenants associated to partners
-        List<Tenant> tenantsToNotificate2 = tenantRepository.findAllTenantsYESAssociatedToPartnersAndValidatedSinceXDaysAgo(startDate, endDate);
-        if (tenantsToNotificate2 != null && tenantsToNotificate2.size() > 0) {
-            log.info(tenantsToNotificate2.size() + " tenants associated to partners and validated since " + daysForSatisfactionEmail + " days ago");
-            for (Tenant tenant : tenantsToNotificate2) {
-                mailService.sendEmailWhenTenantYESAssociatedToPartnersAndValidatedXDaysAgo(tenant);
-            }
-        }
-        //endregion
     }
 
     @Scheduled(cron = "0 0 5 * * *")
