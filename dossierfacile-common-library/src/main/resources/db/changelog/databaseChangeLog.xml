@@ -104,5 +104,6 @@
     <include file="db/migration/202307030000-create-index-on-property.xml" />
     <include file="db/migration/202307030001-create-quota.xml" />
     <include file="db/migration/202307060000-add_property_log_table.xml" />
+    <include file="db/migration/202307070000-drop-column-linkedclients-on-tenant.xml" />
 
 </databaseChangeLog>

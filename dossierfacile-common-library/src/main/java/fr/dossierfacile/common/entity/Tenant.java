@@ -83,8 +83,6 @@ public class Tenant extends User implements Person, Serializable {
     @Enumerated(EnumType.STRING)
     private TenantFileStatus status;
 
-    private String linkedKeycloakClients;
-
     @Column(name = "operator_date_time")
     private LocalDateTime operatorDateTime;
 
