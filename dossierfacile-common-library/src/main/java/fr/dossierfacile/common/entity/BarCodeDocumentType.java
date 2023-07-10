@@ -5,12 +5,12 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public enum DocumentIssuer {
+public enum BarCodeDocumentType {
 
     MON_FRANCE_CONNECT("Mon FranceConnect"),
-    PAYFIT("PayFit"),
-    DGFIP("DGFIP"),
-    SNCF("SNCF"),
+    PAYFIT_PAYSLIP("Fiche de paie PayFit"),
+    TAX_ASSESSMENT("Avis d'imposition"),
+    SNCF_PAYSLIP("Fiche de paie SNCF"),
     UNKNOWN("Unknown"),
     ;
 

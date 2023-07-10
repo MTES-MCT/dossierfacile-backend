@@ -18,7 +18,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Optional;
 
-import static fr.dossierfacile.common.entity.DocumentIssuer.PAYFIT;
+import static fr.dossierfacile.common.entity.BarCodeDocumentType.PAYFIT_PAYSLIP;
 import static fr.dossierfacile.common.enums.FileAuthenticationStatus.API_ERROR;
 import static fr.dossierfacile.common.enums.FileAuthenticationStatus.VALID;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -54,7 +54,7 @@ class PayfitDocumentIssuerTest {
 
         assertThat(authenticationResult).isPresent()
                 .hasValueSatisfying(result -> assertAll(
-                        () -> assertThat(result.getIssuerName()).isEqualTo(PAYFIT),
+                        () -> assertThat(result.getDocumentType()).isEqualTo(PAYFIT_PAYSLIP),
                         () -> assertThat(result.getAuthenticationStatus()).isEqualTo(VALID),
                         () -> assertThat(result.getApiResponse()).isInstanceOf(PaySlipVerifiedContent.class)
                 ));
@@ -70,7 +70,7 @@ class PayfitDocumentIssuerTest {
 
         assertThat(authenticationResult).isPresent()
                 .hasValueSatisfying(result -> assertAll(
-                        () -> assertThat(result.getIssuerName()).isEqualTo(PAYFIT),
+                        () -> assertThat(result.getDocumentType()).isEqualTo(PAYFIT_PAYSLIP),
                         () -> assertThat(result.getAuthenticationStatus()).isEqualTo(API_ERROR),
                         () -> assertThat(result.getApiResponse()).isNull()
                 ));

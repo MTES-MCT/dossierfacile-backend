@@ -1,6 +1,6 @@
 package fr.dossierfacile.process.file.barcode.twoddoc;
 
-import fr.dossierfacile.common.entity.DocumentIssuer;
+import fr.dossierfacile.common.entity.BarCodeDocumentType;
 import fr.dossierfacile.process.file.barcode.twoddoc.parsing.TwoDDocData;
 import fr.dossierfacile.process.file.barcode.twoddoc.parsing.TwoDDocHeader;
 import fr.dossierfacile.process.file.barcode.twoddoc.parsing.TwoDDocSignature;
@@ -30,11 +30,11 @@ public record TwoDDoc(
         return data.get(ID_42);
     }
 
-    public DocumentIssuer getIssuer() {
+    public BarCodeDocumentType getDocumentType() {
         return switch (header.certId()) {
-            case "FPE3" -> DocumentIssuer.DGFIP;
-            case "SNC2" -> DocumentIssuer.SNCF;
-            default -> DocumentIssuer.UNKNOWN;
+            case "FPE3" -> BarCodeDocumentType.TAX_ASSESSMENT;
+            case "SNC2" -> BarCodeDocumentType.SNCF_PAYSLIP;
+            default -> BarCodeDocumentType.UNKNOWN;
         };
     }
 

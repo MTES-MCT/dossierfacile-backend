@@ -38,7 +38,7 @@ public class BarCodeFileAnalysis {
     private File file;
 
     @Enumerated(EnumType.STRING)
-    private DocumentIssuer issuerName;
+    private BarCodeDocumentType documentType;
 
     private String barCodeContent;
 

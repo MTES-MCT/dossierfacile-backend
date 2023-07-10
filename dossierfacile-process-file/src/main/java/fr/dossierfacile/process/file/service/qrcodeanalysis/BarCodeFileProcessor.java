@@ -38,7 +38,7 @@ public class BarCodeFileProcessor {
         try (InMemoryPdfFile inMemoryPdfFile = InMemoryPdfFile.create(file, fileStorageService)) {
             return analyze(inMemoryPdfFile)
                     .map(analysis -> {
-                        boolean isAllowed = GuessedDocumentCategory.forFile(inMemoryPdfFile, analysis.getIssuerName())
+                        boolean isAllowed = GuessedDocumentCategory.forFile(inMemoryPdfFile, analysis.getDocumentType())
                                 .map(guess -> guess.isMatchingCategoryOf(file.getDocument()))
                                 .orElse(true);
                         analysis.setAllowedInDocumentCategory(isAllowed);
