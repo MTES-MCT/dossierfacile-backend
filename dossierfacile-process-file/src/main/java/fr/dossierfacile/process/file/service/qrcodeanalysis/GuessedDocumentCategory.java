@@ -24,7 +24,8 @@ public record GuessedDocumentCategory(
             case MON_FRANCE_CONNECT -> MonFranceConnectDocumentType.of(pdfFile).getCategory().orElse(null);
             case PAYFIT_PAYSLIP, SNCF_PAYSLIP -> new GuessedDocumentCategory(FINANCIAL, SALARY);
             case TAX_ASSESSMENT -> new GuessedDocumentCategory(TAX, MY_NAME);
-            case UNKNOWN -> null;
+            case TAX_DECLARATION -> new GuessedDocumentCategory(null, null);
+            default -> null;
         };
         return Optional.ofNullable(guess);
     }

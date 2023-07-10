@@ -8,9 +8,18 @@ import lombok.Getter;
 public enum BarCodeDocumentType {
 
     MON_FRANCE_CONNECT("Mon FranceConnect"),
-    PAYFIT_PAYSLIP("Fiche de paie PayFit"),
+
     TAX_ASSESSMENT("Avis d'imposition"),
+    TAX_DECLARATION("Avis de situation déclarative"),
+
+    PAYFIT_PAYSLIP("Fiche de paie PayFit"),
     SNCF_PAYSLIP("Fiche de paie SNCF"),
+    PUBLIC_PAYSLIP("Fiche de paie fonctionnaire"),
+
+    FREE_INVOICE("Facture Free"),
+
+    CVEC("Attestation CVEC"),
+
     UNKNOWN("Unknown"),
     ;
 
