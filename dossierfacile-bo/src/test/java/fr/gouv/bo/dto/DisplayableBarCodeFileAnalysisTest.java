@@ -3,7 +3,7 @@ package fr.gouv.bo.dto;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.dossierfacile.common.entity.BarCodeType;
-import fr.dossierfacile.common.entity.DocumentIssuer;
+import fr.dossierfacile.common.entity.BarCodeDocumentType;
 import fr.dossierfacile.common.entity.BarCodeFileAnalysis;
 import org.junit.jupiter.api.Test;
 
@@ -15,7 +15,7 @@ class DisplayableBarCodeFileAnalysisTest {
 
     @Test
     void should_format_mon_france_connect_content() throws JsonProcessingException {
-        var analysis = buildAnalysis(DocumentIssuer.MON_FRANCE_CONNECT, BarCodeType.QR_CODE, """
+        var analysis = buildAnalysis(BarCodeDocumentType.MON_FRANCE_CONNECT, BarCodeType.QR_CODE, """
                 ["2021", "Angela Claire Louise, DUBOIS", "Philippe, DUBOIS", "Marié(e)", "20 avenue de Ségur", "82357   €", "88185   €", "2,5", "1,0"]
                 """);
 
@@ -39,7 +39,7 @@ class DisplayableBarCodeFileAnalysisTest {
 
     @Test
     void should_format_payfit_content() throws JsonProcessingException {
-        var analysis = buildAnalysis(DocumentIssuer.PAYFIT, BarCodeType.QR_CODE, """
+        var analysis = buildAnalysis(BarCodeDocumentType.PAYFIT_PAYSLIP, BarCodeType.QR_CODE, """
                 {
                     "netSalary": "1 895,39 €",
                     "companyName": "Some Company",
@@ -63,7 +63,7 @@ class DisplayableBarCodeFileAnalysisTest {
 
     @Test
     void should_format_2ddoc_content() throws JsonProcessingException {
-        var analysis = buildAnalysis(DocumentIssuer.DGFIP, BarCodeType.TWO_D_DOC, """
+        var analysis = buildAnalysis(BarCodeDocumentType.TAX_ASSESSMENT, BarCodeType.TWO_D_DOC, """
                 {
                     "Revenu fiscal de référence": "1234",
                     "Nom": "Doe"
@@ -81,9 +81,9 @@ class DisplayableBarCodeFileAnalysisTest {
                         """);
     }
 
-    private BarCodeFileAnalysis buildAnalysis(DocumentIssuer issuer, BarCodeType barCodeType, String content) throws JsonProcessingException {
+    private BarCodeFileAnalysis buildAnalysis(BarCodeDocumentType issuer, BarCodeType barCodeType, String content) throws JsonProcessingException {
         BarCodeFileAnalysis analysis = new BarCodeFileAnalysis();
-        analysis.setIssuerName(issuer);
+        analysis.setDocumentType(issuer);
         analysis.setBarCodeType(barCodeType);
         analysis.setVerifiedData(objectMapper.readValue(content, Object.class));
         return analysis;

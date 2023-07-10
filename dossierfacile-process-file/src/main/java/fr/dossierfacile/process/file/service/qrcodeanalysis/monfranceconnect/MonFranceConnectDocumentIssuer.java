@@ -1,6 +1,5 @@
 package fr.dossierfacile.process.file.service.qrcodeanalysis.monfranceconnect;
 
-import fr.dossierfacile.common.entity.DocumentIssuer;
 import fr.dossierfacile.common.enums.FileAuthenticationStatus;
 import fr.dossierfacile.process.file.barcode.qrcode.QrCode;
 import fr.dossierfacile.process.file.service.qrcodeanalysis.AuthenticationResult;
@@ -14,7 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
-import static fr.dossierfacile.common.entity.DocumentIssuer.MON_FRANCE_CONNECT;
+import static fr.dossierfacile.common.entity.BarCodeDocumentType.MON_FRANCE_CONNECT;
 import static fr.dossierfacile.common.enums.FileAuthenticationStatus.API_ERROR;
 import static fr.dossierfacile.common.enums.FileAuthenticationStatus.UNKNOWN_DOCUMENT;
 import static fr.dossierfacile.common.enums.FileAuthenticationStatus.of;
@@ -24,11 +23,6 @@ import static fr.dossierfacile.common.enums.FileAuthenticationStatus.of;
 public class MonFranceConnectDocumentIssuer extends QrCodeDocumentIssuer<MonFranceConnectAuthenticationRequest> {
 
     private final MonFranceConnectClient mfcClient;
-
-    @Override
-    protected DocumentIssuer getName() {
-        return MON_FRANCE_CONNECT;
-    }
 
     @Override
     protected Optional<MonFranceConnectAuthenticationRequest> buildAuthenticationRequestFor(InMemoryPdfFile pdfFile) {

@@ -53,8 +53,12 @@ public class TwoDDocReader {
     @AllArgsConstructor
     private enum PossibleCodePosition {
 
-        TAX_STATEMENT(15, 10),
-        SNCF_PAYSLIP(65, 5);
+        TAX_STATEMENT(20, 5),
+        PUBLIC_SERVICE_PAYSLIP(75, 80),
+        SNCF_PAYSLIP(70, 3),
+        FREE_INVOICE(0, 15),
+        CVEC_CERTIFICATE(75, 3)
+        ;
 
         private final double xPercent;
         private final double yPercent;
@@ -74,7 +78,7 @@ public class TwoDDocReader {
 
         private BufferedImage cropImage(BufferedImage image) {
             int x = (int) xPercent * image.getWidth() / 100;
-            int y = (int) yPercent * image.getWidth() / 100;
+            int y = (int) yPercent * image.getHeight() / 100;
             int width = 25 * image.getWidth() / 100;
             return image.getSubimage(x, y, width, width);
         }

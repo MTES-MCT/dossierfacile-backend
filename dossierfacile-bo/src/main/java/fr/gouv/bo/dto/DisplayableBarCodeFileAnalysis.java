@@ -29,8 +29,8 @@ public class DisplayableBarCodeFileAnalysis {
                 .map(DisplayableBarCodeFileAnalysis::new);
     }
 
-    public String getIssuerName() {
-        return analysis.getIssuerName().getLabel();
+    public String getDocumentType() {
+        return analysis.getDocumentType().getLabel();
     }
 
     public String getAuthenticationStatusCssClass() {
@@ -61,9 +61,9 @@ public class DisplayableBarCodeFileAnalysis {
         if (analysis.getBarCodeType() == TWO_D_DOC) {
             return formatToList((Map<String, String>) verifiedData);
         }
-        return switch (analysis.getIssuerName()) {
+        return switch (analysis.getDocumentType()) {
             case MON_FRANCE_CONNECT -> formatToList((List<String>) verifiedData);
-            case PAYFIT -> PayfitAuthenticatedContent.format(verifiedData);
+            case PAYFIT_PAYSLIP -> PayfitAuthenticatedContent.format(verifiedData);
             default -> verifiedData.toString();
         };
     }

@@ -39,7 +39,7 @@ public class DisplayableFile {
         if (analysis == null) {
             return prefix + order;
         }
-        return prefix + order + " (" + analysis.getIssuerName() + ") :";
+        return prefix + order + " (" + analysis.getDocumentType() + ") :";
     }
 
     public boolean hasBeenAnalyzed() {
