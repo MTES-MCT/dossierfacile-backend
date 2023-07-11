@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+    <changeSet id="202307100001-01" author="fle (manual)">
+        <sql>
+            <![CDATA[
+                    CREATE INDEX IF NOT EXISTS operator_log_operator_id_index ON operator_log (operator_id);
+                    CREATE INDEX IF NOT EXISTS operator_log_op_action_index ON operator_log (operator_id, action_type);
+                    CREATE INDEX IF NOT EXISTS tenant_apartment_sharing_id_index ON tenant (apartment_sharing_id);
+                ]]>
+        </sql>
+    </changeSet>
+</databaseChangeLog>
