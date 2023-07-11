@@ -107,5 +107,6 @@
     <include file="db/migration/202307070000-drop-column-linkedclients-on-tenant.xml" />
     <include file="db/migration/202307100000-update-barcodefileanalysis-column-name.xml" />
     <include file="db/migration/202307100000-create-indexes.xml" />
+    <include file="db/migration/202307110000-add-processed-documents-column.xml" />
 
 </databaseChangeLog>

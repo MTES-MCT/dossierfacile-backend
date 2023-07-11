@@ -53,12 +53,19 @@ public class OperatorLog {
 
     private LocalDateTime creationDate;
 
-    public OperatorLog(Tenant tenant, User operator, TenantFileStatus tenantFileStatus, ActionOperatorType actionOperatorType) {
+    private Integer processedDocuments;
+
+    public OperatorLog(Tenant tenant, User operator, TenantFileStatus tenantFileStatus, ActionOperatorType actionOperatorType, Integer processedDocuments) {
         this.tenant = tenant;
         this.operator = operator;
         this.tenantFileStatus = tenantFileStatus;
         this.actionOperatorType = actionOperatorType;
         creationDate = LocalDateTime.now();
+        this.processedDocuments = processedDocuments;
+    }
+
+    public OperatorLog(Tenant tenant, User operator, TenantFileStatus tenantFileStatus, ActionOperatorType actionOperatorType) {
+        this(tenant, operator, tenantFileStatus, actionOperatorType, null);
     }
 
 }
