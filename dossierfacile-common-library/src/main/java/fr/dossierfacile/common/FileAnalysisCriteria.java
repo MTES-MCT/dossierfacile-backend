@@ -3,6 +3,7 @@ package fr.dossierfacile.common;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
+import org.apache.commons.lang3.BooleanUtils;
 
 import java.util.Arrays;
 
@@ -26,9 +27,6 @@ public class FileAnalysisCriteria {
 
     public static boolean shouldBeAnalyzed(File file) {
         Document document = file.getDocument();
-        if (document.getNoDocument()) {
-            return false;
-        }
         return switch (document.getDocumentCategory()) {
             case TAX -> hasSubCategory(document, MY_NAME);
             case PROFESSIONAL ->
