@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 
 <head>
     <meta charset="utf-8"/>
@@ -19,15 +19,11 @@
 <div id="notfound">
     <div class="notfound">
         <div class="notfound-404">
-            <h1>OOOPS</h1>
+            <h1 th:text="${statusCode}"></h1>
         </div>
         <h2>On est désolé, rien à trouver par ici</h2>
-        <p>Les solutions à vos problèmes de location sont par là</p>
-        <a href="/">
-            <button class="btn btn-primary w-auto px-5" type="submit">
-                Retour au site
-            </button>
-        </a>
+        <p th:text="${statusMessage}"></p>
+        <p th:text="${errorMessage}"></p>
     </div>
 </div>
 
