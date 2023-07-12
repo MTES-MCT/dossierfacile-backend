@@ -3,21 +3,18 @@ package fr.gouv.bo.configuration;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import fr.dossierfacile.common.utils.LocalDateTimeTypeAdapter;
-import fr.gouv.bo.security.QuotaAccessVoter;
+import fr.gouv.bo.security.BOAccessDecisionManager;
 import lombok.AllArgsConstructor;
 import nz.net.ultraq.thymeleaf.LayoutDialect;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.security.access.AccessDecisionManager;
-import org.springframework.security.access.AccessDecisionVoter;
-import org.springframework.security.access.vote.UnanimousBased;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.expression.WebExpressionVoter;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
@@ -25,8 +22,6 @@ import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.Executor;
 
 @Configuration
@@ -36,7 +31,7 @@ import java.util.concurrent.Executor;
 @AllArgsConstructor
 public class WebSecurityConfig {
 
-    private QuotaAccessVoter quotaAccessVoter;
+    private final BOAccessDecisionManager boAccessDecisionManager;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -67,7 +62,7 @@ public class WebSecurityConfig {
                 .httpBasic()
                 .disable()
                 .authorizeRequests()
-                .accessDecisionManager(accessDecisionManager())
+                .accessDecisionManager(boAccessDecisionManager)
                 .antMatchers("/login", "/login/auth/**", "/login/oauth2/**", "/actuator/health", "/assets/public/**")
                 .permitAll()
                 .antMatchers("/bo/userApi", "/bo/userApi/**", "/bo/admin", "/bo/admin/**", "/bo/statistic/admin", "/bo/timeServeTenant", "/bo/users", "/bo/users/**")
@@ -76,6 +71,9 @@ public class WebSecurityConfig {
                 .hasAnyRole("ADMIN", "OPERATOR")
                 .anyRequest()
                 .authenticated()
+                .and()
+                .exceptionHandling()
+                .accessDeniedHandler(accessDeniedHandler())
                 .and()
                 .oauth2Login()
                 .loginPage("/login")
@@ -88,15 +86,10 @@ public class WebSecurityConfig {
         return http.build();
     }
 
-    @Bean
-    public AccessDecisionManager accessDecisionManager() {
-        List<AccessDecisionVoter<?>> decisionVoters = Arrays.asList(
-                new WebExpressionVoter(),
-                quotaAccessVoter
-        );
-        return new UnanimousBased(decisionVoters);
-    }
 
+    public AccessDeniedHandler accessDeniedHandler() {
+        return new BOAccessDeniedHandler();
+    }
 
     private CsrfTokenRepository csrfTokenRepository() {
         HttpSessionCsrfTokenRepository repository = new HttpSessionCsrfTokenRepository();
