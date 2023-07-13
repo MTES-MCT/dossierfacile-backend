@@ -3,7 +3,10 @@ package fr.dossierfacile.api.dossierfacileapiowner.property;
 import fr.dossierfacile.api.dossierfacileapiowner.register.AuthenticationFacade;
 import fr.dossierfacile.common.entity.Owner;
 import fr.dossierfacile.common.entity.Property;
+import fr.dossierfacile.common.entity.PropertyLog;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.repository.LogRepository;
+import fr.dossierfacile.common.repository.PropertyLogRepository;
 import fr.dossierfacile.common.service.interfaces.TenantCommonService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +29,7 @@ public class PropertyServiceImpl implements PropertyService {
     private final OwnerPropertyMapper propertyMapper;
     private final PropertyApartmentSharingService propertyApartmentSharingService;
     private final TenantCommonService tenantService;
+    private final PropertyLogRepository propertyLogRepository;
     @Qualifier("tenantJwtDecoder")
     @Autowired
     private JwtDecoder tenantJwtDecoder;
@@ -109,6 +113,13 @@ public class PropertyServiceImpl implements PropertyService {
         Property property = getPropertyByToken(propertyToken).get();
 
         propertyApartmentSharingService.subscribeTenantApartmentSharingToProperty(tenant, property, true);
+    }
+
+    @Override
+    public void logAccess(Property property) {
+            propertyLogRepository.save(new PropertyLog(
+                    property
+            ));
     }
 
 }

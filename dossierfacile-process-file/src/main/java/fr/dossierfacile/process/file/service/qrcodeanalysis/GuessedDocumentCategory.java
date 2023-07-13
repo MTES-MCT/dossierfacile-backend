@@ -1,7 +1,7 @@
 package fr.dossierfacile.process.file.service.qrcodeanalysis;
 
 import fr.dossierfacile.common.entity.Document;
-import fr.dossierfacile.common.entity.DocumentIssuer;
+import fr.dossierfacile.common.entity.BarCodeDocumentType;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.process.file.service.qrcodeanalysis.monfranceconnect.MonFranceConnectDocumentType;
@@ -19,12 +19,13 @@ public record GuessedDocumentCategory(
         DocumentSubCategory subCategory
 ) {
 
-    public static Optional<GuessedDocumentCategory> forFile(InMemoryPdfFile pdfFile, DocumentIssuer issuerName) {
-        var guess = switch (issuerName) {
+    public static Optional<GuessedDocumentCategory> forFile(InMemoryPdfFile pdfFile, BarCodeDocumentType documentType) {
+        var guess = switch (documentType) {
             case MON_FRANCE_CONNECT -> MonFranceConnectDocumentType.of(pdfFile).getCategory().orElse(null);
-            case PAYFIT, SNCF -> new GuessedDocumentCategory(FINANCIAL, SALARY);
-            case DGFIP -> new GuessedDocumentCategory(TAX, MY_NAME);
-            case UNKNOWN -> null;
+            case PAYFIT_PAYSLIP, SNCF_PAYSLIP -> new GuessedDocumentCategory(FINANCIAL, SALARY);
+            case TAX_ASSESSMENT -> new GuessedDocumentCategory(TAX, MY_NAME);
+            case TAX_DECLARATION -> new GuessedDocumentCategory(null, null);
+            default -> null;
         };
         return Optional.ofNullable(guess);
     }

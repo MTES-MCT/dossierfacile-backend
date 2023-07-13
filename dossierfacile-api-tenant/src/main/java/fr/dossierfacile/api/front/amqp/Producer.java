@@ -59,11 +59,9 @@ public class Producer {
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Async
     public void analyzeFile(File file) {
-        if (FileAnalysisCriteria.shouldBeAnalyzed(file)) {
-            Long fileId = file.getId();
-            log.info("Sending file with ID [{}] for analysis", fileId);
-            amqpTemplate.send(exchangeFileProcess, routingKeyAnalyzeFile, messageWithId(fileId));
-        }
+        Long fileId = file.getId();
+        log.info("Sending file with ID [{}] for analysis", fileId);
+        amqpTemplate.send(exchangeFileProcess, routingKeyAnalyzeFile, messageWithId(fileId));
     }
 
     private Message messageWithId(Long id) {

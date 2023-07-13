@@ -55,9 +55,9 @@ public class FileController {
     /**
      * This endpoint does not allow decrypting protected file
      */
-    @GetMapping("/documents/{id:.+}")
-    public void getFileAsByteArray(HttpServletResponse response, @PathVariable Long id) {
-        Document document = documentRepository.findById(id).orElseThrow(() -> new DocumentNotFoundException(id));
+    @GetMapping("/documents/{name:.+}")
+    public void getFileAsByteArray(HttpServletResponse response, @PathVariable String name) {
+        Document document = documentRepository.findByName(name).orElseThrow(() -> new DocumentNotFoundException(name));
 
         try (InputStream in = fileStorageService.download(document.getWatermarkFile())) {
             response.setContentType(document.getWatermarkFile().getContentType());

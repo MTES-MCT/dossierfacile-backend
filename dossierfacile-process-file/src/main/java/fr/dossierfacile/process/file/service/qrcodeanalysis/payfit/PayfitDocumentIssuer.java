@@ -1,6 +1,5 @@
 package fr.dossierfacile.process.file.service.qrcodeanalysis.payfit;
 
-import fr.dossierfacile.common.entity.DocumentIssuer;
 import fr.dossierfacile.common.enums.FileAuthenticationStatus;
 import fr.dossierfacile.process.file.barcode.qrcode.QrCode;
 import fr.dossierfacile.process.file.service.qrcodeanalysis.AuthenticationResult;
@@ -14,18 +13,13 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
-import static fr.dossierfacile.common.entity.DocumentIssuer.PAYFIT;
+import static fr.dossierfacile.common.entity.BarCodeDocumentType.PAYFIT_PAYSLIP;
 
 @Service
 @AllArgsConstructor
 public class PayfitDocumentIssuer extends QrCodeDocumentIssuer<PayfitAuthenticationRequest> {
 
     private final PayfitClient client;
-
-    @Override
-    protected DocumentIssuer getName() {
-        return PAYFIT;
-    }
 
     @Override
     protected Optional<PayfitAuthenticationRequest> buildAuthenticationRequestFor(InMemoryPdfFile pdfFile) {
@@ -45,11 +39,11 @@ public class PayfitDocumentIssuer extends QrCodeDocumentIssuer<PayfitAuthenticat
         String actualContent = pdfFile.getContentAsString();
         PaySlipVerifiedContent verifiedContent = PaySlipVerifiedContent.from(response);
         boolean isAuthentic = verifiedContent.isMatchingWith(actualContent);
-        return new AuthenticationResult(PAYFIT, verifiedContent, FileAuthenticationStatus.of(isAuthentic));
+        return new AuthenticationResult(PAYFIT_PAYSLIP, verifiedContent, FileAuthenticationStatus.of(isAuthentic));
     }
 
     private AuthenticationResult error() {
-        return new AuthenticationResult(PAYFIT, null, FileAuthenticationStatus.API_ERROR);
+        return new AuthenticationResult(PAYFIT_PAYSLIP, null, FileAuthenticationStatus.API_ERROR);
     }
 
 }

@@ -2,7 +2,6 @@ package fr.dossierfacile.process.file.service.qrcodeanalysis;
 
 import fr.dossierfacile.common.entity.BarCodeFileAnalysis;
 import fr.dossierfacile.common.entity.BarCodeType;
-import fr.dossierfacile.common.entity.DocumentIssuer;
 import fr.dossierfacile.common.enums.FileAuthenticationStatus;
 import fr.dossierfacile.process.file.barcode.twoddoc.TwoDDoc;
 import fr.dossierfacile.process.file.barcode.twoddoc.TwoDDocRawContent;
@@ -25,11 +24,10 @@ public class TwoDDocFileAuthenticator {
 
     public BarCodeFileAnalysis analyze(TwoDDocRawContent twoDDocContent) {
         TwoDDoc twoDDoc = TwoDDocC40Parser.parse(twoDDocContent);
-        DocumentIssuer issuer = twoDDoc.getIssuer();
         FileAuthenticationStatus status = authenticate(twoDDoc);
 
         return BarCodeFileAnalysis.builder()
-                .issuerName(issuer)
+                .documentType(twoDDoc.getDocumentType())
                 .barCodeContent(twoDDocContent.rawContent())
                 .verifiedData(twoDDoc.data().withLabels())
                 .authenticationStatus(status)

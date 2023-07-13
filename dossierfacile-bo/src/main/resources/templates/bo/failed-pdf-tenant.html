@@ -10,7 +10,7 @@
 
 <div layout:fragment="content" th:remove="tag">
     <div class="container">
-        <h3 style="color: red;" th:text="'PDFs en erreur (' + ${tenantList.getNumberOfElements()} + ')'"></h3>
+        <h3 style="color: red; margin-bottom: 1em">Dossiers à traiter avec des PDFs en erreur</h3>
         <div class="table-responsive">
             <table th:object="${tenantList}" id="userTable" class="table table-striped table-bordered table-hover">
                 <thead>

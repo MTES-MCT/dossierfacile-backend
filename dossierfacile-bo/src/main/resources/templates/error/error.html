@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 
 <head>
     <meta charset="utf-8"/>
@@ -12,7 +12,6 @@
     <link type="text/css" rel="stylesheet" href="css/style.css"/>
     <link rel="icon" type="image/png" href="/assets/images/favicons/android-chrome-192x192.png"/>
     <link href="/webjars/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet"/>
-
 </head>
 
 <body>
@@ -20,15 +19,11 @@
 <div id="notfound">
     <div class="notfound">
         <div class="notfound-404">
-            <h1>OOOPS</h1>
+            <h1 th:text="${statusCode}"></h1>
         </div>
-        <h2>On vous arrête, rien d'intéressant ici</h2>
-        <p>Pour retrouver des choses intéressantes c'est par là</p>
-        <a href="/">
-            <button class="btn btn-primary w-auto px-5" type="submit">
-                Retour au site
-            </button>
-        </a>
+        <h2>On est désolé, rien à trouver par ici</h2>
+        <p th:text="${statusMessage}"></p>
+        <p th:text="${errorMessage}"></p>
     </div>
 </div>
 

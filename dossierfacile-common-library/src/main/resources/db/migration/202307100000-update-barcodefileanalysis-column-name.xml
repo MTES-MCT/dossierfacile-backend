@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+    <changeSet id="202307100000-01" author="juliette">
+        <renameColumn tableName="barcode_file_analysis"
+                      oldColumnName="issuer_name"
+                      newColumnName="document_type"/>
+        <sql>
+            UPDATE barcode_file_analysis
+            SET document_type = 'TAX_ASSESSMENT'
+            WHERE document_type = 'DGFIP';
+            UPDATE barcode_file_analysis
+            SET document_type = 'PAYFIT_PAYSLIP'
+            WHERE document_type = 'PAYFIT';
+            UPDATE barcode_file_analysis
+            SET document_type = 'SNCF_PAYSLIP'
+            WHERE document_type = 'SNCF';
+        </sql>
+    </changeSet>
+</databaseChangeLog>

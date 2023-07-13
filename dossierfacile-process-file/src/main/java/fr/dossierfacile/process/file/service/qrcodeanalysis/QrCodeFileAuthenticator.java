@@ -30,7 +30,7 @@ public class QrCodeFileAuthenticator {
 
     private BarCodeFileAnalysis buildAnalysis(AuthenticationResult result, QrCode qrCode) {
         return BarCodeFileAnalysis.builder()
-                .issuerName(result.getIssuerName())
+                .documentType(result.getDocumentType())
                 .barCodeContent(qrCode.getContent())
                 .verifiedData(result.getApiResponse())
                 .authenticationStatus(result.getAuthenticationStatus())

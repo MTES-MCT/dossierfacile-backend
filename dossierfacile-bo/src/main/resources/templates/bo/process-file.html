@@ -32,10 +32,9 @@
                            th:href="@{/bo/colocation/} + ${tenant.getApartmentSharing().getId()} + '#tenant' + ${tenant.getId()}">
                             Voir le Dossier
                         </a>
-                        <a class="btn btn-success bo-btn"
+                        <a class="btn btn-warning bo-btn" th:classappend="${newMessage ? 'btn-danger' : 'btn-warning'}"
                            th:href="@{/bo/colocation/} + ${tenant.getApartmentSharing().getId()} + '#tenant-message' + ${tenant.getId()}"
-                           th:if="${newMessage}">
-                            Voir les messages
+                           th:text="${newMessage ? 'Voir les messages non lus' : 'Voir la messagerie'}">
                         </a>
                     </div>
                 </div>
@@ -56,7 +55,7 @@
             <div th:each="messageItem, i:${customMessage.getMessageItems()}" th:remove="tag">
                 <div class="col-md-8 back-color" style="height: 700px" th:if="${messageItem.getCustomTex()}==null">
                     <embed class="document-embed" height="90%"
-                           th:src="'/pdf-viewer/web/viewer.html?file=/documents/'+${messageItem.getDocumentId()}"
+                           th:src="'/pdf-viewer/web/viewer.html?file=/documents/'+${messageItem.getDocumentName()}"
                            width="100%"/>
                 </div>
                 <div class="col-md-8 back-color" style="height: 700px" th:if="${messageItem.getCustomTex()}!=null">
@@ -88,30 +87,12 @@
                                         th:if="${messageItem.getMonthlySum()}!=null">
                                         <span th:text="'Income : ' + ${messageItem.getMonthlySum()}"></span>
                                     </h4>
-                                    <h4 class="panel-title letter" style="padding-top: 7px"
-                                        th:if="${messageItem.taxDocument}!=null and ${messageItem.taxDocument.fiscalNumber}!=null">
-                                        <span th:text="'Fiscal Number : ' + ${messageItem.taxDocument.fiscalNumber}"></span>
-                                    </h4>
-                                    <h4 class="panel-title letter" style="padding-top: 7px"
-                                        th:if="${messageItem.taxDocument}!=null and ${messageItem.taxDocument.referenceNumber}!=null">
-                                        <span th:text="'Reference Number : ' + ${messageItem.taxDocument.referenceNumber}"></span>
-                                    </h4>
-                                    <h4 class="panel-title letter" style="padding-top: 7px"
-                                        th:if="${messageItem.taxDocument}!=null and ${messageItem.taxDocument.qrContent}!=null">
-                                        <span th:text="'Tax result : ' + ${messageItem.taxDocument.qrContent}"></span>
-                                        <br/>
-                                        <span th:text="'Valid tax information : ' + ${messageItem.taxDocument.taxContentValid}"></span>
-                                    </h4>
                                 </div>
                                 <h4 class="panel-title letter" style="padding: 7px"
                                     th:if="${messageItem.avisDetected}!=null and ${messageItem.avisDetected}==true">
                                     <span class="fa fa-times text-danger" >
                                     </span>
                                     <span>Attention, un avis de situation a été détecté</span>
-                                </h4>
-
-                                <h4 th:if="${messageItem.taxDocument}!=null">Type de vérification :
-                                    <span th:text="${messageItem.taxDocument.fileExtractionType}"></span>
                                 </h4>
 
                                 <div th:if="${!messageItem.analyzedFiles.isEmpty()}" style="padding-left: 15px">
@@ -179,7 +160,7 @@
 
                     <div class="col-md-8" style="height: 700px" th:if="${messageItem.getCustomTex()}==null">
                         <embed class="document-embed" height="90%"
-                               th:src="'/pdf-viewer/web/viewer.html?file=/documents/'+${messageItem.getDocumentId()}"
+                               th:src="'/pdf-viewer/web/viewer.html?file=/documents/'+${messageItem.getDocumentName()}"
                                width="100%"/>
                     </div>
                     <div class="col-md-8 back-color" style="height: 700px" th:if="${messageItem.getCustomTex()}!=null">
@@ -235,20 +216,6 @@
                                         <h4 class="panel-title letter" style="padding-top: 6px"
                                             th:if="${guarantorItem.getLegalPersonName()}!=null">
                                             <span th:text="'Legal Person Name : ' + ${guarantorItem.getLegalPersonName()}"></span>
-                                        </h4>
-                                        <h4 class="panel-title letter" style="padding-top: 7px"
-                                            th:if="${messageItem.taxDocument}!=null and ${messageItem.taxDocument.fiscalNumber}!=null">
-                                            <span th:text="'Fiscal Number : ' + ${messageItem.taxDocument.fiscalNumber}"></span>
-                                        </h4>
-                                        <h4 class="panel-title letter" style="padding-top: 7px"
-                                            th:if="${messageItem.taxDocument}!=null and ${messageItem.taxDocument.referenceNumber}!=null">
-                                            <span th:text="'Reference Number : ' + ${messageItem.taxDocument.referenceNumber}"></span>
-                                        </h4>
-                                        <h4 class="panel-title letter" style="padding-top: 7px"
-                                            th:if="${messageItem.taxDocument}!=null and ${messageItem.taxDocument.qrContent}!=null">
-                                            <span th:text="'Tax result : ' + ${messageItem.taxDocument.qrContent}"></span>
-                                            <br/>
-                                            <span th:text="'Valid tax information : ' + ${messageItem.taxDocument.taxContentValid}"></span>
                                         </h4>
                                         <input th:field="*{guarantorItems[__${k.index}__].guarantorId}"
                                                th:value="${guarantorItem.getGuarantorId()}" type="hidden"/>

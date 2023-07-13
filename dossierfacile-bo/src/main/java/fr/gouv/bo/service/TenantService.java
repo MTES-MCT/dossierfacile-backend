@@ -32,6 +32,7 @@ import fr.gouv.bo.dto.MessageItem;
 import fr.gouv.bo.exception.DocumentNotFoundException;
 import fr.gouv.bo.lambda_interfaces.StringCustomMessage;
 import fr.gouv.bo.lambda_interfaces.StringCustomMessageGuarantor;
+import fr.gouv.bo.model.ProcessedDocuments;
 import fr.gouv.bo.repository.BOApartmentSharingRepository;
 import fr.gouv.bo.repository.DocumentDeniedReasonsRepository;
 import fr.gouv.bo.repository.DocumentRepository;
@@ -165,7 +166,6 @@ public class TenantService {
             }
 
             List<String> specializedOperators = Arrays.asList(specializedOperatorEmail.split(","));
-            log.info("options: " + specializedOperators.contains(operator.getEmail()));
             if (specializedOperators.contains(operator.getEmail())) {
                 tenant = tenantRepository.findNextApplicationByProfessional(localDateTime, Arrays.asList(DocumentSubCategory.CDI, DocumentSubCategory.PUBLIC));
                 if (tenant == null) {
@@ -223,7 +223,7 @@ public class TenantService {
                             document.setDocumentDeniedReasons(null);
                             documentRepository.save(document);
                         }));
-        changeTenantStatusToValidated(tenant, operator);
+        changeTenantStatusToValidated(tenant, operator, ProcessedDocuments.NONE);
     }
 
     private boolean updateFileStatus(CustomMessage customMessage) {
@@ -403,7 +403,7 @@ public class TenantService {
                             document.setDocumentStatus(DocumentStatus.DECLINED);
                             documentRepository.save(document);
                         }));
-        changeTenantStatusToDeclined(tenant, operator, null);
+        changeTenantStatusToDeclined(tenant, operator, null, ProcessedDocuments.NONE);
     }
 
     public void sendCallBacksManuallyToUserApi(Long userApiId, LocalDateTime since) {
@@ -506,7 +506,7 @@ public class TenantService {
         User operator = userService.findUserByEmail(principal.getName());
         updateFileStatus(customMessage);
         Message message = sendCustomMessage(tenant, customMessage, checkValueOfCustomMessage(customMessage));
-        changeTenantStatusToDeclined(tenant, operator, message);
+        changeTenantStatusToDeclined(tenant, operator, message, ProcessedDocuments.NONE);
 
         return "redirect:/bo";
     }
@@ -526,13 +526,15 @@ public class TenantService {
             log.error("BOTenantController processFile not found tenant with id : {}", tenantId);
             return "redirect:/error";
         }
+
+        ProcessedDocuments processedDocuments = ProcessedDocuments.in(customMessage);
         boolean allDocumentsValid = updateFileStatus(customMessage);
 
         if (allDocumentsValid) {
-            changeTenantStatusToValidated(tenant, operator);
+            changeTenantStatusToValidated(tenant, operator, processedDocuments);
         } else {
             Message message = sendCustomMessage(tenant, customMessage, checkValueOfCustomMessage(customMessage));
-            changeTenantStatusToDeclined(tenant, operator, message);
+            changeTenantStatusToDeclined(tenant, operator, message, processedDocuments);
         }
         return "redirect:/bo";
     }
@@ -561,7 +563,7 @@ public class TenantService {
                                 documentRepository.save(document);
                             }
                         }));
-        changeTenantStatusToDeclined(tenant, operator, null);
+        changeTenantStatusToDeclined(tenant, operator, null, ProcessedDocuments.ONE);
 
         return "redirect:/bo/colocation/" + tenant.getApartmentSharing().getId() + "#tenant" + tenant.getId();
     }
@@ -572,18 +574,18 @@ public class TenantService {
         tenantRepository.save(tenant);
         if (previousStatus != tenant.getStatus()) {
             switch (tenant.getStatus()) {
-                case VALIDATED -> changeTenantStatusToValidated(tenant, operator);
-                case DECLINED -> changeTenantStatusToDeclined(tenant, operator, null);
+                case VALIDATED -> changeTenantStatusToValidated(tenant, operator, ProcessedDocuments.ONE);
+                case DECLINED -> changeTenantStatusToDeclined(tenant, operator, null, ProcessedDocuments.ONE);
             }
         }
     }
 
-    private void changeTenantStatusToValidated(Tenant tenant, User operator) {
+    private void changeTenantStatusToValidated(Tenant tenant, User operator, ProcessedDocuments processedDocuments) {
         tenant.setStatus(TenantFileStatus.VALIDATED);
         tenantRepository.save(tenant);
 
         logService.saveByLog(new Log(LogType.ACCOUNT_VALIDATED, tenant.getId(), operator.getId()));
-        operatorLogRepository.save(new OperatorLog(tenant, operator, tenant.getStatus(), ActionOperatorType.STOP_PROCESS));
+        operatorLogRepository.save(new OperatorLog(tenant, operator, tenant.getStatus(), ActionOperatorType.STOP_PROCESS, processedDocuments.count()));
 
         if (tenant.getApartmentSharing().getApplicationType() == ApplicationType.GROUP) {
             mailService.sendEmailToTenantAfterValidateAllDocumentsOfTenant(tenant);
@@ -600,13 +602,13 @@ public class TenantService {
 
     }
 
-    private void changeTenantStatusToDeclined(Tenant tenant, User operator, Message message) {
+    private void changeTenantStatusToDeclined(Tenant tenant, User operator, Message message, ProcessedDocuments processedDocuments) {
         tenant.setStatus(TenantFileStatus.DECLINED);
         tenantRepository.save(tenant);
 
         logService.saveByLog(new Log(LogType.ACCOUNT_DENIED, tenant.getId(), operator.getId(), (message == null) ? null : message.getId()));
         operatorLogRepository.save(new OperatorLog(
-                tenant, operator, tenant.getStatus(), ActionOperatorType.STOP_PROCESS
+                tenant, operator, tenant.getStatus(), ActionOperatorType.STOP_PROCESS, processedDocuments.count()
         ));
         if (tenant.getApartmentSharing().getApplicationType() == ApplicationType.COUPLE) {
             tenant.getApartmentSharing().getTenants().stream()
@@ -753,8 +755,8 @@ public class TenantService {
         return tenantRepository.countAllTenantsWithFailedGeneratedPdfDocument();
     }
 
-    public Page<Tenant> getAllTenantsWithFailedGeneratedPdfDocument(Pageable pageable) {
-        return new PageImpl<>(tenantRepository.findAllTenantsWithFailedGeneratedPdfDocument(pageable).toList());
+    public Page<Tenant> getAllTenantsToProcessWithFailedGeneratedPdfDocument(Pageable pageable) {
+        return new PageImpl<>(tenantRepository.findAllTenantsToProcessWithFailedGeneratedPdfDocument(pageable).toList());
     }
 
     public long countTenantsWithStatusInToProcess() {

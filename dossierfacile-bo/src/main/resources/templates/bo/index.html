@@ -62,9 +62,9 @@
                         ></span>
                     </div>
                     <div>
-                        <a th:href="'/bo/nextApplication?tenant_id='+${tenant.getId()}">
+                        <a th:href="@{/bo/colocation/} + ${tenant.getApartmentSharing().getId()} + '#tenant' + ${tenant.getId()}">
                             <button style="border-radius: 5px; width: 100%" class="btn btn-danger bo-btn" name="action" type="submit">
-                                Traiter le dossier
+                                Voir le dossier
                             </button>
                         </a>
                     </div>

@@ -31,7 +31,7 @@ class TenantInfoHeaderTest {
 
         assertThat(header.getElements()).containsExactlyElementsOf(
                 headerElements(
-                        "FC", "Non",
+                        "FranceConnecté", "Non",
                         "Nom", "John Doe",
                         "Dossier", "En couple avec Jane Doe",
                         "Partenaires", "",
@@ -50,7 +50,7 @@ class TenantInfoHeaderTest {
 
         assertThat(header.getElements()).containsExactlyElementsOf(
                 headerElements(
-                        "FC", "Non",
+                        "FranceConnecté", "Non",
                         "Nom", "John Doe",
                         "Dossier", "Seul·e",
                         "Partenaires", "Pretty Name 1, technical-name2",
@@ -66,7 +66,7 @@ class TenantInfoHeaderTest {
 
         assertThat(header.getElements()).containsExactlyElementsOf(
                 headerElements(
-                        "FC", "Non",
+                        "FranceConnecté", "Non",
                         "Nom", "John Doe",
                         "Dossier", "Seul·e",
                         "Partenaires", "",
