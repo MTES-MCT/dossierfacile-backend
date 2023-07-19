@@ -69,5 +69,31 @@ $(document).ready(function () {
     $('.validDeclineLink').click(function (e) {
         e.preventDefault();
         $('#validDecline').click();
-    })
+    });
+
+   function updateStatus() {
+       var list=[];
+       var checkboxChecked = $('[type="checkbox"]').filter((k,v) => v.checked === true);
+
+       checkboxChecked.each((k,v) => {
+           var content=v.nextElementSibling.nextElementSibling.value;
+           list.push(content);
+       })
+
+       var textareaList = $('textarea').filter((k, v) => v.value.length > 0);
+
+       if (checkboxChecked.length > 0 || textareaList.length > 0) {
+         $('#validation-status').css('background-color', 'red');
+       } else {
+         $('#validation-status').css('background-color', 'green');
+       }
+       $('#validation-status')[0].title = list.join('\n');
+   }
+   $('[type="checkbox"]').change(function() {
+     updateStatus();
+   });
+   $('textarea').on('change keyup paste', function() {
+     updateStatus();
+   });
+
 });
