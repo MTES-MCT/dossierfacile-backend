@@ -228,7 +228,7 @@
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk</artifactId>
-            <version>1.12.504</version>
+            <version>1.12.508</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
