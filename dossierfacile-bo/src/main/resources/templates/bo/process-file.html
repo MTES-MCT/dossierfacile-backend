@@ -27,7 +27,7 @@
                             <span th:text="${element.value}" class="bold"></span>
                         </div>
                     </div>
-                    <div style="align-self: center; flex: 1;">
+                    <div style="display:flex;align-self: center; flex: 1;align-items: center;gap:15px">
                         <a class="btn btn-warning bo-btn"
                            th:href="@{/bo/colocation/} + ${tenant.getApartmentSharing().getId()} + '#tenant' + ${tenant.getId()}">
                             Voir le Dossier
@@ -36,6 +36,7 @@
                            th:href="@{/bo/colocation/} + ${tenant.getApartmentSharing().getId()} + '#tenant-message' + ${tenant.getId()}"
                            th:text="${newMessage ? 'Voir les messages non lus' : 'Voir la messagerie'}">
                         </a>
+                        <div id="validation-status" style="display:inline-block;background-color:green;width:30px;height:30px;border-radius:50%" title="Aucun élément refusé"></div>
                     </div>
                 </div>
             </div>
