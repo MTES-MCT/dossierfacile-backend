@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.ProviderNotFoundException;
@@ -50,13 +52,26 @@ public class FileStorageServiceImpl implements FileStorageService {
         if (storageFile == null) {
             return;
         }
-        getStorageService(storageFile.getProvider()).delete(storageFile.getPath());
+        for (ObjectStorageProvider provider : providers) {
+            try {
+                getStorageService(provider).delete(storageFile.getPath());
+            } catch (Exception e) {
+                log.warn("Provider " + provider + " to delete file " + storageFile.getPath() + " Failed .", e);
+            }
+        }
     }
 
     @Override
     public InputStream download(StorageFile storageFile) throws IOException {
-        return getStorageService(storageFile.getProvider())
-                .download(storageFile.getPath(), storageFile.getEncryptionKey());
+        for (ObjectStorageProvider provider : providers) {
+            try {
+                return getStorageService(provider)
+                        .download(storageFile.getPath(), storageFile.getEncryptionKey());
+            } catch (Exception e) {
+                log.info("Provider " + provider + " to get file " + storageFile.getPath() + " Failed .");
+            }
+        }
+        throw new IOException();
     }
 
     @Override
@@ -72,24 +87,20 @@ public class FileStorageServiceImpl implements FileStorageService {
         if (StringUtils.isBlank(storageFile.getPath())) {
             storageFile.setPath(UUID.randomUUID().toString());
         }
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        org.apache.commons.io.IOUtils.copy(inputStream, baos);
+        byte[] bytes = baos.toByteArray();
 
-        if (inputStream.markSupported()) {
-            inputStream.mark(100000000);
-        }
+        // TODO : maybe try to improve velocity
         for (ObjectStorageProvider provider : providers) {
             try {
+                ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
                 getStorageService(provider)
-                        .upload(storageFile.getPath(), inputStream, storageFile.getEncryptionKey(), storageFile.getContentType());
+                        .upload(storageFile.getPath(), bais, storageFile.getEncryptionKey(), storageFile.getContentType());
 
                 storageFile.setProvider(provider);
-                break;
             } catch (RetryableOperationException e) {
-                log.warn("Provider " + provider + " Failed - Retry with the next provider if exists.", e);
-                if(inputStream.markSupported()) {
-                    inputStream.reset();
-                } else {
-                    break;
-                }
+                log.warn("Provider " + provider + " Failed .", e);
             }
         }
         if (storageFile.getProvider() == null)
