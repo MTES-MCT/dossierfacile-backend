@@ -59,8 +59,7 @@ public class TwoDDocReader {
         TAX_STATEMENT(20, 5),
         PUBLIC_SERVICE_PAYSLIP(75, 80),
         SNCF_PAYSLIP(70, 3),
-        FREE_INVOICE(0, 15),
-        CVEC_CERTIFICATE(75, 3)
+        FREE_INVOICE(0, 15)
         ;
 
         private final double xPercent;
