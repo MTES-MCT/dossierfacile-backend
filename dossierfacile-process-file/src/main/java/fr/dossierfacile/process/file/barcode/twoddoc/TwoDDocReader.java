@@ -44,8 +44,11 @@ public class TwoDDocReader {
             return Optional.of(READER.decode(binaryBitmap));
         } catch (NotFoundException e) {
             return Optional.empty();
-        } catch (IOException | ChecksumException | FormatException e) {
-            log.error("Exception while trying to extract 2D-Doc from pdf", e);
+        } catch (FormatException | ChecksumException e) {
+            log.info("Format or checksum exception on found 2D-Doc", e);
+            return Optional.empty();
+        } catch (IOException e) {
+            log.error("IOException while trying to extract 2D-Doc from pdf", e);
             return Optional.empty();
         }
     }
