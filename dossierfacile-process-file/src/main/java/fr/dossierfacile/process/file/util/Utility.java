@@ -112,25 +112,6 @@ public class Utility {
         return pdfFileInText;
     }
 
-    public String extractTax2DDoc(StorageFile file) {
-        try (InputStream inputStream = fileStorageService.download(file)) {
-            try (PDDocument document = PDDocument.load(inputStream)) {
-                return TwoDDocReader.find2DDocOn(document)
-                        .map(TwoDDocRawContent::rawContent)
-                        .orElse("");
-            } catch (IOException e) {
-                log.warn(EXCEPTION_MESSAGE2, e);
-                log.error(EXCEPTION + Sentry.captureException(e));
-                log.error(e.getMessage(), e.getCause());
-            }
-        } catch (IOException e) {
-            log.error("Unable to download file " + file.getPath(), e);
-            Sentry.captureMessage("Unable to download file " + file.getPath());
-        }
-
-        return "";
-    }
-
     @Deprecated
     public static String extractReferenceNumber(String s) {
         Pattern p = Pattern.compile("[A-Z0-9]{2}\\s[A-Z0-9]{2}\\s[A-Z0-9]{7}\\s[0-9]{2}");
