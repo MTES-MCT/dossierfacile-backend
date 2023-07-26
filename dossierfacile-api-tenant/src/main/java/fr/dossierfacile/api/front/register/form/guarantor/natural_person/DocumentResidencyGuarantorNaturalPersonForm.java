@@ -15,7 +15,10 @@ import lombok.NoArgsConstructor;
 import javax.validation.constraints.NotNull;
 
 import static fr.dossierfacile.common.enums.DocumentSubCategory.GUEST;
+import static fr.dossierfacile.common.enums.DocumentSubCategory.GUEST_ORGANISM;
+import static fr.dossierfacile.common.enums.DocumentSubCategory.OTHER_RESIDENCY;
 import static fr.dossierfacile.common.enums.DocumentSubCategory.OWNER;
+import static fr.dossierfacile.common.enums.DocumentSubCategory.SHORT_TERM_RENTAL;
 import static fr.dossierfacile.common.enums.DocumentSubCategory.TENANT;
 
 @EqualsAndHashCode(callSuper = true)
@@ -28,7 +31,7 @@ public class DocumentResidencyGuarantorNaturalPersonForm extends DocumentGuarant
 
     @NotNull
     @DocumentSubcategorySubset(anyOf =
-            {TENANT, OWNER, GUEST})
+            {TENANT, OWNER, GUEST, GUEST_ORGANISM, SHORT_TERM_RENTAL, OTHER_RESIDENCY})
     private DocumentSubCategory typeDocumentResidency;
 
     private TypeGuarantor typeGuarantor = TypeGuarantor.NATURAL_PERSON;
