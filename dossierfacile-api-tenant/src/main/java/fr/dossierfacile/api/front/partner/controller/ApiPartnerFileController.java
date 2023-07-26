@@ -32,7 +32,6 @@ import java.io.InputStream;
 @RequestMapping("/api-partner/tenant/{tenantId}/file")
 @Slf4j
 public class ApiPartnerFileController {
-    private static final String FILE_NO_EXIST = "The file does not exist";
     private final FileService fileService;
     private final DocumentService documentService;
     private final Producer producer;
@@ -65,7 +64,7 @@ public class ApiPartnerFileController {
             response.setContentType(file.getStorageFile().getContentType());
             IOUtils.copy(in, response.getOutputStream());
         } catch (final IOException e) {
-            log.error(FILE_NO_EXIST);
+            log.error("The file does not exist");
             response.setStatus(404);
         }
     }
