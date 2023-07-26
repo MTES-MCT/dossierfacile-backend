@@ -4,5 +4,5 @@ import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.Tenant;
 
 public interface FileService {
-    Document delete(Long id, Tenant tenant);
+    Document delete(Long fileId, Tenant tenant);
 }
