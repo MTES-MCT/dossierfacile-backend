@@ -52,6 +52,7 @@
         <sentry.version>6.25.0</sentry.version>
         <commons-io.version>2.13.0</commons-io.version>
         <imageio.version>3.9.4</imageio.version>
+        <keycloak.version>21.1.2</keycloak.version>
 
         <!--Libraries needed for OVH storage-->
         <openstack4j.version>3.11</openstack4j.version>
@@ -237,7 +238,7 @@
         <dependency>
             <groupId>org.keycloak</groupId>
             <artifactId>keycloak-admin-client</artifactId>
-            <version>13.0.1</version>
+            <version>${keycloak.version}</version>
         </dependency>
     </dependencies>
 </project>
