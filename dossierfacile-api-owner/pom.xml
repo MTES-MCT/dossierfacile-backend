@@ -15,7 +15,7 @@
     <description>Owner api for DossierFacile</description>
     <properties>
         <java.version>19</java.version>
-        <org.mapstruct.version>1.4.2.Final</org.mapstruct.version>
+        <org.mapstruct.version>1.5.5.Final</org.mapstruct.version>
         <lombok.version>1.18.26</lombok.version>
         <keycloak.version>21.1.2</keycloak.version>
     </properties>
