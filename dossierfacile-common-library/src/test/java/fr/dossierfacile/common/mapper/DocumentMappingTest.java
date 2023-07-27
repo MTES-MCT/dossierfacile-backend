@@ -31,8 +31,7 @@ interface DocumentMappingTest {
     @ParameterizedTest
     @CsvSource({
             "GUEST_ORGANISM, GUEST",
-            "SHORT_TERM_RENTAL, TENANT",
-            "OTHER_RESIDENCY, GUEST"
+            "SHORT_TERM_RENTAL, TENANT"
     })
     @DisplayName("New residency categories are replaced by existing ones in field 'documentSubCategory'")
     default void should_replace_new_residency_categories(DocumentSubCategory newSubCategory, DocumentSubCategory existingSubCategory) {
