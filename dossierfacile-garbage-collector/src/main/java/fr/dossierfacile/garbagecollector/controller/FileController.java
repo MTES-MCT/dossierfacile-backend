@@ -6,7 +6,7 @@ import java.io.InputStream;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.tomcat.util.http.fileupload.IOUtils;
+import org.apache.commons.io.IOUtils;
 import org.openstack4j.model.storage.object.SwiftObject;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;

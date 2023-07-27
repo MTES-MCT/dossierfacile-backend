@@ -22,6 +22,8 @@ public enum DocumentSubCategory {
     OWNER,
     GUEST_PARENTS,
     GUEST,
+    GUEST_ORGANISM,
+    SHORT_TERM_RENTAL,
 
     // Professional
     CDI,
@@ -69,6 +71,8 @@ public enum DocumentSubCategory {
         return switch (this) {
             case INTERMITTENT, STAY_AT_HOME_PARENT, NO_ACTIVITY, ARTIST -> OTHER;
             case DRIVERS_LICENSE -> OTHER_IDENTIFICATION;
+            case SHORT_TERM_RENTAL -> TENANT;
+            case GUEST_ORGANISM -> GUEST;
             default -> this;
         };
     }

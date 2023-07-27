@@ -29,13 +29,13 @@ public class FileServiceImpl implements FileService {
         File file = fileRepository.findByIdForAppartmentSharing(id, tenant.getApartmentSharing().getId()).orElseThrow(() -> new FileNotFoundException(id, tenant));
 
         Document document = file.getDocument();
-        fileRepository.delete(file);
         document.getFiles().remove(file);
+        fileRepository.delete(file);
 
         logService.saveLog(LogType.ACCOUNT_EDITED, tenant.getId());
 
         if (document.getFiles().isEmpty()) {
-            documentService.delete(document.getId(), document.getTenant() != null ? document.getTenant() : document.getGuarantor().getTenant());
+            documentService.delete(document);
             return null;
         } else {
             documentService.changeDocumentStatus(document, DocumentStatus.TO_PROCESS);

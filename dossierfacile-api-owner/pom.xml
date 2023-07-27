@@ -17,6 +17,7 @@
         <java.version>19</java.version>
         <org.mapstruct.version>1.4.2.Final</org.mapstruct.version>
         <lombok.version>1.18.26</lombok.version>
+        <keycloak.version>21.1.2</keycloak.version>
     </properties>
     <dependencies>
         <dependency>
@@ -85,7 +86,7 @@
         <dependency>
             <groupId>org.keycloak</groupId>
             <artifactId>keycloak-admin-client</artifactId>
-            <version>19.0.2</version>
+            <version>${keycloak.version}</version>
         </dependency>
         <dependency>
             <groupId>org.mapstruct</groupId>

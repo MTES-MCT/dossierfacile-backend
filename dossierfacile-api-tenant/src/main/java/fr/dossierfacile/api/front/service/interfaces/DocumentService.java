@@ -21,4 +21,6 @@ public interface DocumentService {
     void changeDocumentStatus(Document document, DocumentStatus toProcess);
 
     void addFile(MultipartFile multipartFile, Document document) throws IOException;
+
+    void delete(Document document);
 }

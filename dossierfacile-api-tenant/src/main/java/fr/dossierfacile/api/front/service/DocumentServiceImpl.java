@@ -71,10 +71,7 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Override
     @Transactional
-    public void delete(Long documentId, Tenant referenceTenant) {
-        Document document = documentRepository.findByIdForApartmentSharing(documentId, referenceTenant.getApartmentSharing().getId())
-                .orElseThrow(() -> new DocumentNotFoundException(documentId));
-
+    public void delete(Document document) {
         Person ownerOfDocument = Optional.<Person>ofNullable(document.getTenant()).orElse(document.getGuarantor());
         Tenant tenantOfDocument = Optional.ofNullable(document.getTenant()).orElseGet(() -> document.getGuarantor().getTenant());
 
@@ -90,7 +87,14 @@ public class DocumentServiceImpl implements DocumentService {
         documentRepository.delete(document);
         tenantStatusService.updateTenantStatus(tenantOfDocument);
         apartmentSharingService.resetDossierPdfGenerated(tenantOfDocument.getApartmentSharing());
+    }
 
+    @Override
+    @Transactional
+    public void delete(Long documentId, Tenant referenceTenant) {
+        Document document = documentRepository.findByIdForApartmentSharing(documentId, referenceTenant.getApartmentSharing().getId())
+                .orElseThrow(() -> new DocumentNotFoundException(documentId));
+        delete(document);
     }
 
     @Override
