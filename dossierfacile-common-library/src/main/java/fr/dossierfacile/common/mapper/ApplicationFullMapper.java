@@ -31,6 +31,7 @@ public abstract class ApplicationFullMapper implements ApartmentSharingMapper {
     @Mapping(target = "name", expression = "java((document.getWatermarkFile() != null )? domain + \"/\" + PATH + \"/\" + document.getName() : null)")
     @Mapping(target = "subCategory", source = "documentSubCategory")
     @HideNewSubCategories
+    @Mapping(target = "authenticityStatus", expression = "java(fr.dossierfacile.common.entity.AuthenticityStatus.isAuthentic(document))")
     public abstract DocumentModel toDocumentModel(Document document);
 
     @Mapping(target = "partnerLinked", expression = "java((userApi == null)? null : tenant.getTenantsUserApi() != null && tenant.getTenantsUserApi().stream().anyMatch( t -> t.getUserApi().getId() == userApi.getId()))")
