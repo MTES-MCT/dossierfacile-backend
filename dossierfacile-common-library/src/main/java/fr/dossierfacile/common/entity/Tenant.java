@@ -88,9 +88,6 @@ public class Tenant extends User implements Person, Serializable {
 
     private int warnings;
 
-    @Column(name = "allow_check_tax")
-    private Boolean allowCheckTax;
-
     private transient String warningMessage;
 
     public static TenantBuilder<?, ?> builder() {

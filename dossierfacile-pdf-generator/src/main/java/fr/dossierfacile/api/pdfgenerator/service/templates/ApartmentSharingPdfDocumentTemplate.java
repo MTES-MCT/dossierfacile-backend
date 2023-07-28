@@ -67,6 +67,8 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static fr.dossierfacile.api.pdfgenerator.util.DocumentUtil.*;
+
 @Service
 @AllArgsConstructor
 @Slf4j
@@ -1027,7 +1029,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
             if (documentCategory == DocumentCategory.FINANCIAL) {
                 yLocationDocFinancialIndex = lastYLocation;
             }
-            if (documentCategory == DocumentCategory.TAX && tenant.getAllowCheckTax() != null && tenant.getAllowCheckTax()) {
+            if (documentCategory == DocumentCategory.TAX && hasValid2DDocOnTaxDocument(tenant)) {
                 yLocationDocTaxIndex = lastYLocation;
             }
 

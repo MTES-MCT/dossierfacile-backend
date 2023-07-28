@@ -18,7 +18,6 @@ public interface ApplicationBasicMapper extends ApartmentSharingMapper {
 
     ApplicationModel toApplicationModel(ApartmentSharing apartmentSharing, @Context UserApi userApi);
 
-    @Mapping(target = "allowCheckTax", ignore = true)
     @Mapping(target = "franceConnect", ignore = true)
     @Mapping(target = "guarantors", ignore = true)
     @Mapping(target = "documents", ignore = true)

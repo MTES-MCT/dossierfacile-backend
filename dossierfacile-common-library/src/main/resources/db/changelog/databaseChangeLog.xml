@@ -109,5 +109,6 @@
     <include file="db/migration/202307100000-create-indexes.xml" />
     <include file="db/migration/202307110000-add-processed-documents-column.xml" />
     <include file="db/migration/202307110000-remove-cvec.xml" />
+    <include file="db/migration/202307280000-remove-column-allow-tax-check.xml" />
 
 </databaseChangeLog>

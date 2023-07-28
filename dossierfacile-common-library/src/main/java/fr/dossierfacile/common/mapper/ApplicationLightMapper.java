@@ -10,13 +10,14 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Mapper(componentModel = "spring")
-public interface ApplicationLightMapper extends ApartmentSharingMapper {
-    ApplicationModel toApplicationModel(ApartmentSharing apartmentSharing);
+public abstract class ApplicationLightMapper implements ApartmentSharingMapper {
+
+    public abstract ApplicationModel toApplicationModel(ApartmentSharing apartmentSharing);
 
     @Mapping(target = "name",  ignore = true)
     @Mapping(target = "subCategory", source = "documentSubCategory")
     @HideNewSubCategories
-    DocumentModel documentToDocumentModel(Document document);
-
+    @Mapping(target = "authenticityStatus", expression = "java(fr.dossierfacile.common.entity.AuthenticityStatus.isAuthentic(document))")
+    public abstract DocumentModel documentToDocumentModel(Document document);
 
 }

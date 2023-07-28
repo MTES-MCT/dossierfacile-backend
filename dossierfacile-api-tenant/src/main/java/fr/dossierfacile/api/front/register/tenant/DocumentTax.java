@@ -7,7 +7,6 @@ import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
-import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
@@ -25,7 +24,6 @@ import java.util.List;
 
 import static fr.dossierfacile.common.enums.DocumentSubCategory.MY_NAME;
 import static fr.dossierfacile.common.enums.DocumentSubCategory.OTHER_TAX;
-import static java.util.Collections.singletonList;
 
 @Slf4j
 @Service
@@ -88,15 +86,4 @@ public class DocumentTax extends AbstractDocumentSaveStep<DocumentTaxForm> imple
         documentHelperService.deleteFiles(document);
     }
 
-    public void updateAutomaticTaxVerificationConsent(Tenant loggedTenant, Boolean allowTax) {
-        ApartmentSharing apartmentSharing = loggedTenant.getApartmentSharing();
-        var tenantsToUpdate = switch (apartmentSharing.getApplicationType()) {
-            case COUPLE -> apartmentSharing.getTenants();
-            case ALONE, GROUP -> singletonList(loggedTenant);
-        };
-        tenantsToUpdate.forEach(tenant -> {
-            tenant.setAllowCheckTax(allowTax);
-            tenantRepository.save(tenant);
-        });
-    }
 }
