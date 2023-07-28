@@ -32,7 +32,6 @@ public class TenantModel {
     private List<DocumentModel> documents;
     private List<GuarantorModel> guarantors;
     private List<String> allInternalPartnerId;
-    private Boolean allowCheckTax;
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ss.SSSSSS")
     private LocalDateTime lastUpdateDate;

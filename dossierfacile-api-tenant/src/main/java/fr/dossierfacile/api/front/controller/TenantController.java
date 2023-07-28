@@ -77,11 +77,9 @@ public class TenantController {
 
     @PostMapping(value = "/allowTax/{allowTax}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TenantModel> setAllowTax(@PathVariable("allowTax") String allowTax, @RequestBody FranceConnectTaxForm franceConnectTaxForm) {
+        // TODO delete this endpoint for next release
         Tenant tenant = authenticationFacade.getLoggedTenant();
-        Boolean allow = BooleanUtils.toBooleanObject(allowTax, "allow", "disallow", "");
-        documentTaxService.updateAutomaticTaxVerificationConsent(tenant, allow);
-        TenantModel tenantModel = tenantMapper.toTenantModel(tenant);
-        return ok(tenantModel);
+        return ok(tenantMapper.toTenantModel(tenant));
     }
 
     @PostMapping(value = "/linkFranceConnect", produces = MediaType.APPLICATION_JSON_VALUE)

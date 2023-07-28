@@ -89,7 +89,6 @@ class PdfGeneratorServiceImplTest {
         tenant.setLastName("Who");
         tenant.setGuarantors(new ArrayList<>());
         tenant.setStatus(TenantFileStatus.VALIDATED);
-        tenant.setAllowCheckTax(true);
         tenant.setHonorDeclaration(true);
         tenant.setTenantType(TenantType.CREATE);
         tenant.setEmail("dr@tardis.fr");

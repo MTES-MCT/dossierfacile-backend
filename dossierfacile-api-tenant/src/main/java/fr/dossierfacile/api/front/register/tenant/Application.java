@@ -180,7 +180,6 @@ public class Application implements SaveStep<ApplicationFormV2> {
                             .build();
                     if (apartmentSharing.getApplicationType() == ApplicationType.COUPLE) {
                         joinTenant.setHonorDeclaration(tenantCreate.getHonorDeclaration());
-                        joinTenant.setAllowCheckTax(tenantCreate.getAllowCheckTax());
                     }
                     tenantRepository.save(joinTenant);
 
