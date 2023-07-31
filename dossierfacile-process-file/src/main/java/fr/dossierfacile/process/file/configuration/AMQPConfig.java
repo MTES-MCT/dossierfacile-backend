@@ -1,5 +1,6 @@
 package fr.dossierfacile.process.file.configuration;
 
+import fr.dossierfacile.common.utils.Timeout;
 import fr.dossierfacile.process.file.amqp.AnalyzeFileReceiver;
 import fr.dossierfacile.process.file.amqp.MinifyFileReceiver;
 import fr.dossierfacile.process.file.service.AnalyzeFile;
@@ -18,6 +19,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.retry.interceptor.RetryInterceptorBuilder;
+
+import java.util.concurrent.TimeUnit;
 
 @Profile("!noRabbit")
 @Configuration
@@ -83,8 +86,9 @@ public class AMQPConfig {
     }
 
     @Bean
-    AnalyzeFileReceiver analyzeFileReceiver(AnalyzeFile analyzeFile) {
-        return new AnalyzeFileReceiver(analyzeFile);
+    AnalyzeFileReceiver analyzeFileReceiver(AnalyzeFile analyzeFile, @Value("${analysis.timeout.seconds:5}") int timeoutSeconds) {
+        Timeout analysisTimeout = new Timeout(timeoutSeconds, TimeUnit.SECONDS);
+        return new AnalyzeFileReceiver(analyzeFile, analysisTimeout);
     }
 
     @Bean
