@@ -991,6 +991,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
         float lastYLocation = yLocationThirdContentStream;
         //We obtain here the list with the categories, NOT REPEATED (distinctByKey), of documents that the tenant has. Ordered ascending by the ID of DocumentCategory.
         List<DocumentCategory> listOfDocumentCategoryContainedForTenant = tenant.getDocuments().stream().sorted(Comparator.comparing(Document::getDocumentCategory)).filter(distinctByKey(Document::getDocumentCategory)).map(Document::getDocumentCategory).collect(Collectors.toList());
+        boolean hasValid2DDocOnTaxDocument = hasValid2DDocOnTaxDocument(tenant);
         for (DocumentCategory documentCategory : listOfDocumentCategoryContainedForTenant) {
             int numberOfFirstPageForCurrentTypeOfDocument = indexPagesForDocuments.get(iteratorInIndexPagesForDocuments.getAndIncrement() - 1) + 1;
             String indexText = "p." + numberOfFirstPageForCurrentTypeOfDocument + " - " + messageSource.getMessage(documentCategory.getLabel(), null, locale);
@@ -1029,7 +1030,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
             if (documentCategory == DocumentCategory.FINANCIAL) {
                 yLocationDocFinancialIndex = lastYLocation;
             }
-            if (documentCategory == DocumentCategory.TAX && hasValid2DDocOnTaxDocument(tenant)) {
+            if (documentCategory == DocumentCategory.TAX && hasValid2DDocOnTaxDocument) {
                 yLocationDocTaxIndex = lastYLocation;
             }
 
@@ -1324,6 +1325,13 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
 
                 Tenant leftTenantInPage = tenantList.get(indexTenant);
                 Tenant rightTenantInPage = (indexTenant + 1) < numberOfTenants ? tenantList.get(indexTenant + 1) : null;
+                leftTenantInPage.getDocuments().forEach(d -> d.getFiles());
+                if (leftTenantInPage.getDocuments() != null) {
+                    leftTenantInPage.getDocuments().forEach(d -> d.getFiles()); // load files in session
+                }
+                if (rightTenantInPage != null && rightTenantInPage.getDocuments() != null) {
+                    rightTenantInPage.getDocuments().forEach(d -> d.getFiles()); // load files in session
+                }
 
                 float yLocationFirstContentStream, yLocationSecondContentStream, yLocationTenantEmailContentStream, yLocationThirdContentStream;
 
