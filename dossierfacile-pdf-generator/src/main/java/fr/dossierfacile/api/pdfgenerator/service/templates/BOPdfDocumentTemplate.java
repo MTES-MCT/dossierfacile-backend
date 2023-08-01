@@ -12,6 +12,7 @@ import fr.dossierfacile.api.pdfgenerator.service.interfaces.PdfTemplate;
 import io.sentry.Sentry;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -22,7 +23,6 @@ import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.tools.imageio.ImageIOUtil;
-import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -33,6 +33,8 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
+import java.awt.image.ConvolveOp;
+import java.awt.image.Kernel;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -42,6 +44,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 @AllArgsConstructor
@@ -53,6 +56,29 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
     private final PdfTemplateParameters params = PdfTemplateParameters.builder().build();
     private final Locale locale = LocaleContextHolder.getLocale();
     private final MessageSource messageSource;
+
+    private static ConvolveOp getGaussianBlurFilter(int radius, boolean horizontal) {
+        int size = radius * 2 + 1;
+        float[] data = new float[size];
+
+        float sigma = radius / 3.0f;
+        float twoSigmaSquare = 2.0f * sigma * sigma;
+        float sigmaRoot = (float) Math.sqrt(twoSigmaSquare * Math.PI);
+        float total = 0.0f;
+
+        for (int i = -radius; i <= radius; i++) {
+            float distance = i * i;
+            int index = i + radius;
+            data[index] = (float) Math.exp(-distance / twoSigmaSquare) / sigmaRoot;
+            total += data[index];
+        }
+        for (int i = 0; i < data.length; i++) {
+            data[i] /= total;
+        }
+        Kernel kernel = (horizontal) ? new Kernel(size, 1, data) : new Kernel(1, size, data);
+
+        return new ConvolveOp(kernel, ConvolveOp.EDGE_NO_OP, null);
+    }
 
     @Override
     public InputStream render(List<FileInputStream> data) throws IOException {
@@ -83,7 +109,6 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
             log.error(EXCEPTION + Sentry.captureException(e));
             throw e;
         }
-
     }
 
     /**
@@ -185,13 +210,13 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
      */
     private BufferedImage applyWatermark(BufferedImage bim, String watermarkText) {
         try {
-            Graphics2D g = bim.createGraphics();
-            g.drawImage(bim, 0, 0, null);
+            //Create a watermark layer
+            BufferedImage watermarkLayer = new BufferedImage(bim.getWidth(), bim.getHeight(), BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g = watermarkLayer.createGraphics();
 
-            //Create a watermark overlay
-            String watermark = watermarkText.repeat(1 + ( 128 / watermarkText.length()));
+            String watermark = watermarkText.repeat(1 + (128 / watermarkText.length()));
 
-            g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
+            g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, ThreadLocalRandom.current().nextFloat(0.52f, 0.6f)));
             g.setColor(Color.DARK_GRAY);
             g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
@@ -201,11 +226,29 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
             Font rotatedFont = font.deriveFont(affineTransform);
             g.setFont(rotatedFont);
 
+            // allows to have small variation on the watermark position at each generation
+            float spaceBetweenText = bim.getHeight() / ThreadLocalRandom.current().nextFloat(5f, 6f);
             for (int i = 1; i < 10; i++) {
-                g.drawString(watermark, 0, i * bim.getHeight() / 5);
+                g.drawString(watermark, 0, i* spaceBetweenText);
             }
 
-            g.dispose();
+            // Create a gaussian blur layer
+            int radius = ThreadLocalRandom.current().nextInt(45, 65);
+
+            BufferedImage blurredTextLayer = new BufferedImage(bim.getWidth(), bim.getHeight(), BufferedImage.TYPE_INT_ARGB);
+            Graphics2D blurredTextLayerGraphics = blurredTextLayer.createGraphics();
+            blurredTextLayerGraphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, ThreadLocalRandom.current().nextFloat(0.75f, 0.95f)));
+            blurredTextLayerGraphics.drawImage(watermarkLayer, 0, 0, null);
+            blurredTextLayer = getGaussianBlurFilter(radius, true).filter(blurredTextLayer, null);
+            blurredTextLayer = getGaussianBlurFilter(radius, false).filter(blurredTextLayer, null);
+            blurredTextLayerGraphics.dispose();
+
+            // Merge layers
+            Graphics2D gf = bim.createGraphics();
+            gf.drawImage(bim, 0, 0, null);
+            gf.drawImage(blurredTextLayer, 0, 0, null);
+            gf.drawImage(watermarkLayer, 0, 0, null);
+            gf.dispose();
 
             return bim;
         } catch (Exception e) {

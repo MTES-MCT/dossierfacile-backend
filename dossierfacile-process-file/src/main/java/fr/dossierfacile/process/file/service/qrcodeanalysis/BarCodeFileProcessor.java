@@ -29,9 +29,11 @@ public class BarCodeFileProcessor {
     public void process(File file) {
         if (analysisRepository.hasNotAlreadyBeenAnalyzed(file) &&
                 PDF_TYPE.equals(file.getStorageFile().getContentType())) {
+            long start = System.currentTimeMillis();
             log.info("Starting analysis of file {}", file.getId());
             downloadAndAnalyze(file)
                     .ifPresent(analysis -> save(file, analysis));
+            log.info("Analysis of file {} finished in {} ms", file.getId(), System.currentTimeMillis() - start);
         }
     }
 

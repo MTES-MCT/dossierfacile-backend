@@ -26,5 +26,4 @@ public class CoTenantModel {
     private List<DocumentModel> documents;
     private List<GuarantorModel> guarantors;
     private boolean franceConnect;
-    private Boolean allowCheckTax;
 }

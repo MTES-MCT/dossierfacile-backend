@@ -18,8 +18,6 @@ public enum BarCodeDocumentType {
 
     FREE_INVOICE("Facture Free"),
 
-    CVEC("Attestation CVEC"),
-
     UNKNOWN("Unknown"),
     ;
 

@@ -9,12 +9,11 @@ import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentPdfGenerationLog;
 import fr.dossierfacile.common.entity.File;
-import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.repository.DocumentPdfGenerationLogRepository;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.tomcat.util.http.fileupload.IOUtils;
+import org.apache.commons.io.IOUtils;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -33,7 +32,6 @@ import java.io.InputStream;
 @RequestMapping("/api-partner/tenant/{tenantId}/file")
 @Slf4j
 public class ApiPartnerFileController {
-    private static final String FILE_NO_EXIST = "The file does not exist";
     private final FileService fileService;
     private final DocumentService documentService;
     private final Producer producer;
@@ -66,7 +64,7 @@ public class ApiPartnerFileController {
             response.setContentType(file.getStorageFile().getContentType());
             IOUtils.copy(in, response.getOutputStream());
         } catch (final IOException e) {
-            log.error(FILE_NO_EXIST);
+            log.error("The file does not exist");
             response.setStatus(404);
         }
     }

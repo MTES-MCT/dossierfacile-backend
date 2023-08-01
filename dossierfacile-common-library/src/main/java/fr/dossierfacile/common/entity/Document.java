@@ -96,7 +96,6 @@ public class Document implements Serializable {
     @Convert(converter = TaxDocumentConverter.class)
     private TaxDocument taxProcessResult;
 
-
     @Column(name = "processing_start_time")
     private LocalDateTime processingStartTime;
 
