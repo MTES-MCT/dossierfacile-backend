@@ -110,5 +110,6 @@
     <include file="db/migration/202307110000-add-processed-documents-column.xml" />
     <include file="db/migration/202307110000-remove-cvec.xml" />
     <include file="db/migration/202307280000-remove-column-allow-tax-check.xml" />
+    <include file="db/migration/202308010000-update-document-denied-reasons.xml" />
 
 </databaseChangeLog>
