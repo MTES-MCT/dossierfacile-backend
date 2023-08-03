@@ -313,8 +313,9 @@ public class TenantService {
                 }
 
                 if (!documentDeniedReasons.getCheckedOptionsId().isEmpty() || (documentDeniedReasons.getComment() != null && !documentDeniedReasons.getComment().isBlank())) {
-                    documentDeniedReasonsRepository.save(documentDeniedReasons);
                     Document document = documentRepository.findById(messageItem.getDocumentId()).orElseThrow(() -> new DocumentNotFoundException(messageItem.getDocumentId()));
+                    documentDeniedReasons.setDocument(document);
+                    documentDeniedReasonsRepository.save(documentDeniedReasons);
                     DocumentDeniedReasons documentDeniedReasonsToDelete = document.getDocumentDeniedReasons();
                     documentService.updateDocumentWithDocumentDeniedReasons(documentDeniedReasons, messageItem.getDocumentId());
                     if (documentDeniedReasonsToDelete != null) {
@@ -353,8 +354,9 @@ public class TenantService {
                     }
 
                     if (!documentDeniedReasons.getCheckedOptionsId().isEmpty() || (documentDeniedReasons.getComment() != null && !documentDeniedReasons.getComment().isBlank())) {
-                        documentDeniedReasonsRepository.save(documentDeniedReasons);
                         Document document = documentRepository.findById(messageItem.getDocumentId()).orElseThrow(() -> new DocumentNotFoundException(messageItem.getDocumentId()));
+                        documentDeniedReasons.setDocument(document);
+                        documentDeniedReasonsRepository.save(documentDeniedReasons);
                         DocumentDeniedReasons documentDeniedReasonsToDelete = document.getDocumentDeniedReasons();
                         documentService.updateDocumentWithDocumentDeniedReasons(documentDeniedReasons, messageItem.getDocumentId());
                         if (documentDeniedReasonsToDelete != null) {
