@@ -1,11 +1,11 @@
 package fr.dossierfacile.api.dossierfacileapiowner.property;
 
+import fr.dossierfacile.api.dossierfacileapiowner.mail.MailService;
 import fr.dossierfacile.api.dossierfacileapiowner.register.AuthenticationFacade;
 import fr.dossierfacile.common.entity.Owner;
 import fr.dossierfacile.common.entity.Property;
 import fr.dossierfacile.common.entity.PropertyLog;
 import fr.dossierfacile.common.entity.Tenant;
-import fr.dossierfacile.common.repository.LogRepository;
 import fr.dossierfacile.common.repository.PropertyLogRepository;
 import fr.dossierfacile.common.service.interfaces.TenantCommonService;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +16,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -30,6 +31,8 @@ public class PropertyServiceImpl implements PropertyService {
     private final PropertyApartmentSharingService propertyApartmentSharingService;
     private final TenantCommonService tenantService;
     private final PropertyLogRepository propertyLogRepository;
+    private final MailService mailService;
+
     @Qualifier("tenantJwtDecoder")
     @Autowired
     private JwtDecoder tenantJwtDecoder;
@@ -73,6 +76,8 @@ public class PropertyServiceImpl implements PropertyService {
         }
         if (propertyForm.getValidated() != null && propertyForm.getValidated()) {
             property.setValidated(true);
+            property.setValidatedDate(LocalDateTime.now());
+            mailService.sendEmailValidatedProperty(owner, property);
         }
         property.setOwner(owner);
         return propertyMapper.toPropertyModel(propertyRepository.save(property));
@@ -117,9 +122,9 @@ public class PropertyServiceImpl implements PropertyService {
 
     @Override
     public void logAccess(Property property) {
-            propertyLogRepository.save(new PropertyLog(
-                    property
-            ));
+        propertyLogRepository.save(new PropertyLog(
+                property
+        ));
     }
 
 }
