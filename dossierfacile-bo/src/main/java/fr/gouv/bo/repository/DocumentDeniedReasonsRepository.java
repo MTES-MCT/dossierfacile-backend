@@ -14,4 +14,7 @@ public interface DocumentDeniedReasonsRepository extends JpaRepository<DocumentD
     @Modifying
     @Query("UPDATE DocumentDeniedReasons d SET d.message = :message where d.id in :documentDeniedReasonsId")
     void updateDocumentDeniedReasonsWithMessage(@Param("message") Message message, @Param("documentDeniedReasonsId") List<Long> documentDeniedReasonsId);
+
+    List<DocumentDeniedReasons> findByDocumentId(Long documentId);
+
 }
