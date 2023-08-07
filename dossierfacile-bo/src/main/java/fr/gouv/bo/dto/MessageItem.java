@@ -1,5 +1,6 @@
 package fr.gouv.bo.dto;
 
+import fr.dossierfacile.common.entity.DocumentDeniedReasons;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.type.TaxDocument;
@@ -30,5 +31,6 @@ public class MessageItem {
     @Builder.Default
     private List<DisplayableFile> analyzedFiles = new ArrayList<>();
     private Boolean avisDetected;
+    private DocumentDeniedReasons previousDeniedReasons;
 
 }

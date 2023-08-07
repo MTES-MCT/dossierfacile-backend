@@ -25,6 +25,7 @@ import fr.gouv.bo.dto.MessageItem;
 import fr.gouv.bo.dto.PartnerDTO;
 import fr.gouv.bo.dto.TenantInfoHeader;
 import fr.gouv.bo.service.ApartmentSharingService;
+import fr.gouv.bo.service.DocumentDeniedReasonsService;
 import fr.gouv.bo.service.DocumentService;
 import fr.gouv.bo.service.GuarantorService;
 import fr.gouv.bo.service.LogService;
@@ -80,6 +81,7 @@ public class BOTenantController {
     private final UserService userService;
     private final ApartmentSharingService apartmentSharingService;
     private final LogService logService;
+    private final DocumentDeniedReasonsService documentDeniedReasonsService;
 
     @GetMapping("/{id}")
     public String getTenant(@PathVariable Long id) {
@@ -244,6 +246,7 @@ public class BOTenantController {
                         .documentId(document.getId())
                         .documentName(document.getName())
                         .analyzedFiles(DisplayableFile.onlyAnalyzedFilesOf(document))
+                        .previousDeniedReasons(documentDeniedReasonsService.getLastDeniedReason(document, tenant).orElse(null))
                         .build());
             }
         }
@@ -272,6 +275,7 @@ public class BOTenantController {
                             .documentId(document.getId())
                             .documentName(document.getName())
                             .analyzedFiles(DisplayableFile.onlyAnalyzedFilesOf(document))
+                            .previousDeniedReasons(documentDeniedReasonsService.getLastDeniedReason(document, tenant).orElse(null))
                             .build());
                 }
             }
