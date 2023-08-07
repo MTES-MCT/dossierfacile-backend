@@ -5,6 +5,7 @@ import fr.dossierfacile.api.pdf.response.UploadFilesResponse;
 import org.springframework.http.ResponseEntity;
 
 import javax.servlet.http.HttpServletResponse;
+import java.time.LocalDateTime;
 
 public interface DocumentService {
 
@@ -14,5 +15,5 @@ public interface DocumentService {
 
     void downloadPdfWatermarked(String token, HttpServletResponse response);
 
-    void cleanOldDocuments();
+    void cleanDocumentsBefore(LocalDateTime date);
 }

@@ -36,7 +36,6 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class DocumentServiceImpl implements DocumentService {
-    private static final int RETENTION_DAYS = 10;
     private static final String DOCUMENT_NOT_EXIST = "The document does not exist";
     private final Producer producer;
     private final FileStorageService fileStorageService;
@@ -129,6 +128,7 @@ public class DocumentServiceImpl implements DocumentService {
         }
         StorageFile pdfFile = document.getPdfFile();
         document.setPdfFile(null);
+        document.setPdfStatus(FileStatus.DELETED);
         watermarkDocumentRepository.save(document);
         if (pdfFile != null) {
             storageFileRepository.delete(pdfFile);
@@ -137,9 +137,8 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Override
     @Transactional
-    public void cleanOldDocuments() {
-        LocalDateTime date = LocalDateTime.now().minusDays(RETENTION_DAYS);
-        List<WatermarkDocument> docs = watermarkDocumentRepository.findAllByCreatedDateBefore(date);
+    public void cleanDocumentsBefore(LocalDateTime date) {
+        List<WatermarkDocument> docs = watermarkDocumentRepository.findAllByPdfStatusNotAndCreatedDateBefore(FileStatus.DELETED, date);
         docs.stream().forEach(doc -> cleanData(doc));
     }
 
