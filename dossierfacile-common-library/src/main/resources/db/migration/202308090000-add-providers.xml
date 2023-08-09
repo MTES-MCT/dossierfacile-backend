@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+    <changeSet id="2023080900000-01" author="Matthieu (manual)">
+        <addColumn tableName="storage_file">
+            <column name="providers" type="character varying[]"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="2023080900000-02" author="Matthieu (manual)">
+        <sql>
+            update storage_file set providers=ARRAY[provider];
+        </sql>
+    </changeSet>
+    <changeSet id="2023081000000-01" author="Matthieu (manual)">
+        <sql>
+            update storage_file set providers=ARRAY[provider];
+        </sql>
+    </changeSet>
+    <changeSet id="202308100000-02" author="Matthieu (manual)">
+        <createTable tableName="storage_file_to_delete">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_storagefiletodelete"/>
+            </column>
+            <column name="created_by" type="VARCHAR(255)"/>
+            <column name="created_date" type="TIMESTAMP WITHOUT TIME ZONE"/>
+            <column name="last_modified_by" type="VARCHAR(255)"/>
+            <column name="last_modified_date" type="TIMESTAMP WITHOUT TIME ZONE"/>
+            <column name="path" type="VARCHAR(255)"/>
+            <column name="providers" type="character varying[]"/>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>

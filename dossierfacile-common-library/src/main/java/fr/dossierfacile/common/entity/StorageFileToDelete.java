@@ -1,10 +1,8 @@
 package fr.dossierfacile.common.entity;
 
 import com.vladmihalcea.hibernate.type.array.ListArrayType;
-import com.vladmihalcea.hibernate.type.array.internal.ListArrayTypeDescriptor;
 import fr.dossierfacile.common.entity.shared.AbstractAuditable;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -43,7 +41,7 @@ import java.util.List;
 @Setter
 @ToString
 @SuperBuilder
-public class StorageFile extends AbstractAuditable<String, Long> {
+public class StorageFileToDelete extends AbstractAuditable<String, Long> {
     @Serial
     private static final long serialVersionUID = 1L;
 
@@ -51,15 +49,7 @@ public class StorageFile extends AbstractAuditable<String, Long> {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     protected Long id;
 
-    protected String name;
     protected String path;
-    protected String label;
-    protected String contentType;
-    protected Long size;
-    protected String md5;
-    @Column
-    @Enumerated(EnumType.STRING)
-    protected ObjectStorageProvider provider;
 
     @Type(type = "list-type")
     @Column(
@@ -67,9 +57,5 @@ public class StorageFile extends AbstractAuditable<String, Long> {
             columnDefinition = "character varying[]"
     )
     protected List<String> providers = new ArrayList<>();
-
-    @ManyToOne
-    @JoinColumn(name = "encryption_key_id")
-    protected EncryptionKey encryptionKey;
 
 }

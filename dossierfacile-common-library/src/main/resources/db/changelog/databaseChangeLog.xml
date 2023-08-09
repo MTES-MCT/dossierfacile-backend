@@ -114,5 +114,6 @@
     <include file="db/migration/202308040000-add-validated-date-to-property.xml" />
     <include file="db/migration/202308220000-create-indexes.xml" />
     <include file="db/migration/202308221400-drop-prospect-table.xml" />
+    <include file="db/migration/202308090000-add-providers.xml" />
 
 </databaseChangeLog>
