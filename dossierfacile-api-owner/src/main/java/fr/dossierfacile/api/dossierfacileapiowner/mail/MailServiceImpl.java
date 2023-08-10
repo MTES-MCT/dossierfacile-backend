@@ -55,7 +55,7 @@ public class MailServiceImpl implements MailService {
         apiKey.setApiKey(sendinblueApiKey);
 
         SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
-        sendSmtpEmailTo.setName(to.getFullName());
+        ///sendSmtpEmailTo.setName(to.getFullName());
         sendSmtpEmailTo.setEmail(to.getEmail());
 
         TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
