@@ -10,6 +10,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.lang.Nullable;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -24,9 +26,12 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 
 import static fr.dossierfacile.common.enums.TenantType.CREATE;
@@ -106,6 +111,9 @@ public class Property implements Serializable {
     @Column(nullable = false, columnDefinition = "boolean default false")
     private Boolean validated = false;
 
+    @Nullable
+    private LocalDateTime validatedDate;
+
     @Column
     @Enumerated(EnumType.STRING)
     private PropertyType type;
@@ -122,36 +130,6 @@ public class Property implements Serializable {
 
     @Column
     private String address;
-
-    public Property(Owner owner, String name, String propertyId) {
-        this.owner = owner;
-        this.name = name;
-        this.propertyId = propertyId;
-        this.rentCost = 0.0;
-        this.chargesCost = 0.0;
-        this.livingSpace = 0.0;
-        this.creationDateTime = LocalDateTime.now();
-    }
-
-    public Property(Owner owner, String name, String propertyId, double rentCost, double chargesCost, double livingSpace) {
-        this.owner = owner;
-        this.name = name;
-        this.propertyId = propertyId;
-        this.rentCost = rentCost;
-        this.chargesCost = chargesCost;
-        this.livingSpace = livingSpace;
-        this.creationDateTime = LocalDateTime.now();
-    }
-
-    public Property(String name, String id, Double rentCost, Double chargesCost, Double livingSpace) {
-        this.name = name;
-        this.propertyId = id;
-        this.rentCost = rentCost;
-        this.chargesCost = chargesCost;
-        this.livingSpace = livingSpace;
-        this.creationDateTime = LocalDateTime.now();
-        this.displayed = true;
-    }
 
     @Override
     public String toString() {

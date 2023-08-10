@@ -17,4 +17,8 @@ public interface MailService {
     void sendEmailApplicantValidated(Property associatedProperty, List<Long> tenantIds);
 
     void sendEmailNewApplicant(Tenant tenant, Owner owner);
+
+    void sendEmailValidatedProperty(User user, Property property);
+
+    void sendEmailFollowUpValidatedProperty(User user, Property property);
 }

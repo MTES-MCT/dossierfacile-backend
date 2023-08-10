@@ -86,8 +86,26 @@
                                     </h4>
                                     <h4 class="panel-title letter" style="padding-top: 7px"
                                         th:if="${messageItem.getMonthlySum()}!=null">
-                                        <span th:text="'Income : ' + ${messageItem.getMonthlySum()}"></span>
+                                        <span th:text="'Montant mensuel : ' + ${messageItem.getMonthlySum()}"></span>
                                     </h4>
+                                </div>
+                                <div th:if="${messageItem.getPreviousDeniedReasons()} != null"
+                                     th:with="reasons=${messageItem.getPreviousDeniedReasons()}"
+                                     class="panel-heading file2-background-color letter">
+                                    <span style="font-size: 12px; line-height: 20px">
+                                        Raisons du précédent refus :
+                                    </span>
+                                    <br />
+                                    <ul>
+                                        <li style="font-size: 14px"
+                                          th:each="option : ${reasons.getCheckedOptions()}"
+                                          th:utext="${option}">
+                                        </li>
+                                        <li style="font-size: 14px"
+                                          th:if="${reasons.getComment()} != null"
+                                          th:utext="${reasons.getComment()}">
+                                        </li>
+                                    </ul>
                                 </div>
                                 <h4 class="panel-title letter" style="padding: 7px"
                                     th:if="${messageItem.avisDetected}!=null and ${messageItem.avisDetected}==true">
@@ -211,15 +229,33 @@
                                         </h4>
                                         <h4 class="panel-title letter" style="padding-top: 7px"
                                             th:if="${messageItem.getMonthlySum()}!=null">
-                                            <span th:text="'Income : ' + ${messageItem.getMonthlySum()}"></span>
+                                            <span th:text="'Montant mensuel : ' + ${messageItem.getMonthlySum()}"></span>
                                         </h4>
-
                                         <h4 class="panel-title letter" style="padding-top: 6px"
                                             th:if="${guarantorItem.getLegalPersonName()}!=null">
                                             <span th:text="'Legal Person Name : ' + ${guarantorItem.getLegalPersonName()}"></span>
                                         </h4>
                                         <input th:field="*{guarantorItems[__${k.index}__].guarantorId}"
                                                th:value="${guarantorItem.getGuarantorId()}" type="hidden"/>
+                                    </div>
+
+                                    <div th:if="${messageItem.getPreviousDeniedReasons()} != null"
+                                         th:with="reasons=${messageItem.getPreviousDeniedReasons()}"
+                                         class="panel-heading file2-background-color letter">
+                                        <span style="font-size: 12px; line-height: 20px">
+                                            Raisons du précédent refus :
+                                        </span>
+                                        <br />
+                                        <ul>
+                                            <li style="font-size: 14px"
+                                                th:each="option : ${reasons.getCheckedOptions()}"
+                                                th:utext="${option}">
+                                            </li>
+                                            <li style="font-size: 14px"
+                                                th:if="${reasons.getComment()} != null"
+                                                th:utext="${reasons.getComment()}">
+                                            </li>
+                                        </ul>
                                     </div>
 
                                     <div th:if="${!messageItem.analyzedFiles.isEmpty()}" style="padding-left: 15px">

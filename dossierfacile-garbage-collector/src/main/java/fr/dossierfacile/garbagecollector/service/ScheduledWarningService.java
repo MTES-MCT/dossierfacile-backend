@@ -35,8 +35,8 @@ public class ScheduledWarningService {
     public void accountWarningsForDocumentDeletion() {
         log.info("accountWarnings. Executing scheduled task for account warnings at [" + LocalDateTime.now() + "]");
         LocalDateTime localDateTime = LocalDateTime.now().minusMonths(monthsForDeletionOfDocuments);
-        deleteOldArchivedAccount();
-        processAllWarnings(localDateTime, 2);
+//        deleteOldArchivedAccount();
+//        processAllWarnings(localDateTime, 2);
         processAllWarnings(localDateTime, 1);
         processAllWarnings(localDateTime, 0);
         log.info("accountWarnings. Account warnings' task was finished");

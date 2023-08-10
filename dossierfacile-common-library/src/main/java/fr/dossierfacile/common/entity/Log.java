@@ -3,6 +3,7 @@ package fr.dossierfacile.common.entity;
 
 import fr.dossierfacile.common.enums.LogType;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -24,6 +25,7 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Log implements Serializable {
 
     private static final long serialVersionUID = 605418597255420002L;
