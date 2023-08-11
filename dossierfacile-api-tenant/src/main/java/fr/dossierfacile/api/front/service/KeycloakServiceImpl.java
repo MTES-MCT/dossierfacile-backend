@@ -7,6 +7,7 @@ import fr.dossierfacile.common.service.interfaces.KeycloakCommonService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.admin.client.resource.RealmResource;
+import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.http.HttpStatus;
@@ -60,10 +61,15 @@ public class KeycloakServiceImpl implements KeycloakService {
 
     @Override
     public void confirmKeycloakUser(String keycloakId) {
-        var userRepresentation = realmResource.users().get(keycloakId).toRepresentation();
+        UserResource userResource = realmResource.users().get(keycloakId);
+        if (userResource == null) {
+            // we assume it's a partner account
+            return;
+        }
+        var userRepresentation = userResource.toRepresentation();
         userRepresentation.setEmailVerified(true);
         userRepresentation.setEnabled(true);
-        realmResource.users().get(keycloakId).update(userRepresentation);
+        userResource.update(userRepresentation);
     }
 
     @Override
