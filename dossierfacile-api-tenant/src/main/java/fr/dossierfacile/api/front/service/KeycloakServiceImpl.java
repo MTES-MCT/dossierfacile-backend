@@ -62,10 +62,6 @@ public class KeycloakServiceImpl implements KeycloakService {
     @Override
     public void confirmKeycloakUser(String keycloakId) {
         UserResource userResource = realmResource.users().get(keycloakId);
-        if (userResource == null) {
-            // we assume it's a partner account
-            return;
-        }
         var userRepresentation = userResource.toRepresentation();
         userRepresentation.setEmailVerified(true);
         userRepresentation.setEnabled(true);
