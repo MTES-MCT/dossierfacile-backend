@@ -1,12 +1,6 @@
 package fr.gouv.bo.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
 import fr.dossierfacile.common.entity.Owner;
 import fr.gouv.bo.dto.EmailDTO;
 import fr.gouv.bo.dto.Pager;
@@ -74,14 +68,8 @@ public class BOOwnerController {
         Owner owner = ownerService.findById(id).get();
         OwnerModel ownerModel = ownerMapper.toOwnerModel(owner);
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        JsonElement je = JsonParser.parseString(objectMapper.writeValueAsString(ownerModel));
-
-        model.addAttribute("item", gson.toJson(je));
+        model.addAttribute("owner", ownerModel);
         model.addAttribute(EMAIL, new EmailDTO());
-        return "bo/item";
+        return "bo/owner";
     }
 }
