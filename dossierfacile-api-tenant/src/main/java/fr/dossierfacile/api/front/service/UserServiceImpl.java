@@ -68,7 +68,10 @@ public class UserServiceImpl implements UserService {
         user.setLastLoginDate(LocalDateTime.now());
         userRepository.save(user);
         confirmationTokenRepository.delete(confirmationToken);
-        keycloakService.confirmKeycloakUser(user.getKeycloakId());
+        if (user.getKeycloakId() != null) {
+            keycloakService.confirmKeycloakUser(user.getKeycloakId());
+            // else we assume it's a partner account
+        }
         tenantRepository.resetWarnings(user.getId());
         return user.getId();
     }
