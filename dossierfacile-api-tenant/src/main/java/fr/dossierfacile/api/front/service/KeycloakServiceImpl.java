@@ -62,7 +62,7 @@ public class KeycloakServiceImpl implements KeycloakService {
     @Override
     public void confirmKeycloakUser(String keycloakId) {
         UserResource userResource = realmResource.users().get(keycloakId);
-        if (userResource != null) {
+        if (userResource == null) {
             // we assume it's a partner account
             return;
         }
