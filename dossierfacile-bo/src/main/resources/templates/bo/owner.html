@@ -9,51 +9,48 @@
 <body>
 <div layout:fragment="content" th:remove="tag">
     <div class="container">
-        <h2>Info propriété</h2>
+        <h2>Info propriétaire</h2>
         <table class="table table-striped table-bordered table-hover">
             <tr>
                 <td>Id</td>
-                <td th:text="${property.id}"></td>
+                <td th:text="${owner.id}"></td>
             </tr>
             <tr>
-                <td>Date de création</td>
-                <td th:text="${property.creationDateTime}"></td>
+                <td>Email</td>
+                <td th:text="${owner.email}"></td>
+            </tr>
+            <tr>
+                <td>Prénom</td>
+                <td th:text="${owner.firstName}"></td>
             </tr>
             <tr>
                 <td>Nom</td>
-                <td th:text="${property.name}"></td>
-            </tr>
-            <tr>
-                <td>Adresse</td>
-                <td th:text="${property.address}"></td>
+                <td th:text="${owner.lastName}"></td>
             </tr>
         </table>
     </div>
     <div class="container">
-        <h2>Liste des colocations ajoutées</h2>
+        <h2>Liste des propriétés</h2>
         <div class="table-responsive">
             <table class="table table-striped table-bordered table-hover">
                 <thead>
                 <tr>
                     <th>id</th>
-                    <th>Statuts</th>
-                    <th>Liste des colocataires</th>
+                    <th>Date de creation</th>
+                    <th>Nom</th>
+                    <th>Adresse</th>
                     <th>Voir</th>
                 </tr>
                 </thead>
                 <tbody>
 
-                <tr th:each="as : ${property.propertiesApartmentSharing}">
-                    <td th:utext="${as.id}"></td>
-                    <td th:utext="${as.status}"></td>
-                    <td>
-                            <div th:each="tenant : ${as.tenants}">
-                                <span th:text="${tenant.email}" />,
-                                <span th:text="${tenant.status}" />
-                            </div>
-                    </td>
-                    <td>
-                        <a th:href="@{/bo/colocation/}+${as.id}" >
+                <tr th:each="property : ${owner.properties}">
+                    <td th:utext="${property.id}"></td>
+                    <td th:utext="${property.creationDateTime}"></td>
+                    <td th:text="${property.name}"></td>
+                    <td th:text="${property.address}"></td>
+                    <td >
+                        <a th:href="@{/bo/properties/}+${property.id}" >
                             <span class="fa fa-eye"></span>
                         </a>
                     </td>

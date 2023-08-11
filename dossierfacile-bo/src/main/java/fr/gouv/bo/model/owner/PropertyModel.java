@@ -3,10 +3,13 @@ package fr.gouv.bo.model.owner;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import fr.dossierfacile.common.enums.PropertyFurniture;
 import fr.dossierfacile.common.enums.PropertyType;
+import fr.gouv.bo.model.tenant.ApartmentSharingModel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 
 @Data
@@ -16,7 +19,6 @@ import lombok.NoArgsConstructor;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class PropertyModel {
     private Long id;
-    //@DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private String creationDateTime;
     private String token;
     private String name;
@@ -25,7 +27,7 @@ public class PropertyModel {
     private Double rentCost;
     private Double chargesCost;
     private Double livingSpace;
-    //private List<Long> propertiesApartmentSharing;
+    private List<ApartmentSharingModel> propertiesApartmentSharing;
     //private List<Long> prospects;
     //private List<Long> mergedPropertyId;
     private Boolean notification;

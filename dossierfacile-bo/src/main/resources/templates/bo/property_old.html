@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      lang="en"
+      layout:decorator="bo/layout-bo">
+<head>
+    <title>DossierFacile</title>
+</head>
+<body>
+
+<div layout:fragment="content" th:remove="tag">
+
+    <div th:replace="bo/menu :: menu">...</div>
+    <div class="container">
+
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered table-hover">
+                <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Creation Date</th>
+                    <th>Deletion Date</th>
+                    <th>Subscriptions</th>
+                    <th>Owner email</th>
+                    <th>Token</th>
+                    <th>Link clinked</th>
+                    <th>Email sent</th>
+                </tr>
+                </thead>
+                <tr th:each="property : ${properties}">
+                    <td th:text="${property.getName()}" th:attrappend="class=${property.getDeletionDateTime()!=null ? 'property-deleted' : ''}"></td>
+                    <td th:text="${#dates.format(property.getCreationDateTime(),'dd/MM/yyyy HH:mm')}"></td>
+                    <td th:text="${property.getDeletionDateTime()==null ? '' : #dates.format(property.getDeletionDateTime(),'dd/MM/yyyy HH:mm')}"></td>
+                    <td th:text="${property.getSubscriptions()}"></td>
+                    <td th:attrappend="class=${property.getDeletionDateTime()!=null ? 'property-deleted' : ''}"
+                        th:text="${property.getOwnerEmail()}"></td>
+                    <td th:text="${property.getToken()}"></td>
+                    <td th:text="${property.getVisits()!=null?property.getVisits():0}"></td>
+                    <td th:text="${property.getCantEmailSentProspect()}"></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+
