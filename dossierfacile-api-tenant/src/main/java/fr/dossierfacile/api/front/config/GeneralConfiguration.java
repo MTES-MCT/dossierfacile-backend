@@ -43,5 +43,4 @@ public class GeneralConfiguration {
         builder.registerTypeAdapter(LocalDateTime.class, new LocalDateTimeTypeAdapter());
         return builder.create();
     }
-
 }
