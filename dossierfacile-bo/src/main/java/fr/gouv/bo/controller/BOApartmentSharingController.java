@@ -6,6 +6,8 @@ import fr.gouv.bo.dto.DisplayableFile;
 import fr.gouv.bo.dto.EmailDTO;
 import fr.gouv.bo.dto.MessageDTO;
 import fr.gouv.bo.dto.PartnerDTO;
+import fr.gouv.bo.service.ApartmentSharingLinkService;
+import fr.gouv.bo.service.ApartmentSharingService;
 import fr.gouv.bo.service.LogService;
 import fr.gouv.bo.service.TenantService;
 import fr.gouv.bo.service.UserApiService;
@@ -13,6 +15,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -43,6 +46,8 @@ public class BOApartmentSharingController {
     private static final String FILES_BY_DOCUMENT = "filesByDocument";
 
     private final TenantService tenantService;
+    private final ApartmentSharingService apartmentSharingService;
+    private final ApartmentSharingLinkService apartmentSharingLinkService;
     private final UserApiService userApiService;
     private final LogService logService;
 
@@ -74,6 +79,18 @@ public class BOApartmentSharingController {
         model.addAttribute(FILES_BY_DOCUMENT, getFilesByDocument(tenants));
 
         return "bo/apartment-sharing-view";
+    }
+
+    @DeleteMapping("/{id}/tokens/")
+    public String regenerateToken(Model model, @PathVariable("id") Long id) {
+        apartmentSharingService.regenerateTokens(id);
+        return "redirect:/bo/colocation/" + id ;
+    }
+
+    @DeleteMapping("/{id}/apartmentSharingLinks/{link_id}")
+    public String deleteToken(Model model, @PathVariable("id") Long id, @PathVariable("link_id") Long linkId) {
+        apartmentSharingLinkService.delete(linkId);
+        return "redirect:/bo/colocation/" + id ;
     }
 
     private Map<Long, List<DisplayableFile>> getFilesByDocument(List<Tenant> tenants) {
