@@ -11,7 +11,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.ws.rs.NotFoundException;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -43,6 +45,14 @@ public class ApartmentSharingService {
 
     public void refreshUpdateDate(ApartmentSharing apartmentSharing) {
         apartmentSharing.setLastUpdateDate(LocalDateTime.now());
+        apartmentSharingRepository.save(apartmentSharing);
+    }
+
+    @Transactional
+    public void regenerateTokens(Long id) {
+        ApartmentSharing apartmentSharing = apartmentSharingCommonService.findById(id).orElseThrow(NotFoundException::new);
+        apartmentSharing.setToken(UUID.randomUUID().toString());
+        apartmentSharing.setTokenPublic(UUID.randomUUID().toString());
         apartmentSharingRepository.save(apartmentSharing);
     }
 }
