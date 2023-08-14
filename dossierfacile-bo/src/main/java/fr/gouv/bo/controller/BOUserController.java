@@ -1,6 +1,5 @@
 package fr.gouv.bo.controller;
 
-import com.amazonaws.services.memorydb.model.UserAlreadyExistsException;
 import fr.dossierfacile.common.entity.BOUser;
 import fr.dossierfacile.common.enums.Role;
 import fr.gouv.bo.dto.EmailDTO;
@@ -37,7 +36,7 @@ public class BOUserController {
         if (user == null) {
             userService.createUserByEmail(emailDTO.getEmail(), role);
         } else {
-            throw new UserAlreadyExistsException("Utilisateur existe déjà");
+            throw new IllegalArgumentException("Utilisateur existe déjà");
         }
 
         return "redirect:/bo/users";

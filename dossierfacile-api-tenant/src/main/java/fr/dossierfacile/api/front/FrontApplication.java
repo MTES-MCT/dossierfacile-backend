@@ -9,12 +9,10 @@ import org.springframework.context.annotation.FullyQualifiedAnnotationBeanNameGe
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 
-@EnableWebMvc
 @SpringBootApplication(scanBasePackages = "fr.dossierfacile")
 @EntityScan(basePackages = "fr.dossierfacile")
 @EnableJpaRepositories(basePackages = "fr.dossierfacile")
