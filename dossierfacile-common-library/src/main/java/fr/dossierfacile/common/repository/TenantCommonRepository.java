@@ -197,7 +197,7 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
             SELECT DISTINCT t
             FROM Tenant t
             JOIN Log l ON t.id = l.tenantId
-            LEFT JOIN TenantUserApi tu ON t.id = tu.tenant.id
+            LEFT JOIN Fetch t.tenantsUserApi
             WHERE l.creationDateTime BETWEEN :startDate AND :endDate
               AND l.logType = 'ACCOUNT_VALIDATED'
             """
