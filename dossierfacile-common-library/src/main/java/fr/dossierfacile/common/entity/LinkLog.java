@@ -2,6 +2,7 @@ package fr.dossierfacile.common.entity;
 
 import fr.dossierfacile.common.enums.LinkType;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -25,6 +26,7 @@ import java.time.LocalDateTime;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class LinkLog {
 
     private static final long serialVersionUID = -3603846262626208324L;

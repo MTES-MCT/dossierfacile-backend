@@ -22,7 +22,7 @@ public class ScheduledTaskService {
     @Value("${days_after_validated_property_to_follow_up_email:42}")
     private Long daysAfterValidatedPropertyToFollowUpEmail;
 
-    @Scheduled(cron = "4 10 0 * * ?")
+    @Scheduled(cron = "0 10 2 * * ?")
     void sendFollowUpValidatedPropertyAfter() {
         log.info("sendFollowUpValidatedPropertyAfter is launched");
         LocalDateTime startDate = LocalDateTime.now().minusDays(daysAfterValidatedPropertyToFollowUpEmail).with(LocalTime.MIN);
