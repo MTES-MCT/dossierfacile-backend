@@ -4,7 +4,6 @@ import fr.dossierfacile.api.front.amqp.Producer;
 import fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException;
 import fr.dossierfacile.api.front.exception.ApartmentSharingUnexpectedException;
 import fr.dossierfacile.api.front.model.MappingFormat;
-import fr.dossierfacile.api.front.repository.LinkLogRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.ApartmentSharingLink;
@@ -23,6 +22,7 @@ import fr.dossierfacile.common.repository.ApartmentSharingRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
+import fr.dossierfacile.common.service.interfaces.LinkLogService;
 import io.sentry.Sentry;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,7 +52,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
     private final ApplicationLightMapper applicationLightMapper;
     private final ApplicationBasicMapper applicationBasicMapper;
     private final FileStorageService fileStorageService;
-    private final LinkLogRepository linkLogRepository;
+    private final LinkLogService linkLogService;
     private final Producer producer;
     private final ApartmentSharingCommonService apartmentSharingCommonService;
 
@@ -138,7 +138,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
     }
 
     private void saveLinkLog(ApartmentSharing apartmentSharing, String token, LinkType linkType) {
-        linkLogRepository.save(new LinkLog(
+        linkLogService.save(new LinkLog(
                 apartmentSharing,
                 token,
                 linkType

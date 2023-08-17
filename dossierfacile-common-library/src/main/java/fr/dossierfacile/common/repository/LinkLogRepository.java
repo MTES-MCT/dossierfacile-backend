@@ -1,4 +1,4 @@
-package fr.dossierfacile.api.front.repository;
+package fr.dossierfacile.common.repository;
 
 import fr.dossierfacile.common.entity.LinkLog;
 import org.springframework.data.jpa.repository.JpaRepository;
