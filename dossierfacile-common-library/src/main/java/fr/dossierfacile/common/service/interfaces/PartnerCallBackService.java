@@ -4,8 +4,8 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.model.WebhookDTO;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 public interface PartnerCallBackService {
