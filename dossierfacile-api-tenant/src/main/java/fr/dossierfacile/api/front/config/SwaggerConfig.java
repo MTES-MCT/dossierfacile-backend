@@ -1,8 +1,12 @@
 package fr.dossierfacile.api.front.config;
 
 
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.ReflectionUtils;
+import org.springframework.web.servlet.mvc.method.RequestMappingInfoHandlerMapping;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.service.ApiInfo;
@@ -12,13 +16,14 @@ import springfox.documentation.service.SecurityReference;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spi.service.contexts.SecurityContext;
 import springfox.documentation.spring.web.plugins.Docket;
-import springfox.documentation.swagger2.annotations.EnableSwagger2;
+import springfox.documentation.spring.web.plugins.WebFluxRequestHandlerProvider;
+import springfox.documentation.spring.web.plugins.WebMvcRequestHandlerProvider;
 
+import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.List;
 
 @Configuration
-@EnableSwagger2
 public class SwaggerConfig {
 
     @Bean
@@ -143,5 +148,29 @@ public class SwaggerConfig {
         AuthorizationScope authorizationScope = new AuthorizationScope("SCOPE_api-partner", "Access to Partner API");
         AuthorizationScope[] authorizationScopes = new AuthorizationScope[]{authorizationScope};
         return List.of(new SecurityReference("Bearer", authorizationScopes));
+    }
+
+    // hack due to incompatibility between springfox and spring-boot >+2.6
+    @Bean
+    public BeanPostProcessor springfoxHandlerProviderBeanPostProcessor() {
+        return new BeanPostProcessor() {
+            @Override
+            @SuppressWarnings({"NullableProblems", "unchecked"})
+            public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+                if (bean instanceof WebMvcRequestHandlerProvider || bean instanceof WebFluxRequestHandlerProvider) {
+                    try {
+                        Field field = ReflectionUtils.findField(bean.getClass(), "handlerMappings");
+                        if (null != field) {
+                            field.setAccessible(true);
+                            List<RequestMappingInfoHandlerMapping> mappings = (List<RequestMappingInfoHandlerMapping>) field.get(bean);
+                            mappings.removeIf(e -> null != e.getPatternParser());
+                        }
+                    } catch (IllegalArgumentException | IllegalAccessException e) {
+                        throw new IllegalStateException(e);
+                    }
+                }
+                return bean;
+            }
+        };
     }
 }

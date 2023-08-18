@@ -69,7 +69,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
         }
     }
 
-    @Scheduled(cron = "1 10 0 * * ?")
+    @Scheduled(cron = "0 40 0 * * ?")
     @Override
     public void accountCompletionReminder() {
         synchronized (sendEmailLock) {
@@ -91,7 +91,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
         }
     }
 
-    @Scheduled(cron = "2 10 0 * * ?")
+    @Scheduled(cron = "0 10 1 * * ?")
     @Override
     public void accountDeclinationReminder() {
         synchronized (sendEmailLock) {
@@ -118,7 +118,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
         }
     }
 
-    @Scheduled(cron = "3 10 0 * * ?")
+    @Scheduled(cron = "0 40 1 * * ?")
     @Override
     public void satisfactionEmails() {
         synchronized (sendEmailLock) {
@@ -127,6 +127,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
                 LocalDateTime endDate = LocalDateTime.now().minusDays(daysForSatisfactionEmail).with(LocalTime.MAX);
 
                 List<Tenant> tenants = tenantRepository.findAllTenantsValidatedSinceXDaysAgo(startDate, endDate);
+                log.info(tenants.size() + " tenants found, to be notified after " + daysForSatisfactionEmail + " days of account validation");
                 for (Tenant tenant : tenants) {
                     if (tenant.getTenantsUserApi().size() > 0) {
                         mailService.sendEmailWhenTenantYESAssociatedToPartnersAndValidatedXDaysAgo(tenant);

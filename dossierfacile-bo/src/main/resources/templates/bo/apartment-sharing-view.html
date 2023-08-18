@@ -193,28 +193,89 @@
                             <table class="table table-striped table-bordered table-hover">
                                 <tr>
                                     <td>Status</td>
-                                    <td th:text="${apartmentSharing.getStatus()}"></td>
+                                    <td colspan="2" th:text="${apartmentSharing.getStatus()}"></td>
                                 </tr>
                                 <tr>
                                     <td>Tenants</td>
-                                    <td th:text="${apartmentSharing.getNumberOfTenants()}"></td>
+                                    <td colspan="2" th:text="${apartmentSharing.getNumberOfTenants()}"></td>
                                 </tr>
                                 <tr>
                                     <td>Complete register</td>
-                                    <td th:text="${apartmentSharing.getNumberOfCompleteRegister()}"></td>
+                                    <td colspan="2" th:text="${apartmentSharing.getNumberOfCompleteRegister()}"></td>
                                 </tr>
                                 <tr class="${apartmentSharing.getStatus().name() != 'VALIDATED'}">
-                                    <td colspan="2">The application links will be available when the application is
+                                    <td colspan="3">The application links will be available when the application is
                                         validated
                                     </td>
                                 </tr>
                                 <tr th:if="${apartmentSharing.getStatus().name()} == 'VALIDATED'">
                                     <td>Link restricted</td>
                                     <td th:text="${@environment.getProperty('link.domain.document')+'/public-file/' + apartmentSharing.getTokenPublic()}"></td>
+                                    <td rowspan="2">
+                                        <form th:action="@{/bo/colocation/{id}/tokens/(id=${apartmentSharing.id})}" th:method="delete">
+                                            <button class="btn-delete btn-modal-confirm-before-submit" type="button">
+                                                <span style="color:red">Regénérer</span>
+                                            </button>
+                                            <div class="modal" role="dialog" tabindex="-1">
+                                                <div class="modal-dialog" role="document">
+                                                    <div class="modal-content">
+                                                        <div class="modal-body">
+                                                            <div class="modal-body">
+                                                                Voulez-vous regénérer les tokens ?
+                                                            </div>
+
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                                                                <button class="btn  btn-primary " type="submit">Valider</button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </td>
                                 </tr>
                                 <tr th:if="${apartmentSharing.getStatus().name()} == 'VALIDATED'">
                                     <td>Link full</td>
                                     <td th:text="${@environment.getProperty('link.domain.document')+'/file/' + apartmentSharing.getToken()}"></td>
+                                </tr>
+
+                            </table>
+                            <h2>Liste des liens envoyés:</h2>
+                            <table class="table table-striped table-bordered table-hover">
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Email</th>
+                                    <th>Token</th>
+                                    <th>Action</th>
+                                </tr>
+                                <tr th:each="link : ${apartmentSharing.apartmentSharingLinks}">
+                                    <td th:text="${link.linkType}"></td>
+                                    <td th:text="${link.email}"></td>
+                                    <td th:text="${link.token}"></td>
+                                    <td>
+                                        <form th:action="@{/bo/colocation/{id}/apartmentSharingLinks/{link_id}(id=${apartmentSharing.id},link_id=${link.id})}" th:method="delete">
+                                            <button class="btn-delete btn-modal-confirm-before-submit" type="button">
+                                                <span style="color:red">Supprimer</span>
+                                            </button>
+                                            <div class="modal" role="dialog" tabindex="-1">
+                                                <div class="modal-dialog" role="document">
+                                                    <div class="modal-content">
+                                                        <div class="modal-body">
+                                                            <div class="modal-body">
+                                                                Voulez-vous supprimer le lien?
+                                                            </div>
+
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                                                                <button class="btn  btn-primary " type="submit">Valider</button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </td>
                                 </tr>
                             </table>
                         </div>

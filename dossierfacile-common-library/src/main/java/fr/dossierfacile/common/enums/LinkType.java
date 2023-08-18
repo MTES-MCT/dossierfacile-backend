@@ -4,4 +4,6 @@ public enum LinkType {
     LIGHT_APPLICATION,
     FULL_APPLICATION,
     DOCUMENT,
+    REBUILT_TOKENS,
+    DELETED_LINK_TOKEN
 }
