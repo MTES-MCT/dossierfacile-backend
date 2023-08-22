@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+    <changeSet id="202308220001-01" author="fle (manual)">
+        <sql>
+            <![CDATA[
+                    DROP INDEX IF EXISTS creation_date_index;
+                    DROP INDEX IF EXISTS idx_document_name;
+                    DROP INDEX IF EXISTS tmp_keycloak_id_index;
+                    DROP INDEX IF EXISTS operator_log_op_action_index;
+                    DROP INDEX IF EXISTS st_path;
+
+                    CREATE INDEX IF NOT EXISTS apartment_sharing_link_apart_sh_id_index ON apartment_sharing_link ( apartment_sharing_id );
+                    CREATE INDEX IF NOT EXISTS barcode_file_analysis_file_id_index ON barcode_file_analysis (file_id);
+                    CREATE INDEX IF NOT EXISTS document_denied_reasons_document_id_index ON document_denied_reasons (document_id);
+                    CREATE INDEX IF NOT EXISTS document_guarantor_id_index ON document (guarantor_id);
+                    CREATE INDEX IF NOT EXISTS document_tenant_id_index ON document (tenant_id);
+                    CREATE INDEX IF NOT EXISTS guarantor_tenant_id ON guarantor (tenant_id);
+                    CREATE INDEX IF NOT EXISTS tenant_log_creation_date_index ON tenant_log (creation_date);
+                    CREATE INDEX IF NOT EXISTS document_name_index ON document (name);
+                    CREATE INDEX IF NOT EXISTS user_account_keycloak_id_index ON user_account (keycloak_id);
+                    CREATE INDEX IF NOT EXISTS operator_log_action_type_index ON operator_log (action_type);
+                    CREATE INDEX IF NOT EXISTS message_from_user_index ON message (from_user);
+                    CREATE INDEX IF NOT EXISTS property_apartment_sharing_property_id_index ON property_apartment_sharing ( property_id );
+                    CREATE INDEX IF NOT EXISTS tenant_honor_declaration ON tenant (honor_declaration);
+                    CREATE INDEX IF NOT EXISTS tenant_last_update_date_index ON tenant (last_update_date);
+                    CREATE INDEX IF NOT EXISTS tenant_last_operator_date_time_index ON tenant (operator_date_time);
+                    CREATE INDEX IF NOT EXISTS tenant_status_index ON tenant (status);
+                    CREATE INDEX IF NOT EXISTS tenant_status_index ON tenant (status);
+                    CREATE INDEX IF NOT EXISTS watermark_document_storage_file_watermark_document_id ON watermark_document_storage_file ( watermark_document_id );
+                    CREATE INDEX IF NOT EXISTS watermark_document_token ON watermark_document (token);
+
+                ]]>
+        </sql>
+    </changeSet>
+</databaseChangeLog>
