@@ -1,6 +1,5 @@
 package fr.dossierfacile.common.entity;
 
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import fr.dossierfacile.common.enums.PropertyFurniture;
 import fr.dossierfacile.common.enums.PropertyType;
@@ -10,7 +9,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.springframework.data.annotation.CreatedDate;
 import org.springframework.lang.Nullable;
 
 import javax.persistence.CascadeType;
@@ -26,15 +24,10 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
 import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
-
-import static fr.dossierfacile.common.enums.TenantType.CREATE;
 
 @Entity
 @Table(name = "property")
@@ -89,10 +82,6 @@ public class Property implements Serializable {
 
     @OneToMany(mappedBy = "property", cascade = CascadeType.ALL)
     @JsonIgnore
-    private List<Prospect> prospects;
-
-    @OneToMany(mappedBy = "property", cascade = CascadeType.ALL)
-    @JsonIgnore
     private List<PropertyId> mergedPropertyId;
 
     @Builder.Default
@@ -134,16 +123,6 @@ public class Property implements Serializable {
     @Override
     public String toString() {
         return this.name;
-    }
-
-    public int size() {
-        int count = 0;
-        for (Prospect prospect : prospects) {
-            if (prospect.getProspectType() != null && prospect.getProspectType() == CREATE) {
-                count++;
-            }
-        }
-        return count;
     }
 
 }
