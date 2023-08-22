@@ -1,6 +1,5 @@
 package fr.dossierfacile.common.entity;
 
-
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.FileStatus;
 import fr.dossierfacile.common.enums.TenantFileStatus;
@@ -48,9 +47,6 @@ public class ApartmentSharing implements Serializable {
 
     @OneToMany(mappedBy = "apartmentSharing", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     private List<Tenant> tenants = new ArrayList<>();
-
-    @OneToMany(mappedBy = "apartmentSharing", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
-    private List<Prospect> prospects = new ArrayList<>();
 
     @OneToMany(mappedBy = "apartmentSharing", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     private List<PropertyApartmentSharing> propertiesApartmentSharing = new ArrayList<>();
@@ -126,21 +122,6 @@ public class ApartmentSharing implements Serializable {
 
     public int getNumberOfCompleteRegister() {
         return (int) tenants.stream().filter(t -> t.getStatus() != TenantFileStatus.INCOMPLETE).count();
-    }
-
-    public void addProspect(Prospect prospect) {
-        prospects.add(prospect);
-        prospect.setApartmentSharing(this);
-    }
-
-    public int getTotalGuarantor() {
-        int total = 0;
-        for (Tenant tenant : tenants) {
-            if (tenant.getGuarantors() != null) {
-                total += tenant.getGuarantors().size();
-            }
-        }
-        return total;
     }
 
     public Integer totalSalary() {
