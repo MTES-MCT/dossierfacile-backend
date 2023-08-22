@@ -40,7 +40,7 @@ public class DataSourceObjectConfiguration {
 				= new LocalContainerEntityManagerFactoryBean();
 		em.setDataSource(userDataSource());
 		em.setPackagesToScan(
-				new String[] { "fr.dossierfacile.garbagecollector.model.object","fr.dossierfacile.garbagecollector.model.marker" });
+				"fr.dossierfacile.garbagecollector.model.object","fr.dossierfacile.garbagecollector.model.marker");
 
 		HibernateJpaVendorAdapter vendorAdapter
 				= new HibernateJpaVendorAdapter();
