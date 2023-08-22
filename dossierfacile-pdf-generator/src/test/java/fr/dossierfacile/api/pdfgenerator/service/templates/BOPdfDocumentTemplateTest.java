@@ -16,6 +16,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Collections;
 
 import static org.mockito.Mockito.any;
 
@@ -49,7 +50,7 @@ public class BOPdfDocumentTemplateTest {
         File resultFile = new File("target/resultSpecial.pdf");
         resultFile.createNewFile();
 
-        byte[] bytes = IOUtils.toByteArray(boPdfDocumentTemplate.render(Arrays.asList(data)));
+        byte[] bytes = IOUtils.toByteArray(boPdfDocumentTemplate.render(Collections.singletonList(data)));
 
         FileOutputStream w = new FileOutputStream(resultFile);
         w.write(bytes);
@@ -70,7 +71,7 @@ public class BOPdfDocumentTemplateTest {
         File resultFile = new File("target/resultTestPdfWrongSize.pdf");
         resultFile.createNewFile();
 
-        byte[] bytes = IOUtils.toByteArray(boPdfDocumentTemplate.render(Arrays.asList(data)));
+        byte[] bytes = IOUtils.toByteArray(boPdfDocumentTemplate.render(Collections.singletonList(data)));
 
         FileOutputStream w = new FileOutputStream(resultFile);
         w.write(bytes);
@@ -128,7 +129,7 @@ public class BOPdfDocumentTemplateTest {
         File resultFile = new File("target/resultTestPdfWithJpeg.pdf");
         resultFile.createNewFile();
 
-        byte[] bytes = IOUtils.toByteArray(boPdfDocumentTemplate.render(Arrays.asList(data)));
+        byte[] bytes = IOUtils.toByteArray(boPdfDocumentTemplate.render(Collections.singletonList(data)));
 
         FileOutputStream w = new FileOutputStream(resultFile);
         w.write(bytes);

@@ -8,7 +8,7 @@ public enum StepRegisterOwner {
     STEP2("step2"),
     STEP3("step3"),
     ;
-    private String label;
+    private final String label;
 
     StepRegisterOwner(String label) {
         this.label = label;

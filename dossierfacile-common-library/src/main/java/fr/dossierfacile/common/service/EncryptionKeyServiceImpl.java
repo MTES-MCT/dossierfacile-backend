@@ -7,7 +7,6 @@ import fr.dossierfacile.common.service.interfaces.EncryptionKeyService;
 import io.sentry.Sentry;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.KeyGenerator;

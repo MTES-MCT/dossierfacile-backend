@@ -21,7 +21,7 @@ public class templateTest {
 
    PDPage myPage = new PDPage();
     mainDocument.addPage(myPage);
-   PDPageContentStream contentStream = new PDPageContentStream(mainDocument, myPage, PDPageContentStream.AppendMode.APPEND.APPEND, true);
+   PDPageContentStream contentStream = new PDPageContentStream(mainDocument, myPage, PDPageContentStream.AppendMode.APPEND, true);
 
    contentStream.beginText();
    // Some text

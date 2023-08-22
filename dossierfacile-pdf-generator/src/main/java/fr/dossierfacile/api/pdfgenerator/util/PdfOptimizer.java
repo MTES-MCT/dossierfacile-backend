@@ -33,8 +33,7 @@ public class PdfOptimizer {
         } else {
             objs.add(base);
 
-            if (base instanceof COSDictionary) {
-                COSDictionary dico = (COSDictionary) base;
+            if (base instanceof COSDictionary dico) {
                 StringBuilder hash = new StringBuilder("d-");
                 for (Map.Entry<COSName, COSBase> x : ((COSDictionary) base).entrySet()) {
                     COSBase o = getAndReplaceObjectByReferenceObject(x.getValue(), objs, references);
@@ -67,9 +66,8 @@ public class PdfOptimizer {
                 }
                 return references.get(key);
             } else {
-                if (base instanceof COSObject) {
+                if (base instanceof COSObject obj) {
                     // By pass useless object
-                    COSObject obj = (COSObject) base;
                     return getAndReplaceObjectByReferenceObject(obj.getObject(), objs, references);
                 } else {
                     // replace by reference if exists - add if not
