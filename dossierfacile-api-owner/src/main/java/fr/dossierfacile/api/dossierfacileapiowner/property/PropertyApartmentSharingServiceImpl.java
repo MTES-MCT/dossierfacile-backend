@@ -34,7 +34,7 @@ public class PropertyApartmentSharingServiceImpl implements PropertyApartmentSha
                             .build()
                     );
             propertyApartmentSharingRepository.save(propertyApartmentSharing);
-            mailService.sendEmailNewApplicant(tenant, property.getOwner());
+            mailService.sendEmailNewApplicant(tenant, property.getOwner(), property);
         } else {
             throw new IllegalStateException("Tenant is not the main tenant");
         }

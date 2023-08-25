@@ -48,6 +48,8 @@ public class MailServiceImpl implements MailService {
     @Value("${sendinblue.template.id.follow-up.validated.property}")
     private Long templateIdFollowUpAfterValidatedProperty;
 
+    @Value("${property.path}")
+    private Long propertyPath;
 
     private void sendTransactionalEmail(Long templateId, User to, Object emailParams) {
         ApiClient defaultClient = Configuration.getDefaultApiClient();
@@ -97,20 +99,24 @@ public class MailServiceImpl implements MailService {
         }
         Owner owner = associatedProperty.getOwner();
         sendTransactionalEmail(templateIdApplicantValidated, owner,
-                ApplicantValidatedMailParams.builder()
+                PropertyApplicantMailParams.builder()
                         .ownerLastname(owner.getLastName())
                         .ownerFirstname(owner.getFirstName())
                         .tenantName(tenant.get().getFullName())
+                        .propertyName(associatedProperty.getName())
+                        .propertyUrl(ownerUrl + propertyPath + associatedProperty.getId())
                         .build());
     }
 
     @Override
-    public void sendEmailNewApplicant(Tenant tenant, Owner owner) {
+    public void sendEmailNewApplicant(Tenant tenant, Owner owner, Property property) {
         sendTransactionalEmail(templateIdNewApplicant, owner,
-                NewApplicantMailParams.builder()
+                PropertyApplicantMailParams.builder()
                         .ownerLastname(owner.getLastName())
                         .ownerFirstname(owner.getFirstName())
                         .tenantName(tenant.getFullName())
+                        .propertyName(property.getName())
+                        .propertyUrl(ownerUrl + propertyPath + property.getId())
                         .build());
     }
     @Async
@@ -120,7 +126,7 @@ public class MailServiceImpl implements MailService {
                 ValidatedPropertyParams.builder()
                         .firstName(user.getFirstName())
                         .lastName(user.getLastName())
-                        .propertyUrl(ownerUrl + "/consulte-propriete/" + property.getId()));
+                        .propertyUrl(ownerUrl + propertyPath + property.getId()));
     }
 
     @Override
@@ -131,6 +137,4 @@ public class MailServiceImpl implements MailService {
                         .lastName(user.getLastName())
                         .propertyName(property.getName()));
     }
-
-
 }
