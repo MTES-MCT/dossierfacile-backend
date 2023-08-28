@@ -49,7 +49,7 @@ public class MailServiceImpl implements MailService {
     private Long templateIdFollowUpAfterValidatedProperty;
 
     @Value("${property.path}")
-    private Long propertyPath;
+    private String propertyPath;
 
     private void sendTransactionalEmail(Long templateId, User to, Object emailParams) {
         ApiClient defaultClient = Configuration.getDefaultApiClient();
