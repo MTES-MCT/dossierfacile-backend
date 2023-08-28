@@ -18,15 +18,17 @@ public class MinifyFileReceiver {
 
     @RabbitListener(queues = "${rabbitmq.queue.file.minify}", containerFactory = "retryContainerFactory")
     public void processFileTax(Map<String, String> item) {
+        Long fileId = Long.valueOf(item.get("id"));
+        LoggingContext.startProcessing(fileId, ActionType.MINIFY);
         try {
-            Long fileId = Long.valueOf(item.get("id"));
-            log.info("Received file [{}] to minify", fileId);
             minifyFile.process(fileId);
 
         } catch (Exception e) {
             log.error(EXCEPTION + Sentry.captureException(e));
             log.error(e.getMessage(), e.getCause());
             throw e;
+        } finally {
+            LoggingContext.endProcessing();
         }
     }
 }

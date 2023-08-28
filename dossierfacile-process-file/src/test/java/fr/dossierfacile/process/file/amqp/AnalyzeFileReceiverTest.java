@@ -36,11 +36,11 @@ class AnalyzeFileReceiverTest {
         sleepSeconds(0).when(analyzeFile).processFile(2L); // Should not time out
 
         long startTime = System.currentTimeMillis();
-        analyzeFileReceiver.processDocument(withId("1"));
-        analyzeFileReceiver.processDocument(withId("2"));
-        analyzeFileReceiver.processDocument(withId("1"));
-        analyzeFileReceiver.processDocument(withId("2"));
-        analyzeFileReceiver.processDocument(withId("1"));
+        analyzeFileReceiver.receiveFile(withId("1"));
+        analyzeFileReceiver.receiveFile(withId("2"));
+        analyzeFileReceiver.receiveFile(withId("1"));
+        analyzeFileReceiver.receiveFile(withId("2"));
+        analyzeFileReceiver.receiveFile(withId("1"));
         long executionTime = System.currentTimeMillis() - startTime;
 
         verify(analyzeFile, times(3)).processFile(1L);
@@ -54,7 +54,7 @@ class AnalyzeFileReceiverTest {
     void should_fail_on_analysis_error() {
         doThrow(new RuntimeException("error!")).when(analyzeFile).processFile(anyLong());
 
-        assertThatThrownBy(() -> analyzeFileReceiver.processDocument(withId("1")))
+        assertThatThrownBy(() -> analyzeFileReceiver.receiveFile(withId("1")))
                 .isInstanceOf(ExecutionException.class)
                 .hasCauseInstanceOf(RuntimeException.class)
                 .hasMessageContaining("error!");
