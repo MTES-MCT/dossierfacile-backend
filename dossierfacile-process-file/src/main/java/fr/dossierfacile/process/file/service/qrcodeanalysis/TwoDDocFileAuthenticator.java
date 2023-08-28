@@ -25,6 +25,7 @@ public class TwoDDocFileAuthenticator {
     public BarCodeFileAnalysis analyze(TwoDDocRawContent twoDDocContent) {
         TwoDDoc twoDDoc = TwoDDocC40Parser.parse(twoDDocContent);
         FileAuthenticationStatus status = authenticate(twoDDoc);
+        log.info("2D-Doc authenticity check result: {}", status);
 
         return BarCodeFileAnalysis.builder()
                 .documentType(twoDDoc.getDocumentType())

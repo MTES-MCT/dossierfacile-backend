@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 
 @Slf4j
@@ -23,19 +24,30 @@ public class AnalyzeFileReceiver {
     private final Timeout analysisTimeout;
 
     @RabbitListener(queues = "${rabbitmq.queue.file.analyze}", containerFactory = "retryContainerFactory")
-    public void processDocument(Map<String, String> message) throws InterruptedException, ExecutionException {
+    public void receiveFile(Map<String, String> message) throws InterruptedException, ExecutionException {
         Long fileId = Long.valueOf(message.get("id"));
-        log.info("Received file [{}] to analyze", fileId);
-        var analysis = executor.submit(() -> analyzeFile.processFile(fileId));
+        LoggingContext.startProcessing(fileId, ActionType.ANALYZE);
+        var analysis = launchAnalysis(fileId);
         try {
             analysis.get(analysisTimeout.value(), analysisTimeout.unit());
         } catch (TimeoutException e) {
             analysis.cancel(true);
-            log.warn("Analysis of file {} cancelled because timeout was reached", fileId);
+            log.warn("Analysis cancelled because timeout was reached");
         } catch (Exception e) {
-            log.error("Failed to analyze file {} (Sentry ID: {})", fileId, Sentry.captureException(e), e);
+            log.error("Failed to analyze file (Sentry ID: {})", Sentry.captureException(e), e);
             throw e;
+        } finally {
+            LoggingContext.endProcessing();
         }
+    }
+
+    private Future<?> launchAnalysis(Long fileId) {
+        Runnable task = () -> analyzeFile.processFile(fileId);
+        return submitTask(task);
+    }
+
+    private Future<?> submitTask(Runnable runnable) {
+        return executor.submit(LoggingContext.copyContextInThread(runnable));
     }
 
 }

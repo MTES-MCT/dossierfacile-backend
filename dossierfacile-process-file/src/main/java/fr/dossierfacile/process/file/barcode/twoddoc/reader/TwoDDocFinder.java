@@ -49,6 +49,7 @@ public class TwoDDocFinder {
             BufferedImage imageToRead = pdfToImageConverter.getSubImageAt(position);
             Optional<TwoDDocRawContent> twoDDoc = readTwoDDocOn(imageToRead);
             if (twoDDoc.isPresent()) {
+                log.info("Found 2D-Doc on document");
                 return twoDDoc;
             }
         }
