@@ -26,7 +26,7 @@ public class DeleteFileInterceptor extends EmptyInterceptor implements Hibernate
 
     @Autowired
     @Lazy
-    private StorageFileToDeleteRepository storageFileToDeleteRepository;
+    private transient StorageFileToDeleteRepository storageFileToDeleteRepository;
 
     @Override
     public void customize(Map<String, Object> hibernateProperties) {

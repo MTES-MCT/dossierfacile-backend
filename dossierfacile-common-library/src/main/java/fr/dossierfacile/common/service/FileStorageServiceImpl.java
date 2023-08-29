@@ -92,17 +92,19 @@ public class FileStorageServiceImpl implements FileStorageService {
         }
         boolean shift=false;
         for (ObjectStorageProvider provider : dynamicProviderConfig.getProviders()) {
+            boolean tryNextProvider = false;
             try {
                 storageFile = uploadToProvider(inputStream, storageFile, provider);
-                break;
             } catch (RetryableOperationException e) {
                 log.warn("Provider " + provider + " Failed - Retry with the next provider if exists.", e);
                 shift=true;
                 if(inputStream.markSupported()) {
                     inputStream.reset();
-                } else {
-                    break;
+                    tryNextProvider = true;
                 }
+            }
+            if (!tryNextProvider) {
+                break;
             }
         }
         if (shift) {
