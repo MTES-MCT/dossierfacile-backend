@@ -49,17 +49,6 @@ public class ApiPartnerRegisterGuarantorLegalPersonController {
         return ok(tenantModel);
     }
 
-    //TODO REMOVE, wrong name
-    @ApiOperation("Deprecated - Please use /documentRepresentantIdentification endpoint ")
-    @PreAuthorize("hasPermissionOnTenant(#documentIdentificationRepresentantGuarantorLegalPersonForm.tenantId)")
-    @PostMapping("/documentRepresentanIdentification")
-    public ResponseEntity<TenantModel> documentIdentificationRepresentan(@Validated({Dossier.class, DocumentIdentificationGuarantor.class}) DocumentIdentificationRepresentanGuarantorLegalPersonForm documentIdentificationRepresentantGuarantorLegalPersonForm) {
-        Tenant tenant = tenantService.findById(documentIdentificationRepresentantGuarantorLegalPersonForm.getTenantId());
-        TenantModel tenantModel = tenantService.saveStepRegister(tenant, documentIdentificationRepresentantGuarantorLegalPersonForm, StepRegister.DOCUMENT_IDENTIFICATION_REPRESENTANT_GUARANTOR_LEGAL_PERSON);
-        logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
-        return ok(tenantModel);
-    }
-
     @PreAuthorize("hasPermissionOnTenant(#documentIdentificationRepresentanGuarantorLegalPersonForm.tenantId)")
     @PostMapping("/documentRepresentantIdentification")
     public ResponseEntity<TenantModel> documentIdentificationRepresentant(@Validated({ApiPartner.class, DocumentIdentificationGuarantor.class}) DocumentIdentificationRepresentanGuarantorLegalPersonForm documentIdentificationRepresentanGuarantorLegalPersonForm) {

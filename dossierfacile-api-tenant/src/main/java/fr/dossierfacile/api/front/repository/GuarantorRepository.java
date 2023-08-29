@@ -1,6 +1,5 @@
 package fr.dossierfacile.api.front.repository;
 
-import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Guarantor;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.TypeGuarantor;
@@ -8,7 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.util.List;
 import java.util.Optional;
 
 public interface GuarantorRepository extends JpaRepository<Guarantor, Long> {
@@ -19,10 +17,6 @@ public interface GuarantorRepository extends JpaRepository<Guarantor, Long> {
 
     // TODO check if tenant_id can be used instead
     boolean existsByIdAndTenantAndTypeGuarantor(Long guarantorId, Tenant tenant, TypeGuarantor typeGuarantor);
-
-    Optional<Guarantor> findByIdAndTenant(Long id, Tenant tenant);
-
-    List<Guarantor> findGuarantorsByTenant(Tenant tenant);
 
     @Query(value = "select g.*\n" +
             "from guarantor g\n" +
