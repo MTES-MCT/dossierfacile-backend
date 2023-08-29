@@ -1,5 +1,9 @@
 package fr.dossierfacile.garbagecollector.service;
 
+import fr.dossierfacile.common.entity.StorageFileToDelete;
+import fr.dossierfacile.common.repository.StorageFileToDeleteRepository;
+import fr.dossierfacile.common.service.interfaces.FileStorageService;
+import fr.dossierfacile.common.service.interfaces.FileStorageToDeleteService;
 import fr.dossierfacile.garbagecollector.model.object.Object;
 import fr.dossierfacile.garbagecollector.service.interfaces.ObjectService;
 import fr.dossierfacile.garbagecollector.service.interfaces.OvhService;
@@ -17,6 +21,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class ScheduledDeleteService {
 
+    private final StorageFileToDeleteRepository storageFileToDeleteRepository;
+    private final FileStorageToDeleteService fileStorageToDeleteService;
     private static final Integer LIMIT_OBJECTS_TO_DELETE = 500;
     private final ObjectService objectService;
     private final ObjectTransactions objectTransactions;
@@ -53,5 +59,13 @@ public class ScheduledDeleteService {
         ovhService.delete(allPaths);
         objectTransactions.deleteListObjects(objectList);
         System.out.println("Deleted files: " + objectList.size() + "\n");
+    }
+
+    @Scheduled(fixedDelay = 9000)
+    public void deleteFileInProviderTask() {
+        List<StorageFileToDelete> storageFileToDeleteList = storageFileToDeleteRepository.findAll();
+        for (StorageFileToDelete storageFileToDelete : storageFileToDeleteList) {
+            fileStorageToDeleteService.delete(storageFileToDelete);
+        }
     }
 }
