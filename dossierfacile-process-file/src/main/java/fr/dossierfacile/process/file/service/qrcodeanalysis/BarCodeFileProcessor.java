@@ -30,10 +30,10 @@ public class BarCodeFileProcessor {
         if (analysisRepository.hasNotAlreadyBeenAnalyzed(file) &&
                 PDF_TYPE.equals(file.getStorageFile().getContentType())) {
             long start = System.currentTimeMillis();
-            log.info("Starting analysis of file {}", file.getId());
+            log.info("Starting analysis of file");
             downloadAndAnalyze(file)
                     .ifPresent(analysis -> save(file, analysis));
-            log.info("Analysis of file {} finished in {} ms", file.getId(), System.currentTimeMillis() - start);
+            log.info("Analysis of file finished in {} ms", System.currentTimeMillis() - start);
         }
     }
 
@@ -48,8 +48,7 @@ public class BarCodeFileProcessor {
                         return analysis;
                     });
         } catch (IOException e) {
-            log.error("Unable to download file " + file.getStorageFile().getPath(), e);
-            Sentry.captureMessage("Unable to download file " + file.getStorageFile().getPath());
+            log.error("Unable to download file", e);
         }
         return Optional.empty();
     }

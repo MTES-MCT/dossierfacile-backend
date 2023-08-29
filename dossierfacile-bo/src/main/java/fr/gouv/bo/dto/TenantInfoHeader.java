@@ -5,6 +5,7 @@ import fr.dossierfacile.common.entity.Log;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.User;
 import fr.dossierfacile.common.entity.UserApi;
+import fr.gouv.bo.utils.DateFormatUtil;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -17,6 +18,7 @@ import java.util.stream.Stream;
 
 import static fr.dossierfacile.common.enums.LogType.ACCOUNT_DENIED;
 import static fr.dossierfacile.common.enums.LogType.ACCOUNT_VALIDATED;
+import static java.lang.String.format;
 import static lombok.AccessLevel.PRIVATE;
 
 @Getter
@@ -27,11 +29,11 @@ public class TenantInfoHeader {
 
     public static TenantInfoHeader build(Tenant tenant, List<UserApi> partners, List<Log> tenantLogs) {
         List<HeaderElement> elements = List.of(
-                new HeaderElement("FranceConnecté",(tenant.getFranceConnect() == Boolean.TRUE)? "Oui" : "Non"),
+                new HeaderElement("FranceConnecté", (tenant.getFranceConnect() == Boolean.TRUE) ? "Oui" : "Non"),
                 new HeaderElement("Nom", tenant.getFullName()),
                 new HeaderElement("Dossier", getApplicationType(tenant)),
                 new HeaderElement("Partenaires", getPartnerNames(partners)),
-                new HeaderElement("Passages en BO", getTimesTenantAppearedInBoSinceLastValidation(tenantLogs))
+                new HeaderElement("Historique", getCurrentStateBasedOnLogs(tenantLogs))
         );
         return new TenantInfoHeader(elements);
     }
@@ -55,12 +57,22 @@ public class TenantInfoHeader {
         };
     }
 
-    private static String getTimesTenantAppearedInBoSinceLastValidation(List<Log> tenantLogs) {
-        Stream<Log> deniedSinceLastValidation = tenantLogs.stream()
+    private static String getCurrentStateBasedOnLogs(List<Log> tenantLogs) {
+        List<Log> validatedAndDeniedLogs = tenantLogs.stream()
                 .filter(log -> List.of(ACCOUNT_DENIED, ACCOUNT_VALIDATED).contains(log.getLogType()))
                 .sorted(Comparator.comparing(Log::getCreationDateTime).reversed())
+                .toList();
+        if (validatedAndDeniedLogs.isEmpty()) {
+            return "Premier passage";
+        }
+        Log lastLog = validatedAndDeniedLogs.get(0);
+        if (lastLog.getLogType() == ACCOUNT_VALIDATED) {
+            return format("Validé %s", DateFormatUtil.formatRelativeToNow(lastLog.getCreationDateTime()));
+        }
+        Stream<Log> deniedSinceLastValidation = validatedAndDeniedLogs
+                .stream()
                 .takeWhile(log -> log.getLogType() == ACCOUNT_DENIED);
-        return String.valueOf(deniedSinceLastValidation.count() + 1);
+        return format("Refusé %s fois", deniedSinceLastValidation.count());
     }
 
     @Getter

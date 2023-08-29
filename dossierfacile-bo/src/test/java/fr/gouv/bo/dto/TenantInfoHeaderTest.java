@@ -35,7 +35,7 @@ class TenantInfoHeaderTest {
                         "Nom", "John Doe",
                         "Dossier", "En couple avec Jane Doe",
                         "Partenaires", "",
-                        "Passages en BO", "1"
+                        "Historique", "Premier passage"
                 )
         );
     }
@@ -54,14 +54,14 @@ class TenantInfoHeaderTest {
                         "Nom", "John Doe",
                         "Dossier", "Seul·e",
                         "Partenaires", "Pretty Name 1, technical-name2",
-                        "Passages en BO", "1"
+                        "Historique", "Premier passage"
                 )
         );
     }
 
     @ParameterizedTest
-    @MethodSource("logsAndExpectedTimes")
-    void should_display_times_tenant_appeared_in_bo(List<Log> logs, Integer expectedTimes) {
+    @MethodSource("logsAndExpectedStatus")
+    void should_display_times_tenant_appeared_in_bo(List<Log> logs, String expectedStatus) {
         TenantInfoHeader header = build(tenant(ALONE), emptyList(), logs);
 
         assertThat(header.getElements()).containsExactlyElementsOf(
@@ -70,31 +70,31 @@ class TenantInfoHeaderTest {
                         "Nom", "John Doe",
                         "Dossier", "Seul·e",
                         "Partenaires", "",
-                        "Passages en BO", expectedTimes.toString()
+                        "Historique", expectedStatus
                 )
         );
     }
 
-    private static Stream<Arguments> logsAndExpectedTimes() {
+    private static Stream<Arguments> logsAndExpectedStatus() {
         return Stream.of(
                 arguments(List.of(
                         log(1, ACCOUNT_EDITED),
                         log(2, ACCOUNT_EDITED)
-                ), 1),
+                ), "Premier passage"),
                 arguments(List.of(
                         log(1, ACCOUNT_DENIED)
-                ), 2),
+                ), "Refusé 1 fois"),
                 arguments(List.of(
                         log(2, ACCOUNT_DENIED),
                         log(1, ACCOUNT_CREATED),
                         log(3, ACCOUNT_VALIDATED)
-                ), 1),
+                ), "Validé il y a 21 heures"),
                 arguments(List.of(
                         log(3, ACCOUNT_VALIDATED),
                         log(4, ACCOUNT_DENIED),
                         log(1, ACCOUNT_CREATED),
                         log(2, ACCOUNT_DENIED)
-                ), 2),
+                ), "Refusé 1 fois"),
                 arguments(List.of(
                         log(1, ACCOUNT_CREATED),
                         log(2, ACCOUNT_EDITED),
@@ -104,7 +104,7 @@ class TenantInfoHeaderTest {
                         log(6, ACCOUNT_DENIED),
                         log(7, ACCOUNT_EDITED),
                         log(8, ACCOUNT_DENIED)
-                ), 3)
+                ), "Refusé 2 fois")
         );
     }
 
@@ -126,7 +126,7 @@ class TenantInfoHeaderTest {
     private static Log log(int temporalOrder, LogType logType) {
         Log log = new Log();
         log.setLogType(logType);
-        log.setCreationDateTime(LocalDateTime.of(2023, 3, 22, 12, temporalOrder));
+        log.setCreationDateTime(LocalDateTime.now().minusDays(1).plusHours(temporalOrder));
         return log;
     }
 

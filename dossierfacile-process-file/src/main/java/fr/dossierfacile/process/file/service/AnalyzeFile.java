@@ -26,7 +26,7 @@ public class AnalyzeFile {
         if (FileAnalysisCriteria.shouldBeAnalyzed(file)) {
             return true;
         }
-        log.info("File {} is not eligible for analysis", file.getId());
+        log.info("File is not eligible for analysis");
         return false;
     }
 
