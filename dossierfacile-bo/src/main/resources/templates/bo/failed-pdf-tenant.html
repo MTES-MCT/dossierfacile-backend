@@ -32,7 +32,7 @@
                         <span th:text="${tenant.getId()}"></span>
                     </td>
                     <td
-                      th:with="formattedDate=${T(fr.gouv.bo.utils.DateFormatUtil).relativeToNow(tenant.getLastUpdateDate())}"
+                      th:with="formattedDate=${T(fr.gouv.bo.utils.DateFormatUtil).formatPreciselyRelativeToNow(tenant.getLastUpdateDate())}"
                       th:text="${formattedDate}"></td>
                     <td th:text="${tenant.getFirstName()}"></td>
                     <td th:text="${tenant.getLastName()}"></td>

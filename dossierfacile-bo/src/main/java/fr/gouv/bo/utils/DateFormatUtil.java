@@ -9,10 +9,19 @@ import java.util.Locale;
 
 public class DateFormatUtil {
 
-    public static String relativeToNow(LocalDateTime localDateTime) {
-        PrettyTime prettyTime = new PrettyTime(Locale.FRANCE);
-        List<Duration> durations = prettyTime.calculatePreciseDuration(localDateTime);
-        return prettyTime.format(durations);
+    private static final PrettyTime prettyTime = new PrettyTime(Locale.FRANCE);
+
+    public static String formatPreciselyRelativeToNow(LocalDateTime localDateTime) {
+        return prettyTime.format(getDurations(localDateTime));
+    }
+
+    public static String formatRelativeToNow(LocalDateTime localDateTime) {
+        List<Duration> durations = getDurations(localDateTime);
+        return prettyTime.format(durations.get(0));
+    }
+
+    private static List<Duration> getDurations(LocalDateTime localDateTime) {
+        return prettyTime.calculatePreciseDuration(localDateTime);
     }
 
 }
