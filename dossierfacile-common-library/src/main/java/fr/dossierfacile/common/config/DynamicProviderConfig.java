@@ -10,12 +10,11 @@ import java.util.List;
 
 @Configuration
 public class DynamicProviderConfig {
-    @Value("#{'${storage.provider.list}'.split(',')}")
     private List<ObjectStorageProvider> providersConfig;
 
     private static List<ObjectStorageProvider> providers;
 
-    @Value("#{'${storage.provider.list}'.split(',')}")
+    @Value("#{'${storage.provider.list}'.split(','):OVH,THREEDS.OUTSCALE}")
     public void setNameStatic(List<ObjectStorageProvider> providersConfig){
         providers = providersConfig;
     }
