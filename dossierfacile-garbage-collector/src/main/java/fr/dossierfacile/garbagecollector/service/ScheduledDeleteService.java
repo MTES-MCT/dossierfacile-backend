@@ -2,19 +2,19 @@ package fr.dossierfacile.garbagecollector.service;
 
 import fr.dossierfacile.common.entity.StorageFileToDelete;
 import fr.dossierfacile.common.repository.StorageFileToDeleteRepository;
-import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.common.service.interfaces.FileStorageToDeleteService;
 import fr.dossierfacile.garbagecollector.model.object.Object;
 import fr.dossierfacile.garbagecollector.service.interfaces.ObjectService;
 import fr.dossierfacile.garbagecollector.service.interfaces.OvhService;
 import fr.dossierfacile.garbagecollector.transactions.interfaces.ObjectTransactions;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
