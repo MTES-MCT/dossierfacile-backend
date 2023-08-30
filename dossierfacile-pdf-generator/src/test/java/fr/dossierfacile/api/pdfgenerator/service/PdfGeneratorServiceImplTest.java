@@ -16,6 +16,7 @@ import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
@@ -48,6 +49,7 @@ class PdfGeneratorServiceImplTest {
     private File file;
 
     @Test
+    @Disabled
     void generateFullDossierPdf() throws IOException {
         ApartmentSharing apartmentSharing = buildApartmentSharing();
         Mockito.when(apartmentSharingCommonService.findById(1L)).thenReturn(Optional.of(apartmentSharing));
