@@ -64,7 +64,7 @@ public class ApartmentSharing implements Serializable {
     @Enumerated(EnumType.STRING)
     private ApplicationType applicationType;
 
-    @OneToOne(cascade = CascadeType.REMOVE)
+    @OneToOne(cascade = CascadeType.REMOVE, orphanRemoval = true)
     @JoinColumn(name = "pdf_dossier_file_id")
     private StorageFile pdfDossierFile;
 
