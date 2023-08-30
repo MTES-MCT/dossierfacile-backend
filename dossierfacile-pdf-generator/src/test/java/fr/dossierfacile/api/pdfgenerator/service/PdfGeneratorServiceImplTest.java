@@ -12,11 +12,12 @@ import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.FileStatus;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.enums.TenantType;
+import fr.dossierfacile.common.repository.StorageFileRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
@@ -42,14 +43,21 @@ class PdfGeneratorServiceImplTest {
 
     @MockBean
     TenantCommonRepository tenantRepository;
+    @MockBean
+    StorageFileRepository storageFileRepository;
+
 
     @Value("${mock.storage.path}")
     private String filePath;
 
     private File file;
 
+    @BeforeEach
+    void init() {
+        Mockito.when(storageFileRepository.save(Mockito.any())).thenAnswer(i -> i.getArguments()[0]);
+    }
+
     @Test
-    @Disabled
     void generateFullDossierPdf() throws IOException {
         ApartmentSharing apartmentSharing = buildApartmentSharing();
         Mockito.when(apartmentSharingCommonService.findById(1L)).thenReturn(Optional.of(apartmentSharing));
