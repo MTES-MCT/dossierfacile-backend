@@ -30,6 +30,8 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.UUID;
 
 import static java.lang.String.format;
@@ -127,6 +129,7 @@ public class MockStorage implements FileStorageService {
             storageFile = StorageFile.builder()
                     .name("undefined")
                     .provider(provider)
+                    .providers(Collections.singletonList(provider.toString()))
                     .build();
         }
 
