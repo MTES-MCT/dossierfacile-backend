@@ -14,7 +14,7 @@ public class DynamicProviderConfig {
 
     private static List<ObjectStorageProvider> providers;
 
-    @Value("#{'${storage.provider.list}'.split(','):OVH,THREEDS.OUTSCALE}")
+    @Value("#{'${storage.provider.list:OVH,THREEDS.OUTSCALE}'.split(',')}")
     public void setNameStatic(List<ObjectStorageProvider> providersConfig){
         providers = providersConfig;
     }
