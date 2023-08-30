@@ -31,7 +31,7 @@ public class BackupFilesService {
                     try (InputStream is = fileStorageService.download(storageFile)) {
                         fileStorageService.uploadToProvider(is, storageFile, objectStorageProvider);
                     } catch (Exception e) {
-                        log.error("Upload to " + objectStorageProvider + " failed");
+                        log.error("Upload to " + objectStorageProvider + " failed for storage_file with id : " + storageFile.getId());
                     }
                 }
             }
