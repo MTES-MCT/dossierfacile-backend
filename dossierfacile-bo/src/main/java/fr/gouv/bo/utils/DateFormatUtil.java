@@ -27,7 +27,7 @@ public class DateFormatUtil {
     }
 
     public static String getExpectedPayslipMonths() {
-        return ExpectedPayslips.atDate(LocalDate.now().plusDays(15)).format(LOCALE);
+        return ExpectedPayslips.atDate(LocalDate.now()).format(LOCALE);
     }
 
 }
