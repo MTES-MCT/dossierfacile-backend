@@ -88,6 +88,10 @@
                                         th:if="${messageItem.getMonthlySum()}!=null">
                                         <span th:text="'Montant mensuel : ' + ${messageItem.getMonthlySum()}"></span>
                                     </h4>
+                                    <h4 class="panel-title letter" style="padding-top: 7px"
+                                        th:if="${messageItem.getDocumentSubCategory() == T(fr.dossierfacile.common.enums.DocumentSubCategory).SALARY}">
+                                        <span th:text="'Bulletins attendus : ' + ${T(fr.gouv.bo.utils.DateFormatUtil).getExpectedPayslipMonths()}"></span>
+                                    </h4>
                                 </div>
                                 <div th:if="${messageItem.getPreviousDeniedReasons()} != null"
                                      th:with="reasons=${messageItem.getPreviousDeniedReasons()}"
