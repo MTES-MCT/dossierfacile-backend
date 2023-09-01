@@ -9,6 +9,7 @@ import fr.gouv.bo.utils.UtilsLocatio;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -37,7 +38,7 @@ public class UserApiService {
     }
 
     public List<UserApi> findAll() {
-        return userApiRepository.findAll();
+        return userApiRepository.findAll(Sort.by("disabled","name"));
     }
 
     public UserApi create(UserApiDTO userApiDTO) {
