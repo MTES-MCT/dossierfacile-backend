@@ -5,7 +5,9 @@ import com.google.gson.GsonBuilder;
 import fr.dossierfacile.common.entity.AccountDeleteLog;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.mapper.DeletedTenantCommonMapper;
 import fr.dossierfacile.common.mapper.TenantCommonMapper;
+import fr.dossierfacile.common.model.apartment_sharing.DeletedTenantModel;
 import fr.dossierfacile.common.model.apartment_sharing.TenantModel;
 import fr.dossierfacile.common.repository.AccountDeleteLogCommonRepository;
 import fr.dossierfacile.common.repository.ApartmentSharingRepository;
@@ -31,7 +33,7 @@ import java.util.Optional;
 public class TenantCommonServiceImpl implements TenantCommonService {
 
     private final AccountDeleteLogCommonRepository accountDeleteLogRepository;
-    private final TenantCommonMapper tenantCommonMapper;
+    private final DeletedTenantCommonMapper deletedTenantCommonMapper;
     private final FileStorageService fileStorageService;
     private final ApartmentSharingRepository apartmentSharingRepository;
     private final DocumentCommonRepository documentRepository;
@@ -41,7 +43,7 @@ public class TenantCommonServiceImpl implements TenantCommonService {
     @Override
     public void recordAndDeleteTenantData(Long tenantId) {
         Tenant tenant = tenantCommonRepository.findOneById(tenantId);
-        TenantModel tenantModel = tenantCommonMapper.toTenantModel(tenant);
+        DeletedTenantModel tenantModel = deletedTenantCommonMapper.toDeletedTenantModel(tenant);
         GsonBuilder builder = new GsonBuilder();
         builder.registerTypeAdapter(LocalDateTime.class, new LocalDateTimeTypeAdapter());
         Gson gson = builder.create();
@@ -51,6 +53,7 @@ public class TenantCommonServiceImpl implements TenantCommonService {
                         .userId(tenantModel.getId())
                         .deletionDate(LocalDateTime.now())
                         .jsonProfileBeforeDeletion(gson.toJson(tenantModel))
+                        .jsonProfile(gson.toJson(tenantModel))
                         .build()
         );
 
@@ -79,13 +82,18 @@ public class TenantCommonServiceImpl implements TenantCommonService {
             log.info("Tenant already deleted");
             return;
         }
-        TenantModel tenantModel = tenantCommonMapper.toTenantModel(tenant);
+        DeletedTenantModel tenantModel = deletedTenantCommonMapper.toDeletedTenantModel(tenant);
         List<AccountDeleteLog> accountDeleteLog = accountDeleteLogRepository.findByUserId(tenantModel.getId());
         if (accountDeleteLog.isEmpty()) {
             GsonBuilder builder = new GsonBuilder();
             builder.registerTypeAdapter(LocalDateTime.class, new LocalDateTimeTypeAdapter());
             Gson gson = builder.create();
-            accountDeleteLogRepository.save(AccountDeleteLog.builder().userId(tenantModel.getId()).deletionDate(LocalDateTime.now()).jsonProfileBeforeDeletion(gson.toJson(tenantModel)).build());
+            accountDeleteLogRepository.save(
+                    AccountDeleteLog.builder().userId(tenantModel.getId())
+                            .deletionDate(LocalDateTime.now())
+                            .jsonProfileBeforeDeletion(gson.toJson(tenantModel))
+                            .jsonProfile(gson.toJson(tenantModel))
+                            .build());
         }
     }
 
