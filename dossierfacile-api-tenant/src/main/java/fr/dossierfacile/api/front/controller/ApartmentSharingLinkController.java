@@ -11,7 +11,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -29,6 +31,13 @@ public class ApartmentSharingLinkController {
         ApartmentSharing apartmentSharing = authenticationFacade.getLoggedTenant().getApartmentSharing();
         List<ApartmentSharingLinkModel> linksByMail = apartmentSharingLinkService.getLinksByMail(apartmentSharing);
         return ResponseEntity.ok(new LinksResponse(linksByMail));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Void> updateApartmentSharingLinksStatus(@PathVariable Long id, @RequestParam boolean enabled) {
+        ApartmentSharing apartmentSharing = authenticationFacade.getLoggedTenant().getApartmentSharing();
+        apartmentSharingLinkService.updateStatus(id, enabled, apartmentSharing);
+        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{id}")
