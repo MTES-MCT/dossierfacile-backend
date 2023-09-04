@@ -6,7 +6,7 @@ import fr.gouv.bo.dto.DisplayableFile;
 import fr.gouv.bo.dto.EmailDTO;
 import fr.gouv.bo.dto.MessageDTO;
 import fr.gouv.bo.dto.PartnerDTO;
-import fr.gouv.bo.service.ApartmentSharingLinkService;
+import fr.dossierfacile.common.service.ApartmentSharingLinkService;
 import fr.gouv.bo.service.ApartmentSharingService;
 import fr.gouv.bo.service.LogService;
 import fr.gouv.bo.service.TenantService;
