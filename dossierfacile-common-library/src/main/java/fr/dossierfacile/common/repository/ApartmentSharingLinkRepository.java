@@ -16,4 +16,6 @@ public interface ApartmentSharingLinkRepository extends JpaRepository<ApartmentS
 
     List<ApartmentSharingLink> findByApartmentSharingAndLinkType(ApartmentSharing apartmentSharing, ApartmentSharingLinkType linkType);
 
+    Optional<ApartmentSharingLink> findByIdAndApartmentSharing(Long id, ApartmentSharing apartmentSharing);
+
 }

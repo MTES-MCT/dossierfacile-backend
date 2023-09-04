@@ -2,9 +2,7 @@ package fr.dossierfacile.common.service;
 
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.ApartmentSharingLink;
-import fr.dossierfacile.common.entity.LinkLog;
 import fr.dossierfacile.common.entity.Tenant;
-import fr.dossierfacile.common.enums.LinkType;
 import fr.dossierfacile.common.model.ApartmentSharingLinkModel;
 import fr.dossierfacile.common.repository.ApartmentSharingLinkRepository;
 import fr.dossierfacile.common.service.interfaces.LinkLogService;
@@ -17,6 +15,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static fr.dossierfacile.common.enums.ApartmentSharingLinkType.MAIL;
+import static fr.dossierfacile.common.enums.LinkType.*;
 
 @Service
 @Slf4j
@@ -44,10 +43,17 @@ public class ApartmentSharingLinkService {
                 .build();
     }
 
+    public void updateStatus(Long linkId, boolean enabled, ApartmentSharing apartmentSharing) {
+        var link = apartmentSharingLinkRepository.findByIdAndApartmentSharing(linkId, apartmentSharing).orElseThrow(NotFoundException::new);
+        link.setDisabled(!enabled);
+        linkLogService.createNewLog(link, enabled ? ENABLED_LINK : DISABLED_LINK);
+        apartmentSharingLinkRepository.save(link);
+    }
+
     public void delete(Long linkId) {
         var link = apartmentSharingLinkRepository.findById(linkId).orElseThrow(NotFoundException::new);
         log.info("Delete token: " + link.getToken() + " by " + link.getLinkType() + " on apartmentSharing" + link.getApartmentSharing().getId());
-        linkLogService.save(LinkLog.builder().token(link.getToken()).creationDate(LocalDateTime.now()).apartmentSharing(link.getApartmentSharing()).linkType(LinkType.DELETED_LINK_TOKEN).build());
+        linkLogService.createNewLog(link, DELETED_LINK_TOKEN);
         apartmentSharingLinkRepository.deleteById(link.getId());
     }
 

@@ -1,6 +1,7 @@
 package fr.dossierfacile.common.service;
 
 import fr.dossierfacile.common.entity.ApartmentSharing;
+import fr.dossierfacile.common.entity.ApartmentSharingLink;
 import fr.dossierfacile.common.entity.LinkLog;
 import fr.dossierfacile.common.enums.LinkType;
 import fr.dossierfacile.common.repository.LinkLogRepository;
@@ -32,6 +33,16 @@ public class LinkLogServiceImpl implements LinkLogService {
                 .sorted(Comparator.comparing(LinkLog::getCreationDate).reversed())
                 .map(LinkLog::getCreationDate)
                 .findFirst();
+    }
+
+    public LinkLog createNewLog(ApartmentSharingLink link, LinkType linkType) {
+        LinkLog log = LinkLog.builder()
+                .token(link.getToken())
+                .creationDate(LocalDateTime.now())
+                .apartmentSharing(link.getApartmentSharing())
+                .linkType(linkType)
+                .build();
+        return linkLogRepository.save(log);
     }
 
 }
