@@ -11,6 +11,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.MessageSource;
 import org.springframework.http.MediaType;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -164,5 +166,15 @@ public class BOPdfDocumentTemplateTest {
 
         FileOutputStream w = new FileOutputStream(resultFile);
         w.write(bytes);
+    }
+
+    @DisplayName("Render watermark (used mostly for developing)")
+    @Test
+    public void check_watermark_rendered() throws IOException {
+        InputStream is = BOPdfDocumentTemplateTest.class.getClassLoader().getResourceAsStream("CNI.jpg");
+        BufferedImage image = ImageIO.read(is);
+        BufferedImage b = boPdfDocumentTemplate.applyWatermark(image, "watermark 2023");
+        File outputfile = new File("image.jpg");
+        ImageIO.write(b, "jpg", outputfile);
     }
 }
