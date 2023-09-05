@@ -2,9 +2,9 @@ package fr.gouv.bo.dto;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import fr.dossierfacile.common.entity.BarCodeType;
 import fr.dossierfacile.common.entity.BarCodeDocumentType;
 import fr.dossierfacile.common.entity.BarCodeFileAnalysis;
+import fr.dossierfacile.common.entity.BarCodeType;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -12,30 +12,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 class DisplayableBarCodeFileAnalysisTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-
-    @Test
-    void should_format_mon_france_connect_content() throws JsonProcessingException {
-        var analysis = buildAnalysis(BarCodeDocumentType.MON_FRANCE_CONNECT, BarCodeType.QR_CODE, """
-                ["2021", "Angela Claire Louise, DUBOIS", "Philippe, DUBOIS", "Marié(e)", "20 avenue de Ségur", "82357   €", "88185   €", "2,5", "1,0"]
-                """);
-
-        var displayableAnalysis = new DisplayableBarCodeFileAnalysis(analysis);
-
-        assertThat(displayableAnalysis.getAuthenticatedContent())
-                .isEqualToIgnoringWhitespace("""
-                        <ul>
-                            <li>2021</li>
-                            <li>Angela Claire Louise, DUBOIS</li>
-                            <li>Philippe, DUBOIS</li>
-                            <li>Marié(e)</li>
-                            <li>20 avenue de Ségur</li>
-                            <li>82357   €</li>
-                            <li>88185   €</li>
-                            <li>2,5</li>
-                            <li>1,0</li>
-                        </ul>
-                        """);
-    }
 
     @Test
     void should_format_payfit_content() throws JsonProcessingException {
