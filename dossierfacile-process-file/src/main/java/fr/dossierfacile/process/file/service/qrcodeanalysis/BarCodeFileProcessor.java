@@ -4,6 +4,7 @@ import fr.dossierfacile.common.entity.BarCodeFileAnalysis;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.process.file.repository.BarCodeFileAnalysisRepository;
+import fr.dossierfacile.process.file.service.DocumentClassifier;
 import fr.dossierfacile.process.file.util.InMemoryPdfFile;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,9 +41,7 @@ public class BarCodeFileProcessor {
         try (InMemoryPdfFile inMemoryPdfFile = InMemoryPdfFile.create(file, fileStorageService)) {
             return analyze(inMemoryPdfFile)
                     .map(analysis -> {
-                        boolean isAllowed = GuessedDocumentCategory.forFile(analysis.getDocumentType())
-                                .map(guess -> guess.isMatchingCategoryOf(file.getDocument()))
-                                .orElse(true);
+                        boolean isAllowed = new DocumentClassifier(analysis.getDocumentType()).isCompatibleWith(file);
                         analysis.setAllowedInDocumentCategory(isAllowed);
                         return analysis;
                     });
