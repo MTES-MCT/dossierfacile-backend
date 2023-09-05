@@ -21,12 +21,21 @@ class InMemoryPdfFileTest {
 
     @Test
     void file_with_qr_code() throws IOException {
-        File file = fileWithPath("monfranceconnect/student-document.pdf");
+        File file = fileWithPath("fake-payfit.pdf");
 
         InMemoryPdfFile inMemoryPdfFile = InMemoryPdfFile.create(file, classpathStorageService());
 
         assertThat(inMemoryPdfFile.hasQrCode()).isTrue();
         assertThat(inMemoryPdfFile.getContentAsString()).isNotEmpty();
+    }
+
+    @Test
+    void file_with_2DDoc() throws IOException {
+        File file = fileWithPath("2ddoc.pdf");
+
+        InMemoryPdfFile inMemoryPdfFile = InMemoryPdfFile.create(file, classpathStorageService());
+
+        assertThat(inMemoryPdfFile.has2DDoc()).isTrue();
     }
 
     @Test
@@ -36,6 +45,7 @@ class InMemoryPdfFileTest {
         InMemoryPdfFile inMemoryPdfFile = InMemoryPdfFile.create(file, classpathStorageService());
 
         assertThat(inMemoryPdfFile.hasQrCode()).isFalse();
+        assertThat(inMemoryPdfFile.has2DDoc()).isFalse();
         assertThat(inMemoryPdfFile.getContentAsString()).isEqualTo("""
 
 
