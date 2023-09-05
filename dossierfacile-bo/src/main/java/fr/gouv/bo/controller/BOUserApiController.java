@@ -2,7 +2,6 @@ package fr.gouv.bo.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.dossierfacile.common.entity.UserApi;
-import fr.dossierfacile.common.enums.TypeUserApi;
 import fr.gouv.bo.dto.EmailDTO;
 import fr.gouv.bo.dto.UserApiDTO;
 import fr.gouv.bo.service.UserApiService;
@@ -47,7 +46,6 @@ public class BOUserApiController {
             log.error("BOUserApiController create has errors: {}", result.getAllErrors());
             return REDIRECT_URL;
         }
-        userApiDTO.setTypeUserApi(TypeUserApi.FULL);
         userApiService.create(userApiDTO);
         return REDIRECT_URL;
     }

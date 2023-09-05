@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+    <changeSet id="202309051500-01" author="fabien(manual)">
+        <dropColumn schemaName="public" tableName="user_api" columnName="type_user_api"/>
+        <dropColumn schemaName="public" tableName="user_api" columnName="api_key"/>
+    </changeSet>
+</databaseChangeLog>
