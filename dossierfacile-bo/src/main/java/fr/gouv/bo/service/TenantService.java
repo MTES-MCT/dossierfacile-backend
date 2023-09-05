@@ -20,6 +20,7 @@ import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.enums.TenantType;
+import fr.dossierfacile.common.exceptions.NotFoundException;
 import fr.dossierfacile.common.model.WebhookDTO;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
@@ -410,7 +411,7 @@ public class TenantService {
 
     public void sendCallBacksManuallyToUserApi(Long userApiId, LocalDateTime since) {
         synchronized (this) {
-            UserApi userApi = userApiRepository.findOneById(userApiId);
+            UserApi userApi = userApiRepository.findOneById(userApiId).orElseThrow(NotFoundException::new);
 
             //Finding the IDs of tenants pending to send info for partner with ID 2.
             List<Long> ids = tenantRepository.listIdTenantsAccountCompletedPendingToSendCallBack(userApiId, since);

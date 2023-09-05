@@ -1,6 +1,5 @@
 package fr.gouv.bo.dto;
 
-import fr.dossierfacile.common.enums.TypeUserApi;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,8 +19,6 @@ public class UserApiDTO {
     private String name;
     private String name2;
     private String site;
-    @NotNull
-    private TypeUserApi typeUserApi;
     private String partnerApiKeyCallback;
     @NotNull
     private Integer version;

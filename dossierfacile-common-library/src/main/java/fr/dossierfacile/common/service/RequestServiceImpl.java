@@ -1,6 +1,5 @@
 package fr.dossierfacile.common.service;
 
-import fr.dossierfacile.common.model.LightAPIInfoModel;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
 import fr.dossierfacile.common.service.interfaces.RequestService;
 import io.sentry.Sentry;
@@ -39,17 +38,6 @@ public class RequestServiceImpl implements RequestService {
     private static final String CALL_BACK_RESPONSE = "CallBack ResponseStatus: {}";
     private static final String EXCEPTION = "Sentry ID Exception: ";
     private final RestTemplate restTemplate;
-
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    @Async
-    public void send(LightAPIInfoModel lightAPIInfo, String urlCallback, String partnerApiKeyCallback) {
-        HttpHeaders headers = new HttpHeaders();
-        if (partnerApiKeyCallback != null && !partnerApiKeyCallback.isEmpty()) {
-            headers.set(X_API_KEY, partnerApiKeyCallback);
-        }
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        sendRequest(new HttpEntity<>(lightAPIInfo, headers), urlCallback);
-    }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Async
