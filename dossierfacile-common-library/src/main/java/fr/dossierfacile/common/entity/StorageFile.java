@@ -1,16 +1,40 @@
 package fr.dossierfacile.common.entity;
 
+import com.vladmihalcea.hibernate.type.array.ListArrayType;
+import com.vladmihalcea.hibernate.type.array.internal.ListArrayTypeDescriptor;
 import fr.dossierfacile.common.entity.shared.AbstractAuditable;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
+import org.hibernate.annotations.TypeDefs;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import java.io.Serial;
+import java.util.ArrayList;
+import java.util.List;
 
+@TypeDefs({
+        @TypeDef(
+                name = "list-type",
+                typeClass = ListArrayType.class
+        )
+})
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 @AllArgsConstructor
@@ -36,6 +60,14 @@ public class StorageFile extends AbstractAuditable<String, Long> {
     @Column
     @Enumerated(EnumType.STRING)
     protected ObjectStorageProvider provider;
+
+    @Type(type = "list-type")
+    @Column(
+            name = "providers",
+            columnDefinition = "character varying[]"
+    )
+    protected List<String> providers = new ArrayList<>();
+
     @ManyToOne
     @JoinColumn(name = "encryption_key_id")
     protected EncryptionKey encryptionKey;

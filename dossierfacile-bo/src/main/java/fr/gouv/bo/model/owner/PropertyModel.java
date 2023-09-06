@@ -28,8 +28,6 @@ public class PropertyModel {
     private Double chargesCost;
     private Double livingSpace;
     private List<ApartmentSharingModel> propertiesApartmentSharing;
-    //private List<Long> prospects;
-    //private List<Long> mergedPropertyId;
     private Boolean notification;
     private Boolean displayed;
     private Integer cantEmailSentProspect;

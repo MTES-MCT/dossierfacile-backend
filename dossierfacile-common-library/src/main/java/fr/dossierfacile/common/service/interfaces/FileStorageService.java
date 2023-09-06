@@ -1,6 +1,8 @@
 package fr.dossierfacile.common.service.interfaces;
 
+import fr.dossierfacile.common.entity.ObjectStorageProvider;
 import fr.dossierfacile.common.entity.StorageFile;
+import fr.dossierfacile.common.exceptions.RetryableOperationException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,4 +22,6 @@ public interface FileStorageService {
     InputStream download(StorageFile storageFile) throws IOException;
 
     StorageFile upload(InputStream inputStream, StorageFile storageFile) throws IOException;
+
+    StorageFile uploadToProvider(InputStream inputStream, StorageFile storageFile, ObjectStorageProvider provider) throws RetryableOperationException, IOException;
 }

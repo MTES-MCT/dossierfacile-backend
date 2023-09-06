@@ -19,6 +19,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.Mockito.any;
@@ -53,7 +54,7 @@ public class IdentificationBOPdfDocumentTemplateTest {
         File resultFile = new File("target/resultReverse.pdf");
         resultFile.createNewFile();
 
-        byte[] bytes = IOUtils.toByteArray(boPdfDocumentTemplate.render(Arrays.asList(data)));
+        byte[] bytes = IOUtils.toByteArray(boPdfDocumentTemplate.render(Collections.singletonList(data)));
 
         FileOutputStream w = new FileOutputStream(resultFile);
         w.write(bytes);
@@ -74,7 +75,7 @@ public class IdentificationBOPdfDocumentTemplateTest {
         File resultFile = new File("target/resultSpecial.pdf");
         resultFile.createNewFile();
 
-        byte[] bytes = IOUtils.toByteArray(boPdfDocumentTemplate.render(Arrays.asList(data)));
+        byte[] bytes = IOUtils.toByteArray(boPdfDocumentTemplate.render(Collections.singletonList(data)));
 
         FileOutputStream w = new FileOutputStream(resultFile);
         w.write(bytes);

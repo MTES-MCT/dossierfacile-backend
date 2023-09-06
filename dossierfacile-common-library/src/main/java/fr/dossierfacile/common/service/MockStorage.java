@@ -2,6 +2,7 @@ package fr.dossierfacile.common.service;
 
 import fr.dossierfacile.common.entity.ObjectStorageProvider;
 import fr.dossierfacile.common.entity.StorageFile;
+import fr.dossierfacile.common.exceptions.RetryableOperationException;
 import fr.dossierfacile.common.repository.StorageFileRepository;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +30,8 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
-import java.util.List;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.UUID;
 
 import static java.lang.String.format;
@@ -111,13 +113,23 @@ public class MockStorage implements FileStorageService {
 
     @Override
     public StorageFile upload(InputStream inputStream, StorageFile storageFile) throws IOException {
+        try {
+            return uploadToProvider(inputStream, storageFile, ObjectStorageProvider.OVH);
+        } catch (RetryableOperationException e) {
+            return null;
+        }
+    }
+
+    @Override
+    public StorageFile uploadToProvider(InputStream inputStream, StorageFile storageFile, ObjectStorageProvider provider) throws RetryableOperationException, IOException {
         if (inputStream == null)
             return null;
         if (storageFile == null) {
             log.warn("fallback on uploadfile");
             storageFile = StorageFile.builder()
                     .name("undefined")
-                    .provider(ObjectStorageProvider.OVH)
+                    .provider(provider)
+                    .providers(Collections.singletonList(provider.toString()))
                     .build();
         }
 
@@ -127,5 +139,7 @@ public class MockStorage implements FileStorageService {
         upload(storageFile.getPath(), inputStream, storageFile.getEncryptionKey(), storageFile.getContentType());
 
         return storageFileRepository.save(storageFile);
+
     }
+
 }

@@ -2,7 +2,6 @@ package fr.dossierfacile.common.entity;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import fr.dossierfacile.common.enums.TypeUserApi;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -43,10 +42,6 @@ public class UserApi implements Serializable {
     private String name2;
     @Column
     private String site;
-    @Column
-    private String apiKey;
-    @Column
-    private TypeUserApi typeUserApi;
     @Column
     private String partnerApiKeyCallback;
     @Column

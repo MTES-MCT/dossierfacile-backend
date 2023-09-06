@@ -2,13 +2,12 @@ package fr.gouv.bo.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.dossierfacile.common.entity.UserApi;
-import fr.dossierfacile.common.enums.TypeUserApi;
+import fr.dossierfacile.common.exceptions.NotFoundException;
 import fr.gouv.bo.dto.UserApiDTO;
 import fr.gouv.bo.repository.UserApiRepository;
-import fr.gouv.bo.utils.UtilsLocatio;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,7 +22,7 @@ public class UserApiService {
     private final ObjectMapper mapper;
 
     public UserApi findById(Long id) {
-        return userApiRepository.findOneById(id);
+        return userApiRepository.findOneById(id).orElseThrow(NotFoundException::new);
     }
 
     public List<String> getNamesOfPartnerByTenantId(Long id) {
@@ -37,25 +36,17 @@ public class UserApiService {
     }
 
     public List<UserApi> findAll() {
-        return userApiRepository.findAll();
+        return userApiRepository.findAll(Sort.by("disabled","name"));
     }
 
     public UserApi create(UserApiDTO userApiDTO) {
         UserApi userApi = mapper.convertValue(userApiDTO, UserApi.class);
-        if (StringUtils.isBlank(userApi.getApiKey())) {
-            String apiKey = UtilsLocatio.generateRandomString(20);
-            userApi.setApiKey(apiKey);
-        }
         return userApiRepository.save(userApi);
     }
 
     public void save(UserApiDTO userApiDTO) {
         UserApi userApi = mapper.convertValue(userApiDTO, UserApi.class);
         userApiRepository.save(userApi);
-    }
-
-    public List<UserApi> findAllLightApi() {
-        return userApiRepository.findAllByTypeUserApi(TypeUserApi.LIGHT);
     }
 
     public List<UserApi> getAllPartners() {

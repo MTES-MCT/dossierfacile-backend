@@ -112,5 +112,11 @@
     <include file="db/migration/202307280000-remove-column-allow-tax-check.xml" />
     <include file="db/migration/202308010000-update-document-denied-reasons.xml" />
     <include file="db/migration/202308040000-add-validated-date-to-property.xml" />
+    <include file="db/migration/202308220000-create-indexes.xml" />
+    <include file="db/migration/202308221400-drop-prospect-table.xml" />
+    <include file="db/migration/202308090000-add-providers.xml" />
+    <include file="db/migration/202308290000-create-index_storage_file.xml" />
+    <include file="db/migration/202309010000-add-json-profile-to-delete-account.xml" />
+    <include file="db/migration/202309051500-drop-column-userApi.xml" />
 
 </databaseChangeLog>

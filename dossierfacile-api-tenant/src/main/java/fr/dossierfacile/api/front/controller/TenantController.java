@@ -1,14 +1,11 @@
 package fr.dossierfacile.api.front.controller;
 
-import fr.dossierfacile.api.front.form.PartnerForm;
 import fr.dossierfacile.api.front.form.ShareFileByMailForm;
 import fr.dossierfacile.api.front.mapper.PropertyOMapper;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.property.PropertyOModel;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
-import fr.dossierfacile.api.front.register.form.tenant.FranceConnectTaxForm;
 import fr.dossierfacile.api.front.register.form.tenant.UrlForm;
-import fr.dossierfacile.api.front.register.tenant.DocumentTax;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.PropertyService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
@@ -17,11 +14,9 @@ import fr.dossierfacile.common.entity.Property;
 import fr.dossierfacile.common.entity.Tenant;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -47,8 +42,6 @@ public class TenantController {
     private final PropertyOMapper propertyMapper;
     private final UserService userService;
 
-    private final DocumentTax documentTaxService;
-
     @GetMapping(value = "/profile", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TenantModel> profile() {
         Tenant tenant = authenticationFacade.getLoggedTenant();
@@ -66,20 +59,6 @@ public class TenantController {
     public ResponseEntity<Void> deleteCoTenant(@PathVariable Long id) {
         Tenant tenant = authenticationFacade.getLoggedTenant();
         return (userService.deleteCoTenant(tenant, id) ? ok() : status(HttpStatus.FORBIDDEN)).build();
-    }
-
-    @PostMapping(value = "/linkTenantToPartner", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> linkTenantToPartner(@Validated @RequestBody PartnerForm partnerForm) {
-        Tenant tenant = authenticationFacade.getLoggedTenant();
-        userService.linkTenantToPartner(tenant, partnerForm.getSource(), partnerForm.getInternalPartnerId());
-        return ok().build();
-    }
-
-    @PostMapping(value = "/allowTax/{allowTax}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<TenantModel> setAllowTax(@PathVariable("allowTax") String allowTax, @RequestBody FranceConnectTaxForm franceConnectTaxForm) {
-        // TODO delete this endpoint for next release
-        Tenant tenant = authenticationFacade.getLoggedTenant();
-        return ok(tenantMapper.toTenantModel(tenant));
     }
 
     @PostMapping(value = "/linkFranceConnect", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -102,5 +81,4 @@ public class TenantController {
         }
         return ok("");
     }
-
 }
