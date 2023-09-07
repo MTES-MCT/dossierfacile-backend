@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+    <changeSet id="202309060001-01" author="Matthieu (manual)">
+        <sql>
+            <![CDATA[
+                    DROP INDEX IF EXISTS storage_file_last_modified_date;
+                    CREATE INDEX IF NOT EXISTS storage_file_last_modified_date ON storage_file (last_modified_date);
+                ]]>
+        </sql>
+    </changeSet>
+</databaseChangeLog>
