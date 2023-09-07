@@ -142,17 +142,18 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
             tenant.setFranceConnectBirthPlace(user.getFranceConnectBirthPlace());
             tenant.setFranceConnectBirthDate(user.getFranceConnectBirthDate());
 
-            if (!StringUtils.equals(tenant.getFirstName(), user.getGivenName())
-                    || !StringUtils.equals(tenant.getLastName(), user.getFamilyName())
-                    || (user.getPreferredUsername() != null && !StringUtils.equals(tenant.getPreferredName(), user.getPreferredUsername()))) {
-                if (tenant.getStatus() == TenantFileStatus.VALIDATED) {
+            if (user.isFranceConnect()) {
+                if ((!StringUtils.equals(tenant.getFirstName(), user.getGivenName())
+                        || !StringUtils.equals(tenant.getLastName(), user.getFamilyName())
+                        || (user.getPreferredUsername() != null && !StringUtils.equals(tenant.getPreferredName(), user.getPreferredUsername())))
+                        && (tenant.getStatus() == TenantFileStatus.VALIDATED)) {
                     documentService.resetValidatedDocumentsStatusOfSpecifiedCategoriesToToProcess(tenant.getDocuments(),
                             Arrays.asList(DocumentCategory.values()));
                 }
+                tenant.setFirstName(user.getGivenName());
+                tenant.setLastName(user.getFamilyName());
+                tenant.setPreferredName(user.getPreferredUsername() == null ? tenant.getPreferredName() : user.getPreferredUsername());
             }
-            tenant.setFirstName(user.getGivenName());
-            tenant.setLastName(user.getFamilyName());
-            tenant.setPreferredName(user.getPreferredUsername() == null ? tenant.getPreferredName() : user.getPreferredUsername());
             tenantStatusService.updateTenantStatus(tenant);
 
             return tenantRepository.saveAndFlush(tenant);
