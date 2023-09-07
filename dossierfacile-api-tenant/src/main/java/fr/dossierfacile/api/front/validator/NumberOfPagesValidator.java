@@ -21,6 +21,11 @@ import javax.validation.ConstraintValidatorContext;
 import java.io.IOException;
 import java.util.List;
 
+import static fr.dossierfacile.common.enums.DocumentSubCategory.LESS_THAN_YEAR;
+import static fr.dossierfacile.common.enums.DocumentSubCategory.MY_PARENTS;
+import static fr.dossierfacile.common.enums.DocumentSubCategory.OTHER_TAX;
+import static java.lang.Boolean.TRUE;
+
 @Component
 @Slf4j
 @RequiredArgsConstructor
@@ -43,39 +48,34 @@ public class NumberOfPagesValidator extends TenantConstraintValidator<NumberOfPa
     public boolean isValid(DocumentForm documentForm, ConstraintValidatorContext constraintValidatorContext) {
         List<MultipartFile> files = documentForm.getDocuments();
 
-        if (documentForm instanceof DocumentFinancialForm) {
-            if (Boolean.TRUE.equals(((DocumentFinancialForm) documentForm).getNoDocument())) {
-                return true;
-            } else if (files.size() == 0) {
+        if (documentForm instanceof DocumentFinancialForm form) {
+            if (TRUE.equals(form.getNoDocument()) || files.isEmpty()) {
                 return true;
             }
-        } else if (documentForm instanceof DocumentFinancialGuarantorNaturalPersonForm) {
-            if (Boolean.TRUE.equals(((DocumentFinancialGuarantorNaturalPersonForm) documentForm).getNoDocument())) {
-                return true;
-            } else if (files.size() == 0) {
+        } else if (documentForm instanceof DocumentFinancialGuarantorNaturalPersonForm form) {
+            if (TRUE.equals(form.getNoDocument()) || files.isEmpty()) {
                 return true;
             }
-        } else if (documentForm instanceof DocumentTaxForm) {
-            if (((DocumentTaxForm) documentForm).getTypeDocumentTax() == DocumentSubCategory.MY_PARENTS
-                    || ((DocumentTaxForm) documentForm).getTypeDocumentTax() == DocumentSubCategory.LESS_THAN_YEAR) {
+        } else if (documentForm instanceof DocumentTaxForm form) {
+            DocumentSubCategory subCategory = form.getTypeDocumentTax();
+            if (subCategory == MY_PARENTS || subCategory == LESS_THAN_YEAR) {
                 return true;
-            } else if (((DocumentTaxForm) documentForm).getTypeDocumentTax() == DocumentSubCategory.OTHER_TAX
-                    && Boolean.TRUE.equals(((DocumentTaxForm) documentForm).getNoDocument())) {
+            } else if (subCategory == OTHER_TAX && TRUE.equals(form.getNoDocument())) {
                 return true;
-            } else if (files.size() == 0) {
+            } else if (files.isEmpty()) {
                 return true;
             }
-        } else if (documentForm instanceof DocumentTaxGuarantorNaturalPersonForm) {
-            if (((DocumentTaxGuarantorNaturalPersonForm) documentForm).getTypeDocumentTax() == DocumentSubCategory.MY_PARENTS
-                    || ((DocumentTaxGuarantorNaturalPersonForm) documentForm).getTypeDocumentTax() == DocumentSubCategory.LESS_THAN_YEAR) {
+        } else if (documentForm instanceof DocumentTaxGuarantorNaturalPersonForm form) {
+            DocumentSubCategory subCategory = form.getTypeDocumentTax();
+            if (subCategory == MY_PARENTS || subCategory == LESS_THAN_YEAR) {
                 return true;
-            } else if (((DocumentTaxGuarantorNaturalPersonForm) documentForm).getTypeDocumentTax() == DocumentSubCategory.OTHER_TAX
-                    && Boolean.TRUE.equals(((DocumentTaxGuarantorNaturalPersonForm) documentForm).getNoDocument())) {
+            } else if (subCategory == OTHER_TAX && TRUE.equals(form.getNoDocument())) {
                 return true;
-            } else if (files.size() == 0) {
+            } else if (files.isEmpty()) {
                 return true;
             }
         }
+
         //region Counting total new pages
         int numberOfNewPages = 0;
         try {
