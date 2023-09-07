@@ -24,6 +24,9 @@ public interface DeletedTenantCommonMapper {
 
     @Named("emailToHashedEmail")
     static String emailToHashedEmail(String email) {
+        if (email == null) {
+            return "";
+        }
         return Hashing.sha256().hashString(email, StandardCharsets.UTF_8).toString();
     }
 }
