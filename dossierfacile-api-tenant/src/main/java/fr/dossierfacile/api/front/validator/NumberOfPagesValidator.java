@@ -7,8 +7,7 @@ import fr.dossierfacile.api.front.register.form.guarantor.natural_person.Documen
 import fr.dossierfacile.api.front.register.form.tenant.DocumentFinancialForm;
 import fr.dossierfacile.api.front.register.form.tenant.DocumentTaxForm;
 import fr.dossierfacile.api.front.repository.FileRepository;
-import fr.dossierfacile.api.front.service.interfaces.TenantService;
-import fr.dossierfacile.api.front.util.Utility;
+import fr.dossierfacile.api.front.util.FilePageCounter;
 import fr.dossierfacile.api.front.validator.anotation.NumberOfPages;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
@@ -18,11 +17,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
-import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -80,16 +77,12 @@ public class NumberOfPagesValidator extends TenantConstraintValidator<NumberOfPa
             }
         }
         //region Counting total new pages
-        ByteArrayOutputStream byteArrayOutputStream = Utility.mergeMultipartFiles(files.stream().filter(f -> !f.isEmpty()).collect(Collectors.toList()));
-        if (byteArrayOutputStream.size() == 0) {
-            log.error("Number of new pages [0], max = [" + max + "] for document [" + documentCategory.name() + "]");
-            constraintValidatorContext.disableDefaultConstraintViolation();
-            constraintValidatorContext
-                    .buildConstraintViolationWithTemplate(RESPONSE)
-                    .addPropertyNode(PAGES).addConstraintViolation();
-            return false;
+        int numberOfNewPages = 0;
+        try {
+            numberOfNewPages = new FilePageCounter(files).getTotalNumberOfPages();
+        } catch (IOException e) {
+            log.error("Can't count files total number of pages", e);
         }
-        int numberOfNewPages = Utility.countNumberOfPagesOfPdfDocument(byteArrayOutputStream.toByteArray());
         if (numberOfNewPages == 0) {
             log.error("Number of new pages [0], max = [" + max + "] for document [" + documentCategory.name() + "]");
             constraintValidatorContext.disableDefaultConstraintViolation();
