@@ -3,8 +3,10 @@ package fr.dossierfacile.api.front.validator;
 import fr.dossierfacile.api.front.register.form.DocumentForm;
 import fr.dossierfacile.api.front.register.form.guarantor.DocumentGuarantorFormAbstract;
 import fr.dossierfacile.api.front.register.form.guarantor.natural_person.DocumentFinancialGuarantorNaturalPersonForm;
+import fr.dossierfacile.api.front.register.form.guarantor.natural_person.DocumentResidencyGuarantorNaturalPersonForm;
 import fr.dossierfacile.api.front.register.form.guarantor.natural_person.DocumentTaxGuarantorNaturalPersonForm;
 import fr.dossierfacile.api.front.register.form.tenant.DocumentFinancialForm;
+import fr.dossierfacile.api.front.register.form.tenant.DocumentResidencyForm;
 import fr.dossierfacile.api.front.register.form.tenant.DocumentTaxForm;
 import fr.dossierfacile.api.front.repository.FileRepository;
 import fr.dossierfacile.api.front.util.FilePageCounter;
@@ -23,6 +25,7 @@ import java.util.List;
 
 import static fr.dossierfacile.common.enums.DocumentSubCategory.LESS_THAN_YEAR;
 import static fr.dossierfacile.common.enums.DocumentSubCategory.MY_PARENTS;
+import static fr.dossierfacile.common.enums.DocumentSubCategory.OTHER_RESIDENCY;
 import static fr.dossierfacile.common.enums.DocumentSubCategory.OTHER_TAX;
 import static java.lang.Boolean.TRUE;
 
@@ -52,8 +55,16 @@ public class NumberOfPagesValidator extends TenantConstraintValidator<NumberOfPa
             if (TRUE.equals(form.getNoDocument()) || files.isEmpty()) {
                 return true;
             }
+        } else if (documentForm instanceof DocumentResidencyForm form) {
+            if (form.getTypeDocumentResidency() == OTHER_RESIDENCY) {
+                return true;
+            }
         } else if (documentForm instanceof DocumentFinancialGuarantorNaturalPersonForm form) {
             if (TRUE.equals(form.getNoDocument()) || files.isEmpty()) {
+                return true;
+            }
+        } else if (documentForm instanceof DocumentResidencyGuarantorNaturalPersonForm form) {
+            if (form.getTypeDocumentResidency() == OTHER_RESIDENCY) {
                 return true;
             }
         } else if (documentForm instanceof DocumentTaxForm form) {
