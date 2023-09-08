@@ -10,10 +10,9 @@ import java.time.LocalDate;
 // TODO delete after activation
 public class OtherResidencyToggle {
 
-
     private final String otherResidencyActivationDate;
 
-    public OtherResidencyToggle(@Value("${categories.otherresidency.activation.date}") String otherResidencyActivationDate) {
+    public OtherResidencyToggle(@Value("${categories.otherresidency.activation.date:}") String otherResidencyActivationDate) {
         this.otherResidencyActivationDate = otherResidencyActivationDate;
     }
 
