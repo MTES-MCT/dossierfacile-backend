@@ -13,6 +13,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -24,7 +25,7 @@ public class BackupFilesService {
     @Scheduled(fixedDelay = 5000)
     public void scheduleBackupTask() {
         Pageable limit = PageRequest.of(0, 100);
-        Page<StorageFile> storageFiles = storageFileRepository.findAllWithOneProvider(limit);
+        List<StorageFile> storageFiles = storageFileRepository.findAllWithOneProvider(limit);
         for (StorageFile storageFile : storageFiles) {
             for (ObjectStorageProvider objectStorageProvider : ObjectStorageProvider.values()) {
                 if (!storageFile.getProviders().contains(objectStorageProvider.name())) {
