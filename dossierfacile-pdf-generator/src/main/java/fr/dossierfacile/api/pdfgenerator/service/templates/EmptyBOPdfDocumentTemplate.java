@@ -77,7 +77,7 @@ public class EmptyBOPdfDocumentTemplate implements PdfTemplate<Document> {
             float marginY = 360;
             float marginX = 60;
             PDRectangle mediaBox = pdPage.getMediaBox();
-            float width = mediaBox.getWidth() - 3 * marginX; // don't know why 2 is not enough, mediaBox wrong size ?
+            float width = mediaBox.getWidth() - 2 * marginX;
             float startX = mediaBox.getLowerLeftX() + marginX;
             float startY = mediaBox.getUpperRightY() - marginY;
 
