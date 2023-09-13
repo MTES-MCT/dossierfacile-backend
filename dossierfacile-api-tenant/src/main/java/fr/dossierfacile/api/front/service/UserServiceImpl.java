@@ -119,8 +119,10 @@ public class UserServiceImpl implements UserService {
             UserApi userApi = tenantUserApi.getUserApi();
             webhookDTOList.add(partnerCallBackService.getWebhookDTO(tenant, userApi, PartnerCallBackType.DELETED_ACCOUNT));
         });
-        saveAndDeleteInfoByTenant(tenant);
-        logService.saveLog(LogType.ACCOUNT_DELETE, tenant.getId());
+        logService.saveLogWithTenantData(LogType.ACCOUNT_DELETE, tenant);
+        mailService.sendEmailAccountDeleted(tenant);
+        tenantCommonService.deleteTenantData(tenant);
+
         if (tenant.getTenantType() == TenantType.CREATE) {
             keycloakService.deleteKeycloakUsers(tenant.getApartmentSharing().getTenants());
             apartmentSharingService.delete(tenant.getApartmentSharing());
@@ -175,11 +177,6 @@ public class UserServiceImpl implements UserService {
         user.setFranceConnect(false);
         userRepository.save(tenant);
         keycloakService.unlinkFranceConnect(tenant);
-    }
-
-    private void saveAndDeleteInfoByTenant(Tenant tenant) {
-        mailService.sendEmailAccountDeleted(tenant);
-        tenantCommonService.recordAndDeleteTenantData(tenant.getId());
     }
 
 }

@@ -32,30 +32,13 @@ import java.util.Optional;
 @Slf4j
 public class TenantCommonServiceImpl implements TenantCommonService {
 
-    private final AccountDeleteLogCommonRepository accountDeleteLogRepository;
-    private final DeletedTenantCommonMapper deletedTenantCommonMapper;
-    private final FileStorageService fileStorageService;
     private final ApartmentSharingRepository apartmentSharingRepository;
     private final DocumentCommonRepository documentRepository;
     private final TenantCommonRepository tenantCommonRepository;
     private ApartmentSharingCommonService apartmentSharingCommonService;
 
     @Override
-    public void recordAndDeleteTenantData(Long tenantId) {
-        Tenant tenant = tenantCommonRepository.findOneById(tenantId);
-        DeletedTenantModel tenantModel = deletedTenantCommonMapper.toDeletedTenantModel(tenant);
-        GsonBuilder builder = new GsonBuilder();
-        builder.registerTypeAdapter(LocalDateTime.class, new LocalDateTimeTypeAdapter());
-        Gson gson = builder.create();
-
-        accountDeleteLogRepository.save(
-                AccountDeleteLog.builder()
-                        .userId(tenantModel.getId())
-                        .deletionDate(LocalDateTime.now())
-                        .jsonProfileBeforeDeletion(gson.toJson(tenantModel))
-                        .jsonProfile(gson.toJson(tenantModel))
-                        .build()
-        );
+    public void deleteTenantData(Tenant tenant) {
 
         Optional<ApartmentSharing> apartmentSharing = apartmentSharingRepository.findByTenant(tenant.getId());
         if (apartmentSharing.isEmpty()) {
@@ -71,30 +54,6 @@ public class TenantCommonServiceImpl implements TenantCommonService {
         Optional.ofNullable(tenant.getGuarantors())
                 .orElse(new ArrayList<>())
                 .forEach(guarantor -> documentRepository.deleteAll(guarantor.getDocuments()));
-    }
-
-
-    @Override
-    @Transactional
-    public void addDeleteLogIfMissing(Long tenantId) {
-        Tenant tenant = tenantCommonRepository.findOneById(tenantId);
-        if (tenant == null) {
-            log.info("Tenant already deleted");
-            return;
-        }
-        DeletedTenantModel tenantModel = deletedTenantCommonMapper.toDeletedTenantModel(tenant);
-        List<AccountDeleteLog> accountDeleteLog = accountDeleteLogRepository.findByUserId(tenantModel.getId());
-        if (accountDeleteLog.isEmpty()) {
-            GsonBuilder builder = new GsonBuilder();
-            builder.registerTypeAdapter(LocalDateTime.class, new LocalDateTimeTypeAdapter());
-            Gson gson = builder.create();
-            accountDeleteLogRepository.save(
-                    AccountDeleteLog.builder().userId(tenantModel.getId())
-                            .deletionDate(LocalDateTime.now())
-                            .jsonProfileBeforeDeletion(gson.toJson(tenantModel))
-                            .jsonProfile(gson.toJson(tenantModel))
-                            .build());
-        }
     }
 
     @Override

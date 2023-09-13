@@ -30,4 +30,8 @@ public class LogService {
         return logRepository.findAllByTenantId(tenantId, page);
     }
 
+    public void saveByLog(Log log) {
+        logRepository.save(log);
+    }
+
 }

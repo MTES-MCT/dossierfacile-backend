@@ -151,8 +151,9 @@ public class TenantServiceImpl implements TenantService {
     }
 
     @Override
-    public List<TenantUpdate> findTenantUpdateByLastUpdateAndPartner(LocalDateTime since, UserApi userApi, Long limit) {
-        return tenantRepository.findTenantUpdateByLastUpdateAndPartner(since, userApi.getId(), limit);
+    public List<TenantUpdate> findTenantUpdateByLastUpdateAndPartner(LocalDateTime since, UserApi userApi, Long limit, boolean includeDeleted) {
+        return includeDeleted? tenantRepository.findTenantUpdateWithDeletedByLastUpdateAndPartner(since, userApi.getId(), limit) :
+                tenantRepository.findTenantUpdateByLastUpdateAndPartner(since, userApi.getId(), limit);
     }
 
     @Override
