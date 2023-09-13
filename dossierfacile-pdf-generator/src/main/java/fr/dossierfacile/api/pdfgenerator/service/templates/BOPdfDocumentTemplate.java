@@ -44,6 +44,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Service
@@ -93,10 +94,11 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
         try (PDDocument document = new PDDocument()) {
 
             data.stream()
-                    .map(pdfOrImgFileIS -> convertToImages(pdfOrImgFileIS))
+                    .map(this::convertToImages)
                     .flatMap(Collection::stream)
-                    .map(bim -> smartCrop(bim))
-                    .map(bim -> fitImageToPage(bim))
+                    .map(this::smartCrop)
+                    .filter(Objects::nonNull)
+                    .map(this::fitImageToPage)
                     .map(bim -> applyWatermark(bim, watermarkToApply))
                     .forEach(bim -> addImageAsPageToDocument(document, bim));
 
@@ -121,11 +123,10 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
         try {
 
             if (MediaType.APPLICATION_PDF.equalsTypeAndSubtype(fileInputStream.getMediaType())) {
-
+                List<BufferedImage> images = new ArrayList<>();
                 try (PDDocument document = PDDocument.load(fileInputStream.getInputStream())) {
                     PDFRenderer pdfRenderer = new PDFRenderer(document);
                     PDPageTree pagesTree = document.getPages();
-                    List<BufferedImage> images = new ArrayList<>(pagesTree.getCount());
                     for (int i = 0; i < pagesTree.getCount(); i++) {
                         PDRectangle pageMediaBox = pagesTree.get(i).getMediaBox();
                         float ratioImage = pageMediaBox.getHeight() / pageMediaBox.getWidth();
@@ -143,6 +144,10 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
                         // x2 - double the image resolution (prevent quality loss if image is cropped)
                         images.add(pdfRenderer.renderImage(i, scale * 2, ImageType.RGB));
                     }
+                    return images;
+                } catch (Exception e) {
+                    log.error("Exception while converting pdf page to image", e);
+                    log.error(EXCEPTION + Sentry.captureException(e));
                     return images;
                 }
             }

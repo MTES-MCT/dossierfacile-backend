@@ -3,12 +3,13 @@ package fr.dossierfacile.api.front.validator;
 import fr.dossierfacile.api.front.register.form.DocumentForm;
 import fr.dossierfacile.api.front.register.form.guarantor.DocumentGuarantorFormAbstract;
 import fr.dossierfacile.api.front.register.form.guarantor.natural_person.DocumentFinancialGuarantorNaturalPersonForm;
+import fr.dossierfacile.api.front.register.form.guarantor.natural_person.DocumentResidencyGuarantorNaturalPersonForm;
 import fr.dossierfacile.api.front.register.form.guarantor.natural_person.DocumentTaxGuarantorNaturalPersonForm;
 import fr.dossierfacile.api.front.register.form.tenant.DocumentFinancialForm;
+import fr.dossierfacile.api.front.register.form.tenant.DocumentResidencyForm;
 import fr.dossierfacile.api.front.register.form.tenant.DocumentTaxForm;
 import fr.dossierfacile.api.front.repository.FileRepository;
-import fr.dossierfacile.api.front.service.interfaces.TenantService;
-import fr.dossierfacile.api.front.util.Utility;
+import fr.dossierfacile.api.front.util.FilePageCounter;
 import fr.dossierfacile.api.front.validator.anotation.NumberOfPages;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
@@ -18,11 +19,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
-import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.List;
-import java.util.stream.Collectors;
+
+import static fr.dossierfacile.common.enums.DocumentSubCategory.LESS_THAN_YEAR;
+import static fr.dossierfacile.common.enums.DocumentSubCategory.MY_PARENTS;
+import static fr.dossierfacile.common.enums.DocumentSubCategory.OTHER_RESIDENCY;
+import static fr.dossierfacile.common.enums.DocumentSubCategory.OTHER_TAX;
+import static java.lang.Boolean.TRUE;
 
 @Component
 @Slf4j
@@ -46,50 +51,49 @@ public class NumberOfPagesValidator extends TenantConstraintValidator<NumberOfPa
     public boolean isValid(DocumentForm documentForm, ConstraintValidatorContext constraintValidatorContext) {
         List<MultipartFile> files = documentForm.getDocuments();
 
-        if (documentForm instanceof DocumentFinancialForm) {
-            if (Boolean.TRUE.equals(((DocumentFinancialForm) documentForm).getNoDocument())) {
-                return true;
-            } else if (files.size() == 0) {
+        if (documentForm instanceof DocumentFinancialForm form) {
+            if (TRUE.equals(form.getNoDocument()) || files.isEmpty()) {
                 return true;
             }
-        } else if (documentForm instanceof DocumentFinancialGuarantorNaturalPersonForm) {
-            if (Boolean.TRUE.equals(((DocumentFinancialGuarantorNaturalPersonForm) documentForm).getNoDocument())) {
-                return true;
-            } else if (files.size() == 0) {
+        } else if (documentForm instanceof DocumentResidencyForm form) {
+            if (form.getTypeDocumentResidency() == OTHER_RESIDENCY) {
                 return true;
             }
-        } else if (documentForm instanceof DocumentTaxForm) {
-            if (((DocumentTaxForm) documentForm).getTypeDocumentTax() == DocumentSubCategory.MY_PARENTS
-                    || ((DocumentTaxForm) documentForm).getTypeDocumentTax() == DocumentSubCategory.LESS_THAN_YEAR) {
-                return true;
-            } else if (((DocumentTaxForm) documentForm).getTypeDocumentTax() == DocumentSubCategory.OTHER_TAX
-                    && Boolean.TRUE.equals(((DocumentTaxForm) documentForm).getNoDocument())) {
-                return true;
-            } else if (files.size() == 0) {
+        } else if (documentForm instanceof DocumentFinancialGuarantorNaturalPersonForm form) {
+            if (TRUE.equals(form.getNoDocument()) || files.isEmpty()) {
                 return true;
             }
-        } else if (documentForm instanceof DocumentTaxGuarantorNaturalPersonForm) {
-            if (((DocumentTaxGuarantorNaturalPersonForm) documentForm).getTypeDocumentTax() == DocumentSubCategory.MY_PARENTS
-                    || ((DocumentTaxGuarantorNaturalPersonForm) documentForm).getTypeDocumentTax() == DocumentSubCategory.LESS_THAN_YEAR) {
+        } else if (documentForm instanceof DocumentResidencyGuarantorNaturalPersonForm form) {
+            if (form.getTypeDocumentResidency() == OTHER_RESIDENCY) {
                 return true;
-            } else if (((DocumentTaxGuarantorNaturalPersonForm) documentForm).getTypeDocumentTax() == DocumentSubCategory.OTHER_TAX
-                    && Boolean.TRUE.equals(((DocumentTaxGuarantorNaturalPersonForm) documentForm).getNoDocument())) {
+            }
+        } else if (documentForm instanceof DocumentTaxForm form) {
+            DocumentSubCategory subCategory = form.getTypeDocumentTax();
+            if (subCategory == MY_PARENTS || subCategory == LESS_THAN_YEAR) {
                 return true;
-            } else if (files.size() == 0) {
+            } else if (subCategory == OTHER_TAX && TRUE.equals(form.getNoDocument())) {
+                return true;
+            } else if (files.isEmpty()) {
+                return true;
+            }
+        } else if (documentForm instanceof DocumentTaxGuarantorNaturalPersonForm form) {
+            DocumentSubCategory subCategory = form.getTypeDocumentTax();
+            if (subCategory == MY_PARENTS || subCategory == LESS_THAN_YEAR) {
+                return true;
+            } else if (subCategory == OTHER_TAX && TRUE.equals(form.getNoDocument())) {
+                return true;
+            } else if (files.isEmpty()) {
                 return true;
             }
         }
+
         //region Counting total new pages
-        ByteArrayOutputStream byteArrayOutputStream = Utility.mergeMultipartFiles(files.stream().filter(f -> !f.isEmpty()).collect(Collectors.toList()));
-        if (byteArrayOutputStream.size() == 0) {
-            log.error("Number of new pages [0], max = [" + max + "] for document [" + documentCategory.name() + "]");
-            constraintValidatorContext.disableDefaultConstraintViolation();
-            constraintValidatorContext
-                    .buildConstraintViolationWithTemplate(RESPONSE)
-                    .addPropertyNode(PAGES).addConstraintViolation();
-            return false;
+        int numberOfNewPages = 0;
+        try {
+            numberOfNewPages = new FilePageCounter(files).getTotalNumberOfPages();
+        } catch (IOException e) {
+            log.error("Can't count files total number of pages", e);
         }
-        int numberOfNewPages = Utility.countNumberOfPagesOfPdfDocument(byteArrayOutputStream.toByteArray());
         if (numberOfNewPages == 0) {
             log.error("Number of new pages [0], max = [" + max + "] for document [" + documentCategory.name() + "]");
             constraintValidatorContext.disableDefaultConstraintViolation();

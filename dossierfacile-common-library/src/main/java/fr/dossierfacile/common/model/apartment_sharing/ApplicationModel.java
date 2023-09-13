@@ -1,5 +1,6 @@
 package fr.dossierfacile.common.model.apartment_sharing;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.FileStatus;
@@ -28,5 +29,6 @@ public class ApplicationModel extends WebhookDTO {
     private FileStatus dossierPdfDocumentStatus;
     private TenantFileStatus status;
     private List<TenantModel> tenants;
+    @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ss.SSSSSS")
     private LocalDateTime lastUpdateDate;
 }

@@ -66,7 +66,7 @@ public class Utility {
     }
 
     private static float getLineWidth(List<String> chars, PDType0Font font1, PDType0Font font2, float fontSize) {
-        return chars.parallelStream().map(s -> {
+        return (float) chars.parallelStream().map(s -> {
             try {
                 if (isFontSupported(s, font1)) {
                     return fontSize * font1.getStringWidth(s) / 1000;
@@ -78,7 +78,7 @@ public class Utility {
             } catch (Exception e) {
                 return 0;
             }
-        }).mapToLong(Number::longValue).sum();
+        }).mapToDouble(Number::doubleValue).sum();
     }
 
     public static List<String> sentanceToLines(String text, float width, PDType0Font font, float fontSize, PDType0Font alternativeFont) {

@@ -1,6 +1,6 @@
-package fr.dossierfacile.api.front.validator.anotation;
+package fr.dossierfacile.api.front.validator.anotation.tenant.residency;
 
-import fr.dossierfacile.api.front.validator.SizeFileValidator;
+import fr.dossierfacile.api.front.validator.tenant.residency.CustomTextResidencyValidator;
 
 import javax.validation.Constraint;
 import javax.validation.Payload;
@@ -12,14 +12,12 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE, ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 @Constraint(
-        validatedBy = {SizeFileValidator.class}
+        validatedBy = {CustomTextResidencyValidator.class}
 )
-public @interface SizeFile {
-    String message() default "size must be less than or equal to {max} Mo";
+public @interface CustomTextResidency {
+    String message() default "{javax.validation.constraints.NotBlank.message}";
 
     Class<?>[] groups() default {};
 
     Class<? extends Payload>[] payload() default {};
-
-    double max() default Double.MAX_VALUE;
 }
