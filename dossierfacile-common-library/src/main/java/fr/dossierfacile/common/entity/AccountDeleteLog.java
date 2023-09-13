@@ -18,6 +18,10 @@ import javax.persistence.Table;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
+/**
+ * deprecated uses Log (tenant_log)
+ */
+@Deprecated
 @Builder
 @Entity
 @Table(name = "account_delete_log")

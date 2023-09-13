@@ -1,5 +1,6 @@
 package fr.gouv.bo.controller;
 
+import fr.dossierfacile.common.entity.BOUser;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentDeniedOptions;
 import fr.dossierfacile.common.entity.Guarantor;
@@ -99,19 +100,21 @@ public class BOTenantController {
     }
 
     @GetMapping("/deleteCoTenant/{id}")
-    public String deleteCoTenant(@PathVariable Long id) {
+    public String deleteCoTenant(@PathVariable Long id, Principal principal) {
         Tenant tenant = tenantService.findTenantById(id);
         if (tenant.getTenantType() == TenantType.CREATE) {
             throw new IllegalArgumentException("Delete main tenant is not allowed - set another user as main tenant before OR delete the entire apartmentSharing");
         }
-        userService.deleteCoTenant(tenant);
+        BOUser operator = userService.findUserByEmail(principal.getName());
+        userService.deleteCoTenant(tenant, operator);
         return "redirect:/bo/colocation/" + tenant.getApartmentSharing().getId();
     }
 
     @GetMapping("/deleteApartmentSharing/{id}")
-    public String deleteApartmentSharing(@PathVariable("id") Long id) {
+    public String deleteApartmentSharing(@PathVariable("id") Long id, Principal principal) {
         Tenant create = tenantService.findTenantById(id);
-        userService.deleteApartmentSharing(create);
+        BOUser operator = userService.findUserByEmail(principal.getName());
+        userService.deleteApartmentSharing(create, operator);
         return REDIRECT_BO;
     }
 

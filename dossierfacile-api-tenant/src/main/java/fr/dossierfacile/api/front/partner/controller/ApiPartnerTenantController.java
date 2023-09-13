@@ -45,24 +45,28 @@ public class ApiPartnerTenantController {
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResponseWrapper<List<TenantUpdate>, ListMetadata>> list(@RequestParam(value = "after", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime after,
                                                                                   @RequestParam(value = "limit", defaultValue = "1000") Long limit,
-                                                                                  @RequestParam(value = "orderBy", defaultValue = "LAST_UPDATE_DATE") TenantSortType orderBy
+                                                                                  @RequestParam(value = "orderBy", defaultValue = "LAST_UPDATE_DATE") TenantSortType orderBy,
+                                                                                  @RequestParam(value = "includeDeleted", defaultValue = "false") boolean includeDeleted
     ) {
         UserApi userApi = clientAuthenticationFacade.getClient();
         List<TenantUpdate> result;
         LocalDateTime nextTimeToken;
         switch (orderBy) {
             case CREATION_DATE -> {
+                if (includeDeleted){
+                    throw new IllegalArgumentException("includeDelete is not available with creationDate order");
+                }
                 result = tenantService.findTenantUpdateByCreatedAndPartner(after, userApi, limit);
                 nextTimeToken = (result.size() == 0) ? after : result.get(result.size() - 1).getCreationDate();
             }
             case LAST_UPDATE_DATE -> {
-                result = tenantService.findTenantUpdateByLastUpdateAndPartner(after, userApi, limit);
+                result = tenantService.findTenantUpdateByLastUpdateAndPartner(after, userApi, limit, includeDeleted);
                 nextTimeToken = (result.size() == 0) ? after : result.get(result.size() - 1).getLastUpdateDate();
             }
             default -> throw new IllegalArgumentException();
         }
 
-        String nextLink = "/api-partner/tenant?limit=" + limit + "&orderBy=" + orderBy + "&after=" + nextTimeToken;
+        String nextLink = "/api-partner/tenant?limit=" + limit + "&orderBy=" + orderBy + "&after=" + nextTimeToken + "&includeDeleted=" + includeDeleted;
         return ok(ResponseWrapper.<List<TenantUpdate>, ListMetadata>builder()
                 .metadata(ListMetadata.builder()
                         .limit(limit)

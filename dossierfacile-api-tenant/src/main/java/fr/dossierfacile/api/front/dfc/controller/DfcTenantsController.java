@@ -45,13 +45,14 @@ public class DfcTenantsController {
             notes = "Result is ordered by last_update_date. Use 'after' parameter to define a starting point")
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResponseWrapper<List<TenantUpdate>, ListMetadata>> list(@RequestParam(value = "after", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime after,
-                                                                                  @RequestParam(value = "limit", defaultValue = "1000") Long limit
+                                                                                  @RequestParam(value = "limit", defaultValue = "1000") Long limit,
+                                                                                  @RequestParam(value = "includeDeleted", defaultValue = "false") boolean includeDeleted
     ) {
         UserApi userApi = clientAuthenticationFacade.getClient();
-        List<TenantUpdate> result = tenantService.findTenantUpdateByLastUpdateAndPartner(after, userApi, limit);
+        List<TenantUpdate> result = tenantService.findTenantUpdateByLastUpdateAndPartner(after, userApi, limit, includeDeleted);
         LocalDateTime nextTimeToken = (result.size() == 0) ? after : result.get(result.size() - 1).getLastUpdateDate();
 
-        String nextLink = PATH + "?limit=" + limit + "&after=" + nextTimeToken;
+        String nextLink = PATH + "?limit=" + limit + "&after=" + nextTimeToken + "&includeDeleted=" + includeDeleted;
         return ok(ResponseWrapper.<List<TenantUpdate>, ListMetadata>builder()
                 .metadata(ListMetadata.builder()
                         .limit(limit)

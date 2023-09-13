@@ -86,9 +86,9 @@ public class TenantService {
     private final MessageService messageService;
     private final BOApartmentSharingRepository apartmentSharingRepository;
     private final OperatorLogRepository operatorLogRepository;
-    private final LogActionTenantStatusService logService;
     private final DocumentDeniedReasonsService documentDeniedReasonsService;
     private final DocumentService documentService;
+    private final LogService logService;
 
     private int forTenant = 0;
     @Value("${time.reprocess.application.minutes}")

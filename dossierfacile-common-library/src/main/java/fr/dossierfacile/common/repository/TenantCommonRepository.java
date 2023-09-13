@@ -20,6 +20,7 @@ import java.util.Optional;
 
 public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
     Optional<Tenant> findByEmail(String email);
+
     Optional<Tenant> findByEmailIgnoreCase(String email);
 
     boolean existsByEmail(String email);
@@ -227,6 +228,34 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
     Tenant findByKeycloakId(String keycloakId);
 
     @Query(value = """
+            SELECT * FROM (
+                SELECT tenant_id as id,
+                 null as apartmentSharingId,
+                 null as lastUpdateDate,
+                 null as creationDate,
+                 creation_date as deletionDate
+                FROM tenant_log
+                WHERE  (CAST(CAST(:lastUpdateFrom AS text) AS timestamp) IS NULL
+                 OR creation_date > CAST(CAST(:lastUpdateFrom AS text) AS timestamp))
+                 AND :partnerId = ANY (user_apis)
+                UNION
+                SELECT t.id as id,
+                 t.apartment_sharing_id as apartmentSharingId,
+                 t.last_update_date as lastUpdateDate,
+                 ua.creation_date as creationDate,
+                 null as deletionDate
+                FROM tenant t
+                 INNER JOIN user_account ua ON ua.id = t.id
+                 INNER JOIN tenant_userapi tua ON tua.tenant_id = t.id
+                WHERE tua.userapi_id = :partnerId
+                 AND (CAST(CAST(:lastUpdateFrom AS text) AS timestamp) IS NULL OR t.last_update_date > CAST(CAST(:lastUpdateFrom AS text) AS timestamp))
+                    ) AS tenantupdate
+            ORDER BY lastUpdateDate ASC
+            LIMIT :limit
+            """, nativeQuery = true)
+    List<TenantUpdate> findTenantUpdateWithDeletedByLastUpdateAndPartner(@Param("lastUpdateFrom") LocalDateTime from, @Param("partnerId") Long id, @Param("limit") Long limit);
+
+    @Query(value = """
             SELECT t.id as id, t.apartment_sharing_id as apartmentSharingId, t.last_update_date as lastUpdateDate, ua.creation_date as creationDate 
             FROM  tenant t
             INNER JOIN user_account ua ON ua.id = t.id
@@ -262,5 +291,5 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
             WHERE l.logType = 'ACCOUNT_VALIDATED' OR l.logType = 'ACCOUNT_DENIED' 
             """
     )
-    List<Tenant> findTenantsToExtract( Pageable pageable);
+    List<Tenant> findTenantsToExtract(Pageable pageable);
 }

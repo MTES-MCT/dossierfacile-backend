@@ -36,7 +36,6 @@ public class TenantWarningServiceImpl implements TenantWarningService {
     private final ConfirmationTokenRepository confirmationTokenRepository;
     private final TenantCommonRepository tenantRepository;
     private final PartnerCallBackService partnerCallBackService;
-
     private final TenantCommonService tenantCommonService;
     private final ApartmentSharingCommonService apartmentSharingCommonService;
     private final ApartmentSharingRepository apartmentSharingRepository;
@@ -56,7 +55,8 @@ public class TenantWarningServiceImpl implements TenantWarningService {
     private void handleWarning2(Tenant t) {
         log.info("accountWarnings. Documents deletion for tenant with ID [" + t.getId() + "]");
 
-        tenantCommonService.recordAndDeleteTenantData(t.getId());
+        logService.saveLogWithTenantData(LogType.ACCOUNT_ARCHIVED, t);
+        tenantCommonService.deleteTenantData(t);
 
         t.setWarnings(0);
         t.setConfirmationToken(null);
@@ -91,7 +91,7 @@ public class TenantWarningServiceImpl implements TenantWarningService {
     public void deleteOldArchivedWarnings(List<Tenant> tenantList) {
         tenantList.forEach(tenant -> {
             log.info("Deleting tenant " + tenant.getId());
-            tenantCommonService.addDeleteLogIfMissing(tenant.getId());
+            logService.saveLogWithTenantData(LogType.ACCOUNT_DELETE, tenant);
             Optional<ApartmentSharing> optionalApartmentSharing = apartmentSharingRepository.findByTenant(tenant.getId());
             ApartmentSharing apartmentSharing;
             if (optionalApartmentSharing.isPresent()) {
