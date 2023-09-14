@@ -118,5 +118,6 @@
     <include file="db/migration/202308290000-create-index_storage_file.xml" />
     <include file="db/migration/202309010000-add-json-profile-to-delete-account.xml" />
     <include file="db/migration/202309051500-drop-column-userApi.xml" />
+    <include file="db/migration/202309140000-create-index_watermark_storage_file.xml" />
 
 </databaseChangeLog>
