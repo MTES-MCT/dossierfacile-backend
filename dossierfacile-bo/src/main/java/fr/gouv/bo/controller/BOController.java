@@ -188,8 +188,7 @@ public class BOController {
                 ApartmentSharing apartCreate = tenantCreate.getApartmentSharing();
                 ApartmentSharing apartJoin = tenantJoin.getApartmentSharing();
 
-                if (apartCreate.getNumberOfTenants() == 1 && apartCreate.getApplicationType() == ApplicationType.ALONE
-                        && apartJoin.getNumberOfTenants() == 1 && apartJoin.getApplicationType() == ApplicationType.ALONE) {
+                if (apartJoin.getNumberOfTenants() == 1 && apartJoin.getApplicationType() == ApplicationType.ALONE) {
 
                     tenantService.regroupTenant(tenantJoin, apartCreate, reGroupDTO.getApplicationType());
 

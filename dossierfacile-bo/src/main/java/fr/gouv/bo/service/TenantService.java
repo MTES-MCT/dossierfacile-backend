@@ -778,7 +778,9 @@ public class TenantService {
         apartmentSharing.getTenants().add(tenant);
         apartmentToDelete.getTenants().remove(tenant);
 
-        apartmentSharing.setApplicationType(newApplicationType);
+        if (apartmentSharing.getApplicationType() != ApplicationType.GROUP) {
+            apartmentSharing.setApplicationType(newApplicationType);
+        }
         apartmentSharingRepository.save(apartmentSharing);
 
         tenant.setTenantType(TenantType.JOIN);
