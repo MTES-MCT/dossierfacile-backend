@@ -88,7 +88,7 @@ public class Document implements Serializable {
     @Builder.Default
     private DocumentStatus documentStatus = DocumentStatus.TO_PROCESS;
 
-    @OneToOne(cascade = CascadeType.REMOVE)
+    @OneToOne(cascade = CascadeType.REMOVE, orphanRemoval = true)
     @JoinColumn(name = "watermark_file_id")
     private StorageFile watermarkFile;
 
