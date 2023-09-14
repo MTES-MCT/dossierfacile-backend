@@ -21,11 +21,11 @@ public class BackupFilesService {
     private final StorageFileRepository storageFileRepository;
     private final FileStorageService fileStorageService;
 
-    @Scheduled(fixedDelay = 5000)
+    @Scheduled(fixedDelay = 10000)
     public void scheduleBackupTask() {
         Pageable limit = PageRequest.of(0, 100);
         List<StorageFile> storageFiles = storageFileRepository.findAllWithOneProvider(limit);
-        for (StorageFile storageFile : storageFiles) {
+        storageFiles.parallelStream().forEach(storageFile -> {
             for (ObjectStorageProvider objectStorageProvider : ObjectStorageProvider.values()) {
                 if (!storageFile.getProviders().contains(objectStorageProvider.name())) {
                     try (InputStream is = fileStorageService.download(storageFile)) {
@@ -35,6 +35,6 @@ public class BackupFilesService {
                     }
                 }
             }
-        }
+        });
     }
 }
