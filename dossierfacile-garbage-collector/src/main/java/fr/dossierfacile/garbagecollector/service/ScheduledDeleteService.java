@@ -61,7 +61,7 @@ public class ScheduledDeleteService {
         System.out.println("Deleted files: " + objectList.size() + "\n");
     }
 
-    @Scheduled(fixedDelay = 9000)
+    @Scheduled(fixedDelay = 10000)
     public void deleteFileInProviderTask() {
         List<StorageFileToDelete> storageFileToDeleteList = storageFileToDeleteRepository.findAll();
         for (StorageFileToDelete storageFileToDelete : storageFileToDeleteList) {
