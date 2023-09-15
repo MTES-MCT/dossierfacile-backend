@@ -44,20 +44,18 @@ public class ScheduledWarningService {
 
     private void deleteOldArchivedAccount() {
         LocalDateTime limitDate = LocalDateTime.now().minusMonths(monthsForDeletionOfTenants);
-        int total = 0;
-        PageRequest pageRequest = PageRequest.of(0, 100);
-        List<Tenant> tenantList = tenantRepository.findByStatusAndLastUpdateDate(TenantFileStatus.ARCHIVED, limitDate, pageRequest);
+        PageRequest pageRequest = PageRequest.of(0, 5000);
+        List<Long> tenantIdList = tenantRepository.findByStatusAndLastUpdateDate(TenantFileStatus.ARCHIVED, limitDate, pageRequest);
         log.info("Delete archived tenants");
-        while (tenantList.size() > 0) {
-            total += tenantList.size();
+        tenantIdList.forEach(tid -> {
             try {
-                tenantWarningService.deleteOldArchivedWarnings(tenantList);
+                tenantWarningService.deleteOldArchivedWarning(tid);
             } catch (Exception e) {
                 log.error("error while deleting old accounts", e);
             }
-            tenantList = tenantRepository.findByStatusAndLastUpdateDate(TenantFileStatus.ARCHIVED, limitDate, pageRequest);
-        }
-        log.info("Deleted " + total + " archived tenants");
+
+        });
+        log.info("Deleted " + tenantIdList.size() + " archived tenants");
     }
 
     private void processAllWarnings(LocalDateTime localDateTime, int warnings) {
