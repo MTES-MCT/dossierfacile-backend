@@ -21,7 +21,7 @@ public class BackupFilesService {
     private final StorageFileRepository storageFileRepository;
     private final FileStorageService fileStorageService;
 
-    @Scheduled(fixedDelay = 10000)
+    @Scheduled(fixedDelayString = "${scheduled.process.storage.backup.delay.ms}")
     public void scheduleBackupTask() {
         Pageable limit = PageRequest.of(0, 100);
         List<StorageFile> storageFiles = storageFileRepository.findAllWithOneProvider(limit);
