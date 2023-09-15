@@ -21,11 +21,11 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class DeletedTenantModel {
     private Long id;
-    private String firstName;
-    private String lastName;
-    private String preferredName;
     private String zipCode;
     private String hashedEmail;
+    private String hashedLastname;
+    private String hashedFirstname;
+    private String hashedPreferredName;
     private TenantType tenantType;
     private Boolean franceConnect;
     private TenantFileStatus status;
