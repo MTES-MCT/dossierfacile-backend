@@ -5,6 +5,7 @@ import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.exif.ExifIFD0Directory;
 import com.twelvemonkeys.image.ImageUtil;
+import fr.dossierfacile.api.pdfgenerator.configuration.FeatureFlipping;
 import fr.dossierfacile.api.pdfgenerator.model.FileInputStream;
 import fr.dossierfacile.api.pdfgenerator.model.PageDimension;
 import fr.dossierfacile.api.pdfgenerator.model.PdfTemplateParameters;
@@ -57,6 +58,8 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
     private final PdfTemplateParameters params = PdfTemplateParameters.builder().build();
     private final Locale locale = LocaleContextHolder.getLocale();
     private final MessageSource messageSource;
+
+    private final FeatureFlipping featureFlipping;
 
     private final Color[] COLORS = {
             new Color(64, 64, 64, 255),
@@ -241,7 +244,11 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
             float spaceBetweenText = diagonal / ThreadLocalRandom.current().nextFloat(8f, 10f);
             for (int i = 1; i < 11; i++) {
                 Font font = new Font("Arial", Font.PLAIN, 28 * bim.getWidth() / params.maxPage.width);
-                g.setColor(COLORS[ThreadLocalRandom.current().nextInt(0, COLORS.length)]);
+                if (featureFlipping.shouldUseColors()) {
+                    g.setColor(COLORS[ThreadLocalRandom.current().nextInt(0, COLORS.length)]);
+                } else {
+                    g.setColor(Color.DARK_GRAY);
+                }
                 g.setFont(font);
                 g.drawString(watermark, 0, i * spaceBetweenText);
             }
@@ -261,9 +268,13 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
             Graphics2D gf = bim.createGraphics();
             gf.drawImage(bim, 0, 0, null);
 
-
-            DFFilter filter = new DFFilter();
-            BufferedImage buffer = filter.filter(watermarkLayer, null);
+            BufferedImage buffer;
+            if (featureFlipping.shouldUseDistortion()) {
+                DFFilter filter = new DFFilter();
+                buffer = filter.filter(watermarkLayer, null);
+            } else {
+                buffer = watermarkLayer;
+            }
 
             BufferedImage rotated = new BufferedImage(diagonal, diagonal, buffer.getType());
             Graphics2D graphic = rotated.createGraphics();

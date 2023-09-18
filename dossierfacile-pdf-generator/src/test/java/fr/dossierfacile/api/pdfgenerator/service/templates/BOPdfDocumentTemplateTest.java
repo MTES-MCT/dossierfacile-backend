@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.pdfgenerator.service.templates;
 
+import fr.dossierfacile.api.pdfgenerator.configuration.FeatureFlipping;
 import fr.dossierfacile.api.pdfgenerator.model.FileInputStream;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.*;
@@ -29,12 +30,25 @@ public class BOPdfDocumentTemplateTest {
 
     @Mock
     MessageSource messageSource;
+    @Mock
+    FeatureFlipping featureFlipping;
     @InjectMocks
     BOPdfDocumentTemplate boPdfDocumentTemplate;
+
+    File outputfile;
 
     @BeforeEach
     void init() {
         Mockito.lenient().when(messageSource.getMessage(any(),any(),any(),any() )).thenReturn(BOPdfDocumentTemplate.DEFAULT_WATERMARK);
+        Mockito.when(featureFlipping.shouldUseColors()).thenReturn(true);
+        Mockito.when(featureFlipping.shouldUseDistortion()).thenReturn(true);
+    }
+
+    @AfterEach
+    void tearDown() {
+        if (outputfile != null) {
+            outputfile.delete();
+        }
     }
 
     @Disabled
@@ -174,7 +188,7 @@ public class BOPdfDocumentTemplateTest {
         InputStream is = BOPdfDocumentTemplateTest.class.getClassLoader().getResourceAsStream("CNI.jpg");
         BufferedImage image = ImageIO.read(is);
         BufferedImage b = boPdfDocumentTemplate.applyWatermark(image, "watermark 2023");
-        File outputfile = new File("image.jpg");
+        outputfile = new File("image.jpg");
         ImageIO.write(b, "jpg", outputfile);
     }
 }
