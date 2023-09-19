@@ -160,8 +160,9 @@ public class TenantServiceImpl implements TenantService {
     public void sendFileByMail(Tenant tenant, String email, String shareType) {
         String token = UUID.randomUUID().toString();
         LocalDateTime date = LocalDateTime.now().minusDays(1);
-        List<ApartmentSharingLink> existingASL = apartmentSharingLinkRepository.findByApartmentSharingAndCreationDateIsBefore(tenant.getApartmentSharing(), date );
+        List<ApartmentSharingLink> existingASL = apartmentSharingLinkRepository.findByApartmentSharingAndCreationDateIsAfter(tenant.getApartmentSharing(), date );
         if (existingASL.size() > 10) {
+            log.info("Daily limit reached for file sharing by mail");
             throw new MailSentLimitException();
         }
 
