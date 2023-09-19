@@ -14,6 +14,9 @@ public interface StorageFileRepository extends JpaRepository<StorageFile, Long> 
             SELECT *
             FROM storage_file sf
             WHERE array_length(sf.providers, 1) < 2
+            AND last_modified_date is not null
+            AND sf.last_modified_date < NOW() - INTERVAL '10' MINUTE 
+            AND sf.last_modified_date > NOW() - INTERVAL '10' DAY
             ORDER BY sf.last_modified_date DESC
             """, nativeQuery = true)
     List<StorageFile> findAllWithOneProvider(Pageable pageable);

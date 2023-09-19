@@ -8,5 +8,5 @@ import java.util.List;
 public interface TenantWarningService {
     void handleTenantWarning(Tenant t, int warnings);
 
-    void deleteOldArchivedWarnings(List<Tenant> tenantList);
+    void deleteOldArchivedWarning(long tenantId);
 }

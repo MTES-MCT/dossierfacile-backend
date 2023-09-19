@@ -1,12 +1,8 @@
 package fr.dossierfacile.process.file.barcode.qrcode;
 
-import fr.dossierfacile.process.file.barcode.qrcode.QrCode;
-import fr.dossierfacile.process.file.barcode.qrcode.QrCodeReader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -18,19 +14,13 @@ class QrCodeReaderTest {
 
     private PDDocument document;
 
-    @ParameterizedTest(name = "{0}")
-    @CsvSource({
-            "unemployment-document.pdf, bb8faee8-7e9a-4cae-8d53-aa700a852e94",
-            "scholarship-document.pdf, f0ee0a2d-0be6-48c2-bbec-f91d8925f998",
-            "student-document.pdf, b76abaf7-152d-4d75-bb08-76a82a8f9db2",
-            "tax-document.pdf, 5adf42fd-71b8-4515-ba16-37316fef19e7"
-    })
-    void should_read_qr_code_on_pdf_file(String fileName, String expectedDocumentId) throws IOException {
-        document = getPdfBoxDocument("monfranceconnect/" + fileName);
+    @Test
+    void should_read_qr_code_on_pdf_file() throws IOException {
+        document = getPdfBoxDocument("qr-code.pdf");
         Optional<QrCode> optionalQrCode = QrCodeReader.findQrCodeOn(document);
 
-        assertThat(optionalQrCode).isPresent()
-                .hasValueSatisfying(qrCode -> assertThat(qrCode.getContent()).contains(expectedDocumentId));
+        QrCode expectedCode = new QrCode("This is a QR code for testing");
+        assertThat(optionalQrCode).isPresent().contains(expectedCode);
     }
 
     @Test

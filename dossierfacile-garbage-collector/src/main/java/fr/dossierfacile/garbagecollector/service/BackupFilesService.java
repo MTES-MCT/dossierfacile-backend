@@ -6,7 +6,6 @@ import fr.dossierfacile.common.repository.StorageFileRepository;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -22,11 +21,11 @@ public class BackupFilesService {
     private final StorageFileRepository storageFileRepository;
     private final FileStorageService fileStorageService;
 
-    @Scheduled(fixedDelay = 5000)
+    @Scheduled(fixedDelayString = "${scheduled.process.storage.backup.delay.ms}")
     public void scheduleBackupTask() {
         Pageable limit = PageRequest.of(0, 100);
         List<StorageFile> storageFiles = storageFileRepository.findAllWithOneProvider(limit);
-        for (StorageFile storageFile : storageFiles) {
+        storageFiles.parallelStream().forEach(storageFile -> {
             for (ObjectStorageProvider objectStorageProvider : ObjectStorageProvider.values()) {
                 if (!storageFile.getProviders().contains(objectStorageProvider.name())) {
                     try (InputStream is = fileStorageService.download(storageFile)) {
@@ -36,6 +35,6 @@ public class BackupFilesService {
                     }
                 }
             }
-        }
+        });
     }
 }

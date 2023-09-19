@@ -20,6 +20,7 @@ import fr.dossierfacile.garbagecollector.service.interfaces.MailService;
 import fr.dossierfacile.garbagecollector.service.interfaces.TenantWarningService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,27 +37,28 @@ public class TenantWarningServiceImpl implements TenantWarningService {
     private final ConfirmationTokenRepository confirmationTokenRepository;
     private final TenantCommonRepository tenantRepository;
     private final PartnerCallBackService partnerCallBackService;
-
     private final TenantCommonService tenantCommonService;
     private final ApartmentSharingCommonService apartmentSharingCommonService;
     private final ApartmentSharingRepository apartmentSharingRepository;
     private final KeycloakCommonService keycloakCommonService;
 
-    @Transactional
     @Override
+    @Transactional("dossierTransactionManager")
     public void handleTenantWarning(Tenant t, int warnings) {
+        Tenant tenant = tenantRepository.findById(t.getId()).get();
         switch (warnings) {
-            case 0 -> handleWarning0(t);
-            case 1 -> handleWarning1(t);
-            case 2 -> handleWarning2(t);
+            case 0 -> handleWarning0(tenant);
+            case 1 -> handleWarning1(tenant);
+            case 2 -> handleWarning2(tenant);
         }
-        tenantRepository.save(t);
+        tenantRepository.save(tenant);
     }
 
     private void handleWarning2(Tenant t) {
         log.info("accountWarnings. Documents deletion for tenant with ID [" + t.getId() + "]");
 
-        tenantCommonService.recordAndDeleteTenantData(t.getId());
+        logService.saveLogWithTenantData(LogType.ACCOUNT_ARCHIVED, t);
+        tenantCommonService.deleteTenantData(t);
 
         t.setWarnings(0);
         t.setConfirmationToken(null);
@@ -87,28 +89,27 @@ public class TenantWarningServiceImpl implements TenantWarningService {
     }
 
     @Override
-    @Transactional
-    public void deleteOldArchivedWarnings(List<Tenant> tenantList) {
-        tenantList.forEach(tenant -> {
-            log.info("Deleting tenant " + tenant.getId());
-            tenantCommonService.addDeleteLogIfMissing(tenant.getId());
-            Optional<ApartmentSharing> optionalApartmentSharing = apartmentSharingRepository.findByTenant(tenant.getId());
-            ApartmentSharing apartmentSharing;
-            if (optionalApartmentSharing.isPresent()) {
-                apartmentSharing = optionalApartmentSharing.get();
-            } else {
-                return;
-            }
-            if (tenant.getTenantType() == TenantType.CREATE) {
-                keycloakCommonService.deleteKeycloakUsers(apartmentSharing.getTenants());
-                apartmentSharingCommonService.delete(apartmentSharing);
-            } else {
-                keycloakCommonService.deleteKeycloakUser(tenant);
-                tenantRepository.delete(tenant);
-                apartmentSharingCommonService.removeTenant(apartmentSharing, tenant);
-            }
+    @Transactional("dossierTransactionManager")
+    public void deleteOldArchivedWarning(long tenantId) {
+        log.info("Deleting tenant " + tenantId);
+        Tenant tenant = tenantRepository.findById(tenantId).get();
+        logService.saveLogWithTenantData(LogType.ACCOUNT_DELETE, tenant);
 
-        });
+        Optional<ApartmentSharing> optionalApartmentSharing = apartmentSharingRepository.findByTenant(tenant.getId());
+        ApartmentSharing apartmentSharing;
+        if (optionalApartmentSharing.isPresent()) {
+            apartmentSharing = optionalApartmentSharing.get();
+        } else {
+            return;
+        }
+        if (tenant.getTenantType() == TenantType.CREATE) {
+            keycloakCommonService.deleteKeycloakUsers(apartmentSharing.getTenants());
+            apartmentSharingCommonService.delete(apartmentSharing);
+        } else {
+            keycloakCommonService.deleteKeycloakUser(tenant);
+            tenantRepository.delete(tenant);
+            apartmentSharingCommonService.removeTenant(apartmentSharing, tenant);
+        }
     }
 
 }

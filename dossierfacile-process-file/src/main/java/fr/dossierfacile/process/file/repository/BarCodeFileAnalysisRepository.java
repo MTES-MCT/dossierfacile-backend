@@ -1,7 +1,7 @@
 package fr.dossierfacile.process.file.repository;
 
-import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.BarCodeFileAnalysis;
+import fr.dossierfacile.common.entity.File;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface BarCodeFileAnalysisRepository extends JpaRepository<BarCodeFileAnalysis, Long> {

@@ -106,7 +106,7 @@ public class EmptyBOPdfDocumentTemplate implements PdfTemplate<Document> {
 
             for (String s : textToShowInPdf) {
                 Utility.addText(contentStream, width, startX, startY, s, font, fontSize, alternativeFont);
-                startY -= 20;
+                startY -= 36;
             }
 
             contentStream.close();

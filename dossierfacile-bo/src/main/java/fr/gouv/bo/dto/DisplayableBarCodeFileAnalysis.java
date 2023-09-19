@@ -62,7 +62,6 @@ public class DisplayableBarCodeFileAnalysis {
             return formatToList((Map<String, String>) verifiedData);
         }
         return switch (analysis.getDocumentType()) {
-            case MON_FRANCE_CONNECT -> formatToList((List<String>) verifiedData);
             case PAYFIT_PAYSLIP -> PayfitAuthenticatedContent.format(verifiedData);
             default -> verifiedData.toString();
         };

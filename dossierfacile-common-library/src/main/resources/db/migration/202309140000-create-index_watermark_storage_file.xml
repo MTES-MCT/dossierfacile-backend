@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+    <changeSet id="202309060001-01" author="Matthieu (manual)">
+        <sql>
+            <![CDATA[
+                    DROP INDEX IF EXISTS watermark_document_pdf_file;
+                    CREATE INDEX IF NOT EXISTS watermark_document_pdf_file ON watermark_document (pdf_file_id);
+                    DROP INDEX IF EXISTS watermark_document_storage_file_storage;
+                    CREATE INDEX IF NOT EXISTS watermark_document_storage_file_storage ON watermark_document_storage_file (storage_file_id);
+                ]]>
+        </sql>
+    </changeSet>
+</databaseChangeLog>

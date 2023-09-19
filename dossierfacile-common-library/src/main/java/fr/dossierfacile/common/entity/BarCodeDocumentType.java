@@ -7,8 +7,6 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum BarCodeDocumentType {
 
-    MON_FRANCE_CONNECT("Mon FranceConnect"),
-
     TAX_ASSESSMENT("Avis d'imposition"),
     TAX_DECLARATION("Avis de situation déclarative"),
 

@@ -10,6 +10,7 @@ public enum LogType {
     ACCOUNT_COMPLETE("tenant"),
     ACCOUNT_MODIFICATION(Constants.TENANT_MESSAGES),
     ACCOUNT_DELETE(null),
+    ACCOUNT_ARCHIVED(null),
     NEW_MESSAGE(Constants.TENANT_MESSAGES),
     ADD_PROPERTY_OWNER(null),
     VISIT_PROPERTY_OWNER(null),

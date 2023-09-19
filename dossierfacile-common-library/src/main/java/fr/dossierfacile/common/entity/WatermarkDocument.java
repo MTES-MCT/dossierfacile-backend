@@ -58,7 +58,7 @@ public class WatermarkDocument {
     @Enumerated(EnumType.STRING)
     private FileStatus pdfStatus;
 
-    @OneToOne(cascade = CascadeType.REMOVE)
+    @OneToOne(cascade = CascadeType.REMOVE, orphanRemoval = true)
     @JoinColumn(name = "pdf_file_id")
     private StorageFile pdfFile;
 
