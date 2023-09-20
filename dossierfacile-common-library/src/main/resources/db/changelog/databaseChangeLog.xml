@@ -120,5 +120,6 @@
     <include file="db/migration/202309051500-drop-column-userApi.xml" />
     <include file="db/migration/202309140000-create-index_watermark_storage_file.xml" />
     <include file="db/migration/202309110000-alter_tenant_log.xml" />
+    <include file="db/migration/202309200000-delete-monfranceconnect-analysis.xml" />
 
 </databaseChangeLog>
