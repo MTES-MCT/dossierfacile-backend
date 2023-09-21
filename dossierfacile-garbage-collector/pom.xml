@@ -136,6 +136,16 @@
             <artifactId>okio</artifactId>
             <version>3.5.0</version>
         </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-core</artifactId>
+            <version>1.2.12</version>
+        </dependency>
+        <dependency>
+            <groupId>net.logstash.logback</groupId>
+            <artifactId>logstash-logback-encoder</artifactId>
+            <version>7.3</version>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>
