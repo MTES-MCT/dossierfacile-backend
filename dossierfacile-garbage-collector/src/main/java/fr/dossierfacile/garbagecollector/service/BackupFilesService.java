@@ -4,6 +4,7 @@ import fr.dossierfacile.common.entity.ObjectStorageProvider;
 import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.repository.StorageFileRepository;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
+import fr.dossierfacile.garbagecollector.LoggingContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -26,15 +27,26 @@ public class BackupFilesService {
         Pageable limit = PageRequest.of(0, 100);
         List<StorageFile> storageFiles = storageFileRepository.findAllWithOneProvider(limit);
         storageFiles.parallelStream().forEach(storageFile -> {
+            LoggingContext.setStorageFile(storageFile);
             for (ObjectStorageProvider objectStorageProvider : ObjectStorageProvider.values()) {
-                if (!storageFile.getProviders().contains(objectStorageProvider.name())) {
-                    try (InputStream is = fileStorageService.download(storageFile)) {
-                        fileStorageService.uploadToProvider(is, storageFile, objectStorageProvider);
-                    } catch (Exception e) {
-                        log.error("Upload to " + objectStorageProvider + " failed for storage_file with id : " + storageFile.getId());
-                    }
+                if (isNotPresentOnProvider(storageFile, objectStorageProvider)) {
+                    uploadFileToProvider(storageFile, objectStorageProvider);
                 }
             }
+            LoggingContext.clear();
         });
     }
+
+    private static boolean isNotPresentOnProvider(StorageFile storageFile, ObjectStorageProvider objectStorageProvider) {
+        return !storageFile.getProviders().contains(objectStorageProvider.name());
+    }
+
+    private void uploadFileToProvider(StorageFile storageFile, ObjectStorageProvider objectStorageProvider) {
+        try (InputStream is = fileStorageService.download(storageFile)) {
+            fileStorageService.uploadToProvider(is, storageFile, objectStorageProvider);
+        } catch (Exception e) {
+            log.error("Upload to {} failed", objectStorageProvider);
+        }
+    }
+
 }
