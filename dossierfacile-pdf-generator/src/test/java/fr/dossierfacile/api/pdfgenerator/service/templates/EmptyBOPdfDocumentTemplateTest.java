@@ -8,7 +8,7 @@ import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -67,7 +67,7 @@ class EmptyBOPdfDocumentTemplateTest {
     }
 
     private static String extractTextFromPdfFile(File outputFile) throws IOException {
-        return new PDFTextStripper().getText(PDDocument.load(outputFile));
+        return new PDFTextStripper().getText(Loader.loadPDF(outputFile));
     }
 
 }

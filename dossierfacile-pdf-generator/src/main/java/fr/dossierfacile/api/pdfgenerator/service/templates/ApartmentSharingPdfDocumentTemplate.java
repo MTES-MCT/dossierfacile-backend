@@ -20,7 +20,9 @@ import fr.dossierfacile.common.repository.TenantCommonRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.io.MemoryUsageSetting;
+import org.apache.pdfbox.io.RandomAccessReadBuffer;
 import org.apache.pdfbox.multipdf.LayerUtility;
 import org.apache.pdfbox.multipdf.PDFMergerUtility;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -30,6 +32,7 @@ import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 import org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject;
 import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
@@ -67,6 +70,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import static org.apache.pdfbox.multipdf.PDFMergerUtility.DocumentMergeMode;
 
 @Service
 @AllArgsConstructor
@@ -247,7 +252,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
 
     private void addPaginate(PDDocument doc) throws IOException {
 
-        PDFont font = PDType1Font.HELVETICA_BOLD;
+        PDFont font = new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD);
         int numberPage = 1;
         int totalPages = doc.getNumberOfPages();
         for (PDPage page : doc.getPages()) {
@@ -273,7 +278,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
 
     private ByteArrayOutputStream addTextHeaderAndTextBodyToTheCopyOfAttachmentsAndClarificationTemplate(List<Tenant> tenantList, String headerSentence, String bodyText) {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        try (PDDocument doc = PDDocument.load(TEMPLATE_OF_ATTACHMENTS_AND_CLARIFICATIONS.getInputStream())) {
+        try (PDDocument doc = Loader.loadPDF(TEMPLATE_OF_ATTACHMENTS_AND_CLARIFICATIONS.getFile())) {
 
             //region Reading fonts
             PDType0Font font1 = Fonts.MARIANNE_LIGHT.load(doc);
@@ -503,7 +508,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
             double widthScale = targetImageData.getTargetWidth() / innerPage.getMediaBox().getWidth();
             double heightScale = targetImageData.getTargetHeight() / innerPage.getMediaBox().getHeight();
 
-            try (PDDocument document = PDDocument.load(templateBytes)) {
+            try (PDDocument document = Loader.loadPDF(templateBytes)) {
 
                 LayerUtility layerUtility = new LayerUtility(document);
                 PDFormXObject innerPageAsForm = layerUtility.importPageAsForm(innerDocument, innerPage);
@@ -530,9 +535,9 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
         try {
             int numberOfPagesAdded = (numberOfTenants + 1) / 2; // 2 tenants by page
             if (numberOfPagesAdded > 0) {
-                ut.addSource(TEMPLATE_OF_FIRST_INDEXPAGES.getInputStream());
+                ut.addSource(TEMPLATE_OF_FIRST_INDEXPAGES.getFile());
                 for (int i = 1; i < numberOfPagesAdded; i++) {
-                    ut.addSource(TEMPLATE_OF_OTHER_INDEXPAGES.getInputStream());
+                    ut.addSource(TEMPLATE_OF_OTHER_INDEXPAGES.getFile());
                 }
             }
             log.info("Number of first pages added [" + numberOfPagesAdded + "]");
@@ -559,11 +564,11 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
 
         ByteArrayOutputStream templateWithTextsHeader = addTextHeaderAndTextBodyToTheCopyOfAttachmentsAndClarificationTemplate(tenantList, headerSentence, null);
 
-        try (PDDocument innerDocument = PDDocument.load(pdfDocument)) {
+        try (PDDocument innerDocument = Loader.loadPDF(pdfDocument.readAllBytes())) {
 
             for (PDPage innerPage : innerDocument.getPages()) {
                 ByteArrayOutputStream pdfDocPageWithAttachmentMerged = mergePageInsideTemplate(innerDocument, innerPage, templateWithTextsHeader.toByteArray(), headerSentence);
-                ut.addSource(new ByteArrayInputStream(pdfDocPageWithAttachmentMerged.toByteArray()));
+                ut.addSource(new RandomAccessReadBuffer(pdfDocPageWithAttachmentMerged.toByteArray()));
             }
             if (newCategoryDocument) {
                 indexPagesForDocuments.add(indexPagesForDocuments.get(indexPagesForDocuments.size() - 1) + innerDocument.getNumberOfPages());
@@ -591,7 +596,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
             //endregion
 
             ByteArrayOutputStream outputStream = addTextHeaderAndTextBodyToTheCopyOfAttachmentsAndClarificationTemplate(tenantList, LE_MOT_DU_LOCATAIRE, mainTenant.getClarification());
-            ut.addSource(new ByteArrayInputStream(outputStream.toByteArray()));
+            ut.addSource(new RandomAccessReadBuffer(outputStream.toByteArray()));
             indexPagesForDocuments.add(indexPagesForDocuments.get(indexPagesForDocuments.size() - 1) + 1);
         } else {
             indexPagesForDocuments.add(indexPagesForDocuments.get(indexPagesForDocuments.size() - 1)); // does not exist - stay on current page
@@ -1269,14 +1274,16 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
 
         ByteArrayOutputStream merge = new ByteArrayOutputStream();
         ut.setDestinationStream(merge);
+        ut.setDocumentMergeMode(DocumentMergeMode.OPTIMIZE_RESOURCES_MODE);
+
         try {
-            ut.mergeDocuments(MemoryUsageSetting.setupMainMemoryOnly());
+            ut.mergeDocuments(MemoryUsageSetting.setupMainMemoryOnly().streamCache);
         } catch (IOException e) {
             log.error("Problem merge document for pdf full");
             log.error(e.getMessage(), e.getCause());
         }
         ByteArrayOutputStream result = new ByteArrayOutputStream();
-        try (PDDocument doc = PDDocument.load(new ByteArrayInputStream(merge.toByteArray()))) {
+        try (PDDocument doc = Loader.loadPDF(merge.toByteArray())) {
 
             doc.getDocumentCatalog().setDocumentOutline(pdDocumentOutline);
             pdOutlineItem.openNode();
@@ -1367,7 +1374,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
         }
         // optimisation
         try (ByteArrayOutputStream finalResult = new ByteArrayOutputStream();
-             PDDocument originDocument = PDDocument.load(result.toByteArray())) {
+             PDDocument originDocument = Loader.loadPDF(result.toByteArray())) {
 
             new PdfOptimizer().optimize(originDocument);
             originDocument.save(finalResult);
