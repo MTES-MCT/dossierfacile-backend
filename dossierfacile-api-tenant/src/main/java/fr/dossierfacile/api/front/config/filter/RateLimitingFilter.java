@@ -1,4 +1,4 @@
-package fr.dossierfacile.api.front.security.filter;
+package fr.dossierfacile.api.front.config.filter;
 
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
@@ -32,6 +32,9 @@ public class RateLimitingFilter implements Filter {
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+        if (ipBuckets.size() > 50000) {
+            ipBuckets.clear();
+        }
         Bucket bucket = ipBuckets.computeIfAbsent(request.getRemoteAddr(), this::createNewBucket);
 
         ConsumptionProbe probe = bucket.tryConsumeAndReturnRemaining(1);
