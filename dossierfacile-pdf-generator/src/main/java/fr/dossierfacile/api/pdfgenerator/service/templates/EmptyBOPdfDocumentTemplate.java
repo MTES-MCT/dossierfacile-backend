@@ -6,6 +6,7 @@ import fr.dossierfacile.api.pdfgenerator.service.interfaces.PdfTemplate;
 import fr.dossierfacile.api.pdfgenerator.util.Fonts;
 import fr.dossierfacile.api.pdfgenerator.util.Utility;
 import fr.dossierfacile.common.entity.Document;
+import fr.dossierfacile.common.entity.Guarantor;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
@@ -31,7 +32,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -45,23 +45,29 @@ public class EmptyBOPdfDocumentTemplate implements PdfTemplate<Document> {
     private final TenantRepository tenantRepository;
     private final GuarantorRepository guarantorRepository;
 
+    @Override
+    public InputStream render(Document document) throws IOException {
+        return new ByteArrayInputStream(createPdfFromTemplate(document).toByteArray());
+    }
+
     private ByteArrayOutputStream createPdfFromTemplate(Document document) throws IOException {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         Resource pdfTemplate;
-        List<String> textToShowInPdf = new ArrayList<>();
+
+        PdfTextElements textElements = new PdfTextElements(getPersonName(document));
         if (document.getDocumentCategory() == DocumentCategory.FINANCIAL) {
             pdfTemplate = new ClassPathResource("static/pdf/template_document_financial.pdf");
-            textToShowInPdf.add(0, messageSource.getMessage("tenant.document.financial.justification.nodocument", null, locale));
-            textToShowInPdf.add(1, document.getCustomText());
+            textElements.addTextToHeader(messageSource.getMessage("tenant.document.financial.justification.nodocument", null, locale));
+            textElements.addExplanation(document.getCustomText());
         } else { //DocumentCategory.TAX
             pdfTemplate = new ClassPathResource("static/pdf/template_document_tax.pdf");
-            textToShowInPdf.add(0, messageSource.getMessage("tenant.document.tax.justification.nodocument", null, locale));
+            textElements.addTextToHeader(messageSource.getMessage("tenant.document.tax.justification.nodocument", null, locale));
             if (document.getDocumentSubCategory() == DocumentSubCategory.MY_PARENTS) {
-                textToShowInPdf.add(1, messageSource.getMessage("tenant.document.tax.justification.parents", null, locale));
+                textElements.addExplanation(messageSource.getMessage("tenant.document.tax.justification.parents", null, locale));
             } else if (document.getDocumentSubCategory() == DocumentSubCategory.LESS_THAN_YEAR) {
-                textToShowInPdf.add(1, messageSource.getMessage("tenant.document.tax.justification.less_than_year", null, locale));
+                textElements.addExplanation(messageSource.getMessage("tenant.document.tax.justification.less_than_year", null, locale));
             } else { //DocumentSubCategory.OTHER_TAX
-                textToShowInPdf.add(1, document.getCustomText());
+                textElements.addExplanation(document.getCustomText());
             }
         }
 
@@ -74,7 +80,6 @@ public class EmptyBOPdfDocumentTemplate implements PdfTemplate<Document> {
             contentStream.setNonStrokingColor(74 / 255.0F, 144 / 255.0F, 226 / 255.0F);
             float fontSize = 11;
             float leading = 1.5f * fontSize;
-            contentStream.setFont(font, fontSize);
             float marginY = 360;
             float marginX = 60;
             PDRectangle mediaBox = pdPage.getMediaBox();
@@ -82,33 +87,10 @@ public class EmptyBOPdfDocumentTemplate implements PdfTemplate<Document> {
             float startX = mediaBox.getLowerLeftX() + marginX;
             float startY = mediaBox.getUpperRightY() - marginY;
 
-            Optional<Tenant> tenantOptional = tenantRepository.getTenantByDocumentId(document.getId());
-            if (tenantOptional.isEmpty()) {
-                guarantorRepository.getGuarantorByDocumentId(document.getId()).ifPresent(
-                        guarantor -> {
-                            String fullNameGuarantor = String.join(" ",
-                                    guarantor.getFirstName() != null ? guarantor.getFirstName() : "",
-                                    guarantor.getLastName() != null ? guarantor.getLastName() : "");
-                            textToShowInPdf.set(0, StringUtils.normalizeSpace(
-                                    StringUtils.replace(fullNameGuarantor, "�", "_")
-                                            + " " + textToShowInPdf.get(0)));
-                            textToShowInPdf.set(1, StringUtils.normalizeSpace(textToShowInPdf.get(1)));
-                        }
-                );
-            } else {
-                Tenant tenant = tenantOptional.get();
-                textToShowInPdf.set(0, StringUtils.normalizeSpace(
-                        StringUtils.replace(tenant.getFullName(), "�", "_")
-                                + " " + textToShowInPdf.get(0)));
-                textToShowInPdf.set(1, StringUtils.normalizeSpace(textToShowInPdf.get(1)));
-            }
-
             contentStream.setLeading(leading);
 
-            for (String s : textToShowInPdf) {
-                Utility.addText(contentStream, width, startX, startY, s, font, fontSize, alternativeFont);
-                startY -= 36;
-            }
+            Utility.addText(contentStream, width, startX, startY, textElements.header, font, fontSize, alternativeFont);
+            Utility.addText(contentStream, width, startX, startY - 36, textElements.explanation, font, fontSize, alternativeFont);
 
             contentStream.close();
             pdDocument.save(outputStream);
@@ -120,8 +102,33 @@ public class EmptyBOPdfDocumentTemplate implements PdfTemplate<Document> {
         return outputStream;
     }
 
-    @Override
-    public InputStream render(Document document) throws IOException {
-        return new ByteArrayInputStream(createPdfFromTemplate(document).toByteArray());
+    private String getPersonName(Document document) {
+        Long documentId = document.getId();
+        return tenantRepository.getTenantByDocumentId(documentId)
+                .map(Tenant::getFullName)
+                .orElseGet(() -> guarantorRepository.getGuarantorByDocumentId(documentId)
+                        .map(Guarantor::getCompleteName)
+                        .orElse("")
+                );
     }
+
+    private static final class PdfTextElements {
+
+        private String header;
+        private String explanation;
+
+        public PdfTextElements(String personName) {
+            header = StringUtils.normalizeSpace(personName) + " ";
+        }
+
+        void addTextToHeader(String text) {
+            header += StringUtils.normalizeSpace(text);
+        }
+
+        void addExplanation(String text) {
+            explanation = StringUtils.normalizeSpace(text);
+        }
+
+    }
+
 }
