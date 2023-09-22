@@ -5,6 +5,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.web.servlet.ServletComponentScan;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.FullyQualifiedAnnotationBeanNameGenerator;
@@ -23,6 +24,7 @@ import java.lang.management.MemoryMXBean;
 @ServletComponentScan(basePackages = "fr.dossierfacile")
 @ComponentScan(nameGenerator = FullyQualifiedAnnotationBeanNameGenerator.class, basePackages = "fr.dossierfacile", excludeFilters = @ComponentScan.Filter(type = FilterType.ANNOTATION, classes = {WebFilter.class}))
 @EnableScheduling
+@EnableCaching
 @Slf4j
 public class FrontApplication {
 
