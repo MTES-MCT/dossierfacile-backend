@@ -3,6 +3,7 @@ package fr.dossierfacile.api.pdfgenerator.service.templates;
 import fr.dossierfacile.api.pdfgenerator.repository.GuarantorRepository;
 import fr.dossierfacile.api.pdfgenerator.repository.TenantRepository;
 import fr.dossierfacile.api.pdfgenerator.service.interfaces.PdfTemplate;
+import fr.dossierfacile.api.pdfgenerator.util.Fonts;
 import fr.dossierfacile.api.pdfgenerator.util.Utility;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.Tenant;
@@ -36,8 +37,8 @@ import java.util.Optional;
 @AllArgsConstructor
 @Slf4j
 public class EmptyBOPdfDocumentTemplate implements PdfTemplate<Document> {
+
     private static final String EXCEPTION = "Sentry ID Exception: ";
-    public static final ClassPathResource ALTERNATIVE_FONT = new ClassPathResource("static/fonts/Noto/NotoEmoji-Medium.ttf");
 
     private final Locale locale = LocaleContextHolder.getLocale();
     private final MessageSource messageSource;
@@ -66,8 +67,8 @@ public class EmptyBOPdfDocumentTemplate implements PdfTemplate<Document> {
 
         try (PDDocument pdDocument = PDDocument.load(pdfTemplate.getInputStream())) {
 
-            PDType0Font font = PDType0Font.load(pdDocument, new ClassPathResource("static/fonts/ArialNova-Light.ttf").getInputStream());
-            PDType0Font alternativeFont = PDType0Font.load(pdDocument, ALTERNATIVE_FONT.getInputStream());
+            PDType0Font font = Fonts.ARIAL_NOVA_LIGHT.load(pdDocument);
+            PDType0Font alternativeFont = Fonts.NOTO_EMOJI_MEDIUM.load(pdDocument);
             PDPage pdPage = pdDocument.getPage(0);
             PDPageContentStream contentStream = new PDPageContentStream(pdDocument, pdPage, PDPageContentStream.AppendMode.APPEND, true, true);
             contentStream.setNonStrokingColor(74 / 255.0F, 144 / 255.0F, 226 / 255.0F);

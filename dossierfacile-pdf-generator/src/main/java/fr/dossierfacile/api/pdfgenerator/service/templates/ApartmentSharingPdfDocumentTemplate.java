@@ -5,6 +5,7 @@ import fr.dossierfacile.api.pdfgenerator.exception.TenantNotFoundException;
 import fr.dossierfacile.api.pdfgenerator.model.TargetImageData;
 import fr.dossierfacile.api.pdfgenerator.service.interfaces.DownloadService;
 import fr.dossierfacile.api.pdfgenerator.service.interfaces.PdfTemplate;
+import fr.dossierfacile.api.pdfgenerator.util.Fonts;
 import fr.dossierfacile.api.pdfgenerator.util.PdfOptimizer;
 import fr.dossierfacile.api.pdfgenerator.util.Utility;
 import fr.dossierfacile.common.entity.ApartmentSharing;
@@ -67,8 +68,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import static fr.dossierfacile.api.pdfgenerator.util.DocumentUtil.*;
-
 @Service
 @AllArgsConstructor
 @Slf4j
@@ -128,17 +127,6 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
     private static final String DOSSIER_EN_COLOCATION = "Dossier en colocation";
     //endregion
 
-    //region Loading FONTS
-    private static final Resource FONT_MARIANNE_LIGHT = new ClassPathResource("static/fonts/Marianne-Light.ttf");
-    private static final Resource FONT_MARIANNE_REGULAR = new ClassPathResource("static/fonts/Marianne-Regular.ttf");
-    private static final Resource FONT_MARIANNE_BOLD = new ClassPathResource("static/fonts/Marianne-Bold.ttf");
-
-    private static final Resource FONT_SPECTRAL_BOLD = new ClassPathResource("static/fonts/Spectral-Bold.ttf");
-    private static final Resource FONT_SPECTRAL_EXTRA_BOLD = new ClassPathResource("static/fonts/Spectral-ExtraBold.ttf");
-    private static final Resource FONT_SPECTRAL_ITALIC = new ClassPathResource("static/fonts/Spectral-Italic.ttf");
-    public static final Resource FONT_NOTO = new ClassPathResource("static/fonts/Noto/NotoEmoji-Medium.ttf");
-
-    //endregion
     //region First templates
     private static final Resource TEMPLATE_OF_FIRST_INDEXPAGES = new ClassPathResource("static/pdf/template_Dossier_PDF_first_page_1.pdf");
     private static final Resource TEMPLATE_OF_OTHER_INDEXPAGES = new ClassPathResource("static/pdf/template_Dossier_PDF_first_page_2.pdf");
@@ -288,15 +276,11 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
         try (PDDocument doc = PDDocument.load(TEMPLATE_OF_ATTACHMENTS_AND_CLARIFICATIONS.getInputStream())) {
 
             //region Reading fonts
-            PDType0Font font1 = PDType0Font.load(doc, FONT_MARIANNE_LIGHT.getInputStream());
-
-            PDType0Font font2 = PDType0Font.load(doc, FONT_SPECTRAL_BOLD.getInputStream());
-
-            PDType0Font font3 = PDType0Font.load(doc, FONT_SPECTRAL_EXTRA_BOLD.getInputStream());
-
-            PDType0Font font4 = PDType0Font.load(doc, FONT_SPECTRAL_ITALIC.getInputStream());
-
-            PDType0Font font5 = PDType0Font.load(doc, FONT_NOTO.getInputStream());
+            PDType0Font font1 = Fonts.MARIANNE_LIGHT.load(doc);
+            PDType0Font font2 = Fonts.SPECTRAL_BOLD.load(doc);
+            PDType0Font font3 = Fonts.SPECTRAL_EXTRA_BOLD.load(doc);
+            PDType0Font font4 = Fonts.SPECTRAL_ITALIC.load(doc);
+            PDType0Font font5 = Fonts.NOTO_EMOJI_MEDIUM.load(doc);
             //endregion
 
             PDPage pageTemplate = doc.getPage(0);
@@ -1301,9 +1285,9 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
             addPaginate(doc);
 
             //region Adding content to First pages
-            PDType0Font fontSpectralExtraBold = PDType0Font.load(doc, FONT_SPECTRAL_EXTRA_BOLD.getInputStream());
-            PDType0Font fontMarianneRegular = PDType0Font.load(doc, FONT_MARIANNE_REGULAR.getInputStream());
-            PDType0Font fontMarianneBold = PDType0Font.load(doc, FONT_MARIANNE_BOLD.getInputStream());
+            PDType0Font fontSpectralExtraBold = Fonts.SPECTRAL_EXTRA_BOLD.load(doc);
+            PDType0Font fontMarianneRegular = Fonts.MARIANNE_REGULAR.load(doc);
+            PDType0Font fontMarianneBold = Fonts.MARIANNE_BOLD.load(doc);
 
             /* Initialized in 2, because this is the position in the array (indexPagesForDocuments)
             where it is located the number of the page located before the beginning of attachment pages.
