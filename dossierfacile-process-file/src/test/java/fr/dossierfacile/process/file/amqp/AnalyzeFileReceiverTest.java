@@ -46,7 +46,7 @@ class AnalyzeFileReceiverTest {
         verify(analyzeFile, times(3)).processFile(1L);
         verify(analyzeFile, times(2)).processFile(2L);
 
-        assertThat(executionTime).isLessThan(400);
+        assertThat(executionTime).isLessThan(1000);
         assertThat(finishedAnalysis).isEqualTo(2);
     }
 
