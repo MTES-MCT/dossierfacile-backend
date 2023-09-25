@@ -29,7 +29,7 @@
 		<jai-imageio-core.version>1.4.0</jai-imageio-core.version>
 		<metadata.extractor.version>2.18.0</metadata.extractor.version>
 		<pdf2dom.version>2.0.0</pdf2dom.version>
-		<pdfbox.tools.version>2.0.27</pdfbox.tools.version>
+		<pdfbox.tools.version>3.0.0</pdfbox.tools.version>
 	</properties>
 
 	<dependencyManagement>
@@ -48,11 +48,6 @@
 				<groupId>ch.qos.logback</groupId>
 				<artifactId>logback-core</artifactId>
 				<version>1.2.12</version>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.pdfbox</groupId>
-				<artifactId>pdfbox-debugger</artifactId>
-				<version>${pdfbox.tools.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.fasterxml.jackson</groupId>
@@ -140,6 +135,12 @@
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>de.redsix</groupId>
+			<artifactId>pdfcompare</artifactId>
+			<version>1.1.62</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>

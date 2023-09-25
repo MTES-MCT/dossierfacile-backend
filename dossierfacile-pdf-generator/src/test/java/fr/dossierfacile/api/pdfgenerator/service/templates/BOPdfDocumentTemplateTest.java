@@ -3,7 +3,11 @@ package fr.dossierfacile.api.pdfgenerator.service.templates;
 import fr.dossierfacile.api.pdfgenerator.configuration.FeatureFlipping;
 import fr.dossierfacile.api.pdfgenerator.model.FileInputStream;
 import org.apache.commons.io.IOUtils;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -51,7 +55,6 @@ public class BOPdfDocumentTemplateTest {
         }
     }
 
-    @Disabled
     @DisplayName("Check if the pdf file is correctly generated in specific files")
     @Test
     public void check_render_with_special_files() throws IOException {
