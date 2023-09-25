@@ -8,8 +8,6 @@ import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.pdfbox.Loader;
-import org.apache.pdfbox.text.PDFTextStripper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,10 +19,12 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static fr.dossierfacile.api.pdfgenerator.util.PdfAssert.assertThat;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
@@ -37,7 +37,8 @@ class EmptyBOPdfDocumentTemplateTest {
     @MockBean
     private TenantRepository tenantRepository;
 
-    private final File outputFile = new File("outputFile.pdf");
+    private final Path outputPdf = Paths.get("outputFile.pdf");
+    private final Path expectedPdf = Paths.get("src/test/resources/expected/tax-custom-text.pdf");
 
     @Test
     void should_generate_pdf(Tenant tenant) throws IOException {
@@ -50,24 +51,25 @@ class EmptyBOPdfDocumentTemplateTest {
         when(tenantRepository.getTenantByDocumentId(1L)).thenReturn(Optional.of(tenant));
 
         try (InputStream inputStream = emptyBOPdfDocumentTemplate.render(document)) {
-            Files.copy(inputStream, outputFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(inputStream, outputPdf, StandardCopyOption.REPLACE_EXISTING);
             IOUtils.closeQuietly(inputStream);
         }
 
-        assertThat(extractTextFromPdfFile(outputFile)).isEqualTo("""
-                Dr Who nous a indiqué ne pas pouvoir fournir d'avis d'imposition en son nom pour la raison suivante:
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore
-                et dolore magna aliqua. 😁
-                """);
+        assertThat(outputPdf)
+                .containsText("""
+                        Dr Who nous a indiqué ne pas pouvoir fournir d'avis d'imposition en son nom pour la raison suivante:
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore
+                        et dolore magna aliqua. 😁
+                        """)
+                .isEqualTo(expectedPdf);
     }
 
     @AfterEach
     void tearDown() throws IOException {
-        FileUtils.delete(outputFile);
-    }
-
-    private static String extractTextFromPdfFile(File outputFile) throws IOException {
-        return new PDFTextStripper().getText(Loader.loadPDF(outputFile));
+        File file = outputPdf.toFile();
+        if (file.exists()) {
+            FileUtils.delete(file);
+        }
     }
 
 }
