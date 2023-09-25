@@ -14,7 +14,6 @@ import io.sentry.Sentry;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
@@ -30,6 +29,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 @Service
@@ -70,7 +71,7 @@ public class EmptyBOPdfDocumentTemplate implements PdfTemplate<Document> {
             }
         }
 
-        try (PDDocument pdDocument = Loader.loadPDF(pdfTemplate.getFile())) {
+        try (PDDocument pdDocument = PDDocument.load(pdfTemplate.getInputStream())) {
 
             PDType0Font font = Fonts.ARIAL_NOVA_LIGHT.load(pdDocument);
             PDType0Font alternativeFont = Fonts.NOTO_EMOJI_MEDIUM.load(pdDocument);

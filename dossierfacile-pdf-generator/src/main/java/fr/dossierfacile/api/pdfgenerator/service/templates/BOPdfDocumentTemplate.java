@@ -15,7 +15,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
@@ -137,7 +136,7 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
 
             if (MediaType.APPLICATION_PDF.equalsTypeAndSubtype(fileInputStream.getMediaType())) {
                 List<BufferedImage> images = new ArrayList<>();
-                try (PDDocument document = Loader.loadPDF(fileInputStream.getInputStream().readAllBytes())) {
+                try (PDDocument document = PDDocument.load(fileInputStream.getInputStream())) {
                     PDFRenderer pdfRenderer = new PDFRenderer(document);
                     PDPageTree pagesTree = document.getPages();
                     for (int i = 0; i < pagesTree.getCount(); i++) {
