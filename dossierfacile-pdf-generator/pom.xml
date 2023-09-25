@@ -138,12 +138,6 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>de.redsix</groupId>
-			<artifactId>pdfcompare</artifactId>
-			<version>1.1.62</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
 			<groupId>com.jhlabs</groupId>
 			<artifactId>filters</artifactId>
 			<version>2.0.235-1</version>
