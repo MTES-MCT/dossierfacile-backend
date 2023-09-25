@@ -451,9 +451,14 @@
                                 </tr>
                                 <tr>
                                     <td>Email</td>
-                                    <td >
+                                    <td>
                                         <span th:if="${ tenant.getFranceConnect() == true }"><img src="/assets/images/franceconnect-icon.png" height="22px" alt="isFC"/></span>
                                         <span th:text="${tenant.getEmail()}"></span>
+                                        <span class="fa"
+                                              th:with="verified=${tenantService.hasVerifiedEmail(tenant)}"
+                                              th:classappend="${verified} ? 'fa-check text-success' : 'fa-times text-danger'"
+                                              th:text="${verified} ? ' Vérifié' : ' Non vérifié'">
+                                        </span>
                                     </td>
                                 </tr>
                                 <tr>

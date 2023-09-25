@@ -89,6 +89,7 @@ public class TenantService {
     private final DocumentDeniedReasonsService documentDeniedReasonsService;
     private final DocumentService documentService;
     private final LogService logService;
+    private final KeycloakService keycloakService;
 
     private int forTenant = 0;
     @Value("${time.reprocess.application.minutes}")
@@ -151,6 +152,9 @@ public class TenantService {
         return tenantRepository.save(tenant);
     }
 
+    public boolean hasVerifiedEmail(Tenant tenant) {
+        return keycloakService.hasVerifiedEmail(tenant);
+    }
 
     public synchronized String redirectToApplication(Principal principal, Long tenantId) {
         LocalDateTime localDateTime = LocalDateTime.now().minusMinutes(timeReprocessApplicationMinutes);
