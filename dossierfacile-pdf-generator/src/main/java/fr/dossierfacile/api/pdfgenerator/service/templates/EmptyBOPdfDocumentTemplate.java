@@ -22,8 +22,6 @@ import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
@@ -31,6 +29,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Locale;
+
+import static fr.dossierfacile.api.pdfgenerator.service.templates.PdfFileTemplate.DOCUMENT_FINANCIAL;
+import static fr.dossierfacile.api.pdfgenerator.service.templates.PdfFileTemplate.DOCUMENT_TAX;
 
 @Service
 @AllArgsConstructor
@@ -51,15 +52,15 @@ public class EmptyBOPdfDocumentTemplate implements PdfTemplate<Document> {
 
     private ByteArrayOutputStream createPdfFromTemplate(Document document) throws IOException {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        Resource pdfTemplate;
+        PdfFileTemplate pdfTemplate;
 
         PdfTextElements textElements = new PdfTextElements(getPersonName(document));
         if (document.getDocumentCategory() == DocumentCategory.FINANCIAL) {
-            pdfTemplate = new ClassPathResource("static/pdf/template_document_financial.pdf");
+            pdfTemplate = DOCUMENT_FINANCIAL;
             textElements.addTextToHeader(messageSource.getMessage("tenant.document.financial.justification.nodocument", null, locale));
             textElements.addExplanation(document.getCustomText());
         } else { //DocumentCategory.TAX
-            pdfTemplate = new ClassPathResource("static/pdf/template_document_tax.pdf");
+            pdfTemplate = DOCUMENT_TAX;
             textElements.addTextToHeader(messageSource.getMessage("tenant.document.tax.justification.nodocument", null, locale));
             if (document.getDocumentSubCategory() == DocumentSubCategory.MY_PARENTS) {
                 textElements.addExplanation(messageSource.getMessage("tenant.document.tax.justification.parents", null, locale));
