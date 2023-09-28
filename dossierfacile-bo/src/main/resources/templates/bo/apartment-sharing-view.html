@@ -454,10 +454,12 @@
                                     <td>
                                         <span th:if="${ tenant.getFranceConnect() == true }"><img src="/assets/images/franceconnect-icon.png" height="22px" alt="isFC"/></span>
                                         <span th:text="${tenant.getEmail()}"></span>
-                                        <span class="fa"
-                                              th:with="verified=${tenantService.hasVerifiedEmail(tenant)}"
-                                              th:classappend="${verified} ? 'fa-check text-success' : 'fa-times text-danger'"
-                                              th:text="${verified} ? ' Vérifié' : ' Non vérifié'">
+                                        <span th:with="verified=${tenantService.hasVerifiedEmailIfExistsInKeycloak(tenant)}">
+                                            <span class="fa"
+                                                  th:if="${verified != null}"
+                                                  th:classappend="${verified} ? 'fa-check text-success' : 'fa-times text-danger'"
+                                                  th:text="${verified} ? ' Vérifié' : ' Non vérifié'">
+                                            </span>
                                         </span>
                                     </td>
                                 </tr>

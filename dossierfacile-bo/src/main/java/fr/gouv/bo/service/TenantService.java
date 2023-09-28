@@ -43,6 +43,7 @@ import fr.gouv.bo.security.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -152,8 +153,12 @@ public class TenantService {
         return tenantRepository.save(tenant);
     }
 
-    public boolean hasVerifiedEmail(Tenant tenant) {
-        return keycloakService.hasVerifiedEmail(tenant);
+    public Boolean hasVerifiedEmailIfExistsInKeycloak(Tenant tenant) {
+        UserRepresentation keyCloakUser = keycloakService.getKeyCloakUser(tenant.getKeycloakId());
+        if (keyCloakUser == null) {
+            return null;
+        }
+        return keyCloakUser.isEmailVerified();
     }
 
     public synchronized String redirectToApplication(Principal principal, Long tenantId) {
