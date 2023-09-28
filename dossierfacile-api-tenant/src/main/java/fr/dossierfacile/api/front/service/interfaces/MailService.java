@@ -2,6 +2,7 @@ package fr.dossierfacile.api.front.service.interfaces;
 
 import fr.dossierfacile.api.front.form.ContactForm;
 import fr.dossierfacile.common.entity.ConfirmationToken;
+import fr.dossierfacile.common.entity.InvitationToken;
 import fr.dossierfacile.common.entity.PasswordRecoveryToken;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.User;
@@ -14,6 +15,9 @@ public interface MailService {
     void sendEmailNewPassword(User user, PasswordRecoveryToken passwordRecoveryToken);
 
     void sendEmailForFlatmates(User flatmate, User guest, PasswordRecoveryToken passwordRecoveryToken, ApplicationType applicationType);
+
+    // TODO the guest is the existing tenant to invit
+    void sendEmailInvitationForExistingFlatmates(User flatmate, User guest, InvitationToken invitationToken, ApplicationType applicationType);
 
     void sendEmailAccountDeleted(User user);
 

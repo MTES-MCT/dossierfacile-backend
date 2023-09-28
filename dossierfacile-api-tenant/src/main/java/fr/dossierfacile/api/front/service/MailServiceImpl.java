@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import fr.dossierfacile.api.front.form.ContactForm;
 import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.common.entity.ConfirmationToken;
+import fr.dossierfacile.common.entity.InvitationToken;
 import fr.dossierfacile.common.entity.PasswordRecoveryToken;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.User;
@@ -69,12 +70,19 @@ public class MailServiceImpl implements MailService {
     private Long templateSecondWarningForDeletionOfDocuments;
     @Value("${sendinblue.template.id.contact.support}")
     private Long templateIdContactSupport;
+    @Value("${sendinblue.template.id.share.file}")
+    private Long templateIdShareFile;
+    @Value("${sendinblue.template.id.application.couple.invitation.existing}")
+    private Long templateIdCoupleApplicationInvitationForExistingTenant;
+    @Value("${sendinblue.template.id.application.group.invitation.existing}")
+    private Long templateIdGroupApplicationInvitationForExistingTenant;
     @Value("${link.after.completed.default}")
     private String defaultCompletedUrl;
     @Value("${link.after.created.default}")
     private String defaultCreatedUrl;
-    @Value("${sendinblue.template.id.share.file}")
-    private Long templateIdShareFile;
+    @Value("${link.accept.invitation.existing.tenant}")
+    private String acceptInvitationUrlForExistingTenant;
+
 
     private void sendEmailToTenant(User tenant, Map<String, String> params, Long templateId) {
         SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
@@ -130,6 +138,22 @@ public class MailServiceImpl implements MailService {
         sendEmailToTenant(guest, variables, templateId);
     }
 
+    @Override
+    public void sendEmailInvitationForExistingFlatmates(User flatmate, User guest, InvitationToken invitationToken, ApplicationType applicationType) {
+        Map<String, String> variables = new HashMap<>();
+
+        Long templateId = switch (applicationType) {
+            case COUPLE -> templateIdCoupleApplicationInvitationForExistingTenant;
+            case GROUP -> templateIdGroupApplicationInvitationForExistingTenant;
+            default -> throw new RuntimeException("Something wrong happened - cannot send invitation");
+        };
+        variables.put("tenantFirstName", flatmate.getFirstName());
+        variables.put("tenantFullName", flatmate.getFullName());
+        variables.put("tenantEmail", flatmate.getFullName());
+        variables.put("acceptInvitationUrl", acceptInvitationUrlForExistingTenant + invitationToken.getToken());
+
+        sendEmailToTenant(guest, variables, templateId);
+    }
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Async
     @Override
