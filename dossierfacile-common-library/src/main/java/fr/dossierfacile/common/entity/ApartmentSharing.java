@@ -120,10 +120,6 @@ public class ApartmentSharing implements Serializable {
         return tenants.size();
     }
 
-    public int getNumberOfCompleteRegister() {
-        return (int) tenants.stream().filter(t -> t.getStatus() != TenantFileStatus.INCOMPLETE).count();
-    }
-
     public Integer totalSalary() {
         int totalSalary = 0;
         for (Tenant tenant : tenants) {
