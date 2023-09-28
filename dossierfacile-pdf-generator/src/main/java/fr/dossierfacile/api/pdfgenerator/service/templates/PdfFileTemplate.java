@@ -1,5 +1,10 @@
 package fr.dossierfacile.api.pdfgenerator.service.templates;
 
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.io.RandomAccessRead;
+import org.apache.pdfbox.io.RandomAccessReadBuffer;
+import org.apache.pdfbox.pdmodel.PDDocument;
+
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -12,14 +17,19 @@ public enum PdfFileTemplate {
     DOCUMENT_TAX("template_document_tax.pdf")
     ;
 
-    private final String fileName;
+    private final String resourcePath;
 
     PdfFileTemplate(String fileName) {
-        this.fileName = fileName;
+        this.resourcePath = "static/pdf/" + fileName;
     }
 
-    public InputStream getInputStream() throws IOException {
-        return getClass().getClassLoader().getResourceAsStream("static/pdf/" + fileName);
+    public PDDocument load() throws IOException {
+        return Loader.loadPDF(getRandomAccessRead());
+    }
+
+    public RandomAccessRead getRandomAccessRead() throws IOException {
+        InputStream inputStream = getClass().getClassLoader().getResourceAsStream(resourcePath);
+        return new RandomAccessReadBuffer(inputStream.readAllBytes());
     }
 
 }

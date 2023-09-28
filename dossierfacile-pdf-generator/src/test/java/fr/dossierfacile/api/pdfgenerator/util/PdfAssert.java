@@ -3,6 +3,7 @@ package fr.dossierfacile.api.pdfgenerator.util;
 import de.redsix.pdfcompare.CompareResultImpl;
 import de.redsix.pdfcompare.PdfComparator;
 import lombok.SneakyThrows;
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.assertj.core.api.AbstractAssert;
@@ -50,7 +51,7 @@ public class PdfAssert extends AbstractAssert<PdfAssert, Path> {
 
     @SneakyThrows
     private static String extractTextFromPdf(Path path) {
-        PDDocument pdf = PDDocument.load(path.toFile());
+        PDDocument pdf = Loader.loadPDF(path.toFile());
         return new PDFTextStripper().getText(pdf);
     }
 
