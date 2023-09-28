@@ -33,13 +33,6 @@ public class KeycloakServiceImpl implements KeycloakService {
     }
 
     @Override
-    public boolean hasVerifiedEmail(User user) {
-        return Optional.ofNullable(getKeyCloakUser(user.getKeycloakId()))
-                .map(UserRepresentation::isEmailVerified)
-                .orElse(false);
-    }
-
-    @Override
     public void deleteKeycloakSingleUser(User tenant) {
         if (tenant.getKeycloakId() != null) {
             realmResource.users().delete(tenant.getKeycloakId());
