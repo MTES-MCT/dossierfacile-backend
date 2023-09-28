@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.front.config;
 
+import fr.dossierfacile.api.front.config.filter.ConnectionContextFilter;
 import fr.dossierfacile.api.front.security.CustomWebSecurityExpressionHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

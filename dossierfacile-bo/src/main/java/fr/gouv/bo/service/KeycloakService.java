@@ -8,6 +8,8 @@ import java.util.List;
 public interface KeycloakService {
     UserRepresentation getKeyCloakUser(String keycloakId);
 
+    boolean hasVerifiedEmail(User user);
+
     void deleteKeycloakSingleUser(User tenant);
 
     void deleteKeycloakUsers(List<User> tenants);

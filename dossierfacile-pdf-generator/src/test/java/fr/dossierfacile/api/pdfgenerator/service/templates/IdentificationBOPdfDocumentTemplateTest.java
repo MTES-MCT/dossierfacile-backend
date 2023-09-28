@@ -2,16 +2,11 @@ package fr.dossierfacile.api.pdfgenerator.service.templates;
 
 import fr.dossierfacile.api.pdfgenerator.model.FileInputStream;
 import org.apache.commons.io.IOUtils;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.MessageSource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 
 import java.io.File;
@@ -22,25 +17,14 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.mockito.Mockito.any;
-
 // Used for manual testing
 @Disabled
-@ExtendWith(MockitoExtension.class)
+@SpringBootTest
 public class IdentificationBOPdfDocumentTemplateTest {
 
-    @Mock
-    MessageSource messageSource;
-    @InjectMocks
+    @Autowired
     BOIdentificationPdfDocumentTemplate boPdfDocumentTemplate;
 
-    @BeforeEach
-    void init() {
-        Mockito.lenient().when(messageSource.getMessage(any(),any(),any(),any() )).thenReturn(BOPdfDocumentTemplate.DEFAULT_WATERMARK);
-    }
-
-
-    @Disabled
     @Test
     public void check_render_with_rotated_files() throws IOException {
         InputStream is = BOPdfDocumentTemplateTest.class.getClassLoader().getResourceAsStream("CNI_rotated.jpeg");
@@ -60,7 +44,6 @@ public class IdentificationBOPdfDocumentTemplateTest {
         w.write(bytes);
     }
 
-    @Disabled
     @DisplayName("Check if the pdf file is correctly generated in specific files")
     @Test
     public void check_render_with_special_files() throws IOException {
