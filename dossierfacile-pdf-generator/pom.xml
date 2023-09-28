@@ -29,7 +29,7 @@
 		<jai-imageio-core.version>1.4.0</jai-imageio-core.version>
 		<metadata.extractor.version>2.18.0</metadata.extractor.version>
 		<pdf2dom.version>2.0.0</pdf2dom.version>
-		<pdfbox.tools.version>2.0.27</pdfbox.tools.version>
+		<pdfbox.tools.version>3.0.0</pdfbox.tools.version>
 	</properties>
 
 	<dependencyManagement>
@@ -145,7 +145,7 @@
 		<dependency>
 			<groupId>de.redsix</groupId>
 			<artifactId>pdfcompare</artifactId>
-			<version>1.1.61</version>
+			<version>1.1.62</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>

@@ -70,7 +70,7 @@ public class EmptyBOPdfDocumentTemplate implements PdfTemplate<Document> {
             }
         }
 
-        try (PDDocument pdDocument = PDDocument.load(pdfTemplate.getInputStream())) {
+        try (PDDocument pdDocument = pdfTemplate.load()) {
 
             PDType0Font font = Fonts.ARIAL_NOVA_LIGHT.load(pdDocument);
             PDType0Font alternativeFont = Fonts.NOTO_EMOJI_MEDIUM.load(pdDocument);
