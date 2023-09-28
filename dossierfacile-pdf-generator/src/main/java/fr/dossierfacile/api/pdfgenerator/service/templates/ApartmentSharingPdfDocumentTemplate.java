@@ -68,6 +68,10 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static fr.dossierfacile.api.pdfgenerator.service.templates.PdfFileTemplate.ATTACHMENTS_AND_CLARIFICATIONS;
+import static fr.dossierfacile.api.pdfgenerator.service.templates.PdfFileTemplate.FIRST_TABLE_OF_CONTENT_PAGE;
+import static fr.dossierfacile.api.pdfgenerator.service.templates.PdfFileTemplate.OTHER_TABLE_OF_CONTENT_PAGES;
+
 @Service
 @AllArgsConstructor
 @Slf4j
@@ -127,11 +131,6 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
     private static final String DOSSIER_EN_COLOCATION = "Dossier en colocation";
     //endregion
 
-    //region First templates
-    private static final Resource TEMPLATE_OF_FIRST_INDEXPAGES = new ClassPathResource("static/pdf/template_Dossier_PDF_first_page_1.pdf");
-    private static final Resource TEMPLATE_OF_OTHER_INDEXPAGES = new ClassPathResource("static/pdf/template_Dossier_PDF_first_page_2.pdf");
-    private static final Resource TEMPLATE_OF_ATTACHMENTS_AND_CLARIFICATIONS = new ClassPathResource("static/pdf/template_Dossier_PDF_attachments_and_clarification.pdf");
-    //endregion
     //region Other dimensions
     private static final float LEFT_MARGIN_FOR_LEFT_TENANT = A_WIDTH_TEMPLATE / 297.5f * 16;
     private static final float LEFT_MARGIN_FOR_RIGHT_TENANT = A_WIDTH_TEMPLATE / 297.5f * 150;
@@ -273,7 +272,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
 
     private ByteArrayOutputStream addTextHeaderAndTextBodyToTheCopyOfAttachmentsAndClarificationTemplate(List<Tenant> tenantList, String headerSentence, String bodyText) {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        try (PDDocument doc = PDDocument.load(TEMPLATE_OF_ATTACHMENTS_AND_CLARIFICATIONS.getInputStream())) {
+        try (PDDocument doc = PDDocument.load(ATTACHMENTS_AND_CLARIFICATIONS.getInputStream())) {
 
             //region Reading fonts
             PDType0Font font1 = Fonts.MARIANNE_LIGHT.load(doc);
@@ -530,9 +529,9 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
         try {
             int numberOfPagesAdded = (numberOfTenants + 1) / 2; // 2 tenants by page
             if (numberOfPagesAdded > 0) {
-                ut.addSource(TEMPLATE_OF_FIRST_INDEXPAGES.getInputStream());
+                ut.addSource(FIRST_TABLE_OF_CONTENT_PAGE.getInputStream());
                 for (int i = 1; i < numberOfPagesAdded; i++) {
-                    ut.addSource(TEMPLATE_OF_OTHER_INDEXPAGES.getInputStream());
+                    ut.addSource(OTHER_TABLE_OF_CONTENT_PAGES.getInputStream());
                 }
             }
             log.info("Number of first pages added [" + numberOfPagesAdded + "]");
