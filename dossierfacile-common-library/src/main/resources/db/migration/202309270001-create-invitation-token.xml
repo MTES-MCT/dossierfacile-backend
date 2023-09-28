@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+    <changeSet id="202309270001-01" author="Fabien (manual)">
+        <createTable tableName="invitation_token">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_invitation_token"/>
+            </column>
+            <column name="created_date" type="TIMESTAMP WITHOUT TIME ZONE"/>
+            <column name="token" type="VARCHAR(255)"/>
+            <column name="apartment_sharing_id" type="BIGINT"/>
+            <column name="email" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="202309270001-02" author="Fabien (manual)">
+        <addForeignKeyConstraint baseColumnNames="apartment_sharing_id" baseTableName="invitation_token"
+                                 constraintName="fk_apartment_sharing_id_on_invitation_token"
+                                 deferrable="false"
+                                 initiallyDeferred="false" referencedColumnNames="id" referencedTableName="apartment_sharing"
+                                 validate="true"/>
+    </changeSet>
+    <changeSet id="202309270001-03" author="Fabien (manual)">
+        <sql>
+            <![CDATA[
+                    CREATE INDEX IF NOT EXISTS invitation_token_created_date_index ON invitation_token (created_date);
+                ]]>
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

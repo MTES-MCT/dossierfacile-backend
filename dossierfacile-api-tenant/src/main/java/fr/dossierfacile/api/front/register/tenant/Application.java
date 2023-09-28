@@ -105,6 +105,7 @@ public class Application implements SaveStep<ApplicationFormV2> {
     @VisibleForTesting
     protected void linkEmailToTenants(Tenant tenantCreate, List<Pair<Tenant, String>> tenantWitNewEmailToUpdate) {
         if (tenantWitNewEmailToUpdate != null) {
+            //TODO remove this block for allowing existing account invitation
             List<String> emailsExistTenants = tenantWitNewEmailToUpdate.stream()
                     .map(Pair::getRight)
                     .filter(tenantRepository::existsByEmail)
@@ -112,6 +113,7 @@ public class Application implements SaveStep<ApplicationFormV2> {
 
             if (!emailsExistTenants.isEmpty())
                 throw new IllegalArgumentException("Cannot update a tenant with an existing email: " + String.join(",", emailsExistTenants));
+            //TODO allow tenant
 
             //tenantWitNewEmailToUpdate
             for (Pair<Tenant, String> pair : tenantWitNewEmailToUpdate) {
@@ -119,6 +121,7 @@ public class Application implements SaveStep<ApplicationFormV2> {
                 String newEmail = pair.getRight();
 
                 if (StringUtils.isNotBlank(newEmail)) {
+                    // TODO do something if tenant exists
                     String keycloakId = keycloakService.createKeycloakUser(newEmail);
                     Tenant existingTenant = tenantRepository.findByKeycloakId(keycloakId);
                     if (existingTenant != null) {
@@ -133,11 +136,15 @@ public class Application implements SaveStep<ApplicationFormV2> {
                     userRoleService.createRole(t);
                     tenantRepository.save(t);
 
-                    PasswordRecoveryToken passwordRecoveryToken = passwordRecoveryTokenService.create(t);
-                    mailService.sendEmailForFlatmates(tenantCreate, t, passwordRecoveryToken, tenantCreate.getApartmentSharing().getApplicationType());
+                    sendInvitationToJoin(tenantCreate, t, tenantCreate.getApartmentSharing().getApplicationType());
                 }
             }
         }
+    }
+
+    private void sendInvitationToJoin(Tenant tenantCreate, Tenant tenantToJoin, ApplicationType applicationType){
+        PasswordRecoveryToken passwordRecoveryToken = passwordRecoveryTokenService.create(tenantToJoin);
+        mailService.sendEmailForFlatmates(tenantCreate, tenantToJoin, passwordRecoveryToken, applicationType);
     }
 
     TenantModel saveStep(Tenant tenant, ApplicationType applicationType, List<Tenant> tenantToDelete, List<CoTenantForm> tenantToCreate) {
@@ -155,6 +162,13 @@ public class Application implements SaveStep<ApplicationFormV2> {
     }
 
     private void createCoTenants(Tenant tenantCreate, List<CoTenantForm> tenants, ApartmentSharing apartmentSharing) {
+
+        // TODO if tenant exist you have to send an invitation - on doit faire un nouveau flow avec
+        // TODO ALONE avec des invitations en pending -> quand les invitations sont acceptées, l'utilisateur passe en couple ou en colocation
+        // TODO pour le couple c'est peut etre différent car il a le droit d'administrer complement le dossier
+        // TODO ca risque donc de poser problème par exemple s'ils ont deja completement rempli leur dossier chacun dans leur coin que se passe-t'il
+        /// TODO il faudra bloquer la honor declaration tant qu'il y a des invitation en pending? même s'ils ont deja tout les 2 validés...
+
         // check if email account exist
         // Currently we cannot add existing user
         List<String> emailsExistTenants = tenants.stream()
@@ -207,8 +221,7 @@ public class Application implements SaveStep<ApplicationFormV2> {
                         userRoleService.createRole(joinTenant);
                         tenantRepository.save(joinTenant);
 
-                        PasswordRecoveryToken passwordRecoveryToken = passwordRecoveryTokenService.create(joinTenant);
-                        mailService.sendEmailForFlatmates(tenantCreate, joinTenant, passwordRecoveryToken, apartmentSharing.getApplicationType());
+                        sendInvitationToJoin(tenantCreate, joinTenant, tenantCreate.getApartmentSharing().getApplicationType());
                     }
 
                     // Relating all the clients related to tenant CREATE to tenant JOIN

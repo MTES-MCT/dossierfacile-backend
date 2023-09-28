@@ -1,9 +1,11 @@
 package fr.dossierfacile.api.front.service;
 
+import fr.dossierfacile.api.front.service.interfaces.InvitationTokenService;
 import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.api.front.service.interfaces.ScheduledTasksService;
 import fr.dossierfacile.api.front.service.interfaces.StatsService;
 import fr.dossierfacile.common.entity.ConfirmationToken;
+import fr.dossierfacile.common.entity.InvitationToken;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
@@ -34,7 +36,9 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
     private final ConfirmationTokenRepository confirmationTokenRepository;
     private final MailService mailService;
     private final StatsService statsService;
+    private final InvitationTokenService invitationTokenService;
     private final Object sendEmailLock = new Object();
+
     @Value("${days_for_email_account_validation_reminder}")
     private Long daysForEmailAccountValidationReminder;
     @Value("${days_for_account_completion_reminder}")
@@ -146,4 +150,21 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
     public void updateStats() {
         statsService.updateStats();
     }
+
+
+    @Scheduled(cron = "0 0 * * * *")
+    public void updateInvitationStatus() {
+        synchronized (sendEmailLock) {
+            List<InvitationToken> invitations = invitationTokenService.findExpiredInvitation();
+            log.info(invitations.size() + " expired invitation found - delete the invitation and send notification");
+            for(InvitationToken invitationToken : invitations){
+                if (StringUtils.isNotBlank(invitationToken.getEmail())){
+                    // TODO notification expired invitation not exist
+                    mailService.sendEmailExpiredInvitation(invitationToken.getEmail(), invitationToken);
+                }
+                invitationTokenService.delete(invitationToken);
+            }
+        }
+    }
+
 }
