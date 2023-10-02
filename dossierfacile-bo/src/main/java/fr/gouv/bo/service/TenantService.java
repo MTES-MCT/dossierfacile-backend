@@ -294,9 +294,7 @@ public class TenantService {
 
         List<MessageItem> messageItems = customMessage.getMessageItems();
         StringBuilder mailMessage = new StringBuilder();
-        mailMessage.append(messageSource.getMessage("bo.tenant.custom.email.head1", null, locale));
-        mailMessage.append("<br/>");
-        mailMessage.append(messageSource.getMessage("bo.tenant.custom.email.head2", null, locale));
+        mailMessage.append(messageSource.getMessage("bo.tenant.custom.email.head", null, locale));
         mailMessage.append("<br/> <ul class='customMessage'>");
 
         List<Long> documentDeniedReasonsIds = new ArrayList<>();
@@ -380,12 +378,6 @@ public class TenantService {
 
         mailMessage.append("</ul><br/><p>");
         mailMessage.append(messageSource.getMessage("bo.tenant.custom.email.footer1", null, locale));
-        mailMessage.append("</p><br/><p>");
-        mailMessage.append(messageSource.getMessage("bo.tenant.custom.email.footer2", null, locale));
-        mailMessage.append("</p><br/><p>");
-        mailMessage.append(messageSource.getMessage("bo.tenant.custom.email.footer3", null, locale));
-        mailMessage.append("</p><p>");
-        mailMessage.append(messageSource.getMessage("bo.tenant.custom.email.footer4", null, locale));
         mailMessage.append("</p>");
         if (messageFrom > 0) {
             Message message = messageService.create(new MessageDTO(mailMessage.toString()), tenant, false, true);
