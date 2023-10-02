@@ -214,10 +214,10 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
         DocumentCategory documentCategory = document.getDocumentCategory();
         String documentCategoryName = documentCategory.name();
         log.info("Generating PDF for document [" + documentCategoryName + "] with ID [" + documentId + "]");
-
+        StorageFile pdfFile = null;
         try (InputStream documentInputStream = renderBODocumentPdf(document)) {
 
-            StorageFile pdfFile = StorageFile.builder()
+            pdfFile = StorageFile.builder()
                     .name("dossierfacile-pdf-" + document.getId())
                     .path("dossierfacile_pdf_" + UUID.randomUUID() + ".pdf")
                     .contentType(MediaType.APPLICATION_PDF_VALUE)
@@ -243,6 +243,10 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
                 log.info("Failed PDF generation. Document [" + documentCategoryName + "] with ID [" + documentId + "] has been deleted during its PDF generation. Elapsed time [" + milliseconds + "] ms");
             }
         } catch (Exception e) {
+            if (pdfFile != null) {
+                fileStorageService.delete(pdfFile);
+            }
+
             //region unlock document after failed generation
             document.setLocked(false);
             document.setLockedBy(null);
@@ -251,6 +255,7 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
                 producer.generatePdf(documentId, logId);
             }
             incrementRetries(document);
+            document.setWatermarkFile(null);
             documentRepository.save(document);
             long milliseconds = System.currentTimeMillis() - time;
             Sentry.captureException(e);

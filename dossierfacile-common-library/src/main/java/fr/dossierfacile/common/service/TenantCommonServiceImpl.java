@@ -1,30 +1,17 @@
 package fr.dossierfacile.common.service;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import fr.dossierfacile.common.entity.AccountDeleteLog;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
-import fr.dossierfacile.common.mapper.DeletedTenantCommonMapper;
-import fr.dossierfacile.common.mapper.TenantCommonMapper;
-import fr.dossierfacile.common.model.apartment_sharing.DeletedTenantModel;
-import fr.dossierfacile.common.model.apartment_sharing.TenantModel;
-import fr.dossierfacile.common.repository.AccountDeleteLogCommonRepository;
 import fr.dossierfacile.common.repository.ApartmentSharingRepository;
 import fr.dossierfacile.common.repository.DocumentCommonRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
-import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.common.service.interfaces.TenantCommonService;
-import fr.dossierfacile.common.utils.LocalDateTimeTypeAdapter;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 @Service
