@@ -28,4 +28,6 @@ public class ApartmentSharingLinkModel {
 
     private boolean enabled;
 
+    private boolean fullData;
+
 }
