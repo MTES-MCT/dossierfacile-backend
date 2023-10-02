@@ -48,7 +48,7 @@ class PayfitDocumentIssuerTest {
     void should_authenticate_payfit_document() throws IOException, URISyntaxException {
         InMemoryPdfFile pdfFile = TestFilesUtil.getPdfFile("fake-payfit.pdf");
 
-        mockPayfitApi(HttpStatus.OK, payfitResponseBody());
+        mockPayfitApi(HttpStatus.CREATED, payfitResponseBody());
 
         Optional<AuthenticationResult> authenticationResult = payfit.tryToAuthenticate(pdfFile);
 

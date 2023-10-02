@@ -35,7 +35,7 @@ public class PayfitClient {
             log.info("Calling PayFit at {} with body {}", payfitAuthenticationUrl, request);
             ResponseEntity<PayfitResponse> response = restTemplate.exchange(payfitAuthenticationUrl,
                     HttpMethod.POST, entity, PayfitResponse.class);
-            if (response.getStatusCode() == HttpStatus.OK) {
+            if (response.getStatusCode().is2xxSuccessful()) {
                 return Optional.ofNullable(response.getBody());
             }
             log.warn("PayFit responded with {}", response.getStatusCode());
