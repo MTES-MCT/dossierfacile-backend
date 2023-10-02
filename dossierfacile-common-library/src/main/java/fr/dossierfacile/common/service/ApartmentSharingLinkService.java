@@ -40,6 +40,7 @@ public class ApartmentSharingLinkService {
                 .ownerEmail(link.getEmail())
                 .lastVisit(lastVisit)
                 .enabled(!link.isDisabled())
+                .fullData(link.isFullData())
                 .build();
     }
 
