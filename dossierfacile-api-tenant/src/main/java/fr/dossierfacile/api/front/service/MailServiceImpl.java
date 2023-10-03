@@ -77,6 +77,9 @@ public class MailServiceImpl implements MailService {
     private Long templateIdShareFile;
 
     private void sendEmailToTenant(User tenant, Map<String, String> params, Long templateId) {
+        if (tenant.getEmail().endsWith("@example.com")) {
+            return;
+        }
         SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
         sendSmtpEmailTo.setEmail(tenant.getEmail());
         if (!Strings.isNullOrEmpty(tenant.getFullName())) {
