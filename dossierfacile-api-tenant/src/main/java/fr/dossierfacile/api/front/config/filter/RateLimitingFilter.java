@@ -5,6 +5,7 @@ import io.github.bucket4j.Bucket;
 import io.github.bucket4j.ConsumptionProbe;
 import io.github.bucket4j.Refill;
 import io.github.bucket4j.local.LocalBucketBuilder;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -23,6 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 @WebFilter("/api/register/account")
+@Slf4j
 public class RateLimitingFilter implements Filter {
     private final Map<String, Bucket> ipBuckets = new ConcurrentHashMap<>();
     @Value("${ratelimit.register.capacity}")
@@ -33,6 +35,7 @@ public class RateLimitingFilter implements Filter {
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         if (ipBuckets.size() > 50000) {
+            log.warn("ipBucket List has been reset" );
             ipBuckets.clear();
         }
         Bucket bucket = ipBuckets.computeIfAbsent(request.getRemoteAddr(), this::createNewBucket);
@@ -41,6 +44,7 @@ public class RateLimitingFilter implements Filter {
         if (probe.isConsumed()) {
             chain.doFilter(request, response);
         } else {
+            log.error("Too Many request has been detected from " + request.getRemoteAddr() );
             HttpServletResponse httpServletResponse = (HttpServletResponse) response;
             httpServletResponse.setContentType("text/plain");
             httpServletResponse.setStatus(429);
