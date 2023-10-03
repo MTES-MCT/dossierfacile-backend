@@ -16,6 +16,7 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.annotation.WebFilter;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.Duration;
@@ -35,16 +36,17 @@ public class RateLimitingFilter implements Filter {
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         if (ipBuckets.size() > 50000) {
-            log.warn("ipBucket List has been reset" );
+            log.warn("ipBuckets list has been reset");
             ipBuckets.clear();
         }
-        Bucket bucket = ipBuckets.computeIfAbsent(request.getRemoteAddr(), this::createNewBucket);
+        // specific to scalingo infra
+        Bucket bucket = ipBuckets.computeIfAbsent(((HttpServletRequest) request).getHeader("X-Real-Ip"), this::createNewBucket);
 
         ConsumptionProbe probe = bucket.tryConsumeAndReturnRemaining(1);
         if (probe.isConsumed()) {
             chain.doFilter(request, response);
         } else {
-            log.error("Too Many request has been detected from " + request.getRemoteAddr() );
+            log.error("Too Many request has been detected from " + ((HttpServletRequest) request).getHeader("X-Real-Ip"));
             HttpServletResponse httpServletResponse = (HttpServletResponse) response;
             httpServletResponse.setContentType("text/plain");
             httpServletResponse.setStatus(429);
