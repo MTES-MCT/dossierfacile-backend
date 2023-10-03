@@ -49,6 +49,14 @@ public class DocumentResidencyGuarantorNaturalPerson
         document.setDocumentStatus(DocumentStatus.TO_PROCESS);
         document.setDocumentDeniedReasons(null);
         document.setDocumentSubCategory(documentSubCategory);
+
+        if (documentSubCategory == DocumentSubCategory.OTHER_RESIDENCY) {
+            document.setCustomText(documentResidencyGuarantorNaturalPersonForm.getCustomText());
+            document.setNoDocument(true);
+        } else {
+            document.setCustomText(null);
+            document.setNoDocument(false);
+        }
         documentRepository.save(document);
 
         saveFiles(documentResidencyGuarantorNaturalPersonForm, document);

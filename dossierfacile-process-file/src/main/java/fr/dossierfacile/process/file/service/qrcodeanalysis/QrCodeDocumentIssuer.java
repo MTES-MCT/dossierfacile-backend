@@ -1,6 +1,5 @@
 package fr.dossierfacile.process.file.service.qrcodeanalysis;
 
-import fr.dossierfacile.common.entity.BarCodeDocumentType;
 import fr.dossierfacile.process.file.util.InMemoryPdfFile;
 
 import java.util.Optional;

@@ -1,13 +1,14 @@
 package fr.gouv.bo.service;
 
 import com.google.gson.Gson;
-import fr.dossierfacile.common.entity.AccountDeleteLog;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.BOUser;
+import fr.dossierfacile.common.entity.Log;
 import fr.dossierfacile.common.entity.PropertyApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserRole;
 import fr.dossierfacile.common.enums.ApplicationType;
+import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.Role;
 import fr.dossierfacile.common.enums.TenantType;
@@ -51,6 +52,7 @@ public class UserService {
     private final PropertyApartmentSharingRepository propertyApartmentSharingRepository;
     private final ApartmentSharingService apartmentSharingService;
     private final PartnerCallBackService partnerCallBackService;
+    private final LogService logService;
 
     @Value("${authorize.domain.bo}")
     private String ad;
@@ -67,7 +69,7 @@ public class UserService {
         userRepository.deleteById(id);
     }
 
-    public void deleteCoTenant(Tenant tenant) {
+    public void deleteCoTenant(Tenant tenant, BOUser operator) {
 
         if (tenant.getTenantType().equals(TenantType.CREATE)) {
             throw new IllegalArgumentException("this tenant is a main tenant");
@@ -78,7 +80,7 @@ public class UserService {
         if (tenant.getKeycloakId() != null) {
             keycloakService.deleteKeycloakSingleUser(tenant);
         }
-        saveAndDeleteInfoByTenant(tenant);
+        saveAndDeleteInfoByTenant(tenant, operator);
         tenantRepository.delete(tenant);
 
         apartmentSharing.getTenants().remove(tenant);
@@ -87,9 +89,16 @@ public class UserService {
         apartmentSharingService.resetDossierPdfGenerated(apartmentSharing);
     }
 
-    private void saveAndDeleteInfoByTenant(Tenant tenant) {
+    private void saveAndDeleteInfoByTenant(Tenant tenant, BOUser operator) {
         mailService.sendEmailAccountDeleted(tenant);
-        this.savingJsonProfileBeforeDeletion(tenantMapper.toTenantModel(tenant));
+        logService.saveByLog(
+                Log.builder()
+                        .logType(LogType.ACCOUNT_DELETE)
+                        .tenantId(tenant.getId())
+                        .operatorId(operator.getId())
+                        .jsonProfile(tenantMapper.toTenantModel(tenant))
+                        .creationDateTime(LocalDateTime.now())
+                        .build());
     }
 
     public Tenant setAsTenantCreate(Tenant tenant) {
@@ -113,17 +122,7 @@ public class UserService {
         return tenant;
     }
 
-    private void savingJsonProfileBeforeDeletion(TenantModel tenantModel) {
-        accountDeleteLogRepository.save(
-                AccountDeleteLog.builder()
-                        .userId(tenantModel.getId())
-                        .deletionDate(LocalDateTime.now())
-                        .jsonProfileBeforeDeletion(gson.toJson(tenantModel))
-                        .build()
-        );
-    }
-
-    public void deleteApartmentSharing(Tenant tenant) {
+    public void deleteApartmentSharing(Tenant tenant, BOUser operator) {
         partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.DELETED_ACCOUNT);
         ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
         removeFromOwner(tenant);
@@ -131,7 +130,7 @@ public class UserService {
                 apartmentSharing.getTenants().stream()
                         .filter(t -> t.getKeycloakId() != null)
                         .collect(Collectors.toList()));
-        apartmentSharing.getTenants().forEach(this::saveAndDeleteInfoByTenant);
+        apartmentSharing.getTenants().forEach( t -> this.saveAndDeleteInfoByTenant(t, operator));
         apartmentSharingRepository.delete(apartmentSharing);
     }
 

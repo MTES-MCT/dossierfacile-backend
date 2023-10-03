@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.pdfgenerator.service.templates;
 
+import fr.dossierfacile.api.pdfgenerator.configuration.FeatureFlipping;
 import fr.dossierfacile.api.pdfgenerator.model.FileInputStream;
 import fr.dossierfacile.api.pdfgenerator.service.interfaces.PdfTemplate;
 import lombok.extern.slf4j.Slf4j;
@@ -18,8 +19,8 @@ import java.util.List;
 @Qualifier("boIdentificationPdfDocumentTemplate")
 public class BOIdentificationPdfDocumentTemplate extends BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>> {
 
-    public BOIdentificationPdfDocumentTemplate(MessageSource messageSource) {
-        super(messageSource);
+    public BOIdentificationPdfDocumentTemplate(MessageSource messageSource, FeatureFlipping featureFlipping) {
+        super(messageSource, featureFlipping);
     }
 
     /**

@@ -27,7 +27,11 @@ public class DateFormatUtil {
     }
 
     public static String getExpectedPayslipMonths() {
-        return ExpectedPayslips.atDate(LocalDate.now()).format(LOCALE);
+        return ExpectedMonths.forPayslips(LocalDate.now()).format(LOCALE);
+    }
+
+    public static String getExpectedRentReceiptMonths() {
+        return ExpectedMonths.forRentReceipt(LocalDate.now()).format(LOCALE);
     }
 
 }

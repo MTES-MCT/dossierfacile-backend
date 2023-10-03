@@ -1,8 +1,13 @@
 package fr.dossierfacile.api.pdfgenerator.service.templates;
 
+import fr.dossierfacile.api.pdfgenerator.configuration.FeatureFlipping;
 import fr.dossierfacile.api.pdfgenerator.model.FileInputStream;
 import org.apache.commons.io.IOUtils;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -11,6 +16,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.MessageSource;
 import org.springframework.http.MediaType;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -27,15 +34,27 @@ public class BOPdfDocumentTemplateTest {
 
     @Mock
     MessageSource messageSource;
+    @Mock
+    FeatureFlipping featureFlipping;
     @InjectMocks
     BOPdfDocumentTemplate boPdfDocumentTemplate;
+
+    File outputfile;
 
     @BeforeEach
     void init() {
         Mockito.lenient().when(messageSource.getMessage(any(),any(),any(),any() )).thenReturn(BOPdfDocumentTemplate.DEFAULT_WATERMARK);
+        Mockito.when(featureFlipping.shouldUseColors()).thenReturn(true);
+        Mockito.when(featureFlipping.shouldUseDistortion()).thenReturn(true);
     }
 
-    @Disabled
+    @AfterEach
+    void tearDown() {
+        if (outputfile != null) {
+            outputfile.delete();
+        }
+    }
+
     @DisplayName("Check if the pdf file is correctly generated in specific files")
     @Test
     public void check_render_with_special_files() throws IOException {
@@ -164,5 +183,15 @@ public class BOPdfDocumentTemplateTest {
 
         FileOutputStream w = new FileOutputStream(resultFile);
         w.write(bytes);
+    }
+
+    @DisplayName("Render watermark (used mostly for developing)")
+    @Test
+    public void check_watermark_rendered() throws IOException {
+        InputStream is = BOPdfDocumentTemplateTest.class.getClassLoader().getResourceAsStream("CNI.jpg");
+        BufferedImage image = ImageIO.read(is);
+        BufferedImage b = boPdfDocumentTemplate.applyWatermark(image, "watermark 2023");
+        outputfile = new File("image.jpg");
+        ImageIO.write(b, "jpg", outputfile);
     }
 }

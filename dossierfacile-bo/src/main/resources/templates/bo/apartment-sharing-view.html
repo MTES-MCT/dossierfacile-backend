@@ -192,20 +192,16 @@
                             </div>
                             <table class="table table-striped table-bordered table-hover">
                                 <tr>
-                                    <td>Status</td>
+                                    <td>Statut</td>
                                     <td colspan="2" th:text="${apartmentSharing.getStatus()}"></td>
                                 </tr>
                                 <tr>
-                                    <td>Tenants</td>
+                                    <td>Nombre de locataires</td>
                                     <td colspan="2" th:text="${apartmentSharing.getNumberOfTenants()}"></td>
                                 </tr>
-                                <tr>
-                                    <td>Complete register</td>
-                                    <td colspan="2" th:text="${apartmentSharing.getNumberOfCompleteRegister()}"></td>
-                                </tr>
                                 <tr class="${apartmentSharing.getStatus().name() != 'VALIDATED'}">
-                                    <td colspan="3">The application links will be available when the application is
-                                        validated
+                                    <td colspan="3">
+                                        Les liens de partage seront accessibles une fois le dossier validé
                                     </td>
                                 </tr>
                                 <tr th:if="${apartmentSharing.getStatus().name()} == 'VALIDATED'">
@@ -451,9 +447,16 @@
                                 </tr>
                                 <tr>
                                     <td>Email</td>
-                                    <td >
+                                    <td>
                                         <span th:if="${ tenant.getFranceConnect() == true }"><img src="/assets/images/franceconnect-icon.png" height="22px" alt="isFC"/></span>
                                         <span th:text="${tenant.getEmail()}"></span>
+                                        <span th:with="verified=${tenantService.hasVerifiedEmailIfExistsInKeycloak(tenant)}">
+                                            <span class="fa"
+                                                  th:if="${verified != null}"
+                                                  th:classappend="${verified} ? 'fa-check text-success' : 'fa-times text-danger'"
+                                                  th:text="${verified} ? ' Vérifié' : ' Non vérifié'">
+                                            </span>
+                                        </span>
                                     </td>
                                 </tr>
                                 <tr>

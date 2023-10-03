@@ -43,6 +43,7 @@ import fr.gouv.bo.security.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -86,9 +87,10 @@ public class TenantService {
     private final MessageService messageService;
     private final BOApartmentSharingRepository apartmentSharingRepository;
     private final OperatorLogRepository operatorLogRepository;
-    private final LogActionTenantStatusService logService;
     private final DocumentDeniedReasonsService documentDeniedReasonsService;
     private final DocumentService documentService;
+    private final LogService logService;
+    private final KeycloakService keycloakService;
 
     private int forTenant = 0;
     @Value("${time.reprocess.application.minutes}")
@@ -151,6 +153,13 @@ public class TenantService {
         return tenantRepository.save(tenant);
     }
 
+    public Boolean hasVerifiedEmailIfExistsInKeycloak(Tenant tenant) {
+        UserRepresentation keyCloakUser = keycloakService.getKeyCloakUser(tenant.getKeycloakId());
+        if (keyCloakUser == null) {
+            return null;
+        }
+        return keyCloakUser.isEmailVerified();
+    }
 
     public synchronized String redirectToApplication(Principal principal, Long tenantId) {
         LocalDateTime localDateTime = LocalDateTime.now().minusMinutes(timeReprocessApplicationMinutes);
@@ -285,9 +294,7 @@ public class TenantService {
 
         List<MessageItem> messageItems = customMessage.getMessageItems();
         StringBuilder mailMessage = new StringBuilder();
-        mailMessage.append(messageSource.getMessage("bo.tenant.custom.email.head1", null, locale));
-        mailMessage.append("<br/>");
-        mailMessage.append(messageSource.getMessage("bo.tenant.custom.email.head2", null, locale));
+        mailMessage.append(messageSource.getMessage("bo.tenant.custom.email.head", null, locale));
         mailMessage.append("<br/> <ul class='customMessage'>");
 
         List<Long> documentDeniedReasonsIds = new ArrayList<>();
@@ -371,12 +378,6 @@ public class TenantService {
 
         mailMessage.append("</ul><br/><p>");
         mailMessage.append(messageSource.getMessage("bo.tenant.custom.email.footer1", null, locale));
-        mailMessage.append("</p><br/><p>");
-        mailMessage.append(messageSource.getMessage("bo.tenant.custom.email.footer2", null, locale));
-        mailMessage.append("</p><br/><p>");
-        mailMessage.append(messageSource.getMessage("bo.tenant.custom.email.footer3", null, locale));
-        mailMessage.append("</p><p>");
-        mailMessage.append(messageSource.getMessage("bo.tenant.custom.email.footer4", null, locale));
         mailMessage.append("</p>");
         if (messageFrom > 0) {
             Message message = messageService.create(new MessageDTO(mailMessage.toString()), tenant, false, true);
@@ -778,7 +779,9 @@ public class TenantService {
         apartmentSharing.getTenants().add(tenant);
         apartmentToDelete.getTenants().remove(tenant);
 
-        apartmentSharing.setApplicationType(newApplicationType);
+        if (apartmentSharing.getApplicationType() != ApplicationType.GROUP) {
+            apartmentSharing.setApplicationType(newApplicationType);
+        }
         apartmentSharingRepository.save(apartmentSharing);
 
         tenant.setTenantType(TenantType.JOIN);

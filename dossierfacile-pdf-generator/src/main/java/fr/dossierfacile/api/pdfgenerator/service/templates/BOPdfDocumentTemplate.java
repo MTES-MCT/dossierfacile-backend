@@ -5,6 +5,7 @@ import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.exif.ExifIFD0Directory;
 import com.twelvemonkeys.image.ImageUtil;
+import fr.dossierfacile.api.pdfgenerator.configuration.FeatureFlipping;
 import fr.dossierfacile.api.pdfgenerator.model.FileInputStream;
 import fr.dossierfacile.api.pdfgenerator.model.PageDimension;
 import fr.dossierfacile.api.pdfgenerator.model.PdfTemplateParameters;
@@ -14,6 +15,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
@@ -44,6 +46,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Service
@@ -56,6 +59,17 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
     private final PdfTemplateParameters params = PdfTemplateParameters.builder().build();
     private final Locale locale = LocaleContextHolder.getLocale();
     private final MessageSource messageSource;
+
+    private final FeatureFlipping featureFlipping;
+
+    private final Color[] COLORS = {
+            new Color(64, 64, 64, 255),
+            new Color(32, 32, 32, 220),
+            new Color(0, 0, 0, 110),
+            new Color(0, 0, 91, 170),
+            new Color(255, 0, 0, 170)
+    };
+
 
     private static ConvolveOp getGaussianBlurFilter(int radius, boolean horizontal) {
         int size = radius * 2 + 1;
@@ -93,10 +107,11 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
         try (PDDocument document = new PDDocument()) {
 
             data.stream()
-                    .map(pdfOrImgFileIS -> convertToImages(pdfOrImgFileIS))
+                    .map(this::convertToImages)
                     .flatMap(Collection::stream)
-                    .map(bim -> smartCrop(bim))
-                    .map(bim -> fitImageToPage(bim))
+                    .map(this::smartCrop)
+                    .filter(Objects::nonNull)
+                    .map(this::fitImageToPage)
                     .map(bim -> applyWatermark(bim, watermarkToApply))
                     .forEach(bim -> addImageAsPageToDocument(document, bim));
 
@@ -121,11 +136,10 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
         try {
 
             if (MediaType.APPLICATION_PDF.equalsTypeAndSubtype(fileInputStream.getMediaType())) {
-
-                try (PDDocument document = PDDocument.load(fileInputStream.getInputStream())) {
+                List<BufferedImage> images = new ArrayList<>();
+                try (PDDocument document = Loader.loadPDF(fileInputStream.getInputStream().readAllBytes())) {
                     PDFRenderer pdfRenderer = new PDFRenderer(document);
                     PDPageTree pagesTree = document.getPages();
-                    List<BufferedImage> images = new ArrayList<>(pagesTree.getCount());
                     for (int i = 0; i < pagesTree.getCount(); i++) {
                         PDRectangle pageMediaBox = pagesTree.get(i).getMediaBox();
                         float ratioImage = pageMediaBox.getHeight() / pageMediaBox.getWidth();
@@ -143,6 +157,10 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
                         // x2 - double the image resolution (prevent quality loss if image is cropped)
                         images.add(pdfRenderer.renderImage(i, scale * 2, ImageType.RGB));
                     }
+                    return images;
+                } catch (Exception e) {
+                    log.error("Exception while converting pdf page to image", e);
+                    log.error(EXCEPTION + Sentry.captureException(e));
                     return images;
                 }
             }
@@ -208,34 +226,38 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
      * @param bim source image
      * @return result image
      */
-    private BufferedImage applyWatermark(BufferedImage bim, String watermarkText) {
+    public BufferedImage applyWatermark(BufferedImage bim, String watermarkText) {
         try {
             //Create a watermark layer
-            BufferedImage watermarkLayer = new BufferedImage(bim.getWidth(), bim.getHeight(), BufferedImage.TYPE_INT_ARGB);
+            int diagonal = (int) Math.sqrt(bim.getWidth() * bim.getWidth() + bim.getHeight() * bim.getHeight());
+
+            BufferedImage watermarkLayer = new BufferedImage(diagonal, diagonal, BufferedImage.TYPE_INT_ARGB);
+
             Graphics2D g = watermarkLayer.createGraphics();
 
             String watermark = watermarkText.repeat(1 + (128 / watermarkText.length()));
 
             g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, ThreadLocalRandom.current().nextFloat(0.52f, 0.6f)));
-            g.setColor(Color.DARK_GRAY);
             g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
-            Font font = new Font("Arial", Font.PLAIN, 28 * bim.getWidth() / params.maxPage.width);
-            AffineTransform affineTransform = new AffineTransform();
-            affineTransform.rotate(-Math.PI / 4f, 0, 0);
-            Font rotatedFont = font.deriveFont(affineTransform);
-            g.setFont(rotatedFont);
 
             // allows to have small variation on the watermark position at each generation
-            float spaceBetweenText = bim.getHeight() / ThreadLocalRandom.current().nextFloat(5f, 6f);
-            for (int i = 1; i < 10; i++) {
-                g.drawString(watermark, 0, i* spaceBetweenText);
+            float spaceBetweenText = diagonal / ThreadLocalRandom.current().nextFloat(8f, 10f);
+            for (int i = 1; i < 11; i++) {
+                Font font = new Font("Arial", Font.PLAIN, 28 * bim.getWidth() / params.maxPage.width);
+                if (featureFlipping.shouldUseColors()) {
+                    g.setColor(COLORS[ThreadLocalRandom.current().nextInt(0, COLORS.length)]);
+                } else {
+                    g.setColor(Color.DARK_GRAY);
+                }
+                g.setFont(font);
+                g.drawString(watermark, 0, i * spaceBetweenText);
             }
 
             // Create a gaussian blur layer
             int radius = ThreadLocalRandom.current().nextInt(45, 65);
 
-            BufferedImage blurredTextLayer = new BufferedImage(bim.getWidth(), bim.getHeight(), BufferedImage.TYPE_INT_ARGB);
+            BufferedImage blurredTextLayer = new BufferedImage(diagonal, diagonal, BufferedImage.TYPE_INT_ARGB);
             Graphics2D blurredTextLayerGraphics = blurredTextLayer.createGraphics();
             blurredTextLayerGraphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, ThreadLocalRandom.current().nextFloat(0.75f, 0.95f)));
             blurredTextLayerGraphics.drawImage(watermarkLayer, 0, 0, null);
@@ -246,8 +268,26 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
             // Merge layers
             Graphics2D gf = bim.createGraphics();
             gf.drawImage(bim, 0, 0, null);
-            gf.drawImage(blurredTextLayer, 0, 0, null);
-            gf.drawImage(watermarkLayer, 0, 0, null);
+
+            BufferedImage buffer;
+            if (featureFlipping.shouldUseDistortion()) {
+                DFFilter filter = new DFFilter();
+                buffer = filter.filter(watermarkLayer, null);
+            } else {
+                buffer = watermarkLayer;
+            }
+
+            BufferedImage rotated = new BufferedImage(diagonal, diagonal, buffer.getType());
+            Graphics2D graphic = rotated.createGraphics();
+            graphic.rotate(Math.toRadians(-25), diagonal / 2f, diagonal / 2f);
+            graphic.drawImage(buffer, null, 0, 0);
+            graphic.drawImage(blurredTextLayer, 0, 0, null);
+            graphic.dispose();
+
+            BufferedImage cropedRotated = rotated.getSubimage(diagonal / 2 - bim.getWidth() / 2, diagonal / 2 - bim.getHeight() / 2, diagonal / 2 + bim.getWidth() / 2, diagonal / 2 + bim.getHeight() / 2);
+
+            gf.drawImage(cropedRotated, 0, 0, null);
+
             gf.dispose();
 
             return bim;

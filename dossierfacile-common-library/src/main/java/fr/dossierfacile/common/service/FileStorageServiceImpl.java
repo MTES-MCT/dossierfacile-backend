@@ -66,7 +66,7 @@ public class FileStorageServiceImpl implements FileStorageService {
                     return getStorageService(ObjectStorageProvider.valueOf(selectedProvider.get()))
                             .download(storageFile.getPath(), storageFile.getEncryptionKey());
                 } catch (Exception e) {
-                    log.warn("File " + storageFile.getId() + " was not avalaible in storage : " + provider);
+                    log.warn("File {} was not available in storage {}", storageFile.getId(), provider);
                 }
             }
         }

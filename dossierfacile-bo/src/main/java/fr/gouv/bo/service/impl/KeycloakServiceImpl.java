@@ -5,6 +5,7 @@ import fr.gouv.bo.service.KeycloakService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.admin.client.resource.RealmResource;
+import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.stereotype.Service;
 
@@ -24,7 +25,7 @@ public class KeycloakServiceImpl implements KeycloakService {
         try {
             return Optional.ofNullable(keycloakId)
                     .map(kid -> realmResource.users().get(kid))
-                    .map(userResource -> userResource.toRepresentation())
+                    .map(UserResource::toRepresentation)
                     .orElse(null);
         } catch (NotFoundException e) {
             return null;

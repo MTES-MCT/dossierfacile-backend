@@ -1,7 +1,6 @@
 package fr.dossierfacile.api.front.register.form.tenant;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import fr.dossierfacile.api.front.recaptcha.ValidReCaptcha;
 import fr.dossierfacile.api.front.validator.anotation.tenant.account.UniqueEmailActiveAccount;
 import fr.dossierfacile.common.deserializer.EmailDeserializer;
 import lombok.AllArgsConstructor;
@@ -24,10 +23,6 @@ public class AccountForm {
 
     @NotBlank
     private String password;
-
-    @NotEmpty
-    @ValidReCaptcha
-    private String reCaptchaResponse;
 
     private String source;
 

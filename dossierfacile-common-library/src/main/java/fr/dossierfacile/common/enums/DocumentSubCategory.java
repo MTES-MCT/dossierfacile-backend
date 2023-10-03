@@ -24,6 +24,7 @@ public enum DocumentSubCategory {
     GUEST,
     GUEST_ORGANISM,
     SHORT_TERM_RENTAL,
+    OTHER_RESIDENCY,
 
     // Professional
     CDI,

@@ -12,7 +12,7 @@ import java.util.Optional;
 public interface ApartmentSharingLinkRepository extends JpaRepository<ApartmentSharingLink, Long> {
     Optional<ApartmentSharingLink> findByTokenAndFullDataAndDisabledIsFalse(String token, boolean fullData);
 
-    List<ApartmentSharingLink> findByApartmentSharingAndCreationDateIsBefore(ApartmentSharing apartmentSharing, LocalDateTime creationDate);
+    List<ApartmentSharingLink> findByApartmentSharingAndCreationDateIsAfter(ApartmentSharing apartmentSharing, LocalDateTime creationDate);
 
     List<ApartmentSharingLink> findByApartmentSharingAndLinkType(ApartmentSharing apartmentSharing, ApartmentSharingLinkType linkType);
 

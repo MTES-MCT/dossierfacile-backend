@@ -1,7 +1,6 @@
 package fr.dossierfacile.api.front.validator.anotation;
 
 import fr.dossierfacile.api.front.validator.SizeFileValidator;
-import fr.dossierfacile.api.front.validator.enums.TypeDocumentValidation;
 
 import javax.validation.Constraint;
 import javax.validation.Payload;
@@ -23,6 +22,4 @@ public @interface SizeFile {
     Class<? extends Payload>[] payload() default {};
 
     double max() default Double.MAX_VALUE;
-
-    TypeDocumentValidation typeDocumentValidation();
 }

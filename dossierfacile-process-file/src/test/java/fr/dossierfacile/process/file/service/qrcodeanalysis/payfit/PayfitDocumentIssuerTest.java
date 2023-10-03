@@ -48,7 +48,7 @@ class PayfitDocumentIssuerTest {
     void should_authenticate_payfit_document() throws IOException, URISyntaxException {
         InMemoryPdfFile pdfFile = TestFilesUtil.getPdfFile("fake-payfit.pdf");
 
-        mockPayfitApi(HttpStatus.OK, payfitResponseBody());
+        mockPayfitApi(HttpStatus.CREATED, payfitResponseBody());
 
         Optional<AuthenticationResult> authenticationResult = payfit.tryToAuthenticate(pdfFile);
 
@@ -78,7 +78,7 @@ class PayfitDocumentIssuerTest {
 
     @Test
     void should_return_empty_when_document_is_not_issued_by_payfit() throws IOException {
-        InMemoryPdfFile pdfFile = TestFilesUtil.getPdfFile("monfranceconnect/tax-document.pdf");
+        InMemoryPdfFile pdfFile = TestFilesUtil.getPdfFile("qr-code.pdf");
 
         Optional<AuthenticationResult> authenticationResult = payfit.tryToAuthenticate(pdfFile);
 

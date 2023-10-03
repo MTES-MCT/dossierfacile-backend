@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+    <springProperty scope="context" name="LOG_LEVEL" source="logging.level.root"/>
+    <springProperty scope="context" name="LOG_PATH" source="logging.path"/>
+    <springProperty scope="context" name="LOGSTASH_DESTINATION" source="logging.logstash.destination"/>
+    <springProperty scope="context" name="APPLICATION_NAME" source="application.name"/>
+    <springProperty scope="context" name="APPLICATION_PROFILES" source="spring.profiles.active"/>
+    <springProperty scope="context" name="ENVIRONMENT" source="environment"/>
+
+    <!-- CONSOLE -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <withJansi>true</withJansi>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %clr(%-5level) [%thread] %logger{35} - %msg %n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- FILE -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/${APPLICATION_NAME}.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>
+                ${LOG_PATH}/${APPLICATION_NAME}-%d{yyyy-MM-dd}_%i.log
+            </fileNamePattern>
+            <maxFileSize>100MB</maxFileSize>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>[%d{yyyy-MM-dd HH:mm:ss.SSS}][%-5level][%thread][%logger{35}] %msg %n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- LOGSTASH -->
+    <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+        <param name="Encoding" value="UTF-8"/>
+        <destination>${LOGSTASH_DESTINATION}</destination>
+
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <includeContext>false</includeContext>
+            <timeZone>UTC</timeZone>
+            <fieldNames>
+                <version>[ignore]</version>
+                <levelValue>[ignore]</levelValue>
+            </fieldNames>
+            <customFields>{"application":"${APPLICATION_NAME}", "environment":"${ENVIRONMENT}", "profiles":"${APPLICATION_PROFILES}"}</customFields>
+            <includeMdcKeyName>storage_file_id</includeMdcKeyName>
+        </encoder>
+    </appender>
+
+
+    <root level="${LOG_LEVEL}">
+        <appender-ref ref="LOGSTASH"/>
+        <appender-ref ref="STDOUT"/>
+        <springProfile name="dev">
+            <appender-ref ref="FILE"/>
+        </springProfile>
+    </root>
+
+</configuration>

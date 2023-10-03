@@ -151,16 +151,18 @@ public class TenantServiceImpl implements TenantService {
     }
 
     @Override
-    public List<TenantUpdate> findTenantUpdateByLastUpdateAndPartner(LocalDateTime since, UserApi userApi, Long limit) {
-        return tenantRepository.findTenantUpdateByLastUpdateAndPartner(since, userApi.getId(), limit);
+    public List<TenantUpdate> findTenantUpdateByLastUpdateAndPartner(LocalDateTime since, UserApi userApi, Long limit, boolean includeDeleted) {
+        return includeDeleted? tenantRepository.findTenantUpdateWithDeletedByLastUpdateAndPartner(since, userApi.getId(), limit) :
+                tenantRepository.findTenantUpdateByLastUpdateAndPartner(since, userApi.getId(), limit);
     }
 
     @Override
     public void sendFileByMail(Tenant tenant, String email, String shareType) {
         String token = UUID.randomUUID().toString();
         LocalDateTime date = LocalDateTime.now().minusDays(1);
-        List<ApartmentSharingLink> existingASL = apartmentSharingLinkRepository.findByApartmentSharingAndCreationDateIsBefore(tenant.getApartmentSharing(), date );
+        List<ApartmentSharingLink> existingASL = apartmentSharingLinkRepository.findByApartmentSharingAndCreationDateIsAfter(tenant.getApartmentSharing(), date );
         if (existingASL.size() > 10) {
+            log.info("Daily limit reached for file sharing by mail");
             throw new MailSentLimitException();
         }
 
