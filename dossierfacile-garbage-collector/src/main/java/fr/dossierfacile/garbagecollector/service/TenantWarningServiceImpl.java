@@ -24,6 +24,7 @@ import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -51,7 +52,6 @@ public class TenantWarningServiceImpl implements TenantWarningService {
             case 1 -> handleWarning1(tenant);
             case 2 -> handleWarning2(tenant);
         }
-        tenantRepository.save(tenant);
     }
 
     private void handleWarning2(Tenant t) {
@@ -59,13 +59,15 @@ public class TenantWarningServiceImpl implements TenantWarningService {
 
         logService.saveLogWithTenantData(LogType.ACCOUNT_ARCHIVED, t);
         tenantCommonService.deleteTenantData(t);
-
+        t.getDocuments().clear();
+        t.getGuarantors().clear();
         t.setWarnings(0);
         t.setConfirmationToken(null);
         t.setHonorDeclaration(false);
         t.setStatus(TenantFileStatus.ARCHIVED);
         t.setZipCode("");
         t.setClarification("");
+        t = tenantRepository.save(t);
 
         logService.saveLog(LogType.DOCUMENT_DELETION_AFTER_2_ACCOUNT_WARNINGS, t.getId());
         partnerCallBackService.sendCallBack(t, PartnerCallBackType.ARCHIVED_ACCOUNT);
@@ -77,6 +79,7 @@ public class TenantWarningServiceImpl implements TenantWarningService {
     private void handleWarning1(Tenant t) {
         log.info("accountWarnings. SECOND warning for tenant with ID [" + t.getId() + "]");
         t.setWarnings(2);
+        tenantRepository.save(t);
         mailService.sendEmailSecondWarningForDeletionOfDocuments(t, confirmationTokenService.createToken(t));
         logService.saveLog(LogType.SECOND_ACCOUNT_WARNING_FOR_DOCUMENT_DELETION, t.getId());
     }
@@ -84,6 +87,7 @@ public class TenantWarningServiceImpl implements TenantWarningService {
     private void handleWarning0(Tenant t) {
         log.info("accountWarnings. FIRST warning for tenant with ID [" + t.getId() + "]");
         t.setWarnings(1);
+        tenantRepository.save(t);
         mailService.sendEmailFirstWarningForDeletionOfDocuments(t, confirmationTokenService.createToken(t));
         logService.saveLog(LogType.FIRST_ACCOUNT_WARNING_FOR_DOCUMENT_DELETION, t.getId());
     }
