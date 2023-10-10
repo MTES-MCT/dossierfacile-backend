@@ -29,6 +29,9 @@ public class KeycloakServiceImpl implements KeycloakService {
                     .orElse(null);
         } catch (NotFoundException e) {
             return null;
+        } catch (Exception e) {
+            log.error("Failed to retrieve user from keycloak", e);
+            return null;
         }
     }
 
