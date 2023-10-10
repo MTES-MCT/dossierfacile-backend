@@ -26,6 +26,7 @@ import sibModel.SendSmtpEmailTo;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -76,8 +77,12 @@ public class MailServiceImpl implements MailService {
     @Value("${sendinblue.template.id.share.file}")
     private Long templateIdShareFile;
 
+    @Value("${sendinblue.domains.blacklist:example.com}")
+    private List<String> blackListedDomains;
+
     private void sendEmailToTenant(User tenant, Map<String, String> params, Long templateId) {
-        if (tenant.getEmail().endsWith("@example.com")) {
+        boolean blackListed = blackListedDomains.stream().anyMatch(domain -> tenant.getEmail().endsWith(domain));
+        if (blackListed) {
             return;
         }
         SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();

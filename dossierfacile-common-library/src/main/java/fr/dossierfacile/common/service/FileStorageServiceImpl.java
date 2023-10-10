@@ -52,7 +52,7 @@ public class FileStorageServiceImpl implements FileStorageService {
         if (storageFile == null) {
             return;
         }
-        storageFileRepository.save(storageFile);
+        storageFileRepository.delete(storageFile);
         getStorageService(storageFile.getProvider()).delete(storageFile.getPath());
     }
 
