@@ -18,7 +18,7 @@
 		<java.version>19</java.version>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
-		<lombok.version>1.18.26</lombok.version>
+		<lombok.version>1.18.30</lombok.version>
 
 		<!--DossierFacile libraries-->
 		<dossierfacile.common.version>0.0.1-SNAPSHOT</dossierfacile.common.version>
