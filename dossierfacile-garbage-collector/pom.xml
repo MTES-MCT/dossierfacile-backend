@@ -16,6 +16,7 @@
     <packaging>${packaging.type}</packaging>
     <properties>
         <java.version>19</java.version>
+        <lombok.version>1.18.30</lombok.version>
         <dossierfacile.common.version>0.0.1-SNAPSHOT</dossierfacile.common.version>
     </properties>
     <dependencies>
@@ -55,7 +56,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.26</version>
+            <version>${lombok.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
