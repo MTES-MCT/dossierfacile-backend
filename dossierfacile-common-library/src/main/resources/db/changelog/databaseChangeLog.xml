@@ -123,5 +123,6 @@
     <include file="db/migration/202309200000-delete-monfranceconnect-analysis.xml" />
     <include file="db/migration/202309270000-create-index_tenant_userapi.xml" />
     <include file="db/migration/202310130000-drop-account_delete_log.xml" />
+    <include file="db/migration/202310160000-add-column-bouser.xml" />
 
 </databaseChangeLog>

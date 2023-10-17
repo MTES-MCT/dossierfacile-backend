@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -36,6 +37,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     private UserRoleRepository userRoleRepository;
     @Value("${authorize.domain.bo}")
     private String authorizeDomainBo;
+    @Value("${authorize.bo.access.emails}")
+    private List<String> authorizedEmails;
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest oAuth2UserRequest) {
@@ -56,8 +59,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         if (StringUtils.isEmpty(oAuth2UserInfo.getEmail())) {
             throw new OAuth2AuthenticationProcessingException("Email not found from OAuth2 provider");
         }
-        if (!Objects.requireNonNull(StringUtils.split(oAuth2UserInfo.getEmail(), "@"))[1].equals(authorizeDomainBo)) {
-            throw new OAuth2AuthenticationProcessingException("Your email does not belong to this organization");
+        if (!Objects.requireNonNull(StringUtils.split(oAuth2UserInfo.getEmail(), "@"))[1].contains(authorizeDomainBo)) {
+            if( !authorizedEmails.contains(oAuth2UserInfo.getEmail()))
+                throw new OAuth2AuthenticationProcessingException("Your email does not belong to this organization and is not in white list");
         }
 
         Optional<BOUser> userOptional = userRepository.findByEmail(oAuth2UserInfo.getEmail());

@@ -51,9 +51,6 @@ public class UserService {
     private final PartnerCallBackService partnerCallBackService;
     private final LogService logService;
 
-    @Value("${authorize.domain.bo}")
-    private String ad;
-
     public List<BOUser> findAll() {
         return userRepository.findAll(Sort.by("email"));
     }

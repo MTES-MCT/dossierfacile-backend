@@ -51,7 +51,7 @@ public class WebSecurityConfig {
                 .and()
                 .cacheControl()
                 .and()
-                .contentSecurityPolicy("frame-ancestors *.dossierfacile.fr; frame-src *.dossierfacile.fr; child-src 'none'; upgrade-insecure-requests; default-src 'none'; script-src 'self'; style-src 'self' fonts.googleapis.com 'unsafe-inline'; object-src *.dossierfacile.fr; img-src 'self' *.dossierfacile.fr data:; font-src 'self' fonts.gstatic.com; connect-src *.dossierfacile.fr; base-uri 'self'; media-src 'none'; worker-src *.dossierfacile.fr; manifest-src 'none';")
+                .contentSecurityPolicy("frame-ancestors *.dossierfacile.fr *.dossierfacile.logement.gouv.fr; frame-src *.dossierfacile.fr *.dossierfacile.logement.gouv.fr; child-src 'none'; upgrade-insecure-requests; default-src 'none'; script-src 'self'; style-src 'self' fonts.googleapis.com 'unsafe-inline'; object-src *.dossierfacile.fr *.dossierfacile.logement.gouv.fr; img-src 'self' *.dossierfacile.fr *.dossierfacile.logement.gouv.fr data:; font-src 'self' fonts.gstatic.com; connect-src *.dossierfacile.fr *.dossierfacile.logement.gouv.fr; base-uri 'self'; media-src 'none'; worker-src *.dossierfacile.fr *.dossierfacile.logement.gouv.fr; manifest-src 'none';")
                 .and()
                 .httpStrictTransportSecurity().disable()// Scalingo force https and add this policy
                 .frameOptions()
@@ -67,6 +67,8 @@ public class WebSecurityConfig {
                 .permitAll()
                 .antMatchers("/bo/userApi", "/bo/userApi/**", "/bo/admin", "/bo/admin/**", "/bo/statistic/admin", "/bo/timeServeTenant", "/bo/users", "/bo/users/**")
                 .hasRole("ADMIN")
+                .antMatchers("/bo/tenant/\\d+/processFile")
+                .hasAnyRole("ADMIN", "OPERATOR", "PARTNER")
                 .antMatchers("/bo/**", "/bo", "/documents/**")
                 .hasAnyRole("ADMIN", "OPERATOR")
                 .anyRequest()
