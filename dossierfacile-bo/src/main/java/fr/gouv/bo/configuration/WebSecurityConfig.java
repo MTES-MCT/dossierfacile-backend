@@ -67,7 +67,7 @@ public class WebSecurityConfig {
                 .permitAll()
                 .antMatchers("/bo/userApi", "/bo/userApi/**", "/bo/admin", "/bo/admin/**", "/bo/statistic/admin", "/bo/timeServeTenant", "/bo/users", "/bo/users/**")
                 .hasRole("ADMIN")
-                .antMatchers("/bo/tenant/\\d+/processFile")
+                .antMatchers("/bo/tenant/{tenantId}/processFile")
                 .hasAnyRole("ADMIN", "OPERATOR", "PARTNER")
                 .antMatchers("/bo/**", "/bo", "/documents/**")
                 .hasAnyRole("ADMIN", "OPERATOR")
