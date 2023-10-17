@@ -171,8 +171,8 @@ public class BOTenantController {
     }
     private void checkPartnerRights(Tenant tenant, Principal principal){
         BOUser operator = userService.findUserByEmail(principal.getName());
-        if (operator.getUserRoles().contains(Role.ROLE_PARTNER)
-                && tenant.getTenantsUserApi().stream().noneMatch( apiUser -> apiUser.getId().equals(operator.getExclusivePartnerId()))){
+        if (operator.getUserRoles().stream().anyMatch( r -> r.getRole() == Role.ROLE_PARTNER)
+                && tenant.getTenantsUserApi().stream().noneMatch( apiUser -> apiUser.getUserApi().getId().equals(operator.getExclusivePartnerId()))){
             log.error("Access Denied");
             throw new AccessDeniedException("Access denied");
         }
