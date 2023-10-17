@@ -16,9 +16,13 @@ import java.io.Serializable;
 @Entity
 @Table(name = "bo_user")
 @DiscriminatorValue("BO")
+@Getter
+@Setter
 @NoArgsConstructor
 @SuperBuilder(builderMethodName = "lombokBuilder")
 public class BOUser extends User implements Serializable {
+
+    Long exclusivePartnerId;
 
     public static BOUser.BOUserBuilder<?, ?> builder() {
         BOUser.BOUserBuilder<?, ?> builder = BOUser.lombokBuilder();
