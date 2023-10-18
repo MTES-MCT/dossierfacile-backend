@@ -1,13 +1,14 @@
 package fr.dossierfacile.api.dossierfacileapiowner.user;
 
+import fr.dossierfacile.api.dossierfacileapiowner.log.OwnerLogService;
 import fr.dossierfacile.api.dossierfacileapiowner.register.AuthenticationFacade;
 import fr.dossierfacile.api.dossierfacileapiowner.register.KeycloakService;
 import fr.dossierfacile.common.entity.Owner;
-import fr.dossierfacile.common.enums.LogType;
-import fr.dossierfacile.common.service.interfaces.LogService;
+import fr.dossierfacile.common.enums.OwnerLogType;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
@@ -18,7 +19,7 @@ public class OwnerServiceImpl implements OwnerService {
     private final OwnerRepository ownerRepository;
     private final AuthenticationFacade authenticationFacade;
     private final OwnerMapper ownerMapper;
-    private final LogService logService;
+    private final OwnerLogService ownerlogService;
     private final KeycloakService keycloakService;
 
     @Override
@@ -31,10 +32,11 @@ public class OwnerServiceImpl implements OwnerService {
     }
 
     @Override
+    @Transactional
     public void deleteAccount(Owner owner) {
         log.info("Removing owner with id [" + owner.getId() + "]");
-        logService.saveLog(LogType.ACCOUNT_DELETE, owner.getId());
         keycloakService.deleteKeycloakUser(owner);
+        ownerlogService.saveLogWithOwnerData(OwnerLogType.ACCOUNT_DELETED, owner);
         ownerRepository.delete(owner);
     }
 
