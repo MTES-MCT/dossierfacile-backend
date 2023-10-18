@@ -4,14 +4,17 @@ import fr.dossierfacile.api.front.amqp.Producer;
 import fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException;
 import fr.dossierfacile.api.front.exception.ApartmentSharingUnexpectedException;
 import fr.dossierfacile.api.front.model.MappingFormat;
+import fr.dossierfacile.api.front.repository.TenantLogRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.ApartmentSharingLink;
 import fr.dossierfacile.common.entity.LinkLog;
+import fr.dossierfacile.common.entity.Log;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.FileStatus;
 import fr.dossierfacile.common.enums.LinkType;
+import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.mapper.ApartmentSharingMapper;
 import fr.dossierfacile.common.mapper.ApplicationBasicMapper;
 import fr.dossierfacile.common.mapper.ApplicationFullMapper;
@@ -55,6 +58,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
     private final LinkLogService linkLogService;
     private final Producer producer;
     private final ApartmentSharingCommonService apartmentSharingCommonService;
+    private final TenantLogRepository tenantLogRepository;
 
     @Override
     public ApplicationModel full(String token) {
@@ -81,7 +85,20 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
             apartmentSharing = apartmentSharingLink.get().getApartmentSharing();
         }
         saveLinkLog(apartmentSharing, token, LinkType.LIGHT_APPLICATION);
-        return applicationLightMapper.toApplicationModel(apartmentSharing);
+        ApplicationModel applicationModel = applicationLightMapper.toApplicationModel(apartmentSharing);
+        applicationModel.setLastUpdateDate(getLastUpdateDate(apartmentSharing));
+        return applicationModel;
+    }
+
+    private LocalDateTime getLastUpdateDate(ApartmentSharing apartmentSharing) {
+        LocalDateTime lastUpdateDate = apartmentSharing.getLastUpdateDate();
+        if (apartmentSharing.getStatus() == TenantFileStatus.VALIDATED) {
+            Optional<Log> log = tenantLogRepository.findLastValidationLogByApartmentSharing(apartmentSharing.getId());
+            if (log.isPresent()) {
+                lastUpdateDate = log.get().getCreationDateTime();
+            }
+        }
+        return lastUpdateDate;
     }
 
     @Override

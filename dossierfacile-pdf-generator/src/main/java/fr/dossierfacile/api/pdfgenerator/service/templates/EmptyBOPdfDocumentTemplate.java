@@ -51,12 +51,16 @@ public class EmptyBOPdfDocumentTemplate implements PdfTemplate<Document> {
 
     private ByteArrayOutputStream createPdfFromTemplate(Document document) throws IOException {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        PdfFileTemplate pdfTemplate;
+        PdfFileTemplate pdfTemplate = null;
 
         PdfTextElements textElements = new PdfTextElements(getPersonName(document));
-        if (document.getDocumentCategory() == DocumentCategory.FINANCIAL) {
+        DocumentCategory documentCategory = document.getDocumentCategory();
+        if (documentCategory == DocumentCategory.FINANCIAL) {
             pdfTemplate = DOCUMENT_FINANCIAL;
             textElements.addTextToHeader(messageSource.getMessage("tenant.document.financial.justification.nodocument", null, locale));
+            textElements.addExplanation(document.getCustomText());
+        } else if (documentCategory == DocumentCategory.RESIDENCY) {
+            textElements.addTextToHeader(messageSource.getMessage("tenant.document.residency.justification.nodocument", null, locale));
             textElements.addExplanation(document.getCustomText());
         } else { //DocumentCategory.TAX
             pdfTemplate = DOCUMENT_TAX;
@@ -70,11 +74,11 @@ public class EmptyBOPdfDocumentTemplate implements PdfTemplate<Document> {
             }
         }
 
-        try (PDDocument pdDocument = pdfTemplate.load()) {
+        try (PDDocument pdDocument = loadTemplate(pdfTemplate)) {
 
             PDType0Font font = Fonts.ARIAL_NOVA_LIGHT.load(pdDocument);
             PDType0Font alternativeFont = Fonts.NOTO_EMOJI_MEDIUM.load(pdDocument);
-            PDPage pdPage = pdDocument.getPage(0);
+            PDPage pdPage = getFirstPage(pdDocument);
             PDPageContentStream contentStream = new PDPageContentStream(pdDocument, pdPage, PDPageContentStream.AppendMode.APPEND, true, true);
             contentStream.setNonStrokingColor(74 / 255.0F, 144 / 255.0F, 226 / 255.0F);
             float fontSize = 11;
@@ -99,6 +103,17 @@ public class EmptyBOPdfDocumentTemplate implements PdfTemplate<Document> {
             throw e;
         }
         return outputStream;
+    }
+
+    private PDDocument loadTemplate(PdfFileTemplate pdfTemplate) throws IOException {
+        return pdfTemplate != null ? pdfTemplate.load() : new PDDocument();
+    }
+
+    private PDPage getFirstPage(PDDocument pdDocument) {
+        if (pdDocument.getNumberOfPages() == 0) {
+            pdDocument.addPage(new PDPage());
+        }
+        return pdDocument.getPage(0);
     }
 
     private String getPersonName(Document document) {

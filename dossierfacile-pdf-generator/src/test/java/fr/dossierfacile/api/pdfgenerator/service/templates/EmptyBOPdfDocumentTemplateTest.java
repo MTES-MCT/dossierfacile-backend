@@ -38,30 +38,36 @@ class EmptyBOPdfDocumentTemplateTest {
     private TenantRepository tenantRepository;
 
     private final Path outputPdf = Paths.get("outputFile.pdf");
-    private final Path expectedPdf = Paths.get("src/test/resources/expected/tax-custom-text.pdf");
 
     @Test
-    void should_generate_pdf(Tenant tenant) throws IOException {
-        Document document = Document.builder()
-                .id(1L)
-                .documentCategory(DocumentCategory.TAX)
-                .documentSubCategory(DocumentSubCategory.OTHER_TAX)
-                .customText("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. \uD83D\uDE01")
-                .build();
+    void should_generate_pdf_with_template(Tenant tenant) throws IOException {
+        Document document = buildDocument(DocumentCategory.TAX, DocumentSubCategory.OTHER_TAX);
         when(tenantRepository.getTenantByDocumentId(1L)).thenReturn(Optional.of(tenant));
 
-        try (InputStream inputStream = emptyBOPdfDocumentTemplate.render(document)) {
-            Files.copy(inputStream, outputPdf, StandardCopyOption.REPLACE_EXISTING);
-            IOUtils.closeQuietly(inputStream);
-        }
+        generatePdf(document, outputPdf);
 
         assertThat(outputPdf)
                 .containsText("""
-                        Dr Who nous a indiqué ne pas pouvoir fournir d'avis d'imposition en son nom pour la raison suivante:
+                        Dr Who nous a indiqué ne pas pouvoir fournir d'avis d'imposition en son nom pour la raison suivante :
                         Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore
                         et dolore magna aliqua. 😁
                         """)
-                .isEqualTo(expectedPdf);
+                .isEqualTo("src/test/resources/expected/tax-custom-text.pdf");
+    }
+
+    @Test
+    void should_generate_pdf_without_template(Tenant tenant) throws IOException {
+        Document document = buildDocument(DocumentCategory.RESIDENCY, DocumentSubCategory.OTHER_RESIDENCY);
+        when(tenantRepository.getTenantByDocumentId(1L)).thenReturn(Optional.of(tenant));
+
+        generatePdf(document, outputPdf);
+
+        assertThat(outputPdf)
+                .containsText("""
+                        Dr Who nous a indiqué ne pas pouvoir fournir de justificatif d'hébergement pour la raison suivante :
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
+                        dolore magna aliqua. 😁
+                        """);
     }
 
     @AfterEach
@@ -70,6 +76,22 @@ class EmptyBOPdfDocumentTemplateTest {
         if (file.exists()) {
             FileUtils.delete(file);
         }
+    }
+
+    private void generatePdf(Document document, Path outputPdf) throws IOException {
+        try (InputStream inputStream = emptyBOPdfDocumentTemplate.render(document)) {
+            Files.copy(inputStream, outputPdf, StandardCopyOption.REPLACE_EXISTING);
+            IOUtils.closeQuietly(inputStream);
+        }
+    }
+
+    private Document buildDocument(DocumentCategory residency, DocumentSubCategory otherResidency) {
+        return Document.builder()
+                .id(1L)
+                .documentCategory(residency)
+                .documentSubCategory(otherResidency)
+                .customText("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. \uD83D\uDE01")
+                .build();
     }
 
 }

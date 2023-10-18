@@ -12,6 +12,7 @@ import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.MessageStatus;
 import fr.dossierfacile.common.enums.PartnerCallBackType;
+import fr.dossierfacile.common.enums.Role;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.model.WebhookDTO;
@@ -39,6 +40,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.ObjectNotFoundException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -167,11 +169,19 @@ public class BOTenantController {
         tenantService.updateTenantStatus(tenant, operator);
         return "redirect:/bo/colocation/" + tenant.getApartmentSharing().getId() + "#tenant" + tenant.getId();
     }
-
+    private void checkPartnerRights(Tenant tenant, Principal principal){
+        BOUser operator = userService.findUserByEmail(principal.getName());
+        if (operator.getUserRoles().stream().anyMatch( r -> r.getRole() == Role.ROLE_PARTNER)
+                && tenant.getTenantsUserApi().stream().noneMatch( apiUser -> apiUser.getUserApi().getId().equals(operator.getExclusivePartnerId()))){
+            log.error("Access Denied");
+            throw new AccessDeniedException("Access denied");
+        }
+    }
     @GetMapping("/{id}/processFile")
-    public String processFileForm(Model model, @PathVariable("id") Long id) throws IOException {
+    public String processFileForm(Model model, @PathVariable("id") Long id, Principal principal) throws IOException {
         Tenant tenant = tenantService.find(id);
 
+        checkPartnerRights(tenant, principal);
         if (tenant == null) {
             log.error("BOTenantController processFile not found tenant with id : {}", id);
             return REDIRECT_ERROR;
@@ -211,6 +221,8 @@ public class BOTenantController {
 
     @PostMapping("/{id}/processFile")
     public String processFile(@PathVariable("id") Long id, CustomMessage customMessage, Principal principal) {
+        Tenant tenant = tenantService.find(id);
+        checkPartnerRights(tenant, principal);
         tenantService.processFile(id, customMessage, principal);
         tenantService.updateOperatorDateTimeTenant(id);
         return tenantService.redirectToApplication(principal, null);

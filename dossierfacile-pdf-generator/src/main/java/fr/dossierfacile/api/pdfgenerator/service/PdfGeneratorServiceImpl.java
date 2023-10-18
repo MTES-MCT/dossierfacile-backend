@@ -172,6 +172,7 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
 
         if (documentSubCategory == DocumentSubCategory.MY_PARENTS
                 || documentSubCategory == DocumentSubCategory.LESS_THAN_YEAR
+                || documentSubCategory == DocumentSubCategory.OTHER_RESIDENCY
                 || ((documentSubCategory == DocumentSubCategory.OTHER_TAX || documentCategory == DocumentCategory.FINANCIAL)
                 && document.getNoDocument())) {
             return emptyBOPdfDocumentTemplate.render(document);
