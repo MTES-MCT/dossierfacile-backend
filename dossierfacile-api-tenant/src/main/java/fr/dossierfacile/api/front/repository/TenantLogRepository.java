@@ -17,7 +17,7 @@ public interface TenantLogRepository extends JpaRepository<Log, Long> {
             "  join tenant t on t.id = l.tenant_id\n" +
             "  join apartment_sharing app on t.apartment_sharing_id = app.id\n" +
             "where t.apartment_sharing_id = :apartId\n" +
-            " and l.log_type='ACCOUNT_VALIDATED' order by creation_date desc \n", nativeQuery = true)
+            " and l.log_type='ACCOUNT_VALIDATED' order by creation_date desc limit 1 \n", nativeQuery = true)
     Optional<Log> findLastValidationLogByApartmentSharing(@Param("apartId") Long apartmentSharingId);
 
 }
