@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.4.xsd">
+
+    <changeSet id="202310190000-01" author="Fabien (manual)">
+        <createTable tableName="owner_log">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="owner_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="creation_date" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="log_type" type="VARCHAR(128)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="json_profile" type="JSONB"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="202310190000-02" author="Fabien (manual)">
+        <createIndex tableName="owner_log" indexName="owner_log_owner_id_index" unique="false">
+            <column name="owner_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="202310190000-03" author="Fabien (manual)">
+        <sql>
+            <![CDATA[
+                INSERT INTO public.owner_log (owner_id, log_type, creation_date)
+                SELECT
+                    adl.id AS user_id,
+                    'ACCOUNT_CREATED' AS log_type,
+                    COALESCE(adl.creation_date, adl.update_date_time) AS creation_date
+                FROM public.user_account AS adl
+                WHERE adl.user_type = 'OWNER';
+            ]]>
+        </sql>
+    </changeSet>
+</databaseChangeLog>
