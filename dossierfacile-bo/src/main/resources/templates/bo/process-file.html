@@ -82,7 +82,7 @@
                                 </div>
                                 <div class="panel-heading file1-border-color file1-background-color bold">
                                     <h4 class="panel-title letter">
-                                        <span th:text=" 'Type : ' + ${messageItem.getDocumentSubCategory().name()}"></span>
+                                        <span th:text=" 'Type : ' + #{${messageItem.getDocumentSubCategory().getLabel()}}"></span>
                                     </h4>
                                     <h4 class="panel-title letter" style="padding-top: 7px"
                                         th:if="${messageItem.getMonthlySum()}!=null">
