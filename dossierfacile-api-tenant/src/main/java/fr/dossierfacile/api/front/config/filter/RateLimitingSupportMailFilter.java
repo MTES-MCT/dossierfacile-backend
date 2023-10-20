@@ -8,11 +8,12 @@ import javax.servlet.Filter;
 import javax.servlet.annotation.WebFilter;
 
 @Component
-@WebFilter("/api/register/account")
-public class RateLimitingFilter extends AbstractRateLimitingFilter implements Filter {
-    @Value("${ratelimit.register.capacity}")
+@WebFilter("/api/support/email")
+public class RateLimitingSupportMailFilter extends AbstractRateLimitingFilter implements Filter {
+
+    @Value("${ratelimit.support.email.capacity}")
     private int registerCapacity;
-    @Value("${ratelimit.register.refill.delay.in.minute}")
+    @Value("${ratelimit.support.email.refill.delay.in.minute}")
     private int refillDelayInMinute;
 
     @Override
