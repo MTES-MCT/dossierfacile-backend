@@ -17,7 +17,7 @@
     <description>ProcessFile for DossierFacile</description>
 
     <properties>
-        <java.version>19</java.version>
+        <java.version>21</java.version>
         <lombok.version>1.18.30</lombok.version>
         <pdfbox.tools.version>3.0.0</pdfbox.tools.version>
         <jbig2.imageio.version>3.0.3</jbig2.imageio.version>
