@@ -1,7 +1,9 @@
 package fr.dossierfacile.garbagecollector.service;
 
 import fr.dossierfacile.garbagecollector.exceptions.OvhConnectionFailedException;
+import fr.dossierfacile.garbagecollector.model.StoredObject;
 import fr.dossierfacile.garbagecollector.service.interfaces.OvhService;
+import fr.dossierfacile.garbagecollector.service.interfaces.StorageProviderService;
 import io.sentry.Sentry;
 import lombok.extern.slf4j.Slf4j;
 import org.openstack4j.api.OSClient;
@@ -11,9 +13,12 @@ import org.openstack4j.api.storage.ObjectStorageObjectService;
 import org.openstack4j.core.transport.Config;
 import org.openstack4j.model.common.Identifier;
 import org.openstack4j.model.storage.object.SwiftObject;
+import org.openstack4j.model.storage.object.options.ObjectListOptions;
 import org.openstack4j.model.storage.object.options.ObjectLocation;
 import org.openstack4j.openstack.OSFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -21,7 +26,8 @@ import java.util.List;
 
 @Service
 @Slf4j
-public class OvhServiceImpl implements OvhService {
+@Qualifier("ovhStorageProviderService")
+public class OvhServiceImpl implements OvhService, StorageProviderService {
     private static final String OVH_CONNECT = "OVH connect. ";
     private static final String EXCEPTION = "Sentry ID Exception: ";
 
@@ -138,6 +144,25 @@ public class OvhServiceImpl implements OvhService {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public List<StoredObject> getObjectsStartingAtMarker(String marker, int numberOfObjects) {
+        ObjectListOptions options = ObjectListOptions.create().limit(numberOfObjects);
+        if (marker != null) {
+            options.marker(marker);
+        }
+        return getObjectStorage()
+                .list(ovhContainerName, options)
+                .stream()
+                .map(SwiftObject::getName)
+                .map(StoredObject::new)
+                .toList();
+    }
+
+    @Override
+    public void delete(StoredObject object) {
+        delete(object.getName());
     }
 
 }
