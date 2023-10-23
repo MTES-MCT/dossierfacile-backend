@@ -15,7 +15,7 @@
 	<description>Generate tenant's PDF documents</description>
 
 	<properties>
-		<java.version>19</java.version>
+		<java.version>21</java.version>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<lombok.version>1.18.30</lombok.version>

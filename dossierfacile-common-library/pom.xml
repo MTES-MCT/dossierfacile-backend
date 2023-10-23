@@ -41,7 +41,7 @@
 
     <properties>
         <org.mapstruct.version>1.4.2.Final</org.mapstruct.version>
-        <java.version>19</java.version>
+        <java.version>21</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <lombok.version>1.18.30</lombok.version>
