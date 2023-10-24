@@ -7,6 +7,7 @@ import fr.gouv.bo.mapper.PropertyMapper;
 import fr.gouv.bo.model.owner.PropertyModel;
 import fr.gouv.bo.service.PropertyService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,6 +23,8 @@ public class BOPropertyController {
     private PropertyService propertyService;
     @Autowired
     private PropertyMapper propertyMapper;
+    @Value("${link.shared.property}")
+    private String propertyLinkBaseUrl;
 
 
     @GetMapping("/{id}")
@@ -30,6 +33,7 @@ public class BOPropertyController {
         PropertyModel propertyModel = propertyMapper.toPropertyModel(property);
 
         model.addAttribute("property", propertyModel);
+        model.addAttribute("propertyLink", propertyLinkBaseUrl + "/" + property.getToken());
         model.addAttribute(EMAIL, new EmailDTO());
         return "bo/property";
     }
