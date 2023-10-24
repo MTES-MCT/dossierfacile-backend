@@ -27,6 +27,13 @@
                 <td>Adresse</td>
                 <td th:text="${property.address}"></td>
             </tr>
+            <tr>
+                <td>Lien de candidature</td>
+                <td>
+                    <a th:href="${propertyLink}" th:text="${propertyLink}">
+                    </a>
+                </td>
+            </tr>
         </table>
     </div>
     <div class="container">
