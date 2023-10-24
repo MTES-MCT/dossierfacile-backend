@@ -1,7 +1,6 @@
 package fr.gouv.bo.security.oauth2;
 
 import fr.dossierfacile.common.entity.BOUser;
-import fr.dossierfacile.common.entity.User;
 import fr.dossierfacile.common.entity.UserRole;
 import fr.dossierfacile.common.enums.AuthProvider;
 import fr.gouv.bo.exception.OAuth2AuthenticationProcessingException;
@@ -37,7 +36,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     private UserRoleRepository userRoleRepository;
     @Value("${authorize.domain.bo}")
     private String authorizeDomainBo;
-    @Value("${authorize.bo.access.emails}")
+    @Value("${authorize.bo.access.emails:}")
     private List<String> authorizedEmails;
 
     @Override
