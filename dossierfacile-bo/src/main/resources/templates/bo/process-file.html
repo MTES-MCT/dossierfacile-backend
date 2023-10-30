@@ -227,7 +227,7 @@
 
                                         <h4 class="panel-title letter" style="padding-top: 7px"
                                             th:if="${messageItem.getDocumentSubCategory().name()}!=null">
-                                            <span th:text="'Type : ' + ${messageItem.getDocumentSubCategory().name()}"></span>
+                                            <span th:text="'Type : ' + #{${messageItem.getDocumentSubCategory().getLabel()}}"></span>
                                         </h4>
 
                                         <h4 class="panel-title letter" style="padding-top: 7px"
