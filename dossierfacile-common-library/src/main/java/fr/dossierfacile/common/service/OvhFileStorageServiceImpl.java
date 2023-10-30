@@ -154,6 +154,11 @@ public class OvhFileStorageServiceImpl implements FileStorageProviderService {
         Payload<InputStream> payload = Payloads.create(inputStream);
         try {
             eTag = getClient().objectStorage().objects().put(ovhContainerName, ovhPath, payload);
+            SwiftObject metaData = getClient().objectStorage().objects().get(ovhContainerName, ovhPath);
+            if (metaData.getSizeInBytes() <= 0) {
+                throw new IOException("File size is null - upload failed for: " + ovhPath);
+            }
+
         } catch (AuthenticationException e) {
             log.error("ObjectStorage authentication failed.", e);
             eTag = authenticate().objectStorage().objects().put(ovhContainerName, ovhPath, payload);
@@ -161,7 +166,7 @@ public class OvhFileStorageServiceImpl implements FileStorageProviderService {
             throw new RetryableOperationException("Ovh Connection Failed", e);
         }
         if (StringUtils.isEmpty(eTag)) {
-            throw new IOException("ETag is empty - download failed!" + ovhPath);
+            throw new IOException("ETag is empty - upload failed!" + ovhPath);
         }
     }
 
