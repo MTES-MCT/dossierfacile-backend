@@ -126,5 +126,6 @@
     <include file="db/migration/202310160000-add-column-bouser.xml" />
     <include file="db/migration/202310190000-create-table-owner-log.xml" />
     <include file="db/migration/202310230000-create-table-garbage-collection.xml" />
+    <include file="db/migration/202310300000-update-property-log-table.xml" />
 
 </databaseChangeLog>

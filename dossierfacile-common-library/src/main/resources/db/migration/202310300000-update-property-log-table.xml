@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.4.xsd">
+
+    <changeSet id="202310300000-01" author="juliette">
+        <addColumn tableName="property_log">
+            <column name="log_type" type="VARCHAR(128)" />
+        </addColumn>
+        <update tableName="property_log">
+            <column name="log_type" value="APPLICATION_PAGE_VISITED" />
+        </update>
+        <addNotNullConstraint tableName="property_log" columnName="log_type" />
+    </changeSet>
+    <changeSet id="202310300000-02" author="juliette">
+        <addColumn tableName="property_log">
+            <column name="apartment_sharing_id" type="BIGINT" />
+        </addColumn>
+    </changeSet>
+</databaseChangeLog>

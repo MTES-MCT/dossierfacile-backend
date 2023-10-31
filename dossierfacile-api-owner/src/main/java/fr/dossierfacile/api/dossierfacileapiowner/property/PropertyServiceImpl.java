@@ -128,9 +128,8 @@ public class PropertyServiceImpl implements PropertyService {
 
     @Override
     public void logAccess(Property property) {
-        propertyLogRepository.save(new PropertyLog(
-                property
-        ));
+        PropertyLog log = PropertyLog.applicationPageVisited(property);
+        propertyLogRepository.save(log);
     }
 
 }
