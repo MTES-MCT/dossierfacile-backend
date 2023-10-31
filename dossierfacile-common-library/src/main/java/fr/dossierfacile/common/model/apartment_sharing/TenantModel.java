@@ -37,4 +37,5 @@ public class TenantModel {
     private LocalDateTime lastUpdateDate;
     private Boolean partnerLinked;
     private Boolean honorDeclaration;
+    private String clarification;
 }
