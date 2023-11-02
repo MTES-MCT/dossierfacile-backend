@@ -1,8 +1,10 @@
 package fr.dossierfacile.api.dossierfacileapiowner.register;
 
 import com.google.common.base.Strings;
+import fr.dossierfacile.api.dossierfacileapiowner.log.OwnerLogService;
 import fr.dossierfacile.api.dossierfacileapiowner.user.OwnerRepository;
 import fr.dossierfacile.common.entity.Owner;
+import fr.dossierfacile.common.enums.OwnerLogType;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
@@ -16,9 +18,9 @@ import java.util.Optional;
 @AllArgsConstructor
 @Slf4j
 public class AuthenticationFacadeImpl implements AuthenticationFacade {
-
     private final OwnerRepository ownerRepository;
     private final KeycloakService keycloakService;
+    private final OwnerLogService ownerLogService;
 
     private String getUserEmail() {
         return ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClaimAsString("email");
@@ -87,7 +89,11 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
             owner.setLastName(getLastName());
             owner.setPreferredName(getPreferredName());
         }
-        return ownerRepository.saveAndFlush(owner);
+        owner = ownerRepository.saveAndFlush(owner);
+        if (optionalOwner.isEmpty()) {
+            ownerLogService.saveLog(OwnerLogType.ACCOUNT_CREATED_VIA_KC, owner.getId());
+        }
+        return owner;
     }
 
     @Override

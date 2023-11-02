@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.dossierfacileapiowner.register;
 
+import fr.dossierfacile.api.dossierfacileapiowner.log.OwnerLogService;
 import fr.dossierfacile.api.dossierfacileapiowner.mail.MailService;
 import fr.dossierfacile.api.dossierfacileapiowner.user.OwnerMapper;
 import fr.dossierfacile.api.dossierfacileapiowner.user.OwnerModel;
@@ -10,6 +11,7 @@ import fr.dossierfacile.common.entity.ConfirmationToken;
 import fr.dossierfacile.common.entity.Owner;
 import fr.dossierfacile.common.entity.PasswordRecoveryToken;
 import fr.dossierfacile.common.entity.User;
+import fr.dossierfacile.common.enums.OwnerLogType;
 import fr.dossierfacile.common.repository.ConfirmationTokenRepository;
 import fr.dossierfacile.common.service.interfaces.ConfirmationTokenService;
 import lombok.AllArgsConstructor;
@@ -36,8 +38,9 @@ public class RegisterServiceImpl implements RegisterService {
     private final UserRepository userRepository;
     private final UserRoleService userRoleService;
     private final PasswordRecoveryTokenRepository passwordRecoveryTokenRepository;
-
+    private final OwnerLogService ownerLogService;
     @Override
+    @Transactional
     public long confirmAccount(String token) {
         ConfirmationToken confirmationToken = confirmationTokenRepository.findByToken(token).orElseThrow(() -> new ConfirmationTokenNotFoundException(token));
         User user = confirmationToken.getUser();
@@ -47,6 +50,7 @@ public class RegisterServiceImpl implements RegisterService {
         userRepository.save(user);
         confirmationTokenRepository.delete(confirmationToken);
         keycloakService.confirmKeycloakUser(user.getKeycloakId());
+        ownerLogService.saveLog(OwnerLogType.ACCOUNT_CONFIRMED, user.getId());
         return user.getId();
     }
 
@@ -63,6 +67,7 @@ public class RegisterServiceImpl implements RegisterService {
         ownerRepository.save(owner);
         mailService.sendEmailConfirmAccount(owner, confirmationTokenService.createToken(owner));
         userRoleService.createRole(owner);
+        ownerLogService.saveLog(OwnerLogType.ACCOUNT_CREATED, owner.getId());
         return ownerMapper.toOwnerModel(owner);
     }
 

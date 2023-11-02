@@ -1,11 +1,13 @@
 package fr.dossierfacile.api.dossierfacileapiowner.property;
 
+import fr.dossierfacile.api.dossierfacileapiowner.log.OwnerLogService;
 import fr.dossierfacile.api.dossierfacileapiowner.mail.MailService;
 import fr.dossierfacile.api.dossierfacileapiowner.register.AuthenticationFacade;
 import fr.dossierfacile.common.entity.Owner;
 import fr.dossierfacile.common.entity.Property;
 import fr.dossierfacile.common.entity.PropertyLog;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.enums.OwnerLogType;
 import fr.dossierfacile.common.repository.PropertyLogRepository;
 import fr.dossierfacile.common.service.interfaces.TenantCommonService;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +33,7 @@ public class PropertyServiceImpl implements PropertyService {
     private final PropertyApartmentSharingService propertyApartmentSharingService;
     private final TenantCommonService tenantService;
     private final PropertyLogRepository propertyLogRepository;
+    private final OwnerLogService ownerLogService;
     private final MailService mailService;
 
     @Qualifier("tenantJwtDecoder")
@@ -46,6 +49,7 @@ public class PropertyServiceImpl implements PropertyService {
         } else {
             property = new Property();
             property.setName("Propriété");
+            ownerLogService.saveLog(OwnerLogType.PROPERTY_CREATED, owner.getId());
         }
         if (propertyForm.getName() != null && !propertyForm.getName().isBlank()) {
             property.setName(propertyForm.getName());
@@ -78,6 +82,7 @@ public class PropertyServiceImpl implements PropertyService {
             property.setValidated(true);
             property.setValidatedDate(LocalDateTime.now());
             mailService.sendEmailValidatedProperty(owner, property);
+            ownerLogService.saveLog(OwnerLogType.PROPERTY_COMPLETED, owner.getId());
         }
         property.setOwner(owner);
         return propertyMapper.toPropertyModel(propertyRepository.save(property));
@@ -96,6 +101,7 @@ public class PropertyServiceImpl implements PropertyService {
         List<Property> properties = propertyRepository.findAllByOwnerId(owner.getId());
         Optional<Property> property = properties.stream().filter(p -> p.getId().equals(id)).findFirst();
         property.ifPresent(propertyRepository::delete);
+        ownerLogService.saveLog(OwnerLogType.PROPERTY_DELETED, owner.getId());
     }
 
     @Override
@@ -122,9 +128,8 @@ public class PropertyServiceImpl implements PropertyService {
 
     @Override
     public void logAccess(Property property) {
-        propertyLogRepository.save(new PropertyLog(
-                property
-        ));
+        PropertyLog log = PropertyLog.applicationPageVisited(property);
+        propertyLogRepository.save(log);
     }
 
 }

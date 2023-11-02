@@ -71,7 +71,9 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
             apartmentSharing = apartmentSharingLink.get().getApartmentSharing();
         }
         saveLinkLog(apartmentSharing, token, LinkType.FULL_APPLICATION);
-        return applicationFullMapper.toApplicationModel(apartmentSharing);
+        ApplicationModel applicationModel = applicationFullMapper.toApplicationModel(apartmentSharing);
+        applicationModel.setLastUpdateDate(getLastUpdateDate(apartmentSharing));
+        return applicationModel;
     }
 
     @Override

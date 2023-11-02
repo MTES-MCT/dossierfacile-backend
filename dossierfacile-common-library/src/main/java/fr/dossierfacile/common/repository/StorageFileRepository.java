@@ -4,6 +4,7 @@ import fr.dossierfacile.common.entity.StorageFile;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
@@ -20,5 +21,9 @@ public interface StorageFileRepository extends JpaRepository<StorageFile, Long> 
             ORDER BY sf.last_modified_date DESC
             """, nativeQuery = true)
     List<StorageFile> findAllWithOneProvider(Pageable pageable);
+
+    @Query(value = "SELECT path FROM storage_file WHERE path IN (:pathsToSearch)",
+            nativeQuery = true)
+    List<String> findExistingPathsIn(@Param("pathsToSearch") List<String> paths);
 
 }

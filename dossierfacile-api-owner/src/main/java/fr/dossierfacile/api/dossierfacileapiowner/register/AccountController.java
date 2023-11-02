@@ -1,8 +1,6 @@
 package fr.dossierfacile.api.dossierfacileapiowner.register;
 
 import fr.dossierfacile.api.dossierfacileapiowner.user.OwnerModel;
-import fr.dossierfacile.common.enums.LogType;
-import fr.dossierfacile.common.service.interfaces.LogService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -22,21 +20,17 @@ import static org.springframework.http.ResponseEntity.ok;
 @AllArgsConstructor
 @RequestMapping("/api/register")
 public class AccountController {
-
     private final RegisterService registerService;
-    private final LogService logService;
 
     @PostMapping("/account")
     public ResponseEntity<OwnerModel> account(@Valid @RequestBody AccountForm accountForm) {
         OwnerModel ownerModel = registerService.register(accountForm);
-//        logService.saveLog(LogType.ACCOUNT_CREATED, ownerModel.getId());
         return ok(ownerModel);
     }
 
     @GetMapping("/confirmAccount/{token}")
     public ResponseEntity<Void> confirmAccount(@PathVariable String token) {
-        long ownerId = registerService.confirmAccount(token);
-        logService.saveLog(LogType.EMAIL_ACCOUNT_VALIDATED, ownerId);
+        registerService.confirmAccount(token);
         return ok().build();
     }
 
@@ -51,6 +45,5 @@ public class AccountController {
         OwnerModel ownerModel = registerService.createPassword(token, password.getPassword());
         return ok(ownerModel);
     }
-
 
 }

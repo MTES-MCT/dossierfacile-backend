@@ -1,6 +1,7 @@
 package fr.dossierfacile.common.service;
 
 import fr.dossierfacile.common.entity.EncryptionKey;
+import fr.dossierfacile.common.entity.ObjectStorageProvider;
 import fr.dossierfacile.common.exceptions.OvhConnectionFailedException;
 import fr.dossierfacile.common.exceptions.RetryableOperationException;
 import fr.dossierfacile.common.service.interfaces.FileStorageProviderService;
@@ -15,12 +16,14 @@ import org.openstack4j.model.common.Identifier;
 import org.openstack4j.model.common.Payload;
 import org.openstack4j.model.common.Payloads;
 import org.openstack4j.model.storage.object.SwiftObject;
+import org.openstack4j.model.storage.object.options.ObjectListOptions;
 import org.openstack4j.openstack.OSFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Nullable;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.spec.GCMParameterSpec;
@@ -28,6 +31,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.Key;
+import java.util.List;
 
 @Service("ovhFileStorageProvider")
 @Slf4j
@@ -78,6 +82,11 @@ public class OvhFileStorageServiceImpl implements FileStorageProviderService {
     private OSClient.OSClientV3 getClient() {
         if (osClientThreadLocal.get() != null) return osClientThreadLocal.get();
         return authenticate();
+    }
+
+    @Override
+    public ObjectStorageProvider getProvider() {
+        return ObjectStorageProvider.OVH;
     }
 
     @Override
@@ -145,6 +154,11 @@ public class OvhFileStorageServiceImpl implements FileStorageProviderService {
         Payload<InputStream> payload = Payloads.create(inputStream);
         try {
             eTag = getClient().objectStorage().objects().put(ovhContainerName, ovhPath, payload);
+            SwiftObject metaData = getClient().objectStorage().objects().get(ovhContainerName, ovhPath);
+            if (metaData.getSizeInBytes() <= 0) {
+                throw new IOException("File size is null - upload failed for: " + ovhPath);
+            }
+
         } catch (AuthenticationException e) {
             log.error("ObjectStorage authentication failed.", e);
             eTag = authenticate().objectStorage().objects().put(ovhContainerName, ovhPath, payload);
@@ -152,7 +166,21 @@ public class OvhFileStorageServiceImpl implements FileStorageProviderService {
             throw new RetryableOperationException("Ovh Connection Failed", e);
         }
         if (StringUtils.isEmpty(eTag)) {
-            throw new IOException("ETag is empty - download failed!" + ovhPath);
+            throw new IOException("ETag is empty - upload failed!" + ovhPath);
         }
     }
+
+    @Override
+    public List<String> listObjectNames(@Nullable String marker, int maxObjects) {
+        ObjectListOptions options = ObjectListOptions.create().limit(maxObjects);
+        if (marker != null) {
+            options.marker(marker);
+        }
+        return getClient().objectStorage().objects()
+                .list(ovhContainerName, options)
+                .stream()
+                .map(SwiftObject::getName)
+                .toList();
+    }
+
 }
