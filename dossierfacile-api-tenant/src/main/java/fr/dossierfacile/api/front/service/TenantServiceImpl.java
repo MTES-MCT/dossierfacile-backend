@@ -140,7 +140,7 @@ public class TenantServiceImpl implements TenantService {
         if (kcUser.isFranceConnect()) {
             logService.saveLog(LogType.FC_ACCOUNT_CREATION, tenant.getId());
         } else {
-            logService.saveLog(LogType.ACCOUNT_CREATED, tenant.getId());
+            logService.saveLog(LogType.ACCOUNT_CREATED_VIA_KC, tenant.getId());
         }
         return tenantRepository.save(tenant);
     }

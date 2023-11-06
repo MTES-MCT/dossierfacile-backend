@@ -133,6 +133,9 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
             if (!Boolean.TRUE.equals(tenant.getFranceConnect()) && user.isFranceConnect()) {
                 log.info("Local account link to FranceConnect account, for tenant with ID {}", tenant.getId());
                 logService.saveLog(LogType.FC_ACCOUNT_LINK, tenant.getId());
+            } else if (tenant.getKeycloakId() == null ){
+                log.info("First tenant connection from DF, for tenant with ID {}", tenant.getId());
+                logService.saveLog(LogType.ACCOUNT_LINK, tenant.getId());
             }
             tenant.setKeycloakId(user.getKeycloakId());
 
