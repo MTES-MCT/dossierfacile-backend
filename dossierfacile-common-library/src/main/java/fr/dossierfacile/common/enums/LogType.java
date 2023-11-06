@@ -3,6 +3,8 @@ package fr.dossierfacile.common.enums;
 public enum LogType {
     CUSTOM_EMAIL(Constants.TENANT_MESSAGES),
     ACCOUNT_CREATED(null),
+    ACCOUNT_CREATED_VIA_KC(null),
+    ACCOUNT_LINK(null),// first connection on DF
     ACCOUNT_COMPLETED(null),
     ACCOUNT_DENIED("operatorId"),
     ACCOUNT_EDITED(null),
