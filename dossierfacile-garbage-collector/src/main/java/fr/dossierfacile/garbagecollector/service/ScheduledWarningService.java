@@ -33,13 +33,13 @@ public class ScheduledWarningService {
 
     @Scheduled(cron = "${cron.process.warnings}")
     public void accountWarningsForDocumentDeletion() {
-        log.info("accountWarnings. Executing scheduled task for account warnings at [" + LocalDateTime.now() + "]");
+        log.info("Starting scheduled task for account warnings");
         LocalDateTime localDateTime = LocalDateTime.now().minusMonths(monthsForDeletionOfDocuments);
         deleteOldArchivedAccount();
         processAllWarnings(localDateTime, 2);
         processAllWarnings(localDateTime, 1);
         processAllWarnings(localDateTime, 0);
-        log.info("accountWarnings. Account warnings' task was finished");
+        log.info("Finished scheduled task for account warnings");
     }
 
     private void deleteOldArchivedAccount() {
