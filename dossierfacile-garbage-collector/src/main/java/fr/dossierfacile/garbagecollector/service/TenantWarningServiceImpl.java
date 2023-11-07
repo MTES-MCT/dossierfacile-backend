@@ -44,7 +44,7 @@ public class TenantWarningServiceImpl implements TenantWarningService {
     private final KeycloakCommonService keycloakCommonService;
 
     @Override
-    @Transactional("dossierTransactionManager")
+    @Transactional
     public void handleTenantWarning(Tenant t, int warnings) {
         Tenant tenant = tenantRepository.findById(t.getId()).get();
         switch (warnings) {
@@ -93,7 +93,7 @@ public class TenantWarningServiceImpl implements TenantWarningService {
     }
 
     @Override
-    @Transactional("dossierTransactionManager")
+    @Transactional
     public void deleteOldArchivedWarning(long tenantId) {
         log.info("Deleting tenant " + tenantId);
         Tenant tenant = tenantRepository.findById(tenantId).get();
