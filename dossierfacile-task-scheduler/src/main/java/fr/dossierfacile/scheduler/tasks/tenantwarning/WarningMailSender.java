@@ -1,9 +1,8 @@
-package fr.dossierfacile.scheduler.service;
+package fr.dossierfacile.scheduler.tasks.tenantwarning;
 
 import com.google.common.base.Strings;
 import fr.dossierfacile.common.entity.ConfirmationToken;
 import fr.dossierfacile.common.entity.User;
-import fr.dossierfacile.scheduler.service.interfaces.MailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,7 +19,7 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class MailServiceImpl implements MailService {
+public class WarningMailSender {
     private final TransactionalEmailsApi apiInstance;
     @Value("${sendinblue.url.domain}")
     private String sendinBlueUrlDomain;
@@ -29,7 +28,6 @@ public class MailServiceImpl implements MailService {
     @Value("${sendinblue.template.id.second.warning.for.deletion.of.documents}")
     private Long templateSecondWarningForDeletionOfDocuments;
 
-    @Override
     public void sendEmailFirstWarningForDeletionOfDocuments(User user, ConfirmationToken confirmationToken) {
         Map<String, String> variables = new HashMap<>();
         variables.put("PRENOM", user.getFirstName());
@@ -55,7 +53,6 @@ public class MailServiceImpl implements MailService {
         }
     }
 
-    @Override
     public void sendEmailSecondWarningForDeletionOfDocuments(User user, ConfirmationToken confirmationToken) {
         Map<String, String> variables = new HashMap<>();
         variables.put("PRENOM", user.getFirstName());

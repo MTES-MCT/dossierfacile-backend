@@ -1,4 +1,4 @@
-package fr.dossierfacile.scheduler.service;
+package fr.dossierfacile.scheduler.tasks.storagesynchronization;
 
 import fr.dossierfacile.common.entity.ObjectStorageProvider;
 import fr.dossierfacile.common.entity.StorageFile;
@@ -18,7 +18,7 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class BackupFilesService {
+public class BackupFilesTask {
     private final StorageFileRepository storageFileRepository;
     private final FileStorageService fileStorageService;
 

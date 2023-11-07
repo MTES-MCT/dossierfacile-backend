@@ -1,4 +1,4 @@
-package fr.dossierfacile.scheduler.model.garbagecollection;
+package fr.dossierfacile.scheduler.tasks.garbagecollection;
 
 import fr.dossierfacile.common.entity.ObjectStorageProvider;
 import lombok.AllArgsConstructor;
