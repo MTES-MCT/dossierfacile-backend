@@ -1,9 +1,8 @@
-package fr.dossierfacile.scheduler.service;
+package fr.dossierfacile.scheduler.tasks.tenantwarning;
 
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
-import fr.dossierfacile.scheduler.service.interfaces.TenantWarningService;
 import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +20,7 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ScheduledWarningService {
+public class TenantWarningTask {
     @Value("${months_for_deletion_of_documents:3}")
     private Integer monthsForDeletionOfDocuments;
     @Value("${months_for_deletion_of_archived_tenants:12}")

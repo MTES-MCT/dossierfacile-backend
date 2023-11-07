@@ -1,4 +1,4 @@
-package fr.dossierfacile.scheduler.service;
+package fr.dossierfacile.scheduler.tasks.storagesynchronization;
 
 import fr.dossierfacile.common.entity.StorageFileToDelete;
 import fr.dossierfacile.common.repository.StorageFileToDeleteRepository;
@@ -13,7 +13,7 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ScheduledDeleteService {
+public class DeleteFilesTask {
 
     private final StorageFileToDeleteRepository storageFileToDeleteRepository;
     private final FileStorageToDeleteService fileStorageToDeleteService;

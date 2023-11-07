@@ -1,7 +1,6 @@
-package fr.dossierfacile.scheduler.repo.garbagecollection;
+package fr.dossierfacile.scheduler.tasks.garbagecollection;
 
 import fr.dossierfacile.common.entity.ObjectStorageProvider;
-import fr.dossierfacile.scheduler.model.garbagecollection.GarbageCollectionDetails;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

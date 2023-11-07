@@ -1,4 +1,4 @@
-package fr.dossierfacile.scheduler.service;
+package fr.dossierfacile.scheduler.tasks.tenantwarning;
 
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.ConfirmationToken;
@@ -16,8 +16,6 @@ import fr.dossierfacile.common.service.interfaces.KeycloakCommonService;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.dossierfacile.common.service.interfaces.TenantCommonService;
-import fr.dossierfacile.scheduler.service.interfaces.MailService;
-import fr.dossierfacile.scheduler.service.interfaces.TenantWarningService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -28,9 +26,9 @@ import java.util.Optional;
 @Slf4j
 @Service
 @AllArgsConstructor
-public class TenantWarningServiceImpl implements TenantWarningService {
+public class TenantWarningService {
     private final LogService logService;
-    private final MailService mailService;
+    private final WarningMailSender mailSender;
     private final ConfirmationTokenService confirmationTokenService;
     private final ConfirmationTokenRepository confirmationTokenRepository;
     private final TenantCommonRepository tenantRepository;
@@ -40,7 +38,6 @@ public class TenantWarningServiceImpl implements TenantWarningService {
     private final ApartmentSharingRepository apartmentSharingRepository;
     private final KeycloakCommonService keycloakCommonService;
 
-    @Override
     @Transactional
     public void handleTenantWarning(Tenant t, int warnings) {
         Tenant tenant = tenantRepository.findById(t.getId()).get();
@@ -77,7 +74,7 @@ public class TenantWarningServiceImpl implements TenantWarningService {
         log.info("accountWarnings. SECOND warning for tenant with ID [" + t.getId() + "]");
         t.setWarnings(2);
         tenantRepository.save(t);
-        mailService.sendEmailSecondWarningForDeletionOfDocuments(t, confirmationTokenService.createToken(t));
+        mailSender.sendEmailSecondWarningForDeletionOfDocuments(t, confirmationTokenService.createToken(t));
         logService.saveLog(LogType.SECOND_ACCOUNT_WARNING_FOR_DOCUMENT_DELETION, t.getId());
     }
 
@@ -85,11 +82,10 @@ public class TenantWarningServiceImpl implements TenantWarningService {
         log.info("accountWarnings. FIRST warning for tenant with ID [" + t.getId() + "]");
         t.setWarnings(1);
         tenantRepository.save(t);
-        mailService.sendEmailFirstWarningForDeletionOfDocuments(t, confirmationTokenService.createToken(t));
+        mailSender.sendEmailFirstWarningForDeletionOfDocuments(t, confirmationTokenService.createToken(t));
         logService.saveLog(LogType.FIRST_ACCOUNT_WARNING_FOR_DOCUMENT_DELETION, t.getId());
     }
 
-    @Override
     @Transactional
     public void deleteOldArchivedWarning(long tenantId) {
         log.info("Deleting tenant " + tenantId);
