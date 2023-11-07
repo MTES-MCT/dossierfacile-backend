@@ -3,6 +3,7 @@ package fr.dossierfacile.scheduler.tasks.tenantwarning;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
+import fr.dossierfacile.scheduler.LoggingContext;
 import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +17,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
+import static fr.dossierfacile.scheduler.tasks.TaskName.TENANT_WARNINGS;
 
 @Slf4j
 @Service
@@ -32,6 +35,7 @@ public class TenantWarningTask {
 
     @Scheduled(cron = "${cron.process.warnings}")
     public void accountWarningsForDocumentDeletion() {
+        LoggingContext.setTask(TENANT_WARNINGS);
         log.info("Starting scheduled task for account warnings");
         LocalDateTime localDateTime = LocalDateTime.now().minusMonths(monthsForDeletionOfDocuments);
         deleteOldArchivedAccount();

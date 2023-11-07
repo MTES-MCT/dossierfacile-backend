@@ -47,6 +47,7 @@
             </fieldNames>
             <customFields>{"application":"${APPLICATION_NAME}", "environment":"${ENVIRONMENT}", "profiles":"${APPLICATION_PROFILES}"}</customFields>
             <includeMdcKeyName>storage_file_id</includeMdcKeyName>
+            <includeMdcKeyName>task</includeMdcKeyName>
         </encoder>
     </appender>
 

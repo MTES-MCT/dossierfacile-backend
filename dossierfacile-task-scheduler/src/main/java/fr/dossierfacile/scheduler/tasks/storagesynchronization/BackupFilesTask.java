@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 import java.io.InputStream;
 import java.util.List;
 
+import static fr.dossierfacile.scheduler.tasks.TaskName.STORAGE_FILES_BACKUP;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -24,7 +26,7 @@ public class BackupFilesTask {
 
     @Scheduled(fixedDelayString = "${scheduled.process.storage.backup.delay.ms}")
     public void scheduleBackupTask() {
-        log.info("Starting scheduled backup task of files in object storages");
+        LoggingContext.setTask(STORAGE_FILES_BACKUP);
         Pageable limit = PageRequest.of(0, 100);
         List<StorageFile> storageFiles = storageFileRepository.findAllWithOneProvider(limit);
         storageFiles.parallelStream().forEach(storageFile -> {
