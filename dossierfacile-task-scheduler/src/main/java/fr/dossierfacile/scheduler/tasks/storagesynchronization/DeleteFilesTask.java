@@ -23,11 +23,12 @@ public class DeleteFilesTask {
 
     @Scheduled(fixedDelay = 10000)
     public void deleteFileInProviderTask() {
-        LoggingContext.setTask(STORAGE_FILES_DELETION);
+        LoggingContext.startTask(STORAGE_FILES_DELETION);
         List<StorageFileToDelete> storageFileToDeleteList = storageFileToDeleteRepository.findAll();
         for (StorageFileToDelete storageFileToDelete : storageFileToDeleteList) {
             fileStorageToDeleteService.delete(storageFileToDelete);
         }
+        LoggingContext.endTask();
     }
 
 }

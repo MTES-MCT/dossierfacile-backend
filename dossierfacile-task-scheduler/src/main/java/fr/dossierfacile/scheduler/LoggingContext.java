@@ -11,8 +11,14 @@ public class LoggingContext {
     private static final String STORAGE_FILE = "storage_file_id";
     private static final String TASK_NAME = "task";
 
-    public static void setTask(TaskName taskName) {
+    public static void startTask(TaskName taskName) {
         MDC.put(TASK_NAME, taskName.name());
+        log.info("Starting scheduled task");
+    }
+
+    public static void endTask() {
+        log.info("Finished scheduled task");
+        MDC.clear();
     }
 
     public static void setStorageFile(StorageFile file) {
@@ -22,6 +28,7 @@ public class LoggingContext {
     }
 
     public static void clear() {
+        MDC.remove(TASK_NAME);
         MDC.remove(STORAGE_FILE);
     }
 

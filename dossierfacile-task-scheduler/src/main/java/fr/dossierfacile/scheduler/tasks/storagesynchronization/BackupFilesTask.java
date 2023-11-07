@@ -26,7 +26,7 @@ public class BackupFilesTask {
 
     @Scheduled(fixedDelayString = "${scheduled.process.storage.backup.delay.ms}")
     public void scheduleBackupTask() {
-        LoggingContext.setTask(STORAGE_FILES_BACKUP);
+        LoggingContext.startTask(STORAGE_FILES_BACKUP);
         Pageable limit = PageRequest.of(0, 100);
         List<StorageFile> storageFiles = storageFileRepository.findAllWithOneProvider(limit);
         storageFiles.parallelStream().forEach(storageFile -> {
@@ -38,6 +38,7 @@ public class BackupFilesTask {
             }
             LoggingContext.clear();
         });
+        LoggingContext.endTask();
     }
 
     private static boolean isNotPresentOnProvider(StorageFile storageFile, ObjectStorageProvider objectStorageProvider) {

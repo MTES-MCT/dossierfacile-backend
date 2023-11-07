@@ -35,14 +35,13 @@ public class TenantWarningTask {
 
     @Scheduled(cron = "${cron.process.warnings}")
     public void accountWarningsForDocumentDeletion() {
-        LoggingContext.setTask(TENANT_WARNINGS);
-        log.info("Starting scheduled task for account warnings");
+        LoggingContext.startTask(TENANT_WARNINGS);
         LocalDateTime localDateTime = LocalDateTime.now().minusMonths(monthsForDeletionOfDocuments);
         deleteOldArchivedAccount();
         processAllWarnings(localDateTime, 2);
         processAllWarnings(localDateTime, 1);
         processAllWarnings(localDateTime, 0);
-        log.info("Finished scheduled task for account warnings");
+        LoggingContext.endTask();
     }
 
     private void deleteOldArchivedAccount() {

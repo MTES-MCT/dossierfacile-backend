@@ -27,10 +27,9 @@ public class GarbageCollectionTask {
 
     @Scheduled(fixedDelayString = "${garbage-collection.seconds-between-iterations:60}", timeUnit = SECONDS)
     void cleanGarbage() {
-        LoggingContext.setTask(GARBAGE_COLLECTION);
-        log.info("Starting garbage collection iteration");
+        LoggingContext.startTask(GARBAGE_COLLECTION);
         storageProviderServices.keySet().forEach(this::cleanGarbageOn);
-        log.info("Finished garbage collection iteration");
+        LoggingContext.endTask();
     }
 
     private void cleanGarbageOn(ObjectStorageProvider provider) {
