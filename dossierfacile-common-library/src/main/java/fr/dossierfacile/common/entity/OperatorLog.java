@@ -55,17 +55,21 @@ public class OperatorLog {
 
     private Integer processedDocuments;
 
-    public OperatorLog(Tenant tenant, User operator, TenantFileStatus tenantFileStatus, ActionOperatorType actionOperatorType, Integer processedDocuments) {
+    @Column(name = "time_spent")
+    private Integer timeSpent;
+
+    public OperatorLog(Tenant tenant, User operator, TenantFileStatus tenantFileStatus, ActionOperatorType actionOperatorType, Integer processedDocuments, Integer timeSpent) {
         this.tenant = tenant;
         this.operator = operator;
         this.tenantFileStatus = tenantFileStatus;
         this.actionOperatorType = actionOperatorType;
         creationDate = LocalDateTime.now();
         this.processedDocuments = processedDocuments;
+        this.timeSpent = timeSpent;
     }
 
     public OperatorLog(Tenant tenant, User operator, TenantFileStatus tenantFileStatus, ActionOperatorType actionOperatorType) {
-        this(tenant, operator, tenantFileStatus, actionOperatorType, null);
+        this(tenant, operator, tenantFileStatus, actionOperatorType, null, null);
     }
 
 }
