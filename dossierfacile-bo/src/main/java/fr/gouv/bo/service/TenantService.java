@@ -595,7 +595,7 @@ public class TenantService {
         tenantRepository.save(tenant);
 
         logService.saveByLog(new Log(LogType.ACCOUNT_VALIDATED, tenant.getId(), operator.getId()));
-        operatorLogRepository.save(new OperatorLog(tenant, operator, tenant.getStatus(), ActionOperatorType.STOP_PROCESS, processedDocuments.count()));
+        operatorLogRepository.save(new OperatorLog(tenant, operator, tenant.getStatus(), ActionOperatorType.STOP_PROCESS, processedDocuments.count(), processedDocuments.timeSpent() ));
 
         if (tenant.getApartmentSharing().getApplicationType() == ApplicationType.GROUP) {
             mailService.sendEmailToTenantAfterValidateAllDocumentsOfTenant(tenant);
@@ -618,7 +618,7 @@ public class TenantService {
 
         logService.saveByLog(new Log(LogType.ACCOUNT_DENIED, tenant.getId(), operator.getId(), (message == null) ? null : message.getId()));
         operatorLogRepository.save(new OperatorLog(
-                tenant, operator, tenant.getStatus(), ActionOperatorType.STOP_PROCESS, processedDocuments.count()
+                tenant, operator, tenant.getStatus(), ActionOperatorType.STOP_PROCESS, processedDocuments.count(), processedDocuments.timeSpent()
         ));
         if (tenant.getApartmentSharing().getApplicationType() == ApplicationType.COUPLE) {
             tenant.getApartmentSharing().getTenants().stream()

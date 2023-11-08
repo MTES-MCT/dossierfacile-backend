@@ -13,6 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 public class CustomMessage {
+    private String timeSpent;
     private List<MessageItem> messageItems = new ArrayList<>();
     private List<GuarantorItem> guarantorItems = new ArrayList<>();
 }
