@@ -224,7 +224,6 @@ public class BOTenantController {
         Tenant tenant = tenantService.find(id);
         checkPartnerRights(tenant, principal);
         tenantService.processFile(id, customMessage, principal);
-        tenantService.updateOperatorDateTimeTenant(id);
         return tenantService.redirectToApplication(principal, null);
     }
 
