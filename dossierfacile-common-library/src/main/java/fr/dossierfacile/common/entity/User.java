@@ -117,6 +117,10 @@ public abstract class User implements Serializable {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private ConfirmationToken confirmationToken;
 
+    private String acquisitionCampaign;
+    private String acquisitionSource;
+    private String acquisitionMedium;
+
     public User(UserType userType){
         this.userType = userType;
     }

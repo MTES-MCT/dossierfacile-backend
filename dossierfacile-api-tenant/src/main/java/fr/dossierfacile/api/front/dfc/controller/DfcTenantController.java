@@ -44,7 +44,7 @@ public class DfcTenantController {
 
         if (tenant == null) {
             KeycloakUser kcUser = authenticationFacade.getKeycloakUser();
-            tenant = tenantService.registerFromKeycloakUser(kcUser, partner);
+            tenant = tenantService.registerFromKeycloakUser(kcUser, partner, null);
         } else {
             userService.linkTenantToPartner(tenant, partner, null);
         }

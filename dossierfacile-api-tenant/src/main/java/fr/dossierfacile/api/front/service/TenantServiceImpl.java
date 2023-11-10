@@ -2,6 +2,7 @@ package fr.dossierfacile.api.front.service;
 
 import fr.dossierfacile.api.front.exception.MailSentLimitException;
 import fr.dossierfacile.api.front.exception.TenantNotFoundException;
+import fr.dossierfacile.api.front.form.AcquisitionData;
 import fr.dossierfacile.api.front.model.KeycloakUser;
 import fr.dossierfacile.api.front.model.tenant.EmailExistsModel;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
@@ -10,7 +11,6 @@ import fr.dossierfacile.api.front.register.enums.StepRegister;
 import fr.dossierfacile.api.front.register.form.partner.EmailExistsForm;
 import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
 import fr.dossierfacile.api.front.service.interfaces.MailService;
-import fr.dossierfacile.api.front.service.interfaces.PropertyService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.service.interfaces.UserApiService;
 import fr.dossierfacile.api.front.util.Obfuscator;
@@ -52,7 +52,6 @@ public class TenantServiceImpl implements TenantService {
     private final LogService logService;
     private final MailService mailService;
     private final PartnerCallBackService partnerCallBackService;
-    private final PropertyService propertyService;
     private final RegisterFactory registerFactory;
     private final TenantCommonRepository tenantRepository;
     private final KeycloakService keycloakService;
@@ -109,7 +108,7 @@ public class TenantServiceImpl implements TenantService {
 
     @Override
     @Transactional
-    public Tenant registerFromKeycloakUser(KeycloakUser kcUser, String partner) {
+    public Tenant registerFromKeycloakUser(KeycloakUser kcUser, String partner, AcquisitionData acquisitionData) {
         // check user still exists in keycloak
         if (keycloakService.getKeyCloakUser(kcUser.getKeycloakId()) == null) {
             throw new TenantNotFoundException("User doesn't exist anymore in KC - token is out-of-date");
@@ -123,6 +122,9 @@ public class TenantServiceImpl implements TenantService {
                 .preferredName(kcUser.getPreferredUsername())
                 .franceConnect(kcUser.isFranceConnect())
                 .honorDeclaration(false)
+                .acquisitionCampaign(acquisitionData.campaign())
+                .acquisitionSource(acquisitionData.source())
+                .acquisitionMedium(acquisitionData.medium())
                 .build());
 
         if (!kcUser.isEmailVerified()) {
