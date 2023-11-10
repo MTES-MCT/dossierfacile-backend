@@ -1,6 +1,6 @@
 package fr.dossierfacile.api.front.controller;
 
-import fr.dossierfacile.api.front.form.AcquisitionData;
+import fr.dossierfacile.common.converter.AcquisitionData;
 import fr.dossierfacile.api.front.form.ShareFileByMailForm;
 import fr.dossierfacile.api.front.mapper.PropertyOMapper;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
