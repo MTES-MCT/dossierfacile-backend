@@ -1,7 +1,7 @@
 package fr.dossierfacile.api.front.security;
 
 import fr.dossierfacile.api.front.exception.TenantNotFoundException;
-import fr.dossierfacile.api.front.form.AcquisitionData;
+import fr.dossierfacile.common.converter.AcquisitionData;
 import fr.dossierfacile.api.front.model.KeycloakUser;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;

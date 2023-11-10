@@ -2,24 +2,24 @@ package fr.dossierfacile.api.dossierfacileapiowner.user;
 
 import fr.dossierfacile.api.dossierfacileapiowner.register.AuthenticationFacade;
 import fr.dossierfacile.api.dossierfacileapiowner.register.KeycloakService;
+import fr.dossierfacile.common.converter.AcquisitionData;
 import fr.dossierfacile.common.entity.Owner;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.client.HttpResponseException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.servlet.http.HttpServletResponse;
-
-import java.time.LocalDateTime;
 
 import static org.springframework.http.ResponseEntity.ok;
 
@@ -55,8 +55,8 @@ public class OwnerController {
     }
 
     @GetMapping(value = "/profile")
-    public ResponseEntity<OwnerModel> profile() {
-        Owner owner = authenticationFacade.getOwner();
+    public ResponseEntity<OwnerModel> profile(@RequestParam MultiValueMap<String, String> params) {
+        Owner owner = authenticationFacade.getOwner(AcquisitionData.from(params));
         ownerService.updateLastLoginDate(owner);
         return ok(ownerMapper.toOwnerModel(owner));
     }

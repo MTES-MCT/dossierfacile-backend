@@ -1,6 +1,6 @@
 package fr.dossierfacile.api.front.security.interfaces;
 
-import fr.dossierfacile.api.front.form.AcquisitionData;
+import fr.dossierfacile.common.converter.AcquisitionData;
 import fr.dossierfacile.api.front.model.KeycloakUser;
 import fr.dossierfacile.common.entity.Tenant;
 

@@ -2,7 +2,7 @@ package fr.dossierfacile.api.front.service;
 
 import fr.dossierfacile.api.front.exception.MailSentLimitException;
 import fr.dossierfacile.api.front.exception.TenantNotFoundException;
-import fr.dossierfacile.api.front.form.AcquisitionData;
+import fr.dossierfacile.common.converter.AcquisitionData;
 import fr.dossierfacile.api.front.model.KeycloakUser;
 import fr.dossierfacile.api.front.model.tenant.EmailExistsModel;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
@@ -122,10 +122,13 @@ public class TenantServiceImpl implements TenantService {
                 .preferredName(kcUser.getPreferredUsername())
                 .franceConnect(kcUser.isFranceConnect())
                 .honorDeclaration(false)
-                .acquisitionCampaign(acquisitionData.campaign())
-                .acquisitionSource(acquisitionData.source())
-                .acquisitionMedium(acquisitionData.medium())
                 .build());
+
+        if (acquisitionData != null) {
+            tenant.setAcquisitionCampaign(acquisitionData.campaign());
+            tenant.setAcquisitionSource(acquisitionData.source());
+            tenant.setAcquisitionMedium(acquisitionData.medium());
+        }
 
         if (!kcUser.isEmailVerified()) {
             // createdAccount without verified email should be deactivated
