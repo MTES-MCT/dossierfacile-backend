@@ -69,7 +69,7 @@ public class WebSecurityConfig {
                 .hasRole("ADMIN")
                 .antMatchers("/bo/tenant/{tenantId}/processFile")
                 .hasAnyRole("ADMIN", "OPERATOR", "PARTNER")
-                .antMatchers("/bo/**", "/bo", "/documents/**")
+                .antMatchers("/bo/**", "/bo", "/documents/**", "/bo/dashboard")
                 .hasAnyRole("ADMIN", "OPERATOR")
                 .anyRequest()
                 .authenticated()
