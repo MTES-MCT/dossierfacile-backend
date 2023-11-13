@@ -1,7 +1,6 @@
 package fr.dossierfacile.scheduler.tasks.tenantwarning;
 
 import fr.dossierfacile.common.entity.Tenant;
-import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.scheduler.LoggingContext;
 import io.sentry.Sentry;
@@ -16,7 +15,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 import static fr.dossierfacile.scheduler.tasks.TaskName.TENANT_WARNINGS;
 
@@ -26,8 +24,6 @@ import static fr.dossierfacile.scheduler.tasks.TaskName.TENANT_WARNINGS;
 public class TenantWarningTask {
     @Value("${months_for_deletion_of_documents:3}")
     private Integer monthsForDeletionOfDocuments;
-    @Value("${months_for_deletion_of_archived_tenants:12}")
-    private Integer monthsForDeletionOfTenants;
     @Value("${warnings.max.pages:1}")
     private Integer warningMaxPages;
     private final TenantCommonRepository tenantRepository;
@@ -37,27 +33,10 @@ public class TenantWarningTask {
     public void accountWarningsForDocumentDeletion() {
         LoggingContext.startTask(TENANT_WARNINGS);
         LocalDateTime localDateTime = LocalDateTime.now().minusMonths(monthsForDeletionOfDocuments);
-        deleteOldArchivedAccount();
         processAllWarnings(localDateTime, 2);
         processAllWarnings(localDateTime, 1);
         processAllWarnings(localDateTime, 0);
         LoggingContext.endTask();
-    }
-
-    private void deleteOldArchivedAccount() {
-        LocalDateTime limitDate = LocalDateTime.now().minusMonths(monthsForDeletionOfTenants);
-        PageRequest pageRequest = PageRequest.of(0, 5000);
-        List<Long> tenantIdList = tenantRepository.findByStatusAndLastUpdateDate(TenantFileStatus.ARCHIVED, limitDate, pageRequest);
-        log.info("Delete archived tenants");
-        tenantIdList.forEach(tid -> {
-            try {
-                tenantWarningService.deleteOldArchivedWarning(tid);
-            } catch (Exception e) {
-                log.error("error while deleting old accounts", e);
-            }
-
-        });
-        log.info("Deleted " + tenantIdList.size() + " archived tenants");
     }
 
     private void processAllWarnings(LocalDateTime localDateTime, int warnings) {
