@@ -281,9 +281,6 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
     )
     List<TenantUpdate> findTenantUpdateByCreationDateAndPartner(@Param("creationDateFrom") LocalDateTime from, @Param("partnerId") Long id, @Param("limit") Long limit);
 
-    @Query("SELECT t.id FROM Tenant t WHERE t.status = :status AND t.lastUpdateDate < :before")
-    List<Long> findByStatusAndLastUpdateDate(@Param("status") TenantFileStatus status, @Param("before") LocalDateTime before, Pageable pageable);
-
     @Query("""
             SELECT DISTINCT t
             FROM Tenant t
