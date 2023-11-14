@@ -22,10 +22,9 @@ import static fr.dossierfacile.scheduler.tasks.TaskName.TENANT_WARNINGS;
 @Service
 @RequiredArgsConstructor
 public class TenantWarningTask {
+
     @Value("${months_for_deletion_of_documents:3}")
     private Integer monthsForDeletionOfDocuments;
-    @Value("${warnings.max.pages:1}")
-    private Integer warningMaxPages;
     private final TenantCommonRepository tenantRepository;
     private final TenantWarningService tenantWarningService;
 
@@ -46,9 +45,6 @@ public class TenantWarningTask {
         }
         int lengthOfPage = 100;
         int numberOfPage = (int) (numberOfTenantsToProcess / lengthOfPage);
-        if (numberOfPage > warningMaxPages) {
-            numberOfPage = warningMaxPages;
-        }
         for (int i = numberOfPage; i >= 0; i--) {
             Pageable page = PageRequest.of(i, lengthOfPage, Sort.Direction.DESC, "id");
             processWarningsBatch(localDateTime, warnings, page);
