@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 
 import static fr.dossierfacile.scheduler.tasks.TaskName.TENANT_WARNINGS;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 @Slf4j
 @Service
@@ -63,7 +64,9 @@ public class TenantWarningTask {
                     log.info("accountWarnings. Found [" + tenantList.getTotalElements() + "] tenants whose documents will be deleted");
         }
 
-        tenantList.stream().forEach(t -> {
+        tenantList.stream()
+                .filter(tenant -> isNotBlank(tenant.getEmail()))
+                .forEach(t -> {
             try {
                 tenantWarningService.handleTenantWarning(t, warnings);
             } catch (Exception e) {
