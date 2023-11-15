@@ -59,6 +59,10 @@ public class UserService {
         return userRepository.findByEmail(email).orElse(null);
     }
 
+    public BOUser findUserById(Long id) {
+        return userRepository.findById(id).orElse(null);
+    }
+
     public void delete(Long id) {
         userRepository.deleteById(id);
     }

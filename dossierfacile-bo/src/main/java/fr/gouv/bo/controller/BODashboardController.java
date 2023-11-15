@@ -5,9 +5,11 @@ import fr.gouv.bo.dto.EmailDTO;
 import fr.gouv.bo.service.LogService;
 import fr.gouv.bo.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.security.Principal;
@@ -36,4 +38,17 @@ public class BODashboardController {
         model.addAttribute(EMAIL, new EmailDTO());
         return "bo/dashboard";
     }
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @GetMapping("/{userId}")
+    public String boUserDashboard(Model model, @PathVariable Long userId) {
+        BOUser operator = userService.findUserById(userId);
+        List<Object[]> listTreatedCountByDay = logService.listLastTreatedFilesByOperator(operator.getId());
+
+        model.addAttribute("operator", operator);
+        model.addAttribute("listTreatedCountByDay", listTreatedCountByDay);
+
+        model.addAttribute(EMAIL, new EmailDTO());
+        return "bo/dashboard";
+    }
+
 }
