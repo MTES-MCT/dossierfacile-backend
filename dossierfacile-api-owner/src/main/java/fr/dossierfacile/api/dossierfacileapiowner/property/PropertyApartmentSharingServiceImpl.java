@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import static fr.dossierfacile.common.entity.PropertyLog.*;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -31,18 +32,19 @@ public class PropertyApartmentSharingServiceImpl implements PropertyApartmentSha
     public void subscribeTenantApartmentSharingToProperty(Tenant tenant, Property property, boolean hasAccess) {
         if (tenant.getTenantType() == TenantType.CREATE) {
             ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
-            PropertyApartmentSharing propertyApartmentSharing = propertyApartmentSharingRepository
-                    .findByPropertyAndApartmentSharing(property, apartmentSharing)
-                    .orElse(PropertyApartmentSharing.builder()
-                            .accessFull(hasAccess)
-                            .token(hasAccess ? apartmentSharing.getToken() : apartmentSharing.getTokenPublic())
-                            .property(property)
-                            .apartmentSharing(apartmentSharing)
-                            .build()
-                    );
-            propertyApartmentSharingRepository.save(propertyApartmentSharing);
-            logRepository.save(applicationReceived(property, apartmentSharing));
-            mailService.sendEmailNewApplicant(tenant, property.getOwner(), property);
+            Optional<PropertyApartmentSharing> existingPropertyApartmentSharing = propertyApartmentSharingRepository
+                    .findByPropertyAndApartmentSharing(property, apartmentSharing);
+            if (existingPropertyApartmentSharing.isEmpty()) {
+                PropertyApartmentSharing propertyApartmentSharing = PropertyApartmentSharing.builder()
+                                .accessFull(hasAccess)
+                                .token(hasAccess ? apartmentSharing.getToken() : apartmentSharing.getTokenPublic())
+                                .property(property)
+                                .apartmentSharing(apartmentSharing)
+                                .build();
+                propertyApartmentSharingRepository.save(propertyApartmentSharing);
+                logRepository.save(applicationReceived(property, apartmentSharing));
+                mailService.sendEmailNewApplicant(tenant, property.getOwner(), property);
+            }
         } else {
             throw new IllegalStateException("Tenant is not the main tenant");
         }
