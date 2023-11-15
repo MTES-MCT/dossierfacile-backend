@@ -1,20 +1,19 @@
 package fr.dossierfacile.api.front.security;
 
 import fr.dossierfacile.api.front.exception.TenantNotFoundException;
+import fr.dossierfacile.common.converter.AcquisitionData;
 import fr.dossierfacile.api.front.model.KeycloakUser;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.TenantPermissionsService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
-import fr.dossierfacile.api.front.util.SentryUtil;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.LogService;
-import io.sentry.SentryLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -106,17 +105,33 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
 
     @Override
     public Tenant getLoggedTenant() {
+        return getLoggedTenant(null);
+    }
+
+    @Override
+    public Tenant getLoggedTenant(AcquisitionData acquisitionData) {
         KeycloakUser kcUser = getKeycloakUser();
         if (!kcUser.isEmailVerified() && !kcUser.isFranceConnect()) {
             throw new AccessDeniedException("Email is not verified" + kcUser.getEmail());
         }
-        Tenant tenant = tenantRepository.findByKeycloakId(kcUser.getKeycloakId());
-        if (tenant == null) {
-            log.error(SentryUtil.captureMessage("User try to connect with not found keycloakId " + kcUser.getKeycloakId(), SentryLevel.ERROR));
-            tenant = tenantRepository.findByEmail(kcUser.getEmail())
-                    .orElseGet(() -> tenantService.registerFromKeycloakUser(kcUser, null));
-        }
+        Tenant tenant = findOrCreateTenant(kcUser, acquisitionData);
         return synchronizeTenant(tenant, kcUser);
+    }
+
+    private Tenant findOrCreateTenant(KeycloakUser kcUser, AcquisitionData acquisitionData) {
+        String keycloakId = kcUser.getKeycloakId();
+        Tenant tenant = tenantRepository.findByKeycloakId(keycloakId);
+        if (tenant != null) {
+            return tenant;
+        }
+        log.warn("No tenant account found associated with keycloakId {}", keycloakId);
+        Optional<Tenant> tenantByEmail = tenantRepository.findByEmail(kcUser.getEmail());
+        if (tenantByEmail.isPresent()) {
+            log.info("Found tenant by email from keycloak");
+            return tenantByEmail.get();
+        }
+        log.info("Creating tenant account associated with keycloakId {}", keycloakId);
+        return tenantService.registerFromKeycloakUser(kcUser, null, acquisitionData);
     }
 
     private Tenant synchronizeTenant(Tenant tenant, KeycloakUser user) {
@@ -133,6 +148,9 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
             if (!Boolean.TRUE.equals(tenant.getFranceConnect()) && user.isFranceConnect()) {
                 log.info("Local account link to FranceConnect account, for tenant with ID {}", tenant.getId());
                 logService.saveLog(LogType.FC_ACCOUNT_LINK, tenant.getId());
+            } else if (tenant.getKeycloakId() == null ){
+                log.info("First tenant connection from DF, for tenant with ID {}", tenant.getId());
+                logService.saveLog(LogType.ACCOUNT_LINK, tenant.getId());
             }
             tenant.setKeycloakId(user.getKeycloakId());
 

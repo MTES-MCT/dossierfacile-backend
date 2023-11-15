@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="fr"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="bo/layout-bo">
+<head>
+    <title>DossierFacile</title>
+</head>
+<body>
+<div layout:fragment="content" th:remove="tag">
+    <div class="container">
+        <h2>Info Opérateur</h2>
+        <table class="table table-striped table-bordered table-hover">
+            <tr>
+                <td>Id</td>
+                <td th:text="${operator.id}"></td>
+            </tr>
+            <tr>
+                <td>Email</td>
+                <td th:text="${operator.email}"></td>
+            </tr>
+        </table>
+    </div>
+    <div class="container">
+        <h2>Les derniers dossiers traités</h2>
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered table-hover">
+                <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Nombre de dossiers traités</th>
+                </tr>
+                </thead>
+                <tbody>
+
+                <tr th:each="row : ${listTreatedCountByDay}">
+                    <td th:utext="${row[0]}"></td>
+                    <td th:utext="${row[1]}"></td>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

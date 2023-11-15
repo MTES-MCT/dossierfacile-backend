@@ -34,4 +34,8 @@ public class LogService {
         logRepository.save(log);
     }
 
+    public List<Object[]> listLastTreatedFilesByOperator(Long operatorId){
+        return logRepository.countTreatedFromXDaysGroupByDate(operatorId, 3);
+    }
+
 }

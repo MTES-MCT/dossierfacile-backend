@@ -3,6 +3,7 @@ package fr.dossierfacile.api.dossierfacileapiowner.register;
 import com.google.common.base.Strings;
 import fr.dossierfacile.api.dossierfacileapiowner.log.OwnerLogService;
 import fr.dossierfacile.api.dossierfacileapiowner.user.OwnerRepository;
+import fr.dossierfacile.common.converter.AcquisitionData;
 import fr.dossierfacile.common.entity.Owner;
 import fr.dossierfacile.common.enums.OwnerLogType;
 import lombok.AllArgsConstructor;
@@ -70,14 +71,19 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
 
     @Override
     public Owner getOwner() {
+        return getOwner(null);
+    }
+
+    @Override
+    public Owner getOwner(AcquisitionData acquisitionData) {
         if (!keycloakService.isKeycloakUser(getKeycloakUserId())) {
             throw new AccessDeniedException("invalid token");
         }
-        Optional<Owner> optionalOwner = ownerRepository.findByKeycloakId(getKeycloakUserId());
-        if (optionalOwner.isEmpty()) {
-            optionalOwner = ownerRepository.findByEmail(getUserEmail());
+        Optional<Owner> existingOwner = ownerRepository.findByKeycloakId(getKeycloakUserId());
+        if (existingOwner.isEmpty()) {
+            existingOwner = ownerRepository.findByEmail(getUserEmail());
         }
-        Owner owner = optionalOwner.orElse(Owner.builder().email(getUserEmail()).build());
+        Owner owner = existingOwner.orElse(Owner.builder().email(getUserEmail()).build());
         owner.setKeycloakId(getKeycloakUserId());
         owner.setFranceConnect(isFranceConnect());
         if (isFranceConnect()) {
@@ -89,16 +95,16 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
             owner.setLastName(getLastName());
             owner.setPreferredName(getPreferredName());
         }
+        if (existingOwner.isEmpty() && acquisitionData != null) {
+            owner.setAcquisitionCampaign(acquisitionData.campaign());
+            owner.setAcquisitionSource(acquisitionData.source());
+            owner.setAcquisitionMedium(acquisitionData.medium());
+        }
         owner = ownerRepository.saveAndFlush(owner);
-        if (optionalOwner.isEmpty()) {
+        if (existingOwner.isEmpty()) {
             ownerLogService.saveLog(OwnerLogType.ACCOUNT_CREATED_VIA_KC, owner.getId());
         }
         return owner;
-    }
-
-    @Override
-    public String getKeycloakClientId() {
-        return ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClaimAsString("azp");
     }
 
 }

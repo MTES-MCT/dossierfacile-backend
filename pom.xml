@@ -14,7 +14,7 @@
         <module>dossierfacile-api-owner</module>
         <module>dossierfacile-api-watermark</module>
         <module>dossierfacile-pdf-generator</module>
-        <module>dossierfacile-garbage-collector</module>
+        <module>dossierfacile-task-scheduler</module>
     </modules>
     <packaging>pom</packaging>
 

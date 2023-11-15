@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.dossierfacileapiowner.register;
 
+import fr.dossierfacile.common.converter.AcquisitionData;
 import fr.dossierfacile.common.entity.Owner;
 
 public interface AuthenticationFacade {
@@ -8,5 +9,6 @@ public interface AuthenticationFacade {
 
     Owner getOwner();
 
-    String getKeycloakClientId();
+    Owner getOwner(AcquisitionData acquisitionData);
+
 }

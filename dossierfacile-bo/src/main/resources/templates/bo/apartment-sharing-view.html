@@ -499,7 +499,7 @@
                             <table class="table table-striped table-bordered table-hover">
                                 <tr>
                                     <td style="width: 20%">Déclaration sur l'honneur</td>
-                                    <td th:text="${tenant.getHonorDeclaration()}"></td>
+                                    <td th:text="${tenant.getHonorDeclaration()}" th:style="${tenant.getHonorDeclaration() == false ? 'color: red;' : ''}"></td>
                                 </tr>
                                 <tr>
                                     <td>Mot du locataire</td>

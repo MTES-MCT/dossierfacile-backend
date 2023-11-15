@@ -32,6 +32,7 @@ $(document).keydown(function (e) {
 });
 
 var textArea = true;
+var startTime = null;
 $(document).on("keydown", function (event) {
     //ctrl+1
     if ((event.which == 49 && event.ctrlKey)) {
@@ -69,6 +70,24 @@ $(document).ready(function () {
     $('.validDeclineLink').click(function (e) {
         e.preventDefault();
         $('#validDecline').click();
+    });
+
+    startTime = new Date();
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState === 'visible') {
+        startTime = new Date() ;
+      } else {
+        if (startTime) {
+          var timeSpent = (new Date() - startTime) + Number(document.getElementById('timeSpent').value);
+          document.getElementById('timeSpent').value = timeSpent;
+        }
+      }
+    });
+    document.getElementById('validDecline').addEventListener('click', function () {
+      var timeSpent = (new Date() - startTime) + Number(document.getElementById('timeSpent').value);
+      document.getElementById('timeSpent').value = timeSpent;
+      console.log('time spent in ms = ' + timeSpent);
+      document.getElementById('processFileForm').submit();
     });
 
    function updateStatus() {
