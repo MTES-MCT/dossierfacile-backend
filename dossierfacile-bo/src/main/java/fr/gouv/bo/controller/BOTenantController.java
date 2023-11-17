@@ -72,6 +72,7 @@ public class BOTenantController {
     private static final String REDIRECT_BO = "redirect:/bo";
     private static final String CUSTOM_MESSAGE = "customMessage";
     private static final String CLARIFICATION = "clarification";
+    private static final String OPERATOR_COMMENT = "operatorComment";
     private static final String REDIRECT_ERROR = "redirect:/error";
 
     private final TenantService tenantService;
@@ -195,7 +196,8 @@ public class BOTenantController {
         model.addAttribute(NEW_MESSAGE, findNewMessageFromTenant(id));
         model.addAttribute(TENANT, tenant);
         model.addAttribute(CUSTOM_MESSAGE, getCustomMessage(tenant));
-        model.addAttribute(CLARIFICATION, getClarificationParagraphs(tenant));
+        model.addAttribute(CLARIFICATION, splitInParagraphs(tenant.getClarification()));
+        model.addAttribute(OPERATOR_COMMENT, splitInParagraphs(tenant.getOperatorComment()));
         return "bo/process-file";
     }
 
@@ -298,11 +300,11 @@ public class BOTenantController {
         return customMessage;
     }
 
-    private static List<String> getClarificationParagraphs(Tenant tenant) {
-        if (tenant.getClarification() == null) {
+    private static List<String> splitInParagraphs(String string) {
+        if (string == null) {
             return Collections.emptyList();
         }
-        return Arrays.stream(tenant.getClarification().split("\n"))
+        return Arrays.stream(string.split("\n"))
                 .filter(paragraph -> !paragraph.isBlank())
                 .toList();
     }

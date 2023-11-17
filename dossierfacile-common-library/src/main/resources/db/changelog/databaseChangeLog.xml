@@ -129,5 +129,6 @@
     <include file="db/migration/202310300000-update-property-log-table.xml" />
     <include file="db/migration/202311080001-add-processed-documents-time-spent-column.xml" />
     <include file="db/migration/202311090000-update-user-account-table.xml" />
+    <include file="db/migration/202311170000-update-tenant-table.xml" />
 
 </databaseChangeLog>
