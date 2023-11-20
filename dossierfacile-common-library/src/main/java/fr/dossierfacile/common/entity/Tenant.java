@@ -88,6 +88,8 @@ public class Tenant extends User implements Person, Serializable {
 
     private int warnings;
 
+    private String operatorComment;
+
     private transient String warningMessage;
 
     public static TenantBuilder<?, ?> builder() {

@@ -45,11 +45,21 @@
 
             <div>
                 <div th:if="${!clarification.isEmpty()}"
-                     class="panel-heading file1-background-color letter col-md-8"
-                     style="margin: 0 0 20px 10px; padding-top: 15px; line-height: 20px"
+                     class="file1-background-color letter col-md-8"
+                     style="margin: 0 0 10px 10px; padding-top: 15px; line-height: 20px"
                 >
                     <p style="font-size: 12px">Mot du locataire :</p>
                     <p th:each="paragraph : ${clarification}" th:text="${paragraph}"></p>
+                </div>
+            </div>
+
+            <div>
+                <div th:if="${!operatorComment.isEmpty()}"
+                     class="file1-background-color letter col-md-8"
+                     style="margin: 0 0 10px 10px; padding-top: 15px; line-height: 20px;"
+                >
+                    <p style="font-size: 12px">⚠️ Commentaire opérateur :</p>
+                    <p th:each="paragraph : ${operatorComment}" th:text="${paragraph}"></p>
                 </div>
             </div>
 
