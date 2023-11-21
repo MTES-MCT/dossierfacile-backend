@@ -47,6 +47,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.IOException;
 import java.security.Principal;
@@ -72,6 +73,7 @@ public class BOTenantController {
     private static final String REDIRECT_BO = "redirect:/bo";
     private static final String CUSTOM_MESSAGE = "customMessage";
     private static final String CLARIFICATION = "clarification";
+    private static final String OPERATOR_COMMENT = "operatorComment";
     private static final String REDIRECT_ERROR = "redirect:/error";
 
     private final TenantService tenantService;
@@ -90,7 +92,7 @@ public class BOTenantController {
     public String getTenant(@PathVariable Long id) {
         Tenant tenant = tenantService.findTenantById(id);
         if (tenant != null) {
-            return "redirect:/bo/colocation/" + tenant.getApartmentSharing().getId() + "#tenant" + tenant.getId();
+            return redirectToTenantPage(tenant);
         }
         throw new ObjectNotFoundException("TENANT", "Tenant is not found. Still exists?");
     }
@@ -98,7 +100,7 @@ public class BOTenantController {
     @GetMapping("/setAsTenantCreate/{id}")
     public String setAsTenantCreate(@PathVariable Long id) {
         Tenant tenant = userService.setAsTenantCreate(tenantService.findTenantById(id));
-        return "redirect:/bo/colocation/" + tenant.getApartmentSharing().getId() + "#tenant" + tenant.getId();
+        return redirectToTenantPage(tenant);
     }
 
     @GetMapping("/deleteCoTenant/{id}")
@@ -158,7 +160,7 @@ public class BOTenantController {
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         User operator = userService.findUserByEmail(principal.getName());
         tenantService.updateTenantStatus(tenant, operator);
-        return "redirect:/bo/colocation/" + tenant.getApartmentSharing().getId() + "#tenant" + tenant.getId();
+        return redirectToTenantPage(tenant);
     }
 
     @GetMapping("/status/{id}")
@@ -167,7 +169,7 @@ public class BOTenantController {
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         User operator = userService.findUserByEmail(principal.getName());
         tenantService.updateTenantStatus(tenant, operator);
-        return "redirect:/bo/colocation/" + tenant.getApartmentSharing().getId() + "#tenant" + tenant.getId();
+        return redirectToTenantPage(tenant);
     }
     private void checkPartnerRights(Tenant tenant, Principal principal){
         BOUser operator = userService.findUserByEmail(principal.getName());
@@ -195,7 +197,8 @@ public class BOTenantController {
         model.addAttribute(NEW_MESSAGE, findNewMessageFromTenant(id));
         model.addAttribute(TENANT, tenant);
         model.addAttribute(CUSTOM_MESSAGE, getCustomMessage(tenant));
-        model.addAttribute(CLARIFICATION, getClarificationParagraphs(tenant));
+        model.addAttribute(CLARIFICATION, splitInParagraphs(tenant.getClarification()));
+        model.addAttribute(OPERATOR_COMMENT, splitInParagraphs(tenant.getOperatorComment()));
         return "bo/process-file";
     }
 
@@ -205,7 +208,7 @@ public class BOTenantController {
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         User operator = userService.findUserByEmail(principal.getName());
         tenantService.updateTenantStatus(tenant, operator);
-        return "redirect:/bo/colocation/" + tenant.getApartmentSharing().getId() + "#tenant" + tenant.getId();
+        return redirectToTenantPage(tenant);
     }
 
     private Boolean findNewMessageFromTenant(Long id) {
@@ -225,6 +228,18 @@ public class BOTenantController {
         checkPartnerRights(tenant, principal);
         tenantService.processFile(id, customMessage, principal);
         return tenantService.redirectToApplication(principal, null);
+    }
+
+    @PostMapping("/{id}/comment")
+    public String addOperatorComment(@PathVariable("id") Long id, @RequestParam String comment) {
+        Tenant tenant = tenantService.find(id);
+        tenant.setOperatorComment(comment);
+        tenantService.save(tenant);
+        return redirectToTenantPage(tenant);
+    }
+
+    private static String redirectToTenantPage(Tenant tenant) {
+        return "redirect:/bo/colocation/" + tenant.getApartmentSharing().getId() + "#tenant" + tenant.getId();
     }
 
     private List<ItemDetail> getItemDetailForSubcategoryOfDocument(DocumentSubCategory documentSubCategory, String tenantOrGuarantor) {
@@ -298,11 +313,11 @@ public class BOTenantController {
         return customMessage;
     }
 
-    private static List<String> getClarificationParagraphs(Tenant tenant) {
-        if (tenant.getClarification() == null) {
+    private static List<String> splitInParagraphs(String string) {
+        if (string == null) {
             return Collections.emptyList();
         }
-        return Arrays.stream(tenant.getClarification().split("\n"))
+        return Arrays.stream(string.split("\n"))
                 .filter(paragraph -> !paragraph.isBlank())
                 .toList();
     }

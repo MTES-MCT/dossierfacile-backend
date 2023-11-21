@@ -71,18 +71,16 @@ public class TenantWarningService {
     }
 
     private void handleWarning1(Tenant t) {
-        log.info("accountWarnings. SECOND warning for tenant with ID [" + t.getId() + "]");
+        mailSender.sendEmailSecondWarningForDeletionOfDocuments(t, confirmationTokenService.createToken(t));
         t.setWarnings(2);
         tenantRepository.save(t);
-        mailSender.sendEmailSecondWarningForDeletionOfDocuments(t, confirmationTokenService.createToken(t));
         logService.saveLog(LogType.SECOND_ACCOUNT_WARNING_FOR_DOCUMENT_DELETION, t.getId());
     }
 
     private void handleWarning0(Tenant t) {
-        log.info("accountWarnings. FIRST warning for tenant with ID [" + t.getId() + "]");
+        mailSender.sendEmailFirstWarningForDeletionOfDocuments(t, confirmationTokenService.createToken(t));
         t.setWarnings(1);
         tenantRepository.save(t);
-        mailSender.sendEmailFirstWarningForDeletionOfDocuments(t, confirmationTokenService.createToken(t));
         logService.saveLog(LogType.FIRST_ACCOUNT_WARNING_FOR_DOCUMENT_DELETION, t.getId());
     }
 
