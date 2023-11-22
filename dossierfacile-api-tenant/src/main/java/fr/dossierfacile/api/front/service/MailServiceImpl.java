@@ -81,6 +81,9 @@ public class MailServiceImpl implements MailService {
     private List<String> blackListedDomains;
 
     private void sendEmailToTenant(User tenant, Map<String, String> params, Long templateId) {
+        if (tenant.getEmail() == null) {
+            return;
+        }
         boolean blackListed = blackListedDomains.stream().anyMatch(domain -> tenant.getEmail().endsWith(domain));
         if (blackListed) {
             return;
