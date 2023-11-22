@@ -1,6 +1,6 @@
 package fr.dossierfacile.process.file;
 
-import fr.dossierfacile.process.file.util.InMemoryPdfFile;
+import fr.dossierfacile.process.file.barcode.InMemoryPdfFile;
 import org.apache.pdfbox.pdmodel.PDDocument;
 
 import javax.imageio.ImageIO;
