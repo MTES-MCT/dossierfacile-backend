@@ -3,7 +3,7 @@ package fr.dossierfacile.process.file.service.qrcodeanalysis.payfit;
 import fr.dossierfacile.process.file.IntegrationTest;
 import fr.dossierfacile.process.file.TestFilesUtil;
 import fr.dossierfacile.process.file.service.qrcodeanalysis.AuthenticationResult;
-import fr.dossierfacile.process.file.util.InMemoryPdfFile;
+import fr.dossierfacile.process.file.barcode.InMemoryPdfFile;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

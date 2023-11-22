@@ -3,7 +3,7 @@ package fr.dossierfacile.process.file.service.qrcodeanalysis;
 import fr.dossierfacile.common.entity.BarCodeFileAnalysis;
 import fr.dossierfacile.common.entity.BarCodeType;
 import fr.dossierfacile.process.file.barcode.qrcode.QrCode;
-import fr.dossierfacile.process.file.util.InMemoryPdfFile;
+import fr.dossierfacile.process.file.barcode.InMemoryFile;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +16,7 @@ public class QrCodeFileAuthenticator {
 
     private final List<QrCodeDocumentIssuer<? extends AuthenticationRequest>> issuers;
 
-    Optional<BarCodeFileAnalysis> analyze(InMemoryPdfFile file) {
+    Optional<BarCodeFileAnalysis> analyze(InMemoryFile file) {
         for (QrCodeDocumentIssuer<?> issuer : issuers) {
             Optional<AuthenticationResult> result = issuer.tryToAuthenticate(file);
             if (result.isPresent()) {
