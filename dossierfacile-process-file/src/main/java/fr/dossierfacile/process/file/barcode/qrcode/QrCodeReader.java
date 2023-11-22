@@ -7,7 +7,6 @@ import com.google.zxing.NotFoundException;
 import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.qrcode.QRCodeReader;
-import io.sentry.Sentry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.ImageType;
@@ -26,14 +25,28 @@ public class QrCodeReader {
         }
         try {
             BinaryBitmap binaryBitmap = buildBinaryBitmap(document);
+            return findQrCode(binaryBitmap);
+        } catch (IOException e) {
+            log.error("Exception while trying to convert pdf to image", e);
+        }
+        return Optional.empty();
+    }
+
+    public static Optional<QrCode> findQrCodeOn(BufferedImage bufferedImage) {
+        BinaryBitmap binaryBitmap = buildBinaryBitmap(bufferedImage);
+        return findQrCode(binaryBitmap);
+    }
+
+    private static Optional<QrCode> findQrCode(BinaryBitmap binaryBitmap) {
+        try {
             String qrCodeContent = new QRCodeReader().decode(binaryBitmap).getText();
             log.info("Found QR code on document (content: {})", qrCodeContent);
 
             return Optional.ofNullable(qrCodeContent).map(QrCode::new);
         } catch (NotFoundException e) {
             log.info("No QR code found on document");
-        } catch (IOException | ChecksumException | FormatException e) {
-            log.error("Exception while trying to extract QR code from pdf (Sentry ID: {})", Sentry.captureException(e), e);
+        } catch (ChecksumException | FormatException e) {
+            log.error("Exception while trying to extract QR code from file", e);
         }
         return Optional.empty();
     }
@@ -45,6 +58,10 @@ public class QrCodeReader {
         dpi = Math.min(600, dpi);
         BufferedImage bufferedImage = pdfRenderer.renderImageWithDPI(0, dpi, ImageType.ARGB);
 
+        return buildBinaryBitmap(bufferedImage);
+    }
+
+    private static BinaryBitmap buildBinaryBitmap(BufferedImage bufferedImage) {
         return new BinaryBitmap(new HybridBinarizer(
                 new BufferedImageLuminanceSource(bufferedImage)));
     }
