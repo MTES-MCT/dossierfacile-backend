@@ -72,6 +72,7 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
             document.setFiles(null);
             fileRepository.deleteAll(files);
         }
+        // delete analysis?
     }
 
     @Override

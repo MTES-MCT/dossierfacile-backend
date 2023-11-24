@@ -1,11 +1,14 @@
-package fr.dossierfacile.process.file.service.qrcodeanalysis;
+package fr.dossierfacile.process.file.service.processors;
 
 import fr.dossierfacile.common.entity.BarCodeFileAnalysis;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.process.file.barcode.InMemoryFile;
 import fr.dossierfacile.process.file.repository.BarCodeFileAnalysisRepository;
+import fr.dossierfacile.process.file.service.AnalysisContext;
 import fr.dossierfacile.process.file.service.DocumentClassifier;
+import fr.dossierfacile.process.file.service.qrcodeanalysis.QrCodeFileAuthenticator;
+import fr.dossierfacile.process.file.service.qrcodeanalysis.TwoDDocFileAuthenticator;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -15,7 +18,7 @@ import java.util.Optional;
 @Slf4j
 @Service
 @AllArgsConstructor
-public class BarCodeFileProcessor {
+public class BarCodeFileProcessor implements Processor {
 
     private final QrCodeFileAuthenticator qrCodeFileAuthenticator;
     private final TwoDDocFileAuthenticator twoDDocFileAuthenticator;
@@ -23,14 +26,18 @@ public class BarCodeFileProcessor {
     private final BarCodeFileAnalysisRepository analysisRepository;
     private final FileStorageService fileStorageService;
 
-    public void process(File file) {
+    public AnalysisContext process(AnalysisContext context) {
+        File file = context.getDfFile();
         if (analysisRepository.hasNotAlreadyBeenAnalyzed(file)) {
             long start = System.currentTimeMillis();
             log.info("Starting analysis of file");
-            downloadAndAnalyze(file)
-                    .ifPresent(analysis -> save(file, analysis));
+            context.setBarCodeFileAnalysis(
+                    downloadAndAnalyze(file)
+                            .map(analysis -> save(file, analysis))
+                            .orElse(null));
             log.info("Analysis of file finished in {} ms", System.currentTimeMillis() - start);
         }
+        return context;
     }
 
     private Optional<BarCodeFileAnalysis> downloadAndAnalyze(File file) {
@@ -59,9 +66,9 @@ public class BarCodeFileProcessor {
         return Optional.empty();
     }
 
-    private void save(File file, BarCodeFileAnalysis analysis) {
+    private BarCodeFileAnalysis save(File file, BarCodeFileAnalysis analysis) {
         analysis.setFile(file);
-        analysisRepository.save(analysis);
+        return analysisRepository.save(analysis);
     }
 
 }

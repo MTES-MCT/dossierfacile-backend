@@ -26,6 +26,8 @@ import static fr.dossierfacile.common.enums.DocumentSubCategory.UNEMPLOYED;
 public class FileAnalysisCriteria {
 
     public static boolean shouldBeAnalyzed(File file) {
+        if (file == null)
+            return false;
         Document document = file.getDocument();
         return switch (document.getDocumentCategory()) {
             case TAX -> hasSubCategory(document, MY_NAME);

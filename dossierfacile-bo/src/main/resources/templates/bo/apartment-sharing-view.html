@@ -2,7 +2,8 @@
 <html lang="en"
       layout:decorator="bo/layout-bo"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      xmlns:th="http://www.thymeleaf.org">
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4">
 <head>
     <title>DossierFacile</title>
 </head>
@@ -718,7 +719,6 @@
                                     <div th:if="${document.getCustomText()!=null}">
                                         <span th:text="${'Custom text: '+document.getCustomText()}"></span>
                                     </div>
-
                                     <ul>
                                         <li style="margin-top: 5px" th:each="file : ${filesByDocument.get(document.getId())}">
                                             <a th:href="${'/files/' + file.getId()}"
@@ -736,6 +736,15 @@
                                             </span>
                                         </li>
                                     </ul>
+                                    <div sec:authorize="hasRole('ROLE_ADMIN')" th:if="${document.getDocumentAnalysisReport()!=null}">
+                                        <hr/>Admin| Statuts de la vérification automatique:
+                                        <span th:text="${document.getDocumentAnalysisReport().getAnalysisStatus}"></span>
+                                        <ul>
+                                            <li style="margin-top: 5px" th:each="rule : ${document.getDocumentAnalysisReport().getBrokenRules()}">
+                                                <span style="font-size:smaller" th:text="' ' + ${rule.message}"></span>
+                                            </li>
+                                        </ul>
+                                    </div>
                                     <div th:if="${document.avisDetected}">
                                         - Attention, un avis de situation a été détecté !
                                     </div>

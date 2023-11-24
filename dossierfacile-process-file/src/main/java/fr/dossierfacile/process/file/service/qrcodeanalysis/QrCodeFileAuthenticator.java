@@ -16,7 +16,7 @@ public class QrCodeFileAuthenticator {
 
     private final List<QrCodeDocumentIssuer<? extends AuthenticationRequest>> issuers;
 
-    Optional<BarCodeFileAnalysis> analyze(InMemoryFile file) {
+    public Optional<BarCodeFileAnalysis> analyze(InMemoryFile file) {
         for (QrCodeDocumentIssuer<?> issuer : issuers) {
             Optional<AuthenticationResult> result = issuer.tryToAuthenticate(file);
             if (result.isPresent()) {

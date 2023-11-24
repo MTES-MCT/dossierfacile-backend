@@ -22,6 +22,7 @@ import java.lang.management.MemoryMXBean;
 public class ProcessFileApplication {
 
     public static void main(String[] args) {
+        //System.setProperty("jna.library.path", "/usr/local/lib");
         SpringApplication.run(ProcessFileApplication.class, args);
         int mb = 1024 * 1024;
         MemoryMXBean memoryBean = ManagementFactory.getMemoryMXBean();

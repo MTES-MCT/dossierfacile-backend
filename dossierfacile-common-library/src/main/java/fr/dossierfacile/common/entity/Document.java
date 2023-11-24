@@ -11,6 +11,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.Hibernate;
 
+import javax.annotation.Nullable;
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -65,6 +66,10 @@ public class Document implements Serializable {
     @Column(name = "creation_date")
     private LocalDateTime creationDateTime = LocalDateTime.now();
 
+    @Builder.Default
+    @Column(name = "last_modified_date")
+    private LocalDateTime lastModifiedDate = LocalDateTime.now();
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "guarantor_id")
     @ToString.Exclude
@@ -110,6 +115,10 @@ public class Document implements Serializable {
 
     @Builder.Default
     private Boolean avisDetected = false;
+
+    @Nullable
+    @OneToOne(mappedBy= "document", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    private DocumentAnalysisReport documentAnalysisReport;
 
     @Basic(fetch = FetchType.LAZY)
     public boolean isLocked() {
