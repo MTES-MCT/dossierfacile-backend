@@ -15,7 +15,7 @@ import java.awt.image.BufferedImage;
 import java.util.Optional;
 
 @Slf4j
-class TwoDDocImageReader {
+class TwoDDocDecoder {
 
     private static final DataMatrixReader READER = new DataMatrixReader();
 

@@ -21,6 +21,10 @@ public class FileCropper {
         return new FileCropper(image, scale);
     }
 
+    static FileCropper fromImageSource(BufferedImage image) {
+        return new FileCropper(image, 1);
+    }
+
     CroppedFile cropAt(SquarePosition position) {
         SquarePosition scaledPosition = position.scale(scale);
         Coordinates coordinates = scaledPosition.coordinates();

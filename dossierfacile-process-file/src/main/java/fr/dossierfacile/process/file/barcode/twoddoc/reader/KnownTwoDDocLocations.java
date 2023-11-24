@@ -2,6 +2,7 @@ package fr.dossierfacile.process.file.barcode.twoddoc.reader;
 
 import lombok.AllArgsConstructor;
 
+import java.awt.image.BufferedImage;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
@@ -23,6 +24,10 @@ enum KnownTwoDDocLocations {
 
     Coordinates toCoordinates(PdfPage pdfPage) {
         return new Coordinates(xFactor * pdfPage.getWidth(), yFactor * pdfPage.getHeight());
+    }
+
+    Coordinates toCoordinates(BufferedImage image) {
+        return new Coordinates(xFactor * image.getWidth(), yFactor * image.getHeight());
     }
 
 }
