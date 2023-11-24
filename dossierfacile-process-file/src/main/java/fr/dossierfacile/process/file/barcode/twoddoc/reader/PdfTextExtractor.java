@@ -62,6 +62,10 @@ class PdfTextExtractor {
             setEndPage(oneBasedIndex);
         }
 
+        /**
+         * Returns all positions where the input text have been found
+         * on the PDF page. The search is not case-sensitive.
+         */
         List<TextPosition> findText(String text) {
             this.searchedText = text;
             this.foundTextPositions = new ArrayList<>();
@@ -82,7 +86,7 @@ class PdfTextExtractor {
         @Override
         // Called by getText()
         protected void writeString(String string, List<TextPosition> textPositions) throws IOException {
-            if (searchedText != null && string.contains(searchedText)) {
+            if (searchedText != null && string.toLowerCase().contains(searchedText.toLowerCase())) {
                 TextPosition centralPosition = textPositions.get(textPositions.size() / 2);
                 foundTextPositions.add(centralPosition);
             }

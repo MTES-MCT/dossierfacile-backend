@@ -31,7 +31,7 @@ public class DocumentClassifier {
         return switch (documentType) {
             case TAX_ASSESSMENT -> documentSlot.canReceiveTaxAssessment();
             case TAX_DECLARATION -> false;
-            case PAYFIT_PAYSLIP, SNCF_PAYSLIP, PUBLIC_PAYSLIP -> documentSlot.canReceivePayslip();
+            case PAYFIT_PAYSLIP, SNCF_PAYSLIP, PUBLIC_PAYSLIP, THALES_PAYSLIP -> documentSlot.canReceivePayslip();
             case FREE_INVOICE -> documentSlot.canReceiveInvoice();
             case UNKNOWN -> true;
         };

@@ -13,6 +13,7 @@ enum KnownTwoDDocLocations {
     PUBLIC_SERVICE_PAYSLIP(0.75f, 0.8f),
     SNCF_PAYSLIP(0.7f, 0.03f),
     FREE_INVOICE(0f, 0.15f),
+    THALES_PAYSLIP(0.75f, 0.03f),
     ;
 
     private final float xFactor;

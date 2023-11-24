@@ -37,6 +37,7 @@ public record TwoDDoc(
             case "SNC2", "SNC3" -> BarCodeDocumentType.SNCF_PAYSLIP;
             case "FPE2" -> BarCodeDocumentType.PUBLIC_PAYSLIP;
             case "FRE0" -> BarCodeDocumentType.FREE_INVOICE;
+            case "THA1" -> BarCodeDocumentType.THALES_PAYSLIP;
             default -> BarCodeDocumentType.UNKNOWN;
         };
     }
