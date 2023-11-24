@@ -23,4 +23,6 @@ public interface DocumentService {
     void addFile(MultipartFile multipartFile, Document document) throws IOException;
 
     void delete(Document document);
+
+    void markDocumentAsEdited(Document document);
 }

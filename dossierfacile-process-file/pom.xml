@@ -126,6 +126,11 @@
             <artifactId>bcprov-jdk18on</artifactId>
             <version>1.74</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-imaging</artifactId>
+            <version>1.0-alpha3</version>
+        </dependency>
     </dependencies>
     <build>
         <finalName>dossierfacile-process-file</finalName>

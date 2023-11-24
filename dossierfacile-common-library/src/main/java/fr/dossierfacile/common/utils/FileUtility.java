@@ -1,17 +1,22 @@
 package fr.dossierfacile.common.utils;
 
 import io.sentry.Sentry;
+import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.rendering.PDFRenderer;
 import org.springframework.http.MediaType;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
 
 @Slf4j
+@UtilityClass
 public class FileUtility {
 
     public static String computeMediaType(String filename) {
@@ -44,5 +49,18 @@ public class FileUtility {
             Sentry.captureException(e);
         }
         return 0;
+    }
+
+    public static BufferedImage[] convertPdfToImage(File pdfFile) throws IOException {
+        BufferedImage[] images = null;
+        try (PDDocument document = Loader.loadPDF(pdfFile)) {
+            images = new BufferedImage[document.getNumberOfPages()];
+            PDFRenderer pdfRenderer = new PDFRenderer(document);
+
+            for (int pageNumber = 0; pageNumber < document.getNumberOfPages(); pageNumber++) {
+                images[pageNumber] = pdfRenderer.renderImageWithDPI(pageNumber, 300);
+            }
+            return images;
+        }
     }
 }
