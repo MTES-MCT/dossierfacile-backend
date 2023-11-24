@@ -13,11 +13,11 @@ public class LoggingContext {
 
     public static void startTask(TaskName taskName) {
         MDC.put(TASK_NAME, taskName.name());
-        log.info("Starting scheduled task");
+        log.debug("Starting scheduled task");
     }
 
     public static void endTask() {
-        log.info("Finished scheduled task");
+        log.debug("Finished scheduled task");
         MDC.clear();
     }
 
