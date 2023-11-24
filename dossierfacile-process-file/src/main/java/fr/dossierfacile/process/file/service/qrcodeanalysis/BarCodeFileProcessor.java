@@ -3,9 +3,9 @@ package fr.dossierfacile.process.file.service.qrcodeanalysis;
 import fr.dossierfacile.common.entity.BarCodeFileAnalysis;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
+import fr.dossierfacile.process.file.barcode.InMemoryFile;
 import fr.dossierfacile.process.file.repository.BarCodeFileAnalysisRepository;
 import fr.dossierfacile.process.file.service.DocumentClassifier;
-import fr.dossierfacile.process.file.barcode.InMemoryFile;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,8 +17,6 @@ import java.util.Optional;
 @AllArgsConstructor
 public class BarCodeFileProcessor {
 
-    private static final String PDF_TYPE = "application/pdf";
-
     private final QrCodeFileAuthenticator qrCodeFileAuthenticator;
     private final TwoDDocFileAuthenticator twoDDocFileAuthenticator;
 
@@ -26,8 +24,7 @@ public class BarCodeFileProcessor {
     private final FileStorageService fileStorageService;
 
     public void process(File file) {
-        if (analysisRepository.hasNotAlreadyBeenAnalyzed(file) &&
-                PDF_TYPE.equals(file.getStorageFile().getContentType())) {
+        if (analysisRepository.hasNotAlreadyBeenAnalyzed(file)) {
             long start = System.currentTimeMillis();
             log.info("Starting analysis of file");
             downloadAndAnalyze(file)
