@@ -19,6 +19,14 @@ class TwoDDocImageReader {
 
     private static final DataMatrixReader READER = new DataMatrixReader();
 
+    /**
+     * Input image must be cropped to be centered on 2D-Doc, otherwise Zxing
+     * won't find anything.
+     */
+    static Optional<TwoDDocRawContent> readTwoDDocOn(CroppedFile croppedFile) {
+        return readTwoDDocOn(croppedFile.bufferedImage());
+    }
+
     static Optional<TwoDDocRawContent> readTwoDDocOn(BufferedImage image) {
         BinaryBitmap binaryBitmap = createBinaryBitmap(image);
 

@@ -3,7 +3,7 @@ package fr.dossierfacile.process.file.barcode;
 import fr.dossierfacile.process.file.barcode.qrcode.QrCode;
 import fr.dossierfacile.process.file.barcode.qrcode.QrCodeReader;
 import fr.dossierfacile.process.file.barcode.twoddoc.TwoDDocRawContent;
-import fr.dossierfacile.process.file.barcode.twoddoc.reader.TwoDDocFinder;
+import fr.dossierfacile.process.file.barcode.twoddoc.reader.TwoDDocPdfFinder;
 import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,7 +41,7 @@ public class InMemoryPdfFile extends InMemoryFile {
     @Override
     public TwoDDocRawContent find2DDoc() {
         try {
-            return TwoDDocFinder.on(pdfBoxDocument).find2DDoc().orElse(null);
+            return TwoDDocPdfFinder.on(pdfBoxDocument).find2DDoc().orElse(null);
         } catch (IOException e) {
             log.warn("Failed to initialize 2D-Doc search", e);
             return null;

@@ -8,25 +8,24 @@ import java.util.List;
 public class PdfTwoDDocLocator {
 
     private static final String TWO_D_DOC_TEXT_INDICATOR = "2D-DOC";
-    private static final float TWO_D_DOC_WIDTH_RELATIVE_TO_PAGE_WIDTH = 0.2f;
 
     private final PdfPage pdfPage;
     private final PdfTextExtractor pdfTextExtractor;
-    private final int squareWidth;
+    private final TwoDDocSize twoDDocSize;
 
     PdfTwoDDocLocator(PdfPage pdfPage) {
         this.pdfPage = pdfPage;
         this.pdfTextExtractor = new PdfTextExtractor(pdfPage);
-        this.squareWidth = (int) (TWO_D_DOC_WIDTH_RELATIVE_TO_PAGE_WIDTH * pdfPage.getWidth());
+        this.twoDDocSize = TwoDDocSize.on(pdfPage);
     }
 
     List<SquarePosition> getPotentialPositionsBasedOnText() {
         return pdfTextExtractor
                 .findText(TWO_D_DOC_TEXT_INDICATOR)
                 .stream()
-                .map(textPosition -> getTwoDDocUpperLeftCoordinates(textPosition, squareWidth))
+                .map(textPosition -> getTwoDDocUpperLeftCoordinates(textPosition, twoDDocSize))
                 .flatMap(Collection::stream)
-                .map(coordinates -> coordinates.toSquare(squareWidth))
+                .map(coordinates -> coordinates.toSquare(twoDDocSize.width()))
                 .toList();
     }
 
@@ -39,11 +38,12 @@ public class PdfTwoDDocLocator {
         // in case of an image, we explore known possibilities
         return KnownTwoDDocLocations.stream()
                 .map(location -> location.toCoordinates(pdfPage))
-                .map(coordinates -> coordinates.toSquare(squareWidth))
+                .map(coordinates -> coordinates.toSquare(twoDDocSize.width()))
                 .toList();
     }
 
-    private List<Coordinates> getTwoDDocUpperLeftCoordinates(TextPosition twoDDocTextPosition, int squareWidth) {
+    private List<Coordinates> getTwoDDocUpperLeftCoordinates(TextPosition twoDDocTextPosition, TwoDDocSize twoDDocSize) {
+        int squareWidth = twoDDocSize.width();
         Coordinates coordinates = Coordinates.of(twoDDocTextPosition);
         return switch ((int) twoDDocTextPosition.getDir()) {
             default -> List.of(
