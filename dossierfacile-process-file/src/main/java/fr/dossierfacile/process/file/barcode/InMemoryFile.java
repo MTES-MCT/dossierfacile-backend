@@ -4,7 +4,7 @@ import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.process.file.barcode.qrcode.QrCode;
 import fr.dossierfacile.process.file.barcode.twoddoc.TwoDDocRawContent;
-import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.Loader;
 
 import javax.imageio.ImageIO;
 import java.io.IOException;
@@ -25,7 +25,7 @@ public abstract class InMemoryFile implements AutoCloseable {
     public static InMemoryFile download(File file, FileStorageService fileStorageService) throws IOException {
         try (InputStream inputStream = fileStorageService.download(file.getStorageFile())) {
             if (isPdf(file)) {
-                return new InMemoryPdfFile(PDDocument.load(inputStream));
+                return new InMemoryPdfFile(Loader.loadPDF(inputStream.readAllBytes()));
             }
             return new InMemoryImageFile(ImageIO.read(inputStream));
         }
