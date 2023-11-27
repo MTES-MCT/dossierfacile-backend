@@ -3,6 +3,7 @@ package fr.dossierfacile.common.utils;
 import io.sentry.Sentry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.springframework.http.MediaType;
 import org.springframework.web.multipart.MultipartFile;
@@ -35,7 +36,7 @@ public class FileUtility {
             return 1;
         }
 
-        try (PDDocument document = PDDocument.load(multipartFile.getInputStream())) {
+        try (PDDocument document = Loader.loadPDF(multipartFile.getInputStream().readAllBytes())) {
             return document.getNumberOfPages();
         } catch (IOException e) {
             log.error("Problem reading number of pages of document");

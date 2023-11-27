@@ -1,7 +1,9 @@
 package fr.dossierfacile.api.front.util;
 
 import lombok.AllArgsConstructor;
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.io.MemoryUsageSetting;
+import org.apache.pdfbox.io.RandomAccessReadBuffer;
 import org.apache.pdfbox.multipdf.PDFMergerUtility;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.springframework.web.multipart.MultipartFile;
@@ -45,15 +47,15 @@ public class FilePageCounter {
         pdfMerger.setDestinationStream(outputStream);
 
         for (MultipartFile pdfFile : pdfFiles) {
-            pdfMerger.addSource(pdfFile.getInputStream());
+            pdfMerger.addSource(new RandomAccessReadBuffer(pdfFile.getInputStream()));
         }
-        pdfMerger.mergeDocuments(MemoryUsageSetting.setupMainMemoryOnly());
+        pdfMerger.mergeDocuments(MemoryUsageSetting.setupMainMemoryOnly().streamCache);
 
         if (outputStream.size() <= 0) {
             return Optional.empty();
         }
 
-        try (PDDocument document = PDDocument.load(outputStream.toByteArray())) {
+        try (PDDocument document = Loader.loadPDF(outputStream.toByteArray())) {
             return Optional.of(document);
         }
     }
