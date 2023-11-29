@@ -1,0 +1,8 @@
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+    <changeSet id="202311290000-01" author="juliette (manual)">
+        <dropColumn tableName="document" columnName="tax_process_result"/>
+    </changeSet>
+</databaseChangeLog>

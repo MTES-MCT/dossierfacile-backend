@@ -132,5 +132,6 @@
     <include file="db/migration/202311170000-update-tenant-table.xml" />
     <include file="db/migration/202312010000-update-tenant-log-table.xml" />
     <include file="db/migration/202312050000-update-tenant-userapi-table.xml" />
+    <include file="db/migration/202311290000-drop-tax-document-column.xml" />
 
 </databaseChangeLog>

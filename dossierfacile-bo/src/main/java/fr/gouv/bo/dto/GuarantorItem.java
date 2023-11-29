@@ -1,7 +1,6 @@
 package fr.gouv.bo.dto;
 
 import fr.dossierfacile.common.enums.TypeGuarantor;
-import fr.dossierfacile.common.type.TaxDocument;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

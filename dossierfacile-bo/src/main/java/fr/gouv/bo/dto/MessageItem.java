@@ -3,7 +3,6 @@ package fr.gouv.bo.dto;
 import fr.dossierfacile.common.entity.DocumentDeniedReasons;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
-import fr.dossierfacile.common.type.TaxDocument;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,7 +20,6 @@ public class MessageItem {
     private String commentDoc;
     private Integer monthlySum;
     private String customTex;
-    private TaxDocument taxDocument;
     private DocumentCategory documentCategory;
     private DocumentSubCategory documentSubCategory;
     @Builder.Default
