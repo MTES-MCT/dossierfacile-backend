@@ -22,7 +22,7 @@ public class ApiTesseractTest {
         // Set lib path: System.setProperty("jna.library.path", "/usr/..../lib");
         // Set to test environment: "TESSDATA_PREFIX","/usr/..../share/tessdata"
         String tesseractResult = apiTesseract.extractText(new File(this.getClass().getResource("/testocr.png").getFile()));
-        System.err.println("tesseractResult2=" + tesseractResult);
+        //System.err.println("tesseractResult2=" + tesseractResult);
         String expected = "This is a lot of 12 point text to test the\n" +
                 "ocr code and see if it works on all types\n" +
                 "of file format.\n" +

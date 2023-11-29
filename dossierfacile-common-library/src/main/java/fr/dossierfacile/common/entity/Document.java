@@ -1,10 +1,8 @@
 package fr.dossierfacile.common.entity;
 
-import fr.dossierfacile.common.converter.TaxDocumentConverter;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
-import fr.dossierfacile.common.type.TaxDocument;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,7 +14,6 @@ import org.hibernate.Hibernate;
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
-import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -91,10 +88,6 @@ public class Document implements Serializable {
     @OneToOne(cascade = CascadeType.REMOVE, orphanRemoval = true)
     @JoinColumn(name = "watermark_file_id")
     private StorageFile watermarkFile;
-
-    @Column(columnDefinition = "text")
-    @Convert(converter = TaxDocumentConverter.class)
-    private TaxDocument taxProcessResult;
 
     @Column(name = "processing_start_time")
     private LocalDateTime processingStartTime;
