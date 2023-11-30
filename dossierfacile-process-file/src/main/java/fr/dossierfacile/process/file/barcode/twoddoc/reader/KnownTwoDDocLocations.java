@@ -2,6 +2,7 @@ package fr.dossierfacile.process.file.barcode.twoddoc.reader;
 
 import lombok.AllArgsConstructor;
 
+import java.awt.image.BufferedImage;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
@@ -12,6 +13,7 @@ enum KnownTwoDDocLocations {
     PUBLIC_SERVICE_PAYSLIP(0.75f, 0.8f),
     SNCF_PAYSLIP(0.7f, 0.03f),
     FREE_INVOICE(0f, 0.15f),
+    THALES_PAYSLIP(0.75f, 0.03f),
     ;
 
     private final float xFactor;
@@ -23,6 +25,10 @@ enum KnownTwoDDocLocations {
 
     Coordinates toCoordinates(PdfPage pdfPage) {
         return new Coordinates(xFactor * pdfPage.getWidth(), yFactor * pdfPage.getHeight());
+    }
+
+    Coordinates toCoordinates(BufferedImage image) {
+        return new Coordinates(xFactor * image.getWidth(), yFactor * image.getHeight());
     }
 
 }

@@ -22,7 +22,7 @@
         <lombok.version>1.18.30</lombok.version>
         <dossierfacile.common.version>0.0.1-SNAPSHOT</dossierfacile.common.version>
         <junit-jupiter.version>5.9.1</junit-jupiter.version>
-        <pdfbox.tools.version>2.0.27</pdfbox.tools.version>
+        <pdfbox.tools.version>3.0.0</pdfbox.tools.version>
         <springdoc.version>1.7.0</springdoc.version>
     </properties>
 
@@ -142,7 +142,7 @@
         <dependency>
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>pdfbox-tools</artifactId>
-            <version>2.0.23</version>
+            <version>${pdfbox.tools.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.pdfbox</groupId>

@@ -13,6 +13,7 @@ public enum BarCodeDocumentType {
     PAYFIT_PAYSLIP("Fiche de paie PayFit"),
     SNCF_PAYSLIP("Fiche de paie SNCF"),
     PUBLIC_PAYSLIP("Fiche de paie fonctionnaire"),
+    THALES_PAYSLIP("Fiche de paie Thalès"),
 
     FREE_INVOICE("Facture Free"),
 

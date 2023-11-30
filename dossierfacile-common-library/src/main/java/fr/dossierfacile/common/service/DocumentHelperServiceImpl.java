@@ -12,6 +12,7 @@ import io.sentry.Sentry;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
@@ -80,7 +81,7 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
             BufferedImage preview;
             if ("pdf".equalsIgnoreCase(imageExtension)) {
                 long startTime = System.currentTimeMillis();
-                try (PDDocument document = PDDocument.load(fileInputStream)) {
+                try (PDDocument document = Loader.loadPDF(fileInputStream.readAllBytes())) {
                     PDFRenderer pdfRenderer = new PDFRenderer(document);
                     BufferedImage bufferedImage = pdfRenderer.renderImageWithDPI(0, 200, ImageType.RGB);
                     preview = resizeImage(bufferedImage);

@@ -1,55 +1,34 @@
 package fr.dossierfacile.process.file.barcode.twoddoc.reader;
 
 import fr.dossierfacile.process.file.barcode.twoddoc.TwoDDocRawContent;
-import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.pdfbox.pdmodel.PDDocument;
 
-import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
-import static fr.dossierfacile.process.file.barcode.twoddoc.reader.TwoDDocImageReader.readTwoDDocOn;
+import static fr.dossierfacile.process.file.barcode.twoddoc.reader.TwoDDocDecoder.readTwoDDocOn;
 
 @Slf4j
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class TwoDDocFinder {
+@AllArgsConstructor
+public abstract class TwoDDocFinder {
 
-    private final PdfPage pdfPage;
-    private final PdfToImageConverter pdfToImageConverter;
+    final FileCropper fileCropper;
 
-    public static TwoDDocFinder on(PDDocument document) throws IOException {
-        return on(document, 0);
-    }
+    public abstract Optional<TwoDDocRawContent> find2DDoc();
 
-    public static TwoDDocFinder on(PDDocument document, int pageIndex) throws IOException {
-        PdfPage pdfPage = new PdfPage(document, pageIndex);
-        return new TwoDDocFinder(pdfPage, PdfToImageConverter.of(pdfPage));
-    }
-
-    public Optional<TwoDDocRawContent> find2DDoc() {
-        if (pdfPage.document().isEncrypted()) {
-            return Optional.empty();
-        }
-
-        PdfTwoDDocLocator twoDDocLocator = new PdfTwoDDocLocator(pdfPage);
-
-        Optional<TwoDDocRawContent> twoDDoc = explore(twoDDocLocator.getPotentialPositionsBasedOnText());
-        if (twoDDoc.isPresent()) {
-            return twoDDoc;
-        }
-
-        return explore(twoDDocLocator.getCommonlyKnownPositions());
-    }
-
-    private Optional<TwoDDocRawContent> explore(List<SquarePosition> squarePositions) {
+    Optional<TwoDDocRawContent> tryToFindTwoDDocIn(List<SquarePosition> squarePositions) {
         for (SquarePosition position : squarePositions) {
-            BufferedImage imageToRead = pdfToImageConverter.getSubImageAt(position);
-            Optional<TwoDDocRawContent> twoDDoc = readTwoDDocOn(imageToRead);
+            CroppedFile croppedFile = fileCropper.cropAt(position);
+            // Zxing seems to work better on a rotated 2D-Doc
+            Optional<TwoDDocRawContent> twoDDoc = readTwoDDocOn(croppedFile.rotate(180));
             if (twoDDoc.isPresent()) {
-                log.info("Found 2D-Doc on document");
+                log.info("Found 2D-Doc (with 180° rotation)");
+                return twoDDoc;
+            }
+            twoDDoc = readTwoDDocOn(croppedFile);
+            if (twoDDoc.isPresent()) {
+                log.info("Found 2D-Doc (with no rotation)");
                 return twoDDoc;
             }
         }

@@ -3,22 +3,19 @@ package fr.dossierfacile.process.file.service.qrcodeanalysis;
 import fr.dossierfacile.common.entity.BarCodeFileAnalysis;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
+import fr.dossierfacile.process.file.barcode.InMemoryFile;
 import fr.dossierfacile.process.file.repository.BarCodeFileAnalysisRepository;
 import fr.dossierfacile.process.file.service.DocumentClassifier;
-import fr.dossierfacile.process.file.util.InMemoryPdfFile;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.util.Optional;
 
 @Slf4j
 @Service
 @AllArgsConstructor
 public class BarCodeFileProcessor {
-
-    private static final String PDF_TYPE = "application/pdf";
 
     private final QrCodeFileAuthenticator qrCodeFileAuthenticator;
     private final TwoDDocFileAuthenticator twoDDocFileAuthenticator;
@@ -27,8 +24,7 @@ public class BarCodeFileProcessor {
     private final FileStorageService fileStorageService;
 
     public void process(File file) {
-        if (analysisRepository.hasNotAlreadyBeenAnalyzed(file) &&
-                PDF_TYPE.equals(file.getStorageFile().getContentType())) {
+        if (analysisRepository.hasNotAlreadyBeenAnalyzed(file)) {
             long start = System.currentTimeMillis();
             log.info("Starting analysis of file");
             downloadAndAnalyze(file)
@@ -38,20 +34,20 @@ public class BarCodeFileProcessor {
     }
 
     private Optional<BarCodeFileAnalysis> downloadAndAnalyze(File file) {
-        try (InMemoryPdfFile inMemoryPdfFile = InMemoryPdfFile.create(file, fileStorageService)) {
-            return analyze(inMemoryPdfFile)
+        try (InMemoryFile inMemoryFile = InMemoryFile.download(file, fileStorageService)) {
+            return analyze(inMemoryFile)
                     .map(analysis -> {
                         boolean isAllowed = new DocumentClassifier(analysis.getDocumentType()).isCompatibleWith(file);
                         analysis.setAllowedInDocumentCategory(isAllowed);
                         return analysis;
                     });
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error("Unable to download file", e);
         }
         return Optional.empty();
     }
 
-    private Optional<BarCodeFileAnalysis> analyze(InMemoryPdfFile file) {
+    private Optional<BarCodeFileAnalysis> analyze(InMemoryFile file) {
         if (file.hasQrCode()) {
             return qrCodeFileAuthenticator.analyze(file);
         }

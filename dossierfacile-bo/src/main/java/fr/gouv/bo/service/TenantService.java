@@ -522,31 +522,33 @@ public class TenantService {
     }
 
     //todo : Review this method to refactor with the others DENY OR VALIDATE documents for tenants
-    public synchronized String processFile(Long tenantId, CustomMessage customMessage, Principal principal) {
-        Tenant tenant = find(tenantId);
-        //check tenant status before trying to validate or to deny
-        if ( tenant.getStatus() != TenantFileStatus.TO_PROCESS) {
-            log.error("Operator try to validate/deny a not TO PROCESS tenant : t={} op={}", tenantId, principal.getName());
-            throw new IllegalStateException("You cannot treat a tenant which is not TO PROCESS");
-        }
-        User operator = userService.findUserByEmail(principal.getName());
+    public String processFile(Long tenantId, CustomMessage customMessage, Principal principal) {
+        synchronized (this) {
+            Tenant tenant = find(tenantId);
+            //check tenant status before trying to validate or to deny
+            if (tenant.getStatus() != TenantFileStatus.TO_PROCESS) {
+                log.error("Operator try to validate/deny a not TO PROCESS tenant : t={} op={}", tenantId, principal.getName());
+                throw new IllegalStateException("You cannot treat a tenant which is not TO PROCESS");
+            }
+            User operator = userService.findUserByEmail(principal.getName());
 
-        if (tenant == null) {
-            log.error("BOTenantController processFile not found tenant with id : {}", tenantId);
-            return "redirect:/error";
-        }
+            if (tenant == null) {
+                log.error("BOTenantController processFile not found tenant with id : {}", tenantId);
+                return "redirect:/error";
+            }
 
-        ProcessedDocuments processedDocuments = ProcessedDocuments.in(customMessage);
-        boolean allDocumentsValid = updateFileStatus(customMessage);
+            ProcessedDocuments processedDocuments = ProcessedDocuments.in(customMessage);
+            boolean allDocumentsValid = updateFileStatus(customMessage);
 
-        if (allDocumentsValid) {
-            changeTenantStatusToValidated(tenant, operator, processedDocuments);
-        } else {
-            Message message = sendCustomMessage(tenant, customMessage, checkValueOfCustomMessage(customMessage));
-            changeTenantStatusToDeclined(tenant, operator, message, processedDocuments);
+            if (allDocumentsValid) {
+                changeTenantStatusToValidated(tenant, operator, processedDocuments);
+            } else {
+                Message message = sendCustomMessage(tenant, customMessage, checkValueOfCustomMessage(customMessage));
+                changeTenantStatusToDeclined(tenant, operator, message, processedDocuments);
+            }
+            updateOperatorDateTimeTenant(tenantId);
+            return "redirect:/bo";
         }
-        updateOperatorDateTimeTenant(tenantId);
-        return "redirect:/bo";
     }
 
     //todo : Review this method to refactor with the others DENY OR VALIDATE documents for tenants

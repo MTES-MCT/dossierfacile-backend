@@ -1,8 +1,11 @@
 package fr.dossierfacile.process.file;
 
-import fr.dossierfacile.process.file.util.InMemoryPdfFile;
+import fr.dossierfacile.process.file.barcode.InMemoryPdfFile;
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -21,7 +24,13 @@ public class TestFilesUtil {
 
     public static PDDocument getPdfBoxDocument(String fileName) throws IOException {
         try (InputStream inputStream = getFileAsStream(fileName)) {
-            return PDDocument.load(inputStream);
+            return Loader.loadPDF(inputStream.readAllBytes());
+        }
+    }
+
+    public static BufferedImage getImage(String fileName) throws IOException {
+        try (InputStream inputStream = getFileAsStream(fileName)) {
+            return ImageIO.read(inputStream);
         }
     }
 

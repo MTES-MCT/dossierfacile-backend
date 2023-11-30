@@ -7,7 +7,7 @@ import fr.dossierfacile.process.file.service.qrcodeanalysis.QrCodeDocumentIssuer
 import fr.dossierfacile.process.file.service.qrcodeanalysis.payfit.client.PayfitAuthenticationRequest;
 import fr.dossierfacile.process.file.service.qrcodeanalysis.payfit.client.PayfitClient;
 import fr.dossierfacile.process.file.service.qrcodeanalysis.payfit.client.PayfitResponse;
-import fr.dossierfacile.process.file.util.InMemoryPdfFile;
+import fr.dossierfacile.process.file.barcode.InMemoryFile;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -22,20 +22,20 @@ public class PayfitDocumentIssuer extends QrCodeDocumentIssuer<PayfitAuthenticat
     private final PayfitClient client;
 
     @Override
-    protected Optional<PayfitAuthenticationRequest> buildAuthenticationRequestFor(InMemoryPdfFile pdfFile) {
-        QrCode qrCode = pdfFile.getQrCode();
-        String content = pdfFile.getContentAsString();
+    protected Optional<PayfitAuthenticationRequest> buildAuthenticationRequestFor(InMemoryFile file) {
+        QrCode qrCode = file.getQrCode();
+        String content = file.getContentAsString();
         return PayfitAuthenticationRequest.forDocumentWith(qrCode, content);
     }
 
     @Override
-    protected AuthenticationResult authenticate(InMemoryPdfFile pdfFile, PayfitAuthenticationRequest authenticationRequest) {
+    protected AuthenticationResult authenticate(InMemoryFile file, PayfitAuthenticationRequest authenticationRequest) {
         return client.getVerifiedContent(authenticationRequest)
-                .map(response -> buildResult(pdfFile, response))
+                .map(response -> buildResult(file, response))
                 .orElseGet(this::error);
     }
 
-    private AuthenticationResult buildResult(InMemoryPdfFile pdfFile, PayfitResponse response) {
+    private AuthenticationResult buildResult(InMemoryFile pdfFile, PayfitResponse response) {
         String actualContent = pdfFile.getContentAsString();
         PaySlipVerifiedContent verifiedContent = PaySlipVerifiedContent.from(response);
         boolean isAuthentic = verifiedContent.isMatchingWith(actualContent);

@@ -4,6 +4,7 @@ import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.process.file.TestFilesUtil;
+import fr.dossierfacile.process.file.barcode.InMemoryFile;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -13,17 +14,22 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class InMemoryPdfFileTest {
+class InMemoryFileTest {
 
     private static File fileWithPath(String path) {
-        return File.builder().storageFile(StorageFile.builder().path(path).build()).build();
+        return File.builder()
+                .storageFile(StorageFile.builder()
+                        .path(path)
+                        .contentType("application/pdf")
+                        .build())
+                .build();
     }
 
     @Test
     void file_with_qr_code() throws IOException {
         File file = fileWithPath("fake-payfit.pdf");
 
-        InMemoryPdfFile inMemoryPdfFile = InMemoryPdfFile.create(file, classpathStorageService());
+        InMemoryFile inMemoryPdfFile = InMemoryFile.download(file, classpathStorageService());
 
         assertThat(inMemoryPdfFile.hasQrCode()).isTrue();
         assertThat(inMemoryPdfFile.getContentAsString()).isNotEmpty();
@@ -33,7 +39,7 @@ class InMemoryPdfFileTest {
     void file_with_2DDoc() throws IOException {
         File file = fileWithPath("2ddoc.pdf");
 
-        InMemoryPdfFile inMemoryPdfFile = InMemoryPdfFile.create(file, classpathStorageService());
+        InMemoryFile inMemoryPdfFile = InMemoryFile.download(file, classpathStorageService());
 
         assertThat(inMemoryPdfFile.has2DDoc()).isTrue();
     }
@@ -42,7 +48,7 @@ class InMemoryPdfFileTest {
     void file_with_only_text() throws IOException {
         File file = fileWithPath("test-document.pdf");
 
-        InMemoryPdfFile inMemoryPdfFile = InMemoryPdfFile.create(file, classpathStorageService());
+        InMemoryFile inMemoryPdfFile = InMemoryFile.download(file, classpathStorageService());
 
         assertThat(inMemoryPdfFile.hasQrCode()).isFalse();
         assertThat(inMemoryPdfFile.has2DDoc()).isFalse();
