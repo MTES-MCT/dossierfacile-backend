@@ -103,8 +103,7 @@ public class RegisterController {
     @PostMapping(value = "/documentIdentification", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TenantModel> documentIdentification(@Validated(Dossier.class) DocumentIdentificationForm documentIdentificationForm) {
         Tenant tenant = authenticationFacade.getTenant(documentIdentificationForm.getTenantId());
-        TenantModel tenantModel = tenantService.saveStepRegister(tenant, documentIdentificationForm, StepRegister.DOCUMENT_IDENTIFICATION);
-        logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
+        tenantService.saveStepRegister(tenant, documentIdentificationForm, StepRegister.DOCUMENT_IDENTIFICATION);
         Tenant loggedTenant = (documentIdentificationForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
         return ok(tenantMapper.toTenantModel(loggedTenant));
     }
@@ -113,8 +112,7 @@ public class RegisterController {
     @PostMapping(value = "/documentResidency", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TenantModel> documentResidency(@Validated(Dossier.class) DocumentResidencyForm documentResidencyForm) {
         Tenant tenant = authenticationFacade.getTenant(documentResidencyForm.getTenantId());
-        TenantModel tenantModel = tenantService.saveStepRegister(tenant, documentResidencyForm, StepRegister.DOCUMENT_RESIDENCY);
-        logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
+        tenantService.saveStepRegister(tenant, documentResidencyForm, StepRegister.DOCUMENT_RESIDENCY);
         Tenant loggedTenant = (documentResidencyForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
         return ok(tenantMapper.toTenantModel(loggedTenant));
     }
@@ -123,8 +121,7 @@ public class RegisterController {
     @PostMapping(value = "/documentProfessional", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TenantModel> documentProfessional(@Validated(Dossier.class) DocumentProfessionalForm documentProfessionalForm) {
         Tenant tenant = authenticationFacade.getTenant(documentProfessionalForm.getTenantId());
-        TenantModel tenantModel = tenantService.saveStepRegister(tenant, documentProfessionalForm, StepRegister.DOCUMENT_PROFESSIONAL);
-        logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
+        tenantService.saveStepRegister(tenant, documentProfessionalForm, StepRegister.DOCUMENT_PROFESSIONAL);
         Tenant loggedTenant = (documentProfessionalForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
         return ok(tenantMapper.toTenantModel(loggedTenant));
     }
@@ -133,8 +130,7 @@ public class RegisterController {
     @PostMapping(value = "/documentFinancial", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TenantModel> documentFinancial(@Validated(Dossier.class) DocumentFinancialForm documentFinancialForm) {
         Tenant tenant = authenticationFacade.getTenant(documentFinancialForm.getTenantId());
-        TenantModel tenantModel = tenantService.saveStepRegister(tenant, documentFinancialForm, StepRegister.DOCUMENT_FINANCIAL);
-        logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
+        tenantService.saveStepRegister(tenant, documentFinancialForm, StepRegister.DOCUMENT_FINANCIAL);
         Tenant loggedTenant = (documentFinancialForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
         return ok(tenantMapper.toTenantModel(loggedTenant));
     }
@@ -143,8 +139,7 @@ public class RegisterController {
     @PostMapping(value = "/documentTax", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TenantModel> documentTax(@Validated(Dossier.class) DocumentTaxForm documentTaxForm) {
         Tenant tenant = authenticationFacade.getTenant(documentTaxForm.getTenantId());
-        TenantModel tenantModel = tenantService.saveStepRegister(tenant, documentTaxForm, StepRegister.DOCUMENT_TAX);
-        logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
+        tenantService.saveStepRegister(tenant, documentTaxForm, StepRegister.DOCUMENT_TAX);
         Tenant loggedTenant = (documentTaxForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
         return ok(tenantMapper.toTenantModel(loggedTenant));
     }

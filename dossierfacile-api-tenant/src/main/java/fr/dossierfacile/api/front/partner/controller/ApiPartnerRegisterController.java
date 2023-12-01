@@ -93,7 +93,6 @@ public class ApiPartnerRegisterController {
     public ResponseEntity<TenantModel> documentIdentification(@Validated(ApiPartner.class) DocumentIdentificationForm documentIdentificationForm) {
         var tenant = tenantService.findById(documentIdentificationForm.getTenantId());
         var tenantModel = tenantService.saveStepRegister(tenant, documentIdentificationForm, StepRegister.DOCUMENT_IDENTIFICATION);
-        logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
         return ok(tenantModel);
     }
 
@@ -102,7 +101,6 @@ public class ApiPartnerRegisterController {
     public ResponseEntity<TenantModel> documentResidency(@Validated(ApiPartner.class) DocumentResidencyForm documentResidencyForm) {
         var tenant = tenantService.findById(documentResidencyForm.getTenantId());
         var tenantModel = tenantService.saveStepRegister(tenant, documentResidencyForm, StepRegister.DOCUMENT_RESIDENCY);
-        logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
         return ok(tenantModel);
     }
 
@@ -111,7 +109,6 @@ public class ApiPartnerRegisterController {
     public ResponseEntity<TenantModel> documentProfessional(@Validated(ApiPartner.class) DocumentProfessionalForm documentProfessionalForm) {
         var tenant = tenantService.findById(documentProfessionalForm.getTenantId());
         var tenantModel = tenantService.saveStepRegister(tenant, documentProfessionalForm, StepRegister.DOCUMENT_PROFESSIONAL);
-        logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
         return ok(tenantModel);
     }
 
@@ -120,7 +117,6 @@ public class ApiPartnerRegisterController {
     public ResponseEntity<TenantModel> documentFinancial(@Validated(ApiPartner.class) DocumentFinancialForm documentFinancialForm) {
         var tenant = tenantService.findById(documentFinancialForm.getTenantId());
         var tenantModel = tenantService.saveStepRegister(tenant, documentFinancialForm, StepRegister.DOCUMENT_FINANCIAL);
-        logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
         return ok(tenantModel);
     }
 
@@ -129,7 +125,6 @@ public class ApiPartnerRegisterController {
     public ResponseEntity<TenantModel> documentTax(@Validated(ApiPartner.class) DocumentTaxForm documentTaxForm) {
         var tenant = tenantService.findById(documentTaxForm.getTenantId());
         var tenantModel = tenantService.saveStepRegister(tenant, documentTaxForm, StepRegister.DOCUMENT_TAX);
-        logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
         return ok(tenantModel);
     }
 
