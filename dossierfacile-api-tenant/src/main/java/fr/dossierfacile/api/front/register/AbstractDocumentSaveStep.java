@@ -9,7 +9,6 @@ import fr.dossierfacile.api.front.util.TransactionalUtil;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentPdfGenerationLog;
 import fr.dossierfacile.common.entity.Tenant;
-import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.repository.DocumentPdfGenerationLogRepository;
@@ -51,7 +50,7 @@ public abstract class AbstractDocumentSaveStep<T extends DocumentForm> implement
         }
 
         Document document = saveDocument(tenant, documentForm);
-        logService.saveLog(LogType.ACCOUNT_EDITED, tenant.getId());
+        logService.saveDocumentEditedLog(document, tenant);
 
         Long logId = documentPdfGenerationLogRepository.save(
                 DocumentPdfGenerationLog.builder()

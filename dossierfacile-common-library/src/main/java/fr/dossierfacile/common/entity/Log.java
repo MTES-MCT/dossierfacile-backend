@@ -58,6 +58,10 @@ public class Log implements Serializable {
     @Column(columnDefinition = "jsonb")
     private Object jsonProfile;
 
+    @Type(type = "jsonb")
+    @Column(columnDefinition = "jsonb")
+    private Object logDetails;
+
     @Column
     private Long messageId;
 
