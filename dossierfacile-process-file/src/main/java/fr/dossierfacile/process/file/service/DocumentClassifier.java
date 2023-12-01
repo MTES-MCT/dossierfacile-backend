@@ -30,7 +30,7 @@ public class DocumentClassifier {
         DocumentSlot documentSlot = new DocumentSlot(document.getDocumentCategory(), document.getDocumentSubCategory(), document.getGuarantor() != null);
         return switch (documentType) {
             case TAX_ASSESSMENT -> documentSlot.canReceiveTaxAssessment();
-            case TAX_DECLARATION -> false;
+            case TAX_DECLARATION, CVEC -> false;
             case PAYFIT_PAYSLIP, SNCF_PAYSLIP, PUBLIC_PAYSLIP, THALES_PAYSLIP -> documentSlot.canReceivePayslip();
             case FREE_INVOICE -> documentSlot.canReceiveInvoice();
             case UNKNOWN -> true;

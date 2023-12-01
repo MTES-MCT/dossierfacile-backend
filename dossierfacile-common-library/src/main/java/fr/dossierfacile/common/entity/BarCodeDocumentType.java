@@ -17,8 +17,9 @@ public enum BarCodeDocumentType {
 
     FREE_INVOICE("Facture Free"),
 
-    UNKNOWN("Unknown"),
-    ;
+    CVEC("Contribution vie étudiante"),
+
+    UNKNOWN("Unknown");
 
     private final String label;
 

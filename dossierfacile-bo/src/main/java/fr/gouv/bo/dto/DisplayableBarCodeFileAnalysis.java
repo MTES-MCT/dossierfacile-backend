@@ -43,7 +43,6 @@ public class DisplayableBarCodeFileAnalysis {
             case INVALID -> analysis.getBarCodeType() == TWO_D_DOC ? "Falsifié" : "Non authentifié";
             case API_ERROR -> "Impossible de vérifier l'authenticité auprès de l'émetteur";
             case ERROR -> "Erreur lors de l'authentification";
-            case UNKNOWN_DOCUMENT -> "Non reconnu ou expiré";
         };
     }
 
