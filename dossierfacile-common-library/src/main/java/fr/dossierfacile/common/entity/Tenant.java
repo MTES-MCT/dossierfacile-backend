@@ -2,7 +2,6 @@ package fr.dossierfacile.common.entity;
 
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.TenantFileStatus;
-import fr.dossierfacile.common.enums.TenantSituation;
 import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.enums.TypeGuarantor;
 import fr.dossierfacile.common.enums.UserType;
@@ -14,7 +13,21 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.DiscriminatorValue;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
+import javax.persistence.Table;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -216,15 +229,6 @@ public class Tenant extends User implements Person, Serializable {
         log.info("Updating tenant profile on {}", this.lastUpdateDate);
         if (documentCategory != null) {
             log.info("Updating document {} of the tenant", documentCategory);
-        }
-    }
-
-    public TenantSituation getTenantSituation() {
-        Document documentProfessional = documents.stream().filter(d -> d.getDocumentCategory() == DocumentCategory.PROFESSIONAL).findFirst().orElse(null);
-        if (documentProfessional != null) {
-            return TenantSituation.valueOf(documentProfessional.getDocumentSubCategory().name());
-        } else {
-            return TenantSituation.UNDEFINED;
         }
     }
 
