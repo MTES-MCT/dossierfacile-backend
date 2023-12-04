@@ -6,9 +6,7 @@ import fr.dossierfacile.api.front.model.dfc.tenant.ConnectedTenantModel;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.service.interfaces.UserService;
-import fr.dossierfacile.api.front.util.SentryUtil;
 import fr.dossierfacile.common.entity.Tenant;
-import io.sentry.SentryLevel;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -38,7 +36,7 @@ public class DfcTenantController {
         String partner = authenticationFacade.getKeycloakClientId();
         Tenant tenant = tenantService.findByKeycloakId(authenticationFacade.getKeycloakUserId());
         if (tenant == null) {
-            log.error(SentryUtil.captureMessage("User try to connect with not found keycloakId " + authenticationFacade.getUserEmail(), SentryLevel.ERROR));
+            log.error("User try to connect with not found keycloakId " + authenticationFacade.getUserEmail());
             tenant = tenantService.findByEmail(authenticationFacade.getUserEmail()).orElse(null);
         }
 
