@@ -17,6 +17,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.MapsId;
 import javax.persistence.Table;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,4 +49,8 @@ public class TenantUserApi implements Serializable {
     @Column(columnDefinition = "text")
     @Convert(converter = ListStringConverter.class)
     private List<String> allInternalPartnerId = new ArrayList<>();
+
+    @Builder.Default
+    private LocalDateTime accessGrantedDate = LocalDateTime.now();
+
 }
