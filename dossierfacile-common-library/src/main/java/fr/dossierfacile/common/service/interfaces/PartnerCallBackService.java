@@ -14,6 +14,7 @@ public interface PartnerCallBackService {
     void sendCallBack(Tenant tenant, PartnerCallBackType partnerCallBackType);
     void sendCallBack(List<Tenant> tenantList, PartnerCallBackType partnerCallBackType);
     void sendCallBack(Tenant tenant, WebhookDTO webhookDTO);
+    void sendRevokedAccessCallback(Tenant tenant, UserApi userApi);
 
     @Nullable
     WebhookDTO getWebhookDTO(Tenant tenant, UserApi userApi, PartnerCallBackType partnerCallBackType);

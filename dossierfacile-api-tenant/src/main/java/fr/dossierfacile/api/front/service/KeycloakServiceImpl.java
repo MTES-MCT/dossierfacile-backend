@@ -3,6 +3,7 @@ package fr.dossierfacile.api.front.service;
 import fr.dossierfacile.api.front.register.form.tenant.AccountForm;
 import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.service.interfaces.KeycloakCommonService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +31,7 @@ public class KeycloakServiceImpl implements KeycloakService {
         try {
             return Optional.ofNullable(keycloakId)
                     .map(kid -> realmResource.users().get(kid))
-                    .map(userResource -> userResource.toRepresentation())
+                    .map(UserResource::toRepresentation)
                     .orElse(null);
         } catch (NotFoundException e) {
             return null;
@@ -83,11 +84,6 @@ public class KeycloakServiceImpl implements KeycloakService {
     }
 
     @Override
-    public boolean isKeycloakUser(String keyCloakId) {
-        return realmResource.users().get(keyCloakId) != null;
-    }
-
-    @Override
     public String getKeycloakId(String email) {
         var userRepresentations = realmResource.users().search(email);
         return userRepresentations.isEmpty() ? createKeycloakUser(email) : userRepresentations.get(0).getId();
@@ -113,6 +109,12 @@ public class KeycloakServiceImpl implements KeycloakService {
         realmResource.users().get(keycloakId).update(userRepresentation);
     }
 
+    @Override
+    public void revokeUserConsent(Tenant tenant, UserApi userApi) {
+        String keycloakId = tenant.getKeycloakId();
+        UserResource user = realmResource.users().get(keycloakId);
+        user.revokeConsent(userApi.getName());
+    }
 
     private UserRepresentation createUser(String email) {
         var userRepresentation = new UserRepresentation();
