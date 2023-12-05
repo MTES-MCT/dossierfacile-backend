@@ -14,6 +14,16 @@ import java.util.Optional;
 public interface TenantUserApiRepository extends JpaRepository<TenantUserApi, TenantUserApiKey> {
     Optional<TenantUserApi> findFirstByTenantAndUserApi(Tenant tenant, UserApi userApi);
 
+    Optional<TenantUserApi> findFirstByTenantAndUserApiId(Tenant tenant, Long userApi);
+
+    @Query("""
+            select tua from TenantUserApi tua, Tenant t
+            where t.apartmentSharing.id = :apartmentSharingId
+            and t = tua.tenant
+            and tua.userApi.id = :userApiId
+            """)
+    List<TenantUserApi> findAllByApartmentSharingAndUserApi(@Param("apartmentSharingId") Long apartmentSharingId, @Param("userApiId") Long userApiId);
+
     Optional<TenantUserApi> findFirstByUserApiAndTenantIn(UserApi partner, List<Tenant> tenants);
 
     @Query(value = """
