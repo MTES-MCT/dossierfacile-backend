@@ -12,8 +12,6 @@ import fr.dossierfacile.api.front.register.form.guarantor.natural_person.NameGua
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.validator.group.ApiPartner;
 import fr.dossierfacile.common.entity.Tenant;
-import fr.dossierfacile.common.enums.LogType;
-import fr.dossierfacile.common.service.interfaces.LogService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -30,14 +28,12 @@ import static org.springframework.http.ResponseEntity.ok;
 @RequestMapping(value = "/api-partner/register/guarantorNaturalPerson", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 public class ApiPartnerRegisterGuarantorNaturalPersonController {
     private final TenantService tenantService;
-    private final LogService logService;
 
     @PreAuthorize("hasPermissionOnTenant(#documentIdentificationGuarantorNaturalPersonForm.tenantId)")
     @PostMapping("/documentIdentification")
     public ResponseEntity<TenantModel> documentIdentification(@Validated(ApiPartner.class) DocumentIdentificationGuarantorNaturalPersonForm documentIdentificationGuarantorNaturalPersonForm) {
         var tenant = tenantService.findById(documentIdentificationGuarantorNaturalPersonForm.getTenantId());
         var tenantModel = tenantService.saveStepRegister(tenant, documentIdentificationGuarantorNaturalPersonForm, StepRegister.DOCUMENT_IDENTIFICATION_GUARANTOR_NATURAL_PERSON);
-        logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
         return ok(tenantModel);
     }
 
@@ -46,7 +42,6 @@ public class ApiPartnerRegisterGuarantorNaturalPersonController {
     public ResponseEntity<TenantModel> documentIdentificationFile(@Validated(ApiPartner.class) DocumentIdentificationGuarantorNaturalPersonFileForm documentIdentificationGuarantorNaturalPersonFileForm) {
         var tenant = tenantService.findById(documentIdentificationGuarantorNaturalPersonFileForm.getTenantId());
         var tenantModel = tenantService.saveStepRegister(tenant, documentIdentificationGuarantorNaturalPersonFileForm, StepRegister.DOCUMENT_IDENTIFICATION_GUARANTOR_NATURAL_PERSON_FILE);
-        logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
         return ok(tenantModel);
     }
 
@@ -55,7 +50,6 @@ public class ApiPartnerRegisterGuarantorNaturalPersonController {
     public ResponseEntity<TenantModel> guarantorName(@Validated(ApiPartner.class) NameGuarantorNaturalPersonForm nameGuarantorNaturalPersonForm) {
         var tenant = tenantService.findById(nameGuarantorNaturalPersonForm.getTenantId());
         var tenantModel = tenantService.saveStepRegister(tenant, nameGuarantorNaturalPersonForm, StepRegister.NAME_GUARANTOR_NATURAL_PERSON);
-        logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
         return ok(tenantModel);
     }
 
@@ -64,7 +58,6 @@ public class ApiPartnerRegisterGuarantorNaturalPersonController {
     public ResponseEntity<TenantModel> documentResidency(@Validated(ApiPartner.class) DocumentResidencyGuarantorNaturalPersonForm documentResidencyGuarantorNaturalPersonForm) {
         Tenant tenant = tenantService.findById(documentResidencyGuarantorNaturalPersonForm.getTenantId());
         TenantModel tenantModel = tenantService.saveStepRegister(tenant, documentResidencyGuarantorNaturalPersonForm, StepRegister.DOCUMENT_RESIDENCY_GUARANTOR_NATURAL_PERSON);
-        logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
         return ok(tenantModel);
     }
 
@@ -73,7 +66,6 @@ public class ApiPartnerRegisterGuarantorNaturalPersonController {
     public ResponseEntity<TenantModel> documentProfessional(@Validated(ApiPartner.class) DocumentProfessionalGuarantorNaturalPersonForm documentProfessionalGuarantorNaturalPersonForm) {
         var tenant = tenantService.findById(documentProfessionalGuarantorNaturalPersonForm.getTenantId());
         var tenantModel = tenantService.saveStepRegister(tenant, documentProfessionalGuarantorNaturalPersonForm, StepRegister.DOCUMENT_PROFESSIONAL_GUARANTOR_NATURAL_PERSON);
-        logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
         return ok(tenantModel);
     }
 
@@ -82,7 +74,6 @@ public class ApiPartnerRegisterGuarantorNaturalPersonController {
     public ResponseEntity<TenantModel> documentFinancial(@Validated(ApiPartner.class) DocumentFinancialGuarantorNaturalPersonForm documentFinancialGuarantorNaturalPersonForm) {
         var tenant = tenantService.findById(documentFinancialGuarantorNaturalPersonForm.getTenantId());
         var tenantModel = tenantService.saveStepRegister(tenant, documentFinancialGuarantorNaturalPersonForm, StepRegister.DOCUMENT_FINANCIAL_GUARANTOR_NATURAL_PERSON);
-        logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
         return ok(tenantModel);
     }
 
@@ -92,7 +83,6 @@ public class ApiPartnerRegisterGuarantorNaturalPersonController {
     public ResponseEntity<TenantModel> documentTax(@Validated(ApiPartner.class) DocumentTaxGuarantorNaturalPersonForm documentTaxGuarantorNaturalPersonForm) {
         var tenant = tenantService.findById(documentTaxGuarantorNaturalPersonForm.getTenantId());
         var tenantModel = tenantService.saveStepRegister(tenant, documentTaxGuarantorNaturalPersonForm, StepRegister.DOCUMENT_TAX_GUARANTOR_NATURAL_PERSON);
-        logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
         return ok(tenantModel);
     }
 }

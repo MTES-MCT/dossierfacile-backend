@@ -8,8 +8,6 @@ import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.validator.group.Dossier;
 import fr.dossierfacile.common.entity.Tenant;
-import fr.dossierfacile.common.enums.LogType;
-import fr.dossierfacile.common.service.interfaces.LogService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -28,14 +26,12 @@ public class RegisterGuarantorOrganismController {
     private final TenantService tenantService;
     private final TenantMapper tenantMapper;
     private final AuthenticationFacade authenticationFacade;
-    private final LogService logService;
 
     @PreAuthorize("hasPermissionOnTenant(#documentIdentificationGuarantorOrganismForm.tenantId)")
     @PostMapping("/documentIdentification")
     public ResponseEntity<TenantModel> documentIdentification(@Validated(Dossier.class) DocumentIdentificationGuarantorOrganismForm documentIdentificationGuarantorOrganismForm) {
         var tenant = authenticationFacade.getTenant(documentIdentificationGuarantorOrganismForm.getTenantId());
-        var tenantModel = tenantService.saveStepRegister(tenant, documentIdentificationGuarantorOrganismForm, StepRegister.DOCUMENT_IDENTIFICATION_GUARANTOR_ORGANISM);
-        logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
+        tenantService.saveStepRegister(tenant, documentIdentificationGuarantorOrganismForm, StepRegister.DOCUMENT_IDENTIFICATION_GUARANTOR_ORGANISM);
         Tenant loggedTenant = (documentIdentificationGuarantorOrganismForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
         return ok(tenantMapper.toTenantModel(loggedTenant));
     }

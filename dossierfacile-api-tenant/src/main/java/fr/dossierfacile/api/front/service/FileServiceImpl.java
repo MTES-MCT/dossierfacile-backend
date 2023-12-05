@@ -32,7 +32,7 @@ public class FileServiceImpl implements FileService {
         document.getFiles().remove(file);
         fileRepository.delete(file);
 
-        logService.saveLog(LogType.ACCOUNT_EDITED, tenant.getId());
+        logService.saveDocumentEditedLog(document, tenant);
 
         if (document.getFiles().isEmpty()) {
             documentService.delete(document);

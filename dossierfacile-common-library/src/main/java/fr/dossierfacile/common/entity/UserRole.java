@@ -45,9 +45,4 @@ public class UserRole implements Serializable {
         this.user = user;
         this.role = role;
     }
-
-    public UserRole(Owner owner) {
-        this.user = owner;
-        this.role = Role.ROLE_OWNER;
-    }
 }

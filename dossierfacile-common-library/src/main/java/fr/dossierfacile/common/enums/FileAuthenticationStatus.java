@@ -11,7 +11,6 @@ public enum FileAuthenticationStatus {
     INVALID,
     API_ERROR,
     ERROR,
-    UNKNOWN_DOCUMENT,
     ;
 
     public static FileAuthenticationStatus of(boolean isAuthentic) {
