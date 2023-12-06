@@ -1,6 +1,7 @@
 package fr.dossierfacile.process.file.service.ocr;
 
 
+import com.google.common.annotations.VisibleForTesting;
 import fr.dossierfacile.common.entity.ocr.TaxIncomeLeaf;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,9 +28,12 @@ public class TaxIncomeLeafParser extends AbstractSinglePageImageOcrParser<TaxInc
                     new Rectangle(10, 23, 180, 35),
                     new Rectangle(375, 23, 195, 35));
 
-    private final Pattern incomeYearPattern = Pattern.compile("revenus de (\\d{4})");
-    private final Pattern fiscalNumberPattern = Pattern.compile("fiscal : ([\\d \\s]+)");
-    private final Pattern pageInfoPattern = Pattern.compile("Feuillet n.? : (\\d)[/\\s](\\d)");
+    @VisibleForTesting
+    protected final Pattern incomeYearPattern = Pattern.compile("revenus\\s*de\\s*(\\d{4})");
+    @VisibleForTesting
+    protected final Pattern fiscalNumberPattern = Pattern.compile("fiscal[:\\s]*([\\d \\s]+)");
+    @VisibleForTesting
+    protected final Pattern pageInfoPattern = Pattern.compile("Feuillet\\s*n.?[:\\s]+(\\d)[/\\s]+(\\d)");
 
     private transient volatile Tesseract tesseract;
 

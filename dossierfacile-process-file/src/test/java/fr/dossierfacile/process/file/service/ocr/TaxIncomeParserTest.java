@@ -1,8 +1,6 @@
-package fr.dossierfacile.process.file.service;
+package fr.dossierfacile.process.file.service.ocr;
 
 import fr.dossierfacile.common.entity.ocr.TaxIncomeMainFile;
-import fr.dossierfacile.process.file.service.ocr.TaxIncomeLeafParser;
-import fr.dossierfacile.process.file.service.ocr.TaxIncomeParser;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -15,7 +13,6 @@ public class TaxIncomeParserTest {
     @Test
     void parse() {
         // Set lib path: System.setProperty("jna.library.path", "/usr/local/lib");
-        System.setProperty("jna.library.path", "/usr/local/lib");
         // Set to test environment: "TESSDATA_PREFIX","/usr/..../share/tessdata"
         File file = new File(this.getClass().getResource("/documents/taxincome.pdf").getFile());
 
