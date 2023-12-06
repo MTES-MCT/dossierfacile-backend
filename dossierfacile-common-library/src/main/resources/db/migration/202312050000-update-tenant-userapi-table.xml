@@ -7,7 +7,6 @@
     <changeSet id="202312050000-01" author="juliette">
         <addColumn tableName="tenant_userapi">
             <column name="access_granted_date" type="TIMESTAMP">
-                <constraints nullable="false"/>
             </column>
         </addColumn>
     </changeSet>
