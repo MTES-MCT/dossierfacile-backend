@@ -36,7 +36,7 @@ public class PartnerAccessController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> revokePartnerAccess(@PathVariable("id") Long userApiId) {
         Tenant tenant = authenticationFacade.getLoggedTenant();
-        partnerAccessService.deleteAccess(tenant.getApartmentSharing(), userApiId);
+        partnerAccessService.deleteAccess(tenant, userApiId);
         return ok().build();
     }
 
