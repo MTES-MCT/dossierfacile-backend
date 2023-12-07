@@ -29,6 +29,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static fr.dossierfacile.common.enums.ApplicationType.*;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -64,10 +66,6 @@ public class MailServiceImpl implements MailService {
     private Long templateEmailWhenTenantNOTAssociatedToPartnersAndValidated;
     @Value("${sendinblue.template.id.account.satisf.yes.assoc.to.partners}")
     private Long templateEmailWhenTenantYESAssociatedToPartnersAndValidated;
-    @Value("${sendinblue.template.id.first.warning.for.deletion.of.documents}")
-    private Long templateFirstWarningForDeletionOfDocuments;
-    @Value("${sendinblue.template.id.second.warning.for.deletion.of.documents}")
-    private Long templateSecondWarningForDeletionOfDocuments;
     @Value("${sendinblue.template.id.contact.support}")
     private Long templateIdContactSupport;
     @Value("${link.after.completed.default}")
@@ -76,7 +74,8 @@ public class MailServiceImpl implements MailService {
     private String defaultCreatedUrl;
     @Value("${sendinblue.template.id.share.file}")
     private Long templateIdShareFile;
-
+    @Value("${sendinblue.template.id.partner.access.revoked}")
+    private Long templateIDPartnerAccessRevoked;
     @Value("${sendinblue.domains.blacklist:example.com}")
     private List<String> blackListedDomains;
 
@@ -133,7 +132,7 @@ public class MailServiceImpl implements MailService {
         variables.put("PRENOM", flatmate.getFirstName());
         variables.put("confirmToken", passwordRecoveryToken.getToken());
         variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
-        if (applicationType == ApplicationType.GROUP) {
+        if (applicationType == GROUP) {
             variables.put("NOM", Strings.isNullOrEmpty(flatmate.getPreferredName()) ? flatmate.getLastName() : flatmate.getPreferredName());
             templateId = templateIdGroupApplication;
         }
@@ -293,4 +292,28 @@ public class MailServiceImpl implements MailService {
             log.error("Email Api Exception" + Sentry.captureException(e), e);
         }
     }
+
+    @Override
+    public void sendEmailPartnerAccessRevoked(Tenant receiver, UserApi userApi, Tenant revocationRequester) {
+        Map<String, String> variables = new HashMap<>();
+        variables.put("PRENOM", receiver.getFirstName());
+        variables.put("partnerName", userApi.getName2());
+        variables.put("requestOrigin", new RevocationRequest(revocationRequester, receiver).getOrigin());
+
+        sendEmailToTenant(receiver, variables, templateIDPartnerAccessRevoked);
+    }
+
+    private record RevocationRequest(Tenant requester, Tenant emailReceiver) {
+
+        String getOrigin() {
+            if (requester.getId().equals(emailReceiver.getId())) {
+                return "votre demande";
+            }
+            ApplicationType applicationType = requester.getApartmentSharing().getApplicationType();
+            String requesterType = applicationType == COUPLE ? "conjoint(e)" : "colocataire";
+            return String.format("la demande de votre %s %s", requesterType, requester.getFirstName());
+        }
+
+    }
+
 }

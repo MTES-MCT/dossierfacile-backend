@@ -3,8 +3,8 @@ package fr.dossierfacile.api.front.service;
 import fr.dossierfacile.api.front.mapper.PartnerAccessMapper;
 import fr.dossierfacile.api.front.model.tenant.PartnerAccessModel;
 import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
+import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.api.front.service.interfaces.PartnerAccessService;
-import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.TenantUserApi;
 import fr.dossierfacile.common.entity.UserApi;
@@ -23,6 +23,7 @@ public class PartnerAccessServiceImpl implements PartnerAccessService {
     private final PartnerCallBackService partnerCallBackService;
     private final PartnerAccessMapper partnerAccessMapper;
     private final KeycloakService keycloakService;
+    private final MailService mailService;
 
     @Override
     public List<PartnerAccessModel> getAllPartners(Tenant tenant) {
@@ -30,8 +31,8 @@ public class PartnerAccessServiceImpl implements PartnerAccessService {
     }
 
     @Override
-    public void deleteAccess(ApartmentSharing apartmentSharing, Long userApiId) {
-        tenantUserApiRepository.findAllByApartmentSharingAndUserApi(apartmentSharing.getId(), userApiId)
+    public void deleteAccess(Tenant tenant, Long userApiId) {
+        tenantUserApiRepository.findAllByApartmentSharingAndUserApi(tenant.getApartmentSharing().getId(), userApiId)
                 .forEach(this::deleteAccess);
     }
 
@@ -42,6 +43,7 @@ public class PartnerAccessServiceImpl implements PartnerAccessService {
         tenantUserApiRepository.delete(tenantUserApi);
         partnerCallBackService.sendRevokedAccessCallback(tenant, userApi);
         keycloakService.revokeUserConsent(tenant, userApi);
+        mailService.sendEmailPartnerAccessRevoked(tenant, userApi, tenant);
     }
 
 }
