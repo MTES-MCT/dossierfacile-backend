@@ -12,7 +12,6 @@ import lombok.ToString;
 import org.hibernate.Hibernate;
 
 import javax.annotation.Nullable;
-import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -94,20 +93,6 @@ public class Document implements Serializable {
     @JoinColumn(name = "watermark_file_id")
     private StorageFile watermarkFile;
 
-    @Column(name = "processing_start_time")
-    private LocalDateTime processingStartTime;
-
-
-    @Column(name = "processing_end_time")
-    private LocalDateTime processingEndTime;
-
-    @Builder.Default
-    private int retries = 0;
-
-    private boolean locked;
-
-    private String lockedBy;
-
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "document_denied_reasons_id")
     @ToString.Exclude
@@ -119,16 +104,6 @@ public class Document implements Serializable {
     @Nullable
     @OneToOne(mappedBy= "document", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     private DocumentAnalysisReport documentAnalysisReport;
-
-    @Basic(fetch = FetchType.LAZY)
-    public boolean isLocked() {
-        return locked;
-    }
-
-    @Basic(fetch = FetchType.LAZY)
-    public String getLockedBy() {
-        return lockedBy;
-    }
 
     @Override
     public boolean equals(Object o) {

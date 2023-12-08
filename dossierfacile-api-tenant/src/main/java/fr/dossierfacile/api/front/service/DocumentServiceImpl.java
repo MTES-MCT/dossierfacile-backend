@@ -101,27 +101,6 @@ public class DocumentServiceImpl implements DocumentService {
     }
 
     @Override
-    public void initializeFieldsToProcessPdfGeneration(Document document) {
-        StorageFile watermarkFile = document.getWatermarkFile();
-        document.setWatermarkFile(null);
-        document.setProcessingStartTime(LocalDateTime.now());
-        document.setProcessingEndTime(null);
-        document.setLocked(false);
-        document.setLockedBy(null);
-        document.setRetries(0);
-        documentRepository.save(document);
-        if (watermarkFile != null) {
-            storageFileRepository.delete(watermarkFile);
-        }
-    }
-
-    @Override
-    public void initializeFieldsToProcessPdfGeneration(long documentId) {
-        Document document = documentRepository.findById(documentId).orElseThrow(() -> new DocumentNotFoundException(documentId));
-        initializeFieldsToProcessPdfGeneration(document);
-    }
-
-    @Override
     @Transactional
     public void resetValidatedDocumentsStatusOfSpecifiedCategoriesToToProcess(List<Document> documentList, List<DocumentCategory> categoriesToChange) {
         Optional.ofNullable(documentList)
@@ -154,6 +133,11 @@ public class DocumentServiceImpl implements DocumentService {
         if ( document.getDocumentAnalysisReport() != null) {
             documentAnalysisReportRepository.delete(document.getDocumentAnalysisReport());
             document.setDocumentAnalysisReport(null);
+        }
+        if ( document.getWatermarkFile() != null ){
+            StorageFile watermarkFile = document.getWatermarkFile();
+            storageFileRepository.delete(watermarkFile);
+            document.setWatermarkFile(null);
         }
         documentRepository.save(document);
     }

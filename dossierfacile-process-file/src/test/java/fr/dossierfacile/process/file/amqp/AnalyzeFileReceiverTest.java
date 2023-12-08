@@ -9,7 +9,6 @@ import org.mockito.stubbing.Stubber;
 
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -24,13 +23,15 @@ import static org.mockito.Mockito.verify;
 class AnalyzeFileReceiverTest {
 
     private final AnalyzeFile analyzeFile = mock(AnalyzeFile.class);
-    private final AnalyzeFileReceiver analyzeFileReceiver = new AnalyzeFileReceiver(analyzeFile,
-            new fr.dossierfacile.common.utils.Timeout(100, TimeUnit.MILLISECONDS));
+    private final AnalyzeFileReceiver analyzeFileReceiver = new AnalyzeFileReceiver(analyzeFile);
+    {
+        analyzeFileReceiver.setAnalysisTimeoutInSeconds(1L);
+    }
 
     private int finishedAnalysis = 0;
 
     @Test
-    @Timeout(2)
+    @Timeout(5)
     void should_timeout_if_analysis_takes_too_long() throws InterruptedException, ExecutionException {
         sleepSeconds(10).when(analyzeFile).processFile(1L); // Should time out
         sleepSeconds(0).when(analyzeFile).processFile(2L); // Should not time out
@@ -46,7 +47,7 @@ class AnalyzeFileReceiverTest {
         verify(analyzeFile, times(3)).processFile(1L);
         verify(analyzeFile, times(2)).processFile(2L);
 
-        assertThat(executionTime).isLessThan(1000);
+        assertThat(executionTime).isLessThan(4000);
         assertThat(finishedAnalysis).isEqualTo(2);
     }
 

@@ -51,7 +51,6 @@ public class DocumentResidency extends AbstractDocumentSaveStep<DocumentResidenc
 
         saveFiles(documentResidencyForm, document);
 
-        documentService.initializeFieldsToProcessPdfGeneration(document);
         tenant.lastUpdateDateProfile(LocalDateTime.now(), DocumentCategory.RESIDENCY);
         tenantStatusService.updateTenantStatus(tenant);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());

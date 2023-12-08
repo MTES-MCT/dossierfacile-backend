@@ -1,12 +1,5 @@
 package fr.dossierfacile.process.file.configuration;
 
-import fr.dossierfacile.common.utils.Timeout;
-import fr.dossierfacile.process.file.amqp.AnalyzeDocumentReceiver;
-import fr.dossierfacile.process.file.amqp.AnalyzeFileReceiver;
-import fr.dossierfacile.process.file.amqp.MinifyFileReceiver;
-import fr.dossierfacile.process.file.service.AnalyzeDocumentService;
-import fr.dossierfacile.process.file.service.AnalyzeFile;
-import fr.dossierfacile.process.file.service.interfaces.MinifyFile;
 import org.aopalliance.aop.Advice;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
@@ -100,21 +93,6 @@ public class AMQPConfig {
         factory.setAdviceChain(adviceChain);
         factory.setPrefetchCount(prefetch);
         return factory;
-    }
-
-    @Bean
-    AnalyzeFileReceiver analyzeFileReceiver(AnalyzeFile analyzeFile, @Value("${analysis.timeout.seconds}") int timeoutSeconds) {
-        Timeout analysisTimeout = new Timeout(timeoutSeconds, TimeUnit.SECONDS);
-        return new AnalyzeFileReceiver(analyzeFile, analysisTimeout);
-    }
-
-    @Bean
-    MinifyFileReceiver minifyFileReceiver(MinifyFile minifyFile) {
-        return new MinifyFileReceiver(minifyFile);
-    }
-    @Bean
-    AnalyzeDocumentReceiver analyzeDocumentReceiver(AnalyzeDocumentService analyzeDocumentService) {
-        return new AnalyzeDocumentReceiver(analyzeDocumentService);
     }
 
 }

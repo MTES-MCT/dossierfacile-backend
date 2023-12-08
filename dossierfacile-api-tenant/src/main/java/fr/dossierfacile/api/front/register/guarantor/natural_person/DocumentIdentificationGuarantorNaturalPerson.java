@@ -59,7 +59,6 @@ public class DocumentIdentificationGuarantorNaturalPerson
 
         saveFiles(documentIdentificationGuarantorNaturalPersonForm, document);
 
-        documentService.initializeFieldsToProcessPdfGeneration(document);
         tenant.lastUpdateDateProfile(LocalDateTime.now(), DocumentCategory.IDENTIFICATION);
         tenantStatusService.updateTenantStatus(tenant);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());

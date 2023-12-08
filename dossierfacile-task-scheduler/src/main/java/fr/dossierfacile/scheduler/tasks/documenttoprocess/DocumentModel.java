@@ -1,9 +1,8 @@
-package fr.dossierfacile.api.front.amqp.model;
+package fr.dossierfacile.scheduler.tasks.documenttoprocess;
 
 import lombok.Builder;
-import lombok.Value;
 
-@Value
+@lombok.Value
 @Builder
 public class DocumentModel {
     Long id;
