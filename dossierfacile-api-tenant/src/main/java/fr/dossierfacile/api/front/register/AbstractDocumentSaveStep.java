@@ -7,11 +7,9 @@ import fr.dossierfacile.api.front.register.form.DocumentForm;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.util.TransactionalUtil;
 import fr.dossierfacile.common.entity.Document;
-import fr.dossierfacile.common.entity.DocumentPdfGenerationLog;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
-import fr.dossierfacile.common.repository.DocumentPdfGenerationLogRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
@@ -28,10 +26,6 @@ public abstract class AbstractDocumentSaveStep<T extends DocumentForm> implement
     @Autowired
     private TenantMapper tenantMapper;
     @Autowired
-    private Producer producer;
-    @Autowired
-    private DocumentPdfGenerationLogRepository documentPdfGenerationLogRepository;
-    @Autowired
     private DocumentService documentService;
     @Autowired
     private PartnerCallBackService partnerCallBackService;
@@ -39,6 +33,8 @@ public abstract class AbstractDocumentSaveStep<T extends DocumentForm> implement
     private TenantCommonRepository tenantCommonRepository;
     @Autowired
     private LogService logService;
+    @Autowired
+    private Producer producer;
 
     @Override
     @Transactional
@@ -51,12 +47,13 @@ public abstract class AbstractDocumentSaveStep<T extends DocumentForm> implement
 
         Document document = saveDocument(tenant, documentForm);
         logService.saveDocumentEditedLog(document, tenant);
+        documentService.markDocumentAsEdited(document);
 
-        Long logId = documentPdfGenerationLogRepository.save(
-                DocumentPdfGenerationLog.builder()
-                        .documentId(document.getId())
-                        .build()).getId();
-        TransactionalUtil.afterCommit(() -> producer.generatePdf(document.getId(), logId));
+        TransactionalUtil.afterCommit(() -> {
+            producer.sendDocumentForAnalysis(document);
+            producer.sendDocumentForPdfGeneration(document);
+        });
+
         return tenantMapper.toTenantModel(document.getTenant() != null ? document.getTenant() : document.getGuarantor().getTenant());
     }
 

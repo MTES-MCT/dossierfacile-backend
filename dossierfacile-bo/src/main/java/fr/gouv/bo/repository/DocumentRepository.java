@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 public interface DocumentRepository extends JpaRepository<Document, Long> {
@@ -17,25 +18,14 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
     @Query(value = "SELECT d.* FROM document d WHERE d.creation_date is null ORDER BY d.id DESC", nativeQuery = true)
     Page<Document> findDocumentsByCreationDateTimeIsNull(Pageable pageable);
 
-    @Query("SELECT d.id FROM Document d " +
-            "WHERE d.watermarkFile is null " +
-            "and d.processingStartTime is not null " +
-            "and d.processingEndTime is null " +
-            "and d.processingStartTime < :timeAgo " +
-            "ORDER BY d.id")
-    Page<Long> findAllFailedGeneratedPdfDocumentIdsSinceXTimeAgo(@Param("timeAgo") LocalDateTime timeAgo, Pageable pageable);
-
-    @Modifying
-    @Query(value = "UPDATE document SET retries = 0, locked = false, locked_by = null where id in (" +
-            "SELECT d.id FROM document d WHERE d.watermark_file_id is null and d.processing_start_time is not null and d.processing_end_time is null and d.processing_start_time < now() - (interval '12' hour)" +
-            ")", nativeQuery = true)
-    void unlockFailedPdfDocumentsGeneratedUsingButtonRequest();
-
-    @Modifying
-    @Query(value = "UPDATE document SET retries = 0, locked = false, locked_by = null where id in (" +
-            "SELECT d.id FROM document d WHERE d.watermark_file_id is null and d.processing_start_time is not null and d.processing_end_time is null and d.processing_start_time < now() - (interval '24' hour)" +
-            ")", nativeQuery = true)
-    void unlockFailedPdfDocumentsGeneratedUsingScheduledTask();
+    @Query(value = """
+            SELECT d.id
+            FROM Document d
+            WHERE d.documentStatus = 'TO_PROCESS'
+              AND (d.lastModifiedDate IS NULL OR d.lastModifiedDate < :toDateTime)
+              AND d.watermarkFile IS NULL
+            """)
+    Page<Long> findToProcessWithoutPDFToDate(LocalDateTime toDateTime, Pageable pageable);
 
     @Modifying
     @Query("UPDATE Document d SET d.documentDeniedReasons = :documentDeniedReasons where d.id = :documentId")

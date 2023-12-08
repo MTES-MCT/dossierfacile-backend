@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+    <changeSet id="202312120000-01" author="fabien(manual)">
+        <dropTable tableName="document_pdf_generation_log"/>
+    </changeSet>
+    <changeSet id="202312120000-02" author="fabien(manual)">
+        <dropColumn tableName="document" columnName="processing_start_time"/>
+        <dropColumn tableName="document" columnName="processing_end_time"/>
+        <dropColumn tableName="document" columnName="retries"/>
+        <dropColumn tableName="document" columnName="locked"/>
+        <dropColumn tableName="document" columnName="locked_by"/>
+    </changeSet>
+</databaseChangeLog>

@@ -61,7 +61,6 @@ public class DocumentResidencyGuarantorNaturalPerson
 
         saveFiles(documentResidencyGuarantorNaturalPersonForm, document);
 
-        documentService.initializeFieldsToProcessPdfGeneration(document);
         tenant.lastUpdateDateProfile(LocalDateTime.now(), DocumentCategory.RESIDENCY);
         tenantStatusService.updateTenantStatus(tenant);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());

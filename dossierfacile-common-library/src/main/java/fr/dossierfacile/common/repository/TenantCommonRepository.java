@@ -106,9 +106,9 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
             FROM tenant t
             LEFT JOIN document d ON d.tenant_id = t.id OR d.guarantor_id = t.id
             WHERE d.watermark_file_id IS NULL
-              AND d.processing_start_time IS NOT NULL
-              AND d.processing_end_time IS NULL
-              AND d.processing_start_time < NOW() - INTERVAL '12' HOUR
+              AND d.document_status IS NOT NULL
+              AND d.last_modified_date IS NOT NULL
+              AND d.last_modified_date < NOW() - INTERVAL '12' HOUR
             """, nativeQuery = true)
     long countAllTenantsWithFailedGeneratedPdfDocument();
 
@@ -121,18 +121,17 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
               FROM tenant t2
               JOIN document d ON d.tenant_id = t2.id
               WHERE d.watermark_file_id IS NULL
-                AND d.processing_start_time IS NOT NULL
-                AND d.processing_end_time IS NULL
-                AND d.processing_start_time < NOW() - INTERVAL '12' HOUR
+                AND d.document_status IS NOT NULL
+                AND d.last_modified_date IS NOT NULL
+                AND d.last_modified_date < NOW() - INTERVAL '12' HOUR
               UNION DISTINCT
               SELECT t3.id
               FROM tenant t3
               JOIN guarantor g ON g.tenant_id = t3.id
               JOIN document d ON d.guarantor_id = g.id
               WHERE d.watermark_file_id IS NULL
-                AND d.processing_start_time IS NOT NULL
-                AND d.processing_end_time IS NULL
-                AND d.processing_start_time < NOW() - INTERVAL '12' HOUR
+                AND d.document_status IS NOT NULL
+                AND d.lastModified < NOW() - INTERVAL '12' HOUR
             )
             ORDER BY t.last_update_date DESC
             """, nativeQuery = true)

@@ -9,7 +9,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @SpringBootTest
-@ActiveProfiles({"mockOvh", "noRabbit"})
+@ActiveProfiles({"mockOvh"})
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface IntegrationTest {
