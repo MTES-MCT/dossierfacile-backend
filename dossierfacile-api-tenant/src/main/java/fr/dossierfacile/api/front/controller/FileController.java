@@ -1,18 +1,12 @@
 package fr.dossierfacile.api.front.controller;
 
-import fr.dossierfacile.api.front.amqp.Producer;
 import fr.dossierfacile.api.front.exception.FileNotFoundException;
 import fr.dossierfacile.api.front.repository.FileRepository;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
-import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.FileService;
-import fr.dossierfacile.common.entity.Document;
-import fr.dossierfacile.common.entity.DocumentPdfGenerationLog;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Tenant;
-import fr.dossierfacile.common.repository.DocumentPdfGenerationLogRepository;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
-import fr.dossierfacile.common.service.interfaces.SharedFileService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -35,25 +29,14 @@ import java.io.InputStream;
 public class FileController {
     private static final String FILE_NO_EXIST = "The file does not exist";
     private final FileService fileService;
-    private final SharedFileService sharedFileService;
-    private final DocumentService documentService;
-    private final Producer producer;
     private final AuthenticationFacade authenticationFacade;
     private final FileRepository fileRepository;
     private final FileStorageService fileStorageService;
-    private final DocumentPdfGenerationLogRepository documentPdfGenerationLogRepository;
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         var tenant = authenticationFacade.getLoggedTenant();
-        Document document = fileService.delete(id, tenant);
-        if (document != null) {
-            documentService.initializeFieldsToProcessPdfGeneration(document);
-            producer.generatePdf(document.getId(),
-                    documentPdfGenerationLogRepository.save(DocumentPdfGenerationLog.builder()
-                            .documentId(document.getId())
-                            .build()).getId());
-        }
+        fileService.delete(id, tenant);
         return ResponseEntity.ok().build();
     }
 

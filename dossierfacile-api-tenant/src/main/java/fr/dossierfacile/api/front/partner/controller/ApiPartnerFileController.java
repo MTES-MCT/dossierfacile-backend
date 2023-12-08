@@ -3,13 +3,10 @@ package fr.dossierfacile.api.front.partner.controller;
 import fr.dossierfacile.api.front.amqp.Producer;
 import fr.dossierfacile.api.front.exception.FileNotFoundException;
 import fr.dossierfacile.api.front.repository.FileRepository;
-import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.FileService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.common.entity.Document;
-import fr.dossierfacile.common.entity.DocumentPdfGenerationLog;
 import fr.dossierfacile.common.entity.File;
-import fr.dossierfacile.common.repository.DocumentPdfGenerationLogRepository;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,25 +30,16 @@ import java.io.InputStream;
 @Slf4j
 public class ApiPartnerFileController {
     private final FileService fileService;
-    private final DocumentService documentService;
-    private final Producer producer;
     private final TenantService tenantService;
     private final FileRepository fileRepository;
     private final FileStorageService fileStorageService;
-    private final DocumentPdfGenerationLogRepository documentPdfGenerationLogRepository;
 
     @PreAuthorize("hasPermissionOnTenant(#tenantId)")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id, @PathVariable Long tenantId) {
         var tenant = tenantService.findById(tenantId);
         Document document = fileService.delete(id, tenant);
-        if (document != null) {
-            documentService.initializeFieldsToProcessPdfGeneration(document);
-            producer.generatePdf(document.getId(),
-                    documentPdfGenerationLogRepository.save(DocumentPdfGenerationLog.builder()
-                            .documentId(document.getId())
-                            .build()).getId());
-        }
+
         return ResponseEntity.ok().build();
     }
 

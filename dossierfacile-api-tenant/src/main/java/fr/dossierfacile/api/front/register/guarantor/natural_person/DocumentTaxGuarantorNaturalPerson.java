@@ -77,7 +77,6 @@ public class DocumentTaxGuarantorNaturalPerson extends AbstractDocumentSaveStep<
             document.setCustomText(documentTaxGuarantorNaturalPersonForm.getCustomText());
         }
         documentRepository.save(document);
-        documentService.initializeFieldsToProcessPdfGeneration(document);
         tenant.lastUpdateDateProfile(LocalDateTime.now(), DocumentCategory.TAX);
         if (tenant.getStatus() == TenantFileStatus.VALIDATED) {
             documentService.resetValidatedDocumentsStatusOfSpecifiedCategoriesToToProcess(guarantor.getDocuments(), List.of(DocumentCategory.PROFESSIONAL, DocumentCategory.FINANCIAL, DocumentCategory.TAX));

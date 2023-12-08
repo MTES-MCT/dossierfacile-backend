@@ -3,12 +3,10 @@ package fr.gouv.bo.service;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentDeniedOptions;
 import fr.dossierfacile.common.entity.DocumentDeniedReasons;
-import fr.dossierfacile.common.entity.DocumentPdfGenerationLog;
 import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
-import fr.dossierfacile.common.repository.DocumentPdfGenerationLogRepository;
 import fr.dossierfacile.common.repository.StorageFileRepository;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.gouv.bo.amqp.Producer;
@@ -37,7 +35,6 @@ public class DocumentService {
     private final FileStorageService fileStorageService;
     private final StorageFileRepository storageFileRepository;
     private final Producer producer;
-    private final DocumentPdfGenerationLogRepository documentPdfGenerationLogRepository;
     private final DocumentDeniedOptionsRepository documentDeniedOptionsRepository;
 
     public Document findDocumentById(Long documentId) {
@@ -87,11 +84,6 @@ public class DocumentService {
     public void initializeFieldsToProcessPdfGeneration(Document document) {
         StorageFile watermarkFile = document.getWatermarkFile();
         document.setWatermarkFile(null);
-        document.setProcessingStartTime(LocalDateTime.now());
-        document.setProcessingEndTime(null);
-        document.setRetries(0);
-        document.setLocked(false);
-        document.setLockedBy(null);
         documentRepository.save(document);
         if (watermarkFile != null) {
             storageFileRepository.delete(watermarkFile);
@@ -101,61 +93,26 @@ public class DocumentService {
     @Transactional
     public void regenerateFailedPdfDocumentsUsingButtonRequest() {
         synchronized (this) {
-            documentRepository.unlockFailedPdfDocumentsGeneratedUsingButtonRequest();
-
             int numberOfUpdate = 1;
             int lengthOfPage = 1000;
             Pageable page = PageRequest.of(0, lengthOfPage, Sort.Direction.DESC, "id");
-            LocalDateTime twelveHoursAgo = LocalDateTime.now().minusHours(12);
-            Page<Long> documents = documentRepository.findAllFailedGeneratedPdfDocumentIdsSinceXTimeAgo(twelveHoursAgo, page);
+            LocalDateTime thirtyMinutesAgo = LocalDateTime.now().minusMinutes(30);
 
-            long totalElements = documents.getTotalElements();
-            log.info("Number of documents to retry its PDF generation [" + totalElements + "]");
-            try {
-                while (!documents.isEmpty()) {
-                    page = page.next();
-                    documents.forEach(documentId -> producer.generatePdf(documentId,
-                            documentPdfGenerationLogRepository.save(DocumentPdfGenerationLog.builder().documentId(documentId).build()).getId()));
-                    log.info("Send number [" + numberOfUpdate++ + "] with " + documents.getNumberOfElements() + " documentId");
-                    documents = documentRepository.findAllFailedGeneratedPdfDocumentIdsSinceXTimeAgo(twelveHoursAgo, page);
-                    log.info("Waiting 5s for the next call...");
-                    this.wait(5000);
+            Page<Long> documents;
+            do {
+                documents = documentRepository.findToProcessWithoutPDFToDate(thirtyMinutesAgo, page);
+                long totalElements = documents.getTotalElements();
+                log.info("Treat PDF Failed :" + lengthOfPage + " on " + totalElements + " elements");
+
+                documents.forEach(documentId -> producer.generatePdf(documentId));
+                log.info("Send number [" + numberOfUpdate++ + "] with " + documents.getNumberOfElements() + " documentId");
+                try {
+                    this.wait(30000);
+                } catch (InterruptedException e) {
+                    log.error("some exception message ", e);
+                    Thread.currentThread().interrupt();
                 }
-            } catch (InterruptedException e) {
-                log.error("some exception message ", e);
-                Thread.currentThread().interrupt();
-            }
-        }
-    }
-
-
-    @Transactional
-    public void regenerateFailedPdfDocumentsOneDayAgoUsingScheduledTask() {
-        synchronized (this) {
-            documentRepository.unlockFailedPdfDocumentsGeneratedUsingScheduledTask();
-
-            int numberOfUpdate = 1;
-            int lengthOfPage = 1000;
-            Pageable page = PageRequest.of(0, lengthOfPage, Sort.Direction.DESC, "id");
-            LocalDateTime oneDayAgo = LocalDateTime.now().minusDays(1);
-            Page<Long> documents = documentRepository.findAllFailedGeneratedPdfDocumentIdsSinceXTimeAgo(oneDayAgo, page);
-
-            long totalElements = documents.getTotalElements();
-            log.info("Number of documents to retry its PDF generation [" + totalElements + "]");
-            try {
-                while (!documents.isEmpty()) {
-                    page = page.next();
-                    documents.forEach(documentId -> producer.generatePdf(documentId,
-                            documentPdfGenerationLogRepository.save(DocumentPdfGenerationLog.builder().documentId(documentId).build()).getId()));
-                    log.info("Send number [" + numberOfUpdate++ + "] with " + documents.getNumberOfElements() + " documentId");
-                    documents = documentRepository.findAllFailedGeneratedPdfDocumentIdsSinceXTimeAgo(oneDayAgo, page);
-                    log.info("Waiting 5s for the next call...");
-                    this.wait(5000);
-                }
-            } catch (InterruptedException e) {
-                log.error("InterruptedException regenerateFailedPdf ", e);
-                Thread.currentThread().interrupt();
-            }
+            } while (!documents.isEmpty());
         }
     }
 

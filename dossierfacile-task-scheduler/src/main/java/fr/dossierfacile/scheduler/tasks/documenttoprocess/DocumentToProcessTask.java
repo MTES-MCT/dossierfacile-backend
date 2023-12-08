@@ -2,7 +2,7 @@ package fr.dossierfacile.scheduler.tasks.documenttoprocess;
 
 import com.google.gson.Gson;
 import fr.dossierfacile.common.entity.Document;
-import lombok.AllArgsConstructor;
+import fr.dossierfacile.scheduler.LoggingContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.AmqpTemplate;
@@ -13,43 +13,44 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
+
+import static fr.dossierfacile.scheduler.tasks.TaskName.PDF_GENERATION;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class DocumentToProcessTask {
 
-    @Value("${rabbitmq.exchange.file.process}")
-    private String exchangeFileProcess;
-    @Value("${rabbitmq.routing.key.document.analyze}")
-    private String routingKeyAnalyzeDocument;
     private final AmqpTemplate amqpTemplate;
     private final Gson gson;
     private final DocumentRepository documentRepository;
 
-    @Scheduled(fixedDelayString = "${scheduled.process.document.to.process.analyse.delay}", timeUnit = TimeUnit.SECONDS)
-    public void launchAnalysis() {
-        log.debug("Start document analysis process");
+    @Value("${rabbitmq.exchange.pdf.generator}")
+    private String exchangePdfGenerator;
+    @Value("${rabbitmq.routing.key.pdf.generator.watermark-document}")
+    private String routingKeyPdfGenerator;
+
+    @Scheduled(cron = "${cron.process.pdf.generation.failed}")
+    public void launchFailedPDFGeneration() {
+        LoggingContext.startTask(PDF_GENERATION);
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime fromDateTime = now.minusMinutes(10);
-        LocalDateTime toDateTime = now.minusMinutes(1);
-        documentRepository.findToProcessWithoutAnalysisReportBetweenDate(fromDateTime, toDateTime)
-                .forEach(this::sendForAnalysis);
+        LocalDateTime toDateTime = now.minusMinutes(10);
+        documentRepository.findToProcessWithoutPDFToDate(toDateTime).forEach(this::sendForPDFGeneration);
+        LoggingContext.endTask();
     }
 
-    private void sendForAnalysis(Document document) {
-        Long documentId = document.getId();
-        log.debug("Sending document with ID [{}] for analysis", documentId);
-        amqpTemplate.send(exchangeFileProcess, routingKeyAnalyzeDocument, messageWithId(documentId));
+    private void sendForPDFGeneration(Document document) {
+        log.debug("Sending document with ID [{}] for pdf generation", document.getId());
+        amqpTemplate.send(exchangePdfGenerator, routingKeyPdfGenerator, messageWithId(document.getId()));
     }
 
     private Message messageWithId(Long id) {
-        Map<String, String> body = new TreeMap<>();
-        body.putIfAbsent("id", String.valueOf(id));
-        return new Message(gson.toJson(body).getBytes(), new MessageProperties());
+        MessageProperties properties = new MessageProperties();
+        properties.setHeader("timestamp", System.currentTimeMillis());
+        return new Message(
+                gson.toJson(Collections.singletonMap("id", String.valueOf(id))).getBytes(),
+                properties);
     }
-
 }

@@ -605,39 +605,27 @@
                                               th:text="${document.getDocumentStatus()}">
                                         </span>
 
+                                        <span class="btn-right-pull label label-info pull-right" style="color: black;"
+                                              th:if="${document.getDocumentStatus().name()=='TO_PROCESS'}"
+                                              th:text="${document.getDocumentStatus()}">
+                                        </span>
+
                                         <div class="container" style="margin-top: 5px; padding-left: 0">
-                                            <span style="color:orange; font-weight: bolder"
-                                                  th:if="${document.getProcessingStartTime() == null}">
-                                                    Pdf should be updated
-                                                <button th:class="'btn-regenerate-pdf'">
-                                                    <a th:href="@{/bo/regeneratePdfDocument/} + ${document.getId()}">Update Document PDF</a>
-                                                </button>
-                                            </span>
-                                            <span style="color:orange; font-weight: bolder"
-                                                  th:if="${document.getProcessingStartTime() != null} and ${document.getProcessingEndTime() != null}">
-                                                    Pdf should be updated
-                                                <button th:class="'btn-regenerate-pdf'">
-                                                    <a th:href="@{/bo/regeneratePdfDocument/} + ${document.getId()}">Update Document PDF</a>
-                                                </button>
-                                            </span>
-                                            <span th:if="${document.getProcessingStartTime() != null} and ${document.getProcessingEndTime() == null}">
+                                            <div class="container" style="margin-top: 5px; padding-left: 0">
                                                 PDF status:
-                                                <span th:if="${document.getProcessingStartTime().plusHours(1).isBefore(now)}">
-                                                    <span style="color:white; background-color: red; font-weight: bolder">
+                                                <span th:if="${document.getLastModifiedDate() == null || document.getLastModifiedDate().plusMinutes(30).isBefore(now)}"
+                                                      style="color:white; background-color: red; font-weight: bolder">
                                                         FAILED
-                                                    </span>
-                                                    <button th:class="'btn-regenerate-pdf'">
-                                                        <a th:href="@{/bo/regeneratePdfDocument/} + ${document.getId()}">Update Document PDF</a>
-                                                    </button>
                                                 </span>
-                                                <span style="color:white; background-color: limegreen; font-weight: bolder"
-                                                      th:if="${document.getProcessingStartTime().plusHours(1).isAfter(now)}">
-                                                    IN PROGRESS
-                                                    <button th:class="'btn-regenerate-pdf'">
-                                                        <a th:href="@{/bo/regeneratePdfDocument/} + ${document.getId()}">Force update PDF</a>
-                                                    </button>
+                                                <span th:unless="${document.getLastModifiedDate() == null || document.getLastModifiedDate().plusMinutes(30).isBefore(now)}"
+                                                      style="color:white; background-color: orange; font-weight: bolder">
+                                                        IN_PROGRESS
                                                 </span>
-                                            </span>
+
+                                                <button th:class="'btn-regenerate-pdf'">
+                                                    <a th:href="@{/bo/regeneratePdfDocument/} + ${document.getId()}">Update PDF</a>
+                                                </button>
+                                            </div>
                                         </div>
                                     </h4>
 
@@ -842,38 +830,20 @@
                                         </span>
 
                                         <div class="container" style="margin-top: 5px; padding-left: 0">
-                                            <span style="color:orange; font-weight: bolder"
-                                                  th:if="${document.getProcessingStartTime() == null}">
-                                                    Pdf should be updated
-                                                <button th:class="'btn-regenerate-pdf'">
-                                                    <a th:href="@{/bo/regeneratePdfDocument/} + ${document.getId()}">Update Document PDF</a>
-                                                </button>
+                                            PDF status:
+                                            <span th:if="${document.getLastModifiedDate() == null || document.getLastModifiedDate().plusMinutes(30).isBefore(now)}"
+                                                style="color:white; background-color: red; font-weight: bolder">
+                                                    FAILED
                                             </span>
-                                            <span style="color:orange; font-weight: bolder"
-                                                  th:if="${document.getProcessingStartTime() != null} and ${document.getProcessingEndTime() != null}">
-                                                    Pdf should be updated
-                                                <button th:class="'btn-regenerate-pdf'">
-                                                    <a th:href="@{/bo/regeneratePdfDocument/} + ${document.getId()}">Update Document PDF</a>
-                                                </button>
+                                            <span th:unless="${document.getLastModifiedDate() == null || document.getLastModifiedDate().plusMinutes(30).isBefore(now)}"
+                                              style="color:white; background-color: orange; font-weight: bolder">
+                                                    IN_PROGRESS
                                             </span>
-                                            <span th:if="${document.getProcessingStartTime() != null} and ${document.getProcessingEndTime() == null}">
-                                                PDF status:
-                                                <span th:if="${document.getProcessingStartTime().plusHours(1).isBefore(now)}">
-                                                    <span style="color:white; background-color: red; font-weight: bolder">
-                                                        FAILED
-                                                    </span>
-                                                    <button th:class="'btn-regenerate-pdf'">
-                                                        <a th:href="@{/bo/regeneratePdfDocument/} + ${document.getId()}">Update Document PDF</a>
-                                                    </button>
-                                                </span>
-                                                <span style="color:white; background-color: limegreen; font-weight: bolder"
-                                                      th:if="${document.getProcessingStartTime().plusHours(1).isAfter(now)}">
-                                                    IN PROGRESS
-                                                    <button th:class="'btn-regenerate-pdf'">
-                                                        <a th:href="@{/bo/regeneratePdfDocument/} + ${document.getId()}">Force update PDF</a>
-                                                    </button>
-                                                </span>
-                                            </span>
+
+                                            <button th:class="'btn-regenerate-pdf'">
+                                                <a th:href="@{/bo/regeneratePdfDocument/} + ${document.getId()}">Update PDF</a>
+                                            </button>
+
                                         </div>
                                     </h4>
 
