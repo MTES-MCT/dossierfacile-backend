@@ -94,7 +94,6 @@ public class TaxIncomeLeafParser extends AbstractSinglePageImageOcrParser<TaxInc
             log.error("Error during parsing", e);
         }
         return result;
-
     }
 
     public record TaxIncomeLeafZones(Rectangle headerLeft, Rectangle headerRight) {

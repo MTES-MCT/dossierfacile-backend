@@ -1,4 +1,4 @@
-package fr.dossierfacile.process.file.service.processors;
+package fr.dossierfacile.process.file.service.documentrules;
 
 import fr.dossierfacile.common.entity.BarCodeDocumentType;
 import fr.dossierfacile.common.entity.BarCodeFileAnalysis;
@@ -28,12 +28,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
-public class AutomaticRulesValidationService {
+@Slf4j
+public class IncomeTaxRulesValidationService implements RulesValidationService {
 
-    public TaxIncomeMainFile fromQR(BarCodeFileAnalysis barCodeFileAnalysis) {
+    private TaxIncomeMainFile fromQR(BarCodeFileAnalysis barCodeFileAnalysis) {
         Map<String, String> dataWithLabel = (Map<String, String>) barCodeFileAnalysis.getVerifiedData();
         return TaxIncomeMainFile.builder()
                 .declarant1NumFiscal(dataWithLabel.get(TwoDDocDataType.ID_47.getLabel()))
@@ -49,6 +49,7 @@ public class AutomaticRulesValidationService {
                 .referenceAvis(dataWithLabel.get(TwoDDocDataType.ID_44.getLabel())).build();
     }
 
+    @Override
     @Transactional
     public DocumentAnalysisReport process(Document document) {
         DocumentAnalysisReport report = DocumentAnalysisReport.builder().document(document).build();

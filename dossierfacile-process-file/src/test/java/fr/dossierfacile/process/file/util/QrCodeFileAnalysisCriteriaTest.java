@@ -1,4 +1,4 @@
-package fr.dossierfacile.common;
+package fr.dossierfacile.process.file.util;
 
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
@@ -14,7 +14,7 @@ import static fr.dossierfacile.common.enums.DocumentCategory.TAX;
 import static fr.dossierfacile.common.enums.DocumentSubCategory.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
-class FileAnalysisCriteriaTest {
+class QrCodeFileAnalysisCriteriaTest {
 
     @ParameterizedTest
     @CsvSource(textBlock = """
@@ -30,14 +30,14 @@ class FileAnalysisCriteriaTest {
     void should_analyze_files_in_categories(DocumentCategory documentCategory, DocumentSubCategory documentSubCategory) {
         File file = fileInCategory(documentCategory, documentSubCategory, false);
 
-        assertThat(FileAnalysisCriteria.shouldBeAnalyzed(file)).isTrue();
+        assertThat(QrCodeFileAnalysisCriteria.shouldBeAnalyzed(file)).isTrue();
     }
 
     @Test
     void should_not_analyze_document_with_no_files() {
         File file = fileInCategory(TAX, MY_PARENTS, true);
 
-        assertThat(FileAnalysisCriteria.shouldBeAnalyzed(file)).isFalse();
+        assertThat(QrCodeFileAnalysisCriteria.shouldBeAnalyzed(file)).isFalse();
     }
 
     private static File fileInCategory(DocumentCategory documentCategory, DocumentSubCategory documentSubCategory, boolean noDocument) {

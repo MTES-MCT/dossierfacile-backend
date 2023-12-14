@@ -16,7 +16,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class TaxIncomeLeaf implements ParsedFile, Serializable {
     @Builder.Default
-    String classification = ParsedFileClassification.TAX_INCOME_LEAF.name();
+    ParsedFileClassification classification = ParsedFileClassification.TAX_INCOME_LEAF;
     String numeroFiscal; // declarant1
     String anneeDesRevenus;
     Integer pageCount;
