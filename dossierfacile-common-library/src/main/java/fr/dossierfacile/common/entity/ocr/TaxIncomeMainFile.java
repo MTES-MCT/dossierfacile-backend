@@ -18,7 +18,7 @@ import java.util.List;
 @AllArgsConstructor
 public class TaxIncomeMainFile implements ParsedFile, Serializable {
     @Builder.Default
-    String classification = ParsedFileClassification.TAX_INCOME.name();
+    ParsedFileClassification classification = ParsedFileClassification.TAX_INCOME;
     String declarant1NumFiscal;
     String declarant1Nom;
     String declarant2NumFiscal;

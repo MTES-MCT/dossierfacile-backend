@@ -94,21 +94,21 @@ public class TaxIncomeParser implements OcrParser<TaxIncomeMainFile> {
                 if (declarant1Matcher.find()) {
                     result.setDeclarant2Nom(declarant1Matcher.group(1));
                 } else {
-                    log.info("\"Déclarant 1\" in address not found \n" + zoneRef);
+                    log.info("\"Déclarant 1\" in address not found \n");
                 }
                 String zoneAddress = tesseract.doOCR(image, TaxIncomeZones.scale(zones.zoneAddress, scale));
                 String declarant1Name = zoneAddress.substring(0, zoneAddress.indexOf('\n'));
                 if (declarant1Name != null) {
                     result.setDeclarant1Nom(declarant1Name);
                 } else {
-                    log.warn("\"Déclarant 1\" in adress not found \n" + zoneAddress);
+                    log.warn("\"Déclarant 1\" in adress not found \n");//GDPR
                     continue;
                 }
                 Matcher declarant2NameMatcher = declarant2NameInAddressPattern.matcher(zoneAddress);
                 if (declarant2NameMatcher.find()) {
                     result.setDeclarant2Nom(declarant2NameMatcher.group(1));
                 } else {
-                    log.info("\"Déclarant 2\" in address not found \n" + zoneAddress);
+                    log.info("\"Déclarant 2\" in address not found \n");//GDPR
                 }
 
                 String zoneRevenuPart = tesseract.doOCR(image, TaxIncomeZones.scale(zones.zoneRevenuPart, scale));

@@ -4,7 +4,8 @@ import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentAnalysisReport;
 import fr.dossierfacile.common.repository.DocumentAnalysisReportRepository;
 import fr.dossierfacile.process.file.repository.DocumentRepository;
-import fr.dossierfacile.process.file.service.processors.AutomaticRulesValidationService;
+import fr.dossierfacile.process.file.service.documentrules.DocumentRulesValidationServiceFactory;
+import fr.dossierfacile.process.file.service.documentrules.RulesValidationService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -16,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AnalyzeDocumentService {
     private final DocumentRepository documentRepository;
     private final DocumentAnalysisReportRepository documentAnalysisReportRepository;
-    private final AutomaticRulesValidationService automaticRulesValidationService;
+    private final DocumentRulesValidationServiceFactory documentRulesValidationServiceFactory;
 
     @Transactional
     public void processDocument(Long documentId) {
@@ -26,11 +27,15 @@ public class AnalyzeDocumentService {
             log.info("Ignoring document {} because it has already been analysed", documentId);
         }
         try {
-            DocumentAnalysisReport report = automaticRulesValidationService.process(document);
-            document.setDocumentAnalysisReport(report);
-            documentAnalysisReportRepository.save(report);
-            documentRepository.save(document);
-        } catch(Exception e){
+            RulesValidationService rulesValidationService = documentRulesValidationServiceFactory.get(document);
+            if (rulesValidationService != null) {
+                DocumentAnalysisReport report = rulesValidationService.process(document);
+                document.setDocumentAnalysisReport(report);
+                documentAnalysisReportRepository.save(report);
+                documentRepository.save(document);
+            }
+
+        } catch (Exception e) {
             log.error("Unable to build report", e);
             throw e;
         }

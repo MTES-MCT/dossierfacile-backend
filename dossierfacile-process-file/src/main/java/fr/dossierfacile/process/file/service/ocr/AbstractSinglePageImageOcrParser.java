@@ -17,7 +17,7 @@ public abstract class AbstractSinglePageImageOcrParser<T extends ParsedFile> imp
         BufferedImage image;
         if ("pdf".equalsIgnoreCase(FilenameUtils.getExtension(file.getName()))) {
             BufferedImage[] images = FileUtility.convertPdfToImage(file);
-            if (images == null || images.length != 1) {
+            if (images == null || images.length < 1) {
                 throw new IllegalStateException("pdf file cannot be convert to images");
             }
             image = images[0];

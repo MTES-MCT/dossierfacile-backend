@@ -6,7 +6,7 @@ import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.process.file.barcode.InMemoryFile;
 import fr.dossierfacile.process.file.repository.BarCodeFileAnalysisRepository;
 import fr.dossierfacile.process.file.service.AnalysisContext;
-import fr.dossierfacile.process.file.service.DocumentClassifier;
+import fr.dossierfacile.process.file.service.qrcodeanalysis.DocumentClassifier;
 import fr.dossierfacile.process.file.service.qrcodeanalysis.QrCodeFileAuthenticator;
 import fr.dossierfacile.process.file.service.qrcodeanalysis.TwoDDocFileAuthenticator;
 import lombok.AllArgsConstructor;

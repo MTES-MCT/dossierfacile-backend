@@ -58,7 +58,7 @@ public class FileUtility {
             PDFRenderer pdfRenderer = new PDFRenderer(document);
 
             for (int pageNumber = 0; pageNumber < document.getNumberOfPages(); pageNumber++) {
-                images[pageNumber] = pdfRenderer.renderImageWithDPI(pageNumber, 300);
+                images[pageNumber] = pdfRenderer.renderImageWithDPI(pageNumber, 512);
             }
             return images;
         }
