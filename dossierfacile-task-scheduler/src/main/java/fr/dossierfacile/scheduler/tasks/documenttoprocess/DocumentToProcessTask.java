@@ -36,7 +36,7 @@ public class DocumentToProcessTask {
     public void launchFailedPDFGeneration() {
         LoggingContext.startTask(PDF_GENERATION);
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime toDateTime = now.minusMinutes(10);
+        LocalDateTime toDateTime = now.minusMinutes(30);
         documentRepository.findToProcessWithoutPDFToDate(toDateTime).forEach(this::sendForPDFGeneration);
         LoggingContext.endTask();
     }

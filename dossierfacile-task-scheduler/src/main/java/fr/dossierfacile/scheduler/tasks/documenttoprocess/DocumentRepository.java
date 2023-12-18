@@ -3,6 +3,7 @@ package fr.dossierfacile.scheduler.tasks.documenttoprocess;
 import fr.dossierfacile.common.entity.Document;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -18,5 +19,5 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
               AND watermark_file_id IS NULL
               LIMIT 100;
             """, nativeQuery = true)
-    List<Document> findToProcessWithoutPDFToDate(LocalDateTime toDateTime);
+    List<Document> findToProcessWithoutPDFToDate(@Param("to") LocalDateTime toDateTime);
 }
