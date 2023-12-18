@@ -11,13 +11,17 @@ import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.repository.TenantUserApiRepository;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @AllArgsConstructor
 public class PartnerAccessServiceImpl implements PartnerAccessService {
+
+    private static final String DF_OWNER_NAME = "dfconnect-proprietaire";
 
     private final TenantUserApiRepository tenantUserApiRepository;
     private final PartnerCallBackService partnerCallBackService;
@@ -26,8 +30,11 @@ public class PartnerAccessServiceImpl implements PartnerAccessService {
     private final MailService mailService;
 
     @Override
-    public List<PartnerAccessModel> getAllPartners(Tenant tenant) {
-        return partnerAccessMapper.toModel(tenant.getTenantsUserApi());
+    public List<PartnerAccessModel> getExternalPartners(Tenant tenant) {
+        return tenant.getTenantsUserApi().stream()
+                .filter(api -> !DF_OWNER_NAME.equals(api.getUserApi().getName()))
+                .map(partnerAccessMapper::toModel)
+                .toList();
     }
 
     @Override
@@ -44,6 +51,8 @@ public class PartnerAccessServiceImpl implements PartnerAccessService {
         partnerCallBackService.sendRevokedAccessCallback(tenant, userApi);
         keycloakService.revokeUserConsent(tenant, userApi);
         mailService.sendEmailPartnerAccessRevoked(tenant, userApi, tenant);
+
+        log.info("Revoked access of partner {} to tenant {}", userApi.getId(), tenant.getId());
     }
 
 }
