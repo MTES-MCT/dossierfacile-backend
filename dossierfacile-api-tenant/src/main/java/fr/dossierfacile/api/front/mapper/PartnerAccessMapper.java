@@ -6,13 +6,9 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 @Component
 @Mapper(componentModel = "spring")
 public interface PartnerAccessMapper {
-
-    List<PartnerAccessModel> toModel(List<TenantUserApi> message);
 
     @Mapping(source = "userApi.id", target = "id")
     @Mapping(source = "userApi.name2", target = "name")

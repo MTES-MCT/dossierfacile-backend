@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface PartnerAccessService {
 
-    List<PartnerAccessModel> getAllPartners(Tenant tenant);
+    List<PartnerAccessModel> getExternalPartners(Tenant tenant);
 
     void deleteAccess(Tenant tenant, Long userApiId);
 
