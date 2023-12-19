@@ -4,6 +4,7 @@ import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.LogType;
+import fr.dossierfacile.common.model.EditionType;
 
 public interface LogService {
 
@@ -11,7 +12,7 @@ public interface LogService {
 
     void saveLogWithTenantData(LogType logType, Tenant tenant);
 
-    void saveDocumentEditedLog(Document document, Tenant editor);
+    void saveDocumentEditedLog(Document document, Tenant editor, EditionType editionType);
 
     void savePartnerAccessRevocationLog(Tenant tenant, UserApi userApi);
 

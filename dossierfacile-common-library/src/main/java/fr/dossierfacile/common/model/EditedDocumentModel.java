@@ -22,19 +22,19 @@ public class EditedDocumentModel {
 
     private DocumentCategory documentCategory;
     private DocumentSubCategory documentSubCategory;
-    private Boolean noDocument;
     private Long tenantId;
     private Long guarantorId;
+    private EditionType editionType;
 
-    public static EditedDocumentModel from(Document document) {
+    public static EditedDocumentModel from(Document document, EditionType editionType) {
         return EditedDocumentModel.builder()
                 .documentCategory(document.getDocumentCategory())
                 .documentSubCategory(document.getDocumentSubCategory())
-                .noDocument(document.getNoDocument())
                 .tenantId(Optional.ofNullable(document.getTenant())
                         .map(Tenant::getId).orElse(null))
                 .guarantorId(Optional.ofNullable(document.getGuarantor())
                         .map(Guarantor::getId).orElse(null))
+                .editionType(editionType)
                 .build();
     }
 

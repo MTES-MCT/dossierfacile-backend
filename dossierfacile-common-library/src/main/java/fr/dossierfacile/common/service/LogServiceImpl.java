@@ -10,6 +10,7 @@ import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.mapper.DeletedTenantCommonMapper;
 import fr.dossierfacile.common.model.EditedDocumentModel;
+import fr.dossierfacile.common.model.EditionType;
 import fr.dossierfacile.common.repository.LogRepository;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import lombok.AllArgsConstructor;
@@ -61,19 +62,19 @@ public class LogServiceImpl implements LogService {
     }
 
     @Override
-    public void saveDocumentEditedLog(Document document, Tenant editor) {
+    public void saveDocumentEditedLog(Document document, Tenant editor, EditionType editionType) {
         Log log = Log.builder()
                 .logType(LogType.ACCOUNT_EDITED)
                 .tenantId(editor.getId())
                 .creationDateTime(LocalDateTime.now())
-                .logDetails(writeDocumentEditionDetails(document, editor.getId()))
+                .logDetails(writeDocumentEditionDetails(document, editor.getId(), editionType))
                 .build();
         saveLog(log);
     }
 
-    private String writeDocumentEditionDetails(Document document, Long tenantId) {
+    private String writeDocumentEditionDetails(Document document, Long tenantId, EditionType editionType) {
         try {
-            return objectMapper.writeValueAsString(EditedDocumentModel.from(document));
+            return objectMapper.writeValueAsString(EditedDocumentModel.from(document, editionType));
         } catch (JsonProcessingException e) {
             log.error("Cannot write details of document edition from tenant {}", tenantId);
         }

@@ -10,13 +10,12 @@ import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentStatus;
+import fr.dossierfacile.common.model.EditionType;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
 
 @Service
 @AllArgsConstructor
@@ -36,7 +35,7 @@ public class FileServiceImpl implements FileService {
         document.getFiles().remove(file);
         fileRepository.delete(file);
 
-        logService.saveDocumentEditedLog(document, tenant);
+        logService.saveDocumentEditedLog(document, tenant, EditionType.DELETE);
         documentService.markDocumentAsEdited(document);
 
         if (document.getFiles().isEmpty()) {
