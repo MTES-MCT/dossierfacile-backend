@@ -9,6 +9,7 @@ import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.LogType;
+import fr.dossierfacile.common.model.EditionType;
 import fr.dossierfacile.common.repository.LogRepository;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import org.junit.jupiter.api.Test;
@@ -32,13 +33,13 @@ class LogServiceImplTest {
                 .tenant(tenantWithId(2L))
                 .build();
 
-        logService.saveDocumentEditedLog(document, tenantWithId(1L));
+        logService.saveDocumentEditedLog(document, tenantWithId(1L), EditionType.ADD);
 
         Log savedLog = getSavedLog();
         assertThat(savedLog.getLogType()).isEqualTo(LogType.ACCOUNT_EDITED);
         assertThat(savedLog.getTenantId()).isEqualTo(1L);
         assertThat(savedLog.getLogDetails()).isEqualTo("""
-                {"documentCategory":"IDENTIFICATION","documentSubCategory":"FRENCH_IDENTITY_CARD","tenantId":2}""");
+                {"documentCategory":"IDENTIFICATION","documentSubCategory":"FRENCH_IDENTITY_CARD","tenantId":2,"editionType":"ADD"}""");
     }
 
     @Test
@@ -46,17 +47,16 @@ class LogServiceImplTest {
         Document document = Document.builder()
                 .documentCategory(DocumentCategory.FINANCIAL)
                 .documentSubCategory(DocumentSubCategory.SALARY)
-                .noDocument(true)
                 .guarantor(Guarantor.builder().id(3L).build())
                 .build();
 
-        logService.saveDocumentEditedLog(document, tenantWithId(2L));
+        logService.saveDocumentEditedLog(document, tenantWithId(2L), EditionType.DELETE);
 
         Log savedLog = getSavedLog();
         assertThat(savedLog.getLogType()).isEqualTo(LogType.ACCOUNT_EDITED);
         assertThat(savedLog.getTenantId()).isEqualTo(2L);
         assertThat(savedLog.getLogDetails()).isEqualTo("""
-                {"documentCategory":"FINANCIAL","documentSubCategory":"SALARY","noDocument":true,"guarantorId":3}""");
+                {"documentCategory":"FINANCIAL","documentSubCategory":"SALARY","guarantorId":3,"editionType":"DELETE"}""");
     }
 
     @Test

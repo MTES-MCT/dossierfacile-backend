@@ -9,7 +9,6 @@ import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
 import fr.dossierfacile.api.front.util.TransactionalUtil;
 import fr.dossierfacile.common.entity.Document;
-import fr.dossierfacile.common.entity.DocumentAnalysisReport;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Person;
 import fr.dossierfacile.common.entity.StorageFile;
@@ -17,9 +16,11 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.TenantFileStatus;
+import fr.dossierfacile.common.model.EditionType;
 import fr.dossierfacile.common.repository.DocumentAnalysisReportRepository;
 import fr.dossierfacile.common.repository.StorageFileRepository;
 import fr.dossierfacile.common.service.interfaces.DocumentHelperService;
+import fr.dossierfacile.common.service.interfaces.LogService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -46,6 +47,7 @@ public class DocumentServiceImpl implements DocumentService {
     private final ApartmentSharingService apartmentSharingService;
     private final DocumentHelperService documentHelperService;
     private final MinifyFileProducer minifyFileProducer;
+    private final LogService logService;
     private final Producer producer;
 
     @Override
@@ -98,6 +100,7 @@ public class DocumentServiceImpl implements DocumentService {
         Document document = documentRepository.findByIdForApartmentSharing(documentId, referenceTenant.getApartmentSharing().getId())
                 .orElseThrow(() -> new DocumentNotFoundException(documentId));
         delete(document);
+        logService.saveDocumentEditedLog(document, referenceTenant, EditionType.DELETE);
     }
 
     @Override
