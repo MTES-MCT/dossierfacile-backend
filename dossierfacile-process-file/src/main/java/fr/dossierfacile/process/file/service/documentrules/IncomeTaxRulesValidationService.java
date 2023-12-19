@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
+import java.text.Normalizer;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -47,6 +48,14 @@ public class IncomeTaxRulesValidationService implements RulesValidationService {
                 .numeroFiscalDeclarant1(dataWithLabel.get(TwoDDocDataType.ID_47.getLabel()))
                 .numeroFiscalDeclarant2(dataWithLabel.get(TwoDDocDataType.ID_49.getLabel()))
                 .referenceAvis(dataWithLabel.get(TwoDDocDataType.ID_44.getLabel())).build();
+    }
+
+    private static String normalizeName(String name) {
+        if (name == null)
+            return null;
+        String normalized = Normalizer.normalize(name, Normalizer.Form.NFD);
+        return normalized.replace('-', ' ')
+                .replaceAll("[\\p{InCombiningDiacriticalMarks}]", "").toUpperCase().trim();
     }
 
     @Override
@@ -152,17 +161,17 @@ public class IncomeTaxRulesValidationService implements RulesValidationService {
         // Firstname LastName
         Person documentOwner = Optional.ofNullable((Person) document.getTenant()).orElseGet(() -> document.getGuarantor());
         String firstName = documentOwner.getFirstName();
-        String lastName = document.getName();
+        String lastName = documentOwner.getLastName();
         for (File dfFile : document.getFiles()) {
             BarCodeFileAnalysis analysis = dfFile.getFileAnalysis();
             if (analysis.getDocumentType() == BarCodeDocumentType.TAX_ASSESSMENT) {
                 TaxIncomeMainFile qrDocument = fromQR(dfFile.getFileAnalysis());
 
-                if (!(qrDocument.getDeclarant1Nom().contains(firstName)
-                        && qrDocument.getDeclarant1Nom().contains(lastName)
+                if (!(normalizeName(qrDocument.getDeclarant1Nom()).contains(normalizeName(firstName))
+                        && normalizeName(qrDocument.getDeclarant1Nom()).contains(normalizeName(lastName))
                         || (qrDocument.getDeclarant2Nom() != null &&
-                        qrDocument.getDeclarant2Nom().contains(firstName)
-                        && qrDocument.getDeclarant2Nom().contains(lastName)
+                        normalizeName(qrDocument.getDeclarant2Nom()).contains(normalizeName(firstName))
+                        && normalizeName(qrDocument.getDeclarant2Nom()).contains(normalizeName(lastName))
                 ))) {
                     log.error("Le nom/prenom ne correpond pas à l'uilitsation tenantId:" + document.getTenant().getId() + " firstname: " + firstName);
                     brokenRules.add(DocumentBrokenRule.builder()
