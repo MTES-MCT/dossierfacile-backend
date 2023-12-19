@@ -5,6 +5,7 @@ import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.Guarantor;
 import fr.dossierfacile.common.entity.Log;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.LogType;
@@ -56,6 +57,16 @@ class LogServiceImplTest {
         assertThat(savedLog.getTenantId()).isEqualTo(2L);
         assertThat(savedLog.getLogDetails()).isEqualTo("""
                 {"documentCategory":"FINANCIAL","documentSubCategory":"SALARY","noDocument":true,"guarantorId":3}""");
+    }
+
+    @Test
+    void should_save_revocation_log() {
+        logService.savePartnerAccessRevocationLog(tenantWithId(1L), UserApi.builder().id(2L).build());
+
+        Log savedLog = getSavedLog();
+        assertThat(savedLog.getLogType()).isEqualTo(LogType.PARTNER_ACCESS_REVOKED);
+        assertThat(savedLog.getTenantId()).isEqualTo(1L);
+        assertThat(savedLog.getUserApis()).containsExactly(2L);
     }
 
     private static Tenant tenantWithId(long id) {

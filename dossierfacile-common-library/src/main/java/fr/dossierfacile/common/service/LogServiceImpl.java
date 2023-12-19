@@ -6,6 +6,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.Log;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.mapper.DeletedTenantCommonMapper;
 import fr.dossierfacile.common.model.EditedDocumentModel;
@@ -77,6 +78,17 @@ public class LogServiceImpl implements LogService {
             log.error("Cannot write details of document edition from tenant {}", tenantId);
         }
         return null;
+    }
+
+    @Override
+    public void savePartnerAccessRevocationLog(Tenant tenant, UserApi userApi) {
+        Log log = Log.builder()
+                .logType(LogType.PARTNER_ACCESS_REVOKED)
+                .tenantId(tenant.getId())
+                .creationDateTime(LocalDateTime.now())
+                .userApis(new long[] { userApi.getId() })
+                .build();
+        saveLog(log);
     }
 
 }

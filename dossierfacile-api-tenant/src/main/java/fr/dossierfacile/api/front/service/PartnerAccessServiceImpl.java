@@ -9,6 +9,7 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.TenantUserApi;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.repository.TenantUserApiRepository;
+import fr.dossierfacile.common.service.interfaces.LogService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +29,7 @@ public class PartnerAccessServiceImpl implements PartnerAccessService {
     private final PartnerAccessMapper partnerAccessMapper;
     private final KeycloakService keycloakService;
     private final MailService mailService;
+    private final LogService logService;
 
     @Override
     public List<PartnerAccessModel> getExternalPartners(Tenant tenant) {
@@ -50,6 +52,7 @@ public class PartnerAccessServiceImpl implements PartnerAccessService {
         tenantUserApiRepository.delete(tenantUserApi);
         partnerCallBackService.sendRevokedAccessCallback(tenant, userApi);
         keycloakService.revokeUserConsent(tenant, userApi);
+        logService.savePartnerAccessRevocationLog(tenant, userApi);
         mailService.sendEmailPartnerAccessRevoked(tenant, userApi, tenant);
 
         log.info("Revoked access of partner {} to tenant {}", userApi.getId(), tenant.getId());
