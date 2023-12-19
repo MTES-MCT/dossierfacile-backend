@@ -1,19 +1,22 @@
 package fr.dossierfacile.api.front.service;
 
+import fr.dossierfacile.api.front.amqp.Producer;
 import fr.dossierfacile.api.front.exception.FileNotFoundException;
 import fr.dossierfacile.api.front.repository.FileRepository;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.FileService;
+import fr.dossierfacile.api.front.util.TransactionalUtil;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentStatus;
-import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 
 @Service
 @AllArgsConstructor
@@ -22,6 +25,7 @@ public class FileServiceImpl implements FileService {
     private final FileRepository fileRepository;
     private final DocumentService documentService;
     private final LogService logService;
+    private final Producer producer;
 
     @Override
     @Transactional
@@ -33,13 +37,20 @@ public class FileServiceImpl implements FileService {
         fileRepository.delete(file);
 
         logService.saveDocumentEditedLog(document, tenant);
+        documentService.markDocumentAsEdited(document);
 
         if (document.getFiles().isEmpty()) {
             documentService.delete(document);
             return null;
-        } else {
-            documentService.changeDocumentStatus(document, DocumentStatus.TO_PROCESS);
-            return document;
         }
+        documentService.changeDocumentStatus(document, DocumentStatus.TO_PROCESS);
+
+        TransactionalUtil.afterCommit(() -> {
+            producer.sendDocumentForAnalysis(document);
+            producer.sendDocumentForPdfGeneration(document);
+        });
+
+        return document;
+
     }
 }

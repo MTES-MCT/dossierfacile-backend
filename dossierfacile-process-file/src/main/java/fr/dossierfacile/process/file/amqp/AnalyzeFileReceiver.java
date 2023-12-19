@@ -1,27 +1,33 @@
 package fr.dossierfacile.process.file.amqp;
 
-import fr.dossierfacile.common.utils.Timeout;
 import fr.dossierfacile.process.file.service.AnalyzeFile;
 import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+@Service
 @Slf4j
 @RequiredArgsConstructor
+@Setter // for testing
 public class AnalyzeFileReceiver {
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     private final AnalyzeFile analyzeFile;
-    private final Timeout analysisTimeout;
+    @Value("${analysis.timeout.seconds}")
+    private Long analysisTimeoutInSeconds;
 
     @RabbitListener(queues = "${rabbitmq.queue.file.analyze}", containerFactory = "retryContainerFactory")
     public void receiveFile(Map<String, String> message) throws InterruptedException, ExecutionException {
@@ -29,7 +35,7 @@ public class AnalyzeFileReceiver {
         LoggingContext.startProcessing(fileId, ActionType.ANALYZE);
         var analysis = launchAnalysis(fileId);
         try {
-            analysis.get(analysisTimeout.value(), analysisTimeout.unit());
+            analysis.get(analysisTimeoutInSeconds, TimeUnit.SECONDS);
         } catch (TimeoutException e) {
             analysis.cancel(true);
             log.warn("Analysis cancelled because timeout was reached");

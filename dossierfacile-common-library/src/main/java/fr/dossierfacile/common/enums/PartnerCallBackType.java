@@ -7,5 +7,6 @@ public enum PartnerCallBackType {
     DENIED_ACCOUNT,
     ARCHIVED_ACCOUNT,
     RETURNED_ACCOUNT,
-    MERGED_ACCOUNT
+    MERGED_ACCOUNT,
+    ACCESS_REVOKED
 }

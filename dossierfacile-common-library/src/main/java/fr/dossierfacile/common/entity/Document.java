@@ -1,10 +1,8 @@
 package fr.dossierfacile.common.entity;
 
-import fr.dossierfacile.common.converter.TaxDocumentConverter;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
-import fr.dossierfacile.common.type.TaxDocument;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -13,10 +11,9 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.Hibernate;
 
-import javax.persistence.Basic;
+import javax.annotation.Nullable;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
-import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -68,6 +65,10 @@ public class Document implements Serializable {
     @Column(name = "creation_date")
     private LocalDateTime creationDateTime = LocalDateTime.now();
 
+    @Builder.Default
+    @Column(name = "last_modified_date")
+    private LocalDateTime lastModifiedDate = LocalDateTime.now();
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "guarantor_id")
     @ToString.Exclude
@@ -92,24 +93,6 @@ public class Document implements Serializable {
     @JoinColumn(name = "watermark_file_id")
     private StorageFile watermarkFile;
 
-    @Column(columnDefinition = "text")
-    @Convert(converter = TaxDocumentConverter.class)
-    private TaxDocument taxProcessResult;
-
-    @Column(name = "processing_start_time")
-    private LocalDateTime processingStartTime;
-
-
-    @Column(name = "processing_end_time")
-    private LocalDateTime processingEndTime;
-
-    @Builder.Default
-    private int retries = 0;
-
-    private boolean locked;
-
-    private String lockedBy;
-
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "document_denied_reasons_id")
     @ToString.Exclude
@@ -118,15 +101,9 @@ public class Document implements Serializable {
     @Builder.Default
     private Boolean avisDetected = false;
 
-    @Basic(fetch = FetchType.LAZY)
-    public boolean isLocked() {
-        return locked;
-    }
-
-    @Basic(fetch = FetchType.LAZY)
-    public String getLockedBy() {
-        return lockedBy;
-    }
+    @Nullable
+    @OneToOne(mappedBy= "document", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    private DocumentAnalysisReport documentAnalysisReport;
 
     @Override
     public boolean equals(Object o) {

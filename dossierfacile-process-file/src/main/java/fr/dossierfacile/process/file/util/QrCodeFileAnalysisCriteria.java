@@ -1,9 +1,8 @@
-package fr.dossierfacile.common;
+package fr.dossierfacile.process.file.util;
 
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
-import org.apache.commons.lang3.BooleanUtils;
 
 import java.util.Arrays;
 
@@ -23,9 +22,11 @@ import static fr.dossierfacile.common.enums.DocumentSubCategory.SOCIAL_SERVICE;
 import static fr.dossierfacile.common.enums.DocumentSubCategory.STUDENT;
 import static fr.dossierfacile.common.enums.DocumentSubCategory.UNEMPLOYED;
 
-public class FileAnalysisCriteria {
+public class QrCodeFileAnalysisCriteria {
 
     public static boolean shouldBeAnalyzed(File file) {
+        if (file == null)
+            return false;
         Document document = file.getDocument();
         return switch (document.getDocumentCategory()) {
             case TAX -> hasSubCategory(document, MY_NAME);

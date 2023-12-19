@@ -2,6 +2,7 @@ package fr.dossierfacile.api.front.service.interfaces;
 
 import fr.dossierfacile.api.front.register.form.tenant.AccountForm;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.entity.UserApi;
 import org.keycloak.representations.idm.UserRepresentation;
 
 import java.util.List;
@@ -25,8 +26,6 @@ public interface KeycloakService {
 
     void deleteKeycloakUser(Tenant tenant);
 
-    boolean isKeycloakUser(String keyCloakId);
-
     String getKeycloakId(String email);
 
     void logout(String keycloakUserId);
@@ -34,4 +33,7 @@ public interface KeycloakService {
     void unlinkFranceConnect(Tenant tenant);
 
     void disableAccount(String keycloakId);
+
+    void revokeUserConsent(Tenant tenant, UserApi userApi);
+
 }

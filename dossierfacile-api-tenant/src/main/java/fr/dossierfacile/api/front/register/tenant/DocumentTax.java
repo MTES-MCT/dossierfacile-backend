@@ -71,7 +71,6 @@ public class DocumentTax extends AbstractDocumentSaveStep<DocumentTaxForm> imple
             document.setCustomText(documentTaxForm.getCustomText());
         }
         documentRepository.save(document);
-        documentService.initializeFieldsToProcessPdfGeneration(document);
         tenant.lastUpdateDateProfile(LocalDateTime.now(), DocumentCategory.TAX);
         if (tenant.getStatus() == TenantFileStatus.VALIDATED) {
             documentService.resetValidatedDocumentsStatusOfSpecifiedCategoriesToToProcess(tenant.getDocuments(), List.of(DocumentCategory.PROFESSIONAL, DocumentCategory.FINANCIAL, DocumentCategory.TAX));

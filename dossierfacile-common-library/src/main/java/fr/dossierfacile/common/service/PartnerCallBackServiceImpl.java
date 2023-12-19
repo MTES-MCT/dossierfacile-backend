@@ -19,7 +19,6 @@ import fr.dossierfacile.common.service.interfaces.RequestService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.validation.constraints.NotNull;
@@ -38,9 +37,6 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
     private final RequestService requestService;
     private final CallbackLogService callbackLogService;
     private final ApartmentSharingRepository apartmentSharingRepository;
-
-    @Value("${callback.domain:default}")
-    private String callbackDomain;
 
     public void registerTenant(String internalPartnerId, Tenant tenant, UserApi userApi) {
         Optional<TenantUserApi> optionalTenantUserApi = tenantUserApiRepository.findFirstByTenantAndUserApi(tenant, userApi);
@@ -109,6 +105,16 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
         requestService.send((ApplicationModel) webhookDTO, userApi.getUrlCallback(), userApi.getPartnerApiKeyCallback());
         callbackLogService.createCallbackLogForPartnerModel(tenant, userApi.getId(), tenant.getStatus(), (ApplicationModel) webhookDTO);
 
+    }
+
+    @Override
+    public void sendRevokedAccessCallback(Tenant tenant, UserApi userApi) {
+        ApplicationModel webhook = new ApplicationModel();
+        webhook.setOnTenantId(tenant.getId());
+        webhook.setPartnerCallBackType(PartnerCallBackType.ACCESS_REVOKED);
+        webhook.setUserApi(userApi);
+
+        sendCallBack(tenant, webhook);
     }
 
     @NotNull

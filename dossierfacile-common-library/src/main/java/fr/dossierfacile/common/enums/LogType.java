@@ -1,37 +1,24 @@
 package fr.dossierfacile.common.enums;
 
 public enum LogType {
-    CUSTOM_EMAIL(Constants.TENANT_MESSAGES),
-    ACCOUNT_CREATED(null),
-    ACCOUNT_CREATED_VIA_KC(null),
-    ACCOUNT_LINK(null),// first connection on DF
-    ACCOUNT_COMPLETED(null),
-    ACCOUNT_DENIED("operatorId"),
-    ACCOUNT_EDITED(null),
-    ACCOUNT_VALIDATED("operatorId"),
-    ACCOUNT_COMPLETE("tenant"),
-    ACCOUNT_MODIFICATION(Constants.TENANT_MESSAGES),
-    ACCOUNT_DELETE(null),
-    ACCOUNT_ARCHIVED(null),
-    NEW_MESSAGE(Constants.TENANT_MESSAGES),
-    EMAIL_ACCOUNT_VALIDATED(null),
-    FIRST_ACCOUNT_WARNING_FOR_DOCUMENT_DELETION(null),
-    SECOND_ACCOUNT_WARNING_FOR_DOCUMENT_DELETION(null),
-    DOCUMENT_DELETION_AFTER_2_ACCOUNT_WARNINGS(null),
-    FC_ACCOUNT_CREATION(null),
-    FC_ACCOUNT_LINK(null);
 
-    String associateTab;
+    ACCOUNT_CREATED,
+    ACCOUNT_CREATED_VIA_KC,
+    ACCOUNT_LINK, // first connection on DF
+    ACCOUNT_COMPLETED,
+    ACCOUNT_DENIED,
+    ACCOUNT_EDITED,
+    ACCOUNT_VALIDATED,
+    ACCOUNT_COMPLETE,
+    ACCOUNT_MODIFICATION,
+    ACCOUNT_DELETE,
+    ACCOUNT_ARCHIVED,
+    EMAIL_ACCOUNT_VALIDATED,
+    FIRST_ACCOUNT_WARNING_FOR_DOCUMENT_DELETION,
+    SECOND_ACCOUNT_WARNING_FOR_DOCUMENT_DELETION,
+    DOCUMENT_DELETION_AFTER_2_ACCOUNT_WARNINGS,
+    FC_ACCOUNT_CREATION,
+    FC_ACCOUNT_LINK,
+    PARTNER_ACCESS_REVOKED,
 
-    LogType(String associateTab) {
-        this.associateTab = associateTab;
-    }
-
-    public String getAssociateTab() {
-        return associateTab;
-    }
-
-    private static class Constants {
-        private static final String TENANT_MESSAGES = "tenant-message";
-    }
 }

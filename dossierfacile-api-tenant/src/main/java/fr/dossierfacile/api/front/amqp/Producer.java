@@ -2,8 +2,7 @@ package fr.dossierfacile.api.front.amqp;
 
 
 import com.google.gson.Gson;
-import fr.dossierfacile.api.front.amqp.model.DocumentModel;
-import fr.dossierfacile.common.FileAnalysisCriteria;
+import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,8 +15,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.Collections;
 
 @Component
 @Slf4j
@@ -31,27 +29,21 @@ public class Producer {
     private String exchangeFileProcess;
     @Value("${rabbitmq.routing.key.file.analyze}")
     private String routingKeyAnalyzeFile;
-
+    @Value("${rabbitmq.routing.key.document.analyze}")
+    private String routingKeyAnalyzeDocument;
     //Pdf generation
     @Value("${rabbitmq.exchange.pdf.generator}")
     private String exchangePdfGenerator;
-    @Value("${rabbitmq.routing.key.pdf.generator.watermark-document}")
-    private String routingKeyPdfGenerator;
     @Value("${rabbitmq.routing.key.pdf.generator.apartment-sharing}")
     private String routingKeyPdfGeneratorApartmentSharing;
+    @Value("${rabbitmq.routing.key.pdf.generator.watermark-document}")
+    private String routingKeyPdfGeneratorWatermarkDocument;
 
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    @Async
-    public void generatePdf(Long documentId, Long logId) {
-        DocumentModel documentModel = DocumentModel.builder().id(documentId).logId(logId).build();
-        log.info("Sending document with ID [" + documentId + "] for pdf generation");
-        amqpTemplate.convertAndSend(exchangePdfGenerator, routingKeyPdfGenerator, gson.toJson(documentModel));
-    }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Async
     public void generateFullPdf(Long apartmentSharingId) {
-        Message msg = messageWithId(apartmentSharingId);
+        Message msg = new Message(gson.toJson(Collections.singletonMap("id", String.valueOf( apartmentSharingId))).getBytes());
         log.info("Sending apartmentSharing with ID [" + apartmentSharingId + "] for Full PDF generation");
         amqpTemplate.send(exchangePdfGenerator, routingKeyPdfGeneratorApartmentSharing, msg);
     }
@@ -61,13 +53,33 @@ public class Producer {
     public void analyzeFile(File file) {
         Long fileId = file.getId();
         log.info("Sending file with ID [{}] for analysis", fileId);
-        amqpTemplate.send(exchangeFileProcess, routingKeyAnalyzeFile, messageWithId(fileId));
+        MessageProperties properties = new MessageProperties();
+        properties.setHeader("timestamp", System.currentTimeMillis());
+        Message msg = new Message(gson.toJson(Collections.singletonMap("id", String.valueOf( fileId))).getBytes(), properties);
+        amqpTemplate.send(exchangeFileProcess, routingKeyAnalyzeFile, msg);
     }
 
-    private Message messageWithId(Long id) {
-        Map<String, String> body = new TreeMap<>();
-        body.putIfAbsent("id", String.valueOf(id));
-        return new Message(gson.toJson(body).getBytes(), new MessageProperties());
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    @Async
+    public void sendDocumentForAnalysis(Document document) {
+        log.debug("Sending document with ID [{}] for analysis", document.getId());
+        MessageProperties properties = new MessageProperties();
+        properties.setHeader("timestamp", System.currentTimeMillis());
+        Message msg = new Message(
+                gson.toJson(Collections.singletonMap("id", String.valueOf( document.getId()))).getBytes(),
+                properties);
+        amqpTemplate.send(exchangeFileProcess, routingKeyAnalyzeDocument, msg);
     }
 
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    @Async
+    public void sendDocumentForPdfGeneration(Document document) {
+        log.debug("Sending document with ID [{}] for pdf generation", document.getId());
+        MessageProperties properties = new MessageProperties();
+        properties.setHeader("timestamp", System.currentTimeMillis());
+        Message msg = new Message(
+                gson.toJson(Collections.singletonMap("id", String.valueOf( document.getId()))).getBytes(),
+                properties);
+        amqpTemplate.send(exchangePdfGenerator, routingKeyPdfGeneratorWatermarkDocument, msg);
+    }
 }

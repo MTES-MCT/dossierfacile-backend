@@ -21,7 +21,7 @@ public class DeleteFilesTask {
     private final StorageFileToDeleteRepository storageFileToDeleteRepository;
     private final FileStorageToDeleteService fileStorageToDeleteService;
 
-    @Scheduled(fixedDelay = 10000)
+    @Scheduled(fixedDelayString = "${scheduled.process.storage.delete.delay.ms}", initialDelayString = "${scheduled.process.storage.delete.delay.ms}")
     public void deleteFileInProviderTask() {
         LoggingContext.startTask(STORAGE_FILES_DELETION);
         List<StorageFileToDelete> storageFileToDeleteList = storageFileToDeleteRepository.findAll();

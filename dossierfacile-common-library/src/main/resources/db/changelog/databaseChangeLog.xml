@@ -131,5 +131,11 @@
     <include file="db/migration/202311090000-update-user-account-table.xml" />
     <include file="db/migration/202311170000-update-tenant-table.xml" />
     <include file="db/migration/202312010000-update-tenant-log-table.xml" />
+    <include file="db/migration/202312050000-update-tenant-userapi-table.xml" />
+    <include file="db/migration/202311290000-drop-tax-document-column.xml" />
+    <include file="db/migration/202311290001-create-document-analysis-report.xml" />
+    <include file="db/migration/202311290002-add-last-modified-date-column-to-document.xml" />
+    <include file="db/migration/202312010000-create-parsed-file-analysis-table.xml" />
+    <include file="db/migration/202312120000-deprecate-document-pdf-generation-log.xml" />
 
 </databaseChangeLog>

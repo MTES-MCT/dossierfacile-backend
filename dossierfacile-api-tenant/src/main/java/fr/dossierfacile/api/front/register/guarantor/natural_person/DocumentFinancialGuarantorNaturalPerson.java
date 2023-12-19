@@ -71,7 +71,6 @@ public class DocumentFinancialGuarantorNaturalPerson extends AbstractDocumentSav
             document.setCustomText(documentFinancialGuarantorNaturalPersonForm.getCustomText());
         }
         documentRepository.save(document);
-        documentService.initializeFieldsToProcessPdfGeneration(document);
         tenant.lastUpdateDateProfile(LocalDateTime.now(), DocumentCategory.FINANCIAL);
         if (tenant.getStatus() == TenantFileStatus.VALIDATED) {
             documentService.resetValidatedDocumentsStatusOfSpecifiedCategoriesToToProcess(guarantor.getDocuments(), List.of(DocumentCategory.PROFESSIONAL, DocumentCategory.FINANCIAL, DocumentCategory.TAX));

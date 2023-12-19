@@ -54,6 +54,10 @@ public class File implements Serializable {
     @OneToOne(mappedBy = "file", fetch = FetchType.LAZY)
     private BarCodeFileAnalysis fileAnalysis;
 
+    @Nullable
+    @OneToOne(mappedBy= "file", fetch = FetchType.LAZY)
+    private ParsedFileAnalysis parsedFileAnalysis;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

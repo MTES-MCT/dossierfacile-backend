@@ -1,4 +1,4 @@
-package fr.dossierfacile.process.file.service;
+package fr.dossierfacile.process.file.service.qrcodeanalysis;
 
 import fr.dossierfacile.common.entity.BarCodeDocumentType;
 import fr.dossierfacile.common.entity.Document;

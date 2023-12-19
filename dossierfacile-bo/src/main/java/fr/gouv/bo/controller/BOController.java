@@ -2,13 +2,11 @@ package fr.gouv.bo.controller;
 
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Document;
-import fr.dossierfacile.common.entity.DocumentPdfGenerationLog;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.User;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.Role;
-import fr.dossierfacile.common.repository.DocumentPdfGenerationLogRepository;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.gouv.bo.amqp.Producer;
 import fr.gouv.bo.dto.BooleanDTO;
@@ -28,7 +26,6 @@ import org.springframework.core.ResolvableType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.stereotype.Controller;
@@ -71,7 +68,6 @@ public class BOController {
     private final DocumentService documentService;
     private final Producer producer;
     private final PartnerCallBackService partnerCallBackService;
-    private final DocumentPdfGenerationLogRepository documentPdfGenerationLogRepository;
     private final ClientRegistrationRepository clientRegistrationRepository;
 
     @GetMapping("/")
@@ -266,10 +262,7 @@ public class BOController {
     public String regeneratePdfDocument(@PathVariable Long id) {
         Document document = documentService.findDocumentById(id);
         documentService.initializeFieldsToProcessPdfGeneration(document);
-        producer.generatePdf(id,
-                documentPdfGenerationLogRepository.save(DocumentPdfGenerationLog.builder()
-                        .documentId(id)
-                        .build()).getId());
+        producer.generatePdf(id);
         Tenant tenant = document.getTenant() != null ? document.getTenant() : document.getGuarantor().getTenant();
         long apartmentSharingId = tenant.getApartmentSharing().getId();
         return REDIRECT_BO_COLOCATION + apartmentSharingId + "#tenant" + tenant.getId();
@@ -281,12 +274,6 @@ public class BOController {
         numberOfDocumentsToProcess.setId(0L);
         redirectAttributes.addFlashAttribute("numberOfDocumentsToProcess", numberOfDocumentsToProcess);
         return REDIRECT_BO;
-    }
-
-    @Scheduled(cron = "0 1 0 * * ?")
-    public void regenerateFailedPdfDocumentsOneDayAgoTask() {
-        log.info("Checking for failed PDF generation");
-        documentService.regenerateFailedPdfDocumentsOneDayAgoUsingScheduledTask();
     }
 
     @PostMapping(value = "/bo/regenerateStatusOfTenants")
