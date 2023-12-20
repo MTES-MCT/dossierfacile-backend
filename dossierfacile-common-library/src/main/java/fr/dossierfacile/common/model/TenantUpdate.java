@@ -8,4 +8,5 @@ public interface TenantUpdate {
     LocalDateTime getLastUpdateDate();
     LocalDateTime getCreationDate();
     LocalDateTime getDeletionDate();
+    LocalDateTime getRevocationDate();
 }

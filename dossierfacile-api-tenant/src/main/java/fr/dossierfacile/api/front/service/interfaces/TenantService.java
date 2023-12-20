@@ -33,7 +33,7 @@ public interface TenantService {
 
     List<TenantUpdate> findTenantUpdateByCreatedAndPartner(LocalDateTime from, UserApi userApi, Long limit);
 
-    List<TenantUpdate> findTenantUpdateByLastUpdateAndPartner(LocalDateTime from, UserApi userApi, Long limit, boolean includeDeleted);
+    List<TenantUpdate> findTenantUpdateByLastUpdateAndPartner(LocalDateTime from, UserApi userApi, Long limit, boolean includeDeleted, boolean includeRevoked);
 
     void sendFileByMail(Tenant tenant, String email, String shareType);
 }
