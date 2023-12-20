@@ -1,4 +1,4 @@
-package fr.dossierfacile.common.model;
+package fr.dossierfacile.common.model.log;
 
 public enum EditionType {
     ADD,
