@@ -1,0 +1,1 @@
+web: java -Djna.library.path=$JNA_LIBRARY_PATH -jar attest-val-partenaires-api-1.0.3.jar

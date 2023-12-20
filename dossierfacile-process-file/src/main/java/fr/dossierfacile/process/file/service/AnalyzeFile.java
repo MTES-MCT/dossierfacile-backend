@@ -19,5 +19,6 @@ public class AnalyzeFile {
         fileRepository.findById(fileId)
                 .map(barCodeFileProcessor::process)
                 .map(fileParserProcessor::process);
+
     }
 }
