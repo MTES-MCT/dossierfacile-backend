@@ -140,12 +140,14 @@ public class Application implements SaveStep<ApplicationFormV2> {
         }
     }
 
-    TenantModel saveStep(Tenant tenant, ApplicationType applicationType, List<Tenant> tenantToDelete, List<CoTenantForm> tenantToCreate) {
+    TenantModel saveStep(Tenant tenant, ApplicationType newApplicationType, List<Tenant> tenantToDelete, List<CoTenantForm> tenantToCreate) {
         ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
-        apartmentSharing.setApplicationType(applicationType);
+        ApplicationType currentApplicationType = apartmentSharing.getApplicationType();
+        apartmentSharing.setApplicationType(newApplicationType);
         apartmentSharingService.resetDossierPdfGenerated(apartmentSharing);
 
         deleteCoTenants(tenantToDelete);
+        logService.saveApplicationTypeChangedLog(apartmentSharing.getTenants(), currentApplicationType, newApplicationType);
         createCoTenants(tenant, tenantToCreate, apartmentSharing);
 
         LocalDateTime now = LocalDateTime.now();
@@ -226,7 +228,7 @@ public class Application implements SaveStep<ApplicationFormV2> {
     }
 
     private void deleteCoTenants(List<Tenant> tenantToDelete) {
-        tenantToDelete.stream().forEach(t -> userService.deleteAccount(t));
+        tenantToDelete.forEach(userService::deleteAccount);
     }
 
 }
