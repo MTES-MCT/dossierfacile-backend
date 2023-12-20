@@ -12,6 +12,7 @@ import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.mapper.DeletedTenantCommonMapper;
 import fr.dossierfacile.common.model.log.ApplicationTypeChange;
 import fr.dossierfacile.common.model.log.EditedDocument;
+import fr.dossierfacile.common.model.log.EditedStep;
 import fr.dossierfacile.common.model.log.EditionType;
 import fr.dossierfacile.common.repository.LogRepository;
 import fr.dossierfacile.common.service.interfaces.LogService;
@@ -42,6 +43,17 @@ public class LogServiceImpl implements LogService {
     @Override
     public void saveLog(LogType logType, Long tenantId) {
         this.saveLog(new Log(logType, tenantId));
+    }
+
+    @Override
+    public void saveStepLog(Long tenantId, String stepName) {
+        Log log = Log.builder()
+                .logType(LogType.ACCOUNT_EDITED)
+                .tenantId(tenantId)
+                .creationDateTime(LocalDateTime.now())
+                .logDetails(writeAsString(new EditedStep(stepName)))
+                .build();
+        saveLog(log);
     }
 
     @Override

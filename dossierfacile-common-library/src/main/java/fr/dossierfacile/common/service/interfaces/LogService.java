@@ -13,6 +13,8 @@ public interface LogService {
 
     void saveLog(LogType logType, Long tenantId);
 
+    void saveStepLog(Long tenantId, String step);
+
     void saveLogWithTenantData(LogType logType, Tenant tenant);
 
     void saveDocumentEditedLog(Document document, Tenant editor, EditionType editionType);

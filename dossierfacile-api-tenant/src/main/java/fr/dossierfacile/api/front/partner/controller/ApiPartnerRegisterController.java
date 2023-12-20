@@ -54,7 +54,7 @@ public class ApiPartnerRegisterController {
     public ResponseEntity<TenantModel> names(@Validated(ApiPartner.class) @RequestBody NamesForm namesForm) {
         var tenant = tenantService.findById(namesForm.getTenantId());
         var tenantModel = tenantService.saveStepRegister(tenant, namesForm, StepRegister.NAMES);
-        logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
+        logService.saveStepLog(tenantModel.getId(), StepRegister.NAMES.getClazz().getSimpleName());
         return ok(tenantModel);
     }
 
