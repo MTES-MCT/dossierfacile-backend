@@ -15,9 +15,12 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
             SELECT *
             FROM document
             WHERE document_status = 'TO_PROCESS'
-              AND (last_modified_date IS NULL OR last_modified_date < :to)
               AND watermark_file_id IS NULL
-              LIMIT 100;
+              AND (last_modified_date IS NULL OR last_modified_date < :to)
+            ORDER BY
+              CASE WHEN last_modified_date IS NULL THEN 1 ELSE 0 END,
+              last_modified_date DESC
+            LIMIT 200;
             """, nativeQuery = true)
     List<Document> findToProcessWithoutPDFToDate(@Param("to") LocalDateTime toDateTime);
 }

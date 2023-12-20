@@ -23,7 +23,7 @@ public class DocumentServiceImpl implements DocumentService {
         LocalDateTime dateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.systemDefault());
         Document document = documentRepository.findById(documentId).orElse(null);
 
-        return document != null && dateTime.isAfter(document.getLastModifiedDate());
+        return document != null && ( document.getLastModifiedDate() == null || dateTime.isAfter(document.getLastModifiedDate()));
     }
 
     @Override
