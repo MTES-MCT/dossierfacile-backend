@@ -72,7 +72,7 @@
                 <div style="background: bisque; padding: 10px; font-size: 16px; margin-top: 15px;">
                     <a th:href="@{/bo/documentFailedList}" style="text-decoration: none;">
                         <span>
-                            <span style="color: red; font-weight: bold;">PDFs en erreur :</span>
+                            <span style="color: red; font-weight: bold;">Locataires avec erreur PDF :</span>
                             <span th:text="${TenantsWithFailedGeneratedPdf}"></span>
                         </span>
                     </a>
@@ -80,7 +80,7 @@
                 <div th:if="${TenantsWithFailedGeneratedPdf != 0}">
                     <form th:action="@{/bo/regeneratePdfDocument}" th:method="post">
                         <button style="border-radius: 5px; width: 100%" class="btn btn-danger bo-btn" name="action" type="submit">
-                            Relancer la génération
+                            Regénération PDF (TO_PROCESS)
                         </button>
                     </form>
                 </div>

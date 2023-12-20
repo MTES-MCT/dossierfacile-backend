@@ -93,26 +93,19 @@ public class DocumentService {
     @Transactional
     public void regenerateFailedPdfDocumentsUsingButtonRequest() {
         synchronized (this) {
-            int numberOfUpdate = 1;
-            int lengthOfPage = 1000;
-            Pageable page = PageRequest.of(0, lengthOfPage, Sort.Direction.DESC, "id");
-            LocalDateTime thirtyMinutesAgo = LocalDateTime.now().minusMinutes(30);
+            LocalDateTime oneHourAgo = LocalDateTime.now().minusHours(1);
+            List<Long> documents = documentRepository.findToProcessWithoutPDFToDate(oneHourAgo);
+            log.info("Regenerate [{}] Failed PDF in TO PROCESS status", documents.size());
 
-            Page<Long> documents;
-            do {
-                documents = documentRepository.findToProcessWithoutPDFToDate(thirtyMinutesAgo, page);
-                long totalElements = documents.getTotalElements();
-                log.info("Treat PDF Failed :" + lengthOfPage + " on " + totalElements + " elements");
-
-                documents.forEach(documentId -> producer.generatePdf(documentId));
-                log.info("Send number [" + numberOfUpdate++ + "] with " + documents.getNumberOfElements() + " documentId");
+            documents.forEach(documentId -> {
                 try {
-                    this.wait(30000);
+                    producer.generatePdf(documentId);
+                    Thread.sleep(10);
                 } catch (InterruptedException e) {
-                    log.error("some exception message ", e);
                     Thread.currentThread().interrupt();
+                    log.error("Something wrong on sleep !!! ");
                 }
-            } while (!documents.isEmpty());
+            });
         }
     }
 

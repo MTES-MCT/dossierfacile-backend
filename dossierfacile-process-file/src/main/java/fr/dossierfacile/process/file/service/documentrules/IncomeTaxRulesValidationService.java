@@ -55,7 +55,7 @@ public class IncomeTaxRulesValidationService implements RulesValidationService {
             return null;
         String normalized = Normalizer.normalize(name, Normalizer.Form.NFD);
         return normalized.replace('-', ' ')
-                .replaceAll("[\\p{InCombiningDiacriticalMarks}]", "").toUpperCase();
+                .replaceAll("[\\p{InCombiningDiacriticalMarks}]", "").toUpperCase().trim();
     }
 
     @Override
@@ -161,7 +161,7 @@ public class IncomeTaxRulesValidationService implements RulesValidationService {
         // Firstname LastName
         Person documentOwner = Optional.ofNullable((Person) document.getTenant()).orElseGet(() -> document.getGuarantor());
         String firstName = documentOwner.getFirstName();
-        String lastName = document.getName();
+        String lastName = documentOwner.getLastName();
         for (File dfFile : document.getFiles()) {
             BarCodeFileAnalysis analysis = dfFile.getFileAnalysis();
             if (analysis.getDocumentType() == BarCodeDocumentType.TAX_ASSESSMENT) {

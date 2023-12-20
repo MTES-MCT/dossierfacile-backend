@@ -148,7 +148,7 @@ public class BOController {
         model.addAttribute("numberOfTenantsToProcess", tenantService.countTenantsWithStatusInToProcess());
         long result = 0;
         if (numberOfDocumentsToProcess.getId() == null) {
-            result = tenantService.getTotalOfTenantsWithFailedGeneratedPdfDocument();
+            result = tenantService.getCountOfTenantsWithFailedGeneratedPdfDocument();
         }
         model.addAttribute("TenantsWithFailedGeneratedPdf", result);
         model.addAttribute("isUserAdmin", is_admin);

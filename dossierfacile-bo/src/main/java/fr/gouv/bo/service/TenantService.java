@@ -763,12 +763,12 @@ public class TenantService {
         });
     }
 
-    public long getTotalOfTenantsWithFailedGeneratedPdfDocument() {
-        return tenantRepository.countAllTenantsWithFailedGeneratedPdfDocument();
+    public long getCountOfTenantsWithFailedGeneratedPdfDocument() {
+        return tenantRepository.countAllTenantsWithoutPdfDocument();
     }
 
     public Page<Tenant> getAllTenantsToProcessWithFailedGeneratedPdfDocument(Pageable pageable) {
-        return new PageImpl<>(tenantRepository.findAllTenantsToProcessWithFailedGeneratedPdfDocument(pageable).toList());
+        return new PageImpl<>(tenantRepository.findAllTenantsToProcessWithoutPdfDocument(pageable).toList());
     }
 
     public long countTenantsWithStatusInToProcess() {
