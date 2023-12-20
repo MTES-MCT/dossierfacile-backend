@@ -65,7 +65,7 @@ public class RegisterController {
     public ResponseEntity<TenantModel> names(@Validated(Dossier.class) @RequestBody NamesForm namesForm) {
         var tenant = authenticationFacade.getTenant(namesForm.getTenantId() );
         TenantModel tenantModel = tenantService.saveStepRegister(tenant, namesForm, StepRegister.NAMES);
-        logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
+        logService.saveStepLog(tenantModel.getId(), StepRegister.NAMES.getClazz().getSimpleName());
         Tenant loggedTenant = (namesForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
         return ok(tenantMapper.toTenantModel(loggedTenant));
     }
