@@ -10,6 +10,10 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
+
+import java.util.LinkedList;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -27,9 +31,13 @@ public class AnalyzeDocumentService {
             log.info("Ignoring document {} because it has already been analysed", documentId);
         }
         try {
-            RulesValidationService rulesValidationService = documentRulesValidationServiceFactory.get(document);
-            if (rulesValidationService != null) {
-                DocumentAnalysisReport report = rulesValidationService.process(document);
+            List<RulesValidationService> rulesValidationServices = documentRulesValidationServiceFactory.getServices(document);
+            if (!CollectionUtils.isEmpty(rulesValidationServices )) {
+                DocumentAnalysisReport report = DocumentAnalysisReport.builder()
+                        .document(document)
+                        .brokenRules(new LinkedList<>())
+                        .build();
+                rulesValidationServices.stream().forEach( rulesService -> rulesService.process(document, report) );
                 document.setDocumentAnalysisReport(report);
                 documentAnalysisReportRepository.save(report);
                 documentRepository.save(document);

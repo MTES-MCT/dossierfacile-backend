@@ -4,5 +4,6 @@ import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentAnalysisReport;
 
 public interface RulesValidationService {
-    DocumentAnalysisReport process(Document document);
+    boolean shouldBeApplied(Document document);
+    DocumentAnalysisReport process(Document document, DocumentAnalysisReport report);
 }

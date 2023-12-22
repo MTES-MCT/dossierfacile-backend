@@ -1,17 +1,10 @@
 package fr.dossierfacile.process.file.service.documentrules;
 
-import fr.dossierfacile.common.entity.BarCodeDocumentType;
-import fr.dossierfacile.common.entity.BarCodeFileAnalysis;
-import fr.dossierfacile.common.entity.Document;
-import fr.dossierfacile.common.entity.DocumentAnalysisReport;
-import fr.dossierfacile.common.entity.DocumentAnalysisStatus;
-import fr.dossierfacile.common.entity.DocumentBrokenRule;
-import fr.dossierfacile.common.entity.DocumentRule;
-import fr.dossierfacile.common.entity.File;
-import fr.dossierfacile.common.entity.ParsedFileAnalysis;
-import fr.dossierfacile.common.entity.Person;
+import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.entity.ocr.TaxIncomeLeaf;
 import fr.dossierfacile.common.entity.ocr.TaxIncomeMainFile;
+import fr.dossierfacile.common.enums.DocumentCategory;
+import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.ParsedFileAnalysisStatus;
 import fr.dossierfacile.common.enums.ParsedFileClassification;
 import fr.dossierfacile.process.file.barcode.twoddoc.parsing.TwoDDocDataType;
@@ -21,10 +14,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
+import javax.validation.constraints.NotNull;
 import java.text.Normalizer;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -33,6 +26,11 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Slf4j
 public class IncomeTaxRulesValidationService implements RulesValidationService {
+    @Override
+    public boolean shouldBeApplied(Document document) {
+        return document.getDocumentCategory() == DocumentCategory.TAX
+                && document.getDocumentSubCategory() == DocumentSubCategory.MY_NAME;
+    }
 
     private TaxIncomeMainFile fromQR(BarCodeFileAnalysis barCodeFileAnalysis) {
         Map<String, String> dataWithLabel = (Map<String, String>) barCodeFileAnalysis.getVerifiedData();
@@ -41,10 +39,10 @@ public class IncomeTaxRulesValidationService implements RulesValidationService {
                 .declarant1Nom(dataWithLabel.get(TwoDDocDataType.ID_46.getLabel()))
                 .declarant2NumFiscal(dataWithLabel.get(TwoDDocDataType.ID_49.getLabel()))
                 .declarant2Nom(dataWithLabel.get(TwoDDocDataType.ID_48.getLabel()))
-                .anneeDesRevenus(dataWithLabel.get(TwoDDocDataType.ID_45.getLabel()))
+                .anneeDesRevenus(Integer.parseInt(dataWithLabel.get(TwoDDocDataType.ID_45.getLabel())))
                 .nombreDeParts(dataWithLabel.get(TwoDDocDataType.ID_43.getLabel()))
                 .dateDeMiseEnRecouvrement(dataWithLabel.get(TwoDDocDataType.ID_4A.getLabel()))
-                .revenuFiscalDeReference(dataWithLabel.get(TwoDDocDataType.ID_41.getLabel()))
+                .revenuFiscalDeReference(Integer.parseInt(dataWithLabel.get(TwoDDocDataType.ID_41.getLabel())))
                 .numeroFiscalDeclarant1(dataWithLabel.get(TwoDDocDataType.ID_47.getLabel()))
                 .numeroFiscalDeclarant2(dataWithLabel.get(TwoDDocDataType.ID_49.getLabel()))
                 .referenceAvis(dataWithLabel.get(TwoDDocDataType.ID_44.getLabel())).build();
@@ -60,13 +58,8 @@ public class IncomeTaxRulesValidationService implements RulesValidationService {
 
     @Override
     @Transactional
-    public DocumentAnalysisReport process(Document document) {
-        DocumentAnalysisReport report = DocumentAnalysisReport.builder().document(document).build();
-        List<DocumentBrokenRule> brokenRules = Optional.ofNullable(report.getBrokenRules())
-                .orElseGet(() -> {
-                    report.setBrokenRules(new LinkedList<>());
-                    return report.getBrokenRules();
-                });
+    public DocumentAnalysisReport process(Document document, @NotNull DocumentAnalysisReport report) {
+        List<DocumentBrokenRule> brokenRules = report.getBrokenRules();
 
         // Parse Rule
         for (File dfFile : document.getFiles()) {
@@ -103,9 +96,9 @@ public class IncomeTaxRulesValidationService implements RulesValidationService {
                         && parsedDocument.getAnneeDesRevenus() != null
                         && parsedDocument.getDeclarant1Nom() != null
                         && parsedDocument.getRevenuFiscalDeReference() != null
-                        && (!qrDocument.getAnneeDesRevenus().equalsIgnoreCase(parsedDocument.getAnneeDesRevenus())
+                        && (!qrDocument.getAnneeDesRevenus().equals(parsedDocument.getAnneeDesRevenus())
                         || !qrDocument.getDeclarant1Nom().equalsIgnoreCase(parsedDocument.getDeclarant1Nom())
-                        || !qrDocument.getRevenuFiscalDeReference().equalsIgnoreCase(parsedDocument.getRevenuFiscalDeReference().replaceAll("\\s", ""))
+                        || !qrDocument.getRevenuFiscalDeReference().equals(parsedDocument.getRevenuFiscalDeReference())
                 )) {
                     log.error("Le 2DDoc code ne correspond pas au contenu du document tenantId:" + document.getTenant().getId());
                     brokenRules.add(DocumentBrokenRule.builder()
@@ -122,7 +115,7 @@ public class IncomeTaxRulesValidationService implements RulesValidationService {
             if (dfFile.getFileAnalysis() != null) {
                 TaxIncomeMainFile qrDocument = fromQR(dfFile.getFileAnalysis());
                 if (qrDocument.getAnneeDesRevenus() != null)
-                    providedYears.add(Integer.parseInt(qrDocument.getAnneeDesRevenus()));
+                    providedYears.add(qrDocument.getAnneeDesRevenus());
             }
         }
         Integer maxYear = providedYears.stream().max(Integer::compare).orElse(null);
@@ -220,5 +213,13 @@ public class IncomeTaxRulesValidationService implements RulesValidationService {
         }
 
         return report;
+    }
+
+
+    private boolean compareName(String incomeTaxFullName, String firstName, String lastName) {
+        String fullName = normalizeName(incomeTaxFullName);
+        String givenFullName = normalizeName(normalizeName(lastName) + " " + normalizeName(firstName));
+
+        return false;
     }
 }

@@ -2,7 +2,6 @@ package fr.dossierfacile.process.file.amqp;
 
 import com.google.gson.Gson;
 import fr.dossierfacile.process.file.service.AnalyzeDocumentService;
-
 import fr.dossierfacile.process.file.service.interfaces.DocumentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,9 +21,11 @@ public class AnalyzeDocumentReceiver {
     private final DocumentService documentService;
     @Value("${rabbitmq.document.analyze.delay}")
     private Long documentAnalysisDelay;
+
     @RabbitListener(queues = "${rabbitmq.queue.document.analyze}", containerFactory = "retryContainerFactory")
     public void receiveDocument(Message message) {
         log.debug("Received message on queue.document.analyze to process:" + message);
+
         Long msgTimestamp = message.getMessageProperties().getHeader("timestamp");
         delayExecution(msgTimestamp);
 
@@ -37,6 +38,7 @@ public class AnalyzeDocumentReceiver {
         } else {
             log.debug("Ignore document analysis because document is NOT up to date");
         }
+
     }
 
     private void delayExecution(Long msgTimestamp) {

@@ -1,26 +1,18 @@
 package fr.dossierfacile.process.file.service.documentrules;
 
 import fr.dossierfacile.common.entity.Document;
-import fr.dossierfacile.common.enums.DocumentCategory;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import static fr.dossierfacile.common.enums.DocumentSubCategory.CERTIFICATE_VISA;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
 public class DocumentRulesValidationServiceFactory {
-    private final IncomeTaxRulesValidationService incomeTaxRulesValidationService;
-    private final GuaranteeProviderRulesValidationService guaranteeProviderRulesValidationService;
+    private List<RulesValidationService> rulesValidationServiceList;
 
-    public RulesValidationService get(Document document) {
-        if (document.getDocumentCategory() == DocumentCategory.TAX) {
-            return incomeTaxRulesValidationService;
-        }
-        if (document.getDocumentCategory() == DocumentCategory.IDENTIFICATION
-                && document.getDocumentSubCategory() == CERTIFICATE_VISA) {
-            return guaranteeProviderRulesValidationService;
-        }
-        return null;
+    public List<RulesValidationService> getServices(Document document) {
+        return rulesValidationServiceList.stream().filter(rvs -> rvs.shouldBeApplied(document)).collect(Collectors.toList());
     }
 }
