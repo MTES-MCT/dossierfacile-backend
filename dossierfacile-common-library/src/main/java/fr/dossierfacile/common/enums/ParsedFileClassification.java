@@ -12,7 +12,7 @@ import lombok.Getter;
 public enum ParsedFileClassification {
     TAX_INCOME(TaxIncomeMainFile.class),
     TAX_INCOME_LEAF(TaxIncomeLeaf.class),
-    GUARANTEE_PROVIDER(GuaranteeProviderFile .class);
+    GUARANTEE_PROVIDER(GuaranteeProviderFile.class);
 
     Class<? extends ParsedFile> classificationClass;
 }

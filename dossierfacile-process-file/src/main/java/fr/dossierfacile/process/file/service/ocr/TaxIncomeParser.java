@@ -84,7 +84,7 @@ public class TaxIncomeParser implements OcrParser<TaxIncomeMainFile> {
                 String zoneTitle = tesseract.doOCR(image, TaxIncomeZones.scale(zones.zoneTitle, scale));
                 Matcher matcher = incomeYearPattern.matcher(zoneTitle);
                 if (matcher.find()) {
-                    result.setAnneeDesRevenus(matcher.group(1));
+                    result.setAnneeDesRevenus(Integer.parseInt(matcher.group(1).replaceAll("\\s", "")));
                 } else {
                     log.warn("Income year not found");
                     continue;
@@ -114,14 +114,14 @@ public class TaxIncomeParser implements OcrParser<TaxIncomeMainFile> {
                 String zoneRevenuPart = tesseract.doOCR(image, TaxIncomeZones.scale(zones.zoneRevenuPart, scale));
                 Matcher partCountMatcher = partCountPattern.matcher(zoneRevenuPart);
                 if (partCountMatcher.find()) {
-                    result.setNombreDeParts(partCountMatcher.group(1));
+                    result.setNombreDeParts(partCountMatcher.group(1).replaceAll("\\s", ""));
                 } else {
                     log.warn("\"Nombre de parts\" not found \n" + zoneRevenuPart);
                     break;
                 }
                 Matcher incomeAmountMatcher = incomeAmountPattern.matcher(zoneRevenuPart);
                 if (incomeAmountMatcher.find()) {
-                    result.setRevenuFiscalDeReference(incomeAmountMatcher.group(1));
+                    result.setRevenuFiscalDeReference(Integer.parseInt(incomeAmountMatcher.group(1).replaceAll("\\s", "")));
                     break;
                 } else {
                     log.warn("\"Revenu fiscal de référence\" not found" + zoneRevenuPart);
