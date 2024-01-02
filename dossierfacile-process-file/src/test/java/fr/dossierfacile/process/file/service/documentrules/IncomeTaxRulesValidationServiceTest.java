@@ -22,6 +22,7 @@ class IncomeTaxRulesValidationServiceTest {
                 .lastName("DUPONT")
                 .build();
         BarCodeFileAnalysis barCodeFileAnalysis = BarCodeFileAnalysis.builder()
+                .documentType(BarCodeDocumentType.TAX_ASSESSMENT)
                 .verifiedData(
                         new ObjectMapper().readValue("""
                                        {
@@ -61,34 +62,18 @@ class IncomeTaxRulesValidationServiceTest {
 
         Assertions.assertThat(report.getAnalysisStatus()).isEqualTo(DocumentAnalysisStatus.CHECKED);
     }
-/*
     @Test
-    public void compare_name_should_be_ok() {
-        String givenLastName = "Jean Phillipe";
-        String givenFirstName = "DE LA MARCHE";
-        String fullName = "DE LA MARCHE PICQUET Edouard Jean Phillipe";
-    }
+    public void document_full_test_wrong_firstname() throws Exception {
+        Document document = buildValidTaxDocument();
+        document.getTenant().setFirstName("Joseph");
+        DocumentAnalysisReport report = DocumentAnalysisReport.builder()
+                .document(document)
+                .brokenRules(new LinkedList<>())
+                .build();
+        incomeTaxRulesValidationService.process(document, report);
 
-    @Test
-    public void compare_name_should_be_ko() {
-        String givenLastName = "Jean Phillipe";
-        String givenFirstName = "DE LA MARCHE";
-        String fullName = "PICQUET Edouard Jean Phillipe";
+        Assertions.assertThat(report.getAnalysisStatus()).isEqualTo(DocumentAnalysisStatus.UNDEFINED);
+        Assertions.assertThat(report.getBrokenRules()).hasSize(1);
+        Assertions.assertThat(report.getBrokenRules().get(0)).matches(docRule -> docRule.getRule() == DocumentRule.R_TAX_NAMES);
     }
-
-    @Test
-    public void compare_name_should_be_ok2() {
-        String givenLastName = "Jean Phillipe";
-        String givenFirstName = "MARCHE";
-        String fullName = "ROSE-MARCHE Jean";
-    }
-
-    @Test
-    public void compare_name_should_be_ok_basc() {
-        String givenLastName = "Jean";
-        String givenFirstName = "MARCHE";
-        String fullName = "MARCHE Jean";
-    }
-
- */
 }

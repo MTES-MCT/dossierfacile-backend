@@ -8,6 +8,7 @@ import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.ParsedFileAnalysisStatus;
 import fr.dossierfacile.common.enums.ParsedFileClassification;
 import fr.dossierfacile.process.file.barcode.twoddoc.parsing.TwoDDocDataType;
+import fr.dossierfacile.process.file.util.PersonNameComparator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -15,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import javax.validation.constraints.NotNull;
-import java.text.Normalizer;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,14 +46,6 @@ public class IncomeTaxRulesValidationService implements RulesValidationService {
                 .numeroFiscalDeclarant1(dataWithLabel.get(TwoDDocDataType.ID_47.getLabel()))
                 .numeroFiscalDeclarant2(dataWithLabel.get(TwoDDocDataType.ID_49.getLabel()))
                 .referenceAvis(dataWithLabel.get(TwoDDocDataType.ID_44.getLabel())).build();
-    }
-
-    private static String normalizeName(String name) {
-        if (name == null)
-            return null;
-        String normalized = Normalizer.normalize(name, Normalizer.Form.NFD);
-        return normalized.replace('-', ' ')
-                .replaceAll("[\\p{InCombiningDiacriticalMarks}]", "").toUpperCase().trim();
     }
 
     @Override
@@ -160,12 +152,10 @@ public class IncomeTaxRulesValidationService implements RulesValidationService {
             if (analysis.getDocumentType() == BarCodeDocumentType.TAX_ASSESSMENT) {
                 TaxIncomeMainFile qrDocument = fromQR(dfFile.getFileAnalysis());
 
-                if (!(normalizeName(qrDocument.getDeclarant1Nom()).contains(normalizeName(firstName))
-                        && normalizeName(qrDocument.getDeclarant1Nom()).contains(normalizeName(lastName))
+                if (!(PersonNameComparator.bearlyEqualsTo(qrDocument.getDeclarant1Nom(), lastName, firstName)
                         || (qrDocument.getDeclarant2Nom() != null &&
-                        normalizeName(qrDocument.getDeclarant2Nom()).contains(normalizeName(firstName))
-                        && normalizeName(qrDocument.getDeclarant2Nom()).contains(normalizeName(lastName))
-                ))) {
+                        PersonNameComparator.bearlyEqualsTo(qrDocument.getDeclarant1Nom(), lastName, firstName))
+                )) {
                     log.error("Le nom/prenom ne correpond pas à l'uilitsation tenantId:" + document.getTenant().getId() + " firstname: " + firstName);
                     brokenRules.add(DocumentBrokenRule.builder()
                             .rule(DocumentRule.R_TAX_NAMES)
@@ -213,13 +203,5 @@ public class IncomeTaxRulesValidationService implements RulesValidationService {
         }
 
         return report;
-    }
-
-
-    private boolean compareName(String incomeTaxFullName, String firstName, String lastName) {
-        String fullName = normalizeName(incomeTaxFullName);
-        String givenFullName = normalizeName(normalizeName(lastName) + " " + normalizeName(firstName));
-
-        return false;
     }
 }
