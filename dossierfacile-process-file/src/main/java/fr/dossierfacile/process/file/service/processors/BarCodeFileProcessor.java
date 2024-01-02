@@ -5,10 +5,10 @@ import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.process.file.barcode.InMemoryFile;
 import fr.dossierfacile.process.file.repository.BarCodeFileAnalysisRepository;
-import fr.dossierfacile.process.file.service.AnalysisContext;
 import fr.dossierfacile.process.file.service.qrcodeanalysis.DocumentClassifier;
 import fr.dossierfacile.process.file.service.qrcodeanalysis.QrCodeFileAuthenticator;
 import fr.dossierfacile.process.file.service.qrcodeanalysis.TwoDDocFileAuthenticator;
+import fr.dossierfacile.process.file.util.QrCodeFileAnalysisCriteria;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,18 +26,15 @@ public class BarCodeFileProcessor implements Processor {
     private final BarCodeFileAnalysisRepository analysisRepository;
     private final FileStorageService fileStorageService;
 
-    public AnalysisContext process(AnalysisContext context) {
-        File file = context.getDfFile();
-        if (analysisRepository.hasNotAlreadyBeenAnalyzed(file)) {
+    public File process(File file) {
+        if (QrCodeFileAnalysisCriteria.shouldBeAnalyzed(file) &&
+                analysisRepository.hasNotAlreadyBeenAnalyzed(file)) {
             long start = System.currentTimeMillis();
             log.info("Starting analysis of file");
-            context.setBarCodeFileAnalysis(
-                    downloadAndAnalyze(file)
-                            .map(analysis -> save(file, analysis))
-                            .orElse(null));
+            downloadAndAnalyze(file).map(analysis -> save(file, analysis));
             log.info("Analysis of file finished in {} ms", System.currentTimeMillis() - start);
         }
-        return context;
+        return file;
     }
 
     private Optional<BarCodeFileAnalysis> downloadAndAnalyze(File file) {
