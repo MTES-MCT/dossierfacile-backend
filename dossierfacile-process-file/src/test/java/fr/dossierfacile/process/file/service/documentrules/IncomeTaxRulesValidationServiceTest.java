@@ -72,7 +72,7 @@ class IncomeTaxRulesValidationServiceTest {
                 .build();
         incomeTaxRulesValidationService.process(document, report);
 
-        Assertions.assertThat(report.getAnalysisStatus()).isEqualTo(DocumentAnalysisStatus.UNDEFINED);
+        Assertions.assertThat(report.getAnalysisStatus()).isEqualTo(DocumentAnalysisStatus.DENIED);
         Assertions.assertThat(report.getBrokenRules()).hasSize(1);
         Assertions.assertThat(report.getBrokenRules().get(0)).matches(docRule -> docRule.getRule() == DocumentRule.R_TAX_NAMES);
     }
