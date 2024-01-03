@@ -27,7 +27,7 @@ public class DocumentServiceImpl implements DocumentService {
         LocalDateTime dateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.systemDefault());
         Document document = documentRepository.findById(documentId).orElse(null);
 
-        return document != null && ( document.getLastModifiedDate() == null || dateTime.isAfter(document.getLastModifiedDate()));
+        return document != null && (document.getLastModifiedDate() == null || dateTime.isAfter(document.getLastModifiedDate()));
     }
 
     @Override
@@ -37,15 +37,15 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Transactional
     @Override
-    public void saveWatermarkFileAt(LocalDateTime executionDateTime, StorageFile watermarkFile, Long documentId) {
+    public void saveWatermarkFileAt(Long executionTimestamp, StorageFile watermarkFile, Long documentId) {
         Document document = documentRepository.findById(documentId).orElse(null);
-        if (document == null || executionDateTime.isBefore(document.getLastModifiedDate())) {
-            fileStorageService.delete(watermarkFile);
-            log.warn("PDF Generation execution is deprecated for documentId=" + documentId);
-        } else {
+        if (documentIsUpToDateAt(executionTimestamp, document.getId())) {
             document.setWatermarkFile(watermarkFile);
             documentRepository.save(document);
             log.warn("PDF Generation execution is a success for documentId=" + documentId);
+        } else {
+            fileStorageService.delete(watermarkFile);
+            log.warn("PDF Generation execution is deprecated for documentId=" + documentId);
         }
     }
 }
