@@ -89,7 +89,7 @@ public class IncomeTaxRulesValidationService implements RulesValidationService {
                         && parsedDocument.getDeclarant1Nom() != null
                         && parsedDocument.getRevenuFiscalDeReference() != null
                         && (!qrDocument.getAnneeDesRevenus().equals(parsedDocument.getAnneeDesRevenus())
-                        || !qrDocument.getDeclarant1Nom().equalsIgnoreCase(parsedDocument.getDeclarant1Nom())
+                        || !PersonNameComparator.equalsWithNormalization(qrDocument.getDeclarant1Nom(), parsedDocument.getDeclarant1Nom())
                         || !qrDocument.getRevenuFiscalDeReference().equals(parsedDocument.getRevenuFiscalDeReference())
                 )) {
                     log.error("Le 2DDoc code ne correspond pas au contenu du document tenantId:" + document.getTenant().getId());

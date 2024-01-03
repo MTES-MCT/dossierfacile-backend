@@ -11,10 +11,12 @@ public class PersonNameComparator {
         if (name == null)
             return null;
         String normalized = Normalizer.normalize(name, Normalizer.Form.NFD);
-        return normalized.replace('-', ' ')
+        return normalized.replace('-', ' ').replace('.', ' ')
                 .replaceAll("[\\p{InCombiningDiacriticalMarks}]", "").toUpperCase().trim();
     }
-
+    public static boolean equalsWithNormalization(String fullName, String fullNameToCompare) {
+        return normalizeName(fullName).equals(normalizeName(fullNameToCompare));
+    }
     /**
      * fullname start by LastName
      **/
