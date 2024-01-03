@@ -80,7 +80,7 @@
                 <div th:if="${TenantsWithFailedGeneratedPdf != 0}">
                     <form th:action="@{/bo/regeneratePdfDocument}" th:method="post">
                         <button style="border-radius: 5px; width: 100%" class="btn btn-danger bo-btn" name="action" type="submit">
-                            Regénération PDF (TO_PROCESS)
+                            Regénération PDF en echec
                         </button>
                     </form>
                 </div>

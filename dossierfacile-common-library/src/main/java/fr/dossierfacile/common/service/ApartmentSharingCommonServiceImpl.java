@@ -8,6 +8,7 @@ import fr.dossierfacile.common.enums.FileStatus;
 import fr.dossierfacile.common.repository.ApartmentSharingRepository;
 import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
+import fr.dossierfacile.common.service.interfaces.LogService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,8 +21,10 @@ import java.util.Optional;
 @AllArgsConstructor
 @Slf4j
 public class ApartmentSharingCommonServiceImpl implements ApartmentSharingCommonService {
-    ApartmentSharingRepository apartmentSharingRepository;
-    FileStorageService fileStorageService;
+
+    private final ApartmentSharingRepository apartmentSharingRepository;
+    private final FileStorageService fileStorageService;
+    private final LogService logService;
 
     @Override
     @Transactional(propagation = Propagation.SUPPORTS)
@@ -43,7 +46,11 @@ public class ApartmentSharingCommonServiceImpl implements ApartmentSharingCommon
     @Transactional(propagation = Propagation.SUPPORTS)
     public void removeTenant(ApartmentSharing apartmentSharing, Tenant tenant) {
         apartmentSharing.getTenants().remove(tenant);
-        apartmentSharing.setApplicationType((apartmentSharing.getNumberOfTenants() >= 2) ? ApplicationType.GROUP : ApplicationType.ALONE);
+
+        ApplicationType newApplicationType = (apartmentSharing.getNumberOfTenants() >= 2) ? ApplicationType.GROUP : ApplicationType.ALONE;
+        logService.saveApplicationTypeChangedLog(apartmentSharing.getTenants(), apartmentSharing.getApplicationType(), newApplicationType);
+        apartmentSharing.setApplicationType(newApplicationType);
+
         resetDossierPdfGenerated(apartmentSharing);
         apartmentSharingRepository.save(apartmentSharing);
     }

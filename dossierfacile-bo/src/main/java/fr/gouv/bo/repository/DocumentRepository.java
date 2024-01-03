@@ -21,11 +21,10 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
     @Query(value = """
             SELECT d.id
             FROM Document d
-            WHERE d.document_status = 'TO_PROCESS'
-              AND (d.last_modified_date IS NULL OR d.last_modified_date < :to)
+            WHERE (d.last_modified_date IS NULL OR d.last_modified_date < :to)
               AND d.watermark_file_id IS NULL
             """, nativeQuery = true)
-    List<Long> findToProcessWithoutPDFToDate(@Param("to") LocalDateTime toDateTime);
+    List<Long> findWithoutPDFToDate(@Param("to") LocalDateTime toDateTime);
 
     @Modifying
     @Query("UPDATE Document d SET d.documentDeniedReasons = :documentDeniedReasons where d.id = :documentId")

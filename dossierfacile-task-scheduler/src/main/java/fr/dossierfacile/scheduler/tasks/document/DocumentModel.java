@@ -1,4 +1,4 @@
-package fr.dossierfacile.scheduler.tasks.documenttoprocess;
+package fr.dossierfacile.scheduler.tasks.document;
 
 import lombok.Builder;
 

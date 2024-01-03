@@ -24,9 +24,9 @@ public class TaxIncomeMainFile implements ParsedFile, Serializable {
     String declarant2NumFiscal;
     String declarant2Nom;
     String nombreDeParts;
-    String anneeDesRevenus;
+    Integer anneeDesRevenus;
     String dateDeMiseEnRecouvrement;
-    String revenuFiscalDeReference;
+    Integer revenuFiscalDeReference;
     String numeroFiscalDeclarant1;
     String numeroFiscalDeclarant2;
     String referenceAvis;

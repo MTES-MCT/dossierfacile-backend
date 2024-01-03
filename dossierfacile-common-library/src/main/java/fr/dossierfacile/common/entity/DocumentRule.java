@@ -13,7 +13,7 @@ public enum DocumentRule {
     R_TAX_LEAF( Level.CRITICAL, "Veuillez fournir les feuillets des avis"),
     R_TAX_ALL_LEAF( Level.WARN, "Veuillez fournir tous les feuillets des avis"),// feuillet 1 founi
     R_TAX_N3( Level.CRITICAL, "Les avis d'imposition antérieur à N-3 ne sont pas autorisé"),
-    R_TAX_NAMES( Level.WARN, "Les noms et prénoms ne correspondent pas");
+    R_TAX_NAMES( Level.CRITICAL, "Les noms et prénoms ne correspondent pas");
 
     public enum Level{
         CRITICAL, WARN

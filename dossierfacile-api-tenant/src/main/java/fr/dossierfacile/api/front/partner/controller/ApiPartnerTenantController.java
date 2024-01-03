@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -46,27 +47,36 @@ public class ApiPartnerTenantController {
     public ResponseEntity<ResponseWrapper<List<TenantUpdate>, ListMetadata>> list(@RequestParam(value = "after", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime after,
                                                                                   @RequestParam(value = "limit", defaultValue = "1000") Long limit,
                                                                                   @RequestParam(value = "orderBy", defaultValue = "LAST_UPDATE_DATE") TenantSortType orderBy,
-                                                                                  @RequestParam(value = "includeDeleted", defaultValue = "false") boolean includeDeleted
+                                                                                  @RequestParam(value = "includeDeleted", defaultValue = "false") boolean includeDeleted,
+                                                                                  @RequestParam(value = "includeRevoked", defaultValue = "false") boolean includeRevoked
     ) {
+        System.out.println("after = " + after);
         UserApi userApi = clientAuthenticationFacade.getClient();
         List<TenantUpdate> result;
         LocalDateTime nextTimeToken;
         switch (orderBy) {
             case CREATION_DATE -> {
-                if (includeDeleted){
-                    throw new IllegalArgumentException("includeDelete is not available with creationDate order");
+                if (includeDeleted || includeRevoked) {
+                    throw new IllegalArgumentException("includeDelete and includeRevoked are not available with creationDate order");
                 }
                 result = tenantService.findTenantUpdateByCreatedAndPartner(after, userApi, limit);
-                nextTimeToken = (result.size() == 0) ? after : result.get(result.size() - 1).getCreationDate();
+                nextTimeToken = result.isEmpty() ? after : result.get(result.size() - 1).getCreationDate();
             }
             case LAST_UPDATE_DATE -> {
-                result = tenantService.findTenantUpdateByLastUpdateAndPartner(after, userApi, limit, includeDeleted);
-                nextTimeToken = (result.size() == 0) ? after : result.get(result.size() - 1).getLastUpdateDate();
+                result = tenantService.findTenantUpdateByLastUpdateAndPartner(after, userApi, limit, includeDeleted, includeRevoked);
+                nextTimeToken = result.isEmpty() ? after : result.get(result.size() - 1).getLastUpdateDate();
             }
             default -> throw new IllegalArgumentException();
         }
 
-        String nextLink = "/api-partner/tenant?limit=" + limit + "&orderBy=" + orderBy + "&after=" + nextTimeToken + "&includeDeleted=" + includeDeleted;
+        String nextLink = UriComponentsBuilder.fromPath("/api-partner/tenant")
+                .queryParam("limit", limit)
+                .queryParam("orderBy", orderBy)
+                .queryParam("after", nextTimeToken)
+                .queryParam("includeDeleted", includeDeleted)
+                .queryParam("includeRevoked", includeRevoked)
+                .build().encode().toUriString();
+
         return ok(ResponseWrapper.<List<TenantUpdate>, ListMetadata>builder()
                 .metadata(ListMetadata.builder()
                         .limit(limit)

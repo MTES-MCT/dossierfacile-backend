@@ -17,33 +17,39 @@ import lombok.Getter;
 
 @Getter
 public enum StepRegister {
-    ACCOUNT_PARTNER_API(AccountApiPartner.class.getName()),
-    ACCOUNT(Account.class.getName()),
-    NAMES(Names.class.getName()),
-    APPLICATION_V1(ApplicationV1.class.getName()),
-    APPLICATION(Application.class.getName()),
-    HONOR_DECLARATION(HonorDeclaration.class.getName()),
-    DOCUMENT_IDENTIFICATION(DocumentIdentification.class.getName()),
-    DOCUMENT_RESIDENCY(DocumentResidency.class.getName()),
-    DOCUMENT_PROFESSIONAL(DocumentProfessional.class.getName()),
-    DOCUMENT_FINANCIAL(DocumentFinancial.class.getName()),
-    DOCUMENT_TAX(DocumentTax.class.getName()),
-    NAME_GUARANTOR_NATURAL_PERSON(NameGuarantorNaturalPerson.class.getName()),
-    DOCUMENT_IDENTIFICATION_GUARANTOR_NATURAL_PERSON_FILE(DocumentIdentificationGuarantorNaturalPersonFile.class.getName()),
-    DOCUMENT_IDENTIFICATION_GUARANTOR_NATURAL_PERSON(DocumentIdentificationGuarantorNaturalPerson.class.getName()),
-    DOCUMENT_RESIDENCY_GUARANTOR_NATURAL_PERSON(DocumentResidencyGuarantorNaturalPerson.class.getName()),
-    DOCUMENT_PROFESSIONAL_GUARANTOR_NATURAL_PERSON(DocumentProfessionalGuarantorNaturalPerson.class.getName()),
-    DOCUMENT_FINANCIAL_GUARANTOR_NATURAL_PERSON(DocumentFinancialGuarantorNaturalPerson.class.getName()),
-    DOCUMENT_TAX_GUARANTOR_NATURAL_PERSON(DocumentTaxGuarantorNaturalPerson.class.getName()),
-    DOCUMENT_IDENTIFICATION_GUARANTOR_ORGANISM(DocumentIdentificationGuarantorOrganism.class.getName()),
-    DOCUMENT_IDENTIFICATION_GUARANTOR_LEGAL_PERSON(DocumentIdentificationGuarantorLegalPerson.class.getName()),
-    DOCUMENT_IDENTIFICATION_REPRESENTANT_GUARANTOR_LEGAL_PERSON(DocumentIdentificationRepresentanGuarantorLegalPerson.class.getName()),
-    GUARANTOR_TYPE(GuarantorType.class.getName()),
-    NAME_GUARANTOR_LEGAL_PERSON(NameGuarantorLegalPerson.class.getName()),
-    NAME_IDENTIFICATION_REPRESENTANT_GUARANTOR_LEGAL_PERSON(NameRepresentantGuarantorLegalPerson.class.getName());
-    private final String label;
+    ACCOUNT_PARTNER_API(AccountApiPartner.class),
+    ACCOUNT(Account.class),
+    NAMES(Names.class),
+    APPLICATION_V1(ApplicationV1.class),
+    APPLICATION(Application.class),
+    HONOR_DECLARATION(HonorDeclaration.class),
+    DOCUMENT_IDENTIFICATION(DocumentIdentification.class),
+    DOCUMENT_RESIDENCY(DocumentResidency.class),
+    DOCUMENT_PROFESSIONAL(DocumentProfessional.class),
+    DOCUMENT_FINANCIAL(DocumentFinancial.class),
+    DOCUMENT_TAX(DocumentTax.class),
+    NAME_GUARANTOR_NATURAL_PERSON(NameGuarantorNaturalPerson.class),
+    DOCUMENT_IDENTIFICATION_GUARANTOR_NATURAL_PERSON_FILE(DocumentIdentificationGuarantorNaturalPersonFile.class),
+    DOCUMENT_IDENTIFICATION_GUARANTOR_NATURAL_PERSON(DocumentIdentificationGuarantorNaturalPerson.class),
+    DOCUMENT_RESIDENCY_GUARANTOR_NATURAL_PERSON(DocumentResidencyGuarantorNaturalPerson.class),
+    DOCUMENT_PROFESSIONAL_GUARANTOR_NATURAL_PERSON(DocumentProfessionalGuarantorNaturalPerson.class),
+    DOCUMENT_FINANCIAL_GUARANTOR_NATURAL_PERSON(DocumentFinancialGuarantorNaturalPerson.class),
+    DOCUMENT_TAX_GUARANTOR_NATURAL_PERSON(DocumentTaxGuarantorNaturalPerson.class),
+    DOCUMENT_IDENTIFICATION_GUARANTOR_ORGANISM(DocumentIdentificationGuarantorOrganism.class),
+    DOCUMENT_IDENTIFICATION_GUARANTOR_LEGAL_PERSON(DocumentIdentificationGuarantorLegalPerson.class),
+    DOCUMENT_IDENTIFICATION_REPRESENTANT_GUARANTOR_LEGAL_PERSON(DocumentIdentificationRepresentanGuarantorLegalPerson.class),
+    GUARANTOR_TYPE(GuarantorType.class),
+    NAME_GUARANTOR_LEGAL_PERSON(NameGuarantorLegalPerson.class),
+    NAME_IDENTIFICATION_REPRESENTANT_GUARANTOR_LEGAL_PERSON(NameRepresentantGuarantorLegalPerson.class);
 
-    StepRegister(String label) {
-        this.label = label;
+    private final Class<?> clazz;
+
+    StepRegister(Class<?> clazz) {
+        this.clazz = clazz;
     }
+
+    public String getLabel() {
+        return clazz.getName();
+    }
+
 }

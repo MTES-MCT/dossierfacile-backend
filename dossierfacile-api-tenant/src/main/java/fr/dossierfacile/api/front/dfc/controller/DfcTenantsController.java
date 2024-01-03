@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -46,13 +47,21 @@ public class DfcTenantsController {
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResponseWrapper<List<TenantUpdate>, ListMetadata>> list(@RequestParam(value = "after", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime after,
                                                                                   @RequestParam(value = "limit", defaultValue = "1000") Long limit,
-                                                                                  @RequestParam(value = "includeDeleted", defaultValue = "false") boolean includeDeleted
+                                                                                  @RequestParam(value = "includeDeleted", defaultValue = "false") boolean includeDeleted,
+                                                                                  @RequestParam(value = "includeRevoked", defaultValue = "false") boolean includeRevoked
     ) {
         UserApi userApi = clientAuthenticationFacade.getClient();
-        List<TenantUpdate> result = tenantService.findTenantUpdateByLastUpdateAndPartner(after, userApi, limit, includeDeleted);
-        LocalDateTime nextTimeToken = (result.size() == 0) ? after : result.get(result.size() - 1).getLastUpdateDate();
+        List<TenantUpdate> result = tenantService.findTenantUpdateByLastUpdateAndPartner(after, userApi, limit, includeDeleted, includeRevoked);
 
-        String nextLink = PATH + "?limit=" + limit + "&after=" + nextTimeToken + "&includeDeleted=" + includeDeleted;
+        LocalDateTime nextTimeToken = result.isEmpty() ? after : result.get(result.size() - 1).getLastUpdateDate();
+
+        String nextLink = UriComponentsBuilder.fromPath(PATH)
+                .queryParam("limit", limit)
+                .queryParam("after", nextTimeToken)
+                .queryParam("includeDeleted", includeDeleted)
+                .queryParam("includeRevoked", includeRevoked)
+                .build().encode().toUriString();
+
         return ok(ResponseWrapper.<List<TenantUpdate>, ListMetadata>builder()
                 .metadata(ListMetadata.builder()
                         .limit(limit)

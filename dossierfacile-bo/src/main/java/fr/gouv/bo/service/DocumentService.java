@@ -94,8 +94,8 @@ public class DocumentService {
     public void regenerateFailedPdfDocumentsUsingButtonRequest() {
         synchronized (this) {
             LocalDateTime oneHourAgo = LocalDateTime.now().minusHours(1);
-            List<Long> documents = documentRepository.findToProcessWithoutPDFToDate(oneHourAgo);
-            log.info("Regenerate [{}] Failed PDF in TO PROCESS status", documents.size());
+            List<Long> documents = documentRepository.findWithoutPDFToDate(oneHourAgo);
+            log.info("Regenerate [{}] Failed PDF in all status", documents.size());
 
             documents.forEach(documentId -> {
                 try {

@@ -38,9 +38,9 @@ public class WatermarkDFDocumentConsumer {
             Map<String, String> data = gson.fromJson(new String(message.getBody()), Map.class);
             Long documentId = Long.valueOf(data.get("id"));
             if (documentService.documentIsUpToDateAt(msgTimestamp, documentId)) {
-                LocalDateTime executionDateTime = LocalDateTime.now();
+                Long executionTimestamp = System.currentTimeMillis();
                 StorageFile watermarkFile = pdfGeneratorService.generateBOPdfDocument(documentService.getDocument(documentId));
-                documentService.saveWatermarkFileAt(executionDateTime, watermarkFile, documentId);
+                documentService.saveWatermarkFileAt(executionTimestamp, watermarkFile, documentId);
             } else {
                 log.debug("Ignore document pdf generation cause document is NOT up to date");
             }

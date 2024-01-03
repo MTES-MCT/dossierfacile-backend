@@ -7,11 +7,11 @@ import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.ParsedFileAnalysisStatus;
 import fr.dossierfacile.common.repository.ParsedFileAnalysisRepository;
 import fr.dossierfacile.process.file.repository.FileRepository;
-import fr.dossierfacile.process.file.service.AnalysisContext;
 import fr.dossierfacile.process.file.service.ocr.GuaranteeVisaleParser;
 import fr.dossierfacile.process.file.service.ocr.OcrParser;
 import fr.dossierfacile.process.file.service.ocr.TaxIncomeLeafParser;
 import fr.dossierfacile.process.file.service.ocr.TaxIncomeParser;
+import fr.dossierfacile.process.file.service.StorageFileLoaderService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,6 +27,7 @@ import static fr.dossierfacile.common.enums.DocumentSubCategory.CERTIFICATE_VISA
 @Service
 @AllArgsConstructor
 public class OcrParserFileProcessor implements Processor {
+    private StorageFileLoaderService storageFileLoaderService;
     private final FileRepository fileRepository;
     private final ParsedFileAnalysisRepository parsedFileAnalysisRepository;
     private final TaxIncomeParser taxIncomeParser;
@@ -46,31 +47,42 @@ public class OcrParserFileProcessor implements Processor {
         return null;
     }
 
-    public AnalysisContext process(AnalysisContext context) {
-        List<OcrParser> parsers = getParsers(context.getDfFile());
-        if (CollectionUtils.isEmpty(parsers)) {
-            log.error("There is not parser associateed to this kind of document - configuration error");
-            return context;
-        }
-        for (OcrParser parser : parsers) {
-            try {
-                ParsedFile parsedDocument = parser.parse(context.getFile());
-                ParsedFileAnalysis parsedFileAnalysis = ParsedFileAnalysis.builder()
-                        .analysisStatus(ParsedFileAnalysisStatus.COMPLETED)
-                        .parsedFile(parsedDocument)
-                        .classification(parsedDocument.getClassification())
-                        .build();
+    public File process(File dfFile) {
 
-                parsedFileAnalysis.setFile(context.getDfFile());
-                parsedFileAnalysisRepository.save(parsedFileAnalysis);
-                context.getDfFile().setParsedFileAnalysis(parsedFileAnalysis);
-                fileRepository.save(context.getDfFile());
-                log.info("Successfully parse file {}", context.getDfFile().getId());
-                break;
-            } catch (Exception e) {
-                log.warn("Unable to parse file {}", context.getDfFile().getId());
-            }
+        List<OcrParser> parsers = getParsers(dfFile);
+        if (CollectionUtils.isEmpty(parsers)) {
+            log.debug("There is not parser associateed to this kind of document");
+            return dfFile;
         }
-        return context;
+
+        java.io.File file = storageFileLoaderService.getTemporaryFilePath(dfFile.getStorageFile());
+        if (file == null) {
+            log.error("File reading Error");
+            return dfFile;
+        }
+        try {
+            for (OcrParser parser : parsers) {
+                try {
+                    ParsedFile parsedDocument = parser.parse(file);
+                    ParsedFileAnalysis parsedFileAnalysis = ParsedFileAnalysis.builder()
+                            .analysisStatus(ParsedFileAnalysisStatus.COMPLETED)
+                            .parsedFile(parsedDocument)
+                            .classification(parsedDocument.getClassification())
+                            .build();
+
+                    parsedFileAnalysis.setFile(dfFile);
+                    parsedFileAnalysisRepository.save(parsedFileAnalysis);
+                    dfFile.setParsedFileAnalysis(parsedFileAnalysis);
+                    fileRepository.save(dfFile);
+                    log.info("Successfully parse file {}", dfFile.getId());
+                    break;
+                } catch (Exception e) {
+                    log.warn("Unable to parse file {}", dfFile.getId());
+                }
+            }
+        } finally {
+            storageFileLoaderService.removeFileIfExist(file);
+        }
+        return dfFile;
     }
 }

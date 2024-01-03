@@ -10,6 +10,7 @@ import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
+import fr.dossierfacile.common.model.log.EditionType;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
@@ -46,7 +47,7 @@ public abstract class AbstractDocumentSaveStep<T extends DocumentForm> implement
         }
 
         Document document = saveDocument(tenant, documentForm);
-        logService.saveDocumentEditedLog(document, tenant);
+        logService.saveDocumentEditedLog(document, tenant, EditionType.ADD);
         documentService.markDocumentAsEdited(document);
 
         TransactionalUtil.afterCommit(() -> {

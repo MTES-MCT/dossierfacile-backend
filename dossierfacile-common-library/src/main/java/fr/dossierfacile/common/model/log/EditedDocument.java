@@ -1,4 +1,4 @@
-package fr.dossierfacile.common.model;
+package fr.dossierfacile.common.model.log;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import fr.dossierfacile.common.entity.Document;
@@ -18,23 +18,23 @@ import java.util.Optional;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class EditedDocumentModel {
+public class EditedDocument {
 
     private DocumentCategory documentCategory;
     private DocumentSubCategory documentSubCategory;
-    private Boolean noDocument;
     private Long tenantId;
     private Long guarantorId;
+    private EditionType editionType;
 
-    public static EditedDocumentModel from(Document document) {
-        return EditedDocumentModel.builder()
+    public static EditedDocument from(Document document, EditionType editionType) {
+        return EditedDocument.builder()
                 .documentCategory(document.getDocumentCategory())
                 .documentSubCategory(document.getDocumentSubCategory())
-                .noDocument(document.getNoDocument())
                 .tenantId(Optional.ofNullable(document.getTenant())
                         .map(Tenant::getId).orElse(null))
                 .guarantorId(Optional.ofNullable(document.getGuarantor())
                         .map(Guarantor::getId).orElse(null))
+                .editionType(editionType)
                 .build();
     }
 
