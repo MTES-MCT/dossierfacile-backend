@@ -154,7 +154,7 @@ public class IncomeTaxRulesValidationService implements RulesValidationService {
 
                 if (!(PersonNameComparator.bearlyEqualsTo(qrDocument.getDeclarant1Nom(), lastName, firstName)
                         || (qrDocument.getDeclarant2Nom() != null &&
-                        PersonNameComparator.bearlyEqualsTo(qrDocument.getDeclarant1Nom(), lastName, firstName))
+                        PersonNameComparator.bearlyEqualsTo(qrDocument.getDeclarant2Nom(), lastName, firstName))
                 )) {
                     log.error("Le nom/prenom ne correpond pas à l'uilitsation tenantId:" + document.getTenant().getId() + " firstname: " + firstName);
                     brokenRules.add(DocumentBrokenRule.builder()
