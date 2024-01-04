@@ -5,6 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.text.Normalizer;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 public class PersonNameComparator {
     private static String normalizeName(String name) {
@@ -17,6 +18,20 @@ public class PersonNameComparator {
     public static boolean equalsWithNormalization(String fullName, String fullNameToCompare) {
         return normalizeName(fullName).equals(normalizeName(fullNameToCompare));
     }
+
+    public static boolean bearlyEqualsTo(String name, String givenName) {
+
+        if (StringUtils.isEmpty(name) || StringUtils.isEmpty(givenName))
+            return false;
+        List<String> names = Arrays.stream(normalizeName(name).split(" "))
+                .filter((n) -> !n.matches("(DE)|(LE)|(LA)|(EL)")).toList();
+        List<String> givenNames = Arrays.stream(normalizeName(givenName).split(" "))
+                .filter((n) -> !n.matches("(DE)|(LE)|(LA)|(EL)")).toList();
+
+        // if there is one matching on firstname and one matching on lastname the user should be the same
+        return names.stream().anyMatch(givenNames::contains);
+    }
+
     /**
      * fullname start by LastName
      **/

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
+import fr.dossierfacile.process.file.service.ocr.GuaranteeVisaleParser;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -36,7 +37,7 @@ class IncomeTaxRulesValidationServiceTest {
                                          "Numéro fiscal du déclarant 2": "1234567890124",
                                          "Référence d’avis d’impôt": "2310A12345678"
                                        }                         
-                                """, Object.class)
+                                """, GuaranteeVisaleParser.class)
                 )
                 .build();
         File dfFile = File.builder()
