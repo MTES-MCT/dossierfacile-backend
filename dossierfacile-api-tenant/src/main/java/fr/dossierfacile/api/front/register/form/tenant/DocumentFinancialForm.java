@@ -8,6 +8,7 @@ import fr.dossierfacile.api.front.validator.anotation.tenant.financial.NoDocumen
 import fr.dossierfacile.api.front.validator.anotation.tenant.financial.NumberOfDocumentFinancial;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
+import io.swagger.v3.oas.annotations.Parameter;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -31,6 +32,7 @@ import static fr.dossierfacile.common.enums.DocumentSubCategory.SOCIAL_SERVICE;
 @NumberOfPages(category = DocumentCategory.FINANCIAL, max = 50)
 public class DocumentFinancialForm extends DocumentForm {
 
+    @Parameter(description = "Identifiant du document est nécessaire poour les mises à jour")
     private Long id;
 
     @NotNull
