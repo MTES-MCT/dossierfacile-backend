@@ -21,7 +21,10 @@ public class GuaranteeProviderRulesValidationService implements RulesValidationS
     @Override
     public boolean shouldBeApplied(Document document) {
         return document.getDocumentCategory() == DocumentCategory.IDENTIFICATION
-                && document.getDocumentSubCategory() == DocumentSubCategory.CERTIFICATE_VISA;
+                && document.getDocumentSubCategory() == DocumentSubCategory.CERTIFICATE_VISA
+                && !CollectionUtils.isEmpty(document.getFiles())
+                && document.getFiles().stream().anyMatch((f) -> f.getParsedFileAnalysis() != null
+                && f.getParsedFileAnalysis().getParsedFile() != null);
     }
 
 

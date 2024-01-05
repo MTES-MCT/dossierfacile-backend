@@ -29,7 +29,9 @@ public class IncomeTaxRulesValidationService implements RulesValidationService {
     @Override
     public boolean shouldBeApplied(Document document) {
         return document.getDocumentCategory() == DocumentCategory.TAX
-                && document.getDocumentSubCategory() == DocumentSubCategory.MY_NAME;
+                && document.getDocumentSubCategory() == DocumentSubCategory.MY_NAME
+                && !CollectionUtils.isEmpty(document.getFiles())
+                && document.getFiles().stream().anyMatch((f) -> f.getFileAnalysis() != null);
     }
 
     private TaxIncomeMainFile fromQR(BarCodeFileAnalysis barCodeFileAnalysis) {
