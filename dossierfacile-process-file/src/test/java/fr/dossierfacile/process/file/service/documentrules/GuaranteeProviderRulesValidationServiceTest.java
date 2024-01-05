@@ -64,7 +64,7 @@ class GuaranteeProviderRulesValidationServiceTest {
 
 
     @Test
-    public void document_full_test() throws Exception {
+    void document_full_test() throws Exception {
         Document document = buildGuaranteeProviderFile();
         ((GuaranteeProviderFile) document.getFiles().get(0).getParsedFileAnalysis().getParsedFile())
                 .setValidityDate(LocalDate.now().plusMonths(1).format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
@@ -78,7 +78,7 @@ class GuaranteeProviderRulesValidationServiceTest {
     }
 
     @Test
-    public void document_expired() throws Exception {
+    void document_expired() throws Exception {
         Document document = buildGuaranteeProviderFile();
         ((GuaranteeProviderFile) document.getFiles().get(0).getParsedFileAnalysis().getParsedFile())
                 .setValidityDate(LocalDate.now().minusDays(1).format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
@@ -94,7 +94,7 @@ class GuaranteeProviderRulesValidationServiceTest {
     }
 
     @Test
-    public void document_wrong_firstname() throws Exception {
+    void document_wrong_firstname() throws Exception {
         Document document = buildGuaranteeProviderFile();
         document.getTenant().setFirstName("Michel");
         ((GuaranteeProviderFile) document.getFiles().get(0).getParsedFileAnalysis().getParsedFile())

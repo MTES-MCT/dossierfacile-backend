@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 
 class PersonNameComparatorTest {
     @Test
-    public void compare_name_should_be_ok() {
+    void compare_name_should_be_ok() {
         String givenFirstName = "Jean Phillipe";
         String givenLastName = "DE LA MARCHE";
         String fullName = "DE LA MARCHE PICQUET Edouard Jean Phillipe";
@@ -13,7 +13,7 @@ class PersonNameComparatorTest {
     }
 
     @Test
-    public void compare_name_should_be_ko_particule() {
+    void compare_name_should_be_ko_particule() {
         String givenFirstName = "Jean Phillipe";
         String givenLastName = "DE LA ROSE";
         String fullName = "DE LA MARCHE PICQUET Edouard Jean Phillipe";
@@ -21,7 +21,7 @@ class PersonNameComparatorTest {
     }
 
     @Test
-    public void compare_name_should_be_ko() {
+    void compare_name_should_be_ko() {
         String givenFirstName = "Jean Phillipe";
         String givenLastName = "DE LA MARCHE";
         String fullName = "PICQUET Edouard Jean Phillipe";
@@ -29,7 +29,7 @@ class PersonNameComparatorTest {
     }
 
     @Test
-    public void compare_name_should_be_ok2() {
+    void compare_name_should_be_ok2() {
         String givenFirstName = "Jean Phillipe";
         String givenLastName = "MARCHE";
         String fullName = "ROSE-MARCHE Jean";
@@ -37,7 +37,7 @@ class PersonNameComparatorTest {
     }
 
     @Test
-    public void compare_name_should_be_ok_basc() {
+    void compare_name_should_be_ok_basc() {
         String givenFirstName = "Jean";
         String givenLastName = "MARCHE";
         String fullName = "MARCHE Jean";
@@ -45,7 +45,7 @@ class PersonNameComparatorTest {
     }
 
     @Test
-    public void compare_name_should_be_nok_reverse() {
+    void compare_name_should_be_nok_reverse() {
         String givenFirstName = "Marche";
         String givenLastName = "Jean";
         String fullName = "MARCHE Jean";
