@@ -7,5 +7,8 @@ public interface Person {
 
     String getLastName();
 
+    default String getPreferredName(){
+        return getLastName();
+    }
     List<Document> getDocuments();
 }

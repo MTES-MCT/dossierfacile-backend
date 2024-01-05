@@ -84,6 +84,20 @@ class IncomeTaxRulesValidationServiceTest {
     }
 
     @Test
+    public void document_full_test_with_preferredname() throws Exception {
+        Document document = buildValidTaxDocument();
+        document.getTenant().setPreferredName(document.getTenant().getLastName());
+        document.getTenant().setLastName("AUTRE");
+
+        DocumentAnalysisReport report = DocumentAnalysisReport.builder()
+                .document(document)
+                .brokenRules(new LinkedList<>())
+                .build();
+        incomeTaxRulesValidationService.process(document, report);
+
+        Assertions.assertThat(report.getAnalysisStatus()).isEqualTo(DocumentAnalysisStatus.CHECKED);
+    }
+    @Test
     public void document_full_test_wrong_firstname() throws Exception {
         Document document = buildValidTaxDocument();
         document.getTenant().setFirstName("Joseph");
