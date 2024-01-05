@@ -59,7 +59,7 @@ class IncomeTaxRulesValidationServiceTest {
     }
 
     @Test
-    public void document_full_test() throws Exception {
+    void document_full_test() throws Exception {
         Document document = buildValidTaxDocument();
         DocumentAnalysisReport report = DocumentAnalysisReport.builder()
                 .document(document)
@@ -71,7 +71,7 @@ class IncomeTaxRulesValidationServiceTest {
     }
 
     @Test
-    public void document_ok_with_two_file() throws Exception {
+    void document_ok_with_two_file() throws Exception {
         Document document = buildValidTaxDocument();
         document.getFiles().add(buildValidDfFileWithYear(LocalDate.now().minusMonths(31).getYear()));
         DocumentAnalysisReport report = DocumentAnalysisReport.builder()
@@ -84,7 +84,7 @@ class IncomeTaxRulesValidationServiceTest {
     }
 
     @Test
-    public void document_full_test_with_preferredname() throws Exception {
+    void document_full_test_with_preferredname() throws Exception {
         Document document = buildValidTaxDocument();
         document.getTenant().setPreferredName(document.getTenant().getLastName());
         document.getTenant().setLastName("AUTRE");
@@ -97,8 +97,9 @@ class IncomeTaxRulesValidationServiceTest {
 
         Assertions.assertThat(report.getAnalysisStatus()).isEqualTo(DocumentAnalysisStatus.CHECKED);
     }
+
     @Test
-    public void document_full_test_wrong_firstname() throws Exception {
+    void document_full_test_wrong_firstname() throws Exception {
         Document document = buildValidTaxDocument();
         document.getTenant().setFirstName("Joseph");
         DocumentAnalysisReport report = DocumentAnalysisReport.builder()
