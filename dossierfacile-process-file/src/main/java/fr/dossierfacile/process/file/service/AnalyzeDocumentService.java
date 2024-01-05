@@ -14,6 +14,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -32,12 +33,16 @@ public class AnalyzeDocumentService {
         }
         try {
             List<RulesValidationService> rulesValidationServices = documentRulesValidationServiceFactory.getServices(document);
-            if (!CollectionUtils.isEmpty(rulesValidationServices )) {
+            if (!CollectionUtils.isEmpty(rulesValidationServices)) {
+                Optional.ofNullable(document.getDocumentAnalysisReport()).ifPresent((report) -> {
+                    document.setDocumentAnalysisReport(null);
+                    documentAnalysisReportRepository.delete(report);
+                });
                 DocumentAnalysisReport report = DocumentAnalysisReport.builder()
                         .document(document)
                         .brokenRules(new LinkedList<>())
                         .build();
-                rulesValidationServices.stream().forEach( rulesService -> rulesService.process(document, report) );
+                rulesValidationServices.stream().forEach(rulesService -> rulesService.process(document, report));
                 document.setDocumentAnalysisReport(report);
                 documentAnalysisReportRepository.save(report);
                 documentRepository.save(document);
