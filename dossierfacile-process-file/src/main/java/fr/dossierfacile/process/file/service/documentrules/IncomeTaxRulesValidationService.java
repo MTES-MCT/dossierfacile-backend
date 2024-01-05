@@ -144,18 +144,21 @@ public class IncomeTaxRulesValidationService implements RulesValidationService {
                         .build());
             }
 
-            // Firstname LastName
+            // Firstname LastName PreferredName
             Person documentOwner = Optional.ofNullable((Person) document.getTenant()).orElseGet(() -> document.getGuarantor());
             String firstName = documentOwner.getFirstName();
             String lastName = documentOwner.getLastName();
+            String preferredName = documentOwner.getPreferredName();
             for (File dfFile : document.getFiles()) {
                 BarCodeFileAnalysis analysis = dfFile.getFileAnalysis();
                 if (analysis.getDocumentType() == BarCodeDocumentType.TAX_ASSESSMENT) {
                     TaxIncomeMainFile qrDocument = fromQR(dfFile.getFileAnalysis());
 
-                    if (!(PersonNameComparator.bearlyEqualsTo(qrDocument.getDeclarant1Nom(), lastName, firstName)
+                    if (!((PersonNameComparator.bearlyEqualsTo(qrDocument.getDeclarant1Nom(), lastName, firstName)
+                            || PersonNameComparator.bearlyEqualsTo(qrDocument.getDeclarant1Nom(), preferredName, firstName))
                             || (qrDocument.getDeclarant2Nom() != null &&
-                            PersonNameComparator.bearlyEqualsTo(qrDocument.getDeclarant2Nom(), lastName, firstName))
+                            (PersonNameComparator.bearlyEqualsTo(qrDocument.getDeclarant2Nom(), lastName, firstName)
+                                    || PersonNameComparator.bearlyEqualsTo(qrDocument.getDeclarant2Nom(), preferredName, firstName)))
                     )) {
                         log.error("Le nom/prenom ne correpond pas à l'uilitsation tenantId:" + document.getTenant().getId() + " firstname: " + firstName);
                         brokenRules.add(DocumentBrokenRule.builder()
@@ -202,7 +205,7 @@ public class IncomeTaxRulesValidationService implements RulesValidationService {
             } else {
                 report.setAnalysisStatus(DocumentAnalysisStatus.UNDEFINED);
             }
-        } catch (Exception e){
+        } catch (Exception e) {
             report.setAnalysisStatus(DocumentAnalysisStatus.UNDEFINED);
         }
         return report;
