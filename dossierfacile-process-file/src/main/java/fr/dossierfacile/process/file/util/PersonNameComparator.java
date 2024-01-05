@@ -5,7 +5,6 @@ import org.apache.commons.lang3.StringUtils;
 import java.text.Normalizer;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 public class PersonNameComparator {
     private static String normalizeName(String name) {
@@ -49,7 +48,7 @@ public class PersonNameComparator {
 
         //
         String givenLastName = normalizeName(lastName);
-        List givenLastNames = Arrays.stream(givenLastName.split(" ")).toList();
+        List givenLastNames = Arrays.stream(givenLastName.split(" ")).filter((n) -> !n.matches("(DE)|(LE)|(LA)|(EL)")).toList();
         String givenFirstName = normalizeName(firstName);
         List givenFirstNames = Arrays.stream(givenFirstName.split(" ")).toList();
 
