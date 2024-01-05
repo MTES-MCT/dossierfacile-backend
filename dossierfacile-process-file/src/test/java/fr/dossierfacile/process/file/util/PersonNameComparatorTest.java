@@ -13,6 +13,14 @@ class PersonNameComparatorTest {
     }
 
     @Test
+    public void compare_name_should_be_ko_particule() {
+        String givenFirstName = "Jean Phillipe";
+        String givenLastName = "DE LA ROSE";
+        String fullName = "DE LA MARCHE PICQUET Edouard Jean Phillipe";
+        Assertions.assertEquals(false, PersonNameComparator.bearlyEqualsTo(fullName, givenLastName, givenFirstName));
+    }
+
+    @Test
     public void compare_name_should_be_ko() {
         String givenFirstName = "Jean Phillipe";
         String givenLastName = "DE LA MARCHE";
