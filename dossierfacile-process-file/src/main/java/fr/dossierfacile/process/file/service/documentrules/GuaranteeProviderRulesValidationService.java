@@ -29,7 +29,7 @@ public class GuaranteeProviderRulesValidationService implements RulesValidationS
 
 
     private boolean checkNamesRule(Document document, GuaranteeProviderFile parsedFile) {
-        Tenant tenant = document.getTenant();
+        Tenant tenant = document.getGuarantor().getTenant();
         return parsedFile.getNames().stream().anyMatch(
                 (fullname) -> PersonNameComparator.bearlyEqualsTo(fullname.firstName(), tenant.getFirstName())
                         && PersonNameComparator.bearlyEqualsTo(fullname.lastName(), tenant.getLastName()));
@@ -53,17 +53,17 @@ public class GuaranteeProviderRulesValidationService implements RulesValidationS
 
             GuaranteeProviderFile parsedFile = (GuaranteeProviderFile) document.getFiles().get(0).getParsedFileAnalysis().getParsedFile();
             if (parsedFile.getStatus() == ParsedStatus.INCOMPLETE) {
-                log.error("Document was not correctly parsed :" + document.getTenant().getId());
+                log.error("Document was not correctly parsed :" + document.getGuarantor().getTenant().getId());
                 report.setAnalysisStatus(DocumentAnalysisStatus.UNDEFINED);
             } else if (!checkNamesRule(document, parsedFile)) {
-                log.error("Document names mismatches :" + document.getTenant().getId());
+                log.error("Document names mismatches :" + document.getGuarantor().getTenant().getId());
                 report.getBrokenRules().add(DocumentBrokenRule.builder()
                         .rule(DocumentRule.R_GUARANTEE_NAMES)
                         .message(DocumentRule.R_GUARANTEE_NAMES.getDefaultMessage())
                         .build());
                 report.setAnalysisStatus(DocumentAnalysisStatus.DENIED);
             } else if (!checkValidityRule(parsedFile)) {
-                log.error("Document is expired :" + document.getTenant().getId());
+                log.error("Document is expired :" + document.getGuarantor().getTenant().getId());
                 report.getBrokenRules().add(DocumentBrokenRule.builder()
                         .rule(DocumentRule.R_GUARANTEE_EXIRED)
                         .message(DocumentRule.R_GUARANTEE_EXIRED.getDefaultMessage())
@@ -74,7 +74,7 @@ public class GuaranteeProviderRulesValidationService implements RulesValidationS
             }
 
         } catch (Exception e) {
-            log.error("Error during the rules validation execution pocess");
+            log.error("Error during the rules validation execution pocess",e);
             report.setAnalysisStatus(DocumentAnalysisStatus.UNDEFINED);
         }
         return report;
