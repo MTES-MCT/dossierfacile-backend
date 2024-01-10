@@ -1,5 +1,6 @@
 package fr.dossierfacile.common.service.interfaces;
 
+import fr.dossierfacile.common.entity.EncryptionKey;
 import fr.dossierfacile.common.entity.ObjectStorageProvider;
 import fr.dossierfacile.common.exceptions.RetryableOperationException;
 
@@ -15,9 +16,9 @@ public interface FileStorageProviderService {
 
     void delete(String name);
 
-    InputStream download(String path, Key key) throws IOException;
+    InputStream download(String path, EncryptionKey key) throws IOException;
 
-    void upload(String ovhPath, InputStream inputStream, Key key, String contentType) throws RetryableOperationException, IOException;
+    void upload(String ovhPath, InputStream inputStream, EncryptionKey key, String contentType) throws RetryableOperationException, IOException;
 
     List<String> listObjectNames(@Nullable String marker, int maxObjects);
 

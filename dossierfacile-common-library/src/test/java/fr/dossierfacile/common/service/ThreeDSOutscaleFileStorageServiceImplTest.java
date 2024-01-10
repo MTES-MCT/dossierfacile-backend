@@ -28,7 +28,7 @@ class ThreeDSOutscaleFileStorageServiceImplTest {
         InputStream fileInputStream = ThreeDSOutscaleFileStorageServiceImplTest.class.getClassLoader().getResourceAsStream("hello.txt");
         KeyGenerator keygen = KeyGenerator.getInstance("AES");
         SecretKey key = keygen.generateKey();
-        Key encryptionKey = EncryptionKey.builder()
+        EncryptionKey encryptionKey = EncryptionKey.builder()
                 .algorithm(key.getAlgorithm())
                 .format(key.getFormat())
                 .encodedSecret(key.getEncoded())
