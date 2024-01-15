@@ -38,7 +38,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.Principal;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -49,7 +48,6 @@ import java.util.Optional;
 @Controller
 @RequiredArgsConstructor
 public class BOController {
-
     private static final int BUTTONS_TO_SHOW = 5;
     private static final String EMAIL = "email";
     private static final String PAGER = "pager";
@@ -99,18 +97,6 @@ public class BOController {
         model.addAttribute("clientRegistrations", clients);
 
         return "login";
-    }
-
-    @GetMapping("/callback/manually/{userApiId}")
-    public String callBackManuallyToUserApi(@PathVariable("userApiId") Long userApiId, @RequestParam("since") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime since) {
-        tenantService.sendCallBacksManuallyToUserApi(userApiId, since);
-        return REDIRECT_BO;
-    }
-
-    @GetMapping("/computeStatusOfAllTenants")
-    public String computeStatusOfAllTenants() {
-        tenantService.computeStatusOfAllTenants();
-        return REDIRECT_BO;
     }
 
     @GetMapping("/bo/documentFailedList")
@@ -273,26 +259,6 @@ public class BOController {
         documentService.regenerateFailedPdfDocumentsUsingButtonRequest();
         numberOfDocumentsToProcess.setId(0L);
         redirectAttributes.addFlashAttribute("numberOfDocumentsToProcess", numberOfDocumentsToProcess);
-        return REDIRECT_BO;
-    }
-
-    @PostMapping(value = "/bo/regenerateStatusOfTenants")
-    public String regenerateStatusOfTenants(@RequestParam("email") String email) {
-        tenantService.updateStatusOfSomeTenants(email);
-        return REDIRECT_BO;
-    }
-
-    @GetMapping("/bo/computeTenantsStatus")
-    public String computeTenantStatus(Model model) {
-        EmailDTO emailDTO = new EmailDTO();
-        model.addAttribute("tenantList", emailDTO);
-        model.addAttribute(EMAIL, emailDTO);
-        return "bo/compute-status";
-    }
-
-    @GetMapping("/update/documents/creationDate")
-    public String updateDocumentsWithNullCreationDate() {
-        tenantService.updateDocumentsWithNullCreationDateTime();
         return REDIRECT_BO;
     }
 

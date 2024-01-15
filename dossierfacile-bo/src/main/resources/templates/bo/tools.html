@@ -10,22 +10,25 @@
 <div layout:fragment="content" th:remove="tag">
     <div>
         <div class="container">
-            <form th:method="post" th:action="@{/bo/tools/lamanufacture}">
-                <label for="count" id="count">Nombre de dossier a recupérer:</label>
-                <input type="text" name="count" placeholder="Ex: 100, 200" required="required"/>
-                <button class="btn" type="submit">Exécuter</span>
-                </button>
-            </form>
-            <div th:if="${!files.isEmpty()}">
-                <h4>Fichiers :</h4>
-                <ul>
-                    <li th:each="file : ${files}" class="margin-bottom-10px">
-                        <span th:text="${file.createdDate}"></span>
-                        <span th:text="${file.path}"></span>
-                        <a th:href="@{'/bo/tools/lamanufacture/files/' + ${file.getId()}}"
-                           th:text="${'cliques ici pour le zip ' + file.getName()}"></a>
-                    </li>
-                </ul>
+            <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+                <span th:text="${errorMessage}"></span>
+            </div>
+            <div class="text-center margin-bottom">
+                <span th:text="'Enter the tenants Id : '"></span>
+            </div>
+            <div class="clearfix"></div>
+            <div class="table-responsive">
+                <form class="form" th:action="@{/bo/tools/regenerateStatusOfTenants}" th:method="post">
+                    <div style="text-align: -webkit-center;">
+                        <input type="text" autocomplete="true" name="tenantList" placeholder="Id: 2, 51, 8, ..." style="width: 50%"/>
+                    </div>
+
+                    <div class="text-center medium-space-separator">
+                        <button name="action" type="submit" class="btn btn-default btn-responsive subtitle1">
+                            Regenerate Tenants Status
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
