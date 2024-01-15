@@ -410,63 +410,6 @@ public class TenantService {
         changeTenantStatusToDeclined(tenant, operator, null, ProcessedDocuments.NONE);
     }
 
-    public void sendCallBacksManuallyToUserApi(Long userApiId, LocalDateTime since) {
-        synchronized (this) {
-            UserApi userApi = userApiRepository.findOneById(userApiId).orElseThrow(NotFoundException::new);
-
-            //Finding the IDs of tenants pending to send info for partner with ID 2.
-            List<Long> ids = tenantRepository.listIdTenantsAccountCompletedPendingToSendCallBack(userApiId, since);
-            int numberOfTotalCalls = ids.size();
-            log.info(numberOfTotalCalls + " tenants pending to send the validation information to the partner.");
-            int indexCall = 1;
-            for (Long id : ids) {
-                Tenant tenant = tenantRepository.findOneById(id);
-                WebhookDTO webhookDTO = partnerCallBackService.getWebhookDTO(tenant, userApi, PartnerCallBackType.VERIFIED_ACCOUNT);
-                partnerCallBackService.sendCallBack(tenant, webhookDTO);
-
-                if (indexCall < numberOfTotalCalls) {
-                    try {
-                        indexCall++;
-                        log.info("Waiting 50ms for the next call...");
-                        this.wait(50); //It will wait 3 minutes to send the next callback
-                    } catch (InterruptedException e) {
-                        log.error("InterruptedException sendCallBacksManually ", e);
-                        Thread.currentThread().interrupt();
-                    }
-                }
-            }
-        }
-    }
-
-    @Transactional
-    public void computeStatusOfAllTenants() {
-        int numberOfUpdate = 1;
-        int lengthOfPage = 1000;
-        Pageable page = PageRequest.of(0, lengthOfPage, Sort.Direction.DESC, "id");
-        Page<Tenant> allTenants = tenantRepository.findAllTenants(page);
-
-        while (!allTenants.isEmpty()) {
-            page = page.next();
-
-            updatePage(numberOfUpdate++, allTenants);
-
-            allTenants = tenantRepository.findAllTenants(page);
-        }
-        log.info("Update for [" + allTenants.getTotalElements() + "] tenants finished");
-    }
-
-
-    private void updatePage(int numberOfUpdate, Page<Tenant> allTenants) {
-        List<Tenant> tenantsToChange = new ArrayList<>();
-        allTenants.forEach(tenant -> {
-            tenant.setStatus(tenant.computeStatus());
-            tenantsToChange.add(tenant);
-        });
-
-        tenantRepository.saveAll(tenantsToChange);
-        log.info("Update number [" + numberOfUpdate + "] for " + allTenants.getNumberOfElements() + " tenants finished");
-    }
-
     private int checkValueOfCustomMessage(CustomMessage customMessage) {
 
         List<MessageItem> messageItems = customMessage.getMessageItems();
@@ -729,38 +672,6 @@ public class TenantService {
         });
         documentList.sort(Comparator.comparing(Document::getDocumentCategory));
         return documentList;
-    }
-
-    @Transactional
-    public void updateDocumentsWithNullCreationDateTime() {
-        int numberOfUpdate = 1;
-        int lengthOfPage = 1000;
-        Pageable page = PageRequest.of(0, lengthOfPage, Sort.Direction.DESC, "id");
-        Page<Document> documents = documentRepository.findDocumentsByCreationDateTimeIsNull(page);
-        long totalElements = documents.getTotalElements();
-        log.info("[" + totalElements + "] documents to update with [creation_date=null]");
-        while (!documents.isEmpty()) {
-            page = page.next();
-
-            updatePageOfDocumentsWithNullCreationDateTime(documents);
-            log.info("Update number [" + numberOfUpdate++ + "] for " + documents.getNumberOfElements() + " documents finished");
-
-            documents = documentRepository.findDocumentsByCreationDateTimeIsNull(page);
-        }
-        log.info("[" + totalElements + "] documents updated with [creation_date=null] finished");
-    }
-
-    private void updatePageOfDocumentsWithNullCreationDateTime(Page<Document> documents) {
-        documents.forEach(document -> {
-            if (document.getCreationDateTime() == null) {
-                if (document.getTenant() != null) {
-                    document.setCreationDateTime(document.getTenant().getLastUpdateDate());
-                } else if (document.getGuarantor() != null) {
-                    document.setCreationDateTime(document.getGuarantor().getTenant().getLastUpdateDate());
-                }
-                documentRepository.save(document);
-            }
-        });
     }
 
     public long getCountOfTenantsWithFailedGeneratedPdfDocument() {
