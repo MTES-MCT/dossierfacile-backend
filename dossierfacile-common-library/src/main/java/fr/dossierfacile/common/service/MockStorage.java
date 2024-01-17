@@ -1,8 +1,10 @@
 package fr.dossierfacile.common.service;
 
+import fr.dossierfacile.common.entity.EncryptionKey;
 import fr.dossierfacile.common.entity.ObjectStorageProvider;
 import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.exceptions.RetryableOperationException;
+import fr.dossierfacile.common.exceptions.UnsupportedKeyException;
 import fr.dossierfacile.common.repository.StorageFileRepository;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import lombok.extern.slf4j.Slf4j;
@@ -62,9 +64,12 @@ public class MockStorage implements FileStorageService {
         }
     }
 
-    private InputStream download(String filename, Key key) throws IOException {
+    private InputStream download(String filename, EncryptionKey key) throws IOException {
         InputStream in = Files.newInputStream(Path.of(filePath + filename));
         if (key != null) {
+            if (key.getVersion() != 1){
+                throw new UnsupportedKeyException("Unsupported key version " + key.getVersion());
+            }
             try {
                 byte[] iv = DigestUtils.md5(filename);
                 GCMParameterSpec gcmParamSpec = new GCMParameterSpec(128, iv);

@@ -15,9 +15,6 @@ import java.util.Optional;
 
 public interface DocumentRepository extends JpaRepository<Document, Long> {
 
-    @Query(value = "SELECT d.* FROM document d WHERE d.creation_date is null ORDER BY d.id DESC", nativeQuery = true)
-    Page<Document> findDocumentsByCreationDateTimeIsNull(Pageable pageable);
-
     @Query(value = """
             SELECT d.id
             FROM Document d

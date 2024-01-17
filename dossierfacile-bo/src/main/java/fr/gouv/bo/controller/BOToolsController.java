@@ -1,67 +1,42 @@
 package fr.gouv.bo.controller;
 
-import fr.dossierfacile.common.entity.StorageFile;
-import fr.dossierfacile.common.repository.StorageFileRepository;
-import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.gouv.bo.dto.EmailDTO;
-import fr.gouv.bo.service.ToolsService;
+import fr.gouv.bo.service.TenantService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.InputStream;
-
 
 @Slf4j
 @Controller
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ROLE_ADMIN')")
 public class BOToolsController {
-
-    private final FileStorageService fileStorageService;
-    private final StorageFileRepository storageFileRepository;
-
-    private final ToolsService toolsService;
+    private final TenantService tenantService;
 
     @GetMapping("/bo/tools")
     public String outils(Model model) {
         model.addAttribute("email", new EmailDTO());
-        model.addAttribute("files", toolsService.getFiles());
         return "bo/tools";
     }
 
-    @PostMapping("/bo/tools/lamanufacture")
-    public String lamanufacture(Model model, @RequestParam("count") int count) {
+    /**
+     * Emails list split by ","
+     */
+    @PostMapping(value = "/bo/tools/regenerateStatusOfTenants")
+    public String regenerateStatusOfTenants(@RequestParam("tenantList") String tenantList, Model model) {
         try {
-            toolsService.generateLastTreatedDossiers(count);
+            tenantService.updateStatusOfSomeTenants(tenantList);
         } catch (Exception e) {
-            log.error("not working");
+            log.error("Error regenerating status for tenants", e);
+            model.addAttribute("errorMessage", "Quelque chose c'est mal passé: " + e.getMessage());
         }
-
-        return "redirect:/bo/tools";
-    }
-
-    @GetMapping(value = "/bo/tools/lamanufacture/files/{fileId}")
-    public void getLaManufactureFiles(HttpServletResponse response, @PathVariable("fileId") Long fileId) {
-        // Get zip from storage Id
-        StorageFile file = storageFileRepository.findById(fileId).get();
-
-        try (InputStream in = fileStorageService.download(file)) {
-            response.setContentType(file.getContentType());
-            IOUtils.copy(in, response.getOutputStream());
-        } catch (final IOException e) {
-            log.error("Error", e);
-            response.setStatus(404);
-        }
+        model.addAttribute("email", new EmailDTO());
+        return "bo/tools";
     }
 
 }

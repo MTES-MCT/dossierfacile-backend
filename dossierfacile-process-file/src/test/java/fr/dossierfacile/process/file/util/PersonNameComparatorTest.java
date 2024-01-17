@@ -45,6 +45,14 @@ class PersonNameComparatorTest {
     }
 
     @Test
+    void compare_name_should_be_ok_apostrophe() {
+        String givenFirstName = "Jean";
+        String givenLastName = "M BOL";
+        String fullName = "M'Bol Jean";
+        Assertions.assertEquals(true, PersonNameComparator.bearlyEqualsTo(fullName, givenLastName, givenFirstName));
+    }
+
+    @Test
     void compare_name_should_be_nok_reverse() {
         String givenFirstName = "Marche";
         String givenLastName = "Jean";

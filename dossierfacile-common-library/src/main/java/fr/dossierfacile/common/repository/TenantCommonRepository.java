@@ -98,9 +98,6 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
     )
     List<Long> listIdTenantsAccountCompletedPendingToSendCallBack(@Param("id") Long userApiId, @Param("since") LocalDateTime lastUpdateSince);
 
-    @Query("SELECT t FROM Tenant t ORDER BY t.id DESC")
-    Page<Tenant> findAllTenants(Pageable page);
-
     @Query(value = """
             SELECT COUNT(DISTINCT t.id)
             FROM tenant t
@@ -275,12 +272,4 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
     )
     List<TenantUpdate> findTenantUpdateByCreationDateAndPartner(@Param("creationDateFrom") LocalDateTime from, @Param("partnerId") Long id, @Param("limit") Long limit);
 
-    @Query("""
-            SELECT DISTINCT t
-            FROM Tenant t
-            JOIN Log l ON t.id = l.tenantId
-            WHERE l.logType = 'ACCOUNT_VALIDATED' OR l.logType = 'ACCOUNT_DENIED' 
-            """
-    )
-    List<Tenant> findTenantsToExtract(Pageable pageable);
 }

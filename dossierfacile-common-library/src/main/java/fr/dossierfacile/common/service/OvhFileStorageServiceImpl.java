@@ -4,6 +4,7 @@ import fr.dossierfacile.common.entity.EncryptionKey;
 import fr.dossierfacile.common.entity.ObjectStorageProvider;
 import fr.dossierfacile.common.exceptions.OvhConnectionFailedException;
 import fr.dossierfacile.common.exceptions.RetryableOperationException;
+import fr.dossierfacile.common.exceptions.UnsupportedKeyException;
 import fr.dossierfacile.common.service.interfaces.FileStorageProviderService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -101,7 +102,7 @@ public class OvhFileStorageServiceImpl implements FileStorageProviderService {
     }
 
     @Override
-    public InputStream download(String path, Key key) throws IOException {
+    public InputStream download(String path, EncryptionKey key) throws IOException {
         SwiftObject object;
         try {
             object = getClient().objectStorage().objects().get(ovhContainerName, path);
@@ -116,14 +117,13 @@ public class OvhFileStorageServiceImpl implements FileStorageProviderService {
         if (key != null) {
             try {
                 Cipher aes;
-                if (key instanceof EncryptionKey && ((EncryptionKey) key).getVersion() == 0) {
-                    aes = Cipher.getInstance("AES/ECB/PKCS5Padding");
-                    aes.init(Cipher.DECRYPT_MODE, key);
-                } else {
+                if (key.getVersion() == 1) {
                     byte[] iv = DigestUtils.md5(path); // arbitrary set the filename to build IV
                     GCMParameterSpec gcmParamSpec = new GCMParameterSpec(128, iv);
                     aes = Cipher.getInstance("AES/GCM/NoPadding");
                     aes.init(Cipher.DECRYPT_MODE, key, gcmParamSpec);
+                } else {
+                    throw new UnsupportedKeyException("Unsupported key version " + key.getVersion());
                 }
                 in = new CipherInputStream(in, aes);
             } catch (Exception e) {
@@ -134,8 +134,11 @@ public class OvhFileStorageServiceImpl implements FileStorageProviderService {
     }
 
     @Override
-    public void upload(String ovhPath, InputStream inputStream, Key key, String contentType) throws RetryableOperationException, IOException {
+    public void upload(String ovhPath, InputStream inputStream, EncryptionKey key, String contentType) throws RetryableOperationException, IOException {
         if (key != null) {
+            if (key.getVersion() != 1){
+                throw new UnsupportedKeyException("Unsupported key version " + key.getVersion());
+            }
             try {
                 byte[] iv = DigestUtils.md5(ovhPath);
                 GCMParameterSpec gcmParamSpec = new GCMParameterSpec(128, iv);
