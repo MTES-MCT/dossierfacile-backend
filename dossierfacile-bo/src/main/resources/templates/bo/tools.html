@@ -13,6 +13,9 @@
             <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
                 <span th:text="${errorMessage}"></span>
             </div>
+        </div>
+
+        <div class="container">
             <div class="text-center margin-bottom">
                 <span th:text="'Enter the tenants Id : '"></span>
             </div>
@@ -20,7 +23,8 @@
             <div class="table-responsive">
                 <form class="form" th:action="@{/bo/tools/regenerateStatusOfTenants}" th:method="post">
                     <div style="text-align: -webkit-center;">
-                        <input type="text" autocomplete="true" name="tenantList" placeholder="Id: 2, 51, 8, ..." style="width: 50%"/>
+                        <input type="text" autocomplete="true" name="tenantList" placeholder="Id: 2, 51, 8, ..."
+                               style="width: 50%"/>
                     </div>
 
                     <div class="text-center medium-space-separator">
