@@ -1,7 +1,7 @@
 package fr.dossierfacile.api.front.validator.guarantor.natural_person.residency;
 
 import fr.dossierfacile.api.front.register.form.guarantor.natural_person.DocumentResidencyGuarantorNaturalPersonForm;
-import fr.dossierfacile.api.front.validator.OtherResidencyToggle;
+import fr.dossierfacile.api.front.config.featureflipping.OtherResidencyToggle;
 import fr.dossierfacile.api.front.validator.anotation.guarantor.natural_person.residency.CustomTextResidencyGuarantorNaturalPerson;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import lombok.AllArgsConstructor;

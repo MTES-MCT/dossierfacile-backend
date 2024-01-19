@@ -1,4 +1,4 @@
-package fr.dossierfacile.api.front.validator;
+package fr.dossierfacile.api.front.config.featureflipping;
 
 import fr.dossierfacile.common.utils.DateBasedFeatureToggle;
 import org.springframework.beans.factory.annotation.Value;
