@@ -1,4 +1,4 @@
-package fr.dossierfacile.process.file.service.ocr;
+package fr.dossierfacile.process.file.service.parsers;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

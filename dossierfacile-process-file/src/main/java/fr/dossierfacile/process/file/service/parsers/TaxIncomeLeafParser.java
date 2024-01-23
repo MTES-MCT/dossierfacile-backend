@@ -1,4 +1,4 @@
-package fr.dossierfacile.process.file.service.ocr;
+package fr.dossierfacile.process.file.service.parsers;
 
 
 import com.google.common.annotations.VisibleForTesting;
@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class TaxIncomeLeafParser extends AbstractSinglePageImageOcrParser<TaxIncomeLeaf> implements OcrParser<TaxIncomeLeaf> {
+public class TaxIncomeLeafParser extends AbstractSinglePageImageOcrParser<TaxIncomeLeaf> implements FileParser<TaxIncomeLeaf> {
 
     static final TaxIncomeLeafParser.TaxIncomeLeafZones TEMPLATE_2023 =
             new TaxIncomeLeafParser.TaxIncomeLeafZones(

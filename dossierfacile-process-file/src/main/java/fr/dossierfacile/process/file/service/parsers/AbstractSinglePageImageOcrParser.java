@@ -1,4 +1,4 @@
-package fr.dossierfacile.process.file.service.ocr;
+package fr.dossierfacile.process.file.service.parsers;
 
 import fr.dossierfacile.common.entity.ocr.ParsedFile;
 import fr.dossierfacile.common.utils.FileUtility;
@@ -11,7 +11,7 @@ import java.io.File;
 import java.io.IOException;
 
 @Slf4j
-public abstract class AbstractSinglePageImageOcrParser<T extends ParsedFile> implements OcrParser<T> {
+public abstract class AbstractSinglePageImageOcrParser<T extends ParsedFile> implements FileParser<T> {
 
     private BufferedImage getImage(File file) throws IOException {
         BufferedImage image;

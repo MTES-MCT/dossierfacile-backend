@@ -69,8 +69,8 @@ public class GuaranteeProviderRulesValidationService implements RulesValidationS
             } else if (!checkValidityRule(parsedFile)) {
                 log.error("Document is expired :" + document.getGuarantor().getTenant().getId());
                 report.getBrokenRules().add(DocumentBrokenRule.builder()
-                        .rule(DocumentRule.R_GUARANTEE_EXIRED)
-                        .message(DocumentRule.R_GUARANTEE_EXIRED.getDefaultMessage())
+                        .rule(DocumentRule.R_GUARANTEE_EXPIRED)
+                        .message(DocumentRule.R_GUARANTEE_EXPIRED.getDefaultMessage())
                         .build());
                 report.setAnalysisStatus(DocumentAnalysisStatus.DENIED);
             } else {

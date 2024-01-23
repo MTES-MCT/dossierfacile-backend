@@ -1,14 +1,10 @@
-package fr.dossierfacile.process.file.service.ocr;
+package fr.dossierfacile.process.file.service.parsers;
 
 import fr.dossierfacile.common.entity.ocr.GuaranteeProviderFile;
-import fr.dossierfacile.common.entity.ocr.TaxIncomeMainFile;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class GuaranteeVisaleParserTest {
     private final GuaranteeVisaleParser visaleParser = new GuaranteeVisaleParser();
