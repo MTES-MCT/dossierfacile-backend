@@ -91,7 +91,7 @@ class GuaranteeProviderRulesValidationServiceTest {
 
         Assertions.assertThat(report.getAnalysisStatus()).isEqualTo(DocumentAnalysisStatus.DENIED);
         Assertions.assertThat(report.getBrokenRules()).hasSize(1);
-        Assertions.assertThat(report.getBrokenRules().get(0)).matches(docRule -> docRule.getRule() == DocumentRule.R_GUARANTEE_EXIRED);
+        Assertions.assertThat(report.getBrokenRules().get(0)).matches(docRule -> docRule.getRule() == DocumentRule.R_GUARANTEE_EXPIRED);
     }
 
     @Test

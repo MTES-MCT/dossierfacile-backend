@@ -1,7 +1,6 @@
-package fr.dossierfacile.process.file.service.ocr;
+package fr.dossierfacile.process.file.service.parsers;
 
 
-import com.google.common.annotations.VisibleForTesting;
 import fr.dossierfacile.common.entity.ocr.GuaranteeProviderFile;
 import fr.dossierfacile.common.enums.ParsedStatus;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +22,7 @@ import java.util.regex.Pattern;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class GuaranteeVisaleParser extends AbstractSinglePageImageOcrParser<GuaranteeProviderFile> implements OcrParser<GuaranteeProviderFile> {
+public class GuaranteeVisaleParser extends AbstractSinglePageImageOcrParser<GuaranteeProviderFile> implements FileParser<GuaranteeProviderFile> {
     static final Zones ZONES = new Zones(
             new Rectangle(120, 150, 370, 30),
             new Rectangle(35, 205, 530, 40),
@@ -72,7 +71,7 @@ public class GuaranteeVisaleParser extends AbstractSinglePageImageOcrParser<Guar
             String[] lastNames = zonesId[1].split("Nom[:\\s\\d]+");
             List<GuaranteeProviderFile.FullName> fullNames = new LinkedList<>();
             for ( int i = 1 ; i < firstNames.length &&  i < lastNames.length ; i++){
-                fullNames.add(new GuaranteeProviderFile.FullName(firstNames[i], lastNames[i]));
+                fullNames.add(new GuaranteeProviderFile.FullName(firstNames[i].trim(), lastNames[i].trim()));
             }
             if (fullNames.isEmpty()) {
                 log.error("Firstname/Lastname not found");

@@ -1,4 +1,4 @@
-package fr.dossierfacile.process.file.service.ocr;
+package fr.dossierfacile.process.file.service.parsers;
 
 import fr.dossierfacile.common.entity.ocr.TaxIncomeMainFile;
 import org.junit.jupiter.api.Disabled;
@@ -18,6 +18,5 @@ public class TaxIncomeParserTest {
 
         TaxIncomeMainFile doc = taxIncomeParser.parse(file);
         System.out.print(doc);
-
     }
 }

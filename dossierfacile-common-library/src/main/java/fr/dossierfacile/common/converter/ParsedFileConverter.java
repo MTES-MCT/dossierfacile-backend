@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.dossierfacile.common.entity.ocr.ParsedFile;
 import fr.dossierfacile.common.enums.ParsedFileClassification;
+import fr.dossierfacile.common.utils.MapperUtil;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
@@ -11,7 +12,7 @@ import java.io.IOException;
 
 @Converter
 public class ParsedFileConverter implements AttributeConverter<ParsedFile, String> {
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper objectMapper = MapperUtil.newObjectMapper();
 
     @Override
     public String convertToDatabaseColumn(ParsedFile object) {

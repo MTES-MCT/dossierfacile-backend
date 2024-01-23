@@ -1,4 +1,4 @@
-package fr.dossierfacile.process.file.service.ocr;
+package fr.dossierfacile.process.file.service.parsers;
 
 
 import fr.dossierfacile.common.entity.ocr.TaxIncomeMainFile;
@@ -26,7 +26,7 @@ import java.util.regex.Pattern;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class TaxIncomeParser implements OcrParser<TaxIncomeMainFile> {
+public class TaxIncomeParser implements FileParser<TaxIncomeMainFile> {
     static final TaxIncomeZones TEMPLATE_2023 = new TaxIncomeZones(new Rectangle(120, 10, 400, 65), new Rectangle(17, 176, 200, 180), new Rectangle(250, 170, 300, 100), new Rectangle(226, 595, 325, 55));
     static final TaxIncomeZones TEMPLATE_2020 = new TaxIncomeZones(new Rectangle(140, 40, 325, 65), new Rectangle(40, 155, 200, 180), new Rectangle(270, 130, 300, 100), new Rectangle(255, 570, 315, 55));
     private final Pattern incomeYearPattern = Pattern.compile("revenus de (\\d{4})");

@@ -16,7 +16,7 @@ import java.util.List;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-public class TaxIncomeMainFile implements ParsedFile, Serializable {
+public class TaxIncomeMainFile implements ParsedFile {
     @Builder.Default
     ParsedFileClassification classification = ParsedFileClassification.TAX_INCOME;
     String declarant1NumFiscal;

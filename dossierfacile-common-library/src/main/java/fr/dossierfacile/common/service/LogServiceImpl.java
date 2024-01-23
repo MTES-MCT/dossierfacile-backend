@@ -16,6 +16,7 @@ import fr.dossierfacile.common.model.log.EditedStep;
 import fr.dossierfacile.common.model.log.EditionType;
 import fr.dossierfacile.common.repository.LogRepository;
 import fr.dossierfacile.common.service.interfaces.LogService;
+import fr.dossierfacile.common.utils.MapperUtil;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -30,11 +31,7 @@ public class LogServiceImpl implements LogService {
 
     private final LogRepository repository;
     private final DeletedTenantCommonMapper deletedTenantCommonMapper;
-    private ObjectMapper objectMapper = new ObjectMapper();
-
-    {
-        objectMapper.registerModule(new JavaTimeModule());
-    }
+    private final ObjectMapper objectMapper = MapperUtil.newObjectMapper();
 
     private void saveLog(Log log) {
         repository.save(log);
