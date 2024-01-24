@@ -226,24 +226,25 @@ $(document).ready(function () {
         $('#form-change-document-status' + documentId).submit();
     })
 
-    $('.chat').click(function (e) {
-        var id = $(this).attr('data-id');
-        var nameAdmin = $(this).attr('data-nameAdmin');
-
+    function updateMessageForm() {
+        var id = $('.chat').attr('data-id');
+        var nameAdmin = $('.chat').attr('data-nameAdmin');
         $('#tenant-message' + id).load("/bo/message/tenant/" + id, function () {
-
             $("#messageForm" + id).submit(function (e) {
-
                     var id1 = $(this).attr('data-id');
-
                     sendNewMessage(e, "/bo/message/new/" + id, $(this), nameAdmin, id, function () {
                         location.reload();
                     })
                 }
             );
-
         });
+    }
+    $('.chat').click(function (e) {
+        updateMessageForm();
     });
+    if ($('.chat') !== undefined && $('.chat').attr('aria-expanded') === 'true') {
+        updateMessageForm();
+    }
 
     $(document).keydown(function (event) {
         var flag = true;
