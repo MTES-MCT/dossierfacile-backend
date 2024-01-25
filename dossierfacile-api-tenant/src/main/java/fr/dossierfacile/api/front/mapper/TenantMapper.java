@@ -11,10 +11,13 @@ import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.TenantFileStatus;
+import fr.dossierfacile.common.mapper.MapDocumentSubCategory;
+import fr.dossierfacile.common.mapper.SubCategoryMapper;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -34,12 +37,18 @@ public abstract class TenantMapper {
     @Value("${application.domain}")
     protected String domain;
 
+    protected SubCategoryMapper subCategoryMapper;
+
+    @Autowired
+    public void setSubCategoryMapper(SubCategoryMapper subCategoryMapper) {
+        this.subCategoryMapper = subCategoryMapper;
+    }
+
     @Mapping(target = "passwordEnabled", expression = "java(tenant.getPassword() != null)")
     public abstract TenantModel toTenantModel(Tenant tenant);
 
     @Mapping(target = "name", expression = "java((document.getWatermarkFile() != null )? domain + \"/" + PATH + "/\" + document.getName() : null)")
-    @Mapping(target = "subCategory", source = "documentSubCategory")
-    @Mapping(target = "documentSubCategory", expression = "java(document.getDocumentSubCategory().getOnlyOldCategories())")
+    @MapDocumentSubCategory
     public abstract DocumentModel toDocumentModel(Document document);
 
     @Mapping(target = "name", expression = "java((document.getWatermarkFile() != null )? domain + \"/" + PATH + "/\" + document.getName() : null)")

@@ -7,7 +7,9 @@ class ApplicationFullMapperTest implements DocumentMappingTest, AuthenticityStat
 
     @Override
     public DocumentModel mapDocument(Document document) {
-        return new ApplicationFullMapperImpl().toDocumentModel(document);
+        ApplicationFullMapperImpl mapper = new ApplicationFullMapperImpl();
+        mapper.setSubCategoryMapper(new DummySubCategoryMapper());
+        return mapper.toDocumentModel(document);
     }
 
 }
