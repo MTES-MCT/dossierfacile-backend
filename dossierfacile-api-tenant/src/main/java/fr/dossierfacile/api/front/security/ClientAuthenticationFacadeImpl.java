@@ -10,6 +10,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -30,4 +32,10 @@ public class ClientAuthenticationFacadeImpl implements ClientAuthenticationFacad
     public UserApi getClient() {
         return userApiService.findByName(getKeycloakClientId()).orElseThrow(ClientNotFoundException::new);
     }
+
+    @Override
+    public Optional<Integer> getApiVersion() {
+        return userApiService.findByName(getKeycloakClientId()).map(UserApi::getVersion);
+    }
+
 }

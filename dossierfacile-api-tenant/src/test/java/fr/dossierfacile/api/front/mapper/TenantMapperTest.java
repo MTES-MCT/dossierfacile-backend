@@ -3,6 +3,8 @@ package fr.dossierfacile.api.front.mapper;
 import fr.dossierfacile.api.front.model.tenant.DocumentModel;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
+import fr.dossierfacile.common.mapper.DummySubCategoryMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -10,13 +12,20 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
 
 import static fr.dossierfacile.common.enums.DocumentSubCategory.DRIVERS_LICENSE;
+import static fr.dossierfacile.common.enums.DocumentSubCategory.FRANCE_IDENTITE;
 import static fr.dossierfacile.common.enums.DocumentSubCategory.OTHER;
 import static fr.dossierfacile.common.enums.DocumentSubCategory.OTHER_IDENTIFICATION;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class TenantMapperTest {
 
-    private final TenantMapper mapper = new TenantMapperImpl();
+    private TenantMapper mapper;
+
+    @BeforeEach
+    void setUp() {
+        mapper = new TenantMapperImpl();
+        mapper.setSubCategoryMapper(new DummySubCategoryMapper());
+    }
 
     @ParameterizedTest
     @EnumSource(value = DocumentSubCategory.class,
@@ -44,6 +53,14 @@ class TenantMapperTest {
     @DisplayName("Driver's license is replaced by 'OTHER_IDENTIFICATION' in field 'documentSubCategory'")
     void should_replace_drivers_license_by_other() {
         DocumentModel documentModel = mapDocumentWithSubCategory(DRIVERS_LICENSE);
+
+        assertThat(documentModel.getDocumentSubCategory()).isEqualTo(OTHER_IDENTIFICATION);
+    }
+
+    @Test
+    @DisplayName("'FRANCE_IDENTITE' is replaced by 'OTHER_IDENTIFICATION' in field 'documentSubCategory'")
+    void should_replace_FRANCE_IDENTITE_by_other_in_documentSubCategory() {
+        DocumentModel documentModel = mapDocumentWithSubCategory(FRANCE_IDENTITE);
 
         assertThat(documentModel.getDocumentSubCategory()).isEqualTo(OTHER_IDENTIFICATION);
     }

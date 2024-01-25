@@ -50,7 +50,6 @@ public class ApiPartnerTenantController {
                                                                                   @RequestParam(value = "includeDeleted", defaultValue = "false") boolean includeDeleted,
                                                                                   @RequestParam(value = "includeRevoked", defaultValue = "false") boolean includeRevoked
     ) {
-        System.out.println("after = " + after);
         UserApi userApi = clientAuthenticationFacade.getClient();
         List<TenantUpdate> result;
         LocalDateTime nextTimeToken;

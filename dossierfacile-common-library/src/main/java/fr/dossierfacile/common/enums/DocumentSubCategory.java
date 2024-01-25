@@ -14,6 +14,7 @@ public enum DocumentSubCategory {
     FRENCH_PASSPORT("document_sub_category.FRENCH_PASSPORT"),
     FRENCH_RESIDENCE_PERMIT("document_sub_category.FRENCH_RESIDENCE_PERMIT"),
     DRIVERS_LICENSE("document_sub_category.DRIVERS_LICENSE"),
+    FRANCE_IDENTITE("document_sub_category.FRANCE_IDENTITE"),
     OTHER_IDENTIFICATION("document_sub_category.OTHER_IDENTIFICATION"),
     CERTIFICATE_VISA("document_sub_category.CERTIFICATE_VISA"),
 
@@ -75,9 +76,10 @@ public enum DocumentSubCategory {
     }
 
     public DocumentSubCategory getOnlyOldCategories() {
+        // TODO delete after 29-01-2024
         return switch (this) {
             case INTERMITTENT, STAY_AT_HOME_PARENT, NO_ACTIVITY, ARTIST -> OTHER;
-            case DRIVERS_LICENSE -> OTHER_IDENTIFICATION;
+            case DRIVERS_LICENSE, FRANCE_IDENTITE -> OTHER_IDENTIFICATION;
             case SHORT_TERM_RENTAL -> TENANT;
             case GUEST_ORGANISM -> GUEST;
             default -> this;

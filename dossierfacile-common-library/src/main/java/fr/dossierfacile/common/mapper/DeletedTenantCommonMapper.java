@@ -20,9 +20,9 @@ public interface DeletedTenantCommonMapper {
     @Mapping(target = "hashedFirstname", source = "firstName", qualifiedByName = "firstnameToHashedFirstname")
     @Mapping(target = "hashedPreferredName", source = "preferredName", qualifiedByName = "preferredNameToHashedPreferredName")
     public abstract DeletedTenantModel toDeletedTenantModel(Tenant tenant);
+
     @Mapping(target = "name", expression = "java((document.getWatermarkFile() != null )? document.getWatermarkFile().getName() : null)")
     @Mapping(target = "subCategory", source = "documentSubCategory")
-    @HideNewSubCategories
     public abstract DocumentModel toDocumentModel(Document document);
 
     @Named("emailToHashedEmail")

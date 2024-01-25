@@ -10,6 +10,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
 
 import static fr.dossierfacile.common.enums.DocumentSubCategory.DRIVERS_LICENSE;
+import static fr.dossierfacile.common.enums.DocumentSubCategory.FRANCE_IDENTITE;
 import static fr.dossierfacile.common.enums.DocumentSubCategory.OTHER;
 import static fr.dossierfacile.common.enums.DocumentSubCategory.OTHER_IDENTIFICATION;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,6 +45,14 @@ interface DocumentMappingTest {
     @DisplayName("Driver's license is replaced by 'OTHER_IDENTIFICATION' in field 'documentSubCategory'")
     default void should_replace_drivers_license_by_other() {
         DocumentModel documentModel = mapDocumentWithSubCategory(DRIVERS_LICENSE);
+
+        assertThat(documentModel.getDocumentSubCategory()).isEqualTo(OTHER_IDENTIFICATION);
+    }
+
+    @Test
+    @DisplayName("'FRANCE_IDENTITE' is replaced by 'OTHER_IDENTIFICATION' in field 'documentSubCategory'")
+    default void should_replace_FRANCE_IDENTITE_by_other_in_documentSubCategory() {
+        DocumentModel documentModel = mapDocumentWithSubCategory(FRANCE_IDENTITE);
 
         assertThat(documentModel.getDocumentSubCategory()).isEqualTo(OTHER_IDENTIFICATION);
     }
