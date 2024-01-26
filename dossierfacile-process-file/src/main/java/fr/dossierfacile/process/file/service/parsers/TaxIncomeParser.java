@@ -2,12 +2,14 @@ package fr.dossierfacile.process.file.service.parsers;
 
 
 import fr.dossierfacile.common.entity.ocr.TaxIncomeMainFile;
+import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.utils.FileUtility;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sourceforge.tess4j.ITessAPI;
 import net.sourceforge.tess4j.Tesseract;
 import org.apache.commons.io.FilenameUtils;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 
 import javax.imageio.ImageIO;
@@ -26,6 +28,7 @@ import java.util.regex.Pattern;
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@Order(1)
 public class TaxIncomeParser implements FileParser<TaxIncomeMainFile> {
     static final TaxIncomeZones TEMPLATE_2023 = new TaxIncomeZones(new Rectangle(120, 10, 400, 65), new Rectangle(17, 176, 200, 180), new Rectangle(250, 170, 300, 100), new Rectangle(226, 595, 325, 55));
     static final TaxIncomeZones TEMPLATE_2020 = new TaxIncomeZones(new Rectangle(140, 40, 325, 65), new Rectangle(40, 155, 200, 180), new Rectangle(270, 130, 300, 100), new Rectangle(255, 570, 315, 55));
@@ -37,6 +40,9 @@ public class TaxIncomeParser implements FileParser<TaxIncomeMainFile> {
 
     private final TaxIncomeLeafParser taxIncomeLeafParser;
     private transient volatile Tesseract tesseract;
+
+
+
 
     String fixNumber(String str){
         return str.replaceAll("O", "0").replaceAll("[lI|]", "1").replaceAll("S", "5").replaceAll("\\s", "");
@@ -138,6 +144,11 @@ public class TaxIncomeParser implements FileParser<TaxIncomeMainFile> {
             log.error("Error during parsing", e);
         }
         return result;
+    }
+
+    @Override
+    public boolean shouldTryToApply(fr.dossierfacile.common.entity.File file) {
+        return (file.getDocument().getDocumentCategory() == DocumentCategory.TAX);
     }
 
 

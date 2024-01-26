@@ -1,6 +1,7 @@
 package fr.dossierfacile.process.file.service.parsers;
 
 import fr.dossierfacile.common.entity.ocr.PublicPayslipFile;
+import fr.dossierfacile.common.enums.DocumentCategory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.Loader;
@@ -8,6 +9,7 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentInformation;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.text.PDFTextStripperByArea;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
 import java.awt.*;
@@ -17,12 +19,14 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.util.Locale;
 
+import static fr.dossierfacile.common.enums.DocumentSubCategory.SALARY;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class PublicPayslipParser implements FileParser<PublicPayslipFile> {
 
-    private final static DateTimeFormatter YEAR_MONTH_FORMATTER = new DateTimeFormatterBuilder()
+    private static final DateTimeFormatter YEAR_MONTH_FORMATTER = new DateTimeFormatterBuilder()
             .parseCaseInsensitive().appendPattern("MMMM yyyy").toFormatter(Locale.FRENCH);
 
     @Override
@@ -76,5 +80,12 @@ public class PublicPayslipParser implements FileParser<PublicPayslipFile> {
             log.error("Unable to parse");
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public boolean shouldTryToApply(fr.dossierfacile.common.entity.File file) {
+        return (file.getDocument().getDocumentCategory() == DocumentCategory.FINANCIAL
+                && file.getDocument().getDocumentSubCategory() == SALARY
+                && MediaType.APPLICATION_PDF_VALUE.equalsIgnoreCase(file.getStorageFile().getContentType()));
     }
 }

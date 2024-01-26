@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.regex.Matcher;
 
-public class TaxIncomeLeafParserTest {
+class TaxIncomeLeafParserTest {
     private final TaxIncomeLeafParser taxIncomeLeafParser = new TaxIncomeLeafParser();
 
 

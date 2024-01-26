@@ -12,7 +12,7 @@ import java.io.File;
 @Disabled
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.MOCK)
-public class ApiTesseractTest {
+class ApiTesseractTest {
 
     @Autowired
     private ApiTesseract apiTesseract;

@@ -1,8 +1,11 @@
 package fr.dossierfacile.process.file.util;
 
+import lombok.experimental.UtilityClass;
+
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 
+@UtilityClass
 public class TwoDDocUtil {
     public static LocalDate getLocalDateFrom2DDocHexDate(String hexDateFrom200) {
         long dailyCount = Long.parseLong(hexDateFrom200, 16);

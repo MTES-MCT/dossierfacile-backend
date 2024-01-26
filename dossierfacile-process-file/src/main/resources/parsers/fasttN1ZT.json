@@ -1,0 +1,27 @@
+{
+  "page": {
+    "width": "892"
+  },
+  "classification": {
+    "name": "FASTT_N1_ZT",
+    "background-image-md5": "9180d5834b3af06a0cebea1985a84649"
+  },
+  "zones": [
+    {
+      "name": "visaNumber",
+      "rect": "232,416,256,30"
+    },
+    {
+      "name": "lastName",
+      "rect": "232,478,256,30"
+    },
+    {
+      "name": "firstName",
+      "rect": "232,540,256,30"
+    },
+    {
+      "name": "validityDate",
+      "rect": "41,1086,138,20"
+    }
+  ]
+}
