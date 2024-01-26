@@ -3,7 +3,7 @@ package fr.dossierfacile.api.front.mapper;
 import fr.dossierfacile.api.front.model.tenant.DocumentModel;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
-import fr.dossierfacile.common.mapper.DummySubCategoryMapper;
+import fr.dossierfacile.common.mapper.DummyCategoriesMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,7 +24,7 @@ class TenantMapperTest {
     @BeforeEach
     void setUp() {
         mapper = new TenantMapperImpl();
-        mapper.setSubCategoryMapper(new DummySubCategoryMapper());
+        mapper.setCategoriesMapper(new DummyCategoriesMapper());
     }
 
     @ParameterizedTest

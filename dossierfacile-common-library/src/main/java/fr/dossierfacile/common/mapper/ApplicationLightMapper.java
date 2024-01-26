@@ -13,17 +13,17 @@ import org.springframework.stereotype.Component;
 @Mapper(componentModel = "spring")
 public abstract class ApplicationLightMapper implements ApartmentSharingMapper {
 
-    protected SubCategoryMapper subCategoryMapper;
+    protected CategoriesMapper categoriesMapper;
 
     @Autowired
-    public void setSubCategoryMapper(SubCategoryMapper subCategoryMapper) {
-        this.subCategoryMapper = subCategoryMapper;
+    public void setCategoriesMapper(CategoriesMapper categoriesMapper) {
+        this.categoriesMapper = categoriesMapper;
     }
 
     public abstract ApplicationModel toApplicationModel(ApartmentSharing apartmentSharing);
 
     @Mapping(target = "name",  ignore = true)
-    @MapDocumentSubCategory
+    @MapDocumentCategories
     @Mapping(target = "authenticityStatus", expression = "java(fr.dossierfacile.common.entity.AuthenticityStatus.isAuthentic(document))")
     public abstract DocumentModel documentToDocumentModel(Document document);
 

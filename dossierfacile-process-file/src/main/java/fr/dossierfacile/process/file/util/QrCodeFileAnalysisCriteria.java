@@ -34,7 +34,7 @@ public class QrCodeFileAnalysisCriteria {
                     hasSubCategory(document, CDI, CDI_TRIAL, CDD, PUBLIC, CTT, RETIRED, STUDENT, UNEMPLOYED);
             case FINANCIAL -> hasSubCategory(document, SALARY, SCHOLARSHIP, SOCIAL_SERVICE, PENSION);
             case RESIDENCY -> hasSubCategory(document, GUEST, GUEST_PARENTS);
-            case IDENTIFICATION, IDENTIFICATION_LEGAL_PERSON, NULL -> false;
+            case IDENTIFICATION, IDENTIFICATION_LEGAL_PERSON, GUARANTEE_PROVIDER_CERTIFICATE, NULL -> false;
         };
     }
 
