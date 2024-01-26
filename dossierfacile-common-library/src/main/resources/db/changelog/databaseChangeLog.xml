@@ -137,5 +137,6 @@
     <include file="db/migration/202311290002-add-last-modified-date-column-to-document.xml" />
     <include file="db/migration/202312010000-create-parsed-file-analysis-table.xml" />
     <include file="db/migration/202312120000-deprecate-document-pdf-generation-log.xml" />
+    <include file="db/migration/202401260000-rename-sub-category-for-guarantor-organism.xml" />
 
 </databaseChangeLog>

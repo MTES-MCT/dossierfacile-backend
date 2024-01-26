@@ -13,6 +13,10 @@ import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
+
+import static fr.dossierfacile.common.enums.DocumentSubCategory.OTHER_GUARANTEE;
+import static fr.dossierfacile.common.enums.DocumentSubCategory.VISALE;
 
 @Service
 @RequiredArgsConstructor
@@ -21,7 +25,7 @@ public class GuaranteeProviderRulesValidationService implements RulesValidationS
     @Override
     public boolean shouldBeApplied(Document document) {
         return document.getDocumentCategory() == DocumentCategory.IDENTIFICATION
-                && document.getDocumentSubCategory() == DocumentSubCategory.CERTIFICATE_VISA
+                && List.of(OTHER_GUARANTEE, VISALE).contains(document.getDocumentSubCategory())
                 && !CollectionUtils.isEmpty(document.getFiles())
                 && document.getFiles().stream().anyMatch((f) -> f.getParsedFileAnalysis() != null
                 && f.getParsedFileAnalysis().getParsedFile() != null);

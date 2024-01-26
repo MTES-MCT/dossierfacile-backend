@@ -58,7 +58,7 @@ class GuaranteeProviderRulesValidationServiceTest {
                 .tenant(null)
                 .guarantor(Guarantor.builder().tenant(tenant).build())
                 .documentCategory(DocumentCategory.IDENTIFICATION)
-                .documentSubCategory(DocumentSubCategory.CERTIFICATE_VISA)
+                .documentSubCategory(DocumentSubCategory.OTHER_GUARANTEE)
                 .files(Arrays.asList(dfFile))
                 .build();
     }
