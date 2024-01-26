@@ -25,11 +25,11 @@ public abstract class ApplicationFullMapper implements ApartmentSharingMapper {
     @Value("${application.domain:default}")
     protected String domain;
 
-    protected SubCategoryMapper subCategoryMapper;
+    protected CategoriesMapper categoriesMapper;
 
     @Autowired
-    public void setSubCategoryMapper(SubCategoryMapper subCategoryMapper) {
-        this.subCategoryMapper = subCategoryMapper;
+    public void setCategoriesMapper(CategoriesMapper categoriesMapper) {
+        this.categoriesMapper = categoriesMapper;
     }
 
     public abstract ApplicationModel toApplicationModel(ApartmentSharing apartmentSharing);
@@ -37,7 +37,7 @@ public abstract class ApplicationFullMapper implements ApartmentSharingMapper {
     public abstract ApplicationModel toApplicationModel(ApartmentSharing apartmentSharing, @Context UserApi userApi);
 
     @Mapping(target = "name", expression = "java((document.getWatermarkFile() != null )? domain + \"/\" + PATH + \"/\" + document.getName() : null)")
-    @MapDocumentSubCategory
+    @MapDocumentCategories
     @Mapping(target = "authenticityStatus", expression = "java(fr.dossierfacile.common.entity.AuthenticityStatus.isAuthentic(document))")
     public abstract DocumentModel toDocumentModel(Document document);
 

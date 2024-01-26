@@ -11,8 +11,8 @@ import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.TenantFileStatus;
-import fr.dossierfacile.common.mapper.MapDocumentSubCategory;
-import fr.dossierfacile.common.mapper.SubCategoryMapper;
+import fr.dossierfacile.common.mapper.CategoriesMapper;
+import fr.dossierfacile.common.mapper.MapDocumentCategories;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -37,18 +37,18 @@ public abstract class TenantMapper {
     @Value("${application.domain}")
     protected String domain;
 
-    protected SubCategoryMapper subCategoryMapper;
+    protected CategoriesMapper categoriesMapper;
 
     @Autowired
-    public void setSubCategoryMapper(SubCategoryMapper subCategoryMapper) {
-        this.subCategoryMapper = subCategoryMapper;
+    public void setCategoriesMapper(CategoriesMapper categoriesMapper) {
+        this.categoriesMapper = categoriesMapper;
     }
 
     @Mapping(target = "passwordEnabled", expression = "java(tenant.getPassword() != null)")
     public abstract TenantModel toTenantModel(Tenant tenant);
 
     @Mapping(target = "name", expression = "java((document.getWatermarkFile() != null )? domain + \"/" + PATH + "/\" + document.getName() : null)")
-    @MapDocumentSubCategory
+    @MapDocumentCategories
     public abstract DocumentModel toDocumentModel(Document document);
 
     @Mapping(target = "name", expression = "java((document.getWatermarkFile() != null )? domain + \"/" + PATH + "/\" + document.getName() : null)")

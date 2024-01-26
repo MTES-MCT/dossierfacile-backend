@@ -8,7 +8,7 @@ class ApplicationLightMapperTest implements DocumentMappingTest, AuthenticitySta
     @Override
     public DocumentModel mapDocument(Document document) {
         ApplicationLightMapperImpl mapper = new ApplicationLightMapperImpl();
-        mapper.setSubCategoryMapper(new DummySubCategoryMapper());
+        mapper.setCategoriesMapper(new DummyCategoriesMapper());
         return mapper.documentToDocumentModel(document);
     }
 
