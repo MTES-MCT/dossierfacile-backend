@@ -21,7 +21,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static fr.dossierfacile.common.enums.DocumentSubCategory.CERTIFICATE_VISA;
+import static fr.dossierfacile.common.enums.DocumentSubCategory.OTHER_GUARANTEE;
+import static fr.dossierfacile.common.enums.DocumentSubCategory.VISALE;
 
 @Slf4j
 @Service
@@ -42,7 +43,7 @@ public class OcrParserFileProcessor implements Processor {
             return Arrays.asList(taxIncomeParser, taxIncomeLeafParser);
         }
         if (file.getDocument().getDocumentCategory() == DocumentCategory.IDENTIFICATION
-                && file.getDocument().getDocumentSubCategory() == CERTIFICATE_VISA)
+                && List.of(OTHER_GUARANTEE, VISALE).contains(file.getDocument().getDocumentSubCategory()))
             return Collections.singletonList(guaranteeVisaleParser);
         return null;
     }

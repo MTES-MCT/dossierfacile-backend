@@ -7,20 +7,20 @@ import fr.dossierfacile.api.front.register.form.guarantor.organism.DocumentIdent
 import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.repository.GuarantorRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
-import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.Guarantor;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentStatus;
-import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.TypeGuarantor;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+
+import static fr.dossierfacile.common.enums.DocumentSubCategory.OTHER_GUARANTEE;
 
 @Service
 @RequiredArgsConstructor
@@ -31,7 +31,6 @@ public class DocumentIdentificationGuarantorOrganism
     private final TenantCommonRepository tenantRepository;
     private final DocumentRepository documentRepository;
     private final GuarantorRepository guarantorRepository;
-    private final DocumentService documentService;
     private final TenantStatusService tenantStatusService;
     private final ApartmentSharingService apartmentSharingService;
 
@@ -47,7 +46,7 @@ public class DocumentIdentificationGuarantorOrganism
                         .build());
         document.setDocumentStatus(DocumentStatus.TO_PROCESS);
         document.setDocumentDeniedReasons(null);
-        document.setDocumentSubCategory(DocumentSubCategory.CERTIFICATE_VISA);
+        document.setDocumentSubCategory(OTHER_GUARANTEE);
         documentRepository.save(document);
 
         saveFiles(documentIdentificationGuarantorOrganismForm, document);
