@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
+import static fr.dossierfacile.common.enums.DocumentSubCategory.CERTIFICATE_VISA;
 import static fr.dossierfacile.common.enums.DocumentSubCategory.FRANCE_IDENTITE;
 import static fr.dossierfacile.common.enums.DocumentSubCategory.OTHER_IDENTIFICATION;
 
@@ -29,10 +30,11 @@ public class VersionedSubCategoryMapper implements SubCategoryMapper {
     }
 
     private DocumentSubCategory hideSubCategoriesIntroducedInV3(DocumentSubCategory subCategory) {
-        if (subCategory == FRANCE_IDENTITE) {
-            return OTHER_IDENTIFICATION;
-        }
-        return subCategory;
+        return switch (subCategory) {
+            case FRANCE_IDENTITE -> OTHER_IDENTIFICATION;
+            case VISALE, OTHER_GUARANTEE -> CERTIFICATE_VISA;
+            default -> subCategory;
+        };
     }
 
 }

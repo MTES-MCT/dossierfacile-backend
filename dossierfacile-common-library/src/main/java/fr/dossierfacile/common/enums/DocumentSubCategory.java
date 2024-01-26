@@ -16,7 +16,6 @@ public enum DocumentSubCategory {
     DRIVERS_LICENSE("document_sub_category.DRIVERS_LICENSE"),
     FRANCE_IDENTITE("document_sub_category.FRANCE_IDENTITE"),
     OTHER_IDENTIFICATION("document_sub_category.OTHER_IDENTIFICATION"),
-    CERTIFICATE_VISA("document_sub_category.CERTIFICATE_VISA"),
 
     // Residency
     TENANT("document_sub_category.TENANT"),
@@ -59,9 +58,14 @@ public enum DocumentSubCategory {
     LESS_THAN_YEAR("document_sub_category.LESS_THAN_YEAR"),
     OTHER_TAX("document_sub_category.OTHER_TAX"),
 
+    // Guarantor
+    CERTIFICATE_VISA("document_sub_category.CERTIFICATE_VISA"),
+    VISALE("document_sub_category.VISALE"),
+    OTHER_GUARANTEE("document_sub_category.OTHER_GUARANTEE"),
     LEGAL_PERSON("document_sub_category.LEGAL_PERSON"),
-    UNDEFINED("document_sub_category.UNDEFINED"),
-    OTHER_PROFESSION_GUARANTOR("document_sub_category.OTHER_PROFESSION_GUARANTOR");
+    OTHER_PROFESSION_GUARANTOR("document_sub_category.OTHER_PROFESSION_GUARANTOR"),
+
+    UNDEFINED("document_sub_category.UNDEFINED");
 
     final String label;
 
@@ -82,6 +86,7 @@ public enum DocumentSubCategory {
             case DRIVERS_LICENSE, FRANCE_IDENTITE -> OTHER_IDENTIFICATION;
             case SHORT_TERM_RENTAL -> TENANT;
             case GUEST_ORGANISM -> GUEST;
+            case VISALE, OTHER_GUARANTEE -> CERTIFICATE_VISA;
             default -> this;
         };
     }
