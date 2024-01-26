@@ -1,7 +1,9 @@
 package fr.dossierfacile.process.file.service.parsers;
 
 
+import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.ocr.GuaranteeProviderFile;
+import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.ParsedStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +17,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static fr.dossierfacile.common.enums.DocumentSubCategory.VISALE;
 
 /**
  * A Parsing POC
@@ -70,7 +74,7 @@ public class GuaranteeVisaleParser extends AbstractSinglePageImageOcrParser<Guar
             String[] firstNames = zonesId[0].split("Pr[éeè]nom[:\\s\\d]+");
             String[] lastNames = zonesId[1].split("Nom[:\\s\\d]+");
             List<GuaranteeProviderFile.FullName> fullNames = new LinkedList<>();
-            for ( int i = 1 ; i < firstNames.length &&  i < lastNames.length ; i++){
+            for (int i = 1; i < firstNames.length && i < lastNames.length; i++) {
                 fullNames.add(new GuaranteeProviderFile.FullName(firstNames[i].trim(), lastNames[i].trim()));
             }
             if (fullNames.isEmpty()) {
@@ -93,6 +97,12 @@ public class GuaranteeVisaleParser extends AbstractSinglePageImageOcrParser<Guar
             result.setStatus(ParsedStatus.INCOMPLETE);
         }
         return result;
+    }
+
+    @Override
+    public boolean shouldTryToApply(File file) {
+        return (file.getDocument().getDocumentCategory() == DocumentCategory.IDENTIFICATION
+                && file.getDocument().getDocumentSubCategory() == VISALE);
     }
 
     public record Zones(Rectangle zoneTitle, Rectangle zoneIdentification, Rectangle zoneValidityDate) {

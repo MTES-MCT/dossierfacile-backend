@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 
 @Disabled
-public class TaxIncomeParserTest {
+class TaxIncomeParserTest {
     private final TaxIncomeParser taxIncomeParser = new TaxIncomeParser(new TaxIncomeLeafParser());
 
     @Test

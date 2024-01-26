@@ -1,0 +1,35 @@
+{
+  "page": {
+    "width": "892"
+  },
+  "classification": {
+    "name": "FASTT_N2_ZT",
+    "background-image-md5": "d18ff78c030a3dea810fd1dd97f44a0b"
+  },
+  "zones": [
+    {
+      "name": "visaNumber",
+      "rect": "230,391,256,30"
+    },
+    {
+      "name": "lastName",
+      "rect": "230,438,256,30"
+    },
+    {
+      "name": "firstName",
+      "rect": "230,486,256,30"
+    },
+    {
+      "name": "lastName2",
+      "rect": "230,627,256,30"
+    },
+    {
+      "name": "firstName2",
+      "rect": "230,675,256,30"
+    },
+    {
+      "name": "validityDate",
+      "rect": "153,867,138,20"
+    }
+  ]
+}

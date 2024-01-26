@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 
-public class GuaranteeVisaleParserTest {
+class GuaranteeVisaleParserTest {
     private final GuaranteeVisaleParser visaleParser = new GuaranteeVisaleParser();
 
     @Disabled

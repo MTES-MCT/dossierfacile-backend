@@ -1,7 +1,6 @@
 package fr.dossierfacile.common.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import fr.dossierfacile.common.entity.CallbackLog;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.TenantFileStatus;
@@ -19,12 +18,12 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class CallbackLogServiceImpl implements CallbackLogService {
     private final CallbackLogRepository callbackLogRepository;
-    private final static ObjectMapper objectMapper = MapperUtil.newObjectMapper();
+    private static final ObjectMapper objectMapper = MapperUtil.newObjectMapper();
 
     @SneakyThrows
     @Override
     public void createCallbackLogForPartnerModel(Tenant tenant, Long partnerId, TenantFileStatus tenantFileStatus, ApplicationModel applicationModel) {
         String jsonContent = objectMapper.writeValueAsString(applicationModel);
-        callbackLogRepository.save(new CallbackLog(tenant.getId(),partnerId,tenantFileStatus, jsonContent));
+        callbackLogRepository.save(new CallbackLog(tenant.getId(), partnerId, tenantFileStatus, jsonContent));
     }
 }

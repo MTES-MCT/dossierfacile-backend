@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 
 @Disabled
-public class PublicPayslipFileParserTest {
+class PublicPayslipFileParserTest {
     private final PublicPayslipParser parser = new PublicPayslipParser();
 
     @Test

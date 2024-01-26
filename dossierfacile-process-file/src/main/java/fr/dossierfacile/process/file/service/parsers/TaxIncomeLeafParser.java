@@ -2,11 +2,14 @@ package fr.dossierfacile.process.file.service.parsers;
 
 
 import com.google.common.annotations.VisibleForTesting;
+import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.ocr.TaxIncomeLeaf;
+import fr.dossierfacile.common.enums.DocumentCategory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sourceforge.tess4j.ITessAPI;
 import net.sourceforge.tess4j.Tesseract;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 
 import java.awt.*;
@@ -21,6 +24,7 @@ import java.util.regex.Pattern;
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@Order(2)
 public class TaxIncomeLeafParser extends AbstractSinglePageImageOcrParser<TaxIncomeLeaf> implements FileParser<TaxIncomeLeaf> {
 
     static final TaxIncomeLeafParser.TaxIncomeLeafZones TEMPLATE_2023 =
@@ -94,6 +98,11 @@ public class TaxIncomeLeafParser extends AbstractSinglePageImageOcrParser<TaxInc
             log.error("Error during parsing", e);
         }
         return result;
+    }
+
+    @Override
+    public boolean shouldTryToApply(File file) {
+        return (file.getDocument().getDocumentCategory() == DocumentCategory.TAX);
     }
 
     public record TaxIncomeLeafZones(Rectangle headerLeft, Rectangle headerRight) {
