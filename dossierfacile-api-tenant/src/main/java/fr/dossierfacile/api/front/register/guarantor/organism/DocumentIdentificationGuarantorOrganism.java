@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
+import static fr.dossierfacile.common.enums.DocumentCategory.*;
 import static fr.dossierfacile.common.enums.DocumentSubCategory.OTHER_GUARANTEE;
 
 @Service
@@ -39,9 +40,9 @@ public class DocumentIdentificationGuarantorOrganism
         Guarantor guarantor = guarantorRepository.findByTenantAndTypeGuarantorAndId(tenant, TypeGuarantor.ORGANISM, documentIdentificationGuarantorOrganismForm.getGuarantorId())
                 .orElseThrow(() -> new GuarantorNotFoundException(documentIdentificationGuarantorOrganismForm.getGuarantorId()));
 
-        Document document = documentRepository.findFirstByDocumentCategoryAndGuarantor(DocumentCategory.IDENTIFICATION, guarantor)
+        Document document = documentRepository.findFirstByDocumentCategoryAndGuarantor(GUARANTEE_PROVIDER_CERTIFICATE, guarantor)
                 .orElse(Document.builder()
-                        .documentCategory(DocumentCategory.IDENTIFICATION)
+                        .documentCategory(GUARANTEE_PROVIDER_CERTIFICATE)
                         .guarantor(guarantor)
                         .build());
         document.setDocumentStatus(DocumentStatus.TO_PROCESS);
@@ -51,7 +52,7 @@ public class DocumentIdentificationGuarantorOrganism
 
         saveFiles(documentIdentificationGuarantorOrganismForm, document);
 
-        tenant.lastUpdateDateProfile(LocalDateTime.now(), DocumentCategory.IDENTIFICATION);
+        tenant.lastUpdateDateProfile(LocalDateTime.now(), GUARANTEE_PROVIDER_CERTIFICATE);
         tenantStatusService.updateTenantStatus(tenant);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         tenantRepository.save(tenant);

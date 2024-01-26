@@ -138,5 +138,6 @@
     <include file="db/migration/202312010000-create-parsed-file-analysis-table.xml" />
     <include file="db/migration/202312120000-deprecate-document-pdf-generation-log.xml" />
     <include file="db/migration/202401260000-rename-sub-category-for-guarantor-organism.xml" />
+    <include file="db/migration/202401260001-rename-category-for-guarantor-organism.xml" />
 
 </databaseChangeLog>
