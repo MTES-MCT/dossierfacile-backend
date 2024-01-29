@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sourceforge.tess4j.ITessAPI;
 import net.sourceforge.tess4j.Tesseract;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 
 import java.awt.*;
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static fr.dossierfacile.common.enums.DocumentSubCategory.OTHER_GUARANTEE;
 import static fr.dossierfacile.common.enums.DocumentSubCategory.VISALE;
 
 /**
@@ -26,6 +28,7 @@ import static fr.dossierfacile.common.enums.DocumentSubCategory.VISALE;
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@Order(3)
 public class GuaranteeVisaleParser extends AbstractSinglePageImageOcrParser<GuaranteeProviderFile> implements FileParser<GuaranteeProviderFile> {
     static final Zones ZONES = new Zones(
             new Rectangle(120, 150, 370, 30),
@@ -101,8 +104,9 @@ public class GuaranteeVisaleParser extends AbstractSinglePageImageOcrParser<Guar
 
     @Override
     public boolean shouldTryToApply(File file) {
-        return (file.getDocument().getDocumentCategory() == DocumentCategory.IDENTIFICATION
-                && file.getDocument().getDocumentSubCategory() == VISALE);
+        return (file.getDocument().getDocumentCategory() == DocumentCategory.GUARANTEE_PROVIDER_CERTIFICATE
+                && (file.getDocument().getDocumentSubCategory() == VISALE
+                || file.getDocument().getDocumentSubCategory() == OTHER_GUARANTEE));// TODO currently there is not way to selection VISALE subcategory on UI
     }
 
     public record Zones(Rectangle zoneTitle, Rectangle zoneIdentification, Rectangle zoneValidityDate) {

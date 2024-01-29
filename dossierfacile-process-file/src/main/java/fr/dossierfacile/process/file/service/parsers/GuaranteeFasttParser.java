@@ -68,7 +68,7 @@ public class GuaranteeFasttParser extends AbstractPDFParser<GuaranteeProviderFil
     }
     @Override
     public boolean shouldTryToApply(File file) {
-        return (file.getDocument().getDocumentCategory() == DocumentCategory.IDENTIFICATION
+        return (file.getDocument().getDocumentCategory() == DocumentCategory.GUARANTEE_PROVIDER_CERTIFICATE
                 && file.getDocument().getDocumentSubCategory() == OTHER_GUARANTEE
                 && MediaType.APPLICATION_PDF_VALUE.equalsIgnoreCase(file.getStorageFile().getContentType()));
     }
