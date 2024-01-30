@@ -10,7 +10,6 @@ import fr.dossierfacile.common.entity.Message;
 import fr.dossierfacile.common.entity.OperatorLog;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.User;
-import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.ActionOperatorType;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.DocumentCategory;
@@ -20,8 +19,6 @@ import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.enums.TenantType;
-import fr.dossierfacile.common.exceptions.NotFoundException;
-import fr.dossierfacile.common.model.WebhookDTO;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.gouv.bo.dto.CustomMessage;
@@ -38,11 +35,9 @@ import fr.gouv.bo.repository.BOApartmentSharingRepository;
 import fr.gouv.bo.repository.DocumentDeniedReasonsRepository;
 import fr.gouv.bo.repository.DocumentRepository;
 import fr.gouv.bo.repository.OperatorLogRepository;
-import fr.gouv.bo.repository.UserApiRepository;
 import fr.gouv.bo.security.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -51,7 +46,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -65,6 +59,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.isNumeric;
 
 @Service
 @RequiredArgsConstructor
@@ -83,7 +81,6 @@ public class TenantService {
     private final MessageSource messageSource;
     private final DocumentRepository documentRepository;
     private final DocumentDeniedReasonsRepository documentDeniedReasonsRepository;
-    private final UserApiRepository userApiRepository;
     private final MessageService messageService;
     private final BOApartmentSharingRepository apartmentSharingRepository;
     private final OperatorLogRepository operatorLogRepository;
@@ -108,7 +105,7 @@ public class TenantService {
 
     public List<Tenant> getTenantByIdOrEmail(EmailDTO emailDTO) {
         List<Tenant> tenantList = new ArrayList<>();
-        if (StringUtils.isNumeric(emailDTO.getEmail())) {
+        if (isNumeric(emailDTO.getEmail())) {
             tenantList.add(tenantRepository.findOneById(Long.parseLong(emailDTO.getEmail())));
             return tenantList;
         }
@@ -417,12 +414,11 @@ public class TenantService {
 
         if (!messageItems.isEmpty()) {
             for (MessageItem messageItem : messageItems) {
-                ItemDetail messageItemCheck = messageItem.getItemDetailList().stream().filter(itemDetail ->
-                        !messageItem.getCommentDoc().isEmpty() || itemDetail.isCheck()).findAny().orElse(null);
-                if (messageItemCheck != null) {
+                boolean messageItemCheck = messageItem.getItemDetailList().stream()
+                        .anyMatch(ItemDetail::isCheck);
+                if (messageItemCheck || isNotEmpty(messageItem.getCommentDoc())) {
                     forTenant = 2;
                     allMessageResult = forTenant;
-
                 }
             }
         }
@@ -432,9 +428,9 @@ public class TenantService {
             for (GuarantorItem guarantorItem : guarantorItems) {
                 messageItems = guarantorItem.getMessageItems();
                 for (MessageItem messageItem : messageItems) {
-                    ItemDetail messageItemCheckGuarantor = messageItem.getItemDetailList().stream().filter(itemDetail ->
-                            !messageItem.getCommentDoc().isEmpty() || itemDetail.isCheck()).findAny().orElse(null);
-                    if (messageItemCheckGuarantor != null) {
+                    boolean messageItemCheckGuarantor = messageItem.getItemDetailList().stream()
+                            .anyMatch(ItemDetail::isCheck);
+                    if (messageItemCheckGuarantor || isNotEmpty(messageItem.getCommentDoc())) {
                         allMessageResult = forTenant + 5;
                     }
                 }
@@ -548,7 +544,7 @@ public class TenantService {
             if (tenant.getApartmentSharing().getTenants().stream()
                     .allMatch(t -> t.getStatus() == TenantFileStatus.VALIDATED)) {
                 tenant.getApartmentSharing().getTenants().stream()
-                        .filter(t -> StringUtils.isNotBlank(t.getEmail()))
+                        .filter(t -> isNotBlank(t.getEmail()))
                         .forEach(t -> mailService.sendEmailToTenantAfterValidateAllDocuments(t));
             }
         }
@@ -567,7 +563,7 @@ public class TenantService {
         ));
         if (tenant.getApartmentSharing().getApplicationType() == ApplicationType.COUPLE) {
             tenant.getApartmentSharing().getTenants().stream()
-                    .filter(t -> StringUtils.isNotBlank(t.getEmail()))
+                    .filter(t -> isNotBlank(t.getEmail()))
                     .forEach(t -> mailService.sendEmailToTenantAfterTenantDenied(t, tenant));
         } else {
             mailService.sendMailNotificationAfterDeny(tenant);
