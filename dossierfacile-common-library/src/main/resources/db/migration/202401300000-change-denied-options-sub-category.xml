@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+    <changeSet id="202401300000-01" author="juliette">
+        <sql>
+            <![CDATA[
+                UPDATE document_denied_options
+                SET document_sub_category = 'OTHER_GUARANTEE'
+                WHERE document_sub_category = 'CERTIFICATE_VISA';
+            ]]>
+        </sql>
+    </changeSet>
+</databaseChangeLog>
