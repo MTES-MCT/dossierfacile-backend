@@ -4,7 +4,6 @@ import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.enums.StepRegister;
 import fr.dossierfacile.api.front.register.form.tenant.AccountForm;
-import fr.dossierfacile.api.front.register.form.tenant.ApplicationForm;
 import fr.dossierfacile.api.front.register.form.tenant.ApplicationFormV2;
 import fr.dossierfacile.api.front.register.form.tenant.DocumentFinancialForm;
 import fr.dossierfacile.api.front.register.form.tenant.DocumentIdentificationForm;
@@ -63,20 +62,10 @@ public class RegisterController {
     @PreAuthorize("hasPermissionOnTenant(#namesForm.tenantId)")
     @PostMapping(value = "/names", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TenantModel> names(@Validated(Dossier.class) @RequestBody NamesForm namesForm) {
-        var tenant = authenticationFacade.getTenant(namesForm.getTenantId() );
+        var tenant = authenticationFacade.getTenant(namesForm.getTenantId());
         TenantModel tenantModel = tenantService.saveStepRegister(tenant, namesForm, StepRegister.NAMES);
         logService.saveStepLog(tenantModel.getId(), StepRegister.NAMES.getClazz().getSimpleName());
         Tenant loggedTenant = (namesForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
-        return ok(tenantMapper.toTenantModel(loggedTenant));
-    }
-
-    @Deprecated
-    @PostMapping(value = "/application", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<TenantModel> application(@Validated(Dossier.class) @RequestBody ApplicationForm applicationForm) {
-        Tenant tenant = authenticationFacade.getTenant(applicationForm.getTenantId());
-        TenantModel tenantModel = tenantService.saveStepRegister(tenant, applicationForm, StepRegister.APPLICATION_V1);
-        logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
-        Tenant loggedTenant = (applicationForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
         return ok(tenantMapper.toTenantModel(loggedTenant));
     }
 
