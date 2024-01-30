@@ -1,7 +1,6 @@
 package fr.dossierfacile.api.front.validator.tenant.residency;
 
 import fr.dossierfacile.api.front.register.form.tenant.DocumentResidencyForm;
-import fr.dossierfacile.api.front.config.featureflipping.OtherResidencyToggle;
 import fr.dossierfacile.api.front.validator.anotation.tenant.residency.CustomTextResidency;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import lombok.AllArgsConstructor;
@@ -19,27 +18,12 @@ import static fr.dossierfacile.common.enums.DocumentSubCategory.OTHER_RESIDENCY;
 @AllArgsConstructor
 public class CustomTextResidencyValidator implements ConstraintValidator<CustomTextResidency, DocumentResidencyForm> {
 
-    private final OtherResidencyToggle otherResidencyToggle;
-
     @Override
     public boolean isValid(DocumentResidencyForm documentForm, ConstraintValidatorContext constraintValidatorContext) {
         boolean isCustomTextPresent = StringUtils.isNotBlank(documentForm.getCustomText());
         DocumentSubCategory subCategory = documentForm.getTypeDocumentResidency();
 
-        if (subCategory == OTHER_RESIDENCY && otherResidencyToggle.isNotActive()) {
-            return rejectOtherResidencyCategory(constraintValidatorContext, otherResidencyToggle);
-        }
-
         return validateCustomText(constraintValidatorContext, subCategory, isCustomTextPresent);
-    }
-
-    public static boolean rejectOtherResidencyCategory(ConstraintValidatorContext constraintValidatorContext, OtherResidencyToggle otherResidencyToggle) {
-        constraintValidatorContext.disableDefaultConstraintViolation();
-        constraintValidatorContext
-                .buildConstraintViolationWithTemplate("OTHER_RESIDENCY will not be accepted until " + otherResidencyToggle.getActivationDate())
-                .addConstraintViolation();
-        log.info("Rejecting OTHER_RESIDENCY update because this category is not active yet");
-        return false;
     }
 
     public static boolean validateCustomText(ConstraintValidatorContext constraintValidatorContext, DocumentSubCategory subCategory, boolean isCustomTextPresent) {
