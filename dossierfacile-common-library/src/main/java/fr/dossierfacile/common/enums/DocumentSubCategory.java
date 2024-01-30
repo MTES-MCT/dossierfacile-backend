@@ -79,16 +79,4 @@ public enum DocumentSubCategory {
         return values;
     }
 
-    public DocumentSubCategory getOnlyOldCategories() {
-        // TODO delete after 29-01-2024
-        return switch (this) {
-            case INTERMITTENT, STAY_AT_HOME_PARENT, NO_ACTIVITY, ARTIST -> OTHER;
-            case DRIVERS_LICENSE, FRANCE_IDENTITE -> OTHER_IDENTIFICATION;
-            case SHORT_TERM_RENTAL -> TENANT;
-            case GUEST_ORGANISM -> GUEST;
-            case VISALE, OTHER_GUARANTEE -> CERTIFICATE_VISA;
-            default -> this;
-        };
-    }
-
 }
