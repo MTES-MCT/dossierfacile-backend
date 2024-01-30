@@ -4,7 +4,6 @@ import fr.dossierfacile.api.front.aop.annotation.MethodLogTime;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.enums.StepRegister;
 import fr.dossierfacile.api.front.register.form.partner.AccountPartnerForm;
-import fr.dossierfacile.api.front.register.form.tenant.ApplicationForm;
 import fr.dossierfacile.api.front.register.form.tenant.ApplicationFormV2;
 import fr.dossierfacile.api.front.register.form.tenant.DocumentFinancialForm;
 import fr.dossierfacile.api.front.register.form.tenant.DocumentIdentificationForm;
@@ -58,16 +57,6 @@ public class ApiPartnerRegisterController {
         return ok(tenantModel);
     }
 
-    @ApiOperation("Deprecated since 2022.09.15 - use /application/v2")
-    @PreAuthorize("hasPermissionOnTenant(#applicationForm.tenantId)")
-    @Deprecated
-    @PostMapping(value = "/application", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<TenantModel> application(@Validated(ApiPartner.class) @RequestBody ApplicationForm applicationForm) {
-        var tenant = tenantService.findById(applicationForm.getTenantId());
-        var tenantModel = tenantService.saveStepRegister(tenant, applicationForm, StepRegister.APPLICATION_V1);
-        logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
-        return ok(tenantModel);
-    }
     @ApiOperation("En cas de couple(COUPLE), le nom et le prénom sont requis mais pas l'email.<br/>En cas de colocation(GROUP): nom, prénom et email sont requis")
     @PreAuthorize("hasPermissionOnTenant(#applicationForm.tenantId)")
     @PostMapping(value = "/application/v2", consumes = MediaType.APPLICATION_JSON_VALUE)

@@ -16,7 +16,6 @@ import fr.dossierfacile.api.front.register.guarantor.organism.DocumentIdentifica
 import fr.dossierfacile.api.front.register.tenant.Account;
 import fr.dossierfacile.api.front.register.tenant.AccountApiPartner;
 import fr.dossierfacile.api.front.register.tenant.Application;
-import fr.dossierfacile.api.front.register.tenant.ApplicationV1;
 import fr.dossierfacile.api.front.register.tenant.DocumentFinancial;
 import fr.dossierfacile.api.front.register.tenant.DocumentIdentification;
 import fr.dossierfacile.api.front.register.tenant.DocumentProfessional;
@@ -32,7 +31,6 @@ public enum StepRegister {
     ACCOUNT_PARTNER_API(AccountApiPartner.class),
     ACCOUNT(Account.class),
     NAMES(Names.class),
-    APPLICATION_V1(ApplicationV1.class),
     APPLICATION(Application.class),
     HONOR_DECLARATION(HonorDeclaration.class),
     DOCUMENT_IDENTIFICATION(DocumentIdentification.class),
