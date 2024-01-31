@@ -4,11 +4,9 @@ import fr.dossierfacile.api.front.exception.MailSentLimitException;
 import fr.dossierfacile.api.front.exception.TenantNotFoundException;
 import fr.dossierfacile.common.converter.AcquisitionData;
 import fr.dossierfacile.api.front.model.KeycloakUser;
-import fr.dossierfacile.api.front.model.tenant.EmailExistsModel;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.RegisterFactory;
 import fr.dossierfacile.api.front.register.enums.StepRegister;
-import fr.dossierfacile.api.front.register.form.partner.EmailExistsForm;
 import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
 import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
@@ -86,14 +84,6 @@ public class TenantServiceImpl implements TenantService {
         tenant.setApartmentSharing(new ApartmentSharing(tenant));
         apartmentSharingRepository.save(tenant.getApartmentSharing());
         return tenantRepository.save(tenant);
-    }
-
-    @Override
-    public EmailExistsModel emailExists(EmailExistsForm emailExistsForm) {
-        return EmailExistsModel.builder()
-                .email(emailExistsForm.getEmail())
-                .exists(tenantRepository.existsByEmail(emailExistsForm.getEmail()))
-                .build();
     }
 
     @Override
