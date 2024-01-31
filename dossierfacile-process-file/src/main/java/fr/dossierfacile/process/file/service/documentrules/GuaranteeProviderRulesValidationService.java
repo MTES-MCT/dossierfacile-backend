@@ -24,7 +24,7 @@ import static fr.dossierfacile.common.enums.DocumentSubCategory.VISALE;
 public class GuaranteeProviderRulesValidationService implements RulesValidationService {
     @Override
     public boolean shouldBeApplied(Document document) {
-        return document.getDocumentCategory() == DocumentCategory.IDENTIFICATION
+        return document.getDocumentCategory() == DocumentCategory.GUARANTEE_PROVIDER_CERTIFICATE
                 && List.of(OTHER_GUARANTEE, VISALE).contains(document.getDocumentSubCategory())
                 && !CollectionUtils.isEmpty(document.getFiles())
                 && document.getFiles().stream().anyMatch((f) -> f.getParsedFileAnalysis() != null
