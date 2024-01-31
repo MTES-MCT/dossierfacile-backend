@@ -7,12 +7,16 @@ import fr.dossierfacile.common.enums.ParsedFileAnalysisStatus;
 import fr.dossierfacile.common.repository.ParsedFileAnalysisRepository;
 import fr.dossierfacile.process.file.repository.FileRepository;
 import fr.dossierfacile.process.file.service.StorageFileLoaderService;
-import fr.dossierfacile.process.file.service.parsers.*;
+import fr.dossierfacile.process.file.service.parsers.FileParser;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import javax.annotation.PostConstruct;
+import java.util.Comparator;
 import java.util.List;
 
 @Slf4j
@@ -24,6 +28,14 @@ public class FileParserProcessor implements Processor {
     private final ParsedFileAnalysisRepository parsedFileAnalysisRepository;
 
     private final List<FileParser<? extends ParsedFile>> fileParsers;
+
+    @PostConstruct
+    public void init() {
+        fileParsers.sort(Comparator.comparingInt(parser -> {
+            Order order = AnnotationUtils.findAnnotation(parser.getClass(), Order.class);
+            return order == null ? Integer.MAX_VALUE : order.value();
+        }));
+    }
 
     /**
      * Gets configured parsers list for the specified type of dffile
