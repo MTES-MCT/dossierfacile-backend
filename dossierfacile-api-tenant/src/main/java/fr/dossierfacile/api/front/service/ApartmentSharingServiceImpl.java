@@ -33,6 +33,7 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -104,28 +105,11 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
     }
 
     @Override
-    public ByteArrayOutputStream fullPdf(String token) throws IOException {
+    public ByteArrayOutputStream downloadFullPdf(String token) throws IOException {
         ByteArrayOutputStream outputStreamResult = new ByteArrayOutputStream();
 
         ApartmentSharing apartmentSharing = apartmentSharingRepository.findByToken(token)
                 .orElseThrow(() -> new ApartmentSharingNotFoundException(token));
-
-        // FIXME: temporary fix for partner who does not use POST
-        //region generate PDF before to get it
-        if (apartmentSharing.getDossierPdfDocumentStatus() != FileStatus.COMPLETED
-                && !apartmentSharing.groupingAllTenantUserApisInTheApartment().isEmpty()) {
-            Sentry.captureMessage("GenerateFullPdfOnGet:" + token);
-            // generate the pdf file and wait the treatment
-            createFullPdf(token);
-            try {
-                Thread.sleep(15000);
-            } catch (InterruptedException e) {
-                log.error("Unable to sleep process");
-            }
-            apartmentSharing = apartmentSharingRepository.findByToken(token)
-                    .orElseThrow(() -> new ApartmentSharingNotFoundException(token));
-        }
-        //endregion
 
         if (apartmentSharing.getDossierPdfDocumentStatus() != FileStatus.COMPLETED) {
             throw new FileNotFoundException("Full PDF doesn't exist - FileStatus " + apartmentSharing.getDossierPdfDocumentStatus());

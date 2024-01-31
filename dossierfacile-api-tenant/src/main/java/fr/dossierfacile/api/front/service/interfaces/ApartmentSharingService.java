@@ -18,7 +18,7 @@ public interface ApartmentSharingService {
 
     ApplicationModel light(String token);
 
-    ByteArrayOutputStream fullPdf(String token) throws IOException;
+    ByteArrayOutputStream downloadFullPdf(String token) throws IOException;
 
     void resetDossierPdfGenerated(ApartmentSharing apartmentSharing);
 
