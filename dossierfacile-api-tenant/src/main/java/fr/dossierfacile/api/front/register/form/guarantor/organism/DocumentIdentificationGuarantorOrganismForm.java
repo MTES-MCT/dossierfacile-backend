@@ -13,10 +13,11 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@NumberOfPages(category = DocumentCategory.IDENTIFICATION, max = 10)
+@NumberOfPages(category = DocumentCategory.GUARANTEE_PROVIDER_CERTIFICATE, max = 10)
+@Deprecated
 public class DocumentIdentificationGuarantorOrganismForm extends DocumentGuarantorFormAbstract {
 
     private TypeGuarantor typeGuarantor = TypeGuarantor.ORGANISM;
 
-    private DocumentCategory documentCategory = DocumentCategory.IDENTIFICATION;
+    private DocumentCategory documentCategory = DocumentCategory.GUARANTEE_PROVIDER_CERTIFICATE;
 }

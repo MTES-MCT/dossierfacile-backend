@@ -11,8 +11,19 @@ import fr.dossierfacile.api.front.register.guarantor.natural_person.DocumentProf
 import fr.dossierfacile.api.front.register.guarantor.natural_person.DocumentResidencyGuarantorNaturalPerson;
 import fr.dossierfacile.api.front.register.guarantor.natural_person.DocumentTaxGuarantorNaturalPerson;
 import fr.dossierfacile.api.front.register.guarantor.natural_person.NameGuarantorNaturalPerson;
+import fr.dossierfacile.api.front.register.guarantor.organism.DocumentGuaranteeProviderCertificate;
 import fr.dossierfacile.api.front.register.guarantor.organism.DocumentIdentificationGuarantorOrganism;
-import fr.dossierfacile.api.front.register.tenant.*;
+import fr.dossierfacile.api.front.register.tenant.Account;
+import fr.dossierfacile.api.front.register.tenant.AccountApiPartner;
+import fr.dossierfacile.api.front.register.tenant.Application;
+import fr.dossierfacile.api.front.register.tenant.DocumentFinancial;
+import fr.dossierfacile.api.front.register.tenant.DocumentIdentification;
+import fr.dossierfacile.api.front.register.tenant.DocumentProfessional;
+import fr.dossierfacile.api.front.register.tenant.DocumentResidency;
+import fr.dossierfacile.api.front.register.tenant.DocumentTax;
+import fr.dossierfacile.api.front.register.tenant.GuarantorType;
+import fr.dossierfacile.api.front.register.tenant.HonorDeclaration;
+import fr.dossierfacile.api.front.register.tenant.Names;
 import lombok.Getter;
 
 @Getter
@@ -20,7 +31,6 @@ public enum StepRegister {
     ACCOUNT_PARTNER_API(AccountApiPartner.class),
     ACCOUNT(Account.class),
     NAMES(Names.class),
-    APPLICATION_V1(ApplicationV1.class),
     APPLICATION(Application.class),
     HONOR_DECLARATION(HonorDeclaration.class),
     DOCUMENT_IDENTIFICATION(DocumentIdentification.class),
@@ -36,6 +46,7 @@ public enum StepRegister {
     DOCUMENT_FINANCIAL_GUARANTOR_NATURAL_PERSON(DocumentFinancialGuarantorNaturalPerson.class),
     DOCUMENT_TAX_GUARANTOR_NATURAL_PERSON(DocumentTaxGuarantorNaturalPerson.class),
     DOCUMENT_IDENTIFICATION_GUARANTOR_ORGANISM(DocumentIdentificationGuarantorOrganism.class),
+    DOCUMENT_GUARANTEE_PROVIDER_CERTIFICATE(DocumentGuaranteeProviderCertificate.class),
     DOCUMENT_IDENTIFICATION_GUARANTOR_LEGAL_PERSON(DocumentIdentificationGuarantorLegalPerson.class),
     DOCUMENT_IDENTIFICATION_REPRESENTANT_GUARANTOR_LEGAL_PERSON(DocumentIdentificationRepresentanGuarantorLegalPerson.class),
     GUARANTOR_TYPE(GuarantorType.class),

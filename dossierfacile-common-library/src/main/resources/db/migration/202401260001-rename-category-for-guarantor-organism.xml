@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+    <changeSet id="202401260001-01" author="juliette">
+        <sql>
+            <![CDATA[
+                UPDATE document
+                SET document_category = 'GUARANTEE_PROVIDER_CERTIFICATE'
+                WHERE document_sub_category = 'OTHER_GUARANTEE';
+            ]]>
+        </sql>
+    </changeSet>
+</databaseChangeLog>

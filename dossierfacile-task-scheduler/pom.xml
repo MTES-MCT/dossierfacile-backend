@@ -15,7 +15,7 @@
     <packaging>${packaging.type}</packaging>
 
     <properties>
-        <java.version>19</java.version>
+        <java.version>21</java.version>
         <lombok.version>1.18.30</lombok.version>
     </properties>
 

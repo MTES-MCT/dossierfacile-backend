@@ -1,15 +1,19 @@
 package fr.gouv.bo.service.impl;
 
 import fr.dossierfacile.common.entity.User;
+import fr.dossierfacile.common.entity.UserApi;
 import fr.gouv.bo.service.KeycloakService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.admin.client.resource.UserResource;
+import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.NotFoundException;
+import javax.ws.rs.core.Response;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -48,4 +52,30 @@ public class KeycloakServiceImpl implements KeycloakService {
     public void deleteKeycloakUsers(List<User> tenants) {
         tenants.forEach(t -> deleteKeycloakSingleUser(t));
     }
+
+    @Override
+    public void createKeycloakClient(UserApi userApi) {
+
+        String clientTemplateName = (userApi.getName().startsWith("dfconnect-")) ? "dfconnect-template" :
+                ((userApi.getName().startsWith("hybrid-")) ? "hybrid-template" : null);
+
+        ClientRepresentation clientTemplate = realmResource.clients()
+                .findByClientId(clientTemplateName).get(0);
+
+        clientTemplate.setId(null);
+        clientTemplate.setClientId(userApi.getName());
+        clientTemplate.setDescription("Client DFC pour " + userApi.getName2() + " créé le " + LocalDateTime.now().toString());
+        clientTemplate.setName(userApi.getName2());
+        clientTemplate.setSecret(null);
+        clientTemplate.getProtocolMappers().stream().forEach((pm) -> pm.setId(null));
+        clientTemplate.setAttributes(null);
+        clientTemplate.setEnabled(true);
+
+        Response response = realmResource.clients().create(clientTemplate);
+        log.info(" status =  " + response.getStatus());
+        if (response.getStatus() != Response.Status.CREATED.getStatusCode()) {
+            throw new IllegalStateException("Status de retour création de client " + +response.getStatus());
+        }
+    }
+
 }

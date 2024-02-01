@@ -183,8 +183,8 @@ public class Tenant extends User implements Person, Serializable {
                 if (guarantor.getDocuments() == null || guarantor.getDocuments().isEmpty()) {
                     return false;
                 } else if (guarantor.getTypeGuarantor() == TypeGuarantor.ORGANISM) {
-                    // Must have exactly one Document of type IDENTIFICATION
-                    if (guarantor.getDocuments().size() != 1 || !guarantor.getDocuments().get(0).getDocumentCategory().equals(DocumentCategory.IDENTIFICATION)) {
+                    // Must have exactly one Document of type GUARANTEE_PROVIDER_CERTIFICATE
+                    if (guarantor.getDocuments().size() != 1 || !guarantor.getDocuments().get(0).getDocumentCategory().equals(DocumentCategory.GUARANTEE_PROVIDER_CERTIFICATE)) {
                         return false;
                     }
                 } else if (guarantor.getTypeGuarantor() == TypeGuarantor.NATURAL_PERSON) {

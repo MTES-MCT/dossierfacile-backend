@@ -13,6 +13,10 @@ import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
+
+import static fr.dossierfacile.common.enums.DocumentSubCategory.OTHER_GUARANTEE;
+import static fr.dossierfacile.common.enums.DocumentSubCategory.VISALE;
 
 @Service
 @RequiredArgsConstructor
@@ -20,8 +24,8 @@ import java.time.format.DateTimeFormatter;
 public class GuaranteeProviderRulesValidationService implements RulesValidationService {
     @Override
     public boolean shouldBeApplied(Document document) {
-        return document.getDocumentCategory() == DocumentCategory.IDENTIFICATION
-                && document.getDocumentSubCategory() == DocumentSubCategory.CERTIFICATE_VISA
+        return document.getDocumentCategory() == DocumentCategory.GUARANTEE_PROVIDER_CERTIFICATE
+                && List.of(OTHER_GUARANTEE, VISALE).contains(document.getDocumentSubCategory())
                 && !CollectionUtils.isEmpty(document.getFiles())
                 && document.getFiles().stream().anyMatch((f) -> f.getParsedFileAnalysis() != null
                 && f.getParsedFileAnalysis().getParsedFile() != null);
@@ -29,7 +33,7 @@ public class GuaranteeProviderRulesValidationService implements RulesValidationS
 
 
     private boolean checkNamesRule(Document document, GuaranteeProviderFile parsedFile) {
-        Tenant tenant = document.getTenant();
+        Tenant tenant = document.getGuarantor().getTenant();
         return parsedFile.getNames().stream().anyMatch(
                 (fullname) -> PersonNameComparator.bearlyEqualsTo(fullname.firstName(), tenant.getFirstName())
                         && PersonNameComparator.bearlyEqualsTo(fullname.lastName(), tenant.getLastName()));
@@ -53,20 +57,20 @@ public class GuaranteeProviderRulesValidationService implements RulesValidationS
 
             GuaranteeProviderFile parsedFile = (GuaranteeProviderFile) document.getFiles().get(0).getParsedFileAnalysis().getParsedFile();
             if (parsedFile.getStatus() == ParsedStatus.INCOMPLETE) {
-                log.error("Document was not correctly parsed :" + document.getTenant().getId());
+                log.error("Document was not correctly parsed :" + document.getGuarantor().getTenant().getId());
                 report.setAnalysisStatus(DocumentAnalysisStatus.UNDEFINED);
             } else if (!checkNamesRule(document, parsedFile)) {
-                log.error("Document names mismatches :" + document.getTenant().getId());
+                log.error("Document names mismatches :" + document.getGuarantor().getTenant().getId());
                 report.getBrokenRules().add(DocumentBrokenRule.builder()
                         .rule(DocumentRule.R_GUARANTEE_NAMES)
                         .message(DocumentRule.R_GUARANTEE_NAMES.getDefaultMessage())
                         .build());
                 report.setAnalysisStatus(DocumentAnalysisStatus.DENIED);
             } else if (!checkValidityRule(parsedFile)) {
-                log.error("Document is expired :" + document.getTenant().getId());
+                log.error("Document is expired :" + document.getGuarantor().getTenant().getId());
                 report.getBrokenRules().add(DocumentBrokenRule.builder()
-                        .rule(DocumentRule.R_GUARANTEE_EXIRED)
-                        .message(DocumentRule.R_GUARANTEE_EXIRED.getDefaultMessage())
+                        .rule(DocumentRule.R_GUARANTEE_EXPIRED)
+                        .message(DocumentRule.R_GUARANTEE_EXPIRED.getDefaultMessage())
                         .build());
                 report.setAnalysisStatus(DocumentAnalysisStatus.DENIED);
             } else {
@@ -74,7 +78,7 @@ public class GuaranteeProviderRulesValidationService implements RulesValidationS
             }
 
         } catch (Exception e) {
-            log.error("Error during the rules validation execution pocess");
+            log.error("Error during the rules validation execution pocess",e);
             report.setAnalysisStatus(DocumentAnalysisStatus.UNDEFINED);
         }
         return report;

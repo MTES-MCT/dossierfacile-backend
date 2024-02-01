@@ -19,7 +19,6 @@ import java.util.List;
 public class DocumentModel {
     private Long id;
     private DocumentCategory documentCategory;
-    private DocumentSubCategory documentSubCategory; // TODO delete this field 6 months from now
     private DocumentSubCategory subCategory;
     private Boolean noDocument;
     private String customText;

@@ -27,7 +27,7 @@ import static org.mockito.Mockito.verify;
 class LogServiceImplTest {
 
     private final LogRepository logRepository = mock(LogRepository.class);
-    private final LogService logService = new LogServiceImpl(logRepository, null, new ObjectMapper());
+    private final LogService logService = new LogServiceImpl(logRepository, null);
 
     @Test
     void should_save_edition_log_for_tenant_document() {

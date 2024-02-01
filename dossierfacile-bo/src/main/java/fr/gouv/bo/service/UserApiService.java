@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class UserApiService {
-
+    private final KeycloakService keycloakService;
     private final UserApiRepository userApiRepository;
     private final ObjectMapper mapper;
 
@@ -36,11 +36,12 @@ public class UserApiService {
     }
 
     public List<UserApi> findAll() {
-        return userApiRepository.findAll(Sort.by("disabled","name"));
+        return userApiRepository.findAll(Sort.by("disabled", "name"));
     }
 
     public UserApi create(UserApiDTO userApiDTO) {
         UserApi userApi = mapper.convertValue(userApiDTO, UserApi.class);
+        keycloakService.createKeycloakClient(userApi);
         return userApiRepository.save(userApi);
     }
 

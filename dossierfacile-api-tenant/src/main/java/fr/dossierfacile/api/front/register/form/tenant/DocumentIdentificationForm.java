@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 import javax.validation.constraints.NotNull;
 
 import static fr.dossierfacile.common.enums.DocumentSubCategory.DRIVERS_LICENSE;
+import static fr.dossierfacile.common.enums.DocumentSubCategory.FRANCE_IDENTITE;
 import static fr.dossierfacile.common.enums.DocumentSubCategory.FRENCH_IDENTITY_CARD;
 import static fr.dossierfacile.common.enums.DocumentSubCategory.FRENCH_PASSPORT;
 import static fr.dossierfacile.common.enums.DocumentSubCategory.FRENCH_RESIDENCE_PERMIT;
@@ -28,7 +29,9 @@ import static fr.dossierfacile.common.enums.DocumentSubCategory.OTHER_IDENTIFICA
 public class DocumentIdentificationForm extends DocumentForm {
 
     @NotNull
-    @DocumentSubcategorySubset(anyOf =
-            {FRENCH_IDENTITY_CARD, FRENCH_PASSPORT, FRENCH_RESIDENCE_PERMIT, DRIVERS_LICENSE, OTHER_IDENTIFICATION})
+    @DocumentSubcategorySubset(anyOf = {
+            FRENCH_IDENTITY_CARD, FRENCH_PASSPORT, FRENCH_RESIDENCE_PERMIT, DRIVERS_LICENSE,
+            FRANCE_IDENTITE, OTHER_IDENTIFICATION
+    })
     private DocumentSubCategory typeDocumentIdentification;
 }

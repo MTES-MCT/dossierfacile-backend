@@ -2,9 +2,7 @@ package fr.dossierfacile.api.front.partner.controller;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
-import fr.dossierfacile.api.front.model.tenant.EmailExistsModel;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
-import fr.dossierfacile.api.front.register.form.partner.EmailExistsForm;
 import fr.dossierfacile.api.front.security.interfaces.ClientAuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.service.interfaces.UserApiService;
@@ -57,15 +55,6 @@ public class ApiPartnerUserController {
             return status(HttpStatus.FORBIDDEN).build();
         }
         return ok(tenantMapperForPartner.toTenantModel(tenant.get()));
-    }
-
-    /**
-     * @deprecated use /email/{email}/tenant endpoint
-     */
-    @Deprecated
-    @PostMapping(value = "/emailexists", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<EmailExistsModel> emailExists(@Validated @RequestBody EmailExistsForm emailExistsForm) {
-        return ok(tenantService.emailExists(emailExistsForm));
     }
 
     @PreAuthorize("hasPermissionOnTenant(#tenantId)")

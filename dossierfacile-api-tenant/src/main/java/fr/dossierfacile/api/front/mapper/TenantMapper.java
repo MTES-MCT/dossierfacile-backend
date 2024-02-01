@@ -11,10 +11,13 @@ import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.TenantFileStatus;
+import fr.dossierfacile.common.mapper.CategoriesMapper;
+import fr.dossierfacile.common.mapper.MapDocumentCategories;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -34,15 +37,23 @@ public abstract class TenantMapper {
     @Value("${application.domain}")
     protected String domain;
 
+    protected CategoriesMapper categoriesMapper;
+
+    @Autowired
+    public void setCategoriesMapper(CategoriesMapper categoriesMapper) {
+        this.categoriesMapper = categoriesMapper;
+    }
+
     @Mapping(target = "passwordEnabled", expression = "java(tenant.getPassword() != null)")
     public abstract TenantModel toTenantModel(Tenant tenant);
 
     @Mapping(target = "name", expression = "java((document.getWatermarkFile() != null )? domain + \"/" + PATH + "/\" + document.getName() : null)")
-    @Mapping(target = "subCategory", source = "documentSubCategory")
-    @Mapping(target = "documentSubCategory", expression = "java(document.getDocumentSubCategory().getOnlyOldCategories())")
+    @MapDocumentCategories
     public abstract DocumentModel toDocumentModel(Document document);
 
     @Mapping(target = "name", expression = "java((document.getWatermarkFile() != null )? domain + \"/" + PATH + "/\" + document.getName() : null)")
+    @Mapping(target = "documentCategory", expression = "java(categoriesMapper.mapCategory(document.getDocumentCategory()))")
+    @Mapping(target = "documentSubCategory", expression = "java(categoriesMapper.mapSubCategory(document.getDocumentSubCategory()))")
     public abstract fr.dossierfacile.api.front.model.dfc.apartment_sharing.DocumentModel documentToDocumentModel(Document document);
 
     @Mapping(target = "connectedTenantId", source = "id")

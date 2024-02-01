@@ -38,8 +38,8 @@ class GuaranteeProviderRulesValidationServiceTest {
                                      "firstName": "Jean"
                                 }
                               ],
-                            "signed": true,
-                            "status": "COMPLETE",
+                            "signed": null,
+                            "status": null,
                             "visaNumber": "V11000000000",
                             "deliveryDate": "01/12/2023",
                             "validityDate": "02/03/2024",
@@ -55,9 +55,10 @@ class GuaranteeProviderRulesValidationServiceTest {
                 .parsedFileAnalysis(parsedFileAnalysis)
                 .build();
         return Document.builder()
-                .tenant(tenant)
+                .tenant(null)
+                .guarantor(Guarantor.builder().tenant(tenant).build())
                 .documentCategory(DocumentCategory.IDENTIFICATION)
-                .documentSubCategory(DocumentSubCategory.CERTIFICATE_VISA)
+                .documentSubCategory(DocumentSubCategory.OTHER_GUARANTEE)
                 .files(Arrays.asList(dfFile))
                 .build();
     }
@@ -90,13 +91,13 @@ class GuaranteeProviderRulesValidationServiceTest {
 
         Assertions.assertThat(report.getAnalysisStatus()).isEqualTo(DocumentAnalysisStatus.DENIED);
         Assertions.assertThat(report.getBrokenRules()).hasSize(1);
-        Assertions.assertThat(report.getBrokenRules().get(0)).matches(docRule -> docRule.getRule() == DocumentRule.R_GUARANTEE_EXIRED);
+        Assertions.assertThat(report.getBrokenRules().get(0)).matches(docRule -> docRule.getRule() == DocumentRule.R_GUARANTEE_EXPIRED);
     }
 
     @Test
     void document_wrong_firstname() throws Exception {
         Document document = buildGuaranteeProviderFile();
-        document.getTenant().setFirstName("Michel");
+        document.getGuarantor().getTenant().setFirstName("Michel");
         ((GuaranteeProviderFile) document.getFiles().get(0).getParsedFileAnalysis().getParsedFile())
                 .setValidityDate(LocalDate.now().plusDays(15).format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
         DocumentAnalysisReport report = DocumentAnalysisReport.builder()

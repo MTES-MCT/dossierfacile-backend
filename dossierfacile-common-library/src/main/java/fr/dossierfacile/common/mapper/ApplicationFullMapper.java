@@ -13,6 +13,7 @@ import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -24,13 +25,19 @@ public abstract class ApplicationFullMapper implements ApartmentSharingMapper {
     @Value("${application.domain:default}")
     protected String domain;
 
+    protected CategoriesMapper categoriesMapper;
+
+    @Autowired
+    public void setCategoriesMapper(CategoriesMapper categoriesMapper) {
+        this.categoriesMapper = categoriesMapper;
+    }
+
     public abstract ApplicationModel toApplicationModel(ApartmentSharing apartmentSharing);
 
     public abstract ApplicationModel toApplicationModel(ApartmentSharing apartmentSharing, @Context UserApi userApi);
 
     @Mapping(target = "name", expression = "java((document.getWatermarkFile() != null )? domain + \"/\" + PATH + \"/\" + document.getName() : null)")
-    @Mapping(target = "subCategory", source = "documentSubCategory")
-    @HideNewSubCategories
+    @MapDocumentCategories
     @Mapping(target = "authenticityStatus", expression = "java(fr.dossierfacile.common.entity.AuthenticityStatus.isAuthentic(document))")
     public abstract DocumentModel toDocumentModel(Document document);
 
