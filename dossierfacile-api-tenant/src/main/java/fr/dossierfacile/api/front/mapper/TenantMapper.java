@@ -52,6 +52,8 @@ public abstract class TenantMapper {
     public abstract DocumentModel toDocumentModel(Document document);
 
     @Mapping(target = "name", expression = "java((document.getWatermarkFile() != null )? domain + \"/" + PATH + "/\" + document.getName() : null)")
+    @Mapping(target = "documentCategory", expression = "java(categoriesMapper.mapCategory(document.getDocumentCategory()))")
+    @Mapping(target = "documentSubCategory", expression = "java(categoriesMapper.mapSubCategory(document.getDocumentSubCategory()))")
     public abstract fr.dossierfacile.api.front.model.dfc.apartment_sharing.DocumentModel documentToDocumentModel(Document document);
 
     @Mapping(target = "connectedTenantId", source = "id")
