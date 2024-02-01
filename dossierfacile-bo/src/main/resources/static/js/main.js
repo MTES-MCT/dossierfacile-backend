@@ -226,9 +226,9 @@ $(document).ready(function () {
         $('#form-change-document-status' + documentId).submit();
     })
 
-    function updateMessageForm() {
-        var id = $('.chat').attr('data-id');
-        var nameAdmin = $('.chat').attr('data-nameAdmin');
+    function updateMessageForm(target) {
+        var id = target.attr('data-id');
+        var nameAdmin = target.attr('data-nameAdmin');
         $('#tenant-message' + id).load("/bo/message/tenant/" + id, function () {
             $("#messageForm" + id).submit(function (e) {
                     var id1 = $(this).attr('data-id');
@@ -240,10 +240,10 @@ $(document).ready(function () {
         });
     }
     $('.chat').click(function (e) {
-        updateMessageForm();
+        updateMessageForm($(this));
     });
     if ($('.chat') !== undefined && $('.chat').attr('aria-expanded') === 'true') {
-        updateMessageForm();
+        updateMessageForm($('.chat'));
     }
 
     $(document).keydown(function (event) {
