@@ -10,7 +10,8 @@ public enum ParsedFileClassification {
     TAX_INCOME(TaxIncomeMainFile.class),
     TAX_INCOME_LEAF(TaxIncomeLeaf.class),
     GUARANTEE_PROVIDER(GuaranteeProviderFile.class),
-    PUBLIC_PAYSLIP(PublicPayslipFile.class),;
+    PUBLIC_PAYSLIP(PublicPayslipFile.class),
+    RENTAL_RECEIPT(RentalReceiptFile.class);
 
     Class<? extends ParsedFile> classificationClass;
 }

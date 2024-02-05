@@ -1,0 +1,38 @@
+{
+  "page": {
+    "width": "892"
+  },
+  "classification": {
+    "name": "RENTAL_RECEIPT_STD1"
+  },
+  "zones": [
+    {
+      "name": "tenantNameAndAddress",
+      "rect": "456,213,374,102"
+    },
+    {
+      "name": "rentAddressLabel",
+      "rect": "20,202,107,19"
+    },
+    {
+      "name": "rentAddress",
+      "rect": "17,222,185,53"
+    },
+    {
+      "name": "rentReceiptLabel",
+      "rect": "31,531,262,40"
+    },
+    {
+      "name": "period",
+      "rect": "20,575,146,21"
+    },
+    {
+      "name": "amount",
+      "rect": "681,757,82,26"
+    },
+    {
+      "name": "amountDetailsTable",
+      "rect": "318,577,533,169"
+    }
+  ]
+}
