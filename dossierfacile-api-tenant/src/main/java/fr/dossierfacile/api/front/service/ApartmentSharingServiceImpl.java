@@ -202,10 +202,10 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
     }
 
     @Override
-    public List<ApplicationModel> findApartmentSharingByLastUpdateDateAndPartner(LocalDateTime lastUpdateDate, UserApi userApi, long limit, MappingFormat format) {
+    public List<ApplicationModel> findApartmentSharingByLastUpdateDateAndPartner(LocalDateTime lastUpdateDate, UserApi userApi, int limit, MappingFormat format) {
         ApartmentSharingMapper mapper = (format == MappingFormat.EXTENDED) ? applicationFullMapper : applicationBasicMapper;
 
-        return apartmentSharingRepository.findByLastUpdateDateAndPartner(lastUpdateDate, userApi, PageRequest.of(0, (int) limit)).stream().map(a ->
+        return apartmentSharingRepository.findByLastUpdateDateAndPartner(lastUpdateDate, userApi, PageRequest.of(0, limit)).stream().map(a ->
                 mapper.toApplicationModel(a, userApi)).collect(Collectors.toList());
     }
 
