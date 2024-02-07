@@ -4,12 +4,10 @@ import fr.dossierfacile.common.config.AbstractConnectionContextFilter;
 import fr.gouv.bo.security.UserPrincipal;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
-@Component
 public class BOConnectionContextFilter extends AbstractConnectionContextFilter {
 
     private static final String EMAIL = "email";
