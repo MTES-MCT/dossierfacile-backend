@@ -7,9 +7,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.Objects;
-import java.util.Optional;
-
 @Slf4j
 @Service
 @AllArgsConstructor
@@ -19,8 +16,7 @@ public class AnalyzeFile {
     private final FileRepository fileRepository;
 
     public void processFile(Long fileId) {
-        Optional.ofNullable(fileRepository.findById(fileId).orElse(null))
-                .filter(Objects::nonNull)
+        fileRepository.findById(fileId)
                 .map(barCodeFileProcessor::process)
                 .map(fileParserProcessor::process);
     }
