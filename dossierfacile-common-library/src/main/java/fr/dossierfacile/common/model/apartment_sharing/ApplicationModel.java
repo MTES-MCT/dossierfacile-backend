@@ -25,6 +25,7 @@ public class ApplicationModel extends WebhookDTO {
     private ApplicationType applicationType;
     private PartnerCallBackType partnerCallBackType;
     private Long onTenantId;
+    private String dossierUrl;
     private String dossierPdfUrl;
     private FileStatus dossierPdfDocumentStatus;
     private TenantFileStatus status;
