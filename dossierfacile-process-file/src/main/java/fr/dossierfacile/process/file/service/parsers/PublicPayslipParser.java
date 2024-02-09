@@ -1,7 +1,8 @@
 package fr.dossierfacile.process.file.service.parsers;
 
-import fr.dossierfacile.common.entity.ocr.PublicPayslipFile;
+import fr.dossierfacile.common.entity.ocr.PayslipFile;
 import fr.dossierfacile.common.enums.DocumentCategory;
+import fr.dossierfacile.common.enums.ParsedFileClassification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.Loader;
@@ -9,6 +10,7 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentInformation;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.text.PDFTextStripperByArea;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
@@ -24,14 +26,15 @@ import static fr.dossierfacile.common.enums.DocumentSubCategory.SALARY;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class PublicPayslipParser implements FileParser<PublicPayslipFile> {
+@Order(1)
+public class PublicPayslipParser implements FileParser<PayslipFile> {
 
     private static final DateTimeFormatter YEAR_MONTH_FORMATTER = new DateTimeFormatterBuilder()
             .parseCaseInsensitive().appendPattern("MMMM yyyy").toFormatter(Locale.FRENCH);
 
     @Override
-    public PublicPayslipFile parse(File file) {
-        PublicPayslipFile result = PublicPayslipFile.builder().build();
+    public PayslipFile parse(File file) {
+        PayslipFile result = PayslipFile.builder().classification(ParsedFileClassification.PUBLIC_PAYSLIP).build();
         // file is a pdf
         try (PDDocument document = Loader.loadPDF(file)) {
             PDDocumentInformation info = document.getDocumentInformation();

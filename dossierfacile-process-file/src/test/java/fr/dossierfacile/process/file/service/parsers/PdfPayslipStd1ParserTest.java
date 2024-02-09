@@ -7,15 +7,16 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 
 @Disabled
-class PublicPayslipFileParserTest {
-    private final PublicPayslipParser parser = new PublicPayslipParser();
+class PdfPayslipStd1ParserTest {
+
+
+    private final PdfPayslipStd1Parser parser = new PdfPayslipStd1Parser();
 
     @Test
     void parse() {
-        File file = new File(this.getClass().getResource("/documents/fake_payslip.pdf").getFile());
+        File file = new File(this.getClass().getResource("/documents/fake_payslipStd1.pdf").getFile());
 
         PayslipFile doc = parser.parse(file);
-
-        System.out.println(doc);
+        System.out.print(doc);
     }
 }

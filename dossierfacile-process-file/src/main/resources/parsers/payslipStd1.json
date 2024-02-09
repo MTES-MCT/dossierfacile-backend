@@ -1,0 +1,50 @@
+{
+  "page": {
+    "width": "853",
+    "maxPageCount": 3
+  },
+  "classification": {
+    "name": "PAYSLIP_STD1"
+  },
+  "matchingZones": [
+    {
+      "name": "payslipFormat",
+      "rect": "49,330,299,23",
+      "matches": "Eléments de paie"
+    },
+    {
+      "name": "payslipNameLabel",
+      "rect": "467,12,254,26",
+      "matches": "BULLETIN DE SALAIRE"
+    },
+    {
+      "name": "payslipHourFormat",
+      "rect": "64,1083,65,13",
+      "matches": "Heures"
+    }
+  ],
+  "zones": [
+    {
+      "name": "address",
+      "rect": "427,158,343,113",
+      "format": "address"
+    },
+    {
+      "name": "period",
+      "rect": "463,38,210,24",
+      "format": "MonthYear"
+    },
+    {
+      "name": "netIncome",
+      "rect": "400,1099,86,16"
+    },
+    {
+      "name": "detailsMap",
+      "rect": "11,113,368,199"
+    },
+    {
+      "name": "netCumulativeIncome",
+      "rect": "401,1118,84,15"
+    }
+  ]
+}

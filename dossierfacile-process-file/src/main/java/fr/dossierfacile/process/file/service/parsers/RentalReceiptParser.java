@@ -36,7 +36,7 @@ public class RentalReceiptParser extends AbstractPDFParser<RentalReceiptFile> im
     private static final Pattern periodPattern = Pattern.compile("du (\\d{2}/\\d{2}/\\d{4}) au (\\d{2}/\\d{2}/\\d{4}).*");
 
     @Override
-    protected RentalReceiptFile getResultFromExtraction(PDFTextStripperByArea stripper) {
+    protected RentalReceiptFile getResultFromExtraction(PDFTextStripperByArea stripper, int pageNumber, RentalReceiptFile previousResult){
         if (!"Adresse du bien loué".equals(stripper.getTextForRegion("rentAddressLabel").trim())) {
             // format is not the same
             return null;
