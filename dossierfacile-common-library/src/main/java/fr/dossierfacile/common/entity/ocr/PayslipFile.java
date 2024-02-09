@@ -12,13 +12,13 @@ import java.time.YearMonth;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-public class PublicPayslipFile implements ParsedFile {
+public class PayslipFile implements ParsedFile {
     @Builder.Default
-    ParsedFileClassification classification = ParsedFileClassification.PUBLIC_PAYSLIP;
+    ParsedFileClassification classification = ParsedFileClassification.PAYSLIP;
     ParsedStatus status;
     String fullname;
     @JsonFormat(pattern = "yyyy-MM")
     YearMonth month;
-    double netTaxableIncome;
-    double cumulativeNetTaxableIncome;
+    Double netTaxableIncome;
+    Double cumulativeNetTaxableIncome;
 }

@@ -40,7 +40,7 @@ public class GuaranteeFasttV2Parser extends AbstractPDFParser<GuaranteeProviderF
     }
 
     @Override
-    protected GuaranteeProviderFile getResultFromExtraction(PDFTextStripperByArea stripper) {
+    protected GuaranteeProviderFile getResultFromExtraction(PDFTextStripperByArea stripper, int pageNumber, GuaranteeProviderFile previousResult) {
 
         return GuaranteeProviderFile.builder()
                 .names(List.of(new FullName(
@@ -58,7 +58,10 @@ public class GuaranteeFasttV2Parser extends AbstractPDFParser<GuaranteeProviderF
 
     // Currenlty FASTT PDF can be identified thanks to their background image
     @Override
-    protected boolean modelMatches(PDPage page, PageExtractorModel model) throws IOException {
+    protected boolean modelMatches(PageExtractorModel model, PDPage page, int pageNumber) throws IOException {
+        if (!super.modelMatches(model, page, pageNumber)) {
+            return false;
+        }
         PDResources resources = page.getResources();
         for (COSName xObjectName : resources.getXObjectNames()) {
             PDXObject xObject = resources.getXObject(xObjectName);
