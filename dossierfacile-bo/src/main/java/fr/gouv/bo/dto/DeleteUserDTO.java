@@ -1,10 +1,9 @@
 package fr.gouv.bo.dto;
 
 import fr.gouv.bo.validator.annotation.ExistEmail;
+import jakarta.validation.constraints.Email;
 import lombok.Getter;
 import lombok.Setter;
-
-import javax.validation.constraints.Email;
 
 @Getter
 @Setter

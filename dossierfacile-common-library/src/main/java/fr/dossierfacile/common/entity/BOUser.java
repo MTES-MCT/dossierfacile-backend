@@ -2,15 +2,14 @@ package fr.dossierfacile.common.entity;
 
 import fr.dossierfacile.common.enums.AuthProvider;
 import fr.dossierfacile.common.enums.UserType;
-import lombok.AllArgsConstructor;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Entity;
-import javax.persistence.Table;
 import java.io.Serializable;
 
 @Entity

@@ -6,10 +6,9 @@ import fr.dossierfacile.api.front.validator.anotation.guarantor.natural_person.E
 import fr.dossierfacile.api.front.validator.group.DocumentIdentificationGuarantor;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.TypeGuarantor;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-
-import javax.validation.constraints.NotNull;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
