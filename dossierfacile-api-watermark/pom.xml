@@ -24,6 +24,7 @@
         <lombok.version>1.18.30</lombok.version>
         <dossierfacile.common.version>0.0.1-SNAPSHOT</dossierfacile.common.version>
         <springdoc.version>1.7.0</springdoc.version>
+        <spring-security.version>5.8.9</spring-security.version>
     </properties>
     <dependencies>
         <dependency>
