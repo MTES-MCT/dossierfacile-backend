@@ -46,7 +46,6 @@
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <lombok.version>1.18.30</lombok.version>
         <pdfbox.tools.version>3.0.0</pdfbox.tools.version>
-        <junit-jupiter.version>5.9.2</junit-jupiter.version>
         <gson.version>2.10.1</gson.version>
         <sentry.version>6.25.0</sentry.version>
         <commons-io.version>2.13.0</commons-io.version>
