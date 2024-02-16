@@ -1,8 +1,7 @@
 package fr.dossierfacile.common.entity;
 
-import com.vladmihalcea.hibernate.type.array.ListArrayType;
-import com.vladmihalcea.hibernate.type.array.internal.ListArrayTypeDescriptor;
 import fr.dossierfacile.common.entity.shared.AbstractAuditable;
+import io.hypersistence.utils.hibernate.type.array.ListArrayType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -15,26 +14,17 @@ import jakarta.persistence.InheritanceType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
-import org.hibernate.annotations.TypeDefs;
 
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
-@TypeDefs({
-        @TypeDef(
-                name = "list-type",
-                typeClass = ListArrayType.class
-        )
-})
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 @AllArgsConstructor
@@ -61,7 +51,7 @@ public class StorageFile extends AbstractAuditable<String, Long> {
     @Enumerated(EnumType.STRING)
     protected ObjectStorageProvider provider;
 
-    @Type(type = "list-type")
+    @Type(ListArrayType.class)
     @Column(
             name = "providers",
             columnDefinition = "character varying[]"

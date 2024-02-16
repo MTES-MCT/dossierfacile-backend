@@ -6,6 +6,8 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -19,7 +21,6 @@ import org.apache.commons.lang3.RandomStringUtils;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 
 @Entity
@@ -41,6 +42,8 @@ public class Owner extends User implements Serializable {
     @Builder.Default
     private String slug = RandomStringUtils.randomAlphanumeric(30);
 
+    @Enumerated(EnumType.ORDINAL)
+    @Column(columnDefinition = "int4")
     private StepRegisterOwner stepRegisterOwner;
 
     @Builder.Default
@@ -53,12 +56,4 @@ public class Owner extends User implements Serializable {
         return builder;
     }
 
-    public Property lastProperty() {
-        properties.sort(Comparator.comparing(Property::getCreationDateTime).reversed());
-        if (!properties.isEmpty()) {
-            return properties.get(0);
-        } else {
-            return null;
-        }
-    }
 }

@@ -1,7 +1,5 @@
 package fr.dossierfacile.common.entity;
 
-
-import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import fr.dossierfacile.common.enums.LogType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -16,8 +14,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -29,7 +27,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@TypeDef(name = "jsonb", typeClass = JsonBinaryType.class)
 public class Log implements Serializable {
 
     private static final long serialVersionUID = 605418597255420002L;
@@ -54,11 +51,11 @@ public class Log implements Serializable {
     @Column(columnDefinition = "bigint[]")
     private long[] userApis;
 
-    @Type(type = "jsonb")
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private Object jsonProfile;
 
-    @Type(type = "jsonb")
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private Object logDetails;
 

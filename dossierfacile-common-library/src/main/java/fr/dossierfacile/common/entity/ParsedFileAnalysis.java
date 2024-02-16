@@ -1,6 +1,5 @@
 package fr.dossierfacile.common.entity;
 
-import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import fr.dossierfacile.common.converter.ParsedFileConverter;
 import fr.dossierfacile.common.entity.ocr.ParsedFile;
 import fr.dossierfacile.common.enums.ParsedFileAnalysisStatus;
@@ -22,15 +21,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnTransformer;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
-
 
 @Data
 @Builder
 @Entity
 @Table(name = "parsed_file_analysis")
-@TypeDef(name = "jsonb", typeClass = JsonBinaryType.class)
 @AllArgsConstructor
 @NoArgsConstructor
 public class ParsedFileAnalysis {

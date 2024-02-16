@@ -195,9 +195,9 @@
         <!--END - Dependencies to avoid error when rendering some kind of format of pictures in pdf, when converting the page to image-->
 
         <dependency>
-            <groupId>com.vladmihalcea</groupId>
-            <artifactId>hibernate-types-52</artifactId>
-            <version>2.21.1</version>
+            <groupId>io.hypersistence</groupId>
+            <artifactId>hypersistence-utils-hibernate-63</artifactId>
+            <version>3.7.0</version> <!-- https://github.com/vladmihalcea/hypersistence-utils/issues/697 -->
         </dependency>
 
         <dependency>
