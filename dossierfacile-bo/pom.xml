@@ -27,7 +27,7 @@
         <org.mapstruct.version>1.4.2.Final</org.mapstruct.version>
         <lombok.version>1.18.30</lombok.version>
         <dossierfacile.common.version>0.0.1-SNAPSHOT</dossierfacile.common.version>
-        <thymeleaf.version>3.0.15.RELEASE</thymeleaf.version>
+        <thymeleaf.version>3.1.2.RELEASE</thymeleaf.version>
         <commonmark.version>0.21.0</commonmark.version>
     </properties>
 
@@ -55,8 +55,8 @@
             </dependency>
             <dependency>
                 <groupId>org.thymeleaf</groupId>
-                <artifactId>thymeleaf-spring5</artifactId>
-                <version>3.0.15.RELEASE</version>
+                <artifactId>thymeleaf-spring6</artifactId>
+                <version>3.1.2.RELEASE</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson</groupId>
@@ -80,7 +80,7 @@
         <dependency>
             <groupId>nz.net.ultraq.thymeleaf</groupId>
             <artifactId>thymeleaf-layout-dialect</artifactId>
-            <version>2.4.1</version>
+            <version>2.5.3</version>
         </dependency>
         <dependency>
             <groupId>org.keycloak</groupId>
@@ -108,7 +108,7 @@
         </dependency>
         <dependency>
             <groupId>org.thymeleaf.extras</groupId>
-            <artifactId>thymeleaf-extras-springsecurity5</artifactId>
+            <artifactId>thymeleaf-extras-springsecurity6</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
