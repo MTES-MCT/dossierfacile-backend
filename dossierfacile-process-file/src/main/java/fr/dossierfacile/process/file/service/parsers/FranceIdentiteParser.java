@@ -29,7 +29,7 @@ public class FranceIdentiteParser implements FileParser<FranceIdentiteApiResult>
     private final RestTemplate restTemplate;
     private static final String CALL_BACK_RESPONSE = "France Identité callback responseStatus: {}";
 
-    @Value("${france.identite.api.url}")
+    @Value("${france.identite.api.url:https://dossierfacile-france-identite-numerique-api.osc-secnum-fr1.scalingo.io/api/validation/v1/check-doc-valid}")
     private String urlCallback;
 
     @Override
