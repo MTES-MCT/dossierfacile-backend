@@ -1,0 +1,15 @@
+* Comment déployer le projet
+
+Se mettre à la racine du projet et faire un tar.gz du projet :
+
+```
+tar czvf france-identite-numerique-api.tar.gz france-identite-numerique-api
+```
+
+Puis déployer directement sur scalingo :
+
+```
+scalingo --app nom-app deploy ./france-identite-numerique-api.tar.gz
+```
+
+Pour le moment le code source de france-identite-numerique, même s'il est censé être libre et même si nous y avons accès, n'a pas de license et donc n'est pas partageable sur un dépôt publique.
