@@ -2,6 +2,7 @@ package fr.gouv.bo.service;
 
 import fr.dossierfacile.common.entity.User;
 import fr.dossierfacile.common.entity.UserApi;
+import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 
 import java.util.List;
@@ -14,4 +15,6 @@ public interface KeycloakService {
     void deleteKeycloakUsers(List<User> tenants);
 
     void createKeycloakClient(UserApi userApi);
+
+    ClientRepresentation getKeyCloakClient(String name);
 }

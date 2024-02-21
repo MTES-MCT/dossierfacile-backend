@@ -62,6 +62,7 @@ public class ResourceServerConfig {
                         "/api/application/fullPdf/**", "/api/tenant/property/**",
                         "/api/support/email",
                         "/api/stats/**",
+                        "/api/onetimesecret/**",
                         "/actuator/health")
                 .permitAll()
                 .antMatchers("/api-partner/**").access("hasAuthority(\"SCOPE_api-partner\") && isClient()")
