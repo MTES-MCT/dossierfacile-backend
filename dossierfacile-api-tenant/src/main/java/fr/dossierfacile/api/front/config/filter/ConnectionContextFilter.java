@@ -7,6 +7,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class ConnectionContextFilter extends AbstractConnectionContextFilter {
 
@@ -26,11 +27,11 @@ public class ConnectionContextFilter extends AbstractConnectionContextFilter {
             return Map.of();
         }
         Jwt principal = (Jwt) authentication.getPrincipal();
-        return Map.of(
-                CLIENT_ID, principal.getClaimAsString("azp"),
-                KC_ID, principal.getClaimAsString("sub"),
-                EMAIL, principal.getClaimAsString("email")
-        );
+        Map<String, String> map = new TreeMap<>();
+        map.put(CLIENT_ID, principal.getClaimAsString("azp"));
+        map.put(KC_ID, principal.getClaimAsString("sub"));
+        map.put(EMAIL, principal.getClaimAsString("email"));
+        return map;
     }
 
 }

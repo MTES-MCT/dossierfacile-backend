@@ -21,7 +21,8 @@ public class BOConnectionContextFilter extends AbstractConnectionContextFilter {
     public Map<String, String> getAdditionalContextElements() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.getPrincipal() != null
-                && authentication.getPrincipal() instanceof UserPrincipal principal) {
+                && authentication.getPrincipal() instanceof UserPrincipal principal
+                && principal.getEmail() != null) {
             return Map.of(EMAIL, principal.getEmail());
         }
         return Map.of();
