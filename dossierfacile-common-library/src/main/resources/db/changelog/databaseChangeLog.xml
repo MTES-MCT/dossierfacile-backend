@@ -140,5 +140,6 @@
     <include file="db/migration/202401260000-rename-sub-category-for-guarantor-organism.xml" />
     <include file="db/migration/202401260001-rename-category-for-guarantor-organism.xml" />
     <include file="db/migration/202401300000-change-denied-options-sub-category.xml" />
+    <include file="db/migration/202402210000-create-operation-access-token.xml" />
 
 </databaseChangeLog>

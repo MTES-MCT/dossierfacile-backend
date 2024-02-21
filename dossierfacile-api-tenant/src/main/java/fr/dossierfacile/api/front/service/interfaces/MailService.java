@@ -1,11 +1,7 @@
 package fr.dossierfacile.api.front.service.interfaces;
 
 import fr.dossierfacile.api.front.form.ContactForm;
-import fr.dossierfacile.common.entity.ConfirmationToken;
-import fr.dossierfacile.common.entity.PasswordRecoveryToken;
-import fr.dossierfacile.common.entity.Tenant;
-import fr.dossierfacile.common.entity.User;
-import fr.dossierfacile.common.entity.UserApi;
+import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.ApplicationType;
 
 public interface MailService {
@@ -37,4 +33,5 @@ public interface MailService {
 
     void sendEmailPartnerAccessRevoked(Tenant receiver, UserApi userApi, Tenant revocationRequester);
 
+    void sendDefaultEmailExpiredToken(String email, OperationAccessToken token);
 }

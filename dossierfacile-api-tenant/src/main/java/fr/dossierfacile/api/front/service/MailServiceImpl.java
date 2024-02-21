@@ -3,11 +3,7 @@ package fr.dossierfacile.api.front.service;
 import com.google.common.base.Strings;
 import fr.dossierfacile.api.front.form.ContactForm;
 import fr.dossierfacile.api.front.service.interfaces.MailService;
-import fr.dossierfacile.common.entity.ConfirmationToken;
-import fr.dossierfacile.common.entity.PasswordRecoveryToken;
-import fr.dossierfacile.common.entity.Tenant;
-import fr.dossierfacile.common.entity.User;
-import fr.dossierfacile.common.entity.UserApi;
+import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.utils.OptionalString;
 import io.sentry.Sentry;
@@ -24,6 +20,7 @@ import sibModel.SendSmtpEmail;
 import sibModel.SendSmtpEmailReplyTo;
 import sibModel.SendSmtpEmailTo;
 
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -68,6 +65,8 @@ public class MailServiceImpl implements MailService {
     private Long templateEmailWhenTenantYESAssociatedToPartnersAndValidated;
     @Value("${sendinblue.template.id.contact.support}")
     private Long templateIdContactSupport;
+    @Value("${sendinblue.template.id.token.expiration}")
+    private Long templateIdTokenExpiration;
     @Value("${link.after.completed.default}")
     private String defaultCompletedUrl;
     @Value("${link.after.created.default}")
@@ -301,6 +300,27 @@ public class MailServiceImpl implements MailService {
         variables.put("requestOrigin", new RevocationRequest(revocationRequester, receiver).getOrigin());
 
         sendEmailToTenant(receiver, variables, templateIDPartnerAccessRevoked);
+    }
+
+    @Override
+    public void sendDefaultEmailExpiredToken(String email, OperationAccessToken token) {
+        SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
+        sendSmtpEmailTo.setEmail(email);
+
+        Map<String, String> params = new HashMap<>();
+        params.put("operation", token.getOperationAccessType().name());
+        params.put("createdDate", token.getCreatedDate().format(DateTimeFormatter.ISO_DATE));
+
+        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
+        sendSmtpEmail.templateId(templateIdTokenExpiration);
+        sendSmtpEmail.params(params);
+        sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
+
+        try {
+            apiInstance.sendTransacEmail(sendSmtpEmail);
+        } catch (ApiException e) {
+            log.error("Email Api Exception" + Sentry.captureException(e), e);
+        }
     }
 
     private record RevocationRequest(Tenant requester, Tenant emailReceiver) {

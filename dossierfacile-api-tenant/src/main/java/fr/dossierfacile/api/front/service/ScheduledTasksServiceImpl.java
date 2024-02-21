@@ -4,11 +4,13 @@ import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.api.front.service.interfaces.ScheduledTasksService;
 import fr.dossierfacile.api.front.service.interfaces.StatsService;
 import fr.dossierfacile.common.entity.ConfirmationToken;
+import fr.dossierfacile.common.entity.OperationAccessToken;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.repository.ConfirmationTokenRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
+import fr.dossierfacile.common.service.interfaces.OperationAccessTokenService;
 import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +34,7 @@ import java.util.Optional;
 public class ScheduledTasksServiceImpl implements ScheduledTasksService {
     private final TenantCommonRepository tenantRepository;
     private final ConfirmationTokenRepository confirmationTokenRepository;
+    private final OperationAccessTokenService operationAccessTokenService;
     private final MailService mailService;
     private final StatsService statsService;
     private final Object sendEmailLock = new Object();
@@ -146,4 +149,20 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
     public void updateStats() {
         statsService.updateStats();
     }
+
+    @Scheduled(cron = "0 0 * * * *")
+    @Override
+    public void updateOperationAccessTokenStatus() {
+        synchronized (sendEmailLock) {
+            List<OperationAccessToken> tokens = operationAccessTokenService.findExpiredToken();
+            log.info(tokens.size() + " expired tokens found - delete the tokens and send notification");
+            for (OperationAccessToken token : tokens) {
+                if (StringUtils.isNotBlank(token.getEmail())) {
+                    mailService.sendDefaultEmailExpiredToken(token.getEmail(), token);
+                }
+                operationAccessTokenService.delete(token);
+            }
+        }
+    }
+
 }
