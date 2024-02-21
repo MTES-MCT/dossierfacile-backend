@@ -21,9 +21,14 @@ import org.springframework.stereotype.Component;
 @Mapper(componentModel = "spring")
 public abstract class ApplicationFullMapper implements ApartmentSharingMapper {
     protected static final String PATH = "api/document/resource";
+    protected static final String DOSSIER_PDF_PATH = "/api/application/fullPdf/";
+    protected static final String DOSSIER_PATH = "/file/";
 
     @Value("${application.domain:default}")
     protected String domain;
+
+    @Value("${tenant.domain:default}")
+    protected String tenantDomain;
 
     protected CategoriesMapper categoriesMapper;
 
@@ -47,7 +52,8 @@ public abstract class ApplicationFullMapper implements ApartmentSharingMapper {
     @BeforeMapping
     void enrichModelWithDossierPdfUrl(ApartmentSharing apartmentSharing, @MappingTarget ApplicationModel.ApplicationModelBuilder applicationModelBuilder) {
         if (apartmentSharing.getStatus() == TenantFileStatus.VALIDATED) {
-            applicationModelBuilder.dossierPdfUrl(domain + "/api/application/fullPdf/" + apartmentSharing.getToken());
+            applicationModelBuilder.dossierPdfUrl(domain + DOSSIER_PDF_PATH + apartmentSharing.getToken());
+            applicationModelBuilder.dossierUrl(tenantDomain + DOSSIER_PATH + apartmentSharing.getToken());
         }
     }
 }

@@ -1,0 +1,1 @@
+web: java $JAVA_OPTS -jar attest-val-partenaires-api-1.0.3.jar

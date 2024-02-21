@@ -19,8 +19,8 @@ public abstract class TenantMapper {
     @Mapping(target = "path", ignore = true)
     public abstract FileModel toFileModel(File file);
 
-    @Mapping(target = "token", ignore = true)
     @Mapping(target = "tokenPublic", ignore = true)
+    @Mapping(target = "dossierUrl", ignore = true)
     @Mapping(target = "dossierPdfUrl", ignore = true)
     public abstract ApartmentSharingModel toApartmentSharingModel(ApartmentSharing apartmentSharing);
 

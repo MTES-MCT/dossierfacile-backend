@@ -26,7 +26,7 @@ public interface ApartmentSharingService {
 
     Optional<ApartmentSharing> findById(Long apartmentSharingId);
 
-    List<ApplicationModel> findApartmentSharingByLastUpdateDateAndPartner(LocalDateTime lastUpdateDate, UserApi userApi, long limit, MappingFormat format);
+    List<ApplicationModel> findApartmentSharingByLastUpdateDateAndPartner(LocalDateTime lastUpdateDate, UserApi userApi, int limit, MappingFormat format);
 
     void refreshUpdateDate(ApartmentSharing apartmentSharing);
 

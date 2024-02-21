@@ -60,7 +60,7 @@ public class ApiPartnerApartmentSharingController {
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResponseWrapper<List<ApplicationModel>, ListMetadata>> list(@RequestParam(value = "after", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime after,
-                                                                                      @RequestParam(value = "limit", defaultValue = "100") Long limit,
+                                                                                      @RequestParam(value = "limit", defaultValue = "100") int limit,
                                                                                       @RequestParam(value = "orderBy", defaultValue = "LAST_UPDATE_DATE") TenantSortType orderBy,
                                                                                       @RequestParam(value = "format", defaultValue = "NORMAL") MappingFormat format
     ) {

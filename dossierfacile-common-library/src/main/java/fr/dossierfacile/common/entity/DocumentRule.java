@@ -21,7 +21,14 @@ public enum DocumentRule {
     R_PAYSLIP_QRCHECK(Level.CRITICAL, "La lecture des informations et du QR Code ne correspondent pas"),
     R_PAYSLIP_NAME(Level.CRITICAL, "Nom/prénoms ne correspondent pas"),
     R_PAYSLIP_MONTHS(Level.CRITICAL, "Les 3 derniers bulletins de salaire doivent être transmis"),
-    R_PAYSLIP_AMOUNT_MISMATCHES(Level.CRITICAL, "Le montant specifié ne correspond pas au montant des bulletins");
+    R_PAYSLIP_AMOUNT_MISMATCHES(Level.CRITICAL, "Le montant specifié ne correspond pas au montant des bulletins"),
+
+    R_RENT_RECEIPT_NAME(Level.CRITICAL, "Nom/prénoms ne correspondent pas"),
+    R_RENT_RECEIPT_MONTHS(Level.CRITICAL, "Les trois dernières quittances doivent être fournies (la plus récente doit être au pire M-2)"),
+    R_RENT_RECEIPT_ADDRESS_SALARY(Level.WARN, "TODO. L'adresse de la location semble ne pas correspondre à l'adresse des bulletins de payes"),
+
+    R_FRANCE_IDENTITE_NAMES(Level.CRITICAL, "Les noms et prénoms ne correspondent pas"),
+    R_FRANCE_IDENTITE_STATUS(Level.CRITICAL, "Ce document n'a pas pu être validé par France Identité");
 
     public enum Level {
         CRITICAL, WARN

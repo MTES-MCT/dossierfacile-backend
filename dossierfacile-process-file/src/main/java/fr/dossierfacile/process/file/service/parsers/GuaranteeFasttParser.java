@@ -39,7 +39,7 @@ public class GuaranteeFasttParser extends AbstractPDFParser<GuaranteeProviderFil
     }
 
     @Override
-    protected GuaranteeProviderFile getResultFromExtraction(PDFTextStripperByArea stripper) {
+    protected GuaranteeProviderFile getResultFromExtraction(PDFTextStripperByArea stripper, int page, GuaranteeProviderFile result) {
         return GuaranteeProviderFile.builder()
                 .names(List.of(new GuaranteeProviderFile.FullName(
                         stripper.getTextForRegion("firstName").trim(),
@@ -49,8 +49,12 @@ public class GuaranteeFasttParser extends AbstractPDFParser<GuaranteeProviderFil
                 .validityDate(stripper.getTextForRegion("validityDate").trim())
                 .build();
     }
+
     @Override
-    protected boolean modelMatches(PDPage page, PageExtractorModel model) throws IOException {
+    protected boolean modelMatches(PageExtractorModel model, PDPage page, int pageNumber) throws IOException {
+        if (!super.modelMatches(model, page, pageNumber)) {
+            return false;
+        }
         PDResources resources = page.getResources();
         for (COSName xObjectName : resources.getXObjectNames()) {
             PDXObject xObject = resources.getXObject(xObjectName);
@@ -66,6 +70,7 @@ public class GuaranteeFasttParser extends AbstractPDFParser<GuaranteeProviderFil
         }
         return false;
     }
+
     @Override
     public boolean shouldTryToApply(File file) {
         return (file.getDocument().getDocumentCategory() == DocumentCategory.GUARANTEE_PROVIDER_CERTIFICATE

@@ -22,7 +22,9 @@ public class ClientAuthenticationFacadeImpl implements ClientAuthenticationFacad
     @Override
     public String getKeycloakClientId() {
         try {
-            return ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClaimAsString("clientId");
+            String clientId = ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClaimAsString("client_id");
+            return (clientId != null) ? clientId :
+                    ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClaimAsString("clientId");
         } catch (Throwable t) {
             return null;
         }

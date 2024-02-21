@@ -14,7 +14,8 @@ public class CustomWebSecurityExpressionRoot extends WebSecurityExpressionRoot {
 
     public boolean isClient() {
         try {
-            return ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClaimAsString("clientId") != null;
+            return ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClaimAsString("clientId") != null
+                    || ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClaimAsString("client_id") != null;
         } catch (Throwable t) {
             return false;
         }

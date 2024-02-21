@@ -20,6 +20,7 @@ public class ApartmentSharingModel {
     private ApplicationType applicationType;
     private String token;
     private String tokenPublic;
+    private String dossierUrl;
     private String dossierPdfUrl;
     private TenantFileStatus status;
     private List<TenantModel> tenants;
