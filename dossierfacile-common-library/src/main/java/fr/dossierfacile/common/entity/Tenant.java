@@ -226,9 +226,10 @@ public class Tenant extends User implements Person, Serializable {
 
     public void lastUpdateDateProfile(LocalDateTime localDateTime, DocumentCategory documentCategory) {
         this.lastUpdateDate = localDateTime == null ? LocalDateTime.now() : localDateTime;
-        log.info("Updating tenant profile on {}", this.lastUpdateDate);
         if (documentCategory != null) {
             log.info("Updating document {} of the tenant", documentCategory);
+        } else {
+            log.info("Updating tenant profile on {}", this.lastUpdateDate);
         }
     }
 
