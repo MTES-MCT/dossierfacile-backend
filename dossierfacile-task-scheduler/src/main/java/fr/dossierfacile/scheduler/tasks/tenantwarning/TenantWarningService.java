@@ -21,6 +21,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Slf4j
@@ -61,6 +63,7 @@ public class TenantWarningService {
         t.setStatus(TenantFileStatus.ARCHIVED);
         t.setZipCode("");
         t.setClarification("");
+        t.setLastUpdateDate(LocalDateTime.now());
         t = tenantRepository.save(t);
 
         logService.saveLog(LogType.DOCUMENT_DELETION_AFTER_2_ACCOUNT_WARNINGS, t.getId());
