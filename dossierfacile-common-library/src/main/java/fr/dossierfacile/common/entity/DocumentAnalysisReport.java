@@ -1,5 +1,6 @@
 package fr.dossierfacile.common.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -33,6 +34,7 @@ public class DocumentAnalysisReport {
 
     @OneToOne(targetEntity = Document.class, fetch = FetchType.LAZY)
     @JoinColumn(name = "document_id")
+    @JsonIgnore
     private Document document;
 
     @Enumerated(EnumType.STRING)
