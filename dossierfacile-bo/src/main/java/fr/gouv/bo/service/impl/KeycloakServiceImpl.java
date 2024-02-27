@@ -64,7 +64,7 @@ public class KeycloakServiceImpl implements KeycloakService {
 
         clientTemplate.setId(null);
         clientTemplate.setClientId(userApi.getName());
-        clientTemplate.setDescription("Client DFC pour " + userApi.getName2() + " créé le " + LocalDateTime.now().toString());
+        clientTemplate.setDescription("Client DFC pour " + userApi.getName2() + " créé le " + LocalDateTime.now());
         clientTemplate.setName(userApi.getName2());
         clientTemplate.setSecret(null);
         clientTemplate.getProtocolMappers().stream().forEach((pm) -> pm.setId(null));
@@ -76,6 +76,11 @@ public class KeycloakServiceImpl implements KeycloakService {
         if (response.getStatus() != Response.Status.CREATED.getStatusCode()) {
             throw new IllegalStateException("Status de retour création de client " + +response.getStatus());
         }
+    }
+
+    @Override
+    public ClientRepresentation getKeyCloakClient(String clientName) {
+        return realmResource.clients().findByClientId(clientName).get(0);
     }
 
 }
