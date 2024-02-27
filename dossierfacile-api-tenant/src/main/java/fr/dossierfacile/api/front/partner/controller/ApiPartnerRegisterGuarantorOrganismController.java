@@ -36,7 +36,7 @@ public class ApiPartnerRegisterGuarantorOrganismController {
 
     @PreAuthorize("hasPermissionOnTenant(#form.tenantId)")
     @PostMapping("/documentCertificate")
-    public ResponseEntity<TenantModel> documentCertificate(@Validated({ApiPartner.class, DocumentGuaranteeProviderCertificateForm.class}) DocumentGuaranteeProviderCertificateForm form) {
+    public ResponseEntity<TenantModel> documentCertificate(@Validated({ApiPartner.class}) DocumentGuaranteeProviderCertificateForm form) {
         var tenant = tenantService.findById(form.getTenantId());
         var tenantModel = tenantService.saveStepRegister(tenant, form, StepRegister.DOCUMENT_GUARANTEE_PROVIDER_CERTIFICATE);
         return ok(tenantModel);
