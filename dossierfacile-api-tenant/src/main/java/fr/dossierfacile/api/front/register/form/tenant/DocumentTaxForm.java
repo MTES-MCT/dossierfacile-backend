@@ -8,14 +8,11 @@ import fr.dossierfacile.api.front.validator.anotation.tenant.tax.NumberOfDocumen
 import fr.dossierfacile.api.front.validator.anotation.tenant.tax.OtherTaxCustomText;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-
-import javax.validation.constraints.NotNull;
-
-import java.util.List;
 
 import static fr.dossierfacile.common.enums.DocumentSubCategory.LESS_THAN_YEAR;
 import static fr.dossierfacile.common.enums.DocumentSubCategory.MY_NAME;

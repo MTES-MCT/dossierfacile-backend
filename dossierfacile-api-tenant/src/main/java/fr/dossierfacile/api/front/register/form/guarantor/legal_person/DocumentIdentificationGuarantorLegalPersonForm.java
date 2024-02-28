@@ -4,12 +4,11 @@ import fr.dossierfacile.api.front.register.form.guarantor.DocumentGuarantorFormA
 import fr.dossierfacile.api.front.validator.anotation.NumberOfPages;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.TypeGuarantor;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-
-import javax.validation.constraints.NotBlank;
 
 @EqualsAndHashCode(callSuper = true)
 @Data

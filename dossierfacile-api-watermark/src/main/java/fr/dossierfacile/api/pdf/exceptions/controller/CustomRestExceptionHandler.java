@@ -7,14 +7,12 @@ import fr.dossierfacile.api.pdf.exceptions.ExpectationFailedException;
 import fr.dossierfacile.api.pdf.exceptions.InProgressException;
 import fr.dossierfacile.api.pdf.exceptions.model.ApiError;
 import io.sentry.Sentry;
-import java.util.Objects;
-import javax.annotation.CheckForNull;
-import javax.validation.ConstraintViolationException;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -27,13 +25,15 @@ import org.springframework.web.multipart.support.MissingServletRequestPartExcept
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import java.util.Objects;
+
 @ControllerAdvice
 public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
 
     private static final String MESSAGE = "Sentry ID Exception: ";
 
     @Override
-    protected ResponseEntity<Object> handleMethodArgumentNotValid(@CheckForNull final MethodArgumentNotValidException ex, final HttpHeaders headers, final HttpStatus status, final WebRequest request) {
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(final MethodArgumentNotValidException ex, final HttpHeaders headers, final HttpStatusCode status, final WebRequest request) {
         assert ex != null;
         logger.error(MESSAGE + Sentry.captureException(ex));
         logger.error(ex.getMessage(), ex);
@@ -43,17 +43,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @Override
-    protected ResponseEntity<Object> handleBindException(@CheckForNull final BindException ex, final HttpHeaders headers, final HttpStatus status, final WebRequest request) {
-        assert ex != null;
-        logger.error(MESSAGE + Sentry.captureException(ex));
-        logger.error(ex.getMessage(), ex);
-
-        final ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST, ex.getLocalizedMessage());
-        return handleExceptionInternal(ex, apiError, headers, apiError.getStatus(), request);
-    }
-
-    @Override
-    protected ResponseEntity<Object> handleTypeMismatch(@CheckForNull final TypeMismatchException ex, final HttpHeaders headers, final HttpStatus status, final WebRequest request) {
+    protected ResponseEntity<Object> handleTypeMismatch(final TypeMismatchException ex, final HttpHeaders headers, final HttpStatusCode status, final WebRequest request) {
         assert ex != null;
         logger.error(MESSAGE + Sentry.captureException(ex));
         logger.error(ex.getMessage(), ex);
@@ -63,7 +53,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @Override
-    protected ResponseEntity<Object> handleMissingServletRequestPart(@CheckForNull final MissingServletRequestPartException ex, final HttpHeaders headers, final HttpStatus status, final WebRequest request) {
+    protected ResponseEntity<Object> handleMissingServletRequestPart(final MissingServletRequestPartException ex, final HttpHeaders headers, final HttpStatusCode status, final WebRequest request) {
         assert ex != null;
         logger.error(MESSAGE + Sentry.captureException(ex));
         logger.error(ex.getMessage(), ex);
@@ -73,7 +63,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @Override
-    protected ResponseEntity<Object> handleMissingServletRequestParameter(@CheckForNull final MissingServletRequestParameterException ex, final HttpHeaders headers, final HttpStatus status, final WebRequest request) {
+    protected ResponseEntity<Object> handleMissingServletRequestParameter(final MissingServletRequestParameterException ex, final HttpHeaders headers, final HttpStatusCode status, final WebRequest request) {
         assert ex != null;
         logger.error(MESSAGE + Sentry.captureException(ex));
         logger.error(ex.getMessage(), ex);
@@ -83,7 +73,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler({MethodArgumentTypeMismatchException.class})
-    public ResponseEntity<Object> handleMethodArgumentTypeMismatch(@CheckForNull final MethodArgumentTypeMismatchException ex, final WebRequest request) {
+    public ResponseEntity<Object> handleMethodArgumentTypeMismatch(final MethodArgumentTypeMismatchException ex, final WebRequest request) {
 
         logger.error(MESSAGE + Sentry.captureException(Objects.requireNonNull(ex)));
         logger.error(ex.getMessage(), ex);
@@ -102,7 +92,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @Override
-    protected ResponseEntity<Object> handleNoHandlerFoundException(@CheckForNull final NoHandlerFoundException ex, final HttpHeaders headers, final HttpStatus status, final WebRequest request) {
+    protected ResponseEntity<Object> handleNoHandlerFoundException(final NoHandlerFoundException ex, final HttpHeaders headers, final HttpStatusCode status, final WebRequest request) {
         assert ex != null;
         logger.error(MESSAGE + Sentry.captureException(ex));
         logger.error(ex.getMessage(), ex);
@@ -112,7 +102,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @Override
-    protected ResponseEntity<Object> handleHttpRequestMethodNotSupported(@CheckForNull final HttpRequestMethodNotSupportedException ex, final HttpHeaders headers, final HttpStatus status, final WebRequest request) {
+    protected ResponseEntity<Object> handleHttpRequestMethodNotSupported(final HttpRequestMethodNotSupportedException ex, final HttpHeaders headers, final HttpStatusCode status, final WebRequest request) {
         assert ex != null;
         logger.error(MESSAGE + Sentry.captureException(ex));
         logger.error(ex.getMessage(), ex);
@@ -122,7 +112,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @Override
-    protected ResponseEntity<Object> handleHttpMediaTypeNotSupported(@CheckForNull final HttpMediaTypeNotSupportedException ex, final HttpHeaders headers, final HttpStatus status, final WebRequest request) {
+    protected ResponseEntity<Object> handleHttpMediaTypeNotSupported(final HttpMediaTypeNotSupportedException ex, final HttpHeaders headers, final HttpStatusCode status, final WebRequest request) {
         assert ex != null;
         logger.error(MESSAGE + Sentry.captureException(ex));
         logger.error(ex.getMessage(), ex);

@@ -3,9 +3,8 @@ package fr.dossierfacile.api.front.validator.tenant.application.v2;
 import fr.dossierfacile.api.front.register.form.tenant.ApplicationFormV2;
 import fr.dossierfacile.api.front.validator.anotation.tenant.application.v2.CheckCoTenantCount;
 import fr.dossierfacile.common.enums.ApplicationType;
-
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 
 
 public class CheckCoTenantCountValidator implements ConstraintValidator<CheckCoTenantCount, ApplicationFormV2> {

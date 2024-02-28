@@ -13,7 +13,6 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 
 @ExtendWith(MockitoExtension.class)

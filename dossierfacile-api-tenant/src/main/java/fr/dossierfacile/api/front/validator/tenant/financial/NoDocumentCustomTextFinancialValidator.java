@@ -2,9 +2,8 @@ package fr.dossierfacile.api.front.validator.tenant.financial;
 
 import fr.dossierfacile.api.front.register.form.tenant.DocumentFinancialForm;
 import fr.dossierfacile.api.front.validator.anotation.tenant.financial.NoDocumentCustomTextFinancial;
-
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 
 public class NoDocumentCustomTextFinancialValidator implements ConstraintValidator<NoDocumentCustomTextFinancial, DocumentFinancialForm> {
     @Override
@@ -24,7 +23,7 @@ public class NoDocumentCustomTextFinancialValidator implements ConstraintValidat
             if (!isValid) {
                 constraintValidatorContext.disableDefaultConstraintViolation();
                 constraintValidatorContext
-                        .buildConstraintViolationWithTemplate("{javax.validation.constraints.NotEmpty.message}")
+                        .buildConstraintViolationWithTemplate("{jakarta.validation.constraints.NotEmpty.message}")
                         .addPropertyNode("customText").addConstraintViolation();
             }
         }

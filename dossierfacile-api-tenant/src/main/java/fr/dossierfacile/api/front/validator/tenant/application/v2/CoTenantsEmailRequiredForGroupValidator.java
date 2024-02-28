@@ -4,11 +4,10 @@ import fr.dossierfacile.api.front.register.form.tenant.ApplicationFormV2;
 import fr.dossierfacile.api.front.validator.anotation.tenant.application.v2.CoTenantsEmailRequiredForGroup;
 import fr.dossierfacile.common.enums.ApplicationType;
 import io.jsonwebtoken.lang.Collections;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
 
 
 @RequiredArgsConstructor

@@ -4,10 +4,10 @@ import fr.dossierfacile.api.front.form.interfaces.FormWithTenantId;
 import fr.dossierfacile.api.front.validator.anotation.Extension;
 import fr.dossierfacile.api.front.validator.anotation.SizeFile;
 import fr.dossierfacile.api.front.validator.group.ApiPartner;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 

@@ -1,22 +1,23 @@
 package fr.dossierfacile.common.entity;
 
+import fr.dossierfacile.common.converter.ListToJsonConverter;
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Type;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
 import java.util.List;
 
 @Data
@@ -38,7 +39,7 @@ public class DocumentAnalysisReport {
     @Enumerated(EnumType.STRING)
     private DocumentAnalysisStatus analysisStatus;
 
-    @Type(type = "jsonb")
+    @Convert(converter = ListToJsonConverter.class)
     @Column(columnDefinition = "jsonb")
     private List<DocumentBrokenRule> brokenRules;
 

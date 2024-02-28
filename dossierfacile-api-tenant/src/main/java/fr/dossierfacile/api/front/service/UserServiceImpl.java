@@ -79,7 +79,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public TenantModel createPassword(User user, String password) {
         keycloakService.createKeyCloakPassword(user.getKeycloakId(), password);
-        return tenantMapper.toTenantModel(tenantRepository.getById(user.getId()));
+        return tenantMapper.toTenantModel(tenantRepository.getReferenceById(user.getId()));
     }
 
     @Override

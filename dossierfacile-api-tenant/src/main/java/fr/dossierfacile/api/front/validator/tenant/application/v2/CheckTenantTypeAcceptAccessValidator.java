@@ -4,9 +4,8 @@ package fr.dossierfacile.api.front.validator.tenant.application.v2;
 import fr.dossierfacile.api.front.register.form.tenant.ApplicationFormV2;
 import fr.dossierfacile.api.front.validator.anotation.tenant.application.v2.CheckTenantTypeAcceptAccess;
 import fr.dossierfacile.common.enums.ApplicationType;
-
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 
 
 public class CheckTenantTypeAcceptAccessValidator implements ConstraintValidator<CheckTenantTypeAcceptAccess, ApplicationFormV2> {
@@ -26,7 +25,7 @@ public class CheckTenantTypeAcceptAccessValidator implements ConstraintValidator
         if (!isValid) {
             constraintValidatorContext.disableDefaultConstraintViolation();
             constraintValidatorContext
-                    .buildConstraintViolationWithTemplate("{javax.validation.constraints.AssertTrue.message}")
+                    .buildConstraintViolationWithTemplate("{jakarta.validation.constraints.AssertTrue.message}")
                     .addPropertyNode("acceptAccess").addConstraintViolation();
         }
 

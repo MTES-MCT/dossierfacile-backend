@@ -1,16 +1,14 @@
 package fr.dossierfacile.api.front.validator.tenant.type_guarantor;
 
 import fr.dossierfacile.api.front.register.form.tenant.GuarantorTypeForm;
-import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.validator.TenantConstraintValidator;
 import fr.dossierfacile.api.front.validator.anotation.tenant.type_guarantor.MaxGuarantor;
 import fr.dossierfacile.common.entity.Guarantor;
 import fr.dossierfacile.common.enums.TypeGuarantor;
+import jakarta.validation.ConstraintValidatorContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
 import java.util.List;
 
 @Component

@@ -1,11 +1,11 @@
 package fr.dossierfacile.api.dossierfacileapiowner.config;
 
 import fr.dossierfacile.common.config.AbstractConnectionContextFilter;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 import java.util.TreeMap;
 

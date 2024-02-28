@@ -4,11 +4,11 @@ import fr.dossierfacile.api.front.register.form.tenant.ApplicationFormV2;
 import fr.dossierfacile.api.front.validator.TenantConstraintValidator;
 import fr.dossierfacile.api.front.validator.anotation.tenant.application.v2.UniqueCoTenantsEmail;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
+import jakarta.validation.ConstraintValidatorContext;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
-import javax.validation.ConstraintValidatorContext;
 import java.util.stream.Collectors;
 
 @Component

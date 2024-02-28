@@ -3,9 +3,8 @@ package fr.dossierfacile.api.front.validator.guarantor.natural_person.tax;
 import fr.dossierfacile.api.front.register.form.guarantor.natural_person.DocumentTaxGuarantorNaturalPersonForm;
 import fr.dossierfacile.api.front.validator.anotation.guarantor.natural_person.tax.OtherTaxCustomTextGuarantorNaturalPerson;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
-
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 
 public class OtherTaxCustomTextGuarantorNaturalPersonValidator implements ConstraintValidator<OtherTaxCustomTextGuarantorNaturalPerson, DocumentTaxGuarantorNaturalPersonForm> {
 
@@ -17,7 +16,7 @@ public class OtherTaxCustomTextGuarantorNaturalPersonValidator implements Constr
             if (!isValid) {
                 constraintValidatorContext.disableDefaultConstraintViolation();
                 constraintValidatorContext
-                        .buildConstraintViolationWithTemplate("{javax.validation.constraints.NotEmpty.message}")
+                        .buildConstraintViolationWithTemplate("{jakarta.validation.constraints.NotEmpty.message}")
                         .addPropertyNode("customText").addConstraintViolation();
             }
         }

@@ -1,11 +1,10 @@
 package fr.dossierfacile.api.dossierfacileapiowner.register;
 
 import fr.dossierfacile.api.dossierfacileapiowner.user.OwnerRepository;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
 
 @Component
 @AllArgsConstructor

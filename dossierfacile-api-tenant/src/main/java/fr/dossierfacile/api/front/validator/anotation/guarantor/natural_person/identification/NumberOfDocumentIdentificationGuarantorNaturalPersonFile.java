@@ -2,10 +2,9 @@ package fr.dossierfacile.api.front.validator.anotation.guarantor.natural_person.
 
 
 import fr.dossierfacile.api.front.validator.guarantor.natural_person.identification.NumberOfDocumentIdentificationGuarantorNaturalPersonFileValidator;
-import fr.dossierfacile.api.front.validator.guarantor.natural_person.identification.NumberOfDocumentIdentificationGuarantorNaturalPersonValidator;
+import jakarta.validation.Constraint;
+import jakarta.validation.Payload;
 
-import javax.validation.Constraint;
-import javax.validation.Payload;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

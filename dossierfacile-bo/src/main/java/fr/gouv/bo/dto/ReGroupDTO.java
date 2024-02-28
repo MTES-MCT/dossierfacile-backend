@@ -2,7 +2,7 @@ package fr.gouv.bo.dto;
 
 
 import fr.dossierfacile.common.enums.ApplicationType;
-import javax.validation.constraints.Email;
+import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

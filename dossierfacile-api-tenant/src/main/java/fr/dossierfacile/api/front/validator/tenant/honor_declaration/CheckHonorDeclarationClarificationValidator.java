@@ -5,10 +5,9 @@ import fr.dossierfacile.api.front.register.form.tenant.HonorDeclarationForm;
 import fr.dossierfacile.api.front.validator.TenantConstraintValidator;
 import fr.dossierfacile.api.front.validator.anotation.tenant.honor_declaration.CheckHonorDeclarationClarification;
 import fr.dossierfacile.common.enums.TenantType;
+import jakarta.validation.ConstraintValidatorContext;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import javax.validation.ConstraintValidatorContext;
 
 @Component
 @AllArgsConstructor

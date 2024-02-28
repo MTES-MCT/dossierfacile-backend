@@ -6,11 +6,10 @@ import fr.dossierfacile.api.front.validator.TenantConstraintValidator;
 import fr.dossierfacile.api.front.validator.anotation.tenant.financial.NumberOfDocumentFinancial;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
+import jakarta.validation.ConstraintValidatorContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
-
-import javax.validation.ConstraintValidatorContext;
 
 @Component
 @RequiredArgsConstructor
@@ -44,7 +43,7 @@ public class NumberOfDocumentFinancialValidator extends TenantConstraintValidato
             if (!isValid) {
                 constraintValidatorContext.disableDefaultConstraintViolation();
                 constraintValidatorContext
-                        .buildConstraintViolationWithTemplate("{javax.validation.constraints.Null.message}")
+                        .buildConstraintViolationWithTemplate("{jakarta.validation.constraints.Null.message}")
                         .addPropertyNode("documents").addConstraintViolation();
             }
 

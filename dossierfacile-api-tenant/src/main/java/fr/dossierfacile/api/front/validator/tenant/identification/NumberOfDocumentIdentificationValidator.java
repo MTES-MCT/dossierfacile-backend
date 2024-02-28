@@ -5,11 +5,10 @@ import fr.dossierfacile.api.front.repository.FileRepository;
 import fr.dossierfacile.api.front.validator.TenantConstraintValidator;
 import fr.dossierfacile.api.front.validator.anotation.tenant.identification.NumberOfDocumentIdentification;
 import fr.dossierfacile.common.enums.DocumentCategory;
+import jakarta.validation.ConstraintValidatorContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
-
-import javax.validation.ConstraintValidatorContext;
 
 @Component
 @RequiredArgsConstructor

@@ -21,7 +21,7 @@ public class TenantUserApiService {
     private final UserApiRepository userApiRepository;
 
     public void addInternalPartnerIdToTenantUserApi(Tenant tenant, Long id, String internalPartnerId) {
-        UserApi userApi = userApiRepository.getOne(id);
+        UserApi userApi = userApiRepository.getReferenceById(id);
         TenantUserApi tenantUserApi = tenantUserApiRepository.findFirstByTenantAndUserApi(tenant, userApi).orElse(
                 TenantUserApi.builder()
                         .id(new TenantUserApiKey(tenant.getId(), userApi.getId()))

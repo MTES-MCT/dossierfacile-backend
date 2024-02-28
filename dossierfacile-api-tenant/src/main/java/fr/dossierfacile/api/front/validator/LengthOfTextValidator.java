@@ -1,12 +1,11 @@
 package fr.dossierfacile.api.front.validator;
 
 import fr.dossierfacile.api.front.validator.anotation.LengthOfText;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
 
 @Component
 @Slf4j

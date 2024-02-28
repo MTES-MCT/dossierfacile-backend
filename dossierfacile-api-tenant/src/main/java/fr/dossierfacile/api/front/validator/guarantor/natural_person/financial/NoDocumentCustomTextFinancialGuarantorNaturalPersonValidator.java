@@ -2,9 +2,8 @@ package fr.dossierfacile.api.front.validator.guarantor.natural_person.financial;
 
 import fr.dossierfacile.api.front.register.form.guarantor.natural_person.DocumentFinancialGuarantorNaturalPersonForm;
 import fr.dossierfacile.api.front.validator.anotation.guarantor.natural_person.financial.NoDocumentCustomTextFinancialGuarantorNaturalPerson;
-
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 
 public class NoDocumentCustomTextFinancialGuarantorNaturalPersonValidator implements ConstraintValidator<NoDocumentCustomTextFinancialGuarantorNaturalPerson, DocumentFinancialGuarantorNaturalPersonForm> {
     @Override
@@ -24,7 +23,7 @@ public class NoDocumentCustomTextFinancialGuarantorNaturalPersonValidator implem
             if (!isValid) {
                 constraintValidatorContext.disableDefaultConstraintViolation();
                 constraintValidatorContext
-                        .buildConstraintViolationWithTemplate("{javax.validation.constraints.NotEmpty.message}")
+                        .buildConstraintViolationWithTemplate("{jakarta.validation.constraints.NotEmpty.message}")
                         .addPropertyNode("customText").addConstraintViolation();
             }
         }

@@ -5,9 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.dossierfacile.common.entity.ocr.ParsedFile;
 import fr.dossierfacile.common.enums.ParsedFileClassification;
 import fr.dossierfacile.common.utils.MapperUtil;
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
 
-import javax.persistence.AttributeConverter;
-import javax.persistence.Converter;
 import java.io.IOException;
 
 @Converter

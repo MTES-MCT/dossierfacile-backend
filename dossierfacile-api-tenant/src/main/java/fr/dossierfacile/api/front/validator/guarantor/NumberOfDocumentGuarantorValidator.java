@@ -3,15 +3,13 @@ package fr.dossierfacile.api.front.validator.guarantor;
 import fr.dossierfacile.api.front.register.form.guarantor.DocumentGuarantorFormAbstract;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.repository.GuarantorRepository;
-import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.validator.TenantConstraintValidator;
 import fr.dossierfacile.api.front.validator.anotation.guarantor.NumberOfDocumentGuarantor;
 import fr.dossierfacile.common.entity.Tenant;
+import jakarta.validation.ConstraintValidatorContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Component

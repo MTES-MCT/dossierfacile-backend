@@ -2,9 +2,9 @@ package fr.dossierfacile.api.front.validator;
 
 import fr.dossierfacile.api.front.validator.anotation.DocumentSubcategorySubset;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
 import java.util.Arrays;
 
 public class DocumentSubcategorySubsetValidator implements ConstraintValidator<DocumentSubcategorySubset, DocumentSubCategory> {

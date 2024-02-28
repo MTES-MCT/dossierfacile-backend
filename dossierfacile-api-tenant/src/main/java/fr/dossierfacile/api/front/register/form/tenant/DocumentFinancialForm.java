@@ -9,12 +9,11 @@ import fr.dossierfacile.api.front.validator.anotation.tenant.financial.NumberOfD
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import io.swagger.v3.oas.annotations.Parameter;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-
-import javax.validation.constraints.NotNull;
 
 import static fr.dossierfacile.common.enums.DocumentSubCategory.NO_INCOME;
 import static fr.dossierfacile.common.enums.DocumentSubCategory.PENSION;

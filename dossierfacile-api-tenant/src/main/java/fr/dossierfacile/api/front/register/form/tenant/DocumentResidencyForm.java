@@ -8,12 +8,11 @@ import fr.dossierfacile.api.front.validator.anotation.tenant.residency.CustomTex
 import fr.dossierfacile.api.front.validator.anotation.tenant.residency.NumberOfDocumentResidency;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-
-import javax.validation.constraints.NotNull;
 
 import static fr.dossierfacile.common.enums.DocumentSubCategory.GUEST;
 import static fr.dossierfacile.common.enums.DocumentSubCategory.GUEST_ORGANISM;

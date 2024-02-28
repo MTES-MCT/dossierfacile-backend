@@ -6,6 +6,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -17,6 +19,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
 import java.util.Collections;
+
+import static org.springframework.security.config.Customizer.withDefaults;
 
 
 @EnableWebSecurity
@@ -32,22 +36,21 @@ public class ResourceServerConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .addFilterBefore(new ConnectionContextFilter(), FilterSecurityInterceptor.class)
-                .httpBasic().disable()
-                .csrf().disable()
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .csrf(AbstractHttpConfigurer::disable)
                 .addFilterBefore(new WebhookFilter(token, headerName), BasicAuthenticationFilter.class)
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                .cors()
-                .and()
-                .authorizeRequests()
-                .antMatchers("/v3/**", "/swagger-ui/**", "/api/register/account", "/api/register/confirmAccount/**",
-                        "/api/auth/**", "/api/register/forgotPassword", "/api/register/createPassword/**",
-                        "/actuator/health", "/api/property/public/**", "/webhook/**")
-                .permitAll()
-                .anyRequest().hasAuthority("SCOPE_dossier")
-                .and()
-                .oauth2ResourceServer()
-                .jwt();
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .cors(withDefaults())
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/v3/**", "/swagger-ui/**", "/api/register/account",
+                                "/api/register/confirmAccount/**", "/api/auth/**",
+                                "/api/register/forgotPassword", "/api/register/createPassword/**",
+                                "/actuator/health", "/api/property/public/**", "/webhook/**")
+                        .permitAll()
+                        .anyRequest().hasAuthority("SCOPE_dossier")
+                )
+                .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt);
+
         return http.build();
     }
 

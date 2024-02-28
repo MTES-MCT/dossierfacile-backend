@@ -15,6 +15,7 @@ import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.Role;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.enums.TenantType;
+import fr.dossierfacile.common.exceptions.NotFoundException;
 import fr.dossierfacile.common.model.WebhookDTO;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.gouv.bo.dto.CustomMessage;
@@ -38,7 +39,6 @@ import fr.gouv.bo.service.UserApiService;
 import fr.gouv.bo.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.ObjectNotFoundException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Controller;
@@ -94,7 +94,7 @@ public class BOTenantController {
         if (tenant != null) {
             return redirectToTenantPage(tenant);
         }
-        throw new ObjectNotFoundException("TENANT", "Tenant is not found. Still exists?");
+        throw new NotFoundException("Tenant is not found. Still exists?");
     }
 
     @GetMapping("/setAsTenantCreate/{id}")
