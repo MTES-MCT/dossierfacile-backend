@@ -6,10 +6,10 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 
+@Disabled
 class GuaranteeVisaleParserTest {
     private final GuaranteeVisaleParser visaleParser = new GuaranteeVisaleParser();
 
-    @Disabled
     @Test
     void parse() {
         // Set lib path: System.setProperty("jna.library.path", "/usr/local/lib");
