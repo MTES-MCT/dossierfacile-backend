@@ -19,7 +19,7 @@
     <properties>
         <java.version>21</java.version>
         <lombok.version>1.18.30</lombok.version>
-        <pdfbox.tools.version>3.0.0</pdfbox.tools.version>
+        <pdfbox.tools.version>3.0.1</pdfbox.tools.version>
         <jbig2.imageio.version>3.0.3</jbig2.imageio.version>
         <jai-imageio-jpeg2000.version>1.4.0</jai-imageio-jpeg2000.version>
         <jai-imageio-core.version>1.4.0</jai-imageio-core.version>

@@ -14,15 +14,13 @@ import java.util.TreeMap;
 public class PageExtractorModel {
     private final JsonNode jsonNode;
 
-    public int getMaxPageCount() {
-        return jsonNode.get("page").get("maxPageCount").asInt(1);
-    }
-
-    public record Zone(String name, Rectangle rect, String regexp, String pageFilter) {
-    }
-
     public PageExtractorModel(String jsonResourceModelPath) throws IOException {
         this.jsonNode = MapperUtil.newObjectMapper().readTree(AbstractPDFParser.class.getResource(jsonResourceModelPath));
+    }
+
+    public int getMaxPageCount() {
+        JsonNode maxPageCountNode = jsonNode.get("page").get("maxPageCount");
+        return (maxPageCountNode == null || maxPageCountNode.isNull()) ? 1 : maxPageCountNode.asInt(1);
     }
 
     public double getDefaultWidth() {
@@ -40,8 +38,9 @@ public class PageExtractorModel {
             String rectStr = attributeNode.get("rect").asText();
             String[] rectSplit = rectStr.split(",");
             Rectangle rectangle = new Rectangle((int) (Integer.parseInt(rectSplit[0]) * scale), (int) (Integer.parseInt(rectSplit[1]) * scale), (int) (Integer.parseInt(rectSplit[2]) * scale), (int) (Integer.parseInt(rectSplit[3]) * scale));
-
-            map.put(attributeNode.get("name").asText(), rectangle);
+            if (attributeNode.get("ignore") == null || attributeNode.get("ignore").asBoolean() != true) {
+                map.put(attributeNode.get("name").asText(), rectangle);
+            }
         }
         return map;
     }
@@ -60,5 +59,8 @@ public class PageExtractorModel {
             return list;
         }
         return null;
+    }
+
+    public record Zone(String name, Rectangle rect, String regexp, String pageFilter) {
     }
 }
