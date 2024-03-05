@@ -1,0 +1,60 @@
+{
+  "page": {
+    "width": "892",
+    "maxPageCount": 3
+  },
+  "classification": {
+    "name": "RENTAL_RECEIPT_IMMO_3F"
+  },
+  "matchingZones": [
+    {
+      "name": "name",
+      "rect": "22,30,153,21",
+      "matches": "IMMOBILIERE 3F",
+      "comments": "text unreadable"
+    },
+    {
+      "name": "documentType",
+      "rect": "569,56,281,37",
+      "matches": "AVIS D['’ ]ECHEANCE",
+      "comments": "text image"
+    },
+    {
+      "name": "beforeAddress",
+      "rect": "476,437,299,18",
+      "matches": "Détail de Facturation de la période.*",
+      "comments": "text"
+    },
+    {
+      "name": "soldeLabel",
+      "rect": "398,403,299,20",
+      "matches": "Votre solde au .*",
+      "comments": "text"
+    }
+  ],
+  "zones": [
+    {
+      "name": "periodNotice",
+      "rect": "544,99,308,28",
+      "comments": "Période du 01/03/2023 au 31/03/2023"
+    },
+    {
+      "name": "tenantNameAndAddress",
+      "rect": "470,251,386,109"
+    },
+    {
+      "name": "rentAddress",
+      "rect": "44,420,303,74"
+    },
+    {
+      "name": "previousAmountBalance",
+      "rect": "396,831,454,19",
+      "comments": "Votre Solde au 22/03/2023 \t 0,00 €"
+    },
+    {
+      "name": "amount",
+      "rect": "395,850,456,20",
+      "comments": "Facture du 01/03/2023 au 31/03/2023 \t 695,20 €"
+    }
+  ]
+}
