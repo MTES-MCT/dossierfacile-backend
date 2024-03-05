@@ -3,6 +3,7 @@ package fr.gouv.bo.service;
 import fr.dossierfacile.common.entity.Log;
 import fr.gouv.bo.repository.BoLogRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -34,8 +35,11 @@ public class LogService {
         logRepository.save(log);
     }
 
-    public List<Object[]> listLastTreatedFilesByOperator(Long operatorId){
-        return logRepository.countTreatedFromXDaysGroupByDate(operatorId, 3);
+    public List<Object[]> listLastTreatedFilesByOperator(Long operatorId, int minusDays){
+        return logRepository.countTreatedFromXDaysGroupByDate(operatorId, minusDays);
     }
 
+    public List<Object[]> listDailyTreatedFilesByOperator() {
+        return logRepository.countTreatedFromTodayGroupByOperator();
+    }
 }
