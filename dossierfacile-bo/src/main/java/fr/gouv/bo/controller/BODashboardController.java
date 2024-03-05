@@ -5,6 +5,7 @@ import fr.gouv.bo.dto.EmailDTO;
 import fr.gouv.bo.service.LogService;
 import fr.gouv.bo.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.math.BigInteger;
 import java.security.Principal;
 import java.util.List;
 
@@ -23,6 +25,8 @@ public class BODashboardController {
     private LogService logService;
     @Autowired
     private UserService userService;
+    @Value("${dashboard.days.before.to.display:5}")
+    private Integer minusDays;
 
     @GetMapping("")
     public String myDashboard(Model model, Principal principal) {
@@ -30,7 +34,7 @@ public class BODashboardController {
             return "redirect:/login";
         }
         BOUser operator = userService.findUserByEmail(principal.getName());
-        List<Object[]> listTreatedCountByDay = logService.listLastTreatedFilesByOperator(operator.getId());
+        List<Object[]> listTreatedCountByDay = logService.listLastTreatedFilesByOperator(operator.getId(), minusDays);
 
         model.addAttribute("operator", operator);
         model.addAttribute("listTreatedCountByDay", listTreatedCountByDay);
@@ -38,17 +42,19 @@ public class BODashboardController {
         model.addAttribute(EMAIL, new EmailDTO());
         return "bo/dashboard";
     }
+
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @GetMapping("/{userId}")
-    public String boUserDashboard(Model model, @PathVariable Long userId) {
-        BOUser operator = userService.findUserById(userId);
-        List<Object[]> listTreatedCountByDay = logService.listLastTreatedFilesByOperator(operator.getId());
+    @GetMapping("/all")
+    public String boUserDashboard(Model model) {
+        List<Object[]> listTreatedCountByOperator = logService.listDailyTreatedFilesByOperator();
+        int dailyCount = listTreatedCountByOperator.stream()
+                .mapToInt(objects -> ((BigInteger) objects[1]).intValue())
+                .sum();
 
-        model.addAttribute("operator", operator);
-        model.addAttribute("listTreatedCountByDay", listTreatedCountByDay);
+        model.addAttribute("listTreatedCountByOperator", listTreatedCountByOperator);
+        model.addAttribute("dailyCount", dailyCount);
 
         model.addAttribute(EMAIL, new EmailDTO());
-        return "bo/dashboard";
+        return "bo/dashboard-admin";
     }
-
 }
