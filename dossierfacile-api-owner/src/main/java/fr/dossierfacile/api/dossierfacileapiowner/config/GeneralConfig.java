@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.dossierfacileapiowner.config;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.actuate.autoconfigure.endpoint.web.CorsEndpointProperties;
 import org.springframework.boot.actuate.autoconfigure.endpoint.web.WebEndpointProperties;
 import org.springframework.boot.actuate.autoconfigure.web.server.ManagementPortType;
@@ -15,7 +16,6 @@ import org.springframework.boot.actuate.endpoint.web.servlet.WebMvcEndpointHandl
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
-import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
@@ -45,6 +45,6 @@ public class GeneralConfig {
 
 
     private boolean shouldRegisterLinksMapping(WebEndpointProperties webEndpointProperties, Environment environment, String basePath) {
-        return webEndpointProperties.getDiscovery().isEnabled() && (StringUtils.hasText(basePath) || ManagementPortType.get(environment).equals(ManagementPortType.DIFFERENT));
+        return webEndpointProperties.getDiscovery().isEnabled() && (StringUtils.isNotBlank(basePath) || ManagementPortType.get(environment).equals(ManagementPortType.DIFFERENT));
     }
 }

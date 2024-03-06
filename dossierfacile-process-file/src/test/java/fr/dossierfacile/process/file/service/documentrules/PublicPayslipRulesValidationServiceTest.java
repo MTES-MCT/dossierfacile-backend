@@ -3,7 +3,7 @@ package fr.dossierfacile.process.file.service.documentrules;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.dossierfacile.common.entity.*;
-import fr.dossierfacile.common.entity.ocr.PublicPayslipFile;
+import fr.dossierfacile.common.entity.ocr.PayslipFile;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.ParsedFileAnalysisStatus;
@@ -20,7 +20,7 @@ import java.util.LinkedList;
 
 class PublicPayslipRulesValidationServiceTest {
 
-    private PublicPayslipRulesValidationService publicPayslipRVS = new PublicPayslipRulesValidationService();
+    private final PublicPayslipRulesValidationService publicPayslipRVS = new PublicPayslipRulesValidationService();
 
     private File buildValidDfFile(LocalDate date) throws JsonProcessingException {
         BarCodeFileAnalysis barCodeFileAnalysis = BarCodeFileAnalysis.builder()
@@ -41,7 +41,8 @@ class PublicPayslipRulesValidationServiceTest {
                 .documentType(BarCodeDocumentType.PUBLIC_PAYSLIP)
                 .build();
 
-        PublicPayslipFile parsedFile = PublicPayslipFile.builder()
+        PayslipFile parsedFile = PayslipFile.builder()
+                .classification(ParsedFileClassification.PUBLIC_PAYSLIP)
                 .fullname("MR KALOUF JEAN")
                 .month(YearMonth.from(date))
                 .netTaxableIncome(3000.05)

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+    <changeSet id="202402210000-01" author="fabien">
+        <createTable tableName="operation_access_token">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_operation_access_token"/>
+            </column>
+            <column name="operation_access_type" type="VARCHAR(255)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="content" type="VARCHAR(255)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="token" type="VARCHAR(96)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="created_date" type="TIMESTAMP">
+                <constraints nullable="true"/>
+            </column>
+            <column name="expiration_date" type="TIMESTAMP">
+                <constraints nullable="true"/>
+            </column>
+            <column name="email" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="202402210000-02" author="fabien">
+        <createIndex tableName="operation_access_token" indexName="operation_access_token_token_index" unique="true">
+            <column name="token"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>

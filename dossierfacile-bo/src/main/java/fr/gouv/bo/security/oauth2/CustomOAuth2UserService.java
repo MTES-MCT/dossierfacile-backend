@@ -9,6 +9,7 @@ import fr.gouv.bo.repository.UserRoleRepository;
 import fr.gouv.bo.security.UserPrincipal;
 import fr.gouv.bo.security.oauth2.user.OAuth2UserInfo;
 import fr.gouv.bo.security.oauth2.user.OAuth2UserInfoFactory;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
@@ -19,7 +20,6 @@ import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserServ
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import java.util.HashSet;
 import java.util.List;
@@ -55,7 +55,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     public OAuth2User processOAuth2User(OAuth2UserRequest oAuth2UserRequest, OAuth2User oAuth2User) {
         OAuth2UserInfo oAuth2UserInfo = OAuth2UserInfoFactory.getOAuth2UserInfo(oAuth2UserRequest.getClientRegistration().getRegistrationId(), oAuth2User.getAttributes());
-        if (StringUtils.isEmpty(oAuth2UserInfo.getEmail())) {
+        if (!StringUtils.isNotBlank(oAuth2UserInfo.getEmail())) {
             throw new OAuth2AuthenticationProcessingException("Email not found from OAuth2 provider");
         }
         if (!Objects.requireNonNull(StringUtils.split(oAuth2UserInfo.getEmail(), "@"))[1].contains(authorizeDomainBo)) {

@@ -23,7 +23,7 @@ public class StorageFileLoaderService {
     public File getTemporaryFilePath(StorageFile storageFile) {
         try {
             try (InputStream in = fileStorageService.download(storageFile)) {
-                Path temporaryFile = Files.createTempFile("tax-" + storageFile.getId()
+                Path temporaryFile = Files.createTempFile("temp-" + storageFile.getId()
                                 + "-" + UUID.randomUUID(),
                         MediaType.APPLICATION_PDF_VALUE.equalsIgnoreCase(storageFile.getContentType()) ? ".pdf" : "");
                 // actually we only need first file

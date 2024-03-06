@@ -9,6 +9,7 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.repository.ConfirmationTokenRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
+import fr.dossierfacile.common.service.interfaces.OperationAccessTokenService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -26,8 +27,9 @@ class ScheduledTasksServiceImplTest {
     private final ConfirmationTokenRepository confirmationTokenRepository = mock(ConfirmationTokenRepository.class);
     private final MailService mailService = mock(MailService.class);
     private final StatsService statsService = mock(StatsService.class);
+    private final OperationAccessTokenService operationAccessTokenService = mock(OperationAccessTokenService.class);
     private final ScheduledTasksService scheduledTasksService =
-            new ScheduledTasksServiceImpl(tenantRepository, confirmationTokenRepository, mailService, statsService);
+            new ScheduledTasksServiceImpl(tenantRepository, confirmationTokenRepository, operationAccessTokenService, mailService, statsService);
 
     @BeforeEach
     void beforEach() {

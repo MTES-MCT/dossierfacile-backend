@@ -50,6 +50,7 @@
             <includeMdcKeyName>client</includeMdcKeyName>
             <includeMdcKeyName>user</includeMdcKeyName>
             <includeMdcKeyName>email</includeMdcKeyName>
+            <includeMdcKeyName>request_id</includeMdcKeyName>
         </encoder>
     </appender>
 

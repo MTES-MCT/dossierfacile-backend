@@ -2,16 +2,12 @@ package fr.dossierfacile.api.front.validator.tenant.application.v2;
 
 
 import fr.dossierfacile.api.front.register.form.tenant.ApplicationFormV2;
-import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
-import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.validator.TenantConstraintValidator;
 import fr.dossierfacile.api.front.validator.anotation.tenant.application.v2.DeniedJoinTenant;
-import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.TenantType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
 @Component

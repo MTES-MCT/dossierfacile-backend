@@ -10,12 +10,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.SSLContexts;
 import org.apache.http.ssl.TrustStrategy;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -56,7 +51,7 @@ public class RequestServiceImpl implements RequestService {
             response = restTemplate.exchange(urlCallback, HttpMethod.POST, request, String.class);
             log.info(CALL_BACK_RESPONSE, response.getStatusCode());
         } catch (RestClientException e) {
-            log.error("Error occurs during the call to :" + urlCallback +" sentry:" + Sentry.captureException(e), e);
+            log.error("Error occurs during the call to :" + urlCallback + " sentry:" + Sentry.captureException(e), e);
             if (e instanceof ResourceAccessException) {
                 try {
                     log.warn("Trying to send the request again without SSL Verification, to the urlCallBack: " + urlCallback);
@@ -69,7 +64,10 @@ public class RequestServiceImpl implements RequestService {
                 }
             }
         }
-        if ( response != null && HttpStatus.OK != response.getStatusCode() && HttpStatus.ACCEPTED != response.getStatusCode()) {
+        if (response != null
+                && HttpStatus.OK != response.getStatusCode()
+                && HttpStatus.ACCEPTED != response.getStatusCode()
+                && HttpStatus.NO_CONTENT != response.getStatusCode()) {
             log.error("Failure on partner callback url:" + urlCallback + "- Status:" + response.getStatusCode());
         }
     }

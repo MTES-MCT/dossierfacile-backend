@@ -126,7 +126,7 @@ public class TenantService {
     }
 
     public User getUserById(Long id) {
-        return tenantRepository.getOne(id);
+        return tenantRepository.getReferenceById(id);
     }
 
     public Tenant getTenantById(Long id) {

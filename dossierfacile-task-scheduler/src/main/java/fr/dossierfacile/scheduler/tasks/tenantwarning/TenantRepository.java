@@ -25,7 +25,7 @@ interface TenantRepository extends JpaRepository<Tenant, Long> {
     Page<Tenant> findByLastLoginDateIsBeforeAndHasDocuments(Pageable pageable, @Param("localDateTime") LocalDateTime localDateTime, @Param("warnings") Integer warnings);
 
     @Query(value = """
-           SELECT t
+           SELECT *
            FROM tenant t, user_account u
            WHERE t.id = u.id
              AND t.tenant_type = 'JOIN'

@@ -1,12 +1,7 @@
 package fr.dossierfacile.api.front.mapper;
 
 import fr.dossierfacile.api.front.model.dfc.tenant.ConnectedTenantModel;
-import fr.dossierfacile.api.front.model.tenant.ApartmentSharingModel;
-import fr.dossierfacile.api.front.model.tenant.DocumentDeniedReasonsModel;
-import fr.dossierfacile.api.front.model.tenant.DocumentModel;
-import fr.dossierfacile.api.front.model.tenant.FileModel;
-import fr.dossierfacile.api.front.model.tenant.SelectedOption;
-import fr.dossierfacile.api.front.model.tenant.TenantModel;
+import fr.dossierfacile.api.front.model.tenant.*;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Tenant;
@@ -33,9 +28,14 @@ import java.util.Optional;
 public abstract class TenantMapper {
     private static final String PATH = "api/document/resource";
     private static final String PREVIEW_PATH = "/api/file/preview/";
+    private static final String DOSSIER_PDF_PATH = "/api/application/fullPdf/";
+    private static final String DOSSIER_PATH = "/file/";
 
     @Value("${application.domain}")
     protected String domain;
+
+    @Value("${tenant.domain}")
+    protected String tenantDomain;
 
     protected CategoriesMapper categoriesMapper;
 
@@ -69,12 +69,12 @@ public abstract class TenantMapper {
     void modificationsAfterMapping(@MappingTarget TenantModel.TenantModelBuilder tenantModelBuilder) {
         TenantModel tenantModel = tenantModelBuilder.build();
         ApartmentSharingModel apartmentSharingModel = tenantModel.getApartmentSharing();
-        if (apartmentSharingModel.getStatus() != TenantFileStatus.VALIDATED) {
+        if (apartmentSharingModel.getStatus() == TenantFileStatus.VALIDATED) {
+            apartmentSharingModel.setDossierPdfUrl(domain + DOSSIER_PDF_PATH + apartmentSharingModel.getToken());
+            apartmentSharingModel.setDossierUrl(tenantDomain + DOSSIER_PATH + apartmentSharingModel.getToken());
+        } else {
             apartmentSharingModel.setToken(null);
             apartmentSharingModel.setTokenPublic(null);
-        }
-        if (apartmentSharingModel.getStatus() == TenantFileStatus.VALIDATED) {
-            apartmentSharingModel.setDossierPdfUrl(domain + "/api/application/fullPdf/" + apartmentSharingModel.getToken());
         }
         var isDossierUser = SecurityContextHolder.getContext().getAuthentication().getAuthorities().contains(new SimpleGrantedAuthority("SCOPE_dossier"));
         var filePath = isDossierUser ? "/api/file/resource/" : "/api-partner/tenant/" + tenantModel.getId() + "/file/resource/";
@@ -138,12 +138,12 @@ public abstract class TenantMapper {
     void modificationsAfterMapping(@MappingTarget ConnectedTenantModel.ConnectedTenantModelBuilder connectedTenantModelBuilder) {
         ConnectedTenantModel connectedTenantModel = connectedTenantModelBuilder.build();
         fr.dossierfacile.api.front.model.dfc.apartment_sharing.ApartmentSharingModel apartmentSharingModel = connectedTenantModel.getApartmentSharing();
-        if (apartmentSharingModel.getStatus() != TenantFileStatus.VALIDATED) {
+        if (apartmentSharingModel.getStatus() == TenantFileStatus.VALIDATED) {
+            apartmentSharingModel.setDossierPdfUrl(domain + DOSSIER_PDF_PATH + apartmentSharingModel.getToken());
+            apartmentSharingModel.setDossierUrl(tenantDomain + DOSSIER_PATH + apartmentSharingModel.getToken());
+        } else {
             apartmentSharingModel.setToken(null);
             apartmentSharingModel.setTokenPublic(null);
-        }
-        if (apartmentSharingModel.getStatus() == TenantFileStatus.VALIDATED) {
-            apartmentSharingModel.setDossierPdfUrl(domain + "/api/application/fullPdf/" + apartmentSharingModel.getToken());
         }
         connectedTenantModel.getApartmentSharing().getTenants().forEach(tenantModel -> setDocumentDeniedReasonsAndDocumentRoutesForDFC(tenantModel.getDocuments()));
         connectedTenantModel.getApartmentSharing().getTenants().forEach(tenantModel ->
