@@ -21,10 +21,9 @@ public class ConnectionContextFilter extends AbstractConnectionContextFilter {
     @Override
     public Map<String, String> getAdditionalContextElements() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || authentication.getPrincipal() == null) {
+        if (authentication == null || authentication.getPrincipal() == null || !(authentication.getPrincipal() instanceof Jwt principal)) {
             return Map.of();
         }
-        Jwt principal = (Jwt) authentication.getPrincipal();
         Map<String, String> map = new TreeMap<>();
         map.put(EMAIL, principal.getClaimAsString("email"));
         return map;
