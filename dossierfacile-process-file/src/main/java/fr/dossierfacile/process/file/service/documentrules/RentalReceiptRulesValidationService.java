@@ -65,8 +65,21 @@ public class RentalReceiptRulesValidationService implements RulesValidationServi
                         List.of(yearMonth.minusMonths(2), yearMonth.minusMonths(3), yearMonth.minusMonths(4)));
     }
 
+    private List<List<YearMonth>> getGuarantorExpectedMonthsLists() {
+        LocalDate localDate = LocalDate.now();
+        YearMonth yearMonth = YearMonth.now();
+        return (localDate.getDayOfMonth() <= 15) ?
+                List.of(
+                        List.of(yearMonth.minusMonths(1)),
+                        List.of(yearMonth.minusMonths(2)),
+                        List.of(yearMonth.minusMonths(3))) :
+                List.of(
+                        List.of(yearMonth.minusMonths(1)),
+                        List.of(yearMonth.minusMonths(2)));
+    }
+
     private boolean checkMonthsValidityRule(Document document) {
-        List<List<YearMonth>> expectedMonthsList = getExpectedMonthsLists();
+        List<List<YearMonth>> expectedMonthsList = (document.getTenant() != null) ? getExpectedMonthsLists() : getGuarantorExpectedMonthsLists();
 
         List<YearMonth> presentMonths = document.getFiles().stream()
                 .map(file -> ((RentalReceiptFile) file.getParsedFileAnalysis().getParsedFile()).getPeriod())
