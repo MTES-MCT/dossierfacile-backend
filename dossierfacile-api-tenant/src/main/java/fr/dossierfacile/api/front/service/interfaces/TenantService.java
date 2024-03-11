@@ -34,4 +34,6 @@ public interface TenantService {
     void sendFileByMail(Tenant tenant, String email, String shareType);
 
     void doNotArchive(String token);
+
+    void addCommentAnalysis(Tenant tenant, Long documentId, String comment);
 }

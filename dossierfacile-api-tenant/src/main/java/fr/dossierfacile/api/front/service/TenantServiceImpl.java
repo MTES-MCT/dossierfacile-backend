@@ -14,9 +14,11 @@ import fr.dossierfacile.api.front.service.interfaces.UserApiService;
 import fr.dossierfacile.api.front.util.Obfuscator;
 import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.*;
+import fr.dossierfacile.common.exceptions.NotFoundException;
 import fr.dossierfacile.common.model.TenantUpdate;
 import fr.dossierfacile.common.repository.ApartmentSharingLinkRepository;
 import fr.dossierfacile.common.repository.ApartmentSharingRepository;
+import fr.dossierfacile.common.repository.DocumentAnalysisReportRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.ConfirmationTokenService;
 import fr.dossierfacile.common.service.interfaces.LogService;
@@ -32,6 +34,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -48,6 +51,7 @@ public class TenantServiceImpl implements TenantService {
     private final TenantCommonRepository tenantRepository;
     private final KeycloakService keycloakService;
     private final UserApiService userApiService;
+    private final DocumentAnalysisReportRepository documentAnalysisReportRepository;
 
     @Override
     public <T> TenantModel saveStepRegister(Tenant tenant, T formStep, StepRegister step) {
@@ -181,6 +185,17 @@ public class TenantServiceImpl implements TenantService {
             url = "/public-file/" + apartmentSharingLink.getToken();
         }
         mailService.sendFileByMail(url, email, tenant.getFirstName(), tenant.getFullName(), tenant.getEmail());
+    }
+
+    @Override
+    public void addCommentAnalysis(Tenant tenant, Long documentId, String comment) {
+        Document selectedDocument = tenant.getDocuments().stream().filter(document -> document.getId().equals(documentId)).findAny().orElseThrow(() -> new TenantNotFoundException(tenant.getId()));
+        DocumentAnalysisReport documentAnalysisReport = selectedDocument.getDocumentAnalysisReport();
+        if (documentAnalysisReport == null) {
+            throw new NotFoundException();
+        }
+        documentAnalysisReport.setComment(comment);
+        documentAnalysisReportRepository.save(documentAnalysisReport);
     }
 
     @Override
