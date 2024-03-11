@@ -30,5 +30,6 @@ public class MessageItem {
     private List<DisplayableFile> analyzedFiles = new ArrayList<>();
     private Boolean avisDetected;
     private DocumentDeniedReasons previousDeniedReasons;
+    private String analysisReportComment;
 
 }
