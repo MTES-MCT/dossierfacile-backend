@@ -42,8 +42,10 @@ public class RentalReceiptRulesValidationService implements RulesValidationServi
             ParsedFileAnalysis analysis = dfFile.getParsedFileAnalysis();
             RentalReceiptFile parsedFile = (RentalReceiptFile) analysis.getParsedFile();
 
-            if (users.stream().noneMatch((user) -> PersonNameComparator.bearlyEqualsTo(parsedFile.getTenantFullName(), user.getLastName(), user.getFirstName())
-                    || PersonNameComparator.bearlyEqualsTo(parsedFile.getTenantFullName(), user.getPreferredName(), user.getFirstName()))) {
+            String fullName = parsedFile.getTenantFullName().toUpperCase().replaceFirst("^(M. |MR |MME |MLLE |MONSIEUR |MADAME |MADEMOISELLE )", "");
+
+            if (users.stream().noneMatch((user) -> PersonNameComparator.bearlyEqualsTo(fullName, user.getLastName(), user.getFirstName())
+                    || PersonNameComparator.bearlyEqualsTo(fullName, user.getPreferredName(), user.getFirstName()))) {
                 return false;
             }
         }
