@@ -51,6 +51,7 @@
             <includeMdcKeyName>user</includeMdcKeyName>
             <includeMdcKeyName>email</includeMdcKeyName>
             <includeMdcKeyName>request_id</includeMdcKeyName>
+            <includeMdcKeyName>response_status</includeMdcKeyName>
         </encoder>
     </appender>
 
