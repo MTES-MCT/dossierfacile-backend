@@ -5,4 +5,6 @@ import fr.dossierfacile.common.entity.User;
 
 public interface ConfirmationTokenService {
     ConfirmationToken createToken(User user);
+
+    ConfirmationToken findByToken(String token);
 }
