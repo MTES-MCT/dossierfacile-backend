@@ -12,15 +12,8 @@ import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.service.interfaces.UserApiService;
 import fr.dossierfacile.api.front.util.Obfuscator;
-import fr.dossierfacile.common.entity.ApartmentSharing;
-import fr.dossierfacile.common.entity.ApartmentSharingLink;
-import fr.dossierfacile.common.entity.Tenant;
-import fr.dossierfacile.common.entity.UserApi;
-import fr.dossierfacile.common.enums.ApartmentSharingLinkType;
-import fr.dossierfacile.common.enums.LogType;
-import fr.dossierfacile.common.enums.PartnerCallBackType;
-import fr.dossierfacile.common.enums.TenantFileStatus;
-import fr.dossierfacile.common.enums.TenantType;
+import fr.dossierfacile.common.entity.*;
+import fr.dossierfacile.common.enums.*;
 import fr.dossierfacile.common.model.TenantUpdate;
 import fr.dossierfacile.common.repository.ApartmentSharingLinkRepository;
 import fr.dossierfacile.common.repository.ApartmentSharingRepository;
@@ -30,6 +23,7 @@ import fr.dossierfacile.common.service.interfaces.LogService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -61,17 +55,30 @@ public class TenantServiceImpl implements TenantService {
     }
 
     @Override
-    public void updateLastLoginDateAndResetWarnings(Tenant tenant) {
-        tenant.setLastLoginDate(LocalDateTime.now());
-        tenant.setWarnings(0);
-        if (tenant.getStatus() == TenantFileStatus.ARCHIVED) {
-            tenant.setStatus(TenantFileStatus.INCOMPLETE);
-            partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.RETURNED_ACCOUNT);
+    public void updateLastLoginDateAndResetWarnings(Tenant tenantToUpdate) {
+        LocalDateTime currentTime = LocalDateTime.now();
+        for (Tenant tenant : tenantToUpdate.getApartmentSharing().getTenants()) {
+            if (tenant.getId() == tenantToUpdate.getId() || StringUtils.isBlank(tenant.getEmail())) {
+                tenant.setLastLoginDate(currentTime);
+                tenant.setWarnings(0);
+                if (tenant.getStatus() == TenantFileStatus.ARCHIVED) {
+                    tenant.setStatus(TenantFileStatus.INCOMPLETE);
+                    partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.RETURNED_ACCOUNT);
+                }
+                log.info("Updating last_login_date of tenant with ID [" + tenant.getId() + "]");
+                tenantRepository.save(tenant);
+            }
         }
-        log.info("Updating last_login_date of tenant with ID [" + tenant.getId() + "]");
-        tenantRepository.save(tenant);
     }
-
+    @Override
+    @Transactional
+    public void doNotArchive(String token) {
+        ConfirmationToken confirmationToken = confirmationTokenService.findByToken(token);
+        Tenant tenant = tenantRepository.getReferenceById(confirmationToken.getUser().getId());
+        tenant.setConfirmationToken(null);
+        updateLastLoginDateAndResetWarnings(tenant);
+        logService.saveLog(LogType.DO_NOT_ARCHIVE, tenant.getId());
+    }
     @Override
     @Transactional
     public Tenant create(Tenant tenant) {

@@ -32,4 +32,6 @@ public interface TenantService {
     List<TenantUpdate> findTenantUpdateByLastUpdateAndPartner(LocalDateTime from, UserApi userApi, Long limit, boolean includeDeleted, boolean includeRevoked);
 
     void sendFileByMail(Tenant tenant, String email, String shareType);
+
+    void doNotArchive(String token);
 }

@@ -41,7 +41,6 @@ public class RegisterController {
 
     private final TenantMapper tenantMapper;
     private final TenantService tenantService;
-    private final UserService userService;
     private final AuthenticationFacade authenticationFacade;
     private final LogService logService;
 
@@ -50,13 +49,6 @@ public class RegisterController {
         TenantModel tenantModel = tenantService.saveStepRegister(null, accountForm, StepRegister.ACCOUNT);
         logService.saveLog(LogType.ACCOUNT_CREATED, tenantModel.getId());
         return ok(tenantModel);
-    }
-
-    @GetMapping("/confirmAccount/{token}")
-    public ResponseEntity<Void> confirmAccount(@PathVariable String token) {
-        long tenantId = userService.confirmAccount(token);
-        logService.saveLog(LogType.EMAIL_ACCOUNT_VALIDATED, tenantId);
-        return ok().build();
     }
 
     @PreAuthorize("hasPermissionOnTenant(#namesForm.tenantId)")
