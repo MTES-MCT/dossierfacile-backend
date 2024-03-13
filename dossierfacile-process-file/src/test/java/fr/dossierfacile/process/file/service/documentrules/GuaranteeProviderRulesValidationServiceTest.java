@@ -13,12 +13,12 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedList;
 
 class GuaranteeProviderRulesValidationServiceTest {
 
-    private GuaranteeProviderRulesValidationService guaranteeProviderRulesValidationService = new GuaranteeProviderRulesValidationService();
+    private final GuaranteeProviderRulesValidationService guaranteeProviderRulesValidationService = new GuaranteeProviderRulesValidationService();
 
     Document buildGuaranteeProviderFile() throws JsonProcessingException {
         Tenant tenant = Tenant.builder()
@@ -59,7 +59,7 @@ class GuaranteeProviderRulesValidationServiceTest {
                 .guarantor(Guarantor.builder().tenant(tenant).build())
                 .documentCategory(DocumentCategory.IDENTIFICATION)
                 .documentSubCategory(DocumentSubCategory.OTHER_GUARANTEE)
-                .files(Arrays.asList(dfFile))
+                .files(Collections.singletonList(dfFile))
                 .build();
     }
 
@@ -92,6 +92,22 @@ class GuaranteeProviderRulesValidationServiceTest {
         Assertions.assertThat(report.getAnalysisStatus()).isEqualTo(DocumentAnalysisStatus.DENIED);
         Assertions.assertThat(report.getBrokenRules()).hasSize(1);
         Assertions.assertThat(report.getBrokenRules().get(0)).matches(docRule -> docRule.getRule() == DocumentRule.R_GUARANTEE_EXPIRED);
+    }
+
+    @Test
+    void document_valid_preferredname() throws Exception {
+        Document document = buildGuaranteeProviderFile();
+        document.getGuarantor().getTenant().setLastName("NAKAMURA");
+        document.getGuarantor().getTenant().setPreferredName("KALOUF");
+        ((GuaranteeProviderFile) document.getFiles().get(0).getParsedFileAnalysis().getParsedFile())
+                .setValidityDate(LocalDate.now().plusDays(15).format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+        DocumentAnalysisReport report = DocumentAnalysisReport.builder()
+                .document(document)
+                .brokenRules(new LinkedList<>())
+                .build();
+        guaranteeProviderRulesValidationService.process(document, report);
+
+        Assertions.assertThat(report.getAnalysisStatus()).isEqualTo(DocumentAnalysisStatus.CHECKED);
     }
 
     @Test

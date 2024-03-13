@@ -27,7 +27,7 @@ public abstract class AbstractPDFImageParser<T extends ParsedFile> extends Abstr
             this.tesseract = new Tesseract();
             this.tesseract.setLanguage("fra+eng");
             this.tesseract.setOcrEngineMode(ITessAPI.TessOcrEngineMode.OEM_LSTM_ONLY);
-            this.tesseract.setVariable("user_defined_dpi", "128");
+            this.tesseract.setVariable("user_defined_dpi", "300");
         }
     }
 

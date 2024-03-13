@@ -2,6 +2,7 @@ package fr.dossierfacile.common.service;
 
 import fr.dossierfacile.common.entity.ConfirmationToken;
 import fr.dossierfacile.common.entity.User;
+import fr.dossierfacile.common.exceptions.ConfirmationTokenNotFoundException;
 import fr.dossierfacile.common.repository.ConfirmationTokenRepository;
 import fr.dossierfacile.common.service.interfaces.ConfirmationTokenService;
 import lombok.AllArgsConstructor;
@@ -18,5 +19,10 @@ public class ConfirmationTokenServiceImpl implements ConfirmationTokenService {
         ConfirmationToken confirmationToken = confirmationTokenRepository.findByUser(user).orElse(new ConfirmationToken(user));
         confirmationToken.refreshToken();
         return confirmationTokenRepository.save(confirmationToken);
+    }
+
+    @Override
+    public ConfirmationToken findByToken(String token) {
+        return confirmationTokenRepository.findByToken(token).orElseThrow(() -> new ConfirmationTokenNotFoundException(token));
     }
 }

@@ -199,10 +199,6 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
     )
     List<Tenant> findAllTenantsValidatedSinceXDaysAgo(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 
-    @Modifying
-    @Query("UPDATE Tenant t SET t.warnings = 0 where t.id = :tenantId")
-    void resetWarnings(@Param("tenantId") Long tenantId);
-
     List<Tenant> findAllByApartmentSharing(ApartmentSharing apartmentSharing);
 
     List<Tenant> findByEmailInAndApartmentSharingNot(List<String> coTenantEmail, ApartmentSharing apartmentSharing);

@@ -84,4 +84,9 @@ public class TenantController {
         }
         return ok("");
     }
+    @GetMapping("/doNotArchive/{token}")
+    public ResponseEntity<Void> doNotArchive(@PathVariable String token) {
+        tenantService.doNotArchive(token);
+        return ok().build();
+    }
 }
