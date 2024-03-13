@@ -120,7 +120,7 @@ public class KeycloakServiceImpl implements KeycloakService {
         var userRepresentation = new UserRepresentation();
         userRepresentation.setEmail(email);
         userRepresentation.setUsername(email);
-        userRepresentation.setEnabled(false);
+        userRepresentation.setEnabled(true);
         userRepresentation.setEmailVerified(false);
         return userRepresentation;
     }
