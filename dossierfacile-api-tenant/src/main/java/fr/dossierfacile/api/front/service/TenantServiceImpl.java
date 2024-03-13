@@ -192,9 +192,14 @@ public class TenantServiceImpl implements TenantService {
         Document selectedDocument = tenant.getDocuments().stream().filter(document -> document.getId().equals(documentId)).findAny().orElseThrow(() -> new TenantNotFoundException(tenant.getId()));
         DocumentAnalysisReport documentAnalysisReport = selectedDocument.getDocumentAnalysisReport();
         if (documentAnalysisReport == null) {
+            // TODO : check for guarantor documents
             throw new NotFoundException();
         }
-        documentAnalysisReport.setComment(comment);
+        if (StringUtils.isBlank(comment)) {
+            documentAnalysisReport.setComment(null);
+        } else {
+            documentAnalysisReport.setComment(comment);
+        }
         documentAnalysisReportRepository.save(documentAnalysisReport);
     }
 
