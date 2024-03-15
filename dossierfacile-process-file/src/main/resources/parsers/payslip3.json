@@ -1,0 +1,58 @@
+{
+  "page": {
+    "width": "892",
+    "maxPageCount": 2
+  },
+  "classification": {
+    "name": "PAYSLIP_STD3"
+  },
+  "matchingZones": [
+    {
+      "name": "payslipNameLabel",
+      "rect": "459,12,297,38",
+      "matches": "BULLETIN DE PAIE"
+    },
+    {
+      "name": "numDeSalarieLabel",
+      "rect": "459,70,93,19",
+      "matches": "NO DE SALARIE"
+    },
+    {
+      "name": "periodeEmploiLabel",
+      "rect": "460,88,102,19",
+      "matches": "PERIODE D['’ ]?EMPLOI"
+    },
+    {
+      "name": "designationLabel",
+      "rect": "153,423,93,22",
+      "matches": "DESIGNATION"
+    },
+    {
+      "name": "netIncomeLabel",
+      "rect": "27,946,282,20",
+      "matches": "NET A PAYER AVANT IMPOT SUR LE REVENU"
+    }
+  ],
+  "zones": [
+    {
+      "name": "address",
+      "rect": "459,220,392,121",
+      "format": "address"
+    },
+    {
+      "name": "periodLastDay",
+      "rect": "602,107,113,17",
+      "format": "JJ MMMM AAAA",
+      "info": "ex: 30 JUIN 2023"
+    },
+    {
+      "name": "netIncome",
+      "rect": "569,942,76,22"
+    },
+    {
+      "name": "entryDate",
+      "rect": "766,383,77,10",
+      "format" : "dd/MM/yyyy"
+    }
+  ]
+}
