@@ -49,7 +49,7 @@ public abstract class AbstractPDFParser<T extends ParsedFile> implements FilePar
             return result;
 
         } catch (Exception e) {
-            log.error("Unable to parse");
+            log.error("Unable to parse", e);
             throw new RuntimeException(e);
         }
     }
