@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 public abstract class AbstractPDFImageParser<T extends ParsedFile> extends AbstractSinglePageImageOcrParser<T> implements FileParser<T> {
@@ -41,7 +42,13 @@ public abstract class AbstractPDFImageParser<T extends ParsedFile> extends Abstr
                 Map<String, String> extractedTexts = new HashMap<>();
                 double scale = image.getWidth() / model.getDefaultWidth();
                 for (Map.Entry<String, Rectangle> entry : model.getNamedZones(scale).entrySet()) {
-                    extractedTexts.put(entry.getKey(), this.tesseract.doOCR(image, entry.getValue()));
+                    Rectangle rect = entry.getValue();
+                    if (image.getWidth() < (rect.x + rect.width)
+                            || image.getHeight() < (rect.y + rect.height)) {
+                        // rectangle exceeds image size
+                        return null;
+                    }
+                    extractedTexts.put(entry.getKey(), this.tesseract.doOCR(image, rect));
                 }
                 return getResultFromExtraction(extractedTexts);
             }
@@ -56,13 +63,19 @@ public abstract class AbstractPDFImageParser<T extends ParsedFile> extends Abstr
     protected boolean modelMatches(PageExtractorModel model, BufferedImage image) throws IOException {
         double scale = image.getWidth() / model.getDefaultWidth();
 
-        List<PageExtractorModel.Zone> matchingZones = model.getMatchingZones(scale).stream()
+        List<PageExtractorModel.Zone> matchingZones = Optional.ofNullable(model.getMatchingZones(scale))
+                .orElse(List.of())
+                .stream()
                 .filter(zone -> zone.pageFilter() == null)
                 .toList();
         if (!CollectionUtils.isEmpty(matchingZones)) {
             return matchingZones.stream().allMatch(
                     (zone) -> {
                         try {
+                            if (image.getWidth() < (zone.rect().x + zone.rect().width)
+                                    || image.getHeight() < (zone.rect().y + zone.rect().height))
+                                return false;
+
                             String text = this.tesseract.doOCR(image, zone.rect());
                             return text != null && text.trim().matches(zone.regexp());
                         } catch (Exception e) {

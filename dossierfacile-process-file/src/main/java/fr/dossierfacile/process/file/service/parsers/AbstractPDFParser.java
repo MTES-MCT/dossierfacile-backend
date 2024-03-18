@@ -14,6 +14,7 @@ import org.springframework.util.CollectionUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -57,7 +58,9 @@ public abstract class AbstractPDFParser<T extends ParsedFile> implements FilePar
     protected boolean modelMatches(PageExtractorModel model, PDPage page, int pageNumber) throws IOException {
         double scale = page.getMediaBox().getWidth() / model.getDefaultWidth();
 
-        List<PageExtractorModel.Zone> matchingZones = model.getMatchingZones(scale).stream()
+        List<PageExtractorModel.Zone> matchingZones = Optional.ofNullable(model.getMatchingZones(scale))
+                .orElse(List.of())
+                .stream()
                 .filter(zone -> zone.pageFilter() == null)
                 .toList();
         if (!CollectionUtils.isEmpty(matchingZones)) {
