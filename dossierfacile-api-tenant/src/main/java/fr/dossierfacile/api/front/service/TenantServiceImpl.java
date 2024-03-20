@@ -34,7 +34,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -187,12 +186,35 @@ public class TenantServiceImpl implements TenantService {
         mailService.sendFileByMail(url, email, tenant.getFirstName(), tenant.getFullName(), tenant.getEmail());
     }
 
+    private Document getDocumentManagedByTenant(Tenant tenant, Long documentId) {
+        Document tenantSelectedDocument = tenant.getDocuments().stream().filter(document -> document.getId().equals(documentId)).findAny().orElseThrow(() -> new TenantNotFoundException(tenant.getId()));
+        if (tenantSelectedDocument != null) {
+            return tenantSelectedDocument;
+        }
+        for (Guarantor guarantor : tenant.getGuarantors()) {
+            Document guarantorSelectedDocument = guarantor.getDocuments().stream().filter(document -> document.getId().equals(documentId)).findAny().orElseThrow(() -> new TenantNotFoundException(tenant.getId()));
+            if (guarantorSelectedDocument != null) {
+                return guarantorSelectedDocument;
+            }
+        }
+        if (tenant.getApartmentSharing().getApplicationType().equals(ApplicationType.COUPLE) && tenant.getTenantType().equals(TenantType.CREATE)) {
+            var couple = tenant.getApartmentSharing().getTenants().stream().filter(t -> !t.getId().equals(tenant.getId())).findAny();
+            if (couple.isPresent()) {
+                return getDocumentManagedByTenant(couple.get(), documentId);
+            }
+        }
+
+        return null;
+    }
+
     @Override
     public void addCommentAnalysis(Tenant tenant, Long documentId, String comment) {
-        Document selectedDocument = tenant.getDocuments().stream().filter(document -> document.getId().equals(documentId)).findAny().orElseThrow(() -> new TenantNotFoundException(tenant.getId()));
+        Document selectedDocument = getDocumentManagedByTenant(tenant, documentId);
+        if (selectedDocument == null) {
+            throw new NotFoundException();
+        }
         DocumentAnalysisReport documentAnalysisReport = selectedDocument.getDocumentAnalysisReport();
         if (documentAnalysisReport == null) {
-            // TODO : check for guarantor documents
             throw new NotFoundException();
         }
         if (StringUtils.isBlank(comment)) {
