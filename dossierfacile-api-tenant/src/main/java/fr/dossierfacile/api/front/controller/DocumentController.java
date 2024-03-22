@@ -84,6 +84,9 @@ public class DocumentController {
         } catch (Exception e) {
             return badRequest().build();
         }
+        if (commentAnalysisForm.getTenantId() != null) {
+            return ok(tenantMapper.toTenantModel(authenticationFacade.getTenant(null)));
+        }
         return ok(tenantMapper.toTenantModel(tenant));
     }
 }
