@@ -187,12 +187,12 @@ public class TenantServiceImpl implements TenantService {
     }
 
     private Document getDocumentManagedByTenant(Tenant tenant, Long documentId) {
-        Document tenantSelectedDocument = tenant.getDocuments().stream().filter(document -> document.getId().equals(documentId)).findAny().orElseThrow(() -> new TenantNotFoundException(tenant.getId()));
+        Document tenantSelectedDocument = tenant.getDocuments().stream().filter(document -> document.getId().equals(documentId)).findAny().orElse(null);
         if (tenantSelectedDocument != null) {
             return tenantSelectedDocument;
         }
         for (Guarantor guarantor : tenant.getGuarantors()) {
-            Document guarantorSelectedDocument = guarantor.getDocuments().stream().filter(document -> document.getId().equals(documentId)).findAny().orElseThrow(() -> new TenantNotFoundException(tenant.getId()));
+            Document guarantorSelectedDocument = guarantor.getDocuments().stream().filter(document -> document.getId().equals(documentId)).findAny().orElse(null);
             if (guarantorSelectedDocument != null) {
                 return guarantorSelectedDocument;
             }
