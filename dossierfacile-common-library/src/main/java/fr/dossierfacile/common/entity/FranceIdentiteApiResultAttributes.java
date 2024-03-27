@@ -16,10 +16,10 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class FranceIdentiteApiResult implements ParsedFile {
-    @Builder.Default
-    ParsedFileClassification classification = ParsedFileClassification.FRANCE_IDENTITE;
-    ParsedStatus parsedStatus;
-    String status;
-    FranceIdentiteApiResultAttributes attributes;
+public class FranceIdentiteApiResultAttributes {
+    String familyName;
+    String givenName;
+    String birthDate;
+    String birthPlace;
+    String validityDate;
 }
