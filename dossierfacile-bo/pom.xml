@@ -31,6 +31,7 @@
         <thymeleaf.version>3.0.15.RELEASE</thymeleaf.version>
         <commonmark.version>0.21.0</commonmark.version>
         <spring-security.version>5.8.9</spring-security.version>
+        <keycloak.version>21.1.2</keycloak.version>
     </properties>
 
     <dependencyManagement>
@@ -44,11 +45,6 @@
                 <groupId>org.apache.logging.log4j</groupId>
                 <artifactId>log4j-api</artifactId>
                 <version>2.17.1</version>
-            </dependency>
-            <dependency>
-                <groupId>com.nimbusds</groupId>
-                <artifactId>nimbus-jose-jwt</artifactId>
-                <version>9.37.2</version>
             </dependency>
             <dependency>
                 <groupId>org.jboss.resteasy</groupId>
@@ -87,7 +83,7 @@
         <dependency>
             <groupId>org.keycloak</groupId>
             <artifactId>keycloak-admin-client</artifactId>
-            <version>13.0.1</version>
+            <version>${keycloak.version}</version>
         </dependency>
         <dependency>
             <groupId>fr.dossierfacile</groupId>
