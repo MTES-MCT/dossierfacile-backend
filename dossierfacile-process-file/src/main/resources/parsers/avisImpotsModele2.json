@@ -1,0 +1,79 @@
+{
+  "page": {
+    "width": "892",
+    "maxPageCount": 6
+  },
+  "classification": {
+    "name": "TAX_ASSESSMENT_2022"
+  },
+  "matchingZones": [
+    {
+      "name": "title1",
+      "rect": "189,26,380,21",
+      "matches": "DIRECTION G.?N.?RALE DES FINANCES PUBLIQUES",
+      "comments": ""
+    },
+    {
+      "name": "title2",
+      "rect": "188,44,562,28",
+      "matches": "Imp.?t et pr.?l.?vements sociaux sur les revenus de \\d{4}",
+      "comments": ""
+    },
+    {
+      "name": "title3",
+      "rect": "189,68,248,26",
+      "matches": "Avis d.?imp.?t .?tabli en \\d{4}",
+      "comments": ""
+    },
+
+
+    {
+      "name": "references",
+      "rect": "57,239,149,22",
+      "matches": "Vos références",
+      "comments": "text"
+    },
+    {
+      "name": "docReference",
+      "rect": "754,45,64,16",
+      "matches": "AVIS[_ ]IR[_ ]RG",
+      "comments": "text"
+    }
+  ],
+  "zones": [
+    {
+      "name": "revenuFiscal",
+      "rect": "686,890,123,24",
+      "comments": ""
+    },
+    {
+      "name": "nbParts",
+      "rect": "720,914,88,23",
+      "comments": ""
+    },
+
+    {
+      "name": "nameAndAddressZone",
+      "rect": "420,250,360,130"
+    },
+    {
+      "name": "declarant1NumFiscal",
+      "rect": "179,268,136,22",
+      "comments": ""
+    },
+    {
+      "name": "declarant2NumFiscal",
+      "rect": "179,292,136,22",
+      "comments": ""
+    },
+    {
+      "name": "incomeYear",
+      "rect": "692,43,55,26",
+      "comments": ""
+    },
+    {
+      "name": "referenceAvis",
+      "rect": "181,317,132,20"
+    }
+  ]
+}

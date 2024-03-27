@@ -26,7 +26,7 @@ import static fr.dossierfacile.common.enums.DocumentSubCategory.TENANT;
 @Slf4j
 @RequiredArgsConstructor
 @Order(4)
-public class RentalReceipt3FParser extends AbstractPDFImageParser<RentalReceiptFile> implements FileParser<RentalReceiptFile> {
+public class RentalReceipt3FParser extends AbstractImagesParser<RentalReceiptFile> implements FileParser<RentalReceiptFile> {
 
     private static final Pattern periodPattern = Pattern.compile("Période du (\\d{2}/\\d{2}/\\d{4}) au (\\d{2}/\\d{2}/\\d{4}).*");
     private static final Pattern amountBalancePattern = Pattern.compile("Votre Solde au \\d{2}/\\d{2}/\\d{4}\s+(\\d[ \\d,.]+)€.*");

@@ -24,7 +24,7 @@ import static fr.dossierfacile.common.enums.DocumentSubCategory.VISALE;
 @Slf4j
 @RequiredArgsConstructor
 @Order(3)
-public class GuaranteeVisaleParser extends AbstractPDFImageParser<GuaranteeProviderFile> implements FileParser<GuaranteeProviderFile> {
+public class GuaranteeVisaleParser extends AbstractImagesParser<GuaranteeProviderFile> implements FileParser<GuaranteeProviderFile> {
 
     @Override
     protected String getJsonModelFile() {

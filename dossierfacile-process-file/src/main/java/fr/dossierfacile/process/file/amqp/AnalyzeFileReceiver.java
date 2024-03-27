@@ -37,6 +37,7 @@ public class AnalyzeFileReceiver {
         try {
             analysis.get(analysisTimeoutInSeconds, TimeUnit.SECONDS);
         } catch (TimeoutException e) {
+            log.warn("Try to cancel");
             analysis.cancel(true);
             log.warn("Analysis cancelled because timeout was reached");
         } catch (Exception e) {
