@@ -25,6 +25,7 @@
         <pdfbox.tools.version>3.0.0</pdfbox.tools.version>
         <springdoc.version>1.7.0</springdoc.version>
         <spring-security.version>5.8.9</spring-security.version>
+        <keycloak.version>21.1.2</keycloak.version>
     </properties>
 
     <dependencyManagement>
@@ -70,7 +71,7 @@
         <dependency>
             <groupId>org.keycloak</groupId>
             <artifactId>keycloak-admin-client</artifactId>
-            <version>13.0.1</version>
+            <version>${keycloak.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
