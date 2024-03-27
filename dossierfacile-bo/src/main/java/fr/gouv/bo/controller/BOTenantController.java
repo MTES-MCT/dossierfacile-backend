@@ -275,6 +275,7 @@ public class BOTenantController {
                         .documentName(document.getName())
                         .analyzedFiles(DisplayableFile.onlyAnalyzedFilesOf(document))
                         .previousDeniedReasons(documentDeniedReasonsService.getLastDeniedReason(document, tenant).orElse(null))
+                        .analysisReportComment(document.getDocumentAnalysisReport() != null && "DENIED".equals(document.getDocumentAnalysisReport().getAnalysisStatus().name())  ? document.getDocumentAnalysisReport().getComment() : null)
                         .build());
             }
         }

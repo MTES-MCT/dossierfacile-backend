@@ -1,5 +1,6 @@
 package fr.dossierfacile.common.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,20 +27,18 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class DocumentAnalysisReport {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     @OneToOne(targetEntity = Document.class, fetch = FetchType.LAZY)
     @JoinColumn(name = "document_id")
+    @JsonIgnore
     private Document document;
-
     @Enumerated(EnumType.STRING)
     private DocumentAnalysisStatus analysisStatus;
-
     @Type(type = "jsonb")
     @Column(columnDefinition = "jsonb")
     private List<DocumentBrokenRule> brokenRules;
+    private String comment;
 
 }
