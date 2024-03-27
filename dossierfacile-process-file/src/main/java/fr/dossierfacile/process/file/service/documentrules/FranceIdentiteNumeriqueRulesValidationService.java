@@ -50,9 +50,9 @@ public class FranceIdentiteNumeriqueRulesValidationService implements RulesValid
                 // Parse Rule
                 if (parsedDocument == null
                         || parsedDocument.getStatus() == null
-                        || parsedDocument.getFamilyName() == null
-                        || parsedDocument.getGivenName() == null
-                        || parsedDocument.getValidityDate() == null) {
+                        || parsedDocument.getAttributes().getFamilyName() == null
+                        || parsedDocument.getAttributes().getGivenName() == null
+                        || parsedDocument.getAttributes().getValidityDate() == null) {
                     brokenRules.add(DocumentBrokenRule.builder()
                             .rule(DocumentRule.R_FRANCE_IDENTITE_STATUS)
                             .message(DocumentRule.R_FRANCE_IDENTITE_STATUS.getDefaultMessage())
@@ -72,9 +72,9 @@ public class FranceIdentiteNumeriqueRulesValidationService implements RulesValid
                 // TODO : check that France Identité verifies that names on pdf matches qrcode
                 Person documentOwner = Optional.ofNullable((Person) document.getTenant()).orElseGet(document::getGuarantor);
                 String firstName = documentOwner.getFirstName();
-                String lastName = document.getName();
-                if (!(normalizeName(parsedDocument.getGivenName()).contains(normalizeName(firstName))
-                        && (normalizeName(parsedDocument.getFamilyName()).contains(normalizeName(lastName)))
+                String lastName = documentOwner.getLastName();
+                if (!(normalizeName(parsedDocument.getAttributes().getGivenName()).contains(normalizeName(firstName))
+                        && (normalizeName(parsedDocument.getAttributes().getFamilyName()).contains(normalizeName(lastName)))
                 )) {
                     log.error("Le nom/prenom ne correpond pas à l'utilisateur tenantId:" + document.getTenant().getId() + " firstname: " + firstName);
                     brokenRules.add(DocumentBrokenRule.builder()
