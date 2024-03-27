@@ -1,11 +1,14 @@
 package fr.dossierfacile.process.file.service;
 
+import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.process.file.repository.FileRepository;
 import fr.dossierfacile.process.file.service.processors.BarCodeFileProcessor;
 import fr.dossierfacile.process.file.service.processors.FileParserProcessor;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -16,9 +19,10 @@ public class AnalyzeFile {
     private final FileRepository fileRepository;
 
     public void processFile(Long fileId) {
-        fileRepository.findById(fileId)
-                .map(barCodeFileProcessor::process)
-                .map(fileParserProcessor::process);
-
+        Optional<File> optFile = fileRepository.findById(fileId);
+        if (optFile.isPresent()) {
+            barCodeFileProcessor.process(optFile.get());
+            fileParserProcessor.process(optFile.get());
+        }
     }
 }
