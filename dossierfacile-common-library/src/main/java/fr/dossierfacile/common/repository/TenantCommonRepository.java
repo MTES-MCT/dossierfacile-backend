@@ -145,7 +145,7 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
 
     @Query("from Tenant t " +
             "join Log l on t.id = l.tenantId " +
-            "where t.honorDeclaration = false and l.logType = 'EMAIL_ACCOUNT_VALIDATED' and l.creationDateTime between :initDate and :endDate")
+            "where t.honorDeclaration = false and l.logType = 'ACCOUNT_EDITED' and l.creationDateTime between :initDate and :endDate")
     List<Tenant> findAllByHonorDeclarationIsFalseAndCompletionDateTimeIsBetween(@Param("initDate") LocalDateTime initDate, @Param("endDate") LocalDateTime endDate);
 
     @Query(
