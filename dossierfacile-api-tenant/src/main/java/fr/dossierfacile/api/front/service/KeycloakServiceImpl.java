@@ -5,6 +5,7 @@ import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.service.interfaces.KeycloakCommonService;
+import jakarta.ws.rs.NotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.admin.client.resource.RealmResource;
@@ -14,7 +15,6 @@ import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import javax.ws.rs.NotFoundException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;

@@ -2,6 +2,7 @@ package fr.dossierfacile.process.file.service.documentrules;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
@@ -21,6 +22,7 @@ class IncomeTaxRulesValidationServiceTest {
     private File buildValidDfFileWithYear(int year) throws JsonProcessingException {
         BarCodeFileAnalysis barCodeFileAnalysis = BarCodeFileAnalysis.builder()
                 .documentType(BarCodeDocumentType.TAX_ASSESSMENT)
+                .barCodeType(BarCodeType.TWO_D_DOC)
                 .verifiedData(
                         new ObjectMapper().readValue("""
                                        {
@@ -34,7 +36,7 @@ class IncomeTaxRulesValidationServiceTest {
                                          "Numéro fiscal du déclarant 2": "1234567890124",
                                          "Référence d’avis d’impôt": "2310A12345678"
                                        }                         
-                                """.replace("{2022}", String.valueOf(year)), Object.class)
+                                """.replace("{2022}", String.valueOf(year)), ObjectNode.class)
                 )
                 .build();
         return File.builder()

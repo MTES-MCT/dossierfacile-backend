@@ -51,8 +51,6 @@ import static fr.dossierfacile.common.enums.DocumentStatus.TO_PROCESS;
 @Slf4j
 public class Tenant extends User implements Person, Serializable {
 
-    private static final long serialVersionUID = -3603815939883106021L;
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

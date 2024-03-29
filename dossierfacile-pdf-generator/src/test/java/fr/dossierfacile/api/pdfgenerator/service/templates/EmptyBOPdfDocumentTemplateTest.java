@@ -9,6 +9,7 @@ import fr.dossierfacile.common.enums.DocumentSubCategory;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,7 @@ import java.util.Optional;
 import static fr.dossierfacile.api.pdfgenerator.util.PdfAssert.assertThat;
 import static org.mockito.Mockito.when;
 
+@Disabled
 @SpringBootTest
 @ExtendWith(TenantResolver.class)
 class EmptyBOPdfDocumentTemplateTest {

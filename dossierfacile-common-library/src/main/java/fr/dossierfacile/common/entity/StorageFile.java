@@ -1,7 +1,6 @@
 package fr.dossierfacile.common.entity;
 
 import fr.dossierfacile.common.entity.shared.AbstractAuditable;
-import io.hypersistence.utils.hibernate.type.array.ListArrayType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -51,7 +50,6 @@ public class StorageFile extends AbstractAuditable<String, Long> {
     @Enumerated(EnumType.STRING)
     protected ObjectStorageProvider provider;
 
-    @Type(ListArrayType.class)
     @Column(
             name = "providers",
             columnDefinition = "character varying[]"

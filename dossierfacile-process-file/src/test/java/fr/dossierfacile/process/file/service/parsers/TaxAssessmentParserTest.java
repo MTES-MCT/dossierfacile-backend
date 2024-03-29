@@ -21,8 +21,9 @@ class TaxAssessmentParserTest {
     }
     @Test
     void parse2() {
-        // Set lib path: System.setProperty("jna.library.path", "/usr/local/lib");
+        // Set lib path: System.setProperty("jna.library.path", "/opt/homebrew/lib");
         // Set to test environment: "TESSDATA_PREFIX","/usr/..../share/tessdata"
+        System.setProperty("jna.library.path", "/opt/homebrew/lib");
         File file = new File(this.getClass().getResource("/documents/tmpfake/tax_assessment_2022.pdf").getFile());
 
         var doc = taxAssessment2Parser.parse(file);

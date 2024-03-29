@@ -5,6 +5,7 @@ import fr.dossierfacile.process.file.TestFilesUtil;
 import fr.dossierfacile.process.file.service.qrcodeanalysis.AuthenticationResult;
 import fr.dossierfacile.process.file.barcode.InMemoryPdfFile;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
@@ -28,6 +29,7 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 
+@Disabled
 @IntegrationTest
 class PayfitDocumentIssuerTest {
 

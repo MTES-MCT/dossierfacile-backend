@@ -3,6 +3,7 @@ package fr.dossierfacile.common.service;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.ApartmentSharingLink;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.exceptions.NotFoundException;
 import fr.dossierfacile.common.model.ApartmentSharingLinkModel;
 import fr.dossierfacile.common.repository.ApartmentSharingLinkRepository;
 import fr.dossierfacile.common.service.interfaces.LinkLogService;
@@ -10,7 +11,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import javax.ws.rs.NotFoundException;
 import java.time.LocalDateTime;
 import java.util.List;
 

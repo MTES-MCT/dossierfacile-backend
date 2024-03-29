@@ -1,7 +1,6 @@
 package fr.dossierfacile.common.entity;
 
 import fr.dossierfacile.common.entity.shared.AbstractAuditable;
-import io.hypersistence.utils.hibernate.type.array.ListArrayType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -15,7 +14,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
-import org.hibernate.annotations.Type;
 
 import java.io.Serial;
 import java.util.ArrayList;
@@ -39,7 +37,6 @@ public class StorageFileToDelete extends AbstractAuditable<String, Long> {
 
     protected String path;
 
-    @Type(ListArrayType.class)
     @Column(
             name = "providers",
             columnDefinition = "character varying[]"

@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.2</version>
+        <version>3.2.4</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>fr.dossierfacile.api</groupId>
@@ -23,8 +23,7 @@
         <dossierfacile.common.version>0.0.1-SNAPSHOT</dossierfacile.common.version>
         <pdfbox.tools.version>3.0.0</pdfbox.tools.version>
         <springdoc.version>1.7.0</springdoc.version>
-        <spring-security.version>5.8.9</spring-security.version>
-        <keycloak.version>21.1.2</keycloak.version>
+        <keycloak.version>22.0.3</keycloak.version>
     </properties>
 
     <dependencyManagement>

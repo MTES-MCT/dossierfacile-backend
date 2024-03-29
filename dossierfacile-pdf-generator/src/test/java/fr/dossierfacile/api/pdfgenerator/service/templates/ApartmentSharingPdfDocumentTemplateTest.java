@@ -6,6 +6,7 @@ import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;

@@ -1,15 +1,7 @@
 package fr.dossierfacile.process.file.service.documentrules;
 
-import fr.dossierfacile.common.entity.BarCodeDocumentType;
-import fr.dossierfacile.common.entity.BarCodeFileAnalysis;
-import fr.dossierfacile.common.entity.Document;
-import fr.dossierfacile.common.entity.DocumentAnalysisReport;
-import fr.dossierfacile.common.entity.DocumentAnalysisStatus;
-import fr.dossierfacile.common.entity.DocumentBrokenRule;
-import fr.dossierfacile.common.entity.DocumentRule;
-import fr.dossierfacile.common.entity.File;
-import fr.dossierfacile.common.entity.ParsedFileAnalysis;
-import fr.dossierfacile.common.entity.Person;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.entity.ocr.TaxIncomeLeaf;
 import fr.dossierfacile.common.entity.ocr.TaxIncomeMainFile;
 import fr.dossierfacile.common.enums.DocumentCategory;
@@ -44,7 +36,10 @@ public class IncomeTaxRulesValidationService implements RulesValidationService {
     }
 
     private TaxIncomeMainFile fromQR(BarCodeFileAnalysis barCodeFileAnalysis) {
-        Map<String, String> dataWithLabel = (Map<String, String>) barCodeFileAnalysis.getVerifiedData();
+        if ( barCodeFileAnalysis.getBarCodeType() != BarCodeType.TWO_D_DOC){
+            throw new IllegalStateException("Verified Code has unsupported type");
+        }
+        Map<String, String> dataWithLabel = new ObjectMapper().convertValue(barCodeFileAnalysis.getVerifiedData(), Map.class);
         return TaxIncomeMainFile.builder()
                 .declarant1NumFiscal(dataWithLabel.get(TwoDDocDataType.ID_47.getLabel()))
                 .declarant1Nom(dataWithLabel.get(TwoDDocDataType.ID_46.getLabel()))

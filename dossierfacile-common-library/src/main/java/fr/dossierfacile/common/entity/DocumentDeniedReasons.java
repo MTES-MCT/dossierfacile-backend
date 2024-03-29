@@ -1,6 +1,5 @@
 package fr.dossierfacile.common.entity;
 
-import io.hypersistence.utils.hibernate.type.array.ListArrayType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -16,7 +15,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.Hibernate;
-import org.hibernate.annotations.Type;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -40,14 +38,12 @@ public class DocumentDeniedReasons implements Serializable {
     private Long id;
 
     @Builder.Default
-    @Type(ListArrayType.class)
     @Column(
             name = "checked_options",
             columnDefinition = "character varying[]"
     )
     private List<String> checkedOptions = new ArrayList<>();
 
-    @Type(ListArrayType.class)
     @Column(
             name = "checked_options_id",
             columnDefinition = "character integer[]"
