@@ -1,5 +1,6 @@
 package fr.dossierfacile.common.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import fr.dossierfacile.common.entity.ocr.ParsedFile;
 import fr.dossierfacile.common.enums.ParsedFileClassification;
 import fr.dossierfacile.common.enums.ParsedStatus;
@@ -14,15 +15,11 @@ import lombok.ToString;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class FranceIdentiteApiResult implements ParsedFile {
     @Builder.Default
     ParsedFileClassification classification = ParsedFileClassification.FRANCE_IDENTITE;
     ParsedStatus parsedStatus;
     String status;
-    String familyName;
-    String givenName;
-    String birthDate;
-    String birthPlace;
-    String gender;
-    String validityDate;
+    FranceIdentiteApiResultAttributes attributes;
 }

@@ -42,8 +42,10 @@ public class RentalReceiptRulesValidationService implements RulesValidationServi
             ParsedFileAnalysis analysis = dfFile.getParsedFileAnalysis();
             RentalReceiptFile parsedFile = (RentalReceiptFile) analysis.getParsedFile();
 
-            if (users.stream().noneMatch((user) -> PersonNameComparator.bearlyEqualsTo(parsedFile.getTenantFullName(), user.getLastName(), user.getFirstName())
-                    || PersonNameComparator.bearlyEqualsTo(parsedFile.getTenantFullName(), user.getPreferredName(), user.getFirstName()))) {
+            String fullName = parsedFile.getTenantFullName().toUpperCase().replaceFirst("^(M. |MR |MME |MLLE |MONSIEUR |MADAME |MADEMOISELLE )", "");
+
+            if (users.stream().noneMatch((user) -> PersonNameComparator.bearlyEqualsTo(fullName, user.getLastName(), user.getFirstName())
+                    || PersonNameComparator.bearlyEqualsTo(fullName, user.getPreferredName(), user.getFirstName()))) {
                 return false;
             }
         }
@@ -63,8 +65,21 @@ public class RentalReceiptRulesValidationService implements RulesValidationServi
                         List.of(yearMonth.minusMonths(2), yearMonth.minusMonths(3), yearMonth.minusMonths(4)));
     }
 
+    private List<List<YearMonth>> getGuarantorExpectedMonthsLists() {
+        LocalDate localDate = LocalDate.now();
+        YearMonth yearMonth = YearMonth.now();
+        return (localDate.getDayOfMonth() <= 15) ?
+                List.of(
+                        List.of(yearMonth.minusMonths(1)),
+                        List.of(yearMonth.minusMonths(2)),
+                        List.of(yearMonth.minusMonths(3))) :
+                List.of(
+                        List.of(yearMonth.minusMonths(1)),
+                        List.of(yearMonth.minusMonths(2)));
+    }
+
     private boolean checkMonthsValidityRule(Document document) {
-        List<List<YearMonth>> expectedMonthsList = getExpectedMonthsLists();
+        List<List<YearMonth>> expectedMonthsList = (document.getTenant() != null) ? getExpectedMonthsLists() : getGuarantorExpectedMonthsLists();
 
         List<YearMonth> presentMonths = document.getFiles().stream()
                 .map(file -> ((RentalReceiptFile) file.getParsedFileAnalysis().getParsedFile()).getPeriod())

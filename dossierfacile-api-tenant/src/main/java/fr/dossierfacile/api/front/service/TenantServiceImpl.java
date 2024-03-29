@@ -12,24 +12,20 @@ import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.service.interfaces.UserApiService;
 import fr.dossierfacile.api.front.util.Obfuscator;
-import fr.dossierfacile.common.entity.ApartmentSharing;
-import fr.dossierfacile.common.entity.ApartmentSharingLink;
-import fr.dossierfacile.common.entity.Tenant;
-import fr.dossierfacile.common.entity.UserApi;
-import fr.dossierfacile.common.enums.ApartmentSharingLinkType;
-import fr.dossierfacile.common.enums.LogType;
-import fr.dossierfacile.common.enums.PartnerCallBackType;
-import fr.dossierfacile.common.enums.TenantFileStatus;
-import fr.dossierfacile.common.enums.TenantType;
+import fr.dossierfacile.common.entity.*;
+import fr.dossierfacile.common.enums.*;
+import fr.dossierfacile.common.exceptions.NotFoundException;
 import fr.dossierfacile.common.model.TenantUpdate;
 import fr.dossierfacile.common.repository.ApartmentSharingLinkRepository;
 import fr.dossierfacile.common.repository.ApartmentSharingRepository;
+import fr.dossierfacile.common.repository.DocumentAnalysisReportRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.ConfirmationTokenService;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -54,6 +50,7 @@ public class TenantServiceImpl implements TenantService {
     private final TenantCommonRepository tenantRepository;
     private final KeycloakService keycloakService;
     private final UserApiService userApiService;
+    private final DocumentAnalysisReportRepository documentAnalysisReportRepository;
 
     @Override
     public <T> TenantModel saveStepRegister(Tenant tenant, T formStep, StepRegister step) {
@@ -61,17 +58,30 @@ public class TenantServiceImpl implements TenantService {
     }
 
     @Override
-    public void updateLastLoginDateAndResetWarnings(Tenant tenant) {
-        tenant.setLastLoginDate(LocalDateTime.now());
-        tenant.setWarnings(0);
-        if (tenant.getStatus() == TenantFileStatus.ARCHIVED) {
-            tenant.setStatus(TenantFileStatus.INCOMPLETE);
-            partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.RETURNED_ACCOUNT);
+    public void updateLastLoginDateAndResetWarnings(Tenant tenantToUpdate) {
+        LocalDateTime currentTime = LocalDateTime.now();
+        for (Tenant tenant : tenantToUpdate.getApartmentSharing().getTenants()) {
+            if (tenant.getId() == tenantToUpdate.getId() || StringUtils.isBlank(tenant.getEmail())) {
+                tenant.setLastLoginDate(currentTime);
+                tenant.setWarnings(0);
+                if (tenant.getStatus() == TenantFileStatus.ARCHIVED) {
+                    tenant.setStatus(TenantFileStatus.INCOMPLETE);
+                    partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.RETURNED_ACCOUNT);
+                }
+                log.info("Updating last_login_date of tenant with ID [" + tenant.getId() + "]");
+                tenantRepository.save(tenant);
+            }
         }
-        log.info("Updating last_login_date of tenant with ID [" + tenant.getId() + "]");
-        tenantRepository.save(tenant);
     }
-
+    @Override
+    @Transactional
+    public void doNotArchive(String token) {
+        ConfirmationToken confirmationToken = confirmationTokenService.findByToken(token);
+        Tenant tenant = tenantRepository.getReferenceById(confirmationToken.getUser().getId());
+        tenant.setConfirmationToken(null);
+        updateLastLoginDateAndResetWarnings(tenant);
+        logService.saveLog(LogType.DO_NOT_ARCHIVE, tenant.getId());
+    }
     @Override
     @Transactional
     public Tenant create(Tenant tenant) {
@@ -174,6 +184,45 @@ public class TenantServiceImpl implements TenantService {
             url = "/public-file/" + apartmentSharingLink.getToken();
         }
         mailService.sendFileByMail(url, email, tenant.getFirstName(), tenant.getFullName(), tenant.getEmail());
+    }
+
+    private Document getDocumentManagedByTenant(Tenant tenant, Long documentId) {
+        Document tenantSelectedDocument = tenant.getDocuments().stream().filter(document -> document.getId().equals(documentId)).findAny().orElse(null);
+        if (tenantSelectedDocument != null) {
+            return tenantSelectedDocument;
+        }
+        for (Guarantor guarantor : tenant.getGuarantors()) {
+            Document guarantorSelectedDocument = guarantor.getDocuments().stream().filter(document -> document.getId().equals(documentId)).findAny().orElse(null);
+            if (guarantorSelectedDocument != null) {
+                return guarantorSelectedDocument;
+            }
+        }
+        if (tenant.getApartmentSharing().getApplicationType().equals(ApplicationType.COUPLE) && tenant.getTenantType().equals(TenantType.CREATE)) {
+            var couple = tenant.getApartmentSharing().getTenants().stream().filter(t -> !t.getId().equals(tenant.getId())).findAny();
+            if (couple.isPresent()) {
+                return getDocumentManagedByTenant(couple.get(), documentId);
+            }
+        }
+
+        return null;
+    }
+
+    @Override
+    public void addCommentAnalysis(Tenant tenant, Long documentId, String comment) {
+        Document selectedDocument = getDocumentManagedByTenant(tenant, documentId);
+        if (selectedDocument == null) {
+            throw new NotFoundException();
+        }
+        DocumentAnalysisReport documentAnalysisReport = selectedDocument.getDocumentAnalysisReport();
+        if (documentAnalysisReport == null) {
+            throw new NotFoundException();
+        }
+        if (StringUtils.isBlank(comment)) {
+            documentAnalysisReport.setComment(null);
+        } else {
+            documentAnalysisReport.setComment(comment);
+        }
+        documentAnalysisReportRepository.save(documentAnalysisReport);
     }
 
     @Override

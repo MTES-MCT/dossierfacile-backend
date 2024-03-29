@@ -19,7 +19,7 @@ public class LoggingContext {
         MDC.put(FILE, String.valueOf(fileId));
         MDC.put(ACTION, actionType.name());
         MDC.put(EXECUTION_START, String.valueOf(System.currentTimeMillis()));
-        log.info("Received " + actionType.name() + " to process");
+        log.info("Received " + actionType.name() + " to process : " + fileId);
     }
 
     static void endProcessing() {

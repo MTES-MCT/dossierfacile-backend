@@ -17,6 +17,7 @@ public abstract class AbstractConnectionContextFilter extends HttpFilter {
 
     private static final String URI = "uri";
     private static final String REQUEST_ID = "request_id";
+    private static final String RESPONSE_STATUS = "response_status";
 
     @Override
     protected void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
@@ -40,7 +41,16 @@ public abstract class AbstractConnectionContextFilter extends HttpFilter {
         try {
             chain.doFilter(request, response);
         } finally {
-            log.info("Response: status={}, method={}, path={}", response.getStatus(), request.getMethod(), request.getRequestURI());
+            if (response.getStatus() != 200) {
+                MDC.put(RESPONSE_STATUS, String.valueOf(response.getStatus()));
+                if (response.getStatus() < 400) {
+                    log.info("Response: status={}, method={}, path={}", response.getStatus(), request.getMethod(), request.getRequestURI());
+                } else if (response.getStatus() < 500) {
+                    log.warn("Response: status={}, method={}, path={}", response.getStatus(), request.getMethod(), request.getRequestURI());
+                } else {
+                    log.error("Response: status={}, method={}, path={}", response.getStatus(), request.getMethod(), request.getRequestURI());
+                }
+            }
             MDC.clear();
         }
     }

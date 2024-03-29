@@ -19,7 +19,12 @@
         <div class="row">
             <div class="" style="display: inline-grid;grid-auto-columns: max-content; margin-left: 20px; float: left">
                 <div th:if="${isUserAdmin} == true">
-                    <a href="/bo/users" class="btn" id="nextApplication2" style="background: #e63d3d;padding: 10px 16px 12px;float: left;color: aliceblue;font-size: large;margin-left: 10px;">
+                    <a href="/bo/dashboard/all" class="btn" id="dashboardAll"  style="background: #e63d3d;padding: 10px 16px 12px;float: left;color: aliceblue;font-size: large;margin-left: 10px;">
+                        Dashboard - dossiers traités du jour
+                    </a>
+                </div>
+                <div th:if="${isUserAdmin} == true">
+                    <a href="/bo/users" class="btn" id="boUsersListing" style="background: #e63d3d;padding: 10px 16px 12px;float: left;color: aliceblue;font-size: large;margin-left: 10px;margin-top: 10px">
                         Gestion Utilisateurs BO
                     </a>
                 </div>

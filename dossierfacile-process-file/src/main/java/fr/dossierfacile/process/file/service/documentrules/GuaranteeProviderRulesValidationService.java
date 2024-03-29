@@ -3,7 +3,6 @@ package fr.dossierfacile.process.file.service.documentrules;
 import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.entity.ocr.GuaranteeProviderFile;
 import fr.dossierfacile.common.enums.DocumentCategory;
-import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.ParsedStatus;
 import fr.dossierfacile.process.file.util.PersonNameComparator;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +35,8 @@ public class GuaranteeProviderRulesValidationService implements RulesValidationS
         Tenant tenant = document.getGuarantor().getTenant();
         return parsedFile.getNames().stream().anyMatch(
                 (fullname) -> PersonNameComparator.bearlyEqualsTo(fullname.firstName(), tenant.getFirstName())
-                        && PersonNameComparator.bearlyEqualsTo(fullname.lastName(), tenant.getLastName()));
+                        && (PersonNameComparator.bearlyEqualsTo(fullname.lastName(), tenant.getLastName())
+                        || PersonNameComparator.bearlyEqualsTo(fullname.lastName(), tenant.getPreferredName())));
     }
 
     private boolean checkValidityRule(GuaranteeProviderFile parsedFile) {
@@ -78,7 +78,7 @@ public class GuaranteeProviderRulesValidationService implements RulesValidationS
             }
 
         } catch (Exception e) {
-            log.error("Error during the rules validation execution pocess",e);
+            log.error("Error during the rules validation execution pocess", e);
             report.setAnalysisStatus(DocumentAnalysisStatus.UNDEFINED);
         }
         return report;

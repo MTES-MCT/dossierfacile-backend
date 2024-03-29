@@ -4,6 +4,7 @@ package fr.dossierfacile.process.file.service.parsers;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.ocr.RentalReceiptFile;
 import fr.dossierfacile.common.enums.DocumentCategory;
+import fr.dossierfacile.process.file.service.parsers.tools.PageExtractorModel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.text.PDFTextStripperByArea;
@@ -28,12 +29,12 @@ import static fr.dossierfacile.common.enums.DocumentSubCategory.TENANT;
 @Order(1)
 public class RentalReceiptParser extends AbstractPDFParser<RentalReceiptFile> implements FileParser<RentalReceiptFile> {
 
+    private static final Pattern periodPattern = Pattern.compile("du (\\d{2}/\\d{2}/\\d{4}) au (\\d{2}/\\d{2}/\\d{4}).*");
+
     @Override
     protected String getJsonModelFile() {
         return "/parsers/rentalReceiptStd1.json";
     }
-
-    private static final Pattern periodPattern = Pattern.compile("du (\\d{2}/\\d{2}/\\d{4}) au (\\d{2}/\\d{2}/\\d{4}).*");
 
     @Override
     protected RentalReceiptFile getResultFromExtraction(PDFTextStripperByArea stripper, int pageNumber, RentalReceiptFile previousResult){

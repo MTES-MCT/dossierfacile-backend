@@ -125,6 +125,13 @@
                                         </li>
                                     </ul>
                                 </div>
+                                <div th:if="${messageItem.getAnalysisReportComment()} != null"
+                                     class="panel-heading file2-background-color letter">
+                                    <div style="font-size: 12px; line-height: 20px">
+                                        Les règles ont été forcées avec l'explication suivante :
+                                    </div>
+                                    <p th:text="${messageItem.getAnalysisReportComment()}"></p>
+                                </div>
                                 <h4 class="panel-title letter" style="padding: 7px"
                                     th:if="${messageItem.avisDetected}!=null and ${messageItem.avisDetected}==true">
                                     <span class="fa fa-times text-danger" >

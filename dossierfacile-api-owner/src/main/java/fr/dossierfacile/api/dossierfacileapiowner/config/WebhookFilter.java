@@ -13,6 +13,10 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+/**
+ * DossierFacile will send callback request at change on tenant status.
+ * This filter check if callback request contain a valid x-api-key.
+ */
 public class WebhookFilter extends OncePerRequestFilter {
     private final String token;
     private final String headerName;
@@ -49,6 +53,4 @@ public class WebhookFilter extends OncePerRequestFilter {
         RequestMatcher matcher = new NegatedRequestMatcher(uriMatcher);
         return matcher.matches(request);
     }
-
-
 }

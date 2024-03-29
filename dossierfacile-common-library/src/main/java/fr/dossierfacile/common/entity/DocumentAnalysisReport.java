@@ -1,8 +1,7 @@
 package fr.dossierfacile.common.entity;
 
-import fr.dossierfacile.common.converter.ListToJsonConverter;
+import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -13,11 +12,14 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
+import org.hibernate.annotations.Type;
 import java.util.List;
 
 @Data
@@ -27,20 +29,19 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class DocumentAnalysisReport {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     @OneToOne(targetEntity = Document.class, fetch = FetchType.LAZY)
     @JoinColumn(name = "document_id")
+    @JsonIgnore
     private Document document;
-
     @Enumerated(EnumType.STRING)
     private DocumentAnalysisStatus analysisStatus;
 
-    @Convert(converter = ListToJsonConverter.class)
+    @Type(JsonBinaryType.class)
     @Column(columnDefinition = "jsonb")
     private List<DocumentBrokenRule> brokenRules;
+    private String comment;
 
 }

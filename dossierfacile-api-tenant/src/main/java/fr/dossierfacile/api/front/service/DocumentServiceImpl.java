@@ -111,6 +111,16 @@ public class DocumentServiceImpl implements DocumentService {
                 .forEach(document -> {
                     if (document.getDocumentStatus().equals(DocumentStatus.VALIDATED)
                             && categoriesToChange.contains(document.getDocumentCategory())) {
+                        if (Boolean.TRUE == document.getNoDocument() && document.getWatermarkFile() != null){
+                            storageFileRepository.delete(document.getWatermarkFile());
+                            document.setWatermarkFile(null);
+                        }
+                        TransactionalUtil.afterCommit(() -> {
+                            producer.sendDocumentForAnalysis(document);// analysis should be relaunched for update rules
+                            if (Boolean.TRUE == document.getNoDocument()){
+                                producer.sendDocumentForPdfGeneration(document);
+                            }
+                        });
                         document.setDocumentStatus(DocumentStatus.TO_PROCESS);
                         document.setDocumentDeniedReasons(null);
                         documentRepository.save(document);

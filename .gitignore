@@ -9,6 +9,7 @@ mockstorage/
 .DS_Store
 static-front/
 logs/
+hs_err_pid*.log
 
 ### STS ###
 .apt_generated

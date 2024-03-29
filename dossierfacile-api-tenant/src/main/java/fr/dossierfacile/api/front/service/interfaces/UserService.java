@@ -5,8 +5,6 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.User;
 
 public interface UserService {
-    long confirmAccount(String token);
-
     TenantModel createPassword(User user, String password);
 
     TenantModel createPassword(String token, String password);

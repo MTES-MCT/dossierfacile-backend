@@ -5,21 +5,20 @@ import fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException;
 import fr.dossierfacile.api.front.exception.ApartmentSharingUnexpectedException;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
+
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.UUID;
+
 
 import static org.springframework.http.ResponseEntity.accepted;
 import static org.springframework.http.ResponseEntity.ok;
@@ -48,14 +47,33 @@ public class ApplicationController {
     @GetMapping(value = "/fullPdf/{token}", produces = MediaType.APPLICATION_PDF_VALUE)
     public void downloadFullPdf(@PathVariable("token") String token, HttpServletResponse response) {
         try {
-            ByteArrayOutputStream byteArrayOutputStream = apartmentSharingService.fullPdf(token);
+            ByteArrayOutputStream byteArrayOutputStream = apartmentSharingService.downloadFullPdf(token);
             if (byteArrayOutputStream.size() > 0) {
                 response.setHeader("Content-Disposition", "attachment; filename=" + UUID.randomUUID() + ".pdf");
                 response.setHeader("Content-Type", MediaType.APPLICATION_PDF_VALUE);
                 response.getOutputStream().write(byteArrayOutputStream.toByteArray());
             } else {
                 log.error(DOCUMENT_NOT_EXIST);
-                response.setStatus(404);
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            }
+        } catch (ApartmentSharingNotFoundException e) {
+            log.error(e.getMessage(), e.getCause());
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+        } catch (IllegalStateException e) {
+            log.warn("ApartmentSharing full pdf in not available yet");
+            try {
+                response.sendError(HttpServletResponse.SC_CONFLICT, "File is not yet available retry later");
+            } catch (IOException ex) {
+                log.error("Something wrong on response status enrichment", ex);
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            }
+        } catch (FileNotFoundException e) {
+            log.error(e.getMessage(), e.getCause());
+            try {
+                response.sendError(HttpServletResponse.SC_CONFLICT, "File is not available - check status");
+            } catch (IOException ex) {
+                log.error("Something wrong on response status enrichment", ex);
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             }
         } catch (IOException e) {
             log.error(e.getMessage(), e.getCause());

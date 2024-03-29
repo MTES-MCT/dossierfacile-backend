@@ -18,6 +18,7 @@
         <org.mapstruct.version>1.5.5.Final</org.mapstruct.version>
         <lombok.version>1.18.30</lombok.version>
         <keycloak.version>21.1.2</keycloak.version>
+        <spring-security.version>5.8.9</spring-security.version>
     </properties>
     <dependencies>
         <dependency>

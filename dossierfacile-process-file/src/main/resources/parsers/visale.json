@@ -1,0 +1,35 @@
+{
+  "page": {
+    "width": "892",
+    "maxPageCount": 2
+  },
+  "classification": {
+    "name": "VISALE"
+  },
+  "matchingZones": [
+    {
+      "name": "title",
+      "rect": "179,195,532,34",
+      "matches": "ACTION LOGEMENT SE PORTE CAUTION"
+    }
+  ],
+  "zones": [
+    {
+      "name": "visaNumber",
+      "rect": "270,233,174,25"
+    },
+    {
+      "name": "deliveryDate",
+      "rect": "577,233,133,24"
+    },
+    {
+      "name": "validityDate",
+      "rect": "260,371,85,19"
+    },
+    {
+      "name": "namesZones",
+      "rect": "50,312,830,50",
+      "comment" : "Text cannot be extract with stripper only with image"
+    }
+  ]
+}
