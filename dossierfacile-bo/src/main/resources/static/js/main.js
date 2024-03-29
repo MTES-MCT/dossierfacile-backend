@@ -242,9 +242,12 @@ $(document).ready(function () {
     $('.chat').click(function (e) {
         updateMessageForm($(this));
     });
-    if ($('.chat') !== undefined && $('.chat').attr('aria-expanded') === 'true') {
-        updateMessageForm($('.chat'));
-    }
+
+    $('.chat').each(function(index) {
+        if ($(this) !== undefined && $(this).attr('aria-expanded') === 'true') {
+            updateMessageForm($(this));
+        }
+    })
 
     $(document).keydown(function (event) {
         var flag = true;
