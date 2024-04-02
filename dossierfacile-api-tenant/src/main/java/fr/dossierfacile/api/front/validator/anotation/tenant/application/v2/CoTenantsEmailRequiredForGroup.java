@@ -1,9 +1,9 @@
 package fr.dossierfacile.api.front.validator.anotation.tenant.application.v2;
 
 import fr.dossierfacile.api.front.validator.tenant.application.v2.CoTenantsEmailRequiredForGroupValidator;
+import jakarta.validation.Constraint;
+import jakarta.validation.Payload;
 
-import javax.validation.Constraint;
-import javax.validation.Payload;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

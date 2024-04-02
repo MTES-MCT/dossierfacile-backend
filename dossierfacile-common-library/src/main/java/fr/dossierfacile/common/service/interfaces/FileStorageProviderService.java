@@ -3,11 +3,10 @@ package fr.dossierfacile.common.service.interfaces;
 import fr.dossierfacile.common.entity.EncryptionKey;
 import fr.dossierfacile.common.entity.ObjectStorageProvider;
 import fr.dossierfacile.common.exceptions.RetryableOperationException;
+import jakarta.annotation.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.Key;
 import java.util.List;
 
 public interface FileStorageProviderService {

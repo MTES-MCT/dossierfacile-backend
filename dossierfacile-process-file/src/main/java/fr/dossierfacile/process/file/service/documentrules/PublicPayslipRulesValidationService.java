@@ -1,9 +1,7 @@
 package fr.dossierfacile.process.file.service.documentrules;
 
-import fr.dossierfacile.common.entity.BarCodeFileAnalysis;
-import fr.dossierfacile.common.entity.Document;
-import fr.dossierfacile.common.entity.File;
-import fr.dossierfacile.common.entity.ParsedFileAnalysis;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.entity.ocr.PayslipFile;
 import fr.dossierfacile.common.enums.ParsedFileAnalysisStatus;
 import fr.dossierfacile.common.enums.ParsedFileClassification;
@@ -22,7 +20,10 @@ import java.util.Map;
 @Slf4j
 public class PublicPayslipRulesValidationService extends AbstractPayslipRulesValidationService implements RulesValidationService {
     private PayslipFile fromQR(BarCodeFileAnalysis barCodeFileAnalysis) {
-        Map<String, String> dataWithLabel = (Map<String, String>) barCodeFileAnalysis.getVerifiedData();
+        if ( barCodeFileAnalysis.getBarCodeType() != BarCodeType.TWO_D_DOC){
+            throw new IllegalStateException("Verified Code has unsupported type");
+        }
+        Map<String, String> dataWithLabel = new ObjectMapper().convertValue(barCodeFileAnalysis.getVerifiedData(), Map.class);
         return PayslipFile.builder()
                 .classification(ParsedFileClassification.PUBLIC_PAYSLIP)
                 .fullname(dataWithLabel.get(TwoDDocDataType.ID_10.getLabel()))

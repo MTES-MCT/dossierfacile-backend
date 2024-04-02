@@ -2,10 +2,10 @@ package fr.dossierfacile.api.front.validator.tenant.application.v2;
 
 import fr.dossierfacile.api.front.register.form.tenant.CoTenantForm;
 import fr.dossierfacile.api.front.validator.anotation.tenant.application.v2.DistinctCoTenantEmailList;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
 import java.util.List;
 import java.util.stream.Collectors;
 

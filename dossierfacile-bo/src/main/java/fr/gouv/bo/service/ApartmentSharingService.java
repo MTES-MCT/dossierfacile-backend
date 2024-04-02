@@ -3,6 +3,7 @@ package fr.gouv.bo.service;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.LinkLog;
 import fr.dossierfacile.common.enums.LinkType;
+import fr.dossierfacile.common.exceptions.NotFoundException;
 import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
 import fr.dossierfacile.common.service.interfaces.LinkLogService;
 import fr.gouv.bo.dto.ApartmentSharingDTO01;
@@ -14,7 +15,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.ws.rs.NotFoundException;
 import java.time.LocalDateTime;
 import java.util.UUID;
 

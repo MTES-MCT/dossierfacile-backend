@@ -9,12 +9,11 @@ import fr.dossierfacile.api.front.validator.anotation.guarantor.natural_person.f
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.TypeGuarantor;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-
-import javax.validation.constraints.NotNull;
 
 import static fr.dossierfacile.common.enums.DocumentSubCategory.PENSION;
 import static fr.dossierfacile.common.enums.DocumentSubCategory.RENT;

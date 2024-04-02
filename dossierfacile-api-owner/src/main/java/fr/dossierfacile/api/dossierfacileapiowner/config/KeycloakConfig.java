@@ -27,7 +27,6 @@ public class KeycloakConfig {
                 .clientId(clientId)
                 .clientSecret(clientSecret)
                 .build();
-        keycloak.tokenManager().getAccessToken();
 
         return keycloak.realm(keycloakRealm);
     }

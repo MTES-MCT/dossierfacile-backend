@@ -1,38 +1,24 @@
 package fr.dossierfacile.common.entity;
 
-import com.vladmihalcea.hibernate.type.array.ListArrayType;
 import fr.dossierfacile.common.entity.shared.AbstractAuditable;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Inheritance;
+import jakarta.persistence.InheritanceType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
-import org.hibernate.annotations.TypeDefs;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
-@TypeDefs({
-        @TypeDef(
-                name = "list-type",
-                typeClass = ListArrayType.class
-        )
-})
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 @AllArgsConstructor
@@ -51,7 +37,6 @@ public class StorageFileToDelete extends AbstractAuditable<String, Long> {
 
     protected String path;
 
-    @Type(type = "list-type")
     @Column(
             name = "providers",
             columnDefinition = "character varying[]"

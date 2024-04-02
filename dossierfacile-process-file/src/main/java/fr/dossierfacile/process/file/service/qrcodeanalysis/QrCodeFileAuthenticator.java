@@ -1,5 +1,8 @@
 package fr.dossierfacile.process.file.service.qrcodeanalysis;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.dossierfacile.common.entity.BarCodeFileAnalysis;
 import fr.dossierfacile.common.entity.BarCodeType;
 import fr.dossierfacile.process.file.barcode.qrcode.QrCode;
@@ -32,7 +35,7 @@ public class QrCodeFileAuthenticator {
         return BarCodeFileAnalysis.builder()
                 .documentType(result.getDocumentType())
                 .barCodeContent(qrCode.getContent())
-                .verifiedData(result.getApiResponse())
+                .verifiedData(new ObjectMapper().convertValue(result.getApiResponse(), ObjectNode.class))
                 .authenticationStatus(result.getAuthenticationStatus())
                 .barCodeType(BarCodeType.QR_CODE)
                 .build();

@@ -1,36 +1,31 @@
 package fr.dossierfacile.common.entity;
 
-import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import fr.dossierfacile.common.converter.ParsedFileConverter;
 import fr.dossierfacile.common.entity.ocr.ParsedFile;
 import fr.dossierfacile.common.enums.ParsedFileAnalysisStatus;
 import fr.dossierfacile.common.enums.ParsedFileClassification;
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnTransformer;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
-
-import javax.persistence.Column;
-import javax.persistence.Convert;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
 
 @Data
 @Builder
 @Entity
 @Table(name = "parsed_file_analysis")
-@TypeDef(name = "jsonb", typeClass = JsonBinaryType.class)
 @AllArgsConstructor
 @NoArgsConstructor
 public class ParsedFileAnalysis {

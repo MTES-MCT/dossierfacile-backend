@@ -3,6 +3,7 @@ package fr.gouv.bo.dto;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.dossierfacile.common.entity.BarCodeFileAnalysis;
 import fr.dossierfacile.common.entity.File;
 import lombok.AllArgsConstructor;
@@ -27,6 +28,21 @@ public class DisplayableBarCodeFileAnalysis {
     public static Optional<DisplayableBarCodeFileAnalysis> of(File file) {
         return Optional.ofNullable(file.getFileAnalysis())
                 .map(DisplayableBarCodeFileAnalysis::new);
+    }
+
+    private static String formatToList(List<String> data) {
+        String listElements = data.stream()
+                .map(element -> "<li>" + element + "</li>")
+                .collect(Collectors.joining());
+        return "<ul>" + listElements + "</ul>";
+    }
+
+    private static String formatToList(Map<String, String> data) {
+        return formatToList(
+                data.entrySet().stream()
+                        .map(entry -> entry.getKey() + " : " + entry.getValue())
+                        .collect(Collectors.toList())
+        );
     }
 
     public String getDocumentType() {
@@ -56,9 +72,15 @@ public class DisplayableBarCodeFileAnalysis {
 
     @SuppressWarnings("unchecked")
     public String getAuthenticatedContent() {
-        Object verifiedData = analysis.getVerifiedData();
+        ObjectNode verifiedData = analysis.getVerifiedData();
         if (analysis.getBarCodeType() == TWO_D_DOC) {
-            return formatToList((Map<String, String>) verifiedData);
+            try {
+                Map<String, String> map = new ObjectMapper().treeToValue(verifiedData, Map.class);
+                return formatToList(map);
+
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
         return switch (analysis.getDocumentType()) {
             case PAYFIT_PAYSLIP -> PayfitAuthenticatedContent.format(verifiedData);
@@ -100,21 +122,6 @@ public class DisplayableBarCodeFileAnalysis {
             return formatToList(map);
         }
 
-    }
-
-    private static String formatToList(List<String> data) {
-        String listElements = data.stream()
-                .map(element -> "<li>" + element + "</li>")
-                .collect(Collectors.joining());
-        return "<ul>" + listElements + "</ul>";
-    }
-
-    private static String formatToList(Map<String, String> data) {
-        return formatToList(
-                data.entrySet().stream()
-                        .map(entry -> entry.getKey() + " : " + entry.getValue())
-                        .collect(Collectors.toList())
-        );
     }
 
 }

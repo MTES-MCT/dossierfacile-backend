@@ -4,34 +4,21 @@ import fr.dossierfacile.api.front.exception.DocumentNotFoundException;
 import fr.dossierfacile.api.front.form.CommentAnalysisForm;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
-import fr.dossierfacile.api.front.register.enums.StepRegister;
-import fr.dossierfacile.api.front.register.form.tenant.NamesForm;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
-import fr.dossierfacile.api.front.validator.group.Dossier;
 import fr.dossierfacile.common.entity.Document;
-import fr.dossierfacile.common.entity.DocumentAnalysisReport;
-import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import javax.print.attribute.standard.Media;
-import javax.servlet.http.HttpServletResponse;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -76,7 +63,7 @@ public class DocumentController {
     }
 
     @PreAuthorize("hasPermissionOnTenant(#commentAnalysisForm.tenantId)")
-    @PostMapping(value="/commentAnalysis", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/commentAnalysis", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TenantModel> commentAnalysis(@RequestBody CommentAnalysisForm commentAnalysisForm) {
         var tenant = authenticationFacade.getTenant(commentAnalysisForm.getTenantId());
         try {

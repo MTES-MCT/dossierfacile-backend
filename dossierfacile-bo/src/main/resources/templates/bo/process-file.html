@@ -99,11 +99,11 @@
                                         <span th:text="'Montant mensuel : ' + ${messageItem.getMonthlySum()}"></span>
                                     </h4>
                                     <h4 class="panel-title letter" style="padding-top: 7px"
-                                        th:if="${messageItem.getDocumentSubCategory() == T(fr.dossierfacile.common.enums.DocumentSubCategory).SALARY}">
+                                        th:if="${T(fr.dossierfacile.common.enums.DocumentSubCategory).SALARY == messageItem.getDocumentSubCategory()}">
                                         <span th:text="'Bulletins attendus : ' + ${T(fr.gouv.bo.utils.DateFormatUtil).getExpectedPayslipMonths()}"></span>
                                     </h4>
                                     <h4 class="panel-title letter" style="padding-top: 7px"
-                                        th:if="${messageItem.getDocumentSubCategory() == T(fr.dossierfacile.common.enums.DocumentSubCategory).TENANT}">
+                                        th:if="${T(fr.dossierfacile.common.enums.DocumentSubCategory).TENANT == messageItem.getDocumentSubCategory()}">
                                         <span th:text="'Quittances attendues : ' + ${T(fr.gouv.bo.utils.DateFormatUtil).getExpectedRentReceiptMonths()}"></span>
                                     </h4>
                                 </div>

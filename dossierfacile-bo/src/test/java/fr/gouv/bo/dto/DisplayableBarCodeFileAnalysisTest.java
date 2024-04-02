@@ -2,10 +2,13 @@ package fr.gouv.bo.dto;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.dossierfacile.common.entity.BarCodeDocumentType;
 import fr.dossierfacile.common.entity.BarCodeFileAnalysis;
 import fr.dossierfacile.common.entity.BarCodeType;
 import org.junit.jupiter.api.Test;
+
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -61,7 +64,7 @@ class DisplayableBarCodeFileAnalysisTest {
         BarCodeFileAnalysis analysis = new BarCodeFileAnalysis();
         analysis.setDocumentType(issuer);
         analysis.setBarCodeType(barCodeType);
-        analysis.setVerifiedData(objectMapper.readValue(content, Object.class));
+        analysis.setVerifiedData(objectMapper.readValue(content, ObjectNode.class));
         return analysis;
     }
 
