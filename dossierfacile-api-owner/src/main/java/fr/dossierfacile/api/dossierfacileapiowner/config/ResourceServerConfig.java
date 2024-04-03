@@ -1,6 +1,5 @@
 package fr.dossierfacile.api.dossierfacileapiowner.config;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,7 +23,6 @@ import static org.springframework.security.config.Customizer.withDefaults;
 
 
 @EnableWebSecurity
-@RequiredArgsConstructor
 @Configuration
 public class ResourceServerConfig {
     @Value("${callback.http.auth.token}")
