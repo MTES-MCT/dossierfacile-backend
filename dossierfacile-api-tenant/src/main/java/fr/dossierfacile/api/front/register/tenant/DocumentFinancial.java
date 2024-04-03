@@ -7,6 +7,7 @@ import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
+import fr.dossierfacile.api.front.util.Obfuscator;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
@@ -45,7 +46,15 @@ public class DocumentFinancial extends AbstractDocumentSaveStep<DocumentFinancia
         document.setDocumentStatus(DocumentStatus.TO_PROCESS);
         document.setDocumentDeniedReasons(null);
         document.setDocumentSubCategory(documentSubCategory);
-        document.setMonthlySum(documentFinancialForm.getMonthlySum());
+        if (documentFinancialForm.getMonthlySum() != null && documentFinancialForm.getMonthlySum() > 0
+                && documentFinancialForm.getTypeDocumentFinancial() != DocumentSubCategory.NO_INCOME) {
+            document.setMonthlySum(documentFinancialForm.getMonthlySum());
+        }
+        if (documentFinancialForm.getTypeDocumentFinancial() != DocumentSubCategory.NO_INCOME &&
+                (document.getMonthlySum() == null || document.getMonthlySum() < 0)) {
+            throw new IllegalStateException("Montant mensuel ne peut être nul ou négatif");
+        }
+
         if (document.getNoDocument() != null && !document.getNoDocument() && documentFinancialForm.getNoDocument()) {
             deleteFilesIfExistedBefore(document);
         }
