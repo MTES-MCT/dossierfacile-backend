@@ -13,7 +13,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableJpaRepositories(basePackages = "fr.dossierfacile")
 @EnableAsync
 @EnableScheduling
-@Slf4j
 public class DossierfacileApiOwnerApplication {
 
 	public static void main(String[] args) {
