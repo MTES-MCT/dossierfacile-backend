@@ -1,7 +1,7 @@
 package fr.dossierfacile.api.dossierfacileapiowner.user;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import fr.dossierfacile.api.dossierfacileapiowner.property.PropertyModel;
+import fr.dossierfacile.api.dossierfacileapiowner.property.LightPropertyModel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,5 +20,5 @@ public class OwnerModel {
     private String lastName;
     private String email;
     private boolean franceConnect;
-    private List<PropertyModel> properties;
+    private List<LightPropertyModel> properties;
 }
