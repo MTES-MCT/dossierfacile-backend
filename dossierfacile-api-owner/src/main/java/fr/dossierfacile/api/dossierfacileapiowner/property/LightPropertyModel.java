@@ -20,9 +20,12 @@ public class LightPropertyModel {
     private Double rentCost;
     private Double chargesCost;
     private Double livingSpace;
+    private String token;
+    private Boolean validated;
     private PropertyType type;
     private PropertyFurniture furniture;
     private String address;
     private Integer co2Emission;
     private Integer energyConsumption;
+    private Integer propertyApartmentSharingCount;
 }
