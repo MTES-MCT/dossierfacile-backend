@@ -7,6 +7,7 @@ import fr.dossierfacile.common.entity.Owner;
 import fr.dossierfacile.common.entity.Property;
 import fr.dossierfacile.common.entity.PropertyApartmentSharing;
 import fr.dossierfacile.common.enums.LogType;
+import fr.dossierfacile.common.exceptions.NotFoundException;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import lombok.AllArgsConstructor;
 import org.apache.http.client.HttpResponseException;
@@ -41,6 +42,7 @@ public class PropertyController {
     private final PropertyApartmentSharingService propertyApartmentSharingService;
     private final AuthenticationFacade authenticationFacade;
     private final OwnerMapper ownerMapper;
+    private final PropertyMapper propertyMapper;
 
     @PutMapping
     public ResponseEntity<PropertyModel> createOrUpdate(@RequestBody PropertyForm Property) {
@@ -53,6 +55,12 @@ public class PropertyController {
     public ResponseEntity<List<PropertyModel>> getAll() {
         List<PropertyModel> properties = propertyService.getAllProperties();
         return ok(properties);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<PropertyModel> getProperty(@PathVariable Long id) {
+        Property property = propertyService.getProperty(id).orElseThrow(NotFoundException::new);
+        return ok(propertyMapper.toPropertyModel(property));
     }
 
     @DeleteMapping("/{id}")
