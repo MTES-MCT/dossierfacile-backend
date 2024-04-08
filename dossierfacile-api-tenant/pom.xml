@@ -22,7 +22,7 @@
         <lombok.version>1.18.30</lombok.version>
         <dossierfacile.common.version>0.0.1-SNAPSHOT</dossierfacile.common.version>
         <pdfbox.tools.version>3.0.0</pdfbox.tools.version>
-        <springdoc.version>1.7.0</springdoc.version>
+        <springdoc.version>2.5.0</springdoc.version>
         <keycloak.version>22.0.3</keycloak.version>
     </properties>
 
@@ -184,7 +184,7 @@
         </dependency>
         <dependency>
             <groupId>org.springdoc</groupId>
-            <artifactId>springdoc-openapi-ui</artifactId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
             <version>${springdoc.version}</version>
         </dependency>
         <dependency>
