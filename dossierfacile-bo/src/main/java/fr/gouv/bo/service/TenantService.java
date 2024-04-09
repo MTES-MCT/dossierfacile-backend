@@ -460,34 +460,31 @@ public class TenantService {
         tenantRepository.save(tenant);
     }
 
-    //todo : Review this method to refactor with the others DENY OR VALIDATE documents for tenants
-    public String processFile(Long tenantId, CustomMessage customMessage, Principal principal) {
-        synchronized (this) {
-            Tenant tenant = find(tenantId);
-            //check tenant status before trying to validate or to deny
-            if (tenant.getStatus() != TenantFileStatus.TO_PROCESS) {
-                log.error("Operator try to validate/deny a not TO PROCESS tenant : t={} op={}", tenantId, principal.getName());
-                throw new IllegalStateException("You cannot treat a tenant which is not TO PROCESS");
-            }
-            User operator = userService.findUserByEmail(principal.getName());
+    @Transactional
+    public void processFile(Long tenantId, CustomMessage customMessage, Principal principal) {
+        Tenant tenant = find(tenantId);
 
-            if (tenant == null) {
-                log.error("BOTenantController processFile not found tenant with id : {}", tenantId);
-                return "redirect:/error";
-            }
-
-            ProcessedDocuments processedDocuments = ProcessedDocuments.in(customMessage);
-            boolean allDocumentsValid = updateFileStatus(customMessage);
-
-            if (allDocumentsValid) {
-                changeTenantStatusToValidated(tenant, operator, processedDocuments);
-            } else {
-                Message message = sendCustomMessage(tenant, customMessage, checkValueOfCustomMessage(customMessage));
-                changeTenantStatusToDeclined(tenant, operator, message, processedDocuments);
-            }
-            updateOperatorDateTimeTenant(tenantId);
-            return "redirect:/bo";
+        if (tenant == null) {
+            log.error("Tenant not found from id : {}", tenantId);
+            throw new IllegalStateException("You cannot treat an empty tenant");
         }
+        //check tenant status before trying to validate or to deny
+        if (tenant.getStatus() != TenantFileStatus.TO_PROCESS) {
+            log.error("Operator try to validate/deny a not TO PROCESS tenant : t={} op={}", tenantId, principal.getName());
+            throw new IllegalStateException("You cannot treat a tenant which is not TO PROCESS");
+        }
+        User operator = userService.findUserByEmail(principal.getName());
+
+        ProcessedDocuments processedDocuments = ProcessedDocuments.in(customMessage);
+        boolean allDocumentsValid = updateFileStatus(customMessage);
+
+        if (allDocumentsValid) {
+            changeTenantStatusToValidated(tenant, operator, processedDocuments);
+        } else {
+            Message message = sendCustomMessage(tenant, customMessage, checkValueOfCustomMessage(customMessage));
+            changeTenantStatusToDeclined(tenant, operator, message, processedDocuments);
+        }
+        updateOperatorDateTimeTenant(tenantId);
     }
 
     //todo : Review this method to refactor with the others DENY OR VALIDATE documents for tenants
