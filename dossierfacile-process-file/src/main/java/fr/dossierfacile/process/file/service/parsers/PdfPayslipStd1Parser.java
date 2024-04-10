@@ -28,8 +28,18 @@ public class PdfPayslipStd1Parser extends AbstractPDFParser<PayslipFile> impleme
             .parseCaseInsensitive().appendPattern("MMMM yyyy").toFormatter(Locale.FRENCH);
     private static final Pattern patternPeriod = Pattern.compile("\\s*Période(?:\\sde pa[iy]e){0,1}\\s*:\\s*(?<month>\\w+\\s*\\d{4})\\s*\n*");
 
+
     @Override
-    protected PayslipFile getResultFromExtraction(PDFTextStripperByArea stripper, int pageNumber, PayslipFile result) {
+    protected AbstractPDFParser<PayslipFile> getPageParser(int i) {
+        // Le bulletin de salaire peut etre en plusieurs pages
+        // Si c'est le cas, il est possible que la somme totale ne soit indiquée qu'à la page 2
+        // Le template à utiliser est exactement le meme
+        // Pour simplifier, on utilise simplement le même parser qui ecrasera les données précedentes
+        return this;
+    }
+
+    @Override
+    protected PayslipFile getResultFromExtraction(PDFTextStripperByArea stripper, PayslipFile result) {
 
         String periodStr = stripper.getTextForRegion("period").trim();
         Matcher matcherPeriod = patternPeriod.matcher(periodStr);
@@ -53,21 +63,6 @@ public class PdfPayslipStd1Parser extends AbstractPDFParser<PayslipFile> impleme
             netCumulIncome = Double.parseDouble(stripper.getTextForRegion("netCumulativeIncome").replaceAll(" ", "").replace(",", "."));
         } catch (Exception e) {
             log.warn("netCumulativeIncome wrong format");
-        }
-        // check previous page consistency result
-        if (pageNumber > 0 && result != null) {
-            if (!result.getMonth().equals(month)) {
-                log.error("something wrong");
-                return null;
-            }
-            if (!result.getFullname().equals(fullName)) {
-                log.error("something wrong");
-                return null;
-            }
-            result.setNetTaxableIncome(netIncome);
-            result.setCumulativeNetTaxableIncome(netCumulIncome);
-
-            return result;
         }
 
         return PayslipFile.builder()

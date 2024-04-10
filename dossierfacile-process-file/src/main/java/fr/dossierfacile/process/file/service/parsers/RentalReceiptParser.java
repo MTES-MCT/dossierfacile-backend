@@ -4,8 +4,6 @@ package fr.dossierfacile.process.file.service.parsers;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.ocr.RentalReceiptFile;
 import fr.dossierfacile.common.enums.DocumentCategory;
-import fr.dossierfacile.process.file.service.parsers.tools.PageExtractorModel;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.text.PDFTextStripperByArea;
 import org.springframework.core.annotation.Order;
@@ -25,7 +23,6 @@ import static fr.dossierfacile.common.enums.DocumentSubCategory.TENANT;
  */
 @Service
 @Slf4j
-@RequiredArgsConstructor
 @Order(1)
 public class RentalReceiptParser extends AbstractPDFParser<RentalReceiptFile> implements FileParser<RentalReceiptFile> {
 
@@ -37,7 +34,7 @@ public class RentalReceiptParser extends AbstractPDFParser<RentalReceiptFile> im
     }
 
     @Override
-    protected RentalReceiptFile getResultFromExtraction(PDFTextStripperByArea stripper, int pageNumber, RentalReceiptFile previousResult){
+    protected RentalReceiptFile getResultFromExtraction(PDFTextStripperByArea stripper, RentalReceiptFile previousResult){
         if (!"Adresse du bien loué".equals(stripper.getTextForRegion("rentAddressLabel").trim())) {
             // format is not the same
             return null;

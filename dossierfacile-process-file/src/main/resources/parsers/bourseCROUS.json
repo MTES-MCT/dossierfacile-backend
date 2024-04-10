@@ -1,0 +1,54 @@
+{
+  "page": {
+    "width": "892",
+    "maxPageCount": 3
+  },
+  "classification": {
+    "name": "BOURSE_CROUS"
+  },
+  "matchingZones": [
+  {
+      "name": "titleLabel",
+      "rect": "20,14,95,22",
+      "matches": "MINIST.?RE"
+    },
+    {
+      "name": "crousLabel",
+      "rect": "125,48,60,21",
+      "matches": "CROUS.{0,2}"
+    },
+    {
+      "name": "ScholarshipLabel",
+      "rect": "504,38,340,30",
+      "matches": "DOSSIER SOCIAL .?TUDIANT"
+    },
+    {
+      "name": "notificationLabel",
+      "rect": "496,62,350,27",
+      "matches": "NOTIFICATION [^\\d]{0,20}\\d{4}[^\\d]{0,4}\\d{4}"
+    },
+    {
+      "name": "civilStateLabel",
+      "rect": "19,227,87,17",
+      "matches": "Votre .?tat Civil.{0,4}"
+    }
+  ],
+  "zones": [
+    {
+      "name": "lastname",
+      "rect": "104,224,215,16"
+    },
+    {
+      "name": "firstname",
+      "rect": "104,242,215,16"
+    },
+    {
+      "name": "notification",
+      "rect": "496,62,350,27"
+    },
+    {
+      "name": "notificationReference",
+      "rect": "491,124,340,36"
+    }
+  ]
+}
