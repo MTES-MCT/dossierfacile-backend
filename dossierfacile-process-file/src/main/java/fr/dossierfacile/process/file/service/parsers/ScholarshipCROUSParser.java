@@ -53,8 +53,8 @@ public class ScholarshipCROUSParser extends AbstractPDFParser<ScholarshipFile> i
             log.error("Unable to extract year from notification");
             return null;
         }
-        Year startYear = Year.parse(notificationMatcher.group(1));
-        Year endYear = Year.parse(notificationMatcher.group(2));
+        Integer startYear = Integer.parseInt(notificationMatcher.group(1));
+        Integer endYear = Integer.parseInt(notificationMatcher.group(2));
 
         return ScholarshipFile.builder()
                 .lastName(stripper.getTextForRegion("lastname").trim())
