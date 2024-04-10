@@ -31,7 +31,7 @@ public class PdfPayslipStd3Parser extends AbstractPDFParser<PayslipFile> impleme
     private static final Pattern patternPeriodLastDay = Pattern.compile("\\s*\\d{1,2}\\s*(?<month>\\w+\\s*\\d{4})\\s*\n*");
 
     @Override
-    protected PayslipFile getResultFromExtraction(PDFTextStripperByArea stripper, int pageNumber, PayslipFile result) {
+    protected PayslipFile getResultFromExtraction(PDFTextStripperByArea stripper, PayslipFile result) {
 
         String periodStr = stripper.getTextForRegion("periodLastDay").trim();
         Matcher matcherPeriod = patternPeriodLastDay.matcher(periodStr);

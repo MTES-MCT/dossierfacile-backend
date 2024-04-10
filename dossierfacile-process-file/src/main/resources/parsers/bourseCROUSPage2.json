@@ -1,0 +1,31 @@
+{
+  "page": {
+    "width": "892"
+  },
+  "classification": {
+    "name": "BOURSE_CROUS_P2"
+  },
+  "matchingZones": [
+    {
+      "name": "finalDecisionLabel",
+      "rect": "25,215,113,20",
+      "matches": "D.?cision d.?finitive.{0,4}"
+    },
+    {
+      "name": "annualAmountLabel",
+      "rect": "155,233,85,19",
+      "matches": "Montant annuel"
+    }
+  ],
+  "zones": [
+    {
+      "name": "notificationReference",
+      "rect": "125,35,170,20"
+    },
+    {
+      "name": "amount",
+      "rect": "246,234,60,19",
+      "comments": "ex: 4000.00€"
+    }
+  ]
+}
