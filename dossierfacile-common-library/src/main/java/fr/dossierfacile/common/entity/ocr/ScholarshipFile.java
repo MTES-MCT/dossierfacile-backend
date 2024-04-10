@@ -19,9 +19,7 @@ public class ScholarshipFile implements ParsedFile {
     String firstName;
     String lastName;
     String notificationReference;
-    @JsonFormat(pattern = "yyyy")
-    Year startYear;
-    @JsonFormat(pattern = "yyyy")
-    Year endYear;
+    Integer startYear;
+    Integer endYear;
     Integer annualAmount;
 }

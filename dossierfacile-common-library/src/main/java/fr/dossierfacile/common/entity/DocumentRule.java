@@ -23,6 +23,10 @@ public enum DocumentRule {
     R_PAYSLIP_MONTHS(Level.CRITICAL, "Les 3 derniers bulletins de salaire doivent être transmis"),
     R_PAYSLIP_AMOUNT_MISMATCHES(Level.CRITICAL, "Le montant specifié ne correspond pas au montant des bulletins"),
 
+    R_SCHOLARSHIP_NAME(Level.CRITICAL, "Le nom/prénom sur la notification de bourse ne correspond pas"),
+    R_SCHOLARSHIP_EXPIRED(Level.CRITICAL, "La date de la bourse ne correspond plus"),
+    R_SCHOLARSHIP_AMOUNT(Level.CRITICAL, "Le montant de la bourse ne correspond pas au montant déclaré"),
+
     R_RENT_RECEIPT_NAME(Level.CRITICAL, "Nom/prénoms ne correspondent pas"),
     R_RENT_RECEIPT_MONTHS(Level.CRITICAL, "Les trois dernières quittances doivent être fournies (la plus récente doit être au pire M-2)"),
     R_RENT_RECEIPT_ADDRESS_SALARY(Level.WARN, "TODO. L'adresse de la location semble ne pas correspondre à l'adresse des bulletins de payes"),
