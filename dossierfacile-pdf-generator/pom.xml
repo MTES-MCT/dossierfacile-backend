@@ -24,12 +24,12 @@
 		<dossierfacile.common.version>0.0.1-SNAPSHOT</dossierfacile.common.version>
 
 		<!--PDF generation libraries-->
-		<jbig2.imageio.version>3.0.3</jbig2.imageio.version>
+		<jbig2.imageio.version>3.0.4</jbig2.imageio.version>
 		<jai-imageio-jpeg2000.version>1.4.0</jai-imageio-jpeg2000.version>
 		<jai-imageio-core.version>1.4.0</jai-imageio-core.version>
-		<metadata.extractor.version>2.18.0</metadata.extractor.version>
+		<metadata.extractor.version>2.19.0</metadata.extractor.version>
 		<pdf2dom.version>2.0.0</pdf2dom.version>
-		<pdfbox.tools.version>3.0.0</pdfbox.tools.version>
+		<pdfbox.tools.version>3.0.2</pdfbox.tools.version>
 	</properties>
 
 	<dependencyManagement>
@@ -99,19 +99,18 @@
 			<artifactId>jbig2-imageio</artifactId>
 			<version>${jbig2.imageio.version}</version>
 		</dependency>
-
-		<!-- require codecs for some images -->
+		<!-- required codecs for some images -->
 		<dependency>
 			<groupId>com.github.jai-imageio</groupId>
 			<artifactId>jai-imageio-core</artifactId>
 			<version>${jai-imageio-core.version}</version>
 		</dependency>
-
 		<dependency>
 			<groupId>com.github.jai-imageio</groupId>
 			<artifactId>jai-imageio-jpeg2000</artifactId>
 			<version>${jai-imageio-jpeg2000.version}</version>
 		</dependency>
+
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
