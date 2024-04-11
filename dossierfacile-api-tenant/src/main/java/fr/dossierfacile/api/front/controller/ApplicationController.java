@@ -3,7 +3,9 @@ package fr.dossierfacile.api.front.controller;
 import fr.dossierfacile.api.front.aop.annotation.MethodLogTime;
 import fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException;
 import fr.dossierfacile.api.front.exception.ApartmentSharingUnexpectedException;
+import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
+import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -30,6 +32,7 @@ import static org.springframework.http.ResponseEntity.ok;
 public class ApplicationController {
     private static final String DOCUMENT_NOT_EXIST = "The document does not exist";
     private final ApartmentSharingService apartmentSharingService;
+    private final AuthenticationFacade authenticationFacade;
 
     @GetMapping(value = "/full/{token}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ApplicationModel> full(@PathVariable String token) {
@@ -95,6 +98,26 @@ public class ApplicationController {
         } catch (Exception e) {
             log.error(e.getMessage(), e.getCause());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    @MethodLogTime
+    @GetMapping(value = "/zip")
+    public void downloadFullZip(HttpServletResponse response) {
+        try {
+            Tenant tenant = authenticationFacade.getLoggedTenant();
+            ByteArrayOutputStream byteArrayOutputStream = apartmentSharingService.zipDocuments(tenant);
+            if (byteArrayOutputStream.size() > 0) {
+                response.setHeader("Content-Disposition", "attachment; filename=dossier_location_" + UUID.randomUUID() + ".zip");
+                response.setHeader("Content-Type", "application/zip");
+                response.getOutputStream().write(byteArrayOutputStream.toByteArray());
+            } else {
+                log.error(DOCUMENT_NOT_EXIST);
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            }
+        } catch (IOException e) {
+            log.error(e.getMessage(), e.getCause());
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
 }
