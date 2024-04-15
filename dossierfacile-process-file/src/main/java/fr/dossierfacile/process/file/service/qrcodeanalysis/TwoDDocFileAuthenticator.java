@@ -21,7 +21,7 @@ import java.security.cert.X509Certificate;
 @Service
 @AllArgsConstructor
 public class TwoDDocFileAuthenticator {
-
+    private final ObjectMapper objectMapper;
     private final TwoDDocCertificationAuthorities certificationAuthorities;
 
     public BarCodeFileAnalysis analyze(TwoDDocRawContent twoDDocContent) {
@@ -32,7 +32,7 @@ public class TwoDDocFileAuthenticator {
         return BarCodeFileAnalysis.builder()
                 .documentType(twoDDoc.getDocumentType())
                 .barCodeContent(twoDDocContent.rawContent())
-                .verifiedData(new ObjectMapper().convertValue(twoDDoc.data().withLabels(), ObjectNode.class))
+                .verifiedData(objectMapper.convertValue(twoDDoc.data().withLabels(), ObjectNode.class))
                 .authenticationStatus(status)
                 .barCodeType(BarCodeType.TWO_D_DOC)
                 .build();

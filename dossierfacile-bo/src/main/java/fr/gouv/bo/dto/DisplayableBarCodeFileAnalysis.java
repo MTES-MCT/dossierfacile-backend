@@ -4,12 +4,15 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import fr.dossierfacile.common.entity.BarCodeFileAnalysis;
 import fr.dossierfacile.common.entity.File;
+import fr.dossierfacile.common.utils.DateRange;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -96,12 +99,17 @@ public class DisplayableBarCodeFileAnalysis {
     @NoArgsConstructor
     @JsonIgnoreProperties(ignoreUnknown = true)
     private static class PayfitAuthenticatedContent {
-
+        private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         private static final ObjectMapper objectMapper = new ObjectMapper();
+
+        static {
+            objectMapper.registerModule(new JavaTimeModule());
+        }
 
         private String companyName;
         private String employeeName;
         private String netSalary;
+        private DateRange period;
 
         static String format(Object object) {
             try {
@@ -119,9 +127,9 @@ public class DisplayableBarCodeFileAnalysis {
             map.put("Entreprise", companyName);
             map.put("Employé", employeeName);
             map.put("Salaire net", netSalary);
+            map.put("Période", dateFormatter.format(period.getStart()) + " - " + dateFormatter.format(period.getEnd()));
             return formatToList(map);
         }
-
     }
 
 }

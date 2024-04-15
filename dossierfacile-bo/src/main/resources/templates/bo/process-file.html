@@ -149,12 +149,8 @@
                                             <span class="fa fa-times text-danger" th:if="${analysis.isInWrongCategory}"
                                                 > Mauvaise catégorie</span>
                                             <br/>
-                                            <div class="small" th:if="${analysis.isNotAuthenticated && !analysis.is2DDoc()}">
-                                                <span class="bold">Devrait contenir : </span><br/>
-                                                <span th:utext="${analysis.authenticatedContent}"></span>
-                                            </div>
-                                            <div class="small" th:if="${analysis.is2DDoc()}">
-                                                <span class="bold">Informations extraites du 2D-Doc : </span><br/>
+                                            <div class="small" th:if="${analysis.authenticatedContent != null}">
+                                                <span class="bold">Informations extraites : </span><br/>
                                                 <span th:utext="${analysis.authenticatedContent}"></span>
                                             </div>
                                         </li>

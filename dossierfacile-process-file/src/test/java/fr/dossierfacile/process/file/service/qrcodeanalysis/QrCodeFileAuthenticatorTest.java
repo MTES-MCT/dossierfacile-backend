@@ -1,5 +1,6 @@
 package fr.dossierfacile.process.file.service.qrcodeanalysis;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.dossierfacile.common.entity.BarCodeDocumentType;
 import fr.dossierfacile.common.entity.BarCodeFileAnalysis;
 import fr.dossierfacile.process.file.TestFilesUtil;
@@ -17,7 +18,8 @@ import static org.mockito.Mockito.mock;
 class QrCodeFileAuthenticatorTest {
 
     private final PayfitClient client = mock(PayfitClient.class);
-    private final QrCodeFileAuthenticator authenticator = new QrCodeFileAuthenticator(List.of(new PayfitDocumentIssuer(client)));
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final QrCodeFileAuthenticator authenticator = new QrCodeFileAuthenticator(objectMapper, List.of(new PayfitDocumentIssuer(client)));
 
     @Test
     void should_process_pdf_file() throws IOException {
