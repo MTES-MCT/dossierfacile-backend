@@ -1,7 +1,6 @@
 package fr.gouv.bo.service;
 
 import com.google.common.base.Strings;
-import fr.dossierfacile.common.entity.OperationAccessToken;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.User;
 import fr.dossierfacile.common.entity.UserApi;

@@ -4,11 +4,9 @@ import fr.dossierfacile.common.enums.ParsedFileClassification;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import java.io.Serializable;
 import java.util.List;
 
 @Data

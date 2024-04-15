@@ -1,11 +1,8 @@
 package fr.dossierfacile.common.entity.ocr;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import fr.dossierfacile.common.enums.ParsedFileClassification;
 import fr.dossierfacile.common.enums.ParsedStatus;
 import lombok.*;
-
-import java.time.Year;
 
 @Data
 @Builder

@@ -26,8 +26,8 @@ import java.util.Optional;
 public class BOOwnerController {
 
     private static final int BUTTONS_TO_SHOW = 5;
-    private static final int INITIAL_PAGE = 1;
-    private static final int INITIAL_PAGE_SIZE = 50;
+    private static final String INITIAL_PAGE = "1";
+    private static final String INITIAL_PAGE_SIZE = "50";
     private static final int[] PAGE_SIZES = {50, 100};
     private static final String EMAIL = "email";
 
@@ -37,11 +37,12 @@ public class BOOwnerController {
     private OwnerMapper ownerMapper;
 
     @GetMapping("")
-    public String index(Model model, @RequestParam("pageSize") Optional<Integer> pageSize,
-                        @RequestParam("page") Optional<Integer> page, @RequestParam("ownerEmail") Optional<String> email) {
+    public String index(Model model,
+                        @RequestParam(value = "pageSize", defaultValue = INITIAL_PAGE_SIZE) int pageSize,
+                        @RequestParam(value = "page", defaultValue = INITIAL_PAGE) int page,
+                        @RequestParam("ownerEmail") Optional<String> email) {
 
-        PageRequest pageable = PageRequest.of(page.orElse(INITIAL_PAGE) - 1,
-                pageSize.orElse(INITIAL_PAGE_SIZE), Sort.by("creationDateTime").descending());
+        PageRequest pageable = PageRequest.of(page - 1, pageSize, Sort.by("creationDateTime").descending());
 
         Page<Owner> owners;
         if (email.isPresent() && StringUtils.isNotBlank(email.get())) {

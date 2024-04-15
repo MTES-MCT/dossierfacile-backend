@@ -1,7 +1,7 @@
 package fr.dossierfacile.api.dossierfacileapiowner.mail;
 
 public class ConfirmMailParams {
-    String tokenUrl;
+    final String tokenUrl;
 
     public ConfirmMailParams(String tokenUrl) {
         this.tokenUrl = tokenUrl;

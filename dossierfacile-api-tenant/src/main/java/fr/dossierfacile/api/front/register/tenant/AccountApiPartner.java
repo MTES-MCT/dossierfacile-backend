@@ -7,7 +7,6 @@ import fr.dossierfacile.api.front.register.form.partner.AccountPartnerForm;
 import fr.dossierfacile.api.front.security.interfaces.ClientAuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
-import fr.dossierfacile.api.front.service.interfaces.UserApiService;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.TenantType;
@@ -18,7 +17,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -29,7 +27,6 @@ public class AccountApiPartner implements SaveStep<AccountPartnerForm> {
     private final TenantService tenantService;
     private final TenantMapper tenantMapper;
     private final ClientAuthenticationFacade clientAuthenticationFacade;
-    private final UserApiService userApiService;
     private final PartnerCallBackService partnerCallBackService;
     private final MailService mailService;
 

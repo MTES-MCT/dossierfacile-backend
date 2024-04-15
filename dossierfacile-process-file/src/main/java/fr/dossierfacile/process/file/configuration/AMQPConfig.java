@@ -15,8 +15,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.retry.interceptor.RetryInterceptorBuilder;
 
-import java.util.concurrent.TimeUnit;
-
 @Profile("!noRabbit")
 @Configuration
 public class AMQPConfig {

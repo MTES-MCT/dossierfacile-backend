@@ -4,7 +4,6 @@ import fr.dossierfacile.api.front.exception.GuarantorNotFoundException;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.SaveStep;
-import fr.dossierfacile.api.front.register.form.guarantor.legal_person.NameGuarantorLegalPersonForm;
 import fr.dossierfacile.api.front.register.form.guarantor.legal_person.NameGuarantorRepresentantLegalPersonForm;
 import fr.dossierfacile.api.front.repository.GuarantorRepository;
 import fr.dossierfacile.common.entity.Guarantor;

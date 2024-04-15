@@ -1,6 +1,5 @@
 package fr.dossierfacile.common.service.interfaces;
 
-import fr.dossierfacile.common.entity.AuthenticityStatus;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.StorageFile;

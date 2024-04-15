@@ -1,7 +1,6 @@
 package fr.dossierfacile.process.file.service.documentrules;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.dossierfacile.common.entity.*;
@@ -19,7 +18,6 @@ import java.time.YearMonth;
 import java.time.temporal.TemporalAdjusters;
 import java.util.Arrays;
 import java.util.LinkedList;
-import java.util.Map;
 
 class PublicPayslipRulesValidationServiceTest {
 

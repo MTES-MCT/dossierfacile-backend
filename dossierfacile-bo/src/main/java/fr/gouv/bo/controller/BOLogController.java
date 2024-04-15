@@ -23,8 +23,8 @@ import java.util.Optional;
 public class BOLogController {
 
     private static final int BUTTONS_TO_SHOW = 5;
-    private static final int INITIAL_PAGE = 1;
-    private static final int INITIAL_PAGE_SIZE = 50;
+    private static final String INITIAL_PAGE = "1";
+    private static final String INITIAL_PAGE_SIZE = "50";
     private static final int[] PAGE_SIZES = {50, 100};
     private static final String EMAIL = "email";
 
@@ -33,17 +33,17 @@ public class BOLogController {
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping("")
-    public String index(Model model, @RequestParam("pageSize") Optional<Integer> pageSize,
-                        @RequestParam("page") Optional<Integer> page, @RequestParam("tenantId") Optional<String> tenantId) {
+    public String index(Model model,
+                        @RequestParam(value = "pageSize", defaultValue = INITIAL_PAGE_SIZE) int pageSize,
+                        @RequestParam(value = "page", defaultValue = INITIAL_PAGE) int page,
+                        @RequestParam("tenantId") Optional<String> tenantId) {
 
-        PageRequest pageable = PageRequest.of(page.orElse(INITIAL_PAGE) - 1,
-                pageSize.orElse(INITIAL_PAGE_SIZE), Sort.by("creationDateTime").descending());
+        PageRequest pageable = PageRequest.of(page - 1, pageSize, Sort.by("creationDateTime").descending());
 
         Page<Log> logs;
         if (tenantId.isPresent() && StringUtils.isNotBlank(tenantId.get())) {
             logs = logService.findAllByTenantIdPageable(
-                    tenantId.map(s -> Long.valueOf(s))
-                            .orElseThrow(() -> new IllegalArgumentException("Tenant must be a number")),
+                    tenantId.map(Long::valueOf).orElseThrow(() -> new IllegalArgumentException("Tenant must be a number")),
                     pageable);
         } else {
             logs = logService.findAllPageable(pageable);

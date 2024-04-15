@@ -107,10 +107,6 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
         ApartmentSharing apartmentSharing = apartmentSharingRepository.findByToken(token)
                 .orElseThrow(() -> new ApartmentSharingNotFoundException(token));
 
-        if (apartmentSharing.getDossierPdfDocumentStatus() != FileStatus.COMPLETED) {
-            throw new FileNotFoundException("Full PDF doesn't exist - FileStatus " + apartmentSharing.getDossierPdfDocumentStatus());
-        }
-
         FileStatus status = apartmentSharing.getDossierPdfDocumentStatus() == null ? FileStatus.NONE : apartmentSharing.getDossierPdfDocumentStatus();
         switch (status) {
             case COMPLETED -> {

@@ -74,7 +74,7 @@ public class KeycloakServiceImpl implements KeycloakService {
         Response response = realmResource.clients().create(clientTemplate);
         log.info(" status =  " + response.getStatus());
         if (response.getStatus() != Response.Status.CREATED.getStatusCode()) {
-            throw new IllegalStateException("Status de retour création de client " + +response.getStatus());
+            throw new IllegalStateException("Status de retour création de client " + response.getStatus());
         }
     }
 
