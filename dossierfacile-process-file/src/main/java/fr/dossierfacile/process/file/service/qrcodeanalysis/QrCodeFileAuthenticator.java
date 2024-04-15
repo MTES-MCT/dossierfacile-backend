@@ -15,7 +15,7 @@ import java.util.Optional;
 @Service
 @AllArgsConstructor
 public class QrCodeFileAuthenticator {
-
+    private final ObjectMapper objectMapper;
     private final List<QrCodeDocumentIssuer<? extends AuthenticationRequest>> issuers;
 
     public Optional<BarCodeFileAnalysis> analyze(InMemoryFile file) {
@@ -34,7 +34,7 @@ public class QrCodeFileAuthenticator {
         return BarCodeFileAnalysis.builder()
                 .documentType(result.getDocumentType())
                 .barCodeContent(qrCode.getContent())
-                .verifiedData(new ObjectMapper().convertValue(result.getApiResponse(), ObjectNode.class))
+                .verifiedData(objectMapper.convertValue(result.getApiResponse(), ObjectNode.class))
                 .authenticationStatus(result.getAuthenticationStatus())
                 .barCodeType(BarCodeType.QR_CODE)
                 .build();
