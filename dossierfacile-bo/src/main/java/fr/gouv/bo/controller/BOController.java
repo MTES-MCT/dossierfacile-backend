@@ -25,7 +25,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.ResolvableType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.stereotype.Controller;
@@ -41,7 +40,6 @@ import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 
 @Slf4j
@@ -57,8 +55,8 @@ public class BOController {
     private static final String REDIRECT_BO_COLOCATION = "redirect:/bo/colocation/";
     private static final String SHOW_ALERT = "showAlert";
 
-    private static final int INITIAL_PAGE = 0;
-    private static final int INITIAL_PAGE_SIZE = 100;
+    private static final String INITIAL_PAGE = "0";
+    private static final String INITIAL_PAGE_SIZE = "100";
     private static final int[] PAGE_SIZES = {100, 200};
     private static final String REDIRECT_BO = "redirect:/bo";
     private final TenantService tenantService;
@@ -100,34 +98,29 @@ public class BOController {
     }
 
     @GetMapping("/bo/documentFailedList")
-    public String documentFailedList(Model model, @RequestParam("pageSize") Optional<Integer> pageSize, @RequestParam("page") Optional<Integer> page) {
+    public String documentFailedList(Model model,
+                                     @RequestParam(value = "pageSize", defaultValue = INITIAL_PAGE_SIZE) int pageSize,
+                                     @RequestParam(value = "page", defaultValue = INITIAL_PAGE) int page) {
         EmailDTO emailDTO = new EmailDTO();
-        int evalPageSize = pageSize.orElse(INITIAL_PAGE_SIZE);
-        int val = 0;
-        if (page.isPresent()) {
-            val = page.get() - 1;
-        }
-        int evalPage = (page.orElse(0) < 1) ? INITIAL_PAGE : val;
-        Page<Tenant> tenants = tenantService.getAllTenantsToProcessWithFailedGeneratedPdfDocument(PageRequest.of(evalPage, evalPageSize));
+
+        Page<Tenant> tenants = tenantService.getAllTenantsToProcessWithFailedGeneratedPdfDocument(PageRequest.of(page, pageSize));
         Pager pager = new Pager(tenants.getTotalPages(), tenants.getNumber(), BUTTONS_TO_SHOW);
         model.addAttribute(EMAIL, emailDTO);
         model.addAttribute(PAGER, pager);
         model.addAttribute(PAGE_SIZES_STRING, PAGE_SIZES);
-        model.addAttribute(SELECTED_PAGE_SIZE, evalPageSize);
+        model.addAttribute(SELECTED_PAGE_SIZE, pageSize);
         model.addAttribute("tenantList", tenants);
         return "bo/failed-pdf-tenant";
     }
 
     @GetMapping("/bo")
-    public String bo(@ModelAttribute("numberOfDocumentsToProcess") ResultDTO numberOfDocumentsToProcess, Model model, @RequestParam("pageSize") Optional<Integer> pageSize, @RequestParam("page") Optional<Integer> page, Principal principal) {
-        int evalPageSize = pageSize.orElse(INITIAL_PAGE_SIZE);
-        int val = 0;
-        if (page.isPresent()) {
-            val = page.get() - 1;
-        }
-        int evalPage = (page.orElse(0) < 1) ? INITIAL_PAGE : val;
+    public String bo(@ModelAttribute("numberOfDocumentsToProcess") ResultDTO numberOfDocumentsToProcess,
+                     Model model,
+                     @RequestParam(value = "pageSize", defaultValue = INITIAL_PAGE_SIZE) int pageSize,
+                     @RequestParam(value = "page", defaultValue = INITIAL_PAGE) int page,
+                     Principal principal) {
         EmailDTO emailDTO = new EmailDTO();
-        Page<Tenant> tenants = tenantService.listTenantsToProcess(PageRequest.of(evalPage, evalPageSize));
+        Page<Tenant> tenants = tenantService.listTenantsToProcess(PageRequest.of(page, pageSize));
         Pager pager = new Pager(tenants.getTotalPages(), tenants.getNumber(), BUTTONS_TO_SHOW);
         User login_user = userService.findUserByEmail(principal.getName());
         boolean is_admin = login_user.getUserRoles().stream().anyMatch(userRole -> userRole.getRole().name().equals(Role.ROLE_ADMIN.name()));
@@ -139,7 +132,7 @@ public class BOController {
         model.addAttribute("TenantsWithFailedGeneratedPdf", result);
         model.addAttribute("isUserAdmin", is_admin);
         model.addAttribute("tenants", tenants);
-        model.addAttribute(SELECTED_PAGE_SIZE, evalPageSize);
+        model.addAttribute(SELECTED_PAGE_SIZE, pageSize);
         model.addAttribute(PAGE_SIZES_STRING, PAGE_SIZES);
         model.addAttribute(PAGER, pager);
         model.addAttribute(EMAIL, emailDTO);
@@ -219,18 +212,14 @@ public class BOController {
     }
 
     @GetMapping("/bo/searchResult")
-    public String searchResult(Model model, @RequestParam(value = "q", defaultValue = "") String q,
-                               @RequestParam("pageSize") Optional<Integer> pageSize, @RequestParam("page") Optional<Integer> page) {
-        int evalPageSize = pageSize.orElse(INITIAL_PAGE_SIZE);
-        int val = 0;
-        if (page.isPresent()) {
-            val = page.get() - 1;
-        }
-        int evalPage = (page.orElse(0) < 1) ? INITIAL_PAGE : val;
-        Page<Tenant> tenants = tenantService.listTenantsFilter(PageRequest.of(evalPage, evalPageSize), q);
+    public String searchResult(Model model,
+                               @RequestParam(value = "q", defaultValue = "") String q,
+                               @RequestParam(value = "pageSize", defaultValue = INITIAL_PAGE_SIZE) int pageSize,
+                               @RequestParam(value = "page", defaultValue = INITIAL_PAGE) int page) {
+        Page<Tenant> tenants = tenantService.listTenantsFilter(PageRequest.of(page, pageSize), q);
         Pager pager = new Pager(tenants.getTotalPages(), tenants.getNumber(), BUTTONS_TO_SHOW);
         model.addAttribute("tenants", tenants);
-        model.addAttribute(SELECTED_PAGE_SIZE, evalPageSize);
+        model.addAttribute(SELECTED_PAGE_SIZE, pageSize);
         model.addAttribute(PAGE_SIZES_STRING, PAGE_SIZES);
         model.addAttribute(PAGER, pager);
         return "bo/searchResult";

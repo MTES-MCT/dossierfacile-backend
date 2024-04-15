@@ -16,7 +16,7 @@ public enum DocumentCategory {
 
     NULL("");
 
-    String label;
+    final String label;
 
     DocumentCategory(String label) {
         this.label = label;

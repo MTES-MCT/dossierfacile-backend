@@ -20,6 +20,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -64,14 +65,14 @@ public class Guarantor implements Person, Serializable {
     public String getCompleteName() {
         StringBuilder fullName = new StringBuilder();
         if (typeGuarantor == TypeGuarantor.NATURAL_PERSON) {
-            if (!firstName.isBlank() && firstName != null){
+            if (StringUtils.isNotBlank(firstName)){
                 fullName.append(firstName);
             }
-            if (!lastName.isBlank() && lastName != null){
+            if (StringUtils.isNotBlank(lastName)){
                 fullName.append(" ").append(lastName);
             }
         } else if (typeGuarantor == TypeGuarantor.LEGAL_PERSON) {
-            if (!legalPersonName.isBlank() && legalPersonName != null){
+            if (StringUtils.isNotBlank(legalPersonName)){
                 fullName.append(legalPersonName);
             }
         }

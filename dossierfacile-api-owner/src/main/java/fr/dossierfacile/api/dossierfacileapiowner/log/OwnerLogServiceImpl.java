@@ -1,8 +1,6 @@
 package fr.dossierfacile.api.dossierfacileapiowner.log;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import fr.dossierfacile.common.entity.Log;
 import fr.dossierfacile.common.entity.Owner;
 import fr.dossierfacile.common.entity.OwnerLog;
 import fr.dossierfacile.common.enums.OwnerLogType;

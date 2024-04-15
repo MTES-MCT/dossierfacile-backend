@@ -26,7 +26,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static fr.dossierfacile.common.enums.ApplicationType.*;
+import static fr.dossierfacile.common.enums.ApplicationType.COUPLE;
+import static fr.dossierfacile.common.enums.ApplicationType.GROUP;
 
 @Service
 @RequiredArgsConstructor
@@ -67,29 +68,31 @@ public class MailServiceImpl implements MailService {
     private Long templateIdContactSupport;
     @Value("${sendinblue.template.id.token.expiration}")
     private Long templateIdTokenExpiration;
-    @Value("${link.after.completed.default}")
-    private String defaultCompletedUrl;
-    @Value("${link.after.created.default}")
-    private String defaultCreatedUrl;
     @Value("${sendinblue.template.id.share.file}")
     private Long templateIdShareFile;
     @Value("${sendinblue.template.id.partner.access.revoked}")
     private Long templateIDPartnerAccessRevoked;
+
+    @Value("${link.after.completed.default}")
+    private String defaultCompletedUrl;
+    @Value("${link.after.created.default}")
+    private String defaultCreatedUrl;
+
     @Value("${sendinblue.domains.blacklist:example.com}")
     private List<String> blackListedDomains;
 
-    private void sendEmailToTenant(User tenant, Map<String, String> params, Long templateId) {
-        if (tenant.getEmail() == null) {
+    private void sendEmailToTenant(String email, String tenantFullName, Map<String, String> params, Long templateId) {
+        if (email == null) {
             return;
         }
-        boolean blackListed = blackListedDomains.stream().anyMatch(domain -> tenant.getEmail().endsWith(domain));
+        boolean blackListed = blackListedDomains.stream().anyMatch(email::endsWith);
         if (blackListed) {
             return;
         }
         SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
-        sendSmtpEmailTo.setEmail(tenant.getEmail());
-        if (!Strings.isNullOrEmpty(tenant.getFullName())) {
-            sendSmtpEmailTo.setName(tenant.getFullName());
+        sendSmtpEmailTo.setEmail(email);
+        if (!Strings.isNullOrEmpty(tenantFullName)) {
+            sendSmtpEmailTo.setName(tenantFullName);
         }
         SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
         sendSmtpEmail.templateId(templateId);
@@ -103,6 +106,9 @@ public class MailServiceImpl implements MailService {
         }
     }
 
+    private void sendEmailToTenant(User tenant, Map<String, String> params, Long templateId) {
+        sendEmailToTenant(tenant.getEmail(), tenant.getFullName(), params, templateId);
+    }
 
     @Override
     public void sendEmailConfirmAccount(User user, ConfirmationToken confirmationToken) {

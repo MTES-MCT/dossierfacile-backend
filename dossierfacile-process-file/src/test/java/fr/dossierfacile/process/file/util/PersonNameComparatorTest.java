@@ -3,8 +3,6 @@ package fr.dossierfacile.process.file.util;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.text.Normalizer;
-
 class PersonNameComparatorTest {
     @Test
     void compare_name_should_be_ok() {

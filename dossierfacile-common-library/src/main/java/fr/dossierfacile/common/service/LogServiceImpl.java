@@ -2,7 +2,6 @@ package fr.dossierfacile.common.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.Log;
 import fr.dossierfacile.common.entity.Tenant;
