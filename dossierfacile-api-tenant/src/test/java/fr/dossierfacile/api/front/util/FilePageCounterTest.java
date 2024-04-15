@@ -9,6 +9,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -71,7 +72,9 @@ class FilePageCounterTest {
     }
 
     private byte[] getFileBytes(String fileName) throws IOException {
-        return getClass().getClassLoader().getResourceAsStream(fileName).readAllBytes();
+        try (InputStream resourceAsStream = getClass().getClassLoader().getResourceAsStream(fileName)) {
+            return resourceAsStream.readAllBytes();
+        }
     }
 
 }

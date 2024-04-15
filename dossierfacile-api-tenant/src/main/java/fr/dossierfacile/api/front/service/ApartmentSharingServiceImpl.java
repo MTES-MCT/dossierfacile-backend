@@ -8,13 +8,16 @@ import fr.dossierfacile.api.front.repository.TenantLogRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.ApartmentSharingLink;
+import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.LinkLog;
 import fr.dossierfacile.common.entity.Log;
+import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.FileStatus;
 import fr.dossierfacile.common.enums.LinkType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
+import fr.dossierfacile.common.enums.TypeGuarantor;
 import fr.dossierfacile.common.mapper.ApartmentSharingMapper;
 import fr.dossierfacile.common.mapper.ApplicationBasicMapper;
 import fr.dossierfacile.common.mapper.ApplicationFullMapper;
@@ -33,14 +36,23 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.UnknownServiceException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @Service
 @AllArgsConstructor
@@ -194,6 +206,78 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
     @Override
     public void delete(ApartmentSharing apartmentSharing) {
         apartmentSharingCommonService.delete(apartmentSharing);
+    }
+
+    @Override
+    public ByteArrayOutputStream zipDocuments(Tenant tenant) {
+        final Path tmpDir = Paths.get("tmp");
+        String zipFileName = tmpDir + File.separator + "dossier_location_" + tenant.getLastName() + "_" + ThreadLocalRandom.current().nextInt() + ".zip";
+        try {
+            Files.createDirectories(tmpDir);
+            final ZipOutputStream outputStream = new ZipOutputStream(new FileOutputStream(zipFileName));
+
+            for (Tenant t : tenant.getApartmentSharing().getTenants()) {
+                addTenantDocumentsToZip(t, outputStream);
+            }
+
+            outputStream.close();
+
+            ByteArrayOutputStream outputStreamResult = new ByteArrayOutputStream();
+            File f = new File(zipFileName);
+            try (InputStream fileIS = new FileInputStream(f)) {
+                log.info("Dossier zip downloaded for tenant with ID [" + tenant.getId() + "]");
+                IOUtils.copy(fileIS, outputStreamResult);
+                return outputStreamResult;
+            }
+        } catch (IOException e) {
+            log.error("Error while zipping", e);
+        } finally {
+            try {
+                Files.delete(Path.of(zipFileName));
+            } catch (IOException ignored) {
+            }
+        }
+        return null;
+    }
+
+    private void addTenantDocumentsToZip(Tenant tenant, ZipOutputStream outputStream) {
+        String tenantFolder = tenant.getFullName().replace(" ", "_");
+        tenant.getDocuments().forEach(document -> addDocumentToZip(outputStream, document, tenantFolder));
+        tenant.getGuarantors().forEach(guarantor -> guarantor.getDocuments().forEach(document -> {
+                    String guarantorFolderName = "";
+                    if (TypeGuarantor.NATURAL_PERSON.equals( guarantor.getTypeGuarantor())) {
+                        guarantorFolderName = File.separator + guarantor.getCompleteName().replace(" ", "_");
+                    } else {
+                        guarantorFolderName = File.separator + "garant";
+                    }
+                    addDocumentToZip(outputStream, document, tenantFolder + guarantorFolderName);
+        }
+        ));
+    }
+
+    private void addDocumentToZip(ZipOutputStream outputStream, Document document, String folder) {
+        StorageFile watermarkFile = document.getWatermarkFile();
+        if (watermarkFile == null) {
+            log.error("Error watermark is null : " + document.getId());
+            return;
+        }
+        String filename = folder + File.separator + document.getDocumentCategory().getText() + "_" + document.getId() + ".pdf";
+        try (InputStream inputStream = fileStorageService.download(watermarkFile)) {
+            addToZipFile(outputStream, filename, inputStream);
+        } catch (IOException e) {
+            log.error("Error while zipping document : " + document.getId(), e);
+        }
+    }
+
+    private void addToZipFile(ZipOutputStream zos, String filename, InputStream inputStream) throws IOException {
+        ZipEntry zipEntry = new ZipEntry(filename);
+        zos.putNextEntry(zipEntry);
+        byte[] bytes = new byte[1024];
+        int length;
+        while ((length = inputStream.read(bytes)) >= 0) {
+            zos.write(bytes, 0, length);
+        }
+        zos.closeEntry();
     }
 
     @Override

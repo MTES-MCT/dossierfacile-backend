@@ -10,6 +10,7 @@ mockstorage/
 static-front/
 logs/
 hs_err_pid*.log
+tmp
 
 ### STS ###
 .apt_generated
@@ -41,3 +42,4 @@ hs_err_pid*.log
 
 # Used in test
 7fdad8b1*
+
