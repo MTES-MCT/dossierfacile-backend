@@ -1,5 +1,6 @@
 package fr.dossierfacile.process.file.service.documentrules;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.entity.ocr.TaxIncomeLeaf;
 import fr.dossierfacile.common.entity.ocr.TaxIncomeMainFile;
@@ -9,13 +10,13 @@ import fr.dossierfacile.common.enums.ParsedFileAnalysisStatus;
 import fr.dossierfacile.common.enums.ParsedFileClassification;
 import fr.dossierfacile.process.file.barcode.twoddoc.parsing.TwoDDocDataType;
 import fr.dossierfacile.process.file.util.PersonNameComparator;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +36,10 @@ public class IncomeTaxRulesValidationService implements RulesValidationService {
     }
 
     private TaxIncomeMainFile fromQR(BarCodeFileAnalysis barCodeFileAnalysis) {
-        Map<String, String> dataWithLabel = (Map<String, String>) barCodeFileAnalysis.getVerifiedData();
+        if ( barCodeFileAnalysis.getBarCodeType() != BarCodeType.TWO_D_DOC){
+            throw new IllegalStateException("Verified Code has unsupported type");
+        }
+        Map<String, String> dataWithLabel = new ObjectMapper().convertValue(barCodeFileAnalysis.getVerifiedData(), Map.class);
         return TaxIncomeMainFile.builder()
                 .declarant1NumFiscal(dataWithLabel.get(TwoDDocDataType.ID_47.getLabel()))
                 .declarant1Nom(dataWithLabel.get(TwoDDocDataType.ID_46.getLabel()))

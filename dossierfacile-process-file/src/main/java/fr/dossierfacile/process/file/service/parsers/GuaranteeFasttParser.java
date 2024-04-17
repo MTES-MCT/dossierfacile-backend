@@ -39,7 +39,7 @@ public class GuaranteeFasttParser extends AbstractPDFParser<GuaranteeProviderFil
     }
 
     @Override
-    protected GuaranteeProviderFile getResultFromExtraction(PDFTextStripperByArea stripper, int page, GuaranteeProviderFile result) {
+    protected GuaranteeProviderFile getResultFromExtraction(PDFTextStripperByArea stripper, GuaranteeProviderFile result) {
         return GuaranteeProviderFile.builder()
                 .names(List.of(new GuaranteeProviderFile.FullName(
                         stripper.getTextForRegion("firstName").trim(),
@@ -51,8 +51,8 @@ public class GuaranteeFasttParser extends AbstractPDFParser<GuaranteeProviderFil
     }
 
     @Override
-    protected boolean modelMatches(PageExtractorModel model, PDPage page, int pageNumber) throws IOException {
-        if (!super.modelMatches(model, page, pageNumber)) {
+    protected boolean modelMatches(PageExtractorModel model, PDPage page) throws IOException {
+        if (!super.modelMatches(model, page)) {
             return false;
         }
         PDResources resources = page.getResources();

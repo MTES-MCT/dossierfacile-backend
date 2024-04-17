@@ -4,7 +4,6 @@ import fr.dossierfacile.api.front.exception.GuarantorNotFoundException;
 import fr.dossierfacile.api.front.repository.GuarantorRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.GuarantorService;
-import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
 import fr.dossierfacile.common.entity.Guarantor;
 import fr.dossierfacile.common.entity.Tenant;

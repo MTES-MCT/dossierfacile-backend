@@ -1,9 +1,6 @@
 package fr.dossierfacile.common.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import fr.dossierfacile.common.entity.ocr.ParsedFile;
-import fr.dossierfacile.common.enums.ParsedFileClassification;
-import fr.dossierfacile.common.enums.ParsedStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

@@ -3,11 +3,10 @@ package fr.dossierfacile.api.front.register.form.partner;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import fr.dossierfacile.api.front.validator.anotation.tenant.account.UniqueEmailActiveAccount;
 import fr.dossierfacile.common.deserializer.EmailDeserializer;
+import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import javax.validation.constraints.Email;
 
 @Data
 @AllArgsConstructor

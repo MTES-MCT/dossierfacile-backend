@@ -10,7 +10,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -145,7 +144,7 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
 
     @Query("from Tenant t " +
             "join Log l on t.id = l.tenantId " +
-            "where t.honorDeclaration = false and l.logType = 'EMAIL_ACCOUNT_VALIDATED' and l.creationDateTime between :initDate and :endDate")
+            "where t.honorDeclaration = false and l.logType = 'ACCOUNT_EDITED' and l.creationDateTime between :initDate and :endDate")
     List<Tenant> findAllByHonorDeclarationIsFalseAndCompletionDateTimeIsBetween(@Param("initDate") LocalDateTime initDate, @Param("endDate") LocalDateTime endDate);
 
     @Query(

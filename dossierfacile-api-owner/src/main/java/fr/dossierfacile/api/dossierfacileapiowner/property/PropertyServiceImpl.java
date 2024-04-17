@@ -106,7 +106,8 @@ public class PropertyServiceImpl implements PropertyService {
 
     @Override
     public Optional<Property> getProperty(Long id) {
-        return propertyRepository.findById(id);
+        Owner owner = authenticationFacade.getOwner();
+        return propertyRepository.findByIdAndOwnerId(id, owner.getId());
     }
 
     @Override

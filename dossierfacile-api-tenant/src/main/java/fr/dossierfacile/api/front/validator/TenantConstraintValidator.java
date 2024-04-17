@@ -4,9 +4,9 @@ import fr.dossierfacile.api.front.form.interfaces.FormWithTenantId;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.common.entity.Tenant;
+import jakarta.validation.ConstraintValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.validation.ConstraintValidator;
 import java.lang.annotation.Annotation;
 
 public abstract class TenantConstraintValidator<A extends Annotation, F extends FormWithTenantId> implements ConstraintValidator<A, F> {

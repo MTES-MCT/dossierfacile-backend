@@ -6,12 +6,11 @@ import fr.dossierfacile.api.front.validator.anotation.NumberOfPages;
 import fr.dossierfacile.api.front.validator.anotation.tenant.profesional.NumberOfDocumentProfesional;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-
-import javax.validation.constraints.NotNull;
 
 import static fr.dossierfacile.common.enums.DocumentSubCategory.ALTERNATION;
 import static fr.dossierfacile.common.enums.DocumentSubCategory.ARTIST;

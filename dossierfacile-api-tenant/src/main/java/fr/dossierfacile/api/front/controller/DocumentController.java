@@ -1,26 +1,30 @@
 package fr.dossierfacile.api.front.controller;
 
 import fr.dossierfacile.api.front.exception.DocumentNotFoundException;
+import fr.dossierfacile.api.front.form.CommentAnalysisForm;
+import fr.dossierfacile.api.front.mapper.TenantMapper;
+import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
+import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletResponse;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+
+import static org.springframework.http.ResponseEntity.badRequest;
+import static org.springframework.http.ResponseEntity.ok;
 
 @RestController
 @RequiredArgsConstructor
@@ -32,6 +36,8 @@ public class DocumentController {
     private final AuthenticationFacade authenticationFacade;
     private final DocumentRepository documentRepository;
     private final FileStorageService fileStorageService;
+    private final TenantMapper tenantMapper;
+    private final TenantService tenantService;
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
@@ -54,5 +60,20 @@ public class DocumentController {
             log.error("Cannot download file", e);
             response.setStatus(404);
         }
+    }
+
+    @PreAuthorize("hasPermissionOnTenant(#commentAnalysisForm.tenantId)")
+    @PostMapping(value = "/commentAnalysis", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<TenantModel> commentAnalysis(@RequestBody CommentAnalysisForm commentAnalysisForm) {
+        var tenant = authenticationFacade.getTenant(commentAnalysisForm.getTenantId());
+        try {
+            tenantService.addCommentAnalysis(tenant, commentAnalysisForm.getDocumentId(), commentAnalysisForm.getComment());
+        } catch (Exception e) {
+            return badRequest().build();
+        }
+        if (commentAnalysisForm.getTenantId() != null) {
+            return ok(tenantMapper.toTenantModel(authenticationFacade.getTenant(null)));
+        }
+        return ok(tenantMapper.toTenantModel(tenant));
     }
 }

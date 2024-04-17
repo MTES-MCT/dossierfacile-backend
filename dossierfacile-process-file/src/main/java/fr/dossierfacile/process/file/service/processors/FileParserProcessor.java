@@ -8,6 +8,7 @@ import fr.dossierfacile.common.repository.ParsedFileAnalysisRepository;
 import fr.dossierfacile.process.file.repository.FileRepository;
 import fr.dossierfacile.process.file.service.StorageFileLoaderService;
 import fr.dossierfacile.process.file.service.parsers.FileParser;
+import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -15,7 +16,6 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import javax.annotation.PostConstruct;
 import java.util.Comparator;
 import java.util.List;
 

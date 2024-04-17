@@ -22,12 +22,11 @@ public class KeycloakConfig {
     public RealmResource geRealmResource() {
         var keycloak = KeycloakBuilder.builder()
                 .serverUrl(keycloakServerUrl)
-                .grantType(OAuth2Constants.CLIENT_CREDENTIALS)
                 .realm("master")
+                .grantType(OAuth2Constants.CLIENT_CREDENTIALS)
                 .clientId(clientId)
                 .clientSecret(clientSecret)
                 .build();
-        keycloak.tokenManager().getAccessToken();
 
         return keycloak.realm(keycloakRealm);
     }

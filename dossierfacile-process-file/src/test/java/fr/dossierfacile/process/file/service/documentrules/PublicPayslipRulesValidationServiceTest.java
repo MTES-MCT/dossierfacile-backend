@@ -2,6 +2,7 @@ package fr.dossierfacile.process.file.service.documentrules;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.entity.ocr.PayslipFile;
 import fr.dossierfacile.common.enums.DocumentCategory;
@@ -37,7 +38,8 @@ class PublicPayslipRulesValidationServiceTest {
                                             }
                                         """.replace("{startHex}", TwoDDocUtil.get2DDocHexDateFromLocalDate(date.with(TemporalAdjusters.firstDayOfMonth())))
                                         .replace("{endHex}", TwoDDocUtil.get2DDocHexDateFromLocalDate(date.with(TemporalAdjusters.lastDayOfMonth()))),
-                                Object.class))
+                                ObjectNode.class))
+                .barCodeType(BarCodeType.TWO_D_DOC)
                 .documentType(BarCodeDocumentType.PUBLIC_PAYSLIP)
                 .build();
 

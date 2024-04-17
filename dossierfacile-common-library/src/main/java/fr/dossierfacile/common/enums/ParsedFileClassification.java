@@ -1,12 +1,7 @@
 package fr.dossierfacile.common.enums;
 
 import fr.dossierfacile.common.entity.FranceIdentiteApiResult;
-import fr.dossierfacile.common.entity.ocr.GuaranteeProviderFile;
-import fr.dossierfacile.common.entity.ocr.ParsedFile;
-import fr.dossierfacile.common.entity.ocr.PayslipFile;
-import fr.dossierfacile.common.entity.ocr.RentalReceiptFile;
-import fr.dossierfacile.common.entity.ocr.TaxIncomeLeaf;
-import fr.dossierfacile.common.entity.ocr.TaxIncomeMainFile;
+import fr.dossierfacile.common.entity.ocr.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -18,6 +13,7 @@ public enum ParsedFileClassification {
     GUARANTEE_PROVIDER(GuaranteeProviderFile.class),
     PUBLIC_PAYSLIP(PayslipFile.class),
     PAYSLIP(PayslipFile.class),
+    SCHOLARSHIP(ScholarshipFile.class),
     RENTAL_RECEIPT(RentalReceiptFile.class),
     FRANCE_IDENTITE(FranceIdentiteApiResult.class);
 

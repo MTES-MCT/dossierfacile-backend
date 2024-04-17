@@ -36,4 +36,6 @@ public interface ApartmentSharingService {
      * Delete apartmentSharing (delete tenants on cascade)
      */
     void delete(ApartmentSharing apartmentSharing);
+
+    ByteArrayOutputStream zipDocuments(Tenant tenant);
 }

@@ -5,10 +5,9 @@ import fr.dossierfacile.api.front.register.form.tenant.ApplicationFormV2;
 import fr.dossierfacile.api.front.validator.TenantConstraintValidator;
 import fr.dossierfacile.api.front.validator.anotation.tenant.application.v2.DeniedJoinTenant;
 import fr.dossierfacile.common.enums.TenantType;
+import jakarta.validation.ConstraintValidatorContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import javax.validation.ConstraintValidatorContext;
 
 @Component
 @RequiredArgsConstructor

@@ -3,12 +3,16 @@ package fr.gouv.bo.dto;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import fr.dossierfacile.common.entity.BarCodeFileAnalysis;
 import fr.dossierfacile.common.entity.File;
+import fr.dossierfacile.common.utils.DateRange;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +31,21 @@ public class DisplayableBarCodeFileAnalysis {
     public static Optional<DisplayableBarCodeFileAnalysis> of(File file) {
         return Optional.ofNullable(file.getFileAnalysis())
                 .map(DisplayableBarCodeFileAnalysis::new);
+    }
+
+    private static String formatToList(List<String> data) {
+        String listElements = data.stream()
+                .map(element -> "<li>" + element + "</li>")
+                .collect(Collectors.joining());
+        return "<ul>" + listElements + "</ul>";
+    }
+
+    private static String formatToList(Map<String, String> data) {
+        return formatToList(
+                data.entrySet().stream()
+                        .map(entry -> entry.getKey() + " : " + entry.getValue())
+                        .collect(Collectors.toList())
+        );
     }
 
     public String getDocumentType() {
@@ -56,9 +75,15 @@ public class DisplayableBarCodeFileAnalysis {
 
     @SuppressWarnings("unchecked")
     public String getAuthenticatedContent() {
-        Object verifiedData = analysis.getVerifiedData();
+        ObjectNode verifiedData = analysis.getVerifiedData();
         if (analysis.getBarCodeType() == TWO_D_DOC) {
-            return formatToList((Map<String, String>) verifiedData);
+            try {
+                Map<String, String> map = new ObjectMapper().treeToValue(verifiedData, Map.class);
+                return formatToList(map);
+
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
         return switch (analysis.getDocumentType()) {
             case PAYFIT_PAYSLIP -> PayfitAuthenticatedContent.format(verifiedData);
@@ -74,12 +99,17 @@ public class DisplayableBarCodeFileAnalysis {
     @NoArgsConstructor
     @JsonIgnoreProperties(ignoreUnknown = true)
     private static class PayfitAuthenticatedContent {
-
+        private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         private static final ObjectMapper objectMapper = new ObjectMapper();
+
+        static {
+            objectMapper.registerModule(new JavaTimeModule());
+        }
 
         private String companyName;
         private String employeeName;
         private String netSalary;
+        private DateRange period;
 
         static String format(Object object) {
             try {
@@ -97,24 +127,9 @@ public class DisplayableBarCodeFileAnalysis {
             map.put("Entreprise", companyName);
             map.put("Employé", employeeName);
             map.put("Salaire net", netSalary);
+            map.put("Période", dateFormatter.format(period.getStart()) + " - " + dateFormatter.format(period.getEnd()));
             return formatToList(map);
         }
-
-    }
-
-    private static String formatToList(List<String> data) {
-        String listElements = data.stream()
-                .map(element -> "<li>" + element + "</li>")
-                .collect(Collectors.joining());
-        return "<ul>" + listElements + "</ul>";
-    }
-
-    private static String formatToList(Map<String, String> data) {
-        return formatToList(
-                data.entrySet().stream()
-                        .map(entry -> entry.getKey() + " : " + entry.getValue())
-                        .collect(Collectors.toList())
-        );
     }
 
 }

@@ -1,5 +1,7 @@
 package fr.dossierfacile.process.file.service.qrcodeanalysis;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.dossierfacile.common.entity.BarCodeFileAnalysis;
 import fr.dossierfacile.common.entity.BarCodeType;
 import fr.dossierfacile.common.enums.FileAuthenticationStatus;
@@ -19,7 +21,7 @@ import java.security.cert.X509Certificate;
 @Service
 @AllArgsConstructor
 public class TwoDDocFileAuthenticator {
-
+    private final ObjectMapper objectMapper;
     private final TwoDDocCertificationAuthorities certificationAuthorities;
 
     public BarCodeFileAnalysis analyze(TwoDDocRawContent twoDDocContent) {
@@ -30,7 +32,7 @@ public class TwoDDocFileAuthenticator {
         return BarCodeFileAnalysis.builder()
                 .documentType(twoDDoc.getDocumentType())
                 .barCodeContent(twoDDocContent.rawContent())
-                .verifiedData(twoDDoc.data().withLabels())
+                .verifiedData(objectMapper.convertValue(twoDDoc.data().withLabels(), ObjectNode.class))
                 .authenticationStatus(status)
                 .barCodeType(BarCodeType.TWO_D_DOC)
                 .build();

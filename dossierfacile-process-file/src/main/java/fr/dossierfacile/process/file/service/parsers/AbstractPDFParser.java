@@ -20,31 +20,31 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public abstract class AbstractPDFParser<T extends ParsedFile> implements FileParser<T> {
 
+    protected final PageExtractorModel model;
+
+    AbstractPDFParser() {
+        try {
+            model = new PageExtractorModel(getJsonModelFile());
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to initialize Parser - check code");
+        }
+    }
+
     protected abstract String getJsonModelFile();
 
-    protected abstract T getResultFromExtraction(PDFTextStripperByArea stripper, int pageNumber, T previousResult);
-
+    protected abstract T getResultFromExtraction(PDFTextStripperByArea stripper, T previousResult);
 
     @Override
     public T parse(File file) {
         try (PDDocument document = Loader.loadPDF(file)) {
-
             int pageCount = document.getPages().getCount();
-            PageExtractorModel model = new PageExtractorModel(getJsonModelFile());
             if (model.getMaxPageCount() < pageCount) {
                 return null;
             }
             T result = null;
             for (int i = 0; i < pageCount; i++) {
-                PDPage page = document.getPage(i);
-                double scale = page.getMediaBox().getWidth() / model.getDefaultWidth();
-
-                if (modelMatches(model, page, i)) {
-                    PDFTextStripperByArea stripper = new PDFTextStripperByArea();
-                    model.getNamedZones(scale).forEach((name, rect) -> stripper.addRegion(name, rect));
-                    stripper.extractRegions(page);
-
-                    result = getResultFromExtraction(stripper, i, result);
+                if (getPageParser(i) != null) {
+                    result = getPageParser(i).parsePage(document.getPage(i), result);
                 }
             }
             return result;
@@ -55,7 +55,27 @@ public abstract class AbstractPDFParser<T extends ParsedFile> implements FilePar
         }
     }
 
-    protected boolean modelMatches(PageExtractorModel model, PDPage page, int pageNumber) throws IOException {
+    protected AbstractPDFParser<T> getPageParser(int i) {
+        if (i == 0) {
+            return this;
+        }
+        return null;
+    }
+
+    private T parsePage(PDPage page, T result) throws IOException {
+        double scale = page.getMediaBox().getWidth() / model.getDefaultWidth();
+
+        if (modelMatches(model, page)) {
+            PDFTextStripperByArea stripper = new PDFTextStripperByArea();
+            model.getNamedZones(scale).forEach((name, rect) -> stripper.addRegion(name, rect));
+            stripper.extractRegions(page);
+            result = getResultFromExtraction(stripper, result);
+        }
+        return result;
+    }
+
+
+    protected boolean modelMatches(PageExtractorModel model, PDPage page) throws IOException {
         double scale = page.getMediaBox().getWidth() / model.getDefaultWidth();
 
         List<PageExtractorModel.Zone> matchingZones = Optional.ofNullable(model.getMatchingZones(scale))
@@ -70,6 +90,9 @@ public abstract class AbstractPDFParser<T extends ParsedFile> implements FilePar
             return model.getMatchingZones(scale).stream()
                     .allMatch((zone) -> {
                                 String text = stripper.getTextForRegion(zone.name());
+                                if (!(text != null && text.trim().matches(zone.regexp()))) {
+                                    log.error(text.trim() + " != " + zone.regexp());
+                                }
                                 return text != null && text.trim().matches(zone.regexp());
                             }
                     );

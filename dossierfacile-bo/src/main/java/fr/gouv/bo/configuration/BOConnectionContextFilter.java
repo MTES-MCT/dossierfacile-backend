@@ -2,10 +2,10 @@ package fr.gouv.bo.configuration;
 
 import fr.dossierfacile.common.config.AbstractConnectionContextFilter;
 import fr.gouv.bo.security.UserPrincipal;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
 public class BOConnectionContextFilter extends AbstractConnectionContextFilter {

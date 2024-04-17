@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.7.18</version>
+        <version>3.2.4</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>fr.dossierfacile.api</groupId>
@@ -15,10 +15,12 @@
     <description>Owner api for DossierFacile</description>
     <properties>
         <java.version>21</java.version>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
         <org.mapstruct.version>1.5.5.Final</org.mapstruct.version>
         <lombok.version>1.18.30</lombok.version>
-        <keycloak.version>21.1.2</keycloak.version>
-        <spring-security.version>5.8.9</spring-security.version>
+        <springdoc.version>1.7.0</springdoc.version>
+        <keycloak.version>22.0.3</keycloak.version>
     </properties>
     <dependencies>
         <dependency>
@@ -46,7 +48,6 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
@@ -54,35 +55,15 @@
             <optional>true</optional>
         </dependency>
         <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-configuration-processor</artifactId>
-            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>${lombok.version}</version>
             <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>jakarta.validation</groupId>
-            <artifactId>jakarta.validation-api</artifactId>
-            <version>2.0.2</version>
         </dependency>
         <dependency>
             <groupId>org.keycloak</groupId>
@@ -97,7 +78,7 @@
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-ui</artifactId>
-            <version>1.6.7</version>
+            <version>${springdoc.version}</version>
         </dependency>
         <!-- Caution - transitive dependencies on sendinblue itself are not compatible -->
         <dependency>
@@ -139,6 +120,17 @@
             <artifactId>logstash-logback-encoder</artifactId>
             <version>7.3</version>
         </dependency>
+        <!-- For testing -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -149,20 +141,9 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
             <plugin>
-                <groupId>org.liquibase</groupId>
-                <artifactId>liquibase-maven-plugin</artifactId>
-                <version>4.1.1</version>
-                <configuration>
-                    <propertyFile>src/main/resources/liquibase.properties</propertyFile>
-                </configuration>
-            </plugin>
-            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.7.0</version>
                 <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>
@@ -174,12 +155,16 @@
                             <artifactId>mapstruct-processor</artifactId>
                             <version>${org.mapstruct.version}</version>
                         </path>
+                        <!-- other annotation processors -->
                     </annotationProcessorPaths>
-                    <compilerArgs>
-                        <compilerArg>
-                            -Amapstruct.defaultComponentModel=spring
-                        </compilerArg>
-                    </compilerArgs>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.liquibase</groupId>
+                <artifactId>liquibase-maven-plugin</artifactId>
+                <version>4.1.1</version>
+                <configuration>
+                    <propertyFile>src/main/resources/liquibase.properties</propertyFile>
                 </configuration>
             </plugin>
         </plugins>

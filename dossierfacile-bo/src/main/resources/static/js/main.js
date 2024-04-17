@@ -1,17 +1,11 @@
 $(document).ready(function () {
 
-
     $('.btn-modal-confirm-before-submit').on('click', function (e) {
         e.preventDefault();
         var form = $(this).closest('form');
         var modal = form.find('.modal');
         $(modal).modal('show');
     });
-
-    $('.change-status').on('click', function (e) {
-        e.preventDefault();
-        console.log("action change status");
-    })
 
     $('.btnPartner').on('click', function (e) {
         e.preventDefault();
@@ -64,13 +58,6 @@ $(document).ready(function () {
         $('#modalDeleteGuarantor-' + guarantorId).modal('show');
     })
 
-    $('#finishProcessButton').click(function (e) {
-        e.preventDefault();
-        var action = $('#processFileForm').attr('action') + '&finishProcess=true';
-        $('#processFileForm').attr('action', action);
-        $('#processFileForm').submit();
-    });
-
     $('.deleteApartmentSharing').on('click', function (e) {
         e.preventDefault();
         var href = $(this).attr('href');
@@ -79,13 +66,6 @@ $(document).ready(function () {
 
     })
 
-    $('#agent-id').change(function (e) {
-        if ($(this).val() === "0") {
-            window.location.replace("/bo/statistic/prospect");
-        } else {
-            window.location.replace("/bo/statistic/prospect" + "?agent_id=" + $(this).val())
-        }
-    });
 
     $('#editProperty').on('show.bs.modal', function (event) {
         var button = $(event.relatedTarget); // Button that triggered the modal
@@ -242,9 +222,12 @@ $(document).ready(function () {
     $('.chat').click(function (e) {
         updateMessageForm($(this));
     });
-    if ($('.chat') !== undefined && $('.chat').attr('aria-expanded') === 'true') {
-        updateMessageForm($('.chat'));
-    }
+
+    $('.chat').each(function(index) {
+        if ($(this) !== undefined && $(this).attr('aria-expanded') === 'true') {
+            updateMessageForm($(this));
+        }
+    })
 
     $(document).keydown(function (event) {
         var flag = true;

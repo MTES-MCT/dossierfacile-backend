@@ -2,9 +2,9 @@ package fr.dossierfacile.api.pdf.service.interfaces;
 
 import fr.dossierfacile.api.pdf.form.DocumentForm;
 import fr.dossierfacile.api.pdf.response.UploadFilesResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseEntity;
 
-import javax.servlet.http.HttpServletResponse;
 import java.time.LocalDateTime;
 
 public interface DocumentService {

@@ -1,6 +1,5 @@
 package fr.dossierfacile.common.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.Guarantor;
 import fr.dossierfacile.common.entity.Log;

@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
     <div th:fragments="user-api-form">
-        <form enctype="multipart/form-data" th:action="@{/bo/userApi/} + ${userApiDTO.getId() != null ? userApiDTO.getId() : ''}" th:method="post" th:object="${userApiDTO}">
+        <form enctype="multipart/form-data" th:action="@{/bo/userApi} + ${userApiDTO.getId() != null ? '/' + userApiDTO.getId() : ''}" th:method="post" th:object="${userApiDTO}">
             <div class="row">
                 <div class="form-group col-md-6">
                     <img height="40px" alt="" th:src="*{logoUrl}" />

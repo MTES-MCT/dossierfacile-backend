@@ -1,6 +1,7 @@
 package fr.dossierfacile.api.front.model.dfc.apartment_sharing;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import fr.dossierfacile.common.entity.DocumentAnalysisReport;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
@@ -23,5 +24,7 @@ public class DocumentModel {
     private Integer monthlySum;
     private DocumentStatus documentStatus;
     private DocumentDeniedReasonsModel documentDeniedReasons;
+    private DocumentAnalysisReport documentAnalysisReport;
+
     private String name;
 }

@@ -54,6 +54,10 @@ public class DocumentFinancialGuarantorNaturalPerson extends AbstractDocumentSav
         document.setDocumentDeniedReasons(null);
         document.setDocumentSubCategory(documentSubCategory);
         document.setMonthlySum(documentFinancialGuarantorNaturalPersonForm.getMonthlySum());
+        if (documentFinancialGuarantorNaturalPersonForm.getTypeDocumentFinancial() != DocumentSubCategory.NO_INCOME &&
+                (document.getMonthlySum() == null || document.getMonthlySum() < 0)) {
+            throw new IllegalStateException("Montant mensuel ne peut être nul ou négatif");
+        }
         if (document.getNoDocument() != null && !document.getNoDocument() && documentFinancialGuarantorNaturalPersonForm.getNoDocument()) {
             deleteFilesIfExistedBefore(document);
         }

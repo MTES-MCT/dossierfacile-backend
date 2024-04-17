@@ -2,6 +2,8 @@ package fr.gouv.bo.dto;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import fr.dossierfacile.common.entity.BarCodeDocumentType;
 import fr.dossierfacile.common.entity.BarCodeFileAnalysis;
 import fr.dossierfacile.common.entity.BarCodeType;
@@ -12,6 +14,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 class DisplayableBarCodeFileAnalysisTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
+    {
+        objectMapper.registerModule(new JavaTimeModule());
+    }
 
     @Test
     void should_format_payfit_content() throws JsonProcessingException {
@@ -21,7 +26,11 @@ class DisplayableBarCodeFileAnalysisTest {
                     "companyName": "Some Company",
                     "grossSalary": "2 533,33 €",
                     "companySiret": "128759437",
-                    "employeeName": "John Doe"
+                    "employeeName": "John Doe",
+                    "period": {
+                        "end": "2024-01-31",
+                        "start": "2024-01-01"
+                    }
                 }
                 """);
 
@@ -32,6 +41,7 @@ class DisplayableBarCodeFileAnalysisTest {
                         <ul>
                             <li>Entreprise : Some Company</li>
                             <li>Employé : John Doe</li>
+                            <li>Période : 01/01/2024 - 31/01/2024</li>
                             <li>Salaire net : 1 895,39 €</li>
                         </ul>
                         """);
@@ -61,7 +71,7 @@ class DisplayableBarCodeFileAnalysisTest {
         BarCodeFileAnalysis analysis = new BarCodeFileAnalysis();
         analysis.setDocumentType(issuer);
         analysis.setBarCodeType(barCodeType);
-        analysis.setVerifiedData(objectMapper.readValue(content, Object.class));
+        analysis.setVerifiedData(objectMapper.readValue(content, ObjectNode.class));
         return analysis;
     }
 

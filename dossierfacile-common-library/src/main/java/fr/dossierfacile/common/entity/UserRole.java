@@ -1,19 +1,22 @@
 package fr.dossierfacile.common.entity;
 
 import fr.dossierfacile.common.enums.Role;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
 import java.io.Serializable;
 
 @Entity
@@ -34,6 +37,8 @@ public class UserRole implements Serializable {
     @JoinColumn(name = "user_id")
     private User user;
 
+    @Enumerated(EnumType.ORDINAL)
+    @Column(columnDefinition = "int4")
     private Role role;
 
     public UserRole(User user) {

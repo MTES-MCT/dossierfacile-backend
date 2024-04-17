@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.7.18</version>
+        <version>3.2.4</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>fr.dossierfacile.api</groupId>
@@ -21,23 +21,27 @@
         <org.mapstruct.version>1.5.5.Final</org.mapstruct.version>
         <lombok.version>1.18.30</lombok.version>
         <dossierfacile.common.version>0.0.1-SNAPSHOT</dossierfacile.common.version>
-        <junit-jupiter.version>5.9.1</junit-jupiter.version>
-        <pdfbox.tools.version>3.0.0</pdfbox.tools.version>
-        <springdoc.version>1.7.0</springdoc.version>
-        <spring-security.version>5.8.9</spring-security.version>
+        <pdfbox.tools.version>3.0.2</pdfbox.tools.version>
+        <springdoc.version>2.5.0</springdoc.version>
+        <keycloak.version>22.0.3</keycloak.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>net.minidev</groupId>
-                <artifactId>json-smart</artifactId>
-                <version>2.4.9</version>
-            </dependency>
-            <dependency>
                 <groupId>org.apache.logging.log4j</groupId>
                 <artifactId>log4j-api</artifactId>
                 <version>2.17.1</version>
+            </dependency>
+            <dependency>
+                <groupId>fr.dossierfacile</groupId>
+                <artifactId>dossierfacile-common-library</artifactId>
+                <version>${dossierfacile.common.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.keycloak</groupId>
+                <artifactId>keycloak-admin-client</artifactId>
+                <version>${keycloak.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.pdfbox</groupId>
@@ -47,7 +51,11 @@
             <dependency>
                 <groupId>ch.qos.logback</groupId>
                 <artifactId>logback-core</artifactId>
-                <version>1.2.13</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.vladimir-bukhtoyarov</groupId>
+                <artifactId>bucket4j-core</artifactId>
+                <version>7.6.0</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.pdfbox</groupId>
@@ -65,12 +73,10 @@
         <dependency>
             <groupId>com.github.vladimir-bukhtoyarov</groupId>
             <artifactId>bucket4j-core</artifactId>
-            <version>7.6.0</version>
         </dependency>
         <dependency>
             <groupId>org.keycloak</groupId>
             <artifactId>keycloak-admin-client</artifactId>
-            <version>13.0.1</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -79,7 +85,6 @@
         <dependency>
             <groupId>fr.dossierfacile</groupId>
             <artifactId>dossierfacile-common-library</artifactId>
-            <version>${dossierfacile.common.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -179,13 +184,13 @@
         </dependency>
         <dependency>
             <groupId>org.springdoc</groupId>
-            <artifactId>springdoc-openapi-ui</artifactId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
             <version>${springdoc.version}</version>
         </dependency>
         <dependency>
             <groupId>com.drewnoakes</groupId>
             <artifactId>metadata-extractor</artifactId>
-            <version>2.18.0</version>
+            <version>2.19.0</version>
         </dependency>
 
         <!--Updating version of HikariCP-->

@@ -1,7 +1,6 @@
 package fr.gouv.bo.repository;
 
 import fr.dossierfacile.common.entity.BOUser;
-import fr.dossierfacile.common.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

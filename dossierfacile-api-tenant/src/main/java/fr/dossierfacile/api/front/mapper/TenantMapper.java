@@ -1,7 +1,12 @@
 package fr.dossierfacile.api.front.mapper;
 
 import fr.dossierfacile.api.front.model.dfc.tenant.ConnectedTenantModel;
-import fr.dossierfacile.api.front.model.tenant.*;
+import fr.dossierfacile.api.front.model.tenant.ApartmentSharingModel;
+import fr.dossierfacile.api.front.model.tenant.DocumentDeniedReasonsModel;
+import fr.dossierfacile.api.front.model.tenant.DocumentModel;
+import fr.dossierfacile.api.front.model.tenant.FileModel;
+import fr.dossierfacile.api.front.model.tenant.SelectedOption;
+import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Tenant;
@@ -156,8 +161,8 @@ public abstract class TenantMapper {
                 .ifPresent(documentModels -> documentModels.forEach(documentModel -> {
                     fr.dossierfacile.api.front.model.dfc.apartment_sharing.DocumentDeniedReasonsModel documentDeniedReasonsModel = documentModel.getDocumentDeniedReasons();
                     if (documentDeniedReasonsModel != null) {
+                        List<fr.dossierfacile.api.front.model.dfc.apartment_sharing.SelectedOption> selectedOptionList = new ArrayList<>();
                         if (documentDeniedReasonsModel.isMessageData()) {
-                            List<fr.dossierfacile.api.front.model.dfc.apartment_sharing.SelectedOption> selectedOptionList = new ArrayList<>();
                             for (int i = 0; i < documentDeniedReasonsModel.getCheckedOptions().size(); i++) {
                                 String checkedOption = documentDeniedReasonsModel.getCheckedOptions().get(i);
                                 Integer checkedOptionsId = documentDeniedReasonsModel.getCheckedOptionsId().get(i);
@@ -165,23 +170,18 @@ public abstract class TenantMapper {
                                         .id(checkedOptionsId)
                                         .label(checkedOption).build());
                             }
-                            documentDeniedReasonsModel.setSelectedOptions(selectedOptionList);
-                            documentDeniedReasonsModel.setCheckedOptions(null);
-                            documentDeniedReasonsModel.setCheckedOptionsId(null);
-                            documentModel.setDocumentDeniedReasons(documentDeniedReasonsModel);
                         } else {
-                            List<fr.dossierfacile.api.front.model.dfc.apartment_sharing.SelectedOption> selectedOptionList = new ArrayList<>();
                             for (int i = 0; i < documentDeniedReasonsModel.getCheckedOptions().size(); i++) {
                                 String checkedOption = documentDeniedReasonsModel.getCheckedOptions().get(i);
                                 selectedOptionList.add(fr.dossierfacile.api.front.model.dfc.apartment_sharing.SelectedOption.builder()
                                         .id(null)
                                         .label(checkedOption).build());
                             }
-                            documentDeniedReasonsModel.setSelectedOptions(selectedOptionList);
-                            documentDeniedReasonsModel.setCheckedOptions(null);
-                            documentDeniedReasonsModel.setCheckedOptionsId(null);
-                            documentModel.setDocumentDeniedReasons(documentDeniedReasonsModel);
                         }
+                        documentDeniedReasonsModel.setSelectedOptions(selectedOptionList);
+                        documentDeniedReasonsModel.setCheckedOptions(null);
+                        documentDeniedReasonsModel.setCheckedOptionsId(null);
+                        documentModel.setDocumentDeniedReasons(documentDeniedReasonsModel);
                     }
                 }));
     }

@@ -99,11 +99,11 @@
                                         <span th:text="'Montant mensuel : ' + ${messageItem.getMonthlySum()}"></span>
                                     </h4>
                                     <h4 class="panel-title letter" style="padding-top: 7px"
-                                        th:if="${messageItem.getDocumentSubCategory() == T(fr.dossierfacile.common.enums.DocumentSubCategory).SALARY}">
+                                        th:if="${T(fr.dossierfacile.common.enums.DocumentSubCategory).SALARY == messageItem.getDocumentSubCategory()}">
                                         <span th:text="'Bulletins attendus : ' + ${T(fr.gouv.bo.utils.DateFormatUtil).getExpectedPayslipMonths()}"></span>
                                     </h4>
                                     <h4 class="panel-title letter" style="padding-top: 7px"
-                                        th:if="${messageItem.getDocumentSubCategory() == T(fr.dossierfacile.common.enums.DocumentSubCategory).TENANT}">
+                                        th:if="${T(fr.dossierfacile.common.enums.DocumentSubCategory).TENANT == messageItem.getDocumentSubCategory()}">
                                         <span th:text="'Quittances attendues : ' + ${T(fr.gouv.bo.utils.DateFormatUtil).getExpectedRentReceiptMonths()}"></span>
                                     </h4>
                                 </div>
@@ -125,6 +125,13 @@
                                         </li>
                                     </ul>
                                 </div>
+                                <div th:if="${messageItem.getAnalysisReportComment()} != null"
+                                     class="panel-heading file2-background-color letter">
+                                    <div style="font-size: 12px; line-height: 20px">
+                                        Les règles ont été forcées avec l'explication suivante :
+                                    </div>
+                                    <p th:text="${messageItem.getAnalysisReportComment()}"></p>
+                                </div>
                                 <h4 class="panel-title letter" style="padding: 7px"
                                     th:if="${messageItem.avisDetected}!=null and ${messageItem.avisDetected}==true">
                                     <span class="fa fa-times text-danger" >
@@ -142,12 +149,8 @@
                                             <span class="fa fa-times text-danger" th:if="${analysis.isInWrongCategory}"
                                                 > Mauvaise catégorie</span>
                                             <br/>
-                                            <div class="small" th:if="${analysis.isNotAuthenticated && !analysis.is2DDoc()}">
-                                                <span class="bold">Devrait contenir : </span><br/>
-                                                <span th:utext="${analysis.authenticatedContent}"></span>
-                                            </div>
-                                            <div class="small" th:if="${analysis.is2DDoc()}">
-                                                <span class="bold">Informations extraites du 2D-Doc : </span><br/>
+                                            <div class="small" th:if="${analysis.authenticatedContent != null}">
+                                                <span class="bold">Informations extraites : </span><br/>
                                                 <span th:utext="${analysis.authenticatedContent}"></span>
                                             </div>
                                         </li>

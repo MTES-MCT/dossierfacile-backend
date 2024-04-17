@@ -3,6 +3,8 @@ package fr.gouv.bo.service.impl;
 import fr.dossierfacile.common.entity.User;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.gouv.bo.service.KeycloakService;
+import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.core.Response;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.admin.client.resource.RealmResource;
@@ -11,8 +13,6 @@ import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.stereotype.Service;
 
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.core.Response;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -74,7 +74,7 @@ public class KeycloakServiceImpl implements KeycloakService {
         Response response = realmResource.clients().create(clientTemplate);
         log.info(" status =  " + response.getStatus());
         if (response.getStatus() != Response.Status.CREATED.getStatusCode()) {
-            throw new IllegalStateException("Status de retour création de client " + +response.getStatus());
+            throw new IllegalStateException("Status de retour création de client " + response.getStatus());
         }
     }
 

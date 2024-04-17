@@ -1,6 +1,7 @@
 package fr.dossierfacile.process.file.barcode.twoddoc.validation;
 
 import fr.dossierfacile.process.file.barcode.twoddoc.parsing.TwoDDocHeader;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -9,8 +10,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import javax.annotation.PostConstruct;
-import javax.validation.Valid;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;

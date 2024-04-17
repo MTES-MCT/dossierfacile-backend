@@ -3,8 +3,12 @@ package fr.dossierfacile.api.front.controller;
 import fr.dossierfacile.api.front.aop.annotation.MethodLogTime;
 import fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException;
 import fr.dossierfacile.api.front.exception.ApartmentSharingUnexpectedException;
+import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
+import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
+
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -12,10 +16,11 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.UUID;
+
 
 import static org.springframework.http.ResponseEntity.accepted;
 import static org.springframework.http.ResponseEntity.ok;
@@ -27,6 +32,7 @@ import static org.springframework.http.ResponseEntity.ok;
 public class ApplicationController {
     private static final String DOCUMENT_NOT_EXIST = "The document does not exist";
     private final ApartmentSharingService apartmentSharingService;
+    private final AuthenticationFacade authenticationFacade;
 
     @GetMapping(value = "/full/{token}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ApplicationModel> full(@PathVariable String token) {
@@ -56,14 +62,26 @@ public class ApplicationController {
         } catch (ApartmentSharingNotFoundException e) {
             log.error(e.getMessage(), e.getCause());
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+        } catch (IllegalStateException e) {
+            log.warn("ApartmentSharing full pdf in not available yet");
+            try {
+                response.sendError(HttpServletResponse.SC_CONFLICT, "File is not yet available retry later");
+            } catch (IOException ex) {
+                log.error("Something wrong on response status enrichment", ex);
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            }
         } catch (FileNotFoundException e) {
             log.error(e.getMessage(), e.getCause());
-            response.setStatus(HttpServletResponse.SC_EXPECTATION_FAILED);
-        } catch (Exception e) {
+            try {
+                response.sendError(HttpServletResponse.SC_CONFLICT, "File is not available - check status");
+            } catch (IOException ex) {
+                log.error("Something wrong on response status enrichment", ex);
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            }
+        } catch (IOException e) {
             log.error(e.getMessage(), e.getCause());
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
-
     }
 
     @PostMapping(value = "/fullPdf/{token}", produces = MediaType.APPLICATION_PDF_VALUE)
@@ -80,6 +98,26 @@ public class ApplicationController {
         } catch (Exception e) {
             log.error(e.getMessage(), e.getCause());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    @MethodLogTime
+    @GetMapping(value = "/zip")
+    public void downloadFullZip(HttpServletResponse response) {
+        try {
+            Tenant tenant = authenticationFacade.getLoggedTenant();
+            ByteArrayOutputStream byteArrayOutputStream = apartmentSharingService.zipDocuments(tenant);
+            if (byteArrayOutputStream.size() > 0) {
+                response.setHeader("Content-Disposition", "attachment; filename=dossier_location_" + UUID.randomUUID() + ".zip");
+                response.setHeader("Content-Type", "application/zip");
+                response.getOutputStream().write(byteArrayOutputStream.toByteArray());
+            } else {
+                log.error(DOCUMENT_NOT_EXIST);
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            }
+        } catch (IOException e) {
+            log.error(e.getMessage(), e.getCause());
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
 }

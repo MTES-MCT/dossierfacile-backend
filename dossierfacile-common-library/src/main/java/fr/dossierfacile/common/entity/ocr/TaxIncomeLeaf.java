@@ -7,8 +7,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import java.io.Serializable;
-
 @Data
 @Builder
 @ToString

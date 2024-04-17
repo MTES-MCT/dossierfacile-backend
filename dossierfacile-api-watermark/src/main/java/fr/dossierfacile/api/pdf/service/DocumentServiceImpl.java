@@ -14,6 +14,7 @@ import fr.dossierfacile.common.repository.StorageFileRepository;
 import fr.dossierfacile.common.repository.WatermarkDocumentRepository;
 import fr.dossierfacile.common.service.interfaces.EncryptionKeyService;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -23,7 +24,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletResponse;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;

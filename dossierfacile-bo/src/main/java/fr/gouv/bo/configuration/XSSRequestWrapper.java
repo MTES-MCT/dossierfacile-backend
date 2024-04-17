@@ -1,10 +1,9 @@
 package fr.gouv.bo.configuration;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
 
 public class XSSRequestWrapper extends HttpServletRequestWrapper {
 

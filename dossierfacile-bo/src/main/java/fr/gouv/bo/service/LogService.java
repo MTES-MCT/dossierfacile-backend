@@ -3,7 +3,6 @@ package fr.gouv.bo.service;
 import fr.dossierfacile.common.entity.Log;
 import fr.gouv.bo.repository.BoLogRepository;
 import lombok.AllArgsConstructor;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
