@@ -43,6 +43,7 @@ public class HonorDeclaration implements SaveStep<HonorDeclarationForm> {
     @Override
     @Transactional
     public TenantModel saveStep(Tenant tenant, HonorDeclarationForm honorDeclarationForm) {
+        tenant = tenantRepository.findOneById(tenant.getId());
         tenant.setClarification(honorDeclarationForm.getClarification());
         for (Tenant t : getTenantOrPartners(tenant)) {
             checkTenantValidity(t);

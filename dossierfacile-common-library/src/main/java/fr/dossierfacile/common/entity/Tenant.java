@@ -127,10 +127,10 @@ public class Tenant extends User implements Person, Serializable {
         List<Document> allDocuments = (guarantors == null) ?
                 documents :
                 Stream.concat(documents.stream(),
-                                guarantors.parallelStream()
-                                        .map(g -> g.getDocuments())
+                                guarantors.stream()
+                                        .map(Guarantor::getDocuments)
                                         .flatMap(List::stream))
-                        .collect(Collectors.toList());
+                        .toList();
         // Check documents status
         if (allDocuments != null && allDocuments.stream().anyMatch(d -> d.getDocumentStatus() == DECLINED)) {
             return TenantFileStatus.DECLINED;

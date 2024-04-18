@@ -32,6 +32,7 @@ import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -61,7 +62,7 @@ public class TenantServiceImpl implements TenantService {
     public void updateLastLoginDateAndResetWarnings(Tenant tenantToUpdate) {
         LocalDateTime currentTime = LocalDateTime.now();
         for (Tenant tenant : tenantToUpdate.getApartmentSharing().getTenants()) {
-            if (tenant.getId() == tenantToUpdate.getId() || StringUtils.isBlank(tenant.getEmail())) {
+            if (Objects.equals(tenant.getId(), tenantToUpdate.getId()) || StringUtils.isBlank(tenant.getEmail())) {
                 tenant.setLastLoginDate(currentTime);
                 tenant.setWarnings(0);
                 if (tenant.getStatus() == TenantFileStatus.ARCHIVED) {
