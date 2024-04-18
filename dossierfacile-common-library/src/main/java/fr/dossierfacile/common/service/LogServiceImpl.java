@@ -15,7 +15,6 @@ import fr.dossierfacile.common.model.log.EditedStep;
 import fr.dossierfacile.common.model.log.EditionType;
 import fr.dossierfacile.common.repository.LogRepository;
 import fr.dossierfacile.common.service.interfaces.LogService;
-import fr.dossierfacile.common.utils.MapperUtil;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -30,7 +29,7 @@ public class LogServiceImpl implements LogService {
 
     private final LogRepository repository;
     private final DeletedTenantCommonMapper deletedTenantCommonMapper;
-    private final ObjectMapper objectMapper = MapperUtil.newObjectMapper();
+    private final ObjectMapper objectMapper;
 
     private void saveLog(Log log) {
         repository.save(log);
@@ -83,7 +82,7 @@ public class LogServiceImpl implements LogService {
                 .logType(LogType.PARTNER_ACCESS_REVOKED)
                 .tenantId(tenant.getId())
                 .creationDateTime(LocalDateTime.now())
-                .userApis(new long[] { userApi.getId() })
+                .userApis(new long[]{userApi.getId()})
                 .build();
         saveLog(log);
     }
@@ -108,7 +107,7 @@ public class LogServiceImpl implements LogService {
         try {
             return objectMapper.writeValueAsString(object);
         } catch (JsonProcessingException e) {
-            log.error("Cannot write log details as string");
+            log.error("FATAL: Cannot write log details as string", e);
         }
         return null;
     }

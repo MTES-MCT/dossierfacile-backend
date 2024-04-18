@@ -1,5 +1,6 @@
 package fr.dossierfacile.common.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.Guarantor;
 import fr.dossierfacile.common.entity.Log;
@@ -26,7 +27,7 @@ import static org.mockito.Mockito.verify;
 class LogServiceImplTest {
 
     private final LogRepository logRepository = mock(LogRepository.class);
-    private final LogService logService = new LogServiceImpl(logRepository, null);
+    private final LogService logService = new LogServiceImpl(logRepository, null, new ObjectMapper());
 
     @Test
     void should_save_edition_log_for_tenant_document() {

@@ -35,6 +35,7 @@ public class NameGuarantorNaturalPerson implements SaveStep<NameGuarantorNatural
     @Override
     @Transactional
     public TenantModel saveStep(Tenant tenant, NameGuarantorNaturalPersonForm nameGuarantorNaturalPersonForm) {
+        tenant = tenantRepository.findOneById(tenant.getId());
         Guarantor guarantor = guarantorRepository.findByTenantAndTypeGuarantorAndId(tenant, TypeGuarantor.NATURAL_PERSON, nameGuarantorNaturalPersonForm.getGuarantorId())
                 .orElseThrow(() -> new GuarantorNotFoundException(nameGuarantorNaturalPersonForm.getGuarantorId()));
         guarantor.setFirstName(nameGuarantorNaturalPersonForm.getFirstName());

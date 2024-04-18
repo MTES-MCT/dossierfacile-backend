@@ -12,7 +12,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.math.BigInteger;
 import java.security.Principal;
 import java.util.List;
 
@@ -47,7 +46,7 @@ public class BODashboardController {
     public String boUserDashboard(Model model) {
         List<Object[]> listTreatedCountByOperator = logService.listDailyTreatedFilesByOperator();
         int dailyCount = listTreatedCountByOperator.stream()
-                .mapToInt(objects -> ((BigInteger) objects[1]).intValue())
+                .mapToInt(objects -> ((Number) objects[1]).intValue())
                 .sum();
 
         model.addAttribute("listTreatedCountByOperator", listTreatedCountByOperator);
