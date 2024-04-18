@@ -49,10 +49,6 @@ public class DocumentFinancial extends AbstractDocumentSaveStep<DocumentFinancia
                 && documentFinancialForm.getTypeDocumentFinancial() != DocumentSubCategory.NO_INCOME) {
             document.setMonthlySum(documentFinancialForm.getMonthlySum());
         }
-        if (documentFinancialForm.getTypeDocumentFinancial() != DocumentSubCategory.NO_INCOME &&
-                (document.getMonthlySum() == null || document.getMonthlySum() < 0)) {
-            throw new IllegalStateException("Montant mensuel ne peut être nul ou négatif");
-        }
 
         if (document.getNoDocument() != null && !document.getNoDocument() && documentFinancialForm.getNoDocument()) {
             deleteFilesIfExistedBefore(document);

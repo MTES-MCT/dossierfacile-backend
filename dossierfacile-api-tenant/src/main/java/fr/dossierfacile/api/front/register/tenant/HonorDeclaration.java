@@ -43,6 +43,7 @@ public class HonorDeclaration implements SaveStep<HonorDeclarationForm> {
     @Override
     @Transactional
     public TenantModel saveStep(Tenant tenant, HonorDeclarationForm honorDeclarationForm) {
+        tenant = tenantRepository.findOneById(tenant.getId());
         tenant.setClarification(honorDeclarationForm.getClarification());
         for (Tenant t : getTenantOrPartners(tenant)) {
             checkTenantValidity(t);
@@ -55,6 +56,7 @@ public class HonorDeclaration implements SaveStep<HonorDeclarationForm> {
 
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         mailService.sendEmailAccountCompleted(tenantSaved);
+        tenant.getApartmentSharing().getTenants().size();// load tenants in tx context
         return tenantMapper.toTenantModel(tenantSaved);
     }
 
