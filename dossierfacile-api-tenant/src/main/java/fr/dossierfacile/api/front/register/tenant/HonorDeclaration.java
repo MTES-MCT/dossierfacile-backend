@@ -56,6 +56,7 @@ public class HonorDeclaration implements SaveStep<HonorDeclarationForm> {
 
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         mailService.sendEmailAccountCompleted(tenantSaved);
+        tenant.getApartmentSharing().getTenants().size();// load tenants in tx context
         return tenantMapper.toTenantModel(tenantSaved);
     }
 
