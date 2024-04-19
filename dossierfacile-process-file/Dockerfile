@@ -1,4 +1,4 @@
-FROM ubuntu:mantic-20240216
+FROM ubuntu:mantic-20240405
 RUN apt-get update \
     && apt-get install -y openjdk-20-jre-headless \
     && apt-get install tesseract-ocr -y \
