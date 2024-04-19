@@ -16,6 +16,7 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.FileStatus;
 import fr.dossierfacile.common.enums.LinkType;
+import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.enums.TypeGuarantor;
 import fr.dossierfacile.common.mapper.ApartmentSharingMapper;
@@ -29,6 +30,7 @@ import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.common.service.interfaces.LinkLogService;
+import fr.dossierfacile.common.service.interfaces.LogService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -70,6 +72,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
     private final Producer producer;
     private final ApartmentSharingCommonService apartmentSharingCommonService;
     private final TenantLogRepository tenantLogRepository;
+    private final LogService logService;
 
     @Override
     public ApplicationModel full(String token) {
@@ -210,6 +213,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
 
     @Override
     public ByteArrayOutputStream zipDocuments(Tenant tenant) {
+        logService.saveLog(LogType.ZIP_DOWNLOAD, tenant.getId());
         final Path tmpDir = Paths.get("tmp");
         String zipFileName = tmpDir + File.separator + "dossier_location_" + tenant.getLastName() + "_" + ThreadLocalRandom.current().nextInt() + ".zip";
         try {

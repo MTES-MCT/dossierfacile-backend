@@ -22,5 +22,6 @@ public enum LogType {
     FC_ACCOUNT_CREATION,
     FC_ACCOUNT_LINK,
     PARTNER_ACCESS_REVOKED,
+    ZIP_DOWNLOAD
 
 }
