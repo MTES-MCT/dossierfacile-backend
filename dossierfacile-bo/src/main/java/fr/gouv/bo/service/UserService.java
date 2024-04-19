@@ -1,17 +1,10 @@
 package fr.gouv.bo.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
-import fr.dossierfacile.common.entity.ApartmentSharing;
-import fr.dossierfacile.common.entity.BOUser;
-import fr.dossierfacile.common.entity.Log;
-import fr.dossierfacile.common.entity.PropertyApartmentSharing;
-import fr.dossierfacile.common.entity.Tenant;
-import fr.dossierfacile.common.entity.UserRole;
-import fr.dossierfacile.common.enums.ApplicationType;
-import fr.dossierfacile.common.enums.LogType;
-import fr.dossierfacile.common.enums.PartnerCallBackType;
-import fr.dossierfacile.common.enums.Role;
-import fr.dossierfacile.common.enums.TenantType;
+import fr.dossierfacile.common.entity.*;
+import fr.dossierfacile.common.enums.*;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.gouv.bo.mapper.TenantMapper;
@@ -49,6 +42,7 @@ public class UserService {
     private final ApartmentSharingService apartmentSharingService;
     private final PartnerCallBackService partnerCallBackService;
     private final LogService logService;
+    private final ObjectMapper objectMapper;
 
     public List<BOUser> findAll() {
         return userRepository.findAll(Sort.by("email"));
@@ -93,7 +87,7 @@ public class UserService {
                         .logType(LogType.ACCOUNT_DELETE)
                         .tenantId(tenant.getId())
                         .operatorId(operator.getId())
-                        .jsonProfile(tenantMapper.toTenantModel(tenant))
+                        .jsonProfile(writeValueAsString(tenantMapper.toTenantModel(tenant)))
                         .creationDateTime(LocalDateTime.now())
                         .build());
     }
@@ -127,7 +121,7 @@ public class UserService {
                 apartmentSharing.getTenants().stream()
                         .filter(t -> t.getKeycloakId() != null)
                         .collect(Collectors.toList()));
-        apartmentSharing.getTenants().forEach( t -> this.saveAndDeleteInfoByTenant(t, operator));
+        apartmentSharing.getTenants().forEach(t -> this.saveAndDeleteInfoByTenant(t, operator));
         apartmentSharingRepository.delete(apartmentSharing);
     }
 
@@ -186,6 +180,15 @@ public class UserService {
     public void createUserByEmail(String email, Role role) {
         BOUser user = BOUser.builder().email(email).build();
         addRoles(userRepository.save(user), Collections.singletonList(role));
+    }
+
+    private String writeValueAsString(Object object) {
+        try {
+            return objectMapper.writeValueAsString(object);
+        } catch (JsonProcessingException e) {
+            log.error("FATAL: Something very bad happened " + object.getClass(), e);
+        }
+        return null;
     }
 }
 

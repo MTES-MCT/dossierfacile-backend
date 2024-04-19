@@ -1,9 +1,11 @@
 package fr.dossierfacile.api.front.register.form.tenant;
 
 import fr.dossierfacile.api.front.register.form.DocumentForm;
+import fr.dossierfacile.api.front.register.form.IDocumentFinancialForm;
 import fr.dossierfacile.api.front.validator.anotation.DocumentSubcategorySubset;
 import fr.dossierfacile.api.front.validator.anotation.LengthOfText;
 import fr.dossierfacile.api.front.validator.anotation.NumberOfPages;
+import fr.dossierfacile.api.front.validator.anotation.tenant.financial.MonthlySumValue;
 import fr.dossierfacile.api.front.validator.anotation.tenant.financial.NoDocumentCustomTextFinancial;
 import fr.dossierfacile.api.front.validator.anotation.tenant.financial.NumberOfDocumentFinancial;
 import fr.dossierfacile.common.enums.DocumentCategory;
@@ -29,7 +31,8 @@ import static fr.dossierfacile.common.enums.DocumentSubCategory.SOCIAL_SERVICE;
 @NoDocumentCustomTextFinancial
 @NumberOfDocumentFinancial
 @NumberOfPages(category = DocumentCategory.FINANCIAL, max = 50)
-public class DocumentFinancialForm extends DocumentForm {
+@MonthlySumValue
+public class DocumentFinancialForm extends DocumentForm implements IDocumentFinancialForm {
 
     @Parameter(description = "Identifiant du document est nécessaire poour les mises à jour")
     private Long id;
