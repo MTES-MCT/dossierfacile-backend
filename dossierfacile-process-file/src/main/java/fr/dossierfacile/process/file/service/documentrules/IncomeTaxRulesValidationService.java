@@ -193,7 +193,7 @@ public class IncomeTaxRulesValidationService implements RulesValidationService {
                         break;
                     }
                     TaxIncomeLeaf leaf = parsedDocument.getTaxIncomeLeaves().get(0);
-                    if (leaf.getPageCount() != null && leaf.getPageCount() != parsedDocument.getTaxIncomeLeaves().size()) {
+                    if (leaf != null && leaf.getPageCount() != null && leaf.getPageCount() > parsedDocument.getTaxIncomeLeaves().size()) {
                         log.error("Income tax has not ALL incometaxleaf:" + document.getTenant().getId());
                         brokenRules.add(DocumentBrokenRule.builder()
                                 .rule(DocumentRule.R_TAX_ALL_LEAF)
@@ -212,6 +212,7 @@ public class IncomeTaxRulesValidationService implements RulesValidationService {
                 report.setAnalysisStatus(DocumentAnalysisStatus.UNDEFINED);
             }
         } catch (Exception e) {
+            log.warn("Exception during the income tax rules validation", e);
             report.setAnalysisStatus(DocumentAnalysisStatus.UNDEFINED);
         }
         return report;
