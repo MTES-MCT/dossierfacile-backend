@@ -1,22 +1,39 @@
 {
   "page": {
-    "width": "600",
+    "width": "892",
     "maxPageCount": 1
   },
   "classification": {
     "name": "TAX_ASSESSMENT_LEAF"
   },
   "matchingZones": [
-  ],
-  "zones": [
     {
-      "name": "zoneHeaderLeft",
-      "rect": "10,23,180,35",
+      "name": "headLeft",
+      "rect": "18,38,246,23",
+      "matches": "Avis d.?imp.?t .?tabli en \\d{4}",
       "comments": ""
     },
     {
-      "name": "zoneHeaderRight",
-      "rect": "375,23,195,35",
+      "name": "headRight",
+      "rect": "563,38,270,23",
+      "matches": "Imp.?t sur les revenus de \\d{4}",
+      "comments": ""
+    }
+  ],
+  "zones": [
+    {
+      "name": "numeroFiscal",
+      "rect": "84,63,149,21",
+      "comments": ""
+    },
+    {
+      "name": "pagination",
+      "rect": "777,62,50,25",
+      "comments": ""
+    },
+    {
+      "name": "anneeDesRevenus",
+      "rect": "782,36,49,22",
       "comments": ""
     }
   ]

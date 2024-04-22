@@ -1,7 +1,7 @@
 package fr.dossierfacile.process.file.service.parsers;
 
 
-import com.google.common.annotations.VisibleForTesting;
+import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.ocr.TaxIncomeLeaf;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import lombok.RequiredArgsConstructor;
@@ -23,12 +23,7 @@ import static fr.dossierfacile.common.enums.DocumentSubCategory.MY_NAME;
 @RequiredArgsConstructor
 @Order(3)
 public class TaxIncomeLeafParser extends AbstractImagesParser<TaxIncomeLeaf> implements FileParser<TaxIncomeLeaf> {
-    @VisibleForTesting
-    protected final Pattern incomeYearPattern = Pattern.compile("revenus\\s*de\\s*(\\d{4})");
-    @VisibleForTesting
-    protected final Pattern fiscalNumberPattern = Pattern.compile("fiscal[:\\s]*([\\d \\s]+)");
-    @VisibleForTesting
-    protected final Pattern pageInfoPattern = Pattern.compile("Feuillet\\s*n.?[:\\s]+(\\d)[/\\s]+(\\d)");
+    private final Pattern paginationPattern = Pattern.compile("(\\d)[/|l1I](\\d)");
 
     @Override
     protected String getJsonModelFile() {
@@ -37,55 +32,30 @@ public class TaxIncomeLeafParser extends AbstractImagesParser<TaxIncomeLeaf> imp
 
     @Override
     protected TaxIncomeLeaf getResultFromExtraction(Map<String, String> extractedText) {
+        String numeroFiscal = extractedText.get("numeroFiscal").replaceAll("\\s", "");
+        String pagination = extractedText.get("pagination").replaceAll("\\s", "");
+        String anneeDesRevenus = extractedText.get("anneeDesRevenus").replaceAll("[^\\d]", "");
+        Integer page = null, pageCount = null;
+
+        Matcher pageInfo = paginationPattern.matcher(pagination);
+        if (pageInfo.matches()) {
+            try {
+                page = Integer.parseInt(pageInfo.group(1));
+                pageCount = Integer.parseInt(pageInfo.group(2));
+            } catch (NumberFormatException pageCountException) {
+                log.error("\"Information de feuillets\" issue", pageCountException);
+            }
+        }
 
         TaxIncomeLeaf result = TaxIncomeLeaf.builder().build();
-        try {
 
-            String zoneHeaderLeft = extractedText.get("zoneHeaderLeft");
-            Matcher matcher = fiscalNumberPattern.matcher(zoneHeaderLeft);
-            if (matcher.find()) {
-                result.setNumeroFiscal(matcher.group(1));
-            } else {
-                log.error("Numero Fiscal not found");
-                return null;
-            }
+        result.setAnneeDesRevenus(anneeDesRevenus);
 
-            String zoneHeaderRight = extractedText.get("zoneHeaderRight");
-            Matcher pageInfo = pageInfoPattern.matcher(zoneHeaderRight);
-            try {
-                if (pageInfo.find()) {
-                    try {
-                        result.setPage(Integer.parseInt(pageInfo.group(1)));
-                        result.setPageCount(Integer.parseInt(pageInfo.group(2)));
-                    } catch (NumberFormatException pageCountException) {
-                        log.error("Unable to parse to integer", pageCountException);
-                    }
-                } else {
-                    log.error("\"Information de feuillets\" not found " + zoneHeaderRight);
-                    return null;
-                }
-            } catch (Exception e) {
-                log.error("\"Information de feuillets\" error");
-                return null;
-            }
-            Matcher yearMatcher = incomeYearPattern.matcher(zoneHeaderRight);
-            if (yearMatcher.find()) {
-                result.setAnneeDesRevenus(yearMatcher.group(1));
-            } else {
-                log.warn("\"Année des revenus\" not found" + zoneHeaderRight);
-                return null;
-            }
-
-        } catch (Exception e) {
-            log.error("Error during parsing", e);
-            return null;
-        }
-        return result;
+        return TaxIncomeLeaf.builder().numeroFiscal(numeroFiscal).anneeDesRevenus(anneeDesRevenus).page(page).pageCount(pageCount).build();
     }
 
     @Override
-    public boolean shouldTryToApply(fr.dossierfacile.common.entity.File file) {
-        return file.getDocument().getDocumentCategory() == DocumentCategory.TAX
-                && file.getDocument().getDocumentSubCategory() == MY_NAME;
+    public boolean shouldTryToApply(File file) {
+        return file.getDocument().getDocumentCategory() == DocumentCategory.TAX && file.getDocument().getDocumentSubCategory() == MY_NAME;
     }
 }
