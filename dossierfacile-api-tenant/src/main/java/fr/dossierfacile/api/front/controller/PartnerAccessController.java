@@ -1,6 +1,5 @@
 package fr.dossierfacile.api.front.controller;
 
-import fr.dossierfacile.api.front.config.featureflipping.PartnerAccessRevocationToggle;
 import fr.dossierfacile.api.front.model.tenant.PartnerAccessModel;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.PartnerAccessService;
@@ -28,13 +27,9 @@ public class PartnerAccessController {
 
     private final AuthenticationFacade authenticationFacade;
     private final PartnerAccessService partnerAccessService;
-    private final PartnerAccessRevocationToggle toggle;
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<PartnerAccessModel>> getPartnerAccesses() {
-        if (toggle.isNotActive()) {
-            return ok(List.of());
-        }
         Tenant tenant = authenticationFacade.getLoggedTenant();
         return ok(partnerAccessService.getExternalPartners(tenant));
     }
@@ -42,9 +37,6 @@ public class PartnerAccessController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> revokePartnerAccess(@PathVariable("id") Long userApiId) {
         log.info("Requesting access revocation for partner {}", userApiId);
-        if (toggle.isNotActive()) {
-            return ResponseEntity.status(FORBIDDEN).build();
-        }
         Tenant tenant = authenticationFacade.getLoggedTenant();
         partnerAccessService.deleteAccess(tenant, userApiId);
         return ok().build();
