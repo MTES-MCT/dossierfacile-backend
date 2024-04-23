@@ -1,7 +1,7 @@
 package fr.dossierfacile.api.front.validator.tenant.tax;
 
 import fr.dossierfacile.api.front.register.form.tenant.DocumentTaxForm;
-import fr.dossierfacile.api.front.validator.anotation.tenant.tax.OtherTaxCustomText;
+import fr.dossierfacile.api.front.validator.annotation.tenant.tax.OtherTaxCustomText;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;

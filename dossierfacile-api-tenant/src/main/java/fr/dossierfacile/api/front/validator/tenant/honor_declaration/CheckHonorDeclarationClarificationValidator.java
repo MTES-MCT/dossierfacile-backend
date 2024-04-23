@@ -3,7 +3,7 @@ package fr.dossierfacile.api.front.validator.tenant.honor_declaration;
 
 import fr.dossierfacile.api.front.register.form.tenant.HonorDeclarationForm;
 import fr.dossierfacile.api.front.validator.TenantConstraintValidator;
-import fr.dossierfacile.api.front.validator.anotation.tenant.honor_declaration.CheckHonorDeclarationClarification;
+import fr.dossierfacile.api.front.validator.annotation.tenant.honor_declaration.CheckHonorDeclarationClarification;
 import fr.dossierfacile.common.enums.TenantType;
 import jakarta.validation.ConstraintValidatorContext;
 import lombok.AllArgsConstructor;

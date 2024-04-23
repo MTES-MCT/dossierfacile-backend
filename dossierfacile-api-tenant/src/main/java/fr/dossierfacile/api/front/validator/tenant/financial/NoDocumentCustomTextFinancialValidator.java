@@ -1,7 +1,7 @@
 package fr.dossierfacile.api.front.validator.tenant.financial;
 
 import fr.dossierfacile.api.front.register.form.tenant.DocumentFinancialForm;
-import fr.dossierfacile.api.front.validator.anotation.tenant.financial.NoDocumentCustomTextFinancial;
+import fr.dossierfacile.api.front.validator.annotation.tenant.financial.NoDocumentCustomTextFinancial;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 

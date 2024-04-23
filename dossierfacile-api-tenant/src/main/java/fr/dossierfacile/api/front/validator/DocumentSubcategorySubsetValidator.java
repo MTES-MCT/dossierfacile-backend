@@ -1,6 +1,6 @@
 package fr.dossierfacile.api.front.validator;
 
-import fr.dossierfacile.api.front.validator.anotation.DocumentSubcategorySubset;
+import fr.dossierfacile.api.front.validator.annotation.DocumentSubcategorySubset;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;

@@ -1,7 +1,7 @@
 package fr.dossierfacile.api.front.validator;
 
 import fr.dossierfacile.api.front.register.form.DocumentForm;
-import fr.dossierfacile.api.front.validator.anotation.Extension;
+import fr.dossierfacile.api.front.validator.annotation.Extension;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
