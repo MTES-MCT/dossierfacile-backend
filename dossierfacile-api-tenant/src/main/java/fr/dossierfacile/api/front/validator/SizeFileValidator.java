@@ -1,6 +1,6 @@
 package fr.dossierfacile.api.front.validator;
 
-import fr.dossierfacile.api.front.validator.anotation.SizeFile;
+import fr.dossierfacile.api.front.validator.annotation.SizeFile;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import lombok.RequiredArgsConstructor;

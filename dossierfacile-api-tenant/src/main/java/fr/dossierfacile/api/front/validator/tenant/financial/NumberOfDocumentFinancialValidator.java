@@ -3,7 +3,7 @@ package fr.dossierfacile.api.front.validator.tenant.financial;
 import fr.dossierfacile.api.front.register.form.tenant.DocumentFinancialForm;
 import fr.dossierfacile.api.front.repository.FileRepository;
 import fr.dossierfacile.api.front.validator.TenantConstraintValidator;
-import fr.dossierfacile.api.front.validator.anotation.tenant.financial.NumberOfDocumentFinancial;
+import fr.dossierfacile.api.front.validator.annotation.tenant.financial.NumberOfDocumentFinancial;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import jakarta.validation.ConstraintValidatorContext;

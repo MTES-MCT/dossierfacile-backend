@@ -1,8 +1,8 @@
 package fr.dossierfacile.api.front.register.form.guarantor.organism;
 
 import fr.dossierfacile.api.front.register.form.guarantor.DocumentGuarantorFormAbstract;
-import fr.dossierfacile.api.front.validator.anotation.DocumentSubcategorySubset;
-import fr.dossierfacile.api.front.validator.anotation.NumberOfPages;
+import fr.dossierfacile.api.front.validator.annotation.DocumentSubcategorySubset;
+import fr.dossierfacile.api.front.validator.annotation.NumberOfPages;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.TypeGuarantor;

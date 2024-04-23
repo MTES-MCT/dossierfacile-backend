@@ -3,7 +3,7 @@ package fr.dossierfacile.api.front.validator.guarantor.natural_person.profession
 import fr.dossierfacile.api.front.register.form.guarantor.natural_person.DocumentProfessionalGuarantorNaturalPersonForm;
 import fr.dossierfacile.api.front.repository.FileRepository;
 import fr.dossierfacile.api.front.validator.TenantConstraintValidator;
-import fr.dossierfacile.api.front.validator.anotation.guarantor.natural_person.professional.NumberOfDocumentProfessionalGuarantorNaturalPerson;
+import fr.dossierfacile.api.front.validator.annotation.guarantor.natural_person.professional.NumberOfDocumentProfessionalGuarantorNaturalPerson;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.TypeGuarantor;

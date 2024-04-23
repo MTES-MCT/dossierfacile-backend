@@ -1,9 +1,9 @@
 package fr.dossierfacile.api.front.register.form.guarantor.natural_person;
 
 import fr.dossierfacile.api.front.register.form.guarantor.DocumentGuarantorFormAbstract;
-import fr.dossierfacile.api.front.validator.anotation.DocumentSubcategorySubset;
-import fr.dossierfacile.api.front.validator.anotation.NumberOfPages;
-import fr.dossierfacile.api.front.validator.anotation.guarantor.natural_person.professional.NumberOfDocumentProfessionalGuarantorNaturalPerson;
+import fr.dossierfacile.api.front.validator.annotation.DocumentSubcategorySubset;
+import fr.dossierfacile.api.front.validator.annotation.NumberOfPages;
+import fr.dossierfacile.api.front.validator.annotation.guarantor.natural_person.professional.NumberOfDocumentProfessionalGuarantorNaturalPerson;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.TypeGuarantor;

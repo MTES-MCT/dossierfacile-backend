@@ -2,7 +2,7 @@ package fr.dossierfacile.api.front.validator.tenant.name;
 
 import fr.dossierfacile.api.front.register.form.tenant.NamesForm;
 import fr.dossierfacile.api.front.validator.TenantConstraintValidator;
-import fr.dossierfacile.api.front.validator.anotation.tenant.name.CheckFranceConnect;
+import fr.dossierfacile.api.front.validator.annotation.tenant.name.CheckFranceConnect;
 import jakarta.validation.ConstraintValidatorContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

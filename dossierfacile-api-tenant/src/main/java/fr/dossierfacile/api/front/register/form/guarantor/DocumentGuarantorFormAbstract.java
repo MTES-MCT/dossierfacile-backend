@@ -1,8 +1,8 @@
 package fr.dossierfacile.api.front.register.form.guarantor;
 
 import fr.dossierfacile.api.front.register.form.DocumentForm;
-import fr.dossierfacile.api.front.validator.anotation.guarantor.NumberOfDocumentGuarantor;
-import fr.dossierfacile.api.front.validator.anotation.guarantor.natural_person.ExistGuarantor;
+import fr.dossierfacile.api.front.validator.annotation.guarantor.NumberOfDocumentGuarantor;
+import fr.dossierfacile.api.front.validator.annotation.guarantor.natural_person.ExistGuarantor;
 import fr.dossierfacile.api.front.validator.group.DocumentIdentificationGuarantor;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.TypeGuarantor;

@@ -2,13 +2,13 @@ package fr.dossierfacile.api.front.register.form.tenant;
 
 
 import fr.dossierfacile.api.front.form.interfaces.FormWithTenantId;
-import fr.dossierfacile.api.front.validator.anotation.tenant.application.v2.CheckCoTenantCount;
-import fr.dossierfacile.api.front.validator.anotation.tenant.application.v2.CheckTenantTypeAcceptAccess;
-import fr.dossierfacile.api.front.validator.anotation.tenant.application.v2.CoTenantsEmailRequiredForGroup;
-import fr.dossierfacile.api.front.validator.anotation.tenant.application.v2.DeniedJoinTenant;
-import fr.dossierfacile.api.front.validator.anotation.tenant.application.v2.DistinctCoTenantEmailList;
-import fr.dossierfacile.api.front.validator.anotation.tenant.application.v2.DistinctCoTenantFullNameList;
-import fr.dossierfacile.api.front.validator.anotation.tenant.application.v2.UniqueCoTenantsEmail;
+import fr.dossierfacile.api.front.validator.annotation.tenant.application.v2.CheckCoTenantCount;
+import fr.dossierfacile.api.front.validator.annotation.tenant.application.v2.CheckTenantTypeAcceptAccess;
+import fr.dossierfacile.api.front.validator.annotation.tenant.application.v2.CoTenantsEmailRequiredForGroup;
+import fr.dossierfacile.api.front.validator.annotation.tenant.application.v2.DeniedJoinTenant;
+import fr.dossierfacile.api.front.validator.annotation.tenant.application.v2.DistinctCoTenantEmailList;
+import fr.dossierfacile.api.front.validator.annotation.tenant.application.v2.DistinctCoTenantFullNameList;
+import fr.dossierfacile.api.front.validator.annotation.tenant.application.v2.UniqueCoTenantsEmail;
 import fr.dossierfacile.api.front.validator.group.ApiPartner;
 import fr.dossierfacile.api.front.validator.group.Dossier;
 import fr.dossierfacile.common.enums.ApplicationType;
