@@ -33,14 +33,7 @@ public class ApartmentSharingCommonServiceImpl implements ApartmentSharingCommon
         apartmentSharing.setPdfDossierFile(null);
         apartmentSharing.setDossierPdfDocumentStatus(FileStatus.DELETED);
         apartmentSharingRepository.save(apartmentSharing);
-
-        if (pdfFile != null) {
-            try {
-                fileStorageService.delete(pdfFile);
-            } catch (Exception e) {
-                log.error("Unable to delete pdfFile appartmentSharing:" + apartmentSharing.getId());
-            }
-        }
+        fileStorageService.delete(pdfFile);
     }
     @Override
     @Transactional(propagation = Propagation.SUPPORTS)

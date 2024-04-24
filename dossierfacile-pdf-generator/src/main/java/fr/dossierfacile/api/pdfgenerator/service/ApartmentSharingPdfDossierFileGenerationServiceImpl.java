@@ -6,6 +6,7 @@ import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.enums.FileStatus;
 import fr.dossierfacile.common.repository.StorageFileRepository;
 import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
+import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -19,7 +20,7 @@ import java.util.stream.Collectors;
 @Transactional
 public class ApartmentSharingPdfDossierFileGenerationServiceImpl implements ApartmentSharingPdfDossierFileGenerationService {
     private final ApartmentSharingCommonService apartmentSharingCommonService;
-    private final StorageFileRepository storageFileRepository;
+    private final FileStorageService fileStorageService;
 
     @Override
     public void complete(Long id, StorageFile file) {
@@ -35,10 +36,8 @@ public class ApartmentSharingPdfDossierFileGenerationServiceImpl implements Apar
         apartmentSharing.setDossierPdfDocumentStatus(FileStatus.FAILED);
         apartmentSharing.setPdfDossierFile(null);
         apartmentSharingCommonService.save(apartmentSharing);
+        fileStorageService.delete(file);
 
-        if (file != null) {
-            storageFileRepository.delete(file);
-        }
     }
 
     @Override

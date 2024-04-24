@@ -7,7 +7,6 @@ import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
-import fr.dossierfacile.common.repository.StorageFileRepository;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.gouv.bo.amqp.Producer;
 import fr.gouv.bo.dto.MessageDTO;
@@ -29,7 +28,6 @@ public class DocumentService {
 
     private final DocumentRepository documentRepository;
     private final FileStorageService fileStorageService;
-    private final StorageFileRepository storageFileRepository;
     private final Producer producer;
     private final DocumentDeniedOptionsRepository documentDeniedOptionsRepository;
 
@@ -81,9 +79,7 @@ public class DocumentService {
         StorageFile watermarkFile = document.getWatermarkFile();
         document.setWatermarkFile(null);
         documentRepository.save(document);
-        if (watermarkFile != null) {
-            storageFileRepository.delete(watermarkFile);
-        }
+        fileStorageService.delete(watermarkFile);
     }
 
     @Transactional
