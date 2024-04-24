@@ -1,6 +1,7 @@
 package fr.dossierfacile.api.pdfgenerator.util.parameterresolvers;
 
 import fr.dossierfacile.common.entity.Document;
+import fr.dossierfacile.common.entity.ObjectStorageProvider;
 import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.support.TypeBasedParameterResolver;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class TenantResolver extends TypeBasedParameterResolver<Tenant> {
@@ -48,13 +50,21 @@ public class TenantResolver extends TypeBasedParameterResolver<Tenant> {
         return tenant;
     }
 
+    private static StorageFile buildStorageFile() {
+        return StorageFile.builder()
+                .path("CNI.pdf")
+                .provider(ObjectStorageProvider.LOCAL)
+                .providers(Collections.singletonList(ObjectStorageProvider.LOCAL.name()))
+                .build();
+    }
+
     private static List<Document> buildDocuments(Tenant tenant) {
         Document professional = new Document();
         professional.setDocumentCategory(DocumentCategory.PROFESSIONAL);
         professional.setDocumentSubCategory(DocumentSubCategory.CDI);
         professional.setDocumentStatus(DocumentStatus.VALIDATED);
         professional.setTenant(tenant);
-        professional.setWatermarkFile(StorageFile.builder().path("CNI.pdf").build());
+        professional.setWatermarkFile(buildStorageFile());
 
         Document financial = new Document();
         financial.setDocumentCategory(DocumentCategory.FINANCIAL);
@@ -62,28 +72,28 @@ public class TenantResolver extends TypeBasedParameterResolver<Tenant> {
         financial.setDocumentStatus(DocumentStatus.VALIDATED);
         financial.setTenant(tenant);
         financial.setMonthlySum(3000);
-        financial.setWatermarkFile(StorageFile.builder().path("CNI.pdf").build());
+        financial.setWatermarkFile(buildStorageFile());
 
         Document tax = new Document();
         tax.setDocumentCategory(DocumentCategory.TAX);
         tax.setDocumentSubCategory(DocumentSubCategory.LESS_THAN_YEAR);
         tax.setDocumentStatus(DocumentStatus.VALIDATED);
         tax.setTenant(tenant);
-        tax.setWatermarkFile(StorageFile.builder().path("CNI.pdf").build());
+        tax.setWatermarkFile(buildStorageFile());
 
         Document identification = new Document();
         identification.setDocumentCategory(DocumentCategory.IDENTIFICATION);
         identification.setDocumentSubCategory(DocumentSubCategory.FRENCH_PASSPORT);
         identification.setDocumentStatus(DocumentStatus.VALIDATED);
         identification.setTenant(tenant);
-        identification.setWatermarkFile(StorageFile.builder().path("CNI.pdf").build());
+        identification.setWatermarkFile(buildStorageFile());
 
         Document residency = new Document();
         residency.setDocumentCategory(DocumentCategory.RESIDENCY);
         residency.setDocumentSubCategory(DocumentSubCategory.TENANT);
         residency.setDocumentStatus(DocumentStatus.VALIDATED);
         residency.setTenant(tenant);
-        residency.setWatermarkFile(StorageFile.builder().path("CNI.pdf").build());
+        residency.setWatermarkFile(buildStorageFile());
 
         return List.of(professional, financial, tax, identification, residency);
     }

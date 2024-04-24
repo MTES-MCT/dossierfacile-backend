@@ -1,6 +1,5 @@
 package fr.dossierfacile.scheduler;
 
-import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.scheduler.tasks.TaskName;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
@@ -8,7 +7,7 @@ import org.slf4j.MDC;
 @Slf4j
 public class LoggingContext {
 
-    private static final String STORAGE_FILE = "storage_file_id";
+    public static final String STORAGE_FILE = "storage_file_id";
     private static final String TASK_NAME = "task";
 
     public static void startTask(TaskName taskName) {
@@ -21,10 +20,12 @@ public class LoggingContext {
         MDC.clear();
     }
 
-    public static void setStorageFile(StorageFile file) {
-        if (file.getId() != null) {
-            MDC.put(STORAGE_FILE, file.getId().toString());
-        }
+    public static void put(String key, Object value) {
+        MDC.put(key, String.valueOf(value));
+    }
+
+    public static void remove(String key) {
+        MDC.remove(key);
     }
 
     public static void clear() {

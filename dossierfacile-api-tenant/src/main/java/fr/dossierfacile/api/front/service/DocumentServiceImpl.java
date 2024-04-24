@@ -11,15 +11,14 @@ import fr.dossierfacile.api.front.util.TransactionalUtil;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Person;
-import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.model.log.EditionType;
 import fr.dossierfacile.common.repository.DocumentAnalysisReportRepository;
-import fr.dossierfacile.common.repository.StorageFileRepository;
 import fr.dossierfacile.common.service.interfaces.DocumentHelperService;
+import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,7 +41,7 @@ public class DocumentServiceImpl implements DocumentService {
 
     private final DocumentRepository documentRepository;
     private final DocumentAnalysisReportRepository documentAnalysisReportRepository;
-    private final StorageFileRepository storageFileRepository;
+    private final FileStorageService fileStorageService;
     private final TenantStatusService tenantStatusService;
     private final ApartmentSharingService apartmentSharingService;
     private final DocumentHelperService documentHelperService;
@@ -112,7 +111,7 @@ public class DocumentServiceImpl implements DocumentService {
                     if (document.getDocumentStatus().equals(DocumentStatus.VALIDATED)
                             && categoriesToChange.contains(document.getDocumentCategory())) {
                         if (Boolean.TRUE == document.getNoDocument() && document.getWatermarkFile() != null){
-                            storageFileRepository.delete(document.getWatermarkFile());
+                            fileStorageService.delete(document.getWatermarkFile());
                             document.setWatermarkFile(null);
                         }
                         TransactionalUtil.afterCommit(() -> {
@@ -148,8 +147,7 @@ public class DocumentServiceImpl implements DocumentService {
             document.setDocumentAnalysisReport(null);
         }
         if ( document.getWatermarkFile() != null ){
-            StorageFile watermarkFile = document.getWatermarkFile();
-            storageFileRepository.delete(watermarkFile);
+            fileStorageService.delete(document.getWatermarkFile());
             document.setWatermarkFile(null);
         }
         documentRepository.save(document);
