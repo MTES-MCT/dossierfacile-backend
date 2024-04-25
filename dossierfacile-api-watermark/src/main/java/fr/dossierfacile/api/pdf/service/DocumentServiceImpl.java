@@ -10,6 +10,7 @@ import fr.dossierfacile.api.pdf.service.interfaces.DocumentService;
 import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.entity.WatermarkDocument;
 import fr.dossierfacile.common.enums.FileStatus;
+import fr.dossierfacile.common.enums.FileStorageStatus;
 import fr.dossierfacile.common.repository.WatermarkDocumentRepository;
 import fr.dossierfacile.common.service.interfaces.EncryptionKeyService;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
@@ -147,6 +148,7 @@ public class DocumentServiceImpl implements DocumentService {
                             .contentType(multipartFile.getContentType())
                             .size(multipartFile.getSize())
                             .encryptionKey(encryptionKeyService.getCurrentKey())
+                            .status(FileStorageStatus.TEMPORARY)
                             .build();
 
                     try {
