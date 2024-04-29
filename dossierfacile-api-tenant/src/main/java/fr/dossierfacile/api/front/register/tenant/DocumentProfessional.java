@@ -47,9 +47,8 @@ public class DocumentProfessional extends AbstractDocumentSaveStep<DocumentProfe
         saveFiles(documentProfessionalForm, document);
 
         tenant.lastUpdateDateProfile(LocalDateTime.now(), DocumentCategory.PROFESSIONAL);
-        if (tenant.getStatus() == TenantFileStatus.VALIDATED) {
-            documentService.resetValidatedDocumentsStatusOfSpecifiedCategoriesToToProcess(tenant.getDocuments(), List.of(DocumentCategory.PROFESSIONAL, DocumentCategory.FINANCIAL, DocumentCategory.TAX));
-        }
+        documentService.resetValidatedOrInProgressDocumentsAccordingCategories(tenant.getDocuments(), List.of(DocumentCategory.PROFESSIONAL, DocumentCategory.FINANCIAL, DocumentCategory.TAX));
+
         tenantStatusService.updateTenantStatus(tenant);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         tenantRepository.save(tenant);
