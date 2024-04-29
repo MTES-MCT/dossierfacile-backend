@@ -161,11 +161,10 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
             tenant.setFranceConnectBirthDate(user.getFranceConnectBirthDate());
 
             if (user.isFranceConnect()) {
-                if ((!StringUtils.equals(tenant.getFirstName(), user.getGivenName())
+                if (!StringUtils.equals(tenant.getFirstName(), user.getGivenName())
                         || !StringUtils.equals(tenant.getLastName(), user.getFamilyName())
-                        || (user.getPreferredUsername() != null && !StringUtils.equals(tenant.getPreferredName(), user.getPreferredUsername())))
-                        && (tenant.getStatus() == TenantFileStatus.VALIDATED)) {
-                    documentService.resetValidatedDocumentsStatusOfSpecifiedCategoriesToToProcess(tenant.getDocuments(),
+                        || (user.getPreferredUsername() != null && !StringUtils.equals(tenant.getPreferredName(), user.getPreferredUsername()))) {
+                    documentService.resetValidatedOrInProgressDocumentsAccordingCategories(tenant.getDocuments(),
                             Arrays.asList(DocumentCategory.values()));
                 }
                 tenant.setFirstName(user.getGivenName());
