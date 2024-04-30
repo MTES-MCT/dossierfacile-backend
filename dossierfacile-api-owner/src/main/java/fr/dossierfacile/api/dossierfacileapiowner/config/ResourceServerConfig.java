@@ -36,7 +36,6 @@ public class ResourceServerConfig {
                 .addFilterBefore(new ConnectionContextFilter(), FilterSecurityInterceptor.class)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
-                .csrf(AbstractHttpConfigurer::disable)
                 .addFilterBefore(new WebhookFilter(token, headerName), BasicAuthenticationFilter.class)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .cors(withDefaults())
