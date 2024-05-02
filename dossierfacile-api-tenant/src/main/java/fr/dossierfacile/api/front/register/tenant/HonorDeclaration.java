@@ -1,13 +1,16 @@
 package fr.dossierfacile.api.front.register.tenant;
 
+import fr.dossierfacile.api.front.dto.TenantDto;
 import fr.dossierfacile.api.front.exception.TenantIllegalStateException;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
+import fr.dossierfacile.api.front.mapper.mail.TenantMapperForMail;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.SaveStep;
 import fr.dossierfacile.api.front.register.form.tenant.HonorDeclarationForm;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
+import fr.dossierfacile.api.front.util.TransactionalUtil;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
@@ -31,6 +34,7 @@ public class HonorDeclaration implements SaveStep<HonorDeclarationForm> {
     private final MailService mailService;
     private final TenantStatusService tenantStatusService;
     private final ApartmentSharingService apartmentSharingService;
+    private final TenantMapperForMail tenantMapperForMail;
 
     private static List<Tenant> getTenantOrPartners(Tenant tenant) {
         ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
@@ -52,12 +56,13 @@ public class HonorDeclaration implements SaveStep<HonorDeclarationForm> {
             tenantStatusService.updateTenantStatus(t);
         }
 
-        Tenant tenantSaved = tenantRepository.save(tenant);
-
+        tenant = tenantRepository.save(tenant);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
-        mailService.sendEmailAccountCompleted(tenantSaved);
-        tenant.getApartmentSharing().getTenants().size();// load tenants in tx context
-        return tenantMapper.toTenantModel(tenantSaved);
+
+        TenantDto tenantDto = tenantMapperForMail.toDto(tenant);
+        TransactionalUtil.afterCommit( () -> mailService.sendEmailAccountCompleted(tenantDto) );
+
+        return tenantMapper.toTenantModel(tenant);
     }
 
     private void checkTenantValidity(Tenant tenant) {

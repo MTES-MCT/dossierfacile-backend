@@ -1,12 +1,15 @@
 package fr.dossierfacile.api.front.service;
 
+import fr.dossierfacile.api.front.dto.TenantDto;
 import fr.dossierfacile.api.front.exception.PasswordRecoveryTokenNotFoundException;
 import fr.dossierfacile.api.front.exception.UserNotFoundException;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
+import fr.dossierfacile.api.front.mapper.mail.TenantMapperForMail;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.repository.PasswordRecoveryTokenRepository;
 import fr.dossierfacile.api.front.repository.UserRepository;
 import fr.dossierfacile.api.front.service.interfaces.*;
+import fr.dossierfacile.api.front.util.TransactionalUtil;
 import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.LogType;
@@ -43,6 +46,7 @@ public class UserServiceImpl implements UserService {
     private final PartnerCallBackService partnerCallBackService;
     private final ApartmentSharingService apartmentSharingService;
     private final TenantCommonService tenantCommonService;
+    private final TenantMapperForMail tenantMapperForMail;
 
     @Override
     public TenantModel createPassword(User user, String password) {
@@ -88,7 +92,7 @@ public class UserServiceImpl implements UserService {
             webhookDTOList.add(partnerCallBackService.getWebhookDTO(tenant, userApi, PartnerCallBackType.DELETED_ACCOUNT));
         });
         logService.saveLogWithTenantData(LogType.ACCOUNT_DELETE, tenant);
-        mailService.sendEmailAccountDeleted(tenant);
+        TenantDto tenantToDeleteDto = tenantMapperForMail.toDto(tenant);
         tenantCommonService.deleteTenantData(tenant);
 
         if (tenant.getTenantType() == TenantType.CREATE) {
@@ -102,6 +106,8 @@ public class UserServiceImpl implements UserService {
         for (WebhookDTO webhookDTO : webhookDTOList) {
             partnerCallBackService.sendCallBack(tenant, webhookDTO);
         }
+
+        TransactionalUtil.afterCommit( () -> mailService.sendEmailAccountDeleted(tenantToDeleteDto));
     }
 
     @Override
