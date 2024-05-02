@@ -2,16 +2,14 @@ package fr.dossierfacile.api.front.register.tenant;
 
 import com.google.common.base.Strings;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
+import fr.dossierfacile.api.front.mapper.mail.TenantMapperForMail;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.SaveStep;
 import fr.dossierfacile.api.front.register.form.tenant.AccountForm;
-import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
-import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
-import fr.dossierfacile.api.front.service.interfaces.MailService;
-import fr.dossierfacile.api.front.service.interfaces.TenantService;
-import fr.dossierfacile.api.front.service.interfaces.UserApiService;
-import fr.dossierfacile.api.front.service.interfaces.UserRoleService;
+import fr.dossierfacile.api.front.service.interfaces.*;
 import fr.dossierfacile.api.front.util.Obfuscator;
+import fr.dossierfacile.api.front.util.TransactionalUtil;
+import fr.dossierfacile.common.entity.ConfirmationToken;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.TenantType;
@@ -44,6 +42,7 @@ public class Account implements SaveStep<AccountForm> {
     private final MailService mailService;
     private final ConfirmationTokenService confirmationTokenService;
     private final KeycloakService keycloakService;
+    private final TenantMapperForMail tenantMapperForMail;
 
     @Override
     @Transactional
@@ -80,10 +79,12 @@ public class Account implements SaveStep<AccountForm> {
         }
 
         tenantRepository.save(tenant);
-        mailService.sendEmailConfirmAccount(tenant, confirmationTokenService.createToken(tenant));
         userRoleService.createRole(tenant);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         tenant.lastUpdateDateProfile(LocalDateTime.now(), null);
+        ConfirmationToken confirmationToken = confirmationTokenService.createToken(tenant);
+
+        TransactionalUtil.afterCommit(() -> mailService.sendEmailConfirmAccount(tenantMapperForMail.toDto(tenant), confirmationToken));
         return tenantMapper.toTenantModel(tenantRepository.save(tenant));
     }
 

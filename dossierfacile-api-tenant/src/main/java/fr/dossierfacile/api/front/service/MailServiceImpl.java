@@ -1,6 +1,9 @@
 package fr.dossierfacile.api.front.service;
 
 import com.google.common.base.Strings;
+import fr.dossierfacile.api.front.dto.TenantDto;
+import fr.dossierfacile.api.front.dto.UserApiDto;
+import fr.dossierfacile.api.front.dto.UserDto;
 import fr.dossierfacile.api.front.form.ContactForm;
 import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.common.entity.*;
@@ -12,8 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import sendinblue.ApiException;
 import sibApi.TransactionalEmailsApi;
 import sibModel.SendSmtpEmail;
@@ -109,9 +110,12 @@ public class MailServiceImpl implements MailService {
     private void sendEmailToTenant(User tenant, Map<String, String> params, Long templateId) {
         sendEmailToTenant(tenant.getEmail(), tenant.getFullName(), params, templateId);
     }
+    private void sendEmailToTenant(UserDto tenant, Map<String, String> params, Long templateId) {
+        sendEmailToTenant(tenant.getEmail(), tenant.getFullName(), params, templateId);
+    }
 
     @Override
-    public void sendEmailConfirmAccount(User user, ConfirmationToken confirmationToken) {
+    public void sendEmailConfirmAccount(UserDto user, ConfirmationToken confirmationToken) {
         Map<String, String> variables = new HashMap<>();
         variables.put("confirmToken", confirmationToken.getToken());
         variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
@@ -145,10 +149,9 @@ public class MailServiceImpl implements MailService {
         sendEmailToTenant(guest, variables, templateId);
     }
 
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Async
     @Override
-    public void sendEmailAccountDeleted(User user) {
+    public void sendEmailAccountDeleted(UserDto user) {
         Map<String, String> variables = new HashMap<>();
         variables.put("PRENOM", user.getFirstName());
         variables.put("NOM", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
@@ -156,29 +159,26 @@ public class MailServiceImpl implements MailService {
         sendEmailToTenant(user, variables, templateIdAccountDeleted);
     }
 
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Async
     @Override
-    public void sendEmailAccountCompleted(Tenant tenant) {
+    public void sendEmailAccountCompleted(TenantDto tenant) {
         Map<String, String> variables = new HashMap<>();
         variables.put("PRENOM", tenant.getFirstName());
         variables.put("NOM", Strings.isNullOrEmpty(tenant.getPreferredName()) ? tenant.getLastName() : tenant.getPreferredName());
 
         if (tenant.isBelongToPartner()) {
-            UserApi userApi = tenant.getTenantsUserApi().get(0).getUserApi();
-            variables.put("partnerName", userApi.getName2());
-            variables.put("logoUrl", userApi.getLogoUrl());
-            variables.put("callToActionUrl", OptionalString.of(userApi.getCompletedUrl()).orElse(defaultCompletedUrl));
+                UserApiDto userApi = tenant.getUserApis().get(0);
+                variables.put("partnerName", userApi.getName2());
+                variables.put("logoUrl", userApi.getLogoUrl());
+                variables.put("callToActionUrl", OptionalString.of(userApi.getCompletedUrl()).orElse(defaultCompletedUrl));
 
-            sendEmailToTenant(tenant, variables, templateIdAccountCompletedWithPartner);
+                sendEmailToTenant(tenant, variables, templateIdAccountCompletedWithPartner);
         } else {
             variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
             sendEmailToTenant(tenant, variables, templateIdAccountCompleted);
         }
     }
 
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    @Async
     @Override
     public void sendEmailWhenEmailAccountNotYetValidated(User user, ConfirmationToken confirmationToken) {
         Map<String, String> variables = new HashMap<>();
@@ -190,8 +190,6 @@ public class MailServiceImpl implements MailService {
         sendEmailToTenant(user, variables, templateEmailWhenEmailAccountNotYetValidated);
     }
 
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    @Async
     @Override
     public void sendEmailWhenAccountNotYetCompleted(User user) {
         Map<String, String> variables = new HashMap<>();
@@ -202,8 +200,6 @@ public class MailServiceImpl implements MailService {
         sendEmailToTenant(user, variables, templateEmailWhenAccountNotYetCompleted);
     }
 
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    @Async
     @Override
     public void sendEmailWhenAccountIsStillDeclined(User user) {
         Map<String, String> variables = new HashMap<>();
@@ -260,10 +256,9 @@ public class MailServiceImpl implements MailService {
         }
     }
 
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Async
     @Override
-    public void sendEmailWelcomeForPartnerUser(User user, UserApi userApi) {
+    public void sendEmailWelcomeForPartnerUser(UserDto user, UserApiDto userApi) {
         Map<String, String> variables = new HashMap<>();
         variables.put("partnerName", userApi.getName2());
         variables.put("logoUrl", userApi.getLogoUrl());
