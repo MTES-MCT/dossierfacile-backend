@@ -1,16 +1,8 @@
 package fr.dossierfacile.common.entity;
 
+import fr.dossierfacile.common.enums.FileStorageStatus;
 import jakarta.annotation.Nullable;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -18,6 +10,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.Hibernate;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.SoftDelete;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -40,13 +34,13 @@ public class File implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(cascade = CascadeType.REMOVE)
+    @OneToOne
     @JoinColumn(name = "storage_file_id")
     private StorageFile storageFile;
 
     private int numberOfPages;
 
-    @OneToOne(cascade = CascadeType.REMOVE)
+    @OneToOne
     @JoinColumn(name = "preview_file_id")
     private StorageFile preview;
 
@@ -66,6 +60,15 @@ public class File implements Serializable {
     @Nullable
     @OneToOne(mappedBy= "file", fetch = FetchType.LAZY)
     private ParsedFileAnalysis parsedFileAnalysis;
+
+    @PreRemove
+    void deleteCascade() {
+        if (storageFile != null)
+            storageFile.setStatus(FileStorageStatus.TO_DELETE);
+
+        if (preview != null)
+            preview.setStatus(FileStorageStatus.TO_DELETE);
+    }
 
     @Override
     public boolean equals(Object o) {

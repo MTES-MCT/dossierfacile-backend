@@ -1,6 +1,7 @@
 package fr.dossierfacile.common.entity;
 
 import fr.dossierfacile.common.entity.shared.AbstractAuditable;
+import fr.dossierfacile.common.enums.FileStorageStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -45,6 +46,8 @@ public class StorageFile extends AbstractAuditable<String, Long> {
     protected String contentType;
     protected Long size;
     protected String md5;
+    @Enumerated(EnumType.STRING)
+    protected FileStorageStatus status;
     @Column
     @Enumerated(EnumType.STRING)
     protected ObjectStorageProvider provider;

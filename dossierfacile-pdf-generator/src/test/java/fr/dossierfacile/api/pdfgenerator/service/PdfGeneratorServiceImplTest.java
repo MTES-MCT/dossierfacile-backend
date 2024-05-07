@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,7 +35,6 @@ class PdfGeneratorServiceImplTest {
     TenantCommonRepository tenantRepository;
     @MockBean
     StorageFileRepository storageFileRepository;
-
 
     @Value("${mock.storage.path}")
     private String filePath;

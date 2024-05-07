@@ -1,5 +1,6 @@
 package fr.dossierfacile.scheduler.tasks.storagesynchronization;
 
+import fr.dossierfacile.common.config.DynamicProviderConfig;
 import fr.dossierfacile.common.entity.ObjectStorageProvider;
 import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.repository.StorageFileRepository;
@@ -15,7 +16,9 @@ import org.springframework.stereotype.Service;
 import java.io.InputStream;
 import java.util.List;
 
+import static fr.dossierfacile.scheduler.LoggingContext.STORAGE_FILE;
 import static fr.dossierfacile.scheduler.tasks.TaskName.STORAGE_FILES_BACKUP;
+import static fr.dossierfacile.scheduler.tasks.TaskName.STORAGE_FILES_BACKUP_RETRY;
 
 @Slf4j
 @Service
@@ -23,34 +26,44 @@ import static fr.dossierfacile.scheduler.tasks.TaskName.STORAGE_FILES_BACKUP;
 public class BackupFilesTask {
     private final StorageFileRepository storageFileRepository;
     private final FileStorageService fileStorageService;
-
-    @Scheduled(fixedDelayString = "${scheduled.process.storage.backup.delay.ms}", initialDelayString = "${scheduled.process.storage.backup.delay.ms}")
-    public void scheduleBackupTask() {
-        LoggingContext.startTask(STORAGE_FILES_BACKUP);
-        Pageable limit = PageRequest.of(0, 100);
-        List<StorageFile> storageFiles = storageFileRepository.findAllWithOneProvider(limit);
-        storageFiles.parallelStream().forEach(storageFile -> {
-            LoggingContext.setStorageFile(storageFile);
-            for (ObjectStorageProvider objectStorageProvider : ObjectStorageProvider.values()) {
-                if (isNotPresentOnProvider(storageFile, objectStorageProvider)) {
-                    uploadFileToProvider(storageFile, objectStorageProvider);
-                }
-            }
-            LoggingContext.clear();
-        });
-        LoggingContext.endTask();
-    }
+    private final DynamicProviderConfig dynamicProviderConfig;
 
     private static boolean isNotPresentOnProvider(StorageFile storageFile, ObjectStorageProvider objectStorageProvider) {
         return !storageFile.getProviders().contains(objectStorageProvider.name());
     }
 
-    private void uploadFileToProvider(StorageFile storageFile, ObjectStorageProvider objectStorageProvider) {
-        try (InputStream is = fileStorageService.download(storageFile)) {
-            fileStorageService.uploadToProvider(is, storageFile, objectStorageProvider);
-        } catch (Exception e) {
-            log.error("Upload to {} failed", objectStorageProvider);
-        }
+    @Scheduled(fixedDelayString = "${scheduled.process.storage.backup.delay.ms}", initialDelayString = "${scheduled.process.storage.backup.delay.ms}")
+    public void scheduleBackupTask() {
+        LoggingContext.startTask(STORAGE_FILES_BACKUP);
+        Pageable limit = PageRequest.of(0, 100);
+        List<StorageFile> storageFiles = storageFileRepository.findAllWithOneProviderAndReady(limit);
+        synchronizeFile(storageFiles);
+        LoggingContext.endTask();
+    }
+
+    @Scheduled(fixedDelayString = "${scheduled.process.storage.backup.retry.failed.copy.delay.minutes}", initialDelayString = "${scheduled.process.storage.backup.retry.failed.copy.delay.minutes}")
+    public void retryFailedCopy() {
+        LoggingContext.startTask(STORAGE_FILES_BACKUP_RETRY);
+        Pageable limit = PageRequest.of(0, 100);
+        List<StorageFile> storageFiles = storageFileRepository.findAllWithOneProviderAndCopyFailed(limit);
+        synchronizeFile(storageFiles);
+        LoggingContext.endTask();
+    }
+
+    private void synchronizeFile(List<StorageFile> storageFiles) {
+        storageFiles.forEach(storageFile -> {
+            LoggingContext.put(STORAGE_FILE, storageFile.getId());
+            for (ObjectStorageProvider objectStorageProvider : dynamicProviderConfig.getProviders()) {
+                if (isNotPresentOnProvider(storageFile, objectStorageProvider)) {
+                    try (InputStream is = fileStorageService.download(storageFile)) {
+                        fileStorageService.uploadToProvider(is, storageFile, objectStorageProvider);
+                    } catch (Exception e) {
+                        log.error("Failed copy for {} to {}", storageFile.getId(), objectStorageProvider);
+                    }
+                }
+            }
+            LoggingContext.remove(STORAGE_FILE);
+        });
     }
 
 }

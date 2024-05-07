@@ -1,19 +1,8 @@
 package fr.dossierfacile.common.entity;
 
 import fr.dossierfacile.common.enums.FileStatus;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
+import fr.dossierfacile.common.enums.FileStorageStatus;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -58,9 +47,15 @@ public class WatermarkDocument {
     @Enumerated(EnumType.STRING)
     private FileStatus pdfStatus;
 
-    @OneToOne(cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToOne
     @JoinColumn(name = "pdf_file_id")
     private StorageFile pdfFile;
 
     private String text;
+
+    @PreRemove
+    void deleteCascade() {
+        if (pdfFile != null)
+            pdfFile.setStatus(FileStorageStatus.TO_DELETE);
+    }
 }

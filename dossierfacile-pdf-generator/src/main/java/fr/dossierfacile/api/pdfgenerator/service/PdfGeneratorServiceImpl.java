@@ -15,6 +15,7 @@ import fr.dossierfacile.common.entity.WatermarkDocument;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.FileStatus;
+import fr.dossierfacile.common.enums.FileStorageStatus;
 import fr.dossierfacile.common.repository.StorageFileRepository;
 import fr.dossierfacile.common.repository.WatermarkDocumentRepository;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
@@ -93,6 +94,7 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
             StorageFile pdfFile = StorageFile.builder()
                     .name("dossierfacile-watermark-" + UUID.randomUUID() + ".pdf")
                     .contentType(MediaType.APPLICATION_PDF_VALUE)
+                    .status(FileStorageStatus.TEMPORARY)
                     .build();
             document.setPdfFile(fileStorageService.upload(inputStream, pdfFile));
 

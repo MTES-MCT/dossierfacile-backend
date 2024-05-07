@@ -1,8 +1,8 @@
 package fr.dossierfacile.api.front.register.form;
 
 import fr.dossierfacile.api.front.form.interfaces.FormWithTenantId;
-import fr.dossierfacile.api.front.validator.anotation.Extension;
-import fr.dossierfacile.api.front.validator.anotation.SizeFile;
+import fr.dossierfacile.api.front.validator.annotation.Extension;
+import fr.dossierfacile.api.front.validator.annotation.SizeFile;
 import fr.dossierfacile.api.front.validator.group.ApiPartner;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;

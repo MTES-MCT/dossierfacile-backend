@@ -3,7 +3,7 @@ package fr.dossierfacile.api.front.validator.tenant.profesional;
 import fr.dossierfacile.api.front.register.form.tenant.DocumentProfessionalForm;
 import fr.dossierfacile.api.front.repository.FileRepository;
 import fr.dossierfacile.api.front.validator.TenantConstraintValidator;
-import fr.dossierfacile.api.front.validator.anotation.tenant.profesional.NumberOfDocumentProfesional;
+import fr.dossierfacile.api.front.validator.annotation.tenant.profesional.NumberOfDocumentProfesional;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import jakarta.validation.ConstraintValidatorContext;

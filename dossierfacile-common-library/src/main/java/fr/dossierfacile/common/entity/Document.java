@@ -3,20 +3,9 @@ package fr.dossierfacile.common.entity;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
+import fr.dossierfacile.common.enums.FileStorageStatus;
 import jakarta.annotation.Nullable;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -89,7 +78,7 @@ public class Document implements Serializable {
     @Builder.Default
     private DocumentStatus documentStatus = DocumentStatus.TO_PROCESS;
 
-    @OneToOne(cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToOne
     @JoinColumn(name = "watermark_file_id")
     private StorageFile watermarkFile;
 
@@ -104,6 +93,12 @@ public class Document implements Serializable {
     @Nullable
     @OneToOne(mappedBy= "document", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     private DocumentAnalysisReport documentAnalysisReport;
+
+    @PreRemove
+    void deleteCascade() {
+        if (watermarkFile != null)
+            watermarkFile.setStatus(FileStorageStatus.TO_DELETE);
+    }
 
     @Override
     public boolean equals(Object o) {

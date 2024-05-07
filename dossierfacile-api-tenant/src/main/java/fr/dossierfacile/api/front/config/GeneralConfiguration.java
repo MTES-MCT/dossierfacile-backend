@@ -5,11 +5,13 @@ import com.google.gson.GsonBuilder;
 import fr.dossierfacile.common.utils.LocalDateTimeTypeAdapter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.domain.AuditorAware;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.concurrent.Executor;
 
 @Configuration
@@ -42,5 +44,10 @@ public class GeneralConfiguration {
         GsonBuilder builder = new GsonBuilder();
         builder.registerTypeAdapter(LocalDateTime.class, new LocalDateTimeTypeAdapter());
         return builder.create();
+    }
+
+    @Bean
+    public AuditorAware<String> auditorAware() {
+        return (() -> Optional.of("api-tenant"));
     }
 }

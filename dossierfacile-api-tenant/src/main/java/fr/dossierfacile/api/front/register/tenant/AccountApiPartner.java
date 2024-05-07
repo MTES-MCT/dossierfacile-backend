@@ -1,6 +1,8 @@
 package fr.dossierfacile.api.front.register.tenant;
 
 import fr.dossierfacile.api.front.mapper.TenantMapper;
+import fr.dossierfacile.api.front.mapper.mail.TenantMapperForMail;
+import fr.dossierfacile.api.front.mapper.mail.UserApiMapperForMail;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.SaveStep;
 import fr.dossierfacile.api.front.register.form.partner.AccountPartnerForm;
@@ -29,6 +31,8 @@ public class AccountApiPartner implements SaveStep<AccountPartnerForm> {
     private final ClientAuthenticationFacade clientAuthenticationFacade;
     private final PartnerCallBackService partnerCallBackService;
     private final MailService mailService;
+    private final TenantMapperForMail tenantMapperForMail;
+    private final UserApiMapperForMail userApiMapperForMail;
 
     @Override
     public TenantModel saveStep(Tenant t, AccountPartnerForm accountForm) {
@@ -37,7 +41,7 @@ public class AccountApiPartner implements SaveStep<AccountPartnerForm> {
         UserApi userApi = clientAuthenticationFacade.getClient();
         partnerCallBackService.registerTenant(accountForm.getInternalPartnerId(), tenant, userApi);
 
-        mailService.sendEmailWelcomeForPartnerUser(tenant, userApi);
+        mailService.sendEmailWelcomeForPartnerUser(tenantMapperForMail.toDto(tenant), userApiMapperForMail.toDto(userApi));
 
         tenant.lastUpdateDateProfile(LocalDateTime.now(), null);
         return tenantMapper.toTenantModel(tenantRepository.save(tenant));

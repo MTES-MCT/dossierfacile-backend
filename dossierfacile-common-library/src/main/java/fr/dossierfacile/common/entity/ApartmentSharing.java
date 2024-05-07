@@ -2,21 +2,9 @@ package fr.dossierfacile.common.entity;
 
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.FileStatus;
+import fr.dossierfacile.common.enums.FileStorageStatus;
 import fr.dossierfacile.common.enums.TenantFileStatus;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -64,7 +52,7 @@ public class ApartmentSharing implements Serializable {
     @Enumerated(EnumType.STRING)
     private ApplicationType applicationType;
 
-    @OneToOne(cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToOne
     @JoinColumn(name = "pdf_dossier_file_id")
     private StorageFile pdfDossierFile;
 
@@ -77,6 +65,12 @@ public class ApartmentSharing implements Serializable {
 
     @OneToMany(mappedBy = "apartmentSharing", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     private List<ApartmentSharingLink> apartmentSharingLinks = new ArrayList<>();
+
+    @PreRemove
+    void deleteCascade() {
+        if (pdfDossierFile != null)
+            pdfDossierFile.setStatus(FileStorageStatus.TO_DELETE);
+    }
 
     public ApartmentSharing(Tenant tenant) {
         tenants.add(tenant);

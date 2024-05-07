@@ -1,7 +1,7 @@
 package fr.dossierfacile.api.front.validator.tenant.residency;
 
 import fr.dossierfacile.api.front.register.form.tenant.DocumentResidencyForm;
-import fr.dossierfacile.api.front.validator.anotation.tenant.residency.CustomTextResidency;
+import fr.dossierfacile.api.front.validator.annotation.tenant.residency.CustomTextResidency;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;

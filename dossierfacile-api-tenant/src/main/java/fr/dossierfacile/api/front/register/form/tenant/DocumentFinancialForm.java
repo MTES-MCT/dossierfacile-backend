@@ -2,12 +2,12 @@ package fr.dossierfacile.api.front.register.form.tenant;
 
 import fr.dossierfacile.api.front.register.form.DocumentForm;
 import fr.dossierfacile.api.front.register.form.IDocumentFinancialForm;
-import fr.dossierfacile.api.front.validator.anotation.DocumentSubcategorySubset;
-import fr.dossierfacile.api.front.validator.anotation.LengthOfText;
-import fr.dossierfacile.api.front.validator.anotation.NumberOfPages;
-import fr.dossierfacile.api.front.validator.anotation.tenant.financial.MonthlySumValue;
-import fr.dossierfacile.api.front.validator.anotation.tenant.financial.NoDocumentCustomTextFinancial;
-import fr.dossierfacile.api.front.validator.anotation.tenant.financial.NumberOfDocumentFinancial;
+import fr.dossierfacile.api.front.validator.annotation.DocumentSubcategorySubset;
+import fr.dossierfacile.api.front.validator.annotation.LengthOfText;
+import fr.dossierfacile.api.front.validator.annotation.NumberOfPages;
+import fr.dossierfacile.api.front.validator.annotation.common.financial.MonthlySumValue;
+import fr.dossierfacile.api.front.validator.annotation.tenant.financial.NoDocumentCustomTextFinancial;
+import fr.dossierfacile.api.front.validator.annotation.tenant.financial.NumberOfDocumentFinancial;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import io.swagger.v3.oas.annotations.Parameter;
