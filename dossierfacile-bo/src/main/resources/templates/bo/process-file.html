@@ -125,6 +125,17 @@
                                         </li>
                                     </ul>
                                 </div>
+                                <div th:if="${messageItem.getDocumentAnalysisReport()!=null}"
+                                     th:class="${messageItem.getDocumentAnalysisReport().getAnalysisStatus() == T(fr.dossierfacile.common.entity.DocumentAnalysisStatus).CHECKED ? 'checked-background' : 'denied-background'}"
+                                     style="padding: 15px 5px 5px 5px">
+                                    Statut de la vérification automatique:
+                                    <span th:text="${messageItem.getDocumentAnalysisReport().getAnalysisStatus}"></span>
+                                    <ul>
+                                        <li style="margin-top: 5px" th:each="rule : ${messageItem.getDocumentAnalysisReport().getBrokenRules()}">
+                                            <span style="font-size:smaller" th:text="' ' + ${rule.message}"></span>
+                                        </li>
+                                    </ul>
+                                </div>
                                 <div th:if="${messageItem.getAnalysisReportComment()} != null"
                                      class="panel-heading file2-background-color letter">
                                     <div style="font-size: 12px; line-height: 20px">
@@ -140,7 +151,7 @@
                                 </h4>
 
                                 <div th:if="${!messageItem.analyzedFiles.isEmpty()}" style="padding-left: 15px">
-                                    <h4>Vérifications automatiques :</h4>
+                                    <h4>Lecture automatiques :</h4>
                                     <ul>
                                         <li th:each="file : ${messageItem.analyzedFiles}" th:with="analysis=${file.analysis}" class="margin-bottom-10px">
                                             <span th:text="${file.summary}"></span>
@@ -278,9 +289,19 @@
                                             </li>
                                         </ul>
                                     </div>
-
+                                    <div th:if="${messageItem.getDocumentAnalysisReport()!=null}"
+                                         th:class="${messageItem.getDocumentAnalysisReport().getAnalysisStatus() == T(fr.dossierfacile.common.entity.DocumentAnalysisStatus).CHECKED ? 'checked-background' : 'denied-background'}"
+                                         style="padding: 15px 5px 5px 5px">
+                                        Statut de la vérification automatique:
+                                        <span th:text="${messageItem.getDocumentAnalysisReport().getAnalysisStatus}"></span>
+                                        <ul>
+                                            <li style="margin-top: 5px" th:each="rule : ${messageItem.getDocumentAnalysisReport().getBrokenRules()}">
+                                                <span style="font-size:smaller" th:text="' ' + ${rule.message}"></span>
+                                            </li>
+                                        </ul>
+                                    </div>
                                     <div th:if="${!messageItem.analyzedFiles.isEmpty()}" style="padding-left: 15px">
-                                        <h4>Vérifications automatiques :</h4>
+                                        <h4>Lecture automatiques :</h4>
                                         <ul>
                                             <li th:each="file : ${messageItem.analyzedFiles}" th:with="analysis=${file.analysis}" class="margin-bottom-10px">
                                                 <span th:text="${file.summary}"></span>
