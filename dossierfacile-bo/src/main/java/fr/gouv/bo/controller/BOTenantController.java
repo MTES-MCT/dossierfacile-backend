@@ -275,6 +275,7 @@ public class BOTenantController {
                         .documentName(document.getName())
                         .analyzedFiles(DisplayableFile.onlyAnalyzedFilesOf(document))
                         .previousDeniedReasons(documentDeniedReasonsService.getLastDeniedReason(document, tenant).orElse(null))
+                        .documentAnalysisReport(document.getDocumentAnalysisReport())
                         .analysisReportComment(document.getDocumentAnalysisReport() != null && "DENIED".equals(document.getDocumentAnalysisReport().getAnalysisStatus().name())  ? document.getDocumentAnalysisReport().getComment() : null)
                         .build());
             }
@@ -303,6 +304,7 @@ public class BOTenantController {
                             .documentId(document.getId())
                             .documentName(document.getName())
                             .analyzedFiles(DisplayableFile.onlyAnalyzedFilesOf(document))
+                            .documentAnalysisReport(document.getDocumentAnalysisReport())
                             .previousDeniedReasons(documentDeniedReasonsService.getLastDeniedReason(document, tenant).orElse(null))
                             .build());
                 }
