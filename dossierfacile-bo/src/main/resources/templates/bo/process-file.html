@@ -66,7 +66,7 @@
             <div th:each="messageItem, i:${customMessage.getMessageItems()}" th:remove="tag">
                 <div class="col-md-8 back-color" style="height: 700px" th:if="${messageItem.getCustomTex()}==null">
                     <embed class="document-embed" height="90%"
-                           th:src="'/pdf-viewer/web/viewer.html?file=/documents/'+${messageItem.getDocumentName()}"
+                           th:src="'/pdf-viewer/pdfjs-dist/web/viewer.html?file=/documents/'+${messageItem.getDocumentName()}"
                            width="100%"/>
                 </div>
                 <div class="col-md-8 back-color" style="height: 700px" th:if="${messageItem.getCustomTex()}!=null">
@@ -211,7 +211,7 @@
 
                     <div class="col-md-8" style="height: 700px" th:if="${messageItem.getCustomTex()}==null">
                         <embed class="document-embed" height="90%"
-                               th:src="'/pdf-viewer/web/viewer.html?file=/documents/'+${messageItem.getDocumentName()}"
+                               th:src="'/pdf-viewer/pdfjs-dist/web/viewer.html?file=/documents/'+${messageItem.getDocumentName()}"
                                width="100%"/>
                     </div>
                     <div class="col-md-8 back-color" style="height: 700px" th:if="${messageItem.getCustomTex()}!=null">

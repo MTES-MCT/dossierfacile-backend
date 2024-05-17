@@ -113,11 +113,6 @@ $(document).ready(function () {
         });
     });
 
-    $("#button-search").click(function (e) {
-        e.preventDefault();
-        var q = $("#input-search").val();
-        window.location.href = "/bo/searchResult?q=" + q;
-    });
     $("#input-search").keypress(function (e) {
         if (e.which == 13) {
             e.preventDefault();
