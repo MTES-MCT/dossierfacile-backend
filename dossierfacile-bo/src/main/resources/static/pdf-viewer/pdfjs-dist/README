@@ -1,0 +1,4 @@
+pdf.js https://mozilla.github.io/pdf.js 3.11.174
+
+Important:
+Next version build as JavaScript modules which is not compatible with the browser caching context.
