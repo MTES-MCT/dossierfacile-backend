@@ -61,11 +61,11 @@ public class LocalMockStorage implements FileStorageProviderService {
     public InputStream download(String path, EncryptionKey key) throws IOException {
         InputStream in = Files.newInputStream(Path.of(filePath + path));
         if (key != null) {
-            if (key.getVersion() != 1) {
+            if (key.getVersion() != 2) {
                 throw new UnsupportedKeyException("Unsupported key version " + key.getVersion());
             }
             try {
-                byte[] iv = DigestUtils.md5(path);
+                byte[] iv = DigestUtils.sha256(path);
                 GCMParameterSpec gcmParamSpec = new GCMParameterSpec(128, iv);
                 Cipher aes = Cipher.getInstance("AES/GCM/NoPadding");
                 aes.init(Cipher.DECRYPT_MODE, key, gcmParamSpec);
@@ -80,10 +80,10 @@ public class LocalMockStorage implements FileStorageProviderService {
     }
 
     @Override
-    public void upload(String ovhPath, InputStream inputStream, EncryptionKey key, String contentType) throws RetryableOperationException, IOException {
+    public void upload(String path, InputStream inputStream, EncryptionKey key, String contentType) throws RetryableOperationException, IOException {
         if (key != null) {
             try {
-                byte[] iv = DigestUtils.md5(ovhPath);
+                byte[] iv = DigestUtils.sha256(path);
                 GCMParameterSpec gcmParamSpec = new GCMParameterSpec(128, iv);
                 Cipher aes = Cipher.getInstance("AES/GCM/NoPadding");
                 aes.init(Cipher.ENCRYPT_MODE, key, gcmParamSpec);
@@ -95,7 +95,7 @@ public class LocalMockStorage implements FileStorageProviderService {
             }
         }
         try {
-            File file = new File(filePath + ovhPath);
+            File file = new File(filePath + path);
 
             try (OutputStream outputStream = new FileOutputStream(file)) {
                 IOUtils.copy(inputStream, outputStream);

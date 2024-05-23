@@ -2,12 +2,7 @@ package fr.dossierfacile.common.service;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.GetObjectRequest;
-import com.amazonaws.services.s3.model.ListObjectsRequest;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.PutObjectResult;
-import com.amazonaws.services.s3.model.S3Object;
-import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.amazonaws.services.s3.model.*;
 import fr.dossierfacile.common.config.ThreeDSOutscaleConfig;
 import fr.dossierfacile.common.entity.EncryptionKey;
 import fr.dossierfacile.common.entity.ObjectStorageProvider;
@@ -48,7 +43,7 @@ public class OutscaleFileStorageServiceImpl implements FileStorageProviderServic
     private static InputStream cipherInputStream(String path, EncryptionKey key, InputStream in) throws IOException {
         try {
             Cipher aes;
-            if (key.getVersion() == 1) {
+            if (key.getVersion() == 1 || key.getVersion() == 2) {
                 byte[] iv = DigestUtils.sha256(path); // arbitrary set the filename to build IV
                 GCMParameterSpec gcmParamSpec = new GCMParameterSpec(128, iv);
                 aes = Cipher.getInstance("AES/GCM/NoPadding");
@@ -94,7 +89,7 @@ public class OutscaleFileStorageServiceImpl implements FileStorageProviderServic
     @Override
     public void upload(String name, InputStream inputStream, EncryptionKey key, String contentType) throws RetryableOperationException, IOException {
         if (key != null) {
-            if (key.getVersion() != 1){
+            if (key.getVersion() != 1 && key.getVersion() != 2) {
                 throw new UnsupportedKeyException("Unsupported key version " + key.getVersion());
             }
             try {
