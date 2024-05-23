@@ -84,6 +84,25 @@ public class OvhFileStorageServiceImpl implements FileStorageProviderService {
         return authenticate();
     }
 
+    // TODO will be put in common abstract class when key version 1 will be deprecated
+    private static InputStream cipherInputStream(String path, EncryptionKey key, InputStream in) throws IOException {
+        try {
+            Cipher aes;
+            byte[] iv = (key.getVersion() == 1) ? DigestUtils.md5(path) : DigestUtils.sha256(path);
+            if (key.getVersion() == 1 || key.getVersion() == 2) {
+                GCMParameterSpec gcmParamSpec = new GCMParameterSpec(128, iv);
+                aes = Cipher.getInstance("AES/GCM/NoPadding");
+                aes.init(Cipher.DECRYPT_MODE, key, gcmParamSpec);
+            } else {
+                throw new UnsupportedKeyException("Unsupported Key version " + key.getVersion());
+            }
+            in = new CipherInputStream(in, aes);
+        } catch (Exception e) {
+            throw new IOException(e);
+        }
+        return in;
+    }
+
     @Override
     public ObjectStorageProvider getProvider() {
         return ObjectStorageProvider.OVH;
@@ -114,32 +133,19 @@ public class OvhFileStorageServiceImpl implements FileStorageProviderService {
 
         InputStream in = object.download().getInputStream();
         if (key != null) {
-            try {
-                Cipher aes;
-                if (key.getVersion() == 1) {
-                    byte[] iv = DigestUtils.md5(path); // arbitrary set the filename to build IV
-                    GCMParameterSpec gcmParamSpec = new GCMParameterSpec(128, iv);
-                    aes = Cipher.getInstance("AES/GCM/NoPadding");
-                    aes.init(Cipher.DECRYPT_MODE, key, gcmParamSpec);
-                } else {
-                    throw new UnsupportedKeyException("Unsupported key version " + key.getVersion());
-                }
-                in = new CipherInputStream(in, aes);
-            } catch (Exception e) {
-                throw new IOException(e);
-            }
+            in = cipherInputStream(path, key, in);
         }
         return in;
     }
 
     @Override
-    public void upload(String ovhPath, InputStream inputStream, EncryptionKey key, String contentType) throws RetryableOperationException, IOException {
+    public void upload(String path, InputStream inputStream, EncryptionKey key, String contentType) throws RetryableOperationException, IOException {
         if (key != null) {
-            if (key.getVersion() != 1){
+            if (key.getVersion() != 1 && key.getVersion() != 2){
                 throw new UnsupportedKeyException("Unsupported key version " + key.getVersion());
             }
             try {
-                byte[] iv = DigestUtils.md5(ovhPath);
+                byte[] iv = (key.getVersion() == 1) ? DigestUtils.md5(path) : DigestUtils.sha256(path);
                 GCMParameterSpec gcmParamSpec = new GCMParameterSpec(128, iv);
                 Cipher aes = Cipher.getInstance("AES/GCM/NoPadding");
                 aes.init(Cipher.ENCRYPT_MODE, key, gcmParamSpec);
@@ -155,20 +161,20 @@ public class OvhFileStorageServiceImpl implements FileStorageProviderService {
         String eTag;
         Payload<InputStream> payload = Payloads.create(inputStream);
         try {
-            eTag = getClient().objectStorage().objects().put(ovhContainerName, ovhPath, payload);
-            SwiftObject metaData = getClient().objectStorage().objects().get(ovhContainerName, ovhPath);
+            eTag = getClient().objectStorage().objects().put(ovhContainerName, path, payload);
+            SwiftObject metaData = getClient().objectStorage().objects().get(ovhContainerName, path);
             if (metaData.getSizeInBytes() <= 0) {
-                throw new IOException("File size is null - upload failed for: " + ovhPath);
+                throw new IOException("File size is null - upload failed for: " + path);
             }
 
         } catch (AuthenticationException e) {
             log.error("ObjectStorage authentication failed.", e);
-            eTag = authenticate().objectStorage().objects().put(ovhContainerName, ovhPath, payload);
+            eTag = authenticate().objectStorage().objects().put(ovhContainerName, path, payload);
         } catch (OvhConnectionFailedException e) {
             throw new RetryableOperationException("Ovh Connection Failed", e);
         }
         if (StringUtils.isEmpty(eTag)) {
-            throw new IOException("ETag is empty - upload failed!" + ovhPath);
+            throw new IOException("ETag is empty - upload failed!" + path);
         }
     }
 
