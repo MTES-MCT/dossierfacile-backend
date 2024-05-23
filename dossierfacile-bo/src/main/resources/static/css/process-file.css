@@ -253,5 +253,9 @@ div.scrollmenu a:hover {
     background-color: #777;
 }
 
-
-
+.denied-background{
+    background-color: #fcdddc;
+}
+.checked-background{
+    background-color: #e1f2e4;
+}

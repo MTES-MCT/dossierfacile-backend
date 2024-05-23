@@ -724,8 +724,8 @@
                                             </span>
                                         </li>
                                     </ul>
-                                    <div sec:authorize="hasRole('ROLE_ADMIN')" th:if="${document.getDocumentAnalysisReport()!=null}">
-                                        <hr/>Admin| Statuts de la vérification automatique:
+                                    <div th:if="${document.getDocumentAnalysisReport()!=null}">
+                                        <hr/>Statut de la vérification automatique:
                                         <span th:text="${document.getDocumentAnalysisReport().getAnalysisStatus}"></span>
                                         <ul>
                                             <li style="margin-top: 5px" th:each="rule : ${document.getDocumentAnalysisReport().getBrokenRules()}">
@@ -941,8 +941,8 @@
                                             </span>
                                         </li>
                                     </ul>
-                                    <div sec:authorize="hasRole('ROLE_ADMIN')" th:if="${document.getDocumentAnalysisReport()!=null}">
-                                        <hr/>Admin| Statuts de la vérification automatique:
+                                    <div th:if="${document.getDocumentAnalysisReport()!=null}">
+                                        <hr/>Statut de la vérification automatique:
                                         <span th:text="${document.getDocumentAnalysisReport().getAnalysisStatus}"></span>
                                         <ul>
                                             <li style="margin-top: 5px" th:each="rule : ${document.getDocumentAnalysisReport().getBrokenRules()}">

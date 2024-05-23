@@ -32,7 +32,7 @@ public class EncryptionKeyServiceImpl implements EncryptionKeyService {
                                 .format(key.getFormat())
                                 .encodedSecret(key.getEncoded())
                                 .status(EncryptionKeyStatus.CURRENT)
-                                .version(1)
+                                .version(2)
                                 .build());
 
             } catch (NoSuchAlgorithmException e) {
