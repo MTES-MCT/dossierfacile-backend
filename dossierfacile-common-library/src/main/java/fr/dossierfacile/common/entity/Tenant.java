@@ -97,6 +97,9 @@ public class Tenant extends User implements Person, Serializable {
     @Column(name = "operator_date_time")
     private LocalDateTime operatorDateTime;
 
+    @Column(name = "pre_validation_activated")
+    private Boolean preValidationActivated;
+
     private int warnings;
 
     private String operatorComment;
@@ -246,4 +249,5 @@ public class Tenant extends User implements Person, Serializable {
     public boolean isBelongToPartner() {
         return this.getKeycloakId() == null && this.getTenantsUserApi().size() == 1;
     }
+
 }
