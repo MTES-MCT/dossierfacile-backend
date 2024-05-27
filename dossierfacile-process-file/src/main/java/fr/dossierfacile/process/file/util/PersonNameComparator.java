@@ -30,6 +30,12 @@ public class PersonNameComparator {
         // if there is one matching on firstname and one matching on lastname the user should be the same
         return names.stream().anyMatch(givenNames::contains);
     }
+    /**
+     * fullname start by LastName or FirstName
+     **/
+    public static boolean bearlyMixedEqualsTo(String fullName, String lastName, String firstName) {
+        return bearlyEqualsTo(fullName, lastName, firstName) || bearlyEqualsTo(fullName, firstName, lastName);
+    }
 
     /**
      * fullname start by LastName

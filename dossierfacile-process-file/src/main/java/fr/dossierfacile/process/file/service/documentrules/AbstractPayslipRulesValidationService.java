@@ -44,8 +44,8 @@ public abstract class AbstractPayslipRulesValidationService implements RulesVali
 
             String fullName = parsedFile.getFullname().toUpperCase().replaceFirst("^(M. |MR |MME |MLLE |MONSIEUR |MADAME |MADEMOISELLE )", "");
 
-            if (!PersonNameComparator.bearlyEqualsTo(fullName, documentOwner.getLastName(), documentOwner.getFirstName())
-                    && !PersonNameComparator.bearlyEqualsTo(fullName, documentOwner.getPreferredName(), documentOwner.getFirstName())) {
+            if (!PersonNameComparator.bearlyMixedEqualsTo(fullName, documentOwner.getLastName(), documentOwner.getFirstName())
+                    && !PersonNameComparator.bearlyMixedEqualsTo(fullName, documentOwner.getPreferredName(), documentOwner.getFirstName())) {
                 return false;
             }
         }
