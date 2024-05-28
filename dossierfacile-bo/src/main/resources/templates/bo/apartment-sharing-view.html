@@ -200,6 +200,10 @@
                                     <td>Nombre de locataires</td>
                                     <td colspan="2" th:text="${apartmentSharing.getNumberOfTenants()}"></td>
                                 </tr>
+                                <tr>
+                                    <td>Type d'application</td>
+                                    <td colspan="2" th:text="${apartmentSharing.getApplicationType()}"></td>
+                                </tr>
                                 <tr class="${apartmentSharing.getStatus().name() != 'VALIDATED'}">
                                     <td colspan="3">
                                         Les liens de partage seront accessibles une fois le dossier validé
