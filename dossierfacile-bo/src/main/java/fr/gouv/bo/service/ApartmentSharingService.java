@@ -6,12 +6,9 @@ import fr.dossierfacile.common.enums.LinkType;
 import fr.dossierfacile.common.exceptions.NotFoundException;
 import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
 import fr.dossierfacile.common.service.interfaces.LinkLogService;
-import fr.gouv.bo.dto.ApartmentSharingDTO01;
 import fr.gouv.bo.repository.BOApartmentSharingRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,10 +33,6 @@ public class ApartmentSharingService {
 
     public void save(ApartmentSharing apartmentSharing) {
         apartmentSharingRepository.save(apartmentSharing);
-    }
-
-    public Page<ApartmentSharingDTO01> findAll(Pageable pageable) {
-        return apartmentSharingRepository.findAllByOrderByIdDesc(pageable);
     }
 
     @Transactional
