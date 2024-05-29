@@ -21,14 +21,32 @@ body {
     margin: 0;
     height: 100%;
     width: 100%;
-    background-color: #f8f8f8;
+    background-color: #eeeeee;
     font-family: "REFSAN";
     font-size: 16px;
     color: #333333;
 }
+html[data-fr-theme="dark"] body {
+    background-color: #454545;
+    color: #ababab;
+}
+
+.logo {
+    background-image: url('/assets/images/logo.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    min-height:38px;
+    min-width: 250px;
+}
+html[data-fr-theme="dark"] .logo{
+    background-image: url('/assets/images/logo-dark.png');
+}
 
 body table {
     color: #333333;
+}
+html[data-fr-theme="dark"] body table{
+    color: #ababab;
 }
 
 .btn {
@@ -132,6 +150,11 @@ body table {
     font-size: 18px;
 }
 
+
+html[data-fr-theme="dark"] .bg-white {
+    background-color: black;
+}
+
 .bg-white {
     background-color: white;
 }
@@ -171,11 +194,6 @@ body table {
     padding-bottom: 60px;
 }
 
-
-.logo {
-    width: 300px;
-}
-
 .line-separator {
     width: 50%;
     margin: 50px 25%;
@@ -184,15 +202,6 @@ body table {
 
 p {
     line-height: 1.5;
-}
-
-a {
-    color: #333333;
-}
-
-a:hover {
-    color: #003189;
-    border-color: transparent;
 }
 
 .padding {
@@ -293,14 +302,6 @@ input.form-control {
     margin-bottom: 10px;
     display: block;
     border-radius: 6px;
-}
-
-.navbar-brand {
-    padding: 5px 15px 15px 15px !important;
-}
-
-.navbar-brand img.logo {
-    width: 250px;
 }
 
 #navbar .logout {
@@ -687,9 +688,16 @@ form-search{}
     outline: none;
     color: #9DBFAF;
 }
+html[data-fr-theme="dark"] .searchTerm {
+    background-color: #333333;
+    color: #dfdfdf;
+}
 
 .searchTerm:focus{
     color: #0d1213;
+}
+html[data-fr-theme="dark"] .searchTerm:focus {
+    color: #ffffff;
 }
 
 .searchButton {

@@ -124,9 +124,7 @@ body {
 .back-guarantor {
     background-color: rgb(228, 239, 240);
 }
-.back-color {
-    background: #dedfdd;
-}
+
 .back-color1 {
     background: #b1b7b1;
 }
@@ -189,13 +187,16 @@ input[type="checkbox"]:checked {
     background-color: #fd0f0f;
 }
 
+html[data-fr-theme="dark"] .span1 {
+    color: #dedede;
+}
+
 .span1{
     padding-left: 10px;
     display: flex;
     justify-content: center;
     line-height: 18pt;
     color: #0a0808;
-    font-family: 'Segoe UI', sans-serif;
 }
 
 .name-title{
