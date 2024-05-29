@@ -76,10 +76,6 @@
     font-weight: bold;
 }
 
-.logo {
-    float: left;
-}
-
 body {
     margin-top: 73px;
 }
@@ -272,15 +268,6 @@ body {
 }
 
 @media screen and ( max-width: 400px ) {
-    .navbar-toggle {
-        z-index: 1000;
-        background-color: #ddd;
-    }
-
-    .navbar-brand {
-        width: Calc(100% - 110px);
-    }
-
     .chat-container {
         margin: 5px;
     }

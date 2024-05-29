@@ -1,5 +1,16 @@
 $(document).ready(function () {
 
+    $('.btn-theme-change').on('click', function (e) {
+        console.log("OK");
+        var htmlElement = document.documentElement;
+        var currentTheme = htmlElement.getAttribute('data-fr-theme');
+        var newTheme = (currentTheme == 'light') ? 'dark' : 'light';
+        htmlElement.setAttribute('data-fr-theme', newTheme);
+        localStorage.setItem('fr-theme', newTheme);
+    });
+    const storedTheme = localStorage.getItem('fr-theme') || 'light';
+    document.documentElement.setAttribute('data-fr-theme', storedTheme);
+
     $('.btn-modal-confirm-before-submit').on('click', function (e) {
         e.preventDefault();
         var form = $(this).closest('form');
