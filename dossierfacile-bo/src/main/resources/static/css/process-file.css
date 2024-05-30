@@ -125,12 +125,15 @@ body {
     background-color: rgb(228, 239, 240);
 }
 
-.back-color1 {
-    background: #b1b7b1;
+.header-tenant-info {
+    position: fixed;
+    top: 54px;
+    width: 100%;
+    z-index: 1;
+    background-color: rgba(170, 170, 170, 0.65);
 }
 
 .letter{
-    font-family: 'Segoe UI', sans-serif;
     color: #5b5b4e;
 }
 
@@ -154,8 +157,6 @@ textarea {
     border-style: none solid solid none;
     border-width: medium 1px 1px medium;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12) inset;
-    color: #555555;
-    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
     font-size: 1em;
     line-height: 1.4em;
     padding: 5px 8px;
@@ -231,7 +232,6 @@ html[data-fr-theme="dark"] .span1 {
 .span-style{
     display: flex;
     line-height: 20pt;
-    font-family: 'Segoe UI', sans-serif;
     color: #11436e;
 }
 hr.new1 {
@@ -256,7 +256,9 @@ div.scrollmenu a:hover {
 
 .denied-background{
     background-color: #fcdddc;
+    color: #929292;
 }
 .checked-background{
     background-color: #e1f2e4;
+    color: #929292;
 }
