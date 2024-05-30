@@ -45,6 +45,8 @@ public abstract class AbstractPDFParser<T extends ParsedFile> implements FilePar
             for (int i = 0; i < pageCount; i++) {
                 if (getPageParser(i) != null) {
                     result = getPageParser(i).parsePage(document.getPage(i), result);
+                    if (result == null)
+                        break;
                 }
             }
             return result;

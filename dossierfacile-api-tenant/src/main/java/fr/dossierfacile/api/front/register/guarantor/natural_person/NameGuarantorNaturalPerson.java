@@ -43,9 +43,8 @@ public class NameGuarantorNaturalPerson implements SaveStep<NameGuarantorNatural
         guarantor.setTenant(tenant);
         guarantorRepository.save(guarantor);
         tenant.lastUpdateDateProfile(LocalDateTime.now(), DocumentCategory.IDENTIFICATION);
-        if (tenant.getStatus() == TenantFileStatus.VALIDATED) {
-            documentService.resetValidatedDocumentsStatusOfSpecifiedCategoriesToToProcess(guarantor.getDocuments(), Arrays.asList(DocumentCategory.values()));
-        }
+        documentService.resetValidatedOrInProgressDocumentsAccordingCategories(guarantor.getDocuments(), Arrays.asList(DocumentCategory.values()));
+
         tenantStatusService.updateTenantStatus(tenant);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         return tenantMapper.toTenantModel(tenantRepository.save(tenant));

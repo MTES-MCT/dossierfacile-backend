@@ -10,7 +10,7 @@ import fr.dossierfacile.api.pdf.service.interfaces.DocumentService;
 import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.entity.WatermarkDocument;
 import fr.dossierfacile.common.enums.FileStatus;
-import fr.dossierfacile.common.repository.StorageFileRepository;
+import fr.dossierfacile.common.enums.FileStorageStatus;
 import fr.dossierfacile.common.repository.WatermarkDocumentRepository;
 import fr.dossierfacile.common.service.interfaces.EncryptionKeyService;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
@@ -39,7 +39,6 @@ public class DocumentServiceImpl implements DocumentService {
     private static final String DOCUMENT_NOT_EXIST = "The document does not exist";
     private final Producer producer;
     private final FileStorageService fileStorageService;
-    private final StorageFileRepository storageFileRepository;
     private final EncryptionKeyService encryptionKeyService;
     private final WatermarkDocumentRepository watermarkDocumentRepository;
 
@@ -130,9 +129,7 @@ public class DocumentServiceImpl implements DocumentService {
         document.setPdfFile(null);
         document.setPdfStatus(FileStatus.DELETED);
         watermarkDocumentRepository.save(document);
-        if (pdfFile != null) {
-            storageFileRepository.delete(pdfFile);
-        }
+        fileStorageService.delete(pdfFile);
     }
 
     @Override
@@ -151,6 +148,7 @@ public class DocumentServiceImpl implements DocumentService {
                             .contentType(multipartFile.getContentType())
                             .size(multipartFile.getSize())
                             .encryptionKey(encryptionKeyService.getCurrentKey())
+                            .status(FileStorageStatus.TEMPORARY)
                             .build();
 
                     try {

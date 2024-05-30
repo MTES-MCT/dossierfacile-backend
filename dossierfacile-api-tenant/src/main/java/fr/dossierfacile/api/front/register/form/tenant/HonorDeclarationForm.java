@@ -1,7 +1,7 @@
 package fr.dossierfacile.api.front.register.form.tenant;
 
 import fr.dossierfacile.api.front.form.interfaces.FormWithTenantId;
-import fr.dossierfacile.api.front.validator.anotation.tenant.honor_declaration.CheckHonorDeclarationClarification;
+import fr.dossierfacile.api.front.validator.annotation.tenant.honor_declaration.CheckHonorDeclarationClarification;
 import fr.dossierfacile.api.front.validator.group.ApiPartner;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;

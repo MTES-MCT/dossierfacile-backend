@@ -40,4 +40,5 @@ public class DeletedTenantModel {
     private LocalDateTime lastUpdateDate;
     private Boolean partnerLinked;
     private Boolean honorDeclaration;
+    private String operatorComment;
 }

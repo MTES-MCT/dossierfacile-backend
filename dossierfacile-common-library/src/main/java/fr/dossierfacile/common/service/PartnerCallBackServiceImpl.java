@@ -98,10 +98,6 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
             log.warn("UserApi call has not effect for " + userApi.getName());
             return;
         }
-        if (userApi.getVersion() < 2) {
-            log.error("Unable to send callback to tenant " + tenant.getId() + " due to userApi version" + userApi.getVersion());
-            return;
-        }
         requestService.send((ApplicationModel) webhookDTO, userApi.getUrlCallback(), userApi.getPartnerApiKeyCallback());
         callbackLogService.createCallbackLogForPartnerModel(tenant, userApi.getId(), tenant.getStatus(), (ApplicationModel) webhookDTO);
 

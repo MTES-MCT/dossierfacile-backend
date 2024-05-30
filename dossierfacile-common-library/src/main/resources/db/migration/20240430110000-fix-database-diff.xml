@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+    <changeSet id="202404301100-01" author="Matthieu (manual)">
+        <sql>
+            <![CDATA[
+                CREATE INDEX IF NOT EXISTS tenant_operator_date_time_index ON tenant (operator_date_time);
+                CREATE INDEX IF NOT EXISTS storage_file_path ON storage_file (path);
+                ALTER TABLE user_api DROP COLUMN IF EXISTS logo;
+                ALTER TABLE user_api DROP COLUMN IF EXISTS text_modal;
+                ALTER TABLE watermark_document_storage_file DROP CONSTRAINT IF EXISTS uk_cf95r7cpxqdk5b2t7ecx3t7rf;
+                ALTER TABLE ONLY public.watermark_document_storage_file ADD CONSTRAINT uk_cf95r7cpxqdk5b2t7ecx3t7rf UNIQUE (storage_file_id);
+                ALTER TABLE public.operator_log DROP CONSTRAINT IF EXISTS fkmphlbun7w9d0morfcbsc8dr8v;
+                ALTER TABLE ONLY public.operator_log ADD CONSTRAINT fkmphlbun7w9d0morfcbsc8dr8v FOREIGN KEY (operator_id) REFERENCES public.user_account(id);
+                ALTER TABLE public.bo_user DROP CONSTRAINT IF EXISTS fkq52lup1o33vbhtk3ccas5nslf;
+                ALTER TABLE ONLY public.bo_user ADD CONSTRAINT fkq52lup1o33vbhtk3ccas5nslf FOREIGN KEY (id) REFERENCES public.user_account(id);
+            ]]>
+        </sql>
+    </changeSet>
+</databaseChangeLog>

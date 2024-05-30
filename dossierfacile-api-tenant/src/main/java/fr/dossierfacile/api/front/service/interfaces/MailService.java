@@ -1,19 +1,22 @@
 package fr.dossierfacile.api.front.service.interfaces;
 
+import fr.dossierfacile.api.front.dto.TenantDto;
+import fr.dossierfacile.api.front.dto.UserApiDto;
+import fr.dossierfacile.api.front.dto.UserDto;
 import fr.dossierfacile.api.front.form.ContactForm;
 import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.ApplicationType;
 
 public interface MailService {
-    void sendEmailConfirmAccount(User user, ConfirmationToken confirmationToken);
+    void sendEmailConfirmAccount(UserDto user, ConfirmationToken confirmationToken);
 
     void sendEmailNewPassword(User user, PasswordRecoveryToken passwordRecoveryToken);
 
     void sendEmailForFlatmates(User flatmate, User guest, PasswordRecoveryToken passwordRecoveryToken, ApplicationType applicationType);
 
-    void sendEmailAccountDeleted(User user);
+    void sendEmailAccountDeleted(UserDto user);
 
-    void sendEmailAccountCompleted(Tenant tenant);
+    void sendEmailAccountCompleted(TenantDto tenant);
 
     void sendEmailWhenEmailAccountNotYetValidated(User user, ConfirmationToken confirmationToken);
 
@@ -27,7 +30,7 @@ public interface MailService {
 
     void sendEmailToSupport(ContactForm form);
 
-    void sendEmailWelcomeForPartnerUser(User user, UserApi userApi);
+    void sendEmailWelcomeForPartnerUser(UserDto user, UserApiDto userApi);
 
     void sendFileByMail(String url, String email, String tenantName, String fullName, String tenantEmail);
 

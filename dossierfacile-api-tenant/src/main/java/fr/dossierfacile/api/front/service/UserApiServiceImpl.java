@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.front.service;
 
+import fr.dossierfacile.api.front.config.featureflipping.ApiPartnerVersion;
 import fr.dossierfacile.api.front.exception.UserApiNotFoundException;
 import fr.dossierfacile.api.front.model.dfc.PartnerSettings;
 import fr.dossierfacile.api.front.repository.UserApiRepository;
@@ -45,6 +46,9 @@ public class UserApiServiceImpl implements UserApiService {
         UserApi userApi = userApiRepository.findById(userApiParam.getId()).get();
 
         if (settings.getVersion() != null) {
+            if (ApiPartnerVersion.of(settings.getVersion()) != null) {
+                throw new IllegalArgumentException("This version is not managed");
+            }
             userApi.setVersion(settings.getVersion());
         }
         if (settings.getUrlCallback() != null) {

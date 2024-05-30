@@ -14,8 +14,8 @@
     },
     {
       "name": "crousLabel",
-      "rect": "125,48,60,21",
-      "matches": "CROUS.{0,2}"
+      "rect": "125,48,65,21",
+      "matches": "(?:CROUS.{0,2})|(?:C.R.O.U.S).{0,1}"
     },
     {
       "name": "ScholarshipLabel",

@@ -7,17 +7,21 @@ import fr.dossierfacile.api.front.register.form.tenant.NamesForm;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
+import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
-import fr.dossierfacile.common.enums.TenantFileStatus;
+import fr.dossierfacile.common.enums.TypeGuarantor;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import lombok.AllArgsConstructor;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -32,13 +36,17 @@ public class Names implements SaveStep<NamesForm> {
     @Override
     @Transactional
     public TenantModel saveStep(Tenant tenant, NamesForm namesForm) {
-        //only the change of first, last and preferred names will trigger to update from validated -> to_process
+        // any change of first, last and preferred names triggers a document status update from validated -> to_process
         if (!StringUtils.equals(tenant.getFirstName(), namesForm.getFirstName())
                 || !StringUtils.equals(tenant.getLastName(), namesForm.getLastName())
                 || !StringUtils.equals(tenant.getPreferredName(), namesForm.getPreferredName())) {
-            if (tenant.getStatus() == TenantFileStatus.VALIDATED) {
-                documentService.resetValidatedDocumentsStatusOfSpecifiedCategoriesToToProcess(tenant.getDocuments(), Arrays.asList(DocumentCategory.values()));
+            List<Document> documentsToCheck = new ArrayList<>(tenant.getDocuments());
+            if (CollectionUtils.isNotEmpty(tenant.getGuarantors())
+                    && (tenant.getGuarantors().getFirst().getTypeGuarantor() == TypeGuarantor.LEGAL_PERSON
+                    || tenant.getGuarantors().getFirst().getTypeGuarantor() == TypeGuarantor.ORGANISM)) {
+                documentsToCheck.addAll(tenant.getGuarantors().getFirst().getDocuments());
             }
+            documentService.resetValidatedOrInProgressDocumentsAccordingCategories(documentsToCheck, Arrays.asList(DocumentCategory.values()));
         }
         if (!tenant.getFranceConnect()) {
             tenant.setFirstName(namesForm.getFirstName());

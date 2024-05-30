@@ -10,7 +10,7 @@ import fr.dossierfacile.api.front.register.form.tenant.DocumentResidencyForm;
 import fr.dossierfacile.api.front.register.form.tenant.DocumentTaxForm;
 import fr.dossierfacile.api.front.repository.FileRepository;
 import fr.dossierfacile.api.front.util.FilePageCounter;
-import fr.dossierfacile.api.front.validator.anotation.NumberOfPages;
+import fr.dossierfacile.api.front.validator.annotation.NumberOfPages;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;

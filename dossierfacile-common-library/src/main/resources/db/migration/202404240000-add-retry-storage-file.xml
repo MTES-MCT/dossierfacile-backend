@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+    <changeSet id="202404240000-01" author="fabien (manual)">
+        <addColumn tableName="storage_file">
+            <column name="status" type="VARCHAR(16)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="202404240000-02" author="fabien">
+        <createIndex tableName="storage_file" indexName="storage_file_status_index" unique="false">
+            <column name="status"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="202404240000-3" author="fabien">
+        <sql>
+            INSERT INTO storage_file (id, created_by, created_date, last_modified_by, last_modified_date, name, path, label, content_type, size, md5, provider, encryption_key_id, providers, status)
+            SELECT id, created_by, created_date, last_modified_by, last_modified_date, path, path, path, null, 1, null, 'OVH', 1, providers, 'TO_DELETE'
+            FROM storage_file_to_delete;
+        </sql>
+    </changeSet>
+    <changeSet id="202404240000-4" author="fabien">
+        <dropTable tableName="storage_file_to_delete"/>
+    </changeSet>
+</databaseChangeLog>

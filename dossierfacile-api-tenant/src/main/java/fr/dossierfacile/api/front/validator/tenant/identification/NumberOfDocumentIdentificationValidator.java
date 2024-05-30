@@ -3,7 +3,7 @@ package fr.dossierfacile.api.front.validator.tenant.identification;
 import fr.dossierfacile.api.front.register.form.tenant.DocumentIdentificationForm;
 import fr.dossierfacile.api.front.repository.FileRepository;
 import fr.dossierfacile.api.front.validator.TenantConstraintValidator;
-import fr.dossierfacile.api.front.validator.anotation.tenant.identification.NumberOfDocumentIdentification;
+import fr.dossierfacile.api.front.validator.annotation.tenant.identification.NumberOfDocumentIdentification;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import jakarta.validation.ConstraintValidatorContext;
 import lombok.RequiredArgsConstructor;

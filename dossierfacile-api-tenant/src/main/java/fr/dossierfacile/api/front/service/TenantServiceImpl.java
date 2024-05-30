@@ -2,7 +2,7 @@ package fr.dossierfacile.api.front.service;
 
 import fr.dossierfacile.api.front.exception.MailSentLimitException;
 import fr.dossierfacile.api.front.exception.TenantNotFoundException;
-import fr.dossierfacile.common.converter.AcquisitionData;
+import fr.dossierfacile.api.front.mapper.mail.TenantMapperForMail;
 import fr.dossierfacile.api.front.model.KeycloakUser;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.RegisterFactory;
@@ -12,6 +12,8 @@ import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.service.interfaces.UserApiService;
 import fr.dossierfacile.api.front.util.Obfuscator;
+import fr.dossierfacile.api.front.util.TransactionalUtil;
+import fr.dossierfacile.common.converter.AcquisitionData;
 import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.*;
 import fr.dossierfacile.common.exceptions.NotFoundException;
@@ -23,9 +25,10 @@ import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.ConfirmationTokenService;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -38,7 +41,7 @@ import java.util.UUID;
 
 @Slf4j
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Validated
 public class TenantServiceImpl implements TenantService {
     private final ApartmentSharingRepository apartmentSharingRepository;
@@ -52,6 +55,10 @@ public class TenantServiceImpl implements TenantService {
     private final KeycloakService keycloakService;
     private final UserApiService userApiService;
     private final DocumentAnalysisReportRepository documentAnalysisReportRepository;
+    private final TenantMapperForMail tenantMapperForMail;
+    @Value("${ab.prevalidation.percentage}")
+    private Long percentagePreValidation;
+    private int createdUserCount = 0;
 
     @Override
     public <T> TenantModel saveStepRegister(Tenant tenant, T formStep, StepRegister step) {
@@ -74,6 +81,7 @@ public class TenantServiceImpl implements TenantService {
             }
         }
     }
+
     @Override
     @Transactional
     public void doNotArchive(String token) {
@@ -83,6 +91,7 @@ public class TenantServiceImpl implements TenantService {
         updateLastLoginDateAndResetWarnings(tenant);
         logService.saveLog(LogType.DO_NOT_ARCHIVE, tenant.getId());
     }
+
     @Override
     @Transactional
     public Tenant create(Tenant tenant) {
@@ -125,6 +134,14 @@ public class TenantServiceImpl implements TenantService {
                 .honorDeclaration(false)
                 .build());
 
+        // Allows to activate pre-validation for a portion of user
+        if (percentagePreValidation > 0){
+            createdUserCount++;
+            if( createdUserCount % 100 < percentagePreValidation) {
+                tenant.setPreValidationActivated(true);
+            }
+        }
+
         if (acquisitionData != null) {
             tenant.setAcquisitionCampaign(acquisitionData.campaign());
             tenant.setAcquisitionSource(acquisitionData.source());
@@ -134,7 +151,8 @@ public class TenantServiceImpl implements TenantService {
         if (!kcUser.isEmailVerified()) {
             // createdAccount without verified email should be deactivated
             keycloakService.disableAccount(kcUser.getKeycloakId());
-            mailService.sendEmailConfirmAccount(tenant, confirmationTokenService.createToken(tenant));
+            TransactionalUtil.afterCommit(() -> mailService.sendEmailConfirmAccount(tenantMapperForMail.toDto(tenant), confirmationTokenService.createToken(tenant)));
+
         }
         if (partner != null) {
             userApiService.findByName(partner)
@@ -165,7 +183,7 @@ public class TenantServiceImpl implements TenantService {
     public void sendFileByMail(Tenant tenant, String email, String shareType) {
         String token = UUID.randomUUID().toString();
         LocalDateTime date = LocalDateTime.now().minusDays(1);
-        List<ApartmentSharingLink> existingASL = apartmentSharingLinkRepository.findByApartmentSharingAndCreationDateIsAfter(tenant.getApartmentSharing(), date );
+        List<ApartmentSharingLink> existingASL = apartmentSharingLinkRepository.findByApartmentSharingAndCreationDateIsAfter(tenant.getApartmentSharing(), date);
         if (existingASL.size() > 10) {
             log.info("Daily limit reached for file sharing by mail");
             throw new MailSentLimitException();
