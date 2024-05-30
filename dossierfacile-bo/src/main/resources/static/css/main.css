@@ -1,12 +1,3 @@
-@font-face {
-    font-family: "REFSAN";
-    src: url("../fonts/REFSAN.TTF") format("truetype");
-}
-
-@font-face {
-    font-family: "Avenir Book";
-    src: url("../fonts/Avenir-Book.ttf") format("truetype");
-}
 
 * {
     line-height: 1;
@@ -22,7 +13,7 @@ body {
     height: 100%;
     width: 100%;
     background-color: #eeeeee;
-    font-family: "REFSAN";
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     font-size: 16px;
     color: #333333;
 }
@@ -409,7 +400,6 @@ label {
 }
 
 .tooltip {
-    font-family: "REFSAN", sans-serif;
     font-size: 14px;
 }
 
@@ -606,13 +596,11 @@ input::-webkit-inner-spin-button {
 
 .date-you {
     text-align: right;
-    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
     font-style: normal;
     color: #062218;
 }
 .date-you-two {
     text-align: right;
-    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
     font-style: normal;
     color: #062218;
 
@@ -624,7 +612,6 @@ input::-webkit-inner-spin-button {
 }
 
 .letter-bo{
-    font-family: 'Segoe UI', sans-serif;
     color: #000000;
 }
 
@@ -683,11 +670,10 @@ textarea {
     color: white !important;
 }
 form-search{}
-@import url(https://fonts.googleapis.com/css?family=Open+Sans);
+
 .search {
     display: flex;
     background: #f2f2f2;
-    font-family: 'Open Sans', sans-serif;
     margin-left: 350px;
 }
 
@@ -738,8 +724,6 @@ html[data-fr-theme="dark"] .searchTerm:focus {
     border-style: none none solid none;
     border-width: medium 1px 1px medium;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12) inset;
-    color: #555555;
-    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
     font-size: 1em;
     line-height: 1.4em;
     padding: 5px 8px;
