@@ -1,6 +1,6 @@
 package fr.gouv.bo.repository;
 
-import fr.dossierfacile.common.entity.Log;
+import fr.dossierfacile.common.entity.TenantLog;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -10,13 +10,13 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
-public interface BoLogRepository extends JpaRepository<Log, Long> {
+public interface BoTenantLogRepository extends JpaRepository<TenantLog, Long> {
 
-    List<Log> findLogsByTenantId(Long id);
+    List<TenantLog> findLogsByTenantId(Long id);
 
-    Page<Log> findAll(Pageable pageable);
+    Page<TenantLog> findAll(Pageable pageable);
 
-    Page<Log> findAllByTenantId(Long tenantId, Pageable pageable);
+    Page<TenantLog> findAllByTenantId(Long tenantId, Pageable pageable);
 
     @Cacheable("treated-files-by-operator-key")
     @Query(value = """

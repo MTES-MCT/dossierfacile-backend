@@ -31,7 +31,7 @@ import fr.gouv.bo.service.ApartmentSharingService;
 import fr.gouv.bo.service.DocumentDeniedReasonsService;
 import fr.gouv.bo.service.DocumentService;
 import fr.gouv.bo.service.GuarantorService;
-import fr.gouv.bo.service.LogService;
+import fr.gouv.bo.service.TenantLogService;
 import fr.gouv.bo.service.MessageService;
 import fr.gouv.bo.service.TenantService;
 import fr.gouv.bo.service.TenantUserApiService;
@@ -85,7 +85,7 @@ public class BOTenantController {
     private final PartnerCallBackService partnerCallBackService;
     private final UserService userService;
     private final ApartmentSharingService apartmentSharingService;
-    private final LogService logService;
+    private final TenantLogService logService;
     private final DocumentDeniedReasonsService documentDeniedReasonsService;
 
     @GetMapping("/{id}")
@@ -231,10 +231,8 @@ public class BOTenantController {
     }
 
     @PostMapping("/{id}/comment")
-    public String addOperatorComment(@PathVariable("id") Long id, @RequestParam String comment) {
-        Tenant tenant = tenantService.find(id);
-        tenant.setOperatorComment(comment);
-        tenantService.save(tenant);
+    public String addOperatorComment(@PathVariable("id") Long tenantId, @RequestParam String comment) {
+        Tenant tenant = tenantService.addOperatorComment(tenantId, comment);
         return redirectToTenantPage(tenant);
     }
 

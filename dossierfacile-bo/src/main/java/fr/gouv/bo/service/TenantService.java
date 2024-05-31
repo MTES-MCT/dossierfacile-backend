@@ -1,32 +1,11 @@
 package fr.gouv.bo.service;
 
-import fr.dossierfacile.common.entity.ApartmentSharing;
-import fr.dossierfacile.common.entity.BOUser;
-import fr.dossierfacile.common.entity.Document;
-import fr.dossierfacile.common.entity.DocumentDeniedReasons;
-import fr.dossierfacile.common.entity.Guarantor;
-import fr.dossierfacile.common.entity.Log;
-import fr.dossierfacile.common.entity.Message;
-import fr.dossierfacile.common.entity.OperatorLog;
-import fr.dossierfacile.common.entity.Tenant;
-import fr.dossierfacile.common.entity.User;
-import fr.dossierfacile.common.enums.ActionOperatorType;
-import fr.dossierfacile.common.enums.ApplicationType;
-import fr.dossierfacile.common.enums.DocumentCategory;
-import fr.dossierfacile.common.enums.DocumentStatus;
-import fr.dossierfacile.common.enums.DocumentSubCategory;
-import fr.dossierfacile.common.enums.LogType;
-import fr.dossierfacile.common.enums.PartnerCallBackType;
-import fr.dossierfacile.common.enums.TenantFileStatus;
-import fr.dossierfacile.common.enums.TenantType;
+import fr.dossierfacile.common.entity.*;
+import fr.dossierfacile.common.enums.*;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
+import fr.dossierfacile.common.service.interfaces.LogService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
-import fr.gouv.bo.dto.CustomMessage;
-import fr.gouv.bo.dto.EmailDTO;
-import fr.gouv.bo.dto.GuarantorItem;
-import fr.gouv.bo.dto.ItemDetail;
-import fr.gouv.bo.dto.MessageDTO;
-import fr.gouv.bo.dto.MessageItem;
+import fr.gouv.bo.dto.*;
 import fr.gouv.bo.exception.DocumentNotFoundException;
 import fr.gouv.bo.lambda_interfaces.StringCustomMessage;
 import fr.gouv.bo.lambda_interfaces.StringCustomMessageGuarantor;
@@ -52,17 +31,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.security.Principal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static org.apache.commons.lang3.StringUtils.isNumeric;
+import static org.apache.commons.lang3.StringUtils.*;
 
 @Service
 @RequiredArgsConstructor
@@ -86,8 +58,9 @@ public class TenantService {
     private final OperatorLogRepository operatorLogRepository;
     private final DocumentDeniedReasonsService documentDeniedReasonsService;
     private final DocumentService documentService;
-    private final LogService logService;
+    private final TenantLogService tenantLogService;
     private final KeycloakService keycloakService;
+    private final LogService communTenantLogService;
 
     private int forTenant = 0;
     @Value("${time.reprocess.application.minutes}")
@@ -146,10 +119,14 @@ public class TenantService {
         return tenantRepository.findOneById(id);
     }
 
-    public Tenant save(Tenant tenant) {
+    public Tenant addOperatorComment(Long tenantId, String comment) {
+        Tenant tenant = find(tenantId);
+        tenant.setOperatorComment(comment);
+        tenantLogService.addOperatorCommentLog(tenant, comment);
         return tenantRepository.save(tenant);
     }
 
+    // ! used in thymeleaf template
     public Boolean hasVerifiedEmailIfExistsInKeycloak(Tenant tenant) {
         UserRepresentation keyCloakUser = keycloakService.getKeyCloakUser(tenant.getKeycloakId());
         if (keyCloakUser == null) {
@@ -532,8 +509,8 @@ public class TenantService {
         tenant.setStatus(TenantFileStatus.VALIDATED);
         tenantRepository.save(tenant);
 
-        logService.saveByLog(new Log(LogType.ACCOUNT_VALIDATED, tenant.getId(), operator.getId()));
-        operatorLogRepository.save(new OperatorLog(tenant, operator, tenant.getStatus(), ActionOperatorType.STOP_PROCESS, processedDocuments.count(), processedDocuments.timeSpent() ));
+        tenantLogService.saveByLog(new TenantLog(LogType.ACCOUNT_VALIDATED, tenant.getId(), operator.getId()));
+        operatorLogRepository.save(new OperatorLog(tenant, operator, tenant.getStatus(), ActionOperatorType.STOP_PROCESS, processedDocuments.count(), processedDocuments.timeSpent()));
 
         if (tenant.getApartmentSharing().getApplicationType() == ApplicationType.GROUP) {
             mailService.sendEmailToTenantAfterValidateAllDocumentsOfTenant(tenant);
@@ -554,7 +531,7 @@ public class TenantService {
         tenant.setStatus(TenantFileStatus.DECLINED);
         tenantRepository.save(tenant);
 
-        logService.saveByLog(new Log(LogType.ACCOUNT_DENIED, tenant.getId(), operator.getId(), (message == null) ? null : message.getId()));
+        tenantLogService.saveByLog(new TenantLog(LogType.ACCOUNT_DENIED, tenant.getId(), operator.getId(), (message == null) ? null : message.getId()));
         operatorLogRepository.save(new OperatorLog(
                 tenant, operator, tenant.getStatus(), ActionOperatorType.STOP_PROCESS, processedDocuments.count(), processedDocuments.timeSpent()
         ));

@@ -22,5 +22,4 @@ public interface LogService {
     void savePartnerAccessRevocationLog(Tenant tenant, UserApi userApi);
 
     void saveApplicationTypeChangedLog(List<Tenant> tenants, ApplicationType oldType, ApplicationType newType);
-
 }

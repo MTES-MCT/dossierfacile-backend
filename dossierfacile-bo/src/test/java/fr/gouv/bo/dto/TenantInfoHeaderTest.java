@@ -1,7 +1,7 @@
 package fr.gouv.bo.dto;
 
 import fr.dossierfacile.common.entity.ApartmentSharing;
-import fr.dossierfacile.common.entity.Log;
+import fr.dossierfacile.common.entity.TenantLog;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.ApplicationType;
@@ -61,7 +61,7 @@ class TenantInfoHeaderTest {
 
     @ParameterizedTest
     @MethodSource("logsAndExpectedStatus")
-    void should_display_times_tenant_appeared_in_bo(List<Log> logs, String expectedStatus) {
+    void should_display_times_tenant_appeared_in_bo(List<TenantLog> logs, String expectedStatus) {
         TenantInfoHeader header = build(tenant(ALONE), emptyList(), logs);
 
         assertThat(header.getElements()).containsExactlyElementsOf(
@@ -123,8 +123,8 @@ class TenantInfoHeaderTest {
                 .build();
     }
 
-    private static Log log(int temporalOrder, LogType logType) {
-        Log log = new Log();
+    private static TenantLog log(int temporalOrder, LogType logType) {
+        TenantLog log = new TenantLog();
         log.setLogType(logType);
         log.setCreationDateTime(LocalDateTime.now().minusDays(1).plusHours(temporalOrder));
         return log;

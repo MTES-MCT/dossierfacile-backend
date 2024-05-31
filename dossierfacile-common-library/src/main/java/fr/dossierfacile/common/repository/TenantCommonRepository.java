@@ -143,7 +143,7 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
     List<Tenant> findAllByEnabledIsFalseAndCreationDateTimeIsBetween(LocalDateTime initDate, LocalDateTime endDate);
 
     @Query("from Tenant t " +
-            "join Log l on t.id = l.tenantId " +
+            "join TenantLog l on t.id = l.tenantId " +
             "where t.honorDeclaration = false and l.logType = 'ACCOUNT_EDITED' and l.creationDateTime between :initDate and :endDate")
     List<Tenant> findAllByHonorDeclarationIsFalseAndCompletionDateTimeIsBetween(@Param("initDate") LocalDateTime initDate, @Param("endDate") LocalDateTime endDate);
 
@@ -151,7 +151,7 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
             "select distinct t2 from Tenant t2 " +
                     " join fetch t2.apartmentSharing a " +
                     " join fetch a.tenants ts " +
-                    " join Log l on t2.id = l.tenantId " +
+                    " join TenantLog l on t2.id = l.tenantId " +
                     " where " +
                     " t2.lastUpdateDate < :startDate " +
                     " and " +
@@ -190,7 +190,7 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
     @Query("""
             SELECT DISTINCT t
             FROM Tenant t
-            JOIN Log l ON t.id = l.tenantId
+            JOIN TenantLog l ON t.id = l.tenantId
             LEFT JOIN Fetch t.tenantsUserApi
             WHERE l.creationDateTime BETWEEN :startDate AND :endDate
               AND l.logType = 'ACCOUNT_VALIDATED'

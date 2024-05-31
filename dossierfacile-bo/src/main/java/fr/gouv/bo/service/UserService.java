@@ -41,7 +41,7 @@ public class UserService {
     private final PropertyApartmentSharingRepository propertyApartmentSharingRepository;
     private final ApartmentSharingService apartmentSharingService;
     private final PartnerCallBackService partnerCallBackService;
-    private final LogService logService;
+    private final TenantLogService logService;
     private final ObjectMapper objectMapper;
 
     public List<BOUser> findAll() {
@@ -83,7 +83,7 @@ public class UserService {
     private void saveAndDeleteInfoByTenant(Tenant tenant, BOUser operator) {
         mailService.sendEmailAccountDeleted(tenant);
         logService.saveByLog(
-                Log.builder()
+                TenantLog.builder()
                         .logType(LogType.ACCOUNT_DELETE)
                         .tenantId(tenant.getId())
                         .operatorId(operator.getId())

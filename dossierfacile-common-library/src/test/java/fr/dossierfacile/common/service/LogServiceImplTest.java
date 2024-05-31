@@ -1,16 +1,13 @@
 package fr.dossierfacile.common.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import fr.dossierfacile.common.entity.Document;
-import fr.dossierfacile.common.entity.Guarantor;
-import fr.dossierfacile.common.entity.Log;
-import fr.dossierfacile.common.entity.Tenant;
-import fr.dossierfacile.common.entity.UserApi;
+import fr.dossierfacile.common.entity.*;
+import fr.dossierfacile.common.entity.TenantLog;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.model.log.EditionType;
-import fr.dossierfacile.common.repository.LogRepository;
+import fr.dossierfacile.common.repository.TenantLogRepository;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -26,7 +23,7 @@ import static org.mockito.Mockito.verify;
 
 class LogServiceImplTest {
 
-    private final LogRepository logRepository = mock(LogRepository.class);
+    private final TenantLogRepository logRepository = mock(TenantLogRepository.class);
     private final LogService logService = new LogServiceImpl(logRepository, null, new ObjectMapper());
 
     @Test
@@ -39,7 +36,7 @@ class LogServiceImplTest {
 
         logService.saveDocumentEditedLog(document, tenantWithId(1L), EditionType.ADD);
 
-        Log savedLog = getSavedLog();
+        TenantLog savedLog = getSavedLog();
         assertThat(savedLog.getLogType()).isEqualTo(LogType.ACCOUNT_EDITED);
         assertThat(savedLog.getTenantId()).isEqualTo(1L);
         assertThat(savedLog.getLogDetails()).isEqualTo("""
@@ -56,7 +53,7 @@ class LogServiceImplTest {
 
         logService.saveDocumentEditedLog(document, tenantWithId(2L), EditionType.DELETE);
 
-        Log savedLog = getSavedLog();
+        TenantLog savedLog = getSavedLog();
         assertThat(savedLog.getLogType()).isEqualTo(LogType.ACCOUNT_EDITED);
         assertThat(savedLog.getTenantId()).isEqualTo(2L);
         assertThat(savedLog.getLogDetails()).isEqualTo("""
@@ -67,7 +64,7 @@ class LogServiceImplTest {
     void should_save_revocation_log() {
         logService.savePartnerAccessRevocationLog(tenantWithId(1L), UserApi.builder().id(2L).build());
 
-        Log savedLog = getSavedLog();
+        TenantLog savedLog = getSavedLog();
         assertThat(savedLog.getLogType()).isEqualTo(LogType.PARTNER_ACCESS_REVOKED);
         assertThat(savedLog.getTenantId()).isEqualTo(1L);
         assertThat(savedLog.getUserApis()).containsExactly(2L);
@@ -77,7 +74,7 @@ class LogServiceImplTest {
     void should_application_type_change_log() {
         logService.saveApplicationTypeChangedLog(List.of(tenantWithId(1L)), ALONE, GROUP);
 
-        Log savedLog = getSavedLog();
+        TenantLog savedLog = getSavedLog();
         assertThat(savedLog.getLogType()).isEqualTo(LogType.APPLICATION_TYPE_CHANGED);
         assertThat(savedLog.getTenantId()).isEqualTo(1L);
         assertThat(savedLog.getLogDetails()).isEqualTo("""
@@ -88,8 +85,8 @@ class LogServiceImplTest {
         return Tenant.builder().id(id).build();
     }
 
-    private Log getSavedLog() {
-        ArgumentCaptor<Log> logCaptor = ArgumentCaptor.forClass(Log.class);
+    private TenantLog getSavedLog() {
+        ArgumentCaptor<TenantLog> logCaptor = ArgumentCaptor.forClass(TenantLog.class);
         verify(logRepository, times(1)).save(logCaptor.capture());
         return logCaptor.getAllValues().get(0);
     }
