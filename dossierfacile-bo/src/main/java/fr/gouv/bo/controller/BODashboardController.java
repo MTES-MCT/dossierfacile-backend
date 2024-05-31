@@ -2,7 +2,7 @@ package fr.gouv.bo.controller;
 
 import fr.dossierfacile.common.entity.BOUser;
 import fr.gouv.bo.dto.EmailDTO;
-import fr.gouv.bo.service.LogService;
+import fr.gouv.bo.service.TenantLogService;
 import fr.gouv.bo.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,7 +20,7 @@ import java.util.List;
 public class BODashboardController {
     public final String EMAIL = "email";
     @Autowired
-    private LogService logService;
+    private TenantLogService logService;
     @Autowired
     private UserService userService;
     @Value("${dashboard.days.before.to.display:5}")

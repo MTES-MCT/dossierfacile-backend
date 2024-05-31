@@ -1,9 +1,9 @@
 package fr.gouv.bo.controller;
 
-import fr.dossierfacile.common.entity.Log;
+import fr.dossierfacile.common.entity.TenantLog;
 import fr.gouv.bo.dto.EmailDTO;
 import fr.gouv.bo.dto.Pager;
-import fr.gouv.bo.service.LogService;
+import fr.gouv.bo.service.TenantLogService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -29,7 +29,7 @@ public class BOLogController {
     private static final String EMAIL = "email";
 
     @Autowired
-    private LogService logService;
+    private TenantLogService logService;
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping("")
@@ -40,7 +40,7 @@ public class BOLogController {
 
         PageRequest pageable = PageRequest.of(page - 1, pageSize, Sort.by("creationDateTime").descending());
 
-        Page<Log> logs;
+        Page<TenantLog> logs;
         if (tenantId.isPresent() && StringUtils.isNotBlank(tenantId.get())) {
             logs = logService.findAllByTenantIdPageable(
                     tenantId.map(Long::valueOf).orElseThrow(() -> new IllegalArgumentException("Tenant must be a number")),

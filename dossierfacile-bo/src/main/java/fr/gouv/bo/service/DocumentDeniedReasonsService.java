@@ -2,7 +2,7 @@ package fr.gouv.bo.service;
 
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentDeniedReasons;
-import fr.dossierfacile.common.entity.Log;
+import fr.dossierfacile.common.entity.TenantLog;
 import fr.dossierfacile.common.entity.Message;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.LogType;
@@ -23,7 +23,7 @@ import java.util.Optional;
 public class DocumentDeniedReasonsService {
 
     public final DocumentDeniedReasonsRepository documentDeniedReasonsRepository;
-    private final LogService logService;
+    private final TenantLogService logService;
 
     @Transactional
     public void updateDocumentDeniedReasonsWithMessage(Message message, List<Long> ids) {
@@ -34,7 +34,7 @@ public class DocumentDeniedReasonsService {
         Optional<LocalDateTime> lastValidation = logService.getLogByTenantId(tenant.getId())
                 .stream()
                 .filter(log -> log.getLogType() == LogType.ACCOUNT_VALIDATED)
-                .map(Log::getCreationDateTime)
+                .map(TenantLog::getCreationDateTime)
                 .max(Comparator.naturalOrder());
 
         return documentDeniedReasonsRepository.findByDocumentId(document.getId())

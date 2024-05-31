@@ -27,7 +27,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Log implements Serializable {
+public class TenantLog implements Serializable {
 
     private static final long serialVersionUID = 605418597255420002L;
 
@@ -62,18 +62,18 @@ public class Log implements Serializable {
     @Column
     private Long messageId;
 
-    public Log(LogType logType, Long tenantId, Long operatorId) {
+    public TenantLog(LogType logType, Long tenantId, Long operatorId) {
         this.logType = logType;
         this.tenantId = tenantId;
         this.operatorId = operatorId;
     }
 
-    public Log(LogType logType, Long tenantId) {
+    public TenantLog(LogType logType, Long tenantId) {
         this.logType = logType;
         this.tenantId = tenantId;
     }
 
-    public Log(LogType logType, Long tenantId, Long operatorId, Long messageId) {
+    public TenantLog(LogType logType, Long tenantId, Long operatorId, Long messageId) {
         this.logType = logType;
         this.tenantId = tenantId;
         this.operatorId = operatorId;

@@ -10,7 +10,7 @@ import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.ApartmentSharingLink;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.LinkLog;
-import fr.dossierfacile.common.entity.Log;
+import fr.dossierfacile.common.entity.TenantLog;
 import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
@@ -109,7 +109,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
     private LocalDateTime getLastUpdateDate(ApartmentSharing apartmentSharing) {
         LocalDateTime lastUpdateDate = apartmentSharing.getLastUpdateDate();
         if (apartmentSharing.getStatus() == TenantFileStatus.VALIDATED) {
-            Optional<Log> log = tenantLogRepository.findLastValidationLogByApartmentSharing(apartmentSharing.getId());
+            Optional<TenantLog> log = tenantLogRepository.findLastValidationLogByApartmentSharing(apartmentSharing.getId());
             if (log.isPresent()) {
                 lastUpdateDate = log.get().getCreationDateTime();
             }
