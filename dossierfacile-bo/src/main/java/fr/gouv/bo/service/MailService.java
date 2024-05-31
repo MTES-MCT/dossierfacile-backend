@@ -5,7 +5,6 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.User;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.utils.OptionalString;
-import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.representations.idm.ClientRepresentation;
@@ -69,7 +68,7 @@ public class MailService {
         try {
             apiInstance.sendTransacEmail(sendSmtpEmail);
         } catch (ApiException e) {
-            log.error("Email Api Exception" + Sentry.captureException(e), e);
+            log.error("Email Api Exception", e);
         }
     }
 
@@ -176,7 +175,7 @@ public class MailService {
         try {
             apiInstance.sendTransacEmail(sendSmtpEmail);
         } catch (ApiException e) {
-            log.error("Email Api Exception" + Sentry.captureException(e), e);
+            log.error("Email Api Exception", e);
         }
     }
 }

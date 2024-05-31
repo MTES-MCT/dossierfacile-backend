@@ -3,7 +3,6 @@ package fr.dossierfacile.api.front.service;
 import fr.dossierfacile.api.front.service.interfaces.StatsService;
 import fr.dossierfacile.common.entity.Stats;
 import fr.dossierfacile.common.repository.StatsRepository;
-import io.sentry.Sentry;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,7 +21,6 @@ public class StatsServiceImpl implements StatsService {
             return statsRepository.findByKey(VALIDATED_DOSSIER_COUNT).get().getValue();
         } catch (Exception e) {
             log.error("Unavailable Stats - " + VALIDATED_DOSSIER_COUNT);
-            Sentry.captureMessage("Unavailable Stats - " + VALIDATED_DOSSIER_COUNT);
         }
         return null;
     }

@@ -11,7 +11,6 @@ import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.repository.ConfirmationTokenRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.OperationAccessTokenService;
-import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -67,7 +66,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
                     }
                 }
             } catch (Exception e) {
-                log.error(e.getMessage() + Sentry.captureException(e), e);
+                log.error(e.getMessage(), e);
             }
         }
     }
@@ -89,7 +88,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
                     }
                 }
             } catch (Exception e) {
-                log.error(e.getMessage() + Sentry.captureException(e), e);
+                log.error(e.getMessage(), e);
             }
         }
     }
@@ -116,7 +115,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
                     }
                 }
             } catch (Exception e) {
-                log.error(e.getMessage() + Sentry.captureException(e), e);
+                log.error(e.getMessage(), e);
             }
         }
     }
@@ -140,7 +139,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
                     Thread.sleep(1000);// avoid to spam - softBounce
                 }
             } catch (Exception e) {
-                log.error(e.getMessage() + Sentry.captureException(e), e);
+                log.error(e.getMessage(), e);
             }
         }
     }

@@ -8,7 +8,6 @@ import fr.dossierfacile.common.service.interfaces.DocumentHelperService;
 import fr.dossierfacile.common.service.interfaces.EncryptionKeyService;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.common.utils.FileUtility;
-import io.sentry.Sentry;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
@@ -108,7 +107,7 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
                 return fileStorageService.upload(is, storageFile);
             }
         } catch (Exception e) {
-            log.error(e.getMessage() + " " + Sentry.captureException(e), e);
+            log.error(e.getMessage(), e);
         }
         return null;
     }

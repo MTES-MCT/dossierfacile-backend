@@ -5,7 +5,6 @@ import fr.dossierfacile.common.service.interfaces.DocumentHelperService;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.process.file.repository.FileRepository;
 import fr.dossierfacile.process.file.service.interfaces.MinifyFile;
-import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -32,7 +31,6 @@ public class MinifyFileImpl implements MinifyFile {
                         fileRepository.save(file);
                     } catch (Exception e) {
                         log.error(e.getMessage(), e.getCause());
-                        Sentry.captureException(e);
                     }
                 });
     }

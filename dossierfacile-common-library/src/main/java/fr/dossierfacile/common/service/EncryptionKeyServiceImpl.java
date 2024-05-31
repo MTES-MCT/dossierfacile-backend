@@ -4,7 +4,6 @@ import fr.dossierfacile.common.entity.EncryptionKey;
 import fr.dossierfacile.common.entity.EncryptionKeyStatus;
 import fr.dossierfacile.common.repository.EncryptionKeyRepository;
 import fr.dossierfacile.common.service.interfaces.EncryptionKeyService;
-import io.sentry.Sentry;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -37,7 +36,6 @@ public class EncryptionKeyServiceImpl implements EncryptionKeyService {
 
             } catch (NoSuchAlgorithmException e) {
                 log.error("Unable to generate secret key for file encryption", e);
-                Sentry.captureMessage("Unable to generate secret key:" + e.getMessage());
             }
             return null;
         });
