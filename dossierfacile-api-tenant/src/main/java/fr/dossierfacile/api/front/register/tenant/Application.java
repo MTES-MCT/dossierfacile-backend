@@ -22,7 +22,6 @@ import fr.dossierfacile.common.repository.ApartmentSharingRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
-import io.sentry.Sentry;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -124,7 +123,6 @@ public class Application implements SaveStep<ApplicationFormV2> {
                     if (existingTenant != null) {
                         // A tenant already exists, should never happen here because we have already checked existing email
                         String msg = "Cannot update a tenant with an existing email: " + String.join(",", emailsExistTenants);
-                        log.error(msg + Sentry.captureMessage(msg));
                         throw new IllegalArgumentException(msg);
                     }
 
@@ -202,7 +200,6 @@ public class Application implements SaveStep<ApplicationFormV2> {
                             // A tenant already exists, should never happen here because we cannot add existing user
                             tenantRepository.delete(joinTenant);
                             String msg = "Cannot add a cotenant with an existing account: " + String.join(",", emailsExistTenants);
-                            log.error(msg + Sentry.captureMessage(msg));
                             throw new IllegalArgumentException(msg);
                         }
                         joinTenant.setKeycloakId(newKeycloakId);

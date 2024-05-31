@@ -16,7 +16,6 @@ import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.ConfirmationTokenService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
-import io.sentry.Sentry;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -61,8 +60,6 @@ public class Account implements SaveStep<AccountForm> {
         if (existingTenant != null) {
             // A tenant already exists, should never happen here because we have already checked existing email
             // and there is no FranceConnect
-            String msg = "Tenant " + Obfuscator.email(email) + " already exists (same keycloak id) ";
-            log.error(msg + Sentry.captureMessage(msg));
             throw new IllegalStateException("Tenant " + Obfuscator.email(tenant.getEmail()) + " already exists (same keycloak id)");
         }
 

@@ -10,7 +10,6 @@ import fr.dossierfacile.common.entity.Guarantor;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
-import io.sentry.Sentry;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -36,8 +35,6 @@ import static fr.dossierfacile.api.pdfgenerator.service.templates.PdfFileTemplat
 @AllArgsConstructor
 @Slf4j
 public class EmptyBOPdfDocumentTemplate implements PdfTemplate<Document> {
-
-    private static final String EXCEPTION = "Sentry ID Exception: ";
 
     private final Locale locale = LocaleContextHolder.getLocale();
     private final MessageSource messageSource;
@@ -99,7 +96,7 @@ public class EmptyBOPdfDocumentTemplate implements PdfTemplate<Document> {
             pdDocument.save(outputStream);
 
         } catch (IOException e) {
-            log.error(EXCEPTION + Sentry.captureException(e));
+            log.error("Error on pdf creation", e);
             throw e;
         }
         return outputStream;
