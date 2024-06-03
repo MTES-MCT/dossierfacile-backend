@@ -44,7 +44,6 @@ public class LocalMockStorage implements FileStorageProviderService {
     }
 
     @Override
-    @Async
     public void delete(String path) {
         try {
             Files.delete(Path.of(filePath + path));

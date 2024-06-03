@@ -109,7 +109,6 @@ public class OvhFileStorageServiceImpl implements FileStorageProviderService {
     }
 
     @Override
-    @Async
     public void delete(String path) {
         try {
             getClient().objectStorage().objects().delete(ovhContainerName, path);

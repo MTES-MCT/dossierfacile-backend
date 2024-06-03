@@ -64,7 +64,6 @@ public class OutscaleFileStorageServiceImpl implements FileStorageProviderServic
     }
 
     @Override
-    @Async
     public void delete(String name) {
         AmazonS3 s3client = threeDSOutscaleConfig.getAmazonS3Client();
         s3client.deleteObject(bucket, name);
