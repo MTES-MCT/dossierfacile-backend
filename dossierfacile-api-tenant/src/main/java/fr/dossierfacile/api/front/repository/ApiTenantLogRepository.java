@@ -7,7 +7,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
-public interface TenantLogRepository extends JpaRepository<TenantLog, Long> {
+public interface ApiTenantLogRepository extends JpaRepository<TenantLog, Long> {
 
     @Query(value = "select l.*\n" +
             "from tenant_log l\n" +

@@ -4,7 +4,7 @@ import fr.dossierfacile.api.front.amqp.Producer;
 import fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException;
 import fr.dossierfacile.api.front.exception.ApartmentSharingUnexpectedException;
 import fr.dossierfacile.api.front.model.MappingFormat;
-import fr.dossierfacile.api.front.repository.TenantLogRepository;
+import fr.dossierfacile.api.front.repository.ApiTenantLogRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.ApartmentSharingLink;
@@ -71,7 +71,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
     private final LinkLogService linkLogService;
     private final Producer producer;
     private final ApartmentSharingCommonService apartmentSharingCommonService;
-    private final TenantLogRepository tenantLogRepository;
+    private final ApiTenantLogRepository tenantLogRepository;
     private final LogService logService;
 
     @Override
