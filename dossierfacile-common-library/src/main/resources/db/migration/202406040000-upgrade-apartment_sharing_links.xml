@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+    <changeSet id="202406040000-01" author="Fabien (manual)">
+        <dropColumn schemaName="public"
+                    tableName="apartment_sharing_link">
+            <column name="mail_sent"/>
+        </dropColumn>
+    </changeSet>
+    <changeSet id="202406040000-02" author="fabien (manual)">
+        <addColumn tableName="apartment_sharing_link">
+            <column name="last_sent_datetime" type="timestamp"/>
+        </addColumn>
+    </changeSet>
+</databaseChangeLog>

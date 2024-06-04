@@ -29,6 +29,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -38,6 +39,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+
+import static fr.dossierfacile.common.enums.ApartmentSharingLinkType.MAIL;
 
 @Slf4j
 @Service
@@ -135,9 +138,9 @@ public class TenantServiceImpl implements TenantService {
                 .build());
 
         // Allows to activate pre-validation for a portion of user
-        if (percentagePreValidation > 0){
+        if (percentagePreValidation > 0) {
             createdUserCount++;
-            if( createdUserCount % 100 < percentagePreValidation) {
+            if (createdUserCount % 100 < percentagePreValidation) {
                 tenant.setPreValidationActivated(true);
             }
         }
@@ -192,17 +195,41 @@ public class TenantServiceImpl implements TenantService {
         ApartmentSharingLink apartmentSharingLink = ApartmentSharingLink.builder()
                 .apartmentSharing(tenant.getApartmentSharing())
                 .disabled(false)
+                .lastSentDatetime(LocalDateTime.now())
                 .fullData("full".equals(shareType))
                 .token(token)
                 .linkType(ApartmentSharingLinkType.MAIL)
                 .email(email)
-                .mailSent(false).build();
-        apartmentSharingLink = apartmentSharingLinkRepository.save(apartmentSharingLink);
+                .build();
+
         String url = "/file/" + apartmentSharingLink.getToken();
         if ("resume".equals(shareType)) {
             url = "/public-file/" + apartmentSharingLink.getToken();
         }
         mailService.sendFileByMail(url, email, tenant.getFirstName(), tenant.getFullName(), tenant.getEmail());
+
+        // save after successfully sent
+        apartmentSharingLinkRepository.save(apartmentSharingLink);
+    }
+
+    @Override
+    public void resendLink(Long id, Tenant tenant) {
+        ApartmentSharingLink link = apartmentSharingLinkRepository.findById(id).orElseThrow(NotFoundException::new);
+        if (!Objects.equals(tenant.getApartmentSharing().getId(), link.getApartmentSharing().getId())) {
+            throw new AccessDeniedException("Access Denied");
+        }
+        if (link.isDisabled() || link.getLinkType() != MAIL) {
+            throw new IllegalStateException("A disabled link cannot be sent");
+        }
+        if (link.getLastSentDatetime() != null && link.getLastSentDatetime().isAfter(LocalDateTime.now().minusHours(1))){
+            log.info("Email has been sent previously from less than one hour");
+            throw new IllegalStateException("Delay between two resend is too short");
+        }
+        String url = (link.isFullData() ? "/file/" : "/public-file/") + link.getToken();
+        mailService.sendFileByMail(url, link.getEmail(), tenant.getFirstName(), tenant.getFullName(), tenant.getEmail());
+
+        link.setLastSentDatetime(LocalDateTime.now());
+        apartmentSharingLinkRepository.save(link);
     }
 
     private Document getDocumentManagedByTenant(Tenant tenant, Long documentId) {
