@@ -57,7 +57,7 @@ public class ApartmentSharingLink implements Serializable {
     private ApartmentSharingLinkType linkType;
 
     @Column
-    private boolean mailSent = false;
+    private LocalDateTime lastSentDatetime;
 
     @Column
     private String email;

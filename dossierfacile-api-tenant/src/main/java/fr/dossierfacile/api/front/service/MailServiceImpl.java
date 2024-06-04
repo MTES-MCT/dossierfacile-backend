@@ -289,6 +289,7 @@ public class MailServiceImpl implements MailService {
             apiInstance.sendTransacEmail(sendSmtpEmail);
         } catch (ApiException e) {
             log.error("Email Api Exception", e);
+            throw new InternalError("Mail cannot be send - try later");
         }
     }
 
