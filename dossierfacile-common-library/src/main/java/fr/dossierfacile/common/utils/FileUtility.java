@@ -1,6 +1,5 @@
 package fr.dossierfacile.common.utils;
 
-import io.sentry.Sentry;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
@@ -44,9 +43,7 @@ public class FileUtility {
         try (PDDocument document = Loader.loadPDF(multipartFile.getInputStream().readAllBytes())) {
             return document.getNumberOfPages();
         } catch (IOException e) {
-            log.error("Problem reading number of pages of document");
-            log.error(e.getMessage(), e.getCause());
-            Sentry.captureException(e);
+            log.error("Problem reading number of pages of document" + e.getMessage(), e);
         }
         return 0;
     }

@@ -5,7 +5,6 @@ import com.google.gson.Gson;
 import fr.dossierfacile.api.pdfgenerator.service.interfaces.DocumentService;
 import fr.dossierfacile.api.pdfgenerator.service.interfaces.PdfGeneratorService;
 import fr.dossierfacile.common.entity.StorageFile;
-import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
@@ -19,7 +18,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Slf4j
 public class WatermarkDFDocumentConsumer {
-    private static final String EXCEPTION = "Sentry ID Exception: ";
 
     private final Gson gson;
     private final PdfGeneratorService pdfGeneratorService;
@@ -45,7 +43,6 @@ public class WatermarkDFDocumentConsumer {
             }
 
         } catch (Exception e) {
-            log.error(EXCEPTION + Sentry.captureException(e));
             log.error(e.getMessage(), e.getCause());
             throw e;
         }

@@ -36,4 +36,6 @@ public interface TenantService {
     void doNotArchive(String token);
 
     void addCommentAnalysis(Tenant tenant, Long documentId, String comment);
+
+    void resendLink(Long id, Tenant tenant);
 }

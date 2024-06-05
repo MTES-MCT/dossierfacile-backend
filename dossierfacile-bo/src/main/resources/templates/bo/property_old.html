@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       lang="en"
-      layout:decorator="bo/layout-bo">
+      layout:decorate="~{bo/layout-bo}">
 <head>
     <title>DossierFacile</title>
 </head>
@@ -10,7 +10,7 @@
 
 <div layout:fragment="content" th:remove="tag">
 
-    <div th:replace="bo/menu :: menu">...</div>
+    <div th:replace="~{bo/menu :: menu}">...</div>
     <div class="container">
 
         <div class="table-responsive">

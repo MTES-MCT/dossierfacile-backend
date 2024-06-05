@@ -1,6 +1,5 @@
 package fr.dossierfacile.process.file.service.qrcodeanalysis.payfit.client;
 
-import io.sentry.Sentry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -40,7 +39,7 @@ public class PayfitClient {
             log.warn("PayFit responded with {}", response.getStatusCode());
             return Optional.empty();
         } catch (Exception e) {
-            log.warn("Error while calling PayFit (sentry id: {})", Sentry.captureException(e), e);
+            log.warn("Error while calling PayFit", e);
             return Optional.empty();
         }
     }

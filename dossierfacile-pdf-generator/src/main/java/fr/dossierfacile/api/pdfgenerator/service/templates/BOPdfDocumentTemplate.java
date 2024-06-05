@@ -10,7 +10,6 @@ import fr.dossierfacile.api.pdfgenerator.model.FileInputStream;
 import fr.dossierfacile.api.pdfgenerator.model.PageDimension;
 import fr.dossierfacile.api.pdfgenerator.model.PdfTemplateParameters;
 import fr.dossierfacile.api.pdfgenerator.service.interfaces.PdfTemplate;
-import io.sentry.Sentry;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -55,7 +54,6 @@ import java.util.concurrent.ThreadLocalRandom;
 @Primary
 public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>> {
     public static final String DEFAULT_WATERMARK = "  DOCUMENTS EXCLUSIVEMENT DESTIN\u00c9S \u00c0 LA LOCATION IMMOBILI\u00c8RE     ";
-    private static final String EXCEPTION = "Sentry ID Exception: ";
     private final PdfTemplateParameters params = PdfTemplateParameters.builder().build();
     private final Locale locale = LocaleContextHolder.getLocale();
     private final MessageSource messageSource;
@@ -121,7 +119,6 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
             }
         } catch (IOException e) {
             log.error("Exception while generate BO PDF documents", e);
-            log.error(EXCEPTION + Sentry.captureException(e));
             throw e;
         }
     }
@@ -160,7 +157,6 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
                     return images;
                 } catch (Exception e) {
                     log.error("Exception while converting pdf page to image", e);
-                    log.error(EXCEPTION + Sentry.captureException(e));
                     return images;
                 }
             }
@@ -206,7 +202,6 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
 
             } catch (Exception e) {
                 log.error("Unable to rotate and flip from metadata", e);
-                Sentry.captureException(e);
             }
             return image;
         }

@@ -8,7 +8,7 @@ import fr.gouv.bo.dto.MessageDTO;
 import fr.gouv.bo.dto.PartnerDTO;
 import fr.dossierfacile.common.service.ApartmentSharingLinkService;
 import fr.gouv.bo.service.ApartmentSharingService;
-import fr.gouv.bo.service.LogService;
+import fr.gouv.bo.service.TenantLogService;
 import fr.gouv.bo.service.TenantService;
 import fr.gouv.bo.service.UserApiService;
 import lombok.AllArgsConstructor;
@@ -49,7 +49,7 @@ public class BOApartmentSharingController {
     private final ApartmentSharingService apartmentSharingService;
     private final ApartmentSharingLinkService apartmentSharingLinkService;
     private final UserApiService userApiService;
-    private final LogService logService;
+    private final TenantLogService logService;
 
     @GetMapping("")
     public String index() {

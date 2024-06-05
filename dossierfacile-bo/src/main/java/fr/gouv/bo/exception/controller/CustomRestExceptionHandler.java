@@ -4,7 +4,6 @@ import fr.gouv.bo.exception.BadRequestException;
 import fr.gouv.bo.exception.OAuth2AuthenticationProcessingException;
 import fr.gouv.bo.exception.ResourceNotFoundException;
 import fr.gouv.bo.exception.model.ApiError;
-import io.sentry.Sentry;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.beans.TypeMismatchException;
@@ -35,11 +34,8 @@ import java.util.Objects;
 @ControllerAdvice
 public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
 
-    private static final String ACTION_1 = "Sentry ID Exception: ";
-
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(final MethodArgumentNotValidException ex, final HttpHeaders headers, final HttpStatusCode status, final WebRequest request) {
-        logger.error(ACTION_1 + Sentry.captureException(ex));
         logger.error("handleMethodArgumentNotValid", ex);
         logger.error(ex.getMessage(), ex);
 
@@ -56,7 +52,6 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
 
     @Override
     protected ResponseEntity<Object> handleTypeMismatch(final TypeMismatchException ex, final HttpHeaders headers, final HttpStatusCode status, final WebRequest request) {
-        logger.error(ACTION_1 + Sentry.captureException(ex));
         logger.error("handleTypeMismatch", ex);
         logger.error(ex.getMessage(), ex);
 
@@ -68,7 +63,6 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
 
     @Override
     protected ResponseEntity<Object> handleMissingServletRequestPart(final MissingServletRequestPartException ex, final HttpHeaders headers, final HttpStatusCode status, final WebRequest request) {
-        logger.error(ACTION_1 + Sentry.captureException(ex));
         logger.error("handleMissingServletRequestPart", ex);
         logger.error(ex.getMessage(), ex);
 
@@ -79,7 +73,6 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
 
     @Override
     protected ResponseEntity<Object> handleMissingServletRequestParameter(final MissingServletRequestParameterException ex, final HttpHeaders headers, final HttpStatusCode status, final WebRequest request) {
-        logger.error(ACTION_1 + Sentry.captureException(ex));
         logger.error("handleMissingServletRequestParameter", ex);
         logger.error(ex.getMessage(), ex);
 
@@ -90,7 +83,6 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler({MethodArgumentTypeMismatchException.class})
     public ResponseEntity<Object> handleMethodArgumentTypeMismatch(final MethodArgumentTypeMismatchException ex, final WebRequest request) {
-        logger.error(ACTION_1 + Sentry.captureException(ex));
         logger.error("handleMethodArgumentTypeMismatch", ex);
         logger.error(ex.getMessage(), ex);
 
@@ -101,7 +93,6 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler({ConstraintViolationException.class})
     public ResponseEntity<Object> handleConstraintViolation(final ConstraintViolationException ex, final WebRequest request) {
-        logger.error(ACTION_1 + Sentry.captureException(ex));
         logger.error("handleConstraintViolation", ex);
         logger.error(ex.getMessage(), ex);
 
@@ -116,7 +107,6 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
 
     @Override
     protected ResponseEntity<Object> handleNoHandlerFoundException(final NoHandlerFoundException ex, final HttpHeaders headers, final HttpStatusCode status, final WebRequest request) {
-        logger.error(ACTION_1 + Sentry.captureException(ex));
         logger.error("handleNoHandlerFoundException", ex);
         logger.error(ex.getMessage(), ex);
 
@@ -128,7 +118,6 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
 
     @Override
     protected ResponseEntity<Object> handleHttpRequestMethodNotSupported(final HttpRequestMethodNotSupportedException ex, final HttpHeaders headers, final HttpStatusCode status, final WebRequest request) {
-        logger.error(ACTION_1 + Sentry.captureException(ex));
         logger.error("handleHttpRequestMethodNotSupported", ex);
         logger.error(ex.getMessage(), ex);
 
@@ -143,7 +132,6 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
 
     @Override
     protected ResponseEntity<Object> handleHttpMediaTypeNotSupported(final HttpMediaTypeNotSupportedException ex, final HttpHeaders headers, final HttpStatusCode status, final WebRequest request) {
-        logger.error(ACTION_1 + Sentry.captureException(ex));
         logger.error("handleHttpMediaTypeNotSupported", ex);
         logger.error(ex.getMessage(), ex);
 
@@ -158,7 +146,6 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler({BadCredentialsException.class})
     public ResponseEntity<Object> handleBadCredential(final BadCredentialsException ex) {
-        logger.error(ACTION_1 + Sentry.captureException(ex));
         logger.error("handleBadCredential", ex);
         logger.error(ex.getMessage(), ex);
 
@@ -168,7 +155,6 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler({BadRequestException.class})
     public ResponseEntity<Object> handleBadRequestException(final BadRequestException ex) {
-        logger.error(ACTION_1 + Sentry.captureException(ex));
         logger.error("handleBadRequestException", ex);
         logger.error(ex.getMessage(), ex);
 
@@ -178,7 +164,6 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler({OAuth2AuthenticationProcessingException.class})
     public ResponseEntity<Object> handleOAuth2AuthenticationProcessingException(final OAuth2AuthenticationProcessingException ex) {
-        logger.error(ACTION_1 + Sentry.captureException(ex));
         logger.error("handleOAuth2AuthenticationProcessingException", ex);
         logger.error(ex.getMessage(), ex);
 
@@ -188,7 +173,6 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler({ResourceNotFoundException.class})
     public ResponseEntity<Object> handlePasswordRecoveryTokenNotFoundException(final ResourceNotFoundException ex) {
-        logger.error(ACTION_1 + Sentry.captureException(ex));
         logger.error("handlePasswordRecoveryTokenNotFoundException", ex);
         logger.error(ex.getMessage(), ex);
 
@@ -198,7 +182,6 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler({AccessDeniedException.class})
     public ResponseEntity<Object> handleAccessDeniedException(final AccessDeniedException ex) {
-        logger.error(ACTION_1 + Sentry.captureException(ex));
         logger.error("handleAccessDeniedException", ex);
         logger.error(ex.getMessage(), ex);
 
@@ -208,7 +191,6 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler({Exception.class})
     public ResponseEntity<Object> handleAll(final Exception ex) {
-        logger.error(ACTION_1 + Sentry.captureException(ex));
         logger.error("handleAll", ex);
         logger.error(ex.getMessage(), ex);
 

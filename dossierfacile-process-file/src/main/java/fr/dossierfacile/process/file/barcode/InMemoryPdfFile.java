@@ -4,7 +4,6 @@ import fr.dossierfacile.process.file.barcode.qrcode.QrCode;
 import fr.dossierfacile.process.file.barcode.qrcode.QrCodeReader;
 import fr.dossierfacile.process.file.barcode.twoddoc.TwoDDocRawContent;
 import fr.dossierfacile.process.file.barcode.twoddoc.reader.TwoDDocPdfFinder;
-import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -28,7 +27,7 @@ public class InMemoryPdfFile extends InMemoryFile {
             reader.setAddMoreFormatting(true);
             return reader.getText(pdfBoxDocument);
         } catch (IOException e) {
-            Sentry.captureException(e);
+            log.error("Unable to read", e);
             return "";
         }
     }

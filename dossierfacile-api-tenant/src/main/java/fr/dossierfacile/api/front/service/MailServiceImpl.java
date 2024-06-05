@@ -9,7 +9,6 @@ import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.utils.OptionalString;
-import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -103,7 +102,7 @@ public class MailServiceImpl implements MailService {
         try {
             apiInstance.sendTransacEmail(sendSmtpEmail);
         } catch (ApiException e) {
-            log.error("Email Api Exception" + Sentry.captureException(e), e);
+            log.error("Email Api Exception", e);
         }
     }
 
@@ -289,7 +288,8 @@ public class MailServiceImpl implements MailService {
         try {
             apiInstance.sendTransacEmail(sendSmtpEmail);
         } catch (ApiException e) {
-            log.error("Email Api Exception" + Sentry.captureException(e), e);
+            log.error("Email Api Exception", e);
+            throw new InternalError("Mail cannot be send - try later");
         }
     }
 
@@ -320,7 +320,7 @@ public class MailServiceImpl implements MailService {
         try {
             apiInstance.sendTransacEmail(sendSmtpEmail);
         } catch (ApiException e) {
-            log.error("Email Api Exception" + Sentry.captureException(e), e);
+            log.error("Email Api Exception", e);
         }
     }
 

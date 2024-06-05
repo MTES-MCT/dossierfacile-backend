@@ -47,7 +47,6 @@
         <lombok.version>1.18.30</lombok.version>
         <pdfbox.tools.version>3.0.2</pdfbox.tools.version>
         <gson.version>2.10.1</gson.version>
-        <sentry.version>6.25.0</sentry.version>
         <commons-io.version>2.13.0</commons-io.version>
         <imageio.version>3.10.1</imageio.version>
         <keycloak.version>22.0.3</keycloak.version>
@@ -143,11 +142,6 @@
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <version>${commons-io.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.sentry</groupId>
-            <artifactId>sentry-spring-boot-starter</artifactId>
-            <version>${sentry.version}</version>
         </dependency>
 
         <!--BEGIN - Dependencies to avoid error when rendering some kind of format of pictures in pdf, when converting the page to image-->

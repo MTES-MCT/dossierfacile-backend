@@ -1,6 +1,7 @@
 package fr.dossierfacile.api.front.controller;
 
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
+import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.model.ApartmentSharingLinkModel;
@@ -8,13 +9,7 @@ import fr.dossierfacile.common.service.ApartmentSharingLinkService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -25,6 +20,7 @@ public class ApartmentSharingLinkController {
 
     private final AuthenticationFacade authenticationFacade;
     private final ApartmentSharingLinkService apartmentSharingLinkService;
+    private final TenantService tenantService;
 
     @GetMapping
     public ResponseEntity<LinksResponse> getApartmentSharingLinks() {
@@ -37,6 +33,13 @@ public class ApartmentSharingLinkController {
     public ResponseEntity<Void> updateApartmentSharingLinksStatus(@PathVariable Long id, @RequestParam boolean enabled) {
         ApartmentSharing apartmentSharing = authenticationFacade.getLoggedTenant().getApartmentSharing();
         apartmentSharingLinkService.updateStatus(id, enabled, apartmentSharing);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{id}/resend")
+    public ResponseEntity<Void> resendApartmentSharingLink(@PathVariable Long id) {
+        Tenant tenant = authenticationFacade.getLoggedTenant();
+        tenantService.resendLink(id, tenant);
         return ResponseEntity.ok().build();
     }
 

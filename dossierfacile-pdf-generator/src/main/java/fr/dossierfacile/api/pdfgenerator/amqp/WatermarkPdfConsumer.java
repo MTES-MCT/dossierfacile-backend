@@ -4,7 +4,6 @@ package fr.dossierfacile.api.pdfgenerator.amqp;
 import com.google.gson.Gson;
 import fr.dossierfacile.api.pdfgenerator.amqp.model.DocumentModel;
 import fr.dossierfacile.api.pdfgenerator.service.interfaces.PdfGeneratorService;
-import io.sentry.Sentry;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -24,7 +23,7 @@ public class WatermarkPdfConsumer {
             DocumentModel documentModel = gson.fromJson(message, DocumentModel.class);
             pdfGeneratorService.processPdfGenerationFormWatermark(documentModel.getId());
         } catch (Exception e) {
-            log.error(e.getMessage() + " - Sentry ID: " + Sentry.captureException(e), e.getCause());
+            log.error(e.getMessage(), e.getCause());
             throw e;
         }
     }

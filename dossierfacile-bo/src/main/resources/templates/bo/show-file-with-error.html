@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       lang="en"
-      layout:decorator="process-file-layout">
+      layout:decorate="~{process-file-layout}">
 <head>
     <title>DossierFacile</title>
 </head>
@@ -36,7 +36,7 @@
         <div class="align-items-center col-md-4 display-flex height-100pct flex-direction-column">
             <div class="display-flex flex-grow-1 margin-top-25px overflow-auto padding-right-0px">
                 <div class="padding-right-5px">
-                    <div th:replace="include/file-with-error:: file-with-error">
+                    <div th:replace="~{include/file-with-error:: file-with-error}">
                     </div>
                 </div>
             </div>

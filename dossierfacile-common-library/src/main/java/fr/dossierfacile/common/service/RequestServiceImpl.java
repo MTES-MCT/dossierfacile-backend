@@ -2,7 +2,6 @@ package fr.dossierfacile.common.service;
 
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
 import fr.dossierfacile.common.service.interfaces.RequestService;
-import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -32,7 +31,6 @@ public class RequestServiceImpl implements RequestService {
 
     private static final String X_API_KEY = "x-api-key";
     private static final String CALL_BACK_RESPONSE = "CallBack ResponseStatus: {}";
-    private static final String EXCEPTION = "Sentry ID Exception: ";
     private final RestTemplate restTemplate;
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
@@ -52,7 +50,7 @@ public class RequestServiceImpl implements RequestService {
             response = restTemplate.exchange(urlCallback, HttpMethod.POST, request, String.class);
             log.info(CALL_BACK_RESPONSE, response.getStatusCode());
         } catch (RestClientException e) {
-            log.error("Error occurs during the call to :" + urlCallback + " sentry:" + Sentry.captureException(e), e);
+            log.error("Error occurs during the call to :" + urlCallback, e);
             if (e instanceof ResourceAccessException) {
                 try {
                     log.warn("Trying to send the request again without SSL Verification, to the urlCallBack: " + urlCallback);
@@ -60,8 +58,7 @@ public class RequestServiceImpl implements RequestService {
                     response = restTemplate.exchange(urlCallback, HttpMethod.POST, request, String.class);
                     log.info(CALL_BACK_RESPONSE, response.getStatusCode());
                 } catch (GeneralSecurityException | ResourceAccessException e1) {
-                    log.error(EXCEPTION + Sentry.captureException(e1));
-                    log.error(e1.getClass().getName());
+                    log.error("Error to sendRequest", e1);
                 }
             }
         }

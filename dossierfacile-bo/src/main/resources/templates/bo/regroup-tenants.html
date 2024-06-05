@@ -2,7 +2,7 @@
 <html lang="en"
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorator="bo/layout-bo">
+      layout:decorate="~{bo/layout-bo}">
 <head>
     <title>DossierFacile</title>
 </head>
@@ -19,9 +19,7 @@
             background-color: #eaeaf3;
             border: 1px solid #c6c7cc;
             border-radius: 3px;
-            font: 14px/1.4 "Helvetica Neue", Helvetica, Arial, sans-serif;
             overflow: hidden;
-            /*width: 40%;*/
         }
         .container form label{
             color: #395870;

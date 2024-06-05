@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       lang="en"
-      layout:decorator="bo/layout-bo">
+      layout:decorate="~{bo/layout-bo}">
 <head>
     <title>DossierFacile</title>
 </head>
@@ -13,7 +13,7 @@
     <br/><br/>
     <div class="container">
         <div class="medium-space-separator">
-            <div th:replace="bo/fragments/user-api-form">
+            <div th:replace="~{bo/fragments/user-api-form}">
             </div>
             <hr/>
             <div th:if="${kcClient}">

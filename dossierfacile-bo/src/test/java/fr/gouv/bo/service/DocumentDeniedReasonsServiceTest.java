@@ -2,7 +2,7 @@ package fr.gouv.bo.service;
 
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentDeniedReasons;
-import fr.dossierfacile.common.entity.Log;
+import fr.dossierfacile.common.entity.TenantLog;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.gouv.bo.repository.DocumentDeniedReasonsRepository;
 import org.junit.jupiter.api.Nested;
@@ -21,7 +21,7 @@ import static org.mockito.Mockito.when;
 class DocumentDeniedReasonsServiceTest {
 
     private final DocumentDeniedReasonsRepository reasonsRepository = mock(DocumentDeniedReasonsRepository.class);
-    private final LogService logService = mock(LogService.class);
+    private final TenantLogService logService = mock(TenantLogService.class);
     private final DocumentDeniedReasonsService service = new DocumentDeniedReasonsService(reasonsRepository, logService);
 
     @Nested
@@ -56,8 +56,8 @@ class DocumentDeniedReasonsServiceTest {
                     documentDeniedReasons(2L, date.minusDays(4))
             ));
             when(logService.getLogByTenantId(TENANT_ID)).thenReturn(List.of(
-                    Log.builder().creationDateTime(date.minusDays(1)).logType(ACCOUNT_VALIDATED).build(),
-                    Log.builder().creationDateTime(date.minusDays(3)).logType(ACCOUNT_VALIDATED).build()
+                    TenantLog.builder().creationDateTime(date.minusDays(1)).logType(ACCOUNT_VALIDATED).build(),
+                    TenantLog.builder().creationDateTime(date.minusDays(3)).logType(ACCOUNT_VALIDATED).build()
             ));
 
             assertThat(getLastDeniedReasonOfDocument(DOCUMENT_ID, TENANT_ID)).isEmpty();
@@ -73,7 +73,7 @@ class DocumentDeniedReasonsServiceTest {
                     documentDeniedReasons(4L, date.minusDays(4))
             ));
             when(logService.getLogByTenantId(TENANT_ID)).thenReturn(List.of(
-                    Log.builder().creationDateTime(date.minusDays(2)).logType(ACCOUNT_VALIDATED).build()
+                    TenantLog.builder().creationDateTime(date.minusDays(2)).logType(ACCOUNT_VALIDATED).build()
             ));
 
             Optional<DocumentDeniedReasons> lastReason = getLastDeniedReasonOfDocument(DOCUMENT_ID, TENANT_ID);
@@ -88,9 +88,9 @@ class DocumentDeniedReasonsServiceTest {
                     documentDeniedReasons(1L, date)
             ));
             when(logService.getLogByTenantId(TENANT_ID)).thenReturn(List.of(
-                    Log.builder().creationDateTime(date.minusDays(1)).logType(ACCOUNT_DENIED).build(),
-                    Log.builder().creationDateTime(date.minusDays(2)).logType(ACCOUNT_COMPLETED).build(),
-                    Log.builder().creationDateTime(date.minusDays(3)).logType(ACCOUNT_EDITED).build()
+                    TenantLog.builder().creationDateTime(date.minusDays(1)).logType(ACCOUNT_DENIED).build(),
+                    TenantLog.builder().creationDateTime(date.minusDays(2)).logType(ACCOUNT_COMPLETED).build(),
+                    TenantLog.builder().creationDateTime(date.minusDays(3)).logType(ACCOUNT_EDITED).build()
             ));
 
             Optional<DocumentDeniedReasons> lastReason = getLastDeniedReasonOfDocument(DOCUMENT_ID, TENANT_ID);

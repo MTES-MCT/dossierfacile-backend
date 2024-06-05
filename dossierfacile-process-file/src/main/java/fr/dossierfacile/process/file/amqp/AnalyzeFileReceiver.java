@@ -1,7 +1,6 @@
 package fr.dossierfacile.process.file.amqp;
 
 import fr.dossierfacile.process.file.service.AnalyzeFile;
-import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -41,7 +40,7 @@ public class AnalyzeFileReceiver {
             analysis.cancel(true);
             log.warn("Analysis cancelled because timeout was reached");
         } catch (Exception e) {
-            log.error("Failed to analyze file (Sentry ID: {})", Sentry.captureException(e), e);
+            log.error("Failed to analyze file", e);
             throw e;
         } finally {
             LoggingContext.endProcessing();

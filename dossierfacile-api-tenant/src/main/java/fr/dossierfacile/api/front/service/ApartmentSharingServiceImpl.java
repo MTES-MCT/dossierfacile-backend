@@ -4,13 +4,13 @@ import fr.dossierfacile.api.front.amqp.Producer;
 import fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException;
 import fr.dossierfacile.api.front.exception.ApartmentSharingUnexpectedException;
 import fr.dossierfacile.api.front.model.MappingFormat;
-import fr.dossierfacile.api.front.repository.TenantLogRepository;
+import fr.dossierfacile.api.front.repository.ApiTenantLogRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.ApartmentSharingLink;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.LinkLog;
-import fr.dossierfacile.common.entity.Log;
+import fr.dossierfacile.common.entity.TenantLog;
 import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
@@ -71,7 +71,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
     private final LinkLogService linkLogService;
     private final Producer producer;
     private final ApartmentSharingCommonService apartmentSharingCommonService;
-    private final TenantLogRepository tenantLogRepository;
+    private final ApiTenantLogRepository tenantLogRepository;
     private final LogService logService;
 
     @Override
@@ -109,7 +109,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
     private LocalDateTime getLastUpdateDate(ApartmentSharing apartmentSharing) {
         LocalDateTime lastUpdateDate = apartmentSharing.getLastUpdateDate();
         if (apartmentSharing.getStatus() == TenantFileStatus.VALIDATED) {
-            Optional<Log> log = tenantLogRepository.findLastValidationLogByApartmentSharing(apartmentSharing.getId());
+            Optional<TenantLog> log = tenantLogRepository.findLastValidationLogByApartmentSharing(apartmentSharing.getId());
             if (log.isPresent()) {
                 lastUpdateDate = log.get().getCreationDateTime();
             }

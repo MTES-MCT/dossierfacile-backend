@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr"
-      layout:decorator="bo/process-file-layout"
+      layout:decorate="~{bo/process-file-layout}"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       xmlns:th="http://www.thymeleaf.org">
 <head>
@@ -9,12 +9,11 @@
 <body>
 
 <div layout:fragment="content" th:remove="tag">
-    <div class="height-100pct overflow-auto back-color class-message-link" th:attr="data-name=${tenant.id}">
+    <div class="height-100pct overflow-auto class-message-link" th:attr="data-name=${tenant.id}">
         <form id="processFileForm"
               th:action="@{/bo/tenant/} + ${tenant.getId()} + '/processFile'"
               th:method="post" th:object="${customMessage}">
-            <div class="back-color"
-                 style="position: fixed; top: 60px; width: 100%; z-index: 1">
+            <div class="header-tenant-info">
                 <div style="margin: 10px 0; padding: 0 5px; display: flex; justify-content: space-between;">
                     <div style="display: flex; justify-content: start; flex: 2.1">
                         <div th:each="element : ${header.elements}"
@@ -64,12 +63,12 @@
             </div>
 
             <div th:each="messageItem, i:${customMessage.getMessageItems()}" th:remove="tag">
-                <div class="col-md-8 back-color" style="height: 700px" th:if="${messageItem.getCustomTex()}==null">
+                <div class="col-md-8" style="height: 700px" th:if="${messageItem.getCustomTex()}==null">
                     <embed class="document-embed" height="90%"
                            th:src="'/pdf-viewer/pdfjs-dist/web/viewer.html?file=/documents/'+${messageItem.getDocumentName()}"
                            width="100%"/>
                 </div>
-                <div class="col-md-8 back-color" style="height: 700px" th:if="${messageItem.getCustomTex()}!=null">
+                <div class="col-md-8" style="height: 700px" th:if="${messageItem.getCustomTex()}!=null">
                     <div class="full-size-div">
                         <div class="card-div">
                             <div class="panel" style="background-color: rgb(232, 237, 241)">
@@ -80,7 +79,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="align-items-center col-md-4 display-flex height-100pct flex-direction-column back-color">
+                <div class="align-items-center col-md-4 display-flex height-100pct flex-direction-column">
                     <div class="display-flex flex-grow-1 margin-top-25px overflow-auto padding-right-0px"
                          style="align-self: flex-start;">
                         <div class="padding-right-5px">
@@ -214,7 +213,7 @@
                                th:src="'/pdf-viewer/pdfjs-dist/web/viewer.html?file=/documents/'+${messageItem.getDocumentName()}"
                                width="100%"/>
                     </div>
-                    <div class="col-md-8 back-color" style="height: 700px" th:if="${messageItem.getCustomTex()}!=null">
+                    <div class="col-md-8" style="height: 700px" th:if="${messageItem.getCustomTex()}!=null">
                         <div class="full-size-div">
                             <div class="card-div">
                                 <div class="panel" style="background-color: rgb(232, 237, 241)">
@@ -226,7 +225,7 @@
 
                         </div>
                     </div>
-                    <div class="align-items-center col-md-4 display-flex height-100pct flex-direction-column back-color">
+                    <div class="align-items-center col-md-4 display-flex height-100pct flex-direction-column">
                         <div class="display-flex flex-grow-1 margin-top-25px overflow-auto padding-right-0px"
                              style="align-self: flex-start;">
                             <div class="padding-right-5px">

@@ -3,8 +3,8 @@ package fr.dossierfacile.common.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.dossierfacile.common.entity.Document;
-import fr.dossierfacile.common.entity.Log;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.entity.TenantLog;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.LogType;
@@ -13,7 +13,7 @@ import fr.dossierfacile.common.model.log.ApplicationTypeChange;
 import fr.dossierfacile.common.model.log.EditedDocument;
 import fr.dossierfacile.common.model.log.EditedStep;
 import fr.dossierfacile.common.model.log.EditionType;
-import fr.dossierfacile.common.repository.LogRepository;
+import fr.dossierfacile.common.repository.TenantLogRepository;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,22 +27,22 @@ import java.util.List;
 @AllArgsConstructor
 public class LogServiceImpl implements LogService {
 
-    private final LogRepository repository;
+    private final TenantLogRepository repository;
     private final DeletedTenantCommonMapper deletedTenantCommonMapper;
     private final ObjectMapper objectMapper;
 
-    private void saveLog(Log log) {
+    private void saveLog(TenantLog log) {
         repository.save(log);
     }
 
     @Override
     public void saveLog(LogType logType, Long tenantId) {
-        this.saveLog(new Log(logType, tenantId));
+        this.saveLog(new TenantLog(logType, tenantId));
     }
 
     @Override
     public void saveStepLog(Long tenantId, String stepName) {
-        Log log = Log.builder()
+        TenantLog log = TenantLog.builder()
                 .logType(LogType.ACCOUNT_EDITED)
                 .tenantId(tenantId)
                 .creationDateTime(LocalDateTime.now())
@@ -54,7 +54,7 @@ public class LogServiceImpl implements LogService {
     @Override
     public void saveLogWithTenantData(LogType logType, Tenant tenant) {
         this.saveLog(
-                Log.builder()
+                TenantLog.builder()
                         .logType(logType)
                         .tenantId(tenant.getId())
                         .creationDateTime(LocalDateTime.now())
@@ -67,7 +67,7 @@ public class LogServiceImpl implements LogService {
 
     @Override
     public void saveDocumentEditedLog(Document document, Tenant editor, EditionType editionType) {
-        Log log = Log.builder()
+        TenantLog log = TenantLog.builder()
                 .logType(LogType.ACCOUNT_EDITED)
                 .tenantId(editor.getId())
                 .creationDateTime(LocalDateTime.now())
@@ -78,7 +78,7 @@ public class LogServiceImpl implements LogService {
 
     @Override
     public void savePartnerAccessRevocationLog(Tenant tenant, UserApi userApi) {
-        Log log = Log.builder()
+        TenantLog log = TenantLog.builder()
                 .logType(LogType.PARTNER_ACCESS_REVOKED)
                 .tenantId(tenant.getId())
                 .creationDateTime(LocalDateTime.now())
@@ -93,7 +93,7 @@ public class LogServiceImpl implements LogService {
             return;
         }
         for (Tenant tenant : tenants) {
-            Log log = Log.builder()
+            TenantLog log = TenantLog.builder()
                     .logType(LogType.APPLICATION_TYPE_CHANGED)
                     .tenantId(tenant.getId())
                     .creationDateTime(LocalDateTime.now())

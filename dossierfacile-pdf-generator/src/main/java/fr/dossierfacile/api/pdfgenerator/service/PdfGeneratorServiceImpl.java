@@ -19,7 +19,6 @@ import fr.dossierfacile.common.enums.FileStorageStatus;
 import fr.dossierfacile.common.repository.StorageFileRepository;
 import fr.dossierfacile.common.repository.WatermarkDocumentRepository;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
-import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -45,7 +44,6 @@ import static fr.dossierfacile.common.enums.DocumentCategory.IDENTIFICATION_LEGA
 @Service
 @RequiredArgsConstructor
 public class PdfGeneratorServiceImpl implements PdfGeneratorService {
-    private static final String EXCEPTION = "Sentry ID Exception: ";
 
     private final FileRepository fileRepository;
     private final FileStorageService fileStorageService;
@@ -73,7 +71,7 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
                                 return new FileInputStream(fileStorageService.download(file), mediaType);
 
                             } catch (Exception e) {
-                                log.error("File [" + file.getId() + "] won't be added to the pdf " + e.getMessage() + " - SEntry:" + Sentry.captureException(e));
+                                log.error("File [" + file.getId() + "] won't be added to the pdf " + e.getMessage());
                             }
                             return null;
                         })
@@ -139,7 +137,6 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
 
                         } catch (Exception e) {
                             log.error(e.getMessage() + ". It will not be added to the pdf of document [" + documentCategory.name() + "] with ID [" + documentId + "]");
-                            log.error(EXCEPTION + Sentry.captureException(e));
                         }
                         return null;
                     })
