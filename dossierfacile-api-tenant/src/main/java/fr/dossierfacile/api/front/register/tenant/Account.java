@@ -8,7 +8,7 @@ import fr.dossierfacile.api.front.register.SaveStep;
 import fr.dossierfacile.api.front.register.form.tenant.AccountForm;
 import fr.dossierfacile.api.front.service.interfaces.*;
 import fr.dossierfacile.api.front.util.Obfuscator;
-import fr.dossierfacile.api.front.util.TransactionalUtil;
+import fr.dossierfacile.common.utils.TransactionalUtil;
 import fr.dossierfacile.common.entity.ConfirmationToken;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
