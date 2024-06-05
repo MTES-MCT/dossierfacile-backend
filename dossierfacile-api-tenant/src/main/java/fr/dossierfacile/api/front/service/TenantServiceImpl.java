@@ -12,7 +12,7 @@ import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.service.interfaces.UserApiService;
 import fr.dossierfacile.api.front.util.Obfuscator;
-import fr.dossierfacile.api.front.util.TransactionalUtil;
+import fr.dossierfacile.common.utils.TransactionalUtil;
 import fr.dossierfacile.common.converter.AcquisitionData;
 import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.*;
