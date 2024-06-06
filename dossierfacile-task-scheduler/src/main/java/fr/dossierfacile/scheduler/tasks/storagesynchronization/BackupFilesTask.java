@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static fr.dossierfacile.scheduler.LoggingContext.STORAGE_FILE;
 import static fr.dossierfacile.scheduler.tasks.TaskName.STORAGE_FILES_BACKUP;
@@ -41,7 +42,7 @@ public class BackupFilesTask {
         LoggingContext.endTask();
     }
 
-    @Scheduled(fixedDelayString = "${scheduled.process.storage.backup.retry.failed.copy.delay.minutes}", initialDelayString = "${scheduled.process.storage.backup.retry.failed.copy.delay.minutes}")
+    @Scheduled(fixedDelayString = "${scheduled.process.storage.backup.retry.failed.copy.delay.minutes}", initialDelayString = "${scheduled.process.storage.backup.retry.failed.copy.delay.minutes}", timeUnit = TimeUnit.MINUTES)
     public void retryFailedCopy() {
         LoggingContext.startTask(STORAGE_FILES_BACKUP_RETRY);
         Pageable limit = PageRequest.of(0, 100);

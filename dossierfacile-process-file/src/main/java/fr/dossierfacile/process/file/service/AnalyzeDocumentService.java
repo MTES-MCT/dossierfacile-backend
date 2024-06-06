@@ -45,7 +45,7 @@ public class AnalyzeDocumentService {
                 rulesValidationServices.stream().forEach(rulesService -> rulesService.process(document, report));
                 document.setDocumentAnalysisReport(report);
                 documentAnalysisReportRepository.save(report);
-                documentRepository.save(document);
+                documentRepository.save(document);// necessaire?
             }
 
         } catch (Exception e) {

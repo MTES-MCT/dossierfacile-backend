@@ -10,8 +10,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.Hibernate;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.SoftDelete;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -65,7 +63,6 @@ public class File implements Serializable {
     void deleteCascade() {
         if (storageFile != null)
             storageFile.setStatus(FileStorageStatus.TO_DELETE);
-
         if (preview != null)
             preview.setStatus(FileStorageStatus.TO_DELETE);
     }
