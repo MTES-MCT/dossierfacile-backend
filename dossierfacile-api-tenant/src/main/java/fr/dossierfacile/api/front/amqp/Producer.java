@@ -4,6 +4,9 @@ package fr.dossierfacile.api.front.amqp;
 import com.google.gson.Gson;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
+import fr.dossierfacile.common.entity.messaging.QueueMessage;
+import fr.dossierfacile.common.entity.messaging.QueueMessageStatus;
+import fr.dossierfacile.common.repository.QueueMessageRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.AmqpTemplate;
@@ -21,6 +24,7 @@ import java.util.Collections;
 @Slf4j
 @RequiredArgsConstructor
 public class Producer {
+    private final QueueMessageRepository queueMessageRepository;
     private final AmqpTemplate amqpTemplate;
     private final Gson gson;
 
@@ -60,15 +64,19 @@ public class Producer {
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    @Async
     public void sendDocumentForAnalysis(Document document) {
         log.debug("Sending document with ID [{}] for analysis", document.getId());
-        MessageProperties properties = new MessageProperties();
-        properties.setHeader("timestamp", System.currentTimeMillis());
-        Message msg = new Message(
-                gson.toJson(Collections.singletonMap("id", String.valueOf( document.getId()))).getBytes(),
-                properties);
-        amqpTemplate.send(exchangeFileProcess, routingKeyAnalyzeDocument, msg);
+        QueueMessage message = queueMessageRepository.findByDocumentIdAndStatus(document.getId(), QueueMessageStatus.PENDING);
+        if (message == null){
+            message = QueueMessage.builder()
+                    .documentId(document.getId())
+                    .status(QueueMessageStatus.PENDING)
+                    .timestamp(System.currentTimeMillis())
+                    .build();
+        } else {
+            message.setTimestamp(System.currentTimeMillis());
+        }
+        queueMessageRepository.save(message);
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
