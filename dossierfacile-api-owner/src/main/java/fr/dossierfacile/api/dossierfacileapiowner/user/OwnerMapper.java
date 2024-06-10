@@ -21,5 +21,6 @@ public abstract class OwnerMapper {
     public abstract ApartmentSharingModel apartmentSharingToApartmentSharingModel(ApartmentSharing apartmentSharing);
 
     @Mapping( target="propertyApartmentSharingCount", expression="java(property.getPropertiesApartmentSharing().size())" )
+    @Mapping( source="dpeDate", target="dpeDate", dateFormat="yyyy-MM-dd")
     public abstract LightPropertyModel toLightPropertyModel(Property property);
 }

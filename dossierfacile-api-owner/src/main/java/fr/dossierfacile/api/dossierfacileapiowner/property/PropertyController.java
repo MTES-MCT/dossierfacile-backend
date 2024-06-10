@@ -45,7 +45,7 @@ public class PropertyController {
     private final PropertyMapper propertyMapper;
 
     @PutMapping
-    public ResponseEntity<PropertyModel> createOrUpdate(@RequestBody PropertyForm Property) {
+    public ResponseEntity<PropertyModel> createOrUpdate(@RequestBody PropertyForm Property) throws HttpResponseException, InterruptedException {
         PropertyModel propertyModel = propertyService.createOrUpdate(Property);
         logService.saveLog(LogType.ACCOUNT_EDITED, propertyModel.getId());
         return ok(propertyModel);
@@ -70,6 +70,14 @@ public class PropertyController {
         return ok(ownerMapper.toOwnerModel(owner));
     }
 
+    @DeleteMapping("/dpe/{id}")
+    public ResponseEntity<OwnerModel> deleteDpe(@PathVariable Long id) {
+        Property property = propertyService.getProperty(id).orElseThrow(NotFoundException::new);
+        propertyService.deleteDpe(property);
+        Owner owner = authenticationFacade.getOwner();
+        return ok(ownerMapper.toOwnerModel(owner));
+    }
+
     @GetMapping(value = "/listAddresses/{query}")
     public ResponseEntity<String> getAddresses(@PathVariable String query) throws HttpResponseException {
         try {
@@ -78,8 +86,10 @@ public class PropertyController {
                     .uri(uri)
                     .GET()
                     .build();
-            HttpClient client = HttpClient.newHttpClient();
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response;
+            try (HttpClient client = HttpClient.newHttpClient()) {
+                response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            }
             return ok(response.body());
         } catch (URISyntaxException | IOException | InterruptedException e) {
             e.printStackTrace();
