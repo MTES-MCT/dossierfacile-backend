@@ -47,7 +47,9 @@ public class DocumentTask {
         LoggingContext.startTask(PDF_GENERATION);
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime toDateTime = now.minusMinutes(30);
-        documentRepository.findWithoutPDFToDate(toDateTime).forEach(this::sendForPDFGeneration);
+        List<Document> documents = documentRepository.findWithoutPDFToDate(toDateTime);
+        log.info("Relaunch " + documents.size() + " failed documents to " + toDateTime);
+        documents.forEach(this::sendForPDFGeneration);
         LoggingContext.endTask();
     }
 
@@ -80,7 +82,6 @@ public class DocumentTask {
 
     private Message messageWithId(Long id) {
         MessageProperties properties = new MessageProperties();
-        properties.setHeader("timestamp", System.currentTimeMillis());
         return new Message(
                 gson.toJson(Collections.singletonMap("id", String.valueOf(id))).getBytes(),
                 properties);
