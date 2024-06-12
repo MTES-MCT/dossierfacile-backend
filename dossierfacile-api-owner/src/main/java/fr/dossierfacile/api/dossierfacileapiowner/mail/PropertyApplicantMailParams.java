@@ -7,6 +7,7 @@ public class PropertyApplicantMailParams {
     private String ownerLastname;
     private String ownerFirstname;
     private String tenantName;
+    private String tenantEmail;
     private String propertyName;
     private String propertyUrl;
 }

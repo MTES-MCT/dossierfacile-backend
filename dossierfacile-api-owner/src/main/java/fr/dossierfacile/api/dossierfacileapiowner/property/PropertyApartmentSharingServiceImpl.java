@@ -5,6 +5,7 @@ import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Property;
 import fr.dossierfacile.common.entity.PropertyApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.repository.PropertyLogRepository;
 import lombok.AllArgsConstructor;
@@ -43,7 +44,11 @@ public class PropertyApartmentSharingServiceImpl implements PropertyApartmentSha
                                 .build();
                 propertyApartmentSharingRepository.save(propertyApartmentSharing);
                 logRepository.save(applicationReceived(property, apartmentSharing));
-                mailService.sendEmailNewApplicant(tenant, property.getOwner(), property);
+                if (apartmentSharing.getStatus() == TenantFileStatus.VALIDATED) {
+                    mailService.sendEmailNewApplicantValidated(tenant, property.getOwner(), property);
+                } else {
+                    mailService.sendEmailNewApplicantNotValidated(tenant, property.getOwner(), property);
+                }
             }
         } else {
             throw new IllegalStateException("Tenant is not the main tenant");

@@ -40,8 +40,10 @@ public class MailServiceImpl implements MailService {
     private String ownerUrl;
     @Value("${sendinblue.template.id.applicant.validated}")
     private Long templateIdApplicantValidated;
-    @Value("${sendinblue.template.id.new.applicant}")
-    private Long templateIdNewApplicant;
+    @Value("${sendinblue.template.id.new.applicant.validated}")
+    private Long templateIdNewApplicantValidated;
+    @Value("${sendinblue.template.id.new.applicant.not.validated}")
+    private Long templateIdNewApplicantNotValidated;
     @Value("${sendinblue.template.id.validated.property}")
     private Long templateIdValidatedProperty;
 
@@ -103,18 +105,32 @@ public class MailServiceImpl implements MailService {
                         .ownerLastname(owner.getLastName())
                         .ownerFirstname(owner.getFirstName())
                         .tenantName(tenant.get().getFullName())
+                        .tenantEmail(tenant.get().getEmail())
                         .propertyName(associatedProperty.getName())
                         .propertyUrl(ownerUrl + propertyPath + associatedProperty.getId())
                         .build());
     }
 
     @Override
-    public void sendEmailNewApplicant(Tenant tenant, Owner owner, Property property) {
-        sendTransactionalEmail(templateIdNewApplicant, owner,
+    public void sendEmailNewApplicantValidated(Tenant tenant, Owner owner, Property property) {
+        sendTransactionalEmail(templateIdNewApplicantValidated, owner,
                 PropertyApplicantMailParams.builder()
                         .ownerLastname(owner.getLastName())
                         .ownerFirstname(owner.getFirstName())
                         .tenantName(tenant.getFullName())
+                        .tenantEmail(tenant.getEmail())
+                        .propertyName(property.getName())
+                        .propertyUrl(ownerUrl + propertyPath + property.getId())
+                        .build());
+    }
+    @Override
+    public void sendEmailNewApplicantNotValidated(Tenant tenant, Owner owner, Property property) {
+        sendTransactionalEmail(templateIdNewApplicantNotValidated, owner,
+                PropertyApplicantMailParams.builder()
+                        .ownerLastname(owner.getLastName())
+                        .ownerFirstname(owner.getFirstName())
+                        .tenantName(tenant.getFullName())
+                        .tenantEmail(tenant.getEmail())
                         .propertyName(property.getName())
                         .propertyUrl(ownerUrl + propertyPath + property.getId())
                         .build());

@@ -11,14 +11,10 @@ import java.util.List;
 
 public interface MailService {
     void sendEmailConfirmAccount(User user, ConfirmationToken confirmationToken);
-
     void sendEmailNewPassword(User user, PasswordRecoveryToken passwordRecoveryToken);
-
     void sendEmailApplicantValidated(Property associatedProperty, List<Long> tenantIds);
-
-    void sendEmailNewApplicant(Tenant tenant, Owner owner, Property property);
-
+    void sendEmailNewApplicantValidated(Tenant tenant, Owner owner, Property property);
+    void sendEmailNewApplicantNotValidated(Tenant tenant, Owner owner, Property property);
     void sendEmailValidatedProperty(User user, Property property);
-
     void sendEmailFollowUpValidatedProperty(User user, Property property);
 }
