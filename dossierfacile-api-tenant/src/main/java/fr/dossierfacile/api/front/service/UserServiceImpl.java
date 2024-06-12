@@ -9,7 +9,7 @@ import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.repository.PasswordRecoveryTokenRepository;
 import fr.dossierfacile.api.front.repository.UserRepository;
 import fr.dossierfacile.api.front.service.interfaces.*;
-import fr.dossierfacile.api.front.util.TransactionalUtil;
+import fr.dossierfacile.common.utils.TransactionalUtil;
 import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.LogType;

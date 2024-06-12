@@ -5,15 +5,14 @@ import fr.dossierfacile.common.enums.*;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
+import fr.dossierfacile.common.utils.TransactionalUtil;
 import fr.gouv.bo.dto.*;
 import fr.gouv.bo.exception.DocumentNotFoundException;
+import fr.gouv.bo.exception.GuarantorNotFoundException;
 import fr.gouv.bo.lambda_interfaces.StringCustomMessage;
 import fr.gouv.bo.lambda_interfaces.StringCustomMessageGuarantor;
 import fr.gouv.bo.model.ProcessedDocuments;
-import fr.gouv.bo.repository.BOApartmentSharingRepository;
-import fr.gouv.bo.repository.DocumentDeniedReasonsRepository;
-import fr.gouv.bo.repository.DocumentRepository;
-import fr.gouv.bo.repository.OperatorLogRepository;
+import fr.gouv.bo.repository.*;
 import fr.gouv.bo.security.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -61,6 +60,8 @@ public class TenantService {
     private final TenantLogService tenantLogService;
     private final KeycloakService keycloakService;
     private final LogService communTenantLogService;
+    private final ApartmentSharingService apartmentSharingService;
+    private final GuarantorRepository guarantorRepository;
 
     private int forTenant = 0;
     @Value("${time.reprocess.application.minutes}")
@@ -363,6 +364,7 @@ public class TenantService {
         return null;
     }
 
+    @Transactional
     public void declineTenant(Principal principal, Long tenantId) {
         Tenant tenant = find(tenantId);
         User operator = userService.findUserByEmail(principal.getName());
@@ -417,6 +419,7 @@ public class TenantService {
         return allMessageResult;
     }
 
+    @Transactional
     public String customMessage(Principal principal, Long tenantId, CustomMessage customMessage) {
         Tenant tenant = find(tenantId);
         if (tenant == null) {
@@ -464,6 +467,7 @@ public class TenantService {
         updateOperatorDateTimeTenant(tenantId);
     }
 
+    @Transactional
     //todo : Review this method to refactor with the others DENY OR VALIDATE documents for tenants
     public String updateStatusOfTenantFromAdmin(Principal principal, MessageDTO messageDTO, Long tenantId) {
         User operator = userService.findUserByEmail(principal.getName());
@@ -493,7 +497,9 @@ public class TenantService {
         return "redirect:/bo/colocation/" + tenant.getApartmentSharing().getId() + "#tenant" + tenant.getId();
     }
 
-    public void updateTenantStatus(Tenant tenant, User operator) {
+
+    @Transactional
+    private void updateTenantStatus(Tenant tenant, User operator) {
         TenantFileStatus previousStatus = tenant.getStatus();
         tenant.setStatus(tenant.computeStatus());
         tenantRepository.save(tenant);
@@ -512,18 +518,20 @@ public class TenantService {
         tenantLogService.saveByLog(new TenantLog(LogType.ACCOUNT_VALIDATED, tenant.getId(), operator.getId()));
         operatorLogRepository.save(new OperatorLog(tenant, operator, tenant.getStatus(), ActionOperatorType.STOP_PROCESS, processedDocuments.count(), processedDocuments.timeSpent()));
 
-        if (tenant.getApartmentSharing().getApplicationType() == ApplicationType.GROUP) {
-            mailService.sendEmailToTenantAfterValidateAllDocumentsOfTenant(tenant);
-        } else {
-            if (tenant.getApartmentSharing().getTenants().stream()
-                    .allMatch(t -> t.getStatus() == TenantFileStatus.VALIDATED)) {
-                tenant.getApartmentSharing().getTenants().stream()
-                        .filter(t -> isNotBlank(t.getEmail()))
-                        .forEach(t -> mailService.sendEmailToTenantAfterValidateAllDocuments(t));
+        TransactionalUtil.afterCommit(() -> {
+            if (tenant.getApartmentSharing().getApplicationType() == ApplicationType.GROUP) {
+                mailService.sendEmailToTenantAfterValidateAllDocumentsOfTenant(tenant);
+            } else {
+                if (tenant.getApartmentSharing().getTenants().stream()
+                        .allMatch(t -> t.getStatus() == TenantFileStatus.VALIDATED)) {
+                    tenant.getApartmentSharing().getTenants().stream()
+                            .filter(t -> isNotBlank(t.getEmail()))
+                            .forEach(t -> mailService.sendEmailToTenantAfterValidateAllDocuments(t));
+                }
             }
-        }
 
-        partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.VERIFIED_ACCOUNT);
+            partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.VERIFIED_ACCOUNT);
+        });
 
     }
 
@@ -535,14 +543,17 @@ public class TenantService {
         operatorLogRepository.save(new OperatorLog(
                 tenant, operator, tenant.getStatus(), ActionOperatorType.STOP_PROCESS, processedDocuments.count(), processedDocuments.timeSpent()
         ));
-        if (tenant.getApartmentSharing().getApplicationType() == ApplicationType.COUPLE) {
-            tenant.getApartmentSharing().getTenants().stream()
-                    .filter(t -> isNotBlank(t.getEmail()))
-                    .forEach(t -> mailService.sendEmailToTenantAfterTenantDenied(t, tenant));
-        } else {
-            mailService.sendMailNotificationAfterDeny(tenant);
-        }
-        partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.DENIED_ACCOUNT);
+
+        TransactionalUtil.afterCommit(() -> {
+            if (tenant.getApartmentSharing().getApplicationType() == ApplicationType.COUPLE) {
+                tenant.getApartmentSharing().getTenants().stream()
+                        .filter(t -> isNotBlank(t.getEmail()))
+                        .forEach(t -> mailService.sendEmailToTenantAfterTenantDenied(t, tenant));
+            } else {
+                mailService.sendMailNotificationAfterDeny(tenant);
+            }
+            partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.DENIED_ACCOUNT);
+        });
     }
 
     @Transactional
@@ -688,5 +699,32 @@ public class TenantService {
         return Optional.empty();
     }
 
+    @Transactional
+    public Tenant deleteDocument(Long id, User operator) {
+        Tenant tenant = documentService.deleteDocument(id);
+        apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
+        updateTenantStatus(tenant, operator);
+        return tenant;
+    }
+
+    @Transactional
+    public Tenant changeDocumentStatus(Long id, MessageDTO messageDTO, User operator) {
+        Tenant tenant = documentService.changeStatusOfDocument(id, messageDTO);
+        apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
+        updateTenantStatus(tenant, operator);
+        return tenant;
+    }
+
+    @Transactional
+    public Tenant deleteGuarantor(Long guarantorId, User operator) {
+        Guarantor guarantor = guarantorRepository.findById(guarantorId).orElseThrow(() -> new GuarantorNotFoundException(guarantorId));
+        Tenant tenant = guarantor.getTenant();
+        tenant.getGuarantors().remove(guarantor);
+        guarantorRepository.deleteById(guarantorId);
+        apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
+
+        updateTenantStatus(tenant, operator);
+        return tenant;
+    }
 }
 

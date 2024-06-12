@@ -1,4 +1,4 @@
-package fr.dossierfacile.api.front.util;
+package fr.dossierfacile.common.utils;
 
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;

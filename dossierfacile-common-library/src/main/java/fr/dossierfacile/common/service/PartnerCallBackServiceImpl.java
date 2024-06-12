@@ -1,23 +1,21 @@
 package fr.dossierfacile.common.service;
 
-import fr.dossierfacile.common.entity.ApartmentSharing;
-import fr.dossierfacile.common.entity.Tenant;
-import fr.dossierfacile.common.entity.TenantUserApi;
-import fr.dossierfacile.common.entity.TenantUserApiKey;
-import fr.dossierfacile.common.entity.UserApi;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.mapper.ApplicationFullMapper;
 import fr.dossierfacile.common.model.WebhookDTO;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
 import fr.dossierfacile.common.repository.ApartmentSharingRepository;
+import fr.dossierfacile.common.repository.CallbackLogRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.repository.TenantUserApiRepository;
-import fr.dossierfacile.common.service.interfaces.CallbackLogService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.dossierfacile.common.service.interfaces.RequestService;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -35,8 +33,9 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
     private final TenantUserApiRepository tenantUserApiRepository;
     private final ApplicationFullMapper applicationFullMapper;
     private final RequestService requestService;
-    private final CallbackLogService callbackLogService;
+    private final CallbackLogRepository callbackLogRepository;
     private final ApartmentSharingRepository apartmentSharingRepository;
+    private final ObjectMapper objectMapper;
 
     public void registerTenant(String internalPartnerId, Tenant tenant, UserApi userApi) {
         Optional<TenantUserApi> optionalTenantUserApi = tenantUserApiRepository.findFirstByTenantAndUserApi(tenant, userApi);
@@ -86,7 +85,11 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
             tenantList.forEach(t -> sendCallBack(t, partnerCallBackType));
         }
     }
-
+    @SneakyThrows
+    private void createCallbackLogForPartnerModel(Tenant tenant, Long partnerId, TenantFileStatus tenantFileStatus, ApplicationModel applicationModel) {
+        String jsonContent = objectMapper.writeValueAsString(applicationModel);
+        callbackLogRepository.save(new CallbackLog(tenant.getId(), partnerId, tenantFileStatus, jsonContent));
+    }
     public void sendCallBack(Tenant tenant, WebhookDTO webhookDTO) {
         if (webhookDTO == null) {
             log.error("WebhookDTO should not be null");
@@ -99,7 +102,7 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
             return;
         }
         requestService.send((ApplicationModel) webhookDTO, userApi.getUrlCallback(), userApi.getPartnerApiKeyCallback());
-        callbackLogService.createCallbackLogForPartnerModel(tenant, userApi.getId(), tenant.getStatus(), (ApplicationModel) webhookDTO);
+        createCallbackLogForPartnerModel(tenant, userApi.getId(), tenant.getStatus(), (ApplicationModel) webhookDTO);
 
     }
 

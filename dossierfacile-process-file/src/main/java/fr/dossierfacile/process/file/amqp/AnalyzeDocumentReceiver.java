@@ -1,44 +1,63 @@
 package fr.dossierfacile.process.file.amqp;
 
-import com.google.gson.Gson;
+import fr.dossierfacile.common.entity.messaging.QueueMessage;
+import fr.dossierfacile.common.entity.messaging.QueueMessageStatus;
+import fr.dossierfacile.common.repository.QueueMessageRepository;
 import fr.dossierfacile.process.file.service.AnalyzeDocumentService;
 import fr.dossierfacile.process.file.service.interfaces.DocumentService;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.core.Message;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class AnalyzeDocumentReceiver {
     private final AnalyzeDocumentService analyzeDocumentService;
-    private final Gson gson;
     private final DocumentService documentService;
+    private final QueueMessageRepository queueMessageRepository;
+
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     @Value("${rabbitmq.document.analyze.delay}")
     private Long documentAnalysisDelay;
 
-    @RabbitListener(queues = "${rabbitmq.queue.document.analyze}", containerFactory = "retryContainerFactory")
-    public void receiveDocument(Message message) {
+    @PostConstruct
+    public void startConsumer() {
+        scheduler.scheduleAtFixedRate(this::receiveDocument, 0, 1, TimeUnit.SECONDS);
+    }
+
+    //@RabbitListener(queues = "${rabbitmq.queue.document.analyze}", containerFactory = "retryContainerFactory")
+    private void receiveDocument() {
+        QueueMessage message = queueMessageRepository.pop();
         log.debug("Received message on queue.document.analyze to process:" + message);
 
-        Long msgTimestamp = message.getMessageProperties().getHeader("timestamp");
-        delayExecution(msgTimestamp);
+        if (message != null) {
+            LoggingContext.startProcessing(message.getDocumentId(), ActionType.ANALYZE_DOCUMENT);
+            try {
+                delayExecution(message.getTimestamp());
+                if (documentService.documentIsUpToDateAt(message.getTimestamp(), message.getDocumentId())) {
+                    message.setStatus(QueueMessageStatus.PROCESSING);
+                    queueMessageRepository.saveAndFlush(message);
 
-        Map<String, String> content = gson.fromJson(new String(message.getBody()), Map.class);
-        Long documentId = Long.valueOf(content.get("id"));
-        if (documentService.documentIsUpToDateAt(msgTimestamp, documentId)) {
-            LoggingContext.startProcessing(documentId, ActionType.ANALYZE_DOCUMENT);
-            analyzeDocumentService.processDocument(documentId);
+                    analyzeDocumentService.processDocument(message.getDocumentId());
+                    queueMessageRepository.delete(message);
+
+                } else {
+                    log.debug("Ignore document analysis because document is NOT up to date");
+                    queueMessageRepository.delete(message);
+                }
+            } catch (Throwable t) {
+                message.setStatus(QueueMessageStatus.FAILED);
+                queueMessageRepository.save(message);
+            }
             LoggingContext.endProcessing();
-        } else {
-            log.debug("Ignore document analysis because document is NOT up to date");
         }
-
     }
 
     private void delayExecution(Long msgTimestamp) {

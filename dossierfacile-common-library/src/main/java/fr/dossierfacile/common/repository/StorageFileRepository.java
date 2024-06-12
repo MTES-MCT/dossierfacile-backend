@@ -43,7 +43,7 @@ public interface StorageFileRepository extends JpaRepository<StorageFile, Long> 
             nativeQuery = true)
     List<String> findExistingPathsIn(@Param("pathsToSearch") List<String> paths);
 
-    List<StorageFile> findAllByStatus(FileStorageStatus fileStorageStatus);
+    List<StorageFile> findAllByStatusOrderByIdAsc(FileStorageStatus fileStorageStatus, Pageable pageable);
 
     void delete(@NotNull StorageFile storageFile);
 }

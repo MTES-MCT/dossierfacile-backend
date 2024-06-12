@@ -30,7 +30,6 @@ import fr.gouv.bo.dto.TenantInfoHeader;
 import fr.gouv.bo.service.ApartmentSharingService;
 import fr.gouv.bo.service.DocumentDeniedReasonsService;
 import fr.gouv.bo.service.DocumentService;
-import fr.gouv.bo.service.GuarantorService;
 import fr.gouv.bo.service.TenantLogService;
 import fr.gouv.bo.service.MessageService;
 import fr.gouv.bo.service.TenantService;
@@ -78,13 +77,11 @@ public class BOTenantController {
 
     private final TenantService tenantService;
     private final MessageService messageService;
-    private final GuarantorService guarantorService;
     private final DocumentService documentService;
     private final UserApiService userApiService;
     private final TenantUserApiService tenantUserApiService;
     private final PartnerCallBackService partnerCallBackService;
     private final UserService userService;
-    private final ApartmentSharingService apartmentSharingService;
     private final TenantLogService logService;
     private final DocumentDeniedReasonsService documentDeniedReasonsService;
 
@@ -156,19 +153,16 @@ public class BOTenantController {
 
     @GetMapping("/delete/document/{id}")
     public String deleteDocument(@PathVariable("id") Long id, Principal principal) {
-        Tenant tenant = documentService.deleteDocument(id);
-        apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         User operator = userService.findUserByEmail(principal.getName());
-        tenantService.updateTenantStatus(tenant, operator);
+        Tenant tenant = tenantService.deleteDocument(id, operator);
         return redirectToTenantPage(tenant);
     }
 
     @GetMapping("/status/{id}")
     public String changeStatusOfDocument(@PathVariable("id") Long id, MessageDTO messageDTO, Principal principal) {
-        Tenant tenant = documentService.changeStatusOfDocument(id, messageDTO);
-        apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         User operator = userService.findUserByEmail(principal.getName());
-        tenantService.updateTenantStatus(tenant, operator);
+        Tenant tenant = tenantService.changeDocumentStatus(id,messageDTO, operator);
+
         return redirectToTenantPage(tenant);
     }
     private void checkPartnerRights(Tenant tenant, Principal principal){
@@ -204,10 +198,8 @@ public class BOTenantController {
 
     @GetMapping("/delete/guarantor/{guarantorId}")
     public String deleteGuarantor(@PathVariable("guarantorId") Long guarantorId, Principal principal) {
-        Tenant tenant = guarantorService.deleteById(guarantorId);
-        apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         User operator = userService.findUserByEmail(principal.getName());
-        tenantService.updateTenantStatus(tenant, operator);
+        Tenant tenant = tenantService.deleteGuarantor(guarantorId, operator);
         return redirectToTenantPage(tenant);
     }
 
