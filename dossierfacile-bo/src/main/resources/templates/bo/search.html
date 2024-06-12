@@ -9,7 +9,12 @@
 <body>
 
 <div layout:fragment="content" th:remove="tag">
-
+    <style>
+        .highlight {
+           background-color: yellow;
+           color: black;
+       }
+    </style>
     <div class="col-md-12">
         <div class="col-md-12" style="margin-bottom: 8px;">
             <div id="hideDiv" th:if="${message}" th:text="${message}" th:class="${'alert ' + alertClass}" style="padding: 10px;margin-bottom: auto;border-radius: 8px; text-align:center;">
@@ -19,7 +24,8 @@
     </div>
     <div class="container">
         <div class="text-center margin-bottom">
-            <span th:text="'TOTAL TENANTS FOUND : ' + ${matchList.size()}"></span>
+            <span>Recherche de '<span id="search-text" th:text="${keySearch}"></span>' </span>
+            <span th:text="'Nombre de locataires trouvés: ' + ${matchList.size()}"></span>
         </div>
         <div class="clearfix"></div>
         <div class="table-responsive">
@@ -42,12 +48,8 @@
                         <span th:text="${tenant.getId()}"></span>
                     </td>
                     <td th:text="${#temporals.format(tenant.getCreationDateTime(), 'yyyy-MM-dd HH:mm:ss')}"></td>
-                    <td th:style="${tenant.getFirstName().toLowerCase().contains(keySearch.toLowerCase())
-                     or keySearch.toLowerCase().contains(tenant.getFirstName().toLowerCase())?'background: #c9c9c9;':'background:#f9f9f9'}"
-                        th:text="${tenant.getFirstName()}"></td>
-                    <td th:style="${tenant.getLastName().toLowerCase().contains(keySearch.toLowerCase())
-                    or keySearch.toLowerCase().contains(tenant.getLastName().toLowerCase())?'background: #c9c9c9;':'background:#f9f9f9'}"
-                        th:text="${tenant.getLastName()}"></td>
+                    <td class="to-highlight" th:text="${tenant.getFirstName()}"></td>
+                    <td class="to-highlight" th:text="${tenant.getLastName()}"></td>
                     <td th:text="${tenant.getEmail()}"></td>
                 </tr>
             </table>
@@ -57,6 +59,7 @@
 </div>
 <div layout:fragment="javascripts" th:remove="tag">
     <script src="/js/bo/index.js"></script>
+    <script src="/js/bo/search.js"></script>
 </div>
 </body>
 </html>
