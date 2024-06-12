@@ -53,7 +53,7 @@ public class WatermarkDFDocumentConsumer {
             long timeToWait = documentPdfGenerationDelay - (System.currentTimeMillis() - msgTimestamp);
             if (timeToWait > 0) {
                 try {
-                    log.debug("Delayed execution in" + timeToWait + " ms");
+                    log.info("Delayed execution in" + timeToWait + " ms");
                     Thread.sleep(timeToWait);
                 } catch (InterruptedException e) {
                     log.warn("Unable to sleep the thread");
