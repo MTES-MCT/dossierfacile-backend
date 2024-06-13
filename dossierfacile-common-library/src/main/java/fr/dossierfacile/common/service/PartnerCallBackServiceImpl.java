@@ -20,10 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -66,19 +63,27 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
             }
         }
     }
-
+    private List<TenantUserApi> groupingAllTenantUserApisInTheApartment(ApartmentSharing as) {
+        List<TenantUserApi> tenantUserApis = new ArrayList<>();
+        if (as.getTenants() != null && !as.getTenants().isEmpty()) {
+            as.getTenants().stream()
+                    .filter(t -> t.getTenantsUserApi() != null && !t.getTenantsUserApi().isEmpty())
+                    .forEach(t -> tenantUserApis.addAll(t.getTenantsUserApi()));
+        }
+        return tenantUserApis;
+    }
+    // TODO send callback should be transactionnal or have DTO
     public void sendCallBack(Tenant tenant, PartnerCallBackType partnerCallBackType) {
         Optional<ApartmentSharing> apartmentSharing = apartmentSharingRepository.findByTenant(tenant.getId());
         if (apartmentSharing.isEmpty()) {
             return;
         }
-        apartmentSharing.get().groupingAllTenantUserApisInTheApartment().forEach(tenantUserApi -> {
+        groupingAllTenantUserApisInTheApartment(apartmentSharing.get()).forEach(tenantUserApi -> {
             UserApi userApi = tenantUserApi.getUserApi();
             WebhookDTO webhookDTO = getWebhookDTO(tenant, userApi, partnerCallBackType);
             sendCallBack(tenant, webhookDTO);
         });
     }
-
     @Override
     public void sendCallBack(List<Tenant> tenantList, PartnerCallBackType partnerCallBackType) {
         if (tenantList != null && !tenantList.isEmpty()) {

@@ -519,18 +519,25 @@ public class TenantService {
         operatorLogRepository.save(new OperatorLog(tenant, operator, tenant.getStatus(), ActionOperatorType.STOP_PROCESS, processedDocuments.count(), processedDocuments.timeSpent()));
 
         TransactionalUtil.afterCommit(() -> {
-            if (tenant.getApartmentSharing().getApplicationType() == ApplicationType.GROUP) {
-                mailService.sendEmailToTenantAfterValidateAllDocumentsOfTenant(tenant);
-            } else {
-                if (tenant.getApartmentSharing().getTenants().stream()
-                        .allMatch(t -> t.getStatus() == TenantFileStatus.VALIDATED)) {
-                    tenant.getApartmentSharing().getTenants().stream()
-                            .filter(t -> isNotBlank(t.getEmail()))
-                            .forEach(t -> mailService.sendEmailToTenantAfterValidateAllDocuments(t));
+            try {
+                if (tenant.getApartmentSharing().getApplicationType() == ApplicationType.GROUP) {
+                    mailService.sendEmailToTenantAfterValidateAllDocumentsOfTenant(tenant);
+                } else {
+                    if (tenant.getApartmentSharing().getTenants().stream()
+                            .allMatch(t -> t.getStatus() == TenantFileStatus.VALIDATED)) {
+                        tenant.getApartmentSharing().getTenants().stream()
+                                .filter(t -> isNotBlank(t.getEmail()))
+                                .forEach(t -> mailService.sendEmailToTenantAfterValidateAllDocuments(t));
+                    }
                 }
+            } catch (Exception e) {
+                log.error("CAUTION Unable to send notification to user ");
             }
-
-            partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.VERIFIED_ACCOUNT);
+            try {
+                partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.VERIFIED_ACCOUNT);
+            } catch (Exception e) {
+                log.error("CAUTION Unable to send notification to partner");
+            }
         });
 
     }
@@ -543,6 +550,20 @@ public class TenantService {
         operatorLogRepository.save(new OperatorLog(
                 tenant, operator, tenant.getStatus(), ActionOperatorType.STOP_PROCESS, processedDocuments.count(), processedDocuments.timeSpent()
         ));
+
+        // TODO This part should be here to load tenant futur tenant data Please use DTO in AfterCommit INSTEAD !
+        // This part should treat sendMail and sendCallback
+        if (tenant.getApartmentSharing().getApplicationType() == ApplicationType.COUPLE) {
+            tenant.getApartmentSharing().getTenants().stream()
+                    .filter(t -> isNotBlank(t.getEmail()))
+                    .forEach(t -> {
+                        if (t.isBelongToPartner())
+                            t.getTenantsUserApi().get(0).getUserApi();
+                    });
+        } else {
+            if (tenant.isBelongToPartner())
+                tenant.getTenantsUserApi().get(0).getUserApi();
+        }
 
         TransactionalUtil.afterCommit(() -> {
             if (tenant.getApartmentSharing().getApplicationType() == ApplicationType.COUPLE) {

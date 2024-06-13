@@ -81,13 +81,21 @@ public class UserServiceImpl implements UserService {
         PasswordRecoveryToken passwordRecoveryToken = passwordRecoveryTokenService.create(tenant);
         mailService.sendEmailNewPassword(tenant, passwordRecoveryToken);
     }
-
+    private List<TenantUserApi> groupingAllTenantUserApisInTheApartment(ApartmentSharing as) {
+        List<TenantUserApi> tenantUserApis = new ArrayList<>();
+        if (as.getTenants() != null && !as.getTenants().isEmpty()) {
+            as.getTenants().stream()
+                    .filter(t -> t.getTenantsUserApi() != null && !t.getTenantsUserApi().isEmpty())
+                    .forEach(t -> tenantUserApis.addAll(t.getTenantsUserApi()));
+        }
+        return tenantUserApis;
+    }
     @Override
     @Transactional
     public void deleteAccount(Tenant tenant) {
         List<WebhookDTO> webhookDTOList = new ArrayList<>();
         ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
-        apartmentSharing.groupingAllTenantUserApisInTheApartment().forEach((tenantUserApi) -> {
+        groupingAllTenantUserApisInTheApartment(apartmentSharing).forEach((tenantUserApi) -> {
             UserApi userApi = tenantUserApi.getUserApi();
             webhookDTOList.add(partnerCallBackService.getWebhookDTO(tenant, userApi, PartnerCallBackType.DELETED_ACCOUNT));
         });
