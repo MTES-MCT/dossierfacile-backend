@@ -33,7 +33,9 @@ public class MinifyFileProducer {
     public void minifyFile(Long fileId) {
         Map<String, String> body = new TreeMap<>();
         body.putIfAbsent("id", String.valueOf(fileId));
-        Message msg  =  new Message( gson.toJson(body).getBytes(), new MessageProperties());
+        MessageProperties properties = new MessageProperties();
+        properties.setHeader("timestamp", System.currentTimeMillis());
+        Message msg  =  new Message( gson.toJson(body).getBytes(), properties);
 
         log.info("Sending file with ID [" + fileId + "] for minifying");
         amqpTemplate.send(exchangeFileProcess, routingKeyMinify, msg);
