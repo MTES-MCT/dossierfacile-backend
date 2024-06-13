@@ -32,14 +32,14 @@ public class WatermarkDFDocumentConsumer {
     @RabbitListener(queues = "${rabbitmq.queue.watermark-document.name}", containerFactory = "retryContainerFactory")
     public void receiveMessage(Message message) throws Exception {
         log.debug("Received message on watermark.dfdocument to process:" + message);
-        Long msgTimestamp = message.getMessageProperties().getHeader("timestamp");
+        long msgTimestamp = message.getMessageProperties().getHeader("timestamp");
         delayExecution(msgTimestamp);
 
         try {
             Map<String, String> data = gson.fromJson(new String(message.getBody()), Map.class);
             final Long documentId = Long.valueOf(data.get("id"));
             if (documentService.documentIsUpToDateAt(msgTimestamp, documentId)) {
-                Long executionTimestamp = System.currentTimeMillis();
+                long executionTimestamp = System.currentTimeMillis();
                 Future<StorageFile> future = executorService.submit(() -> pdfGeneratorService.generateBOPdfDocument(documentService.getDocument(documentId)));
                 try {
                     StorageFile watermarkFile = future.get(generateDocumentPdfTimeout, TimeUnit.SECONDS);
