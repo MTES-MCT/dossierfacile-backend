@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
+import java.util.concurrent.*;
 
 @Service
 @RequiredArgsConstructor
@@ -22,8 +23,11 @@ public class WatermarkDFDocumentConsumer {
     private final Gson gson;
     private final PdfGeneratorService pdfGeneratorService;
     private final DocumentService documentService;
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
     @Value("${rabbitmq.document.pdf-generation.delay}")
     private Long documentPdfGenerationDelay;
+    @Value("${pdf.document.generate.timeout.seconds}")
+    private Long generateDocumentPdfTimeout;
 
     @RabbitListener(queues = "${rabbitmq.queue.watermark-document.name}", containerFactory = "retryContainerFactory")
     public void receiveMessage(Message message) throws Exception {
@@ -33,18 +37,25 @@ public class WatermarkDFDocumentConsumer {
 
         try {
             Map<String, String> data = gson.fromJson(new String(message.getBody()), Map.class);
-            Long documentId = Long.valueOf(data.get("id"));
+            final Long documentId = Long.valueOf(data.get("id"));
             if (documentService.documentIsUpToDateAt(msgTimestamp, documentId)) {
                 Long executionTimestamp = System.currentTimeMillis();
-                StorageFile watermarkFile = pdfGeneratorService.generateBOPdfDocument(documentService.getDocument(documentId));
-                documentService.saveWatermarkFileAt(executionTimestamp, watermarkFile, documentId);
+                Future<StorageFile> future = executorService.submit(() -> pdfGeneratorService.generateBOPdfDocument(documentService.getDocument(documentId)));
+                try {
+                    StorageFile watermarkFile = future.get(generateDocumentPdfTimeout, TimeUnit.SECONDS);
+                    documentService.saveWatermarkFileAt(executionTimestamp, watermarkFile, documentId);
+
+                } catch (InterruptedException | ExecutionException | TimeoutException e) {
+                    future.cancel(true);
+                    throw new RuntimeException("Timeout lors de la génération du PDF pour le document " + documentId, e);
+                }
+
             } else {
                 log.debug("Ignore document pdf generation cause document is NOT up to date");
             }
 
         } catch (Exception e) {
             log.error(e.getMessage(), e.getCause());
-            throw e;
         }
     }
 

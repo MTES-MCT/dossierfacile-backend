@@ -7,11 +7,7 @@ import fr.dossierfacile.api.pdfgenerator.service.templates.ApartmentSharingPdfDo
 import fr.dossierfacile.api.pdfgenerator.service.templates.BOIdentificationPdfDocumentTemplate;
 import fr.dossierfacile.api.pdfgenerator.service.templates.BOPdfDocumentTemplate;
 import fr.dossierfacile.api.pdfgenerator.service.templates.EmptyBOPdfDocumentTemplate;
-import fr.dossierfacile.common.entity.ApartmentSharing;
-import fr.dossierfacile.common.entity.Document;
-import fr.dossierfacile.common.entity.File;
-import fr.dossierfacile.common.entity.StorageFile;
-import fr.dossierfacile.common.entity.WatermarkDocument;
+import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.FileStatus;
@@ -30,11 +26,7 @@ import org.springframework.util.CollectionUtils;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.rmi.UnexpectedException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static fr.dossierfacile.common.enums.DocumentCategory.IDENTIFICATION;
@@ -150,8 +142,7 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
     }
 
     @Override
-    public StorageFile generateBOPdfDocument(Document document) {
-
+    public StorageFile generateBOPdfDocument(Document document) throws Exception {
         long documentId = document.getId();
         DocumentCategory documentCategory = document.getDocumentCategory();
         String documentCategoryName = documentCategory.name();
@@ -164,13 +155,11 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
                     .path("dossierfacile_pdf_" + UUID.randomUUID() + ".pdf")
                     .contentType(MediaType.APPLICATION_PDF_VALUE)
                     .build();
-            StorageFile storageFile = fileStorageService.upload(documentInputStream, pdfFile);
-
-            return storageFile;
+            return fileStorageService.upload(documentInputStream, pdfFile);
         } catch (Exception e) {
             log.error("Unable to generate the watermark pdf file for document " + documentId);
+            throw new RuntimeException(e);
         }
-        return null;
     }
 
     @Override

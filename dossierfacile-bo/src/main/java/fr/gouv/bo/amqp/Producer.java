@@ -33,7 +33,6 @@ public class Producer {
 
     private Message messageWithId(Long id) {
         MessageProperties properties = new MessageProperties();
-        properties.setHeader("timestamp", System.currentTimeMillis());
         return new Message(
                 gson.toJson(Collections.singletonMap("id", String.valueOf(id))).getBytes(),
                 properties);
