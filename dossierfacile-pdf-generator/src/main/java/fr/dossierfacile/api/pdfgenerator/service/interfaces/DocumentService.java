@@ -4,9 +4,9 @@ import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.StorageFile;
 
 public interface DocumentService {
-    boolean documentIsUpToDateAt(Long timestamp, Long documentId);
+    boolean documentIsUpToDateAt(long timestamp, Long documentId);
 
-    void saveWatermarkFileAt(Long executionTimestamp, StorageFile watermarkFile, Long documentId);
+    void saveWatermarkFileAt(long executionTimestamp, StorageFile watermarkFile, Long documentId);
 
     Document getDocument(Long documentId);
 }

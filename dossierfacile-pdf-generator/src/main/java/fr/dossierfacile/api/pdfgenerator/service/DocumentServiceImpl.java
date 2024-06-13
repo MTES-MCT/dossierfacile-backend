@@ -23,7 +23,7 @@ public class DocumentServiceImpl implements DocumentService {
     private final FileStorageService fileStorageService;
 
     @Override
-    public boolean documentIsUpToDateAt(Long timestamp, Long documentId) {
+    public boolean documentIsUpToDateAt(long timestamp, Long documentId) {
         LocalDateTime dateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.systemDefault());
         Document document = documentRepository.findById(documentId).orElse(null);
 
@@ -37,7 +37,7 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Transactional
     @Override
-    public void saveWatermarkFileAt(Long executionTimestamp, StorageFile watermarkFile, Long documentId) {
+    public void saveWatermarkFileAt(long executionTimestamp, StorageFile watermarkFile, Long documentId) {
         Document document = documentRepository.findById(documentId).orElse(null);
         if (documentIsUpToDateAt(executionTimestamp, document.getId())) {
             document.setWatermarkFile(watermarkFile);
