@@ -1,12 +1,15 @@
 package fr.dossierfacile.api.dossierfacileapiowner.property;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.dossierfacile.common.enums.PropertyFurniture;
 import fr.dossierfacile.common.enums.PropertyType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.Date;
 
 @Data
 @Builder
@@ -27,5 +30,8 @@ public class LightPropertyModel {
     private String address;
     private Integer co2Emission;
     private Integer energyConsumption;
+    private String dpeDate;
     private Integer propertyApartmentSharingCount;
+    private String ademeNumber;
+    private ObjectNode ademeApiResult;
 }

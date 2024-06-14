@@ -7,6 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Date;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -34,4 +36,9 @@ public class PropertyForm {
     private Integer co2Emission;
 
     private Integer energyConsumption;
+
+    private String dpeDate;
+
+    private String ademeNumber;
+
 }
