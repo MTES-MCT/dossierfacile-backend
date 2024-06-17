@@ -96,8 +96,8 @@ public class DocumentService {
                     producer.generatePdf(documentId);
                     Thread.sleep(10);
                 } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
                     log.error("Something wrong on sleep !!! ");
+                    Thread.currentThread().interrupt();
                 }
             });
         }

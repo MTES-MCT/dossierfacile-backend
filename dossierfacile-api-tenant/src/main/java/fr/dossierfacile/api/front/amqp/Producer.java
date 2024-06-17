@@ -6,6 +6,7 @@ import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.messaging.QueueMessage;
 import fr.dossierfacile.common.entity.messaging.QueueMessageStatus;
+import fr.dossierfacile.common.entity.messaging.QueueName;
 import fr.dossierfacile.common.repository.QueueMessageRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -66,9 +67,10 @@ public class Producer {
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void sendDocumentForAnalysis(Document document) {
         log.debug("Sending document with ID [{}] for analysis", document.getId());
-        QueueMessage message = queueMessageRepository.findByDocumentIdAndStatus(document.getId(), QueueMessageStatus.PENDING);
+        QueueMessage message = queueMessageRepository.findByQueueNameAndDocumentIdAndStatus(QueueName.QUEUE_DOCUMENT_ANALYSIS, document.getId(), QueueMessageStatus.PENDING);
         if (message == null){
             message = QueueMessage.builder()
+                    .queueName(QueueName.QUEUE_DOCUMENT_ANALYSIS)
                     .documentId(document.getId())
                     .status(QueueMessageStatus.PENDING)
                     .timestamp(System.currentTimeMillis())

@@ -26,10 +26,14 @@ public class AnalyzeDocumentService {
 
     @Transactional
     public void processDocument(Long documentId) {
-        Document document = documentRepository.findById(documentId).orElseThrow(IllegalStateException::new);
-
+        Document document = documentRepository.findById(documentId).orElse(null);
+        if (document == null) {
+            log.info("Document {} does not exist anymore", documentId);
+            return;
+        }
         if (hasBeenAnalysed(document)) {
             log.info("Ignoring document {} because it has already been analysed", documentId);
+            return;
         }
         try {
             List<RulesValidationService> rulesValidationServices = documentRulesValidationServiceFactory.getServices(document);

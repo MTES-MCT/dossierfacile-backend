@@ -47,7 +47,8 @@ public class WatermarkDFDocumentConsumer {
 
                 } catch (InterruptedException | ExecutionException | TimeoutException e) {
                     future.cancel(true);
-                    throw new RuntimeException("Timeout lors de la génération du PDF pour le document " + documentId, e);
+                    log.error("Timeout lors de la génération du PDF pour le document " + documentId, e);
+                    Thread.currentThread().interrupt();
                 }
 
             } else {
