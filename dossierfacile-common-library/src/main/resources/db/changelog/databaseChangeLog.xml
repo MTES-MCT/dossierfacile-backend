@@ -145,5 +145,7 @@
     <include file="db/migration/202406040000-upgrade-apartment_sharing_links.xml" />
     <include file="db/migration/202406070000-create-queue-message.xml"/>
     <include file="db/migration/20240527110000-add-columns-ademe.xml" />
+    <include file="db/migration/202406141100-add-columns-ademe-date.xml" />
+
 
 </databaseChangeLog>
