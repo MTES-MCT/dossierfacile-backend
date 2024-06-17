@@ -1,10 +1,8 @@
 package fr.dossierfacile.process.file.amqp;
 
-import fr.dossierfacile.common.entity.messaging.QueueMessage;
-import fr.dossierfacile.common.entity.messaging.QueueMessageStatus;
-import fr.dossierfacile.common.repository.QueueMessageRepository;
+import fr.dossierfacile.common.entity.messaging.QueueName;
+import fr.dossierfacile.common.service.interfaces.QueueMessageService;
 import fr.dossierfacile.process.file.service.AnalyzeDocumentService;
-import fr.dossierfacile.process.file.service.interfaces.DocumentService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,58 +18,34 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class AnalyzeDocumentReceiver {
     private final AnalyzeDocumentService analyzeDocumentService;
-    private final DocumentService documentService;
-    private final QueueMessageRepository queueMessageRepository;
+    private final QueueMessageService queueMessageService;
 
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-    @Value("${rabbitmq.document.analyze.delay}")
+    @Value("${document.analysis.delay.ms}")
     private Long documentAnalysisDelay;
+    @Value("${document.analysis.timeout.ms}")
+    private Long documentAnalysisTimeout;
 
     @PostConstruct
     public void startConsumer() {
-        scheduler.scheduleAtFixedRate(this::receiveDocument, 0, 1, TimeUnit.SECONDS);
+        scheduler.scheduleAtFixedRate(this::receiveDocument, 0, 2, TimeUnit.SECONDS);
     }
 
     //@RabbitListener(queues = "${rabbitmq.queue.document.analyze}", containerFactory = "retryContainerFactory")
     private void receiveDocument() {
-        QueueMessage message = queueMessageRepository.pop();
-        log.debug("Received message on queue.document.analyze to process:" + message);
-
-        if (message != null) {
-            LoggingContext.startProcessing(message.getDocumentId(), ActionType.ANALYZE_DOCUMENT);
-            try {
-                delayExecution(message.getTimestamp());
-                if (documentService.documentIsUpToDateAt(message.getTimestamp(), message.getDocumentId())) {
-                    message.setStatus(QueueMessageStatus.PROCESSING);
-                    queueMessageRepository.saveAndFlush(message);
-
-                    analyzeDocumentService.processDocument(message.getDocumentId());
-                    queueMessageRepository.delete(message);
-
-                } else {
-                    log.debug("Ignore document analysis because document is NOT up to date");
-                    queueMessageRepository.delete(message);
-                }
-            } catch (Throwable t) {
-                message.setStatus(QueueMessageStatus.FAILED);
-                queueMessageRepository.save(message);
-            }
-            LoggingContext.endProcessing();
+        try {
+            queueMessageService.consume(QueueName.QUEUE_DOCUMENT_ANALYSIS,
+                    documentAnalysisDelay,
+                    documentAnalysisTimeout,
+                    (message) -> {
+                        LoggingContext.startProcessing(message.getDocumentId(), ActionType.ANALYZE_DOCUMENT);
+                        analyzeDocumentService.processDocument(message.getDocumentId());
+                        LoggingContext.endProcessing();
+                    });
+        } catch (Exception e) {
+            log.error("Unable to consume the message queue");
         }
     }
 
-    private void delayExecution(Long msgTimestamp) {
-        if (msgTimestamp != null) {
-            long timeToWait = documentAnalysisDelay - (System.currentTimeMillis() - msgTimestamp);
-            if (timeToWait > 0) {
-                try {
-                    log.debug("Delayed execution in" + timeToWait + " ms");
-                    Thread.sleep(timeToWait);
-                } catch (InterruptedException e) {
-                    log.warn("Unable to sleep the thread");
-                    Thread.currentThread().interrupt();
-                }
-            }
-        }
-    }
+
 }
