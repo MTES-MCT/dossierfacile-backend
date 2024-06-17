@@ -135,7 +135,7 @@ public class PropertyServiceImpl implements PropertyService {
                 property.setAdemeNumber(ademeApiResultModel.getNumero());
                 ObjectMapper mapper = new ObjectMapper();
                 property.setAdemeApiResult(mapper.valueToTree(ademeApiResultModel));
-                property.setEnergyConsumption(Float.valueOf(ademeApiResultModel.getConsommationEnergieFinale()).intValue());
+                property.setEnergyConsumption(Float.valueOf(ademeApiResultModel.getConsommation()).intValue());
                 property.setCo2Emission(Float.valueOf(ademeApiResultModel.getEmission()).intValue());
                 Instant instant = Instant.parse(ademeApiResultModel.getDateRealisation());
                 Date dateRealisation = Date.from(instant);
