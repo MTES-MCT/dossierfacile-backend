@@ -31,7 +31,9 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -133,6 +135,11 @@ public class PropertyServiceImpl implements PropertyService {
                 property.setAdemeNumber(ademeApiResultModel.getNumero());
                 ObjectMapper mapper = new ObjectMapper();
                 property.setAdemeApiResult(mapper.valueToTree(ademeApiResultModel));
+                property.setEnergyConsumption(Float.valueOf(ademeApiResultModel.getConsommationEnergieFinale()).intValue());
+                property.setCo2Emission(Float.valueOf(ademeApiResultModel.getEmission()).intValue());
+                Instant instant = Instant.parse(ademeApiResultModel.getDateRealisation());
+                Date dateRealisation = Date.from(instant);
+                property.setDpeDate(dateRealisation);
                 if (response.statusCode() == 404) {
                     throw new DPENotFoundException("DPE not found");
                 }
