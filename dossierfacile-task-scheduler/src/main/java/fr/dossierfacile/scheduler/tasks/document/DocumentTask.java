@@ -1,21 +1,20 @@
 package fr.dossierfacile.scheduler.tasks.document;
 
-import com.google.gson.Gson;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.entity.messaging.QueueMessage;
+import fr.dossierfacile.common.entity.messaging.QueueMessageStatus;
+import fr.dossierfacile.common.entity.messaging.QueueName;
+import fr.dossierfacile.common.repository.QueueMessageRepository;
 import fr.dossierfacile.scheduler.LoggingContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.core.AmqpTemplate;
-import org.springframework.amqp.core.Message;
-import org.springframework.amqp.core.MessageProperties;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -28,17 +27,10 @@ import static fr.dossierfacile.scheduler.tasks.TaskName.PDF_GENERATION;
 @Slf4j
 @RequiredArgsConstructor
 public class DocumentTask {
-
-    private final AmqpTemplate amqpTemplate;
-    private final Gson gson;
     private final DocumentRepository documentRepository;
     private final PartnerCallbackService partnerCallbackService;
     private final DocumentDeleteMailService documentDeleteMailService;
-
-    @Value("${rabbitmq.exchange.pdf.generator}")
-    private String exchangePdfGenerator;
-    @Value("${rabbitmq.routing.key.pdf.generator.watermark-document}")
-    private String routingKeyPdfGenerator;
+    private final QueueMessageRepository queueMessageRepository;
     @Value("${document.pdf.failed.delay.before.delete.hours}")
     private Long delayBeforeDeleteHours;
 
@@ -77,14 +69,11 @@ public class DocumentTask {
 
     private void sendForPDFGeneration(Document document) {
         log.debug("Sending document with ID [{}] for pdf generation", document.getId());
-        amqpTemplate.send(exchangePdfGenerator, routingKeyPdfGenerator, messageWithId(document.getId()));
-    }
-
-    private Message messageWithId(Long id) {
-        MessageProperties properties = new MessageProperties();
-        properties.setHeader("timestamp", System.currentTimeMillis());
-        return new Message(
-                gson.toJson(Collections.singletonMap("id", String.valueOf(id))).getBytes(),
-                properties);
+        queueMessageRepository.save(QueueMessage.builder()
+                .queueName(QueueName.QUEUE_DOCUMENT_WATERMARK_PDF)
+                .documentId(document.getId())
+                .status(QueueMessageStatus.PENDING)
+                .timestamp(System.currentTimeMillis())
+                .build());
     }
 }

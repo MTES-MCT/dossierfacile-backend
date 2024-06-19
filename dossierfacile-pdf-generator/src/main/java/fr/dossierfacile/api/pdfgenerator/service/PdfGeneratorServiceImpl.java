@@ -129,12 +129,13 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
 
                         } catch (Exception e) {
                             log.error(e.getMessage() + ". It will not be added to the pdf of document [" + documentCategory.name() + "] with ID [" + documentId + "]");
+                            throw new RuntimeException("Unable to get a file input stream on fileId :" + file.getId() + " docId:" + documentId);
                         }
-                        return null;
                     })
                     .filter(Objects::nonNull)
                     .collect(Collectors.toList())
             );
+
         } else {
             log.error("No file were found in the database for generate document [" + documentCategory.name() + "] with ID [" + documentId + "]");
             throw new FileNotFoundException("No file were found in the database for generate document [" + documentCategory.name() + "] with ID [" + documentId + "]");
@@ -142,7 +143,7 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
     }
 
     @Override
-    public StorageFile generateBOPdfDocument(Document document) throws Exception {
+    public StorageFile generateBOPdfDocument(Document document) {
         long documentId = document.getId();
         DocumentCategory documentCategory = document.getDocumentCategory();
         String documentCategoryName = documentCategory.name();

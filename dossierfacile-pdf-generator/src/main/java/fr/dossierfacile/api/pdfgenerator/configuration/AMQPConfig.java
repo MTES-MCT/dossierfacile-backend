@@ -23,9 +23,6 @@ public class AMQPConfig {
     @Value("${rabbitmq.exchange.name}")
     private String exchangeName;
 
-    @Value("${rabbitmq.queue.watermark-document.name}")
-    private String watermarkDocumentQueueName;
-
     @Value("${rabbitmq.queue.apartment-sharing.name}")
     private String apartmentSharingQueueName;
 
@@ -38,8 +35,6 @@ public class AMQPConfig {
     @Value("${rabbitmq.routing.key.watermark-generic}")
     private String watermarkGenericRoutingKey;
 
-    @Value("${rabbitmq.routing.key.watermark-document}")
-    private String watermarkDocumentRoutingKey;
     @Value("${rabbitmq.prefetch}")
     private Integer prefetch;
 
@@ -49,22 +44,12 @@ public class AMQPConfig {
     }
 
     @Bean
-    Queue queueWatermarkDocumentGenerator() {
-        return new Queue(watermarkDocumentQueueName, true);
-    }
-
-    @Bean
     Queue queueApartmentSharingQueueName() {
         return new Queue(apartmentSharingQueueName, true);
     }
     @Bean
     Queue queueWatermarkGenerator() {
         return new Queue(watermarkGenericQueueName, true);
-    }
-
-    @Bean
-    Binding bindingQueueWatermarkDocument(Queue queueWatermarkDocumentGenerator, TopicExchange exchangePdfGenerator) {
-        return BindingBuilder.bind(queueWatermarkDocumentGenerator).to(exchangePdfGenerator).with(watermarkDocumentRoutingKey);
     }
 
     @Bean
