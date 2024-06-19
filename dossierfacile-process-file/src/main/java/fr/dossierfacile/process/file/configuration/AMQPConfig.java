@@ -24,17 +24,11 @@ public class AMQPConfig {
     @Value("${rabbitmq.queue.file.analyze}")
     private String analyzeQueueName;
 
-    @Value("${rabbitmq.queue.document.analyze}")
-    private String analyzeDocumentQueueName;
-
     @Value("${rabbitmq.queue.file.minify}")
     private String minifyQueueName;
 
     @Value("${rabbitmq.routing.key.file.analyze}")
     private String analyzeRoutingKey;
-
-    @Value("${rabbitmq.routing.key.document.analyze}")
-    private String analyzeDocumentRoutingKey;
 
     @Value("${rabbitmq.routing.key.file.minify}")
     private String minifyRoutingKey;
@@ -53,11 +47,6 @@ public class AMQPConfig {
     }
 
     @Bean
-    Queue queueDocumentAnalyze() {
-        return new Queue(analyzeDocumentQueueName, true);
-    }
-
-    @Bean
     Queue queueFileMinify() {
         return new Queue(minifyQueueName, true);
     }
@@ -67,10 +56,6 @@ public class AMQPConfig {
         return BindingBuilder.bind(queueFileAnalyze).to(exchangeFileProcess).with(analyzeRoutingKey);
     }
 
-    @Bean
-    Binding bindingQueueAnalyzeDocument(Queue queueDocumentAnalyze, TopicExchange exchangeFileProcess) {
-        return BindingBuilder.bind(queueDocumentAnalyze).to(exchangeFileProcess).with(analyzeDocumentRoutingKey);
-    }
     @Bean
     Binding bindingQueueProcessMinifyFileProcess(Queue queueFileMinify, TopicExchange exchangeFileProcess) {
         return BindingBuilder.bind(queueFileMinify).to(exchangeFileProcess).with(minifyRoutingKey);

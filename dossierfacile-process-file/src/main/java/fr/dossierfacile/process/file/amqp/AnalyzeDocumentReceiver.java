@@ -31,7 +31,6 @@ public class AnalyzeDocumentReceiver {
         scheduler.scheduleAtFixedRate(this::receiveDocument, 0, 2, TimeUnit.SECONDS);
     }
 
-    //@RabbitListener(queues = "${rabbitmq.queue.document.analyze}", containerFactory = "retryContainerFactory")
     private void receiveDocument() {
         try {
             queueMessageService.consume(QueueName.QUEUE_DOCUMENT_ANALYSIS,
