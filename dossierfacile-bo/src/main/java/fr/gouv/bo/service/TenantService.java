@@ -531,12 +531,12 @@ public class TenantService {
                     }
                 }
             } catch (Exception e) {
-                log.error("CAUTION Unable to send notification to user ");
+                log.error("CAUTION Unable to send notification to user ", e);
             }
             try {
                 partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.VERIFIED_ACCOUNT);
             } catch (Exception e) {
-                log.error("CAUTION Unable to send notification to partner");
+                log.error("CAUTION Unable to send notification to partner", e);
             }
         });
 
