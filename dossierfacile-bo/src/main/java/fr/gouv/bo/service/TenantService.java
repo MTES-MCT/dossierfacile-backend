@@ -67,9 +67,6 @@ public class TenantService {
     @Value("${time.reprocess.application.minutes}")
     private int timeReprocessApplicationMinutes;
 
-    @Value("${specialized.operator.email:ops@dossiefacile.fr}")
-    private String specializedOperatorEmail;
-
     @Value("${process.max.dossier.time.interval:10}")
     private Long timeInterval;
     @Value("${process.max.dossier.by.interval:20}")
@@ -149,16 +146,7 @@ public class TenantService {
             if (operatorLogRepository.countByOperatorIdAndActionOperatorTypeAndCreationDateGreaterThanEqual(operatorId, ActionOperatorType.START_PROCESS, LocalDateTime.now().toLocalDate().atStartOfDay()) > maxDossiersByDay) {
                 throw new IllegalStateException("Vous ne pouvez pas ouvrir plus de " + maxDossiersByDay + " dossiers par jour");
             }
-
-            List<String> specializedOperators = Arrays.asList(specializedOperatorEmail.split(","));
-            if (specializedOperators.contains(operator.getEmail())) {
-                tenant = tenantRepository.findNextApplicationByProfessional(localDateTime, Arrays.asList(DocumentSubCategory.CDI, DocumentSubCategory.PUBLIC));
-                if (tenant == null) {
-                    tenant = tenantRepository.findNextApplication(localDateTime);
-                }
-            } else {
-                tenant = tenantRepository.findNextApplication(localDateTime);
-            }
+            tenant = tenantRepository.findMyNextApplication(localDateTime, operatorId);
         } else {
             tenant = find(tenantId);
         }
