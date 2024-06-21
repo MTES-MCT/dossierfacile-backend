@@ -2,16 +2,15 @@ package fr.dossierfacile.common.repository;
 
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
-import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.model.TenantUpdate;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -33,44 +32,37 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
             " order by t.lastUpdateDate")
     Page<Tenant> findTenantsToProcess(@Param("localDateTime") LocalDateTime localDateTime, Pageable pageable);
 
-    @Query("""
-            SELECT t
-            FROM Tenant t
-            WHERE (t.operatorDateTime IS NULL OR t.operatorDateTime < :localDateTime)
+
+    // rank condition is set to avoid to treat too fast a returning tenant
+    // status and honorDeclaration are redundancy but that okay
+    @Query(value = """
+            SELECT t.*,ua.*
+            FROM ranked_tenant rt
+              INNER JOIN tenant t ON rt.tid=t.id and rt.last_update_date=t.last_update_date
+              INNER JOIN user_account ua ON t.id=ua.id
+            WHERE (t.operator_date_time IS NULL OR t.operator_date_time < :toLocalDateTime)
               AND t.status = 'TO_PROCESS'
-              AND t.honorDeclaration = true
-              AND NOT EXISTS ( SELECT 1 FROM Tenant t2 JOIN t2.documents d WHERE t2.id = t.id AND d.watermarkFile IS NULL )
-              AND NOT EXISTS ( SELECT 1 FROM Tenant t3 JOIN t3.guarantors g JOIN g.documents d2 WHERE t3.id = t.id AND d2.watermarkFile IS NULL )
-            ORDER BY t.lastUpdateDate
-            """)
-    Page<Tenant> findNextApplication(@Param("localDateTime") LocalDateTime localDateTime, Pageable pageable);
+              AND t.honor_declaration = true
+              AND rank < 200
+            ORDER BY
+             CASE WHEN rt.operator_id = :operatorId THEN 0 ELSE 1 END,
+             rt.rank
+            LIMIT 1
+            """, nativeQuery = true)
+    Tenant findMyNextApplication(@Param("toLocalDateTime") LocalDateTime toLocalDateTime,
+                                 @Param("operatorId") Long operatorId);
 
-    default Tenant findNextApplication(LocalDateTime localDateTime) {
-        Page<Tenant> page = findNextApplication(localDateTime, PageRequest.of(0, 1, Sort.Direction.ASC, "lastUpdateDate"));
-        if (!page.isEmpty()) {
-            return page.get().findFirst().orElse(null);
-        }
-        return null;
-    }
-
-    @Query("select t from Tenant t " +
-            " where (t.operatorDateTime is null or t.operatorDateTime < :localDateTime) and t.status = 'TO_PROCESS' and t.honorDeclaration = true " +
-            " and" +
-            " t.id not in (select t.id from Tenant t join t.documents d WHERE d.watermarkFile is null)" +
-            " and" +
-            " t.id in (select t.id from Tenant t join t.documents d WHERE d.documentSubCategory IN (:categories) )" +
-            " and" +
-            " t.id not in (select t.id from Tenant t join t.guarantors g join g.documents d WHERE d.watermarkFile is null)" +
-            " order by t.lastUpdateDate")
-    Page<Tenant> findNextApplicationByProfessional(@Param("localDateTime") LocalDateTime localDateTime, @Param("categories") List<DocumentSubCategory> categories, Pageable pageable);
-
-
-    default Tenant findNextApplicationByProfessional(LocalDateTime localDateTime, List<DocumentSubCategory> categories) {
-        Page<Tenant> page = findNextApplicationByProfessional(localDateTime, categories, PageRequest.of(0, 1, Sort.Direction.ASC, "lastUpdateDate"));
-        if (!page.isEmpty()) {
-            return page.get().findFirst().orElse(null);
-        }
-        return null;
+    @Modifying
+    @Transactional
+    @Query(value = "REFRESH MATERIALIZED VIEW latest_operator", nativeQuery = true)
+    void refreshLatestOperatorView();
+    @Modifying
+    @Transactional
+    @Query(value = "REFRESH MATERIALIZED VIEW ranked_tenant", nativeQuery = true)
+    void refreshRankedTenantView();
+    default void refreshRank() {
+        refreshLatestOperatorView();
+        refreshRankedTenantView();
     }
 
     Page<Tenant> findByFirstNameContainingOrLastNameContainingOrEmailContaining(String q, String q1, String q2, Pageable pageable);

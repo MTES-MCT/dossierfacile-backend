@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="202406210000-01" author="fabien">
+        <sql>
+            <![CDATA[
+                    DROP MATERIALIZED VIEW IF EXISTS latest_operator;
+                    CREATE MATERIALIZED VIEW latest_operator AS
+                    SELECT ol.tenant_id AS tenant_id, ol.operator_id AS operator_id
+                        FROM operator_log ol
+                        INNER JOIN (
+                            SELECT tenant_id, MAX(creation_date) AS creation_date
+                            FROM operator_log
+                            GROUP BY tenant_id
+                        ) latest ON ol.tenant_id = latest.tenant_id AND ol.creation_date = latest.creation_date
+                ]]>
+        </sql>
+    </changeSet>
+    <changeSet id="202406210000-02" author="fabien">
+        <sql>
+            <![CDATA[
+                    DROP MATERIALIZED VIEW IF EXISTS ranked_tenant;
+                    CREATE MATERIALIZED VIEW ranked_tenant AS
+                    SELECT t.id AS tid, t.last_update_date AS last_update_date, lo.operator_id AS operator_id, ROW_NUMBER() OVER (ORDER BY t.last_update_date) AS rank
+                    FROM tenant t
+                    LEFT JOIN latest_operator lo ON t.id = lo.tenant_id
+                    WHERE t.status = 'TO_PROCESS'
+                    AND t.honor_declaration = true
+                    AND NOT EXISTS (SELECT 1 FROM document d WHERE d.tenant_id = t.id AND d.watermark_file_id IS NULL)
+                    AND NOT EXISTS (SELECT 1 FROM guarantor g JOIN document d2 ON g.id = d2.guarantor_id WHERE g.tenant_id = t.id AND d2.watermark_file_id IS NULL)
+
+                ]]>
+        </sql>
+    </changeSet>
+</databaseChangeLog>
