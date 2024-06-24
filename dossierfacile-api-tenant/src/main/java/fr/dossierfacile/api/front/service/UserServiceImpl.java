@@ -9,13 +9,13 @@ import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.repository.PasswordRecoveryTokenRepository;
 import fr.dossierfacile.api.front.repository.UserRepository;
 import fr.dossierfacile.api.front.service.interfaces.*;
+import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
 import fr.dossierfacile.common.utils.TransactionalUtil;
 import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.TenantType;
-import fr.dossierfacile.common.model.WebhookDTO;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
@@ -93,7 +93,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void deleteAccount(Tenant tenant) {
-        List<WebhookDTO> webhookDTOList = new ArrayList<>();
+        List<ApplicationModel> webhookDTOList = new ArrayList<>();
         ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
         groupingAllTenantUserApisInTheApartment(apartmentSharing).forEach((tenantUserApi) -> {
             UserApi userApi = tenantUserApi.getUserApi();
@@ -111,8 +111,8 @@ public class UserServiceImpl implements UserService {
             userRepository.delete(tenant);
             apartmentSharingService.removeTenant(tenant.getApartmentSharing(), tenant);
         }
-        for (WebhookDTO webhookDTO : webhookDTOList) {
-            partnerCallBackService.sendCallBack(tenant, webhookDTO);
+        for (ApplicationModel webhookDTO : webhookDTOList) {
+            partnerCallBackService.sendCallBack(tenant, webhookDTO.getUserApi(), webhookDTO);
         }
 
         TransactionalUtil.afterCommit( () -> mailService.sendEmailAccountDeleted(tenantToDeleteDto));
