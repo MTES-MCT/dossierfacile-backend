@@ -77,6 +77,7 @@ public class TenantServiceImpl implements TenantService {
                 tenant.setWarnings(0);
                 if (tenant.getStatus() == TenantFileStatus.ARCHIVED) {
                     tenant.setStatus(TenantFileStatus.INCOMPLETE);
+                    logService.saveLog(LogType.ACCOUNT_RETURNED, tenant.getId());
                     partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.RETURNED_ACCOUNT);
                 }
                 log.info("Updating last_login_date of tenant with ID [" + tenant.getId() + "]");

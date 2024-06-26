@@ -1,6 +1,7 @@
 package fr.dossierfacile.common.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.dossierfacile.common.enums.PropertyFurniture;
 import fr.dossierfacile.common.enums.PropertyType;
 import jakarta.persistence.CascadeType;
@@ -23,10 +24,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.springframework.lang.Nullable;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 
 @Entity
@@ -118,7 +122,17 @@ public class Property implements Serializable {
     private Integer co2Emission;
 
     @Column
+    private String ademeNumber;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "jsonb")
+    private ObjectNode ademeApiResult;
+
+    @Column
     private String address;
+
+    @Nullable
+    private Date dpeDate;
 
     @Override
     public String toString() {

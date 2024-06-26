@@ -16,7 +16,7 @@ import fr.dossierfacile.common.enums.Role;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.exceptions.NotFoundException;
-import fr.dossierfacile.common.model.WebhookDTO;
+import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.gouv.bo.dto.CustomMessage;
 import fr.gouv.bo.dto.DisplayableFile;
@@ -27,7 +27,6 @@ import fr.gouv.bo.dto.MessageDTO;
 import fr.gouv.bo.dto.MessageItem;
 import fr.gouv.bo.dto.PartnerDTO;
 import fr.gouv.bo.dto.TenantInfoHeader;
-import fr.gouv.bo.service.ApartmentSharingService;
 import fr.gouv.bo.service.DocumentDeniedReasonsService;
 import fr.gouv.bo.service.DocumentService;
 import fr.gouv.bo.service.TenantLogService;
@@ -128,8 +127,8 @@ public class BOTenantController {
         PartnerCallBackType partnerCallBackType = tenant.getStatus() == TenantFileStatus.VALIDATED ?
                 PartnerCallBackType.VERIFIED_ACCOUNT :
                 PartnerCallBackType.CREATED_ACCOUNT;
-        WebhookDTO webhookDTO = partnerCallBackService.getWebhookDTO(tenant, userApi, partnerCallBackType);
-        partnerCallBackService.sendCallBack(tenant, webhookDTO);
+        ApplicationModel webhookDTO = partnerCallBackService.getWebhookDTO(tenant, userApi, partnerCallBackType);
+        partnerCallBackService.sendCallBack(tenant, userApi, webhookDTO);
 
         return "redirect:/bo/colocation/" + tenant.getApartmentSharing().getId();
     }

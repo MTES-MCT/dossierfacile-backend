@@ -5,6 +5,7 @@ import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.form.DocumentForm;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
+import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.utils.TransactionalUtil;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.Tenant;
@@ -43,6 +44,7 @@ public abstract class AbstractDocumentSaveStep<T extends DocumentForm> implement
         if (tenant.getStatus() == TenantFileStatus.ARCHIVED) {
             tenant.setStatus(TenantFileStatus.INCOMPLETE);
             tenant = tenantCommonRepository.save(tenant);
+            logService.saveLog(LogType.ACCOUNT_RETURNED, tenant.getId());
             partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.RETURNED_ACCOUNT);
         }
 

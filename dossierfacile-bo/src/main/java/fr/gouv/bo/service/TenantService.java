@@ -518,6 +518,9 @@ public class TenantService {
         tenantLogService.saveByLog(new TenantLog(LogType.ACCOUNT_VALIDATED, tenant.getId(), operator.getId()));
         operatorLogRepository.save(new OperatorLog(tenant, operator, tenant.getStatus(), ActionOperatorType.STOP_PROCESS, processedDocuments.count(), processedDocuments.timeSpent()));
 
+        // sendCallBack is sent after Commit
+        partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.VERIFIED_ACCOUNT);
+
         TransactionalUtil.afterCommit(() -> {
             try {
                 if (tenant.getApartmentSharing().getApplicationType() == ApplicationType.GROUP) {
@@ -531,12 +534,7 @@ public class TenantService {
                     }
                 }
             } catch (Exception e) {
-                log.error("CAUTION Unable to send notification to user ");
-            }
-            try {
-                partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.VERIFIED_ACCOUNT);
-            } catch (Exception e) {
-                log.error("CAUTION Unable to send notification to partner");
+                log.error("CAUTION Unable to send notification to user ", e);
             }
         });
 
@@ -565,6 +563,9 @@ public class TenantService {
                 tenant.getTenantsUserApi().get(0).getUserApi();
         }
 
+        // sendCallBack is sent after Commit
+        partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.DENIED_ACCOUNT);
+
         TransactionalUtil.afterCommit(() -> {
             if (tenant.getApartmentSharing().getApplicationType() == ApplicationType.COUPLE) {
                 tenant.getApartmentSharing().getTenants().stream()
@@ -573,7 +574,7 @@ public class TenantService {
             } else {
                 mailService.sendMailNotificationAfterDeny(tenant);
             }
-            partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.DENIED_ACCOUNT);
+
         });
     }
 
