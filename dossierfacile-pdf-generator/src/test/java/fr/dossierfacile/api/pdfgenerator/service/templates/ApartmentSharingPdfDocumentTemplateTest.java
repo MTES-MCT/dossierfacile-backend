@@ -3,6 +3,7 @@ package fr.dossierfacile.api.pdfgenerator.service.templates;
 import fr.dossierfacile.api.pdfgenerator.service.DownloadServiceImpl;
 import fr.dossierfacile.api.pdfgenerator.util.parameterresolvers.ApartmentSharingResolver;
 import fr.dossierfacile.common.entity.ApartmentSharing;
+import fr.dossierfacile.common.repository.ApplicationLogRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,10 +28,10 @@ public class ApartmentSharingPdfDocumentTemplateTest {
 
     @MockBean
     private TenantCommonRepository tenantRepository;
-
+    @MockBean
+    private ApplicationLogRepository applicationLogRepository;
     @MockBean
     private DownloadServiceImpl downloadService;
-
     @Autowired
     private ApartmentSharingPdfDocumentTemplate pdfService;
 

@@ -6,6 +6,7 @@ import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.SaveStep;
 import fr.dossierfacile.api.front.register.form.guarantor.legal_person.NameGuarantorLegalPersonForm;
 import fr.dossierfacile.api.front.repository.GuarantorRepository;
+import fr.dossierfacile.api.front.security.interfaces.ClientAuthenticationFacade;
 import fr.dossierfacile.common.entity.Guarantor;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.TypeGuarantor;
@@ -18,6 +19,7 @@ public class NameGuarantorLegalPerson implements SaveStep<NameGuarantorLegalPers
 
     private final TenantMapper tenantMapper;
     private final GuarantorRepository guarantorRepository;
+    private final ClientAuthenticationFacade clientAuthenticationFacade;
 
     @Override
     public TenantModel saveStep(Tenant tenant, NameGuarantorLegalPersonForm nameGuarantorLegalPersonForm) {
@@ -27,7 +29,7 @@ public class NameGuarantorLegalPerson implements SaveStep<NameGuarantorLegalPers
         guarantor.setTenant(tenant);
         guarantorRepository.save(guarantor);
 
-        return tenantMapper.toTenantModel(tenant);
+        return tenantMapper.toTenantModel(tenant, (!clientAuthenticationFacade.isClient()) ? null : clientAuthenticationFacade.getClient());
     }
 
 }

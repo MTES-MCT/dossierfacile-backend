@@ -115,7 +115,7 @@ public class FileStorageServiceImpl implements FileStorageService {
         if (shift) {
             dynamicProviderConfig.shift();
         }
-        if (storageFile.getProviders() == null || storageFile.getProviders().size() == 0) {
+        if (storageFile.getProviders() == null || storageFile.getProviders().isEmpty()) {
             throw new IOException("Unable to upload the file");
         }
         // TODO maybe not a good idea to do here (transactional managment)

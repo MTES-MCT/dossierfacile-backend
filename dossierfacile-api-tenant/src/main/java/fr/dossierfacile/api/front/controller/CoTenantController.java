@@ -3,6 +3,7 @@ package fr.dossierfacile.api.front.controller;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
+import fr.dossierfacile.api.front.security.interfaces.ClientAuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.common.entity.Tenant;
 import lombok.AllArgsConstructor;
@@ -24,12 +25,13 @@ public class CoTenantController {
     private final AuthenticationFacade authenticationFacade;
     private final TenantService tenantService;
     private final TenantMapper tenantMapper;
+    private final ClientAuthenticationFacade clientAuthenticationFacade;
 
     @PreAuthorize("hasPermissionOnTenant(#coTenantId)")
     @GetMapping(value = "/{id}/profile", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TenantModel> tenantProfile(@PathVariable("id") Long coTenantId) {
         Tenant coTenant = tenantService.findById(coTenantId);
         tenantService.updateLastLoginDateAndResetWarnings(coTenant);
-        return ok(tenantMapper.toTenantModel(coTenant));
+        return ok(tenantMapper.toTenantModel(coTenant, null));
     }
 }

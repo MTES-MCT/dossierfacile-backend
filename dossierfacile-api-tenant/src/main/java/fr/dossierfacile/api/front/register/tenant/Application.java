@@ -6,12 +6,8 @@ import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.SaveStep;
 import fr.dossierfacile.api.front.register.form.tenant.ApplicationFormV2;
 import fr.dossierfacile.api.front.register.form.tenant.CoTenantForm;
-import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
-import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
-import fr.dossierfacile.api.front.service.interfaces.MailService;
-import fr.dossierfacile.api.front.service.interfaces.PasswordRecoveryTokenService;
-import fr.dossierfacile.api.front.service.interfaces.UserRoleService;
-import fr.dossierfacile.api.front.service.interfaces.UserService;
+import fr.dossierfacile.api.front.security.interfaces.ClientAuthenticationFacade;
+import fr.dossierfacile.api.front.service.interfaces.*;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.PasswordRecoveryToken;
 import fr.dossierfacile.common.entity.Tenant;
@@ -32,11 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -55,6 +47,7 @@ public class Application implements SaveStep<ApplicationFormV2> {
     private final ApartmentSharingService apartmentSharingService;
     private final PartnerCallBackService partnerCallBackService;
     private final UserService userService;
+    private final ClientAuthenticationFacade clientAuthenticationFacade;
 
     @Override
     @Transactional
@@ -151,7 +144,7 @@ public class Application implements SaveStep<ApplicationFormV2> {
         LocalDateTime now = LocalDateTime.now();
         tenant.lastUpdateDateProfile(now, null);
         tenantRepository.save(tenant);
-        return tenantMapper.toTenantModel(tenant);
+        return tenantMapper.toTenantModel(tenant, (!clientAuthenticationFacade.isClient()) ? null : clientAuthenticationFacade.getClient());
     }
 
     private void createCoTenants(Tenant tenantCreate, List<CoTenantForm> tenants, ApartmentSharing apartmentSharing) {

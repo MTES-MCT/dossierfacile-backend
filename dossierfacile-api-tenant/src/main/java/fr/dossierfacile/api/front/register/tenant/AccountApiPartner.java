@@ -44,7 +44,7 @@ public class AccountApiPartner implements SaveStep<AccountPartnerForm> {
         mailService.sendEmailWelcomeForPartnerUser(tenantMapperForMail.toDto(tenant), userApiMapperForMail.toDto(userApi));
 
         tenant.lastUpdateDateProfile(LocalDateTime.now(), null);
-        return tenantMapper.toTenantModel(tenantRepository.save(tenant));
+        return tenantMapper.toTenantModel(tenantRepository.save(tenant), (!clientAuthenticationFacade.isClient()) ? null : clientAuthenticationFacade.getClient());
     }
 
     private Tenant findDisabledTenantOrCreateTenant(String email) {

@@ -41,7 +41,7 @@ public class RegisterGuarantorLegalPersonController {
         var tenantModel = tenantService.saveStepRegister(tenant, nameGuarantorLegalPersonForm, StepRegister.NAME_GUARANTOR_LEGAL_PERSON);
         logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
         Tenant loggedTenant = (nameGuarantorLegalPersonForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
-        return ok(tenantMapper.toTenantModel(loggedTenant));
+        return ok(tenantMapper.toTenantModel(loggedTenant, null));
     }
 
     @PreAuthorize("hasPermissionOnTenant(#documentIdentificationGuarantorLegalPersonForm.tenantId)")
@@ -50,7 +50,7 @@ public class RegisterGuarantorLegalPersonController {
         Tenant tenant = authenticationFacade.getTenant(documentIdentificationGuarantorLegalPersonForm.getTenantId());
         tenantService.saveStepRegister(tenant, documentIdentificationGuarantorLegalPersonForm, StepRegister.DOCUMENT_IDENTIFICATION_GUARANTOR_LEGAL_PERSON);
         Tenant loggedTenant = (documentIdentificationGuarantorLegalPersonForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
-        return ok(tenantMapper.toTenantModel(loggedTenant));
+        return ok(tenantMapper.toTenantModel(loggedTenant, null));
     }
 
     @PreAuthorize("hasPermissionOnTenant(#documentIdentificationRepresentantGuarantorLegalPersonForm.tenantId)")
@@ -59,7 +59,7 @@ public class RegisterGuarantorLegalPersonController {
         Tenant tenant = authenticationFacade.getTenant(documentIdentificationRepresentantGuarantorLegalPersonForm.getTenantId());
         tenantService.saveStepRegister(tenant, documentIdentificationRepresentantGuarantorLegalPersonForm, StepRegister.DOCUMENT_IDENTIFICATION_REPRESENTANT_GUARANTOR_LEGAL_PERSON);
         Tenant loggedTenant = (documentIdentificationRepresentantGuarantorLegalPersonForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
-        return ok(tenantMapper.toTenantModel(loggedTenant));
+        return ok(tenantMapper.toTenantModel(loggedTenant, null));
     }
 
     @PreAuthorize("hasPermissionOnTenant(#nameGuarantorRepresentantLegalPersonForm.tenantId)")
@@ -69,6 +69,6 @@ public class RegisterGuarantorLegalPersonController {
         var tenantModel = tenantService.saveStepRegister(tenant, nameGuarantorRepresentantLegalPersonForm, StepRegister.NAME_IDENTIFICATION_REPRESENTANT_GUARANTOR_LEGAL_PERSON);
         logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
         Tenant loggedTenant = (nameGuarantorRepresentantLegalPersonForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
-        return ok(tenantMapper.toTenantModel(loggedTenant));
+        return ok(tenantMapper.toTenantModel(loggedTenant, null));
     }
 }

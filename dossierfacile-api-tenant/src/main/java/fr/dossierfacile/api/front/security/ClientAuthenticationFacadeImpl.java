@@ -35,6 +35,10 @@ public class ClientAuthenticationFacadeImpl implements ClientAuthenticationFacad
         return userApiService.findByName(getKeycloakClientId()).orElseThrow(ClientNotFoundException::new);
     }
 
+    public boolean isClient() {
+        return getKeycloakClientId() != null;
+    }
+
     @Override
     public Optional<Integer> getApiVersion() {
         return userApiService.findByName(getKeycloakClientId()).map(UserApi::getVersion);

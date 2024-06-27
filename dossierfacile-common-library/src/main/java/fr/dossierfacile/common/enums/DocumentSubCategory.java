@@ -22,6 +22,7 @@ public enum DocumentSubCategory {
     OWNER("document_sub_category.OWNER"),
     GUEST_PARENTS("document_sub_category.GUEST_PARENTS"),
     GUEST("document_sub_category.GUEST"),
+    GUEST_COMPANY("document_sub_category.GUEST_COMPANY"),
     GUEST_ORGANISM("document_sub_category.GUEST_ORGANISM"),
     SHORT_TERM_RENTAL("document_sub_category.SHORT_TERM_RENTAL"),
     OTHER_RESIDENCY("document_sub_category.OTHER_RESIDENCY"),

@@ -3,6 +3,7 @@ package fr.dossierfacile.api.front.register.tenant;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.register.form.tenant.ApplicationFormV2;
 import fr.dossierfacile.api.front.register.form.tenant.CoTenantForm;
+import fr.dossierfacile.api.front.security.interfaces.ClientAuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
 import fr.dossierfacile.api.front.service.interfaces.MailService;
@@ -55,6 +56,9 @@ public class ApplicationTest {
     LogService logService;
     @Mock
     TenantMapper tenantMapper;
+    @Mock
+    ClientAuthenticationFacade clientAuthenticationFacade;
+
     @Spy
     @InjectMocks
     private Application application;

@@ -91,7 +91,7 @@ public class ApiPartnerTenantController {
     @GetMapping(value = {"/{tenantId}/profile"}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TenantModel> profile(@PathVariable Long tenantId) {
         Tenant tenant = tenantService.findById(tenantId);
-        return ok(tenantMapper.toTenantModel(tenant));
+        return ok(tenantMapper.toTenantModel(tenant, clientAuthenticationFacade.getClient()));
     }
 
     @PreAuthorize("hasPermissionOnTenant(#tenantId)")

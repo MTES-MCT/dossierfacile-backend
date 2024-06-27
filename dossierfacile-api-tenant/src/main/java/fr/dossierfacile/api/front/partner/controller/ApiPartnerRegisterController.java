@@ -4,20 +4,19 @@ import fr.dossierfacile.api.front.aop.annotation.MethodLogTime;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.enums.StepRegister;
 import fr.dossierfacile.api.front.register.form.partner.AccountPartnerForm;
-import fr.dossierfacile.api.front.register.form.tenant.ApplicationFormV2;
-import fr.dossierfacile.api.front.register.form.tenant.DocumentFinancialForm;
-import fr.dossierfacile.api.front.register.form.tenant.DocumentIdentificationForm;
-import fr.dossierfacile.api.front.register.form.tenant.DocumentProfessionalForm;
-import fr.dossierfacile.api.front.register.form.tenant.DocumentResidencyForm;
-import fr.dossierfacile.api.front.register.form.tenant.DocumentTaxForm;
-import fr.dossierfacile.api.front.register.form.tenant.GuarantorTypeForm;
-import fr.dossierfacile.api.front.register.form.tenant.HonorDeclarationForm;
-import fr.dossierfacile.api.front.register.form.tenant.NamesForm;
+import fr.dossierfacile.api.front.register.form.tenant.*;
+import fr.dossierfacile.api.front.security.interfaces.ClientAuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.validator.group.ApiPartner;
+import fr.dossierfacile.common.config.ApiVersion;
+import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.LogType;
+import fr.dossierfacile.common.mapper.CategoriesMapper;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import io.swagger.annotations.ApiOperation;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Validator;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -29,6 +28,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Set;
+
 import static org.springframework.http.ResponseEntity.ok;
 
 @RestController
@@ -37,9 +38,23 @@ import static org.springframework.http.ResponseEntity.ok;
 @MethodLogTime
 @Slf4j
 public class ApiPartnerRegisterController {
-
+    private final ClientAuthenticationFacade clientAuthenticationFacade;
+    private final Validator validator;
     private final TenantService tenantService;
     private final LogService logService;
+    private final CategoriesMapper categoriesMapper;
+
+    private void validate(Object object, Class<?>... groups) {
+        Set<ConstraintViolation<Object>> violations = validator.validate(object, groups);
+        if (!violations.isEmpty()) {
+            throw new ConstraintViolationException(violations);
+        }
+    }
+
+    private void convert(UserApi userApi, DocumentResidencyForm documentResidencyForm) {
+        documentResidencyForm.setTypeDocumentResidency(
+                categoriesMapper.mapSubCategory(documentResidencyForm.getTypeDocumentResidency(), userApi));
+    }
 
     @PostMapping(value = "/account", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TenantModel> account(@Validated(ApiPartner.class) @RequestBody AccountPartnerForm accountForm) {
@@ -87,7 +102,12 @@ public class ApiPartnerRegisterController {
 
     @PreAuthorize("hasPermissionOnTenant(#documentResidencyForm.tenantId)")
     @PostMapping(value = "/documentResidency", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<TenantModel> documentResidency(@Validated(ApiPartner.class) DocumentResidencyForm documentResidencyForm) {
+    public ResponseEntity<?> documentResidency(DocumentResidencyForm documentResidencyForm) {
+        // Validate form according partner api version
+        UserApi userApi = clientAuthenticationFacade.getClient();
+        validate(documentResidencyForm, ApiPartner.class, ApiVersion.getVersionClass(userApi.getVersion()));
+        convert(userApi, documentResidencyForm);
+
         var tenant = tenantService.findById(documentResidencyForm.getTenantId());
         var tenantModel = tenantService.saveStepRegister(tenant, documentResidencyForm, StepRegister.DOCUMENT_RESIDENCY);
         return ok(tenantModel);
