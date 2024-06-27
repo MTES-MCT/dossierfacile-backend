@@ -1,6 +1,6 @@
 package fr.dossierfacile.api.front.service;
 
-import fr.dossierfacile.api.front.config.featureflipping.ApiPartnerVersion;
+import fr.dossierfacile.common.entity.ApiPartnerVersion;
 import fr.dossierfacile.api.front.exception.UserApiNotFoundException;
 import fr.dossierfacile.api.front.model.dfc.PartnerSettings;
 import fr.dossierfacile.api.front.repository.UserApiRepository;

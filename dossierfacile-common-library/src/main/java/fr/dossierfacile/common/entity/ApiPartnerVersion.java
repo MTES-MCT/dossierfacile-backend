@@ -1,4 +1,4 @@
-package fr.dossierfacile.api.front.config.featureflipping;
+package fr.dossierfacile.common.entity;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -7,7 +7,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public enum ApiPartnerVersion {
-    V3;
+    V3, V4;
 
     public static ApiPartnerVersion of(int version) {
         try {

@@ -1,9 +1,6 @@
 package fr.gouv.bo.service;
 
-import fr.dossierfacile.common.entity.Tenant;
-import fr.dossierfacile.common.entity.TenantUserApi;
-import fr.dossierfacile.common.entity.TenantUserApiKey;
-import fr.dossierfacile.common.entity.UserApi;
+import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.repository.TenantUserApiRepository;
 import fr.gouv.bo.repository.UserApiRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,20 +19,22 @@ public class TenantUserApiService {
 
     public void addInternalPartnerIdToTenantUserApi(Tenant tenant, Long id, String internalPartnerId) {
         UserApi userApi = userApiRepository.getReferenceById(id);
-        TenantUserApi tenantUserApi = tenantUserApiRepository.findFirstByTenantAndUserApi(tenant, userApi).orElse(
-                TenantUserApi.builder()
-                        .id(new TenantUserApiKey(tenant.getId(), userApi.getId()))
-                        .tenant(tenant)
-                        .userApi(userApi)
-                        .build()
-        );
-        if (internalPartnerId != null && !internalPartnerId.isEmpty()) {
-            if (tenantUserApi.getAllInternalPartnerId() == null) {
-                tenantUserApi.setAllInternalPartnerId(Collections.singletonList(internalPartnerId));
-            } else if (!tenantUserApi.getAllInternalPartnerId().contains(internalPartnerId)) {
-                tenantUserApi.getAllInternalPartnerId().add(internalPartnerId);
+        if (userApi.getApiVersion() != ApiPartnerVersion.V4) {
+            TenantUserApi tenantUserApi = tenantUserApiRepository.findFirstByTenantAndUserApi(tenant, userApi).orElse(
+                    TenantUserApi.builder()
+                            .id(new TenantUserApiKey(tenant.getId(), userApi.getId()))
+                            .tenant(tenant)
+                            .userApi(userApi)
+                            .build()
+            );
+            if (internalPartnerId != null && !internalPartnerId.isEmpty()) {
+                if (tenantUserApi.getAllInternalPartnerId() == null) {
+                    tenantUserApi.setAllInternalPartnerId(Collections.singletonList(internalPartnerId));
+                } else if (!tenantUserApi.getAllInternalPartnerId().contains(internalPartnerId)) {
+                    tenantUserApi.getAllInternalPartnerId().add(internalPartnerId);
+                }
+                tenantUserApiRepository.save(tenantUserApi);
             }
-            tenantUserApiRepository.save(tenantUserApi);
         }
     }
 

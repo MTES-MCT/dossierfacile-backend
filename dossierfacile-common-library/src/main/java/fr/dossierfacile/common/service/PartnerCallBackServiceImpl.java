@@ -48,12 +48,13 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
                     .tenant(tenant)
                     .userApi(userApi)
                     .build();
-
-            if (internalPartnerId != null && !internalPartnerId.isEmpty()) {
-                if (tenantUserApi.getAllInternalPartnerId() == null) {
-                    tenantUserApi.setAllInternalPartnerId(Collections.singletonList(internalPartnerId));
-                } else if (!tenantUserApi.getAllInternalPartnerId().contains(internalPartnerId)) {
-                    tenantUserApi.getAllInternalPartnerId().add(internalPartnerId);
+            if ( userApi.getApiVersion() != ApiPartnerVersion.V4) {
+                if (internalPartnerId != null && !internalPartnerId.isEmpty()) {
+                    if (tenantUserApi.getAllInternalPartnerId() == null) {
+                        tenantUserApi.setAllInternalPartnerId(Collections.singletonList(internalPartnerId));
+                    } else if (!tenantUserApi.getAllInternalPartnerId().contains(internalPartnerId)) {
+                        tenantUserApi.getAllInternalPartnerId().add(internalPartnerId);
+                    }
                 }
             }
             tenantUserApiRepository.save(tenantUserApi);
@@ -145,11 +146,13 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
         List<Tenant> tenantList = tenantRepository.findAllByApartmentSharing(apartmentSharing);
         for (Tenant t : tenantList) {
             tenantUserApiRepository.findFirstByTenantAndUserApi(t, userApi).ifPresent(tenantUserApi -> {
-                if (tenantUserApi.getAllInternalPartnerId() != null && !tenantUserApi.getAllInternalPartnerId().isEmpty()) {
-                    applicationModel.getTenants().stream()
-                            .filter(tenantObject -> Objects.equals(tenantObject.getId(), t.getId()))
-                            .findFirst()
-                            .ifPresent(tenantModel -> tenantModel.setAllInternalPartnerId(tenantUserApi.getAllInternalPartnerId()));
+                if (userApi.getApiVersion() != ApiPartnerVersion.V4) {
+                    if (tenantUserApi.getAllInternalPartnerId() != null && !tenantUserApi.getAllInternalPartnerId().isEmpty()) {
+                        applicationModel.getTenants().stream()
+                                .filter(tenantObject -> Objects.equals(tenantObject.getId(), t.getId()))
+                                .findFirst()
+                                .ifPresent(tenantModel -> tenantModel.setAllInternalPartnerId(tenantUserApi.getAllInternalPartnerId()));
+                    }
                 }
             });
         }
