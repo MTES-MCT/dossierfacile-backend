@@ -51,7 +51,7 @@ public class ApiPartnerUserController {
         if (!hasReadAccess) {
             return status(HttpStatus.FORBIDDEN).build();
         }
-        return ok(tenantMapperForPartner.toTenantModel(tenant.get()));
+        return ok(tenantMapperForPartner.toTenantModel(tenant.get(), clientAuthenticationFacade.getClient()));
     }
 
     @PreAuthorize("hasPermissionOnTenant(#tenantId)")

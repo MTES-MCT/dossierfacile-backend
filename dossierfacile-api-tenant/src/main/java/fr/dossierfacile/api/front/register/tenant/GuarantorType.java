@@ -5,6 +5,7 @@ import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.SaveStep;
 import fr.dossierfacile.api.front.register.form.tenant.GuarantorTypeForm;
 import fr.dossierfacile.api.front.repository.GuarantorRepository;
+import fr.dossierfacile.api.front.security.interfaces.ClientAuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
 import fr.dossierfacile.common.entity.Guarantor;
@@ -25,6 +26,7 @@ public class GuarantorType implements SaveStep<GuarantorTypeForm> {
     private final GuarantorRepository guarantorRepository;
     private final TenantStatusService tenantStatusService;
     private final ApartmentSharingService apartmentSharingService;
+    private final ClientAuthenticationFacade clientAuthenticationFacade;
 
     @Override
     @Transactional
@@ -38,6 +40,6 @@ public class GuarantorType implements SaveStep<GuarantorTypeForm> {
         tenant.lastUpdateDateProfile(LocalDateTime.now(), null);
         tenantStatusService.updateTenantStatus(tenant);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
-        return tenantMapper.toTenantModel(tenantRepository.save(tenant));
+        return tenantMapper.toTenantModel(tenantRepository.save(tenant), (!clientAuthenticationFacade.isClient()) ? null : clientAuthenticationFacade.getClient());
     }
 }

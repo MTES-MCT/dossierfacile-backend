@@ -32,7 +32,7 @@ public interface BoTenantLogRepository extends JpaRepository<TenantLog, Long> {
     @Query(value = """
             SELECT ua.email AS operator, COUNT(*) AS record_count
             FROM tenant_log t
-            INNER JOIN user_account ua ON t.operator_id = ua.id\s
+            INNER JOIN user_account ua ON t.operator_id = ua.id
             WHERE ( t.log_type = 'ACCOUNT_VALIDATED' OR log_type = 'ACCOUNT_DENIED' )
                 AND t.creation_date BETWEEN CURRENT_DATE AND CURRENT_DATE + 1
             GROUP BY ua.email

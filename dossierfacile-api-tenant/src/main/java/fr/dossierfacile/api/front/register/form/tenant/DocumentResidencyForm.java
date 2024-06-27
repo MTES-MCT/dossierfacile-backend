@@ -6,6 +6,7 @@ import fr.dossierfacile.api.front.validator.annotation.LengthOfText;
 import fr.dossierfacile.api.front.validator.annotation.NumberOfPages;
 import fr.dossierfacile.api.front.validator.annotation.tenant.residency.CustomTextResidency;
 import fr.dossierfacile.api.front.validator.annotation.tenant.residency.NumberOfDocumentResidency;
+import fr.dossierfacile.common.config.ApiVersion;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import jakarta.validation.constraints.NotNull;
@@ -14,13 +15,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-import static fr.dossierfacile.common.enums.DocumentSubCategory.GUEST;
-import static fr.dossierfacile.common.enums.DocumentSubCategory.GUEST_ORGANISM;
-import static fr.dossierfacile.common.enums.DocumentSubCategory.GUEST_PARENTS;
-import static fr.dossierfacile.common.enums.DocumentSubCategory.OTHER_RESIDENCY;
-import static fr.dossierfacile.common.enums.DocumentSubCategory.OWNER;
-import static fr.dossierfacile.common.enums.DocumentSubCategory.SHORT_TERM_RENTAL;
-import static fr.dossierfacile.common.enums.DocumentSubCategory.TENANT;
+import static fr.dossierfacile.common.enums.DocumentSubCategory.*;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -33,7 +28,9 @@ public class DocumentResidencyForm extends DocumentForm {
 
     @NotNull
     @DocumentSubcategorySubset(anyOf =
-            {TENANT, OWNER, GUEST, GUEST_PARENTS, GUEST_ORGANISM, SHORT_TERM_RENTAL, OTHER_RESIDENCY})
+            {TENANT, OWNER, GUEST, GUEST_PARENTS, GUEST_ORGANISM, SHORT_TERM_RENTAL, OTHER_RESIDENCY}, groups = ApiVersion.V3.class)
+    @DocumentSubcategorySubset(anyOf =
+            {TENANT, OWNER, GUEST, GUEST_COMPANY, GUEST_ORGANISM, SHORT_TERM_RENTAL, OTHER_RESIDENCY}, groups = ApiVersion.V4.class)
     private DocumentSubCategory typeDocumentResidency;
 
     @LengthOfText(max = 2000)

@@ -1,19 +1,20 @@
 package fr.dossierfacile.api.front.register.tenant;
 
-import fr.dossierfacile.common.dto.mail.TenantDto;
 import fr.dossierfacile.api.front.exception.TenantIllegalStateException;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
-import fr.dossierfacile.common.mapper.mail.TenantMapperForMail;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.SaveStep;
 import fr.dossierfacile.api.front.register.form.tenant.HonorDeclarationForm;
+import fr.dossierfacile.api.front.security.interfaces.ClientAuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
-import fr.dossierfacile.common.utils.TransactionalUtil;
+import fr.dossierfacile.common.dto.mail.TenantDto;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.mapper.mail.TenantMapperForMail;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
+import fr.dossierfacile.common.utils.TransactionalUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +36,7 @@ public class HonorDeclaration implements SaveStep<HonorDeclarationForm> {
     private final TenantStatusService tenantStatusService;
     private final ApartmentSharingService apartmentSharingService;
     private final TenantMapperForMail tenantMapperForMail;
+    private final ClientAuthenticationFacade clientAuthenticationFacade;
 
     private static List<Tenant> getTenantOrPartners(Tenant tenant) {
         ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
@@ -60,9 +62,10 @@ public class HonorDeclaration implements SaveStep<HonorDeclarationForm> {
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
 
         TenantDto tenantDto = tenantMapperForMail.toDto(tenant);
-        TransactionalUtil.afterCommit( () -> mailService.sendEmailAccountCompleted(tenantDto) );
+        TransactionalUtil.afterCommit(() -> mailService.sendEmailAccountCompleted(tenantDto));
 
-        return tenantMapper.toTenantModel(tenant);
+        return tenantMapper.toTenantModel(tenant, (!clientAuthenticationFacade.isClient()) ? null : clientAuthenticationFacade.getClient());
+
     }
 
     private void checkTenantValidity(Tenant tenant) {

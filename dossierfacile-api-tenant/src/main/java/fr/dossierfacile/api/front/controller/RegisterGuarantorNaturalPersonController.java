@@ -3,13 +3,7 @@ package fr.dossierfacile.api.front.controller;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.enums.StepRegister;
-import fr.dossierfacile.api.front.register.form.guarantor.natural_person.DocumentFinancialGuarantorNaturalPersonForm;
-import fr.dossierfacile.api.front.register.form.guarantor.natural_person.DocumentIdentificationGuarantorNaturalPersonFileForm;
-import fr.dossierfacile.api.front.register.form.guarantor.natural_person.DocumentIdentificationGuarantorNaturalPersonForm;
-import fr.dossierfacile.api.front.register.form.guarantor.natural_person.DocumentProfessionalGuarantorNaturalPersonForm;
-import fr.dossierfacile.api.front.register.form.guarantor.natural_person.DocumentResidencyGuarantorNaturalPersonForm;
-import fr.dossierfacile.api.front.register.form.guarantor.natural_person.DocumentTaxGuarantorNaturalPersonForm;
-import fr.dossierfacile.api.front.register.form.guarantor.natural_person.NameGuarantorNaturalPersonForm;
+import fr.dossierfacile.api.front.register.form.guarantor.natural_person.*;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.validator.group.Dossier;
@@ -41,8 +35,8 @@ public class RegisterGuarantorNaturalPersonController {
     public ResponseEntity<TenantModel> documentIdentification(@Validated(Dossier.class) DocumentIdentificationGuarantorNaturalPersonForm documentIdentificationGuarantorNaturalPersonForm) {
         var tenant = authenticationFacade.getTenant(documentIdentificationGuarantorNaturalPersonForm.getTenantId());
         tenantService.saveStepRegister(tenant, documentIdentificationGuarantorNaturalPersonForm, StepRegister.DOCUMENT_IDENTIFICATION_GUARANTOR_NATURAL_PERSON);
-        Tenant loggedTenant = (documentIdentificationGuarantorNaturalPersonForm.getTenantId() ==  null) ? tenant : authenticationFacade.getLoggedTenant();
-        return ok(tenantMapper.toTenantModel(loggedTenant));
+        Tenant loggedTenant = (documentIdentificationGuarantorNaturalPersonForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
+        return ok(tenantMapper.toTenantModel(loggedTenant, null));
     }
 
     @PreAuthorize("hasPermissionOnTenant(#documentIdentificationGuarantorNaturalPersonFileForm.tenantId)")
@@ -50,8 +44,8 @@ public class RegisterGuarantorNaturalPersonController {
     public ResponseEntity<TenantModel> documentIdentificationFile(@Validated(Dossier.class) DocumentIdentificationGuarantorNaturalPersonFileForm documentIdentificationGuarantorNaturalPersonFileForm) {
         var tenant = authenticationFacade.getTenant(documentIdentificationGuarantorNaturalPersonFileForm.getTenantId());
         tenantService.saveStepRegister(tenant, documentIdentificationGuarantorNaturalPersonFileForm, StepRegister.DOCUMENT_IDENTIFICATION_GUARANTOR_NATURAL_PERSON_FILE);
-        Tenant loggedTenant = (documentIdentificationGuarantorNaturalPersonFileForm.getTenantId() ==  null) ? tenant : authenticationFacade.getLoggedTenant();
-        return ok(tenantMapper.toTenantModel(loggedTenant));
+        Tenant loggedTenant = (documentIdentificationGuarantorNaturalPersonFileForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
+        return ok(tenantMapper.toTenantModel(loggedTenant, null));
     }
 
     @PreAuthorize("hasPermissionOnTenant(#nameGuarantorNaturalPersonForm.tenantId)")
@@ -60,8 +54,8 @@ public class RegisterGuarantorNaturalPersonController {
         var tenant = authenticationFacade.getTenant(nameGuarantorNaturalPersonForm.getTenantId());
         var tenantModel = tenantService.saveStepRegister(tenant, nameGuarantorNaturalPersonForm, StepRegister.NAME_GUARANTOR_NATURAL_PERSON);
         logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
-        Tenant loggedTenant = (nameGuarantorNaturalPersonForm.getTenantId() ==  null) ? tenant : authenticationFacade.getLoggedTenant();
-        return ok(tenantMapper.toTenantModel(loggedTenant));
+        Tenant loggedTenant = (nameGuarantorNaturalPersonForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
+        return ok(tenantMapper.toTenantModel(loggedTenant, null));
     }
 
     @PreAuthorize("hasPermissionOnTenant(#documentResidencyGuarantorNaturalPersonForm.tenantId)")
@@ -69,8 +63,8 @@ public class RegisterGuarantorNaturalPersonController {
     public ResponseEntity<TenantModel> documentResidency(@Validated(Dossier.class) DocumentResidencyGuarantorNaturalPersonForm documentResidencyGuarantorNaturalPersonForm) {
         Tenant tenant = authenticationFacade.getTenant(documentResidencyGuarantorNaturalPersonForm.getTenantId());
         tenantService.saveStepRegister(tenant, documentResidencyGuarantorNaturalPersonForm, StepRegister.DOCUMENT_RESIDENCY_GUARANTOR_NATURAL_PERSON);
-        Tenant loggedTenant = (documentResidencyGuarantorNaturalPersonForm.getTenantId() ==  null) ? tenant : authenticationFacade.getLoggedTenant();
-        return ok(tenantMapper.toTenantModel(loggedTenant));
+        Tenant loggedTenant = (documentResidencyGuarantorNaturalPersonForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
+        return ok(tenantMapper.toTenantModel(loggedTenant, null));
     }
 
     @PreAuthorize("hasPermissionOnTenant(#documentProfessionalGuarantorNaturalPersonForm.tenantId)")
@@ -78,8 +72,8 @@ public class RegisterGuarantorNaturalPersonController {
     public ResponseEntity<TenantModel> documentProfessional(@Validated(Dossier.class) DocumentProfessionalGuarantorNaturalPersonForm documentProfessionalGuarantorNaturalPersonForm) {
         var tenant = authenticationFacade.getTenant(documentProfessionalGuarantorNaturalPersonForm.getTenantId());
         tenantService.saveStepRegister(tenant, documentProfessionalGuarantorNaturalPersonForm, StepRegister.DOCUMENT_PROFESSIONAL_GUARANTOR_NATURAL_PERSON);
-        Tenant loggedTenant = (documentProfessionalGuarantorNaturalPersonForm.getTenantId() ==  null) ? tenant : authenticationFacade.getLoggedTenant();
-        return ok(tenantMapper.toTenantModel(loggedTenant));
+        Tenant loggedTenant = (documentProfessionalGuarantorNaturalPersonForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
+        return ok(tenantMapper.toTenantModel(loggedTenant, null));
     }
 
     @PreAuthorize("hasPermissionOnTenant(#documentFinancialGuarantorNaturalPersonForm.tenantId)")
@@ -87,8 +81,8 @@ public class RegisterGuarantorNaturalPersonController {
     public ResponseEntity<TenantModel> documentFinancial(@Validated(Dossier.class) DocumentFinancialGuarantorNaturalPersonForm documentFinancialGuarantorNaturalPersonForm) {
         var tenant = authenticationFacade.getTenant(documentFinancialGuarantorNaturalPersonForm.getTenantId());
         tenantService.saveStepRegister(tenant, documentFinancialGuarantorNaturalPersonForm, StepRegister.DOCUMENT_FINANCIAL_GUARANTOR_NATURAL_PERSON);
-        Tenant loggedTenant = (documentFinancialGuarantorNaturalPersonForm.getTenantId() ==  null) ? tenant : authenticationFacade.getLoggedTenant();
-        return ok(tenantMapper.toTenantModel(loggedTenant));
+        Tenant loggedTenant = (documentFinancialGuarantorNaturalPersonForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
+        return ok(tenantMapper.toTenantModel(loggedTenant, null));
     }
 
     @PreAuthorize("hasPermissionOnTenant(#documentTaxGuarantorNaturalPersonForm.tenantId)")
@@ -96,7 +90,7 @@ public class RegisterGuarantorNaturalPersonController {
     public ResponseEntity<TenantModel> documentTax(@Validated(Dossier.class) DocumentTaxGuarantorNaturalPersonForm documentTaxGuarantorNaturalPersonForm) {
         var tenant = authenticationFacade.getTenant(documentTaxGuarantorNaturalPersonForm.getTenantId());
         tenantService.saveStepRegister(tenant, documentTaxGuarantorNaturalPersonForm, StepRegister.DOCUMENT_TAX_GUARANTOR_NATURAL_PERSON);
-        Tenant loggedTenant = (documentTaxGuarantorNaturalPersonForm.getTenantId() ==  null) ? tenant : authenticationFacade.getLoggedTenant();
-        return ok(tenantMapper.toTenantModel(loggedTenant));
+        Tenant loggedTenant = (documentTaxGuarantorNaturalPersonForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
+        return ok(tenantMapper.toTenantModel(loggedTenant, null));
     }
 }

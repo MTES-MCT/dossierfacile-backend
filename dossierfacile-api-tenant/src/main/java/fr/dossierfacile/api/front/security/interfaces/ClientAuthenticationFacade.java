@@ -9,6 +9,8 @@ public interface ClientAuthenticationFacade {
 
     UserApi getClient();
 
+    boolean isClient();
+
     Optional<Integer> getApiVersion();
 
 }

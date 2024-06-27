@@ -3,16 +3,7 @@ package fr.dossierfacile.api.front.controller;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.enums.StepRegister;
-import fr.dossierfacile.api.front.register.form.tenant.AccountForm;
-import fr.dossierfacile.api.front.register.form.tenant.ApplicationFormV2;
-import fr.dossierfacile.api.front.register.form.tenant.DocumentFinancialForm;
-import fr.dossierfacile.api.front.register.form.tenant.DocumentIdentificationForm;
-import fr.dossierfacile.api.front.register.form.tenant.DocumentProfessionalForm;
-import fr.dossierfacile.api.front.register.form.tenant.DocumentResidencyForm;
-import fr.dossierfacile.api.front.register.form.tenant.DocumentTaxForm;
-import fr.dossierfacile.api.front.register.form.tenant.GuarantorTypeForm;
-import fr.dossierfacile.api.front.register.form.tenant.HonorDeclarationForm;
-import fr.dossierfacile.api.front.register.form.tenant.NamesForm;
+import fr.dossierfacile.api.front.register.form.tenant.*;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.validator.group.Dossier;
@@ -55,7 +46,7 @@ public class RegisterController {
         TenantModel tenantModel = tenantService.saveStepRegister(tenant, namesForm, StepRegister.NAMES);
         logService.saveStepLog(tenantModel.getId(), StepRegister.NAMES.getClazz().getSimpleName());
         Tenant loggedTenant = (namesForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
-        return ok(tenantMapper.toTenantModel(loggedTenant));
+        return ok(tenantMapper.toTenantModel(loggedTenant, null));
     }
 
     @PostMapping(value = "/application/v2", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -64,7 +55,7 @@ public class RegisterController {
         TenantModel tenantModel = tenantService.saveStepRegister(tenant, applicationForm, StepRegister.APPLICATION);
         logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
         Tenant loggedTenant = (applicationForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
-        return ok(tenantMapper.toTenantModel(loggedTenant));
+        return ok(tenantMapper.toTenantModel(loggedTenant, null));
     }
 
     @PreAuthorize("hasPermissionOnTenant(#honorDeclarationForm.tenantId)")
@@ -74,7 +65,7 @@ public class RegisterController {
         TenantModel tenantModel = tenantService.saveStepRegister(tenant, honorDeclarationForm, StepRegister.HONOR_DECLARATION);
         logService.saveLog(LogType.ACCOUNT_COMPLETED, tenantModel.getId());
         Tenant loggedTenant = (honorDeclarationForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
-        return ok(tenantMapper.toTenantModel(loggedTenant));
+        return ok(tenantMapper.toTenantModel(loggedTenant, null));
     }
 
     @PreAuthorize("hasPermissionOnTenant(#documentIdentificationForm.tenantId)")
@@ -83,7 +74,7 @@ public class RegisterController {
         Tenant tenant = authenticationFacade.getTenant(documentIdentificationForm.getTenantId());
         tenantService.saveStepRegister(tenant, documentIdentificationForm, StepRegister.DOCUMENT_IDENTIFICATION);
         Tenant loggedTenant = (documentIdentificationForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
-        return ok(tenantMapper.toTenantModel(loggedTenant));
+        return ok(tenantMapper.toTenantModel(loggedTenant, null));
     }
 
     @PreAuthorize("hasPermissionOnTenant(#documentResidencyForm.tenantId)")
@@ -92,7 +83,7 @@ public class RegisterController {
         Tenant tenant = authenticationFacade.getTenant(documentResidencyForm.getTenantId());
         tenantService.saveStepRegister(tenant, documentResidencyForm, StepRegister.DOCUMENT_RESIDENCY);
         Tenant loggedTenant = (documentResidencyForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
-        return ok(tenantMapper.toTenantModel(loggedTenant));
+        return ok(tenantMapper.toTenantModel(loggedTenant, null));
     }
 
     @PreAuthorize("hasPermissionOnTenant(#documentProfessionalForm.tenantId)")
@@ -101,7 +92,7 @@ public class RegisterController {
         Tenant tenant = authenticationFacade.getTenant(documentProfessionalForm.getTenantId());
         tenantService.saveStepRegister(tenant, documentProfessionalForm, StepRegister.DOCUMENT_PROFESSIONAL);
         Tenant loggedTenant = (documentProfessionalForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
-        return ok(tenantMapper.toTenantModel(loggedTenant));
+        return ok(tenantMapper.toTenantModel(loggedTenant, null));
     }
 
     @PreAuthorize("hasPermissionOnTenant(#documentFinancialForm.tenantId)")
@@ -110,7 +101,7 @@ public class RegisterController {
         Tenant tenant = authenticationFacade.getTenant(documentFinancialForm.getTenantId());
         tenantService.saveStepRegister(tenant, documentFinancialForm, StepRegister.DOCUMENT_FINANCIAL);
         Tenant loggedTenant = (documentFinancialForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
-        return ok(tenantMapper.toTenantModel(loggedTenant));
+        return ok(tenantMapper.toTenantModel(loggedTenant, null));
     }
 
     @PreAuthorize("hasPermissionOnTenant(#documentTaxForm.tenantId)")
@@ -119,7 +110,7 @@ public class RegisterController {
         Tenant tenant = authenticationFacade.getTenant(documentTaxForm.getTenantId());
         tenantService.saveStepRegister(tenant, documentTaxForm, StepRegister.DOCUMENT_TAX);
         Tenant loggedTenant = (documentTaxForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
-        return ok(tenantMapper.toTenantModel(loggedTenant));
+        return ok(tenantMapper.toTenantModel(loggedTenant, null));
     }
 
     @PreAuthorize("hasPermissionOnTenant(#guarantorTypeForm.tenantId)")
@@ -130,6 +121,6 @@ public class RegisterController {
         Tenant loggedTenant = (guarantorTypeForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
         logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
 
-        return ok(tenantMapper.toTenantModel(loggedTenant));
+        return ok(tenantMapper.toTenantModel(loggedTenant, null));
     }
 }

@@ -72,8 +72,8 @@ public class DocumentController {
             return badRequest().build();
         }
         if (commentAnalysisForm.getTenantId() != null) {
-            return ok(tenantMapper.toTenantModel(authenticationFacade.getTenant(null)));
+            return ok(tenantMapper.toTenantModel(authenticationFacade.getTenant(null), null));
         }
-        return ok(tenantMapper.toTenantModel(tenant));
+        return ok(tenantMapper.toTenantModel(tenant, null));
     }
 }

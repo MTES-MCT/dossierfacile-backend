@@ -36,7 +36,7 @@ public class RegisterGuarantorOrganismController {
         var tenant = authenticationFacade.getTenant(documentIdentificationGuarantorOrganismForm.getTenantId());
         tenantService.saveStepRegister(tenant, documentIdentificationGuarantorOrganismForm, StepRegister.DOCUMENT_IDENTIFICATION_GUARANTOR_ORGANISM);
         Tenant loggedTenant = (documentIdentificationGuarantorOrganismForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
-        return ok(tenantMapper.toTenantModel(loggedTenant));
+        return ok(tenantMapper.toTenantModel(loggedTenant, null));
     }
 
     @PreAuthorize("hasPermissionOnTenant(#form.tenantId)")
@@ -45,7 +45,7 @@ public class RegisterGuarantorOrganismController {
         var tenant = authenticationFacade.getTenant(form.getTenantId());
         tenantService.saveStepRegister(tenant, form, StepRegister.DOCUMENT_GUARANTEE_PROVIDER_CERTIFICATE);
         Tenant loggedTenant = (form.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
-        return ok(tenantMapper.toTenantModel(loggedTenant));
+        return ok(tenantMapper.toTenantModel(loggedTenant, null));
     }
 
 }
