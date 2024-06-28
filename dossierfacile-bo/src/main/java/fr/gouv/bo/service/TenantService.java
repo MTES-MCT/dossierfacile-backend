@@ -503,8 +503,28 @@ public class TenantService {
         tenant.setStatus(TenantFileStatus.VALIDATED);
         tenantRepository.save(tenant);
 
+
         tenantLogService.saveByLog(new TenantLog(LogType.ACCOUNT_VALIDATED, tenant.getId(), operator.getId()));
         operatorLogRepository.save(new OperatorLog(tenant, operator, tenant.getStatus(), ActionOperatorType.STOP_PROCESS, processedDocuments.count(), processedDocuments.timeSpent()));
+
+
+        if (tenant.getApartmentSharing().getTenants().stream()
+                .allMatch(t -> t.getStatus() == TenantFileStatus.VALIDATED)) {
+            // on envoie un mail a tout les coloc
+            tenant.getApartmentSharing().getTenants().stream()
+                    .filter(t -> isNotBlank(t.getEmail()))
+                    .forEach(t -> {
+                        // TODO tous validés T 68?
+                        if (tenant.getApartmentSharing().getApplicationType() == ApplicationType.GROUP) {
+                            // TODO specific pour group ?
+                        } else {
+                            mailService.sendEmailToTenantAfterValidateAllDocuments(t)
+                        }
+                    });
+        } else if (tenant.getApartmentSharing().getApplicationType() == ApplicationType.GROUP) {
+            // TODO T122
+            mailService.sendEmailToTenantAfterValidateAllDocumentsOfTenant(tenant);
+        }
 
         // sendCallBack is sent after Commit
         partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.VERIFIED_ACCOUNT);
