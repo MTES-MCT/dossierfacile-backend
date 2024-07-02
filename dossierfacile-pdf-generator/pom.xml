@@ -30,6 +30,7 @@
 		<metadata.extractor.version>2.19.0</metadata.extractor.version>
 		<pdf2dom.version>2.0.0</pdf2dom.version>
 		<pdfbox.tools.version>3.0.2</pdfbox.tools.version>
+		<imageio.version>3.10.1</imageio.version>
 	</properties>
 
 	<dependencyManagement>
@@ -100,6 +101,16 @@
 			<version>${jbig2.imageio.version}</version>
 		</dependency>
 		<!-- required codecs for some images -->
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-core</artifactId>
+			<version>${imageio.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-jpeg</artifactId>
+			<version>${imageio.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>com.github.jai-imageio</groupId>
 			<artifactId>jai-imageio-core</artifactId>
@@ -173,7 +184,7 @@
 					</annotationProcessorPaths>
 				</configuration>
 			</plugin>
-        </plugins>
+		</plugins>
 	</build>
 
 </project>
