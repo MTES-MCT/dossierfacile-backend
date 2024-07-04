@@ -1,8 +1,9 @@
 package fr.gouv.bo.service;
 
 import com.google.common.base.Strings;
-import fr.dossierfacile.common.entity.Tenant;
-import fr.dossierfacile.common.entity.User;
+import fr.dossierfacile.common.dto.mail.TenantDto;
+import fr.dossierfacile.common.dto.mail.UserApiDto;
+import fr.dossierfacile.common.dto.mail.UserDto;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.utils.OptionalString;
 import lombok.RequiredArgsConstructor;
@@ -34,16 +35,20 @@ public class MailService {
     private Long templateIDMessageNotification;
     @Value("${sendinblue.template.id.account.deleted}")
     private Long templateIdAccountDeleted;
-    @Value("${sendinblue.template.id.dossier.validated}")
-    private Long templateIdDossierValidated;
+    @Value("${mail.template.id.tenant.validated.dossier.validated}")
+    private Long templateIdTenantValidatedDossierValidated;
+    @Value("${mail.template.id.tenant.validated.dossier.validated.with.partner}")
+    private Long templateIdTenantValidatedDossierValidatedWithPartner;
+    @Value("${mail.template.id.tenant.validated.dossier.not.valid}")
+    private Long templateIdTenantValidatedDossierNotValidated;
+    @Value("${mail.template.id.tenant.validated.dossier.not.valid.with.partner}")
+    private Long templateIdTenantValidatedDossierNotValidatedWithPartner;
     @Value("${sendinblue.template.id.dossier.fully.validated}")
     private Long templateIdDossierFullyValidated;
     @Value("${sendinblue.template.id.dossier.tenant.denied}")
     private Long templateIdDossierTenantDenied;
     @Value("${sendinblue.template.id.message.notification.with.partner}")
     private Long templateIDMessageNotificationWithPartner;
-    @Value("${sendinblue.template.id.dossier.validated.with.partner}")
-    private Long templateIdDossierValidatedWithPartner;
     @Value("${sendinblue.template.id.dossier.fully.validated.with.partner}")
     private Long templateIdDossierFullyValidatedWithPartner;
     @Value("${sendinblue.template.id.dossier.tenant.denied.with.partner}")
@@ -55,7 +60,7 @@ public class MailService {
     @Value("${link.after.validated.default}")
     private String defaultValidatedUrl;
 
-    private void sendEmailToTenant(User tenant, Map<String, String> params, Long templateId) {
+    private void sendEmailToTenant(UserDto tenant, Map<String, String> params, Long templateId) {
         SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
         sendSmtpEmailTo.setEmail(tenant.getEmail());
         OptionalString.of(tenant.getFullName()).ifNotBlank( name -> sendSmtpEmailTo.setName(name));
@@ -73,7 +78,7 @@ public class MailService {
     }
 
     @Async
-    public void sendEmailAccountDeleted(Tenant tenant) {
+    public void sendEmailAccountDeleted(TenantDto tenant) {
         Map<String, String> params = new HashMap<>();
         params.put("PRENOM", tenant.getFirstName());
         params.put("NOM", OptionalString.of(tenant.getPreferredName()).orElse(tenant.getLastName()));
@@ -81,14 +86,14 @@ public class MailService {
     }
 
     @Async
-    public void sendMailNotificationAfterDeny(Tenant tenant) {
+    public void sendMailNotificationAfterDeny(TenantDto tenant) {
         Map<String, String> params = new HashMap<>();
         params.put("PRENOM", tenant.getFirstName());
         params.put("NOM", OptionalString.of(tenant.getPreferredName()).orElse(tenant.getLastName()));
         params.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
 
         if (tenant.isBelongToPartner()) {
-            UserApi userApi = tenant.getTenantsUserApi().get(0).getUserApi();
+            UserApiDto userApi = tenant.getUserApis().getFirst();
             params.put("partnerName", userApi.getName2());
             params.put("logoUrl", userApi.getLogoUrl());
             params.put("callToActionUrl", OptionalString.of(userApi.getDeniedUrl()).orElse(defaultDeniedUrl));
@@ -100,33 +105,51 @@ public class MailService {
     }
 
     @Async
-    public void sendEmailToTenantAfterValidateAllDocumentsOfTenant(Tenant tenant) {
+    public void sendEmailToTenantAfterValidateAllTenantForGroup(TenantDto tenant) {
         Map<String, String> params = new HashMap<>();
         params.put("PRENOM", tenant.getFirstName());
         params.put("NOM", OptionalString.of(tenant.getPreferredName()).orElse(tenant.getLastName()));
         params.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
 
         if (tenant.isBelongToPartner()) {
-            UserApi userApi = tenant.getTenantsUserApi().get(0).getUserApi();
+            UserApiDto userApi = tenant.getUserApis().getFirst();
             params.put("partnerName", userApi.getName2());
             params.put("logoUrl", userApi.getLogoUrl());
             params.put("callToActionUrl", OptionalString.of(userApi.getValidatedUrl()).orElse(defaultValidatedUrl));
 
-            sendEmailToTenant(tenant, params, templateIdDossierValidatedWithPartner);
+            sendEmailToTenant(tenant, params, templateIdTenantValidatedDossierValidatedWithPartner);
         } else {
-            sendEmailToTenant(tenant, params, templateIdDossierValidated);
+            sendEmailToTenant(tenant, params, templateIdTenantValidatedDossierValidated);
         }
     }
-
     @Async
-    public void sendEmailToTenantAfterValidateAllDocuments(Tenant tenant) {
+    public void sendEmailToTenantAfterValidatedApartmentSharingNotValidated(TenantDto tenant) {
         Map<String, String> params = new HashMap<>();
         params.put("PRENOM", tenant.getFirstName());
         params.put("NOM", OptionalString.of(tenant.getPreferredName()).orElse(tenant.getLastName()));
         params.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
 
         if (tenant.isBelongToPartner()) {
-            UserApi userApi = tenant.getTenantsUserApi().get(0).getUserApi();
+            UserApiDto userApi = tenant.getUserApis().getFirst();
+            params.put("partnerName", userApi.getName2());
+            params.put("logoUrl", userApi.getLogoUrl());
+            params.put("callToActionUrl", OptionalString.of(userApi.getValidatedUrl()).orElse(defaultValidatedUrl));
+
+            sendEmailToTenant(tenant, params, templateIdTenantValidatedDossierNotValidatedWithPartner);
+        } else {
+            sendEmailToTenant(tenant, params, templateIdTenantValidatedDossierNotValidated);
+        }
+    }
+
+    @Async
+    public void sendEmailToTenantAfterValidateAllDocuments(TenantDto tenant) {
+        Map<String, String> params = new HashMap<>();
+        params.put("PRENOM", tenant.getFirstName());
+        params.put("NOM", OptionalString.of(tenant.getPreferredName()).orElse(tenant.getLastName()));
+        params.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
+
+        if (tenant.isBelongToPartner()) {
+            UserApiDto userApi = tenant.getUserApis().getFirst();
             params.put("partnerName", userApi.getName2());
             params.put("logoUrl", userApi.getLogoUrl());
             params.put("callToActionUrl", OptionalString.of(userApi.getValidatedUrl()).orElse(defaultValidatedUrl));
@@ -138,14 +161,14 @@ public class MailService {
     }
 
     @Async
-    public void sendEmailToTenantAfterTenantDenied(Tenant tenant, Tenant deniedTenant) {
+    public void sendEmailToTenantAfterTenantDenied(TenantDto tenant, TenantDto deniedTenant) {
         Map<String, String> params = new HashMap<>();
         params.put("PRENOM", deniedTenant.getFirstName());
         params.put("NOM", Strings.isNullOrEmpty(deniedTenant.getPreferredName()) ? deniedTenant.getLastName() : deniedTenant.getPreferredName());
         params.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
 
         if (tenant.isBelongToPartner()) {
-            UserApi userApi = tenant.getTenantsUserApi().get(0).getUserApi();
+            UserApiDto userApi = tenant.getUserApis().getFirst();
             params.put("partnerName", userApi.getName2());
             params.put("logoUrl", userApi.getLogoUrl());
             params.put("callToActionUrl", OptionalString.of(userApi.getDeniedUrl()).orElse(defaultDeniedUrl));

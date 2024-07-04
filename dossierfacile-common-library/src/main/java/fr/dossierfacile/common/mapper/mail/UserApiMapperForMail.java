@@ -1,6 +1,6 @@
-package fr.dossierfacile.api.front.mapper.mail;
+package fr.dossierfacile.common.mapper.mail;
 
-import fr.dossierfacile.api.front.dto.UserApiDto;
+import fr.dossierfacile.common.dto.mail.UserApiDto;
 import fr.dossierfacile.common.entity.TenantUserApi;
 import fr.dossierfacile.common.entity.UserApi;
 import org.mapstruct.Mapper;

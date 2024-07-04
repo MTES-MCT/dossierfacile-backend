@@ -1,8 +1,8 @@
 package fr.dossierfacile.api.front.register.tenant;
 
 import fr.dossierfacile.api.front.mapper.TenantMapper;
-import fr.dossierfacile.api.front.mapper.mail.TenantMapperForMail;
-import fr.dossierfacile.api.front.mapper.mail.UserApiMapperForMail;
+import fr.dossierfacile.common.mapper.mail.TenantMapperForMail;
+import fr.dossierfacile.common.mapper.mail.UserApiMapperForMail;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.SaveStep;
 import fr.dossierfacile.api.front.register.form.partner.AccountPartnerForm;
