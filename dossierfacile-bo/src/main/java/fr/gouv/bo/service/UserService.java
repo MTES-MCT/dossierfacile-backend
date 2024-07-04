@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.*;
+import fr.dossierfacile.common.mapper.mail.TenantMapperForMail;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.gouv.bo.mapper.TenantMapper;
@@ -43,6 +44,7 @@ public class UserService {
     private final PartnerCallBackService partnerCallBackService;
     private final TenantLogService logService;
     private final ObjectMapper objectMapper;
+    private final TenantMapperForMail tenantMapperForMail;
 
     public List<BOUser> findAll() {
         return userRepository.findAll(Sort.by("email"));
@@ -81,7 +83,7 @@ public class UserService {
     }
 
     private void saveAndDeleteInfoByTenant(Tenant tenant, BOUser operator) {
-        mailService.sendEmailAccountDeleted(tenant);
+        mailService.sendEmailAccountDeleted(tenantMapperForMail.toDto(tenant));
         logService.saveByLog(
                 TenantLog.builder()
                         .logType(LogType.ACCOUNT_DELETE)

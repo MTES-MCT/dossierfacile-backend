@@ -1,4 +1,4 @@
-package fr.dossierfacile.api.front.dto;
+package fr.dossierfacile.common.dto.mail;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

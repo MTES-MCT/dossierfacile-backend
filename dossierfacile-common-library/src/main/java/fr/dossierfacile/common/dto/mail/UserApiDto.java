@@ -1,4 +1,4 @@
-package fr.dossierfacile.api.front.dto;
+package fr.dossierfacile.common.dto.mail;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -14,5 +14,6 @@ public class UserApiDto {
     private String logoUrl;
     private String completedUrl;
     private String welcomeUrl;
-
+    private String validatedUrl;
+    private String deniedUrl;
 }

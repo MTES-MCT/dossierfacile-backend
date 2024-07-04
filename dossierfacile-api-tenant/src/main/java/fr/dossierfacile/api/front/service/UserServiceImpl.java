@@ -1,10 +1,10 @@
 package fr.dossierfacile.api.front.service;
 
-import fr.dossierfacile.api.front.dto.TenantDto;
+import fr.dossierfacile.common.dto.mail.TenantDto;
 import fr.dossierfacile.api.front.exception.PasswordRecoveryTokenNotFoundException;
 import fr.dossierfacile.api.front.exception.UserNotFoundException;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
-import fr.dossierfacile.api.front.mapper.mail.TenantMapperForMail;
+import fr.dossierfacile.common.mapper.mail.TenantMapperForMail;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.repository.PasswordRecoveryTokenRepository;
 import fr.dossierfacile.api.front.repository.UserRepository;

@@ -1,7 +1,11 @@
 package fr.gouv.bo.service;
 
+import fr.dossierfacile.common.dto.mail.ApartmentSharingDto;
+import fr.dossierfacile.common.dto.mail.TenantDto;
 import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.*;
+import fr.dossierfacile.common.mapper.mail.ApartmentSharingMapperForMail;
+import fr.dossierfacile.common.mapper.mail.TenantMapperForMail;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
@@ -62,6 +66,8 @@ public class TenantService {
     private final LogService communTenantLogService;
     private final ApartmentSharingService apartmentSharingService;
     private final GuarantorRepository guarantorRepository;
+    private final TenantMapperForMail tenantMapperForMail;
+    private final ApartmentSharingMapperForMail apartmentSharingMapperForMail;
 
     private int forTenant = 0;
     @Value("${time.reprocess.application.minutes}")
@@ -499,6 +505,7 @@ public class TenantService {
         }
     }
 
+
     private void changeTenantStatusToValidated(Tenant tenant, User operator, ProcessedDocuments processedDocuments) {
         tenant.setStatus(TenantFileStatus.VALIDATED);
         tenantRepository.save(tenant);
@@ -506,20 +513,27 @@ public class TenantService {
         tenantLogService.saveByLog(new TenantLog(LogType.ACCOUNT_VALIDATED, tenant.getId(), operator.getId()));
         operatorLogRepository.save(new OperatorLog(tenant, operator, tenant.getStatus(), ActionOperatorType.STOP_PROCESS, processedDocuments.count(), processedDocuments.timeSpent()));
 
+        // prepare for mail
+        TenantDto tenantDto = tenantMapperForMail.toDto(tenant);
+        ApartmentSharingDto apartmentSharingDto = apartmentSharingMapperForMail.toDto(tenant.getApartmentSharing());
+
         // sendCallBack is sent after Commit
         partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.VERIFIED_ACCOUNT);
 
         TransactionalUtil.afterCommit(() -> {
             try {
-                if (tenant.getApartmentSharing().getApplicationType() == ApplicationType.GROUP) {
-                    mailService.sendEmailToTenantAfterValidateAllDocumentsOfTenant(tenant);
-                } else {
-                    if (tenant.getApartmentSharing().getTenants().stream()
-                            .allMatch(t -> t.getStatus() == TenantFileStatus.VALIDATED)) {
-                        tenant.getApartmentSharing().getTenants().stream()
-                                .filter(t -> isNotBlank(t.getEmail()))
-                                .forEach(t -> mailService.sendEmailToTenantAfterValidateAllDocuments(t));
-                    }
+                if (apartmentSharingDto.getTenants().stream().allMatch(t -> t.getStatus() == TenantFileStatus.VALIDATED)) {
+                    apartmentSharingDto.getTenants().stream()
+                            .filter(t -> isNotBlank(t.getEmail()))
+                            .forEach(t -> {
+                                if (tenant.getApartmentSharing().getApplicationType() == ApplicationType.GROUP) {
+                                    mailService.sendEmailToTenantAfterValidateAllTenantForGroup(t);
+                                } else {
+                                    mailService.sendEmailToTenantAfterValidateAllDocuments(t);
+                                }
+                            });
+                } else if (apartmentSharingDto.getApplicationType() == ApplicationType.GROUP) {
+                    mailService.sendEmailToTenantAfterValidatedApartmentSharingNotValidated(tenantDto);
                 }
             } catch (Exception e) {
                 log.error("CAUTION Unable to send notification to user ", e);
@@ -537,30 +551,20 @@ public class TenantService {
                 tenant, operator, tenant.getStatus(), ActionOperatorType.STOP_PROCESS, processedDocuments.count(), processedDocuments.timeSpent()
         ));
 
-        // TODO This part should be here to load tenant futur tenant data Please use DTO in AfterCommit INSTEAD !
-        // This part should treat sendMail and sendCallback
-        if (tenant.getApartmentSharing().getApplicationType() == ApplicationType.COUPLE) {
-            tenant.getApartmentSharing().getTenants().stream()
-                    .filter(t -> isNotBlank(t.getEmail()))
-                    .forEach(t -> {
-                        if (t.isBelongToPartner())
-                            t.getTenantsUserApi().get(0).getUserApi();
-                    });
-        } else {
-            if (tenant.isBelongToPartner())
-                tenant.getTenantsUserApi().get(0).getUserApi();
-        }
+        // prepare for mail
+        TenantDto tenantDto = tenantMapperForMail.toDto(tenant);
+        ApartmentSharingDto apartmentSharingDto = apartmentSharingMapperForMail.toDto(tenant.getApartmentSharing());
 
         // sendCallBack is sent after Commit
         partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.DENIED_ACCOUNT);
 
         TransactionalUtil.afterCommit(() -> {
-            if (tenant.getApartmentSharing().getApplicationType() == ApplicationType.COUPLE) {
-                tenant.getApartmentSharing().getTenants().stream()
+            if (apartmentSharingDto.getApplicationType() == ApplicationType.COUPLE) {
+                apartmentSharingDto.getTenants().stream()
                         .filter(t -> isNotBlank(t.getEmail()))
-                        .forEach(t -> mailService.sendEmailToTenantAfterTenantDenied(t, tenant));
+                        .forEach(t -> mailService.sendEmailToTenantAfterTenantDenied(t, tenantDto));
             } else {
-                mailService.sendMailNotificationAfterDeny(tenant);
+                mailService.sendMailNotificationAfterDeny(tenantDto);
             }
 
         });

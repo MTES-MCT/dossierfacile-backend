@@ -1,9 +1,9 @@
 package fr.dossierfacile.api.front.register.tenant;
 
-import fr.dossierfacile.api.front.dto.TenantDto;
+import fr.dossierfacile.common.dto.mail.TenantDto;
 import fr.dossierfacile.api.front.exception.TenantIllegalStateException;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
-import fr.dossierfacile.api.front.mapper.mail.TenantMapperForMail;
+import fr.dossierfacile.common.mapper.mail.TenantMapperForMail;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.SaveStep;
 import fr.dossierfacile.api.front.register.form.tenant.HonorDeclarationForm;
