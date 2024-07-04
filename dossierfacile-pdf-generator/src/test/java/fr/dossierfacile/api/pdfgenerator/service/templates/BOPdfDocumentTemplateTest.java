@@ -194,4 +194,26 @@ public class BOPdfDocumentTemplateTest {
         outputfile = new File("image.jpg");
         ImageIO.write(b, "jpg", outputfile);
     }
+
+    @DisplayName("Avoid render above qrcode")
+    @Test
+    public void check_watermark_not_in_qrcode() throws IOException {
+        Mockito.when(featureFlipping.shouldUseColors()).thenReturn(false);
+        Mockito.when(featureFlipping.shouldUseDistortion()).thenReturn(false);
+        InputStream is = BOPdfDocumentTemplateTest.class.getClassLoader().getResourceAsStream("qrcode-sample.pdf");
+
+        FileInputStream data = FileInputStream
+                .builder()
+                .mediaType(MediaType.APPLICATION_PDF)
+                .inputStream(is)
+                .build();
+
+        File resultFile = new File("target/resultTestPdfWithQrCode.pdf");
+        resultFile.createNewFile();
+
+        byte[] bytes = IOUtils.toByteArray(boPdfDocumentTemplate.render(Collections.singletonList(data)));
+
+        FileOutputStream w = new FileOutputStream(resultFile);
+        w.write(bytes);
+    }
 }
