@@ -39,7 +39,7 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
     private final SharedFileRepository fileRepository;
     private final EncryptionKeyService encryptionKeyService;
 
-    @Transactional(propagation = Propagation.SUPPORTS)
+    @Transactional
     @Override
     public File addFile(MultipartFile multipartFile, Document document) throws IOException {
 
