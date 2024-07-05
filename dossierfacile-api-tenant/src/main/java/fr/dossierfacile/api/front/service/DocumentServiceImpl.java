@@ -129,7 +129,7 @@ public class DocumentServiceImpl implements DocumentService {
                 });
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
+    @Transactional
     @Override
     public void addFile(MultipartFile multipartFile, Document document) throws IOException {
         File file = documentHelperService.addFile(multipartFile, document);

@@ -5,22 +5,20 @@ import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.form.DocumentForm;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
-import fr.dossierfacile.common.enums.LogType;
-import fr.dossierfacile.common.utils.TransactionalUtil;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.model.log.EditionType;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
+import fr.dossierfacile.common.utils.TransactionalUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.io.IOException;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -69,8 +67,8 @@ public abstract class AbstractDocumentSaveStep<T extends DocumentForm> implement
                     try {
                         // TODO -> We must find a way to inform user there is a failure
                         documentService.addFile(file, document);
-                    } catch (IOException ioe) {
-                        log.error("Unable to add File ", ioe);
+                    } catch (Exception ioe) {
+                        log.error("Unable to add File to document {}", document.getId(), ioe);
                     }
                 });
     }
