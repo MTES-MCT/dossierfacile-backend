@@ -120,9 +120,8 @@ public class PropertyServiceImpl implements PropertyService {
         URI uri;
         HttpResponse<String> response;
         try {
-            uri = new URI("https://observatoire-dpe-audit.ademe.fr/pub/dpe/find/" + propertyForm.getAdemeNumber());
+            uri = new URI("https://observatoire-dpe-audit.ademe.fr/pub/dpe/" + propertyForm.getAdemeNumber());
             HttpRequest request = HttpRequest.newBuilder()
-                    .headers("Referer", "https://observatoire-dpe-audit.ademe.fr")
                     .uri(uri)
                     .GET()
                     .build();
