@@ -1,13 +1,13 @@
 package fr.dossierfacile.api.pdfgenerator.util;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
 
+@Slf4j
 public enum Fonts {
 
     MARIANNE_LIGHT("Marianne-Light.ttf"),
@@ -20,7 +20,6 @@ public enum Fonts {
     NOTO_EMOJI_MEDIUM("Noto/NotoEmoji-Medium.ttf")
     ;
 
-    private static final Logger log = LoggerFactory.getLogger(Fonts.class);
     private final String path;
 
     Fonts(String path) {
