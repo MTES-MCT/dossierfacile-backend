@@ -2,11 +2,11 @@ package fr.dossierfacile.api.pdfgenerator.util;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.DefaultResourceLoader;
-import org.springframework.core.io.Resource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 public enum Fonts {
 
@@ -20,6 +20,7 @@ public enum Fonts {
     NOTO_EMOJI_MEDIUM("Noto/NotoEmoji-Medium.ttf")
     ;
 
+    private static final Logger log = LoggerFactory.getLogger(Fonts.class);
     private final String path;
 
     Fonts(String path) {
@@ -27,9 +28,15 @@ public enum Fonts {
     }
 
     public PDType0Font load(PDDocument document) throws IOException {
-        DefaultResourceLoader resourceLoader = new DefaultResourceLoader();
-        Resource resource = resourceLoader.getResource("classpath:static/fonts/" + path);
-        return PDType0Font.load(document, resource.getInputStream());
+        try (InputStream is = getClass().getClassLoader().getResourceAsStream("static/fonts/" + path)) {
+            if (is == null) {
+                throw new IOException("Font file not found: " + path);
+            }
+            return PDType0Font.load(document, is);
+        } catch (Exception e) {
+            log.error("Error loading font", e);
+            return null;
+        }
     }
 
 }
