@@ -306,14 +306,16 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
             int MAGIC_BORDER_SIZE = 20;
             for (Result qrCode : qrCodes) {
                 ResultPoint[] points = qrCode.getResultPoints();
-                int minX = (int) Math.min(points[0].getX(), Math.min(points[1].getX(), points[2].getX())) - MAGIC_BORDER_SIZE;
-                int minY = (int) Math.min(points[0].getY(), Math.min(points[1].getY(), points[2].getY())) - MAGIC_BORDER_SIZE;
-                int maxX = (int) Math.max(points[0].getX(), Math.max(points[1].getX(), points[2].getX())) + MAGIC_BORDER_SIZE;
-                int maxY = (int) Math.max(points[0].getY(), Math.max(points[1].getY(), points[2].getY())) + MAGIC_BORDER_SIZE;
+                if (points.length == 3) {
+                    int minX = (int) Math.min(points[0].getX(), Math.min(points[1].getX(), points[2].getX())) - MAGIC_BORDER_SIZE;
+                    int minY = (int) Math.min(points[0].getY(), Math.min(points[1].getY(), points[2].getY())) - MAGIC_BORDER_SIZE;
+                    int maxX = (int) Math.max(points[0].getX(), Math.max(points[1].getX(), points[2].getX())) + MAGIC_BORDER_SIZE;
+                    int maxY = (int) Math.max(points[0].getY(), Math.max(points[1].getY(), points[2].getY())) + MAGIC_BORDER_SIZE;
 
-                int width = maxX - minX;
-                int height = maxY - minY;
-                graphics.fillRect(minX, minY, (width), (height));
+                    int width = maxX - minX;
+                    int height = maxY - minY;
+                    graphics.fillRect(minX, minY, (width), (height));
+                }
             }
             graphics.dispose();
 
