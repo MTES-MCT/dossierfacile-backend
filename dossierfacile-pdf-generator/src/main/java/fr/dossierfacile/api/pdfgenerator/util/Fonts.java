@@ -1,13 +1,13 @@
 package fr.dossierfacile.api.pdfgenerator.util;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.DefaultResourceLoader;
-import org.springframework.core.io.Resource;
 
 import java.io.IOException;
+import java.io.InputStream;
 
+@Slf4j
 public enum Fonts {
 
     MARIANNE_LIGHT("Marianne-Light.ttf"),
@@ -27,9 +27,15 @@ public enum Fonts {
     }
 
     public PDType0Font load(PDDocument document) throws IOException {
-        DefaultResourceLoader resourceLoader = new DefaultResourceLoader();
-        Resource resource = resourceLoader.getResource("classpath:static/fonts/" + path);
-        return PDType0Font.load(document, resource.getInputStream());
+        try (InputStream is = getClass().getClassLoader().getResourceAsStream("static/fonts/" + path)) {
+            if (is == null) {
+                throw new IOException("Font file not found: " + path);
+            }
+            return PDType0Font.load(document, is);
+        } catch (Exception e) {
+            log.error("Error loading font", e);
+            return null;
+        }
     }
 
 }
