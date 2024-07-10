@@ -3,6 +3,8 @@ package fr.dossierfacile.api.pdfgenerator.util;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.DefaultResourceLoader;
+import org.springframework.core.io.Resource;
 
 import java.io.IOException;
 
@@ -25,8 +27,9 @@ public enum Fonts {
     }
 
     public PDType0Font load(PDDocument document) throws IOException {
-        ClassPathResource font = new ClassPathResource("static/fonts/" + path);
-        return PDType0Font.load(document, font.getInputStream());
+        DefaultResourceLoader resourceLoader = new DefaultResourceLoader();
+        Resource resource = resourceLoader.getResource("classpath:static/fonts/" + path);
+        return PDType0Font.load(document, resource.getInputStream());
     }
 
 }
