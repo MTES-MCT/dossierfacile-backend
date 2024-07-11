@@ -4,7 +4,7 @@ import fr.dossierfacile.common.entity.messaging.QueueName;
 import fr.dossierfacile.common.service.interfaces.QueueMessageService;
 import fr.dossierfacile.process.file.service.interfaces.MinifyFileService;
 import jakarta.annotation.PostConstruct;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class MinifyFileReceiver {
 
     private final MinifyFileService minifyFileService;

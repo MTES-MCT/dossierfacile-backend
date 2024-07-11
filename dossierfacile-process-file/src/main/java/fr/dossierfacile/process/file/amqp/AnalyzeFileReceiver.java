@@ -1,12 +1,10 @@
 package fr.dossierfacile.process.file.amqp;
 
-import com.google.common.annotations.VisibleForTesting;
 import fr.dossierfacile.common.entity.messaging.QueueName;
 import fr.dossierfacile.common.service.interfaces.QueueMessageService;
 import fr.dossierfacile.process.file.service.AnalyzeFileService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -18,7 +16,6 @@ import java.util.concurrent.TimeUnit;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-@Setter // for testing
 public class AnalyzeFileReceiver {
     private final QueueMessageService queueMessageService;
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
