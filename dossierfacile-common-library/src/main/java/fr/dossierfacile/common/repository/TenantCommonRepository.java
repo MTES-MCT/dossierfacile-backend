@@ -9,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.query.Procedure;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,17 +53,12 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
     Tenant findMyNextApplication(@Param("toLocalDateTime") LocalDateTime toLocalDateTime,
                                  @Param("operatorId") Long operatorId);
 
-    @Modifying
-    @Transactional
-    @Query(value = "REFRESH MATERIALIZED VIEW latest_operator", nativeQuery = true)
-    void refreshLatestOperatorView();
-    @Modifying
-    @Transactional
-    @Query(value = "REFRESH MATERIALIZED VIEW ranked_tenant", nativeQuery = true)
-    void refreshRankedTenantView();
+    @Procedure(procedureName = "refresh_mv")
+    void refreshMaterializedView(@Param("viewName") String viewName);
+
     default void refreshRank() {
-        refreshLatestOperatorView();
-        refreshRankedTenantView();
+        refreshMaterializedView("latest_operator");
+        refreshMaterializedView("ranked_tenant");
     }
 
     Page<Tenant> findByFirstNameContainingOrLastNameContainingOrEmailContaining(String q, String q1, String q2, Pageable pageable);

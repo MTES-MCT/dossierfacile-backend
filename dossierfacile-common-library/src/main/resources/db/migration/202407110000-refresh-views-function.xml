@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="202407110000-01" author="fabien">
+        <sql splitStatements="false" stripComments="true">
+            <![CDATA[
+                CREATE OR REPLACE PROCEDURE refresh_mv(view_name text)
+                LANGUAGE plpgsql
+                SECURITY DEFINER
+                AS $$
+                BEGIN
+                    EXECUTE 'REFRESH MATERIALIZED VIEW ' || quote_ident(view_name);
+                END;
+                $$;
+            ]]>
+        </sql>
+    </changeSet>
+</databaseChangeLog>
