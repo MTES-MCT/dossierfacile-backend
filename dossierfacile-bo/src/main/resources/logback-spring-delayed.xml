@@ -47,8 +47,9 @@
             </fieldNames>
             <customFields>{"application":"${APPLICATION_NAME}", "environment":"${ENVIRONMENT}", "profiles":"${APPLICATION_PROFILES}"}</customFields>
             <includeMdcKeyName>uri</includeMdcKeyName>
-            <includeMdcKeyName>email</includeMdcKeyName>
             <includeMdcKeyName>request_id</includeMdcKeyName>
+            <includeMdcKeyName>ip</includeMdcKeyName>
+            <includeMdcKeyName>email</includeMdcKeyName>
         </encoder>
     </appender>
 

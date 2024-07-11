@@ -6,6 +6,7 @@ import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.messaging.QueueMessage;
 import fr.dossierfacile.common.entity.messaging.QueueMessageStatus;
+import fr.dossierfacile.common.entity.messaging.QueueName;
 import fr.dossierfacile.common.repository.QueueMessageRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,8 +41,6 @@ public class Producer {
     private String exchangePdfGenerator;
     @Value("${rabbitmq.routing.key.pdf.generator.apartment-sharing}")
     private String routingKeyPdfGeneratorApartmentSharing;
-    @Value("${rabbitmq.routing.key.pdf.generator.watermark-document}")
-    private String routingKeyPdfGeneratorWatermarkDocument;
 
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
@@ -66,9 +65,10 @@ public class Producer {
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void sendDocumentForAnalysis(Document document) {
         log.debug("Sending document with ID [{}] for analysis", document.getId());
-        QueueMessage message = queueMessageRepository.findByDocumentIdAndStatus(document.getId(), QueueMessageStatus.PENDING);
+        QueueMessage message = queueMessageRepository.findByQueueNameAndDocumentIdAndStatus(QueueName.QUEUE_DOCUMENT_ANALYSIS, document.getId(), QueueMessageStatus.PENDING);
         if (message == null){
             message = QueueMessage.builder()
+                    .queueName(QueueName.QUEUE_DOCUMENT_ANALYSIS)
                     .documentId(document.getId())
                     .status(QueueMessageStatus.PENDING)
                     .timestamp(System.currentTimeMillis())
@@ -83,11 +83,11 @@ public class Producer {
     @Async
     public void sendDocumentForPdfGeneration(Document document) {
         log.debug("Sending document with ID [{}] for pdf generation", document.getId());
-        MessageProperties properties = new MessageProperties();
-        properties.setHeader("timestamp", System.currentTimeMillis());
-        Message msg = new Message(
-                gson.toJson(Collections.singletonMap("id", String.valueOf( document.getId()))).getBytes(),
-                properties);
-        amqpTemplate.send(exchangePdfGenerator, routingKeyPdfGeneratorWatermarkDocument, msg);
+        queueMessageRepository.save( QueueMessage.builder()
+                .queueName(QueueName.QUEUE_DOCUMENT_WATERMARK_PDF)
+                .documentId(document.getId())
+                .status(QueueMessageStatus.PENDING)
+                .timestamp(System.currentTimeMillis())
+                .build());
     }
 }

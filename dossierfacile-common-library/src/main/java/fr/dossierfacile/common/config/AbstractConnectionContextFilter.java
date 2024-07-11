@@ -18,6 +18,7 @@ public abstract class AbstractConnectionContextFilter extends HttpFilter {
     private static final String URI = "uri";
     private static final String REQUEST_ID = "request_id";
     private static final String RESPONSE_STATUS = "response_status";
+    private static final String REAL_IP = "ip";
 
     @Override
     protected void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
@@ -29,6 +30,7 @@ public abstract class AbstractConnectionContextFilter extends HttpFilter {
         try {
             MDC.put(URI, request.getRequestURI());
             MDC.put(REQUEST_ID, UUID.randomUUID().toString());
+            MDC.put(REAL_IP, request.getHeader("X-Real-Ip")); // specific to Scalingo infra
 
             getAdditionalContextElements().forEach(MDC::put);
 

@@ -2,7 +2,7 @@ package fr.dossierfacile.api.front.service;
 
 import fr.dossierfacile.api.front.exception.MailSentLimitException;
 import fr.dossierfacile.api.front.exception.TenantNotFoundException;
-import fr.dossierfacile.api.front.mapper.mail.TenantMapperForMail;
+import fr.dossierfacile.common.mapper.mail.TenantMapperForMail;
 import fr.dossierfacile.api.front.model.KeycloakUser;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.RegisterFactory;

@@ -10,10 +10,13 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@ToString
 public class QueueMessage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Enumerated(EnumType.STRING)
+    private QueueName queueName;
     private Long timestamp;
     private Long documentId;
     @Enumerated(EnumType.STRING)

@@ -4,6 +4,21 @@ import com.drew.imaging.ImageMetadataReader;
 import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.exif.ExifIFD0Directory;
+import com.google.zxing.BinaryBitmap;
+import com.google.zxing.ChecksumException;
+import com.google.zxing.DecodeHintType;
+import com.google.zxing.FormatException;
+import com.google.zxing.LuminanceSource;
+import com.google.zxing.MultiFormatReader;
+import com.google.zxing.NotFoundException;
+import com.google.zxing.Reader;
+import com.google.zxing.Result;
+import com.google.zxing.ResultPoint;
+import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
+import com.google.zxing.common.HybridBinarizer;
+import com.google.zxing.multi.GenericMultipleBarcodeReader;
+import com.google.zxing.multi.MultipleBarcodeReader;
+import com.google.zxing.qrcode.QRCodeReader;
 import com.twelvemonkeys.image.ImageUtil;
 import fr.dossierfacile.api.pdfgenerator.configuration.FeatureFlipping;
 import fr.dossierfacile.api.pdfgenerator.model.FileInputStream;
@@ -38,11 +53,13 @@ import java.awt.image.ConvolveOp;
 import java.awt.image.Kernel;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -139,18 +156,7 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
                     PDPageTree pagesTree = document.getPages();
                     for (int i = 0; i < pagesTree.getCount(); i++) {
                         PDRectangle pageMediaBox = pagesTree.get(i).getMediaBox();
-                        float ratioImage = pageMediaBox.getHeight() / pageMediaBox.getWidth();
-                        float ratioPDF = params.mediaBox.getHeight() / params.mediaBox.getWidth();
-
-                        // scale according the greater axis
-                        PageDimension dimension = (ratioImage < ratioPDF) ?
-                                new PageDimension((int) pageMediaBox.getWidth(), (int) (pageMediaBox.getWidth() * ratioPDF), 0)
-                                : new PageDimension((int) (pageMediaBox.getHeight() / ratioPDF), (int) pageMediaBox.getHeight(), 0);
-
-
-                        float scale = (dimension.width < params.maxPage.width) ? 1f :
-                                params.maxPage.width / pageMediaBox.getWidth();// image is too big - scale if necessary
-
+                        float scale = getScale(pageMediaBox);
                         // x2 - double the image resolution (prevent quality loss if image is cropped)
                         images.add(pdfRenderer.renderImage(i, scale * 2, ImageType.RGB));
                     }
@@ -166,6 +172,19 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
         } catch (IOException e) {
             throw new RuntimeException("Unable to convert pdf to image", e);
         }
+    }
+
+    private float getScale(PDRectangle pageMediaBox) {
+        float ratioImage = pageMediaBox.getHeight() / pageMediaBox.getWidth();
+        float ratioPDF = params.mediaBox.getHeight() / params.mediaBox.getWidth();
+
+        // scale according the greater axis
+        PageDimension dimension = (ratioImage < ratioPDF) ?
+                new PageDimension((int) pageMediaBox.getWidth(), (int) (pageMediaBox.getWidth() * ratioPDF), 0)
+                : new PageDimension((int) (pageMediaBox.getHeight() / ratioPDF), (int) pageMediaBox.getHeight(), 0);
+
+        return (dimension.width < params.maxPage.width) ? 1f :
+                params.maxPage.width / pageMediaBox.getWidth();
     }
 
     private BufferedImage createImageWithOrientation(InputStream inputStream) throws IOException {
@@ -280,6 +299,25 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
             graphic.dispose();
 
             BufferedImage cropedRotated = rotated.getSubimage(diagonal / 2 - bim.getWidth() / 2, diagonal / 2 - bim.getHeight() / 2, diagonal / 2 + bim.getWidth() / 2, diagonal / 2 + bim.getHeight() / 2);
+            List<Result> qrCodes = detectQRCodes(bim);
+
+            Graphics2D graphics = cropedRotated.createGraphics();
+            graphics.setComposite(AlphaComposite.Clear);
+            int MAGIC_BORDER_SIZE = 20;
+            for (Result qrCode : qrCodes) {
+                ResultPoint[] points = qrCode.getResultPoints();
+                if (points.length == 3) {
+                    int minX = (int) Math.min(points[0].getX(), Math.min(points[1].getX(), points[2].getX())) - MAGIC_BORDER_SIZE;
+                    int minY = (int) Math.min(points[0].getY(), Math.min(points[1].getY(), points[2].getY())) - MAGIC_BORDER_SIZE;
+                    int maxX = (int) Math.max(points[0].getX(), Math.max(points[1].getX(), points[2].getX())) + MAGIC_BORDER_SIZE;
+                    int maxY = (int) Math.max(points[0].getY(), Math.max(points[1].getY(), points[2].getY())) + MAGIC_BORDER_SIZE;
+
+                    int width = maxX - minX;
+                    int height = maxY - minY;
+                    graphics.fillRect(minX, minY, (width), (height));
+                }
+            }
+            graphics.dispose();
 
             gf.drawImage(cropedRotated, 0, 0, null);
 
@@ -287,8 +325,22 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
 
             return bim;
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Unable to fit image to the page", e);
             throw new RuntimeException("Unable to fit image to the page", e);
+        }
+    }
+
+    private static List<Result> detectQRCodes(BufferedImage image) {
+        LuminanceSource source = new BufferedImageLuminanceSource(image);
+        BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
+        com.google.zxing.Reader reader = new MultiFormatReader();
+        MultipleBarcodeReader bcReader = new GenericMultipleBarcodeReader(reader);
+        Hashtable<DecodeHintType, Object> hints = new Hashtable<>();
+        hints.put(DecodeHintType.TRY_HARDER, Boolean.TRUE);
+        try {
+            return List.of(bcReader.decodeMultiple(bitmap, hints));
+        } catch (NotFoundException e) {
+            return new ArrayList<>();
         }
     }
 

@@ -1,9 +1,9 @@
 package fr.dossierfacile.api.front.service;
 
 import com.google.common.base.Strings;
-import fr.dossierfacile.api.front.dto.TenantDto;
-import fr.dossierfacile.api.front.dto.UserApiDto;
-import fr.dossierfacile.api.front.dto.UserDto;
+import fr.dossierfacile.common.dto.mail.TenantDto;
+import fr.dossierfacile.common.dto.mail.UserApiDto;
+import fr.dossierfacile.common.dto.mail.UserDto;
 import fr.dossierfacile.api.front.form.ContactForm;
 import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.common.entity.*;

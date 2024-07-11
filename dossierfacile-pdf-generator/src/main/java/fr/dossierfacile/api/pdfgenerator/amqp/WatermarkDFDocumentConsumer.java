@@ -1,76 +1,52 @@
 package fr.dossierfacile.api.pdfgenerator.amqp;
 
 
-import com.google.gson.Gson;
 import fr.dossierfacile.api.pdfgenerator.service.interfaces.DocumentService;
 import fr.dossierfacile.api.pdfgenerator.service.interfaces.PdfGeneratorService;
 import fr.dossierfacile.common.entity.StorageFile;
+import fr.dossierfacile.common.entity.messaging.QueueName;
+import fr.dossierfacile.common.service.interfaces.QueueMessageService;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.core.Message;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class WatermarkDFDocumentConsumer {
-
-    private final Gson gson;
     private final PdfGeneratorService pdfGeneratorService;
     private final DocumentService documentService;
-    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
-    @Value("${rabbitmq.document.pdf-generation.delay}")
+    private final QueueMessageService queueMessageService;
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    @Value("${document.pdf-generation.delay.ms}")
     private Long documentPdfGenerationDelay;
-    @Value("${pdf.document.generate.timeout.seconds}")
-    private Long generateDocumentPdfTimeout;
+    @Value("${document.pdf-generation.timeout.ms}")
+    private Long documentPdfGenerationTimeout;
 
-    @RabbitListener(queues = "${rabbitmq.queue.watermark-document.name}", containerFactory = "retryContainerFactory")
-    public void receiveMessage(Message message) throws Exception {
-        log.debug("Received message on watermark.dfdocument to process:" + message);
-        long msgTimestamp = message.getMessageProperties().getHeader("timestamp");
-        delayExecution(msgTimestamp);
-
-        try {
-            Map<String, String> data = gson.fromJson(new String(message.getBody()), Map.class);
-            final Long documentId = Long.valueOf(data.get("id"));
-            if (documentService.documentIsUpToDateAt(msgTimestamp, documentId)) {
-                long executionTimestamp = System.currentTimeMillis();
-                Future<StorageFile> future = executorService.submit(() -> pdfGeneratorService.generateBOPdfDocument(documentService.getDocument(documentId)));
-                try {
-                    StorageFile watermarkFile = future.get(generateDocumentPdfTimeout, TimeUnit.SECONDS);
-                    documentService.saveWatermarkFileAt(executionTimestamp, watermarkFile, documentId);
-
-                } catch (InterruptedException | ExecutionException | TimeoutException e) {
-                    future.cancel(true);
-                    throw new RuntimeException("Timeout lors de la génération du PDF pour le document " + documentId, e);
-                }
-
-            } else {
-                log.debug("Ignore document pdf generation cause document is NOT up to date");
-            }
-
-        } catch (Exception e) {
-            log.error(e.getMessage(), e.getCause());
-        }
+    @PostConstruct
+    public void startConsumer() {
+        scheduler.scheduleAtFixedRate(this::receiveDocument, 0, 2, TimeUnit.SECONDS);
     }
 
-    private void delayExecution(Long msgTimestamp) {
-        if (msgTimestamp != null) {
-            long timeToWait = documentPdfGenerationDelay - (System.currentTimeMillis() - msgTimestamp);
-            if (timeToWait > 0) {
-                try {
-                    log.info("Delayed execution in" + timeToWait + " ms");
-                    Thread.sleep(timeToWait);
-                } catch (InterruptedException e) {
-                    log.warn("Unable to sleep the thread");
-                    Thread.currentThread().interrupt();
-                }
-            }
+    private void receiveDocument() {
+        try {
+            queueMessageService.consume(
+                    QueueName.QUEUE_DOCUMENT_WATERMARK_PDF,
+                    documentPdfGenerationDelay,
+                    documentPdfGenerationTimeout,
+                    (msg) -> {
+                        long executionTimestamp = System.currentTimeMillis();
+                        StorageFile watermarkFile = pdfGeneratorService.generateBOPdfDocument(documentService.getDocument(msg.getDocumentId()));
+                        documentService.saveWatermarkFileAt(executionTimestamp, watermarkFile, msg.getDocumentId());
+                    });
+        } catch (Exception e) {
+            log.error("Unable to consume the message queue");
         }
     }
 }

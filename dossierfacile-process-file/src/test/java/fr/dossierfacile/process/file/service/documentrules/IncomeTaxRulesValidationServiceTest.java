@@ -4,12 +4,17 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.dossierfacile.common.entity.*;
+import fr.dossierfacile.common.entity.ocr.TaxIncomeLeaf;
+import fr.dossierfacile.common.entity.ocr.TaxIncomeMainFile;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
+import fr.dossierfacile.common.enums.ParsedFileAnalysisStatus;
+import fr.dossierfacile.common.enums.ParsedFileClassification;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -39,7 +44,19 @@ class IncomeTaxRulesValidationServiceTest {
                                 """.replace("{2022}", String.valueOf(year)), ObjectNode.class)
                 )
                 .build();
+        TaxIncomeMainFile taxIncome = TaxIncomeMainFile.builder()
+                .anneeDesRevenus(year)
+                .declarant1Nom("DUPONT Jean")
+                .revenuFiscalDeReference(42902)
+                .taxIncomeLeaves(Collections.singletonList(TaxIncomeLeaf.builder().build()))
+                .build();
+        ParsedFileAnalysis parsedFileAnalysis = ParsedFileAnalysis.builder()
+                .classification(ParsedFileClassification.TAX_INCOME)
+                .analysisStatus(ParsedFileAnalysisStatus.COMPLETED)
+                .parsedFile(taxIncome)
+                .build();
         return File.builder()
+                .parsedFileAnalysis(parsedFileAnalysis)
                 .fileAnalysis(barCodeFileAnalysis)
                 .build();
     }

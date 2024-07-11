@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="202406170000-01" author="fabien">
+        <addColumn tableName="queue_message">
+            <column name="queue_name" type="varchar(128)">
+            </column>
+        </addColumn>
+    </changeSet>
+    <changeSet id="202406170000-02" author="fabien">
+        <createIndex indexName="queue_message_queue_name_index" tableName="queue_message">
+            <column name="queue_name"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="202406170000-03" author="fabien">
+        <createIndex indexName="queue_message_status_index" tableName="queue_message">
+            <column name="status"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

@@ -8,6 +8,7 @@ import lombok.Getter;
 public enum DocumentRule {
 
     R_TAX_PARSE(Level.WARN, "La lecture des informations de l'avis a échoué"),
+    R_TAX_BAD_CLASSIFICATION(Level.CRITICAL, "Le document n'est pas un avis d'imposition"),
     R_TAX_FAKE(Level.CRITICAL, "Les informations sont floues ou corrompues"),
     R_TAX_N1(Level.CRITICAL, "L'avis d'imposition sur les revenus N-1 doit etre fournis"),
     R_TAX_LEAF(Level.CRITICAL, "Veuillez fournir les feuillets des avis"),

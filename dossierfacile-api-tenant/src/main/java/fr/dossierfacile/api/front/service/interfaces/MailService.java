@@ -1,8 +1,8 @@
 package fr.dossierfacile.api.front.service.interfaces;
 
-import fr.dossierfacile.api.front.dto.TenantDto;
-import fr.dossierfacile.api.front.dto.UserApiDto;
-import fr.dossierfacile.api.front.dto.UserDto;
+import fr.dossierfacile.common.dto.mail.TenantDto;
+import fr.dossierfacile.common.dto.mail.UserApiDto;
+import fr.dossierfacile.common.dto.mail.UserDto;
 import fr.dossierfacile.api.front.form.ContactForm;
 import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.ApplicationType;

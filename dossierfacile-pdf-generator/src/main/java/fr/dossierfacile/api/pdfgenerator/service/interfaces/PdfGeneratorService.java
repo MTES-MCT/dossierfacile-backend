@@ -8,7 +8,7 @@ import java.io.IOException;
 public interface PdfGeneratorService {
     void processPdfGenerationFormWatermark(Long watermarkDocumentId);
 
-    StorageFile generateBOPdfDocument(Document document) throws Exception;
+    StorageFile generateBOPdfDocument(Document document);
 
     void generateFullDossierPdf(Long apartmentSharingId) throws IOException;
 }
