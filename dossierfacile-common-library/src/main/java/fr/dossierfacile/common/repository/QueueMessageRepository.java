@@ -9,8 +9,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 public interface QueueMessageRepository extends JpaRepository<QueueMessage, Long> {
-    QueueMessage findByQueueNameAndDocumentIdAndStatus(QueueName queueName, Long documentId, QueueMessageStatus queueMessageStatus);
+    List<QueueMessage> findByQueueNameAndDocumentIdAndStatusIn(QueueName queueName, Long documentId, List<QueueMessageStatus> queueMessageStatus);
 
     @Query(value = """
             SELECT * FROM queue_message

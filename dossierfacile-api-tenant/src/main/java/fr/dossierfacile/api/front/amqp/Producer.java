@@ -9,6 +9,7 @@ import fr.dossierfacile.common.entity.messaging.QueueName;
 import fr.dossierfacile.common.repository.QueueMessageRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Message;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
+import java.util.List;
 
 @Component
 @Slf4j
@@ -68,7 +70,8 @@ public class Producer {
     @Transactional(propagation = Propagation.SUPPORTS)
     public void sendDocumentForAnalysis(Document document) {
         log.debug("Sending document with ID [{}] for analysis", document.getId());
-        QueueMessage message = queueMessageRepository.findByQueueNameAndDocumentIdAndStatus(QueueName.QUEUE_DOCUMENT_ANALYSIS, document.getId(), QueueMessageStatus.PENDING);
+        List<QueueMessage> messages = queueMessageRepository.findByQueueNameAndDocumentIdAndStatusIn(QueueName.QUEUE_DOCUMENT_ANALYSIS, document.getId(), List.of(QueueMessageStatus.PENDING));
+        QueueMessage message = CollectionUtils.isNotEmpty(messages) ? messages.getFirst() : null;
         if (message == null) {
             message = QueueMessage.builder()
                     .queueName(QueueName.QUEUE_DOCUMENT_ANALYSIS)
