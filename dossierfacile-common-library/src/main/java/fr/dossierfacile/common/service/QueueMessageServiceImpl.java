@@ -3,6 +3,7 @@ package fr.dossierfacile.common.service;
 import fr.dossierfacile.common.entity.messaging.QueueMessage;
 import fr.dossierfacile.common.entity.messaging.QueueMessageStatus;
 import fr.dossierfacile.common.entity.messaging.QueueName;
+import fr.dossierfacile.common.exceptions.RetryableOperationException;
 import fr.dossierfacile.common.repository.QueueMessageRepository;
 import fr.dossierfacile.common.service.interfaces.QueueMessageService;
 import lombok.AllArgsConstructor;
@@ -37,6 +38,11 @@ public class QueueMessageServiceImpl implements QueueMessageService {
                 queueMessageRepository.save(message);
                 log.error("Thread interrupted", e);
                 Thread.currentThread().interrupt();
+            } catch (RetryableOperationException e) {
+                log.error("Message can be re-queued", e);
+                message.setStatus(QueueMessageStatus.PENDING);
+                message.setTimestamp(System.currentTimeMillis());
+                queueMessageRepository.save(message);
             } catch (Throwable t) {
                 message.setStatus(QueueMessageStatus.FAILED);
                 queueMessageRepository.save(message);
@@ -44,7 +50,7 @@ public class QueueMessageServiceImpl implements QueueMessageService {
         }
     }
 
-    private void consumeMessageWithTimeout(Consumer<QueueMessage> consumer, long consumptionTimeout, QueueMessage message) throws TimeoutException, ExecutionException, InterruptedException {
+    private void consumeMessageWithTimeout(Consumer<QueueMessage> consumer, long consumptionTimeout, QueueMessage message) throws Throwable {
         CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
             consumer.accept(message);
         });
@@ -54,7 +60,13 @@ public class QueueMessageServiceImpl implements QueueMessageService {
             future.cancel(true);
             log.error("Timeout while consume message {}", message.getDocumentId());
             throw e;
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (ExecutionException e) {
+            log.error("Error while consume message {}", message.getDocumentId(), e);
+            if (e.getCause() != null) {
+                throw e.getCause();
+            }
+            throw e;
+        } catch (InterruptedException e) {
             log.error("Error while consume message {}", message.getDocumentId(), e);
             throw e;
         }

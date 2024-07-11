@@ -9,8 +9,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 public interface QueueMessageRepository extends JpaRepository<QueueMessage, Long> {
-    QueueMessage findByQueueNameAndDocumentIdAndStatus(QueueName queueName, Long documentId, QueueMessageStatus queueMessageStatus);
+    List<QueueMessage> findByQueueNameAndDocumentIdAndStatusIn(QueueName queueName, Long documentId, List<QueueMessageStatus> queueMessageStatus);
 
     @Query(value = """
             SELECT * FROM queue_message
@@ -48,7 +50,7 @@ public interface QueueMessageRepository extends JpaRepository<QueueMessage, Long
             WHERE id IN (
                 SELECT id
                 FROM (
-                    SELECT id, ROW_NUMBER() OVER (PARTITION BY queue_name, document_id, status ORDER BY timestamp DESC) AS rn
+                    SELECT id, ROW_NUMBER() OVER (PARTITION BY queue_name, document_id, file_id, status ORDER BY timestamp DESC) AS rn
                     FROM queue_message
                     WHERE status = 'PENDING'
                     AND queue_name = :queueName
