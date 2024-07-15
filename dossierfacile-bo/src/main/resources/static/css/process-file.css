@@ -254,11 +254,15 @@ div.scrollmenu a:hover {
     background-color: #777;
 }
 
-.denied-background{
+.prevalidation-background-DENIED{
     background-color: #fcdddc;
     color: #929292;
 }
-.checked-background{
+.prevalidation-background-UNDEFINED{
+    background-color: #f0d39c;
+    color: #929292;
+}
+.prevalidation-background-CHECKED{
     background-color: #e1f2e4;
     color: #929292;
 }
