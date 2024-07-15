@@ -4,24 +4,25 @@
     "maxPageCount": 6
   },
   "classification": {
-    "name": "TAX_ASSESSMENT_2021"
+    "name": "TAX_ASSESSMENT_202x",
+    "comment": "based on 2021, work on 2022, 2023,2024"
   },
   "matchingZones": [
     {
       "name": "title1",
-      "rect": "189,26,380,21",
+      "rect": "186,26,380,21",
       "matches": "DIRECTION G[ÉE]N[ÉE]RALE DES FINANCES PUBLIQUES",
       "comments": ""
     },
     {
       "name": "title2",
-      "rect": "189,43,310,28",
+      "rect": "186,43,310,28",
       "matches": "Imp[oô]t sur les revenus de \\d{4}",
       "comments": ""
     },
     {
       "name": "title3",
-      "rect": "189,68,248,26",
+      "rect": "186,68,248,26",
       "matches": "Avis d['’ ]imp[oô]t établi en \\d{4}",
       "comments": ""
     },
@@ -36,8 +37,8 @@
     {
       "name": "docReference",
       "rect": "754,45,64,16",
-      "matches": "AVIS[_ ]IR[_ ]RG",
-      "comments": "text"
+      "matches": "AVIS[_ ]IR[_ ]R[GS5]",
+      "comments": "text - RG (regular) / RS (fixed)"
     }
   ],
   "zones": [
@@ -68,7 +69,7 @@
     },
     {
       "name": "incomeYear",
-      "rect": "443,48,60,21",
+      "rect": "441,48,60,21",
       "comments": ""
     },
     {
