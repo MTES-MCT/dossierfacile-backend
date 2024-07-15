@@ -125,7 +125,7 @@
                                     </ul>
                                 </div>
                                 <div th:if="${messageItem.getDocumentAnalysisReport()!=null}"
-                                     th:class="${messageItem.getDocumentAnalysisReport().getAnalysisStatus() == T(fr.dossierfacile.common.entity.DocumentAnalysisStatus).CHECKED ? 'checked-background' : 'denied-background'}"
+                                     th:class="${'prevalidation-background-' + messageItem.getDocumentAnalysisReport().getAnalysisStatus() }"
                                      style="padding: 15px 5px 5px 5px">
                                     Statut de la vérification automatique:
                                     <span th:text="${messageItem.getDocumentAnalysisReport().getAnalysisStatus}"></span>
@@ -289,7 +289,7 @@
                                         </ul>
                                     </div>
                                     <div th:if="${messageItem.getDocumentAnalysisReport()!=null}"
-                                         th:class="${messageItem.getDocumentAnalysisReport().getAnalysisStatus() == T(fr.dossierfacile.common.entity.DocumentAnalysisStatus).CHECKED ? 'checked-background' : 'denied-background'}"
+                                         th:class="${'prevalidation-background-' + messageItem.getDocumentAnalysisReport().getAnalysisStatus() }"
                                          style="padding: 15px 5px 5px 5px">
                                         Statut de la vérification automatique:
                                         <span th:text="${messageItem.getDocumentAnalysisReport().getAnalysisStatus}"></span>
