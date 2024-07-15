@@ -502,6 +502,7 @@ public class TenantService {
                 case VALIDATED -> changeTenantStatusToValidated(tenant, operator, ProcessedDocuments.ONE);
                 case DECLINED -> changeTenantStatusToDeclined(tenant, operator, null, ProcessedDocuments.ONE);
             }
+            messageService.markReadAdmin(tenant);
         }
     }
 
@@ -509,6 +510,8 @@ public class TenantService {
     private void changeTenantStatusToValidated(Tenant tenant, User operator, ProcessedDocuments processedDocuments) {
         tenant.setStatus(TenantFileStatus.VALIDATED);
         tenantRepository.save(tenant);
+
+        messageService.markReadAdmin(tenant);
 
         tenantLogService.saveByLog(new TenantLog(LogType.ACCOUNT_VALIDATED, tenant.getId(), operator.getId()));
         operatorLogRepository.save(new OperatorLog(tenant, operator, tenant.getStatus(), ActionOperatorType.STOP_PROCESS, processedDocuments.count(), processedDocuments.timeSpent()));
@@ -545,6 +548,7 @@ public class TenantService {
     private void changeTenantStatusToDeclined(Tenant tenant, User operator, Message message, ProcessedDocuments processedDocuments) {
         tenant.setStatus(TenantFileStatus.DECLINED);
         tenantRepository.save(tenant);
+        messageService.markReadAdmin(tenant);
 
         tenantLogService.saveByLog(new TenantLog(LogType.ACCOUNT_DENIED, tenant.getId(), operator.getId(), (message == null) ? null : message.getId()));
         operatorLogRepository.save(new OperatorLog(

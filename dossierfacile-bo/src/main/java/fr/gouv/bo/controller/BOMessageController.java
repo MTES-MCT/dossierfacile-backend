@@ -42,8 +42,6 @@ public class BOMessageController {
         User loggedUser = userService.findUserByEmail(principal.getName());
         List<Message> messages = messageService.findTenantMessages(tenant);
 
-        messageService.markReadAdmin(tenant);
-
         model.addAttribute("message", MessageDTO.builder().message("Bonjour,\n\n" +
                 "Merci pour votre message.\n\n\n" +
                 "En vous souhaitant une très bonne journée,\n" +
