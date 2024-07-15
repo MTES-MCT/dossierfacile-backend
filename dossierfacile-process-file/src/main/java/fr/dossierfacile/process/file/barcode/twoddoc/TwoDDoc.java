@@ -31,14 +31,23 @@ public record TwoDDoc(
     }
 
     public BarCodeDocumentType getDocumentType() {
-        return switch (header.certId()) {
-            case "FPE3" -> BarCodeDocumentType.TAX_ASSESSMENT;
-            case "FPE4" -> BarCodeDocumentType.TAX_DECLARATION;
-            case "SNC2", "SNC3" -> BarCodeDocumentType.SNCF_PAYSLIP;
-            case "FPE2" -> BarCodeDocumentType.PUBLIC_PAYSLIP;
-            case "FRE0" -> BarCodeDocumentType.FREE_INVOICE;
-            case "THA1" -> BarCodeDocumentType.THALES_PAYSLIP;
-            case "CNO3" -> BarCodeDocumentType.CVEC;
+        return switch (header.documentTypeId()) {
+            case "04" -> BarCodeDocumentType.TAX_ASSESSMENT;
+            case "18", "24" -> BarCodeDocumentType.TAX_DECLARATION;
+            case "06" -> switch (header.certId()) {
+                case "SNC2", "SNC3" -> BarCodeDocumentType.SNCF_PAYSLIP;
+                case "FPE2" -> BarCodeDocumentType.PUBLIC_PAYSLIP;
+                case "THA1" -> BarCodeDocumentType.THALES_PAYSLIP;
+                default -> BarCodeDocumentType.UNKNOWN_PAYSLIP;
+            };
+            case "01" -> switch (header.certId()) {
+                case "FRE0" -> BarCodeDocumentType.FREE_INVOICE;
+                default -> BarCodeDocumentType.UNKNOWN;
+            };
+            case "B1" -> switch (header.certId()) {
+                case "CNO3" -> BarCodeDocumentType.CVEC;
+                default -> BarCodeDocumentType.UNKNOWN;
+            };
             default -> BarCodeDocumentType.UNKNOWN;
         };
     }
