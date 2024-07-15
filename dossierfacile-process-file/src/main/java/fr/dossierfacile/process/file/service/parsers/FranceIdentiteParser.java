@@ -59,7 +59,6 @@ public class FranceIdentiteParser implements FileParser<FranceIdentiteApiResult>
 
     @Override
     public boolean shouldTryToApply(fr.dossierfacile.common.entity.File file) {
-        return file.getDocument().getDocumentSubCategory() == FRANCE_IDENTITE
-                && MediaType.APPLICATION_PDF_VALUE.equalsIgnoreCase(file.getStorageFile().getContentType());
+        return file.getDocument().getDocumentSubCategory() == FRANCE_IDENTITE;
     }
 }

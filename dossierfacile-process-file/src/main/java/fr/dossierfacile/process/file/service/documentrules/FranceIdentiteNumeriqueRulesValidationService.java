@@ -49,6 +49,7 @@ public class FranceIdentiteNumeriqueRulesValidationService implements RulesValid
 
                 // Parse Rule
                 if (parsedDocument == null
+                        || "ERROR_FILE".equals(parsedDocument.getStatus())
                         || parsedDocument.getStatus() == null
                         || parsedDocument.getAttributes().getFamilyName() == null
                         || parsedDocument.getAttributes().getGivenName() == null
