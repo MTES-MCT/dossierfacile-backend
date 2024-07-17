@@ -92,8 +92,10 @@ public abstract class AbstractPDFParser<T extends ParsedFile> implements FilePar
             return model.getMatchingZones(scale).stream()
                     .allMatch((zone) -> {
                                 String text = stripper.getTextForRegion(zone.name());
-                                if (!(text != null && text.trim().matches(zone.regexp()))) {
-                                    log.error(text.trim() + " != " + zone.regexp());
+                                if (log.isDebugEnabled()) {
+                                    if (!(text != null && text.trim().matches(zone.regexp()))) {
+                                        log.debug(text.trim() + " != " + zone.regexp());
+                                    }
                                 }
                                 return text != null && text.trim().matches(zone.regexp());
                             }

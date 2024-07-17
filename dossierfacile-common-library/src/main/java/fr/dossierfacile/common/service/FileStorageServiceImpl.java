@@ -118,7 +118,7 @@ public class FileStorageServiceImpl implements FileStorageService {
         if (storageFile.getProviders() == null || storageFile.getProviders().size() == 0) {
             throw new IOException("Unable to upload the file");
         }
-
+        // TODO maybe not a good idea to do here (transactional managment)
         return storageFileRepository.save(storageFile);
     }
 
@@ -135,6 +135,7 @@ public class FileStorageServiceImpl implements FileStorageService {
         if (storageFile.getProvider() == null) {
             storageFile.setProvider(provider);
         }
+        // TODO maybe not a good idea to do here (transactional managment)
         return storageFileRepository.save(storageFile);
     }
 
