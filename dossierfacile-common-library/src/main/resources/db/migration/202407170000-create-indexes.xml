@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+    <changeSet id="202407170000-01" author="fle (manual)">
+        <sql>
+            <![CDATA[
+                    CREATE INDEX IF NOT EXISTS operator_log_creation_date_index ON operator_log (creation_date);
+                ]]>
+        </sql>
+    </changeSet>
+    <changeSet id="202407170000-02" author="fle (manual)">
+        <sql>
+            <![CDATA[
+                    CREATE INDEX IF NOT EXISTS tenant_status_honor_last_upd_index ON tenant (status, honor_declaration,last_update_date);
+                ]]>
+        </sql>
+    </changeSet>
+</databaseChangeLog>
