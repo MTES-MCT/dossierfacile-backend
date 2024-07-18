@@ -39,6 +39,7 @@ public class FranceIdentiteNumeriqueRulesValidationService implements RulesValid
                     report.setBrokenRules(new LinkedList<>());
                     return report.getBrokenRules();
                 });
+        boolean parsingOk = false;
         for (File dfFile : document.getFiles()) {
             ParsedFileAnalysis analysis = dfFile.getParsedFileAnalysis();
             if (analysis == null || analysis.getAnalysisStatus() == ParsedFileAnalysisStatus.FAILED) {
@@ -83,9 +84,10 @@ public class FranceIdentiteNumeriqueRulesValidationService implements RulesValid
                             .message(DocumentRule.R_FRANCE_IDENTITE_NAMES.getDefaultMessage())
                             .build());
                 }
+                parsingOk = true;
             }
         }
-        if (brokenRules.isEmpty()) {
+        if (brokenRules.isEmpty() && parsingOk ) {
             report.setAnalysisStatus(DocumentAnalysisStatus.CHECKED);
         } else if (brokenRules.stream().anyMatch(r -> r.getRule().getLevel() == DocumentRule.Level.CRITICAL)) {
             report.setAnalysisStatus(DocumentAnalysisStatus.DENIED);
