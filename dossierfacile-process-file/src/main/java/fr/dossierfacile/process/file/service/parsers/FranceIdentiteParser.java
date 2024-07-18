@@ -1,6 +1,7 @@
 package fr.dossierfacile.process.file.service.parsers;
 
 import fr.dossierfacile.common.entity.FranceIdentiteApiResult;
+import fr.dossierfacile.common.enums.ParsedStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -48,7 +49,9 @@ public class FranceIdentiteParser implements FileParser<FranceIdentiteApiResult>
             log.info(CALL_BACK_RESPONSE, response.getStatusCode());
         } catch (RestClientException e) {
             log.error("Unable to parse");
-            throw new RuntimeException(e);
+            FranceIdentiteApiResult franceIdentiteApiResult = new FranceIdentiteApiResult();
+            franceIdentiteApiResult.setParsedStatus(ParsedStatus.INCOMPLETE);
+            return franceIdentiteApiResult;
         }
         if ( HttpStatus.OK != response.getStatusCode() && HttpStatus.ACCEPTED != response.getStatusCode()) {
             log.error("Failure on France Identité check:" + urlCallback + "- Status:" + response.getStatusCode());
