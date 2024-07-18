@@ -26,15 +26,11 @@ public class QueueMessageServiceImpl implements QueueMessageService {
     public void consume(QueueName queueName, long consumptionDelayInMillis, long consumptionTimeout, Consumer<QueueMessage> consumer) {
         queueMessageRepository.cleanQueue(queueName.name());
         long toTimestamp = System.currentTimeMillis() - consumptionDelayInMillis;
-        QueueMessage message = queueMessageRepository.findFirstMessage(queueName.name(), toTimestamp);
+        QueueMessage message = queueMessageRepository.popFirstMessage(queueName.name(), toTimestamp);
         if (message != null) {
             log.info("Received message on {} to process: {}", queueName, message);
             try {
-                message.setStatus(QueueMessageStatus.PROCESSING);
-                queueMessageRepository.saveAndFlush(message);
-
                 this.consumeMessageWithTimeout(consumer, consumptionTimeout, message);
-
                 queueMessageRepository.delete(message);
             } catch (InterruptedException e) {
                 message.setStatus(QueueMessageStatus.FAILED);

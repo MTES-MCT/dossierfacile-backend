@@ -23,6 +23,25 @@ public interface QueueMessageRepository extends JpaRepository<QueueMessage, Long
     QueueMessage findFirstMessage(@Param("queueName") String queueName, @Param("toTimestamp") long toTimestamp);
 
     @Modifying
+    @Query(value = """
+            UPDATE queue_message
+            SET status = :status
+            WHERE id = :messageId
+            """, nativeQuery = true)
+    void updateMessage(@Param("messageId") Long id, @Param("status") String status);
+
+    @Transactional
+    default QueueMessage popFirstMessage(String queueName, long toTimestamp) {
+        QueueMessage msg = findFirstMessage(queueName, toTimestamp);
+        if (msg != null) {
+            updateMessage(msg.getId(), "PROCESSING");
+            msg.setStatus(QueueMessageStatus.PROCESSING);
+        }
+        return msg;
+    }
+
+
+    @Modifying
     @Transactional
     @Query(value = """
             DELETE FROM queue_message
