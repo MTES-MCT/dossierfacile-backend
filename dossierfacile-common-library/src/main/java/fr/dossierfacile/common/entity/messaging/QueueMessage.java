@@ -19,6 +19,7 @@ public class QueueMessage {
     private QueueName queueName;
     private Long timestamp;
     private Long documentId;
+    private Long fileId;
     @Enumerated(EnumType.STRING)
     private QueueMessageStatus status;
 }

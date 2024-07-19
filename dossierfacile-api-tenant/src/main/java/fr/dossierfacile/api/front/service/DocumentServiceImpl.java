@@ -1,13 +1,11 @@
 package fr.dossierfacile.api.front.service;
 
-import fr.dossierfacile.api.front.amqp.MinifyFileProducer;
 import fr.dossierfacile.api.front.amqp.Producer;
 import fr.dossierfacile.api.front.exception.DocumentNotFoundException;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
-import fr.dossierfacile.common.utils.TransactionalUtil;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Person;
@@ -22,7 +20,6 @@ import fr.dossierfacile.common.service.interfaces.LogService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -44,7 +41,6 @@ public class DocumentServiceImpl implements DocumentService {
     private final TenantStatusService tenantStatusService;
     private final ApartmentSharingService apartmentSharingService;
     private final DocumentHelperService documentHelperService;
-    private final MinifyFileProducer minifyFileProducer;
     private final LogService logService;
     private final Producer producer;
 
@@ -105,7 +101,7 @@ public class DocumentServiceImpl implements DocumentService {
                 .forEach(document -> {
                     if (document.getDocumentStatus() != null && document.getDocumentStatus() != DocumentStatus.DECLINED
                             && categoriesToChange.contains(document.getDocumentCategory())) {
-                        if (document.getDocumentStatus() == DocumentStatus.VALIDATED){
+                        if (document.getDocumentStatus() == DocumentStatus.VALIDATED) {
                             document.setDocumentStatus(DocumentStatus.TO_PROCESS);
                             document.setDocumentDeniedReasons(null);
                         }
@@ -119,12 +115,10 @@ public class DocumentServiceImpl implements DocumentService {
                         }
                         documentRepository.save(document);
 
-                        TransactionalUtil.afterCommit(() -> {
-                            producer.sendDocumentForAnalysis(document);// analysis should be relaunched for update rules
-                            if (Boolean.TRUE == document.getNoDocument()){
-                                producer.sendDocumentForPdfGeneration(document);
-                            }
-                        });
+                        producer.sendDocumentForAnalysis(document);// analysis should be relaunched for update rules
+                        if (Boolean.TRUE == document.getNoDocument()) {
+                            producer.sendDocumentForPdfGeneration(document);
+                        }
                     }
                 });
     }
@@ -134,11 +128,8 @@ public class DocumentServiceImpl implements DocumentService {
     public void addFile(MultipartFile multipartFile, Document document) throws IOException {
         File file = documentHelperService.addFile(multipartFile, document);
         markDocumentAsEdited(document);
-
-        TransactionalUtil.afterCommit(() -> {
-            minifyFileProducer.minifyFile(file.getId());
-            producer.analyzeFile(file);
-        });
+        producer.minifyFile(document.getId(), file.getId());
+        producer.analyzeFile(document.getId(), file.getId());
     }
 
     @Override
