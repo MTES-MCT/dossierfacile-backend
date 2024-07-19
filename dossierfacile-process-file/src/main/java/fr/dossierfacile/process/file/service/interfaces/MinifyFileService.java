@@ -1,5 +1,5 @@
 package fr.dossierfacile.process.file.service.interfaces;
 
-public interface MinifyFile {
+public interface MinifyFileService {
     void process(Long fileId);
 }

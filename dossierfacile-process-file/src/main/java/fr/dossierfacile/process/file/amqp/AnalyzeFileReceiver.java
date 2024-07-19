@@ -1,59 +1,48 @@
 package fr.dossierfacile.process.file.amqp;
 
-import fr.dossierfacile.process.file.service.AnalyzeFile;
+import com.google.common.annotations.VisibleForTesting;
+import fr.dossierfacile.common.entity.messaging.QueueName;
+import fr.dossierfacile.common.service.interfaces.QueueMessageService;
+import fr.dossierfacile.process.file.service.AnalyzeFileService;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 @Setter // for testing
 public class AnalyzeFileReceiver {
+    private final QueueMessageService queueMessageService;
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    private final AnalyzeFileService analyzeFileService;
+    @Value("${file.analysis.timeout.ms}")
+    private Long fileAnalysisTimeout;
 
-    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    @PostConstruct
+    public void startConsumer() {
+        scheduler.scheduleAtFixedRate(this::receiveFile, 0, 2, TimeUnit.SECONDS);
+    }
 
-    private final AnalyzeFile analyzeFile;
-    @Value("${analysis.timeout.seconds}")
-    private Long analysisTimeoutInSeconds;
-
-    @RabbitListener(queues = "${rabbitmq.queue.file.analyze}", containerFactory = "retryContainerFactory")
-    public void receiveFile(Map<String, String> message) throws InterruptedException, ExecutionException {
-        Long fileId = Long.valueOf(message.get("id"));
-        LoggingContext.startProcessing(fileId, ActionType.ANALYZE);
-        var analysis = launchAnalysis(fileId);
+    private void receiveFile() {
         try {
-            analysis.get(analysisTimeoutInSeconds, TimeUnit.SECONDS);
-        } catch (TimeoutException e) {
-            log.warn("Try to cancel");
-            analysis.cancel(true);
-            log.warn("Analysis cancelled because timeout was reached");
+            queueMessageService.consume(QueueName.QUEUE_FILE_ANALYSIS,
+                    0,
+                    fileAnalysisTimeout,
+                    (message) -> {
+                        LoggingContext.startProcessing(message.getFileId(), ActionType.ANALYZE);
+                        analyzeFileService.processFile(message.getFileId());
+                        LoggingContext.endProcessing();
+                    });
         } catch (Exception e) {
-            log.error("Failed to analyze file", e);
-            throw e;
-        } finally {
-            LoggingContext.endProcessing();
+            log.error("Unable to consume the message queue");
         }
     }
-
-    private Future<?> launchAnalysis(Long fileId) {
-        Runnable task = () -> analyzeFile.processFile(fileId);
-        return submitTask(task);
-    }
-
-    private Future<?> submitTask(Runnable runnable) {
-        return executor.submit(LoggingContext.copyContextInThread(runnable));
-    }
-
 }
