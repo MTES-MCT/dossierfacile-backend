@@ -128,6 +128,9 @@ public class PropertyServiceImpl implements PropertyService {
             try (HttpClient client = HttpClient.newHttpClient()) {
                 response = client.send(request, HttpResponse.BodyHandlers.ofString());
                 String json = response.body();
+                if (response.statusCode() == 404) {
+                    throw new DPENotFoundException("DPE not found");
+                }
                 objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
                 AdemeApiResultModel ademeApiResultModel = objectMapper.readValue(json, AdemeApiResultModel.class);
 
@@ -139,9 +142,6 @@ public class PropertyServiceImpl implements PropertyService {
                 Instant instant = Instant.parse(ademeApiResultModel.getDateRealisation());
                 Date dateRealisation = Date.from(instant);
                 property.setDpeDate(dateRealisation);
-                if (response.statusCode() == 404) {
-                    throw new DPENotFoundException("DPE not found");
-                }
                 return;
             } catch (IOException e) {
                 log.error("An error occurred while processing the request", e);

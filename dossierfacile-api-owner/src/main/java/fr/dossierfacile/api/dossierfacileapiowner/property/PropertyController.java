@@ -1,6 +1,7 @@
 package fr.dossierfacile.api.dossierfacileapiowner.property;
 
 import fr.dossierfacile.api.dossierfacileapiowner.register.AuthenticationFacade;
+import fr.dossierfacile.api.dossierfacileapiowner.register.DPENotFoundException;
 import fr.dossierfacile.api.dossierfacileapiowner.user.OwnerMapper;
 import fr.dossierfacile.api.dossierfacileapiowner.user.OwnerModel;
 import fr.dossierfacile.common.entity.Owner;
@@ -9,6 +10,7 @@ import fr.dossierfacile.common.entity.PropertyApartmentSharing;
 import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.exceptions.NotFoundException;
 import fr.dossierfacile.common.service.interfaces.LogService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
@@ -45,10 +47,16 @@ public class PropertyController {
     private final PropertyMapper propertyMapper;
 
     @PutMapping
-    public ResponseEntity<PropertyModel> createOrUpdate(@RequestBody PropertyForm Property) throws HttpResponseException, InterruptedException {
-        PropertyModel propertyModel = propertyService.createOrUpdate(Property);
-        logService.saveLog(LogType.ACCOUNT_EDITED, propertyModel.getId());
-        return ok(propertyModel);
+    public ResponseEntity<PropertyModel> createOrUpdate(HttpServletResponse response, @RequestBody PropertyForm Property) throws HttpResponseException, InterruptedException {
+        try {
+            PropertyModel propertyModel;
+            propertyModel = propertyService.createOrUpdate(Property);
+            logService.saveLog(LogType.ACCOUNT_EDITED, propertyModel.getId());
+            return ok(propertyModel);
+        } catch (DPENotFoundException e) {
+            response.setStatus(404);
+        }
+        return null;
     }
 
     @GetMapping
