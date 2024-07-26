@@ -5,7 +5,6 @@ import fr.dossierfacile.api.front.exception.FileNotFoundException;
 import fr.dossierfacile.api.front.repository.FileRepository;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.FileService;
-import fr.dossierfacile.common.utils.TransactionalUtil;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Tenant;
@@ -44,10 +43,8 @@ public class FileServiceImpl implements FileService {
         }
         documentService.changeDocumentStatus(document, DocumentStatus.TO_PROCESS);
 
-        TransactionalUtil.afterCommit(() -> {
-            producer.sendDocumentForAnalysis(document);
-            producer.sendDocumentForPdfGeneration(document);
-        });
+        producer.sendDocumentForAnalysis(document);
+        producer.sendDocumentForPdfGeneration(document);
 
         return document;
 
