@@ -53,7 +53,12 @@ public class DocumentFinancialGuarantorNaturalPerson extends AbstractDocumentSav
         document.setDocumentStatus(DocumentStatus.TO_PROCESS);
         document.setDocumentDeniedReasons(null);
         document.setDocumentSubCategory(documentSubCategory);
-        document.setMonthlySum(documentFinancialGuarantorNaturalPersonForm.getMonthlySum());
+        if (documentFinancialGuarantorNaturalPersonForm.getMonthlySum() != null && documentFinancialGuarantorNaturalPersonForm.getMonthlySum() > 0
+                && documentFinancialGuarantorNaturalPersonForm.getTypeDocumentFinancial() != DocumentSubCategory.NO_INCOME) {
+            document.setMonthlySum(documentFinancialGuarantorNaturalPersonForm.getMonthlySum());
+        } else {
+            document.setMonthlySum(0);
+        }
 
         if (document.getNoDocument() != null && !document.getNoDocument() && documentFinancialGuarantorNaturalPersonForm.getNoDocument()) {
             deleteFilesIfExistedBefore(document);
@@ -62,7 +67,7 @@ public class DocumentFinancialGuarantorNaturalPerson extends AbstractDocumentSav
         documentRepository.save(document);
 
         if (Boolean.FALSE.equals(documentFinancialGuarantorNaturalPersonForm.getNoDocument())) {
-            if (documentFinancialGuarantorNaturalPersonForm.getDocuments().size() > 0) {
+            if (!documentFinancialGuarantorNaturalPersonForm.getDocuments().isEmpty()) {
                 saveFiles(documentFinancialGuarantorNaturalPersonForm, document);
                 document.setCustomText(null);
             } else {
