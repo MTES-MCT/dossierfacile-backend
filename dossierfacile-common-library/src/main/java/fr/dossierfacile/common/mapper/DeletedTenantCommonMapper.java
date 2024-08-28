@@ -19,6 +19,7 @@ public interface DeletedTenantCommonMapper {
     @Mapping(target = "hashedLastname", source = "lastName", qualifiedByName = "lastnameToHashedLastname")
     @Mapping(target = "hashedFirstname", source = "firstName", qualifiedByName = "firstnameToHashedFirstname")
     @Mapping(target = "hashedPreferredName", source = "preferredName", qualifiedByName = "preferredNameToHashedPreferredName")
+    @Mapping(target = "applicationType", expression = "java((tenant.getApartmentSharing() != null )? tenant.getApartmentSharing().getApplicationType() : null)")
     public abstract DeletedTenantModel toDeletedTenantModel(Tenant tenant);
 
     @Mapping(target = "name", expression = "java((document.getWatermarkFile() != null )? document.getWatermarkFile().getName() : null)")
