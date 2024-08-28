@@ -20,6 +20,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static fr.dossierfacile.common.entity.BarCodeType.TWO_D_DOC;
+import static fr.dossierfacile.common.enums.FileAuthenticationStatus.API_ERROR;
 import static fr.dossierfacile.common.enums.FileAuthenticationStatus.INVALID;
 import static fr.dossierfacile.common.enums.FileAuthenticationStatus.VALID;
 
@@ -75,6 +76,9 @@ public class DisplayableBarCodeFileAnalysis {
 
     @SuppressWarnings("unchecked")
     public String getAuthenticatedContent() {
+        if (API_ERROR.equals(analysis.getAuthenticationStatus())) {
+            return "API_ERROR";
+        }
         ObjectNode verifiedData = analysis.getVerifiedData();
         if (analysis.getBarCodeType() == TWO_D_DOC) {
             try {
