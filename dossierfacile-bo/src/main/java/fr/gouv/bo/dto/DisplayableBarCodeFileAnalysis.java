@@ -112,6 +112,9 @@ public class DisplayableBarCodeFileAnalysis {
         private DateRange period;
 
         static String format(Object object) {
+            if (object == null) {
+                return "";
+            }
             try {
                 String json = objectMapper.writeValueAsString(object);
                 var content = objectMapper.readValue(json, PayfitAuthenticatedContent.class);
