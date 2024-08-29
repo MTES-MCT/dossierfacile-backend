@@ -29,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -104,7 +105,10 @@ public class UserServiceImpl implements UserService {
         tenantCommonService.deleteTenantData(tenant);
 
         if (tenant.getTenantType() == TenantType.CREATE) {
-            keycloakService.deleteKeycloakUsers(tenant.getApartmentSharing().getTenants());
+            for (Tenant coTenant : tenant.getApartmentSharing().getTenants().stream().filter(t -> t.getTenantType().equals(TenantType.JOIN)).collect(Collectors.toSet())) {
+                deleteAccount(coTenant);
+            }
+            keycloakService.deleteKeycloakUser(tenant);
             apartmentSharingService.delete(tenant.getApartmentSharing());
         } else {
             keycloakService.deleteKeycloakUser(tenant);

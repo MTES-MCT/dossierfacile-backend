@@ -48,6 +48,8 @@ public class DocumentFinancial extends AbstractDocumentSaveStep<DocumentFinancia
         if (documentFinancialForm.getMonthlySum() != null && documentFinancialForm.getMonthlySum() > 0
                 && documentFinancialForm.getTypeDocumentFinancial() != DocumentSubCategory.NO_INCOME) {
             document.setMonthlySum(documentFinancialForm.getMonthlySum());
+        } else {
+            document.setMonthlySum(0);
         }
 
         if (document.getNoDocument() != null && !document.getNoDocument() && documentFinancialForm.getNoDocument()) {
@@ -57,7 +59,7 @@ public class DocumentFinancial extends AbstractDocumentSaveStep<DocumentFinancia
         documentRepository.save(document);
 
         if (Boolean.FALSE.equals(documentFinancialForm.getNoDocument())) {
-            if (documentFinancialForm.getDocuments().size() > 0) {
+            if (!documentFinancialForm.getDocuments().isEmpty()) {
                 saveFiles(documentFinancialForm, document);
                 document.setCustomText(null);
             } else {
