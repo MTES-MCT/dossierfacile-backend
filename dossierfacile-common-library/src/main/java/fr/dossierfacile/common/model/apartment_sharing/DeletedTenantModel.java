@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
+import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.enums.TenantType;
 import lombok.AllArgsConstructor;
@@ -41,4 +42,5 @@ public class DeletedTenantModel {
     private Boolean partnerLinked;
     private Boolean honorDeclaration;
     private String operatorComment;
+    private ApplicationType applicationType;
 }
