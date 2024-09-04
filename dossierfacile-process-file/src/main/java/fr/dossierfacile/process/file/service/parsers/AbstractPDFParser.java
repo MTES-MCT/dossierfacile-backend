@@ -3,6 +3,7 @@ package fr.dossierfacile.process.file.service.parsers;
 
 import fr.dossierfacile.common.entity.ocr.ParsedFile;
 import fr.dossierfacile.process.file.service.parsers.tools.PageExtractorModel;
+import fr.dossierfacile.process.file.util.TextUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.Loader;
@@ -93,11 +94,11 @@ public abstract class AbstractPDFParser<T extends ParsedFile> implements FilePar
                     .allMatch((zone) -> {
                                 String text = stripper.getTextForRegion(zone.name());
                                 if (log.isDebugEnabled()) {
-                                    if (!(text != null && text.trim().matches(zone.regexp()))) {
-                                        log.debug(text.trim() + " != " + zone.regexp());
+                                    if (!(text != null && TextUtil.cleanAndTrim(text).matches(zone.regexp()))) {
+                                        log.debug(TextUtil.cleanAndTrim(text) + " != " + zone.regexp());
                                     }
                                 }
-                                return text != null && text.trim().matches(zone.regexp());
+                                return text != null && TextUtil.cleanAndTrim(text).matches(zone.regexp());
                             }
                     );
         }
