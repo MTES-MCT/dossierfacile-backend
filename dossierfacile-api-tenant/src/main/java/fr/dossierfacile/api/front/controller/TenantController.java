@@ -1,6 +1,5 @@
 package fr.dossierfacile.api.front.controller;
 
-import fr.dossierfacile.common.converter.AcquisitionData;
 import fr.dossierfacile.api.front.form.ShareFileByMailForm;
 import fr.dossierfacile.api.front.mapper.PropertyOMapper;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
@@ -11,26 +10,22 @@ import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.PropertyService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.service.interfaces.UserService;
+import fr.dossierfacile.common.converter.AcquisitionData;
 import fr.dossierfacile.common.entity.Property;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.service.interfaces.ProcessingCapacityService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import static org.springframework.http.ResponseEntity.badRequest;
-import static org.springframework.http.ResponseEntity.ok;
-import static org.springframework.http.ResponseEntity.status;
+import java.time.LocalDateTime;
+
+import static org.springframework.http.ResponseEntity.*;
 
 @RestController
 @AllArgsConstructor
@@ -40,6 +35,7 @@ public class TenantController {
 
     private final AuthenticationFacade authenticationFacade;
     private final TenantService tenantService;
+    private final ProcessingCapacityService processingCapacityService;
     private final TenantMapper tenantMapper;
     private final PropertyService propertyService;
     private final PropertyOMapper propertyMapper;
@@ -74,7 +70,7 @@ public class TenantController {
         return ok(link);
     }
 
-    @PostMapping(value="/sendFileByMail", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/sendFileByMail", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> sendFileByMail(@RequestBody ShareFileByMailForm shareFileByMailForm) {
         Tenant tenant = authenticationFacade.getLoggedTenant();
         try {
@@ -84,6 +80,14 @@ public class TenantController {
         }
         return ok("");
     }
+
+    @PreAuthorize("hasPermissionOnTenant(#tenantId)")
+    @GetMapping(value = "/{id}/expectedProcessingTime", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<LocalDateTime> expectedProcessingTime(@PathVariable("id") Long tenantId) {
+        LocalDateTime expectedProcessingTime = processingCapacityService.getExpectedProcessingTime(tenantId);
+        return ok(expectedProcessingTime);
+    }
+
     @GetMapping("/doNotArchive/{token}")
     public ResponseEntity<Void> doNotArchive(@PathVariable String token) {
         tenantService.doNotArchive(token);

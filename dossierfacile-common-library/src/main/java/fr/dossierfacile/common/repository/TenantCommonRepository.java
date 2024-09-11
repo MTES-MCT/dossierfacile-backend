@@ -7,11 +7,9 @@ import fr.dossierfacile.common.model.TenantUpdate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.query.Procedure;
 import org.springframework.data.repository.query.Param;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -255,4 +253,11 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
     )
     List<TenantUpdate> findTenantUpdateByCreationDateAndPartner(@Param("creationDateFrom") LocalDateTime from, @Param("partnerId") Long id, @Param("limit") Long limit);
 
+    @Query(value = """
+            SELECT rank
+            FROM ranked_tenant
+            WHERE tid = :tenantId
+            LIMIT 1
+            """, nativeQuery = true)
+    Long getTenantRank(@Param("tenantId") Long tenantId);
 }
