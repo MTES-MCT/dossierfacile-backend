@@ -1,12 +1,7 @@
 package fr.dossierfacile.api.front.mapper;
 
 import fr.dossierfacile.api.front.model.dfc.tenant.ConnectedTenantModel;
-import fr.dossierfacile.api.front.model.tenant.ApartmentSharingModel;
-import fr.dossierfacile.api.front.model.tenant.DocumentDeniedReasonsModel;
-import fr.dossierfacile.api.front.model.tenant.DocumentModel;
-import fr.dossierfacile.api.front.model.tenant.FileModel;
-import fr.dossierfacile.api.front.model.tenant.SelectedOption;
-import fr.dossierfacile.api.front.model.tenant.TenantModel;
+import fr.dossierfacile.api.front.model.tenant.*;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Tenant;
