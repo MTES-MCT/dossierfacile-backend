@@ -5,6 +5,7 @@ import fr.dossierfacile.common.entity.messaging.QueueMessageStatus;
 import fr.dossierfacile.common.entity.messaging.QueueName;
 import fr.dossierfacile.common.exceptions.RetryableOperationException;
 import fr.dossierfacile.common.repository.QueueMessageRepository;
+import fr.dossierfacile.common.service.interfaces.QueueMessageConsumerService;
 import fr.dossierfacile.common.service.interfaces.QueueMessageService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,12 +23,13 @@ import java.util.function.Consumer;
 public class QueueMessageServiceImpl implements QueueMessageService {
 
     private final QueueMessageRepository queueMessageRepository;
+    private final QueueMessageConsumerService queueMessageConsumerService;
 
     @Override
     public void consume(QueueName queueName, long consumptionDelayInMillis, long consumptionTimeout, Consumer<QueueMessage> consumer) {
         queueMessageRepository.cleanQueue(queueName.name());
         long toTimestamp = System.currentTimeMillis() - consumptionDelayInMillis;
-        QueueMessage message = queueMessageRepository.popFirstMessage(queueName.name(), toTimestamp);
+        QueueMessage message = queueMessageConsumerService.popFirstMessage(queueName, toTimestamp);
         if (message != null) {
             log.info("Received message on {} to process: {}", queueName, message);
             try {
