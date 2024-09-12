@@ -7,6 +7,7 @@ import fr.dossierfacile.common.entity.ocr.GuaranteeProviderFile.FullName;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.process.file.service.parsers.tools.PageExtractorModel;
 import fr.dossierfacile.process.file.util.ImageUtils;
+import fr.dossierfacile.process.file.util.TextUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.cos.COSName;
@@ -44,15 +45,15 @@ public class GuaranteeFasttV2Parser extends AbstractPDFParser<GuaranteeProviderF
 
         return GuaranteeProviderFile.builder()
                 .names(List.of(new FullName(
-                                        stripper.getTextForRegion("firstName").trim(),
-                                        stripper.getTextForRegion("lastName").trim()),
+                                        TextUtil.cleanAndTrim(stripper.getTextForRegion("firstName")),
+                                        TextUtil.cleanAndTrim(stripper.getTextForRegion("lastName"))),
                                 new FullName(
-                                        stripper.getTextForRegion("firstName2").trim(),
-                                        stripper.getTextForRegion("lastName2").trim())
+                                        TextUtil.cleanAndTrim(stripper.getTextForRegion("firstName2")),
+                                        TextUtil.cleanAndTrim(stripper.getTextForRegion("lastName2")))
                         )
                 )
-                .visaNumber(stripper.getTextForRegion("visaNumber").trim())
-                .validityDate(stripper.getTextForRegion("validityDate").trim())
+                .visaNumber(TextUtil.cleanAndTrim(stripper.getTextForRegion("visaNumber")))
+                .validityDate(TextUtil.cleanAndTrim(stripper.getTextForRegion("validityDate")))
                 .build();
     }
 

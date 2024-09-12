@@ -150,5 +150,6 @@
     <include file="db/migration/202406170000-update-queue-message.xml"/>
     <include file="db/migration/202407110000-refresh-views-function.xml"/>
     <include file="db/migration/202407170000-create-indexes.xml"/>
+    <include file="db/migration/202409010000-update-queue-message.xml"/>
 
 </databaseChangeLog>

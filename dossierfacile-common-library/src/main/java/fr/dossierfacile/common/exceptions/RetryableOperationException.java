@@ -1,6 +1,6 @@
 package fr.dossierfacile.common.exceptions;
 
-public class RetryableOperationException extends Exception{
+public class RetryableOperationException extends RuntimeException{
 
     public RetryableOperationException(String message, Throwable e) {
         super(message,e);

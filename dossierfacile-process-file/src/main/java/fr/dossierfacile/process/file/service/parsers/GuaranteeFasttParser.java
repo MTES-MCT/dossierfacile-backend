@@ -6,6 +6,7 @@ import fr.dossierfacile.common.entity.ocr.GuaranteeProviderFile;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.process.file.service.parsers.tools.PageExtractorModel;
 import fr.dossierfacile.process.file.util.ImageUtils;
+import fr.dossierfacile.process.file.util.TextUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.cos.COSName;
@@ -42,11 +43,11 @@ public class GuaranteeFasttParser extends AbstractPDFParser<GuaranteeProviderFil
     protected GuaranteeProviderFile getResultFromExtraction(PDFTextStripperByArea stripper, GuaranteeProviderFile result) {
         return GuaranteeProviderFile.builder()
                 .names(List.of(new GuaranteeProviderFile.FullName(
-                        stripper.getTextForRegion("firstName").trim(),
-                        stripper.getTextForRegion("lastName").trim()
+                        TextUtil.cleanAndTrim(stripper.getTextForRegion("firstName")),
+                        TextUtil.cleanAndTrim(stripper.getTextForRegion("lastName"))
                 )))
-                .visaNumber(stripper.getTextForRegion("visaNumber").trim())
-                .validityDate(stripper.getTextForRegion("validityDate").trim())
+                .visaNumber(TextUtil.cleanAndTrim(stripper.getTextForRegion("visaNumber")))
+                .validityDate(TextUtil.cleanAndTrim(stripper.getTextForRegion("validityDate")))
                 .build();
     }
 

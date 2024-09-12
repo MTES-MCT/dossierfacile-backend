@@ -3,16 +3,15 @@ package fr.dossierfacile.api.front.amqp;
 
 import com.google.gson.Gson;
 import fr.dossierfacile.common.entity.Document;
-import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.messaging.QueueMessage;
 import fr.dossierfacile.common.entity.messaging.QueueMessageStatus;
 import fr.dossierfacile.common.entity.messaging.QueueName;
 import fr.dossierfacile.common.repository.QueueMessageRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Message;
-import org.springframework.amqp.core.MessageProperties;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -20,6 +19,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
+import java.util.List;
 
 @Component
 @Slf4j
@@ -28,14 +28,6 @@ public class Producer {
     private final QueueMessageRepository queueMessageRepository;
     private final AmqpTemplate amqpTemplate;
     private final Gson gson;
-
-    //File process
-    @Value("${rabbitmq.exchange.file.process}")
-    private String exchangeFileProcess;
-    @Value("${rabbitmq.routing.key.file.analyze}")
-    private String routingKeyAnalyzeFile;
-    @Value("${rabbitmq.routing.key.document.analyze}")
-    private String routingKeyAnalyzeDocument;
     //Pdf generation
     @Value("${rabbitmq.exchange.pdf.generator}")
     private String exchangePdfGenerator;
@@ -46,27 +38,41 @@ public class Producer {
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Async
     public void generateFullPdf(Long apartmentSharingId) {
-        Message msg = new Message(gson.toJson(Collections.singletonMap("id", String.valueOf( apartmentSharingId))).getBytes());
+        Message msg = new Message(gson.toJson(Collections.singletonMap("id", String.valueOf(apartmentSharingId))).getBytes());
         log.info("Sending apartmentSharing with ID [" + apartmentSharingId + "] for Full PDF generation");
         amqpTemplate.send(exchangePdfGenerator, routingKeyPdfGeneratorApartmentSharing, msg);
     }
 
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    @Async
-    public void analyzeFile(File file) {
-        Long fileId = file.getId();
+    @Transactional(propagation = Propagation.SUPPORTS)
+    public void analyzeFile(Long documentId, Long fileId) {
         log.info("Sending file with ID [{}] for analysis", fileId);
-        MessageProperties properties = new MessageProperties();
-        properties.setHeader("timestamp", System.currentTimeMillis());
-        Message msg = new Message(gson.toJson(Collections.singletonMap("id", String.valueOf( fileId))).getBytes(), properties);
-        amqpTemplate.send(exchangeFileProcess, routingKeyAnalyzeFile, msg);
+        queueMessageRepository.save(QueueMessage.builder()
+                .queueName(QueueName.QUEUE_FILE_ANALYSIS)
+                .documentId(documentId)
+                .fileId(fileId)
+                .status(QueueMessageStatus.PENDING)
+                .timestamp(System.currentTimeMillis())
+                .build());
     }
 
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    @Transactional(propagation = Propagation.SUPPORTS)
+    public void minifyFile(Long documentId, Long fileId) {
+        log.debug("Sending file with ID [{}] for pdf generation", fileId);
+        queueMessageRepository.save(QueueMessage.builder()
+                .queueName(QueueName.QUEUE_FILE_MINIFY)
+                .documentId(documentId)
+                .fileId(fileId)
+                .status(QueueMessageStatus.PENDING)
+                .timestamp(System.currentTimeMillis())
+                .build());
+    }
+
+    @Transactional(propagation = Propagation.SUPPORTS)
     public void sendDocumentForAnalysis(Document document) {
         log.debug("Sending document with ID [{}] for analysis", document.getId());
-        QueueMessage message = queueMessageRepository.findByQueueNameAndDocumentIdAndStatus(QueueName.QUEUE_DOCUMENT_ANALYSIS, document.getId(), QueueMessageStatus.PENDING);
-        if (message == null){
+        List<QueueMessage> messages = queueMessageRepository.findByQueueNameAndDocumentIdAndStatusIn(QueueName.QUEUE_DOCUMENT_ANALYSIS, document.getId(), List.of(QueueMessageStatus.PENDING));
+        QueueMessage message = CollectionUtils.isNotEmpty(messages) ? messages.getFirst() : null;
+        if (message == null) {
             message = QueueMessage.builder()
                     .queueName(QueueName.QUEUE_DOCUMENT_ANALYSIS)
                     .documentId(document.getId())
@@ -79,11 +85,10 @@ public class Producer {
         queueMessageRepository.save(message);
     }
 
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    @Async
+    @Transactional(propagation = Propagation.SUPPORTS)
     public void sendDocumentForPdfGeneration(Document document) {
         log.debug("Sending document with ID [{}] for pdf generation", document.getId());
-        queueMessageRepository.save( QueueMessage.builder()
+        queueMessageRepository.save(QueueMessage.builder()
                 .queueName(QueueName.QUEUE_DOCUMENT_WATERMARK_PDF)
                 .documentId(document.getId())
                 .status(QueueMessageStatus.PENDING)

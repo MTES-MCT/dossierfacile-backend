@@ -19,7 +19,6 @@ import java.util.concurrent.TimeUnit;
 public class AnalyzeDocumentReceiver {
     private final AnalyzeDocumentService analyzeDocumentService;
     private final QueueMessageService queueMessageService;
-
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     @Value("${document.analysis.delay.ms}")
     private Long documentAnalysisDelay;

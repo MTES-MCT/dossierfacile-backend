@@ -1,32 +1,47 @@
 package fr.dossierfacile.process.file.amqp;
 
-import fr.dossierfacile.process.file.service.interfaces.MinifyFile;
-import lombok.AllArgsConstructor;
+import fr.dossierfacile.common.entity.messaging.QueueName;
+import fr.dossierfacile.common.service.interfaces.QueueMessageService;
+import fr.dossierfacile.process.file.service.interfaces.MinifyFileService;
+import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class MinifyFileReceiver {
 
-    private final MinifyFile minifyFile;
+    private final MinifyFileService minifyFileService;
+    private final QueueMessageService queueMessageService;
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
-    @RabbitListener(queues = "${rabbitmq.queue.file.minify}", containerFactory = "retryContainerFactory")
-    public void processFileTax(Map<String, String> item) {
-        Long fileId = Long.valueOf(item.get("id"));
-        LoggingContext.startProcessing(fileId, ActionType.MINIFY);
+    @Value("${file.minify.timeout.ms}")
+    private Long fileMinifyTimeout;
+
+    @PostConstruct
+    public void startConsumer() {
+        scheduler.scheduleAtFixedRate(this::receiveFile, 0, 2, TimeUnit.SECONDS);
+    }
+
+    private void receiveFile() {
         try {
-            minifyFile.process(fileId);
-
+            queueMessageService.consume(QueueName.QUEUE_FILE_MINIFY,
+                    0,
+                    fileMinifyTimeout,
+                    (message) -> {
+                        LoggingContext.startProcessing(message.getFileId(), ActionType.MINIFY);
+                        minifyFileService.process(message.getFileId());
+                        LoggingContext.endProcessing();
+                    });
         } catch (Exception e) {
-            log.error(e.getMessage(), e.getCause());
-            throw e;
-        } finally {
-            LoggingContext.endProcessing();
+            log.error("Unable to consume the message queue");
         }
     }
 }

@@ -13,7 +13,7 @@ import java.util.Optional;
 @Slf4j
 @Service
 @AllArgsConstructor
-public class AnalyzeFile {
+public class AnalyzeFileService {
     private final BarCodeFileProcessor barCodeFileProcessor;
     private final FileParserProcessor fileParserProcessor;
     private final FileRepository fileRepository;
