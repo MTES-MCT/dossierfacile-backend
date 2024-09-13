@@ -43,4 +43,5 @@ public class DeletedTenantModel {
     private Boolean honorDeclaration;
     private String operatorComment;
     private ApplicationType applicationType;
+    private Long apartmentSharingId;
 }
