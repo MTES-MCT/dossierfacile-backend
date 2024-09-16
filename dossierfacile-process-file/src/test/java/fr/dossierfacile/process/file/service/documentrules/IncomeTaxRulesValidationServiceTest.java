@@ -67,7 +67,7 @@ class IncomeTaxRulesValidationServiceTest {
                 .lastName("DUPONT")
                 .build();
         List<File> files = new LinkedList<>();
-        files.add(buildValidDfFileWithYear(LocalDate.now().minusMonths(21).getYear()));
+        files.add(buildValidDfFileWithYear(LocalDate.now().minusMonths(18).getYear()));
         return Document.builder()
                 .tenant(tenant)
                 .documentCategory(DocumentCategory.TAX)
@@ -92,7 +92,7 @@ class IncomeTaxRulesValidationServiceTest {
     @Test
     void document_ok_with_two_file() throws Exception {
         Document document = buildValidTaxDocument();
-        document.getFiles().add(buildValidDfFileWithYear(LocalDate.now().minusMonths(31).getYear()));
+        document.getFiles().add(buildValidDfFileWithYear(LocalDate.now().minusMonths(30).getYear()));
         DocumentAnalysisReport report = DocumentAnalysisReport.builder()
                 .document(document)
                 .brokenRules(new LinkedList<>())
