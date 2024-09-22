@@ -134,7 +134,11 @@ public class DisplayableBarCodeFileAnalysis {
             map.put("Entreprise", companyName);
             map.put("Employé", employeeName);
             map.put("Salaire net", netSalary);
-            map.put("Période", dateFormatter.format(period.getStart()) + " - " + dateFormatter.format(period.getEnd()));
+            if (period != null && period.getStart() != null && period.getEnd() != null) {
+                map.put("Période", dateFormatter.format(period.getStart()) + " - " + dateFormatter.format(period.getEnd()));
+            } else {
+                map.put("Période", "Péride absente");
+            }
             return formatToList(map);
         }
     }
