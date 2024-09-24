@@ -3,6 +3,9 @@ package fr.dossierfacile.scheduler.tasks;
 public enum TaskName {
 
     GARBAGE_COLLECTION,
+    OWNER_DELETE,
+    OWNER_WARNINGS_1,
+    OWNER_WARNINGS_2,
     TENANT_WARNINGS,
     TENANT_ARCHIVING,
     TENANT_DELETION,

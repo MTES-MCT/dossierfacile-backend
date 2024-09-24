@@ -3,16 +3,21 @@ package fr.dossierfacile.common.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.dossierfacile.common.entity.Document;
+import fr.dossierfacile.common.entity.Owner;
+import fr.dossierfacile.common.entity.OwnerLog;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.TenantLog;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.LogType;
+import fr.dossierfacile.common.enums.OwnerLogType;
+import fr.dossierfacile.common.mapper.DeletedOwnerCommonMapper;
 import fr.dossierfacile.common.mapper.DeletedTenantCommonMapper;
 import fr.dossierfacile.common.model.log.ApplicationTypeChange;
 import fr.dossierfacile.common.model.log.EditedDocument;
 import fr.dossierfacile.common.model.log.EditedStep;
 import fr.dossierfacile.common.model.log.EditionType;
+import fr.dossierfacile.common.repository.OwnerLogCommonRepository;
 import fr.dossierfacile.common.repository.TenantLogRepository;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import lombok.AllArgsConstructor;
@@ -28,7 +33,9 @@ import java.util.List;
 public class LogServiceImpl implements LogService {
 
     private final TenantLogRepository repository;
+    private final OwnerLogCommonRepository ownerLogRepository;
     private final DeletedTenantCommonMapper deletedTenantCommonMapper;
+    private final DeletedOwnerCommonMapper deletedOwnerCommonMapper;
     private final ObjectMapper objectMapper;
 
     private void saveLog(TenantLog log) {
@@ -49,6 +56,18 @@ public class LogServiceImpl implements LogService {
                 .logDetails(writeAsString(new EditedStep(stepName)))
                 .build();
         saveLog(log);
+    }
+
+    @Override
+    public void saveLogWithOwnerData(OwnerLogType logType, Owner owner) {
+        ownerLogRepository.save(
+                OwnerLog.builder()
+                        .logType(logType)
+                        .ownerId(owner.getId())
+                        .creationDateTime(LocalDateTime.now())
+                        .jsonProfile(writeAsString(deletedOwnerCommonMapper.toDeletedOwnerModel(owner)))
+                        .build()
+        );
     }
 
     @Override
