@@ -47,4 +47,9 @@ public class TenantCommonServiceImpl implements TenantCommonService {
     public Tenant findByKeycloakId(String keycloakId) {
         return tenantCommonRepository.findByKeycloakId(keycloakId);
     }
+
+    @Override
+    public Long getTenantRank(Long id) {
+        return tenantCommonRepository.getTenantRank(id);
+    }
 }

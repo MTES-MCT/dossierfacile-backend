@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <!-- ChangeSet pour la création de la table processing_capacity -->
+    <changeSet id="202409100000-01" author="fabien">
+        <createTable tableName="processing_capacity">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="date" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="daily_count" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+    </changeSet>
+    <changeSet id="202409100000-02" author="fabien">
+        <createIndex tableName="processing_capacity" indexName="processing_capacity_date_index" unique="true">
+            <column name="date"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>

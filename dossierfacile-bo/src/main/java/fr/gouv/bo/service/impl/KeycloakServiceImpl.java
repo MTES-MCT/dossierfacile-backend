@@ -64,11 +64,11 @@ public class KeycloakServiceImpl implements KeycloakService {
 
         clientTemplate.setId(null);
         clientTemplate.setClientId(userApi.getName());
-        clientTemplate.setDescription("Client DFC pour " + userApi.getName2() + " créé le " + LocalDateTime.now());
+        clientTemplate.setDescription("Client pour " + userApi.getName2() + " créé le " + LocalDateTime.now());
         clientTemplate.setName(userApi.getName2());
         clientTemplate.setSecret(null);
-        clientTemplate.getProtocolMappers().stream().forEach((pm) -> pm.setId(null));
-        clientTemplate.setAttributes(null);
+        clientTemplate.getProtocolMappers().forEach((pm) -> pm.setId(null));
+        clientTemplate.getAttributes().remove("client.secret.creation.time");
         clientTemplate.setEnabled(true);
 
         Response response = realmResource.clients().create(clientTemplate);

@@ -3,7 +3,9 @@ package fr.dossierfacile.common.repository;
 import fr.dossierfacile.common.entity.messaging.QueueMessage;
 import fr.dossierfacile.common.entity.messaging.QueueMessageStatus;
 import fr.dossierfacile.common.entity.messaging.QueueName;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,34 +16,11 @@ import java.util.List;
 public interface QueueMessageRepository extends JpaRepository<QueueMessage, Long> {
     List<QueueMessage> findByQueueNameAndDocumentIdAndStatusIn(QueueName queueName, Long documentId, List<QueueMessageStatus> queueMessageStatus);
 
-    @Query(value = """
-            SELECT * FROM queue_message
-            WHERE status = 'PENDING'
-            AND queue_name = :queueName
-            AND timestamp < :toTimestamp
-            ORDER BY timestamp ASC
-            LIMIT 1
-            """, nativeQuery = true)
-    QueueMessage findFirstMessage(@Param("queueName") String queueName, @Param("toTimestamp") long toTimestamp);
-
-    @Modifying
-    @Query(value = """
-            UPDATE queue_message
-            SET status = :status
-            WHERE id = :messageId
-            """, nativeQuery = true)
-    void updateMessage(@Param("messageId") Long id, @Param("status") String status);
-
-    @Transactional
-    default QueueMessage popFirstMessage(String queueName, long toTimestamp) {
-        QueueMessage msg = findFirstMessage(queueName, toTimestamp);
-        if (msg != null) {
-            updateMessage(msg.getId(), "PROCESSING");
-            msg.setStatus(QueueMessageStatus.PROCESSING);
-        }
-        return msg;
-    }
-
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    QueueMessage findFirstByStatusAndQueueNameAndTimestampLessThanOrderByTimestampAsc(
+            QueueMessageStatus status,
+            QueueName queueName,
+            long toTimestamp);
 
     @Modifying
     @Transactional
