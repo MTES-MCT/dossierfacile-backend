@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -39,15 +40,21 @@ public class RegisterServiceImpl implements RegisterService {
     private final UserRoleService userRoleService;
     private final PasswordRecoveryTokenRepository passwordRecoveryTokenRepository;
     private final OwnerLogService ownerLogService;
+
     @Override
     @Transactional
     public long confirmAccount(String token) {
         ConfirmationToken confirmationToken = confirmationTokenRepository.findByToken(token).orElseThrow(() -> new ConfirmationTokenNotFoundException(token));
         User user = confirmationToken.getUser();
-        user.setEnabled(true);
         user.setConfirmationToken(null);
         user.setLastLoginDate(LocalDateTime.now());
         userRepository.save(user);
+        Optional<Owner> owner = ownerRepository.findById(user.getId());
+        owner.ifPresent(o -> {
+            o.setWarnings(0);
+            ownerRepository.save(o);
+        });
+
         confirmationTokenRepository.delete(confirmationToken);
         keycloakService.confirmKeycloakUser(user.getKeycloakId());
         ownerLogService.saveLog(OwnerLogType.ACCOUNT_CONFIRMED, user.getId());

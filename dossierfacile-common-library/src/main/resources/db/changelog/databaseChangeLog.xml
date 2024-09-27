@@ -152,5 +152,6 @@
     <include file="db/migration/202407170000-create-indexes.xml"/>
     <include file="db/migration/202409010000-update-queue-message.xml"/>
     <include file="db/migration/202409100000-create-processing-capacity.xml"/>
+    <include file="db/migration/20240925110000-add-column-warning-owner.xml"/>
 
 </databaseChangeLog>
