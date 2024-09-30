@@ -25,6 +25,7 @@
                     <th>name</th>
                     <th>name2</th>
                     <th>site</th>
+                    <th>email</th>
                     <th>logo</th>
                     <th>urlCallback</th>
                     <th>partnerApiKeyCallback</th>
@@ -43,6 +44,7 @@
                     <td th:text="${userApi.name}?: '-'"></td>
                     <td th:text="${userApi.name2}?: '-'"></td>
                     <td th:text="${userApi.site}?: '-'"></td>
+                    <td th:text="${userApi.email}?: '-'"></td>
                     <td><img height="20px" alt="" th:src="${userApi.logoUrl}"/></td>
                     <td th:text="${userApi.urlCallback}?: '-'"></td>
                     <td th:text="${userApi.partnerApiKeyCallback}?: '-'"></td>

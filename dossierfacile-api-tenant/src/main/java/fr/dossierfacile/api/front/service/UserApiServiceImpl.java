@@ -1,15 +1,16 @@
 package fr.dossierfacile.api.front.service;
 
-import fr.dossierfacile.common.config.ApiVersion;
 import fr.dossierfacile.api.front.exception.UserApiNotFoundException;
 import fr.dossierfacile.api.front.model.dfc.PartnerSettings;
 import fr.dossierfacile.api.front.repository.UserApiRepository;
 import fr.dossierfacile.api.front.service.interfaces.UserApiService;
+import fr.dossierfacile.common.config.ApiVersion;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.TenantUserApi;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.repository.TenantUserApiRepository;
 import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,6 +51,10 @@ public class UserApiServiceImpl implements UserApiService {
             ApiVersion.getVersionClass(settings.getVersion());
 
             userApi.setVersion(settings.getVersion());
+        }
+        if (StringUtils.isNotBlank(settings.getEmail())) {
+            // Email cannot be vacuumed - force to provide a new one
+            userApi.setEmail(settings.getEmail());
         }
         if (settings.getUrlCallback() != null) {
             userApi.setUrlCallback(settings.getUrlCallback());
