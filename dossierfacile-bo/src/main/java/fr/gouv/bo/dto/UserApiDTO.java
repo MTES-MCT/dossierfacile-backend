@@ -1,5 +1,6 @@
 package fr.gouv.bo.dto;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -18,6 +19,9 @@ public class UserApiDTO {
     private String name;
     private String name2;
     private String site;
+    @NotBlank
+    @Email
+    private String email;
     private String partnerApiKeyCallback;
     @NotNull
     private Integer version;
