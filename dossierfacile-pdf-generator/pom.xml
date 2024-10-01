@@ -29,7 +29,7 @@
 		<jai-imageio-core.version>1.4.0</jai-imageio-core.version>
 		<metadata.extractor.version>2.19.0</metadata.extractor.version>
 		<pdf2dom.version>2.0.0</pdf2dom.version>
-		<pdfbox.tools.version>3.0.2</pdfbox.tools.version>
+		<pdfbox.tools.version>3.0.3</pdfbox.tools.version>
 	</properties>
 
 	<dependencyManagement>
