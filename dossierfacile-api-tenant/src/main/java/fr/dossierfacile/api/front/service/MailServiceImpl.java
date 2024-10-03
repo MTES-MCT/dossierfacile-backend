@@ -1,11 +1,16 @@
 package fr.dossierfacile.api.front.service;
 
+import brevo.ApiException;
+import brevoApi.TransactionalEmailsApi;
+import brevoModel.SendSmtpEmail;
+import brevoModel.SendSmtpEmailReplyTo;
+import brevoModel.SendSmtpEmailTo;
 import com.google.common.base.Strings;
+import fr.dossierfacile.api.front.form.ContactForm;
+import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.common.dto.mail.TenantDto;
 import fr.dossierfacile.common.dto.mail.UserApiDto;
 import fr.dossierfacile.common.dto.mail.UserDto;
-import fr.dossierfacile.api.front.form.ContactForm;
-import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.utils.OptionalString;
@@ -14,11 +19,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import sendinblue.ApiException;
-import sibApi.TransactionalEmailsApi;
-import sibModel.SendSmtpEmail;
-import sibModel.SendSmtpEmailReplyTo;
-import sibModel.SendSmtpEmailTo;
 
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
@@ -33,52 +33,52 @@ import static fr.dossierfacile.common.enums.ApplicationType.GROUP;
 @RequiredArgsConstructor
 @Slf4j
 public class MailServiceImpl implements MailService {
+    private static final String TENANT_BASE_URL_KEY = "tenantBaseUrl";
+    private static final String TENANT_BASE_URL_KEY_DEPRECATED = "sendinBlueUrlDomain";
     private final TransactionalEmailsApi apiInstance;
-    @Value("${sendinblue.url.domain}")
-    private String sendinBlueUrlDomain;
+    @Value("${tenant.base.url}")
+    private String tenantBaseUrl;
     @Value("${email.support}")
     private String emailSupport;
-    @Value("${sendinblue.template.id.welcome}")
+    @Value("${brevo.template.id.welcome}")
     private Long templateIDWelcome;
-    @Value("${sendinblue.template.id.welcome.partner}")
+    @Value("${brevo.template.id.welcome.partner}")
     private Long templateIDWelcomePartner;
-    @Value("${sendinblue.template.id.new.password}")
+    @Value("${brevo.template.id.new.password}")
     private Long templateIdNewPassword;
-    @Value("${sendinblue.template.id.invitation.couple}")
+    @Value("${brevo.template.id.invitation.couple}")
     private Long templateIdCoupleApplication;
-    @Value("${sendinblue.template.id.invitation.group}")
+    @Value("${brevo.template.id.invitation.group}")
     private Long templateIdGroupApplication;
-    @Value("${sendinblue.template.id.account.deleted}")
+    @Value("${brevo.template.id.account.deleted}")
     private Long templateIdAccountDeleted;
-    @Value("${sendinblue.template.id.account.completed}")
+    @Value("${brevo.template.id.account.completed}")
     private Long templateIdAccountCompleted;
-    @Value("${sendinblue.template.id.account.completed.with.partner}")
+    @Value("${brevo.template.id.account.completed.with.partner}")
     private Long templateIdAccountCompletedWithPartner;
-    @Value("${sendinblue.template.id.account.email.validation.reminder}")
+    @Value("${brevo.template.id.account.email.validation.reminder}")
     private Long templateEmailWhenEmailAccountNotYetValidated;
-    @Value("${sendinblue.template.id.account.incomplete.reminder}")
+    @Value("${brevo.template.id.account.incomplete.reminder}")
     private Long templateEmailWhenAccountNotYetCompleted;
-    @Value("${sendinblue.template.id.account.declined.reminder}")
+    @Value("${brevo.template.id.account.declined.reminder}")
     private Long templateEmailWhenAccountIsStillDeclined;
-    @Value("${sendinblue.template.id.account.satisf.not.assoc.to.partners}")
+    @Value("${brevo.template.id.account.satisf.not.assoc.to.partners}")
     private Long templateEmailWhenTenantNOTAssociatedToPartnersAndValidated;
-    @Value("${sendinblue.template.id.account.satisf.yes.assoc.to.partners}")
+    @Value("${brevo.template.id.account.satisf.yes.assoc.to.partners}")
     private Long templateEmailWhenTenantYESAssociatedToPartnersAndValidated;
-    @Value("${sendinblue.template.id.contact.support}")
+    @Value("${brevo.template.id.contact.support}")
     private Long templateIdContactSupport;
-    @Value("${sendinblue.template.id.token.expiration}")
+    @Value("${brevo.template.id.token.expiration}")
     private Long templateIdTokenExpiration;
-    @Value("${sendinblue.template.id.share.file}")
+    @Value("${brevo.template.id.share.file}")
     private Long templateIdShareFile;
-    @Value("${sendinblue.template.id.partner.access.revoked}")
+    @Value("${brevo.template.id.partner.access.revoked}")
     private Long templateIDPartnerAccessRevoked;
-
     @Value("${link.after.completed.default}")
     private String defaultCompletedUrl;
     @Value("${link.after.created.default}")
     private String defaultCreatedUrl;
-
-    @Value("${sendinblue.domains.blacklist:example.com}")
+    @Value("${brevo.domains.blacklist:example.com}")
     private List<String> blackListedDomains;
 
     private void sendEmailToTenant(String email, String tenantFullName, Map<String, String> params, Long templateId) {
@@ -109,6 +109,7 @@ public class MailServiceImpl implements MailService {
     private void sendEmailToTenant(User tenant, Map<String, String> params, Long templateId) {
         sendEmailToTenant(tenant.getEmail(), tenant.getFullName(), params, templateId);
     }
+
     private void sendEmailToTenant(UserDto tenant, Map<String, String> params, Long templateId) {
         sendEmailToTenant(tenant.getEmail(), tenant.getFullName(), params, templateId);
     }
@@ -117,7 +118,8 @@ public class MailServiceImpl implements MailService {
     public void sendEmailConfirmAccount(UserDto user, ConfirmationToken confirmationToken) {
         Map<String, String> variables = new HashMap<>();
         variables.put("confirmToken", confirmationToken.getToken());
-        variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
+        variables.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
+        variables.put(TENANT_BASE_URL_KEY_DEPRECATED, tenantBaseUrl.replaceAll("https?://", ""));
 
         sendEmailToTenant(user, variables, templateIDWelcome);
     }
@@ -127,7 +129,8 @@ public class MailServiceImpl implements MailService {
         Map<String, String> variables = new HashMap<>();
         variables.put("newPasswordToken", passwordRecoveryToken.getToken());
         variables.put("PRENOM", user.getFirstName());
-        variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
+        variables.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
+        variables.put(TENANT_BASE_URL_KEY_DEPRECATED, tenantBaseUrl.replaceAll("https?://", ""));
 
         sendEmailToTenant(user, variables, templateIdNewPassword);
     }
@@ -139,7 +142,8 @@ public class MailServiceImpl implements MailService {
         Long templateId = templateIdCoupleApplication;
         variables.put("PRENOM", flatmate.getFirstName());
         variables.put("confirmToken", passwordRecoveryToken.getToken());
-        variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
+        variables.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
+        variables.put(TENANT_BASE_URL_KEY_DEPRECATED, tenantBaseUrl.replaceAll("https?://", ""));
         if (applicationType == GROUP) {
             variables.put("NOM", Strings.isNullOrEmpty(flatmate.getPreferredName()) ? flatmate.getLastName() : flatmate.getPreferredName());
             templateId = templateIdGroupApplication;
@@ -166,14 +170,15 @@ public class MailServiceImpl implements MailService {
         variables.put("NOM", Strings.isNullOrEmpty(tenant.getPreferredName()) ? tenant.getLastName() : tenant.getPreferredName());
 
         if (tenant.isBelongToPartner()) {
-                UserApiDto userApi = tenant.getUserApis().get(0);
-                variables.put("partnerName", userApi.getName2());
-                variables.put("logoUrl", userApi.getLogoUrl());
-                variables.put("callToActionUrl", OptionalString.of(userApi.getCompletedUrl()).orElse(defaultCompletedUrl));
+            UserApiDto userApi = tenant.getUserApis().get(0);
+            variables.put("partnerName", userApi.getName2());
+            variables.put("logoUrl", userApi.getLogoUrl());
+            variables.put("callToActionUrl", OptionalString.of(userApi.getCompletedUrl()).orElse(defaultCompletedUrl));
 
-                sendEmailToTenant(tenant, variables, templateIdAccountCompletedWithPartner);
+            sendEmailToTenant(tenant, variables, templateIdAccountCompletedWithPartner);
         } else {
-            variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
+            variables.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
+            variables.put(TENANT_BASE_URL_KEY_DEPRECATED, tenantBaseUrl.replaceAll("https?://", ""));
             sendEmailToTenant(tenant, variables, templateIdAccountCompleted);
         }
     }
@@ -184,7 +189,8 @@ public class MailServiceImpl implements MailService {
         variables.put("PRENOM", user.getFirstName());
         variables.put("NOM", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
         variables.put("confirmToken", confirmationToken.getToken());
-        variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
+        variables.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
+        variables.put(TENANT_BASE_URL_KEY_DEPRECATED, tenantBaseUrl.replaceAll("https?://", ""));
 
         sendEmailToTenant(user, variables, templateEmailWhenEmailAccountNotYetValidated);
     }
@@ -194,7 +200,8 @@ public class MailServiceImpl implements MailService {
         Map<String, String> variables = new HashMap<>();
         variables.put("PRENOM", user.getFirstName());
         variables.put("NOM", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
-        variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
+        variables.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
+        variables.put(TENANT_BASE_URL_KEY_DEPRECATED, tenantBaseUrl.replaceAll("https?://", ""));
 
         sendEmailToTenant(user, variables, templateEmailWhenAccountNotYetCompleted);
     }
@@ -204,7 +211,8 @@ public class MailServiceImpl implements MailService {
         Map<String, String> variables = new HashMap<>();
         variables.put("PRENOM", user.getFirstName());
         variables.put("NOM", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
-        variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
+        variables.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
+        variables.put(TENANT_BASE_URL_KEY_DEPRECATED, tenantBaseUrl.replaceAll("https?://", ""));
 
         sendEmailToTenant(user, variables, templateEmailWhenAccountIsStillDeclined);
     }
@@ -212,7 +220,8 @@ public class MailServiceImpl implements MailService {
     @Override
     public void sendEmailWhenTenantNOTAssociatedToPartnersAndValidatedXDaysAgo(User user) {
         Map<String, String> variables = new HashMap<>();
-        variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
+        variables.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
+        variables.put(TENANT_BASE_URL_KEY_DEPRECATED, tenantBaseUrl.replaceAll("https?://", ""));
 
         sendEmailToTenant(user, variables, templateEmailWhenTenantNOTAssociatedToPartnersAndValidated);
     }
@@ -220,7 +229,8 @@ public class MailServiceImpl implements MailService {
     @Override
     public void sendEmailWhenTenantYESAssociatedToPartnersAndValidatedXDaysAgo(User user) {
         Map<String, String> variables = new HashMap<>();
-        variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
+        variables.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
+        variables.put(TENANT_BASE_URL_KEY_DEPRECATED, tenantBaseUrl.replaceAll("https?://", ""));
 
         sendEmailToTenant(user, variables, templateEmailWhenTenantYESAssociatedToPartnersAndValidated);
     }
@@ -269,7 +279,7 @@ public class MailServiceImpl implements MailService {
     @Override
     public void sendFileByMail(String url, String email, String tenantName, String fullName, String tenantEmail) {
         Map<String, String> variables = new HashMap<>();
-        variables.put("url", sendinBlueUrlDomain + url);
+        variables.put("url", tenantBaseUrl + url);
         variables.put("tenantName", tenantName);
         variables.put("tenantEmail", tenantEmail);
         variables.put("fullName", fullName);

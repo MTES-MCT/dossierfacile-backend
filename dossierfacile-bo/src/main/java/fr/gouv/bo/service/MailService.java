@@ -1,5 +1,9 @@
 package fr.gouv.bo.service;
 
+import brevo.ApiException;
+import brevoApi.TransactionalEmailsApi;
+import brevoModel.SendSmtpEmail;
+import brevoModel.SendSmtpEmailTo;
 import com.google.common.base.Strings;
 import fr.dossierfacile.common.dto.mail.TenantDto;
 import fr.dossierfacile.common.dto.mail.UserApiDto;
@@ -12,10 +16,6 @@ import org.keycloak.representations.idm.ClientRepresentation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import sendinblue.ApiException;
-import sibApi.TransactionalEmailsApi;
-import sibModel.SendSmtpEmail;
-import sibModel.SendSmtpEmailTo;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -26,34 +26,36 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Slf4j
 public class MailService {
+    private static final String TENANT_BASE_URL_KEY = "tenantBaseUrl";
+    private static final String TENANT_BASE_URL_KEY_DEPRECATED = "sendinBlueUrlDomain";
     private final TransactionalEmailsApi apiInstance;
-    @Value("${sendinblue.url.domain}")
-    private String sendinBlueUrlDomain;
-    @Value("${application.domain}")
-    private String applicationDomain;
-    @Value("${sendinblue.template.id.message.notification}")
+    @Value("${tenant.base.url}")
+    private String tenantBaseUrl;
+    @Value("${application.base.url}")
+    private String applicationBaseUrl;
+    @Value("${brevo.template.id.message.notification}")
     private Long templateIDMessageNotification;
-    @Value("${sendinblue.template.id.account.deleted}")
+    @Value("${brevo.template.id.account.deleted}")
     private Long templateIdAccountDeleted;
-    @Value("${mail.template.id.tenant.validated.dossier.validated}")
+    @Value("${brevo.template.id.tenant.validated.dossier.validated}")
     private Long templateIdTenantValidatedDossierValidated;
-    @Value("${mail.template.id.tenant.validated.dossier.validated.with.partner}")
+    @Value("${brevo.template.id.tenant.validated.dossier.validated.w.partner}")
     private Long templateIdTenantValidatedDossierValidatedWithPartner;
-    @Value("${mail.template.id.tenant.validated.dossier.not.valid}")
+    @Value("${brevo.template.id.tenant.validated.dossier.not.valid}")
     private Long templateIdTenantValidatedDossierNotValidated;
-    @Value("${mail.template.id.tenant.validated.dossier.not.valid.with.partner}")
+    @Value("${brevo.template.id.tenant.validated.dossier.not.valid.w.partner}")
     private Long templateIdTenantValidatedDossierNotValidatedWithPartner;
-    @Value("${sendinblue.template.id.dossier.fully.validated}")
+    @Value("${brevo.template.id.dossier.fully.validated}")
     private Long templateIdDossierFullyValidated;
-    @Value("${sendinblue.template.id.dossier.tenant.denied}")
+    @Value("${brevo.template.id.dossier.tenant.denied}")
     private Long templateIdDossierTenantDenied;
-    @Value("${sendinblue.template.id.message.notification.with.partner}")
+    @Value("${brevo.template.id.message.notification.with.partner}")
     private Long templateIDMessageNotificationWithPartner;
-    @Value("${sendinblue.template.id.dossier.fully.validated.with.partner}")
+    @Value("${brevo.template.id.dossier.fully.validated.with.partner}")
     private Long templateIdDossierFullyValidatedWithPartner;
-    @Value("${sendinblue.template.id.dossier.tenant.denied.with.partner}")
+    @Value("${brevo.template.id.dossier.tenant.denied.with.partner}")
     private Long templateIdDossierTenantDeniedWithPartner;
-    @Value("${sendinblue.template.id.admin.partner.client.configuration}")
+    @Value("${brevo.template.id.admin.partner.client.configuration}")
     private Long templateIdAdminPartnerConfiguration;
     @Value("${link.after.denied.default}")
     private String defaultDeniedUrl;
@@ -63,7 +65,7 @@ public class MailService {
     private void sendEmailToTenant(UserDto tenant, Map<String, String> params, Long templateId) {
         SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
         sendSmtpEmailTo.setEmail(tenant.getEmail());
-        OptionalString.of(tenant.getFullName()).ifNotBlank( name -> sendSmtpEmailTo.setName(name));
+        OptionalString.of(tenant.getFullName()).ifNotBlank(name -> sendSmtpEmailTo.setName(name));
 
         SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
         sendSmtpEmail.templateId(templateId);
@@ -90,7 +92,8 @@ public class MailService {
         Map<String, String> params = new HashMap<>();
         params.put("PRENOM", tenant.getFirstName());
         params.put("NOM", OptionalString.of(tenant.getPreferredName()).orElse(tenant.getLastName()));
-        params.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
+        params.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
+        params.put(TENANT_BASE_URL_KEY_DEPRECATED, tenantBaseUrl.replaceAll("https?://", ""));
 
         if (tenant.isBelongToPartner()) {
             UserApiDto userApi = tenant.getUserApis().getFirst();
@@ -109,7 +112,8 @@ public class MailService {
         Map<String, String> params = new HashMap<>();
         params.put("PRENOM", tenant.getFirstName());
         params.put("NOM", OptionalString.of(tenant.getPreferredName()).orElse(tenant.getLastName()));
-        params.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
+        params.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
+        params.put(TENANT_BASE_URL_KEY_DEPRECATED, tenantBaseUrl.replaceAll("https?://", ""));
 
         if (tenant.isBelongToPartner()) {
             UserApiDto userApi = tenant.getUserApis().getFirst();
@@ -122,12 +126,14 @@ public class MailService {
             sendEmailToTenant(tenant, params, templateIdTenantValidatedDossierValidated);
         }
     }
+
     @Async
     public void sendEmailToTenantAfterValidatedApartmentSharingNotValidated(TenantDto tenant) {
         Map<String, String> params = new HashMap<>();
         params.put("PRENOM", tenant.getFirstName());
         params.put("NOM", OptionalString.of(tenant.getPreferredName()).orElse(tenant.getLastName()));
-        params.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
+        params.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
+        params.put(TENANT_BASE_URL_KEY_DEPRECATED, tenantBaseUrl.replaceAll("https?://", ""));
 
         if (tenant.isBelongToPartner()) {
             UserApiDto userApi = tenant.getUserApis().getFirst();
@@ -146,7 +152,8 @@ public class MailService {
         Map<String, String> params = new HashMap<>();
         params.put("PRENOM", tenant.getFirstName());
         params.put("NOM", OptionalString.of(tenant.getPreferredName()).orElse(tenant.getLastName()));
-        params.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
+        params.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
+        params.put(TENANT_BASE_URL_KEY_DEPRECATED, tenantBaseUrl.replaceAll("https?://", ""));
 
         if (tenant.isBelongToPartner()) {
             UserApiDto userApi = tenant.getUserApis().getFirst();
@@ -165,7 +172,8 @@ public class MailService {
         Map<String, String> params = new HashMap<>();
         params.put("PRENOM", deniedTenant.getFirstName());
         params.put("NOM", Strings.isNullOrEmpty(deniedTenant.getPreferredName()) ? deniedTenant.getLastName() : deniedTenant.getPreferredName());
-        params.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
+        params.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
+        params.put(TENANT_BASE_URL_KEY_DEPRECATED, tenantBaseUrl.replaceAll("https?://", ""));
 
         if (tenant.isBelongToPartner()) {
             UserApiDto userApi = tenant.getUserApis().getFirst();
@@ -182,7 +190,7 @@ public class MailService {
     public void sendClientConfiguration(UserApi userApi, ClientRepresentation client, String email, String token) {
         Map<String, String> params = new HashMap<>();
         params.put("clientName", userApi.getName());
-        params.put("secretUrl",  applicationDomain + "/api/onetimesecret/" + token);
+        params.put("secretUrl", applicationBaseUrl + "/api/onetimesecret/" + token);
         params.put("redirectUrls", String.join(", ", client.getRedirectUris()));
         params.put("webhookUrl", userApi.getUrlCallback());
         params.put("apiKey", userApi.getPartnerApiKeyCallback());

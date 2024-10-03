@@ -13,7 +13,7 @@ import java.util.List;
 @Converter
 public class ListToJsonConverter<T> implements AttributeConverter<List<T>, String> {
 
-    private final static ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public String convertToDatabaseColumn(List<T> list) {

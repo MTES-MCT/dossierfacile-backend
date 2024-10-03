@@ -29,11 +29,11 @@ public abstract class TenantMapper {
     private static final String DOSSIER_PDF_PATH = "/api/application/fullPdf/";
     private static final String DOSSIER_PATH = "/file/";
 
-    @Value("${application.domain}")
-    protected String domain;
+    @Value("${application.base.url}")
+    protected String applicationBaseUrl;
 
-    @Value("${tenant.domain}")
-    protected String tenantDomain;
+    @Value("${tenant.base.url}")
+    protected String tenantBaseUrl;
 
     protected CategoriesMapper categoriesMapper;
 
@@ -45,14 +45,14 @@ public abstract class TenantMapper {
     @Mapping(target = "passwordEnabled", expression = "java(tenant.getPassword() != null)")
     public abstract TenantModel toTenantModel(Tenant tenant, @Context UserApi userApi);
 
-    @Mapping(target = "name", expression = "java((document.getWatermarkFile() != null )? domain + \"/" + PATH + "/\" + document.getName() : null)")
+    @Mapping(target = "name", expression = "java((document.getWatermarkFile() != null )? applicationBaseUrl + \"/" + PATH + "/\" + document.getName() : null)")
     @MapDocumentCategories
     public abstract DocumentModel toDocumentModel(Document document, @Context UserApi userApi);
 
     @Mapping(target = "connectedTenantId", source = "id")
     public abstract ConnectedTenantModel toTenantModelDfc(Tenant tenant);
 
-    @Mapping(target = "preview", expression = "java((documentFile.getPreview() != null )? domain + \"" + PREVIEW_PATH + "\" + documentFile.getId() : null)")
+    @Mapping(target = "preview", expression = "java((documentFile.getPreview() != null )? applicationBaseUrl + \"" + PREVIEW_PATH + "\" + documentFile.getId() : null)")
     @Mapping(target = "size", source = "documentFile.storageFile.size")
     @Mapping(target = "contentType", source = "documentFile.storageFile.contentType")
     @Mapping(target = "originalName", source = "documentFile.storageFile.name")
@@ -63,8 +63,8 @@ public abstract class TenantMapper {
         TenantModel tenantModel = tenantModelBuilder.build();
         ApartmentSharingModel apartmentSharingModel = tenantModel.getApartmentSharing();
         if (apartmentSharingModel.getStatus() == TenantFileStatus.VALIDATED) {
-            apartmentSharingModel.setDossierPdfUrl(domain + DOSSIER_PDF_PATH + apartmentSharingModel.getToken());
-            apartmentSharingModel.setDossierUrl(tenantDomain + DOSSIER_PATH + apartmentSharingModel.getToken());
+            apartmentSharingModel.setDossierPdfUrl(applicationBaseUrl + DOSSIER_PDF_PATH + apartmentSharingModel.getToken());
+            apartmentSharingModel.setDossierUrl( tenantBaseUrl + DOSSIER_PATH + apartmentSharingModel.getToken());
         } else {
             apartmentSharingModel.setToken(null);
             apartmentSharingModel.setTokenPublic(null);
@@ -121,7 +121,7 @@ public abstract class TenantMapper {
                                 if (previewOnly) {
                                     fileModel.setPath("");
                                 } else {
-                                    fileModel.setPath(domain + filePath + fileModel.getId());
+                                    fileModel.setPath(applicationBaseUrl + filePath + fileModel.getId());
                                 }
                             }));
                 }));
@@ -132,8 +132,8 @@ public abstract class TenantMapper {
         ConnectedTenantModel connectedTenantModel = connectedTenantModelBuilder.build();
         fr.dossierfacile.api.front.model.dfc.apartment_sharing.ApartmentSharingModel apartmentSharingModel = connectedTenantModel.getApartmentSharing();
         if (apartmentSharingModel.getStatus() == TenantFileStatus.VALIDATED) {
-            apartmentSharingModel.setDossierPdfUrl(domain + DOSSIER_PDF_PATH + apartmentSharingModel.getToken());
-            apartmentSharingModel.setDossierUrl(tenantDomain + DOSSIER_PATH + apartmentSharingModel.getToken());
+            apartmentSharingModel.setDossierPdfUrl(applicationBaseUrl + DOSSIER_PDF_PATH + apartmentSharingModel.getToken());
+            apartmentSharingModel.setDossierUrl(tenantBaseUrl + DOSSIER_PATH + apartmentSharingModel.getToken());
         } else {
             apartmentSharingModel.setToken(null);
             apartmentSharingModel.setTokenPublic(null);
