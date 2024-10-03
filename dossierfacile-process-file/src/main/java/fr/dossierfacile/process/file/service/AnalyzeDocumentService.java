@@ -56,7 +56,7 @@ public class AnalyzeDocumentService {
                         .document(document)
                         .brokenRules(new LinkedList<>())
                         .build();
-                rulesValidationServices.stream().forEach(rulesService -> rulesService.process(document, report));
+                rulesValidationServices.forEach(rulesService -> rulesService.process(document, report));
                 document.setDocumentAnalysisReport(report);
                 documentAnalysisReportRepository.save(report);
                 documentRepository.save(document);// necessaire?
