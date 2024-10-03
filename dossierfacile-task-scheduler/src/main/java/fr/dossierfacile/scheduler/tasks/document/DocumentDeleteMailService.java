@@ -1,5 +1,9 @@
 package fr.dossierfacile.scheduler.tasks.document;
 
+import brevo.ApiException;
+import brevoApi.TransactionalEmailsApi;
+import brevoModel.SendSmtpEmail;
+import brevoModel.SendSmtpEmailTo;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
@@ -8,10 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import sendinblue.ApiException;
-import sibApi.TransactionalEmailsApi;
-import sibModel.SendSmtpEmail;
-import sibModel.SendSmtpEmailTo;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -26,7 +26,7 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 public class DocumentDeleteMailService {
     private final TransactionalEmailsApi apiInstance;
     private final TenantCommonRepository tenantCommonRepository;
-    @Value("${sendinblue.template.id.deleted.document.with.failed.pdf}")
+    @Value("${brevo.template.id.deleted.document.with.failed.pdf}")
     private Long templateDeletedDocumentWithFailedPdf;
 
     @Transactional(readOnly = true)

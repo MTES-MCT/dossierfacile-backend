@@ -24,11 +24,11 @@ public abstract class ApplicationFullMapper implements ApartmentSharingMapper {
     protected static final String DOSSIER_PDF_PATH = "/api/application/fullPdf/";
     protected static final String DOSSIER_PATH = "/file/";
 
-    @Value("${application.domain:default}")
-    protected String domain;
+    @Value("${application.base.url:default}")
+    protected String applicationBaseUrl;
 
-    @Value("${tenant.domain:default}")
-    protected String tenantDomain;
+    @Value("${tenant.base.url:default}")
+    protected String tenantBaseUrl;
 
     protected CategoriesMapper categoriesMapper;
 
@@ -41,7 +41,7 @@ public abstract class ApplicationFullMapper implements ApartmentSharingMapper {
 
     public abstract ApplicationModel toApplicationModel(ApartmentSharing apartmentSharing, @Context UserApi userApi);
 
-    @Mapping(target = "name", expression = "java((document.getWatermarkFile() != null )? domain + \"/\" + PATH + \"/\" + document.getName() : null)")
+    @Mapping(target = "name", expression = "java((document.getWatermarkFile() != null )? applicationBaseUrl + \"/\" + PATH + \"/\" + document.getName() : null)")
     @Mapping(target = "authenticityStatus", expression = "java(fr.dossierfacile.common.entity.AuthenticityStatus.isAuthentic(document))")
     @MapDocumentCategories
     public abstract DocumentModel toDocumentModel(Document document, @Context UserApi userApi);
@@ -52,8 +52,8 @@ public abstract class ApplicationFullMapper implements ApartmentSharingMapper {
     @BeforeMapping
     void enrichModelWithDossierPdfUrl(ApartmentSharing apartmentSharing, @MappingTarget ApplicationModel.ApplicationModelBuilder applicationModelBuilder) {
         if (apartmentSharing.getStatus() == TenantFileStatus.VALIDATED) {
-            applicationModelBuilder.dossierPdfUrl(domain + DOSSIER_PDF_PATH + apartmentSharing.getToken());
-            applicationModelBuilder.dossierUrl(tenantDomain + DOSSIER_PATH + apartmentSharing.getToken());
+            applicationModelBuilder.dossierPdfUrl(applicationBaseUrl + DOSSIER_PDF_PATH + apartmentSharing.getToken());
+            applicationModelBuilder.dossierUrl(tenantBaseUrl + DOSSIER_PATH + apartmentSharing.getToken());
         }
     }
 }

@@ -1,5 +1,9 @@
 package fr.dossierfacile.scheduler.tasks.tenantwarning;
 
+import brevo.ApiException;
+import brevoApi.TransactionalEmailsApi;
+import brevoModel.SendSmtpEmail;
+import brevoModel.SendSmtpEmailTo;
 import com.google.common.base.Strings;
 import fr.dossierfacile.common.entity.ConfirmationToken;
 import fr.dossierfacile.common.entity.User;
@@ -7,10 +11,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import sendinblue.ApiException;
-import sibApi.TransactionalEmailsApi;
-import sibModel.SendSmtpEmail;
-import sibModel.SendSmtpEmailTo;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -24,20 +24,23 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 @Slf4j
 public class WarningMailSender {
 
+    private static final String TENANT_BASE_URL_KEY = "tenantBaseUrl";
+    private static final String TENANT_BASE_URL_KEY_DEPRECATED = "sendinBlueUrlDomain";
+
     private final TransactionalEmailsApi apiInstance;
-    @Value("${sendinblue.url.domain}")
-    private String sendinBlueUrlDomain;
-    @Value("${sendinblue.owner.url.domain:proprietaire.dossierfacile.fr}")
+    @Value("${tenant.base.url}")
+    private String tenantBaseUrl;
+    @Value("${brevo.owner.url.domain:proprietaire.dossierfacile.fr}")
     private String sendinBlueOwnerUrlDomain;
-    @Value("${sendinblue.template.id.first.warning.for.deletion.of.documents}")
+    @Value("${brevo.template.id.first.warning.for.deletion.of.documents}")
     private Long templateFirstWarningForDeletionOfDocuments;
-    @Value("${sendinblue.template.id.second.warning.for.deletion.of.documents}")
+    @Value("${brevo.template.id.second.warning.for.deletion.of.documents}")
     private Long templateSecondWarningForDeletionOfDocuments;
-    @Value("${sendinblue.template.id.first.warning.for.deletion.of.owner:144}")
+    @Value("${brevo.template.id.first.warning.for.deletion.of.owner:144}")
     private Long templateFirstWarningForDeletionOfOwner;
-    @Value("${sendinblue.template.id.second.warning.for.deletion.of.owner:146}")
+    @Value("${brevo.template.id.second.warning.for.deletion.of.owner:146}")
     private Long templateSecondWarningForDeletionOfOwner;
-    @Value("${sendinblue.template.id.account.deleted.owner:145}")
+    @Value("${brevo.template.id.account.deleted.owner:145}")
     private Long templateOwnerDeleted;
 
     public void sendEmailFirstWarningForDeletionOfDocuments(User user, ConfirmationToken confirmationToken) {
@@ -59,7 +62,8 @@ public class WarningMailSender {
         variables.put("PRENOM", user.getFirstName());
         variables.put("NOM", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
         variables.put("confirmToken", confirmationToken.getToken());
-        variables.put("sendinBlueUrlDomain", sendinBlueUrlDomain);
+        variables.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
+        variables.put(TENANT_BASE_URL_KEY_DEPRECATED, tenantBaseUrl.replaceAll("https?://", ""));
 
         SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
         sendSmtpEmailTo.setEmail(user.getEmail());

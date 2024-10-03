@@ -1,11 +1,13 @@
 package fr.dossierfacile.api.dossierfacileapiowner.mail;
 
-import fr.dossierfacile.common.entity.ConfirmationToken;
-import fr.dossierfacile.common.entity.Owner;
-import fr.dossierfacile.common.entity.PasswordRecoveryToken;
-import fr.dossierfacile.common.entity.Property;
-import fr.dossierfacile.common.entity.Tenant;
-import fr.dossierfacile.common.entity.User;
+import brevo.ApiClient;
+import brevo.ApiException;
+import brevo.Configuration;
+import brevo.auth.ApiKeyAuth;
+import brevoApi.TransactionalEmailsApi;
+import brevoModel.SendSmtpEmail;
+import brevoModel.SendSmtpEmailTo;
+import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,13 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import sendinblue.ApiClient;
-import sendinblue.ApiException;
-import sendinblue.Configuration;
-import sendinblue.auth.ApiKeyAuth;
-import sibApi.TransactionalEmailsApi;
-import sibModel.SendSmtpEmail;
-import sibModel.SendSmtpEmailTo;
 
 import java.util.Collections;
 import java.util.List;
@@ -30,24 +25,23 @@ import java.util.Optional;
 @Slf4j
 public class MailServiceImpl implements MailService {
     private final TenantCommonRepository tenantCommonRepository;
-    @Value("${sendinblue.apikey}")
+    @Value("${brevo.apikey}")
     private String sendinblueApiKey;
-    @Value("${sendinblue.template.id.welcome}")
+    @Value("${brevo.template.id.welcome}")
     private Long templateIDWelcome;
-    @Value("${sendinblue.template.id.new.password}")
+    @Value("${brevo.template.id.new.password}")
     private Long templateIdNewPassword;
     @Value("${owner.url}")
     private String ownerUrl;
-    @Value("${sendinblue.template.id.applicant.validated}")
+    @Value("${brevo.template.id.applicant.validated}")
     private Long templateIdApplicantValidated;
-    @Value("${sendinblue.template.id.new.applicant.validated}")
+    @Value("${brevo.template.id.new.applicant.validated}")
     private Long templateIdNewApplicantValidated;
-    @Value("${sendinblue.template.id.new.applicant.not.validated}")
+    @Value("${brevo.template.id.new.applicant.not.validated}")
     private Long templateIdNewApplicantNotValidated;
-    @Value("${sendinblue.template.id.validated.property}")
+    @Value("${brevo.template.id.validated.property}")
     private Long templateIdValidatedProperty;
-
-    @Value("${sendinblue.template.id.follow-up.validated.property}")
+    @Value("${brevo.template.id.follow-up.validated.property}")
     private Long templateIdFollowUpAfterValidatedProperty;
 
     @Value("${property.path}")
@@ -123,6 +117,7 @@ public class MailServiceImpl implements MailService {
                         .propertyUrl(ownerUrl + propertyPath + property.getId())
                         .build());
     }
+
     @Override
     public void sendEmailNewApplicantNotValidated(Tenant tenant, Owner owner, Property property) {
         sendTransactionalEmail(templateIdNewApplicantNotValidated, owner,
@@ -135,6 +130,7 @@ public class MailServiceImpl implements MailService {
                         .propertyUrl(ownerUrl + propertyPath + property.getId())
                         .build());
     }
+
     @Async
     @Override
     public void sendEmailValidatedProperty(User user, Property property) {
