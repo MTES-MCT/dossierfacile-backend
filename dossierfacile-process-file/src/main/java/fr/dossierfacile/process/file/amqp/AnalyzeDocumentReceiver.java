@@ -3,6 +3,7 @@ package fr.dossierfacile.process.file.amqp;
 import fr.dossierfacile.common.entity.messaging.QueueName;
 import fr.dossierfacile.common.service.interfaces.QueueMessageService;
 import fr.dossierfacile.process.file.service.AnalyzeDocumentService;
+import fr.dossierfacile.process.file.util.MemoryUtils;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +33,10 @@ public class AnalyzeDocumentReceiver {
 
     private void receiveDocument() {
         try {
+            if (!MemoryUtils.hasEnoughAvailableMemory()) {
+                log.warn("There is not currently enough memory to perform consumption ");
+                return;
+            }
             queueMessageService.consume(QueueName.QUEUE_DOCUMENT_ANALYSIS,
                     documentAnalysisDelay,
                     documentAnalysisTimeout,
@@ -44,6 +49,5 @@ public class AnalyzeDocumentReceiver {
             log.error("Unable to consume the message queue");
         }
     }
-
 
 }
