@@ -20,7 +20,7 @@
         <org.mapstruct.version>1.5.5.Final</org.mapstruct.version>
         <lombok.version>1.18.34</lombok.version>
         <springdoc.version>1.7.0</springdoc.version>
-        <keycloak.version>22.0.3</keycloak.version>
+        <keycloak.version>22.0.5</keycloak.version>
     </properties>
     <dependencies>
         <dependency>
