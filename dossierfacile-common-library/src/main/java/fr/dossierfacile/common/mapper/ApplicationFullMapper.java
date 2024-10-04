@@ -37,8 +37,6 @@ public abstract class ApplicationFullMapper implements ApartmentSharingMapper {
         this.categoriesMapper = categoriesMapper;
     }
 
-    public abstract ApplicationModel toApplicationModel(ApartmentSharing apartmentSharing);
-
     public abstract ApplicationModel toApplicationModel(ApartmentSharing apartmentSharing, @Context UserApi userApi);
 
     @Mapping(target = "name", expression = "java((document.getWatermarkFile() != null )? applicationBaseUrl + \"/\" + PATH + \"/\" + document.getName() : null)")
