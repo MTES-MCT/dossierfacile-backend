@@ -688,7 +688,9 @@ function validate_form() {
 function changePageAndSize() {
     $('.pageSizeSelect').change(function (evt) {
         var url = $(this).attr("data-url");
-        window.location.replace(url + "?pageSize=" + this.value + "&page=1");
+        var encodedUrl = encodeURI(url);
+        var pageSize = encodeURIComponent(this.value);
+        window.location.replace(encodedUrl + "?pageSize=" + pageSize + "&page=1");
     });
 }
 
