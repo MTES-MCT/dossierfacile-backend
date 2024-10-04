@@ -3,10 +3,10 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.4</version>
-        <relativePath/> <!-- lookup parent from repository -->
+        <groupId>fr.gouv</groupId>
+        <artifactId>dossierfacile</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
     <groupId>fr.dossierfacile.api</groupId>
     <artifactId>dossierfacile-api-watermark</artifactId>
@@ -17,14 +17,9 @@
     </description>
 
     <properties>
-        <java.version>21</java.version>
-        <maven.compiler.source>${java.version}</maven.compiler.source>
-        <maven.compiler.target>${java.version}</maven.compiler.target>
-        <org.mapstruct.version>1.4.2.Final</org.mapstruct.version>
-        <lombok.version>1.18.30</lombok.version>
-        <dossierfacile.common.version>0.0.1-SNAPSHOT</dossierfacile.common.version>
         <springdoc.version>1.7.0</springdoc.version>
     </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -39,19 +34,18 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>${lombok.version}</version>
+            <scope>provided</scope>
             <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>net.logstash.logback</groupId>
             <artifactId>logstash-logback-encoder</artifactId>
-            <version>7.3</version>
         </dependency>
 
         <!--DossierFacile libraries-->
         <dependency>
             <groupId>fr.dossierfacile</groupId>
             <artifactId>dossierfacile-common-library</artifactId>
-            <version>${dossierfacile.common.version}</version>
         </dependency>
 
         <!--Dependencies for Tests-->
