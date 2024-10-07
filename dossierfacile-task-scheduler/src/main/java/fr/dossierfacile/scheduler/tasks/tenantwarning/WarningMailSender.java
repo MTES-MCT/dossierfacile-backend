@@ -26,10 +26,13 @@ public class WarningMailSender {
 
     private static final String TENANT_BASE_URL_KEY = "tenantBaseUrl";
     private static final String TENANT_BASE_URL_KEY_DEPRECATED = "sendinBlueUrlDomain";
+    private static final String OWNER_BASE_URL_KEY = "ownerBaseUrl";
 
     private final TransactionalEmailsApi apiInstance;
     @Value("${tenant.base.url}")
     private String tenantBaseUrl;
+    @Value("${owner.base.url}")
+    private String ownerBaseUrl;
     @Value("${brevo.owner.url.domain:proprietaire.dossierfacile.fr}")
     private String sendinBlueOwnerUrlDomain;
     @Value("${brevo.template.id.first.warning.for.deletion.of.documents}")
@@ -46,24 +49,37 @@ public class WarningMailSender {
     public void sendEmailFirstWarningForDeletionOfDocuments(User user, ConfirmationToken confirmationToken) {
         if (isNotBlank(user.getEmail())) {
             log.info("Sending FIRST warning to tenant {}", user.getId());
-            sendWarningMail(user, confirmationToken, templateFirstWarningForDeletionOfDocuments);
+            sendTenantWarningMail(user, confirmationToken, templateFirstWarningForDeletionOfDocuments);
         }
     }
 
     public void sendEmailSecondWarningForDeletionOfDocuments(User user, ConfirmationToken confirmationToken) {
         if (isNotBlank(user.getEmail())) {
             log.info("Sending SECOND warning to tenant {}", user.getId());
-            sendWarningMail(user, confirmationToken, templateSecondWarningForDeletionOfDocuments);
+            sendTenantWarningMail(user, confirmationToken, templateSecondWarningForDeletionOfDocuments);
         }
     }
 
-    private void sendWarningMail(User user, ConfirmationToken confirmationToken, Long templateId) {
+    private void sendTenantWarningMail(User user, ConfirmationToken confirmationToken, Long templateId) {
         Map<String, String> variables = new HashMap<>();
         variables.put("PRENOM", user.getFirstName());
         variables.put("NOM", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
         variables.put("confirmToken", confirmationToken.getToken());
         variables.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
         variables.put(TENANT_BASE_URL_KEY_DEPRECATED, tenantBaseUrl.replaceAll("https?://", ""));
+        sendWarningMail(user, templateId, variables);
+    }
+
+    private void sendOwnerWarningMail(User user, ConfirmationToken confirmationToken, Long templateId) {
+        Map<String, String> variables = new HashMap<>();
+        variables.put("PRENOM", user.getFirstName());
+        variables.put("NOM", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
+        variables.put("confirmToken", confirmationToken.getToken());
+        variables.put(OWNER_BASE_URL_KEY, ownerBaseUrl);
+        sendWarningMail(user, templateId, variables);
+    }
+
+    private void sendWarningMail(User user, Long templateId, Map<String, String> variables) {
 
         SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
         sendSmtpEmailTo.setEmail(user.getEmail());
@@ -86,14 +102,14 @@ public class WarningMailSender {
     public void sendEmailFirstWarningForDeletionOfOwner(User user, ConfirmationToken confirmationToken) {
         if (isNotBlank(user.getEmail())) {
             log.info("Sending FIRST warning to owner {}", user.getId());
-            sendWarningMail(user, confirmationToken, templateFirstWarningForDeletionOfOwner);
+            sendOwnerWarningMail(user, confirmationToken, templateFirstWarningForDeletionOfOwner);
         }
     }
 
     public void sendEmailSecondWarningForDeletionOfOwner(User user, ConfirmationToken confirmationToken) {
         if (isNotBlank(user.getEmail())) {
             log.info("Sending SECOND warning to owner {}", user.getId());
-            sendWarningMail(user, confirmationToken, templateSecondWarningForDeletionOfOwner);
+            sendOwnerWarningMail(user, confirmationToken, templateSecondWarningForDeletionOfOwner);
         }
     }
 
