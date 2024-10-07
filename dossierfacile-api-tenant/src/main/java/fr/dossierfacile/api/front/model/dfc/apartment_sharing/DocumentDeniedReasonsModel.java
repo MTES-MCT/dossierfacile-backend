@@ -1,6 +1,7 @@
 package fr.dossierfacile.api.front.model.dfc.apartment_sharing;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import fr.dossierfacile.api.front.model.tenant.SelectedOption;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

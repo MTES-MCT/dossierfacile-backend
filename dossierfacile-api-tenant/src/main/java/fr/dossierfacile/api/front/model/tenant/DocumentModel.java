@@ -20,7 +20,10 @@ import java.util.List;
 public class DocumentModel {
     private Long id;
     private DocumentCategory documentCategory;
+    // TODO We should use documentSubCategory
+    @Deprecated
     private DocumentSubCategory subCategory;
+    private DocumentSubCategory documentSubCategory;
     private Boolean noDocument;
     private String customText;
     private Integer monthlySum;

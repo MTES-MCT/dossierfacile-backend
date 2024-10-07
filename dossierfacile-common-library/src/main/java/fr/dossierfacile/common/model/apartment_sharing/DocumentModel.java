@@ -18,7 +18,10 @@ import lombok.NoArgsConstructor;
 public class DocumentModel {
     private Long id;
     private DocumentCategory documentCategory;
+    // TODO use DocumentSubCategory field
+    @Deprecated
     private DocumentSubCategory subCategory;
+    private DocumentSubCategory documentSubCategory;
     private String customText;
     private Integer monthlySum;
     private DocumentStatus documentStatus;

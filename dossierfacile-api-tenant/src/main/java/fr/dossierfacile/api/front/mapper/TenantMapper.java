@@ -46,11 +46,14 @@ public abstract class TenantMapper {
     public abstract TenantModel toTenantModel(Tenant tenant, @Context UserApi userApi);
 
     @Mapping(target = "name", expression = "java((document.getWatermarkFile() != null )? applicationBaseUrl + \"/" + PATH + "/\" + document.getName() : null)")
+    @Mapping(target = "files", expression = "java(userApi == null ? mapFiles(document.getFiles()) : null)")
     @MapDocumentCategories
     public abstract DocumentModel toDocumentModel(Document document, @Context UserApi userApi);
 
+    public abstract List<FileModel> mapFiles(List<File> files);
+
     @Mapping(target = "connectedTenantId", source = "id")
-    public abstract ConnectedTenantModel toTenantModelDfc(Tenant tenant);
+    public abstract ConnectedTenantModel toTenantModelDfc(Tenant tenant, @Context UserApi userApi);
 
     @Mapping(target = "preview", expression = "java((documentFile.getPreview() != null )? applicationBaseUrl + \"" + PREVIEW_PATH + "\" + documentFile.getId() : null)")
     @Mapping(target = "size", source = "documentFile.storageFile.size")
@@ -64,7 +67,7 @@ public abstract class TenantMapper {
         ApartmentSharingModel apartmentSharingModel = tenantModel.getApartmentSharing();
         if (apartmentSharingModel.getStatus() == TenantFileStatus.VALIDATED) {
             apartmentSharingModel.setDossierPdfUrl(applicationBaseUrl + DOSSIER_PDF_PATH + apartmentSharingModel.getToken());
-            apartmentSharingModel.setDossierUrl( tenantBaseUrl + DOSSIER_PATH + apartmentSharingModel.getToken());
+            apartmentSharingModel.setDossierUrl(tenantBaseUrl + DOSSIER_PATH + apartmentSharingModel.getToken());
         } else {
             apartmentSharingModel.setToken(null);
             apartmentSharingModel.setTokenPublic(null);
@@ -138,39 +141,10 @@ public abstract class TenantMapper {
             apartmentSharingModel.setToken(null);
             apartmentSharingModel.setTokenPublic(null);
         }
-        connectedTenantModel.getApartmentSharing().getTenants().forEach(tenantModel -> setDocumentDeniedReasonsAndDocumentRoutesForDFC(tenantModel.getDocuments()));
+        connectedTenantModel.getApartmentSharing().getTenants().forEach(tenantModel -> setDocumentDeniedReasonsAndDocumentAndFilesRoutes(tenantModel.getDocuments(), null, true));
         connectedTenantModel.getApartmentSharing().getTenants().forEach(tenantModel ->
                 Optional.ofNullable(tenantModel.getGuarantors()).ifPresent(guarantorModels ->
-                        guarantorModels.forEach(guarantorModel -> setDocumentDeniedReasonsAndDocumentRoutesForDFC(guarantorModel.getDocuments()))));
+                        guarantorModels.forEach(guarantorModel -> setDocumentDeniedReasonsAndDocumentAndFilesRoutes(guarantorModel.getDocuments(), null, true))));
     }
 
-    private void setDocumentDeniedReasonsAndDocumentRoutesForDFC(List<fr.dossierfacile.api.front.model.dfc.apartment_sharing.DocumentModel> list) {
-        Optional.ofNullable(list)
-                .ifPresent(documentModels -> documentModels.forEach(documentModel -> {
-                    fr.dossierfacile.api.front.model.dfc.apartment_sharing.DocumentDeniedReasonsModel documentDeniedReasonsModel = documentModel.getDocumentDeniedReasons();
-                    if (documentDeniedReasonsModel != null) {
-                        List<fr.dossierfacile.api.front.model.dfc.apartment_sharing.SelectedOption> selectedOptionList = new ArrayList<>();
-                        if (documentDeniedReasonsModel.isMessageData()) {
-                            for (int i = 0; i < documentDeniedReasonsModel.getCheckedOptions().size(); i++) {
-                                String checkedOption = documentDeniedReasonsModel.getCheckedOptions().get(i);
-                                Integer checkedOptionsId = documentDeniedReasonsModel.getCheckedOptionsId().get(i);
-                                selectedOptionList.add(fr.dossierfacile.api.front.model.dfc.apartment_sharing.SelectedOption.builder()
-                                        .id(checkedOptionsId)
-                                        .label(checkedOption).build());
-                            }
-                        } else {
-                            for (int i = 0; i < documentDeniedReasonsModel.getCheckedOptions().size(); i++) {
-                                String checkedOption = documentDeniedReasonsModel.getCheckedOptions().get(i);
-                                selectedOptionList.add(fr.dossierfacile.api.front.model.dfc.apartment_sharing.SelectedOption.builder()
-                                        .id(null)
-                                        .label(checkedOption).build());
-                            }
-                        }
-                        documentDeniedReasonsModel.setSelectedOptions(selectedOptionList);
-                        documentDeniedReasonsModel.setCheckedOptions(null);
-                        documentDeniedReasonsModel.setCheckedOptionsId(null);
-                        documentModel.setDocumentDeniedReasons(documentDeniedReasonsModel);
-                    }
-                }));
-    }
 }
