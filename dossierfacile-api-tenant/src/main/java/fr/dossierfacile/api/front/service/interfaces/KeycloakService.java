@@ -27,6 +27,8 @@ public interface KeycloakService {
 
     void deleteKeycloakUser(Tenant tenant);
 
+    void deleteKeycloakUserById(String keycloakId);
+
     String getKeycloakId(String email);
 
     void logout(String keycloakUserId);

@@ -85,6 +85,11 @@ public class KeycloakServiceImpl implements KeycloakService {
     }
 
     @Override
+    public void deleteKeycloakUserById(String keycloakId) {
+        keycloakCommonService.deleteKeycloakUserById(keycloakId);
+    }
+
+    @Override
     public String getKeycloakId(String email) {
         var userRepresentations = realmResource.users().search(email);
         return userRepresentations.isEmpty() ? createKeycloakUser(email) : userRepresentations.get(0).getId();
