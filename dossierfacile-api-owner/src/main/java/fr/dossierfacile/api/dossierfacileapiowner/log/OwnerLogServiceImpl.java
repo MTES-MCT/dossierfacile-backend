@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.dossierfacile.common.entity.Owner;
 import fr.dossierfacile.common.entity.OwnerLog;
 import fr.dossierfacile.common.enums.OwnerLogType;
+import fr.dossierfacile.common.mapper.log.DeletedOwnerMapper;
 import fr.dossierfacile.common.utils.MapperUtil;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +18,6 @@ import java.time.LocalDateTime;
 public class OwnerLogServiceImpl implements OwnerLogService {
     private final OwnerLogRepository repository;
     private final DeletedOwnerMapper deletedOwnerMapper;
-
     private final ObjectMapper objectMapper = MapperUtil.newObjectMapper();
 
     private void saveLog(OwnerLog log) {
