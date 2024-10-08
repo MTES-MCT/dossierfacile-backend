@@ -168,7 +168,7 @@
         <dependency>
             <groupId>com.squareup.okio</groupId>
             <artifactId>okio</artifactId>
-            <version>3.5.0</version>
+            <version>3.9.0</version>
         </dependency>
         <dependency>
             <groupId>net.logstash.logback</groupId>
