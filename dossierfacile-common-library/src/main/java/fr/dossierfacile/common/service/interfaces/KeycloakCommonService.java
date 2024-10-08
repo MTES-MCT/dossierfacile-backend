@@ -11,4 +11,5 @@ public interface KeycloakCommonService {
 
     void deleteKeycloakUser(User user);
 
+    void deleteKeycloakUserById(String keycloakId);
 }

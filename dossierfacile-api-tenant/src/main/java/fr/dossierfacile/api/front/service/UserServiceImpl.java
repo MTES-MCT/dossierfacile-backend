@@ -82,6 +82,7 @@ public class UserServiceImpl implements UserService {
         PasswordRecoveryToken passwordRecoveryToken = passwordRecoveryTokenService.create(tenant);
         mailService.sendEmailNewPassword(tenant, passwordRecoveryToken);
     }
+
     private List<TenantUserApi> groupingAllTenantUserApisInTheApartment(ApartmentSharing as) {
         List<TenantUserApi> tenantUserApis = new ArrayList<>();
         if (as.getTenants() != null && !as.getTenants().isEmpty()) {
@@ -91,6 +92,7 @@ public class UserServiceImpl implements UserService {
         }
         return tenantUserApis;
     }
+
     @Override
     @Transactional
     public void deleteAccount(Tenant tenant) {
@@ -103,15 +105,14 @@ public class UserServiceImpl implements UserService {
         logService.saveLogWithTenantData(LogType.ACCOUNT_DELETE, tenant);
         TenantDto tenantToDeleteDto = tenantMapperForMail.toDto(tenant);
         tenantCommonService.deleteTenantData(tenant);
+        String keycloakId = tenant.getKeycloakId();
 
         if (tenant.getTenantType() == TenantType.CREATE) {
             for (Tenant coTenant : tenant.getApartmentSharing().getTenants().stream().filter(t -> t.getTenantType().equals(TenantType.JOIN)).collect(Collectors.toSet())) {
                 deleteAccount(coTenant);
             }
-            keycloakService.deleteKeycloakUser(tenant);
             apartmentSharingService.delete(tenant.getApartmentSharing());
         } else {
-            keycloakService.deleteKeycloakUser(tenant);
             userRepository.delete(tenant);
             apartmentSharingService.removeTenant(tenant.getApartmentSharing(), tenant);
         }
@@ -119,7 +120,10 @@ public class UserServiceImpl implements UserService {
             partnerCallBackService.sendCallBack(tenant, webhookDTO.getUserApi(), webhookDTO);
         }
 
-        TransactionalUtil.afterCommit( () -> mailService.sendEmailAccountDeleted(tenantToDeleteDto));
+        TransactionalUtil.afterCommit(() -> {
+            mailService.sendEmailAccountDeleted(tenantToDeleteDto);
+            keycloakService.deleteKeycloakUserById(keycloakId);
+        });
     }
 
     @Override

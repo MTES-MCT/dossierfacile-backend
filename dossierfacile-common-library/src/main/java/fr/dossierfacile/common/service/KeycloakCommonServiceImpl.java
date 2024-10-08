@@ -26,9 +26,7 @@ public class KeycloakCommonServiceImpl implements KeycloakCommonService {
         }
         users.stream().filter(u -> u.getKeycloakId() != null).forEach(u -> {
             try (Response response = realmResource.get().users().delete(u.getKeycloakId())) {
-                if (response.getStatus() != 204) {
-                    log.warn("Failed to delete user. Status: {}", response.getStatus());
-                }
+                checkResult(response);
             }
         });
     }
@@ -36,6 +34,22 @@ public class KeycloakCommonServiceImpl implements KeycloakCommonService {
     @Override
     public void deleteKeycloakUser(User user) {
         deleteKeycloakUsers(Collections.singletonList(user));
+    }
+
+    @Override
+    public void deleteKeycloakUserById(String keycloakId) {
+        if (realmResource.isEmpty()) {
+            return;
+        }
+        try (Response response = realmResource.get().users().delete(keycloakId)) {
+            checkResult(response);
+        }
+    }
+
+    private static void checkResult(Response response) {
+        if (response.getStatus() != 204) {
+            log.warn("Failed to delete user. Status: {}", response.getStatus());
+        }
     }
 
 }
