@@ -24,7 +24,6 @@ public interface DeletedTenantCommonMapper {
     public abstract DeletedTenantModel toDeletedTenantModel(Tenant tenant);
 
     @Mapping(target = "name", expression = "java((document.getWatermarkFile() != null )? document.getWatermarkFile().getName() : null)")
-    @Mapping(target = "subCategory", source = "documentSubCategory")
     public abstract DocumentModel toDocumentModel(Document document);
 
     @Named("emailToHashedEmail")
