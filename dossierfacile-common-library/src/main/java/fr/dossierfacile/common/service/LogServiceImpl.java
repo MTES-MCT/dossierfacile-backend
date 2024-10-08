@@ -11,8 +11,8 @@ import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.enums.OwnerLogType;
-import fr.dossierfacile.common.mapper.DeletedOwnerCommonMapper;
-import fr.dossierfacile.common.mapper.DeletedTenantCommonMapper;
+import fr.dossierfacile.common.mapper.log.DeletedOwnerMapper;
+import fr.dossierfacile.common.mapper.log.DeletedTenantMapper;
 import fr.dossierfacile.common.model.log.ApplicationTypeChange;
 import fr.dossierfacile.common.model.log.EditedDocument;
 import fr.dossierfacile.common.model.log.EditedStep;
@@ -34,8 +34,8 @@ public class LogServiceImpl implements LogService {
 
     private final TenantLogRepository repository;
     private final OwnerLogCommonRepository ownerLogRepository;
-    private final DeletedTenantCommonMapper deletedTenantCommonMapper;
-    private final DeletedOwnerCommonMapper deletedOwnerCommonMapper;
+    private final DeletedTenantMapper deletedTenantMapper;
+    private final DeletedOwnerMapper deletedOwnerMapper;
     private final ObjectMapper objectMapper;
 
     private void saveLog(TenantLog log) {
@@ -65,7 +65,7 @@ public class LogServiceImpl implements LogService {
                         .logType(logType)
                         .ownerId(owner.getId())
                         .creationDateTime(LocalDateTime.now())
-                        .jsonProfile(writeAsString(deletedOwnerCommonMapper.toDeletedOwnerModel(owner)))
+                        .jsonProfile(writeAsString(deletedOwnerMapper.toDeletedOwnerModel(owner)))
                         .build()
         );
     }
@@ -79,7 +79,7 @@ public class LogServiceImpl implements LogService {
                         .creationDateTime(LocalDateTime.now())
                         .userApis(tenant.getTenantsUserApi().stream()
                                 .mapToLong(tenantUserApi -> tenantUserApi.getUserApi().getId()).toArray())
-                        .jsonProfile(writeAsString(deletedTenantCommonMapper.toDeletedTenantModel(tenant)))
+                        .jsonProfile(writeAsString(deletedTenantMapper.toDeletedTenantModel(tenant)))
                         .build()
         );
     }

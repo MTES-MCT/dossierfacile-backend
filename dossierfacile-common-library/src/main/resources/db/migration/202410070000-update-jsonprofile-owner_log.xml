@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="202410070000-01" author="fabien">
+        <sql>
+            <![CDATA[
+                UPDATE owner_log
+                SET json_profile = jsonb_set(
+                        jsonb_set(
+                          jsonb_set(
+                              jsonb_set(
+                                  json_profile,
+                                  '{hashedEmail}',
+                                  COALESCE(json_profile->'hemail', 'null'::jsonb)
+                              ),
+                              '{hashedLastname}',
+                              COALESCE(json_profile->'hlastName', 'null'::jsonb)
+                          ),
+                          '{hashedFirstname}',
+                          COALESCE(json_profile->'hfirstName', 'null'::jsonb)
+                        ),
+                        '{hashedPreferredName}',
+                        COALESCE(json_profile->'hpreferredName', 'null'::jsonb)
+                    )
+                - 'hemail' - 'hlastName' - 'hfirstName' - 'hpreferredName'
+                WHERE log_type = 'ACCOUNT_DELETED';
+
+                ]]>
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
