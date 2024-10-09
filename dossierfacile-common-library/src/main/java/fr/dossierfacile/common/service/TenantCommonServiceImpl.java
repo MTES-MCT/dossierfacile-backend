@@ -37,10 +37,12 @@ public class TenantCommonServiceImpl implements TenantCommonService {
         }
 
         documentRepository.deleteAll(tenant.getDocuments());
+        tenant.setDocuments(new ArrayList<>());
 
         Optional.ofNullable(tenant.getGuarantors())
                 .orElse(new ArrayList<>())
-                .forEach(guarantor -> documentRepository.deleteAll(guarantor.getDocuments()));
+                .forEach(guarantor -> {documentRepository.deleteAll(guarantor.getDocuments());
+                guarantor.setDocuments(new ArrayList<>());});
     }
 
     @Override
