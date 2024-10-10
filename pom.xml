@@ -3,8 +3,15 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.2.4</version>
+        <relativePath/>
+    </parent>
+
     <groupId>fr.gouv</groupId>
-    <artifactId>locatio</artifactId>
+    <artifactId>dossierfacile</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <modules>
         <module>dossierfacile-common-library</module>
@@ -18,7 +25,43 @@
     </modules>
     <packaging>pom</packaging>
 
-    <name>locatio</name>
-    <description>DossierFacile website</description>
+    <name>dossierfacile</name>
+    <description>DossierFacile</description>
 
+    <properties>
+        <java.version>21</java.version>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+        <org.mapstruct.version>1.6.2</org.mapstruct.version>
+        <lombok.version>1.18.34</lombok.version>
+        <keycloak.version>22.0.5</keycloak.version>
+        <log4j-api.version>2.17.1</log4j-api.version>
+        <dossierfacile.version>0.0.1-SNAPSHOT</dossierfacile.version>
+        <logback-encoder.version>7.4</logback-encoder.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct</artifactId>
+                <version>${org.mapstruct.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.keycloak</groupId>
+                <artifactId>keycloak-admin-client</artifactId>
+                <version>${keycloak.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>fr.dossierfacile</groupId>
+                <artifactId>dossierfacile-common-library</artifactId>
+                <version>${dossierfacile.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.logstash.logback</groupId>
+                <artifactId>logstash-logback-encoder</artifactId>
+                <version>${logback-encoder.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 </project>

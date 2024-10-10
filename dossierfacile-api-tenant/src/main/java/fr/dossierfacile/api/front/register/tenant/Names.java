@@ -4,6 +4,7 @@ import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.SaveStep;
 import fr.dossierfacile.api.front.register.form.tenant.NamesForm;
+import fr.dossierfacile.api.front.security.interfaces.ClientAuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
@@ -32,6 +33,7 @@ public class Names implements SaveStep<NamesForm> {
     private final ApartmentSharingService apartmentSharingService;
     private final DocumentService documentService;
     private final TenantStatusService tenantStatusService;
+    private final ClientAuthenticationFacade clientAuthenticationFacade;
 
     @Override
     @Transactional
@@ -57,6 +59,6 @@ public class Names implements SaveStep<NamesForm> {
         tenant.lastUpdateDateProfile(LocalDateTime.now(), null);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         tenant = tenantStatusService.updateTenantStatus(tenant);
-        return tenantMapper.toTenantModel(tenantRepository.save(tenant));
+        return tenantMapper.toTenantModel(tenantRepository.save(tenant), (!clientAuthenticationFacade.isClient()) ? null : clientAuthenticationFacade.getClient());
     }
 }

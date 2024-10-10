@@ -50,6 +50,8 @@ public class Owner extends User implements Serializable {
     @Column(columnDefinition = "boolean default false")
     private boolean example = true;
 
+    private int warnings;
+
     public static Owner.OwnerBuilder<?, ?> builder() {
         Owner.OwnerBuilder<?, ?> builder = Owner.lombokBuilder();
         builder.userType(UserType.OWNER);

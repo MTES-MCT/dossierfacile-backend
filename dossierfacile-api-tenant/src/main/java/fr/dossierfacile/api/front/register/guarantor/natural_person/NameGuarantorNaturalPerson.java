@@ -6,6 +6,7 @@ import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.SaveStep;
 import fr.dossierfacile.api.front.register.form.guarantor.natural_person.NameGuarantorNaturalPersonForm;
 import fr.dossierfacile.api.front.repository.GuarantorRepository;
+import fr.dossierfacile.api.front.security.interfaces.ClientAuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
@@ -31,6 +32,7 @@ public class NameGuarantorNaturalPerson implements SaveStep<NameGuarantorNatural
     private final DocumentService documentService;
     private final TenantStatusService tenantStatusService;
     private final ApartmentSharingService apartmentSharingService;
+    private final ClientAuthenticationFacade clientAuthenticationFacade;
 
     @Override
     @Transactional
@@ -47,6 +49,7 @@ public class NameGuarantorNaturalPerson implements SaveStep<NameGuarantorNatural
 
         tenantStatusService.updateTenantStatus(tenant);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
-        return tenantMapper.toTenantModel(tenantRepository.save(tenant));
+
+        return tenantMapper.toTenantModel(tenantRepository.save(tenant), (!clientAuthenticationFacade.isClient()) ? null : clientAuthenticationFacade.getClient());
     }
 }

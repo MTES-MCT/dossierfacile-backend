@@ -5,7 +5,6 @@ import fr.dossierfacile.api.front.register.SaveStep;
 import fr.dossierfacile.api.front.register.form.tenant.DocumentResidencyForm;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
-import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.Tenant;
@@ -24,7 +23,6 @@ public class DocumentResidency extends AbstractDocumentSaveStep<DocumentResidenc
 
     private final TenantCommonRepository tenantRepository;
     private final DocumentRepository documentRepository;
-    private final DocumentService documentService;
     private final TenantStatusService tenantStatusService;
     private final ApartmentSharingService apartmentSharingService;
 

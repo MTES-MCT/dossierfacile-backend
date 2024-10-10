@@ -19,13 +19,13 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class RentalReceiptRulesValidationService implements RulesValidationService {
+    static final int MIN_NUMBER_OF_RECEIPT = 3;
+
     @Override
     public boolean shouldBeApplied(Document document) {
         return document.getDocumentCategory() == DocumentCategory.RESIDENCY
                 && document.getDocumentSubCategory() == DocumentSubCategory.TENANT
-                && !CollectionUtils.isEmpty(document.getFiles())
-                && document.getFiles().stream().anyMatch((f) -> f.getParsedFileAnalysis() != null
-                && f.getParsedFileAnalysis().getParsedFile() != null);
+                && !CollectionUtils.isEmpty(document.getFiles());
     }
 
     /**
@@ -85,9 +85,7 @@ public class RentalReceiptRulesValidationService implements RulesValidationServi
                 .map(file -> ((RentalReceiptFile) file.getParsedFileAnalysis().getParsedFile()).getPeriod())
                 .toList();
 
-        return expectedMonthsList.stream().anyMatch(
-                expectedMonths -> expectedMonths.stream().allMatch(month -> presentMonths.contains(month))
-        );
+        return expectedMonthsList.stream().anyMatch(presentMonths::containsAll);
     }
 
     private boolean checkAddressWithSalary(Document document) {
@@ -116,31 +114,42 @@ public class RentalReceiptRulesValidationService implements RulesValidationServi
 
     @Override
     public DocumentAnalysisReport process(Document document, DocumentAnalysisReport report) {
+        report.setAnalysisStatus(DocumentAnalysisStatus.UNDEFINED);
+
+        if (CollectionUtils.isEmpty(document.getFiles())) {
+            return report;
+        }
+
+        if (document.getFiles().stream().mapToInt(File::getNumberOfPages).sum() < MIN_NUMBER_OF_RECEIPT) {
+            log.error("Document number of pages mismatches :{}", document.getId());
+            report.getBrokenRules().add(DocumentBrokenRule.builder()
+                    .rule(DocumentRule.R_RENT_RECEIPT_NB_DOCUMENTS)
+                    .message(DocumentRule.R_RENT_RECEIPT_NB_DOCUMENTS.getDefaultMessage())
+                    .build());
+            report.setAnalysisStatus(DocumentAnalysisStatus.DENIED);
+        }
+
+        if (document.getFiles().stream().anyMatch(f -> f.getParsedFileAnalysis() == null || f.getParsedFileAnalysis().getParsedFile() == null)) {
+            return report;
+        }
 
         try {
-            if (CollectionUtils.isEmpty(document.getFiles()) || document.getFiles().stream()
-                    .anyMatch(f -> f.getParsedFileAnalysis() == null || f.getParsedFileAnalysis().getParsedFile() == null)
-            ) {
-                report.setAnalysisStatus(DocumentAnalysisStatus.UNDEFINED);
-                return report;
-            }
-
             if (!checkNamesRule(document)) {
-                log.error("Document names mismatches :" + document.getId());
+                log.error("Document names mismatches :{}", document.getId());
                 report.getBrokenRules().add(DocumentBrokenRule.builder()
                         .rule(DocumentRule.R_RENT_RECEIPT_NAME)
                         .message(DocumentRule.R_RENT_RECEIPT_NAME.getDefaultMessage())
                         .build());
                 report.setAnalysisStatus(DocumentAnalysisStatus.DENIED);
             } else if (!checkMonthsValidityRule(document)) {
-                log.error("Document is expired :" + document.getId());
+                log.error("Document is expired :{}", document.getId());
                 report.getBrokenRules().add(DocumentBrokenRule.builder()
                         .rule(DocumentRule.R_RENT_RECEIPT_MONTHS)
                         .message(DocumentRule.R_RENT_RECEIPT_MONTHS.getDefaultMessage())
                         .build());
                 report.setAnalysisStatus(DocumentAnalysisStatus.DENIED);
             } else if (!checkAddressWithSalary(document)) {
-                log.error("Document with wrong address :" + document.getId());
+                log.error("Document with wrong address :{}", document.getId());
                 report.getBrokenRules().add(DocumentBrokenRule.builder()
                         .rule(DocumentRule.R_RENT_RECEIPT_ADDRESS_SALARY)
                         .message(DocumentRule.R_RENT_RECEIPT_ADDRESS_SALARY.getDefaultMessage())

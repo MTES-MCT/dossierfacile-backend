@@ -2,20 +2,21 @@ package fr.dossierfacile.api.front.register.tenant;
 
 import com.google.common.base.Strings;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
-import fr.dossierfacile.common.mapper.mail.TenantMapperForMail;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.SaveStep;
 import fr.dossierfacile.api.front.register.form.tenant.AccountForm;
+import fr.dossierfacile.api.front.security.interfaces.ClientAuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.*;
 import fr.dossierfacile.api.front.util.Obfuscator;
-import fr.dossierfacile.common.utils.TransactionalUtil;
 import fr.dossierfacile.common.entity.ConfirmationToken;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.TenantType;
+import fr.dossierfacile.common.mapper.mail.TenantMapperForMail;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.ConfirmationTokenService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
+import fr.dossierfacile.common.utils.TransactionalUtil;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -42,6 +43,7 @@ public class Account implements SaveStep<AccountForm> {
     private final ConfirmationTokenService confirmationTokenService;
     private final KeycloakService keycloakService;
     private final TenantMapperForMail tenantMapperForMail;
+    private final ClientAuthenticationFacade clientAuthenticationFacade;
 
     @Override
     @Transactional
@@ -82,7 +84,7 @@ public class Account implements SaveStep<AccountForm> {
         ConfirmationToken confirmationToken = confirmationTokenService.createToken(tenant);
 
         TransactionalUtil.afterCommit(() -> mailService.sendEmailConfirmAccount(tenantMapperForMail.toDto(tenant), confirmationToken));
-        return tenantMapper.toTenantModel(tenantRepository.save(tenant));
+        return tenantMapper.toTenantModel(tenantRepository.save(tenant), (!clientAuthenticationFacade.isClient()) ? null : clientAuthenticationFacade.getClient());
     }
 
 }

@@ -82,6 +82,6 @@ public class DfcTenantsController {
         if (!tenantPermissionsService.clientCanAccess(clientAuthenticationFacade.getKeycloakClientId(), tenant.getId())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        return ok(tenantMapper.toTenantModelDfc(tenant));
+        return ok(tenantMapper.toTenantModelDfc(tenant, clientAuthenticationFacade.getClient()));
     }
 }

@@ -1,12 +1,14 @@
 package fr.dossierfacile.common.service;
 
-import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.entity.User;
 import fr.dossierfacile.common.service.interfaces.KeycloakCommonService;
+import jakarta.ws.rs.core.Response;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,18 +20,35 @@ public class KeycloakCommonServiceImpl implements KeycloakCommonService {
     private final Optional<RealmResource> realmResource;
 
     @Override
-    public void deleteKeycloakUsers(List<Tenant> tenants) {
-        realmResource.ifPresent(resource -> tenants.stream().filter(t -> t.getKeycloakId() != null).forEach(t -> resource.users().delete(t.getKeycloakId())));
+    public void deleteKeycloakUsers(List<User> users) {
+        if (realmResource.isEmpty()) {
+            return;
+        }
+        users.stream().filter(u -> u.getKeycloakId() != null).forEach(u -> {
+            try (Response response = realmResource.get().users().delete(u.getKeycloakId())) {
+                checkResult(response);
+            }
+        });
     }
 
     @Override
-    public void deleteKeycloakUser(Tenant tenant) {
-        if (realmResource.isPresent()) {
-            if (tenant.getKeycloakId() != null) {
-                realmResource.get().users().delete(tenant.getKeycloakId());
-            } else {
-                log.warn("Trying to delete tenant without keycloakId:" + tenant.getEmail());
-            }
+    public void deleteKeycloakUser(User user) {
+        deleteKeycloakUsers(Collections.singletonList(user));
+    }
+
+    @Override
+    public void deleteKeycloakUserById(String keycloakId) {
+        if (realmResource.isEmpty()) {
+            return;
+        }
+        try (Response response = realmResource.get().users().delete(keycloakId)) {
+            checkResult(response);
+        }
+    }
+
+    private static void checkResult(Response response) {
+        if (response.getStatus() != 204) {
+            log.warn("Failed to delete user. Status: {}", response.getStatus());
         }
     }
 

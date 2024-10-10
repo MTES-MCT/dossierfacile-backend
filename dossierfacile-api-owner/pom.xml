@@ -3,30 +3,25 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.4</version>
-        <relativePath/> <!-- lookup parent from repository -->
+        <groupId>fr.gouv</groupId>
+        <artifactId>dossierfacile</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
     <groupId>fr.dossierfacile.api</groupId>
     <artifactId>dossierfacile-api-owner</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>dossierfacile-api-owner</name>
     <description>Owner api for DossierFacile</description>
+
     <properties>
-        <java.version>21</java.version>
-        <maven.compiler.source>${java.version}</maven.compiler.source>
-        <maven.compiler.target>${java.version}</maven.compiler.target>
-        <org.mapstruct.version>1.5.5.Final</org.mapstruct.version>
-        <lombok.version>1.18.30</lombok.version>
         <springdoc.version>1.7.0</springdoc.version>
-        <keycloak.version>22.0.3</keycloak.version>
     </properties>
+
     <dependencies>
         <dependency>
             <groupId>fr.dossierfacile</groupId>
             <artifactId>dossierfacile-common-library</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -63,62 +58,31 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>${lombok.version}</version>
+            <scope>provided</scope>
             <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.keycloak</groupId>
             <artifactId>keycloak-admin-client</artifactId>
-            <version>${keycloak.version}</version>
         </dependency>
         <dependency>
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>
-            <version>${org.mapstruct.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-ui</artifactId>
             <version>${springdoc.version}</version>
         </dependency>
-        <!-- Caution - transitive dependencies on sendinblue itself are not compatible -->
         <dependency>
-            <groupId>com.sendinblue</groupId>
-            <artifactId>sib-api-v3-sdk</artifactId>
-            <version>7.0.0</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.squareup.okhttp</groupId>
-                    <artifactId>okhttp</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.squareup.okhttp</groupId>
-                    <artifactId>logging-interceptor</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.squareup.okio</groupId>
-                    <artifactId>okio</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>com.squareup.okhttp3</groupId>
-            <artifactId>logging-interceptor</artifactId>
-            <version>4.11.0</version>
-        </dependency>
-        <dependency>
-            <groupId>com.squareup.okhttp3</groupId>
-            <artifactId>okhttp</artifactId>
-            <version>4.11.0</version>
-        </dependency>
-        <dependency>
-            <groupId>com.squareup.okio</groupId>
-            <artifactId>okio</artifactId>
-            <version>3.5.0</version>
+            <groupId>com.brevo</groupId>
+            <artifactId>brevo</artifactId>
+            <version>1.0.0</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>net.logstash.logback</groupId>
             <artifactId>logstash-logback-encoder</artifactId>
-            <version>7.3</version>
         </dependency>
         <!-- For testing -->
         <dependency>

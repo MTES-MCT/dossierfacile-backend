@@ -3,10 +3,10 @@
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.2.4</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<groupId>fr.gouv</groupId>
+		<artifactId>dossierfacile</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+		<relativePath>../pom.xml</relativePath>
 	</parent>
 	<groupId>fr.dossierfacile.api</groupId>
 	<artifactId>dossierfacile-pdf-generator</artifactId>
@@ -15,30 +15,17 @@
 	<description>Generate tenant's PDF documents</description>
 
 	<properties>
-		<java.version>21</java.version>
-		<maven.compiler.target>${java.version}</maven.compiler.target>
-		<maven.compiler.source>${java.version}</maven.compiler.source>
-		<lombok.version>1.18.30</lombok.version>
-
-		<!--DossierFacile libraries-->
-		<dossierfacile.common.version>0.0.1-SNAPSHOT</dossierfacile.common.version>
-
 		<!--PDF generation libraries-->
 		<jbig2.imageio.version>3.0.4</jbig2.imageio.version>
 		<jai-imageio-jpeg2000.version>1.4.0</jai-imageio-jpeg2000.version>
 		<jai-imageio-core.version>1.4.0</jai-imageio-core.version>
 		<metadata.extractor.version>2.19.0</metadata.extractor.version>
 		<pdf2dom.version>2.0.0</pdf2dom.version>
-		<pdfbox.tools.version>3.0.2</pdfbox.tools.version>
+		<pdfbox.tools.version>3.0.3</pdfbox.tools.version>
 	</properties>
 
 	<dependencyManagement>
 		<dependencies>
-			<dependency>
-				<groupId>org.apache.logging.log4j</groupId>
-				<artifactId>log4j-api</artifactId>
-				<version>2.17.1</version>
-			</dependency>
 			<dependency>
 				<groupId>org.apache.pdfbox</groupId>
 				<artifactId>pdfbox</artifactId>
@@ -72,6 +59,7 @@
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<version>${lombok.version}</version>
+			<scope>provided</scope>
 			<optional>true</optional>
 		</dependency>
 
@@ -79,7 +67,6 @@
 		<dependency>
 			<groupId>fr.dossierfacile</groupId>
 			<artifactId>dossierfacile-common-library</artifactId>
-			<version>${dossierfacile.common.version}</version>
 		</dependency>
 
 		<!--PDF Generator-->
@@ -127,7 +114,6 @@
 		<dependency>
 			<groupId>net.logstash.logback</groupId>
 			<artifactId>logstash-logback-encoder</artifactId>
-			<version>7.3</version>
 		</dependency>
 		<!--Dependencies for Tests-->
 		<dependency>

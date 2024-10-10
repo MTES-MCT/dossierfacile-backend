@@ -2,16 +2,17 @@ package fr.dossierfacile.api.front.partner.controller;
 
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.enums.StepRegister;
-import fr.dossierfacile.api.front.register.form.guarantor.natural_person.DocumentFinancialGuarantorNaturalPersonForm;
-import fr.dossierfacile.api.front.register.form.guarantor.natural_person.DocumentIdentificationGuarantorNaturalPersonFileForm;
-import fr.dossierfacile.api.front.register.form.guarantor.natural_person.DocumentIdentificationGuarantorNaturalPersonForm;
-import fr.dossierfacile.api.front.register.form.guarantor.natural_person.DocumentProfessionalGuarantorNaturalPersonForm;
-import fr.dossierfacile.api.front.register.form.guarantor.natural_person.DocumentResidencyGuarantorNaturalPersonForm;
-import fr.dossierfacile.api.front.register.form.guarantor.natural_person.DocumentTaxGuarantorNaturalPersonForm;
-import fr.dossierfacile.api.front.register.form.guarantor.natural_person.NameGuarantorNaturalPersonForm;
+import fr.dossierfacile.api.front.register.form.guarantor.natural_person.*;
+import fr.dossierfacile.api.front.security.interfaces.ClientAuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.validator.group.ApiPartner;
+import fr.dossierfacile.common.config.ApiVersion;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.entity.UserApi;
+import fr.dossierfacile.common.mapper.CategoriesMapper;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +22,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Set;
+
 import static org.springframework.http.ResponseEntity.ok;
 
 @RestController
@@ -28,6 +31,21 @@ import static org.springframework.http.ResponseEntity.ok;
 @RequestMapping(value = "/api-partner/register/guarantorNaturalPerson", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 public class ApiPartnerRegisterGuarantorNaturalPersonController {
     private final TenantService tenantService;
+    private final ClientAuthenticationFacade clientAuthenticationFacade;
+    private final Validator validator;
+    private final CategoriesMapper categoriesMapper;
+
+    private void validate(Object object, Class<?>... groups) {
+        Set<ConstraintViolation<Object>> violations = validator.validate(object, groups);
+        if (!violations.isEmpty()) {
+            throw new ConstraintViolationException(violations);
+        }
+    }
+
+    private void convert(UserApi userApi, DocumentResidencyGuarantorNaturalPersonForm documentResidencyGuarantorNaturalPersonForm) {
+        documentResidencyGuarantorNaturalPersonForm.setTypeDocumentResidency(
+                categoriesMapper.mapSubCategory(documentResidencyGuarantorNaturalPersonForm.getTypeDocumentResidency(), userApi));
+    }
 
     @PreAuthorize("hasPermissionOnTenant(#documentIdentificationGuarantorNaturalPersonForm.tenantId)")
     @PostMapping("/documentIdentification")
@@ -56,6 +74,10 @@ public class ApiPartnerRegisterGuarantorNaturalPersonController {
     @PreAuthorize("hasPermissionOnTenant(#documentResidencyGuarantorNaturalPersonForm.tenantId)")
     @PostMapping("/documentResidency")
     public ResponseEntity<TenantModel> documentResidency(@Validated(ApiPartner.class) DocumentResidencyGuarantorNaturalPersonForm documentResidencyGuarantorNaturalPersonForm) {
+        // Validate form according partner api version
+        UserApi userApi = clientAuthenticationFacade.getClient();
+        validate(documentResidencyGuarantorNaturalPersonForm, ApiPartner.class, ApiVersion.getVersionClass(userApi.getVersion()));
+        convert(userApi, documentResidencyGuarantorNaturalPersonForm);
         Tenant tenant = tenantService.findById(documentResidencyGuarantorNaturalPersonForm.getTenantId());
         TenantModel tenantModel = tenantService.saveStepRegister(tenant, documentResidencyGuarantorNaturalPersonForm, StepRegister.DOCUMENT_RESIDENCY_GUARANTOR_NATURAL_PERSON);
         return ok(tenantModel);

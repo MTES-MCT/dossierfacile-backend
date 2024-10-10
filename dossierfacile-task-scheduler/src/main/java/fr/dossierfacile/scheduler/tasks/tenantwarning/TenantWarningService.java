@@ -3,6 +3,7 @@ package fr.dossierfacile.scheduler.tasks.tenantwarning;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.ConfirmationToken;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.entity.User;
 import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
@@ -23,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -41,7 +43,11 @@ public class TenantWarningService {
 
     @Transactional
     public void handleTenantWarning(Tenant t, int warnings) {
-        Tenant tenant = tenantRepository.findById(t.getId()).get();
+        Optional<Tenant> optionalTenant = tenantRepository.findById(t.getId());
+        if (optionalTenant.isEmpty()) {
+            return;
+        }
+        Tenant tenant = optionalTenant.get();
         switch (warnings) {
             case 0 -> handleWarning0(tenant);
             case 1 -> handleWarning1(tenant);
@@ -89,7 +95,11 @@ public class TenantWarningService {
     @Transactional
     public void deleteOldArchivedWarning(long tenantId) {
         log.info("Deleting tenant " + tenantId);
-        Tenant tenant = tenantRepository.findById(tenantId).get();
+        Optional<Tenant> optionalTenant = tenantRepository.findById(tenantId);
+        if (optionalTenant.isEmpty()) {
+            return;
+        }
+        Tenant tenant = optionalTenant.get();
         logService.saveLogWithTenantData(LogType.ACCOUNT_DELETE, tenant);
 
         Optional<ApartmentSharing> optionalApartmentSharing = apartmentSharingRepository.findByTenant(tenant.getId());
@@ -100,7 +110,8 @@ public class TenantWarningService {
             return;
         }
         if (tenant.getTenantType() == TenantType.CREATE) {
-            keycloakCommonService.deleteKeycloakUsers(apartmentSharing.getTenants());
+            keycloakCommonService.deleteKeycloakUsers(
+                    apartmentSharing.getTenants().stream().map(t -> (User) t).collect(Collectors.toList()));
             apartmentSharingCommonService.delete(apartmentSharing);
         } else {
             keycloakCommonService.deleteKeycloakUser(tenant);

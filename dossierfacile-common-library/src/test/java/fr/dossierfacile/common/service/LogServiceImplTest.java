@@ -24,7 +24,7 @@ import static org.mockito.Mockito.verify;
 class LogServiceImplTest {
 
     private final TenantLogRepository logRepository = mock(TenantLogRepository.class);
-    private final LogService logService = new LogServiceImpl(logRepository, null, new ObjectMapper());
+    private final LogService logService = new LogServiceImpl(logRepository, null, null, null, new ObjectMapper());
 
     @Test
     void should_save_edition_log_for_tenant_document() {
@@ -88,7 +88,7 @@ class LogServiceImplTest {
     private TenantLog getSavedLog() {
         ArgumentCaptor<TenantLog> logCaptor = ArgumentCaptor.forClass(TenantLog.class);
         verify(logRepository, times(1)).save(logCaptor.capture());
-        return logCaptor.getAllValues().get(0);
+        return logCaptor.getAllValues().getFirst();
     }
 
 }

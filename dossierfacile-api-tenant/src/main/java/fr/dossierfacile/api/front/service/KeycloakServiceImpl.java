@@ -3,6 +3,7 @@ package fr.dossierfacile.api.front.service;
 import fr.dossierfacile.api.front.register.form.tenant.AccountForm;
 import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.entity.User;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.service.interfaces.KeycloakCommonService;
 import jakarta.ws.rs.NotFoundException;
@@ -56,8 +57,8 @@ public class KeycloakServiceImpl implements KeycloakService {
     }
 
     @Override
-    public void deleteKeycloakUsers(List<Tenant> tenants) {
-        keycloakCommonService.deleteKeycloakUsers(tenants);
+    public void deleteKeycloakUsers(List<User> users) {
+        keycloakCommonService.deleteKeycloakUsers(users);
     }
 
     @Override
@@ -81,6 +82,11 @@ public class KeycloakServiceImpl implements KeycloakService {
     @Override
     public void deleteKeycloakUser(Tenant tenant) {
         keycloakCommonService.deleteKeycloakUser(tenant);
+    }
+
+    @Override
+    public void deleteKeycloakUserById(String keycloakId) {
+        keycloakCommonService.deleteKeycloakUserById(keycloakId);
     }
 
     @Override

@@ -1,4 +1,4 @@
-package fr.dossierfacile.common.model.apartment_sharing;
+package fr.dossierfacile.common.model.log;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -7,6 +7,8 @@ import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.enums.TenantType;
+import fr.dossierfacile.common.model.apartment_sharing.DocumentModel;
+import fr.dossierfacile.common.model.apartment_sharing.GuarantorModel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -32,6 +34,7 @@ public class DeletedTenantModel {
     private TenantFileStatus status;
     private List<DocumentModel> documents;
     private List<GuarantorModel> guarantors;
+    @Deprecated(since="V4")
     private List<String> allInternalPartnerId;
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ss.SSSSSS")

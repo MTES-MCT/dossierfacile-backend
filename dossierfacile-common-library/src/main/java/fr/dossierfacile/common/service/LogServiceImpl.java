@@ -3,16 +3,21 @@ package fr.dossierfacile.common.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.dossierfacile.common.entity.Document;
+import fr.dossierfacile.common.entity.Owner;
+import fr.dossierfacile.common.entity.OwnerLog;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.TenantLog;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.LogType;
-import fr.dossierfacile.common.mapper.DeletedTenantCommonMapper;
+import fr.dossierfacile.common.enums.OwnerLogType;
+import fr.dossierfacile.common.mapper.log.DeletedOwnerMapper;
+import fr.dossierfacile.common.mapper.log.DeletedTenantMapper;
 import fr.dossierfacile.common.model.log.ApplicationTypeChange;
 import fr.dossierfacile.common.model.log.EditedDocument;
 import fr.dossierfacile.common.model.log.EditedStep;
 import fr.dossierfacile.common.model.log.EditionType;
+import fr.dossierfacile.common.repository.OwnerLogCommonRepository;
 import fr.dossierfacile.common.repository.TenantLogRepository;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import lombok.AllArgsConstructor;
@@ -28,7 +33,9 @@ import java.util.List;
 public class LogServiceImpl implements LogService {
 
     private final TenantLogRepository repository;
-    private final DeletedTenantCommonMapper deletedTenantCommonMapper;
+    private final OwnerLogCommonRepository ownerLogRepository;
+    private final DeletedTenantMapper deletedTenantMapper;
+    private final DeletedOwnerMapper deletedOwnerMapper;
     private final ObjectMapper objectMapper;
 
     private void saveLog(TenantLog log) {
@@ -52,6 +59,18 @@ public class LogServiceImpl implements LogService {
     }
 
     @Override
+    public void saveLogWithOwnerData(OwnerLogType logType, Owner owner) {
+        ownerLogRepository.save(
+                OwnerLog.builder()
+                        .logType(logType)
+                        .ownerId(owner.getId())
+                        .creationDateTime(LocalDateTime.now())
+                        .jsonProfile(writeAsString(deletedOwnerMapper.toDeletedOwnerModel(owner)))
+                        .build()
+        );
+    }
+
+    @Override
     public void saveLogWithTenantData(LogType logType, Tenant tenant) {
         this.saveLog(
                 TenantLog.builder()
@@ -60,7 +79,7 @@ public class LogServiceImpl implements LogService {
                         .creationDateTime(LocalDateTime.now())
                         .userApis(tenant.getTenantsUserApi().stream()
                                 .mapToLong(tenantUserApi -> tenantUserApi.getUserApi().getId()).toArray())
-                        .jsonProfile(writeAsString(deletedTenantCommonMapper.toDeletedTenantModel(tenant)))
+                        .jsonProfile(writeAsString(deletedTenantMapper.toDeletedTenantModel(tenant)))
                         .build()
         );
     }

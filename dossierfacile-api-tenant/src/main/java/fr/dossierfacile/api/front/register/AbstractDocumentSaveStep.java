@@ -4,6 +4,7 @@ import fr.dossierfacile.api.front.amqp.Producer;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.form.DocumentForm;
+import fr.dossierfacile.api.front.security.interfaces.ClientAuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.Tenant;
@@ -14,7 +15,6 @@ import fr.dossierfacile.common.model.log.EditionType;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
-import fr.dossierfacile.common.utils.TransactionalUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +35,8 @@ public abstract class AbstractDocumentSaveStep<T extends DocumentForm> implement
     private LogService logService;
     @Autowired
     private Producer producer;
+    @Autowired
+    private ClientAuthenticationFacade clientAuthenticationFacade;
 
     @Override
     @Transactional
@@ -52,7 +54,8 @@ public abstract class AbstractDocumentSaveStep<T extends DocumentForm> implement
         producer.sendDocumentForAnalysis(document);
         producer.sendDocumentForPdfGeneration(document);
 
-        return tenantMapper.toTenantModel(document.getTenant() != null ? document.getTenant() : document.getGuarantor().getTenant());
+        return tenantMapper.toTenantModel(document.getTenant() != null ? document.getTenant() : document.getGuarantor().getTenant(),
+                (!clientAuthenticationFacade.isClient()) ? null : clientAuthenticationFacade.getClient());
     }
 
     protected abstract Document saveDocument(Tenant tenant, T documentForm);

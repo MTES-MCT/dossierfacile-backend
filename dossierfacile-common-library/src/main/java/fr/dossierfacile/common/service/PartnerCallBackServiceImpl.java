@@ -1,6 +1,7 @@
 package fr.dossierfacile.common.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.dossierfacile.common.config.ApiVersion;
 import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
@@ -18,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,12 +50,13 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
                     .tenant(tenant)
                     .userApi(userApi)
                     .build();
-
-            if (internalPartnerId != null && !internalPartnerId.isEmpty()) {
-                if (tenantUserApi.getAllInternalPartnerId() == null) {
-                    tenantUserApi.setAllInternalPartnerId(Collections.singletonList(internalPartnerId));
-                } else if (!tenantUserApi.getAllInternalPartnerId().contains(internalPartnerId)) {
-                    tenantUserApi.getAllInternalPartnerId().add(internalPartnerId);
+            if (ApiVersion.V3.is(userApi.getVersion())) {
+                if (internalPartnerId != null && !internalPartnerId.isEmpty()) {
+                    if (tenantUserApi.getAllInternalPartnerId() == null) {
+                        tenantUserApi.setAllInternalPartnerId(Collections.singletonList(internalPartnerId));
+                    } else if (!tenantUserApi.getAllInternalPartnerId().contains(internalPartnerId)) {
+                        tenantUserApi.getAllInternalPartnerId().add(internalPartnerId);
+                    }
                 }
             }
             tenantUserApiRepository.save(tenantUserApi);
@@ -145,11 +148,13 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
         List<Tenant> tenantList = tenantRepository.findAllByApartmentSharing(apartmentSharing);
         for (Tenant t : tenantList) {
             tenantUserApiRepository.findFirstByTenantAndUserApi(t, userApi).ifPresent(tenantUserApi -> {
-                if (tenantUserApi.getAllInternalPartnerId() != null && !tenantUserApi.getAllInternalPartnerId().isEmpty()) {
-                    applicationModel.getTenants().stream()
-                            .filter(tenantObject -> Objects.equals(tenantObject.getId(), t.getId()))
-                            .findFirst()
-                            .ifPresent(tenantModel -> tenantModel.setAllInternalPartnerId(tenantUserApi.getAllInternalPartnerId()));
+                if (ApiVersion.V3.is(userApi.getVersion())) {
+                    if (tenantUserApi.getAllInternalPartnerId() != null && !tenantUserApi.getAllInternalPartnerId().isEmpty()) {
+                        applicationModel.getTenants().stream()
+                                .filter(tenantObject -> Objects.equals(tenantObject.getId(), t.getId()))
+                                .findFirst()
+                                .ifPresent(tenantModel -> tenantModel.setAllInternalPartnerId(tenantUserApi.getAllInternalPartnerId()));
+                    }
                 }
             });
         }

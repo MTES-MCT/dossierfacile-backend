@@ -4,6 +4,7 @@ import fr.dossierfacile.api.pdfgenerator.service.interfaces.PdfGeneratorService;
 import fr.dossierfacile.api.pdfgenerator.util.parameterresolvers.ApartmentSharingResolver;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.enums.FileStatus;
+import fr.dossierfacile.common.repository.ApplicationLogRepository;
 import fr.dossierfacile.common.repository.StorageFileRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
@@ -15,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,6 +35,8 @@ class PdfGeneratorServiceImplTest {
     TenantCommonRepository tenantRepository;
     @MockBean
     StorageFileRepository storageFileRepository;
+    @MockBean
+    ApplicationLogRepository applicationLogRepository;
 
     @Value("${mock.storage.path}")
     private String filePath;

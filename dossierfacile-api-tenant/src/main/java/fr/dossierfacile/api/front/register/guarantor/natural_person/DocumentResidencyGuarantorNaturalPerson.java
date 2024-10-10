@@ -31,7 +31,6 @@ public class DocumentResidencyGuarantorNaturalPerson
     private final TenantCommonRepository tenantRepository;
     private final DocumentRepository documentRepository;
     private final GuarantorRepository guarantorRepository;
-    private final DocumentService documentService;
     private final TenantStatusService tenantStatusService;
     private final ApartmentSharingService apartmentSharingService;
 

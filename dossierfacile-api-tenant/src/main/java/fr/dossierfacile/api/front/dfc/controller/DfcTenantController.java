@@ -5,8 +5,10 @@ import fr.dossierfacile.api.front.model.KeycloakUser;
 import fr.dossierfacile.api.front.model.dfc.tenant.ConnectedTenantModel;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
+import fr.dossierfacile.api.front.service.interfaces.UserApiService;
 import fr.dossierfacile.api.front.service.interfaces.UserService;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.entity.UserApi;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -29,6 +31,8 @@ public class DfcTenantController {
     private final TenantMapper tenantMapper;
     private final TenantService tenantService;
     private final UserService userService;
+    private final UserApiService userApiService;
+
 
     @PreAuthorize("!isClient()")
     @GetMapping(value = "/profile", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -46,7 +50,8 @@ public class DfcTenantController {
         } else {
             userService.linkTenantToPartner(tenant, partner, null);
         }
-        return ok(tenantMapper.toTenantModelDfc(tenant));
+        UserApi userApi = userApiService.findByName(authenticationFacade.getKeycloakClientId()).orElse(null);
+        return ok(tenantMapper.toTenantModelDfc(tenant, userApi));
     }
 
     @RequestMapping(path = "/logout", method = {RequestMethod.GET, RequestMethod.POST})

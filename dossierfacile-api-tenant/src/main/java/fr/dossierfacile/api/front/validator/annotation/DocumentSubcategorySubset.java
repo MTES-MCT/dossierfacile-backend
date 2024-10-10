@@ -5,13 +5,11 @@ import fr.dossierfacile.common.enums.DocumentSubCategory;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 @Target({ElementType.TYPE, ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
+@Repeatable(DocumentSubcategorySubsets.class)
 @Constraint(
         validatedBy = {DocumentSubcategorySubsetValidator.class}
 )
