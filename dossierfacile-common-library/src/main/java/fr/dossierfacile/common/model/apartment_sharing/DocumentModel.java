@@ -19,6 +19,7 @@ public class DocumentModel {
     private Long id;
     private DocumentCategory documentCategory;
     private DocumentSubCategory documentSubCategory;
+    private DocumentSubCategory subCategory; // TODO deprecated v5
     private String customText;
     private Integer monthlySum;
     private DocumentStatus documentStatus;

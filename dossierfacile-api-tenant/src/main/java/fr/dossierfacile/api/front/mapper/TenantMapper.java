@@ -46,7 +46,7 @@ public abstract class TenantMapper {
     public abstract TenantModel toTenantModel(Tenant tenant, @Context UserApi userApi);
 
     @Mapping(target = "name", expression = "java((document.getWatermarkFile() != null )? applicationBaseUrl + \"/" + PATH + "/\" + document.getName() : null)")
-    @Mapping(target = "files", expression = "java(userApi == null ? mapFiles(document.getFiles()) : null)")
+    @Mapping(target = "files", expression = "java((userApi == null || isHybrid(userApi))? mapFiles(document.getFiles()) : null)")
     @MapDocumentCategories
     public abstract DocumentModel toDocumentModel(Document document, @Context UserApi userApi);
 
@@ -61,8 +61,12 @@ public abstract class TenantMapper {
     @Mapping(target = "originalName", source = "documentFile.storageFile.name")
     public abstract FileModel toFileModel(File documentFile);
 
+    boolean isHybrid(UserApi userApi) {
+        return userApi != null && userApi.getName().startsWith("hybrid-");
+    }
+
     @AfterMapping
-    void modificationsAfterMapping(@MappingTarget TenantModel.TenantModelBuilder tenantModelBuilder) {
+    void modificationsAfterMapping(@MappingTarget TenantModel.TenantModelBuilder tenantModelBuilder, @Context UserApi userApi) {
         TenantModel tenantModel = tenantModelBuilder.build();
         ApartmentSharingModel apartmentSharingModel = tenantModel.getApartmentSharing();
         if (apartmentSharingModel.getStatus() == TenantFileStatus.VALIDATED) {
@@ -74,7 +78,7 @@ public abstract class TenantMapper {
         }
         var isDossierUser = SecurityContextHolder.getContext().getAuthentication().getAuthorities().contains(new SimpleGrantedAuthority("SCOPE_dossier"));
         var filePath = isDossierUser ? "/api/file/resource/" : "/api-partner/tenant/" + tenantModel.getId() + "/file/resource/";
-        setDocumentDeniedReasonsAndDocumentAndFilesRoutes(tenantModel.getDocuments(), filePath, false);
+        setDocumentDeniedReasonsAndDocumentAndFilesRoutes(tenantModel.getDocuments(), filePath, false, userApi);
 
         tenantModel.getApartmentSharing().getTenants().stream().filter(t -> Objects.equals(t.getId(), tenantModel.getId())).forEach(
                 t -> {
@@ -84,17 +88,17 @@ public abstract class TenantMapper {
         );
         Optional.ofNullable(tenantModel.getApartmentSharing().getTenants())
                 .ifPresent(coTenantModels -> coTenantModels.forEach(coTenantModel -> {
-                    setDocumentDeniedReasonsAndDocumentAndFilesRoutes(coTenantModel.getDocuments(), filePath, true);
+                    setDocumentDeniedReasonsAndDocumentAndFilesRoutes(coTenantModel.getDocuments(), filePath, true, userApi);
                     Optional.ofNullable(coTenantModel.getGuarantors())
-                            .ifPresent(guarantorModels -> guarantorModels.forEach(guarantorModel -> setDocumentDeniedReasonsAndDocumentAndFilesRoutes(guarantorModel.getDocuments(), filePath, true)));
+                            .ifPresent(guarantorModels -> guarantorModels.forEach(guarantorModel -> setDocumentDeniedReasonsAndDocumentAndFilesRoutes(guarantorModel.getDocuments(), filePath, true, userApi)));
                 }));
 
         Optional.ofNullable(tenantModel.getGuarantors())
-                .ifPresent(guarantorModels -> guarantorModels.forEach(guarantorModel -> setDocumentDeniedReasonsAndDocumentAndFilesRoutes(guarantorModel.getDocuments(), filePath, false)));
+                .ifPresent(guarantorModels -> guarantorModels.forEach(guarantorModel -> setDocumentDeniedReasonsAndDocumentAndFilesRoutes(guarantorModel.getDocuments(), filePath, false, userApi)));
 
     }
 
-    private void setDocumentDeniedReasonsAndDocumentAndFilesRoutes(List<DocumentModel> list, String filePath, boolean previewOnly) {
+    private void setDocumentDeniedReasonsAndDocumentAndFilesRoutes(List<DocumentModel> list, String filePath, boolean previewOnly, UserApi userApi) {
         Optional.ofNullable(list)
                 .ifPresent(documentModels -> documentModels.forEach(documentModel -> {
                     DocumentDeniedReasonsModel documentDeniedReasonsModel = documentModel.getDocumentDeniedReasons();
@@ -121,7 +125,7 @@ public abstract class TenantMapper {
                     }
                     Optional.ofNullable(documentModel.getFiles())
                             .ifPresent(fileModels -> fileModels.forEach(fileModel -> {
-                                if (previewOnly) {
+                                if (previewOnly || isHybrid(userApi)) {
                                     fileModel.setPath("");
                                 } else {
                                     fileModel.setPath(applicationBaseUrl + filePath + fileModel.getId());
@@ -131,7 +135,7 @@ public abstract class TenantMapper {
     }
 
     @AfterMapping
-    void modificationsAfterMapping(@MappingTarget ConnectedTenantModel.ConnectedTenantModelBuilder connectedTenantModelBuilder) {
+    void modificationsAfterMapping(@MappingTarget ConnectedTenantModel.ConnectedTenantModelBuilder connectedTenantModelBuilder, @Context UserApi userApi) {
         ConnectedTenantModel connectedTenantModel = connectedTenantModelBuilder.build();
         fr.dossierfacile.api.front.model.dfc.apartment_sharing.ApartmentSharingModel apartmentSharingModel = connectedTenantModel.getApartmentSharing();
         if (apartmentSharingModel.getStatus() == TenantFileStatus.VALIDATED) {
@@ -141,10 +145,10 @@ public abstract class TenantMapper {
             apartmentSharingModel.setToken(null);
             apartmentSharingModel.setTokenPublic(null);
         }
-        connectedTenantModel.getApartmentSharing().getTenants().forEach(tenantModel -> setDocumentDeniedReasonsAndDocumentAndFilesRoutes(tenantModel.getDocuments(), null, true));
+        connectedTenantModel.getApartmentSharing().getTenants().forEach(tenantModel -> setDocumentDeniedReasonsAndDocumentAndFilesRoutes(tenantModel.getDocuments(), null, true, userApi));
         connectedTenantModel.getApartmentSharing().getTenants().forEach(tenantModel ->
                 Optional.ofNullable(tenantModel.getGuarantors()).ifPresent(guarantorModels ->
-                        guarantorModels.forEach(guarantorModel -> setDocumentDeniedReasonsAndDocumentAndFilesRoutes(guarantorModel.getDocuments(), null, true))));
+                        guarantorModels.forEach(guarantorModel -> setDocumentDeniedReasonsAndDocumentAndFilesRoutes(guarantorModel.getDocuments(), null, true, userApi))));
     }
 
 }
