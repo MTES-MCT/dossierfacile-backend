@@ -1,4 +1,4 @@
-package fr.dossierfacile.api.dossierfacileapiowner.property;
+package fr.dossierfacile.common.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
