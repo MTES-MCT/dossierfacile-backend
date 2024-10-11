@@ -143,12 +143,6 @@
             <version>2.19.0</version>
         </dependency>
 
-        <!--Updating version of HikariCP-->
-        <dependency>
-            <groupId>com.zaxxer</groupId>
-            <artifactId>HikariCP</artifactId>
-            <version>5.0.1</version>
-        </dependency>
         <dependency>
             <groupId>com.brevo</groupId>
             <artifactId>brevo</artifactId>
