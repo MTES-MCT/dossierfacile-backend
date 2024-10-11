@@ -2,6 +2,7 @@ package fr.dossierfacile.scheduler.tasks;
 
 public enum TaskName {
 
+    CHECK_API_ADEME,
     GARBAGE_COLLECTION,
     OWNER_DELETE,
     OWNER_WARNINGS_1,

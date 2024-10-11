@@ -11,6 +11,7 @@ import fr.dossierfacile.common.entity.Property;
 import fr.dossierfacile.common.entity.PropertyLog;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.OwnerLogType;
+import fr.dossierfacile.common.model.AdemeApiResultModel;
 import fr.dossierfacile.common.repository.PropertyLogRepository;
 import fr.dossierfacile.common.service.interfaces.TenantCommonService;
 import fr.dossierfacile.common.utils.MapperUtil;
