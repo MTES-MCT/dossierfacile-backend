@@ -8,7 +8,7 @@ public class MemoryUtils {
     public static boolean hasEnoughAvailableMemory() {
         Runtime runtime = Runtime.getRuntime();
         // Arbitrary choose 250MB as minimal requirement to perform
-        if (runtime.maxMemory() - runtime.totalMemory() + runtime.freeMemory() < 262144000) {
+        if (runtime.maxMemory() - runtime.totalMemory() + runtime.freeMemory() < 1048576000) {
             log.warn("Memory usage: (Total=" + runtime.totalMemory() / 1024 + " MB , max=" + runtime.maxMemory() / 1024 + " MB , free=" + runtime.freeMemory() / 1024 + " MB , avail=" + (runtime.maxMemory() - runtime.totalMemory() + runtime.freeMemory()));
         }
         return true;
