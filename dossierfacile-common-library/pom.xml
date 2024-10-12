@@ -98,7 +98,7 @@
         <dependency>
             <groupId>com.github.blagerweij</groupId>
             <artifactId>liquibase-sessionlock</artifactId>
-            <version>1.5.0</version>
+            <version>1.6.9</version>
         </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>
