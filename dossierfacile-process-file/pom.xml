@@ -23,18 +23,6 @@
         <jai-imageio-core.version>1.4.0</jai-imageio-core.version>
     </properties>
 
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>com.fasterxml.jackson</groupId>
-                <artifactId>jackson-bom</artifactId>
-                <version>2.15.3</version><!-- do not upgrade jackson without checking all converters/mappers -->
-                <scope>import</scope>
-                <type>pom</type>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
     <dependencies>
         <!--DossierFacile libraries-->
         <dependency>
@@ -74,7 +62,6 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>${lombok.version}</version>
             <scope>provided</scope>
             <optional>true</optional>
         </dependency>
