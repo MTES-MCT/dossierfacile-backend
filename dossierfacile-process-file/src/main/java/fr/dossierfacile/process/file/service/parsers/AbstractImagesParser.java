@@ -3,6 +3,7 @@ package fr.dossierfacile.process.file.service.parsers;
 import fr.dossierfacile.common.entity.ocr.ParsedFile;
 import fr.dossierfacile.common.utils.FileUtility;
 import fr.dossierfacile.process.file.service.parsers.tools.PageExtractorModel;
+import fr.dossierfacile.process.file.util.MemoryUtils;
 import lombok.extern.slf4j.Slf4j;
 import net.sourceforge.tess4j.ITessAPI;
 import net.sourceforge.tess4j.Tesseract;
@@ -26,6 +27,8 @@ public abstract class AbstractImagesParser<T extends ParsedFile> implements File
     protected abstract String getJsonModelFile();
 
     protected abstract T getResultFromExtraction(Map<String, String> extractedText);
+
+    private boolean executeTesseract = false;
 
     void init() {
         if (tesseract == null) {
@@ -76,7 +79,16 @@ public abstract class AbstractImagesParser<T extends ParsedFile> implements File
                         // rectangle exceeds image size
                         return null;
                     }
+                    if (image.getWidth() * image.getHeight() > 10485760){
+                        // (10485760 = 10MB)
+                        MemoryUtils.logMemory();
+                    }
+                    if (executeTesseract){
+                        log.error("2Calls at exact same moment - we have to synchronize it");
+                    }
+                    executeTesseract = true;
                     extractedTexts.put(entry.getKey(), this.tesseract.doOCR(image, rect));
+                    executeTesseract = false;
                 }
                 T result = getResultFromExtraction(extractedTexts);
                 if (result != null) {
@@ -113,7 +125,16 @@ public abstract class AbstractImagesParser<T extends ParsedFile> implements File
                                     || image.getHeight() < (zone.rect().y + zone.rect().height))
                                 return false;
 
+                            if (image.getWidth() * image.getHeight() > 10485760){
+                                // (10485760 = 10MB)
+                                MemoryUtils.logMemory();
+                            }
+                            if (executeTesseract){
+                                log.error("2Calls at exact same moment - we have to synchronize it");
+                            }
+                            executeTesseract = true;
                             String text = this.tesseract.doOCR(image, zone.rect());
+                            executeTesseract = false;
                             log.debug("expected: " + zone.regexp() + " actual: " + text + "b=" + (text != null && text.trim().matches(zone.regexp())));
                             return text != null && text.trim().matches(zone.regexp());
                         } catch (Exception e) {
