@@ -16,29 +16,15 @@
 
 	<properties>
 		<!--PDF generation libraries-->
-		<jbig2.imageio.version>3.0.4</jbig2.imageio.version>
-		<jai-imageio-jpeg2000.version>1.4.0</jai-imageio-jpeg2000.version>
-		<jai-imageio-core.version>1.4.0</jai-imageio-core.version>
 		<metadata.extractor.version>2.19.0</metadata.extractor.version>
 		<pdf2dom.version>2.0.0</pdf2dom.version>
-		<pdfbox.tools.version>3.0.3</pdfbox.tools.version>
 	</properties>
 
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
-				<groupId>org.apache.pdfbox</groupId>
-				<artifactId>pdfbox</artifactId>
-				<version>${pdfbox.tools.version}</version>
-			</dependency>
-			<dependency>
 				<groupId>ch.qos.logback</groupId>
 				<artifactId>logback-core</artifactId>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.pdfbox</groupId>
-				<artifactId>pdfbox-debugger</artifactId>
-				<version>${pdfbox.tools.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -71,24 +57,20 @@
 		<dependency>
 			<groupId>org.apache.pdfbox</groupId>
 			<artifactId>pdfbox-tools</artifactId>
-			<version>${pdfbox.tools.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.apache.pdfbox</groupId>
 			<artifactId>jbig2-imageio</artifactId>
-			<version>${jbig2.imageio.version}</version>
 		</dependency>
 		<!-- required codecs for some images -->
 		<dependency>
 			<groupId>com.github.jai-imageio</groupId>
 			<artifactId>jai-imageio-core</artifactId>
-			<version>${jai-imageio-core.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.github.jai-imageio</groupId>
 			<artifactId>jai-imageio-jpeg2000</artifactId>
-			<version>${jai-imageio-jpeg2000.version}</version>
 		</dependency>
 
 		<dependency>
