@@ -41,13 +41,12 @@
     <description>Common library with all entities</description>
 
     <properties>
-        <pdfbox.tools.version>3.0.2</pdfbox.tools.version>
-        <gson.version>2.10.1</gson.version>
         <imageio.version>3.10.1</imageio.version>
 
         <!--Libraries needed for OVH storage-->
         <openstack4j.version>3.11</openstack4j.version>
         <amazonaws.version>1.12.525</amazonaws.version>
+        <liquibase-sessionlock.version>1.6.9</liquibase-sessionlock.version>
     </properties>
 
     <dependencies>
@@ -95,17 +94,15 @@
         <dependency>
             <groupId>com.github.blagerweij</groupId>
             <artifactId>liquibase-sessionlock</artifactId>
-            <version>1.5.0</version>
+            <version>${liquibase-sessionlock.version}</version>
         </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
-            <version>${gson.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>pdfbox</artifactId>
-            <version>${pdfbox.tools.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
