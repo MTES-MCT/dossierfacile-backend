@@ -2,7 +2,6 @@ package fr.dossierfacile.api.front.service;
 
 import fr.dossierfacile.api.front.exception.MailSentLimitException;
 import fr.dossierfacile.api.front.exception.TenantNotFoundException;
-import fr.dossierfacile.common.mapper.mail.TenantMapperForMail;
 import fr.dossierfacile.api.front.model.KeycloakUser;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.RegisterFactory;
@@ -12,11 +11,11 @@ import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.service.interfaces.UserApiService;
 import fr.dossierfacile.api.front.util.Obfuscator;
-import fr.dossierfacile.common.utils.TransactionalUtil;
 import fr.dossierfacile.common.converter.AcquisitionData;
 import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.*;
 import fr.dossierfacile.common.exceptions.NotFoundException;
+import fr.dossierfacile.common.mapper.mail.TenantMapperForMail;
 import fr.dossierfacile.common.model.TenantUpdate;
 import fr.dossierfacile.common.repository.ApartmentSharingLinkRepository;
 import fr.dossierfacile.common.repository.ApartmentSharingRepository;
@@ -25,6 +24,7 @@ import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.ConfirmationTokenService;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
+import fr.dossierfacile.common.utils.TransactionalUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -72,7 +72,9 @@ public class TenantServiceImpl implements TenantService {
     public void updateLastLoginDateAndResetWarnings(Tenant tenantToUpdate) {
         LocalDateTime currentTime = LocalDateTime.now();
         for (Tenant tenant : tenantToUpdate.getApartmentSharing().getTenants()) {
-            if (Objects.equals(tenant.getId(), tenantToUpdate.getId()) || StringUtils.isBlank(tenant.getEmail())) {
+            if (Objects.equals(tenant.getId(), tenantToUpdate.getId())
+                    || StringUtils.isBlank(tenant.getEmail())
+                    || tenant.getApartmentSharing().getApplicationType() == ApplicationType.COUPLE) {
                 tenant.setLastLoginDate(currentTime);
                 tenant.setWarnings(0);
                 if (tenant.getStatus() == TenantFileStatus.ARCHIVED) {
@@ -222,7 +224,7 @@ public class TenantServiceImpl implements TenantService {
         if (link.isDisabled() || link.getLinkType() != MAIL) {
             throw new IllegalStateException("A disabled link cannot be sent");
         }
-        if (link.getLastSentDatetime() != null && link.getLastSentDatetime().isAfter(LocalDateTime.now().minusHours(1))){
+        if (link.getLastSentDatetime() != null && link.getLastSentDatetime().isAfter(LocalDateTime.now().minusHours(1))) {
             log.info("Email has been sent previously from less than one hour");
             throw new IllegalStateException("Delay between two resend is too short");
         }
