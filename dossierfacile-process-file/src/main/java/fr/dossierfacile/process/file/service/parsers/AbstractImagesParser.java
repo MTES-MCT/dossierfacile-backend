@@ -23,12 +23,11 @@ import java.util.Optional;
 @Slf4j
 public abstract class AbstractImagesParser<T extends ParsedFile> implements FileParser<T> {
     private transient volatile Tesseract tesseract;
+    private boolean executeTesseract = false;
 
     protected abstract String getJsonModelFile();
 
     protected abstract T getResultFromExtraction(Map<String, String> extractedText);
-
-    private boolean executeTesseract = false;
 
     void init() {
         if (tesseract == null) {
@@ -38,6 +37,7 @@ public abstract class AbstractImagesParser<T extends ParsedFile> implements File
             this.tesseract.setVariable("user_defined_dpi", "300");
         }
     }
+
     private BufferedImage[] getImages(File file) throws IOException {
         if ("pdf".equalsIgnoreCase(FilenameUtils.getExtension(file.getName()))) {
             BufferedImage[] images = FileUtility.convertPdfToImage(file);
@@ -79,11 +79,12 @@ public abstract class AbstractImagesParser<T extends ParsedFile> implements File
                         // rectangle exceeds image size
                         return null;
                     }
-                    if (image.getWidth() * image.getHeight() > 10485760){
-                        // (10485760 = 10MB)
+                    Runtime runtime = Runtime.getRuntime();
+                    if ((runtime.totalMemory() / 1048576) > 3100) {
+                        log.warn("image dimension size : " + (image.getWidth() * image.getHeight() / 10485760));
                         MemoryUtils.logMemory();
                     }
-                    if (executeTesseract){
+                    if (executeTesseract) {
                         log.error("2Calls at exact same moment - we have to synchronize it");
                     }
                     executeTesseract = true;
@@ -125,15 +126,18 @@ public abstract class AbstractImagesParser<T extends ParsedFile> implements File
                                     || image.getHeight() < (zone.rect().y + zone.rect().height))
                                 return false;
 
-                            if (image.getWidth() * image.getHeight() > 10485760){
+                            if (image.getWidth() * image.getHeight() > 10485760) {
                                 // (10485760 = 10MB)
                                 MemoryUtils.logMemory();
                             }
-                            if (executeTesseract){
+                            if (executeTesseract) {
                                 log.error("2Calls at exact same moment - we have to synchronize it");
                             }
                             executeTesseract = true;
-                            String text = this.tesseract.doOCR(image, zone.rect());
+                            String text;
+                            synchronized (this) {
+                                text = this.tesseract.doOCR(image, zone.rect());
+                            }
                             executeTesseract = false;
                             log.debug("expected: " + zone.regexp() + " actual: " + text + "b=" + (text != null && text.trim().matches(zone.regexp())));
                             return text != null && text.trim().matches(zone.regexp());
