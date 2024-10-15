@@ -266,3 +266,29 @@ div.scrollmenu a:hover {
     background-color: #e1f2e4;
     color: #929292;
 }
+
+.panel-heading.category-IDENTIFICATION {
+    background-color: #FDE39C;
+}
+.panel-heading.category-RESIDENCY{
+    background-color: #FBB8F6;
+}
+.panel-heading.category-PROFESSIONAL{
+    background-color: #FF8A65;
+}
+.panel-heading.category-FINANCIAL{
+    background-color: #B3E5F1;
+}
+.panel-heading.category-TAX{
+    background-color: #B2B2D8;
+}
+
+.panel-heading.category-IDENTIFICATION_LEGAL_PERSON{
+    background-color: #FDE39C;
+}
+.panel-heading.category-GUARANTEE_PROVIDER_CERTIFICATE{
+    background-color: rgb(179, 179, 179);
+}
+.panel-heading.category-NULL{
+    background-color: rgb(179, 179, 179);
+}
