@@ -84,7 +84,8 @@
                          style="align-self: flex-start;">
                         <div class="padding-right-5px">
                             <div class="panel file1-border-color">
-                                <div class="panel-heading file1-border-color file1-background-color bold">
+                                <div class="panel-heading file1-border-color bold"
+                                     th:classappend="${'category-' + messageItem.getDocumentCategory()}">
                                     <h4 class="panel-title letter" style="color: #0a0808">
                                         <span th:text="#{${messageItem.getDocumentCategory().getLabel()}}"></span>
                                     </h4>
@@ -230,7 +231,8 @@
                              style="align-self: flex-start;">
                             <div class="padding-right-5px">
                                 <div class="panel file1-border-color">
-                                    <div class="panel-heading file1-border-color file1-background-color bold">
+                                    <div class="panel-heading file1-border-color bold"
+                                         th:classappend="${'category-' + messageItem.getDocumentCategory()}">
                                         <h4 class="panel-title letter" style="color: #0a0808">
                                             <span th:text="#{${messageItem.getDocumentCategory().getLabel()}}"></span>
                                         </h4>
@@ -244,6 +246,7 @@
                                     </div>
                                     <div class="panel-heading file1-border-color file1-background-color">
                                         <h4 class="panel-title letter"
+                                            style="color:#A558A0"
                                             th:if="${guarantorItem.getTypeGuarantor().name()}!=null">
                                             <span th:text="'Guarantor  : ' + ${guarantorItem.getTypeGuarantor().name()}"></span>
                                         </h4>
