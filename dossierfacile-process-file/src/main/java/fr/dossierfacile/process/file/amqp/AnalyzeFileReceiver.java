@@ -31,10 +31,6 @@ public class AnalyzeFileReceiver {
 
     private void receiveFile() {
         try {
-            if (!MemoryUtils.hasEnoughAvailableMemory()) {
-                log.warn("There is not currently enough memory to perform consumption ");
-                return;
-            }
             queueMessageService.consume(QueueName.QUEUE_FILE_ANALYSIS,
                     0,
                     fileAnalysisTimeout,

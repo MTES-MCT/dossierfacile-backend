@@ -3,6 +3,7 @@ package fr.dossierfacile.process.file.service.parsers;
 import fr.dossierfacile.common.entity.ocr.ParsedFile;
 import fr.dossierfacile.common.utils.FileUtility;
 import fr.dossierfacile.process.file.service.parsers.tools.PageExtractorModel;
+import fr.dossierfacile.process.file.util.MemoryUtils;
 import lombok.extern.slf4j.Slf4j;
 import net.sourceforge.tess4j.ITessAPI;
 import net.sourceforge.tess4j.Tesseract;
@@ -35,6 +36,7 @@ public abstract class AbstractImagesParser<T extends ParsedFile> implements File
             this.tesseract.setVariable("user_defined_dpi", "300");
         }
     }
+
     private BufferedImage[] getImages(File file) throws IOException {
         if ("pdf".equalsIgnoreCase(FilenameUtils.getExtension(file.getName()))) {
             BufferedImage[] images = FileUtility.convertPdfToImage(file);
@@ -76,7 +78,12 @@ public abstract class AbstractImagesParser<T extends ParsedFile> implements File
                         // rectangle exceeds image size
                         return null;
                     }
-                    extractedTexts.put(entry.getKey(), this.tesseract.doOCR(image, rect));
+                    MemoryUtils.logAvailableMemory(250);
+                    String text;
+                    synchronized (this) {
+                        text = this.tesseract.doOCR(image, rect);
+                    }
+                    extractedTexts.put(entry.getKey(), text);
                 }
                 T result = getResultFromExtraction(extractedTexts);
                 if (result != null) {
@@ -112,8 +119,11 @@ public abstract class AbstractImagesParser<T extends ParsedFile> implements File
                             if (image.getWidth() < (zone.rect().x + zone.rect().width)
                                     || image.getHeight() < (zone.rect().y + zone.rect().height))
                                 return false;
-
-                            String text = this.tesseract.doOCR(image, zone.rect());
+                            MemoryUtils.logAvailableMemory(250);
+                            String text;
+                            synchronized (this) {
+                                text = this.tesseract.doOCR(image,  zone.rect());
+                            }
                             log.debug("expected: " + zone.regexp() + " actual: " + text + "b=" + (text != null && text.trim().matches(zone.regexp())));
                             return text != null && text.trim().matches(zone.regexp());
                         } catch (Exception e) {

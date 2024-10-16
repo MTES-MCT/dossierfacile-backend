@@ -33,10 +33,6 @@ public class AnalyzeDocumentReceiver {
 
     private void receiveDocument() {
         try {
-            if (!MemoryUtils.hasEnoughAvailableMemory()) {
-                log.warn("There is not currently enough memory to perform consumption ");
-                return;
-            }
             queueMessageService.consume(QueueName.QUEUE_DOCUMENT_ANALYSIS,
                     documentAnalysisDelay,
                     documentAnalysisTimeout,
