@@ -112,6 +112,10 @@ public class RentalReceiptRulesValidationService implements RulesValidationServi
 */
     }
 
+    private boolean checkNumberOfPage(Document document) {
+        return document.getGuarantor() != null || document.getFiles().stream().mapToInt(File::getNumberOfPages).sum() >= MIN_NUMBER_OF_RECEIPT;
+    }
+
     @Override
     public DocumentAnalysisReport process(Document document, DocumentAnalysisReport report) {
         report.setAnalysisStatus(DocumentAnalysisStatus.UNDEFINED);
@@ -120,7 +124,7 @@ public class RentalReceiptRulesValidationService implements RulesValidationServi
             return report;
         }
 
-        if (document.getFiles().stream().mapToInt(File::getNumberOfPages).sum() < MIN_NUMBER_OF_RECEIPT) {
+        if (!checkNumberOfPage(document)) {
             log.error("Document number of pages mismatches :{}", document.getId());
             report.getBrokenRules().add(DocumentBrokenRule.builder()
                     .rule(DocumentRule.R_RENT_RECEIPT_NB_DOCUMENTS)
