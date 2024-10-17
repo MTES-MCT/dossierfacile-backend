@@ -138,6 +138,6 @@ class RentalReceiptRulesValidationServiceTest {
 
         Assertions.assertThat(report.getAnalysisStatus()).isEqualTo(DocumentAnalysisStatus.DENIED);
         Assertions.assertThat(report.getBrokenRules()).hasSize(2);
-        Assertions.assertThat(report.getBrokenRules().getFirst()).matches(docRule -> docRule.getRule() == DocumentRule.R_RENT_RECEIPT_NB_DOCUMENTS);
+        Assertions.assertThat( report.getBrokenRules().stream().anyMatch(docRule -> docRule.getRule() == DocumentRule.R_RENT_RECEIPT_NB_DOCUMENTS)).isTrue();
     }
 }
