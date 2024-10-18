@@ -12,6 +12,7 @@ public class ExtensionValidator implements ConstraintValidator<Extension, Docume
     private static final List<String> contentTypes = Arrays.asList(
             "image/png",
             "image/jpeg",
+            "image/heif",
             "application/pdf"
     );
 

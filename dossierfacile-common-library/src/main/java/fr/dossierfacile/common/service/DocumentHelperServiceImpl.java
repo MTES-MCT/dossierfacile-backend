@@ -1,5 +1,6 @@
 package fr.dossierfacile.common.service;
 
+import fr.dossierfacile.common.config.ImageMagickConfig;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.StorageFile;
@@ -11,13 +12,14 @@ import fr.dossierfacile.common.utils.FileUtility;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -26,9 +28,15 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -38,19 +46,35 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
     private final FileStorageService fileStorageService;
     private final SharedFileRepository fileRepository;
     private final EncryptionKeyService encryptionKeyService;
+    private final ImageMagickConfig imageMagickConfig;
 
     @Transactional
     @Override
     public File addFile(MultipartFile multipartFile, Document document) throws IOException {
-
         StorageFile storageFile = StorageFile.builder()
-                .name(multipartFile.getOriginalFilename())
-                .contentType(multipartFile.getContentType())
                 .size(multipartFile.getSize())
                 .encryptionKey(encryptionKeyService.getCurrentKey())
                 .build();
+        String originalFilename = multipartFile.getOriginalFilename();
+        if (originalFilename == null) {
+            originalFilename = UUID.randomUUID().toString();
+        }
+        if ("image/heif".equals(multipartFile.getContentType())) {
+            storageFile.setName(originalFilename.replaceAll("(?i)\\.heic$", "") + ".jpg");
+            storageFile.setContentType("image/jpeg");
 
-        storageFile = fileStorageService.upload(multipartFile.getInputStream(), storageFile);
+            InputStream jpgInputStream = convertHeicToJpg(multipartFile.getInputStream());
+            if (jpgInputStream != null) {
+                storageFile = fileStorageService.upload(jpgInputStream, storageFile);
+            } else {
+                throw new IOException("Image could not be saved");
+            }
+        } else {
+            storageFile.setName(originalFilename);
+            storageFile.setContentType(multipartFile.getContentType());
+            storageFile = fileStorageService.upload(multipartFile.getInputStream(), storageFile);
+        }
+
 
         File file = File.builder()
                 .storageFile(storageFile)
@@ -62,6 +86,43 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
             document.getFiles().add(file);
         }
         return file;
+    }
+
+    @Override
+    public InputStream convertHeicToJpg(InputStream heicInputStream) throws IOException {
+        String tmpImageName = UUID.randomUUID().toString();
+        FileAttribute<Set<PosixFilePermission>> attr = PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwx------"));
+        java.io.File heicFile = java.nio.file.Files.createTempFile(tmpImageName, ".heic", attr).toFile();
+
+        try (FileOutputStream fileOutputStream = new FileOutputStream(heicFile)) {
+            IOUtils.copy(heicInputStream, fileOutputStream);
+        }
+
+        java.io.File jpgFile = java.nio.file.Files.createTempFile(tmpImageName, ".jpg", attr).toFile();
+
+        // Use ImageMagick to convert .heic to .jpg
+        ProcessBuilder processBuilder = new ProcessBuilder(imageMagickConfig.getImageMagickCli(), heicFile.getAbsolutePath(), jpgFile.getAbsolutePath());
+        Process process = processBuilder.start();
+        try {
+            int exitCode = process.waitFor();
+            if (exitCode != 0) {
+                throw new IOException("Erreur lors de la conversion HEIC en JPG avec ImageMagick.");
+            }
+        } catch (InterruptedException e) {
+            log.error("Interrupted exception", e);
+            Thread.currentThread().interrupt();
+            throw new IOException(e);
+        }
+
+        InputStream jpgInputStream = new FileInputStream(jpgFile);
+
+        boolean delete = heicFile.delete();
+        if (!delete) {
+            log.error("Could not delete temporary file");
+        }
+        jpgFile.deleteOnExit();
+
+        return jpgInputStream;
     }
 
     @Override
@@ -84,7 +145,7 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
                     PDFRenderer pdfRenderer = new PDFRenderer(document);
                     BufferedImage bufferedImage = pdfRenderer.renderImageWithDPI(0, 200, ImageType.RGB);
                     preview = resizeImage(bufferedImage);
-                    log.info("resize pdf duration : " + (System.currentTimeMillis() - startTime));
+                    log.info("resize pdf duration : {}", System.currentTimeMillis() - startTime);
                 }
             } else {
                 preview = resizeImage(ImageIO.read(fileInputStream));
@@ -129,7 +190,7 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
         graphics2D.dispose();
         long endTime = System.currentTimeMillis();
         long duration = (endTime - startTime);
-        log.info("resize image duration : " + duration);
+        log.info("resize image duration : {}", duration);
         return resizedImage;
     }
 

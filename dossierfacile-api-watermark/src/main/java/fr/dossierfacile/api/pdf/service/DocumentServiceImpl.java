@@ -12,6 +12,7 @@ import fr.dossierfacile.common.entity.WatermarkDocument;
 import fr.dossierfacile.common.enums.FileStatus;
 import fr.dossierfacile.common.enums.FileStorageStatus;
 import fr.dossierfacile.common.repository.WatermarkDocumentRepository;
+import fr.dossierfacile.common.service.interfaces.DocumentHelperService;
 import fr.dossierfacile.common.service.interfaces.EncryptionKeyService;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -41,6 +42,7 @@ public class DocumentServiceImpl implements DocumentService {
     private final FileStorageService fileStorageService;
     private final EncryptionKeyService encryptionKeyService;
     private final WatermarkDocumentRepository watermarkDocumentRepository;
+    private final DocumentHelperService documentHelperService;
 
     @Override
     @Transactional
@@ -152,7 +154,20 @@ public class DocumentServiceImpl implements DocumentService {
                             .build();
 
                     try {
-                        return fileStorageService.upload(multipartFile.getInputStream(), file);
+                        if ("image/heif".equals(multipartFile.getContentType())) {
+                            file.setName(multipartFile.getOriginalFilename().replaceAll("(?i)\\.heic$", "") + ".jpg");
+                            file.setContentType("image/jpeg");
+
+                            InputStream jpgInputStream = documentHelperService.convertHeicToJpg(multipartFile.getInputStream());
+                            if (jpgInputStream != null) {
+                                return fileStorageService.upload(jpgInputStream, file);
+                            } else {
+                                throw new IOException("Image could not be saved");
+                            }
+                        } else {
+                            return fileStorageService.upload(multipartFile.getInputStream(), file);
+                        }
+
                     } catch (IOException e) {
                         log.error("Error on file save", e);
                         throw new RuntimeException(e);

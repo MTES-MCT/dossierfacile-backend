@@ -15,6 +15,8 @@ public interface DocumentHelperService {
      */
     File addFile(MultipartFile multipartFile, Document document) throws IOException;
 
+    InputStream convertHeicToJpg(InputStream heicInputStream) throws IOException;
+
     /**
      * Delete files contained in document.
      */
