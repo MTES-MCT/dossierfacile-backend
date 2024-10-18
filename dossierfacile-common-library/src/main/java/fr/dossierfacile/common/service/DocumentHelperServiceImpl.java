@@ -32,7 +32,11 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -87,13 +91,14 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
     @Override
     public InputStream convertHeicToJpg(InputStream heicInputStream) throws IOException {
         String tmpImageName = UUID.randomUUID().toString();
-        java.io.File heicFile = java.io.File.createTempFile(tmpImageName, ".heic");
+        FileAttribute<Set<PosixFilePermission>> attr = PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwx------"));
+        java.io.File heicFile = java.nio.file.Files.createTempFile(tmpImageName, ".heic", attr).toFile();
 
         try (FileOutputStream fileOutputStream = new FileOutputStream(heicFile)) {
             IOUtils.copy(heicInputStream, fileOutputStream);
         }
 
-        java.io.File jpgFile = java.io.File.createTempFile(tmpImageName, ".jpg");
+        java.io.File jpgFile = java.nio.file.Files.createTempFile(tmpImageName, ".jpg", attr).toFile();
 
         // Use ImageMagick to convert .heic to .jpg
         ProcessBuilder processBuilder = new ProcessBuilder(imageMagickConfig.getImageMagickCli(), heicFile.getAbsolutePath(), jpgFile.getAbsolutePath());
