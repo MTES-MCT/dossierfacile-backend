@@ -109,7 +109,9 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
                 throw new IOException("Erreur lors de la conversion HEIC en JPG avec ImageMagick.");
             }
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            log.error("Interrupted exception", e);
+            Thread.currentThread().interrupt();
+            throw new IOException(e);
         }
 
         InputStream jpgInputStream = new FileInputStream(jpgFile);
