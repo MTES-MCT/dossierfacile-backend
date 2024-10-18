@@ -1,5 +1,6 @@
 package fr.dossierfacile.common.service;
 
+import fr.dossierfacile.common.config.ImageMagickConfig;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.StorageFile;
@@ -16,6 +17,7 @@ import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,6 +42,7 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
     private final FileStorageService fileStorageService;
     private final SharedFileRepository fileRepository;
     private final EncryptionKeyService encryptionKeyService;
+    private final ImageMagickConfig imageMagickConfig;
 
     @Transactional
     @Override
@@ -93,7 +96,7 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
         java.io.File jpgFile = java.io.File.createTempFile(tmpImageName, ".jpg");
 
         // Use ImageMagick to convert .heic to .jpg
-        ProcessBuilder processBuilder = new ProcessBuilder("convert", heicFile.getAbsolutePath(), jpgFile.getAbsolutePath());
+        ProcessBuilder processBuilder = new ProcessBuilder(imageMagickConfig.getImageMagickCli(), heicFile.getAbsolutePath(), jpgFile.getAbsolutePath());
         Process process = processBuilder.start();
         try {
             int exitCode = process.waitFor();
