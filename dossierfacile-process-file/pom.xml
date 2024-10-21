@@ -17,23 +17,7 @@
     <description>ProcessFile for DossierFacile</description>
 
     <properties>
-        <pdfbox.tools.version>3.0.2</pdfbox.tools.version>
-        <jbig2.imageio.version>3.0.3</jbig2.imageio.version>
-        <jai-imageio-jpeg2000.version>1.4.0</jai-imageio-jpeg2000.version>
-        <jai-imageio-core.version>1.4.0</jai-imageio-core.version>
     </properties>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>com.fasterxml.jackson</groupId>
-                <artifactId>jackson-bom</artifactId>
-                <version>2.15.3</version><!-- do not upgrade jackson without checking all converters/mappers -->
-                <scope>import</scope>
-                <type>pom</type>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
 
     <dependencies>
         <!--DossierFacile libraries-->
@@ -54,27 +38,22 @@
         <dependency>
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>pdfbox-tools</artifactId>
-            <version>${pdfbox.tools.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>jbig2-imageio</artifactId>
-            <version>${jbig2.imageio.version}</version>
         </dependency>
         <dependency>
             <groupId>com.github.jai-imageio</groupId>
             <artifactId>jai-imageio-core</artifactId>
-            <version>${jai-imageio-core.version}</version>
         </dependency>
         <dependency>
             <groupId>com.github.jai-imageio</groupId>
             <artifactId>jai-imageio-jpeg2000</artifactId>
-            <version>${jai-imageio-jpeg2000.version}</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>${lombok.version}</version>
             <scope>provided</scope>
             <optional>true</optional>
         </dependency>
