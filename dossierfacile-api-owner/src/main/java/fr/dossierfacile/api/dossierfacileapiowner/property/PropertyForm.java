@@ -41,4 +41,6 @@ public class PropertyForm {
 
     private String ademeNumber;
 
+    private Boolean dpeNotRequired;
+
 }

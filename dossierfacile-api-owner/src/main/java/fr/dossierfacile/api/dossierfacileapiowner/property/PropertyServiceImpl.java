@@ -113,6 +113,9 @@ public class PropertyServiceImpl implements PropertyService {
             mailService.sendEmailValidatedProperty(owner, property);
             ownerLogService.saveLog(OwnerLogType.PROPERTY_COMPLETED, owner.getId());
         }
+        if (propertyForm.getDpeNotRequired() != null) {
+            property.setDpeNotRequired(propertyForm.getDpeNotRequired());
+        }
         property.setOwner(owner);
         return propertyMapper.toPropertyModel(propertyRepository.save(property));
     }
