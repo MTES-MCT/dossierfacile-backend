@@ -122,7 +122,9 @@ public class UserServiceImpl implements UserService {
 
         TransactionalUtil.afterCommit(() -> {
             mailService.sendEmailAccountDeleted(tenantToDeleteDto);
-            keycloakService.deleteKeycloakUserById(keycloakId);
+            if (StringUtils.isNotBlank(keycloakId)) {
+                keycloakService.deleteKeycloakUserById(keycloakId);
+            }
         });
     }
 

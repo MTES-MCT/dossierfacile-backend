@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static fr.dossierfacile.common.enums.ApplicationType.COUPLE;
 import static fr.dossierfacile.common.enums.ApplicationType.GROUP;
@@ -96,7 +97,9 @@ public class MailServiceImpl implements MailService {
         }
         SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
         sendSmtpEmail.templateId(templateId);
-        sendSmtpEmail.params(params);
+        if (params.values().stream().anyMatch(Objects::nonNull)) {
+            sendSmtpEmail.params(params);
+        }
         sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
 
         try {
