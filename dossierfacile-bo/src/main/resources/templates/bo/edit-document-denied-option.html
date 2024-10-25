@@ -48,15 +48,15 @@
                 <form th:method="post" th:action="*{'/bo/documentDeniedOptions/' + id}"
                       th:object="${documentDeniedOption}">
                     <div>
-                        <label>Type de document</label>
+                        <label class="form-label">Type de document</label>
                         <p class="input disabled" th:text="*{documentSubCategory}"></p>
                     </div>
                     <div>
-                        <label>Personne concernée</label>
+                        <label class="form-label">Personne concernée</label>
                         <p class="input disabled" th:text="*{documentUserType}"></p>
                     </div>
                     <div>
-                        <label for="messageValue">Message</label>
+                        <label class="form-label" for="messageValue">Message</label>
                         <textarea id="messageValue" class="input" rows="4" required
                                   th:field="*{messageValue}"></textarea>
                         <div style="font-size: 12px">

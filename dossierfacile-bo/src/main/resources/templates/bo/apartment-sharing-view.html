@@ -15,30 +15,50 @@
 
             <ul class="nav nav-tabs" role="tablist">
 
-                <li class="active" role="presentation">
-                    <a aria-controls="colocatio" data-toggle="tab" href="#colocatio"
+                <li class="nav-item active" role="presentation">
+                    <a class="nav-link active"
+                       data-bs-toggle="tab"
+                       href="#colocatio"
+                       data-bs-target="#colocatio"
+                       type="button"
                        role="presentation"
-                       th:text="#{apartmentSharing}"></a></li>
+                       aria-controls="colocatio"
+                       th:text="#{apartmentSharing}"
+                    ></a>
+                </li>
 
-                <li role="presentation" th:each="tenant,iter:${tenants}">
-                    <a aria-controls="mon-dossier" class="data-tab2" data-toggle="tab" role="tab"
+                <li class="nav-item" role="presentation" th:each="tenant,iter:${tenants}">
+                    <a class="nav-link data-tab2"
+                       th:id="'badge2' + ${tenant.id}"
+                       data-bs-toggle="tab"
+                       th:href="'#tenant'+${tenant.id}"
+                       th:data-bs-target="'#tenant'+${tenant.id}"
+                       type="button"
+                       role="tab"
+                       aria-controls="mon-dossier"
                        th:attr="data-name=${tenant.id}"
-                       th:href="'#tenant'+${tenant.id}" th:id="'badge2' + ${tenant.id}"
-                       th:text="${tenant.getFullName()} ==''? 'locataire ':${tenant.getFullName()}"></a></li>
+                       th:text="${tenant.getFullName()} ==''? 'locataire ':${tenant.getFullName()}"
+                    ></a>
+                </li>
 
-                <li role="presentation" th:each="tenant,iter:${tenants}">
-                    <a aria-controls="mon-dossier" class="chat"
-                       data-toggle="tab" role="tab" th:attr="data-name=${tenant},data-nameAdmin=${name}"
-                       th:attrappend="data-id=${tenant.id}"
-                       th:href="'#tenant-message'+${tenant.id}" th:text="'message: '+${tenant.getFullName()}"></a>
+                <li class="nav-item" role="presentation" th:each="tenant,iter:${tenants}">
+                    <a class="nav-link chat"
+                       data-bs-toggle="tab"
+                       th:data-bs-target="'#tenant-message'+${tenant.id}"
+                       type="button"
+                       role="tab"
+                       aria-controls="mon-dossier"
+                       th:href="'#tenant-message'+${tenant.id}"
+                       th:text="'message: '+${tenant.getFullName()}"
+                       th:attrappend="data-tenant-id=${tenant.id}"
+                    ></a>
                 </li>
 
             </ul>
             <!-- Tab panes -->
 
             <div class="tab-content">
-                <div class="tab-pane active" id="colocatio" role="tabpanel">
-
+                <div class="tab-pane show active" id="colocatio" role="tabpanel">
                     <div class="container">
                         <div class="medium-space-separator">
                             <div clas="row">
@@ -49,7 +69,7 @@
                                     >Supprimer la colocation
                                     </button>
                                     <a class="btn btn-success bo-btn btnPartner"
-                                       style="float: left;background-color: darkcyan;border-color: aliceblue;">
+                                       style="float: left;background-color: darkcyan;border-color: var(--bs-info-bg-subtle);">
                                         Trigger a partner callback
                                     </a>
                                 </div>
@@ -62,13 +82,10 @@
                                         <div class="modal-header" style="background: #f18686;padding: 10px;">
                                             <h5 class="modal-title bold"
                                                 style="width: 80%;float: left;font-size: 20px;">Select</h5>
-                                            <button aria-label="Close" class="close" data-dismiss="modal"
-                                                    type="button">
-                                                <span aria-hidden="true">&times;</span>
-                                            </button>
+                                            <button aria-label="Close" class="btn-close" data-bs-dismiss="modal"
+                                                    type="button"></button>
                                         </div>
-                                        <div class="modal-body"
-                                             style="background: aliceblue;text-shadow: 0 0 black;">
+                                        <div class="modal-body bg-body-tertiary" >
                                             <form method="get"
                                                   style="margin-top: 8px;"
                                                   th:action="@{/bo/tenant/partner/}+${tenantPrincipal.getId()}"
@@ -91,8 +108,8 @@
                                                        th:placeholder="'-- type here --'"
                                                        type="text">
 
-                                                <div class="modal-footer"
-                                                     style="background: aliceblue;padding: 5px;margin-top: 20px;">
+                                                <div class="modal-footer bg-body-tertiary"
+                                                     style="padding: 5px;margin-top: 20px;">
                                                     <button class="btn btn-primary buttonPartner"
                                                             id="hrefPartner" name="submit"
                                                             style="border-radius: 50px;font-size: 15px;line-height: 1;padding: 5px 8px 7px;"
@@ -100,7 +117,7 @@
                                                             value="submit">
                                                         Submit
                                                     </button>
-                                                    <button class="btn btn-secondary" data-dismiss="modal"
+                                                    <button class="btn btn-secondary" data-bs-dismiss="modal"
                                                             style="border-radius: 50px;font-size: 15px;line-height: 1;padding: 5px 8px 7px;"
                                                             type="button">
                                                         Cancel
@@ -135,21 +152,19 @@
                                         <div class="modal-header" style="background: #f18686;padding: 10px;">
                                             <h5 class="modal-title bold" style="width: 80%;float: left;">Confirm
                                                 delete</h5>
-                                            <button aria-label="Close" class="close" data-dismiss="modal"
-                                                    type="button">
-                                                <span aria-hidden="true">&times;</span>
-                                            </button>
+                                            <button aria-label="Close" class="btn-close" data-bs-dismiss="modal"
+                                                    type="button"></button>
                                         </div>
-                                        <div class="modal-body"
-                                             style="background: aliceblue;text-shadow: 0 0 black;">
+                                        <div class="modal-body bg-body-tertiary"
+                                             style="text-shadow: 0 0 black;">
                                             <p>Are you sure you want delete this tenant ?</p>
                                         </div>
-                                        <div class="modal-footer" style="background: aliceblue;padding: 5px;">
+                                        <div class="modal-footer bg-body-tertiary" style="padding: 5px;">
                                             <a class="btn btn-primary"
                                                id="idRef"
                                                style="border-radius: 50px;font-size: 15px;line-height: 1;padding: 5px 8px 7px;"
                                                th:href="@{/bo/tenant/delete/tenant/} + ${tenantPrincipal.getId()}">Delete</a>
-                                            <button class="btn btn-secondary" data-dismiss="modal"
+                                            <button class="btn btn-secondary" data-bs-dismiss="modal"
                                                     style="border-radius: 50px;font-size: 15px;line-height: 1;padding: 5px 8px 7px;"
                                                     type="button">
                                                 Close
@@ -166,23 +181,22 @@
                                             <h5 class="modal-title bold" style="width: 80%;float: left;">
                                                 Confirmation
                                             </h5>
-                                            <button aria-label="Close" class="close" data-dismiss="modal"
-                                                    type="button">
-                                                <span aria-hidden="true">&times;</span>
-                                            </button>
+                                            <button aria-label="Close" class="btn-close" data-bs-dismiss="modal"
+                                                    type="button"></button>
                                         </div>
-                                        <div class="modal-body"
-                                             style="background: aliceblue;text-shadow: 0 0 black;">
-                                            <p>Êtes-vous sûr de vouloir supprimer ce dossier ainsi que tous ses candidats ?</p>
+                                        <div class="modal-body bg-body-tertiary"
+                                             style="text-shadow: 0 0 black;">
+                                            <p>Êtes-vous sûr de vouloir supprimer ce dossier ainsi que tous ses
+                                                candidats ?</p>
                                         </div>
-                                        <div class="modal-footer" style="background: aliceblue;padding: 5px;">
+                                        <div class="modal-footer bg-body-tertiary" style="padding: 5px;">
                                             <a class="btn btn-primary"
                                                id="idRefApt"
                                                style="border-radius: 50px;font-size: 15px;line-height: 1;padding: 5px 8px 7px;"
                                                th:href="@{/bo/tenant/deleteApartmentSharing/} + ${tenantPrincipal.getId()}">
                                                 Oui
                                             </a>
-                                            <button class="btn btn-secondary" data-dismiss="modal"
+                                            <button class="btn btn-secondary" data-bs-dismiss="modal"
                                                     style="border-radius: 50px;font-size: 15px;line-height: 1;padding: 5px 8px 7px;"
                                                     type="button">
                                                 Annuler
@@ -213,9 +227,11 @@
                                     <td>Link restricted</td>
                                     <td th:text="${@environment.getProperty('link.domain.document')+'/public-file/' + apartmentSharing.getTokenPublic()}"></td>
                                     <td rowspan="2">
-                                        <form th:action="@{/bo/colocation/{id}/tokens/(id=${apartmentSharing.id})}" th:method="delete">
-                                            <button class="btn-delete btn-modal-confirm-before-submit" type="button">
-                                                <span style="color:red">Regénérer</span>
+                                        <form th:action="@{/bo/colocation/{id}/tokens/(id=${apartmentSharing.id})}"
+                                              th:method="delete">
+                                            <button class="btn btn-outline-danger btn-modal-confirm-before-submit"
+                                                    type="button">
+                                                Regénérer
                                             </button>
                                             <div class="modal" role="dialog" tabindex="-1">
                                                 <div class="modal-dialog" role="document">
@@ -226,8 +242,12 @@
                                                             </div>
 
                                                             <div class="modal-footer">
-                                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
-                                                                <button class="btn  btn-primary " type="submit">Valider</button>
+                                                                <button type="button" class="btn btn-secondary"
+                                                                        data-bs-dismiss="modal">Annuler
+                                                                </button>
+                                                                <button class="btn  btn-primary " type="submit">
+                                                                    Valider
+                                                                </button>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -255,9 +275,11 @@
                                     <td th:text="${link.email}"></td>
                                     <td th:text="${link.token}"></td>
                                     <td>
-                                        <form th:action="@{/bo/colocation/{id}/apartmentSharingLinks/{link_id}(id=${apartmentSharing.id},link_id=${link.id})}" th:method="delete">
-                                            <button class="btn-delete btn-modal-confirm-before-submit" type="button">
-                                                <span style="color:red">Supprimer</span>
+                                        <form th:action="@{/bo/colocation/{id}/apartmentSharingLinks/{link_id}(id=${apartmentSharing.id},link_id=${link.id})}"
+                                              th:method="delete">
+                                            <button class="btn btn-outline-danger btn-modal-confirm-before-submit"
+                                                    type="button">
+                                                Supprimer
                                             </button>
                                             <div class="modal" role="dialog" tabindex="-1">
                                                 <div class="modal-dialog" role="document">
@@ -268,8 +290,12 @@
                                                             </div>
 
                                                             <div class="modal-footer">
-                                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
-                                                                <button class="btn  btn-primary " type="submit">Valider</button>
+                                                                <button type="button" class="btn btn-secondary"
+                                                                        data-bs-dismiss="modal">Annuler
+                                                                </button>
+                                                                <button class="btn  btn-primary " type="submit">
+                                                                    Valider
+                                                                </button>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -284,7 +310,6 @@
                 </div>
                 <div class="tab-pane data-tab2" role="tabpanel"
                      th:each="tenant,iter: ${tenants}" th:id="'tenant'+${tenant.id}">
-
                     <div class="container">
                         <div class="medium-space-separator">
                             <div class="row">
@@ -312,8 +337,11 @@
                                             Refuser le dossier
                                         </button>
                                     </form>
-                                    <a class="btn btn-success bo-btn" data-toggle="modal"
-                                       style="background-color: darkcyan;" th:data-target="'#target'+${tenant.getId()}">Logs</a>
+
+                                    <a class="btn btn-success bo-btn" data-bs-toggle="modal"
+                                       style="background-color: darkcyan;"
+                                       th:data-bs-target="'#target'+${tenant.getId()}">Logs</a>
+
                                 </div>
                                 <div class="col-md-7">
 
@@ -349,21 +377,23 @@
                                                 <h3 class="modal-title" id="exampleModalScrollableTitle"
                                                     style="text-align: -webkit-center;"
                                                     th:text="'Logs: ' + ${tenant.getFullName()}"></h3>
-                                                </button>
+                                                <button aria-label="Close" class="btn-close" data-bs-dismiss="modal"
+                                                        type="button"></button>
                                             </div>
-                                            <div class="modal-body"
-                                                 style="max-height: 80vh;overflow-y: auto; background: aliceblue;height: auto">
-                                                <div style="background: antiquewhite; display: grid; padding: 7px;margin-bottom: 10px;"
+                                            <div class="modal-body bg-body-tertiary"
+                                                 style="max-height: 80vh;overflow-y: auto;height: auto">
+                                                <div class="bg-warning-subtle" style="display: grid; padding: 7px;margin-bottom: 10px;"
                                                      th:each="log: ${logser.getLogByTenantId(tenant.getId())}">
-                                                    <p style="font-weight: bold;" th:text="${log.getLogType()} + ${ (log.getOperatorId() != null)? ' by opId: ' + log.getOperatorId() : ''}">
-                                                    </p>
+                                                    <div style="font-weight: bold;"
+                                                       th:text="${log.getLogType()} + ${ (log.getOperatorId() != null)? ' by opId: ' + log.getOperatorId() : ''}">
+                                                    </div>
                                                     <span style="padding-left: 5px;"
                                                           th:text="'date: ' + ${log.getCreationDateTime().getYear()} + '-' + ${log.getCreationDateTime().getMonthValue()} + '-' + ${log.getCreationDateTime().getDayOfMonth()} + ' ' + ${log.getCreationDateTime().getHour()} + ':' + ${log.getCreationDateTime().getMinute()} + ':' + ${log.getCreationDateTime().getSecond()}">
-                                                       </span>
+                                                    </span>
                                                 </div>
                                             </div>
-                                            <div class="modal-footer" style="background: aliceblue;">
-                                                <button class="btn btn-secondary" data-dismiss="modal"
+                                            <div class="modal-footer bg-body-tertiary">
+                                                <button class="btn btn-secondary" data-bs-dismiss="modal"
                                                         style="font-size: initial;color: white;background-color: #0069d9;"
                                                         type="button">
                                                     Close
@@ -376,31 +406,29 @@
                                 <div class="modal" role="dialog" tabindex="-1"
                                      th:id="'deleteCotenant'+${tenant.getId()}">
                                     <div class="modal-dialog" role="document">
-                                        <div class="modal-content">
-                                            <div class="modal-header" style="background: lavender;padding: 10px;">
+                                        <div class="modal-content bg-info-subtle">
+                                            <div class="modal-header" style="padding: 10px;">
                                                 <h5 class="modal-title bold" style="width: 80%;float: left;">
                                                     Confirmation
                                                 </h5>
-                                                <button aria-label="Close" class="close" data-dismiss="modal"
-                                                        type="button">
-                                                    <span aria-hidden="true">&times;</span>
-                                                </button>
+                                                <button aria-label="Close" class="btn-close" data-bs-dismiss="modal"
+                                                        type="button"></button>
                                             </div>
-                                            <div class="modal-body"
-                                                 style="background: aliceblue;text-shadow: 0 0 black;">
+                                            <div class="modal-body bg-body-tertiary"
+                                                 style="text-shadow: 0 0 black;">
                                                 <p>
                                                     Êtes-vous sûr de vouloir supprimer le dossier de
                                                     <span th:text="${tenant.getFullName()}"></span> ?
                                                 </p>
                                             </div>
-                                            <div class="modal-footer" style="background: aliceblue;padding: 5px;">
+                                            <div class="modal-footer bg-body-tertiary" style="padding: 5px;">
                                                 <a class="btn btn-primary"
                                                    style="border-radius: 50px;font-size: 15px;line-height: 1;padding: 5px 8px 7px;"
                                                    th:href="@{/bo/tenant/deleteCoTenant/} + ${tenant.getId()}"
                                                    th:id="'deleteRefCo' + ${tenant.getId()}">
                                                     Oui
                                                 </a>
-                                                <button class="btn btn-secondary" data-dismiss="modal"
+                                                <button class="btn btn-secondary" data-bs-dismiss="modal"
                                                         style="border-radius: 50px;font-size: 15px;line-height: 1;padding: 5px 8px 7px;"
                                                         type="button">
                                                     Annuler
@@ -412,8 +440,8 @@
                             </div>
                             <div class="row" style="margin-top: 0.5em">
                                 <div class="col-md-10">
-                                    <a class="btn btn-warning bo-btn" data-toggle="modal"
-                                       th:data-target="'#add-comment-'+${tenant.getId()}">
+                                    <a class="btn btn-warning bo-btn" data-bs-toggle="modal"
+                                       th:data-bs-target="'#add-comment-'+${tenant.getId()}">
                                         <span th:text="${T(org.apache.commons.lang3.StringUtils).isBlank(tenant.getOperatorComment())} ? 'Ajouter un commentaire' : 'Editer le commentaire'"></span>
                                     </a>
                                 </div>
@@ -425,23 +453,22 @@
                                                 <h5 class="modal-title bold" style="width: 80%;float: left;">
                                                     Précisions concernant le traitement du dossier
                                                 </h5>
-                                                <button aria-label="Close" class="close" data-dismiss="modal"
-                                                        type="button">
-                                                    <span aria-hidden="true">&times;</span>
-                                                </button>
+                                                <button aria-label="Close" class="btn-close" data-bs-dismiss="modal"
+                                                        type="button"></button>
                                             </div>
 
                                             <form method="post" th:action="@{/bo/tenant/__${tenant.getId()}__/comment}">
                                                 <div class="modal-body">
                                                     <textarea id="comment" name="comment" class="input" rows="6"
-                                                              type="text" th:text="${tenant.getOperatorComment()}"></textarea>
+                                                              type="text"
+                                                              th:text="${tenant.getOperatorComment()}"></textarea>
                                                 </div>
                                                 <div class="modal-footer">
                                                     <button type="submit" class="btn btn-info btn-save"
                                                             style="border-radius: 50px;font-size: 15px;line-height: 1;padding: 5px 8px 7px;">
                                                         Sauvegarder
                                                     </button>
-                                                    <button class="btn btn-secondary" data-dismiss="modal"
+                                                    <button class="btn btn-secondary" data-bs-dismiss="modal"
                                                             style="border-radius: 50px;font-size: 15px;line-height: 1;padding: 5px 8px 7px;"
                                                             type="button">
                                                         Annuler
@@ -468,8 +495,8 @@
                                     <td>
                                         <ul>
                                             <li
-                                              th:each="item : ${partners}"
-                                              th:text="${item}"
+                                                    th:each="item : ${partners}"
+                                                    th:text="${item}"
                                             >
                                             </li>
                                         </ul>
@@ -500,7 +527,9 @@
                                 <tr>
                                     <td>Email</td>
                                     <td>
-                                        <span th:if="${ tenant.getFranceConnect() == true }"><img src="/assets/images/franceconnect-icon.png" height="22px" alt="isFC"/></span>
+                                        <span th:if="${ tenant.getFranceConnect() == true }"><img
+                                                src="/assets/images/franceconnect-icon.png" height="22px"
+                                                alt="isFC"/></span>
                                         <span th:text="${tenant.getEmail()}"></span>
                                         <span th:with="verified=${tenantService.hasVerifiedEmailIfExistsInKeycloak(tenant)}">
                                             <span class="fa"
@@ -551,7 +580,8 @@
                             <table class="table table-striped table-bordered table-hover">
                                 <tr>
                                     <td style="width: 20%">Déclaration sur l'honneur</td>
-                                    <td th:text="${tenant.getHonorDeclaration()}" th:style="${tenant.getHonorDeclaration() == false ? 'color: red;' : ''}"></td>
+                                    <td th:text="${tenant.getHonorDeclaration()}"
+                                        th:style="${tenant.getHonorDeclaration() == false ? 'color: red;' : ''}"></td>
                                 </tr>
                                 <tr>
                                     <td>Mot du locataire</td>
@@ -561,55 +591,53 @@
                         </div>
 
                         <div class="medium-space-separator" id="update-status">
-                            <div class="panel panel-primary"
+                            <div class="card panel-primary mb-3"
                                  th:each="document : ${tenantService.getAllDocumentCategories(tenant)}">
 
-                                <div class="panel-heading">
+                                <div class="card-header">
 
-                                    <h4 class="panel-title" th:if="${document.getId() == null}">
+                                    <div class="card-title" th:if="${document.getId() == null}">
                                         <span>Category:
-                                            <span style="color:black"
+                                            <span
                                                   th:text="${document.getDocumentCategory().name()}">
                                             </span>
                                         </span>
-                                    </h4>
+                                    </div>
 
-                                    <h4 class="panel-title"
-                                        th:if="${document.getId() != null} and ${document.getWatermarkFile() == null}">
+                                    <div class="card-title"
+                                         th:if="${document.getId() != null} and ${document.getWatermarkFile() == null}">
                                         <span>Category:
-                                            <span style="color:black"
+                                            <span
                                                   th:text="${document.getDocumentCategory().name()}">
                                             </span>
                                         </span>
                                         <span> Subcategory:
-                                            <span style="color:black"
+                                            <span
                                                   th:text="${document.getDocumentSubCategory().name()}">
                                             </span>
                                         </span>
 
-                                        <a class="btn-danger btn-right-pull label pull-right deleteButton"
-                                           style="margin-right: -5px;color: black;background-color: #f0ad4e"
+                                        <a class="btn btn-sm btn-warning btn-right-pull pull-right deleteButton badge bg-warning text-dark"
                                            th:attrappend="data-id=${document.id}"
-
-                                           th:href="@{/bo/tenant/delete/document/} + ${document.getId()}"
-                                        >DELETE
+                                           th:href="@{/bo/tenant/delete/document/} + ${document.getId()}">
+                                            DELETE
                                         </a>
 
-                                        <span class="btn-right-pull label label-success pull-right"
+                                        <span class="btn-right-pull badge bg-success pull-right"
                                               style="color: black;"
                                               th:if="${document.getDocumentStatus().name()=='VALIDATED'}"
                                               th:text="${document.getDocumentStatus()}">
                                         </span>
-                                        <span class="btn-right-pull label label-danger pull-right" style="color: black;"
+                                        <span class="btn-right-pull badge bg-danger pull-right" style="color: black;"
                                               th:if="${document.getDocumentStatus().name()=='DECLINED'}"
                                               th:text="${document.getDocumentStatus()}">
                                         </span>
-                                        <span class="btn-right-pull label label-info pull-right" style="color: black;"
+                                        <span class="btn-right-pull badge bg-info pull-right" style="color: black;"
                                               th:if="${document.getDocumentStatus().name()=='TO_PROCESS'}"
                                               th:text="${document.getDocumentStatus()}">
                                         </span>
 
-                                        <span class="btn-right-pull label label-info pull-right" style="color: black;"
+                                        <span class="btn-right-pull badge bg-info pull-right" style="color: black;"
                                               th:if="${document.getDocumentStatus().name()=='TO_PROCESS'}"
                                               th:text="${document.getDocumentStatus()}">
                                         </span>
@@ -626,15 +654,15 @@
                                                         IN_PROGRESS
                                                 </span>
 
-                                                <button th:class="'btn-regenerate-pdf'">
-                                                    <a th:href="@{/bo/regeneratePdfDocument/} + ${document.getId()}">Update PDF</a>
-                                                </button>
+                                                <a class="btn btn-light btn-sm ms-2"
+                                                   th:href="@{/bo/regeneratePdfDocument/} + ${document.getId()}">Update
+                                                    PDF</a>
                                             </div>
                                         </div>
-                                    </h4>
+                                    </div>
 
-                                    <h4 class="panel-title"
-                                        th:if="${document.getId() != null} and ${document.getWatermarkFile() != null}">
+                                    <div class="card-title"
+                                         th:if="${document.getId() != null} and ${document.getWatermarkFile() != null}">
                                         <span>Category:
                                             <span
                                                     th:text="${document.getDocumentCategory().name()}">
@@ -646,24 +674,23 @@
                                             </span>
                                         </span>
 
-                                        <a class="btn-danger btn-right-pull label pull-right deleteButton"
-                                           style="margin-right: -5px;color: black;background-color: #f0ad4e"
+                                        <a class="btn btn-sm btn-warning btn-right-pull pull-right deleteButton badge bg-warning text-dark"
                                            th:attrappend="data-id=${document.id}"
 
                                            th:href="@{/bo/tenant/delete/document/} + ${document.getId()}"
                                         >DELETE
                                         </a>
 
-                                        <span class="btn-right-pull label label-success pull-right"
+                                        <span class="btn-right-pull badge bg-success pull-right"
                                               style="color: black;"
                                               th:if="${document.getDocumentStatus().name()=='VALIDATED'}"
                                               th:text="${document.getDocumentStatus()}">
                                         </span>
-                                        <span class="btn-right-pull label label-danger pull-right" style="color: black;"
+                                        <span class="btn-right-pull badge bg-danger pull-right" style="color: black;"
                                               th:if="${document.getDocumentStatus().name()=='DECLINED'}"
                                               th:text="${document.getDocumentStatus()}">
                                         </span>
-                                        <span class="btn-right-pull label label-info pull-right" style="color: black;"
+                                        <span class="btn-right-pull badge bg-info pull-right" style="color: black;"
                                               th:if="${document.getDocumentStatus().name()=='TO_PROCESS'}"
                                               th:text="${document.getDocumentStatus()}">
                                         </span>
@@ -676,7 +703,7 @@
                                                 <label for="action"
                                                        style="FONT-SIZE:revert;color: white;">Change status:</label>
                                                 <select id="action" name="action"
-                                                        style="color: black;font-size: smaller;"
+                                                        style="font-size: smaller;"
                                                         th:attr="document-id=${document.getId()}"
                                                         th:class="'select-change-document-status'"
                                                         th:field="*{message}">
@@ -687,24 +714,24 @@
                                                 </select>
                                             </form>
 
-                                            <button th:class="'btn-regenerate-pdf'">
-                                                <a th:href="@{/bo/regeneratePdfDocument/} + ${document.getId()}">Update
-                                                    Document PDF</a>
-                                            </button>
+                                            <a class="btn btn-light btn-sm ms-2"
+                                               th:href="@{/bo/regeneratePdfDocument/} + ${document.getId()}">Update
+                                                Document PDF</a>
 
-                                            <a style="font-size: smaller;margin-top: 9px;border-radius: .15em; margin-left: 2%; margin-bottom: auto;background: #efefef;padding: 1.5px;border-width: 2px;"
-                                               th:href="${'/documents/'+ document.getName()}" target="_blank">See Document PDF</a>
+                                            <a class="btn btn-light btn-sm ms-2"
+                                               th:href="${'/documents/'+ document.getName()}" target="_blank">See
+                                                Document PDF</a>
                                         </div>
-                                    </h4>
+                                    </div>
 
                                 </div>
 
-                                <div class="panel-body" style="text-align: -webkit-center;background: #f0be4e"
+                                <div class="card-body" style="text-align: -webkit-center;background: #f0be4e"
                                      th:if="${document.getId() == null}">
-                                    <h4 style="font-weight: bold;">ABSENT</h4>
+                                    <div style="font-weight: bold;">ABSENT</div>
                                 </div>
 
-                                <div class="panel-body" th:if="${document.getId() != null}">
+                                <div class="card-body" th:if="${document.getId() != null}">
                                     <div th:if="${document.getMonthlySum()!=null}">
                                         <span th:text="${'Montly sum: '+document.getMonthlySum()}"></span>
                                     </div>
@@ -712,13 +739,16 @@
                                         <span th:text="${'Custom text: '+document.getCustomText()}"></span>
                                     </div>
                                     <ul>
-                                        <li style="margin-top: 5px" th:each="file : ${filesByDocument.get(document.getId())}">
+                                        <li style="margin-top: 5px"
+                                            th:each="file : ${filesByDocument.get(document.getId())}">
                                             <a th:href="${'/files/' + file.getId()}"
                                                th:text="${file.summary}"></a>
                                             <span th:if="${file.hasBeenAnalyzed()}" th:with="analysis=${file.analysis}">
-                                                <span class="fa" th:classappend="${analysis.authenticationStatusCssClass}"
+                                                <span class="fa"
+                                                      th:classappend="${analysis.authenticationStatusCssClass}"
                                                       th:text="' ' + ${analysis.authenticationStatus}"></span>
-                                                <span class="fa fa-times text-danger" th:if="${analysis.isInWrongCategory}"
+                                                <span class="fa fa-times text-danger"
+                                                      th:if="${analysis.isInWrongCategory}"
                                                 > Mauvaise catégorie</span>
                                                 <br/>
                                                 <span class="small" th:if="${analysis.isNotAuthenticated}">
@@ -729,10 +759,12 @@
                                         </li>
                                     </ul>
                                     <div th:if="${document.getDocumentAnalysisReport()!=null}">
-                                        <hr/>Statut de la vérification automatique:
+                                        <hr/>
+                                        Statut de la vérification automatique:
                                         <span th:text="${document.getDocumentAnalysisReport().getAnalysisStatus}"></span>
                                         <ul>
-                                            <li style="margin-top: 5px" th:each="rule : ${document.getDocumentAnalysisReport().getBrokenRules()}">
+                                            <li style="margin-top: 5px"
+                                                th:each="rule : ${document.getDocumentAnalysisReport().getBrokenRules()}">
                                                 <span style="font-size:smaller" th:text="' ' + ${rule.message}"></span>
                                             </li>
                                         </ul>
@@ -744,28 +776,26 @@
                                 <div class="modal" role="dialog" tabindex="-1"
                                      th:id="'deleteModal'+${document.getId()}">
                                     <div class="modal-dialog" role="document">
-                                        <div class="modal-content">
-                                            <div class="modal-header" style="background: lavender;padding: 10px;">
+                                        <div class="modal-content bg-info-subtle">
+                                            <div class="modal-header" style="padding: 10px;">
                                                 <h5 class="modal-title bold" style="width: 80%;float: left;">
                                                     Confirmation
                                                 </h5>
-                                                <button aria-label="Close" class="close" data-dismiss="modal"
-                                                        type="button">
-                                                    <span aria-hidden="true">&times;</span>
-                                                </button>
+                                                <button aria-label="Close" class="btn-close" data-bs-dismiss="modal"
+                                                        type="button"></button>
                                             </div>
-                                            <div class="modal-body"
-                                                 style="background: aliceblue;text-shadow: 0 0 black;">
+                                            <div class="modal-body bg-body-tertiary"
+                                                 style="text-shadow: 0 0 black;">
                                                 <p>Êtes-vous sûr de vouloir supprimer ce document ?</p>
                                             </div>
-                                            <div class="modal-footer" style="background: aliceblue;padding: 5px;">
+                                            <div class="modal-footer bg-body-tertiary" style="padding: 5px;">
                                                 <a class="btn btn-primary"
                                                    style="border-radius: 50px;font-size: 15px;line-height: 1;padding: 5px 8px 7px;"
                                                    th:href="@{/bo/tenant/delete/document/} + ${document.getId()}"
                                                    th:id="'deleteRef' + ${document.getId()}">
                                                     Oui
                                                 </a>
-                                                <button class="btn btn-secondary" data-dismiss="modal"
+                                                <button class="btn btn-secondary" data-bs-dismiss="modal"
                                                         style="border-radius: 50px;font-size: 15px;line-height: 1;padding: 5px 8px 7px;"
                                                         type="button">
                                                     Annuler
@@ -780,55 +810,54 @@
                         <h3 th:unless="${tenant.getGuarantors().isEmpty()}">Garants</h3>
                         <div class="medium-space-separator" th:each="guarantor : ${tenant.getGuarantors()}">
                             <span style="display: ruby-text;">
-                                <h4 th:text="${guarantor.getTypeGuarantor()}"></h4>
+                                <div th:text="${guarantor.getTypeGuarantor()}"></div>
                                 <a class="btn btn-danger bo-btn btn-deleteGuarantor"
                                    style="margin-right: 10px; margin-left: 20px; margin-top: -5px"
                                    th:attr="guarantor-id=${guarantor.getId()}"
                                    th:text="'Supprimer le garant'"
                                 ></a>
                             </span>
-                            <div class="panel panel-primary"
+                            <div class="card panel-primary mb-3"
                                  th:each="document : ${tenantService.getAllDocumentCategoriesGuarantor(guarantor)}">
-                                <div class="panel-heading">
-                                    <h4 class="panel-title" th:if="${ document.getId() == null }">
+                                <div class="card-header">
+                                    <div class="card-title" th:if="${ document.getId() == null }">
                                         <span>Category:
-                                            <span style="color:black"
+                                            <span
                                                   th:text="${document.getDocumentCategory().name()}">
                                             </span>
                                         </span>
-                                    </h4>
+                                    </div>
 
-                                    <h4 class="panel-title"
-                                        th:if="${document.getId() != null} and ${document.getWatermarkFile() == null}">
+                                    <div class="card-title"
+                                         th:if="${document.getId() != null} and ${document.getWatermarkFile() == null}">
                                         <span>Category:
-                                            <span style="color:black"
+                                            <span
                                                   th:text="${document.getDocumentCategory().name()}">
                                             </span>
                                         </span>
                                         <span> Subcategory:
-                                            <span style="color:black"
+                                            <span
                                                   th:text="${document.getDocumentSubCategory().name()}">
                                             </span>
                                         </span>
 
-                                        <a class="btn-danger btn-right-pull label pull-right deleteButton"
-                                           style="margin-right: -5px;color: black;background-color: #f0ad4e"
+                                        <a class="btn btn-sm btn-warning btn-right-pull pull-right deleteButton badge bg-warning text-dark"
                                            th:attrappend="data-id=${document.id}"
 
                                            th:href="@{/bo/tenant/delete/document/} + ${document.getId()}"
                                         >DELETE
                                         </a>
 
-                                        <span class="btn-right-pull label label-success pull-right"
+                                        <span class="btn-right-pull badge bg-success pull-right"
                                               style="color: black;"
                                               th:if="${document.getDocumentStatus().name()=='VALIDATED'}"
                                               th:text="${document.getDocumentStatus()}">
                                         </span>
-                                        <span class="btn-right-pull label label-danger pull-right" style="color: black;"
+                                        <span class="btn-right-pull badge bg-danger pull-right" style="color: black;"
                                               th:if="${document.getDocumentStatus().name()=='DECLINED'}"
                                               th:text="${document.getDocumentStatus()}">
                                         </span>
-                                        <span class="btn-right-pull label label-info pull-right" style="color: black;"
+                                        <span class="btn-right-pull badge bg-info pull-right" style="color: black;"
                                               th:if="${document.getDocumentStatus().name()=='TO_PROCESS'}"
                                               th:text="${document.getDocumentStatus()}">
                                         </span>
@@ -836,23 +865,23 @@
                                         <div class="container" style="margin-top: 5px; padding-left: 0">
                                             PDF status:
                                             <span th:if="${document.getLastModifiedDate() == null || document.getLastModifiedDate().plusMinutes(30).isBefore(now)}"
-                                                style="color:white; background-color: red; font-weight: bolder">
+                                                  style="color:white; background-color: red; font-weight: bolder">
                                                     FAILED
                                             </span>
                                             <span th:unless="${document.getLastModifiedDate() == null || document.getLastModifiedDate().plusMinutes(30).isBefore(now)}"
-                                              style="color:white; background-color: orange; font-weight: bolder">
+                                                  style="color:white; background-color: orange; font-weight: bolder">
                                                     IN_PROGRESS
                                             </span>
 
-                                            <button th:class="'btn-regenerate-pdf'">
-                                                <a th:href="@{/bo/regeneratePdfDocument/} + ${document.getId()}">Update PDF</a>
-                                            </button>
+                                            <a class="btn btn-secondary btn-sm ms-2"
+                                               th:href="@{/bo/regeneratePdfDocument/} + ${document.getId()}">Update
+                                                PDF</a>
 
                                         </div>
-                                    </h4>
+                                    </div>
 
-                                    <h4 class="panel-title"
-                                        th:if="${ document.getId() != null} and ${document.getWatermarkFile() != null}">
+                                    <div class="card-title"
+                                         th:if="${ document.getId() != null} and ${document.getWatermarkFile() != null}">
                                         <span>Category:
                                             <span
                                                     th:text="${document.getDocumentCategory().name()}">
@@ -864,24 +893,23 @@
                                             </span>
                                         </span>
 
-                                        <a class="btn-danger btn-right-pull label pull-right deleteButton"
-                                           style="margin-right: -5px;color: black;background-color: #f0ad4e"
+                                        <a class="btn btn-sm btn-warning btn-right-pull pull-right deleteButton badge bg-warning text-dark"
                                            th:attrappend="data-id=${document.id}"
 
                                            th:href="@{/bo/tenant/delete/document/} + ${document.getId()}"
                                         >DELETE
                                         </a>
 
-                                        <span class="btn-right-pull label label-success pull-right"
+                                        <span class="btn-right-pull badge bg-success pull-right"
                                               style="color: black;"
                                               th:if="${document.getDocumentStatus().name()=='VALIDATED'}"
                                               th:text="${document.getDocumentStatus()}">
                                         </span>
-                                        <span class="btn-right-pull label label-danger pull-right" style="color: black;"
+                                        <span class="btn-right-pull badge bg-danger pull-right" style="color: black;"
                                               th:if="${document.getDocumentStatus().name()=='DECLINED'}"
                                               th:text="${document.getDocumentStatus()}">
                                         </span>
-                                        <span class="btn-right-pull label label-info pull-right" style="color: black;"
+                                        <span class="btn-right-pull badge bg-info pull-right" style="color: black;"
                                               th:if="${document.getDocumentStatus().name()=='TO_PROCESS'}"
                                               th:text="${document.getDocumentStatus()}">
                                         </span>
@@ -894,7 +922,7 @@
                                                 <label for="action1"
                                                        style="FONT-SIZE:revert;color: white;">Change status:</label>
                                                 <select id="action1" name="action"
-                                                        style="color: black;font-size: smaller;"
+                                                        style="font-size: smaller;"
                                                         th:attr="document-id=${document.getId()}"
                                                         th:class="'select-change-document-status'"
                                                         th:field="*{message}">
@@ -905,23 +933,22 @@
                                                 </select>
                                             </form>
 
-                                            <button th:class="'btn-regenerate-pdf'">
-                                                <a th:href="@{/bo/regeneratePdfDocument/} + ${document.getId()}">Update
-                                                    Document PDF</a>
-                                            </button>
+                                            <a class="btn btn-light btn-sm ms-2"
+                                               th:href="@{/bo/regeneratePdfDocument/} + ${document.getId()}">Update
+                                                Document PDF</a>
 
                                             <a style="font-size: smaller;margin-top: 9px;border-radius: .15em; margin-left: 2%; margin-bottom: auto;background: #efefef;padding: 1.5px;border-width: 2px;"
                                                th:href="${'/documents/'+ document.getName()}">See
                                                 PDF Document</a>
                                         </div>
-                                    </h4>
+                                    </div>
 
                                 </div>
-                                <div class="panel-body" style="text-align: -webkit-center;background: #f0be4e"
+                                <div class="card-body" style="text-align: -webkit-center;background: #f0be4e"
                                      th:if="${document.getId() == null}">
-                                    <h4 style="font-weight: bold;">ABSENT</h4>
+                                    <div style="font-weight: bold;">ABSENT</div>
                                 </div>
-                                <div class="panel-body" th:if="${document.getId() != null}">
+                                <div class="card-body" th:if="${document.getId() != null}">
                                     <div th:if="${document.getMonthlySum()!=null}">
                                         <span th:text="${'Montly sum: '+document.getMonthlySum()}"></span>
                                     </div>
@@ -929,13 +956,16 @@
                                         <span th:text="${'Custom text: '+document.getCustomText()}"></span>
                                     </div>
                                     <ul>
-                                        <li style="margin-top: 5px" th:each="file : ${filesByDocument.get(document.getId())}">
+                                        <li style="margin-top: 5px"
+                                            th:each="file : ${filesByDocument.get(document.getId())}">
                                             <a th:href="${'/files/' + file.getId()}"
                                                th:text="${file.summary}"></a>
                                             <span th:if="${file.hasBeenAnalyzed()}" th:with="analysis=${file.analysis}">
-                                                <span class="fa" th:classappend="${analysis.authenticationStatusCssClass}"
+                                                <span class="fa"
+                                                      th:classappend="${analysis.authenticationStatusCssClass}"
                                                       th:text="' ' + ${analysis.authenticationStatus}"></span>
-                                                <span class="fa fa-times text-danger" th:if="${analysis.isInWrongCategory}"
+                                                <span class="fa fa-times text-danger"
+                                                      th:if="${analysis.isInWrongCategory}"
                                                 > Mauvaise catégorie</span>
                                                 <br/>
                                                 <span class="small" th:if="${analysis.isNotAuthenticated}">
@@ -946,10 +976,12 @@
                                         </li>
                                     </ul>
                                     <div th:if="${document.getDocumentAnalysisReport()!=null}">
-                                        <hr/>Statut de la vérification automatique:
+                                        <hr/>
+                                        Statut de la vérification automatique:
                                         <span th:text="${document.getDocumentAnalysisReport().getAnalysisStatus}"></span>
                                         <ul>
-                                            <li style="margin-top: 5px" th:each="rule : ${document.getDocumentAnalysisReport().getBrokenRules()}">
+                                            <li style="margin-top: 5px"
+                                                th:each="rule : ${document.getDocumentAnalysisReport().getBrokenRules()}">
                                                 <span style="font-size:smaller" th:text="' ' + ${rule.message}"></span>
                                             </li>
                                         </ul>
@@ -961,25 +993,23 @@
                                 <div class="modal" role="dialog" tabindex="-1"
                                      th:id="'deleteModal'+${document.getId()}">
                                     <div class="modal-dialog" role="document">
-                                        <div class="modal-content">
-                                            <div class="modal-header" style="background: lavender;padding: 10px;">
+                                        <div class="modal-content bg-info-subtle">
+                                            <div class="modal-header" style="padding: 10px;">
                                                 <h5 class="modal-title bold" style="width: 80%;float: left;">Confirm
                                                     delete</h5>
-                                                <button aria-label="Close" class="close" data-dismiss="modal"
-                                                        type="button">
-                                                    <span aria-hidden="true">&times;</span>
-                                                </button>
+                                                <button aria-label="Close" class="btn-close" data-bs-dismiss="modal"
+                                                        type="button"></button>
                                             </div>
-                                            <div class="modal-body"
-                                                 style="background: aliceblue;text-shadow: 0 0 black;">
+                                            <div class="modal-body bg-body-tertiary"
+                                                 style="text-shadow: 0 0 black;">
                                                 <p>Are you sure you want delete this document ?</p>
                                             </div>
-                                            <div class="modal-footer" style="background: aliceblue;padding: 5px;">
+                                            <div class="modal-footer bg-body-tertiary" style="padding: 5px;">
                                                 <a class="btn btn-primary"
                                                    style="border-radius: 50px;font-size: 15px;line-height: 1;padding: 5px 8px 7px;"
                                                    th:href="@{/bo/tenant/delete/document/} + ${document.getId()}"
                                                    th:id="'deleteRef' + ${document.getId()}">Delete</a>
-                                                <button class="btn btn-secondary" data-dismiss="modal"
+                                                <button class="btn btn-secondary" data-bs-dismiss="modal"
                                                         style="border-radius: 50px;font-size: 15px;line-height: 1;padding: 5px 8px 7px;"
                                                         type="button">
                                                     Close
@@ -991,24 +1021,22 @@
                                 <div class="modal" role="dialog" tabindex="-1"
                                      th:id="'modalDeleteGuarantor-'+${guarantor.getId()}">
                                     <div class="modal-dialog" role="guarantor">
-                                        <div class="modal-content">
-                                            <div class="modal-header" style="background: lavender;padding: 10px;">
+                                        <div class="modal-content bg-info-subtle">
+                                            <div class="modal-header" style="padding: 10px;">
                                                 <h5 class="modal-title bold" style="width: 80%;float: left;">Confirm
                                                     delete</h5>
-                                                <button aria-label="Close" class="close" data-dismiss="modal"
-                                                        type="button">
-                                                    <span aria-hidden="true">&times;</span>
-                                                </button>
+                                                <button aria-label="Close" class="btn-close" data-bs-dismiss="modal"
+                                                        type="button"></button>
                                             </div>
-                                            <div class="modal-body"
-                                                 style="background: aliceblue;text-shadow: 0 0 black;">
+                                            <div class="modal-body bg-body-tertiary"
+                                                 style="text-shadow: 0 0 black;">
                                                 <p>Are you sure you want delete this guarantor ?</p>
                                             </div>
-                                            <div class="modal-footer" style="background: aliceblue;padding: 5px;">
+                                            <div class="modal-footer bg-body-tertiary" style="padding: 5px;">
                                                 <a class="btn btn-primary"
                                                    style="border-radius: 50px;font-size: 15px;line-height: 1;padding: 5px 8px 7px;"
                                                    th:href="@{/bo/tenant/delete/guarantor/} + ${guarantor.getId()}">Delete</a>
-                                                <button class="btn btn-secondary" data-dismiss="modal"
+                                                <button class="btn btn-secondary" data-bs-dismiss="modal"
                                                         style="border-radius: 50px;font-size: 15px;line-height: 1;padding: 5px 8px 7px;"
                                                         type="button">
                                                     Close

@@ -4,10 +4,10 @@
     <div th:fragments="user-api-form">
         <form enctype="multipart/form-data" th:action="@{/bo/userApi} + ${userApiDTO.getId() != null ? '/' + userApiDTO.getId() : ''}" th:method="post" th:object="${userApiDTO}">
             <div class="row">
-                <div class="form-group col-md-6">
+                <div class="mb-3 col-md-6">
                     <img height="40px" alt="" th:src="*{logoUrl}" />
                 </div>
-                <div class="form-group col-md-6">
+                <div class="mb-3 col-md-6">
                     <input type="text" id="logoUrl"
                            th:field="*{logoUrl}"
                            class="form-control form-control-formatted form-control-untouched"
@@ -17,7 +17,7 @@
                 </div>
             </div>
             <div class="row">
-                <div class="form-group col-md-6">
+                <div class="mb-3 col-md-6">
                     <input required="required" type="text" id="name"
                            th:field="*{name}"
                            class="form-control form-control-formatted form-control-untouched"
@@ -25,7 +25,7 @@
                     <span class="help-block color--error" th:errors="*{name}"
                           th:if="${#fields.hasErrors('name')}"></span>
                 </div>
-                <div class="form-group col-md-6">
+                <div class="mb-3 col-md-6">
                     <input type="text" id="name2"
                            th:field="*{name2}"
                            class="form-control form-control-formatted form-control-untouched"
@@ -35,7 +35,7 @@
                 </div>
             </div>
             <div class="row">
-                <div class="form-group col-md-6">
+                <div class="mb-3 col-md-6">
                     <input type="url" autocomplete="off"
                            th:field="*{site}"
                            class="form-control form-control-formatted form-control-untouched"
@@ -43,7 +43,7 @@
                     <span class="help-block color--error" th:errors="*{site}"
                           th:if="${#fields.hasErrors('site')}"></span>
                 </div>
-                <div class="form-group col-md-6">
+                <div class="mb-3 col-md-6">
                     <input type="email" id="email"
                            th:field="*{email}"
                            class="form-control form-control-formatted form-control-untouched"
@@ -53,7 +53,7 @@
                 </div>
             </div>
             <div class="row">
-                <div class="form-group col-md-6">
+                <div class="mb-3 col-md-6">
                     <input type="url" id="urlCallback" autocomplete="off"
                            th:field="*{urlCallback}"
                            class="form-control form-control-formatted form-control-untouched"
@@ -61,7 +61,7 @@
                     <span class="help-block color--error" th:errors="*{urlCallback}"
                           th:if="${#fields.hasErrors('urlCallback')}"></span>
                 </div>
-                <div class="form-group col-md-6">
+                <div class="mb-3 col-md-6">
                     <input autocomplete="off" class="form-control form-control-formatted form-control-untouched"
                            placeholder="partnerApiKeyCallback"
                            th:field="*{partnerApiKeyCallback}"
@@ -71,7 +71,7 @@
                 </div>
             </div>
             <div class="row">
-                <div class="form-group col-md-6">
+                <div class="mb-3 col-md-6">
                     <input required="required" autocomplete="off" class="form-control form-control-formatted form-control-untouched"
                            placeholder="version"
                            th:field="*{version}"
@@ -79,11 +79,11 @@
                     <span class="help-block color--error" th:errors="*{version}"
                           th:if="${#fields.hasErrors('version')}"></span>
                 </div>
-                <div class="form-group col-md-6">
+                <div class="mb-3 col-md-6">
                 </div>
             </div>
             <div class="row">
-                <div class="form-group col-md-6">
+                <div class="mb-3 col-md-6">
                     <input autocomplete="off" class="form-control form-control-formatted form-control-untouched"
                            placeholder="welcomeUrl"
                            th:field="*{welcomeUrl}"
@@ -91,7 +91,7 @@
                     <span class="help-block color--error" th:errors="*{welcomeUrl}"
                           th:if="${#fields.hasErrors('welcomeUrl')}"></span>
                 </div>
-                <div class="form-group col-md-6">
+                <div class="mb-3 col-md-6">
                     <input autocomplete="off" class="form-control form-control-formatted form-control-untouched"
                            placeholder="completedUrl"
                            th:field="*{completedUrl}"
@@ -101,7 +101,7 @@
                 </div>
             </div>
             <div class="row">
-                <div class="form-group col-md-6">
+                <div class="mb-3 col-md-6">
                     <input autocomplete="off" class="form-control form-control-formatted form-control-untouched"
                            placeholder="validatedUrl"
                            th:field="*{validatedUrl}"
@@ -109,7 +109,7 @@
                     <span class="help-block color--error" th:errors="*{validatedUrl}"
                           th:if="${#fields.hasErrors('validatedUrl')}"></span>
                 </div>
-                <div class="form-group col-md-6">
+                <div class="mb-3 col-md-6">
                     <input autocomplete="off" class="form-control form-control-formatted form-control-untouched"
                            placeholder="deniedUrl"
                            th:field="*{deniedUrl}"
@@ -119,7 +119,7 @@
                 </div>
             </div>
             <div class="row">
-                <div class="form-group col-md-6">
+                <div class="mb-3 col-md-6">
                     <div>
                     <input autocomplete="off"
                            th:field="*{disabled}"
@@ -128,7 +128,7 @@
                     <span class="help-block color--error" th:errors="*{disabled}"
                           th:if="${#fields.hasErrors('disabled')}"></span>
                 </div>
-                <div class="form-group col-md-6">
+                <div class="mb-3 col-md-6">
                 </div>
             </div>
             <div class="row">

@@ -1,25 +1,6 @@
 
-* {
-    line-height: 1;
-}
-
 p {
     line-height: 1.5;
-}
-
-body {
-    padding: 0;
-    margin: 0;
-    height: 100%;
-    width: 100%;
-    background-color: #eeeeee;
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-    font-size: 16px;
-    color: #333333;
-}
-html[data-fr-theme="dark"] body {
-    background-color: #454545;
-    color: #ababab;
 }
 
 .logo {
@@ -28,6 +9,7 @@ html[data-fr-theme="dark"] body {
     background-repeat: no-repeat;
     min-height:38px;
     min-width: 250px;
+    max-width: 300px;
 }
 html[data-fr-theme="dark"] .logo{
     background-image: url('/assets/images/logo-dark.png');
@@ -49,15 +31,11 @@ html[data-fr-theme="dark"] .table-hover > tbody > tr:hover {
   color: #666666;
 }
 
-.panel {
+/*
+.card {
     background-color: inherit;
 }
-.btn {
-    border-radius: 50px;
-    padding: 10px 50px 12px;
-    font-size: 24px;
-    line-height: 1;
-}
+*/
 
 @media (max-width: 700px) {
     .btn-responsive {
@@ -154,11 +132,11 @@ html[data-fr-theme="dark"] .table-hover > tbody > tr:hover {
 }
 
 
-html[data-fr-theme="dark"] .bg-white {
+html[data-fr-theme="dark"] .header-bg {
     background-color: black;
 }
 
-.bg-white {
+.header-bg {
     background-color: white;
 }
 
@@ -285,12 +263,6 @@ textarea {
     line-height: 1.5;
 }
 
-input, select.rounded-select {
-    border: 1px solid #003189 !important;
-    padding-left: 20px !important;
-    padding-right: 20px;
-}
-
 input.form-control {
     height: 40px;
 }
@@ -321,10 +293,12 @@ input.form-control {
     color: #b6caee;
 }
 
+/*
 label {
     color: #003189;
     opacity: 0.8;
 }
+*/
 
 .formatted-label {
     padding-left: 20px;
@@ -431,11 +405,6 @@ input::-webkit-inner-spin-button {
     margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
 }
 
-#chat-page {
-    position: relative;
-    height: 100%;
-}
-
 .chat-page-user {
     width: 75%;
 }
@@ -451,7 +420,6 @@ input::-webkit-inner-spin-button {
 
 #chat-page ul {
     list-style-type: none;
-    background-color: #FFF;
     margin: 0;
     overflow: auto;
     overflow-y: scroll;
@@ -467,7 +435,10 @@ input::-webkit-inner-spin-button {
     line-height: 1.5rem;
     padding: 10px 20px;
     margin: 0;
-    border-bottom: 1px solid #f4f4f4;
+}
+
+ul.customMessage li:not(:last-child) {
+    border-bottom: 1px solid var(--bs-secondary-bg-subtle);
 }
 
 #chat-page ul li p {
@@ -487,12 +458,10 @@ input::-webkit-inner-spin-button {
 }
 
 #chat-page .chat-message {
-    /*padding-left: 68px;*/
     position: relative;
 }
 
 #chat-page .chat-message i {
-    /*position: absolute;*/
     width: 42px;
     height: 42px;
     overflow: hidden;
@@ -501,7 +470,6 @@ input::-webkit-inner-spin-button {
     vertical-align: middle;
     font-size: 18px;
     line-height: 42px;
-    color: #fff;
     text-align: center;
     border-radius: 50%;
     font-style: normal;
@@ -509,12 +477,7 @@ input::-webkit-inner-spin-button {
 }
 
 #chat-page .chat-message span {
-    color: #333;
     font-weight: 600;
-}
-
-#chat-page .chat-message p {
-    color: #43464b;
 }
 
 #messageForm .input-group input {
@@ -563,6 +526,7 @@ input::-webkit-inner-spin-button {
 .customMessage {
     height: auto !important;
     overflow-y: hidden !important;
+    background-color: var(--bs-light-bg-subtle);
 }
 
 .message-you {
@@ -579,14 +543,14 @@ input::-webkit-inner-spin-button {
     width: 100%;
     margin-left: 2rem;
     text-align: left;
-    font-size: 12px;
+    font-size: 1rem;
 }
 
 .container-message {
     width: 100%;
     margin-left: 2rem;
     text-align: left;
-    font-size: 12px;
+    font-size: 1rem;
 }
 
 .title-header-you {
@@ -597,26 +561,15 @@ input::-webkit-inner-spin-button {
 .date-you {
     text-align: right;
     font-style: normal;
-    color: #062218;
 }
 .date-you-two {
     text-align: right;
     font-style: normal;
-    color: #062218;
-
 }
 
 .title-header {
-    margin-bottom: 20px;
+    margin-bottom: 1rem;
     padding-left: revert;
-}
-
-.letter-bo{
-    color: #000000;
-}
-
-.content-you {
-
 }
 
 .message-admin {
@@ -674,7 +627,6 @@ form-search{}
 .search {
     display: flex;
     background: #f2f2f2;
-    margin-left: 350px;
 }
 
 .searchTerm {
@@ -717,24 +669,4 @@ html[data-fr-theme="dark"] .searchTerm:focus {
 
 .btn-right-pull{
     margin-right: 5px;
-}
-.text-area-bo{
-    border-image: none;
-    border-radius: 6px 6px 6px 6px;
-    border-style: none none solid none;
-    border-width: medium 1px 1px medium;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12) inset;
-    font-size: 1em;
-    line-height: 1.4em;
-    padding: 5px 8px;
-    transition: background-color 0.2s ease 0s;
-    background: none repeat scroll 0 0 rgba(0, 0, 0, 0.07);
-}
-
-.btn-regenerate-pdf {
-    color: black;
-    font-size: smaller;
-    font-weight: normal;
-    margin-left: 2%;
-    margin-top: 7px;
 }

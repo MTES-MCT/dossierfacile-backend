@@ -7,45 +7,46 @@
 <div th:fragment="message" th:remove="tag">
     <div class="container">
         <div id="chat-page">
-            <div class="chat-container" style="background: aliceblue;">
+            <div class="chat-container bg-primary-subtle">
                 <div class="row hidden-xs">
                     <div class="col-md-12">
                         <ul th:id="'messageArea' + ${tenant.getId()}" style="height: 500px;margin-top:10px;
-                            margin-bottom:5px;border-radius: 5px;">
+                            margin-bottom:5px;border-radius: 5px;" class="bg-light-subtle">
                             <li class="chat-message"
-                                th:each="message: ${messages}" th:style="${message.getFromUser()==null}?'background: #f8f8f8;border-radius: 10px;margin-top:10px;margin-bottom:10px;' : 'background: #77777738;border-radius: 10px;margin-top:10px;margin-bottom:10px;'"
+                                style="border-radius: 10px;margin-top:10px;margin-bottom:10px;"
+                                th:each="message: ${messages}" th:classappend="${message.getFromUser()==null}?'bg-secondary-subtle':'bg-dark-subtle'"
                             >
                                 <div th:if="${message.getFromUser()==null}" class="message-you" >
-                                    <div class="avatar">
+                                    <div class="avatar text-light">
                                         <i style="background-color: rgb(87 91 95);">M</i>
                                     </div>
-                                    <div class="container-message-you">
+                                    <div class="container-message-you row">
                                         <div class="title-header col-md-10">
                                             DossierFacile
                                         </div>
-                                        <div class="date-you"
+                                        <div class="date-you col-md-2"
                                              th:text="${#temporals.format(message.getCreationDateTime(), 'dd/MM HH:mm')}">
                                         </div>
-                                        <div class="content-you letter-bo bold">
-                                            <p style="margin-top: 20px;margin-bottom: 5px" th:utext="${message.getMessageBody()}"></p>
+                                        <div class="col-md-12 content-you">
+                                            <p th:utext="${message.getMessageBody()}"></p>
                                         </div>
                                     </div>
                                 </div>
                                 <div th:if="${message.getFromUser()!=null}" class="message">
-                                    <div class="avatar">
+                                    <div class="avatar text-light">
                                         <i style="background-color: rgb(183 175 175);"
                                            th:text="${tenant.getFirstName() != null && !tenant.getFirstName().isBlank() ? tenant.getFirstName().charAt(0) : 'U'}">
                                         </i>
                                     </div>
-                                    <div class="container-message">
+                                    <div class="container-message row">
                                         <div class="title-header col-md-10">
                                             <span th:text="${tenant.getFullName()}">User</span>
                                         </div>
-                                        <div class="date-you-two"
+                                        <div class="col-md-2 date-you-two"
                                              th:text="${#temporals.format(message.getCreationDateTime(), 'dd/MM HH:mm')}">
                                         </div>
-                                        <div class="content letter-bo bold">
-                                            <p style="margin-top: 20px;margin-bottom: 5px" th:utext="${message.getMessageBody()}"></p>
+                                        <div class="content col-md-12">
+                                            <p th:utext="${message.getMessageBody()}"></p>
                                         </div>
                                     </div>
                                 </div>
@@ -63,7 +64,7 @@
                                       th:id="'message'+${tenant.id}"
                                       th:field="*{message}"
                                       lang="fr"
-                                      class="form-control text-area-bo" style="height: 170px;">
+                                      class="form-control" style="height: 200px;">
                             </textarea>
                             <button id="formChat" type="submit"
                                     class="btn btn-primary bo-btn"
