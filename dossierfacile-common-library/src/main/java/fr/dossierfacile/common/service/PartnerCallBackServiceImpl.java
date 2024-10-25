@@ -103,6 +103,7 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
     }
 
     @Override
+    @Transactional
     public void sendCallBack(List<Tenant> tenantList, PartnerCallBackType partnerCallBackType) {
         if (tenantList != null && !tenantList.isEmpty()) {
             tenantList.forEach(t -> sendCallBack(t, partnerCallBackType));
