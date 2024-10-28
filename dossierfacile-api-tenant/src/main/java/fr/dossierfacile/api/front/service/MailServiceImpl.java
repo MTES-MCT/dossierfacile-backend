@@ -35,7 +35,6 @@ import static fr.dossierfacile.common.enums.ApplicationType.GROUP;
 @Slf4j
 public class MailServiceImpl implements MailService {
     private static final String TENANT_BASE_URL_KEY = "tenantBaseUrl";
-    private static final String TENANT_BASE_URL_KEY_DEPRECATED = "sendinBlueUrlDomain";
     private final TransactionalEmailsApi apiInstance;
     @Value("${tenant.base.url}")
     private String tenantBaseUrl;
@@ -122,7 +121,6 @@ public class MailServiceImpl implements MailService {
         Map<String, String> variables = new HashMap<>();
         variables.put("confirmToken", confirmationToken.getToken());
         variables.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
-        variables.put(TENANT_BASE_URL_KEY_DEPRECATED, tenantBaseUrl.replaceAll("https?://", ""));
 
         sendEmailToTenant(user, variables, templateIDWelcome);
     }
@@ -133,7 +131,6 @@ public class MailServiceImpl implements MailService {
         variables.put("newPasswordToken", passwordRecoveryToken.getToken());
         variables.put("PRENOM", user.getFirstName());
         variables.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
-        variables.put(TENANT_BASE_URL_KEY_DEPRECATED, tenantBaseUrl.replaceAll("https?://", ""));
 
         sendEmailToTenant(user, variables, templateIdNewPassword);
     }
@@ -146,7 +143,6 @@ public class MailServiceImpl implements MailService {
         variables.put("PRENOM", flatmate.getFirstName());
         variables.put("confirmToken", passwordRecoveryToken.getToken());
         variables.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
-        variables.put(TENANT_BASE_URL_KEY_DEPRECATED, tenantBaseUrl.replaceAll("https?://", ""));
         if (applicationType == GROUP) {
             variables.put("NOM", Strings.isNullOrEmpty(flatmate.getPreferredName()) ? flatmate.getLastName() : flatmate.getPreferredName());
             templateId = templateIdGroupApplication;
@@ -181,7 +177,6 @@ public class MailServiceImpl implements MailService {
             sendEmailToTenant(tenant, variables, templateIdAccountCompletedWithPartner);
         } else {
             variables.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
-            variables.put(TENANT_BASE_URL_KEY_DEPRECATED, tenantBaseUrl.replaceAll("https?://", ""));
             sendEmailToTenant(tenant, variables, templateIdAccountCompleted);
         }
     }
@@ -193,7 +188,6 @@ public class MailServiceImpl implements MailService {
         variables.put("NOM", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
         variables.put("confirmToken", confirmationToken.getToken());
         variables.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
-        variables.put(TENANT_BASE_URL_KEY_DEPRECATED, tenantBaseUrl.replaceAll("https?://", ""));
 
         sendEmailToTenant(user, variables, templateEmailWhenEmailAccountNotYetValidated);
     }
@@ -204,7 +198,6 @@ public class MailServiceImpl implements MailService {
         variables.put("PRENOM", user.getFirstName());
         variables.put("NOM", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
         variables.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
-        variables.put(TENANT_BASE_URL_KEY_DEPRECATED, tenantBaseUrl.replaceAll("https?://", ""));
 
         sendEmailToTenant(user, variables, templateEmailWhenAccountNotYetCompleted);
     }
@@ -215,7 +208,6 @@ public class MailServiceImpl implements MailService {
         variables.put("PRENOM", user.getFirstName());
         variables.put("NOM", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
         variables.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
-        variables.put(TENANT_BASE_URL_KEY_DEPRECATED, tenantBaseUrl.replaceAll("https?://", ""));
 
         sendEmailToTenant(user, variables, templateEmailWhenAccountIsStillDeclined);
     }
@@ -224,7 +216,6 @@ public class MailServiceImpl implements MailService {
     public void sendEmailWhenTenantNOTAssociatedToPartnersAndValidatedXDaysAgo(User user) {
         Map<String, String> variables = new HashMap<>();
         variables.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
-        variables.put(TENANT_BASE_URL_KEY_DEPRECATED, tenantBaseUrl.replaceAll("https?://", ""));
 
         sendEmailToTenant(user, variables, templateEmailWhenTenantNOTAssociatedToPartnersAndValidated);
     }
@@ -233,8 +224,6 @@ public class MailServiceImpl implements MailService {
     public void sendEmailWhenTenantYESAssociatedToPartnersAndValidatedXDaysAgo(User user) {
         Map<String, String> variables = new HashMap<>();
         variables.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
-        variables.put(TENANT_BASE_URL_KEY_DEPRECATED, tenantBaseUrl.replaceAll("https?://", ""));
-
         sendEmailToTenant(user, variables, templateEmailWhenTenantYESAssociatedToPartnersAndValidated);
     }
 
