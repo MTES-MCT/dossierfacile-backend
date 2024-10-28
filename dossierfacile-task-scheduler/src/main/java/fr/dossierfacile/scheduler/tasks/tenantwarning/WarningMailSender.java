@@ -25,7 +25,6 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 public class WarningMailSender {
 
     private static final String TENANT_BASE_URL_KEY = "tenantBaseUrl";
-    private static final String TENANT_BASE_URL_KEY_DEPRECATED = "sendinBlueUrlDomain";
     private static final String OWNER_BASE_URL_KEY = "ownerBaseUrl";
 
     private final TransactionalEmailsApi apiInstance;
@@ -66,7 +65,6 @@ public class WarningMailSender {
         variables.put("NOM", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
         variables.put("confirmToken", confirmationToken.getToken());
         variables.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
-        variables.put(TENANT_BASE_URL_KEY_DEPRECATED, tenantBaseUrl.replaceAll("https?://", ""));
         sendWarningMail(user, templateId, variables);
     }
 
