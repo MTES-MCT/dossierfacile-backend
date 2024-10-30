@@ -21,11 +21,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.format.DateTimeFormatter;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 import static fr.dossierfacile.common.enums.ApplicationType.COUPLE;
 import static fr.dossierfacile.common.enums.ApplicationType.GROUP;
@@ -40,6 +36,8 @@ public class MailServiceImpl implements MailService {
     private String tenantBaseUrl;
     @Value("${email.support}")
     private String emailSupport;
+    @Value("${email.support.owner}")
+    private String emailSupportOwner;
     @Value("${brevo.template.id.welcome}")
     private Long templateIDWelcome;
     @Value("${brevo.template.id.welcome.partner}")
@@ -233,12 +231,16 @@ public class MailServiceImpl implements MailService {
         variables.put("firstname", form.getFirstname());
         variables.put("lastname", form.getLastname());
         variables.put("email", form.getEmail());
-        variables.put("profile", form.getProfile());
+        if (form.getProfile() != null) {
+            variables.put("profile", form.getProfile().name());
+        }
         variables.put("subject", form.getSubject());
         variables.put("message", form.getMessage());
 
         SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
-        sendSmtpEmailTo.setEmail(emailSupport);
+
+        String recipientEmail = (ContactForm.Profile.owner == form.getProfile()) ? emailSupportOwner : emailSupport;
+        sendSmtpEmailTo.setEmail(recipientEmail);
         sendSmtpEmailTo.setName("Support depuis formulaire");
 
         SendSmtpEmailReplyTo sendSmtpEmailReplyTo = new SendSmtpEmailReplyTo();

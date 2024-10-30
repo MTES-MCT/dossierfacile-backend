@@ -18,9 +18,12 @@ public class ContactForm {
     @JsonDeserialize(using = EmailDeserializer.class)
     String email;
     @NotEmpty
-    String profile;
+    Profile profile;
     @NotEmpty
     String subject;
     @NotEmpty
     String message;
+    public enum Profile {
+        tenant, owner
+    }
 }
