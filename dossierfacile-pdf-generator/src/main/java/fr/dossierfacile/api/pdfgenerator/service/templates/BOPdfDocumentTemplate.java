@@ -36,6 +36,7 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.PDPageTree;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
+import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
 import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.tools.imageio.ImageIOUtil;
@@ -130,7 +131,9 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
                     .map(bim -> applyWatermark(bim, watermarkToApply))
                     .forEach(bim -> addImageAsPageToDocument(document, bim));
 
+
             try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+                document.addSignature(new PDSignature());
                 document.save(baos);
                 return new ByteArrayInputStream(baos.toByteArray());
             }
