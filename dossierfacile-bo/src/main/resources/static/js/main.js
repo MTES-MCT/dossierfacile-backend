@@ -690,7 +690,7 @@ function changePageAndSize() {
         var url = $(this).attr("data-url");
         var encodedUrl = encodeURI(url);
         var pageSize = encodeURIComponent(this.value);
-        window.location.replace(encodedUrl + "?pageSize=" + pageSize + "&page=1");
+        window.location.replace(encodedUrl + "?pageSize=" + pageSize + "&page=0");
     });
 }
 
