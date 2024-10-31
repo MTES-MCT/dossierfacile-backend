@@ -18,6 +18,7 @@ import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
+import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
@@ -93,6 +94,7 @@ public class EmptyBOPdfDocumentTemplate implements PdfTemplate<Document> {
             Utility.addText(contentStream, width, startX, startY - 36, textElements.explanation, font, fontSize, alternativeFont);
 
             contentStream.close();
+            pdDocument.addSignature(new PDSignature());
             pdDocument.save(outputStream);
 
         } catch (IOException e) {

@@ -39,6 +39,7 @@ import org.apache.pdfbox.pdmodel.interactive.action.PDActionGoTo;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDBorderStyleDictionary;
+import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageFitWidthDestination;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDDocumentOutline;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineItem;
@@ -517,6 +518,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
                 layerUtility.wrapInSaveRestore(destPage);
                 layerUtility.appendFormAsLayer(destPage, innerPageAsForm, affineTransform, headerSentence);
 
+                document.addSignature(new PDSignature());
                 document.save(result);
             }
 
@@ -1373,6 +1375,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
              PDDocument originDocument = Loader.loadPDF(result.toByteArray())) {
 
             new PdfOptimizer().optimize(originDocument);
+            originDocument.addSignature(new PDSignature());
             originDocument.save(finalResult);
 
             return new ByteArrayInputStream(finalResult.toByteArray());
