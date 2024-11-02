@@ -41,7 +41,7 @@
     <description>Common library with all entities</description>
 
     <properties>
-        <imageio.version>3.10.1</imageio.version>
+        <imageio.version>3.12.0</imageio.version>
 
         <!--Libraries needed for OVH storage-->
         <openstack4j.version>3.11</openstack4j.version>
