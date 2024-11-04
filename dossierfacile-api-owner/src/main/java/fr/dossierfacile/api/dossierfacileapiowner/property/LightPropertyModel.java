@@ -34,4 +34,5 @@ public class LightPropertyModel {
     private Integer propertyApartmentSharingCount;
     private String ademeNumber;
     private ObjectNode ademeApiResult;
+    private Boolean dpeNotRequired;
 }

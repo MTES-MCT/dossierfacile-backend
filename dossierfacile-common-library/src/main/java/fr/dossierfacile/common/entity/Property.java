@@ -134,6 +134,9 @@ public class Property implements Serializable {
     @Nullable
     private Date dpeDate;
 
+    @Column
+    private Boolean dpeNotRequired;
+
     @Override
     public String toString() {
         return this.name;

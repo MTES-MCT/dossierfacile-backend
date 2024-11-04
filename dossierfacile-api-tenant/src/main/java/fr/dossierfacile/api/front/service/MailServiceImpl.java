@@ -21,10 +21,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.format.DateTimeFormatter;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static fr.dossierfacile.common.enums.ApplicationType.COUPLE;
 import static fr.dossierfacile.common.enums.ApplicationType.GROUP;
@@ -34,12 +31,13 @@ import static fr.dossierfacile.common.enums.ApplicationType.GROUP;
 @Slf4j
 public class MailServiceImpl implements MailService {
     private static final String TENANT_BASE_URL_KEY = "tenantBaseUrl";
-    private static final String TENANT_BASE_URL_KEY_DEPRECATED = "sendinBlueUrlDomain";
     private final TransactionalEmailsApi apiInstance;
     @Value("${tenant.base.url}")
     private String tenantBaseUrl;
     @Value("${email.support}")
     private String emailSupport;
+    @Value("${email.support.owner}")
+    private String emailSupportOwner;
     @Value("${brevo.template.id.welcome}")
     private Long templateIDWelcome;
     @Value("${brevo.template.id.welcome.partner}")
@@ -96,7 +94,9 @@ public class MailServiceImpl implements MailService {
         }
         SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
         sendSmtpEmail.templateId(templateId);
-        sendSmtpEmail.params(params);
+        if (params.values().stream().anyMatch(Objects::nonNull)) {
+            sendSmtpEmail.params(params);
+        }
         sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
 
         try {
@@ -119,7 +119,6 @@ public class MailServiceImpl implements MailService {
         Map<String, String> variables = new HashMap<>();
         variables.put("confirmToken", confirmationToken.getToken());
         variables.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
-        variables.put(TENANT_BASE_URL_KEY_DEPRECATED, tenantBaseUrl.replaceAll("https?://", ""));
 
         sendEmailToTenant(user, variables, templateIDWelcome);
     }
@@ -130,7 +129,6 @@ public class MailServiceImpl implements MailService {
         variables.put("newPasswordToken", passwordRecoveryToken.getToken());
         variables.put("PRENOM", user.getFirstName());
         variables.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
-        variables.put(TENANT_BASE_URL_KEY_DEPRECATED, tenantBaseUrl.replaceAll("https?://", ""));
 
         sendEmailToTenant(user, variables, templateIdNewPassword);
     }
@@ -143,7 +141,6 @@ public class MailServiceImpl implements MailService {
         variables.put("PRENOM", flatmate.getFirstName());
         variables.put("confirmToken", passwordRecoveryToken.getToken());
         variables.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
-        variables.put(TENANT_BASE_URL_KEY_DEPRECATED, tenantBaseUrl.replaceAll("https?://", ""));
         if (applicationType == GROUP) {
             variables.put("NOM", Strings.isNullOrEmpty(flatmate.getPreferredName()) ? flatmate.getLastName() : flatmate.getPreferredName());
             templateId = templateIdGroupApplication;
@@ -178,7 +175,6 @@ public class MailServiceImpl implements MailService {
             sendEmailToTenant(tenant, variables, templateIdAccountCompletedWithPartner);
         } else {
             variables.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
-            variables.put(TENANT_BASE_URL_KEY_DEPRECATED, tenantBaseUrl.replaceAll("https?://", ""));
             sendEmailToTenant(tenant, variables, templateIdAccountCompleted);
         }
     }
@@ -190,7 +186,6 @@ public class MailServiceImpl implements MailService {
         variables.put("NOM", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
         variables.put("confirmToken", confirmationToken.getToken());
         variables.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
-        variables.put(TENANT_BASE_URL_KEY_DEPRECATED, tenantBaseUrl.replaceAll("https?://", ""));
 
         sendEmailToTenant(user, variables, templateEmailWhenEmailAccountNotYetValidated);
     }
@@ -201,7 +196,6 @@ public class MailServiceImpl implements MailService {
         variables.put("PRENOM", user.getFirstName());
         variables.put("NOM", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
         variables.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
-        variables.put(TENANT_BASE_URL_KEY_DEPRECATED, tenantBaseUrl.replaceAll("https?://", ""));
 
         sendEmailToTenant(user, variables, templateEmailWhenAccountNotYetCompleted);
     }
@@ -212,7 +206,6 @@ public class MailServiceImpl implements MailService {
         variables.put("PRENOM", user.getFirstName());
         variables.put("NOM", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
         variables.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
-        variables.put(TENANT_BASE_URL_KEY_DEPRECATED, tenantBaseUrl.replaceAll("https?://", ""));
 
         sendEmailToTenant(user, variables, templateEmailWhenAccountIsStillDeclined);
     }
@@ -221,7 +214,6 @@ public class MailServiceImpl implements MailService {
     public void sendEmailWhenTenantNOTAssociatedToPartnersAndValidatedXDaysAgo(User user) {
         Map<String, String> variables = new HashMap<>();
         variables.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
-        variables.put(TENANT_BASE_URL_KEY_DEPRECATED, tenantBaseUrl.replaceAll("https?://", ""));
 
         sendEmailToTenant(user, variables, templateEmailWhenTenantNOTAssociatedToPartnersAndValidated);
     }
@@ -230,8 +222,6 @@ public class MailServiceImpl implements MailService {
     public void sendEmailWhenTenantYESAssociatedToPartnersAndValidatedXDaysAgo(User user) {
         Map<String, String> variables = new HashMap<>();
         variables.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
-        variables.put(TENANT_BASE_URL_KEY_DEPRECATED, tenantBaseUrl.replaceAll("https?://", ""));
-
         sendEmailToTenant(user, variables, templateEmailWhenTenantYESAssociatedToPartnersAndValidated);
     }
 
@@ -241,12 +231,16 @@ public class MailServiceImpl implements MailService {
         variables.put("firstname", form.getFirstname());
         variables.put("lastname", form.getLastname());
         variables.put("email", form.getEmail());
-        variables.put("profile", form.getProfile());
+        if (form.getProfile() != null) {
+            variables.put("profile", form.getProfile().name());
+        }
         variables.put("subject", form.getSubject());
         variables.put("message", form.getMessage());
 
         SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
-        sendSmtpEmailTo.setEmail(emailSupport);
+
+        String recipientEmail = (ContactForm.Profile.owner == form.getProfile()) ? emailSupportOwner : emailSupport;
+        sendSmtpEmailTo.setEmail(recipientEmail);
         sendSmtpEmailTo.setName("Support depuis formulaire");
 
         SendSmtpEmailReplyTo sendSmtpEmailReplyTo = new SendSmtpEmailReplyTo();

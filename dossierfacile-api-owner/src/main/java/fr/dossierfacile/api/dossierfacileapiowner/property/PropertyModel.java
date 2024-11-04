@@ -34,4 +34,5 @@ public class PropertyModel {
     private String dpeDate;
     private String ademeNumber;
     private ObjectNode ademeApiResult;
+    private Boolean dpeNotRequired;
 }

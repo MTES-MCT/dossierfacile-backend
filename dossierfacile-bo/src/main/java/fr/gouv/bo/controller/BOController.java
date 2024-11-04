@@ -177,7 +177,7 @@ public class BOController {
         BooleanDTO booleanDTO = new BooleanDTO();
         booleanDTO.setAlertValue(true);
         redirectAttributes.addFlashAttribute(SHOW_ALERT, booleanDTO);
-        return "redirect:/bo/regroup/";
+        return "redirect:/bo/regroup";
     }
 
 
