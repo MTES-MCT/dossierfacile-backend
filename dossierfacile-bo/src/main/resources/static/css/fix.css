@@ -1,26 +1,10 @@
-#tabs .nav-tabs > li.active > a {
-    background: lightgray;
-}
-
-@media (max-width: 991px) {
-
-    .footer_logo {
-        display: none;
-    }
-
-    .footer_content {
-        text-align: center;
-        font-size: 14px;
-    }
-}
 
 .fixed-header {
-    position: fixed;
+    position: sticky;
     left: 0;
     right: 0;
     top: 0;
-    height: 36px;
-    z-index: 500;
+    z-index: 50;
 }
 
 .fixed-header-link-container {
@@ -74,10 +58,6 @@
 
 .bold {
     font-weight: bold;
-}
-
-body {
-    margin-top: 73px;
 }
 
 .link-file {
@@ -197,16 +177,15 @@ body {
     cursor: pointer;
 }
 
-.nav-tabs > li > a,
-.nav-tabs > li > a:hover,
-.nav-tabs > li > a:focus {
-    background-color: lightgray;
+.nav-tabs .nav-link,
+.nav-tabs .nav-link:hover,
+.nav-tabs .nav-link:focus {
+    margin-right: 2px;
 }
 
-.nav-tabs > li.active > a,
-.nav-tabs > li.active > a:hover,
-.nav-tabs > li.active > a:focus {
-    background-color: rgb(212, 227, 252);
+.nav-tabs .nav-link.active,
+.nav-tabs .nav-link.active:hover,
+.nav-tabs .nav-link.active:focus {
     cursor: pointer;
 }
 
@@ -312,3 +291,31 @@ span.ocr-result {
     overflow: auto;
 }
 
+
+/* style from bootstrap 3 migration */
+.panel-primary > .card-header {
+  color: #fff;
+  background-color: #337ab7;
+  border-color: #337ab7;
+}
+
+.card-header {
+  padding: 5px 15px;
+  border-bottom: 1px solid transparent;
+  border-top-left-radius: 3px;
+  border-top-right-radius: 3px;
+}
+
+.form-check-input[type="checkbox"] {
+    width: 1.25rem;
+    height: 1.25rem;
+    margin-left: -1.75em;
+}
+
+.width--fit-content {
+    width: fit-content;
+}
+
+.w-600 {
+    max-width: 600px;
+}

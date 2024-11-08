@@ -47,15 +47,15 @@
                 <form th:method="post" th:action="*{'/bo/documentDeniedOptions'}"
                       th:object="${documentDeniedOption}">
                     <div>
-                        <label for="documentSubCategory">Type de document</label>
-                        <select name="documentSubCategory" id="documentSubCategory" class="form-control dropdown">
+                        <label for="documentSubCategory" class="form-label">Type de document</label>
+                        <select name="documentSubCategory" id="documentSubCategory" class="form-control form-select dropdown">
                             <option th:each="category : ${documentSubCategories}"
                                     th:value="${category}" th:text="${category}">
                             </option>
                         </select>
                     </div>
                     <div>
-                        <label for="documentUserType">Personne concernée</label>
+                        <label for="documentUserType" class="form-label">Personne concernée</label>
                         <select name="documentUserType" id="documentUserType" class="form-control dropdown">
                             <option th:each="type : ${documentUserTypes}"
                                     th:value="${type}" th:text="${type}">
@@ -63,7 +63,7 @@
                         </select>
                     </div>
                     <div>
-                        <label for="messageValue">Message</label>
+                        <label for="messageValue" class="form-label">Message</label>
                         <textarea id="messageValue" class="input" rows="4" required
                                   th:field="*{messageValue}"></textarea>
                         <div style="font-size: 12px">

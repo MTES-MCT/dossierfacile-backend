@@ -9,53 +9,53 @@
 <body>
 
 <div layout:fragment="content" th:remove="tag" th:with="email=${email}">
-    <div class="col-md-12" >
-        <div class="row">
+    <div class="container-lg" >
+        <div class="d-flex justify-content-between">
             <div class="" style="display: inline-grid;grid-auto-columns: max-content; margin-left: 20px; float: left">
                 <div th:if="${isUserAdmin} == true">
-                    <a href="/bo/dashboard/all" class="btn" id="dashboardAll"  style="background: #e63d3d;padding: 10px 16px 12px;float: left;color: aliceblue;font-size: large;margin-left: 10px;">
+                    <a href="/bo/dashboard/all" class="btn btn-danger" id="dashboardAll" >
                         Dashboard - dossiers traités du jour
                     </a>
                 </div>
-                <div th:if="${isUserAdmin} == true">
-                    <a href="/bo/admin/process/capacities" class="btn" id="boProcessCapacity" style="background: #e63d3d;padding: 10px 16px 12px;float: left;color: aliceblue;font-size: large;margin-left: 10px;margin-top: 10px">
+                <div class="mt-2" th:if="${isUserAdmin} == true">
+                    <a href="/bo/admin/process/capacities" class="btn btn-danger" id="boProcessCapacity">
                         Capacités de traitement
                     </a>
                 </div>
-                <div th:if="${isUserAdmin} == true">
-                    <a href="/bo/users" class="btn" id="boUsersListing" style="background: #e63d3d;padding: 10px 16px 12px;float: left;color: aliceblue;font-size: large;margin-left: 10px;margin-top: 10px">
+                <div class="mt-2" th:if="${isUserAdmin} == true">
+                    <a href="/bo/users" class="btn btn-danger" id="boUsersListing" >
                         Gestion Utilisateurs BO
                     </a>
                 </div>
-                <div th:if="${isUserAdmin} == true">
-                    <a href="/bo/documentDeniedOptions" class="btn" id="editMessages" style="background: #e63d3d;padding: 10px 16px 12px;float: left;color: aliceblue;font-size: large;margin-left: 10px;margin-top: 10px">
+                <div class="mt-2" th:if="${isUserAdmin} == true">
+                    <a href="/bo/documentDeniedOptions" class="btn btn-danger" id="editMessages">
                         Editer les messages
                     </a>
                 </div>
-                <div th:if="${isUserAdmin} == true">
-                    <a href="/bo/userApi" class="btn" id="userApi" style="background: #e63d3d;padding: 10px 16px 12px;float: left;color: aliceblue;font-size: large;margin-left: 10px;margin-top: 10px">
+                <div class="mt-2" th:if="${isUserAdmin} == true">
+                    <a href="/bo/userApi" class="btn btn-danger" id="userApi">
                         API Partners
                     </a>
                 </div>
-                <div th:if="${isUserAdmin} == true">
-                    <a href="/bo/log" class="btn" id="displayLogs" style="background: #e63d3d;padding: 10px 16px 12px;float: left;color: aliceblue;font-size: large;margin-left: 10px;margin-top: 10px">
+                <div class="mt-2" th:if="${isUserAdmin} == true">
+                    <a href="/bo/log" class="btn btn-danger" id="displayLogs">
                         Afficher les logs
                     </a>
                 </div>
-                <div>
-                    <a href="/bo/owners" class="btn" id="displayOwner" style="background: #1f6685;padding: 10px 16px 12px;float: left;color: aliceblue;font-size: large;margin-left: 10px;margin-top: 10px">
+                <div class="mt-2">
+                    <a href="/bo/owners" class="btn btn-info" id="displayOwner">
                         Liste des comptes propriétaires
                     </a>
                 </div>
-                <div style="margin-top: 10px">
-                    <a href="/bo/regroup" class="btn" id="nextApplication3" style="background: #1f6685;padding: 10px 10px 12px;float: left;color: aliceblue;font-size: large;margin-left: 10px;">Regrouper deux locataires</a>
+                <div class="mt-2">
+                    <a href="/bo/regroup" class="btn btn-info" id="nextApplication3">Regrouper deux locataires</a>
                 </div>
             </div>
 
-            <div style="display: inline-grid; justify-content: right; margin-right: 20px; float: right;">
+            <div>
                 <div th:if="${oldestApplication.isPresent()}"
                      th:with="tenant=${oldestApplication.get()}">
-                    <div style="background: bisque; padding: 10px; font-size: 16px">
+                    <div class="bg-warning-subtle" style="padding: 10px; font-size: 16px">
                         <p style="color: red; font-weight: bold;">
                             Dossier à traiter le plus ancien :
                         </p>
@@ -73,7 +73,7 @@
                         </a>
                     </div>
                 </div>
-                <div style="background: bisque; padding: 10px; font-size: 16px; margin-top: 15px;">
+                <div class="bg-warning-subtle" style="padding: 10px; font-size: 16px; margin-top: 15px;">
                     <a th:href="@{/bo/documentFailedList}" style="text-decoration: none;">
                         <span>
                             <span style="color: red; font-weight: bold;">Locataires avec erreur PDF :</span>
@@ -93,7 +93,7 @@
         </div>
     </div>
 
-    <div class="container">
+    <div class="container-lg">
         <div class="text-center margin-bottom">
             <span th:text="${numberOfTenantsToProcess} +' DOSSIERS A VALIDER'"></span>
         </div>
@@ -114,7 +114,7 @@
                 </tr>
                 </thead>
                 <tr th:each="tenant : ${tenants}">
-                    <td><a class="btn btn-warning bo-btn" th:href="'/bo/nextApplication?tenant_id='+${tenant.getId()}">
+                    <td><a class="btn btn-warning bo-btn text-nowrap" th:href="'/bo/nextApplication?tenant_id='+${tenant.getId()}">
                         Traiter le dossier
                     </a></td>
                     <td>
@@ -130,32 +130,32 @@
             </table>
         </div>
         <div class="row">
-            <div class="form-group col-md-1">
-                <select class="form-control pagination pageSizeSelect" data-url="/bo">
+            <div class="mb-3 col-md-1">
+                <select class="form-select form-control pagination pageSizeSelect" data-url="/bo">
                     <option th:each="pageSize : ${pageSizes}" th:text="${pageSize}" th:value="${pageSize}"
                             th:selected="${pageSize} == ${selectedPageSize}"></option>
                 </select>
             </div>
-            <div th:if="${tenants.totalPages > 1}" class="form-group col-md-11 pagination-centered">
+            <div th:if="${tenants.totalPages > 1}" class="mb-3 col-md-11 pagination-centered">
                 <ul class="pagination">
-                    <li th:class="${tenants.number == 0} ? disabled">
-                        <a class="pageLink" th:href="@{/bo(pageSize=${selectedPageSize}, page=1)}">&laquo;</a>
+                    <li class="page-item" th:classappend="${tenants.number == 0} ? disabled">
+                        <a class="page-link" th:href="@{/bo(pageSize=${selectedPageSize}, page=1)}">&laquo;</a>
                     </li>
-                    <li th:class="${tenants.number == 0} ? disabled">
-                        <a class="pageLink"
+                    <li class="page-item" th:classappend="${tenants.number == 0} ? disabled">
+                        <a class="page-link"
                            th:href="@{/bo(pageSize=${selectedPageSize}, page=${tenants.number})}">&larr;</a>
                     </li>
-                    <li th:class="${tenants.number == (page - 1)} ? 'active pointer-disabled'"
+                    <li class="page-item" th:classappend="${tenants.number == (page - 1)} ? 'active pointer-disabled'"
                         th:each="page : ${#numbers.sequence(pager.startPage, pager.endPage)}">
-                        <a class="pageLink" th:href="@{/bo(pageSize=${selectedPageSize}, page=${page})}"
+                        <a class="page-link" th:href="@{/bo(pageSize=${selectedPageSize}, page=${page})}"
                            th:text="${page}"></a>
                     </li>
-                    <li th:class="${tenants.number + 1 == tenants.totalPages} ? disabled">
-                        <a class="pageLink"
+                    <li class="page-item" th:classappend="${tenants.number + 1 == tenants.totalPages} ? disabled">
+                        <a class="page-link"
                            th:href="@{/bo(pageSize=${selectedPageSize}, page=${tenants.number + 2})}">&rarr;</a>
                     </li>
-                    <li th:class="${tenants.number + 1 == tenants.totalPages} ? disabled">
-                        <a class="pageLink"
+                    <li class="page-item" th:classappend="${tenants.number + 1 == tenants.totalPages} ? disabled">
+                        <a class="page-link"
                            th:href="@{/bo(pageSize=${selectedPageSize}, page=${tenants.totalPages})}">&raquo;</a>
                     </li>
                 </ul>

@@ -11,7 +11,6 @@
 <div layout:fragment="content" th:remove="tag">
     <style>
         .actions-section {
-            background-color: #eaeaf3;
             border: 1px solid #c6c7cc;
             border-radius: 1em;
             display: flex;
@@ -29,16 +28,6 @@
 
         .dropdown {
             margin: 1em;
-            color: #4064a5;
-            border-color: #1d4896;
-            border-radius: 4px;
-        }
-
-        .filter button {
-            background-color: #4064a5;
-            border-color: #4064a5;
-            font-size: 1em;
-            padding: 0.5em 2em;
         }
 
         .btn-create {
@@ -63,16 +52,16 @@
     </style>
 
     <div class="col-md-12">
-        <div class="container actions-section">
+        <div class="container actions-section bg-secondary">
             <div class="col-md-6">
                 <form method="get" class="filter">
-                    <select name="documentSubCategory" class="form-control dropdown">
+                    <select name="documentSubCategory" class="form-control form-select dropdown">
                         <option disabled selected>Type de document</option>
                         <option th:each="category : ${documentSubCategories}"
                                 th:value="${category}" th:text="${category}">
                         </option>
                     </select>
-                    <button type="submit" class="btn btn-info">Filtrer</button>
+                    <button type="submit" class="btn btn-primary">Filtrer</button>
                 </form>
             </div>
             <div class="col-md-6">

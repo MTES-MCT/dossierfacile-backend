@@ -50,7 +50,7 @@
     <div>
         <div class="container">
             <form th:method="post" th:action="@{/bo/users}" th:object="${email}" >
-                <label for="name" id="">Email:</label>
+                <label for="name" class="form-label" id="">Email:</label>
                 <input required type="text" name="name" id="name" placeholder="on domain dossierfacile.fr ..."
                        oninput="setCustomValidity('')"  th:field="*{email}"/>
                 <button style="font-size: initial;float: right;padding: 10px 16px 11px;" type="submit" name='action' value='ROLE_ADMIN' class="btn btn-info">create admin</button>
