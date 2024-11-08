@@ -306,6 +306,13 @@
                                             </li>
                                         </ul>
                                     </div>
+                                    <div th:if="${messageItem.getAnalysisReportComment()} != null"
+                                         class="panel-heading file2-background-color letter">
+                                        <div style="font-size: 12px; line-height: 20px">
+                                            Les règles ont été forcées avec l'explication suivante :
+                                        </div>
+                                        <p th:text="${messageItem.getAnalysisReportComment()}"></p>
+                                    </div>
                                     <div th:if="${!messageItem.analyzedFiles.isEmpty()}" style="padding-left: 15px">
                                         <h4>Lecture automatiques :</h4>
                                         <ul>
