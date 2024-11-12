@@ -1,5 +1,6 @@
 package fr.dossierfacile.process.file.service.qrcodeanalysis.payfit;
 
+import fr.dossierfacile.common.repository.ApplicationLogRepository;
 import fr.dossierfacile.process.file.IntegrationTest;
 import fr.dossierfacile.process.file.TestFilesUtil;
 import fr.dossierfacile.process.file.service.qrcodeanalysis.AuthenticationResult;
@@ -8,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -17,6 +19,7 @@ import org.springframework.web.client.RestTemplate;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.LocalDate;
 import java.util.Optional;
 
 import static fr.dossierfacile.common.entity.BarCodeDocumentType.PAYFIT_PAYSLIP;
@@ -32,6 +35,8 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 @Disabled
 @IntegrationTest
 class PayfitDocumentIssuerTest {
+    @MockBean
+    ApplicationLogRepository applicationLogRepository;
 
     @Autowired
     private PayfitDocumentIssuer payfit;
@@ -58,7 +63,8 @@ class PayfitDocumentIssuerTest {
                 .hasValueSatisfying(result -> assertAll(
                         () -> assertThat(result.getDocumentType()).isEqualTo(PAYFIT_PAYSLIP),
                         () -> assertThat(result.getAuthenticationStatus()).isEqualTo(VALID),
-                        () -> assertThat(result.getApiResponse()).isInstanceOf(PaySlipVerifiedContent.class)
+                        () -> assertThat(result.getApiResponse()).isInstanceOf(PaySlipVerifiedContent.class),
+                        () -> assertThat(result.getApiResponse().getPeriod().getStart()).isEqualTo(LocalDate.of(2023,3,1))
                 ));
     }
 
