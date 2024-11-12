@@ -5,8 +5,10 @@
 <head>
     <head th:replace="~{include/process-file-layout-head :: head}"></head>
 </head>
-<div layout:fragment="header">
-    <div th:replace="~{include/fixed-header-bo :: fixed-header-bo}">...</div>
+<div class="container-fluid">
+    <div layout:fragment="header">
+        <div th:replace="~{include/fixed-header-bo :: fixed-header-bo}">...</div>
+    </div>
 </div>
 <body class="bg-body-secondary">
 <div layout:fragment="content"></div>
