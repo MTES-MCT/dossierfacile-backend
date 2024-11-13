@@ -1,13 +1,6 @@
 package fr.gouv.bo.controller;
 
-import fr.dossierfacile.common.entity.BOUser;
-import fr.dossierfacile.common.entity.Document;
-import fr.dossierfacile.common.entity.DocumentDeniedOptions;
-import fr.dossierfacile.common.entity.Guarantor;
-import fr.dossierfacile.common.entity.Message;
-import fr.dossierfacile.common.entity.Tenant;
-import fr.dossierfacile.common.entity.User;
-import fr.dossierfacile.common.entity.UserApi;
+import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.MessageStatus;
@@ -265,7 +258,7 @@ public class BOTenantController {
                         .analyzedFiles(DisplayableFile.onlyAnalyzedFilesOf(document))
                         .previousDeniedReasons(documentDeniedReasonsService.getLastDeniedReason(document, tenant).orElse(null))
                         .documentAnalysisReport(document.getDocumentAnalysisReport())
-                        .analysisReportComment(document.getDocumentAnalysisReport() != null && "DENIED".equals(document.getDocumentAnalysisReport().getAnalysisStatus().name())  ? document.getDocumentAnalysisReport().getComment() : null)
+                        .analysisReportComment(document.getDocumentAnalysisReport() != null && (DocumentAnalysisStatus.DENIED == document.getDocumentAnalysisReport().getAnalysisStatus())  ? document.getDocumentAnalysisReport().getComment() : null)
                         .build());
             }
         }
@@ -294,6 +287,7 @@ public class BOTenantController {
                             .documentName(document.getName())
                             .analyzedFiles(DisplayableFile.onlyAnalyzedFilesOf(document))
                             .documentAnalysisReport(document.getDocumentAnalysisReport())
+                            .analysisReportComment(document.getDocumentAnalysisReport() != null && (DocumentAnalysisStatus.DENIED == document.getDocumentAnalysisReport().getAnalysisStatus())  ? document.getDocumentAnalysisReport().getComment() : null)
                             .previousDeniedReasons(documentDeniedReasonsService.getLastDeniedReason(document, tenant).orElse(null))
                             .build());
                 }

@@ -20,9 +20,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static fr.dossierfacile.common.entity.BarCodeType.TWO_D_DOC;
-import static fr.dossierfacile.common.enums.FileAuthenticationStatus.API_ERROR;
-import static fr.dossierfacile.common.enums.FileAuthenticationStatus.INVALID;
-import static fr.dossierfacile.common.enums.FileAuthenticationStatus.VALID;
+import static fr.dossierfacile.common.enums.FileAuthenticationStatus.*;
 
 @AllArgsConstructor
 public class DisplayableBarCodeFileAnalysis {
@@ -131,14 +129,15 @@ public class DisplayableBarCodeFileAnalysis {
         @Override
         public String toString() {
             Map<String, String> map = new HashMap<>();
-            map.put("Entreprise", companyName);
-            map.put("Employé", employeeName);
-            map.put("Salaire net", netSalary);
-            if (period != null && period.getStart() != null && period.getEnd() != null) {
-                map.put("Période", dateFormatter.format(period.getStart()) + " - " + dateFormatter.format(period.getEnd()));
-            } else {
-                map.put("Période", "Péride absente");
-            }
+            map.put("Entreprise", String.valueOf(companyName));
+            map.put("Employé", String.valueOf(employeeName));
+            map.put("Salaire net", String.valueOf(netSalary));
+
+            map.put("Période", Optional.ofNullable(period)
+                    .filter(p -> p.getStart() != null && p.getEnd() != null)
+                    .map(p -> dateFormatter.format(p.getStart()) + " - " + dateFormatter.format(p.getEnd()))
+                    .orElse(""));
+
             return formatToList(map);
         }
     }

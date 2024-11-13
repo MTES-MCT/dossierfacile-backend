@@ -9,62 +9,45 @@
 <body>
 
 <div layout:fragment="content" th:remove="tag">
-    <style>
-        .container{
-            padding: 20px;
-        }
-        .container form{
-            margin: 2% 20%;
-            padding: 50px;
-            background-color: #eaeaf3;
-            border: 1px solid #c6c7cc;
-            border-radius: 3px;
-            overflow: hidden;
-        }
-        .container form label{
-            color: #395870;
-            display: block;
-            font-weight: bold;
-            margin-top: 20px;
-        }
-        .container form input{
-            width: 100%;
-            background: #fff;
-            border: 1px solid #c6cbd3;
-            box-shadow: inset 0 1px 1px rgba(0, 0, 0, .1);
-            color: #636466;
-            padding: 10px;
-            margin-bottom: 10px;
-            display: block;
-            border-radius: 6px;
-        }
-    </style>
     <div>
-        <div th:if="${showAlert.isAlertValue()}" id="successMessage" class="alert div-hide myElem" style="color: white;background-color: #f03a3a;position: absolute;left: 0;right: 0;margin-left: auto;margin-right: auto;opacity: 82%;width: 77%;text-align: -webkit-center;margin-top: -34px;">
+        <div th:if="${showAlert.isAlertValue()}" id="successMessage" class="alert div-hide myElem"
+             style="color: white;background-color: #f03a3a;position: absolute;left: 0;right: 0;margin-left: auto;margin-right: auto;opacity: 82%;width: 77%;text-align: -webkit-center;margin-top: -34px;">
             <strong>Error!</strong> at least one tenant does not exist or is not of type ALONE.
         </div>
-        <div class="container">
-            <div class="" style="text-align: -webkit-center;font-size: 22px;"><label for="name">Merge Apartment Sharing</label></div>
-            <form th:method="post" th:action="@{/bo/regroup/tenant}" th:object="${reGroupData}">
-                <label for="name" id="a2">tenant CREATE :</label>
-                <input pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$" required type="text" name="name" id="name" placeholder="enter email ..."
-                       oninvalid="this.setCustomValidity('wrong entry')"
-                       oninput="setCustomValidity('')" th:field="*{tenantEmailCreate}"/>
-                <label for="name" id="a1">tenant JOIN :</label>
-                <input pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$" required type="text" name="name" id="name2" placeholder="enter email ..."
-                       oninvalid="this.setCustomValidity('wrong entry')"
-                       oninput="setCustomValidity('')" th:field="*{tenantEmailJoin}"/>
-                <select id="action" name="action"
-                        style="margin-top:10px;color: #4064a5;font-size: smaller;height: 30px;font-weight: 800;width: 96px;
-                        padding: 6px;border-color: #1d4896;border-radius: 4px;"
-                        th:class="''" th:field="*{applicationType}">
-                    <option th:value="COUPLE">COUPLE</option>
-                    <option th:value="GROUP">GROUP</option>
-                </select>
-                <button style="margin-top: 46px;margin-bottom: -23px;font-size:
-                initial;float: right;padding: 10px 16px 11px;
-                background-color: #4064a5;border-color: #4064a5;"type="submit" class="btn btn-info">Regroup</button>
+        <div class="m-auto w-600">
+            <h1 class="h3">Regrouper des locataires</h1>
+            <div class="bg-primary-subtle bg-opacity-10 p-5">
+                <form th:method="post" th:action="@{/bo/regroup/tenant}" th:object="${reGroupData}">
+                    <div class="mb-3">
+                        <label for="name" id="a2" class="mb-1 form-label">Locataire PRINCIPAL :</label>
+                        <input pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$" required type="text" name="name"
+                               id="name"
+                               class="form-control"
+                               placeholder="enter email ..."
+                               oninvalid="this.setCustomValidity('wrong entry')"
+                               oninput="setCustomValidity('')" th:field="*{tenantEmailCreate}"/>
+                    </div>
+                    <div class="mb-3">
+                        <label for="name" id="a1" class="mb-1 form-label">Locataire qui rejoint :</label>
+                        <input pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$" required type="text" name="name"
+                               id="name2"
+                               class="form-control"
+                               placeholder="enter email ..."
+                               oninvalid="this.setCustomValidity('wrong entry')"
+                               oninput="setCustomValidity('')" th:field="*{tenantEmailJoin}"/>
+                    </div>
+                    <div class="mb-3">
+                        <select id="action" name="action" class="form-select width--fit-content"
+                                th:field="*{applicationType}">
+                            <option th:value="COUPLE">COUPLE</option>
+                            <option th:value="GROUP">GROUP</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-2">
+                        Regroup
+                    </button>
                 </form>
+            </div>
         </div>
     </div>
 </div>

@@ -44,32 +44,32 @@
                 </tr>
             </table>
         </div>
-        <div class="row">
-            <div class="form-group col-md-1">
-                <select class="form-control pagination pageSizeSelect" data-url="/bo">
+        <div class="row mt-4">
+            <div class="mb-3 col-md-1">
+                <select class="form-select form-control pagination pageSizeSelect" data-url="/bo">
                     <option th:each="pageSize : ${pageSizes}" th:text="${pageSize}" th:value="${pageSize}"
                             th:selected="${pageSize} == ${selectedPageSize}"></option>
                 </select>
             </div>
-            <div th:if="${tenantList.totalPages > 1}" class="form-group col-md-11 pagination-centered">
+            <div th:if="${tenantList.totalPages > 1}" class="mb-3 col-md-11 pagination-centered">
                 <ul class="pagination">
-                    <li th:class="${tenants.number == 0} ? disabled">
-                        <a class="pageLink" th:href="@{/bo(pageSize=${selectedPageSize}, page=1)}">&laquo;</a>
+                    <li class="page-item" th:classappend="${tenants.number == 0} ? disabled">
+                        <a class="page-link" th:href="@{/bo(pageSize=${selectedPageSize}, page=1)}">&laquo;</a>
                     </li>
-                    <li th:class="${tenants.number == 0} ? disabled">
-                        <a class="pageLink"
+                    <li class="page-item" th:classappend="${tenants.number == 0} ? disabled">
+                        <a class="page-link"
                            th:href="@{/bo(pageSize=${selectedPageSize}, page=${tenants.number})}">&larr;</a>
                     </li>
-                    <li th:class="${tenants.number == (page - 1)} ? 'active pointer-disabled'"
+                    <li class="page-item" th:classappend="${tenants.number == (page - 1)} ? 'active pointer-disabled'"
                         th:each="page : ${#numbers.sequence(pager.startPage, pager.endPage)}">
-                        <a class="pageLink" th:href="@{/bo(pageSize=${selectedPageSize}, page=${page})}"
+                        <a class="page-link" th:href="@{/bo(pageSize=${selectedPageSize}, page=${page})}"
                            th:text="${page}"></a>
                     </li>
-                    <li th:class="${tenants.number + 1 == tenants.totalPages} ? disabled">
-                        <a class="pageLink"
+                    <li class="page-item" th:classappend="${tenants.number + 1 == tenants.totalPages} ? disabled">
+                        <a class="page-link"
                            th:href="@{/bo(pageSize=${selectedPageSize}, page=${tenants.number + 2})}">&rarr;</a>
                     </li>
-                    <li th:class="${tenants.number + 1 == tenants.totalPages} ? disabled">
+                    <li class="page-item" th:classappend="${tenants.number + 1 == tenants.totalPages} ? disabled">
                         <a class=""
                            th:href="@{/bo(pageSize=${selectedPageSize}, page=${tenants.totalPages})}">&raquo;</a>
                     </li>

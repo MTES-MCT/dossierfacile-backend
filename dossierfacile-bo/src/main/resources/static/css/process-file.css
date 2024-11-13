@@ -1,17 +1,3 @@
-html {
-    height: 100% !important;
-    overflow: hidden !important;
-}
-
-body {
-    margin-top: 0px !important;
-}
-
-.align-items-center {
-    align-items: center !important;
-    padding-bottom: 20px;
-    margin-bottom: 10px;
-}
 
 .display-flex {
     display: flex !important;
@@ -126,9 +112,9 @@ body {
 }
 
 .header-tenant-info {
-    position: fixed;
-    top: 54px;
+    position: sticky;
     width: 100%;
+    min-width: fit-content;
     z-index: 1;
     background-color: rgba(170, 170, 170, 0.65);
 }
@@ -143,49 +129,7 @@ body {
     margin-bottom: 20px;
 }
 textarea {
-
-    width: 100%;
-    height: 80px;
-    -moz-border-bottom-colors: none;
-    -moz-border-left-colors: none;
-    -moz-border-right-colors: none;
-    -moz-border-top-colors: none;
-    background: none repeat scroll 0 0 rgba(0, 0, 0, 0.07);
-    border-color: -moz-use-text-color #FFFFFF #FFFFFF -moz-use-text-color;
-    border-image: none;
-    border-radius: 6px 6px 6px 6px;
-    border-style: none solid solid none;
-    border-width: medium 1px 1px medium;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12) inset;
-    font-size: 1em;
-    line-height: 1.4em;
-    padding: 5px 8px;
-    transition: background-color 0.2s ease 0s;
-}
-
-
-textarea:focus {
-    background: none repeat scroll 0 0 #FFFFFF;
-    outline-width: 0;
-}
-
-
-input[type="checkbox"] {
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-
-    /* Styling checkbox */
-    width: 20px;
-    height: 20px;
-    background-color: #e7e7e7;
-    border-color: #020202;
-    box-shadow: inset 0 2px 5px #5b5b4e
-
-}
-
-input[type="checkbox"]:checked {
-    background-color: #fd0f0f;
+    height: 100px;
 }
 
 html[data-fr-theme="dark"] .span1 {
@@ -255,8 +199,7 @@ div.scrollmenu a:hover {
 }
 
 .prevalidation-background-DENIED{
-    background-color: #fcdddc;
-    color: #929292;
+    background-color: var(--bs-danger-bg-subtle);
 }
 .prevalidation-background-UNDEFINED{
     background-color: #f0d39c;
@@ -267,28 +210,28 @@ div.scrollmenu a:hover {
     color: #929292;
 }
 
-.panel-heading.category-IDENTIFICATION {
+.card-header.category-IDENTIFICATION {
     background-color: #FDE39C;
 }
-.panel-heading.category-RESIDENCY{
+.card-header.category-RESIDENCY{
     background-color: #FBB8F6;
 }
-.panel-heading.category-PROFESSIONAL{
+.card-header.category-PROFESSIONAL{
     background-color: #FF8A65;
 }
-.panel-heading.category-FINANCIAL{
+.card-header.category-FINANCIAL{
     background-color: #B3E5F1;
 }
-.panel-heading.category-TAX{
+.card-header.category-TAX{
     background-color: #B2B2D8;
 }
 
-.panel-heading.category-IDENTIFICATION_LEGAL_PERSON{
+.card-header.category-IDENTIFICATION_LEGAL_PERSON{
     background-color: #FDE39C;
 }
-.panel-heading.category-GUARANTEE_PROVIDER_CERTIFICATE{
+.card-header.category-GUARANTEE_PROVIDER_CERTIFICATE{
     background-color: rgb(179, 179, 179);
 }
-.panel-heading.category-NULL{
+.card-header.category-NULL{
     background-color: rgb(179, 179, 179);
 }

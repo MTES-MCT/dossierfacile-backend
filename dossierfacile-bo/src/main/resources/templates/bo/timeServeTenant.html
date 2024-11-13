@@ -33,32 +33,32 @@
             </table>
         </div>
         <div class="row">
-            <div class="form-group col-md-1">
-                <select class="form-control pagination pageSizeSelect" data-url="/bo/timeServeTenant">
+            <div class="mb-3 col-md-1">
+                <select class="form-select form-control pagination pageSizeSelect" data-url="/bo/timeServeTenant">
                     <option th:each="pageSize : ${pageSizes}" th:text="${pageSize}" th:value="${pageSize}"
                             th:selected="${pageSize} == ${selectedPageSize}"></option>
                 </select>
             </div>
-            <div th:if="${timeServeTenantList.totalPages > 1}" class="form-group col-md-11 pagination-centered">
+            <div th:if="${timeServeTenantList.totalPages > 1}" class="mb-3 col-md-11 pagination-centered">
                 <ul class="pagination">
-                    <li th:class="${timeServeTenantList.number == 0} ? disabled">
-                        <a class="pageLink" th:href="@{/bo/timeServeTenant(pageSize=${selectedPageSize}, page=1)}">&laquo;</a>
+                    <li class="page-item" th:classappend="${timeServeTenantList.number == 0} ? disabled">
+                        <a class="page-link" th:href="@{/bo/timeServeTenant(pageSize=${selectedPageSize}, page=1)}">&laquo;</a>
                     </li>
-                    <li th:class="${timeServeTenantList.number == 0} ? disabled">
-                        <a class="pageLink"
+                    <li class="page-item" th:classappend="${timeServeTenantList.number == 0} ? disabled">
+                        <a class="page-link"
                            th:href="@{/bo/timeServeTenant(pageSize=${selectedPageSize}, page=${timeServeTenantList.number})}">&larr;</a>
                     </li>
-                    <li th:class="${timeServeTenantList.number == (page - 1)} ? 'active pointer-disabled'"
+                    <li class="page-item" th:classappend="${timeServeTenantList.number == (page - 1)} ? 'active pointer-disabled'"
                         th:each="page : ${#numbers.sequence(pager.startPage, pager.endPage)}">
-                        <a class="pageLink" th:href="@{/bo/timeServeTenant(pageSize=${selectedPageSize}, page=${page})}"
+                        <a class="page-link" th:href="@{/bo/timeServeTenant(pageSize=${selectedPageSize}, page=${page})}"
                            th:text="${page}"></a>
                     </li>
-                    <li th:class="${timeServeTenantList.number + 1 == timeServeTenantList.totalPages} ? disabled">
-                        <a class="pageLink"
+                    <li class="page-item" th:classappend="${timeServeTenantList.number + 1 == timeServeTenantList.totalPages} ? disabled">
+                        <a class="page-link"
                            th:href="@{/bo/timeServeTenant(pageSize=${selectedPageSize}, page=${timeServeTenantList.number + 2})}">&rarr;</a>
                     </li>
-                    <li th:class="${timeServeTenantList.number + 1 == timeServeTenantList.totalPages} ? disabled">
-                        <a class="pageLink"
+                    <li class="page-item" th:classappend="${timeServeTenantList.number + 1 == timeServeTenantList.totalPages} ? disabled">
+                        <a class="page-link"
                            th:href="@{/bo/timeServeTenant(pageSize=${selectedPageSize}, page=${timeServeTenantList.totalPages})}">&raquo;</a>
                     </li>
                 </ul>

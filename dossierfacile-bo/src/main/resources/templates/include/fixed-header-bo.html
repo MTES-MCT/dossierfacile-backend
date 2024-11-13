@@ -1,14 +1,14 @@
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4">
-<header th:fragment="fixed-header-bo" class="fixed-header">
-    <div class="row bg-white space-separator hidden-xs">
-        <div class="col-md-8" style="display: flex;">
+<div th:fragment="fixed-header-bo">
+    <header class="row header-bg space-separator">
+        <div class="col" style="display: flex;">
             <a class="logo" th:href="@{/}"></a>
             <a sec:authorize="hasRole('ROLE_ADMIN') or hasRole('ROLE_OPERATOR')" th:href="@{/bo/dashboard}"
                class="profile fixed-header-link" th:text="Dashboard"></a>
-        </div>
-        <div class="col-md-4">
-            <div class="row" style="margin-right: 225px;margin-left: 0;">
+        </div
+        >
+        <div class="col">
                 <form th:method="get" th:action="@{/bo/searchTenant}" th:object="${email}" >
                     <div class="wrap">
                         <div class="search">
@@ -20,9 +20,8 @@
                         </div>
                     </div>
                 </form>
-            </div>
         </div>
-        <div class="fixed-header-link-container">
+        <div class="col d-flex justify-content-end align-items-center me-4">
             <button class="btn-theme-change"><i class="fa fa-moon-o"></i></button>
             <a sec:authorize="hasRole('ROLE_ADMIN') or hasRole('ROLE_OPERATOR')" th:href="@{/bo}"
                class="profile fixed-header-link" th:text="#{locatio.header.link.bo}"></a>
@@ -34,34 +33,7 @@
                         th:text="#{locatio.header.link.logout}"></button>
             </form>
         </div>
-    </div>
-
-    <nav class="navbar navbar-default  navbar-fixed-top hidden-sm hidden-md hidden-lg">
-        <div class="container">
-            <div id="navbar" class="navbar-collapse collapse" aria-expanded="false" style="height: 1px;">
-                <ul class="nav navbar-nav">
-                    <li sec:authorize="hasRole('ROLE_ADMIN') or hasRole('ROLE_OPERATOR')">
-                        <a th:href="@{/bo}"
-                           class="profile fixed-header-link" th:text="#{locatio.header.link.bo}"></a>
-                    </li>
-                    <li th:unless="${#authorization.expression('isAuthenticated()')}">
-                        <a th:href="@{/login}"
-                           th:text="#{locatio.header.link.login}" class=""
-                           style="display: block;"></a>
-
-                    </li>
-                    <li th:if="${#authorization.expression('isAuthenticated()')}">
-                        <form th:method="post"
-                              th:action="@{/logout}">
-                            <button th:type="submit" class="fixed-header-link logout"
-                                    th:text="#{locatio.header.link.logout}"></button>
-                        </form>
-                    </li>
-                </ul>
-            </div><!--/.nav-collapse -->
-        </div>
-    </nav>
-
-</header>
+    </header>
+</div>
 
 </html>

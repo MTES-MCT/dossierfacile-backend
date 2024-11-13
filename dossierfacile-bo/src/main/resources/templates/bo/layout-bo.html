@@ -5,11 +5,10 @@
 <head>
     <head th:replace="~{include/head-bo :: head-bo}"></head>
 </head>
-<body>
-<div layout:fragment="header">
+<body class="bg-body-secondary container-fluid">
+<header layout:fragment="header" class="fixed-header mb-4">
     <div th:replace="~{include/fixed-header-bo :: fixed-header-bo}">...</div>
-    <br/><br/><br/>
-</div>
+</header>
 <div layout:fragment="content"></div>
 <div th:replace="~{include/footer-bo :: footer-bo}">...</div>
 

@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
 @Builder
 @Getter
 public class PaySlipVerifiedContent {
-    private static final Pattern PERIOD_PATTERN = Pattern.compile("Période du (\\d{2}/\\d{2}/\\d{4}) au (\\d{2}/\\d{2}/\\d{4})");
+    private static final Pattern PERIOD_PATTERN = Pattern.compile("P[ée]riode du (\\d{2}/\\d{2}/\\d{4}) au (\\d{2}/\\d{2}/\\d{4})", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     private final String companyName;
@@ -48,7 +48,7 @@ public class PaySlipVerifiedContent {
 
     private static String extractFrom(List<PayfitResponse.Info> list, String label) {
         return list.stream()
-                .filter(info -> label.equals(info.getLabel()))
+                .filter(info -> label.equalsIgnoreCase(info.getLabel()))
                 .findFirst()
                 .map(PayfitResponse.Info::getValue)
                 .orElse("");

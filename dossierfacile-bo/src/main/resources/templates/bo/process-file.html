@@ -9,46 +9,47 @@
 <body>
 
 <div layout:fragment="content" th:remove="tag">
-    <div class="height-100pct overflow-auto class-message-link" th:attr="data-name=${tenant.id}">
+    <div class="header-tenant-info">
+        <div style="padding: 10px; display: flex; justify-content: space-between;">
+            <div style="display: flex; justify-content: start">
+                <div th:each="element : ${header.elements}"
+                     th:if="${!element.value.isBlank()}"
+                     class="card-header file1-background-color letter"
+                     style="margin: 0 5px"
+                >
+                    <span th:text="${element.label} + '&nbsp;: '" style="font-size: 12px; line-height: 20px"></span>
+                    <br/>
+                    <span th:text="${element.value}" class="bold"></span>
+                </div>
+            </div>
+            <div class="pe-4" style="display:flex;align-self: center;align-items: center;gap:15px">
+                <a class="btn btn-warning bo-btn"
+                   th:href="@{/bo/colocation/} + ${tenant.getApartmentSharing().getId()} + '#tenant' + ${tenant.getId()}">
+                    Voir le Dossier
+                </a>
+                <a class="btn btn-warning bo-btn" th:classappend="${newMessage ? 'btn-danger' : 'btn-warning'}"
+                   th:href="@{/bo/colocation/} + ${tenant.getApartmentSharing().getId()} + '#tenant-message' + ${tenant.getId()}"
+                   th:text="${newMessage ? 'Voir les messages non lus' : 'Voir la messagerie'}">
+                </a>
+                <div id="validation-status"
+                     style="display:inline-block;background-color:green;min-width:30px;width:30px;height:30px;border-radius:50%"
+                     title="Aucun élément refusé"></div>
+            </div>
+        </div>
+    </div>
+    <div style="padding-top: 10px" class="container-fluid overflow-auto class-message-link"
+         th:attr="data-name=${tenant.id}">
         <form id="processFileForm"
               th:action="@{/bo/tenant/} + ${tenant.getId()} + '/processFile'"
               th:method="post" th:object="${customMessage}">
-            <div class="header-tenant-info">
-                <div style="margin: 10px 0; padding: 0 5px; display: flex; justify-content: space-between;">
-                    <div style="display: flex; justify-content: start; flex: 2.1">
-                        <div th:each="element : ${header.elements}"
-                             th:if="${!element.value.isBlank()}"
-                             class="panel-heading file1-background-color letter"
-                             style="margin: 0 5px"
-                        >
-                            <span th:text="${element.label} + ' : '" style="font-size: 12px; line-height: 20px"></span>
-                            <br/>
-                            <span th:text="${element.value}" class="bold"></span>
-                        </div>
-                    </div>
-                    <div style="display:flex;align-self: center; flex: 1;align-items: center;gap:15px">
-                        <a class="btn btn-warning bo-btn"
-                           th:href="@{/bo/colocation/} + ${tenant.getApartmentSharing().getId()} + '#tenant' + ${tenant.getId()}">
-                            Voir le Dossier
-                        </a>
-                        <a class="btn btn-warning bo-btn" th:classappend="${newMessage ? 'btn-danger' : 'btn-warning'}"
-                           th:href="@{/bo/colocation/} + ${tenant.getApartmentSharing().getId()} + '#tenant-message' + ${tenant.getId()}"
-                           th:text="${newMessage ? 'Voir les messages non lus' : 'Voir la messagerie'}">
-                        </a>
-                        <div id="validation-status" style="display:inline-block;background-color:green;width:30px;height:30px;border-radius:50%" title="Aucun élément refusé"></div>
-                    </div>
-                </div>
-            </div>
-            <div style="margin-top: 140px">
-            </div>
 
             <div>
                 <div th:if="${!clarification.isEmpty()}"
                      class="file1-background-color letter col-md-8"
-                     style="margin: 0 0 10px 10px; padding-top: 15px; line-height: 20px"
+                     style="margin: 0 0 10px 10px; padding: 8px; line-height: 20px"
                 >
-                    <p style="font-size: 12px">Mot du locataire :</p>
-                    <p th:each="paragraph : ${clarification}" th:text="${paragraph}"></p>
+                    <div style="font-size: 12px">Mot du locataire :</div>
+                    <div th:each="paragraph : ${clarification}" th:text="${paragraph}"></div>
                 </div>
             </div>
 
@@ -63,227 +64,58 @@
             </div>
 
             <div th:each="messageItem, i:${customMessage.getMessageItems()}" th:remove="tag">
-                <div class="col-md-8" style="height: 700px" th:if="${messageItem.getCustomTex()}==null">
-                    <embed class="document-embed" height="90%"
-                           th:src="'/pdf-viewer/pdfjs-dist/web/viewer.html?file=/documents/'+${messageItem.getDocumentName()}"
-                           width="100%"/>
-                </div>
-                <div class="col-md-8" style="height: 700px" th:if="${messageItem.getCustomTex()}!=null">
-                    <div class="full-size-div">
-                        <div class="card-div">
-                            <div class="panel" style="background-color: rgb(232, 237, 241)">
-                                <h3 class="h3-style">Texte du document :</h3>
-                            </div>
-                            <p class="bold p-style">
-                                <span class="span-style" th:text="${messageItem.getCustomTex()}"></span></p>
-                        </div>
-                    </div>
-                </div>
-                <div class="align-items-center col-md-4 display-flex height-100pct flex-direction-column">
-                    <div class="display-flex flex-grow-1 margin-top-25px overflow-auto padding-right-0px"
-                         style="align-self: flex-start;">
-                        <div class="padding-right-5px">
-                            <div class="panel file1-border-color">
-                                <div class="panel-heading file1-border-color bold"
-                                     th:classappend="${'category-' + messageItem.getDocumentCategory()}">
-                                    <h4 class="panel-title letter" style="color: #0a0808">
-                                        <span th:text="#{${messageItem.getDocumentCategory().getLabel()}}"></span>
-                                    </h4>
-                                </div>
-                                <div class="panel-heading file1-border-color file1-background-color bold">
-                                    <h4 class="panel-title letter">
-                                        <span th:text=" 'Type : ' + #{${messageItem.getDocumentSubCategory().getLabel()}}"></span>
-                                    </h4>
-                                    <h4 class="panel-title letter" style="padding-top: 7px"
-                                        th:if="${messageItem.getMonthlySum()}!=null">
-                                        <span th:text="'Montant mensuel : ' + ${messageItem.getMonthlySum()}"></span>
-                                    </h4>
-                                    <h4 class="panel-title letter" style="padding-top: 7px"
-                                        th:if="${T(fr.dossierfacile.common.enums.DocumentSubCategory).SALARY == messageItem.getDocumentSubCategory()}">
-                                        <span th:text="'Bulletins attendus : ' + ${T(fr.gouv.bo.utils.DateFormatUtil).getExpectedPayslipMonths()}"></span>
-                                    </h4>
-                                    <h4 class="panel-title letter" style="padding-top: 7px"
-                                        th:if="${T(fr.dossierfacile.common.enums.DocumentSubCategory).TENANT == messageItem.getDocumentSubCategory()}">
-                                        <span th:text="'Quittances attendues : ' + ${T(fr.gouv.bo.utils.DateFormatUtil).getExpectedRentReceiptMonths()}"></span>
-                                    </h4>
-                                </div>
-                                <div th:if="${messageItem.getPreviousDeniedReasons()} != null"
-                                     th:with="reasons=${messageItem.getPreviousDeniedReasons()}"
-                                     class="panel-heading file2-background-color letter">
-                                    <span style="font-size: 12px; line-height: 20px">
-                                        Raisons du précédent refus :
-                                    </span>
-                                    <br />
-                                    <ul>
-                                        <li style="font-size: 14px"
-                                          th:each="option : ${reasons.getCheckedOptions()}"
-                                          th:utext="${option}">
-                                        </li>
-                                        <li style="font-size: 14px"
-                                          th:if="${reasons.getComment()} != null"
-                                          th:utext="${reasons.getComment()}">
-                                        </li>
-                                    </ul>
-                                </div>
-                                <div th:if="${messageItem.getDocumentAnalysisReport()!=null}"
-                                     th:class="${'prevalidation-background-' + messageItem.getDocumentAnalysisReport().getAnalysisStatus() }"
-                                     style="padding: 15px 5px 5px 5px">
-                                    Statut de la vérification automatique:
-                                    <span th:text="${messageItem.getDocumentAnalysisReport().getAnalysisStatus}"></span>
-                                    <ul>
-                                        <li style="margin-top: 5px" th:each="rule : ${messageItem.getDocumentAnalysisReport().getBrokenRules()}">
-                                            <span style="font-size:smaller" th:text="' ' + ${rule.message}"></span>
-                                        </li>
-                                    </ul>
-                                </div>
-                                <div th:if="${messageItem.getAnalysisReportComment()} != null"
-                                     class="panel-heading file2-background-color letter">
-                                    <div style="font-size: 12px; line-height: 20px">
-                                        Les règles ont été forcées avec l'explication suivante :
-                                    </div>
-                                    <p th:text="${messageItem.getAnalysisReportComment()}"></p>
-                                </div>
-                                <h4 class="panel-title letter" style="padding: 7px"
-                                    th:if="${messageItem.avisDetected}!=null and ${messageItem.avisDetected}==true">
-                                    <span class="fa fa-times text-danger" >
-                                    </span>
-                                    <span>Attention, un avis de situation a été détecté</span>
-                                </h4>
-
-                                <div th:if="${!messageItem.analyzedFiles.isEmpty()}" style="padding-left: 15px">
-                                    <h4>Lecture automatiques :</h4>
-                                    <ul>
-                                        <li th:each="file : ${messageItem.analyzedFiles}" th:with="analysis=${file.analysis}" class="margin-bottom-10px">
-                                            <span th:text="${file.summary}"></span>
-                                            <span class="fa" th:classappend="${analysis.authenticationStatusCssClass}"
-                                                  th:text="' ' + ${analysis.authenticationStatus}"></span>
-                                            <span class="fa fa-times text-danger" th:if="${analysis.isInWrongCategory}"
-                                                > Mauvaise catégorie</span>
-                                            <br/>
-                                            <div class="small" th:if="${analysis.authenticatedContent != null}">
-                                                <span class="bold">Informations extraites : </span><br/>
-                                                <span th:utext="${analysis.authenticatedContent}"></span>
-                                            </div>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <input th:field="*{messageItems[__${i.index}__].documentCategory}"
-                                   th:value="${messageItem.getDocumentCategory()}" type="hidden"/>
-                            <input th:field="*{messageItems[__${i.index}__].documentSubCategory}"
-                                   th:value="${messageItem.getDocumentSubCategory()}" type="hidden"/>
-                            <input th:field="*{messageItems[__${i.index}__].documentId}"
-                                   th:value="${messageItem.getDocumentId()}" type="hidden"/>
-                            <div class="margin-bottom ">
-                                <div class="checkbox check-distance"
-                                     th:each="itemDetail,j : ${messageItem.getItemDetailList()}">
-                                    <label>
-                                        <input style="padding-left: 10px;"
-                                               th:field="*{messageItems[__${i.index}__].itemDetailList[__${j.index}__].check}"
-                                               type="checkbox"/>
-                                        <input th:field="*{messageItems[__${i.index}__].itemDetailList[__${j.index}__].message}"
-                                               th:value="${itemDetail.getMessage()}"
-                                               type="hidden"/>
-                                        <input th:field="*{messageItems[__${i.index}__].itemDetailList[__${j.index}__].idOptionMessage}"
-                                               th:value="${itemDetail.getIdOptionMessage()}"
-                                               type="hidden"/>
-                                        <p class="span1" style="display:block;"
-                                           th:utext="${itemDetail.getFormattedMessage()}">
-                                        </p>
-                                    </label>
-                                </div>
-                            </div>
-                            <div>
-                                <textarea aria-autocomplete="list"
-                                          aria-haspopup="true" autocomplete="off" class="ui-autocomplete-input"
-                                          cols="40"
-                                          name="comment[text]" placeholder="commentaire ..." role="textbox"
-                                          rows="20" th:field="*{messageItems[__${i.index}__].commentDoc}"></textarea>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div th:each="guarantorItem,k : ${customMessage.getGuarantorItems()}" th:remove="tag">
-
-                <div th:each="messageItem, i:${guarantorItem.getMessageItems()}" th:remove="tag">
-
-                    <div class="col-md-8" style="height: 700px" th:if="${messageItem.getCustomTex()}==null">
-                        <embed class="document-embed" height="90%"
+                <div class="row mt-4">
+                    <div class="col-md-8" style="min-height: 700px" th:if="${messageItem.getCustomTex()}==null">
+                        <embed class="document-embed" height="100%"
                                th:src="'/pdf-viewer/pdfjs-dist/web/viewer.html?file=/documents/'+${messageItem.getDocumentName()}"
                                width="100%"/>
                     </div>
-                    <div class="col-md-8" style="height: 700px" th:if="${messageItem.getCustomTex()}!=null">
+                    <div class="col-md-8" style="min-height: 700px" th:if="${messageItem.getCustomTex()}!=null">
                         <div class="full-size-div">
                             <div class="card-div">
-                                <div class="panel" style="background-color: rgb(232, 237, 241)">
+                                <div class="card" style="background-color: rgb(232, 237, 241)">
                                     <h3 class="h3-style">Texte du document :</h3>
                                 </div>
                                 <p class="bold p-style">
                                     <span class="span-style" th:text="${messageItem.getCustomTex()}"></span></p>
                             </div>
-
                         </div>
                     </div>
                     <div class="align-items-center col-md-4 display-flex height-100pct flex-direction-column">
                         <div class="display-flex flex-grow-1 margin-top-25px overflow-auto padding-right-0px"
                              style="align-self: flex-start;">
                             <div class="padding-right-5px">
-                                <div class="panel file1-border-color">
-                                    <div class="panel-heading file1-border-color bold"
+                                <div class="file1-border-color">
+                                    <div class="card-header file1-border-color bold"
                                          th:classappend="${'category-' + messageItem.getDocumentCategory()}">
-                                        <h4 class="panel-title letter" style="color: #0a0808">
+                                        <div class="letter" style="color: #0a0808">
                                             <span th:text="#{${messageItem.getDocumentCategory().getLabel()}}"></span>
-                                        </h4>
+                                        </div>
                                     </div>
-                                    <div class="panel-heading file1-border-color file1-background-color bold" th:if="${messageItem.avisDetected}!=null and ${messageItem.avisDetected}==true">
-                                        <h4 class="panel-title letter" style="color: #0a0808">
-                                            <span class="fa fa-times text-danger" >
-                                            </span>
-                                            Attention, un avis de situation a été détecté
-                                        </h4>
-                                    </div>
-                                    <div class="panel-heading file1-border-color file1-background-color">
-                                        <h4 class="panel-title letter"
-                                            style="color:#A558A0"
-                                            th:if="${guarantorItem.getTypeGuarantor().name()}!=null">
-                                            <span th:text="'Guarantor  : ' + ${guarantorItem.getTypeGuarantor().name()}"></span>
-                                        </h4>
-
-                                        <h4 class="panel-title letter" style="padding-top: 7px"
-                                            th:if="${messageItem.getDocumentSubCategory().name()}!=null">
-                                            <span th:text="'Type : ' + #{${messageItem.getDocumentSubCategory().getLabel()}}"></span>
-                                        </h4>
-
-                                        <h4 class="panel-title letter" style="padding-top: 7px"
-                                            th:if="${guarantorItem.getFirstName()}!=null">
-                                            <span th:text="'Name : ' + ${guarantorItem.getFirstName()}"></span>
-                                            <span th:text="${guarantorItem.getLastName()}"></span>
-                                        </h4>
-                                        <h4 class="panel-title letter" style="padding-top: 7px"
-                                            th:if="${messageItem.getMonthlySum()}!=null">
+                                    <div class="card-header file1-border-color file1-background-color bold">
+                                        <div class="letter">
+                                            <span th:text=" 'Type : ' + #{${messageItem.getDocumentSubCategory().getLabel()}}"></span>
+                                        </div>
+                                        <div class="letter" style="padding-top: 7px"
+                                             th:if="${messageItem.getMonthlySum()}!=null">
                                             <span th:text="'Montant mensuel : ' + ${messageItem.getMonthlySum()}"></span>
-                                        </h4>
-                                        <h4 class="panel-title letter" style="padding-top: 7px"
-                                            th:if="${T(fr.dossierfacile.common.enums.DocumentSubCategory).SALARY == messageItem.getDocumentSubCategory()}">
+                                        </div>
+                                        <div class="letter" style="padding-top: 7px"
+                                             th:if="${T(fr.dossierfacile.common.enums.DocumentSubCategory).SALARY == messageItem.getDocumentSubCategory()}">
                                             <span th:text="'Bulletins attendus : ' + ${T(fr.gouv.bo.utils.DateFormatUtil).getExpectedPayslipMonths()}"></span>
-                                        </h4>
-                                        <h4 class="panel-title letter" style="padding-top: 6px"
-                                            th:if="${guarantorItem.getLegalPersonName()}!=null">
-                                            <span th:text="'Legal Person Name : ' + ${guarantorItem.getLegalPersonName()}"></span>
-                                        </h4>
-                                        <input th:field="*{guarantorItems[__${k.index}__].guarantorId}"
-                                               th:value="${guarantorItem.getGuarantorId()}" type="hidden"/>
+                                        </div>
+                                        <div class="letter" style="padding-top: 7px"
+                                             th:if="${T(fr.dossierfacile.common.enums.DocumentSubCategory).TENANT == messageItem.getDocumentSubCategory()}">
+                                            <span th:text="'Quittances attendues : ' + ${T(fr.gouv.bo.utils.DateFormatUtil).getExpectedRentReceiptMonths()}"></span>
+                                        </div>
                                     </div>
-
                                     <div th:if="${messageItem.getPreviousDeniedReasons()} != null"
                                          th:with="reasons=${messageItem.getPreviousDeniedReasons()}"
-                                         class="panel-heading file2-background-color letter">
-                                        <span style="font-size: 12px; line-height: 20px">
-                                            Raisons du précédent refus :
-                                        </span>
-                                        <br />
+                                         class="card-header file2-background-color letter">
+                                    <span style="font-size: 12px; line-height: 20px">
+                                        Raisons du précédent refus :
+                                    </span>
+                                        <br/>
                                         <ul>
                                             <li style="font-size: 14px"
                                                 th:each="option : ${reasons.getCheckedOptions()}"
@@ -301,64 +133,257 @@
                                         Statut de la vérification automatique:
                                         <span th:text="${messageItem.getDocumentAnalysisReport().getAnalysisStatus}"></span>
                                         <ul>
-                                            <li style="margin-top: 5px" th:each="rule : ${messageItem.getDocumentAnalysisReport().getBrokenRules()}">
+                                            <li style="margin-top: 5px"
+                                                th:each="rule : ${messageItem.getDocumentAnalysisReport().getBrokenRules()}">
                                                 <span style="font-size:smaller" th:text="' ' + ${rule.message}"></span>
                                             </li>
                                         </ul>
                                     </div>
+                                    <div th:if="${messageItem.getAnalysisReportComment()} != null"
+                                         class="card-header file2-background-color letter">
+                                        <div style="font-size: 12px; line-height: 20px">
+                                            Les règles ont été forcées avec l'explication suivante :
+                                        </div>
+                                        <p th:text="${messageItem.getAnalysisReportComment()}"></p>
+                                    </div>
+                                    <div class="letter" style="padding: 7px"
+                                         th:if="${messageItem.avisDetected}!=null and ${messageItem.avisDetected}==true">
+                                    <span class="fa fa-times text-danger">
+                                    </span>
+                                        <span>Attention, un avis de situation a été détecté</span>
+                                    </div>
+
                                     <div th:if="${!messageItem.analyzedFiles.isEmpty()}" style="padding-left: 15px">
                                         <h4>Lecture automatiques :</h4>
                                         <ul>
-                                            <li th:each="file : ${messageItem.analyzedFiles}" th:with="analysis=${file.analysis}" class="margin-bottom-10px">
+                                            <li th:each="file : ${messageItem.analyzedFiles}"
+                                                th:with="analysis=${file.analysis}" class="margin-bottom-10px">
                                                 <span th:text="${file.summary}"></span>
-                                                <span class="fa" th:classappend="${analysis.authenticationStatusCssClass}"
+                                                <span class="fa"
+                                                      th:classappend="${analysis.authenticationStatusCssClass}"
                                                       th:text="' ' + ${analysis.authenticationStatus}"></span>
-                                                <span class="fa fa-times text-danger" th:if="${analysis.isInWrongCategory}"
+                                                <span class="fa fa-times text-danger"
+                                                      th:if="${analysis.isInWrongCategory}"
                                                 > Mauvaise catégorie</span>
                                                 <br/>
-                                                <div class="small" th:if="${analysis.isNotAuthenticated && !analysis.is2DDoc()}">
-                                                    <span class="bold">Devrait contenir : </span><br/>
-                                                    <span th:utext="${analysis.authenticatedContent}"></span>
-                                                </div>
-                                                <div class="small" th:if="${analysis.is2DDoc()}">
-                                                    <span class="bold">Informations extraites du 2D-Doc : </span><br/>
+                                                <div class="small" th:if="${analysis.authenticatedContent != null}">
+                                                    <span class="bold">Informations extraites : </span><br/>
                                                     <span th:utext="${analysis.authenticatedContent}"></span>
                                                 </div>
                                             </li>
                                         </ul>
                                     </div>
                                 </div>
-                                <input th:field="*{guarantorItems[__${k.index}__].messageItems[__${i.index}__].documentCategory}"
+                                <input th:field="*{messageItems[__${i.index}__].documentCategory}"
                                        th:value="${messageItem.getDocumentCategory()}" type="hidden"/>
-                                <input th:field="*{guarantorItems[__${k.index}__].messageItems[__${i.index}__].documentId}"
+                                <input th:field="*{messageItems[__${i.index}__].documentSubCategory}"
+                                       th:value="${messageItem.getDocumentSubCategory()}" type="hidden"/>
+                                <input th:field="*{messageItems[__${i.index}__].documentId}"
                                        th:value="${messageItem.getDocumentId()}" type="hidden"/>
-                                <div class="margin-bottom">
-                                    <div class="checkbox check-distance"
+                                <div class="margin-bottom mt-4">
+                                    <div class="form-check mb-2 ms-2"
                                          th:each="itemDetail,j : ${messageItem.getItemDetailList()}">
-                                        <label>
-                                            <input style="padding-left: 10px;"
-                                                   th:field="*{guarantorItems[__${k.index}__].messageItems[__${i.index}__].itemDetailList[__${j.index}__].check}"
+                                        <label class="form-check-label"
+                                        >
+                                            <input class="form-check-input"
+                                                   th:field="*{messageItems[__${i.index}__].itemDetailList[__${j.index}__].check}"
                                                    type="checkbox"/>
-                                            <input th:field="*{guarantorItems[__${k.index}__].messageItems[__${i.index}__].itemDetailList[__${j.index}__].message}"
+                                            <input th:field="*{messageItems[__${i.index}__].itemDetailList[__${j.index}__].message}"
                                                    th:value="${itemDetail.getMessage()}"
                                                    type="hidden"/>
-                                            <input th:field="*{guarantorItems[__${k.index}__].messageItems[__${i.index}__].itemDetailList[__${j.index}__].idOptionMessage}"
+                                            <input th:field="*{messageItems[__${i.index}__].itemDetailList[__${j.index}__].idOptionMessage}"
                                                    th:value="${itemDetail.getIdOptionMessage()}"
                                                    type="hidden"/>
-                                            <p class="span1" style="display:block;"
-                                               th:utext="${itemDetail.getFormattedMessage()}">
-                                            </p>
+                                            <span th:utext="${itemDetail.getFormattedMessage()}"></span>
                                         </label>
                                     </div>
                                 </div>
-                                <div>
+                                <div class="ms-1 mb-3">
+                                <textarea aria-autocomplete="list"
+                                          aria-haspopup="true" autocomplete="off"
+                                          class="ui-autocomplete-input form-control"
+                                          cols="40"
+                                          name="comment[text]" placeholder="commentaire ..." role="textbox"
+                                          rows="20" th:field="*{messageItems[__${i.index}__].commentDoc}"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div th:each="guarantorItem,k : ${customMessage.getGuarantorItems()}" th:remove="tag">
+
+                <div th:each="messageItem, i:${guarantorItem.getMessageItems()}" th:remove="tag">
+                    <div class="row mt-4">
+
+                        <div class="col-md-8" style="min-height: 700px" th:if="${messageItem.getCustomTex()}==null">
+                            <embed class="document-embed" height="100%"
+                                   th:src="'/pdf-viewer/pdfjs-dist/web/viewer.html?file=/documents/'+${messageItem.getDocumentName()}"
+                                   width="100%"/>
+                        </div>
+                        <div class="col-md-8" style="min-height: 700px" th:if="${messageItem.getCustomTex()}!=null">
+                            <div class="full-size-div">
+                                <div class="card-div">
+                                    <div class="card" style="background-color: rgb(232, 237, 241)">
+                                        <h3 class="h3-style">Texte du document :</h3>
+                                    </div>
+                                    <p class="bold p-style">
+                                        <span class="span-style" th:text="${messageItem.getCustomTex()}"></span></p>
+                                </div>
+
+                            </div>
+                        </div>
+                        <div class="align-items-center col-md-4 display-flex height-100pct flex-direction-column">
+                            <div class="display-flex flex-grow-1 margin-top-25px overflow-auto padding-right-0px"
+                                 style="align-self: flex-start;">
+                                <div class="padding-right-5px">
+                                    <div class="card file1-border-color">
+                                        <div class="card-header file1-border-color bold"
+                                             th:classappend="${'category-' + messageItem.getDocumentCategory()}">
+                                            <div class="letter" style="color: #0a0808">
+                                                <span th:text="#{${messageItem.getDocumentCategory().getLabel()}}"></span>
+                                            </div>
+                                        </div>
+                                        <div class="card-header file1-border-color file1-background-color bold"
+                                             th:if="${messageItem.avisDetected}!=null and ${messageItem.avisDetected}==true">
+                                            <div class="letter" style="color: #0a0808">
+                                            <span class="fa fa-times text-danger">
+                                            </span>
+                                                Attention, un avis de situation a été détecté
+                                            </div>
+                                        </div>
+                                        <div class="card-header file1-border-color file1-background-color">
+                                            <div class="letter"
+                                                 style="color:#A558A0"
+                                                 th:if="${guarantorItem.getTypeGuarantor().name()}!=null">
+                                                <span th:text="'Guarantor  : ' + ${guarantorItem.getTypeGuarantor().name()}"></span>
+                                            </div>
+
+                                            <div class="letter" style="padding-top: 7px"
+                                                 th:if="${messageItem.getDocumentSubCategory().name()}!=null">
+                                                <span th:text="'Type : ' + #{${messageItem.getDocumentSubCategory().getLabel()}}"></span>
+                                            </div>
+
+                                            <div class="letter" style="padding-top: 7px"
+                                                 th:if="${guarantorItem.getFirstName()}!=null">
+                                                <span th:text="'Name : ' + ${guarantorItem.getFirstName()}"></span>
+                                                <span th:text="${guarantorItem.getLastName()}"></span>
+                                            </div>
+                                            <div class="letter" style="padding-top: 7px"
+                                                 th:if="${messageItem.getMonthlySum()}!=null">
+                                                <span th:text="'Montant mensuel : ' + ${messageItem.getMonthlySum()}"></span>
+                                            </div>
+                                            <div class="letter" style="padding-top: 7px"
+                                                 th:if="${T(fr.dossierfacile.common.enums.DocumentSubCategory).SALARY == messageItem.getDocumentSubCategory()}">
+                                                <span th:text="'Bulletins attendus : ' + ${T(fr.gouv.bo.utils.DateFormatUtil).getExpectedPayslipMonths()}"></span>
+                                            </div>
+                                            <div class="letter" style="padding-top: 6px"
+                                                 th:if="${guarantorItem.getLegalPersonName()}!=null">
+                                                <span th:text="'Legal Person Name : ' + ${guarantorItem.getLegalPersonName()}"></span>
+                                            </div>
+                                            <input th:field="*{guarantorItems[__${k.index}__].guarantorId}"
+                                                   th:value="${guarantorItem.getGuarantorId()}" type="hidden"/>
+                                        </div>
+
+                                        <div th:if="${messageItem.getPreviousDeniedReasons()} != null"
+                                             th:with="reasons=${messageItem.getPreviousDeniedReasons()}"
+                                             class="card-header file2-background-color letter">
+                                        <span style="font-size: 12px; line-height: 20px">
+                                            Raisons du précédent refus :
+                                        </span>
+                                            <br/>
+                                            <ul>
+                                                <li style="font-size: 14px"
+                                                    th:each="option : ${reasons.getCheckedOptions()}"
+                                                    th:utext="${option}">
+                                                </li>
+                                                <li style="font-size: 14px"
+                                                    th:if="${reasons.getComment()} != null"
+                                                    th:utext="${reasons.getComment()}">
+                                                </li>
+                                            </ul>
+                                        </div>
+                                        <div th:if="${messageItem.getDocumentAnalysisReport()!=null}"
+                                             th:class="${'prevalidation-background-' + messageItem.getDocumentAnalysisReport().getAnalysisStatus() }"
+                                             style="padding: 15px 5px 5px 5px">
+                                            Statut de la vérification automatique:
+                                            <span th:text="${messageItem.getDocumentAnalysisReport().getAnalysisStatus}"></span>
+                                            <ul>
+                                                <li style="margin-top: 5px"
+                                                    th:each="rule : ${messageItem.getDocumentAnalysisReport().getBrokenRules()}">
+                                                    <span style="font-size:smaller"
+                                                          th:text="' ' + ${rule.message}"></span>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                        <div th:if="${messageItem.getAnalysisReportComment()} != null"
+                                             class="card-header file2-background-color letter">
+                                            <div style="font-size: 12px; line-height: 20px">
+                                                Les règles ont été forcées avec l'explication suivante :
+                                            </div>
+                                            <p th:text="${messageItem.getAnalysisReportComment()}"></p>
+                                        </div>
+                                        <div th:if="${!messageItem.analyzedFiles.isEmpty()}" style="padding-left: 15px">
+                                            <h4>Lecture automatiques :</h4>
+                                            <ul>
+                                                <li th:each="file : ${messageItem.analyzedFiles}"
+                                                    th:with="analysis=${file.analysis}" class="margin-bottom-10px">
+                                                    <span th:text="${file.summary}"></span>
+                                                    <span class="fa"
+                                                          th:classappend="${analysis.authenticationStatusCssClass}"
+                                                          th:text="' ' + ${analysis.authenticationStatus}"></span>
+                                                    <span class="fa fa-times text-danger"
+                                                          th:if="${analysis.isInWrongCategory}"
+                                                    > Mauvaise catégorie</span>
+                                                    <br/>
+                                                    <div class="small"
+                                                         th:if="${analysis.isNotAuthenticated && !analysis.is2DDoc()}">
+                                                        <span class="bold">Devrait contenir : </span><br/>
+                                                        <span th:utext="${analysis.authenticatedContent}"></span>
+                                                    </div>
+                                                    <div class="small" th:if="${analysis.is2DDoc()}">
+                                                        <span class="bold">Informations extraites du 2D-Doc : </span><br/>
+                                                        <span th:utext="${analysis.authenticatedContent}"></span>
+                                                    </div>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <input th:field="*{guarantorItems[__${k.index}__].messageItems[__${i.index}__].documentCategory}"
+                                           th:value="${messageItem.getDocumentCategory()}" type="hidden"/>
+                                    <input th:field="*{guarantorItems[__${k.index}__].messageItems[__${i.index}__].documentId}"
+                                           th:value="${messageItem.getDocumentId()}" type="hidden"/>
+                                    <div class="margin-bottom mt-4">
+                                        <div class="form-check mb-2 ms-2"
+                                             th:each="itemDetail,j : ${messageItem.getItemDetailList()}">
+                                            <label class="form-check-label"
+                                            >
+                                                <input class="form-check-input"
+                                                       th:field="*{guarantorItems[__${k.index}__].messageItems[__${i.index}__].itemDetailList[__${j.index}__].check}"
+                                                       type="checkbox"/>
+                                                <input
+                                                        th:field="*{guarantorItems[__${k.index}__].messageItems[__${i.index}__].itemDetailList[__${j.index}__].message}"
+                                                        th:value="${itemDetail.getMessage()}"
+                                                        type="hidden"/>
+                                                <input
+                                                        th:field="*{guarantorItems[__${k.index}__].messageItems[__${i.index}__].itemDetailList[__${j.index}__].idOptionMessage}"
+                                                        th:value="${itemDetail.getIdOptionMessage()}"
+                                                        type="hidden"/>
+                                                <span th:utext="${itemDetail.getFormattedMessage()}"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="ms-1 mb-3">
                                     <textarea
                                             aria-autocomplete="list"
-                                            aria-haspopup="true" autocomplete="off" class="ui-autocomplete-input"
+                                            aria-haspopup="true" autocomplete="off"
+                                            class="ui-autocomplete-input form-control"
                                             cols="40"
                                             name="comment[text]" placeholder="commentaire ..." role="textbox"
                                             rows="20"
                                             th:field="*{guarantorItems[__${k.index}__].messageItems[__${i.index}__].commentDoc}"></textarea>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -367,7 +392,7 @@
             </div>
 
             <div style="margin-right: 0; margin-left: -20px;">
-                <input type="hidden" name="timeSpent" id="timeSpent" value="0" />
+                <input type="hidden" name="timeSpent" id="timeSpent" value="0"/>
                 <div class="pull-right" style="margin-right: 60px; margin-bottom: 60px; margin-top: 10px;">
                     <button class="btn btn-primary bo-send-btn hidden-xs" id="validDecline"
                             type="submit">

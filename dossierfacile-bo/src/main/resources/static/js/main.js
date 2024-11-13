@@ -1,15 +1,13 @@
 $(document).ready(function () {
 
     $('.btn-theme-change').on('click', function (e) {
-        console.log("OK");
         var htmlElement = document.documentElement;
         var currentTheme = htmlElement.getAttribute('data-fr-theme');
         var newTheme = (currentTheme == 'light') ? 'dark' : 'light';
         htmlElement.setAttribute('data-fr-theme', newTheme);
+        htmlElement.setAttribute('data-bs-theme', newTheme);
         localStorage.setItem('fr-theme', newTheme);
     });
-    const storedTheme = localStorage.getItem('fr-theme') || 'light';
-    document.documentElement.setAttribute('data-fr-theme', storedTheme);
 
     $('.btn-modal-confirm-before-submit').on('click', function (e) {
         e.preventDefault();
@@ -54,9 +52,6 @@ $(document).ready(function () {
 
         var href = $(this).attr('href');
         var id = $(this).attr('data-id');
-
-        console.log('href' + href);
-        console.log('id' + id);
 
         $('#deleteRefCo' + id).attr('href', href);
         $('#deleteCotenant' + id).modal('show');
@@ -213,11 +208,11 @@ $(document).ready(function () {
     })
 
     function updateMessageForm(target) {
-        var id = target.attr('data-id');
+        var id = target.attr('data-tenant-id');
         var nameAdmin = target.attr('data-nameAdmin');
         $('#tenant-message' + id).load("/bo/message/tenant/" + id, function () {
             $("#messageForm" + id).submit(function (e) {
-                    var id1 = $(this).attr('data-id');
+                    var id1 = $(this).attr('data-tenant-id');
                     sendNewMessage(e, "/bo/message/new/" + id, $(this), nameAdmin, id, function () {
                         location.reload();
                     })
@@ -230,7 +225,7 @@ $(document).ready(function () {
     });
 
     $('.chat').each(function(index) {
-        if ($(this) !== undefined && $(this).attr('aria-expanded') === 'true') {
+        if ($(this) !== undefined && $(this).attr('aria-selected') === 'true') {
             updateMessageForm($(this));
         }
     })
