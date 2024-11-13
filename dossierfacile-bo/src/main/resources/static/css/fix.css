@@ -324,7 +324,3 @@ span.ocr-result {
     border: 1px solid var(--bs-border-color);
     background-color: var(--bs-dark-bg-subtle);
 }
-
-.form-check-label {
-    font-size: 1.1rem;
-}
