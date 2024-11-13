@@ -319,3 +319,8 @@ span.ocr-result {
 .w-600 {
     max-width: 600px;
 }
+
+.nav-link {
+    border: 1px solid var(--bs-border-color);
+    background-color: var(--bs-dark-bg-subtle);
+}
