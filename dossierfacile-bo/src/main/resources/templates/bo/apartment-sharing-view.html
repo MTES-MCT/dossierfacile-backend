@@ -809,14 +809,14 @@
 
                         <h3 th:unless="${tenant.getGuarantors().isEmpty()}">Garants</h3>
                         <div class="medium-space-separator" th:each="guarantor : ${tenant.getGuarantors()}">
-                            <span style="display: ruby-text;">
-                                <div th:text="${guarantor.getTypeGuarantor()}"></div>
+                            <div>
+                                <span th:text="${guarantor.getTypeGuarantor()}"></span>
                                 <a class="btn btn-danger bo-btn btn-deleteGuarantor"
                                    style="margin-right: 10px; margin-left: 20px; margin-top: -5px"
                                    th:attr="guarantor-id=${guarantor.getId()}"
                                    th:text="'Supprimer le garant'"
                                 ></a>
-                            </span>
+                            </div>
                             <div class="card panel-primary mb-3"
                                  th:each="document : ${tenantService.getAllDocumentCategoriesGuarantor(guarantor)}">
                                 <div class="card-header">
