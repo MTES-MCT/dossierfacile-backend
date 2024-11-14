@@ -5,12 +5,10 @@
 <head>
     <head th:replace="~{include/process-file-layout-head :: head}"></head>
 </head>
-<div class="container-fluid">
-    <div layout:fragment="header">
-        <div th:replace="~{include/fixed-header-bo :: fixed-header-bo}">...</div>
-    </div>
-</div>
-<body class="bg-body-secondary">
+<body class="bg-body-secondary container-fluid">
+<header layout:fragment="header" class="fixed-header">
+    <div th:replace="~{include/fixed-header-bo :: fixed-header-bo}">...</div>
+</header>
 <div layout:fragment="content"></div>
 <div th:replace="~{include/scripts-bo :: script-bo}">...</div>
 <div layout:fragment="javascripts">
