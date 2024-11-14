@@ -65,12 +65,12 @@
 
             <div th:each="messageItem, i:${customMessage.getMessageItems()}" th:remove="tag">
                 <div class="row mt-4">
-                    <div class="col-md-8" style="min-height: 700px" th:if="${messageItem.getCustomTex()}==null">
+                    <div class="col-md-8" style="min-height: 700px; max-height: 1050px" th:if="${messageItem.getCustomTex()}==null">
                         <embed class="document-embed" height="100%"
                                th:src="'/pdf-viewer/pdfjs-dist/web/viewer.html?file=/documents/'+${messageItem.getDocumentName()}"
                                width="100%"/>
                     </div>
-                    <div class="col-md-8" style="min-height: 700px" th:if="${messageItem.getCustomTex()}!=null">
+                    <div class="col-md-8" style="min-height: 700px; max-height: 1050px" th:if="${messageItem.getCustomTex()}!=null">
                         <div class="full-size-div">
                             <div class="card-div">
                                 <div class="card" style="background-color: rgb(232, 237, 241)">
@@ -217,12 +217,12 @@
                 <div th:each="messageItem, i:${guarantorItem.getMessageItems()}" th:remove="tag">
                     <div class="row mt-4">
 
-                        <div class="col-md-8" style="min-height: 700px" th:if="${messageItem.getCustomTex()}==null">
+                        <div class="col-md-8" style="min-height: 700px; max-height: 1050px" th:if="${messageItem.getCustomTex()}==null">
                             <embed class="document-embed" height="100%"
                                    th:src="'/pdf-viewer/pdfjs-dist/web/viewer.html?file=/documents/'+${messageItem.getDocumentName()}"
                                    width="100%"/>
                         </div>
-                        <div class="col-md-8" style="min-height: 700px" th:if="${messageItem.getCustomTex()}!=null">
+                        <div class="col-md-8" style="min-height: 700px; max-height: 1050px" th:if="${messageItem.getCustomTex()}!=null">
                             <div class="full-size-div">
                                 <div class="card-div">
                                     <div class="card" style="background-color: rgb(232, 237, 241)">
