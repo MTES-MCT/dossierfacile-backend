@@ -57,7 +57,7 @@ public class BOPdfDocumentTemplateTest {
 
     @DisplayName("Check if the pdf file is correctly generated in specific files")
     @Test
-    public void check_render_with_special_files() throws IOException {
+    public void check_render_with_special_files() throws Exception {
         InputStream is = BOPdfDocumentTemplateTest.class.getClassLoader().getResourceAsStream("secret/TestBOFile1.pdf");
 
         FileInputStream data = FileInputStream
@@ -78,7 +78,7 @@ public class BOPdfDocumentTemplateTest {
 
     @DisplayName("Check if the render is correctly generated from text pdf and wrong sized pdf")
     @Test
-    public void check_render_with_text_pdf() throws IOException {
+    public void check_render_with_text_pdf() throws Exception {
         InputStream is = BOPdfDocumentTemplateTest.class.getClassLoader().getResourceAsStream("bigH.pdf");
 
         FileInputStream data = FileInputStream
@@ -98,7 +98,7 @@ public class BOPdfDocumentTemplateTest {
 
     @DisplayName("Check if the render is correctly generated from all type textual pdf, pdf, image, non obfuscable pdf")
     @Test
-    public void check_render_with_all_type() throws IOException {
+    public void check_render_with_all_type() throws Exception {
         InputStream is = BOPdfDocumentTemplateTest.class.getClassLoader().getResourceAsStream("CNI.pdf");
         InputStream isJPG = BOPdfDocumentTemplateTest.class.getClassLoader().getResourceAsStream("CNI.jpg");
         InputStream isTextPdf = BOPdfDocumentTemplateTest.class.getClassLoader().getResourceAsStream("page1.pdf");
@@ -136,7 +136,7 @@ public class BOPdfDocumentTemplateTest {
 
     @DisplayName("Check if the render is correctly generated from image pdf")
     @Test
-    public void check_render_with_img_pdf() throws IOException {
+    public void check_render_with_img_pdf() throws Exception {
         InputStream is = BOPdfDocumentTemplateTest.class.getClassLoader().getResourceAsStream("CNI.pdf");
 
         FileInputStream data = FileInputStream
@@ -156,7 +156,7 @@ public class BOPdfDocumentTemplateTest {
 
     @DisplayName("Check if the render is correctly generated from jpegs")
     @Test
-    public void check_render_from_jpegs() throws IOException {
+    public void check_render_from_jpegs() throws Exception {
         InputStream is = BOPdfDocumentTemplateTest.class.getClassLoader().getResourceAsStream("CNI.jpg");
         InputStream is2 = BOPdfDocumentTemplateTest.class.getClassLoader().getResourceAsStream("CNIHorizontale.jpg");
         InputStream is3 = BOPdfDocumentTemplateTest.class.getClassLoader().getResourceAsStream("CNISmall.jpg");
@@ -197,7 +197,7 @@ public class BOPdfDocumentTemplateTest {
 
     @DisplayName("Avoid render above qrcode")
     @Test
-    public void check_watermark_not_in_qrcode() throws IOException {
+    public void check_watermark_not_in_qrcode() throws Exception {
         Mockito.when(featureFlipping.shouldUseColors()).thenReturn(false);
         Mockito.when(featureFlipping.shouldUseDistortion()).thenReturn(false);
         InputStream is = BOPdfDocumentTemplateTest.class.getClassLoader().getResourceAsStream("qrcode-sample.pdf");

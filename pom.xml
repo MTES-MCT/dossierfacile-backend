@@ -45,6 +45,8 @@
         <jbig2-imageio.version>3.0.4</jbig2-imageio.version>
         <jai-imageio-core.version>1.4.0</jai-imageio-core.version>
         <jai-imageio-jpeg2000.version>1.4.0</jai-imageio-jpeg2000.version>
+        <bcprov-jdk18on.version>1.78.1</bcprov-jdk18on.version>
+        <bcpkix-jdk18on.version>1.78.1</bcpkix-jdk18on.version>
     </properties>
 
     <dependencyManagement>
@@ -123,7 +125,16 @@
                 <artifactId>jai-imageio-jpeg2000</artifactId>
                 <version>${jai-imageio-jpeg2000.version}</version>
             </dependency>
-
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcprov-jdk18on</artifactId>
+                <version>${bcprov-jdk18on.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcpkix-jdk18on</artifactId>
+                <version>${bcpkix-jdk18on.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 </project>

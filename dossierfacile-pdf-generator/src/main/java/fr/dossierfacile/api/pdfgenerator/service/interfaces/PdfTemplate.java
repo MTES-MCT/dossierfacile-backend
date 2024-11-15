@@ -4,5 +4,5 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public interface PdfTemplate<T> {
-    InputStream render(T data) throws IOException;
+    InputStream render(T data) throws Exception;
 }
