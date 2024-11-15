@@ -2,6 +2,7 @@ package fr.dossierfacile.api.pdfgenerator.service.templates;
 
 import fr.dossierfacile.api.pdfgenerator.configuration.FeatureFlipping;
 import fr.dossierfacile.api.pdfgenerator.model.FileInputStream;
+import fr.dossierfacile.api.pdfgenerator.service.interfaces.PdfSignatureService;
 import fr.dossierfacile.api.pdfgenerator.service.interfaces.PdfTemplate;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -19,8 +20,8 @@ import java.util.List;
 @Qualifier("boIdentificationPdfDocumentTemplate")
 public class BOIdentificationPdfDocumentTemplate extends BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>> {
 
-    public BOIdentificationPdfDocumentTemplate(MessageSource messageSource, FeatureFlipping featureFlipping) {
-        super(messageSource, featureFlipping);
+    public BOIdentificationPdfDocumentTemplate(MessageSource messageSource, FeatureFlipping featureFlipping, PdfSignatureService pdfSignatureService) {
+        super(messageSource, featureFlipping, pdfSignatureService);
     }
 
     /**
@@ -91,7 +92,7 @@ public class BOIdentificationPdfDocumentTemplate extends BOPdfDocumentTemplate i
         while (col < gridSample.length && isBlankColumn(gridSample, col)) {
             col++;
         }
-        if( col == gridSample.length) {
+        if (col == gridSample.length) {
             // unable to treat sounds empty
             log.warn("Image sounds empty");
             return image;
