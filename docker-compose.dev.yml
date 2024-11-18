@@ -1,0 +1,29 @@
+services:
+  postgres:
+    image: postgres:12
+    container_name: dossierfacile_postgres_db
+    hostname: localhost
+    environment:
+      POSTGRES_USER: dossierfacile
+      POSTGRES_PASSWORD: your_very_secure_password
+      POSTGRES_DB: dossierfacile
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dossierfacile"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - postgres_network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  postgres_network:
+    driver: bridge

@@ -11,55 +11,25 @@ The front-end code is also accessible in [this repository](https://github.com/MT
 
 ## Prerequisites
 
-You need to have [Java JDK 21](https://openjdk.org/projects/jdk/21/), [maven](https://maven.apache.org/) and [PostgreSQL](https://www.postgresql.org/) installed.
+You need to have [JDK 21](https://openjdk.org/projects/jdk/21/), [maven](https://maven.apache.org/) and [Docker](https://docs.docker.com/engine/install/) installed.
 
 ### Database
 
-Create a dedicated user and database for dossierfacile.
+Run:
+```
+docker-compose -f docker-compose.dev.yml up -d
+```
 
-If you want to use [Keycloak](https://www.keycloak.org/) locally, you need to create another database for it.
+To create a dedicated user and database for dossierfacile.
 
 ### Keycloak
 
-You need [Docker](https://www.docker.com/) and [Docker compose](https://docs.docker.com/compose/).
+If you want to use [Keycloak](https://www.keycloak.org/) locally, follow the README instructions on repo [Dossier-Facile-Keycloak](https://github.com/MTES-MCT/Dossier-Facile-Keycloak).
 
-Clone the [DossierFacile-Keycloak project](https://github.com/MTES-MCT/Dossier-Facile-Keycloak).
-
-Download [keycloak-franceconnect-v7.0.0.jar](https://github.com/InseeFr/Keycloak-FranceConnect/releases/download/7.0.0/keycloak-franceconnect-7.0.0.jar) and copy it inside `Dossier-Facile-Keycloak`.
-
-Use the following Dockerfile:
-
-```dockerfile
-FROM quay.io/keycloak/keycloak:22.0
-ENV TZ=Europe/Paris
-COPY keycloak-franceconnect-7.0.0.jar /opt/keycloak/standalone/deployments/keycloak-franceconnect-7.0.0.jar
-ADD theme/df /opt/keycloak/themes/df
-ADD theme/df-owner /opt/keycloak/themes/df-owner
-
-ENTRYPOINT ["/opt/keycloak/bin/kc.sh", "start-dev"]
-```
-
-Create `docker-compose.yml` and update it with your database settings.
-
-```YAML
-version: '2'
-services:
-    keycloak:
-        build: .
-        environment:
-            - KEYCLOAK_CREATE_ADMIN_USER=false
-            - KEYCLOAK_ADMIN_USER=admin
-            - KEYCLOAK_ADMIN_PASSWORD=admin
-            - KC_DB=postgres
-            - KC_DB_URL=jdbc:postgresql://localhost:5433/keycloak
-            - KC_DB_PASSWORD=
-            - KC_DB_USERNAME=
-            - KC_HTTP_RELATIVE_PATH=/auth
-        ports:
-            - "8085:8080"
-```
-
-Use `docker compose up` to launch.
+To run this project, you will need the realm "dossier-facile" and a new client "dossier-facile-api", with:
+- selected theme "df"
+- in capability config, "client authentication" activated
+Then go to tab "credentials" and copy the client secret
 
 ### Config
 
@@ -69,19 +39,40 @@ Create the file `application-dev.properties` in `dossierfacile-bo/src/main/resou
 
 ```properties
 mock.storage.path=/path/to/mock_storage/
-storage.provider.list=LOCAL
 server.port=8081
+application.name=bo
 application.domain=http://localhost:8081
 domain.protocol=http
+environment=localhost
+
+mock.storage.path=mockstorage
+storage.provider.list=LOCAL
+
 # SQL
-spring.datasource.url=jdbc:postgresql://localhost:5433/dossierfacile
-spring.datasource.username=
+spring.datasource.url=jdbc:postgresql://localhost:5432/dossierfacile
+spring.datasource.username=dossierfacile
 spring.datasource.password=
+
+# SSO Google
+spring.security.oauth2.client.registration.google.client-id=
+spring.security.oauth2.client.registration.google.client-secret=
+spring.security.oauth2.client.registration.google.redirect-uri-template={baseUrl}/oauth2/callback/{registrationId}
+spring.security.oauth2.client.registration.google.scope=email,profile
+authorize.domain.bo=dossierfacile.fr
+authorize.bo.access.emails=
+
 # Keycloak
 keycloak.server.url=http://localhost:8085/auth
 keycloak.server.realm=dossier-facile
-keycloak.server.client.id=dossier-facile-api
+keycloak.server.client.id=
 keycloak.server.client.secret=
+
+# Logging
+logging.config=
+logging.level.root=info
+logging.file.path=logs
+logging.logstash.destination=
+
 # Brevo
 brevo.apikey=
 ```
@@ -184,6 +175,9 @@ brevo.apikey=
 
 For each properties file, copy the `brevo.template.*` properties from `application.properties` to `application-dev.properties` and set the correct ids.
 
+Note:
+- dans le cas du run du service `dossierfacile-bo`, il semble manquer quelques identifiants de templates (notamment côté partner)
+
 ## Build
 
 Run `mvn clean install` from the root folder. This will build every module.
@@ -193,7 +187,7 @@ Run `mvn clean install` from the root folder. This will build every module.
 In each application folder, run
 
 ```
-mvn spring-boot:run -Dspring-boot.run.profiles=dev,mockOvh
+mvn spring-boot:run -D spring-boot.run.profiles=dev,mockOvh
 ```
 
 ## Infrastructure
