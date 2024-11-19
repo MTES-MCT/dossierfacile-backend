@@ -80,6 +80,8 @@ public class Tenant extends User implements Person, Serializable {
 
     private String zipCode;
 
+    private Boolean abroad;
+
     @Builder.Default
     private Boolean honorDeclaration = Boolean.FALSE;
 

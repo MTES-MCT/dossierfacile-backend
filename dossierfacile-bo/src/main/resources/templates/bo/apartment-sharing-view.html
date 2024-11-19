@@ -542,7 +542,10 @@
                                 </tr>
                                 <tr>
                                     <td>Code postal</td>
-                                    <td th:text="${tenant.getZipCode()}"></td>
+                                    <td>
+                                        <span th:text="${tenant.getZipCode()}"></span>
+                                        <span th:if="${tenant.abroad == true}">À l'étranger</span>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td>Type de compte</td>

@@ -25,6 +25,7 @@ import java.util.List;
 public class DeletedTenantModel {
     private Long id;
     private String zipCode;
+    private Boolean abroad;
     private String hashedEmail;
     private String hashedLastname;
     private String hashedFirstname;

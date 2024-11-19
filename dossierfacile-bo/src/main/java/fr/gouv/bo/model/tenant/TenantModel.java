@@ -25,6 +25,7 @@ public class TenantModel {
     private String lastName;
     private String preferredName;
     private String zipCode;
+    private Boolean abroad;
     private String email;
     private TenantType tenantType;
     private TenantFileStatus status;
