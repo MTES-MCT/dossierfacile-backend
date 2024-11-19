@@ -14,17 +14,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @CheckFranceConnect(groups = Dossier.class)
 public class NamesForm implements FormWithTenantId {
-
     @NotNull
     private Long tenantId;
-
     @NotBlank
     private String firstName;
-
     @NotBlank
     private String lastName;
-
     private String preferredName;
-
     private String zipCode;
+    private Boolean abroad;
 }

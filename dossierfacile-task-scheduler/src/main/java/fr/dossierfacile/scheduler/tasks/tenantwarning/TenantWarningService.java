@@ -67,6 +67,7 @@ public class TenantWarningService {
         t.setHonorDeclaration(false);
         t.setStatus(TenantFileStatus.ARCHIVED);
         t.setZipCode("");
+        t.setAbroad(null);
         t.setClarification("");
         t.setLastUpdateDate(LocalDateTime.now());
         t = tenantRepository.save(t);
