@@ -69,7 +69,6 @@ public class TenantService {
     private final TenantMapperForMail tenantMapperForMail;
     private final ApartmentSharingMapperForMail apartmentSharingMapperForMail;
 
-    private int forTenant = 0;
     @Value("${time.reprocess.application.minutes}")
     private int timeReprocessApplicationMinutes;
 
@@ -257,7 +256,13 @@ public class TenantService {
         return areAllDocumentsValid;
     }
 
-    public Message sendCustomMessage(Tenant tenant, CustomMessage customMessage, int messageFrom) {
+    public Message sendCustomMessage(Tenant tenant, CustomMessage customMessage) {
+        boolean forTenant = hasCheckedItem(customMessage.getMessageItems());
+        boolean forGuarantor = hasGuarantorCheckedItem(customMessage.getGuarantorItems());
+        if (!forTenant && !forGuarantor) {
+            return null;
+        }
+
         StringCustomMessage fileNameWithBold = str -> "<b>" + messageSource.getMessage(str, null, locale) + BOLD_CLOSE;
         StringCustomMessageGuarantor fileNameWithBoldGuarantor = str -> "<b>" + messageSource.getMessage(str, null, locale) + " du garant</b> ";
 
@@ -267,7 +272,7 @@ public class TenantService {
         mailMessage.append("<br/> <ul class='customMessage'>");
 
         List<Long> documentDeniedReasonsIds = new ArrayList<>();
-        if (messageFrom == 7 || messageFrom == 2) {
+        if (forTenant) {
             for (MessageItem messageItem : messageItems) {
                 DocumentDeniedReasons documentDeniedReasons = new DocumentDeniedReasons();
                 for (ItemDetail itemDetail : messageItem.getItemDetailList()) {
@@ -303,7 +308,7 @@ public class TenantService {
             }
         }
 
-        if (messageFrom == 7 || messageFrom == 5) {
+        if (forGuarantor) {
             for (GuarantorItem guarantorItem : customMessage.getGuarantorItems()) {
                 messageItems = guarantorItem.getMessageItems();
                 mailMessage.append("</ul>");
@@ -348,14 +353,11 @@ public class TenantService {
         mailMessage.append("</ul><br/><p>");
         mailMessage.append(messageSource.getMessage("bo.tenant.custom.email.footer1", null, locale));
         mailMessage.append("</p>");
-        if (messageFrom > 0) {
-            Message message = messageService.create(new MessageDTO(mailMessage.toString()), tenant, false, true);
-            if (!documentDeniedReasonsIds.isEmpty()) {
-                documentDeniedReasonsService.updateDocumentDeniedReasonsWithMessage(message, documentDeniedReasonsIds);
-            }
-            return message;
+        Message message = messageService.create(new MessageDTO(mailMessage.toString()), tenant, false, true);
+        if (!documentDeniedReasonsIds.isEmpty()) {
+            documentDeniedReasonsService.updateDocumentDeniedReasonsWithMessage(message, documentDeniedReasonsIds);
         }
-        return null;
+        return message;
     }
 
     @Transactional
@@ -380,37 +382,19 @@ public class TenantService {
         changeTenantStatusToDeclined(tenant, operator, null, ProcessedDocuments.NONE);
     }
 
-    private int checkValueOfCustomMessage(CustomMessage customMessage) {
-
-        List<MessageItem> messageItems = customMessage.getMessageItems();
-        int allMessageResult = 0;
-
-        if (!messageItems.isEmpty()) {
-            for (MessageItem messageItem : messageItems) {
+    private boolean hasCheckedItem(List<MessageItem> messageItems) {
+        for (MessageItem messageItem : messageItems) {
                 boolean messageItemCheck = messageItem.getItemDetailList().stream()
                         .anyMatch(ItemDetail::isCheck);
                 if (messageItemCheck || isNotEmpty(messageItem.getCommentDoc())) {
-                    forTenant = 2;
-                    allMessageResult = forTenant;
+                    return true;
                 }
             }
-        }
+        return false;
+    }
 
-        List<GuarantorItem> guarantorItems = customMessage.getGuarantorItems();
-        if (!guarantorItems.isEmpty()) {
-            for (GuarantorItem guarantorItem : guarantorItems) {
-                messageItems = guarantorItem.getMessageItems();
-                for (MessageItem messageItem : messageItems) {
-                    boolean messageItemCheckGuarantor = messageItem.getItemDetailList().stream()
-                            .anyMatch(ItemDetail::isCheck);
-                    if (messageItemCheckGuarantor || isNotEmpty(messageItem.getCommentDoc())) {
-                        allMessageResult = forTenant + 5;
-                    }
-                }
-            }
-        }
-
-        return allMessageResult;
+    private boolean hasGuarantorCheckedItem(List<GuarantorItem> guarantorItems) {
+        return guarantorItems.stream().anyMatch(item -> hasCheckedItem(item.getMessageItems()));
     }
 
     @Transactional
@@ -422,7 +406,7 @@ public class TenantService {
         }
         User operator = userService.findUserByEmail(principal.getName());
         updateFileStatus(customMessage);
-        Message message = sendCustomMessage(tenant, customMessage, checkValueOfCustomMessage(customMessage));
+        Message message = sendCustomMessage(tenant, customMessage);
         changeTenantStatusToDeclined(tenant, operator, message, ProcessedDocuments.NONE);
 
         return "redirect:/bo";
@@ -455,7 +439,7 @@ public class TenantService {
         if (allDocumentsValid) {
             changeTenantStatusToValidated(tenant, operator, processedDocuments);
         } else {
-            Message message = sendCustomMessage(tenant, customMessage, checkValueOfCustomMessage(customMessage));
+            Message message = sendCustomMessage(tenant, customMessage);
             changeTenantStatusToDeclined(tenant, operator, message, processedDocuments);
         }
         updateOperatorDateTimeTenant(tenantId);
