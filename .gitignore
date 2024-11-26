@@ -11,6 +11,7 @@ static-front/
 logs/
 hs_err_pid*.log
 tmp
+**/certs/*
 
 ### STS ###
 .apt_generated
