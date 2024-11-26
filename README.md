@@ -178,55 +178,46 @@ brevo.apikey=
 For each properties file, copy the `brevo.template.*` properties from `application.properties` to `application-dev.properties` and set the correct ids.
 
 Note:
+- In the case of the `dossierfacile-bo` service run, it appears that some Brevo template identifiers are missing (particularly on the partner side)
 
-- dans le cas du run du service `dossierfacile-bo`, il semble manquer quelques identifiants de templates (notamment côté partner)
+## HTTPS config for backOffice access
 
-## nginx
+The `dossierfacile-bo` service requires HTTPS access for Google Single Sign-On (SSO). The `docker-compose.dev.yml` deploys an `nginx` container as a reverse proxy, with configuration located at `./.nginx/nginx.conf`. DossierFacile back-office will be served at https://bo-local.dossierfacile.fr/
 
-For dossierfacile-bo, you need https access. You can use this nginx config for that:
+### Generate Self-Signed SSL Certificate
 
-```nginx
-upstream df-bo-server {
-    server localhost:8081;
-}
-
-server {
-    listen 80;
-    listen [::]:80;
-    server_name bo-local.dossierfacile.fr;
-    location / {
-        return 302 https://$host$request_uri;
-    }
-}
-
-server {
-    listen 443 ssl;
-    listen [::]:443 ssl;
-    server_name bo-local.dossierfacile.fr;
-    ssl_certificate /etc/ssl/domain.crt;
-    ssl_certificate_key /etc/ssl/domain.key;
-    ssl_trusted_certificate /etc/ssl/bo_server.crt;
-    location / {
-        proxy_pass http://df-bo-server/;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Host $host;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_set_header Host $host;
-        proxy_redirect default;
-    }
-    location /static/ {
-        alias /static/;
-    }
-}
-
+Create SSL certificate files using OpenSSL:
+```bash
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout nginx.key -out nginx.crt
 ```
 
-You can [create the certificate files with open-ssl](https://www.baeldung.com/openssl-self-signed-cert).
+Certificates must be placed in folder `./.nginx/certs`
 
-Then add the following line to your `/etc/hosts` file:
+**Note**: When prompted, fill in the certificate details. The Common Name (CN) should match `bo-local.dossierfacile.fr`.
 
+### Configure local hosts
+Add the following line to `/etc/hosts`:
 ```
 127.0.0.1   bo-local.dossierfacile.fr
+```
+
+**Important**: This step is crucial because Google SSO is configured with this specific redirect URI. Omitting this will result in a `redirect_uri_mismatch` error during login: `Erreur 400 : redirect_uri_mismatch`
+
+### Initial login and user setup
+
+Log in with a Google account. This automatically creates a user in the `public.user_account` table of the PostgreSQL `dossierfacile` database.
+
+List existing users to find your user ID:
+```sql
+SELECT *
+FROM public.user_account;
+```
+
+Add role entry to grant back-office access:
+```sql
+INSERT INTO public.user_roles
+("role", user_id)
+VALUES(2, <YOUR_USER_ID>);
 ```
 
 ## Build
