@@ -25,7 +25,6 @@ import fr.gouv.bo.service.DocumentService;
 import fr.gouv.bo.service.TenantLogService;
 import fr.gouv.bo.service.MessageService;
 import fr.gouv.bo.service.TenantService;
-import fr.gouv.bo.service.TenantUserApiService;
 import fr.gouv.bo.service.UserApiService;
 import fr.gouv.bo.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -71,7 +70,6 @@ public class BOTenantController {
     private final MessageService messageService;
     private final DocumentService documentService;
     private final UserApiService userApiService;
-    private final TenantUserApiService tenantUserApiService;
     private final PartnerCallBackService partnerCallBackService;
     private final UserService userService;
     private final TenantLogService logService;
@@ -111,12 +109,11 @@ public class BOTenantController {
         return REDIRECT_BO;
     }
 
-    @GetMapping("/partner/{id}")
-    public String addNewPartnerInfo(@PathVariable("id") Long id, PartnerDTO partnerDTO) {
+    @PostMapping("/partner/{id}")
+    public String sendCallbackToPartner(@PathVariable("id") Long id, PartnerDTO partnerDTO) {
         Tenant tenant = tenantService.find(id);
 
         UserApi userApi = userApiService.findById(partnerDTO.getPartner());
-        tenantUserApiService.addInternalPartnerIdToTenantUserApi(tenant, partnerDTO.getPartner(), partnerDTO.getInternalPartnerId());
         PartnerCallBackType partnerCallBackType = tenant.getStatus() == TenantFileStatus.VALIDATED ?
                 PartnerCallBackType.VERIFIED_ACCOUNT :
                 PartnerCallBackType.CREATED_ACCOUNT;
