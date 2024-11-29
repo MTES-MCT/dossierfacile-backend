@@ -1,7 +1,6 @@
 package fr.dossierfacile.common.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import fr.dossierfacile.common.config.ApiVersion;
 import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
@@ -22,7 +21,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -38,7 +40,7 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
     private final ApartmentSharingRepository apartmentSharingRepository;
     private final ObjectMapper objectMapper;
 
-    public void registerTenant(String internalPartnerId, Tenant tenant, UserApi userApi) {
+    public void registerTenant(Tenant tenant, UserApi userApi) {
         Optional<TenantUserApi> optionalTenantUserApi = tenantUserApiRepository.findFirstByTenantAndUserApi(tenant, userApi);
         if (optionalTenantUserApi.isEmpty()) {
             TenantUserApi tenantUserApi = TenantUserApi.builder()
@@ -46,15 +48,7 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
                     .tenant(tenant)
                     .userApi(userApi)
                     .build();
-            if (ApiVersion.V3.is(userApi.getVersion())) {
-                if (internalPartnerId != null && !internalPartnerId.isEmpty()) {
-                    if (tenantUserApi.getAllInternalPartnerId() == null) {
-                        tenantUserApi.setAllInternalPartnerId(Collections.singletonList(internalPartnerId));
-                    } else if (!tenantUserApi.getAllInternalPartnerId().contains(internalPartnerId)) {
-                        tenantUserApi.getAllInternalPartnerId().add(internalPartnerId);
-                    }
-                }
-            }
+
             tenantUserApiRepository.save(tenantUserApi);
 
             if (userApi.getVersion() != null && userApi.getUrlCallback() != null && (
@@ -142,21 +136,6 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
     public ApplicationModel getWebhookDTO(Tenant tenant, UserApi userApi, PartnerCallBackType partnerCallBackType) {
         ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
         ApplicationModel applicationModel = applicationFullMapper.toApplicationModel(apartmentSharing, userApi);
-
-        List<Tenant> tenantList = tenantRepository.findAllByApartmentSharing(apartmentSharing);
-        for (Tenant t : tenantList) {
-            tenantUserApiRepository.findFirstByTenantAndUserApi(t, userApi).ifPresent(tenantUserApi -> {
-                if (ApiVersion.V3.is(userApi.getVersion())) {
-                    if (tenantUserApi.getAllInternalPartnerId() != null && !tenantUserApi.getAllInternalPartnerId().isEmpty()) {
-                        applicationModel.getTenants().stream()
-                                .filter(tenantObject -> Objects.equals(tenantObject.getId(), t.getId()))
-                                .findFirst()
-                                .ifPresent(tenantModel -> tenantModel.setAllInternalPartnerId(tenantUserApi.getAllInternalPartnerId()));
-                    }
-                }
-            });
-        }
-
         applicationModel.setPartnerCallBackType(partnerCallBackType);
         applicationModel.setOnTenantId(tenant.getId());
         return applicationModel;
