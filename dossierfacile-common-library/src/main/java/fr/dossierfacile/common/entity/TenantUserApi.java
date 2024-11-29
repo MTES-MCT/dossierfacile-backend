@@ -44,11 +44,6 @@ public class TenantUserApi implements Serializable {
     @MapsId("userApiId")
     @JoinColumn(name = "userapi_id")
     UserApi userApi;
-    @Deprecated(since="V4")
-    @Builder.Default
-    @Column(columnDefinition = "text")
-    @Convert(converter = ListStringConverter.class)
-    private List<String> allInternalPartnerId = new ArrayList<>();
 
     @Builder.Default
     private LocalDateTime accessGrantedDate = LocalDateTime.now();

@@ -39,7 +39,7 @@ public class AccountApiPartner implements SaveStep<AccountPartnerForm> {
         String email = accountForm.getEmail().toLowerCase();
         Tenant tenant = findDisabledTenantOrCreateTenant(email);
         UserApi userApi = clientAuthenticationFacade.getClient();
-        partnerCallBackService.registerTenant(accountForm.getInternalPartnerId(), tenant, userApi);
+        partnerCallBackService.registerTenant(tenant, userApi);
 
         mailService.sendEmailWelcomeForPartnerUser(tenantMapperForMail.toDto(tenant), userApiMapperForMail.toDto(userApi));
 

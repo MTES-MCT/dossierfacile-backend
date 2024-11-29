@@ -1,6 +1,5 @@
 package fr.gouv.bo.configuration;
 
-import fr.dossierfacile.common.config.ApiVersion;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
@@ -15,7 +14,7 @@ public class MessageSourceConfig {
     @Bean
     public MessageSource messageSource() {
         ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
-        messageSource.setBasenames(ApiVersion.V3.is(apiVersion) ? "messages_v3" : "messages");
+        messageSource.setBasenames("messages");
         messageSource.setDefaultEncoding("UTF-8");
         return messageSource;
     }
