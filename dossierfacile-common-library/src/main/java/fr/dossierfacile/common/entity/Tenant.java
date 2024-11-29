@@ -99,9 +99,6 @@ public class Tenant extends User implements Person, Serializable {
     @Column(name = "operator_date_time")
     private LocalDateTime operatorDateTime;
 
-    @Column(name = "pre_validation_activated")
-    private Boolean preValidationActivated;
-
     private int warnings;
 
     private String operatorComment;
