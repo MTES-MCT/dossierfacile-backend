@@ -151,7 +151,7 @@ public class TenantServiceImpl implements TenantService {
         }
         if (partner != null) {
             userApiService.findByName(partner)
-                    .ifPresent(userApi -> partnerCallBackService.registerTenant(null, tenant, userApi));
+                    .ifPresent(userApi -> partnerCallBackService.registerTenant(tenant, userApi));
         }
 
         tenant.lastUpdateDateProfile(LocalDateTime.now(), null);

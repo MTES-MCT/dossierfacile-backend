@@ -30,8 +30,6 @@ public class DocumentResidencyGuarantorNaturalPersonForm extends DocumentGuarant
 
     @NotNull
     @DocumentSubcategorySubset(anyOf =
-            {TENANT, OWNER, GUEST, GUEST_PARENTS, GUEST_ORGANISM, SHORT_TERM_RENTAL, OTHER_RESIDENCY}, groups = ApiVersion.V3.class)
-    @DocumentSubcategorySubset(anyOf =
             {TENANT, OWNER, GUEST, GUEST_COMPANY, GUEST_ORGANISM, SHORT_TERM_RENTAL, OTHER_RESIDENCY}, groups = ApiVersion.V4.class)
     private DocumentSubCategory typeDocumentResidency;
 
