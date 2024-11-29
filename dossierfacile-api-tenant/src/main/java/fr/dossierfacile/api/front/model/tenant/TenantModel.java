@@ -35,5 +35,4 @@ public class TenantModel {
     private boolean franceConnect;
     private boolean passwordEnabled;
     private String warningMessage;
-    private boolean preValidationActivated;
 }
