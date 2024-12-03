@@ -33,7 +33,6 @@ public class RequestServiceImpl implements RequestService {
     private static final String CALL_BACK_RESPONSE = "CallBack ResponseStatus: {}";
     private final RestTemplate restTemplate;
 
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Async
     public void send(ApplicationModel applicationModel, String urlCallback, String partnerApiKeyCallback) {
         HttpHeaders headers = new HttpHeaders();

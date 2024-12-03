@@ -157,6 +157,7 @@
     <include file="db/migration/202409300000-update-userapi.xml"/>
     <include file="db/migration/202410070000-update-jsonprofile-owner_log.xml"/>
     <include file="db/migration/202410181600-add-column-dpe-not-required.xml"/>
-
+    <include file="db/migration/202411190000-add-column-abroad-residency.xml"/>
+    <include file="db/migration/202411290000-drop-column-prevalidation-activated-tenant.xml"/>
 
 </databaseChangeLog>

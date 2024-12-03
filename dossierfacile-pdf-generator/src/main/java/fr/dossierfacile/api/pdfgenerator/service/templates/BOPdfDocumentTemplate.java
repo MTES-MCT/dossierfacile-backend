@@ -5,25 +5,22 @@ import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.exif.ExifIFD0Directory;
 import com.google.zxing.BinaryBitmap;
-import com.google.zxing.ChecksumException;
 import com.google.zxing.DecodeHintType;
-import com.google.zxing.FormatException;
 import com.google.zxing.LuminanceSource;
 import com.google.zxing.MultiFormatReader;
 import com.google.zxing.NotFoundException;
-import com.google.zxing.Reader;
 import com.google.zxing.Result;
 import com.google.zxing.ResultPoint;
 import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.multi.GenericMultipleBarcodeReader;
 import com.google.zxing.multi.MultipleBarcodeReader;
-import com.google.zxing.qrcode.QRCodeReader;
 import com.twelvemonkeys.image.ImageUtil;
 import fr.dossierfacile.api.pdfgenerator.configuration.FeatureFlipping;
 import fr.dossierfacile.api.pdfgenerator.model.FileInputStream;
 import fr.dossierfacile.api.pdfgenerator.model.PageDimension;
 import fr.dossierfacile.api.pdfgenerator.model.PdfTemplateParameters;
+import fr.dossierfacile.api.pdfgenerator.service.interfaces.PdfSignatureService;
 import fr.dossierfacile.api.pdfgenerator.service.interfaces.PdfTemplate;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,7 +33,6 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.PDPageTree;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
-import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
 import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.tools.imageio.ImageIOUtil;
@@ -54,7 +50,6 @@ import java.awt.image.ConvolveOp;
 import java.awt.image.Kernel;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -77,6 +72,7 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
     private final MessageSource messageSource;
 
     private final FeatureFlipping featureFlipping;
+    private final PdfSignatureService pdfSignatureService;
 
     private final Color[] COLORS = {
             new Color(64, 64, 64, 255),
@@ -111,12 +107,12 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
     }
 
     @Override
-    public InputStream render(List<FileInputStream> data) throws IOException {
+    public InputStream render(List<FileInputStream> data) throws Exception {
         return this.render(data,
                 messageSource.getMessage("tenant.pdf.watermark", null, DEFAULT_WATERMARK, locale));
     }
 
-    public InputStream render(List<FileInputStream> data, String watermarkText) throws IOException {
+    public InputStream render(List<FileInputStream> data, String watermarkText) throws Exception {
         final String watermarkToApply = StringUtils.isNotBlank(watermarkText) ? watermarkText + "   " :
                 messageSource.getMessage("tenant.pdf.watermark.default", null, " https://filigrane.beta.gouv.fr/   ", locale);
 
@@ -133,11 +129,11 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
 
 
             try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-                document.addSignature(new PDSignature());
-                document.save(baos);
+
+                pdfSignatureService.signAndSave(document, baos);
                 return new ByteArrayInputStream(baos.toByteArray());
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error("Exception while generate BO PDF documents", e);
             throw e;
         }

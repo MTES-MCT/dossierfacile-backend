@@ -42,7 +42,7 @@ class EmptyBOPdfDocumentTemplateTest {
     private final Path outputPdf = Paths.get("outputFile.pdf");
 
     @Test
-    void should_generate_pdf_with_template(Tenant tenant) throws IOException {
+    void should_generate_pdf_with_template(Tenant tenant) throws Exception {
         Document document = buildDocument(DocumentCategory.TAX, DocumentSubCategory.OTHER_TAX);
         when(tenantRepository.getTenantByDocumentId(1L)).thenReturn(Optional.of(tenant));
 
@@ -58,7 +58,7 @@ class EmptyBOPdfDocumentTemplateTest {
     }
 
     @Test
-    void should_generate_pdf_without_template(Tenant tenant) throws IOException {
+    void should_generate_pdf_without_template(Tenant tenant) throws Exception {
         Document document = buildDocument(DocumentCategory.RESIDENCY, DocumentSubCategory.OTHER_RESIDENCY);
         when(tenantRepository.getTenantByDocumentId(1L)).thenReturn(Optional.of(tenant));
 
@@ -80,7 +80,7 @@ class EmptyBOPdfDocumentTemplateTest {
         }
     }
 
-    private void generatePdf(Document document, Path outputPdf) throws IOException {
+    private void generatePdf(Document document, Path outputPdf) throws Exception {
         try (InputStream inputStream = emptyBOPdfDocumentTemplate.render(document)) {
             Files.copy(inputStream, outputPdf, StandardCopyOption.REPLACE_EXISTING);
             IOUtils.closeQuietly(inputStream);

@@ -11,7 +11,6 @@ import org.springframework.http.MediaType;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collections;
@@ -26,7 +25,7 @@ public class IdentificationBOPdfDocumentTemplateTest {
     BOIdentificationPdfDocumentTemplate boPdfDocumentTemplate;
 
     @Test
-    public void check_render_with_rotated_files() throws IOException {
+    public void check_render_with_rotated_files() throws Exception {
         InputStream is = BOPdfDocumentTemplateTest.class.getClassLoader().getResourceAsStream("CNI_rotated.jpeg");
 
         FileInputStream data = FileInputStream
@@ -46,7 +45,7 @@ public class IdentificationBOPdfDocumentTemplateTest {
 
     @DisplayName("Check if the pdf file is correctly generated in specific files")
     @Test
-    public void check_render_with_special_files() throws IOException {
+    public void check_render_with_special_files() throws Exception {
         InputStream is = BOPdfDocumentTemplateTest.class.getClassLoader().getResourceAsStream("secret/TestID1.pdf");
 
         FileInputStream data = FileInputStream
@@ -66,7 +65,7 @@ public class IdentificationBOPdfDocumentTemplateTest {
 
     @DisplayName("Check if the render is correctly generated and with enough quality from landscape ID pdf")
     @Test
-    public void check_render_with_landscape_pdf() throws IOException {
+    public void check_render_with_landscape_pdf() throws Exception {
         InputStream is = IdentificationBOPdfDocumentTemplateTest.class.getClassLoader().getResourceAsStream("landscapeid.pdf");
 
         FileInputStream data = FileInputStream
@@ -92,7 +91,7 @@ public class IdentificationBOPdfDocumentTemplateTest {
 
     @DisplayName("Check if the render is correctly generated from all type textual pdf, pdf, image")
     @Test
-    public void check_render_with_all_type() throws IOException {
+    public void check_render_with_all_type() throws Exception {
         InputStream is = IdentificationBOPdfDocumentTemplateTest.class.getClassLoader().getResourceAsStream("CNI.pdf");
         InputStream isJPG = IdentificationBOPdfDocumentTemplateTest.class.getClassLoader().getResourceAsStream("CNI.jpg");
         InputStream isHJPG = IdentificationBOPdfDocumentTemplateTest.class.getClassLoader().getResourceAsStream("CNIHorizontale.jpg");

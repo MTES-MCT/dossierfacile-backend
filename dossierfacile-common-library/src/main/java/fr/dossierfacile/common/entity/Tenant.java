@@ -80,6 +80,8 @@ public class Tenant extends User implements Person, Serializable {
 
     private String zipCode;
 
+    private Boolean abroad;
+
     @Builder.Default
     private Boolean honorDeclaration = Boolean.FALSE;
 
@@ -96,9 +98,6 @@ public class Tenant extends User implements Person, Serializable {
 
     @Column(name = "operator_date_time")
     private LocalDateTime operatorDateTime;
-
-    @Column(name = "pre_validation_activated")
-    private Boolean preValidationActivated;
 
     private int warnings;
 

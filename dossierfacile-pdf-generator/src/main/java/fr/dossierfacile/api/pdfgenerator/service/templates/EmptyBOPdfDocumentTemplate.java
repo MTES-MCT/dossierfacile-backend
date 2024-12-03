@@ -2,6 +2,7 @@ package fr.dossierfacile.api.pdfgenerator.service.templates;
 
 import fr.dossierfacile.api.pdfgenerator.repository.GuarantorRepository;
 import fr.dossierfacile.api.pdfgenerator.repository.TenantRepository;
+import fr.dossierfacile.api.pdfgenerator.service.interfaces.PdfSignatureService;
 import fr.dossierfacile.api.pdfgenerator.service.interfaces.PdfTemplate;
 import fr.dossierfacile.api.pdfgenerator.util.Fonts;
 import fr.dossierfacile.api.pdfgenerator.util.Utility;
@@ -18,7 +19,6 @@ import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
-import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
@@ -41,13 +41,14 @@ public class EmptyBOPdfDocumentTemplate implements PdfTemplate<Document> {
     private final MessageSource messageSource;
     private final TenantRepository tenantRepository;
     private final GuarantorRepository guarantorRepository;
+    private final PdfSignatureService pdfSignatureService;
 
     @Override
-    public InputStream render(Document document) throws IOException {
+    public InputStream render(Document document) throws Exception {
         return new ByteArrayInputStream(createPdfFromTemplate(document).toByteArray());
     }
 
-    private ByteArrayOutputStream createPdfFromTemplate(Document document) throws IOException {
+    private ByteArrayOutputStream createPdfFromTemplate(Document document) throws Exception {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         PdfFileTemplate pdfTemplate = null;
 
@@ -94,10 +95,9 @@ public class EmptyBOPdfDocumentTemplate implements PdfTemplate<Document> {
             Utility.addText(contentStream, width, startX, startY - 36, textElements.explanation, font, fontSize, alternativeFont);
 
             contentStream.close();
-            pdDocument.addSignature(new PDSignature());
-            pdDocument.save(outputStream);
+            pdfSignatureService.signAndSave(pdDocument, outputStream);
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error("Error on pdf creation", e);
             throw e;
         }

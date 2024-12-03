@@ -56,6 +56,7 @@ public class Names implements SaveStep<NamesForm> {
         }
         tenant.setPreferredName(namesForm.getPreferredName());
         tenant.setZipCode(namesForm.getZipCode());
+        tenant.setAbroad(namesForm.getAbroad());
         tenant.lastUpdateDateProfile(LocalDateTime.now(), null);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         tenant = tenantStatusService.updateTenantStatus(tenant);

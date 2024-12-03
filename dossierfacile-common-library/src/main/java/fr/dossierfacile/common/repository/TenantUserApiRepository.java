@@ -14,8 +14,6 @@ import java.util.Optional;
 public interface TenantUserApiRepository extends JpaRepository<TenantUserApi, TenantUserApiKey> {
     Optional<TenantUserApi> findFirstByTenantAndUserApi(Tenant tenant, UserApi userApi);
 
-    Optional<TenantUserApi> findFirstByTenantAndUserApiId(Tenant tenant, Long userApi);
-
     @Query("""
             select tua from TenantUserApi tua, Tenant t
             where t.apartmentSharing.id = :apartmentSharingId

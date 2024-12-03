@@ -80,19 +80,18 @@
                                 <div class="modal-dialog" role="document">
                                     <div class="modal-content">
                                         <div class="modal-header" style="background: #f18686;padding: 10px;">
-                                            <h5 class="modal-title bold"
-                                                style="width: 80%;float: left;font-size: 20px;">Select</h5>
+                                            <h5 class="modal-title bold">Select</h5>
                                             <button aria-label="Close" class="btn-close" data-bs-dismiss="modal"
                                                     type="button"></button>
                                         </div>
                                         <div class="modal-body bg-body-tertiary" >
-                                            <form method="get"
+                                            <form method="post"
                                                   style="margin-top: 8px;"
                                                   th:action="@{/bo/tenant/partner/}+${tenantPrincipal.getId()}"
                                                   th:object="${partnerUpdate}">
                                                 <label for="action2" style="margin-left: 5px">partner:</label>
                                                 <select id="action2" name="action"
-                                                        style=" border-radius: 3px; padding-left: 5px !important;padding-right: 5px; width: 26%"
+                                                        style=" border-radius: 3px; padding-left: 5px !important;padding-right: 5px;"
                                                         th:field="*{partner}">
                                                     <option selected="selected" value="">-----------------</option>
                                                     <option th:each="partner:${partnersList}"
@@ -100,17 +99,9 @@
                                                             th:value="${partner.getId()}"></option>
                                                 </select>
 
-                                                <label class="active"
-                                                       style="margin-left: 5px;">internalPartnerId:</label>
-                                                <input class="inputPartner"
-                                                       style="width: 23%;border: 1px solid #c6d6f3 !important;height: auto;border-radius: 3px;padding-left: 5px !important;padding-right: 5px;"
-                                                       th:field="*{internalPartnerId}"
-                                                       th:placeholder="'-- type here --'"
-                                                       type="text">
-
                                                 <div class="modal-footer bg-body-tertiary"
                                                      style="padding: 5px;margin-top: 20px;">
-                                                    <button class="btn btn-primary buttonPartner"
+                                                    <button class="btn btn-primary"
                                                             id="hrefPartner" name="submit"
                                                             style="border-radius: 50px;font-size: 15px;line-height: 1;padding: 5px 8px 7px;"
                                                             type="submit"
@@ -125,22 +116,6 @@
                                                 </div>
                                             </form>
                                         </div>
-                                        <script>
-                                            let input = document.querySelector(".inputPartner");
-                                            let button = document.querySelector(".buttonPartner");
-
-                                            button.disabled = true;
-
-                                            input.addEventListener("change", stateHandle);
-
-                                            function stateHandle() {
-                                                if (document.querySelector(".inputPartner").value === "-- type here --") {
-                                                    button.disabled = true;
-                                                } else {
-                                                    button.disabled = false;
-                                                }
-                                            }
-                                        </script>
 
                                     </div>
                                 </div>
@@ -542,7 +517,10 @@
                                 </tr>
                                 <tr>
                                     <td>Code postal</td>
-                                    <td th:text="${tenant.getZipCode()}"></td>
+                                    <td>
+                                        <span th:text="${tenant.getZipCode()}"></span>
+                                        <span th:if="${tenant.abroad == true}">À l'étranger</span>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td>Type de compte</td>

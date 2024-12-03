@@ -112,7 +112,12 @@
 }
 
 .header-tenant-info {
-    position: sticky;
+    @media (min-width: 900px) {
+        position: sticky;
+        left: 0;
+        top: 60px;
+        right: 0;
+    }
     width: 100%;
     min-width: fit-content;
     z-index: 1;

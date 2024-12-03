@@ -13,8 +13,6 @@ import fr.dossierfacile.common.utils.TransactionalUtil;
 import fr.gouv.bo.dto.*;
 import fr.gouv.bo.exception.DocumentNotFoundException;
 import fr.gouv.bo.exception.GuarantorNotFoundException;
-import fr.gouv.bo.lambda_interfaces.StringCustomMessage;
-import fr.gouv.bo.lambda_interfaces.StringCustomMessageGuarantor;
 import fr.gouv.bo.model.ProcessedDocuments;
 import fr.gouv.bo.repository.*;
 import fr.gouv.bo.security.UserPrincipal;
@@ -44,10 +42,6 @@ import static org.apache.commons.lang3.StringUtils.*;
 @Slf4j
 public class TenantService {
 
-    private static final String LI_P = "<li><p>";
-    private static final String P_LI = "</p></li>";
-    private static final String BOLD_CLOSE = "</b> ";
-
     private final Locale locale = LocaleContextHolder.getLocale();
     private final TenantCommonRepository tenantRepository;
     private final MailService mailService;
@@ -69,7 +63,6 @@ public class TenantService {
     private final TenantMapperForMail tenantMapperForMail;
     private final ApartmentSharingMapperForMail apartmentSharingMapperForMail;
 
-    private int forTenant = 0;
     @Value("${time.reprocess.application.minutes}")
     private int timeReprocessApplicationMinutes;
 
@@ -257,105 +250,145 @@ public class TenantService {
         return areAllDocumentsValid;
     }
 
-    public Message sendCustomMessage(Tenant tenant, CustomMessage customMessage, int messageFrom) {
-        StringCustomMessage fileNameWithBold = str -> "<b>" + messageSource.getMessage(str, null, locale) + BOLD_CLOSE;
-        StringCustomMessageGuarantor fileNameWithBoldGuarantor = str -> "<b>" + messageSource.getMessage(str, null, locale) + " du garant</b> ";
+    private void processDocumentDeniedReasons(MessageItem messageItem, List<Long> documentDeniedReasonsIds) {
+        DocumentDeniedReasons documentDeniedReasons = new DocumentDeniedReasons();
+        for (ItemDetail itemDetail : messageItem.getItemDetailList()) {
+            if (itemDetail.isCheck()) {
+                documentDeniedReasons.getCheckedOptions().add(itemDetail.getFormattedMessage());
+                documentDeniedReasons.getCheckedOptionsId().add(itemDetail.getIdOptionMessage());
+            }
+        }
 
-        List<MessageItem> messageItems = customMessage.getMessageItems();
-        StringBuilder mailMessage = new StringBuilder();
-        mailMessage.append(messageSource.getMessage("bo.tenant.custom.email.head", null, locale));
-        mailMessage.append("<br/> <ul class='customMessage'>");
+        if (!messageItem.getCommentDoc().isEmpty()) {
+            documentDeniedReasons.setComment(messageItem.getCommentDoc());
+        }
 
+        if (!documentDeniedReasons.getCheckedOptionsId().isEmpty() || (documentDeniedReasons.getComment() != null && !documentDeniedReasons.getComment().isBlank())) {
+            Document document = documentRepository.findById(messageItem.getDocumentId()).orElseThrow(() -> new DocumentNotFoundException(messageItem.getDocumentId()));
+            documentDeniedReasons.setDocument(document);
+            documentDeniedReasonsRepository.save(documentDeniedReasons);
+            DocumentDeniedReasons documentDeniedReasonsToDelete = document.getDocumentDeniedReasons();
+            documentService.updateDocumentWithDocumentDeniedReasons(documentDeniedReasons, messageItem.getDocumentId());
+            if (documentDeniedReasonsToDelete != null) {
+                documentDeniedReasonsRepository.delete(documentDeniedReasonsToDelete);
+            }
+            documentDeniedReasonsIds.add(documentDeniedReasons.getId());
+        }
+    }
+
+    private void updateDocumentDeniedReasons(CustomMessage customMessage, Message message) {
         List<Long> documentDeniedReasonsIds = new ArrayList<>();
-        if (messageFrom == 7 || messageFrom == 2) {
-            for (MessageItem messageItem : messageItems) {
-                DocumentDeniedReasons documentDeniedReasons = new DocumentDeniedReasons();
+        for (MessageItem messageItem : customMessage.getMessageItems()) {
+            processDocumentDeniedReasons(messageItem, documentDeniedReasonsIds);
+        }
+        for (GuarantorItem guarantorItem : customMessage.getGuarantorItems()) {
+            for (MessageItem messageItem : guarantorItem.getMessageItems()) {
+                processDocumentDeniedReasons(messageItem, documentDeniedReasonsIds);
+            }
+        }
+        if (!documentDeniedReasonsIds.isEmpty()) {
+            documentDeniedReasonsService.updateDocumentDeniedReasonsWithMessage(message, documentDeniedReasonsIds);
+        }
+    }
+
+    private String documentCategoryLabel(MessageItem msg) {
+        return messageSource.getMessage(msg.getDocumentCategory().getLabel(), null, locale);
+    }
+
+    private void appendDeniedReasons(StringBuilder html, String name, List<MessageItem> messageItems) {
+        html.append("<li>");
+        html.append("<strong class=\"name\">");
+        html.append(name);
+        html.append("</strong>");
+        for (MessageItem messageItem : messageItems) {
+            if (isDenied(messageItem)) {
+                html.append("<hr/><strong>");
+                html.append(documentCategoryLabel(messageItem));
+                html.append("</strong>");
+                html.append("<ul class=\"reasons\">");
                 for (ItemDetail itemDetail : messageItem.getItemDetailList()) {
                     if (itemDetail.isCheck()) {
-                        mailMessage.append(LI_P);
-                        mailMessage.append(fileNameWithBold.getFileNameWithBold(messageItem.getDocumentCategory().getLabel()));
-                        mailMessage.append(itemDetail.getFormattedMessage());
-                        mailMessage.append(P_LI);
-                        documentDeniedReasons.getCheckedOptions().add(itemDetail.getFormattedMessage());
-                        documentDeniedReasons.getCheckedOptionsId().add(itemDetail.getIdOptionMessage());
+                        html.append("<li>");
+                        html.append(itemDetail.getFormattedMessage());
+                        html.append("</li>");
                     }
                 }
-
                 if (!messageItem.getCommentDoc().isEmpty()) {
-                    mailMessage.append(LI_P);
-                    mailMessage.append(fileNameWithBold.getFileNameWithBold(messageItem.getDocumentCategory().getLabel()));
-                    mailMessage.append(messageItem.getCommentDoc());
-                    mailMessage.append(P_LI);
-                    documentDeniedReasons.setComment(messageItem.getCommentDoc());
+                    html.append("<li>");
+                    html.append(messageItem.getCommentDoc());
+                    html.append("</li>");
                 }
+                html.append("</ul>");
+            }
+        }
+        html.append("</li>");
+    }
 
-                if (!documentDeniedReasons.getCheckedOptionsId().isEmpty() || (documentDeniedReasons.getComment() != null && !documentDeniedReasons.getComment().isBlank())) {
-                    Document document = documentRepository.findById(messageItem.getDocumentId()).orElseThrow(() -> new DocumentNotFoundException(messageItem.getDocumentId()));
-                    documentDeniedReasons.setDocument(document);
-                    documentDeniedReasonsRepository.save(documentDeniedReasons);
-                    DocumentDeniedReasons documentDeniedReasonsToDelete = document.getDocumentDeniedReasons();
-                    documentService.updateDocumentWithDocumentDeniedReasons(documentDeniedReasons, messageItem.getDocumentId());
-                    if (documentDeniedReasonsToDelete != null) {
-                        documentDeniedReasonsRepository.delete(documentDeniedReasonsToDelete);
-                    }
-                    documentDeniedReasonsIds.add(documentDeniedReasons.getId());
-                }
+    private void appendCategoriesNames(StringBuilder html, List<MessageItem> messageItems) {
+        for (MessageItem messageItem : messageItems) {
+            if (isDenied(messageItem)) {
+                html.append("<li class=\"category-name\">");
+                html.append(documentCategoryLabel(messageItem));
+                html.append("</li>");
+            }
+        }
+    }
+
+    private String guarantorLabel(GuarantorItem guarantorItem) {
+        Long guarantorId = guarantorItem.getGuarantorId();
+        Guarantor guarantor = guarantorRepository.findById(guarantorId).orElseThrow(() -> new GuarantorNotFoundException(guarantorId));
+        return "Garant : " + guarantor.getCompleteName();
+    }
+
+    public Message sendCustomMessage(Tenant tenant, CustomMessage customMessage) {
+        boolean forTenant = hasCheckedItem(customMessage.getMessageItems());
+        boolean forGuarantor = hasGuarantorCheckedItem(customMessage.getGuarantorItems());
+        if (!forTenant && !forGuarantor) {
+            return null;
+        }
+
+        List<MessageItem> messageItems = customMessage.getMessageItems();
+        StringBuilder html = new StringBuilder();
+        html.append("<ul class=\"custom-message\"><li><p>");
+        html.append(messageSource.getMessage("bo.tenant.custom.email.head", null, locale));
+        html.append("</p>");
+
+        if (forTenant) {
+            html.append("<strong class=\"name\">");
+            html.append(tenant.getFirstName());
+            html.append("</strong>");
+            html.append("<ul class=\"doc-list\">");
+            appendCategoriesNames(html, messageItems);
+            html.append("</ul>");
+        }
+
+        for (GuarantorItem guarantorItem : customMessage.getGuarantorItems()) {
+            if (hasCheckedItem(guarantorItem.getMessageItems())) {
+                html.append("<strong class=\"name\">");
+                html.append(guarantorLabel(guarantorItem));
+                html.append("</strong>");
+                html.append("<ul class=\"doc-list\">");
+                appendCategoriesNames(html, guarantorItem.getMessageItems());
+                html.append("</ul>");
+            }
+        }
+        html.append("</li>");
+
+        if (forTenant) {
+            appendDeniedReasons(html, tenant.getFirstName(), messageItems);
+        }
+        for (GuarantorItem guarantorItem : customMessage.getGuarantorItems()) {
+            if (hasCheckedItem(guarantorItem.getMessageItems())) {
+                appendDeniedReasons(html, guarantorLabel(guarantorItem), guarantorItem.getMessageItems());
             }
         }
 
-        if (messageFrom == 7 || messageFrom == 5) {
-            for (GuarantorItem guarantorItem : customMessage.getGuarantorItems()) {
-                messageItems = guarantorItem.getMessageItems();
-                mailMessage.append("</ul>");
-                mailMessage.append(messageSource.getMessage("bo.tenant.custom.email.checkGuarantor", null, locale));
-                mailMessage.append("<ul class='customMessage'>");
-                for (MessageItem messageItem : messageItems) {
-                    DocumentDeniedReasons documentDeniedReasons = new DocumentDeniedReasons();
-                    for (ItemDetail itemDetail : messageItem.getItemDetailList()) {
-                        if (itemDetail.isCheck()) {
-                            mailMessage.append(LI_P);
-                            mailMessage.append(fileNameWithBoldGuarantor.getFileNameWithBold(messageItem.getDocumentCategory().getLabel()));
-                            mailMessage.append(itemDetail.getFormattedMessage());
-                            mailMessage.append(P_LI);
-                            documentDeniedReasons.getCheckedOptions().add(itemDetail.getMessage());
-                            documentDeniedReasons.getCheckedOptionsId().add(itemDetail.getIdOptionMessage());
-                        }
-                    }
-
-                    if (!messageItem.getCommentDoc().isEmpty()) {
-                        mailMessage.append(LI_P);
-                        mailMessage.append(fileNameWithBoldGuarantor.getFileNameWithBold(messageItem.getDocumentCategory().getLabel()));
-                        mailMessage.append(messageItem.getCommentDoc());
-                        mailMessage.append(P_LI);
-                        documentDeniedReasons.setComment(messageItem.getCommentDoc());
-                    }
-
-                    if (!documentDeniedReasons.getCheckedOptionsId().isEmpty() || (documentDeniedReasons.getComment() != null && !documentDeniedReasons.getComment().isBlank())) {
-                        Document document = documentRepository.findById(messageItem.getDocumentId()).orElseThrow(() -> new DocumentNotFoundException(messageItem.getDocumentId()));
-                        documentDeniedReasons.setDocument(document);
-                        documentDeniedReasonsRepository.save(documentDeniedReasons);
-                        DocumentDeniedReasons documentDeniedReasonsToDelete = document.getDocumentDeniedReasons();
-                        documentService.updateDocumentWithDocumentDeniedReasons(documentDeniedReasons, messageItem.getDocumentId());
-                        if (documentDeniedReasonsToDelete != null) {
-                            documentDeniedReasonsRepository.delete(documentDeniedReasonsToDelete);
-                        }
-                        documentDeniedReasonsIds.add(documentDeniedReasons.getId());
-                    }
-                }
-            }
-        }
-
-        mailMessage.append("</ul><br/><p>");
-        mailMessage.append(messageSource.getMessage("bo.tenant.custom.email.footer1", null, locale));
-        mailMessage.append("</p>");
-        if (messageFrom > 0) {
-            Message message = messageService.create(new MessageDTO(mailMessage.toString()), tenant, false, true);
-            if (!documentDeniedReasonsIds.isEmpty()) {
-                documentDeniedReasonsService.updateDocumentDeniedReasonsWithMessage(message, documentDeniedReasonsIds);
-            }
-            return message;
-        }
-        return null;
+        html.append("<li>");
+        html.append(messageSource.getMessage("bo.tenant.custom.email.footer1", null, locale));
+        html.append("</li></ul>");
+        Message message = messageService.create(new MessageDTO(html.toString()), tenant, false, true);
+        updateDocumentDeniedReasons(customMessage, message);
+        return message;
     }
 
     @Transactional
@@ -380,37 +413,17 @@ public class TenantService {
         changeTenantStatusToDeclined(tenant, operator, null, ProcessedDocuments.NONE);
     }
 
-    private int checkValueOfCustomMessage(CustomMessage customMessage) {
+    private boolean isDenied(MessageItem messageItem) {
+        boolean messageItemCheck = messageItem.getItemDetailList().stream().anyMatch(ItemDetail::isCheck);
+        return messageItemCheck || isNotEmpty(messageItem.getCommentDoc());
+    }
 
-        List<MessageItem> messageItems = customMessage.getMessageItems();
-        int allMessageResult = 0;
+    private boolean hasCheckedItem(List<MessageItem> messageItems) {
+        return messageItems.stream().anyMatch(this::isDenied);
+    }
 
-        if (!messageItems.isEmpty()) {
-            for (MessageItem messageItem : messageItems) {
-                boolean messageItemCheck = messageItem.getItemDetailList().stream()
-                        .anyMatch(ItemDetail::isCheck);
-                if (messageItemCheck || isNotEmpty(messageItem.getCommentDoc())) {
-                    forTenant = 2;
-                    allMessageResult = forTenant;
-                }
-            }
-        }
-
-        List<GuarantorItem> guarantorItems = customMessage.getGuarantorItems();
-        if (!guarantorItems.isEmpty()) {
-            for (GuarantorItem guarantorItem : guarantorItems) {
-                messageItems = guarantorItem.getMessageItems();
-                for (MessageItem messageItem : messageItems) {
-                    boolean messageItemCheckGuarantor = messageItem.getItemDetailList().stream()
-                            .anyMatch(ItemDetail::isCheck);
-                    if (messageItemCheckGuarantor || isNotEmpty(messageItem.getCommentDoc())) {
-                        allMessageResult = forTenant + 5;
-                    }
-                }
-            }
-        }
-
-        return allMessageResult;
+    private boolean hasGuarantorCheckedItem(List<GuarantorItem> guarantorItems) {
+        return guarantorItems.stream().anyMatch(item -> hasCheckedItem(item.getMessageItems()));
     }
 
     @Transactional
@@ -422,7 +435,7 @@ public class TenantService {
         }
         User operator = userService.findUserByEmail(principal.getName());
         updateFileStatus(customMessage);
-        Message message = sendCustomMessage(tenant, customMessage, checkValueOfCustomMessage(customMessage));
+        Message message = sendCustomMessage(tenant, customMessage);
         changeTenantStatusToDeclined(tenant, operator, message, ProcessedDocuments.NONE);
 
         return "redirect:/bo";
@@ -455,7 +468,7 @@ public class TenantService {
         if (allDocumentsValid) {
             changeTenantStatusToValidated(tenant, operator, processedDocuments);
         } else {
-            Message message = sendCustomMessage(tenant, customMessage, checkValueOfCustomMessage(customMessage));
+            Message message = sendCustomMessage(tenant, customMessage);
             changeTenantStatusToDeclined(tenant, operator, message, processedDocuments);
         }
         updateOperatorDateTimeTenant(tenantId);

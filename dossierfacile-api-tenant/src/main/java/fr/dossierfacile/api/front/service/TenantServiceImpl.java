@@ -59,9 +59,6 @@ public class TenantServiceImpl implements TenantService {
     private final UserApiService userApiService;
     private final DocumentAnalysisReportRepository documentAnalysisReportRepository;
     private final TenantMapperForMail tenantMapperForMail;
-    @Value("${ab.prevalidation.percentage}")
-    private Long percentagePreValidation;
-    private int createdUserCount = 0;
 
     @Override
     public <T> TenantModel saveStepRegister(Tenant tenant, T formStep, StepRegister step) {
@@ -139,14 +136,6 @@ public class TenantServiceImpl implements TenantService {
                 .franceConnect(kcUser.isFranceConnect())
                 .honorDeclaration(false)
                 .build());
-
-        // Allows to activate pre-validation for a portion of user
-        if (percentagePreValidation > 0) {
-            createdUserCount++;
-            if (createdUserCount % 100 < percentagePreValidation) {
-                tenant.setPreValidationActivated(true);
-            }
-        }
 
         if (acquisitionData != null) {
             tenant.setAcquisitionCampaign(acquisitionData.campaign());

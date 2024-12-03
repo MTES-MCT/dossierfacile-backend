@@ -4,6 +4,7 @@ import fr.dossierfacile.api.pdfgenerator.exception.ApartmentSharingUnexpectedExc
 import fr.dossierfacile.api.pdfgenerator.exception.TenantNotFoundException;
 import fr.dossierfacile.api.pdfgenerator.model.TargetImageData;
 import fr.dossierfacile.api.pdfgenerator.service.interfaces.DownloadService;
+import fr.dossierfacile.api.pdfgenerator.service.interfaces.PdfSignatureService;
 import fr.dossierfacile.api.pdfgenerator.service.interfaces.PdfTemplate;
 import fr.dossierfacile.api.pdfgenerator.util.Fonts;
 import fr.dossierfacile.api.pdfgenerator.util.PdfOptimizer;
@@ -39,7 +40,6 @@ import org.apache.pdfbox.pdmodel.interactive.action.PDActionGoTo;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDBorderStyleDictionary;
-import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageFitWidthDestination;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDDocumentOutline;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineItem;
@@ -58,22 +58,15 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import static fr.dossierfacile.api.pdfgenerator.service.templates.PdfFileTemplate.ATTACHMENTS_AND_CLARIFICATIONS;
-import static fr.dossierfacile.api.pdfgenerator.service.templates.PdfFileTemplate.FIRST_TABLE_OF_CONTENT_PAGE;
-import static fr.dossierfacile.api.pdfgenerator.service.templates.PdfFileTemplate.OTHER_TABLE_OF_CONTENT_PAGES;
+import static fr.dossierfacile.api.pdfgenerator.service.templates.PdfFileTemplate.*;
 import static org.apache.pdfbox.multipdf.PDFMergerUtility.DocumentMergeMode;
 import static org.apache.pdfbox.pdmodel.font.Standard14Fonts.FontName;
 
@@ -241,6 +234,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
     private final TenantCommonRepository tenantRepository;
     private final DownloadService downloadDocumentService;
     private final MessageSource messageSource;
+    private final PdfSignatureService pdfSignatureService;
 
     private <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
         Map<Object, Boolean> seen = new ConcurrentHashMap<>();
@@ -518,11 +512,11 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
                 layerUtility.wrapInSaveRestore(destPage);
                 layerUtility.appendFormAsLayer(destPage, innerPageAsForm, affineTransform, headerSentence);
 
-                document.addSignature(new PDSignature());
-                document.save(result);
+                pdfSignatureService.signAndSave(document, result);
+
             }
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error("Problem when printing attachment inside template of attachments");
             log.error(e.getMessage(), e.getCause());
         }
@@ -1375,8 +1369,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
              PDDocument originDocument = Loader.loadPDF(result.toByteArray())) {
 
             new PdfOptimizer().optimize(originDocument);
-            originDocument.addSignature(new PDSignature());
-            originDocument.save(finalResult);
+            pdfSignatureService.signAndSave(originDocument, finalResult);
 
             return new ByteArrayInputStream(finalResult.toByteArray());
         } catch (Exception e) {
