@@ -10,8 +10,7 @@
             <div class="chat-container bg-primary-subtle">
                 <div class="row hidden-xs">
                     <div class="col-md-12">
-                        <ul th:id="'messageArea' + ${tenant.getId()}" style="height: 500px;margin-top:10px;
-                            margin-bottom:5px;border-radius: 5px;" class="bg-light-subtle">
+                        <ul th:id="'messageArea' + ${tenant.getId()}" class="message-area bg-light-subtle">
                             <li class="chat-message"
                                 style="border-radius: 10px;margin-top:10px;margin-bottom:10px;"
                                 th:each="message: ${messages}" th:classappend="${message.getFromUser()==null}?'bg-secondary-subtle':'bg-dark-subtle'"

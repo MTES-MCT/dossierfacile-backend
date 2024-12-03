@@ -418,30 +418,48 @@ input::-webkit-inner-spin-button {
     position: relative;
 }
 
-#chat-page ul {
+#chat-page .message-area {
     list-style-type: none;
     margin: 0;
     overflow: auto;
     overflow-y: scroll;
     padding: 0 20px 0px 20px;
-    height: calc(100vh - 220px);
+    height: 500px;
+    margin-top:10px;
+    margin-bottom:5px;
+    border-radius: 5px;
+}
+
+#chat-page .custom-message {
+    list-style-type: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
 }
 
 #chat-page #messageForm {
     padding: 20px;
 }
 
-#chat-page ul li {
+#chat-page .message-area li {
     line-height: 1.5rem;
     padding: 10px 20px;
     margin: 0;
+}
+
+#chat-page .message-area .custom-message > li {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }
 
 ul.customMessage li:not(:last-child) {
     border-bottom: 1px solid var(--bs-secondary-bg-subtle);
 }
 
-#chat-page ul li p {
+#chat-page .message-area li p {
     margin: 0;
 }
 
@@ -507,10 +525,6 @@ ul.customMessage li:not(:last-child) {
         overflow: auto;
         max-height: 600px;
 
-    }
-
-    #chat-page ul {
-        height: calc(100% - 120px);
     }
 
     #messageForm .input-group button {
