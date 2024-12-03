@@ -19,9 +19,6 @@ public class AccountForm {
     @UniqueEmailActiveAccount
     private String email;
 
-    @NotBlank
-    private String password;
-
     private String source;
 
     private String firstName;

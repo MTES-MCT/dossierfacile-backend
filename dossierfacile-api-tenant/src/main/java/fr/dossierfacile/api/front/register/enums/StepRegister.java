@@ -13,7 +13,6 @@ import fr.dossierfacile.api.front.register.guarantor.natural_person.DocumentTaxG
 import fr.dossierfacile.api.front.register.guarantor.natural_person.NameGuarantorNaturalPerson;
 import fr.dossierfacile.api.front.register.guarantor.organism.DocumentGuaranteeProviderCertificate;
 import fr.dossierfacile.api.front.register.guarantor.organism.DocumentIdentificationGuarantorOrganism;
-import fr.dossierfacile.api.front.register.tenant.Account;
 import fr.dossierfacile.api.front.register.tenant.AccountApiPartner;
 import fr.dossierfacile.api.front.register.tenant.Application;
 import fr.dossierfacile.api.front.register.tenant.DocumentFinancial;
@@ -29,7 +28,6 @@ import lombok.Getter;
 @Getter
 public enum StepRegister {
     ACCOUNT_PARTNER_API(AccountApiPartner.class),
-    ACCOUNT(Account.class),
     NAMES(Names.class),
     APPLICATION(Application.class),
     HONOR_DECLARATION(HonorDeclaration.class),

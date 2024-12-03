@@ -33,6 +33,5 @@ public class TenantModel {
     private List<DocumentModel> documents;
     private List<GuarantorModel> guarantors;
     private boolean franceConnect;
-    private boolean passwordEnabled;
     private String warningMessage;
 }

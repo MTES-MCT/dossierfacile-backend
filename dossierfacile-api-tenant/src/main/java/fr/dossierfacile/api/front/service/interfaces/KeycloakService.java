@@ -12,20 +12,12 @@ public interface KeycloakService {
 
     UserRepresentation getKeyCloakUser(String keycloakId);
 
-    String createKeycloakUserAccountCreation(AccountForm accountForm, Tenant tenant);
-
     /**
      * @return created user's keycloakId
      */
     String createKeycloakUser(String email);
 
-    void deleteKeycloakUsers(List<User> users);
-
-    void confirmKeycloakUser(String keycloakId);
-
     void createKeyCloakPassword(String keycloakId, String password);
-
-    void deleteKeycloakUser(Tenant tenant);
 
     void deleteKeycloakUserById(String keycloakId);
 
