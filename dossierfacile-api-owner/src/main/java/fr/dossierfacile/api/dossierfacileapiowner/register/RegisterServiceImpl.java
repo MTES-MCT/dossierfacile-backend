@@ -67,8 +67,6 @@ public class RegisterServiceImpl implements RegisterService {
         String email = accountForm.getEmail();
         Owner owner = ownerRepository.findByEmailAndEnabledFalse(email)
                 .orElse(Owner.builder().email(email).build());
-        // TODO : useless ?
-        owner.setPassword(bCryptPasswordEncoder.encode(accountForm.getPassword()));
         owner.setKeycloakId(keycloakService.createKeycloakUserAccountCreation(accountForm, owner));
         owner.setFranceConnect(false);
         ownerRepository.save(owner);
@@ -99,7 +97,6 @@ public class RegisterServiceImpl implements RegisterService {
                 .orElseThrow(() -> new PasswordRecoveryTokenNotFoundException(token));
         User user = passwordRecoveryToken.getUser();
         user.setEnabled(true);
-        user.setPassword(bCryptPasswordEncoder.encode(password));
         if (user.getKeycloakId() == null || user.getKeycloakId().isBlank()) {
             var keycloakId = keycloakService.getKeycloakId(user.getEmail());
             if (keycloakId == null) {

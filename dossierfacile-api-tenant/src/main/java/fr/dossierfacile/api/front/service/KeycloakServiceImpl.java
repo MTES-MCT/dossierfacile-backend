@@ -1,9 +1,7 @@
 package fr.dossierfacile.api.front.service;
 
-import fr.dossierfacile.api.front.register.form.tenant.AccountForm;
 import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
 import fr.dossierfacile.common.entity.Tenant;
-import fr.dossierfacile.common.entity.User;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.service.interfaces.KeycloakCommonService;
 import jakarta.ws.rs.NotFoundException;
@@ -17,7 +15,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -40,34 +37,9 @@ public class KeycloakServiceImpl implements KeycloakService {
     }
 
     @Override
-    public String createKeycloakUserAccountCreation(AccountForm accountForm, Tenant tenant) {
-        if (tenant.getKeycloakId() != null) {
-            realmResource.users().delete(tenant.getKeycloakId());
-        }
-        var email = accountForm.getEmail().toLowerCase();
-        var userRepresentation = createUser(email);
-        createCredential(userRepresentation, accountForm.getPassword());
-        return createUserAndReturnId(userRepresentation);
-    }
-
-    @Override
     public String createKeycloakUser(String email) {
         var userRepresentation = createUser(email);
         return createUserAndReturnId(userRepresentation);
-    }
-
-    @Override
-    public void deleteKeycloakUsers(List<User> users) {
-        keycloakCommonService.deleteKeycloakUsers(users);
-    }
-
-    @Override
-    public void confirmKeycloakUser(String keycloakId) {
-        UserResource userResource = realmResource.users().get(keycloakId);
-        var userRepresentation = userResource.toRepresentation();
-        userRepresentation.setEmailVerified(true);
-        userRepresentation.setEnabled(true);
-        userResource.update(userRepresentation);
     }
 
     @Override
@@ -77,11 +49,6 @@ public class KeycloakServiceImpl implements KeycloakService {
         userRepresentation.setEnabled(true);
         createCredential(userRepresentation, password);
         realmResource.users().get(keycloakId).update(userRepresentation);
-    }
-
-    @Override
-    public void deleteKeycloakUser(Tenant tenant) {
-        keycloakCommonService.deleteKeycloakUser(tenant);
     }
 
     @Override

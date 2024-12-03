@@ -62,9 +62,6 @@ public abstract class User implements Serializable {
     @Column
     private String email;
 
-    @Column
-    private String password;
-
     @Builder.Default
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     private Set<UserRole> userRoles = new HashSet<>();
