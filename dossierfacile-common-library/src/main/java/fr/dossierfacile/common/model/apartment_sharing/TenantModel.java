@@ -32,8 +32,6 @@ public class TenantModel {
     private TenantFileStatus status;
     private List<DocumentModel> documents;
     private List<GuarantorModel> guarantors;
-    @Deprecated(since= "V4")
-    private List<String> allInternalPartnerId;
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ss.SSSSSS")
     private LocalDateTime lastUpdateDate;

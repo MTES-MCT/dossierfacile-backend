@@ -149,11 +149,9 @@ public class UserServiceImpl implements UserService {
                 .ifPresent(userApi -> {
                     if (tenant.getApartmentSharing().getApplicationType() == ApplicationType.COUPLE) {
                         tenant.getApartmentSharing().getTenants()
-                                .stream()
-                                .forEach(t -> partnerCallBackService.registerTenant(
-                                        (tenant.getId() == t.getId()) ? internalPartnerId : null, t, userApi));
+                                .forEach(t -> partnerCallBackService.registerTenant(t, userApi));
                     } else {
-                        partnerCallBackService.registerTenant(internalPartnerId, tenant, userApi);
+                        partnerCallBackService.registerTenant(tenant, userApi);
                     }
                 });
     }
