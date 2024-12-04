@@ -9,7 +9,9 @@ import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.Role;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.gouv.bo.amqp.Producer;
-import fr.gouv.bo.dto.*;
+import fr.gouv.bo.dto.BooleanDTO;
+import fr.gouv.bo.dto.ReGroupDTO;
+import fr.gouv.bo.dto.ResultDTO;
 import fr.gouv.bo.service.DocumentService;
 import fr.gouv.bo.service.TenantService;
 import fr.gouv.bo.service.UserService;
@@ -38,18 +40,12 @@ import java.util.Collection;
 @Controller
 @RequiredArgsConstructor
 public class BOController {
-    private static final int BUTTONS_TO_SHOW = 5;
     private static final String EMAIL = "email";
-    private static final String PAGER = "pager";
-    private static final String PAGE_SIZES_STRING = "pageSizes";
-    private static final String SELECTED_PAGE_SIZE = "selectedPageSize";
     private static final String OLDEST_APPLICATION = "oldestApplication";
     private static final String REDIRECT_BO_COLOCATION = "redirect:/bo/colocation/";
     private static final String SHOW_ALERT = "showAlert";
-
-    private static final String INITIAL_PAGE = "0";
-    private static final String INITIAL_PAGE_SIZE = "100";
-    private static final int[] PAGE_SIZES = {100, 200};
+    private static final String INITIAL_PAGE_SIZE = "50";
+    private static final int[] PAGE_SIZES = {50, 100, 200};
     private static final String REDIRECT_BO = "redirect:/bo";
     private final TenantService tenantService;
     private final UserService userService;
@@ -106,11 +102,11 @@ public class BOController {
     public String bo(@ModelAttribute("numberOfDocumentsToProcess") ResultDTO numberOfDocumentsToProcess,
                      Model model,
                      @RequestParam(value = "pageSize", defaultValue = INITIAL_PAGE_SIZE) int pageSize,
-                     @RequestParam(value = "page", defaultValue = INITIAL_PAGE) int page,
+                     @RequestParam(value = "page", defaultValue = "1") int page,
                      Principal principal) {
 
-        Page<Tenant> tenants = tenantService.listTenantsToProcess(PageRequest.of(page, pageSize));
-        Pager pager = new Pager(tenants.getTotalPages(), tenants.getNumber(), BUTTONS_TO_SHOW);
+        Page<Tenant> tenants = tenantService.listTenantsToProcess(PageRequest.of(page - 1, pageSize));
+
         User login_user = userService.findUserByEmail(principal.getName());
         boolean is_admin = login_user.getUserRoles().stream().anyMatch(userRole -> userRole.getRole().name().equals(Role.ROLE_ADMIN.name()));
         model.addAttribute("numberOfTenantsToProcess", tenantService.countTenantsWithStatusInToProcess());
@@ -121,9 +117,9 @@ public class BOController {
         model.addAttribute("TenantsWithFailedGeneratedPdf", result);
         model.addAttribute("isUserAdmin", is_admin);
         model.addAttribute("tenants", tenants);
-        model.addAttribute(SELECTED_PAGE_SIZE, pageSize);
-        model.addAttribute(PAGE_SIZES_STRING, PAGE_SIZES);
-        model.addAttribute(PAGER, pager);
+        model.addAttribute("pageSize", pageSize);
+        model.addAttribute("pageSizes", PAGE_SIZES);
+
         model.addAttribute(OLDEST_APPLICATION, tenantService.getOldestToProcessApplication());
         return "bo/index";
     }
