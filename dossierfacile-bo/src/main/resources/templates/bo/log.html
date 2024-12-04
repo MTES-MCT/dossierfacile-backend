@@ -21,106 +21,47 @@
             </form>
         </div>
         <div class="row table-nav mt-4">
-            <div class="mb-3 col-md-1">
-                <select class="form-select form-control pagination pageSizeSelect" th:field="*{selectedPageSize}" data-url="/bo/log">
-                    <option th:each="pageSize : ${pageSizes}" th:text="${pageSize}" th:value="${pageSize}"
-                            th:selected="${pageSize} == ${selectedPageSize}"></option>
-                </select>
-            </div>
-            <div th:if="${logs.totalPages != 1}" class="mb-3 col-md-11 pagination-centered">
-                <ul class="pagination">
-                    <li class="page-item" th:classappend="${logs.number == 0} ? disabled">
-                        <a class="page-link" th:href="@{/bo/log(pageSize=${selectedPageSize}, page=1, tenantId=${tenantId})}">&laquo;</a>
-                    </li>
-                    <li class="page-item" th:classappend="${logs.number == 0} ? disabled">
-                        <a class="page-link"
-                           th:href="@{/bo/log(pageSize=${selectedPageSize}, page=${logs.number}, tenantId=${tenantId})}">&larr;</a>
-                    </li>
-                    <li class="page-item" th:classappend="${logs.number == (page - 1)} ? 'active pointer-disabled'"
-                        th:each="page : ${#numbers.sequence(pager.startPage, pager.endPage)}">
-                        <a class="page-link" th:href="@{/bo/log(pageSize=${selectedPageSize}, page=${page}, tenantId=${tenantId})}"
-                           th:text="${page}"></a>
-                    </li>
-                    <li class="page-item" th:classappend="${logs.number + 1 == logs.totalPages} ? disabled">
-                        <a class="page-link"
-                           th:href="@{/bo/log(pageSize=${selectedPageSize}, page=${logs.number + 2}, tenantId=${tenantId})}">&rarr;</a>
-                    </li>
-                    <li class="page-item" th:classappend="${logs.number + 1 == logs.totalPages} ? disabled">
-                        <a class="page-link"
-                           th:href="@{/bo/log(pageSize=${selectedPageSize}, page=${logs.totalPages}, tenantId=${tenantId})}">&raquo;</a>
-                    </li>
-                </ul>
-            </div>
+            <div th:replace="~{bo/fragments/pagination :: pagination (items=${logs}, paramKey='tenantId', paramValue=${tenantId}, pageSizes=${pageSizes}, endpoint='/bo/log')}"></div>
         </div>
     </div>
     <div class="container">
         <div></div>
         <div class="table-responsive">
-        <table class="table table-striped table-bordered table-hover">
-            <thead>
-            <tr>
-                <th>Creation date</th>
-                <th>OperatorId</th>
-                <th>TenantId</th>
-                <th>Log type</th>
-                <th>MessageId</th>
-            </tr>
-            </thead>
-            <tbody>
+            <table class="table table-striped table-bordered table-hover">
+                <thead>
+                <tr>
+                    <th>Creation date</th>
+                    <th>OperatorId</th>
+                    <th>TenantId</th>
+                    <th>Log type</th>
+                    <th>MessageId</th>
+                </tr>
+                </thead>
+                <tbody>
 
-            <tr th:each="log : ${logs}">
-                <td th:utext="${log.getCreationDateTime()}"></td>
-                <td th:text="${log.operatorId}"></td>
-                <td >
-                    <a th:if="${log.tenantId}" th:href="@{/bo/tenant/}+${log.tenantId}" th:text="${log.tenantId}" >
-                        <span class="fa fa-eye"></span>
-                    </a>
-                </td>
-                <td th:if="${log.getLogType().name()=='ACCOUNT_VALIDATED'}">
-                    <span class="badge bg-success" th:text="${log.getLogType()}"></span>
-                </td>
-                <td th:unless="${log.getLogType().name()=='ACCOUNT_VALIDATED'}">
-                    <span th:text="${log.getLogType()}"></span>
-                </td>
-                <td th:class="${log.getLogType().name()=='ACCOUNT_VALIDATED'}?'bold':''"
-                    th:text="${log.getMessageId()}"></td>
-            </tr>
-            </tbody>
-        </table>
-    </div>
-        <div class="row table-nav">
-            <div class="mb-3 col-md-1">
-                <select class="form-select form-control pagination pageSizeSelect" th:field="*{selectedPageSize}" data-url="/bo/log">
-                    <option th:each="pageSize : ${pageSizes}" th:text="${pageSize}" th:value="${pageSize}"
-                            th:selected="${pageSize} == ${selectedPageSize}"></option>
-                </select>
-            </div>
-            <div th:if="${logs.totalPages != 1}" class="mb-3 col-md-11 pagination-centered">
-                <ul class="pagination">
-                    <li th:class="${logs.number == 0} ? disabled">
-                        <a class="page-link" th:href="@{/bo/log(pageSize=${selectedPageSize}, page=1, tenantId=${tenantId})}">&laquo;</a>
-                    </li>
-                    <li th:class="${logs.number == 0} ? disabled">
-                        <a class="page-link"
-                           th:href="@{/bo/log(pageSize=${selectedPageSize}, page=${logs.number}, tenantId=${tenantId})}">&larr;</a>
-                    </li>
-                    <li th:class="${logs.number == (page - 1)} ? 'active pointer-disabled'"
-                        th:each="page : ${#numbers.sequence(pager.startPage, pager.endPage)}">
-                        <a class="page-link" th:href="@{/bo/log(pageSize=${selectedPageSize}, page=${page}, tenantId=${tenantId})}"
-                           th:text="${page}"></a>
-                    </li>
-                    <li th:class="${logs.number + 1 == logs.totalPages} ? disabled">
-                        <a class="page-link"
-                           th:href="@{/bo/log(pageSize=${selectedPageSize}, page=${logs.number + 2}, tenantId=${tenantId})}">&rarr;</a>
-                    </li>
-                    <li th:class="${logs.number + 1 == logs.totalPages} ? disabled">
-                        <a class="page-link"
-                           th:href="@{/bo/log(pageSize=${selectedPageSize}, page=${logs.totalPages}, tenantId=${tenantId})}">&raquo;</a>
-                    </li>
-                </ul>
-            </div>
+                <tr th:each="log : ${logs}">
+                    <td th:utext="${log.getCreationDateTime()}"></td>
+                    <td th:text="${log.operatorId}"></td>
+                    <td >
+                        <a th:if="${log.tenantId}" th:href="@{/bo/tenant/}+${log.tenantId}" th:text="${log.tenantId}" >
+                            <span class="fa fa-eye"></span>
+                        </a>
+                    </td>
+                    <td th:if="${log.getLogType().name()=='ACCOUNT_VALIDATED'}">
+                        <span class="badge bg-success" th:text="${log.getLogType()}"></span>
+                    </td>
+                    <td th:unless="${log.getLogType().name()=='ACCOUNT_VALIDATED'}">
+                        <span th:text="${log.getLogType()}"></span>
+                    </td>
+                    <td th:class="${log.getLogType().name()=='ACCOUNT_VALIDATED'}?'bold':''"
+                        th:text="${log.getMessageId()}"></td>
+                </tr>
+                </tbody>
+            </table>
         </div>
-    </div>
+        <div th:replace="~{bo/fragments/pagination :: pagination (items=${logs}, paramKey='tenantId', paramValue=${tenantId}, pageSizes=${pageSizes}, endpoint='/bo/log')}"></div>
+
+  </div>
 
 </div>
 

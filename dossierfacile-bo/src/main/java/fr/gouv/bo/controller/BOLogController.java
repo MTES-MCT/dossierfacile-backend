@@ -1,7 +1,6 @@
 package fr.gouv.bo.controller;
 
 import fr.dossierfacile.common.entity.TenantLog;
-import fr.gouv.bo.dto.Pager;
 import fr.gouv.bo.service.TenantLogService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,8 +19,6 @@ import java.util.Optional;
 @Controller
 @RequestMapping(value = "/bo/log")
 public class BOLogController {
-
-    private static final int BUTTONS_TO_SHOW = 5;
     private static final String INITIAL_PAGE = "1";
     private static final String INITIAL_PAGE_SIZE = "50";
     private static final int[] PAGE_SIZES = {50, 100};
@@ -47,14 +44,10 @@ public class BOLogController {
             logs = logService.findAllPageable(pageable);
         }
 
-        Pager pager = new Pager(logs.getTotalPages(), logs.getNumber(), BUTTONS_TO_SHOW);
-
         model.addAttribute("tenantId", tenantId.orElse(""));
         model.addAttribute("logs", logs);
         model.addAttribute("pageSize", pageable.getPageSize());
-        model.addAttribute("selectedPageSize", pageable.getPageSize());
         model.addAttribute("pageSizes", PAGE_SIZES);
-        model.addAttribute("pager", pager);
 
         return "bo/log";
     }
