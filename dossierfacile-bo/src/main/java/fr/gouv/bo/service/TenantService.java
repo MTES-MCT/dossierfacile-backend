@@ -686,7 +686,7 @@ public class TenantService {
     }
 
     public Page<Tenant> getAllTenantsToProcessWithFailedGeneratedPdfDocument(Pageable pageable) {
-        return new PageImpl<>(tenantRepository.findAllTenantsToProcessWithoutPdfDocument(pageable).toList());
+        return tenantRepository.findAllTenantsToProcessWithoutPdfDocument(pageable);
     }
 
     public long countTenantsWithStatusInToProcess() {
