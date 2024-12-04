@@ -21,36 +21,7 @@
       </form>
     </div>
     <div class="row table-nav mt-4">
-      <div class="mb-3 col-md-1">
-        <select class="form-select form-control pagination pageSizeSelect" th:field="*{selectedPageSize}" data-url="/bo/owners">
-          <option th:each="pageSize : ${pageSizes}" th:text="${pageSize}" th:value="${pageSize}"
-                  th:selected="${pageSize} == ${selectedPageSize}"></option>
-        </select>
-      </div>
-      <div th:if="${owners.totalPages != 1}" class="mb-3 col-md-11 pagination-centered">
-        <ul class="pagination">
-          <li class="page-item" th:classappend="${owners.number == 0} ? disabled">
-            <a class="page-link" th:href="@{/bo/owners(pageSize=${selectedPageSize}, page=1, ownerEmail=${ownerEmail})}">&laquo;</a>
-          </li>
-          <li class="page-item" th:classappend="${owners.number == 0} ? disabled">
-            <a class="page-link"
-               th:href="@{/bo/owners(pageSize=${selectedPageSize}, page=${owners.number}, ownerEmail=${ownerEmail})}">&larr;</a>
-          </li>
-          <li class="page-item" th:classappend="${owners.number == (page - 1)} ? 'active pointer-disabled'"
-              th:each="page : ${#numbers.sequence(pager.startPage, pager.endPage)}">
-            <a class="page-link" th:href="@{/bo/owners(pageSize=${selectedPageSize}, page=${page}, ownerEmail=${ownerEmail})}"
-               th:text="${page}"></a>
-          </li>
-          <li class="page-item" th:classappend="${owners.number + 1 == owners.totalPages} ? disabled">
-            <a class="page-link"
-               th:href="@{/bo/owners(pageSize=${selectedPageSize}, page=${owners.number + 2}, ownerEmail=${ownerEmail})}">&rarr;</a>
-          </li>
-          <li class="page-item" th:classappend="${owners.number + 1 == owners.totalPages} ? disabled">
-            <a class="page-link"
-               th:href="@{/bo/owners(pageSize=${selectedPageSize}, page=${owners.totalPages}, ownerEmail=${ownerEmail})}">&raquo;</a>
-          </li>
-        </ul>
-      </div>
+      <div th:replace="~{bo/fragments/pagination :: pagination (items=${owners}, paramKey='ownerEmail', paramValue=${ownerEmail}, pageSizes=${pageSizes}, endpoint='/bo/owners')}"></div>
     </div>
   </div>
   <div class="container-lg">
@@ -83,36 +54,7 @@
       </table>
     </div>
     <div class="row table-nav">
-      <div class="mb-3 col-md-1">
-        <select class="form-select form-control pagination pageSizeSelect" th:field="*{selectedPageSize}" data-url="/bo/owners">
-          <option th:each="pageSize : ${pageSizes}" th:text="${pageSize}" th:value="${pageSize}"
-                  th:selected="${pageSize} == ${selectedPageSize}"></option>
-        </select>
-      </div>
-      <div th:if="${owners.totalPages != 1}" class="mb-3 col-md-11 pagination-centered">
-        <ul class="pagination">
-          <li th:class="${owners.number == 0} ? disabled">
-            <a class="page-link" th:href="@{/bo/owners(pageSize=${selectedPageSize}, page=1, ownerEmail=${ownerEmail})}">&laquo;</a>
-          </li>
-          <li th:class="${owners.number == 0} ? disabled">
-            <a class="page-link"
-               th:href="@{/bo/owners(pageSize=${selectedPageSize}, page=${owners.number}, ownerEmail=${ownerEmail})}">&larr;</a>
-          </li>
-          <li th:class="${owners.number == (page - 1)} ? 'active pointer-disabled'"
-              th:each="page : ${#numbers.sequence(pager.startPage, pager.endPage)}">
-            <a class="page-link" th:href="@{/bo/owners(pageSize=${selectedPageSize}, page=${page}, ownerEmail=${ownerEmail})}"
-               th:text="${page}"></a>
-          </li>
-          <li th:class="${owners.number + 1 == owners.totalPages} ? disabled">
-            <a class="page-link"
-               th:href="@{/bo/owners(pageSize=${selectedPageSize}, page=${owners.number + 2}, ownerEmail=${ownerEmail})}">&rarr;</a>
-          </li>
-          <li th:class="${owners.number + 1 == owners.totalPages} ? disabled">
-            <a class="page-link"
-               th:href="@{/bo/owners(pageSize=${selectedPageSize}, page=${owners.totalPages}, ownerEmail=${ownerEmail})}">&raquo;</a>
-          </li>
-        </ul>
-      </div>
+      <div th:replace="~{bo/fragments/pagination :: pagination (items=${owners}, paramKey='ownerEmail', paramValue=${ownerEmail}, pageSizes=${pageSizes}, endpoint='/bo/owners')}"></div>
     </div>
   </div>
 </div>
