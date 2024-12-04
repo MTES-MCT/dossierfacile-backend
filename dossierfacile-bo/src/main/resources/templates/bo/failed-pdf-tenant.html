@@ -45,36 +45,7 @@
             </table>
         </div>
         <div class="row mt-4">
-            <div class="mb-3 col-md-1">
-                <select class="form-select form-control pagination pageSizeSelect" data-url="/bo">
-                    <option th:each="pageSize : ${pageSizes}" th:text="${pageSize}" th:value="${pageSize}"
-                            th:selected="${pageSize} == ${selectedPageSize}"></option>
-                </select>
-            </div>
-            <div th:if="${tenantList.totalPages > 1}" class="mb-3 col-md-11 pagination-centered">
-                <ul class="pagination">
-                    <li class="page-item" th:classappend="${tenants.number == 0} ? disabled">
-                        <a class="page-link" th:href="@{/bo(pageSize=${selectedPageSize}, page=1)}">&laquo;</a>
-                    </li>
-                    <li class="page-item" th:classappend="${tenants.number == 0} ? disabled">
-                        <a class="page-link"
-                           th:href="@{/bo(pageSize=${selectedPageSize}, page=${tenants.number})}">&larr;</a>
-                    </li>
-                    <li class="page-item" th:classappend="${tenants.number == (page - 1)} ? 'active pointer-disabled'"
-                        th:each="page : ${#numbers.sequence(pager.startPage, pager.endPage)}">
-                        <a class="page-link" th:href="@{/bo(pageSize=${selectedPageSize}, page=${page})}"
-                           th:text="${page}"></a>
-                    </li>
-                    <li class="page-item" th:classappend="${tenants.number + 1 == tenants.totalPages} ? disabled">
-                        <a class="page-link"
-                           th:href="@{/bo(pageSize=${selectedPageSize}, page=${tenants.number + 2})}">&rarr;</a>
-                    </li>
-                    <li class="page-item" th:classappend="${tenants.number + 1 == tenants.totalPages} ? disabled">
-                        <a class=""
-                           th:href="@{/bo(pageSize=${selectedPageSize}, page=${tenants.totalPages})}">&raquo;</a>
-                    </li>
-                </ul>
-            </div>
+            <div th:replace="~{bo/fragments/pagination :: pagination (items=${tenantList}, paramKey='none', paramValue='', pageSizes=${pageSizes}, endpoint='/bo/documentFailedList')}"></div>
         </div>
 
     </div>

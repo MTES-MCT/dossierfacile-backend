@@ -92,13 +92,12 @@ public class BOController {
     @GetMapping("/bo/documentFailedList")
     public String documentFailedList(Model model,
                                      @RequestParam(value = "pageSize", defaultValue = INITIAL_PAGE_SIZE) int pageSize,
-                                     @RequestParam(value = "page", defaultValue = INITIAL_PAGE) int page) {
+                                     @RequestParam(value = "page", defaultValue = "1") int page) {
 
-        Page<Tenant> tenants = tenantService.getAllTenantsToProcessWithFailedGeneratedPdfDocument(PageRequest.of(page, pageSize));
-        Pager pager = new Pager(tenants.getTotalPages(), tenants.getNumber(), BUTTONS_TO_SHOW);
-        model.addAttribute(PAGER, pager);
-        model.addAttribute(PAGE_SIZES_STRING, PAGE_SIZES);
-        model.addAttribute(SELECTED_PAGE_SIZE, pageSize);
+        Page<Tenant> tenants = tenantService.getAllTenantsToProcessWithFailedGeneratedPdfDocument(PageRequest.of(page - 1, pageSize));
+
+        model.addAttribute("pageSizes", PAGE_SIZES);
+        model.addAttribute("pageSize", pageSize);
         model.addAttribute("tenantList", tenants);
         return "bo/failed-pdf-tenant";
     }
