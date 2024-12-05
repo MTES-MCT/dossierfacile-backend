@@ -53,7 +53,6 @@
 
 
     <root level="${LOG_LEVEL}">
-        <appender-ref ref="LOGSTASH"/>
         <appender-ref ref="STDOUT"/>
         <springProfile name="dev">
             <appender-ref ref="FILE"/>

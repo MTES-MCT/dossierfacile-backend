@@ -12,8 +12,10 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+import java.awt.*;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
+import java.util.Arrays;
 
 @SpringBootApplication(scanBasePackages = {"fr.gouv", "fr.dossierfacile"})
 @EntityScan(basePackages = "fr.dossierfacile")
@@ -33,6 +35,8 @@ public class BOApplication extends SpringBootServletInitializer {
         long xms = memoryBean.getHeapMemoryUsage().getInit() / mb;
         log.info("Initial Memory (xms) : {}mb", xms);
         log.info("Max Memory (xmx) : {}mb", xmx);
+
+
     }
 
     @Override
