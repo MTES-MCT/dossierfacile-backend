@@ -12,8 +12,6 @@ import fr.dossierfacile.api.front.register.guarantor.natural_person.DocumentResi
 import fr.dossierfacile.api.front.register.guarantor.natural_person.DocumentTaxGuarantorNaturalPerson;
 import fr.dossierfacile.api.front.register.guarantor.natural_person.NameGuarantorNaturalPerson;
 import fr.dossierfacile.api.front.register.guarantor.organism.DocumentGuaranteeProviderCertificate;
-import fr.dossierfacile.api.front.register.guarantor.organism.DocumentIdentificationGuarantorOrganism;
-import fr.dossierfacile.api.front.register.tenant.Account;
 import fr.dossierfacile.api.front.register.tenant.AccountApiPartner;
 import fr.dossierfacile.api.front.register.tenant.Application;
 import fr.dossierfacile.api.front.register.tenant.DocumentFinancial;
@@ -29,7 +27,6 @@ import lombok.Getter;
 @Getter
 public enum StepRegister {
     ACCOUNT_PARTNER_API(AccountApiPartner.class),
-    ACCOUNT(Account.class),
     NAMES(Names.class),
     APPLICATION(Application.class),
     HONOR_DECLARATION(HonorDeclaration.class),
@@ -45,7 +42,6 @@ public enum StepRegister {
     DOCUMENT_PROFESSIONAL_GUARANTOR_NATURAL_PERSON(DocumentProfessionalGuarantorNaturalPerson.class),
     DOCUMENT_FINANCIAL_GUARANTOR_NATURAL_PERSON(DocumentFinancialGuarantorNaturalPerson.class),
     DOCUMENT_TAX_GUARANTOR_NATURAL_PERSON(DocumentTaxGuarantorNaturalPerson.class),
-    DOCUMENT_IDENTIFICATION_GUARANTOR_ORGANISM(DocumentIdentificationGuarantorOrganism.class),
     DOCUMENT_GUARANTEE_PROVIDER_CERTIFICATE(DocumentGuaranteeProviderCertificate.class),
     DOCUMENT_IDENTIFICATION_GUARANTOR_LEGAL_PERSON(DocumentIdentificationGuarantorLegalPerson.class),
     DOCUMENT_IDENTIFICATION_REPRESENTANT_GUARANTOR_LEGAL_PERSON(DocumentIdentificationRepresentanGuarantorLegalPerson.class),

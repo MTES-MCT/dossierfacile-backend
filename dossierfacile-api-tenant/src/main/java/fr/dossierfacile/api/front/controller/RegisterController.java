@@ -32,13 +32,6 @@ public class RegisterController {
     private final AuthenticationFacade authenticationFacade;
     private final LogService logService;
 
-    @PostMapping(value = "/account", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<TenantModel> account(@Validated(Dossier.class) @RequestBody AccountForm accountForm) {
-        TenantModel tenantModel = tenantService.saveStepRegister(null, accountForm, StepRegister.ACCOUNT);
-        logService.saveLog(LogType.ACCOUNT_CREATED, tenantModel.getId());
-        return ok(tenantModel);
-    }
-
     @PreAuthorize("hasPermissionOnTenant(#namesForm.tenantId)")
     @PostMapping(value = "/names", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TenantModel> names(@Validated(Dossier.class) @RequestBody NamesForm namesForm) {

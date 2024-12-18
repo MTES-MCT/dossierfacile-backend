@@ -4,7 +4,6 @@ import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.enums.StepRegister;
 import fr.dossierfacile.api.front.register.form.guarantor.organism.DocumentGuaranteeProviderCertificateForm;
-import fr.dossierfacile.api.front.register.form.guarantor.organism.DocumentIdentificationGuarantorOrganismForm;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.validator.group.Dossier;
@@ -28,16 +27,6 @@ public class RegisterGuarantorOrganismController {
     private final TenantService tenantService;
     private final TenantMapper tenantMapper;
     private final AuthenticationFacade authenticationFacade;
-
-    @PreAuthorize("hasPermissionOnTenant(#documentIdentificationGuarantorOrganismForm.tenantId)")
-    @PostMapping("/documentIdentification")
-    @Deprecated
-    public ResponseEntity<TenantModel> documentIdentification(@Validated(Dossier.class) DocumentIdentificationGuarantorOrganismForm documentIdentificationGuarantorOrganismForm) {
-        var tenant = authenticationFacade.getTenant(documentIdentificationGuarantorOrganismForm.getTenantId());
-        tenantService.saveStepRegister(tenant, documentIdentificationGuarantorOrganismForm, StepRegister.DOCUMENT_IDENTIFICATION_GUARANTOR_ORGANISM);
-        Tenant loggedTenant = (documentIdentificationGuarantorOrganismForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
-        return ok(tenantMapper.toTenantModel(loggedTenant, null));
-    }
 
     @PreAuthorize("hasPermissionOnTenant(#form.tenantId)")
     @PostMapping("/documentCertificate")

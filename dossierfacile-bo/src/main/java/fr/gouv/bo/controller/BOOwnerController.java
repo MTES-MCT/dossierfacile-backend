@@ -2,8 +2,6 @@ package fr.gouv.bo.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import fr.dossierfacile.common.entity.Owner;
-import fr.gouv.bo.dto.EmailDTO;
-import fr.gouv.bo.dto.Pager;
 import fr.gouv.bo.mapper.OwnerMapper;
 import fr.gouv.bo.model.owner.OwnerModel;
 import fr.gouv.bo.service.OwnerService;
@@ -24,13 +22,9 @@ import java.util.Optional;
 @Controller
 @RequestMapping(value = "/bo/owners")
 public class BOOwnerController {
-
-    private static final int BUTTONS_TO_SHOW = 5;
     private static final String INITIAL_PAGE = "1";
     private static final String INITIAL_PAGE_SIZE = "50";
     private static final int[] PAGE_SIZES = {50, 100};
-    private static final String EMAIL = "email";
-
     @Autowired
     private OwnerService ownerService;
     @Autowired
@@ -51,16 +45,11 @@ public class BOOwnerController {
             owners = ownerService.findAllPageable(pageable);
         }
 
-        Pager pager = new Pager(owners.getTotalPages(), owners.getNumber(), BUTTONS_TO_SHOW);
-
         model.addAttribute("ownerEmail", email.orElse(""));
         model.addAttribute("owners", owners);
         model.addAttribute("pageSize", pageable.getPageSize());
-        model.addAttribute("selectedPageSize", pageable.getPageSize());
         model.addAttribute("pageSizes", PAGE_SIZES);
-        model.addAttribute("pager", pager);
 
-        model.addAttribute(EMAIL, new EmailDTO());
         return "bo/owners";
     }
 
@@ -70,7 +59,6 @@ public class BOOwnerController {
         OwnerModel ownerModel = ownerMapper.toOwnerModel(owner);
 
         model.addAttribute("owner", ownerModel);
-        model.addAttribute(EMAIL, new EmailDTO());
         return "bo/owner";
     }
 }

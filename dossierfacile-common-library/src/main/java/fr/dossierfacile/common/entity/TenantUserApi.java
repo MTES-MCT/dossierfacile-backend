@@ -1,8 +1,5 @@
 package fr.dossierfacile.common.entity;
 
-import fr.dossierfacile.common.converter.ListStringConverter;
-import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -18,8 +15,6 @@ import lombok.Setter;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name = "tenant_userapi")
@@ -44,11 +39,6 @@ public class TenantUserApi implements Serializable {
     @MapsId("userApiId")
     @JoinColumn(name = "userapi_id")
     UserApi userApi;
-    @Deprecated(since="V4")
-    @Builder.Default
-    @Column(columnDefinition = "text")
-    @Convert(converter = ListStringConverter.class)
-    private List<String> allInternalPartnerId = new ArrayList<>();
 
     @Builder.Default
     private LocalDateTime accessGrantedDate = LocalDateTime.now();
