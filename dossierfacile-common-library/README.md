@@ -1,3 +1,10 @@
-# DossierFacile-common-library
+# Bibliothèque commune (dossierfacile-common-library)
 
-This project contains shared models, repositories, mappers, services, ... used by Dossier-Facile's services. 
+## Description
+Bibliothèque partagée contenant les composants communs utilisés par les différents services du projet.
+
+## Composants principaux
+- Entités JPA communes
+- Services partagés
+- Configurations communes
+- Ressources utilitaires
