@@ -37,6 +37,7 @@ public class DocumentResidency extends AbstractDocumentSaveStep<DocumentResidenc
         document.setDocumentStatus(DocumentStatus.TO_PROCESS);
         document.setDocumentDeniedReasons(null);
         document.setDocumentSubCategory(documentSubCategory);
+        document.setDocumentCategoryStep(documentResidencyForm.getCategoryStep());
 
         if (documentSubCategory == DocumentSubCategory.OTHER_RESIDENCY) {
             document.setCustomText(documentResidencyForm.getCustomText());
