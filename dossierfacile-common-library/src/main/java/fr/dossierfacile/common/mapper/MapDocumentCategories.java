@@ -13,5 +13,6 @@ import java.lang.annotation.Target;
 @Mapping(target = "documentSubCategory", expression = "java(categoriesMapper.mapSubCategory(document.getDocumentSubCategory(), userApi))")
 // TODO Deprecated v5
 @Mapping(target = "subCategory", expression = "java(categoriesMapper.mapSubCategory(document.getDocumentSubCategory(), userApi))")
+@Mapping(target = "documentCategoryStep", source = "documentCategoryStep")
 public @interface MapDocumentCategories {
 }
