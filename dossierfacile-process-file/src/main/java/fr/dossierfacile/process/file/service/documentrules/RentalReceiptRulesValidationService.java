@@ -4,6 +4,7 @@ import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.entity.ocr.RentalReceiptFile;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.DocumentCategory;
+import fr.dossierfacile.common.enums.DocumentCategoryStep;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.process.file.util.PersonNameComparator;
 import lombok.RequiredArgsConstructor;
@@ -124,7 +125,7 @@ public class RentalReceiptRulesValidationService implements RulesValidationServi
             return report;
         }
 
-        if (!checkNumberOfPage(document)) {
+        if (document.getDocumentCategoryStep() != DocumentCategoryStep.TENANT_PROOF && !checkNumberOfPage(document)) {
             log.error("Document number of pages mismatches :{}", document.getId());
             report.getBrokenRules().add(DocumentBrokenRule.builder()
                     .rule(DocumentRule.R_RENT_RECEIPT_NB_DOCUMENTS)
