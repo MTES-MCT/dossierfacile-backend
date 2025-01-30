@@ -28,10 +28,10 @@ public enum DocumentRule {
     R_SCHOLARSHIP_EXPIRED(Level.CRITICAL, "La date de la bourse ne correspond plus"),
     R_SCHOLARSHIP_AMOUNT(Level.CRITICAL, "Le montant de la bourse ne correspond pas au montant déclaré"),
 
-    R_RENT_RECEIPT_NAME(Level.CRITICAL, "Nom/prénoms ne correspondent pas"),
-    R_RENT_RECEIPT_MONTHS(Level.CRITICAL, "Les trois dernières quittances doivent être fournies (la plus récente doit être au pire M-2)"),
+    R_RENT_RECEIPT_NAME(Level.CRITICAL, "Le nom et le prénom ne correspondent pas"),
+    R_RENT_RECEIPT_MONTHS(Level.CRITICAL, "Les quittances sont trop anciennes"),
     R_RENT_RECEIPT_ADDRESS_SALARY(Level.WARN, "TODO. L'adresse de la location semble ne pas correspondre à l'adresse des bulletins de payes"),
-    R_RENT_RECEIPT_NB_DOCUMENTS(Level.WARN, "Veuillez fournir 3 quittances de loyer ou préciser pourquoi vous n'êtes pas dans la possibilité de le faire"),
+    R_RENT_RECEIPT_NB_DOCUMENTS(Level.WARN, "Un seul document a été détecté"),
 
     R_FRANCE_IDENTITE_NAMES(Level.CRITICAL, "Les noms et prénoms ne correspondent pas"),
     R_FRANCE_IDENTITE_STATUS(Level.CRITICAL, "Ce document n'a pas pu être validé par France Identité");
