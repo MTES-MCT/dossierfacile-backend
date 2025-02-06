@@ -1,8 +1,6 @@
 package fr.dossierfacile.api.pdfgenerator.service.templates;
 
 import fr.dossierfacile.api.pdfgenerator.service.DownloadServiceImpl;
-import fr.dossierfacile.api.pdfgenerator.service.PdfSignatureServiceImpl;
-import fr.dossierfacile.api.pdfgenerator.service.interfaces.PdfSignatureService;
 import fr.dossierfacile.api.pdfgenerator.util.parameterresolvers.ApartmentSharingResolver;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.repository.ApplicationLogRepository;
@@ -15,8 +13,6 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -26,9 +22,8 @@ import java.io.InputStream;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 
-@ExtendWith(SpringExtension.class)
+@SpringBootTest
 @ExtendWith(ApartmentSharingResolver.class)
-@ContextConfiguration(classes = {ApartmentSharingPdfDocumentTemplate.class, PdfSignatureServiceImpl.class})
 public class ApartmentSharingPdfDocumentTemplateTest {
 
     @MockBean
