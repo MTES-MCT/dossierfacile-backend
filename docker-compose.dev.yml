@@ -25,10 +25,23 @@ services:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U dossierfacile"]
+      test: [ "CMD-SHELL", "pg_isready -U dossierfacile" ]
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - dossierfacile_network
+
+  rabbitmq:
+    container_name: 'dossierfacile_rabbit'
+    image: 'rabbitmq:3-management'
+    hostname: localhost
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    volumes:
+      - ./.rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+    restart: unless-stopped
     networks:
       - dossierfacile_network
 
