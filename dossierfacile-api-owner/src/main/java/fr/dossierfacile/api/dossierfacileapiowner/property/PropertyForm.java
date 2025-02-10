@@ -1,13 +1,11 @@
 package fr.dossierfacile.api.dossierfacileapiowner.property;
 
+import fr.dossierfacile.api.dossierfacileapiowner.annotation.ValidDpeDate;
 import fr.dossierfacile.common.enums.PropertyFurniture;
 import fr.dossierfacile.common.enums.PropertyType;
-import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.Date;
 
 @Data
 @AllArgsConstructor
@@ -16,7 +14,6 @@ public class PropertyForm {
 
     private Long id;
 
-    @NotBlank
     private String name;
 
     private Double rentCost;
@@ -37,6 +34,7 @@ public class PropertyForm {
 
     private Integer energyConsumption;
 
+    @ValidDpeDate
     private String dpeDate;
 
     private String ademeNumber;
