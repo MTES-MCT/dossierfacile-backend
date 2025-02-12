@@ -7,16 +7,13 @@ import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.UserService;
 import fr.dossierfacile.common.entity.Tenant;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import lombok.AllArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import static org.springframework.http.ResponseEntity.ok;
 
@@ -30,6 +27,13 @@ public class UserController {
     private final AuthenticationFacade authenticationFacade;
 
     @PostMapping(value = "/forgotPassword", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "Request a password reset", notes = "Sends a password reset email to the user.")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = ""),
+            @ApiResponse(code = 400, message = "Invalid email format"),
+            @ApiResponse(code = 404, message = "User not found"),
+            @ApiResponse(code = 403, message = "Forbidden: JWT token missing or invalid scope")
+    })
     public ResponseEntity<Void> forgotPassword(@Validated @RequestBody EmailResetForm email) {
         userService.forgotPassword(email.getEmail());
         return ok().build();
