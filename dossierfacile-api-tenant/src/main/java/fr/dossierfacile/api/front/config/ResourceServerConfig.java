@@ -4,7 +4,7 @@ import fr.dossierfacile.api.front.config.filter.ConnectionContextFilter;
 import fr.dossierfacile.api.front.security.PartnerAuthorizationManager;
 import fr.dossierfacile.logging.request.Oauth2LoggingHandler;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authorization.AuthorizationManager;
@@ -37,6 +37,9 @@ public class ResourceServerConfig {
 
     private final AuthenticationEntryPoint authenticationEntryPoint = new Oauth2LoggingHandler();
 
+    @Value("{resource.server.config.csp}")
+    private String configCsp;
+
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -47,7 +50,7 @@ public class ResourceServerConfig {
                         .xssProtection(withDefaults())
                         .cacheControl(withDefaults())
                         .httpStrictTransportSecurity(transport -> transport.maxAgeInSeconds(63072000).includeSubDomains(true))
-                        .contentSecurityPolicy(csp -> csp.policyDirectives("frame-ancestors 'none'; frame-src 'none'; child-src 'none'; upgrade-insecure-requests; default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; object-src 'none'; img-src 'self' data:; font-src 'self'; connect-src *.dossierfacile.fr *.dossierfacile.fr:*; base-uri 'self'; form-action 'none'; media-src 'none'; worker-src 'none'; manifest-src 'none'; prefetch-src 'none';"))
+                        .contentSecurityPolicy(csp -> csp.policyDirectives(configCsp))
                         .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
                 )
                 .formLogin(AbstractHttpConfigurer::disable)
