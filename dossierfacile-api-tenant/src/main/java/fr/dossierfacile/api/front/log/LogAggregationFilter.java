@@ -12,6 +12,9 @@ import net.logstash.logback.appender.LogstashTcpSocketAppender;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -22,8 +25,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+// We register this appender only when the property "logging.logstash.destination" is set
+@ConditionalOnExpression("!'${logging.logstash.destination:}'.empty")
 @Component
-@Profile("!dev")
 public class LogAggregationFilter extends OncePerRequestFilter {
     private LogstashTcpSocketAppender logstashAppender;
 
