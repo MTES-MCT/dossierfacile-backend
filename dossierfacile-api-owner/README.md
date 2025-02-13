@@ -15,7 +15,7 @@ Create a file `application-dev.properties` in `dossierfacile-api-owner/src/main/
 
 ```properties
 #Path to the folder when the files will be saved during dev
-mock.storage.path=/path/to/mock_storage/
+mock.storage.path=/path/to/mock-storage/
 #Url of the owner front
 owner.url=http://localhost:3000
 #Port of this API

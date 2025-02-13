@@ -11,7 +11,6 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.Cipher;
@@ -46,7 +45,7 @@ public class LocalMockStorage implements FileStorageProviderService {
     @Override
     public void delete(String path) {
         try {
-            Files.delete(Path.of(filePath + path));
+            Files.delete(Path.of(filePath, path));
         } catch (NoSuchFileException e) {
             log.error(format("File %s does not exist", filePath + path), e);
         } catch (DirectoryNotEmptyException e) {
@@ -58,7 +57,7 @@ public class LocalMockStorage implements FileStorageProviderService {
 
     @Override
     public InputStream download(String path, EncryptionKey key) throws IOException {
-        InputStream in = Files.newInputStream(Path.of(filePath + path));
+        InputStream in = Files.newInputStream(Path.of(filePath, path));
         if (key != null) {
             if (key.getVersion() != 2) {
                 throw new UnsupportedKeyException("Unsupported key version " + key.getVersion());
@@ -94,7 +93,7 @@ public class LocalMockStorage implements FileStorageProviderService {
             }
         }
         try {
-            File file = new File(filePath + path);
+            File file = Path.of(filePath, path).toFile();
 
             try (OutputStream outputStream = new FileOutputStream(file)) {
                 IOUtils.copy(inputStream, outputStream);
@@ -108,7 +107,7 @@ public class LocalMockStorage implements FileStorageProviderService {
     @Override
     public List<String> listObjectNames(@Nullable String marker, int maxObjects) {
 
-        Path directory = Paths.get(filePath);
+        Path directory = Path.of(filePath);
         if (Files.isDirectory(directory)) {
             try {
                 return Files.list(directory).map(Path::toString).toList();

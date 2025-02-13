@@ -87,7 +87,7 @@ Save and copy the dossier-facile-api credentials (Client Secret).
 
 ## General Config 
 
-Create a new folder `mock_storage` to store files.
+Create a new folder `mock-storage` to store files.
 
 - Project : [dossierfacile-api-owner](dossierfacile-api-owner/README.md)
 - Project : [dossierfacile-api-tenant](dossierfacile-api-tenant/README.md)
