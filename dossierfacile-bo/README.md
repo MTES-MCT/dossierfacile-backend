@@ -19,7 +19,7 @@ application.name=bo
 environment=localhost
 
 # Path for the mock storage
-mock.storage.path=../mock_storage
+mock.storage.path=../mock-storage
 # List of the providers to use for the storage
 storage.provider.list=LOCAL
 
