@@ -42,6 +42,12 @@
             <artifactId>dossierfacile-common-library</artifactId>
         </dependency>
         <dependency>
+            <groupId>fr.dossierfacile</groupId>
+            <artifactId>dossierfacile-common-test-library</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
@@ -159,12 +165,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-test</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.javatuples</groupId>
-            <artifactId>javatuples</artifactId>
-            <scope>test</scope>
-            <version>1.2</version>
         </dependency>
     </dependencies>
 
