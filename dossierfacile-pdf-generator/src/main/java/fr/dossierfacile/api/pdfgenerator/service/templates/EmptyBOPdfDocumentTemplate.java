@@ -59,7 +59,9 @@ public class EmptyBOPdfDocumentTemplate implements PdfTemplate<Document> {
             textElements.addTextToHeader(messageSource.getMessage("tenant.document.financial.justification.nodocument", null, locale));
             textElements.addExplanation(document.getCustomText());
         } else if (documentCategory == DocumentCategory.RESIDENCY) {
-            textElements.addTextToHeader(messageSource.getMessage("tenant.document.residency.justification.nodocument", null, locale));
+            if (document.getDocumentSubCategory() != DocumentSubCategory.OTHER_RESIDENCY) {
+                textElements.addTextToHeader(messageSource.getMessage("tenant.document.residency.justification.nodocument", null, locale));
+            }
             textElements.addExplanation(document.getCustomText());
         } else { //DocumentCategory.TAX
             pdfTemplate = DOCUMENT_TAX;
