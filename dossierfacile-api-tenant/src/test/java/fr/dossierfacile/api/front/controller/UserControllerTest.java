@@ -152,13 +152,15 @@ public class UserControllerTest {
             SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwtTokenWithDossier = jwt().authorities(new SimpleGrantedAuthority("SCOPE_dossier"));
 
             var validPassword = "azerty";
-            Tenant tenant = new Tenant();
-            tenant.setId(1L);
-            tenant.setEmail("test@test.fr");
+            Tenant tenant = Tenant.builder()
+                    .id(1L)
+                    .email("test@test.fr")
+                    .build();
 
-            TenantModel tenantModel = new TenantModel();
-            tenantModel.setId(1L);
-            tenantModel.setEmail("test@test.fr");
+            TenantModel tenantModel = TenantModel.builder()
+                    .id(1L)
+                    .email("test@test.fr")
+                    .build();
 
             return ArgumentBuilder.buildListOfArguments(
                     Pair.of("Should respond 403 when not jwt is passed",
@@ -255,13 +257,8 @@ public class UserControllerTest {
             var invalidToken = "invalid";
             var validToken = "test";
             var validPassword = "azerty";
-            Tenant tenant = new Tenant();
-            tenant.setId(1L);
-            tenant.setEmail("test@test.fr");
 
-            TenantModel tenantModel = new TenantModel();
-            tenantModel.setId(1L);
-            tenantModel.setEmail("test@test.fr");
+            TenantModel tenantModel = TenantModel.builder().id(1L).email("test@test.fr").build();
 
             return ArgumentBuilder.buildListOfArguments(
                     Pair.of("Should respond 403 when not jwt is passed",
@@ -301,7 +298,7 @@ public class UserControllerTest {
                             )
                     ),
                     Pair.of("Should respond 404 when token is not found",
-                            new ControllerParameter<CreatePasswordWithTokenParameter>(
+                            new ControllerParameter<>(
                                     new CreatePasswordWithTokenParameter(invalidToken, validPassword),
                                     404,
                                     jwtTokenWithDossier,
@@ -358,13 +355,10 @@ public class UserControllerTest {
 
             SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwtTokenWithDossier = jwt().authorities(new SimpleGrantedAuthority("SCOPE_dossier"));
 
-            Tenant tenant = new Tenant();
-            tenant.setId(1L);
-            tenant.setEmail("test@test.fr");
-
-            TenantModel tenantModel = new TenantModel();
-            tenantModel.setId(1L);
-            tenantModel.setEmail("test@test.fr");
+            Tenant tenant = Tenant.builder()
+                    .id(1L)
+                    .email("test@test.fr")
+                    .build();
 
             return ArgumentBuilder.buildListOfArguments(
                     Pair.of("Should respond 403 when not jwt is passed",
@@ -445,9 +439,10 @@ public class UserControllerTest {
 
             SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwtTokenWithDossier = jwt().authorities(new SimpleGrantedAuthority("SCOPE_dossier"));
 
-            Tenant tenant = new Tenant();
-            tenant.setId(1L);
-            tenant.setEmail("test@test.fr");
+            Tenant tenant = Tenant.builder()
+                    .id(1L)
+                    .email("test@test.fr")
+                    .build();
 
             return ArgumentBuilder.buildListOfArguments(
                     Pair.of("Should respond 403 when no jwt is passed",
