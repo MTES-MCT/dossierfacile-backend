@@ -15,6 +15,7 @@
     <version>1.0.0</version>
     <modules>
         <module>dossierfacile-common-library</module>
+        <module>dossierfacile-common-test-library</module>
         <module>dossierfacile-bo</module>
         <module>dossierfacile-process-file</module>
         <module>dossierfacile-api-tenant</module>
