@@ -6,7 +6,6 @@ import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.repository.PasswordRecoveryTokenRepository;
 import fr.dossierfacile.api.front.repository.UserRepository;
 import fr.dossierfacile.api.front.service.interfaces.*;
-import fr.dossierfacile.common.dto.mail.TenantDto;
 import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.LogType;
@@ -88,13 +87,14 @@ public class UserServiceImplTest {
 
         @Test
         void shouldCreatePasswordForUser() {
-            var user = new Tenant();
-            user.setId(1L);
-            user.setEmail("test@test.fr");
-            userService.createPassword(user, "password");
+            var tenant = Tenant.builder()
+                    .id(1L)
+                    .email("test@test.fr")
+                    .build();
+            userService.createPassword(tenant, "password");
 
-            verify(keycloakService, times(1)).createKeyCloakPassword(user.getKeycloakId(), "password");
-            verify(tenantMapper, times(1)).toTenantModel(tenantRepository.getReferenceById(user.getId()), null);
+            verify(keycloakService, times(1)).createKeyCloakPassword(tenant.getKeycloakId(), "password");
+            verify(tenantMapper, times(1)).toTenantModel(tenantRepository.getReferenceById(tenant.getId()), null);
         }
 
         @Test
@@ -108,25 +108,27 @@ public class UserServiceImplTest {
 
         @Test
         void shouldCreatePassword() {
-            var user = new Tenant();
-            user.setId(1L);
-            user.setEmail("test@test.fr");
-            user.setKeycloakId("keycloakId");
+            var tenant = Tenant.builder()
+                    .id(1L)
+                    .email("test@test.fr")
+                    .keycloakId("keycloakId")
+                    .build();
 
-            var passwordRecoveryToken = new PasswordRecoveryToken();
-            passwordRecoveryToken.setId(1L);
-            passwordRecoveryToken.setToken("token");
-            passwordRecoveryToken.setUser(user);
+            var passwordRecoveryToken = PasswordRecoveryToken.builder()
+                    .id(1L)
+                    .token("token")
+                    .user(tenant)
+                    .build();
 
             when(passwordRecoveryTokenRepository.findByToken("token")).thenReturn(Optional.of(passwordRecoveryToken));
-            when(keycloakService.getKeycloakId(user.getEmail())).thenReturn(user.getKeycloakId());
+            when(keycloakService.getKeycloakId(tenant.getEmail())).thenReturn(tenant.getKeycloakId());
 
 
             userService.createPassword("token", "password");
 
-            verify(userRepository, times(0)).save(user);
-            verify(keycloakService, times(1)).createKeyCloakPassword(user.getKeycloakId(), "password");
-            verify(tenantMapper, times(1)).toTenantModel(tenantRepository.getReferenceById(user.getId()), null);
+            verify(userRepository, times(0)).save(tenant);
+            verify(keycloakService, times(1)).createKeyCloakPassword(tenant.getKeycloakId(), "password");
+            verify(tenantMapper, times(1)).toTenantModel(tenantRepository.getReferenceById(tenant.getId()), null);
             verify(passwordRecoveryTokenRepository, times(1)).delete(passwordRecoveryToken);
 
 
@@ -134,24 +136,26 @@ public class UserServiceImplTest {
 
         @Test
         void shouldCreatePasswordAndUpdateTheUser() {
-            var user = new Tenant();
-            user.setId(1L);
-            user.setEmail("test@test.fr");
-            user.setKeycloakId("keycloakId");
+            var tenant = Tenant.builder()
+                    .id(1L)
+                    .email("test@test.fr")
+                    .keycloakId("keycloakId")
+                    .build();
 
-            var passwordRecoveryToken = new PasswordRecoveryToken();
-            passwordRecoveryToken.setId(1L);
-            passwordRecoveryToken.setToken("token");
-            passwordRecoveryToken.setUser(user);
+            var passwordRecoveryToken = PasswordRecoveryToken.builder()
+                    .id(1L)
+                    .token("token")
+                    .user(tenant)
+                    .build();
 
             when(passwordRecoveryTokenRepository.findByToken("token")).thenReturn(Optional.of(passwordRecoveryToken));
-            when(keycloakService.getKeycloakId(user.getEmail())).thenReturn("keycloakId2");
+            when(keycloakService.getKeycloakId(tenant.getEmail())).thenReturn("keycloakId2");
 
             userService.createPassword("token", "password");
 
-            verify(userRepository, times(1)).save(user);
-            verify(keycloakService, times(1)).createKeyCloakPassword(user.getKeycloakId(), "password");
-            verify(tenantMapper, times(1)).toTenantModel(tenantRepository.getReferenceById(user.getId()), null);
+            verify(userRepository, times(1)).save(tenant);
+            verify(keycloakService, times(1)).createKeyCloakPassword(tenant.getKeycloakId(), "password");
+            verify(tenantMapper, times(1)).toTenantModel(tenantRepository.getReferenceById(tenant.getId()), null);
             verify(passwordRecoveryTokenRepository, times(1)).delete(passwordRecoveryToken);
 
         }
@@ -164,14 +168,16 @@ public class UserServiceImplTest {
         @Test
         void shouldSendResetPasswordEmail() {
 
-            var tenant = new Tenant();
-            tenant.setId(1L);
-            tenant.setEmail("test@test.fr");
+            var tenant = Tenant.builder()
+                    .id(1L)
+                    .email("test@test.fr")
+                    .build();
 
-            var passwordRecoveryToken = new PasswordRecoveryToken();
-            passwordRecoveryToken.setUser(tenant);
-            passwordRecoveryToken.setId(1L);
-            passwordRecoveryToken.setToken("token");
+            var passwordRecoveryToken = PasswordRecoveryToken.builder()
+                    .id(1L)
+                    .token("token")
+                    .user(tenant)
+                    .build();
 
             when(tenantRepository.findByEmail("test@test.fr")).thenReturn(Optional.of(tenant));
             when(passwordRecoveryTokenService.create(tenant)).thenReturn(passwordRecoveryToken);
@@ -209,17 +215,19 @@ public class UserServiceImplTest {
 
         @Test
         void shouldDeleteAccountWithEmptyApartmentSharingAndWithKeycloakId() {
-            var apartmentSharing = new ApartmentSharing();
-            apartmentSharing.setId(1L);
 
-            var tenant = new Tenant();
-            tenant.setId(1L);
-            tenant.setEmail("test");
-            tenant.setKeycloakId("keycloakId");
-            tenant.setApartmentSharing(apartmentSharing);
+            var apartmentSharing = ApartmentSharing.builder()
+                    .id(1L)
+                    .build();
 
-            var expectedTenantDto = new TenantDto();
-            expectedTenantDto.setEmail("test");
+            var tenant = Tenant.builder()
+                    .id(1L)
+                    .email("test@test.fr")
+                    .keycloakId("keycloakId")
+                    .apartmentSharing(apartmentSharing)
+                    .build();
+
+            apartmentSharing.setTenants(List.of(tenant));
 
             userService.deleteAccount(tenant);
 
@@ -237,23 +245,24 @@ public class UserServiceImplTest {
                 }
             });
 
-            verify(mailService, times(1)).sendEmailAccountDeleted(argThat(tenantDto -> "test".equals(tenantDto.getEmail())));
+            verify(mailService, times(1)).sendEmailAccountDeleted(argThat(tenantDto -> tenant.getEmail().equals(tenantDto.getEmail())));
             verify(keycloakService, times(1)).deleteKeycloakUserById("keycloakId");
 
         }
 
         @Test
         void shouldDeleteAccountWithEmptyApartmentSharingAndWithoutKeycloakId() {
-            var apartmentSharing = new ApartmentSharing();
-            apartmentSharing.setId(1L);
+            var apartmentSharing = ApartmentSharing.builder()
+                    .id(1L)
+                    .build();
 
-            var tenant = new Tenant();
-            tenant.setId(1L);
-            tenant.setEmail("test");
-            tenant.setApartmentSharing(apartmentSharing);
+            var tenant = Tenant.builder()
+                    .id(1L)
+                    .email("test@test.fr")
+                    .apartmentSharing(apartmentSharing)
+                    .build();
 
-            var expectedTenantDto = new TenantDto();
-            expectedTenantDto.setEmail("test");
+            apartmentSharing.setTenants(List.of(tenant));
 
             userService.deleteAccount(tenant);
 
@@ -271,7 +280,7 @@ public class UserServiceImplTest {
                 }
             });
 
-            verify(mailService, times(1)).sendEmailAccountDeleted(argThat(tenantDto -> "test".equals(tenantDto.getEmail())));
+            verify(mailService, times(1)).sendEmailAccountDeleted(argThat(tenantDto -> tenant.getEmail().equals(tenantDto.getEmail())));
             verify(keycloakService, times(0)).deleteKeycloakUserById("keycloakId");
 
         }
@@ -279,38 +288,38 @@ public class UserServiceImplTest {
         @Test
         void shouldDeleteAccountAndCoTenantAccountsKeycloakId() {
 
-            var mainTenant = new Tenant();
-            mainTenant.setId(1L);
-            mainTenant.setEmail("test");
-            mainTenant.setTenantType(TenantType.CREATE);
+            var apartmentSharing = ApartmentSharing.builder()
+                    .id(1L)
+                    .build();
 
-            var cotenant = new Tenant();
-            cotenant.setId(2L);
-            cotenant.setEmail("test2");
-            cotenant.setTenantType(TenantType.JOIN);
+            var mainTenant = Tenant.builder()
+                    .id(1L)
+                    .email("test@test.fr")
+                    .tenantType(TenantType.CREATE)
+                    .apartmentSharing(apartmentSharing)
+                    .build();
 
-            var apartmentSharing = new ApartmentSharing();
-            apartmentSharing.setId(1L);
-            apartmentSharing.setTenants(List.of(mainTenant, cotenant));
+            var coTenant = Tenant.builder()
+                    .id(2L)
+                    .email("test2@test.fr")
+                    .tenantType(TenantType.JOIN)
+                    .apartmentSharing(apartmentSharing)
+                    .build();
 
-            mainTenant.setApartmentSharing(apartmentSharing);
-            cotenant.setApartmentSharing(apartmentSharing);
-
-            var expectedTenantDto = new TenantDto();
-            expectedTenantDto.setEmail("test");
+            apartmentSharing.setTenants(List.of(mainTenant, coTenant));
 
             userService.deleteAccount(mainTenant);
 
             verify(logService, times(2)).saveLogWithTenantData(eq(LogType.ACCOUNT_DELETE), any(Tenant.class));
             verify(logService).saveLogWithTenantData(LogType.ACCOUNT_DELETE, mainTenant);
-            verify(logService).saveLogWithTenantData(LogType.ACCOUNT_DELETE, cotenant);
+            verify(logService).saveLogWithTenantData(LogType.ACCOUNT_DELETE, coTenant);
 
             verify(tenantCommonService, times(2)).deleteTenantData(any(Tenant.class));
             verify(tenantCommonService).deleteTenantData(mainTenant);
-            verify(tenantCommonService).deleteTenantData(cotenant);
+            verify(tenantCommonService).deleteTenantData(coTenant);
 
-            verify(userRepository, times(1)).delete(cotenant);
-            verify(apartmentSharingService, times(1)).removeTenant(apartmentSharing, cotenant);
+            verify(userRepository, times(1)).delete(coTenant);
+            verify(apartmentSharingService, times(1)).removeTenant(apartmentSharing, coTenant);
 
             verify(apartmentSharingService, times(1)).delete(mainTenant.getApartmentSharing());
 
@@ -325,8 +334,8 @@ public class UserServiceImplTest {
             });
 
             verify(mailService, times(2)).sendEmailAccountDeleted(any());
-            verify(mailService).sendEmailAccountDeleted(argThat(tenantDto -> "test".equals(tenantDto.getEmail())));
-            verify(mailService).sendEmailAccountDeleted(argThat(tenantDto -> "test2".equals(tenantDto.getEmail())));
+            verify(mailService).sendEmailAccountDeleted(argThat(tenantDto -> mainTenant.getEmail().equals(tenantDto.getEmail())));
+            verify(mailService).sendEmailAccountDeleted(argThat(tenantDto -> coTenant.getEmail().equals(tenantDto.getEmail())));
             verify(keycloakService, times(0)).deleteKeycloakUserById("keycloakId");
 
         }
@@ -334,40 +343,48 @@ public class UserServiceImplTest {
         @Test
         void shouldDeleteAccountAndCallWebhookIntegrations() {
 
-            var apartmentSharing = new ApartmentSharing();
-            apartmentSharing.setId(1L);
+            var apartmentSharing = ApartmentSharing.builder()
+                    .id(1L)
+                    .build();
 
-            var tenant = new Tenant();
-            tenant.setId(1L);
-            tenant.setEmail("test");
-            tenant.setApartmentSharing(apartmentSharing);
+            var tenant = Tenant.builder()
+                    .id(1L)
+                    .email("test@test.fr")
+                    .apartmentSharing(apartmentSharing)
+                    .build();
 
-            var userApi1 = new UserApi();
-            userApi1.setId(1L);
+            var userApi1 = UserApi.builder()
+                    .id(1L)
+                    .build();
 
-            var userApi2 = new UserApi();
-            userApi2.setId(1L);
+            var userApi2 = UserApi.builder()
+                    .id(2L)
+                    .build();
 
-            var tenantUserApi = new TenantUserApi();
-            tenantUserApi.setId(new TenantUserApiKey(1L, 1L));
-            tenantUserApi.setTenant(tenant);
-            tenantUserApi.setUserApi(userApi1);
+            var tenantUserApi = TenantUserApi.builder()
+                    .id(new TenantUserApiKey(tenant.getId(), userApi1.getId()))
+                    .tenant(tenant)
+                    .userApi(userApi1)
+                    .build();
 
-            var tenantUserApi2 = new TenantUserApi();
-            tenantUserApi2.setId(new TenantUserApiKey(1L, 2L));
-            tenantUserApi2.setTenant(tenant);
-            tenantUserApi2.setUserApi(userApi2);
+            var tenantUserApi2 = TenantUserApi.builder()
+                    .id(new TenantUserApiKey(tenant.getId(), userApi2.getId()))
+                    .tenant(tenant)
+                    .userApi(userApi2)
+                    .build();
 
             tenant.setTenantsUserApi(List.of(
                     tenantUserApi,
                     tenantUserApi2
             ));
 
-            var applicationModel1 = new ApplicationModel();
-            applicationModel1.setId(1L);
+            var applicationModel1 = ApplicationModel.builder()
+                    .id(1L)
+                    .build();
 
-            var applicationModel2 = new ApplicationModel();
-            applicationModel2.setId(2L);
+            var applicationModel2 = ApplicationModel.builder()
+                    .id(2L)
+                    .build();
 
             when(partnerCallBackService.getWebhookDTO(tenant, userApi1, PartnerCallBackType.DELETED_ACCOUNT)).thenReturn(applicationModel1);
             when(partnerCallBackService.getWebhookDTO(tenant, userApi2, PartnerCallBackType.DELETED_ACCOUNT)).thenReturn(applicationModel2);
@@ -395,7 +412,7 @@ public class UserServiceImplTest {
                 }
             });
 
-            verify(mailService, times(1)).sendEmailAccountDeleted(argThat(tenantDto -> "test".equals(tenantDto.getEmail())));
+            verify(mailService, times(1)).sendEmailAccountDeleted(argThat(tenantDto -> tenant.getEmail().equals(tenantDto.getEmail())));
             verify(keycloakService, times(0)).deleteKeycloakUserById("keycloakId");
         }
 
@@ -416,51 +433,64 @@ public class UserServiceImplTest {
 
         @Test
         void shouldReturnFalseWhenTenantIsNotCreate() {
-            var tenant = new Tenant();
-            tenant.setId(1L);
-            tenant.setTenantType(TenantType.JOIN);
+            var tenant = Tenant.builder()
+                    .id(1L)
+                    .email("test@test.fr")
+                    .tenantType(TenantType.JOIN)
+                    .build();
+
             var result = userService.deleteCoTenant(tenant, 2L);
             assertEquals(result, false);
         }
 
         @Test
-        void shouldReturnFalseWhenCotenantIsNotPresent() {
-            var tenant = new Tenant();
-            tenant.setId(1L);
-            tenant.setTenantType(TenantType.CREATE);
+        void shouldReturnFalseWhenCoTenantIsNotPresent() {
 
-            var apartmentSharing = new ApartmentSharing();
-            apartmentSharing.setId(1L);
+            var apartmentSharing = ApartmentSharing.builder()
+                    .id(1L)
+                    .build();
+
+            var tenant = Tenant.builder()
+                    .id(1L)
+                    .email("test@test.fr")
+                    .tenantType(TenantType.CREATE)
+                    .apartmentSharing(apartmentSharing)
+                    .build();
+
             apartmentSharing.setTenants(List.of(tenant));
 
-            tenant.setApartmentSharing(apartmentSharing);
-
             var result = userService.deleteCoTenant(tenant, 2L);
             assertEquals(result, false);
         }
 
         @Test
-        void shouldDeleteCotenant() {
-            var tenant = new Tenant();
-            tenant.setId(1L);
-            tenant.setTenantType(TenantType.CREATE);
+        void shouldDeleteCoTenant() {
 
-            var cotenant = new Tenant();
-            cotenant.setId(2L);
-            cotenant.setTenantType(TenantType.JOIN);
+            var apartmentSharing = ApartmentSharing.builder()
+                    .id(1L)
+                    .build();
 
-            var apartmentSharing = new ApartmentSharing();
-            apartmentSharing.setId(1L);
-            apartmentSharing.setTenants(List.of(tenant, cotenant));
+            var tenant = Tenant.builder()
+                    .id(1L)
+                    .email("test@test.fr")
+                    .tenantType(TenantType.CREATE)
+                    .apartmentSharing(apartmentSharing)
+                    .build();
 
-            tenant.setApartmentSharing(apartmentSharing);
-            cotenant.setApartmentSharing(apartmentSharing);
+            var coTenant = Tenant.builder()
+                    .id(2L)
+                    .email("test2@test.fr")
+                    .tenantType(TenantType.JOIN)
+                    .apartmentSharing(apartmentSharing)
+                    .build();
 
-            var result = userService.deleteCoTenant(tenant, cotenant.getId());
+            apartmentSharing.setTenants(List.of(tenant, coTenant));
+
+            var result = userService.deleteCoTenant(tenant, coTenant.getId());
 
             assertEquals(result, true);
-            verify(userRepository, times(1)).delete(cotenant);
-            verify(apartmentSharingService, times(1)).removeTenant(apartmentSharing, cotenant);
+            verify(userRepository, times(1)).delete(coTenant);
+            verify(apartmentSharingService, times(1)).removeTenant(apartmentSharing, coTenant);
 
         }
 
@@ -471,9 +501,10 @@ public class UserServiceImplTest {
 
         @Test
         void shouldDoNothingIfPartnerDoesNotExist() {
-            var tenant = new Tenant();
-            tenant.setId(1L);
-            tenant.setEmail("test@test.fr");
+            var tenant = Tenant.builder()
+                    .id(1L)
+                    .email("test@test.fr")
+                    .build();
 
             when(userApiService.findByName("partner")).thenReturn(Optional.empty());
 
@@ -484,19 +515,23 @@ public class UserServiceImplTest {
 
         @Test
         void shouldLinkTenantToPartnerWhenNotCouple() {
-            var tenant = new Tenant();
-            tenant.setId(1L);
-            tenant.setEmail("test@test.fr");
+            var apartmentSharing = ApartmentSharing.builder()
+                    .id(1L)
+                    .applicationType(ApplicationType.ALONE)
+                    .build();
 
-            var userApi = new UserApi();
-            userApi.setId(1L);
+            var tenant = Tenant.builder()
+                    .id(1L)
+                    .email("test@test.fr")
+                    .tenantType(TenantType.CREATE)
+                    .apartmentSharing(apartmentSharing)
+                    .build();
 
-            var appartementSharing = new ApartmentSharing();
-            appartementSharing.setId(1L);
-            appartementSharing.setApplicationType(ApplicationType.ALONE);
-            appartementSharing.setTenants(List.of(tenant));
+            var userApi = UserApi.builder()
+                    .id(1L)
+                    .build();
 
-            tenant.setApartmentSharing(appartementSharing);
+            apartmentSharing.setTenants(List.of(tenant));
 
             when(userApiService.findByName("partner")).thenReturn(Optional.of(userApi));
 
@@ -507,24 +542,30 @@ public class UserServiceImplTest {
 
         @Test
         void shouldLinkTenantToPartnerWhenCouple() {
-            var tenant = new Tenant();
-            tenant.setId(1L);
-            tenant.setEmail("test@test.fr");
+            var apartmentSharing = ApartmentSharing.builder()
+                    .id(1L)
+                    .applicationType(ApplicationType.COUPLE)
+                    .build();
 
-            var tenant2 = new Tenant();
-            tenant2.setId(2L);
-            tenant2.setEmail("test2@test.fr");
+            var tenant = Tenant.builder()
+                    .id(1L)
+                    .email("test@test.fr")
+                    .tenantType(TenantType.CREATE)
+                    .apartmentSharing(apartmentSharing)
+                    .build();
 
-            var apartmentSharing = new ApartmentSharing();
-            apartmentSharing.setId(1L);
+            var tenant2 = Tenant.builder()
+                    .id(2L)
+                    .email("test2@test.fr")
+                    .tenantType(TenantType.JOIN)
+                    .apartmentSharing(apartmentSharing)
+                    .build();
+
+            var userApi = UserApi.builder()
+                    .id(1L)
+                    .build();
+
             apartmentSharing.setTenants(List.of(tenant, tenant2));
-            apartmentSharing.setApplicationType(ApplicationType.COUPLE);
-
-            tenant.setApartmentSharing(apartmentSharing);
-            tenant2.setApartmentSharing(apartmentSharing);
-
-            var userApi = new UserApi();
-            userApi.setId(1L);
 
             when(userApiService.findByName("partner")).thenReturn(Optional.of(userApi));
 
@@ -548,8 +589,10 @@ public class UserServiceImplTest {
 
         @Test
         void shouldThrowIllegalArgumentExceptionWhenTenantNotFound() {
-            var tenant = new Tenant();
-            tenant.setId(1L);
+            var tenant = Tenant.builder()
+                    .id(1L)
+                    .email("test@test.fr")
+                    .build();
 
             when(userRepository.findById(tenant.getId())).thenReturn(Optional.empty());
 
@@ -559,10 +602,12 @@ public class UserServiceImplTest {
 
         @Test
         void shouldUnlinkFranceConnect() {
-            var tenant = new Tenant();
-            tenant.setId(1L);
+            var tenant = Tenant.builder()
+                    .id(1L)
+                    .email("test@test.fr")
+                    .build();
 
-            when (userRepository.findById(tenant.getId())).thenReturn(Optional.of(tenant));
+            when(userRepository.findById(tenant.getId())).thenReturn(Optional.of(tenant));
 
             userService.unlinkFranceConnect(tenant);
 
