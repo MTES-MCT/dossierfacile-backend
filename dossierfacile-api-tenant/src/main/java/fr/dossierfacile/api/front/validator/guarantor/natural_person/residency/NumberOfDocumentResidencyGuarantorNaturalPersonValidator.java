@@ -6,7 +6,6 @@ import fr.dossierfacile.api.front.validator.TenantConstraintValidator;
 import fr.dossierfacile.api.front.validator.annotation.guarantor.natural_person.residency.NumberOfDocumentResidencyGuarantorNaturalPerson;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
-import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.TypeGuarantor;
 import jakarta.validation.ConstraintValidatorContext;
 import lombok.RequiredArgsConstructor;
@@ -24,17 +23,6 @@ public class NumberOfDocumentResidencyGuarantorNaturalPersonValidator extends Te
     @Override
     public boolean isValid(DocumentResidencyGuarantorNaturalPersonForm documentResidencyGuarantorNaturalPersonForm, ConstraintValidatorContext constraintValidatorContext) {
         List<MultipartFile> documents = documentResidencyGuarantorNaturalPersonForm.getDocuments();
-
-        if (documentResidencyGuarantorNaturalPersonForm.getTypeDocumentResidency() == DocumentSubCategory.OTHER_RESIDENCY) {
-            if (!documents.isEmpty()) {
-                constraintValidatorContext.disableDefaultConstraintViolation();
-                constraintValidatorContext
-                        .buildConstraintViolationWithTemplate(constraintValidatorContext.getDefaultConstraintMessageTemplate())
-                        .addPropertyNode("documents").addConstraintViolation();
-                return false;
-            }
-            return true;
-        }
 
         Tenant tenant = getTenant(documentResidencyGuarantorNaturalPersonForm);
         long sizeOldDoc = 0;

@@ -26,14 +26,6 @@ public class CustomTextResidencyValidator implements ConstraintValidator<CustomT
     }
 
     public static boolean validateCustomText(ConstraintValidatorContext constraintValidatorContext, DocumentSubCategory subCategory, boolean isCustomTextPresent) {
-        if (subCategory == OTHER_RESIDENCY && !isCustomTextPresent) {
-            constraintValidatorContext.disableDefaultConstraintViolation();
-            constraintValidatorContext
-                    .buildConstraintViolationWithTemplate("{jakarta.validation.constraints.NotBlank.message}")
-                    .addPropertyNode("customText").addConstraintViolation();
-            log.info("Rejecting {} update because customText should not be blank", subCategory);
-            return false;
-        }
 
         if (subCategory != OTHER_RESIDENCY && isCustomTextPresent) {
             constraintValidatorContext.disableDefaultConstraintViolation();
