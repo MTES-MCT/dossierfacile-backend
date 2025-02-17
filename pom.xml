@@ -16,6 +16,7 @@
     <modules>
         <module>dossierfacile-common-library</module>
         <module>dossier-facile-logging-library</module>
+        <module>dossierfacile-common-test-library</module>
         <module>dossierfacile-bo</module>
         <module>dossierfacile-process-file</module>
         <module>dossierfacile-api-tenant</module>

@@ -164,12 +164,6 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-test</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.javatuples</groupId>
-            <artifactId>javatuples</artifactId>
-            <scope>test</scope>
-            <version>1.2</version>
-        </dependency>
     </dependencies>
 
     <build>

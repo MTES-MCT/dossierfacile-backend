@@ -7,9 +7,10 @@ import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.UserService;
 import fr.dossierfacile.common.entity.Tenant;
-import lombok.SneakyThrows;
-import org.javatuples.Pair;
-import org.junit.jupiter.api.Named;
+import fr.dossierfacile.parameterizedtest.ArgumentBuilder;
+import fr.dossierfacile.parameterizedtest.ControllerParameter;
+import fr.dossierfacile.parameterizedtest.ParameterizedTestHelper;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -24,13 +25,9 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultMatcher;
-import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Function;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
@@ -61,24 +58,11 @@ public class UserControllerTest {
         ).andDo(print()).andExpect(status().is(404));
     }
 
-    static class ArgumentBuilder {
-
-        public static <T> Arguments buildArguments(String name, T object) {
-            return Arguments.of(Named.of(name, object));
-        }
-
-        @SafeVarargs
-        public static <T> List<Arguments> buildListOfArguments(Pair<String, T>... pairList) {
-            return Arrays.stream(pairList).map(pair -> buildArguments(pair.getValue0(), pair.getValue1())).toList();
-        }
-    }
-
 
     @Nested
     class ForgotPasswordTests {
 
-        record ForgotPasswordTestParameter(String email, int status, RequestPostProcessor jwt,
-                                           Function<Void, Void> setupMock, List<ResultMatcher> resultMatchers) {
+        record ForgotPasswordTestParameter(String email) {
         }
 
         static List<Arguments> provideForgotPasswordParameters() {
@@ -86,35 +70,36 @@ public class UserControllerTest {
             SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwtTokenWithDossier = jwt().authorities(new SimpleGrantedAuthority("SCOPE_dossier"));
 
             return ArgumentBuilder.buildListOfArguments(
-                    new Pair<>("Should respond 403 when not jwt is passed",
-                            new ForgotPasswordTestParameter("test@test.fr",
+                    Pair.of("Should respond 403 when not jwt is passed",
+                            new ControllerParameter<>(
+                                    new ForgotPasswordTestParameter("test@test.fr"),
                                     403,
                                     null,
                                     null,
                                     Collections.emptyList()
                             )
                     ),
-                    new Pair<>("Should respond 400 when no email is passed",
-                            new ForgotPasswordTestParameter(
-                                    null,
+                    Pair.of("Should respond 400 when no email is passed",
+                            new ControllerParameter<>(
+                                    new ForgotPasswordTestParameter(null),
                                     400,
                                     jwtTokenWithDossier,
                                     null,
                                     Collections.emptyList()
                             )
                     ),
-                    new Pair<>("Should respond 400 when invalid email is passed",
-                            new ForgotPasswordTestParameter(
-                                    "test",
+                    Pair.of("Should respond 400 when invalid email is passed",
+                            new ControllerParameter<>(
+                                    new ForgotPasswordTestParameter("test"),
                                     400,
                                     jwtTokenWithDossier,
                                     null,
                                     Collections.emptyList()
                             )
                     ),
-                    new Pair<>("Should respond 404 when valid email is passed but user is not found",
-                            new ForgotPasswordTestParameter(
-                                    "test@test.fr",
+                    Pair.of("Should respond 404 when valid email is passed but user is not found",
+                            new ControllerParameter<>(
+                                    new ForgotPasswordTestParameter("test@test.fr"),
                                     404,
                                     jwtTokenWithDossier,
                                     (v) -> {
@@ -123,33 +108,35 @@ public class UserControllerTest {
                                     },
                                     List.of(content().bytes(new byte[0]))
                             )
+                    ),
+                    Pair.of("Should respond 200 when valid email is passed but user is not found",
+                            new ControllerParameter<>(
+                                    new ForgotPasswordTestParameter("test@test.fr"),
+                                    200,
+                                    jwtTokenWithDossier,
+                                    null,
+                                    List.of(content().bytes(new byte[0]))
+                            )
                     )
             );
         }
 
-        @SneakyThrows
         @ParameterizedTest(name = "{0}")
         @MethodSource("provideForgotPasswordParameters")
-        void parameterizedTests(ForgotPasswordTestParameter parameter) throws Exception {
-            if (parameter.setupMock != null) {
-                parameter.setupMock.apply(null);
-            }
+        void parameterizedTests(ControllerParameter<ForgotPasswordTestParameter> parameter) throws Exception {
 
-            var mockMvcConfiguration = post("/api/user/forgotPassword")
+            var mockMvcRequestBuilder = post("/api/user/forgotPassword")
                     .contentType("application/json");
 
-            if (parameter.jwt != null) {
-                mockMvcConfiguration.with(parameter.jwt);
+            if (parameter.parameterData.email != null) {
+                mockMvcRequestBuilder.content("{\"email\": \"" + parameter.parameterData.email + "\"}");
             }
 
-            if (parameter.email != null) {
-                mockMvcConfiguration.content("{\"email\": \"" + parameter.email + "\"}");
-            }
-
-            mockMvc.perform(mockMvcConfiguration)
-                    .andDo(print())
-                    .andExpect(status().is(parameter.status))
-                    .andExpectAll(parameter.resultMatchers.toArray(ResultMatcher[]::new));
+            ParameterizedTestHelper.runControllerTest(
+                    mockMvc,
+                    mockMvcRequestBuilder,
+                    parameter
+            );
         }
 
     }
@@ -157,8 +144,7 @@ public class UserControllerTest {
     @Nested
     class CreatePasswordTests {
 
-        record CreatePasswordTestParameter(String password, int status, RequestPostProcessor jwt,
-                                           Function<Void, Void> setupMock, List<ResultMatcher> resultMatchers) {
+        record CreatePasswordTestParameter(String password) {
         }
 
         static List<Arguments> provideCreatePasswordParameters() {
@@ -175,35 +161,36 @@ public class UserControllerTest {
             tenantModel.setEmail("test@test.fr");
 
             return ArgumentBuilder.buildListOfArguments(
-                    new Pair<>("Should respond 403 when not jwt is passed",
-                            new CreatePasswordTestParameter("azerty",
+                    Pair.of("Should respond 403 when not jwt is passed",
+                            new ControllerParameter<>(
+                                    new CreatePasswordTestParameter("azerty"),
                                     403,
                                     null,
                                     null,
                                     Collections.emptyList()
                             )
                     ),
-                    new Pair<>("Should respond 400 when no password is passed",
-                            new CreatePasswordTestParameter(
+                    Pair.of("Should respond 400 when no password is passed",
+                            new ControllerParameter<>(
+                                    new CreatePasswordTestParameter(null),
+                                    403,
                                     null,
-                                    400,
-                                    jwtTokenWithDossier,
-                                    null,
-                                    Collections.emptyList()
-                            )
-                    ),
-                    new Pair<>("Should respond 400 when empty password is passed",
-                            new CreatePasswordTestParameter(
-                                    "",
-                                    400,
-                                    jwtTokenWithDossier,
                                     null,
                                     Collections.emptyList()
                             )
                     ),
-                    new Pair<>("Should respond 403 when user is not verified",
-                            new CreatePasswordTestParameter(
-                                    validPassword,
+                    Pair.of("Should respond 400 when empty password is passed",
+                            new ControllerParameter<>(
+                                    new CreatePasswordTestParameter(""),
+                                    403,
+                                    null,
+                                    null,
+                                    Collections.emptyList()
+                            )
+                    ),
+                    Pair.of("Should respond 403 when user is not verified",
+                            new ControllerParameter<>(
+                                    new CreatePasswordTestParameter(validPassword),
                                     403,
                                     jwtTokenWithDossier,
                                     (v) -> {
@@ -215,9 +202,9 @@ public class UserControllerTest {
                                     )
                             )
                     ),
-                    new Pair<>("Should respond 200 when user is verified",
-                            new CreatePasswordTestParameter(
-                                    validPassword,
+                    Pair.of("Should respond 200 when user is verified",
+                            new ControllerParameter<>(
+                                    new CreatePasswordTestParameter(validPassword),
                                     200,
                                     jwtTokenWithDossier,
                                     (v) -> {
@@ -236,35 +223,29 @@ public class UserControllerTest {
 
         @ParameterizedTest(name = "{0}")
         @MethodSource("provideCreatePasswordParameters")
-        void parameterizedTests(CreatePasswordTestParameter parameter) throws Exception {
-            if (parameter.setupMock != null) {
-                parameter.setupMock.apply(null);
-            }
+        void parameterizedTests(ControllerParameter<CreatePasswordTestParameter> parameter) throws Exception {
 
-            var mockMvcConfiguration = post("/api/user/createPassword")
+            var mockMvcRequestBuilder = post("/api/user/createPassword")
                     .contentType("application/json");
 
-            if (parameter.jwt != null) {
-                mockMvcConfiguration.with(parameter.jwt);
+            if (parameter.parameterData.password != null) {
+                mockMvcRequestBuilder.content("{\"password\": \"" + parameter.parameterData.password + "\"}");
             }
 
-            if (parameter.password != null) {
-                mockMvcConfiguration.content("{\"password\": \"" + parameter.password + "\"}");
-            }
-
-            mockMvc.perform(mockMvcConfiguration)
-                    .andDo(print())
-                    .andExpect(status().is(parameter.status))
-                    .andExpectAll(parameter.resultMatchers.toArray(ResultMatcher[]::new));
+            ParameterizedTestHelper.runControllerTest(
+                    mockMvc,
+                    mockMvcRequestBuilder,
+                    parameter
+            );
         }
 
     }
 
+
     @Nested
     class CreatePasswordWithTokenTests {
 
-        record CreatePasswordWithTokenParameter(String token, String password, int status, RequestPostProcessor jwt,
-                                                Function<Void, Void> setupMock, List<ResultMatcher> resultMatchers) {
+        record CreatePasswordWithTokenParameter(String token, String password) {
         }
 
         static List<Arguments> provideCreatePasswordWithTokenParameters() {
@@ -283,50 +264,45 @@ public class UserControllerTest {
             tenantModel.setEmail("test@test.fr");
 
             return ArgumentBuilder.buildListOfArguments(
-                    new Pair<>("Should respond 403 when not jwt is passed",
-                            new CreatePasswordWithTokenParameter(
-                                    null,
-                                    null,
+                    Pair.of("Should respond 403 when not jwt is passed",
+                            new ControllerParameter<>(
+                                    new CreatePasswordWithTokenParameter(null, null),
                                     403,
                                     null,
                                     null,
                                     Collections.emptyList()
                             )
                     ),
-                    new Pair<>("Should respond 400 when no token is passed",
-                            new CreatePasswordWithTokenParameter(
-                                    null,
-                                    null,
+                    Pair.of("Should respond 400 when no token is passed",
+                            new ControllerParameter<>(
+                                    new CreatePasswordWithTokenParameter(null, null),
                                     400,
                                     jwtTokenWithDossier,
                                     null,
                                     Collections.emptyList()
                             )
                     ),
-                    new Pair<>("Should respond 400 when no password is passed",
-                            new CreatePasswordWithTokenParameter(
-                                    validToken,
-                                    null,
+                    Pair.of("Should respond 400 when no password is passed",
+                            new ControllerParameter<>(
+                                    new CreatePasswordWithTokenParameter(validToken, null),
                                     400,
                                     jwtTokenWithDossier,
                                     null,
                                     Collections.emptyList()
                             )
                     ),
-                    new Pair<>("Should respond 400 when invalid password is passed",
-                            new CreatePasswordWithTokenParameter(
-                                    validToken,
-                                    "",
+                    Pair.of("Should respond 400 when invalid password is passed",
+                            new ControllerParameter<>(
+                                    new CreatePasswordWithTokenParameter(validToken, ""),
                                     400,
                                     jwtTokenWithDossier,
                                     null,
                                     Collections.emptyList()
                             )
                     ),
-                    new Pair<>("Should respond 404 when token is not found",
-                            new CreatePasswordWithTokenParameter(
-                                    invalidToken,
-                                    validPassword,
+                    Pair.of("Should respond 404 when token is not found",
+                            new ControllerParameter<CreatePasswordWithTokenParameter>(
+                                    new CreatePasswordWithTokenParameter(invalidToken, validPassword),
                                     404,
                                     jwtTokenWithDossier,
                                     (v) -> {
@@ -336,10 +312,9 @@ public class UserControllerTest {
                                     Collections.emptyList()
                             )
                     ),
-                    new Pair<>("Should respond 200 and tenant model when token is founded",
-                            new CreatePasswordWithTokenParameter(
-                                    validToken,
-                                    validPassword,
+                    Pair.of("Should respond 200 and tenant model when token is founded",
+                            new ControllerParameter<>(
+                                    new CreatePasswordWithTokenParameter(validToken, validPassword),
                                     200,
                                     jwtTokenWithDossier,
                                     (v) -> {
@@ -355,39 +330,29 @@ public class UserControllerTest {
             );
         }
 
-        @SneakyThrows
         @ParameterizedTest(name = "{0}")
         @MethodSource("provideCreatePasswordWithTokenParameters")
-        void parameterizedTests(CreatePasswordWithTokenParameter parameter) {
-            if (parameter.setupMock != null) {
-                parameter.setupMock.apply(null);
-            }
+        void parameterizedTests(ControllerParameter<CreatePasswordWithTokenParameter> parameter) throws Exception {
 
-            var mockMvcConfiguration = post("/api/user/createPassword/" + parameter.token)
+            var mockMvcRequestBuilder = post("/api/user/createPassword/" + parameter.parameterData.token)
                     .contentType("application/json");
 
-            if (parameter.jwt != null) {
-                mockMvcConfiguration.with(parameter.jwt);
+            if (parameter.parameterData.password != null) {
+                mockMvcRequestBuilder.content("{\"password\": \"" + parameter.parameterData.password + "\"}");
             }
 
-            if (parameter.password != null) {
-                mockMvcConfiguration.content("{\"password\": \"" + parameter.password + "\"}");
-            }
-
-            mockMvc.perform(mockMvcConfiguration)
-                    .andDo(print())
-                    .andExpect(status().is(parameter.status))
-                    .andExpectAll(parameter.resultMatchers.toArray(ResultMatcher[]::new));
+            ParameterizedTestHelper.runControllerTest(
+                    mockMvc,
+                    mockMvcRequestBuilder,
+                    parameter
+            );
         }
 
     }
 
+
     @Nested
     class DeleteAccountTests {
-
-        record DeleteAccountParameter(int status, RequestPostProcessor jwt, Function<Void, Void> setupMock,
-                                      List<ResultMatcher> resultMatchers) {
-        }
 
         static List<Arguments> provideDeleteAccountParameters() {
 
@@ -402,16 +367,18 @@ public class UserControllerTest {
             tenantModel.setEmail("test@test.fr");
 
             return ArgumentBuilder.buildListOfArguments(
-                    new Pair<>("Should respond 403 when not jwt is passed",
-                            new DeleteAccountParameter(
+                    Pair.of("Should respond 403 when not jwt is passed",
+                            new ControllerParameter<>(
+                                    null,
                                     403,
                                     null,
                                     null,
                                     Collections.emptyList()
                             )
                     ),
-                    new Pair<>("Should respond 403 when user in not verified",
-                            new DeleteAccountParameter(
+                    Pair.of("Should respond 403 when user in not verified",
+                            new ControllerParameter<>(
+                                    null,
                                     403,
                                     jwtTokenWithDossier,
                                     (v) -> {
@@ -423,8 +390,9 @@ public class UserControllerTest {
                                     )
                             )
                     ),
-                    new Pair<>("Should respond 403 when user in not verified",
-                            new DeleteAccountParameter(
+                    Pair.of("Should respond 403 when user in not verified",
+                            new ControllerParameter<>(
+                                    null,
                                     403,
                                     jwtTokenWithDossier,
                                     (v) -> {
@@ -436,8 +404,9 @@ public class UserControllerTest {
                                     )
                             )
                     ),
-                    new Pair<>("Should respond 200 with empty result",
-                            new DeleteAccountParameter(
+                    Pair.of("Should respond 200 with empty result",
+                            new ControllerParameter<>(
+                                    null,
                                     200,
                                     jwtTokenWithDossier,
                                     (v) -> {
@@ -452,34 +421,25 @@ public class UserControllerTest {
             );
         }
 
-        @SneakyThrows
         @ParameterizedTest(name = "{0}")
         @MethodSource("provideDeleteAccountParameters")
-        void parameterizedTest(DeleteAccountParameter parameter) {
-            if (parameter.setupMock != null) {
-                parameter.setupMock.apply(null);
-            }
+        void parameterizedTest(ControllerParameter<Void> parameter) throws Exception {
 
-            var mockMvcConfiguration = delete("/api/user/deleteAccount")
+            var mockMvcRequestBuilder = delete("/api/user/deleteAccount")
                     .contentType("application/json");
 
-            if (parameter.jwt != null) {
-                mockMvcConfiguration.with(parameter.jwt);
-            }
-
-            mockMvc.perform(mockMvcConfiguration)
-                    .andDo(print())
-                    .andExpect(status().is(parameter.status))
-                    .andExpectAll(parameter.resultMatchers.toArray(ResultMatcher[]::new));
+            ParameterizedTestHelper.runControllerTest(
+                    mockMvc,
+                    mockMvcRequestBuilder,
+                    parameter
+            );
         }
 
     }
 
+
     @Nested
     class UnlinkFranceConnectTests {
-
-        record UnlinkFranceConnectTestParameter(int status, RequestPostProcessor jwt, Function<Void, Void> setupMock, List<ResultMatcher> resultMatchers) {
-        }
 
         static List<Arguments> provideUnlinkFranceConnectParameters() {
 
@@ -490,16 +450,18 @@ public class UserControllerTest {
             tenant.setEmail("test@test.fr");
 
             return ArgumentBuilder.buildListOfArguments(
-                    new Pair<>("Should respond 403 when no jwt is passed",
-                            new UnlinkFranceConnectTestParameter(
+                    Pair.of("Should respond 403 when no jwt is passed",
+                            new ControllerParameter<>(
+                                    null,
                                     403,
                                     null,
                                     null,
                                     Collections.emptyList()
                             )
                     ),
-                    new Pair<>("Should respond 403 when user is not verified",
-                            new UnlinkFranceConnectTestParameter(
+                    Pair.of("Should respond 403 when user is not verified",
+                            new ControllerParameter<>(
+                                    null,
                                     403,
                                     jwtTokenWithDossier,
                                     (v) -> {
@@ -511,8 +473,9 @@ public class UserControllerTest {
                                     )
                             )
                     ),
-                    new Pair<>("Should respond 200 when user is verified",
-                            new UnlinkFranceConnectTestParameter(
+                    Pair.of("Should respond 200 when user is verified",
+                            new ControllerParameter<>(
+                                    null,
                                     200,
                                     jwtTokenWithDossier,
                                     (v) -> {
@@ -527,49 +490,42 @@ public class UserControllerTest {
             );
         }
 
-        @SneakyThrows
         @ParameterizedTest(name = "{0}")
         @MethodSource("provideUnlinkFranceConnectParameters")
-        void parameterizedTests(UnlinkFranceConnectTestParameter parameter) {
-            if (parameter.setupMock != null) {
-                parameter.setupMock.apply(null);
-            }
+        void parameterizedTests(ControllerParameter<Void> parameter) throws Exception {
 
-            var mockMvcConfiguration = delete("/api/user/franceConnect")
+            var mockMvcRequestBuilder = delete("/api/user/franceConnect")
                     .contentType("application/json");
 
-            if (parameter.jwt != null) {
-                mockMvcConfiguration.with(parameter.jwt);
-            }
-
-            mockMvc.perform(mockMvcConfiguration)
-                    .andDo(print())
-                    .andExpect(status().is(parameter.status))
-                    .andExpectAll(parameter.resultMatchers.toArray(ResultMatcher[]::new));
+            ParameterizedTestHelper.runControllerTest(
+                    mockMvc,
+                    mockMvcRequestBuilder,
+                    parameter
+            );
         }
     }
 
+
     @Nested
     class LogoutTests {
-
-        record LogoutTestParameter(int status, RequestPostProcessor jwt, Function<Void, Void> setupMock, List<ResultMatcher> resultMatchers) {
-        }
 
         static List<Arguments> provideLogoutParameters() {
 
             SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwtTokenWithDossier = jwt().authorities(new SimpleGrantedAuthority("SCOPE_dossier"));
 
             return ArgumentBuilder.buildListOfArguments(
-                    new Pair<>("Should respond 403 when no jwt is passed",
-                            new LogoutTestParameter(
+                    Pair.of("Should respond 403 when no jwt is passed",
+                            new ControllerParameter<>(
+                                    null,
                                     403,
                                     null,
                                     null,
                                     Collections.emptyList()
                             )
                     ),
-                    new Pair<>("Should respond 200 when jwt is passed",
-                            new LogoutTestParameter(
+                    Pair.of("Should respond 200 when jwt is passed",
+                            new ControllerParameter<>(
+                                    null,
                                     200,
                                     jwtTokenWithDossier,
                                     (v) -> {
@@ -584,25 +540,18 @@ public class UserControllerTest {
             );
         }
 
-        @SneakyThrows
         @ParameterizedTest(name = "{0}")
         @MethodSource("provideLogoutParameters")
-        void parameterizedTests(LogoutTestParameter parameter) {
-            if (parameter.setupMock != null) {
-                parameter.setupMock.apply(null);
-            }
+        void parameterizedTests(ControllerParameter<Void> parameter) throws Exception {
 
-            var mockMvcConfiguration = post("/api/user/logout")
+            var mockMvcRequestBuilder = post("/api/user/logout")
                     .contentType("application/json");
 
-            if (parameter.jwt != null) {
-                mockMvcConfiguration.with(parameter.jwt);
-            }
-
-            mockMvc.perform(mockMvcConfiguration)
-                    .andDo(print())
-                    .andExpect(status().is(parameter.status))
-                    .andExpectAll(parameter.resultMatchers.toArray(ResultMatcher[]::new));
+            ParameterizedTestHelper.runControllerTest(
+                    mockMvc,
+                    mockMvcRequestBuilder,
+                    parameter
+            );
         }
     }
 
