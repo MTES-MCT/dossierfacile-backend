@@ -8,6 +8,12 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class TestFilesUtil {
 
@@ -32,6 +38,24 @@ public class TestFilesUtil {
         try (InputStream inputStream = getFileAsStream(fileName)) {
             return ImageIO.read(inputStream);
         }
+    }
+
+    public static List<String> getFilesFromDirectory(Path directory) throws URISyntaxException, IOException {
+        var folderPath = Path.of("documents", directory.toString()).toString();
+        var url = CLASS_LOADER.getResource(folderPath);
+
+        if (url == null) {
+            throw new IllegalArgumentException("folder does not exist : " + folderPath);
+        }
+
+        var actualPath = Paths.get(url.toURI());
+
+        return Files.list(actualPath)
+                .map(file -> {
+                    return directory + "/" + file.getFileName().toString();
+                })
+                .collect(Collectors.toList());
+
     }
 
 }
