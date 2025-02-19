@@ -34,31 +34,38 @@
     </appender>
 
     <!-- LOGSTASH -->
-    <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
-        <param name="Encoding" value="UTF-8"/>
-        <destination>${LOGSTASH_DESTINATION}</destination>
+    <springProfile name="!dev">
+        <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+            <param name="Encoding" value="UTF-8"/>
+            <destination>${LOGSTASH_DESTINATION}</destination>
 
-        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
-            <includeContext>false</includeContext>
-            <timeZone>UTC</timeZone>
-            <fieldNames>
-                <version>[ignore]</version>
-                <levelValue>[ignore]</levelValue>
-            </fieldNames>
-            <customFields>{"application":"${APPLICATION_NAME}", "environment":"${ENVIRONMENT}", "profiles":"${APPLICATION_PROFILES}"}</customFields>
-            <includeMdcKeyName>file_id</includeMdcKeyName>
-            <includeMdcKeyName>action</includeMdcKeyName>
-            <includeMdcKeyName>execution_duration</includeMdcKeyName>
-        </encoder>
-    </appender>
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <includeContext>false</includeContext>
+                <timeZone>UTC</timeZone>
+                <fieldNames>
+                    <version>[ignore]</version>
+                    <levelValue>[ignore]</levelValue>
+                </fieldNames>
+                <customFields>{"application":"${APPLICATION_NAME}", "environment":"${ENVIRONMENT}", "profiles":"${APPLICATION_PROFILES}"}</customFields>
+                <includeMdcKeyName>file_id</includeMdcKeyName>
+                <includeMdcKeyName>action</includeMdcKeyName>
+                <includeMdcKeyName>execution_duration</includeMdcKeyName>
+            </encoder>
+        </appender>
+    </springProfile>
 
-
-    <root level="${LOG_LEVEL}">
-        <appender-ref ref="LOGSTASH"/>
-        <appender-ref ref="STDOUT"/>
-        <springProfile name="dev">
+    <springProfile name="dev">
+        <root level="${LOG_LEVEL}">
+            <appender-ref ref="STDOUT"/>
             <appender-ref ref="FILE"/>
-        </springProfile>
-    </root>
+        </root>
+    </springProfile>
+
+    <springProfile name="!dev">
+        <root level="${LOG_LEVEL}">
+            <appender-ref ref="LOGSTASH"/>
+            <appender-ref ref="STDOUT"/>
+        </root>
+    </springProfile>
 
 </configuration>

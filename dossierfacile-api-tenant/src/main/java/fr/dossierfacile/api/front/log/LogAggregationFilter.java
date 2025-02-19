@@ -12,6 +12,7 @@ import net.logstash.logback.appender.LogstashTcpSocketAppender;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -22,6 +23,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
+@Profile("!dev")
 public class LogAggregationFilter extends OncePerRequestFilter {
     private LogstashTcpSocketAppender logstashAppender;
 

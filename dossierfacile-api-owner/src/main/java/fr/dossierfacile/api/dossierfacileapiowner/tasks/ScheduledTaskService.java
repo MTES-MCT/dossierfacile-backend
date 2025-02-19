@@ -19,6 +19,7 @@ import java.util.List;
 public class ScheduledTaskService {
     private final MailService mailService;
     private final PropertyRepository propertyRepository;
+
     @Value("${days_after_validated_property_to_follow_up_email:42}")
     private Long daysAfterValidatedPropertyToFollowUpEmail;
 

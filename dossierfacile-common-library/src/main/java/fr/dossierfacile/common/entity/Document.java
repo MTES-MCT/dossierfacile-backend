@@ -1,6 +1,7 @@
 package fr.dossierfacile.common.entity;
 
 import fr.dossierfacile.common.enums.DocumentCategory;
+import fr.dossierfacile.common.enums.DocumentCategoryStep;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.FileStorageStatus;
@@ -44,6 +45,10 @@ public class Document implements Serializable {
 
     @Enumerated(EnumType.STRING)
     private DocumentSubCategory documentSubCategory;
+
+    @Enumerated(EnumType.STRING)
+    private DocumentCategoryStep documentCategoryStep;
+
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tenant_id")
@@ -91,7 +96,7 @@ public class Document implements Serializable {
     private Boolean avisDetected = false;
 
     @Nullable
-    @OneToOne(mappedBy= "document", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @OneToOne(mappedBy = "document", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     private DocumentAnalysisReport documentAnalysisReport;
 
     @PreRemove

@@ -11,6 +11,7 @@ import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.exceptions.NotFoundException;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
@@ -48,10 +49,10 @@ public class PropertyController {
     private final PropertyMapper propertyMapper;
 
     @PostMapping
-    public ResponseEntity<PropertyModel> createOrUpdate(HttpServletResponse response, @RequestBody PropertyForm Property) throws HttpResponseException, InterruptedException {
+    public ResponseEntity<PropertyModel> createOrUpdate(HttpServletResponse response, @Valid @RequestBody PropertyForm property) throws HttpResponseException, InterruptedException {
         try {
             PropertyModel propertyModel;
-            propertyModel = propertyService.createOrUpdate(Property);
+            propertyModel = propertyService.createOrUpdate(property);
             logService.saveLog(LogType.ACCOUNT_EDITED, propertyModel.getId());
             return ok(propertyModel);
         } catch (DPENotFoundException e) {

@@ -1258,6 +1258,7 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
                 .filter(t -> t.getTenantType() == TenantType.CREATE)
                 .findFirst()
                 .orElseThrow(() -> new TenantNotFoundException(TenantType.CREATE));
+
         addDocumentOfClarification(ut, tenantList, mainTenant, indexPagesForDocuments, pdOutlineItem);
 
         //region Add files of documents to Dossier PDF

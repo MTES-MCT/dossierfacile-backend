@@ -6,6 +6,7 @@ application-*.properties
 .env
 target/
 mockstorage/
+mock-storage/
 .DS_Store
 static-front/
 logs/

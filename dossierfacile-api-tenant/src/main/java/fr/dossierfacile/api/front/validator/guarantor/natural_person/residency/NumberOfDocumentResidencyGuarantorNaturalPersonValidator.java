@@ -10,6 +10,8 @@ import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.TypeGuarantor;
 import jakarta.validation.ConstraintValidatorContext;
 import lombok.RequiredArgsConstructor;
+
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,17 +26,6 @@ public class NumberOfDocumentResidencyGuarantorNaturalPersonValidator extends Te
     @Override
     public boolean isValid(DocumentResidencyGuarantorNaturalPersonForm documentResidencyGuarantorNaturalPersonForm, ConstraintValidatorContext constraintValidatorContext) {
         List<MultipartFile> documents = documentResidencyGuarantorNaturalPersonForm.getDocuments();
-
-        if (documentResidencyGuarantorNaturalPersonForm.getTypeDocumentResidency() == DocumentSubCategory.OTHER_RESIDENCY) {
-            if (!documents.isEmpty()) {
-                constraintValidatorContext.disableDefaultConstraintViolation();
-                constraintValidatorContext
-                        .buildConstraintViolationWithTemplate(constraintValidatorContext.getDefaultConstraintMessageTemplate())
-                        .addPropertyNode("documents").addConstraintViolation();
-                return false;
-            }
-            return true;
-        }
 
         Tenant tenant = getTenant(documentResidencyGuarantorNaturalPersonForm);
         long sizeOldDoc = 0;
@@ -57,6 +48,12 @@ public class NumberOfDocumentResidencyGuarantorNaturalPersonValidator extends Te
         }
         long sizeNewDoc = documents.stream().filter(o -> o.getSize() >= 0).mapToLong(MultipartFile::getSize).sum();
 
-        return 1 <= countNew + countOld && countNew + countOld <= 10 && sizeNewDoc + sizeOldDoc <= 52428800;
+        int minNumberOfDocs = 1;
+        if (documentResidencyGuarantorNaturalPersonForm.getTypeDocumentResidency() == DocumentSubCategory.OTHER_RESIDENCY 
+            && StringUtils.isNotBlank(documentResidencyGuarantorNaturalPersonForm.getCustomText())) {
+            minNumberOfDocs = 0;
+        }
+
+        return minNumberOfDocs <= countNew + countOld && countNew + countOld <= 10 && sizeNewDoc + sizeOldDoc <= 52428800;
     }
 }
