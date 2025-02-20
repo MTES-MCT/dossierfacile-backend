@@ -2,6 +2,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>fr.gouv</groupId>
+        <artifactId>dossierfacile</artifactId>
+        <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
     <build>
         <plugins>
             <plugin>
@@ -27,16 +35,8 @@
         </plugins>
     </build>
 
-    <parent>
-        <groupId>fr.gouv</groupId>
-        <artifactId>dossierfacile</artifactId>
-        <version>${revision}</version>
-        <relativePath>../pom.xml</relativePath>
-    </parent>
-
     <groupId>fr.dossierfacile</groupId>
     <artifactId>dossierfacile-common-library</artifactId>
-    <version>${dossierfacile.version}</version>
     <name>dossierfacile-common-library</name>
     <description>Common library with all entities</description>
 

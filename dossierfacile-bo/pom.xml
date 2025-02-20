@@ -14,7 +14,6 @@
 
     <groupId>fr.gouv</groupId>
     <artifactId>dossierfacile-bo</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
     <name>dossierfacile-bo</name>
     <description>DossierFacile Back office</description>
 

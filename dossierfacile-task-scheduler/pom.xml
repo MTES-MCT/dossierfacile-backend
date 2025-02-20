@@ -11,7 +11,6 @@
 
     <groupId>fr.gouv</groupId>
     <artifactId>dossierfacile-task-scheduler</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
     <packaging>${packaging.type}</packaging>
 
     <dependencies>

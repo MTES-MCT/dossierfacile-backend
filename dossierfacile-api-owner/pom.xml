@@ -10,7 +10,6 @@
     </parent>
     <groupId>fr.dossierfacile.api</groupId>
     <artifactId>dossierfacile-api-owner</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
     <name>dossierfacile-api-owner</name>
     <description>Owner api for DossierFacile</description>
 

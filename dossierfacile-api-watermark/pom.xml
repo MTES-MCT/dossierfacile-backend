@@ -10,7 +10,6 @@
     </parent>
     <groupId>fr.dossierfacile.api</groupId>
     <artifactId>dossierfacile-api-watermark</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
     <name>dossierfacile-api-watermark</name>
     <description>The app take a list of files in request and generate a watermarked pdf document, using the pdf
         generator app

@@ -72,5 +72,5 @@ For the dev environment the appender Logstash is disabled by default.
 # Run the application
 
 ```shell
-    mvn spring-boot:run -D mvn spring-boot:run -D spring-boot.run.profiles=dev,mockOvh
+    ./mvnw -pl dossierfacile-pdf-generator spring-boot:run -Dspring-boot.run.profiles=dev,mockOvh
 ```

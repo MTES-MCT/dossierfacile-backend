@@ -99,14 +99,14 @@ Create a new folder `mock-storage` to store files.
 
 ## Build
 
-Run `mvn clean install` from the root folder. This will build every module.
+Run `./mvnw clean install` from the root folder. This will build every module.
 
 ## Launch
 
-In each application folder, run
+In the main folder
 
 ```
-mvn spring-boot:run -D spring-boot.run.profiles=dev,mockOvh
+./mvnw -pl <name-of-the-project> spring-boot:run -Dspring-boot.run.profiles=dev,mockOvh
 ```
 
 ## Contributing

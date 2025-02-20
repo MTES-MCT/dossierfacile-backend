@@ -10,7 +10,6 @@
     </parent>
     <groupId>fr.dossierfacile.api</groupId>
     <artifactId>dossierfacile-api-tenant</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
     <name>dossierfacile-api-tenant</name>
     <description>Front api for dossier facile</description>
 

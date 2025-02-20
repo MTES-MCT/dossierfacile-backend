@@ -10,7 +10,6 @@
 	</parent>
 	<groupId>fr.dossierfacile.api</groupId>
 	<artifactId>dossierfacile-pdf-generator</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
 	<name>dossierfacile-pdf-generator</name>
 	<description>Generate tenant's PDF documents</description>
 
