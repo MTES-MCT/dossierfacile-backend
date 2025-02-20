@@ -30,13 +30,13 @@
     <parent>
         <groupId>fr.gouv</groupId>
         <artifactId>dossierfacile</artifactId>
-        <version>${revision}</version>
+        <version>1.0.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <groupId>fr.dossierfacile</groupId>
     <artifactId>dossierfacile-common-library</artifactId>
-    <version>${dossierfacile.version}</version>
+    <version>${revision}</version>
     <name>dossierfacile-common-library</name>
     <description>Common library with all entities</description>
 
