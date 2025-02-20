@@ -106,6 +106,11 @@
             <artifactId>commons-imaging</artifactId>
             <version>1.0-alpha3</version>
         </dependency>
+        <dependency>
+            <groupId>org.boofcv</groupId>
+            <artifactId>boofcv-core</artifactId>
+            <version>1.1.6</version>
+        </dependency>
     </dependencies>
     <build>
         <finalName>dossierfacile-process-file</finalName>
