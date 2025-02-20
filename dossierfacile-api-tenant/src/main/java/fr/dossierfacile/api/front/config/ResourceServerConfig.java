@@ -3,6 +3,7 @@ package fr.dossierfacile.api.front.config;
 import fr.dossierfacile.api.front.config.filter.ConnectionContextFilter;
 import fr.dossierfacile.api.front.security.PartnerAuthorizationManager;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authorization.AuthorizationManager;
@@ -31,6 +32,9 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @RequiredArgsConstructor
 public class ResourceServerConfig {
 
+    @Value("{resource.server.config.csp}")
+    private String configCsp;
+
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -41,7 +45,7 @@ public class ResourceServerConfig {
                         .xssProtection(withDefaults())
                         .cacheControl(withDefaults())
                         .httpStrictTransportSecurity(transport -> transport.maxAgeInSeconds(63072000).includeSubDomains(true))
-                        .contentSecurityPolicy(csp -> csp.policyDirectives("frame-ancestors 'none'; frame-src 'none'; child-src 'none'; upgrade-insecure-requests; default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; object-src 'none'; img-src 'self' data:; font-src 'self'; connect-src *.dossierfacile.fr *.dossierfacile.fr:*; base-uri 'self'; form-action 'none'; media-src 'none'; worker-src 'none'; manifest-src 'none'; prefetch-src 'none';"))
+                        .contentSecurityPolicy(csp -> csp.policyDirectives(configCsp))
                         .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
                 )
                 .formLogin(AbstractHttpConfigurer::disable)

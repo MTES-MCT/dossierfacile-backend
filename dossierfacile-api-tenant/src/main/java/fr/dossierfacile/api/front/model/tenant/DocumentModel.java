@@ -3,6 +3,7 @@ package fr.dossierfacile.api.front.model.tenant;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import fr.dossierfacile.common.entity.DocumentAnalysisReport;
 import fr.dossierfacile.common.enums.DocumentCategory;
+import fr.dossierfacile.common.enums.DocumentCategoryStep;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import lombok.AllArgsConstructor;
@@ -22,6 +23,7 @@ public class DocumentModel {
     private DocumentCategory documentCategory;
     private DocumentSubCategory documentSubCategory;
     private DocumentSubCategory subCategory; // TODO Deprecated v5
+    private DocumentCategoryStep documentCategoryStep;
     private Boolean noDocument;
     private String customText;
     private Integer monthlySum;

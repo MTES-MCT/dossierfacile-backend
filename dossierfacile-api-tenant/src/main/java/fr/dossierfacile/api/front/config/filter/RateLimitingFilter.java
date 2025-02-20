@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-@Component
 @Profile("!dev")
 @WebFilter("/api/register/account")
 public class RateLimitingFilter extends AbstractRateLimitingFilter implements Filter {

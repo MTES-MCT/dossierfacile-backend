@@ -5,7 +5,7 @@
     <parent>
         <groupId>fr.gouv</groupId>
         <artifactId>dossierfacile</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
+        <version>${revision}</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <groupId>fr.dossierfacile.api</groupId>
@@ -40,6 +40,12 @@
         <dependency>
             <groupId>fr.dossierfacile</groupId>
             <artifactId>dossierfacile-common-library</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>fr.dossierfacile</groupId>
+            <artifactId>dossierfacile-common-test-library</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
