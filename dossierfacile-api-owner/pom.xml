@@ -5,12 +5,12 @@
     <parent>
         <groupId>fr.gouv</groupId>
         <artifactId>dossierfacile</artifactId>
-        <version>${revision}</version>
+        <version>1.0.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <groupId>fr.dossierfacile.api</groupId>
     <artifactId>dossierfacile-api-owner</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>${revision}</version>
     <name>dossierfacile-api-owner</name>
     <description>Owner api for DossierFacile</description>
 
