@@ -160,6 +160,7 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
             tenant.setFranceConnectBirthPlace(user.getFranceConnectBirthPlace());
             tenant.setFranceConnectBirthDate(user.getFranceConnectBirthDate());
 
+            // Todo : I think there an issue here according to comment on matches
             if (user.isFranceConnect()) {
                 if (!StringUtils.equals(tenant.getFirstName(), user.getGivenName())
                         || !StringUtils.equals(tenant.getLastName(), user.getFamilyName())
@@ -178,11 +179,13 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
         return tenant;
     }
 
+    // Todo : This method should maybe return false if user is france connected and names are different (for the moment the first name and the lastname need to be different)
     private boolean matches(Tenant tenant, KeycloakUser user) {
         return StringUtils.equals(tenant.getKeycloakId(), user.getKeycloakId())
                 && StringUtils.equals(tenant.getEmail(), user.getEmail())
                 && tenant.getFranceConnect() == user.isFranceConnect()
                 && (!user.isFranceConnect() ||
+                // TODO : The || should be a &&
                 (StringUtils.equalsIgnoreCase(tenant.getFirstName(), user.getGivenName()) ||
                         StringUtils.equalsIgnoreCase(tenant.getLastName(), user.getFamilyName())
                 ));
