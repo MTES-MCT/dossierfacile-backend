@@ -43,7 +43,9 @@
         </dependency>
         <dependency>
             <groupId>fr.dossierfacile</groupId>
-            <artifactId>dossier-facile-logging-library</artifactId>
+            <artifactId>dossierfacile-common-test-library</artifactId>
+            <version>${revision}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
