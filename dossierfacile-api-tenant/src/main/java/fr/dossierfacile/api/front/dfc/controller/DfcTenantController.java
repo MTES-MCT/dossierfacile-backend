@@ -9,6 +9,9 @@ import fr.dossierfacile.api.front.service.interfaces.UserApiService;
 import fr.dossierfacile.api.front.service.interfaces.UserService;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -34,8 +37,16 @@ public class DfcTenantController {
     private final UserApiService userApiService;
 
 
+    @ApiOperation(value = "Get tenant profile for partner", notes = "Retrieves the tenant profile associated with the authenticated partner.")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Profile retrieved successfully", response = ConnectedTenantModel.class),
+            @ApiResponse(code = 401, message = "Unauthorized: JWT token missing or invalid"),
+            @ApiResponse(code = 403, message = "Forbidden: Insufficient scope")
+    })
     @PreAuthorize("!isClient()")
     @GetMapping(value = "/profile", produces = MediaType.APPLICATION_JSON_VALUE)
+    // Todo : This logic need to be extracted to a service
+    // Authentification facade method : getLoggedTenant() has the same logic
     public ResponseEntity<ConnectedTenantModel> profilePartner() {
         String partner = authenticationFacade.getKeycloakClientId();
         Tenant tenant = tenantService.findByKeycloakId(authenticationFacade.getKeycloakUserId());
@@ -54,6 +65,12 @@ public class DfcTenantController {
         return ok(tenantMapper.toTenantModelDfc(tenant, userApi));
     }
 
+    @ApiOperation(value = "Logout tenant", notes = "Logs out the authenticated tenant.")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Logout successful"),
+            @ApiResponse(code = 401, message = "Unauthorized: JWT token missing or invalid"),
+            @ApiResponse(code = 403, message = "Forbidden: Insufficient scope")
+    })
     @RequestMapping(path = "/logout", method = {RequestMethod.GET, RequestMethod.POST})
     public ResponseEntity<Void> logout() {
 
