@@ -25,5 +25,9 @@ public class ParameterizedTestHelper {
                 .andDo(print())
                 .andExpect(status().is(parameter.status))
                 .andExpectAll(parameter.resultMatchers.toArray(ResultMatcher[]::new));
+
+        if (parameter.mockVerifications != null) {
+            parameter.mockVerifications.apply(null);
+        }
     }
 }
