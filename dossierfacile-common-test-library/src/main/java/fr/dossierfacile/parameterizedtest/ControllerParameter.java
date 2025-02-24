@@ -13,12 +13,35 @@ public class ControllerParameter<T> {
     public RequestPostProcessor requestPostProcessor;
     public Function<Void, Void> setupMock;
     public List<ResultMatcher> resultMatchers;
+    public Function<Void, Void> mockVerifications = null;
 
-    public ControllerParameter(T parameterData, int status, RequestPostProcessor requestPostProcessor, Function<Void, Void> setupMock, List<ResultMatcher> resultMatchers) {
+    public ControllerParameter(
+            T parameterData,
+            int status,
+            RequestPostProcessor requestPostProcessor,
+            Function<Void, Void> setupMock,
+            List<ResultMatcher> resultMatchers
+    ) {
         this.parameterData = parameterData;
         this.status = status;
         this.requestPostProcessor = requestPostProcessor;
         this.setupMock = setupMock;
         this.resultMatchers = resultMatchers;
+    }
+
+    public ControllerParameter(
+            T parameterData,
+            int status,
+            RequestPostProcessor requestPostProcessor,
+            Function<Void, Void> setupMock,
+            List<ResultMatcher> resultMatchers,
+            Function<Void, Void> mockVerifications
+    ) {
+        this.parameterData = parameterData;
+        this.status = status;
+        this.requestPostProcessor = requestPostProcessor;
+        this.setupMock = setupMock;
+        this.resultMatchers = resultMatchers;
+        this.mockVerifications = mockVerifications;
     }
 }
