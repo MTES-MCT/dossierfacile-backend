@@ -16,6 +16,7 @@ import java.util.UUID;
 public abstract class AbstractConnectionContextFilter extends HttpFilter {
 
     private static final String URI = "uri";
+    private static final String NORMALIZED_URI = "normalized_uri";
     private static final String REQUEST_ID = "request_id";
     private static final String RESPONSE_STATUS = "response_status";
     private static final String REAL_IP = "ip";
@@ -32,6 +33,7 @@ public abstract class AbstractConnectionContextFilter extends HttpFilter {
 
         try {
             MDC.put(URI, request.getRequestURI());
+            MDC.put(NORMALIZED_URI, normalizedUri(request.getRequestURI()));
             MDC.put(REQUEST_ID, UUID.randomUUID().toString());
             MDC.put(REAL_IP, request.getHeader("X-Real-Ip")); // specific to Scalingo infra
 
@@ -70,6 +72,13 @@ public abstract class AbstractConnectionContextFilter extends HttpFilter {
             }
             MDC.clear();
         }
+    }
+
+    private String normalizedUri(String uri) {
+        // Remplacement des valeurs numériques par {id}
+        uri = uri.replaceAll("/\\d+", "/{id}");
+
+        return uri;
     }
 
     public abstract boolean isRequestIgnored(HttpServletRequest request);
