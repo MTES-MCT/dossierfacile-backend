@@ -6,6 +6,7 @@ import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
+import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.mapper.CategoriesMapper;
 import fr.dossierfacile.common.mapper.MapDocumentCategories;
@@ -87,7 +88,14 @@ public abstract class TenantMapper {
         );
         Optional.ofNullable(tenantModel.getApartmentSharing().getTenants())
                 .ifPresent(coTenantModels -> coTenantModels.forEach(coTenantModel -> {
-                    setDocumentDeniedReasonsAndDocumentAndFilesRoutes(coTenantModel.getDocuments(), filePath, true, userApi);
+                    // If the tenant is a couple, we want to show the documents of the other tenant
+                    // Otherwise we only load the preview.
+                    setDocumentDeniedReasonsAndDocumentAndFilesRoutes(
+                            coTenantModel.getDocuments(),
+                            filePath,
+                            tenantModel.getApartmentSharing().getApplicationType() != ApplicationType.COUPLE,
+                            userApi
+                    );
                     Optional.ofNullable(coTenantModel.getGuarantors())
                             .ifPresent(guarantorModels -> guarantorModels.forEach(guarantorModel -> setDocumentDeniedReasonsAndDocumentAndFilesRoutes(guarantorModel.getDocuments(), filePath, true, userApi)));
                 }));
