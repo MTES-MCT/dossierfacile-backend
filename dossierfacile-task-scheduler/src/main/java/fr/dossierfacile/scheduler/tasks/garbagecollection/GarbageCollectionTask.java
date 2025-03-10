@@ -3,7 +3,7 @@ package fr.dossierfacile.scheduler.tasks.garbagecollection;
 import fr.dossierfacile.common.entity.ObjectStorageProvider;
 import fr.dossierfacile.common.repository.StorageFileRepository;
 import fr.dossierfacile.common.service.interfaces.FileStorageProviderService;
-import fr.dossierfacile.scheduler.LoggingContext;
+import fr.dossierfacile.scheduler.tasks.AbstractTask;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -17,7 +17,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 
 @Slf4j
 @AllArgsConstructor
-public class GarbageCollectionTask {
+public class GarbageCollectionTask extends AbstractTask {
 
     private final GarbageCollectionDetailsRepository garbageCollectionDetailsRepository;
     private final StorageFileRepository storageFileRepository;
@@ -27,9 +27,9 @@ public class GarbageCollectionTask {
 
     @Scheduled(fixedDelayString = "${garbage-collection.seconds-between-iterations}", timeUnit = SECONDS)
     void cleanGarbage() {
-        LoggingContext.startTask(GARBAGE_COLLECTION);
+        super.startTask(GARBAGE_COLLECTION);
         storageProviderServices.keySet().forEach(this::cleanGarbageOn);
-        LoggingContext.endTask();
+        super.endTask();
     }
 
     private void cleanGarbageOn(ObjectStorageProvider provider) {

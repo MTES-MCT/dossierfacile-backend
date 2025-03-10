@@ -47,8 +47,17 @@
                     <levelValue>[ignore]</levelValue>
                 </fieldNames>
                 <customFields>{"application":"${APPLICATION_NAME}", "environment":"${ENVIRONMENT}", "profiles":"${APPLICATION_PROFILES}"}</customFields>
+                <includeMdcKeyName>execution_start</includeMdcKeyName>
+                <includeMdcKeyName>execution_time</includeMdcKeyName>
                 <includeMdcKeyName>storage_file_id</includeMdcKeyName>
-                <includeMdcKeyName>task</includeMdcKeyName>
+                <includeMdcKeyName>process_id</includeMdcKeyName>
+                <includeMdcKeyName>task_name</includeMdcKeyName>
+                <includeMdcKeyName>task_status</includeMdcKeyName>
+                <includeMdcKeyName>task_document_list</includeMdcKeyName>
+                <includeMdcKeyName>task_storage_file_list</includeMdcKeyName>
+                <includeMdcKeyName>task_tenant_list</includeMdcKeyName>
+                <includeMdcKeyName>task_owner_list</includeMdcKeyName>
+                <includeMdcKeyName>logs</includeMdcKeyName>
             </encoder>
         </appender>
     </springProfile>
