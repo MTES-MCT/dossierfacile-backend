@@ -1,6 +1,6 @@
 package fr.dossierfacile.scheduler.tasks.tenantwarning;
 
-import fr.dossierfacile.scheduler.LoggingContext;
+import fr.dossierfacile.scheduler.tasks.AbstractTask;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,14 +10,15 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static fr.dossierfacile.scheduler.tasks.TaskName.TENANT_DELETION;
-import static java.time.LocalDateTime.*;
+import static java.time.LocalDateTime.now;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class TenantDeletionTask {
+public class TenantDeletionTask extends AbstractTask {
 
     private static final int PAGE_SIZE = 1000;
 
@@ -28,27 +29,30 @@ public class TenantDeletionTask {
 
     @Scheduled(cron = "${cron.account-deletion}")
     private void deleteOldAccounts() {
-        LoggingContext.startTask(TENANT_DELETION);
+        super.startTask(TENANT_DELETION);
 
         LocalDateTime limitDate = now().minusMonths(monthsForDeletionOfTenants);
         deleteTenantsNotActiveSince(limitDate);
 
-        LoggingContext.endTask();
+        super.endTask();
     }
 
     private void deleteTenantsNotActiveSince(LocalDateTime limitDate) {
+        List<Long> listOfTenantIds = List.of();
         Page<Long> toDelete = tenantRepository.findByLastUpdateDate(limitDate, PageRequest.of(0, PAGE_SIZE));
         log.info("Found {} inactive tenants to delete ({} months old)", toDelete.getTotalElements(), monthsForDeletionOfTenants);
 
-        deleteAllTenants(toDelete);
+        deleteAllTenants(toDelete, listOfTenantIds);
 
         while (toDelete.hasNext()) {
             toDelete = tenantRepository.findByLastUpdateDate(limitDate, toDelete.nextPageable());
-            deleteAllTenants(toDelete);
+            deleteAllTenants(toDelete, listOfTenantIds);
         }
+        addTenantIdsToDeleteForLogging(listOfTenantIds);
     }
 
-    private void deleteAllTenants(Page<Long> tenantIds) {
+    private void deleteAllTenants(Page<Long> tenantIds, List<Long> listOfTenantIds) {
+        listOfTenantIds.addAll(tenantIds.getContent());
         tenantIds.forEach(this::deleteTenant);
     }
 

@@ -6,7 +6,8 @@ import fr.dossierfacile.common.entity.messaging.QueueMessage;
 import fr.dossierfacile.common.entity.messaging.QueueMessageStatus;
 import fr.dossierfacile.common.entity.messaging.QueueName;
 import fr.dossierfacile.common.repository.QueueMessageRepository;
-import fr.dossierfacile.scheduler.LoggingContext;
+import fr.dossierfacile.common.utils.LoggerUtil;
+import fr.dossierfacile.scheduler.tasks.AbstractTask;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,7 +27,7 @@ import static fr.dossierfacile.scheduler.tasks.TaskName.PDF_GENERATION;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class DocumentTask {
+public class DocumentTask extends AbstractTask {
     private final DocumentRepository documentRepository;
     private final PartnerCallbackService partnerCallbackService;
     private final DocumentDeleteMailService documentDeleteMailService;
@@ -36,25 +37,27 @@ public class DocumentTask {
 
     @Scheduled(cron = "${cron.process.pdf.generation.failed}")
     public void reLaunchFailedPDFGeneration() {
-        LoggingContext.startTask(PDF_GENERATION);
+        super.startTask(PDF_GENERATION);
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime toDateTime = now.minusMinutes(30);
         List<Document> documents = documentRepository.findWithoutPDFToDate(toDateTime);
-        log.info("Relaunch " + documents.size() + " failed documents to " + toDateTime);
+        addDocumentIdListForLogging(documents);
+        log.info("Relaunch {} failed documents to {}", documents.size(), toDateTime);
         documents.forEach(this::sendForPDFGeneration);
-        LoggingContext.endTask();
+        super.endTask();
     }
 
     @Scheduled(cron = "${cron.delete.document.with.failed.pdf}")
     public void deleteDocumentWithFailedPdfGeneration() {
-        LoggingContext.startTask(DELETE_FAILED_DOCUMENT);
+        super.startTask(DELETE_FAILED_DOCUMENT);
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime toDateTime = now.minusHours(delayBeforeDeleteHours);
 
         List<Document> documents = documentRepository.findDocumentWithoutPDFToDate(toDateTime);
         if (CollectionUtils.isEmpty(documents)) {
-            log.info("There is not file with empty pdf");
+            log.info("There is no file with empty pdf");
         } else {
+            addDocumentIdListForLogging(documents);
             Map<Tenant, List<Document>> tenantDocuments = documents.stream()
                     .collect(Collectors.groupingBy(d ->
                             Optional.ofNullable(d.getTenant())
@@ -64,11 +67,11 @@ public class DocumentTask {
             documentRepository.deleteAll(documents);
             tenantDocuments.forEach((tenant, docs) -> partnerCallbackService.sendPartnerCallback(tenant.getId()));
         }
-        LoggingContext.endTask();
+        super.endTask();
     }
 
     private void sendForPDFGeneration(Document document) {
-        log.debug("Sending document with ID [{}] for pdf generation", document.getId());
+        log.info("Sending document with ID [{}] for pdf generation", document.getId());
         queueMessageRepository.save(QueueMessage.builder()
                 .queueName(QueueName.QUEUE_DOCUMENT_WATERMARK_PDF)
                 .documentId(document.getId())

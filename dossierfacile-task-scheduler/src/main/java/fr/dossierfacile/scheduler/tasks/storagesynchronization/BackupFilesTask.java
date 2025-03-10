@@ -5,7 +5,7 @@ import fr.dossierfacile.common.entity.ObjectStorageProvider;
 import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.repository.StorageFileRepository;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
-import fr.dossierfacile.scheduler.LoggingContext;
+import fr.dossierfacile.scheduler.tasks.AbstractTask;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -17,14 +17,13 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static fr.dossierfacile.scheduler.LoggingContext.STORAGE_FILE;
 import static fr.dossierfacile.scheduler.tasks.TaskName.STORAGE_FILES_BACKUP;
 import static fr.dossierfacile.scheduler.tasks.TaskName.STORAGE_FILES_BACKUP_RETRY;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class BackupFilesTask {
+public class BackupFilesTask extends AbstractTask {
     private final StorageFileRepository storageFileRepository;
     private final FileStorageService fileStorageService;
     private final DynamicProviderConfig dynamicProviderConfig;
@@ -35,25 +34,25 @@ public class BackupFilesTask {
 
     @Scheduled(fixedDelayString = "${scheduled.process.storage.backup.delay.ms}", initialDelayString = "${scheduled.process.storage.backup.delay.ms}")
     public void scheduleBackupTask() {
-        LoggingContext.startTask(STORAGE_FILES_BACKUP);
+        super.startTask(STORAGE_FILES_BACKUP);
         Pageable limit = PageRequest.of(0, 100);
         List<StorageFile> storageFiles = storageFileRepository.findAllWithOneProviderAndReady(limit);
         synchronizeFile(storageFiles);
-        LoggingContext.endTask();
+        super.endTask();
     }
 
     @Scheduled(fixedDelayString = "${scheduled.process.storage.backup.retry.failed.copy.delay.minutes}", initialDelayString = "${scheduled.process.storage.backup.retry.failed.copy.delay.minutes}", timeUnit = TimeUnit.MINUTES)
     public void retryFailedCopy() {
-        LoggingContext.startTask(STORAGE_FILES_BACKUP_RETRY);
+        super.startTask(STORAGE_FILES_BACKUP_RETRY);
         Pageable limit = PageRequest.of(0, 100);
         List<StorageFile> storageFiles = storageFileRepository.findAllWithOneProviderAndCopyFailed(limit);
         synchronizeFile(storageFiles);
-        LoggingContext.endTask();
+        super.endTask();
     }
 
     private void synchronizeFile(List<StorageFile> storageFiles) {
+        addFileIdListForLogging(storageFiles);
         storageFiles.forEach(storageFile -> {
-            LoggingContext.put(STORAGE_FILE, storageFile.getId());
             for (ObjectStorageProvider objectStorageProvider : dynamicProviderConfig.getProviders()) {
                 if (isNotPresentOnProvider(storageFile, objectStorageProvider)) {
                     try (InputStream is = fileStorageService.download(storageFile)) {
@@ -63,7 +62,6 @@ public class BackupFilesTask {
                     }
                 }
             }
-            LoggingContext.remove(STORAGE_FILE);
         });
     }
 
