@@ -9,6 +9,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
@@ -30,6 +31,12 @@ public class ResourceServerConfig {
     @Value("${callback.http.auth.token.header.name}")
     private String headerName;
 
+    private final AuthenticationEntryPoint authenticationEntryPoint;
+
+    public ResourceServerConfig(AuthenticationEntryPoint authenticationEntryPoint) {
+        this.authenticationEntryPoint = authenticationEntryPoint;
+    }
+
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -48,10 +55,19 @@ public class ResourceServerConfig {
                         .permitAll()
                         .anyRequest().hasAuthority("SCOPE_dossier")
                 )
-                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(new JwtAuthenticationConverter())));
+                .oauth2ResourceServer(oauth2 ->
+                        oauth2
+                                .jwt(jwt ->
+                                        jwt.jwtAuthenticationConverter(
+                                                new JwtAuthenticationConverter()
+                                        )
+                                )
+                                .authenticationEntryPoint(authenticationEntryPoint)
+                );
 
         return http.build();
     }
+
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
