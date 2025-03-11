@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.dossierfacileapiowner.register;
 
+import fr.dossierfacile.api.dossierfacileapiowner.aop.SensitiveRequest;
 import fr.dossierfacile.api.dossierfacileapiowner.user.OwnerModel;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -21,12 +22,14 @@ import static org.springframework.http.ResponseEntity.ok;
 public class AccountController {
     private final RegisterService registerService;
 
+    @SensitiveRequest
     @PostMapping("/account")
     public ResponseEntity<OwnerModel> account(@Valid @RequestBody AccountForm accountForm) {
         OwnerModel ownerModel = registerService.register(accountForm);
         return ok(ownerModel);
     }
 
+    @SensitiveRequest
     @GetMapping("/confirmAccount/{token}")
     public ResponseEntity<Void> confirmAccount(@PathVariable String token) {
         registerService.confirmAccount(token);
@@ -39,6 +42,7 @@ public class AccountController {
         return ok().build();
     }
 
+    @SensitiveRequest
     @PostMapping(value = "/createPassword/{token}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<OwnerModel> createPassword(@PathVariable String token, @Validated @RequestBody PasswordForm password) {
         OwnerModel ownerModel = registerService.createPassword(token, password.getPassword());
