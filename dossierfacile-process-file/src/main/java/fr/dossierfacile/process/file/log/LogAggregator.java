@@ -5,7 +5,6 @@ import ch.qos.logback.classic.Logger;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.dossierfacile.common.log.CustomAppender;
-import fr.dossierfacile.common.log.LogModel;
 import fr.dossierfacile.common.model.JobContext;
 import fr.dossierfacile.common.model.JobStatus;
 import fr.dossierfacile.common.utils.LoggerUtil;
@@ -14,8 +13,6 @@ import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-
-import java.util.Comparator;
 
 @Component
 @Slf4j

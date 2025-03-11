@@ -37,7 +37,7 @@ public class QueueMessageServiceImpl implements QueueMessageService {
         long toTimestamp = System.currentTimeMillis() - consumptionDelayInMillis;
         QueueMessage message = queueMessageConsumerService.popFirstMessage(queueName, toTimestamp);
         if (message != null) {
-            var jobContext = new JobContext(message.getDocumentId(), message.getFileId(), queueName);
+            var jobContext = new JobContext(message.getDocumentId(), message.getFileId(), queueName.name());
             // We have to add the process Id here because the process will be completed inside another thread to the MDC will not be shared
             LoggerUtil.addProcessId(jobContext.getProcessId());
             try {

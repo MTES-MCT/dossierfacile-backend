@@ -1,6 +1,5 @@
 package fr.dossierfacile.common.model;
 
-import fr.dossierfacile.common.entity.messaging.QueueName;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -13,11 +12,12 @@ public class JobContext {
     @Setter
     private JobStatus jobStatus;
     private final Long startTime;
-    private final Long documentId;
+    @Setter
+    private Long documentId;
     private final Long fileId;
-    private final QueueName queueName;
+    private final String queueName;
 
-    public JobContext(Long documentId, Long fileId, QueueName queueName) {
+    public JobContext(Long documentId, Long fileId, String queueName) {
         this.processId = UUID.randomUUID().toString();
         this.startTime = System.currentTimeMillis();
         this.documentId = documentId;
