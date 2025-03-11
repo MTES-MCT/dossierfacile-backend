@@ -51,6 +51,9 @@ public class LoggerUtil {
     private static final String EXECUTION_TIME = "execution_time";
     private static final String EXECUTION_START = "execution_start";
 
+    private static final String HIDE_REQUEST_PARAMS = "HIDE_REQUEST_PARAMS";
+    private static final String HIDE_RESPONSE_PARAMS = "HIDE_RESPONSE_PARAMS";
+
 
     public static void sendEnrichedLogs(Level level, String message) {
         var rootLogger = (Logger) LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME);
@@ -211,5 +214,21 @@ public class LoggerUtil {
 
     public static void clearMDC() {
         MDC.clear();
+    }
+
+    public static void setRequestParamSensitive() {
+        MDC.put(HIDE_REQUEST_PARAMS, "true");
+    }
+
+    public static void setResponseParamSensitive() {
+        MDC.put(HIDE_RESPONSE_PARAMS, "true");
+    }
+
+    public static boolean isRequestParamSensitive() {
+        return "true".equals(MDC.get(HIDE_REQUEST_PARAMS));
+    }
+
+    public static boolean isResponseParamSensitive() {
+        return "true".equals(MDC.get(HIDE_RESPONSE_PARAMS));
     }
 }
