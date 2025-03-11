@@ -1,6 +1,7 @@
 package fr.dossierfacile.api.pdfgenerator.amqp;
 
 
+import fr.dossierfacile.api.pdfgenerator.log.LogAggregator;
 import fr.dossierfacile.api.pdfgenerator.service.interfaces.DocumentService;
 import fr.dossierfacile.api.pdfgenerator.service.interfaces.PdfGeneratorService;
 import fr.dossierfacile.common.entity.StorageFile;
@@ -20,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 @Slf4j
 public class WatermarkDFDocumentConsumer {
+    private final LogAggregator logAggregator;
     private final PdfGeneratorService pdfGeneratorService;
     private final DocumentService documentService;
     private final QueueMessageService queueMessageService;
@@ -44,7 +46,10 @@ public class WatermarkDFDocumentConsumer {
                         long executionTimestamp = System.currentTimeMillis();
                         StorageFile watermarkFile = pdfGeneratorService.generateBOPdfDocument(documentService.getDocument(msg.getDocumentId()));
                         documentService.saveWatermarkFileAt(executionTimestamp, watermarkFile, msg.getDocumentId());
-                    }, null);
+                    }, (jobContext -> {
+                        log.info("Ending processing");
+                        logAggregator.sendWorkerLogs(jobContext, ActionType.DOCUMENT_WATERMARK);
+                    }));
         } catch (Exception e) {
             log.error("Unable to consume the message queue");
         }

@@ -38,6 +38,7 @@ public class LoggerUtil {
     private static final String PROCESS_DOCUMENT_ID = "document_id";
     private static final String PROCESS_ACTION = "action";
     private static final String PROCESS_JOB_STATUS = "job_status";
+    private static final String PROCESS_APARTMENT_SHARING = "apartment_sharing";
 
     private static final String TASK_NAME = "task_name";
     private static final String TASK_STATUS = "task_status";
@@ -103,7 +104,7 @@ public class LoggerUtil {
         MDC.put(EXECUTION_START, String.valueOf(jobContext.getStartTime()));
         MDC.put(EXECUTION_TIME, String.valueOf(elapsedTime));
         MDC.put(PROCESS_DOCUMENT_ID, String.valueOf(jobContext.getDocumentId()));
-        MDC.put(PROCESS_QUEUE_NAME, jobContext.getQueueName().name());
+        MDC.put(PROCESS_QUEUE_NAME, jobContext.getQueueName());
     }
 
     public static void prepareMDCForScheduledTask(String taskName) {
@@ -202,6 +203,10 @@ public class LoggerUtil {
 
     public static void addTaskStorageFileList(String storageFileList) {
         MDC.put(TASK_STORAGE_FILE_LIST, storageFileList);
+    }
+
+    public static void addApartmentSharing(String apartmentSharing) {
+        MDC.put(PROCESS_APARTMENT_SHARING, apartmentSharing);
     }
 
     public static void clearMDC() {
