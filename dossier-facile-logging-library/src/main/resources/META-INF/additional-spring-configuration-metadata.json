@@ -1,0 +1,22 @@
+{
+  "properties": [
+    {
+      "name": "dossierfacile.logging.request.aggregator",
+      "type": "java.lang.Boolean",
+      "defaultValue": false,
+      "description": "Enable logging aggregation for dossierfacile spring boot api."
+    },
+    {
+      "name": "dossierfacile.logging.job.aggregator",
+      "type": "java.lang.Boolean",
+      "defaultValue": false,
+      "description": "Enable logging aggregation for dossierfacile job processing."
+    },
+    {
+      "name": "dossierfacile.logging.task.aggregator",
+      "type": "java.lang.Boolean",
+      "defaultValue": false,
+      "description": "Enable logging aggregation for dossierfacile scheduled task."
+    }
+  ]
+}

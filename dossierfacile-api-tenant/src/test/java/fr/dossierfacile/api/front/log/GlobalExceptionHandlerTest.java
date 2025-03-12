@@ -4,6 +4,7 @@ import fr.dossierfacile.api.front.controller.UserController;
 import fr.dossierfacile.api.front.exception.UserNotFoundException;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.UserService;
+import fr.dossierfacile.common.config.GlobalExceptionHandler;
 import jakarta.servlet.ServletException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;

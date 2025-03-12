@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.dossierfacileapiowner.config;
 
+import fr.dossierfacile.logging.request.Oauth2LoggingHandler;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,11 +32,7 @@ public class ResourceServerConfig {
     @Value("${callback.http.auth.token.header.name}")
     private String headerName;
 
-    private final AuthenticationEntryPoint authenticationEntryPoint;
-
-    public ResourceServerConfig(AuthenticationEntryPoint authenticationEntryPoint) {
-        this.authenticationEntryPoint = authenticationEntryPoint;
-    }
+    private final AuthenticationEntryPoint authenticationEntryPoint = new Oauth2LoggingHandler();
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {

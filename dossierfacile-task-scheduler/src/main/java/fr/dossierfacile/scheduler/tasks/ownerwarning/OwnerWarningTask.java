@@ -1,7 +1,7 @@
 package fr.dossierfacile.scheduler.tasks.ownerwarning;
 
 import fr.dossierfacile.common.entity.Owner;
-import fr.dossierfacile.common.utils.LoggerUtil;
+import fr.dossierfacile.logging.util.LoggerUtil;
 import fr.dossierfacile.scheduler.tasks.AbstractTask;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

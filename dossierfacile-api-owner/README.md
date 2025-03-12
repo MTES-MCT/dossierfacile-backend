@@ -65,6 +65,9 @@ brevo.template.id.new.applicant.validated=
 brevo.template.id.new.applicant.not.validated=
 brevo.template.id.validated.property=
 brevo.template.id.follow-up.validated.property=
+
+#Enabled the log aggregator for spring boot API
+dossierfacile.logging.aggregator=true
 ```
 # LogStash :
 

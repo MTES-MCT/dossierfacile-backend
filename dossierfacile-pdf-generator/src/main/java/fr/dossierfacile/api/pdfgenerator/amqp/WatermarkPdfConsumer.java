@@ -3,16 +3,16 @@ package fr.dossierfacile.api.pdfgenerator.amqp;
 
 import com.google.gson.Gson;
 import fr.dossierfacile.api.pdfgenerator.amqp.model.DocumentModel;
-import fr.dossierfacile.api.pdfgenerator.log.LogAggregator;
 import fr.dossierfacile.api.pdfgenerator.service.interfaces.PdfGeneratorService;
 import fr.dossierfacile.common.entity.messaging.QueueName;
 import fr.dossierfacile.common.model.JobContext;
 import fr.dossierfacile.common.model.JobStatus;
-import fr.dossierfacile.common.utils.LoggerUtil;
+import fr.dossierfacile.common.utils.JobContextUtil;
+import fr.dossierfacile.logging.job.LogAggregator;
+import fr.dossierfacile.logging.util.LoggerUtil;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -37,7 +37,12 @@ public class WatermarkPdfConsumer {
             log.error(e.getMessage(), e.getCause());
             throw e;
         } finally {
-            logAggregator.sendWorkerLogs(jobContext, ActionType.WATERMARK);
+            logAggregator.sendWorkerLogs(
+                    jobContext.getProcessId(),
+                    ActionType.WATERMARK.name(),
+                    jobContext.getStartTime(),
+                    JobContextUtil.prepareJobAttributes(jobContext)
+            );
         }
     }
 

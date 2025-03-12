@@ -2,7 +2,8 @@ package fr.dossierfacile.process.file.amqp;
 
 import fr.dossierfacile.common.entity.messaging.QueueName;
 import fr.dossierfacile.common.service.interfaces.QueueMessageService;
-import fr.dossierfacile.process.file.log.LogAggregator;
+import fr.dossierfacile.common.utils.JobContextUtil;
+import fr.dossierfacile.logging.job.LogAggregator;
 import fr.dossierfacile.process.file.service.AnalyzeDocumentService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -42,7 +43,12 @@ public class AnalyzeDocumentReceiver {
                         analyzeDocumentService.processDocument(message.getDocumentId());
                     }, (jobContext) -> {
                         log.info("Ending processing");
-                        logAggregator.sendWorkerLogs(jobContext, ActionType.ANALYZE_DOCUMENT);
+                        logAggregator.sendWorkerLogs(
+                                jobContext.getProcessId(),
+                                ActionType.ANALYZE_DOCUMENT.name(),
+                                jobContext.getStartTime(),
+                                JobContextUtil.prepareJobAttributes(jobContext)
+                        );
                     });
         } catch (Exception e) {
             log.error("Unable to consume the message queue");

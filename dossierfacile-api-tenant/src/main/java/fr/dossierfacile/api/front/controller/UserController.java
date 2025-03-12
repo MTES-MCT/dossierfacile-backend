@@ -6,6 +6,7 @@ import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.UserService;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.logging.aop.SensitiveRequest;
 import io.swagger.annotations.ApiOperation;
 import lombok.AllArgsConstructor;
 import org.springframework.http.MediaType;
@@ -37,11 +38,13 @@ public class UserController {
 
     @PostMapping(value = "/createPassword", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation("Set a new Password to logged user")
+    @SensitiveRequest
     public ResponseEntity<TenantModel> createPassword(@Validated @RequestBody PasswordForm password) {
         return ok(userService.createPassword(authenticationFacade.getLoggedTenant(), password.getPassword()));
     }
 
     @PostMapping(value = "/createPassword/{token}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @SensitiveRequest
     public ResponseEntity<TenantModel> createPassword(@PathVariable String token, @Validated @RequestBody PasswordForm password) {
         return ok(userService.createPassword(token, password.getPassword()));
     }

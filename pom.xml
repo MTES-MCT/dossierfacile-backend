@@ -15,6 +15,7 @@
     <version>1.0.0</version>
     <modules>
         <module>dossierfacile-common-library</module>
+        <module>dossier-facile-logging-library</module>
         <module>dossierfacile-bo</module>
         <module>dossierfacile-process-file</module>
         <module>dossierfacile-api-tenant</module>
@@ -64,6 +65,11 @@
             <dependency>
                 <groupId>fr.dossierfacile</groupId>
                 <artifactId>dossierfacile-common-library</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>fr.dossierfacile</groupId>
+                <artifactId>dossier-facile-logging-library</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>

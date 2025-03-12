@@ -27,7 +27,7 @@ public class MinifyFileServiceImpl implements MinifyFileService {
 
     @Override
     public void process(Long fileId) {
-        fileRepository.findById(fileId.longValue())
+        fileRepository.findById(fileId)
                 .ifPresent(file -> {
                     try (InputStream inputStream = fileStorageService.download(file.getStorageFile())) {
                         StorageFile storageFile = documentHelperService.generatePreview(inputStream, file.getStorageFile().getName());

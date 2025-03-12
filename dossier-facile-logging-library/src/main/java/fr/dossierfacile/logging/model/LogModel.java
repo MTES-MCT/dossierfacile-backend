@@ -1,9 +1,9 @@
-package fr.dossierfacile.common.log;
+package fr.dossierfacile.logging.model;
 
 import ch.qos.logback.classic.Level;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import fr.dossierfacile.logging.serializer.LogLevelSerializer;
 import lombok.Getter;
 
 @Getter
