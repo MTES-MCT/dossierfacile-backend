@@ -1,6 +1,6 @@
 package fr.dossierfacile.api.dossierfacileapiowner.register;
 
-import fr.dossierfacile.api.dossierfacileapiowner.aop.SensitiveRequest;
+import fr.dossierfacile.logging.aop.SensitiveRequest;
 import fr.dossierfacile.api.dossierfacileapiowner.user.OwnerModel;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;

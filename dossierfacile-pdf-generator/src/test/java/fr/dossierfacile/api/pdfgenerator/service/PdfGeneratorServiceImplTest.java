@@ -8,7 +8,11 @@ import fr.dossierfacile.common.repository.ApplicationLogRepository;
 import fr.dossierfacile.common.repository.StorageFileRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
-import org.junit.jupiter.api.*;
+import fr.dossierfacile.logging.job.LogAggregator;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
@@ -30,6 +34,9 @@ class PdfGeneratorServiceImplTest {
 
     @MockBean
     ApartmentSharingCommonService apartmentSharingCommonService;
+
+    @MockBean
+    LogAggregator logAggregator;
 
     @MockBean
     TenantCommonRepository tenantRepository;
@@ -59,10 +66,10 @@ class PdfGeneratorServiceImplTest {
 
 
         Assertions.assertEquals(FileStatus.COMPLETED, apartmentSharing.getDossierPdfDocumentStatus());
-        Assertions.assertNotNull( apartmentSharing.getPdfDossierFile());
+        Assertions.assertNotNull(apartmentSharing.getPdfDossierFile());
 
-        file = new File( filePath +  apartmentSharing.getPdfDossierFile().getPath());
-        Assertions.assertTrue (file.exists());
+        file = new File(filePath + apartmentSharing.getPdfDossierFile().getPath());
+        Assertions.assertTrue(file.exists());
     }
 
     @AfterEach

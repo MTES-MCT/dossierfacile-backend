@@ -1,20 +1,19 @@
-package fr.dossierfacile.api.dossierfacileapiowner.log;
+package fr.dossierfacile.logging.request;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import fr.dossierfacile.common.log.CustomAppender;
-import fr.dossierfacile.common.log.LogModel;
-import fr.dossierfacile.common.utils.LoggerUtil;
+import fr.dossierfacile.logging.appender.CustomAppender;
+import fr.dossierfacile.logging.model.LogModel;
+import fr.dossierfacile.logging.util.LoggerUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
-import lombok.extern.java.Log;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingRequestWrapper;
@@ -22,10 +21,12 @@ import org.springframework.web.util.ContentCachingResponseWrapper;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
+@ConditionalOnProperty(name = "dossierfacile.logging.request.aggregator", havingValue = "true")
 public class LogAggregationFilter extends OncePerRequestFilter {
     private Logger rootLogger;
     private CustomAppender customAppender;
@@ -44,8 +45,16 @@ public class LogAggregationFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException {
+    protected void doFilterInternal(
+            @NonNull HttpServletRequest request,
+            @NonNull HttpServletResponse response,
+            FilterChain filterChain
+    ) throws ServletException, IOException {
+
+        var mdcRequestId = LoggerUtil.getRequestId();
+        if (mdcRequestId == null) {
+            LoggerUtil.prepareMDCForHttpRequest(request, Collections.emptyMap());
+        }
 
         // We need to use this wrapper because we can only read the request body input stream once.
         // So if we read it inside the filter, the controller will not be able to read it.
@@ -64,7 +73,7 @@ public class LogAggregationFilter extends OncePerRequestFilter {
             List<LogModel> logs = customAppender.getLogsForUniqueIdentifier(requestId);
             String logMessages = objectMapper.writeValueAsString(logs);
 
-            if(!LoggerUtil.isRequestParamSensitive()) {
+            if (!LoggerUtil.isRequestParamSensitive()) {
                 var requestParameters = request.getQueryString();
                 if (requestParameters != null && !requestParameters.isEmpty()) {
                     LoggerUtil.addRequestParams(requestParameters);
@@ -84,11 +93,9 @@ public class LogAggregationFilter extends OncePerRequestFilter {
             var responseType = response.getContentType();
             if (responseType != null) {
                 LoggerUtil.addResponseContentType(responseType);
-                if(!LoggerUtil.isResponseParamSensitive()) {
-                    if (responseType.contains("application/json")) {
-                        var responseBody = getResponseBody(responseWrapped);
-                        LoggerUtil.addResponseBody(responseBody);
-                    }
+                if (!LoggerUtil.isResponseParamSensitive() && responseType.contains("application/json")) {
+                    var responseBody = getResponseBody(responseWrapped);
+                    LoggerUtil.addResponseBody(responseBody);
                 }
             }
 

@@ -1,6 +1,6 @@
 package fr.dossierfacile.common.config;
 
-import fr.dossierfacile.common.utils.LoggerUtil;
+import fr.dossierfacile.logging.util.LoggerUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpFilter;
@@ -26,6 +26,7 @@ public abstract class AbstractConnectionContextFilter extends HttpFilter {
         }
 
         try {
+            // We initialize the MDC with the request id here to get the first logs of the request
             LoggerUtil.prepareMDCForHttpRequest(request, getAdditionalContextElements());
             String requestUri = request.getRequestURI();
             if ("/error".equals(requestUri) && request.getAttribute(JAKARTA_SERVLET_FORWARD_REQUEST_URI) != null) {

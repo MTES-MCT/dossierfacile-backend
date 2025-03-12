@@ -1,0 +1,10 @@
+{
+  "properties": [
+    {
+      "name": "dossierfacile.common.global.exception.handler",
+      "type": "java.lang.Boolean",
+      "defaultValue": false,
+      "description": "Enable spring boot global exception handler."
+    }
+  ]
+}

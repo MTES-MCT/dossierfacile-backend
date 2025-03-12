@@ -6,7 +6,6 @@ import fr.dossierfacile.common.entity.messaging.QueueMessage;
 import fr.dossierfacile.common.entity.messaging.QueueMessageStatus;
 import fr.dossierfacile.common.entity.messaging.QueueName;
 import fr.dossierfacile.common.repository.QueueMessageRepository;
-import fr.dossierfacile.common.utils.LoggerUtil;
 import fr.dossierfacile.scheduler.tasks.AbstractTask;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

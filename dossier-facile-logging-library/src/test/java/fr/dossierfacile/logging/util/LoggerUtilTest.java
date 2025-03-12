@@ -1,4 +1,4 @@
-package fr.dossierfacile.common.utils;
+package fr.dossierfacile.logging.util;
 
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -8,7 +8,7 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class LoggerUtilTest {
+class LoggerUtilTest {
 
 
     static Stream<Arguments> provideUrisForNormalization() {
@@ -23,6 +23,7 @@ public class LoggerUtilTest {
                 Arguments.of("/preview/12/file/a79b75f3-bd1d-470e-9cd1-569672200d87", "/preview/{id}/file/{uuid}"), // UUID
                 Arguments.of("/preview/a79b75f3-bd1d-470e-9cd1-569672200d87/file/a79b75f3-bd1d-470e-9cd1-569672200d87", "/preview/{uuid}/file/{uuid}"), // plusieurs UUID
                 Arguments.of("/email/nicolas.sagon@gmail.com", "/email/{email}"),
+                Arguments.of("/email/nicolas@gmail.com.fr.de", "/email/{email}"),
                 Arguments.of("/email/nicolas.sagon@gmail.com/profile", "/email/{email}/profile"),
                 Arguments.of("/email/nicolas.sagon@gmail.com/profile/123/a79b75f3-bd1d-470e-9cd1-569672200d87", "/email/{email}/profile/{id}/{uuid}")
         );

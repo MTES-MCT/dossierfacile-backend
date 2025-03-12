@@ -1,11 +1,10 @@
-package fr.dossierfacile.common.utils;
+package fr.dossierfacile.logging.util;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.spi.LoggingEvent;
-import fr.dossierfacile.common.log.LogModel;
-import fr.dossierfacile.common.model.JobContext;
+import fr.dossierfacile.logging.model.LogModel;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -16,12 +15,13 @@ import java.util.Map;
 import java.util.UUID;
 
 public class LoggerUtil {
+
     public static final String REQUEST_ID = "request_id";
     public static final String PROCESS_ID = "process_id";
 
     private static final String NUMBER_REGEX = "(?<=/)(\\d+)(?=[/?]|$)";
     private static final String UUID_REGEX = "(?<=/)([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12})(?=[/?]|$)";
-    private static final String EMAIL_REGEX = "(?<=/)([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})(?=[/?]|$)";
+    private static final String EMAIL_REGEX = "(?<=/)([a-zA-Z0-9](?:[a-zA-Z0-9._%+-]*[a-zA-Z0-9])?@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})(?=[/?]|$)";
 
     private static final String API_URL = "uri";
     private static final String API_NORMALIZED_URI = "normalized_uri";
@@ -33,11 +33,11 @@ public class LoggerUtil {
     private static final String API_RESPONSE_CONTENT_TYPE = "response_content_type";
     private static final String API_RESPONSE_BODY = "response_body";
 
-    private static final String PROCESS_QUEUE_NAME = "queue_name";
-    private static final String PROCESS_FILE_ID = "file_id";
-    private static final String PROCESS_DOCUMENT_ID = "document_id";
+    public static final String PROCESS_QUEUE_NAME = "queue_name";
+    public static final String PROCESS_FILE_ID = "file_id";
+    public static final String PROCESS_DOCUMENT_ID = "document_id";
     private static final String PROCESS_ACTION = "action";
-    private static final String PROCESS_JOB_STATUS = "job_status";
+    public static final String PROCESS_JOB_STATUS = "job_status";
     private static final String PROCESS_APARTMENT_SHARING = "apartment_sharing";
 
     private static final String TASK_NAME = "task_name";
@@ -53,6 +53,8 @@ public class LoggerUtil {
 
     private static final String HIDE_REQUEST_PARAMS = "HIDE_REQUEST_PARAMS";
     private static final String HIDE_RESPONSE_PARAMS = "HIDE_RESPONSE_PARAMS";
+
+    private LoggerUtil() {}
 
 
     public static void sendEnrichedLogs(Level level, String message) {
@@ -100,14 +102,12 @@ public class LoggerUtil {
         additionalContextElements.forEach(MDC::put);
     }
 
-    public static void prepareMDCForWorker(JobContext jobContext, String actionType) {
-        var elapsedTime = System.currentTimeMillis() - jobContext.getStartTime();
-        MDC.put(PROCESS_FILE_ID, String.valueOf(jobContext.getFileId()));
+    public static void prepareMDCForWorker(String actionType, Long startTime, Map<String, String> jobAttributes) {
+        var elapsedTime = System.currentTimeMillis() - startTime;
         MDC.put(PROCESS_ACTION, actionType);
-        MDC.put(EXECUTION_START, String.valueOf(jobContext.getStartTime()));
+        MDC.put(EXECUTION_START, String.valueOf(startTime));
         MDC.put(EXECUTION_TIME, String.valueOf(elapsedTime));
-        MDC.put(PROCESS_DOCUMENT_ID, String.valueOf(jobContext.getDocumentId()));
-        MDC.put(PROCESS_QUEUE_NAME, jobContext.getQueueName());
+        jobAttributes.forEach(MDC::put);
     }
 
     public static void prepareMDCForScheduledTask(String taskName) {
@@ -144,6 +144,7 @@ public class LoggerUtil {
     public static void addExecutionTime(long responseTime) {
         MDC.put(EXECUTION_TIME, String.valueOf(responseTime));
     }
+
     public static String getExecutionTime() {
         return MDC.get(EXECUTION_TIME);
     }

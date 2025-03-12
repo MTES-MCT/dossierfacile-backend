@@ -1,16 +1,22 @@
-package fr.dossierfacile.scheduler.log;
+package fr.dossierfacile.logging.job;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import fr.dossierfacile.common.log.CustomAppender;
-import fr.dossierfacile.common.utils.LoggerUtil;
-import jakarta.annotation.PostConstruct;
+import fr.dossierfacile.logging.appender.CustomAppender;
+import fr.dossierfacile.logging.util.LoggerUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
+import java.util.Map;
+
+@Slf4j
 @Component
+@ConditionalOnProperty(name = "dossierfacile.logging.job.aggregator", havingValue = "true")
 public class LogAggregator {
 
     private Logger rootLogger;
@@ -29,29 +35,28 @@ public class LogAggregator {
         rootLogger.addAppender(customAppender);
     }
 
-    public void sendLogs() {
-        var processId = LoggerUtil.getProcessId();
+    public void sendWorkerLogs(
+            String processId,
+            String actionType,
+            Long startTime,
+            Map<String, String> jobAttributes
+    ) {
+        LoggerUtil.prepareMDCForWorker(actionType, startTime, jobAttributes);
         var logs = customAppender.getLogsForUniqueIdentifier(processId);
+
         try {
             var logMessages = objectMapper.writeValueAsString(logs);
             LoggerUtil.addLogs(logMessages);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            log.error("Error while sending worker logs", e);
         }
 
-        TaskStatus taskStatus = logs.stream().anyMatch(item -> item.getLevel() == Level.ERROR) ? TaskStatus.ERROR : TaskStatus.SUCCESS;
-        LoggerUtil.addTaskStatus(taskStatus.name());
-
-        var currentTime = System.currentTimeMillis();
-        var executionTime = currentTime - Long.parseLong(LoggerUtil.getExecutionStartTime());
-
-        LoggerUtil.addExecutionTime(executionTime);
-
         String enrichedLogs = String.format(
-                "Task %s completed with status %s in %s ms",
-                LoggerUtil.getTaskName(),
-                taskStatus.name(),
-                executionTime
+                "Action %s on Queue %s completed with status %s in %s ms",
+                LoggerUtil.getProcessAction(),
+                LoggerUtil.getProcessQueueName(),
+                LoggerUtil.getProcessJobStatus(),
+                LoggerUtil.getExecutionTime()
         );
 
         Level logLevel = LoggerUtil.getLogLevel(logs);
@@ -60,4 +65,5 @@ public class LogAggregator {
         customAppender.clearLogsForRequest(processId);
         LoggerUtil.clearMDC();
     }
+
 }
