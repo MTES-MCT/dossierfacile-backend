@@ -1,4 +1,4 @@
-package fr.dossierfacile.api.dossierfacileapiowner.aop;
+package fr.dossierfacile.logging.aop;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

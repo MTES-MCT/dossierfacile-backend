@@ -1,12 +1,12 @@
 package fr.dossierfacile.api.pdfgenerator.amqp;
 
-
-import fr.dossierfacile.api.pdfgenerator.log.LogAggregator;
 import fr.dossierfacile.api.pdfgenerator.service.interfaces.DocumentService;
 import fr.dossierfacile.api.pdfgenerator.service.interfaces.PdfGeneratorService;
 import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.entity.messaging.QueueName;
 import fr.dossierfacile.common.service.interfaces.QueueMessageService;
+import fr.dossierfacile.common.utils.JobContextUtil;
+import fr.dossierfacile.logging.job.LogAggregator;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,7 +48,12 @@ public class WatermarkDFDocumentConsumer {
                         documentService.saveWatermarkFileAt(executionTimestamp, watermarkFile, msg.getDocumentId());
                     }, (jobContext -> {
                         log.info("Ending processing");
-                        logAggregator.sendWorkerLogs(jobContext, ActionType.DOCUMENT_WATERMARK);
+                        logAggregator.sendWorkerLogs(
+                                jobContext.getProcessId(),
+                                ActionType.DOCUMENT_WATERMARK.name(),
+                                jobContext.getStartTime(),
+                                JobContextUtil.prepareJobAttributes(jobContext)
+                        );
                     }));
         } catch (Exception e) {
             log.error("Unable to consume the message queue");

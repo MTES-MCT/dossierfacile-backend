@@ -1,6 +1,6 @@
-package fr.dossierfacile.api.dossierfacileapiowner.aop;
+package fr.dossierfacile.logging.aop;
 
-import fr.dossierfacile.common.utils.LoggerUtil;
+import fr.dossierfacile.logging.util.LoggerUtil;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;

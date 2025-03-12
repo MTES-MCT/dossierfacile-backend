@@ -1,4 +1,4 @@
-package fr.dossierfacile.common.log;
+package fr.dossierfacile.logging.serializer;
 
 import ch.qos.logback.classic.Level;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 
 import java.io.IOException;
 
-public class LogLevelSerializer  extends JsonSerializer<Level> {
+public class LogLevelSerializer extends JsonSerializer<Level> {
 
     @Override
     public void serialize(Level value, JsonGenerator gen, SerializerProvider serializers) throws IOException {

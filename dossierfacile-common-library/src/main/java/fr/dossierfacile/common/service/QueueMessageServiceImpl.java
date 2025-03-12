@@ -9,14 +9,11 @@ import fr.dossierfacile.common.model.JobStatus;
 import fr.dossierfacile.common.repository.QueueMessageRepository;
 import fr.dossierfacile.common.service.interfaces.QueueMessageConsumerService;
 import fr.dossierfacile.common.service.interfaces.QueueMessageService;
-import fr.dossierfacile.common.utils.LoggerUtil;
+import fr.dossierfacile.logging.util.LoggerUtil;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
 
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -43,6 +40,7 @@ public class QueueMessageServiceImpl implements QueueMessageService {
             try {
                 this.consumeMessageWithTimeout(queueName, consumer, consumptionTimeout, message, jobContext);
                 queueMessageRepository.delete(message);
+                jobContext.setJobStatus(JobStatus.SUCCESS);
             } catch (InterruptedException e) {
                 message.setStatus(QueueMessageStatus.FAILED);
                 queueMessageRepository.save(message);

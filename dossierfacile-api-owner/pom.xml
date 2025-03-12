@@ -24,6 +24,10 @@
             <artifactId>dossierfacile-common-library</artifactId>
         </dependency>
         <dependency>
+            <groupId>fr.dossierfacile</groupId>
+            <artifactId>dossier-facile-logging-library</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>

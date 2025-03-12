@@ -2,6 +2,7 @@ package fr.dossierfacile.api.front.config;
 
 import fr.dossierfacile.api.front.config.filter.ConnectionContextFilter;
 import fr.dossierfacile.api.front.security.PartnerAuthorizationManager;
+import fr.dossierfacile.logging.request.Oauth2LoggingHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -34,7 +35,7 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @Slf4j
 public class ResourceServerConfig {
 
-    private final AuthenticationEntryPoint authenticationEntryPoint;
+    private final AuthenticationEntryPoint authenticationEntryPoint = new Oauth2LoggingHandler();
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
