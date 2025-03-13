@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
-public class TenantPermissionsServiceImplTest {
+class TenantPermissionsServiceImplTest {
 
     private TenantPermissionsServiceImpl tenantPermissionsService;
     private TenantService tenantService;
@@ -86,7 +86,7 @@ public class TenantPermissionsServiceImplTest {
     void shouldReturnTrueWhenCoupleTryToAccessTheirTenant() {
         String keycloakUserId = "user_id";
         Long tenantId = 1L;
-        Long OtherTenantId = 2L;
+        Long otherTenantId = 2L;
 
         var apartmentSharing = ApartmentSharing.builder()
                 .id(1L)
@@ -98,7 +98,7 @@ public class TenantPermissionsServiceImplTest {
         tenant1.setApartmentSharing(apartmentSharing);
 
         Tenant tenant2 = new Tenant();
-        tenant2.setId(OtherTenantId);
+        tenant2.setId(otherTenantId);
         tenant2.setApartmentSharing(apartmentSharing);
 
         apartmentSharing.setTenants(List.of(tenant1, tenant2));
@@ -114,7 +114,7 @@ public class TenantPermissionsServiceImplTest {
     void shouldReturnFalseWhenCoupleTryToAccessOtherTenant() {
         String keycloakUserId = "user_id";
         Long tenantId = 1L;
-        Long OtherTenantId = 2L;
+        Long otherTenantId = 2L;
 
         var apartmentSharing = ApartmentSharing.builder()
                 .id(1L)
@@ -126,7 +126,7 @@ public class TenantPermissionsServiceImplTest {
         tenant1.setApartmentSharing(apartmentSharing);
 
         Tenant tenant2 = new Tenant();
-        tenant2.setId(OtherTenantId);
+        tenant2.setId(otherTenantId);
         tenant2.setApartmentSharing(apartmentSharing);
 
         apartmentSharing.setTenants(List.of(tenant1, tenant2));

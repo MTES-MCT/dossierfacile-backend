@@ -1,25 +1,27 @@
 package fr.dossierfacile.parameterizedtest;
 
+import lombok.Getter;
 import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
 import java.util.List;
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
+@Getter
 public class ControllerParameter<T> {
 
-    public T parameterData;
-    public int status;
-    public RequestPostProcessor requestPostProcessor;
-    public Function<Void, Void> setupMock;
-    public List<ResultMatcher> resultMatchers;
-    public Function<Void, Void> mockVerifications = null;
+    private T parameterData;
+    private int status;
+    private RequestPostProcessor requestPostProcessor;
+    private UnaryOperator<Void> setupMock;
+    private List<ResultMatcher> resultMatchers;
+    private UnaryOperator<Void> mockVerifications = null;
 
     public ControllerParameter(
             T parameterData,
             int status,
             RequestPostProcessor requestPostProcessor,
-            Function<Void, Void> setupMock,
+            UnaryOperator<Void> setupMock,
             List<ResultMatcher> resultMatchers
     ) {
         this.parameterData = parameterData;
@@ -33,9 +35,9 @@ public class ControllerParameter<T> {
             T parameterData,
             int status,
             RequestPostProcessor requestPostProcessor,
-            Function<Void, Void> setupMock,
+            UnaryOperator<Void> setupMock,
             List<ResultMatcher> resultMatchers,
-            Function<Void, Void> mockVerifications
+            UnaryOperator<Void> mockVerifications
     ) {
         this.parameterData = parameterData;
         this.status = status;

@@ -31,6 +31,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
@@ -55,7 +56,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 @ContextConfiguration(classes = {TestApplication.class, TenantMapperImpl.class, VersionedCategoriesMapper.class, PropertyOMapperImpl.class, GlobalExceptionHandler.class})
 @TestPropertySource(properties = {"application.api.version = 4", "dossierfacile.common.global.exception.handler=true"})
-public class TenantControllerTest {
+class TenantControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -176,8 +177,8 @@ public class TenantControllerTest {
             var mockMvcRequestBuilder = get("/api/tenant/profile")
                     .contentType("application/json");
 
-            if (parameter.parameterData.params != null) {
-                mockMvcRequestBuilder.params(parameter.parameterData.params);
+            if (parameter.getParameterData().params != null) {
+                mockMvcRequestBuilder.params(parameter.getParameterData().params);
             }
 
             ParameterizedTestHelper.runControllerTest(
@@ -262,8 +263,8 @@ public class TenantControllerTest {
         void parameterizedTests(ControllerParameter<GetInfoOfPropertyAndOwnerParameter> parameter) throws Exception {
 
             var urlTemplate = "/api/tenant/property/";
-            if (parameter.parameterData != null) {
-                urlTemplate += parameter.parameterData.token;
+            if (parameter.getParameterData() != null) {
+                urlTemplate += parameter.getParameterData().token;
             }
 
             var mockMvcRequestBuilder = get(urlTemplate)
@@ -346,8 +347,8 @@ public class TenantControllerTest {
         void parameterizedTests(ControllerParameter<DeleteTestParam> parameter) throws Exception {
 
             var urlTemplate = "/api/tenant/deleteCoTenant/";
-            if (parameter.parameterData != null) {
-                urlTemplate += parameter.parameterData.id;
+            if (parameter.getParameterData() != null) {
+                urlTemplate += parameter.getParameterData().id;
             }
 
             var mockMvcRequestBuilder = delete(urlTemplate)
@@ -414,8 +415,8 @@ public class TenantControllerTest {
             var mockMvcRequestBuilder = post("/api/tenant/linkFranceConnect")
                     .contentType("application/json");
 
-            if (parameter.parameterData.url != null) {
-                mockMvcRequestBuilder.content("{\"url\":\"" + parameter.parameterData.url + "\"}");
+            if (parameter.getParameterData().url != null) {
+                mockMvcRequestBuilder.content("{\"url\":\"" + parameter.getParameterData().url + "\"}");
             }
 
             ParameterizedTestHelper.runControllerTest(
@@ -474,19 +475,6 @@ public class TenantControllerTest {
                                     Collections.emptyList()
                             )
                     ),
-                    /*Pair.of("Should respond 400 when invalid payload",
-                            new ControllerParameter<>(
-                                    new SendFileByMailParam(null, null),
-                                    400,
-                                    jwtTokenWithDossier,
-                                    (v) -> {
-                                        when(authenticationFacade.getLoggedTenant()).thenReturn(tenant);
-                                        doThrow(new MailSentLimitException()).when(tenantService).sendFileByMail(tenant, "test@test.com", "SHARE_TYPE");
-                                        return v;
-                                    },
-                                    Collections.emptyList()
-                            )
-                    ),*/
                     Pair.of("Should respond 200 when file is sent successfully",
                             new ControllerParameter<>(
                                     new SendFileByMailParam("test@test.com", "SHARE_TYPE"),
@@ -509,9 +497,9 @@ public class TenantControllerTest {
             var mockMvcRequestBuilder = post("/api/tenant/sendFileByMail")
                     .contentType("application/json");
 
-            if (parameter.parameterData != null) {
+            if (parameter.getParameterData() != null) {
                 Gson gson = new Gson();
-                mockMvcRequestBuilder.content(gson.toJson(parameter.parameterData));
+                mockMvcRequestBuilder.content(gson.toJson(parameter.getParameterData()));
             }
 
             ParameterizedTestHelper.runControllerTest(
@@ -558,7 +546,7 @@ public class TenantControllerTest {
                                     },
                                     List.of(
                                             // We do not test the exact date because the json serializer of spring boot does not serialize the date in the same way
-                                            content().string(gson.toJson(expectedProcessingTime))
+                                            content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)
                                     )
                             )
                     ),
@@ -583,7 +571,7 @@ public class TenantControllerTest {
         @MethodSource("provideExpectedProcessingTimeParameters")
         void parameterizedTests(ControllerParameter<ExpectedProcessingTimeParam> parameter) throws Exception {
 
-            var urlTemplate = "/api/tenant/" + parameter.parameterData.tenantId + "/expectedProcessingTime";
+            var urlTemplate = "/api/tenant/" + parameter.getParameterData().tenantId + "/expectedProcessingTime";
 
             var mockMvcRequestBuilder = get(urlTemplate)
                     .contentType("application/json");
@@ -644,8 +632,8 @@ public class TenantControllerTest {
         void parameterizedTests(ControllerParameter<DoNotArchiveParam> parameter) throws Exception {
 
             var urlTemplate = "/api/tenant/doNotArchive/";
-            if (parameter.parameterData.token != null) {
-                urlTemplate += parameter.parameterData.token;
+            if (parameter.getParameterData().token != null) {
+                urlTemplate += parameter.getParameterData().token;
             }
 
             var mockMvcRequestBuilder = get(urlTemplate)

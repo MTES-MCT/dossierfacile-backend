@@ -16,7 +16,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.keycloak.common.util.KeycloakUriBuilder;
 import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -38,20 +37,20 @@ import java.util.*;
 
 import static fr.dossierfacile.authentification.JwtFactoryKt.getDummyJwt;
 import static fr.dossierfacile.authentification.JwtFactoryKt.getDummyJwtWithCustomClaims;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
 @TestPropertySource(properties = {"keycloak.server.url= http://localhost:8085/auth", "keycloak.franceconnect.provider= oidc", "keycloak.server.realm= test"})
-public class AuthentificationFacadeImplTest {
+class AuthenticationFacadeImplTest {
 
-    private final static TenantCommonRepository tenantCommonRepository = mock(TenantCommonRepository.class);
-    private final static TenantPermissionsService tenantPermissionsService = mock(TenantPermissionsService.class);
-    private final static TenantStatusService tenantStatusService = mock(TenantStatusService.class);
-    private final static TenantService tenantService = mock(TenantService.class);
-    private final static LogService logService = mock(LogService.class);
-    private final static DocumentService documentService = mock(DocumentService.class);
+    private static final TenantCommonRepository tenantCommonRepository = mock(TenantCommonRepository.class);
+    private static final TenantPermissionsService tenantPermissionsService = mock(TenantPermissionsService.class);
+    private static final TenantStatusService tenantStatusService = mock(TenantStatusService.class);
+    private static final TenantService tenantService = mock(TenantService.class);
+    private static final LogService logService = mock(LogService.class);
+    private static final DocumentService documentService = mock(DocumentService.class);
 
     @Autowired
     private AuthenticationFacade authenticationFacade;
@@ -641,8 +640,7 @@ public class AuthentificationFacadeImplTest {
             assertThat(((Tenant) result).getKeycloakId()).isEqualTo(keycloakUser.getKeycloakId());
         }
 
-        // According to the code this test should passe but check comment on matches method
-        @Disabled
+        @Disabled("This test should pass but the matches method is not working as expected")
         @Test
         void shouldUpdateTenantAndResetDocumentsError() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
             var tenant = Tenant.builder()
@@ -735,11 +733,13 @@ public class AuthentificationFacadeImplTest {
             assertThat(actualBaseUrl).isEqualTo("http://localhost:8085/auth/realms/test/broker/oidc/link");
 
             var params = UriComponentsBuilder.fromUri(uriResult).build().getQueryParams().toSingleValueMap();
-            assertThat(params.size()).isEqualTo(4);
-            assertThat(params.get("nonce")).isNotBlank();
-            assertThat(params.get("hash")).isNotBlank();
-            assertThat(params.get("client_id")).isEqualTo("testAzp");
-            assertThat(params.get("redirect_uri")).isEqualTo("redirectUri");
+            assertThat(params)
+                    .hasSize(4)
+                    .containsKey("nonce")
+                    .containsKey("hash")
+                    .containsEntry("client_id", "testAzp")
+                    .containsEntry("redirect_uri", "redirectUri");
+
         }
 
     }

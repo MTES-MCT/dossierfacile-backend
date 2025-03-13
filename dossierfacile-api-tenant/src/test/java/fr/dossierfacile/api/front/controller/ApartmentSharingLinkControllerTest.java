@@ -190,14 +190,14 @@ public class ApartmentSharingLinkControllerTest {
         void parameterizedTests(ControllerParameter<UpdateApartmentSharingLinksStatusTestParameter> parameter) throws Exception {
 
             var url = "/api/application/links";
-            if (parameter.parameterData.id != null) {
-                url += "/" + parameter.parameterData.id;
+            if (parameter.getParameterData().id != null) {
+                url += "/" + parameter.getParameterData().id;
             }
             var mockMvcRequestBuilder = put(url)
                     .contentType("application/json");
 
-            if (parameter.parameterData.enabled != null) {
-                mockMvcRequestBuilder = mockMvcRequestBuilder.param("enabled", String.valueOf(parameter.parameterData.enabled));
+            if (parameter.getParameterData().enabled != null) {
+                mockMvcRequestBuilder = mockMvcRequestBuilder.param("enabled", String.valueOf(parameter.getParameterData().enabled));
             }
 
             ParameterizedTestHelper.runControllerTest(

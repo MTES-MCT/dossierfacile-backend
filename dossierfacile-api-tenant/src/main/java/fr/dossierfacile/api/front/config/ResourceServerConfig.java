@@ -36,7 +36,7 @@ public class ResourceServerConfig {
 
     private final AuthenticationEntryPoint authenticationEntryPoint = new Oauth2LoggingHandler();
 
-    @Value("{resource.server.config.csp}")
+    @Value("${resource.server.config.csp}")
     private String configCsp;
 
     @Bean

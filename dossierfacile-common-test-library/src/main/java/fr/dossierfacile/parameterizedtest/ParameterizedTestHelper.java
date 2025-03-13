@@ -8,26 +8,29 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class ParameterizedTestHelper {
+
+    private ParameterizedTestHelper() {}
+
     public static <T> void runControllerTest(
             MockMvc mockMvc,
             MockHttpServletRequestBuilder mockMvcRequestBuilder,
             ControllerParameter<T> parameter
     ) throws Exception {
-        if (parameter.setupMock != null) {
-            parameter.setupMock.apply(null);
+        if (parameter.getSetupMock() != null) {
+            parameter.getSetupMock().apply(null);
         }
 
-        if (parameter.requestPostProcessor != null) {
-            mockMvcRequestBuilder.with(parameter.requestPostProcessor);
+        if (parameter.getRequestPostProcessor() != null) {
+            mockMvcRequestBuilder.with(parameter.getRequestPostProcessor());
         }
 
         mockMvc.perform(mockMvcRequestBuilder)
                 .andDo(print())
-                .andExpect(status().is(parameter.status))
-                .andExpectAll(parameter.resultMatchers.toArray(ResultMatcher[]::new));
+                .andExpect(status().is(parameter.getStatus()))
+                .andExpectAll(parameter.getResultMatchers().toArray(ResultMatcher[]::new));
 
-        if (parameter.mockVerifications != null) {
-            parameter.mockVerifications.apply(null);
+        if (parameter.getMockVerifications() != null) {
+            parameter.getMockVerifications().apply(null);
         }
     }
 }
