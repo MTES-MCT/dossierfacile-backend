@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
-public class ClientAuthentificationFacadeImplTest {
+class ClientAuthenticationFacadeImplTest {
 
     private static final UserApiService userApiService = mock(UserApiService.class);
 
@@ -142,8 +142,9 @@ public class ClientAuthentificationFacadeImplTest {
             SecurityContextHolder.setContext(new SecurityContextImpl(new JwtAuthenticationToken(jwt, Collections.emptyList())));
 
             var result = clientAuthenticationFacade.getApiVersion();
-            assertThat(result).isPresent();
-            assertThat(result.get()).isEqualTo(1);
+            assertThat(result)
+                    .isPresent()
+                    .contains(1);
         }
 
         @Test

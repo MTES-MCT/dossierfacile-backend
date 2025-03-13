@@ -47,7 +47,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 @ContextConfiguration(classes = {TestApplication.class, PartnerSettingsMapperImpl.class, ResourceServerConfig.class, PartnerSettings.class, GlobalExceptionHandler.class})
 @TestPropertySource(properties = {"dossierfacile.common.global.exception.handler=true"})
-public class DfcSettingsControllerTest {
+class DfcSettingsControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -234,8 +234,8 @@ public class DfcSettingsControllerTest {
             var mockMvcRequestBuilder = patch("/dfc/api/v1/settings")
                     .contentType("application/json");
 
-            if (parameter.parameterData.settings != null) {
-                mockMvcRequestBuilder.content(mapper.writeValueAsString(parameter.parameterData.settings));
+            if (parameter.getParameterData().settings != null) {
+                mockMvcRequestBuilder.content(mapper.writeValueAsString(parameter.getParameterData().settings));
             }
 
             ParameterizedTestHelper.runControllerTest(
