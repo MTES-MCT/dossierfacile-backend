@@ -43,7 +43,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 @ContextConfiguration(classes = {TestApplication.class, GlobalExceptionHandler.class})
 @TestPropertySource(properties = {"dossierfacile.common.global.exception.handler=true"})
-public class UserControllerTest {
+class UserControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -131,8 +131,8 @@ public class UserControllerTest {
             var mockMvcRequestBuilder = post("/api/user/forgotPassword")
                     .contentType("application/json");
 
-            if (parameter.parameterData.email != null) {
-                mockMvcRequestBuilder.content("{\"email\": \"" + parameter.parameterData.email + "\"}");
+            if (parameter.getParameterData().email != null) {
+                mockMvcRequestBuilder.content("{\"email\": \"" + parameter.getParameterData().email + "\"}");
             }
 
             ParameterizedTestHelper.runControllerTest(
@@ -233,8 +233,8 @@ public class UserControllerTest {
             var mockMvcRequestBuilder = post("/api/user/createPassword")
                     .contentType("application/json");
 
-            if (parameter.parameterData.password != null) {
-                mockMvcRequestBuilder.content("{\"password\": \"" + parameter.parameterData.password + "\"}");
+            if (parameter.getParameterData().password != null) {
+                mockMvcRequestBuilder.content("{\"password\": \"" + parameter.getParameterData().password + "\"}");
             }
 
             ParameterizedTestHelper.runControllerTest(
@@ -334,11 +334,11 @@ public class UserControllerTest {
         @MethodSource("provideCreatePasswordWithTokenParameters")
         void parameterizedTests(ControllerParameter<CreatePasswordWithTokenParameter> parameter) throws Exception {
 
-            var mockMvcRequestBuilder = post("/api/user/createPassword/" + parameter.parameterData.token)
+            var mockMvcRequestBuilder = post("/api/user/createPassword/" + parameter.getParameterData().token)
                     .contentType("application/json");
 
-            if (parameter.parameterData.password != null) {
-                mockMvcRequestBuilder.content("{\"password\": \"" + parameter.parameterData.password + "\"}");
+            if (parameter.getParameterData().password != null) {
+                mockMvcRequestBuilder.content("{\"password\": \"" + parameter.getParameterData().password + "\"}");
             }
 
             ParameterizedTestHelper.runControllerTest(

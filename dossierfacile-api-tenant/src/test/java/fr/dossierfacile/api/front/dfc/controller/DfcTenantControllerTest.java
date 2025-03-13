@@ -55,7 +55,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 @TestPropertySource(properties = {"application.api.version= 4", "dossierfacile.common.global.exception.handler=true"})
 @ContextConfiguration(classes = {TestApplication.class, TenantMapperImpl.class, VersionedCategoriesMapper.class, ResourceServerConfig.class, MethodSecurityConfig.class, GlobalExceptionHandler.class})
-public class DfcTenantControllerTest {
+class DfcTenantControllerTest {
 
     @Autowired
     private MockMvc mockMvc;

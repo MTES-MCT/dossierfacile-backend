@@ -39,7 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
-public class UserServiceImplTest {
+class UserServiceImplTest {
 
     private static final UserRepository userRepository = mock(UserRepository.class);
     private static final PasswordRecoveryTokenRepository passwordRecoveryTokenRepository = mock(PasswordRecoveryTokenRepository.class);
@@ -440,7 +440,7 @@ public class UserServiceImplTest {
                     .build();
 
             var result = userService.deleteCoTenant(tenant, 2L);
-            assertEquals(result, false);
+            assertEquals(false, result);
         }
 
         @Test
@@ -460,7 +460,7 @@ public class UserServiceImplTest {
             apartmentSharing.setTenants(List.of(tenant));
 
             var result = userService.deleteCoTenant(tenant, 2L);
-            assertEquals(result, false);
+            assertEquals(false, result);
         }
 
         @Test
@@ -488,7 +488,7 @@ public class UserServiceImplTest {
 
             var result = userService.deleteCoTenant(tenant, coTenant.getId());
 
-            assertEquals(result, true);
+            assertEquals(true, result);
             verify(userRepository, times(1)).delete(coTenant);
             verify(apartmentSharingService, times(1)).removeTenant(apartmentSharing, coTenant);
 

@@ -160,7 +160,6 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
             tenant.setFranceConnectBirthPlace(user.getFranceConnectBirthPlace());
             tenant.setFranceConnectBirthDate(user.getFranceConnectBirthDate());
 
-            // Todo : I think there an issue here according to comment on matches
             if (user.isFranceConnect()) {
                 if (!StringUtils.equals(tenant.getFirstName(), user.getGivenName())
                         || !StringUtils.equals(tenant.getLastName(), user.getFamilyName())
