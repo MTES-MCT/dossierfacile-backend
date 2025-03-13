@@ -32,7 +32,6 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
-@Slf4j
 public class ResourceServerConfig {
 
     private final AuthenticationEntryPoint authenticationEntryPoint = new Oauth2LoggingHandler();

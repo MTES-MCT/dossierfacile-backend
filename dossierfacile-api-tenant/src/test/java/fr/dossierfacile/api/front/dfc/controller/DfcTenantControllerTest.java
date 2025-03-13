@@ -14,6 +14,7 @@ import fr.dossierfacile.api.front.service.interfaces.TenantPermissionsService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.service.interfaces.UserApiService;
 import fr.dossierfacile.api.front.service.interfaces.UserService;
+import fr.dossierfacile.common.config.GlobalExceptionHandler;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
@@ -52,8 +53,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(DfcTenantController.class)
 @ActiveProfiles("test")
-@TestPropertySource(properties = {"application.api.version= 4"})
-@ContextConfiguration(classes = {TestApplication.class, TenantMapperImpl.class, VersionedCategoriesMapper.class, ResourceServerConfig.class, MethodSecurityConfig.class})
+@TestPropertySource(properties = {"application.api.version= 4", "dossierfacile.common.global.exception.handler=true"})
+@ContextConfiguration(classes = {TestApplication.class, TenantMapperImpl.class, VersionedCategoriesMapper.class, ResourceServerConfig.class, MethodSecurityConfig.class, GlobalExceptionHandler.class})
 public class DfcTenantControllerTest {
 
     @Autowired

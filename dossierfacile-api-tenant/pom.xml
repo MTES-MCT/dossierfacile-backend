@@ -43,6 +43,10 @@
         </dependency>
         <dependency>
             <groupId>fr.dossierfacile</groupId>
+            <artifactId>dossier-facile-logging-library</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>fr.dossierfacile</groupId>
             <artifactId>dossierfacile-common-test-library</artifactId>
             <version>${revision}</version>
             <scope>test</scope>
