@@ -121,6 +121,7 @@ public class ApiPartnerRegisterController {
         return ok(tenantModel);
     }
 
+    // TODO : understand if there is a breaking change to add here
     @PreAuthorize("hasPermissionOnTenant(#documentFinancialForm.tenantId)")
     @PostMapping(value = "/documentFinancial", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<TenantModel> documentFinancial(@Validated(ApiPartner.class) DocumentFinancialForm documentFinancialForm) {

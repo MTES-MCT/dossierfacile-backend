@@ -91,6 +91,7 @@ public class ApiPartnerRegisterGuarantorNaturalPersonController {
         return ok(tenantModel);
     }
 
+    //TODO : analyse the impact of this modification
     @PreAuthorize("hasPermissionOnTenant(#documentFinancialGuarantorNaturalPersonForm.tenantId)")
     @PostMapping("/documentFinancial")
     public ResponseEntity<TenantModel> documentFinancial(@Validated(ApiPartner.class) DocumentFinancialGuarantorNaturalPersonForm documentFinancialGuarantorNaturalPersonForm) {
