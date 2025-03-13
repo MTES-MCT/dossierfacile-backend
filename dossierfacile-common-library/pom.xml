@@ -137,6 +137,12 @@
             <artifactId>commons-io</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-web</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
         <!--BEGIN - Dependencies to avoid error when rendering some kind of format of pictures in pdf, when converting the page to image-->
         <dependency>
             <groupId>com.twelvemonkeys.imageio</groupId>

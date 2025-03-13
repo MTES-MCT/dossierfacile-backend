@@ -8,6 +8,7 @@ import fr.dossierfacile.api.front.mapper.PartnerSettingsMapperImpl;
 import fr.dossierfacile.api.front.model.dfc.PartnerSettings;
 import fr.dossierfacile.api.front.security.interfaces.ClientAuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.UserApiService;
+import fr.dossierfacile.common.config.GlobalExceptionHandler;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.parameterizedtest.ArgumentBuilder;
 import fr.dossierfacile.parameterizedtest.ControllerParameter;
@@ -26,6 +27,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Collections;
@@ -43,7 +45,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(DfcSettingsController.class)
 @ActiveProfiles("test")
-@ContextConfiguration(classes = {TestApplication.class, PartnerSettingsMapperImpl.class, ResourceServerConfig.class, PartnerSettings.class})
+@ContextConfiguration(classes = {TestApplication.class, PartnerSettingsMapperImpl.class, ResourceServerConfig.class, PartnerSettings.class, GlobalExceptionHandler.class})
+@TestPropertySource(properties = {"dossierfacile.common.global.exception.handler=true"})
 public class DfcSettingsControllerTest {
 
     @Autowired
