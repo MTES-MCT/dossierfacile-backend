@@ -5,6 +5,9 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
     <changeSet id="202503170000-01" author="Nicolas Sagon">
+        <modifyDataType tableName="document" columnName="document_category_step" newDataType="varchar(50)" />
+    </changeSet>
+    <changeSet id="202503170000-02" author="Nicolas Sagon">
         <update tableName="document">
             <column name="document_category_step" value="SALARY_UNKNOWN" />
             <where>document_category='FINANCIAL' AND document_sub_category='SALARY' AND document_category_step IS NULL</where>
