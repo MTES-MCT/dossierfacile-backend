@@ -1,6 +1,7 @@
 package fr.dossierfacile.api.front.controller.registerController;
 
 import fr.dossierfacile.api.front.register.form.tenant.DocumentFinancialForm;
+import fr.dossierfacile.api.front.register.form.tenant.DocumentResidencyForm;
 import fr.dossierfacile.common.enums.DocumentCategoryStep;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 
@@ -12,6 +13,41 @@ public class Helper {
         documentFinancialForm.setCategoryStep(DocumentCategoryStep.SALARY_EMPLOYED_NOT_YET);
         documentFinancialForm.setTypeDocumentFinancial(DocumentSubCategory.SALARY);
         return documentFinancialForm;
+    }
+
+    public static DocumentResidencyForm invalidDocumentResidencyBecauseWrongType() {
+        DocumentResidencyForm documentResidencyForm = new DocumentResidencyForm();
+        documentResidencyForm.setCategoryStep(DocumentCategoryStep.TENANT_RECEIPT);
+        documentResidencyForm.setTypeDocumentResidency(DocumentSubCategory.SALARY);
+        return documentResidencyForm;
+    }
+
+    public static DocumentResidencyForm invalidDocumentResidencyBecauseWrongStep() {
+        DocumentResidencyForm documentResidencyForm = new DocumentResidencyForm();
+        documentResidencyForm.setCategoryStep(DocumentCategoryStep.GUEST_PROOF);
+        documentResidencyForm.setTypeDocumentResidency(DocumentSubCategory.TENANT);
+        return documentResidencyForm;
+    }
+
+    public static DocumentResidencyForm invalidDocumentResidencyForGuarantor() {
+        DocumentResidencyForm documentResidencyForm = new DocumentResidencyForm();
+        documentResidencyForm.setCategoryStep(DocumentCategoryStep.TENANT_RECEIPT);
+        documentResidencyForm.setTypeDocumentResidency(DocumentSubCategory.TENANT);
+        return documentResidencyForm;
+    }
+
+    public static DocumentResidencyForm invalidDocumentResidencyBecauseNoStep() {
+        DocumentResidencyForm documentResidencyForm = new DocumentResidencyForm();
+        documentResidencyForm.setCategoryStep(null);
+        documentResidencyForm.setTypeDocumentResidency(DocumentSubCategory.TENANT);
+        return documentResidencyForm;
+    }
+
+    public static DocumentResidencyForm invalidDocumentResidencyBecauseNoStepGuarantor() {
+        DocumentResidencyForm documentResidencyForm = new DocumentResidencyForm();
+        documentResidencyForm.setCategoryStep(null);
+        documentResidencyForm.setTypeDocumentResidency(DocumentSubCategory.GUEST);
+        return documentResidencyForm;
     }
 
     public static DocumentFinancialForm invalidDocumentBecauseWrongType() {

@@ -122,13 +122,13 @@ class FinancialDocumentCategoriesValidatorTest {
                 Arguments.of(new ValidatorTestParam(
                         DocumentSubCategory.DRIVERS_LICENSE,
                         DocumentCategoryStep.SALARY_EMPLOYED_LESS_3_MONTHS,
-                        DocumentSubCategory.DRIVERS_LICENSE + " is not a financial sub category",
+                        DocumentSubCategory.DRIVERS_LICENSE + " is not a valid sub category",
                         false
                 )),
                 Arguments.of(new ValidatorTestParam(
                         DocumentSubCategory.DRIVERS_LICENSE,
                         null,
-                        DocumentSubCategory.DRIVERS_LICENSE + " is not a financial sub category",
+                        DocumentSubCategory.DRIVERS_LICENSE + " is not a valid sub category",
                         false
                 ))
         );
@@ -147,11 +147,7 @@ class FinancialDocumentCategoriesValidatorTest {
 
         when(mockBuilder.addPropertyNode(any())).thenReturn(mock(ConstraintValidatorContext.ConstraintViolationBuilder.NodeBuilderCustomizableContext.class));
 
-        if (validatorTestParam.expectedError != null) {
-            when(validationContext.buildConstraintViolationWithTemplate(any())).thenReturn(mockBuilder);
-        } else {
-            when(validationContext.buildConstraintViolationWithTemplate(any())).thenReturn(mockBuilder);
-        }
+        when(validationContext.buildConstraintViolationWithTemplate(any())).thenReturn(mockBuilder);
 
         boolean result = validator.isValid(documentFinancialForm, validationContext);
 

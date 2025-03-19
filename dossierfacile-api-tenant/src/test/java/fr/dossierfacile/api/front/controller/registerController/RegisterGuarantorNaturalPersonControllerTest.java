@@ -3,11 +3,13 @@ package fr.dossierfacile.api.front.controller.registerController;
 import fr.dossierfacile.api.front.TestApplication;
 import fr.dossierfacile.api.front.config.ResourceServerConfig;
 import fr.dossierfacile.api.front.controller.RegisterController;
+import fr.dossierfacile.api.front.controller.RegisterGuarantorNaturalPersonController;
 import fr.dossierfacile.api.front.mapper.PropertyOMapperImpl;
 import fr.dossierfacile.api.front.mapper.TenantMapperImpl;
 import fr.dossierfacile.api.front.register.form.tenant.DocumentFinancialForm;
 import fr.dossierfacile.api.front.register.form.tenant.DocumentResidencyForm;
 import fr.dossierfacile.api.front.repository.FileRepository;
+import fr.dossierfacile.api.front.repository.GuarantorRepository;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.validator.NumberOfPagesValidator;
@@ -44,7 +46,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
-@WebMvcTest(RegisterController.class)
+@WebMvcTest(RegisterGuarantorNaturalPersonController.class)
 @ActiveProfiles("test")
 @ContextConfiguration(classes = {
         TestApplication.class,
@@ -54,10 +56,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         GlobalExceptionHandler.class,
         NumberOfPagesValidator.class,
         ResourceServerConfig.class
-    }
+}
 )
 @TestPropertySource(properties = {"application.api.version = 4", "dossierfacile.common.global.exception.handler=true"})
-class RegisterControllerTest {
+class RegisterGuarantorNaturalPersonControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -73,6 +75,9 @@ class RegisterControllerTest {
 
     @MockBean
     private static FileRepository fileRepository;
+
+    @MockBean
+    private static GuarantorRepository guarantorRepository;
 
     @MockBean
     private JwtDecoder jwtDecoder;
@@ -104,7 +109,7 @@ class RegisterControllerTest {
                                     null,
                                     List.of(
                                             jsonPath("$.errors").isArray(),
-                                            jsonPath("$.errors[0]").value("noDocument: must not be null")
+                                            jsonPath("$.errors").value(hasItem("noDocument: must not be null"))
                                     )
                             )
                     ),
@@ -116,7 +121,7 @@ class RegisterControllerTest {
                                     null,
                                     List.of(
                                             jsonPath("$.errors").isArray(),
-                                            jsonPath("$.errors").value(hasItem("typeDocumentFinancial: must be one of [SALARY, SOCIAL_SERVICE, RENT, PENSION, SCHOLARSHIP, NO_INCOME]"))
+                                            jsonPath("$.errors").value(hasItem("typeDocumentFinancial: must be one of [SALARY, SOCIAL_SERVICE, RENT, PENSION, SCHOLARSHIP]"))
                                     )
                             )
                     ),
@@ -169,7 +174,7 @@ class RegisterControllerTest {
 
             MockPart[] arrayOfParts = parts.toArray(new MockPart[0]);
 
-            var mockMvcRequestBuilder = multipart("/api/register/documentFinancial");
+            var mockMvcRequestBuilder = multipart("/api/register/guarantorNaturalPerson/documentFinancial");
 
             if (arrayOfParts.length > 0) {
                 mockMvcRequestBuilder.part(arrayOfParts);
@@ -217,27 +222,27 @@ class RegisterControllerTest {
                                     )
                             )
                     ),
-                    Pair.of("Should respond 400 when document residency form wrong step",
+                    Pair.of("Should respond 400 when document residency form tenant step cateogory defined",
                             new ControllerParameter<>(
-                                    new DocumentResidencyParameter(Helper.invalidDocumentResidencyBecauseWrongStep()),
+                                    new DocumentResidencyParameter(Helper.invalidDocumentResidencyForGuarantor()),
                                     400,
                                     jwtTokenWithDossier,
                                     null,
                                     List.of(
                                             jsonPath("$.errors").isArray(),
-                                            jsonPath("$.errors").value(hasItem("categoryStep: GUEST_PROOF is not valid for document sub category TENANT"))
+                                            jsonPath("$.errors").value(hasItem("categoryStep: For document sub category TENANT category step has to be null"))
                                     )
                             )
                     ),
                     Pair.of("Should respond 400 when document residency form no step",
                             new ControllerParameter<>(
-                                    new DocumentResidencyParameter(Helper.invalidDocumentResidencyBecauseNoStep()),
+                                    new DocumentResidencyParameter(Helper.invalidDocumentResidencyBecauseNoStepGuarantor()),
                                     400,
                                     jwtTokenWithDossier,
                                     null,
                                     List.of(
                                             jsonPath("$.errors").isArray(),
-                                            jsonPath("$.errors").value(hasItem("categoryStep: For document sub category TENANT category step can not be null"))
+                                            jsonPath("$.errors").value(hasItem("categoryStep: For document sub category GUEST category step can not be null"))
                                     )
                             )
                     )
@@ -266,7 +271,7 @@ class RegisterControllerTest {
 
             MockPart[] arrayOfParts = parts.toArray(new MockPart[0]);
 
-            var mockMvcRequestBuilder = multipart("/api/register/documentResidency");
+            var mockMvcRequestBuilder = multipart("/api/register/guarantorNaturalPerson/documentResidency");
 
             if (arrayOfParts.length > 0) {
                 mockMvcRequestBuilder.part(arrayOfParts);
