@@ -6,7 +6,6 @@ import fr.dossierfacile.api.front.validator.annotation.*;
 import fr.dossierfacile.api.front.validator.annotation.common.financial.MonthlySumValue;
 import fr.dossierfacile.api.front.validator.annotation.tenant.financial.NoDocumentCustomTextFinancial;
 import fr.dossierfacile.api.front.validator.annotation.tenant.financial.NumberOfDocumentFinancial;
-import fr.dossierfacile.api.front.validator.group.Dossier;
 import fr.dossierfacile.api.front.validator.group.FinancialDocumentGroup;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentCategoryStep;
