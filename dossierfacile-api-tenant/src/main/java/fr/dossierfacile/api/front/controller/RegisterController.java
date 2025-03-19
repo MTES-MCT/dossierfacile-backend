@@ -8,6 +8,7 @@ import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.validator.group.Dossier;
 import fr.dossierfacile.api.front.validator.group.FinancialDocumentGroup;
+import fr.dossierfacile.api.front.validator.group.ResidencyDocumentGroup;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.service.interfaces.LogService;
@@ -76,7 +77,7 @@ public class RegisterController {
 
     @PreAuthorize("hasPermissionOnTenant(#documentResidencyForm.tenantId)")
     @PostMapping(value = "/documentResidency", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<TenantModel> documentResidency(@Validated(Dossier.class) DocumentResidencyForm documentResidencyForm) {
+    public ResponseEntity<TenantModel> documentResidency(@Validated({Dossier.class, ResidencyDocumentGroup.class}) DocumentResidencyForm documentResidencyForm) {
         Tenant tenant = authenticationFacade.getTenant(documentResidencyForm.getTenantId());
         tenantService.saveStepRegister(tenant, documentResidencyForm, StepRegister.DOCUMENT_RESIDENCY);
         Tenant loggedTenant = (documentResidencyForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();

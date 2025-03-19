@@ -11,9 +11,7 @@ import java.util.List;
 
 import static fr.dossierfacile.common.enums.DocumentCategoryStep.*;
 
-public class FinancialDocumentCategoriesValidator implements ConstraintValidator<FinancialDocument, IDocumentFinancialForm> {
-
-    private static final String VALIDATION_PROPERTY_NODE_NAME = "categoryStep";
+public class FinancialDocumentCategoriesValidator extends AbstractDocumentCategoriesValidator implements ConstraintValidator<FinancialDocument, IDocumentFinancialForm> {
 
     @Override
     public void initialize(FinancialDocument constraintAnnotation) {
@@ -95,45 +93,11 @@ public class FinancialDocumentCategoriesValidator implements ConstraintValidator
                 );
             }
             case SCHOLARSHIP, NO_INCOME -> {
-                if (documentFinancialForm.getCategoryStep() != null) {
-                    constraintValidatorContext.disableDefaultConstraintViolation();
-                    constraintValidatorContext.buildConstraintViolationWithTemplate("For document sub category " + documentFinancialForm.getTypeDocumentFinancial().name() + " category step has to be null")
-                            .addPropertyNode(VALIDATION_PROPERTY_NODE_NAME)
-                            .addConstraintViolation();
-                    return false;
-                }
-                return true;
+                return handleNoCategoryStep(documentFinancialForm.getCategoryStep(), documentFinancialForm.getTypeDocumentFinancial(), constraintValidatorContext);
             }
             default -> {
-                constraintValidatorContext.disableDefaultConstraintViolation();
-                constraintValidatorContext.buildConstraintViolationWithTemplate(documentFinancialForm.getTypeDocumentFinancial().name() + " is not a financial sub category")
-                        .addPropertyNode(VALIDATION_PROPERTY_NODE_NAME)
-                        .addConstraintViolation();
-                return false;
+                return handleDefaultValidationError(documentFinancialForm.getTypeDocumentFinancial(), constraintValidatorContext);
             }
         }
-    }
-
-    private boolean verifyMandatoryStep(
-            DocumentSubCategory subCategory,
-            DocumentCategoryStep categoryStep,
-            List<DocumentCategoryStep> availableStep,
-            ConstraintValidatorContext constraintValidatorContext) {
-        if (categoryStep == null) {
-            constraintValidatorContext.disableDefaultConstraintViolation();
-            constraintValidatorContext.buildConstraintViolationWithTemplate("For document sub category " + subCategory.name() + " category step can not be null")
-                    .addPropertyNode(VALIDATION_PROPERTY_NODE_NAME)
-                    .addConstraintViolation();
-            return false;
-        }
-        if (!availableStep.contains(categoryStep)) {
-            constraintValidatorContext.disableDefaultConstraintViolation();
-            constraintValidatorContext.buildConstraintViolationWithTemplate(categoryStep.name() + " is not valid for document sub category " + subCategory.name())
-                    .addPropertyNode(VALIDATION_PROPERTY_NODE_NAME)
-                    .addConstraintViolation();
-            return false;
-        }
-        return true;
-
     }
 }
