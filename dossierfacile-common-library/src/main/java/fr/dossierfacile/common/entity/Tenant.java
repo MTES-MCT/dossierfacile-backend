@@ -1,10 +1,6 @@
 package fr.dossierfacile.common.entity;
 
-import fr.dossierfacile.common.enums.DocumentCategory;
-import fr.dossierfacile.common.enums.TenantFileStatus;
-import fr.dossierfacile.common.enums.TenantType;
-import fr.dossierfacile.common.enums.TypeGuarantor;
-import fr.dossierfacile.common.enums.UserType;
+import fr.dossierfacile.common.enums.*;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
@@ -63,6 +59,10 @@ public class Tenant extends User implements Person, Serializable {
     @JoinColumn(name = "apartment_sharing_id")
     private ApartmentSharing apartmentSharing;
 
+    private String tenantFirstName;
+    private String tenantLastName;
+    private String tenantPreferredName;
+
     @Column
     private Integer satisfactionSurvey;
 
@@ -102,6 +102,10 @@ public class Tenant extends User implements Person, Serializable {
     private int warnings;
 
     private String operatorComment;
+
+    @Column
+    @Enumerated(EnumType.STRING)
+    private TenantOwnerType ownerType;
 
     private transient String warningMessage;
 
@@ -247,6 +251,69 @@ public class Tenant extends User implements Person, Serializable {
      */
     public boolean isBelongToPartner() {
         return this.getKeycloakId() == null && this.getTenantsUserApi().size() == 1;
+    }
+
+    @Override
+    public String getFirstName() {
+        if (ownerType == TenantOwnerType.SELF) {
+            return super.getFirstName();
+        } else {
+            return tenantFirstName != null ? tenantFirstName : super.getFirstName();
+        }
+    }
+
+    @Override
+    public String getLastName() {
+        if (ownerType == TenantOwnerType.SELF) {
+            return super.getLastName();
+        } else {
+            return tenantLastName != null ? tenantLastName : super.getLastName();
+        }
+    }
+
+    @Override
+    public String getPreferredName() {
+        if (ownerType == TenantOwnerType.SELF) {
+            return super.getPreferredName();
+        } else {
+            return tenantPreferredName != null ? tenantPreferredName : super.getPreferredName();
+        }
+    }
+
+    @Override
+    public void setFirstName(String firstName) {
+        if (ownerType == TenantOwnerType.SELF) {
+            if (!getFranceConnect()) {
+                super.setFirstName(firstName);
+            }
+        }
+        else {
+            this.tenantFirstName = firstName;
+        }
+    }
+
+    @Override
+    public void setLastName(String lastName) {
+        if (ownerType == TenantOwnerType.SELF) {
+            if (!getFranceConnect()) {
+                super.setLastName(lastName);
+            }
+        }
+        else {
+            this.tenantLastName = lastName;
+        }
+    }
+
+    @Override
+    public void setPreferredName(String preferredName) {
+        if (ownerType == TenantOwnerType.SELF) {
+            if (!getFranceConnect()) {
+                super.setPreferredName(preferredName);
+            }
+        }
+        else {
+            this.tenantPreferredName = preferredName;
+        }
     }
 
 }

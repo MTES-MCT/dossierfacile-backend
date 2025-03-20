@@ -3,6 +3,7 @@ package fr.dossierfacile.api.front.register.form.tenant;
 import fr.dossierfacile.api.front.form.interfaces.FormWithTenantId;
 import fr.dossierfacile.api.front.validator.annotation.tenant.name.CheckFranceConnect;
 import fr.dossierfacile.api.front.validator.group.Dossier;
+import fr.dossierfacile.common.enums.TenantOwnerType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -23,4 +24,5 @@ public class NamesForm implements FormWithTenantId {
     private String preferredName;
     private String zipCode;
     private Boolean abroad;
+    private TenantOwnerType ownerType = TenantOwnerType.SELF;
 }
