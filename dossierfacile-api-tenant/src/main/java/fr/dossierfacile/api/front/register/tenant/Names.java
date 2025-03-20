@@ -50,11 +50,12 @@ public class Names implements SaveStep<NamesForm> {
             }
             documentService.resetValidatedOrInProgressDocumentsAccordingCategories(documentsToCheck, Arrays.asList(DocumentCategory.values()));
         }
-        if (!tenant.getFranceConnect()) {
-            tenant.setFirstName(namesForm.getFirstName());
-            tenant.setLastName(namesForm.getLastName());
-        }
+
+        tenant.setOwnerType(namesForm.getOwnerType());
+        tenant.setFirstName(namesForm.getFirstName());
+        tenant.setLastName(namesForm.getLastName());
         tenant.setPreferredName(namesForm.getPreferredName());
+
         tenant.setZipCode(namesForm.getZipCode());
         tenant.setAbroad(namesForm.getAbroad());
         tenant.lastUpdateDateProfile(LocalDateTime.now(), null);
