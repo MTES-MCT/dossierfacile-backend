@@ -8,6 +8,7 @@ import com.google.common.base.Strings;
 import fr.dossierfacile.common.dto.mail.TenantDto;
 import fr.dossierfacile.common.dto.mail.UserApiDto;
 import fr.dossierfacile.common.dto.mail.UserDto;
+import fr.dossierfacile.common.entity.Message;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.utils.OptionalString;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +35,8 @@ public class MailService {
     private String applicationBaseUrl;
     @Value("${brevo.template.id.message.notification}")
     private Long templateIDMessageNotification;
+    @Value("${brevo.template.id.message.notification.with.details}")
+    private Long templateIDMessageNotificationWithDetails;
     @Value("${brevo.template.id.account.deleted}")
     private Long templateIdAccountDeleted;
     @Value("${brevo.template.id.tenant.validated.dossier.validated}")
@@ -48,12 +51,18 @@ public class MailService {
     private Long templateIdDossierFullyValidated;
     @Value("${brevo.template.id.dossier.tenant.denied}")
     private Long templateIdDossierTenantDenied;
+    @Value("${brevo.template.id.dossier.tenant.denied.with.details}")
+    private Long templateIdDossierTenantDeniedWithDetails;
     @Value("${brevo.template.id.message.notification.with.partner}")
     private Long templateIDMessageNotificationWithPartner;
+    @Value("${brevo.template.id.message.notification.with.partner.and.details}")
+    private Long templateIdMessageNotificationWithPartnerAndDetails;
     @Value("${brevo.template.id.dossier.fully.validated.with.partner}")
     private Long templateIdDossierFullyValidatedWithPartner;
     @Value("${brevo.template.id.dossier.tenant.denied.with.partner}")
     private Long templateIdDossierTenantDeniedWithPartner;
+    @Value("${brevo.template.id.dossier.tenant.denied.with.partner.and.details}")
+    private Long templateIdDossierTenantDeniedWithPartnerAndDetails;
     @Value("${brevo.template.id.admin.partner.client.configuration}")
     private Long templateIdAdminPartnerConfiguration;
     @Value("${link.after.denied.default}")
@@ -87,7 +96,7 @@ public class MailService {
     }
 
     @Async
-    public void sendMailNotificationAfterDeny(TenantDto tenant) {
+    public void sendMailNotificationAfterDeny(TenantDto tenant, Message message) {
         Map<String, String> params = new HashMap<>();
         params.put("PRENOM", tenant.getFirstName());
         params.put("NOM", OptionalString.of(tenant.getPreferredName()).orElse(tenant.getLastName()));
@@ -98,10 +107,18 @@ public class MailService {
             params.put("partnerName", userApi.getName2());
             params.put("logoUrl", userApi.getLogoUrl());
             params.put("callToActionUrl", OptionalString.of(userApi.getDeniedUrl()).orElse(defaultDeniedUrl));
-
-            sendEmailToTenant(tenant, params, templateIDMessageNotificationWithPartner);
+            sendMailWithHtmlDetails(message, tenant, params, templateIdMessageNotificationWithPartnerAndDetails, templateIDMessageNotificationWithPartner);
         } else {
-            sendEmailToTenant(tenant, params, templateIDMessageNotification);
+            sendMailWithHtmlDetails(message, tenant, params, templateIDMessageNotificationWithDetails, templateIDMessageNotification);
+        }
+    }
+
+    private void sendMailWithHtmlDetails(Message message, TenantDto tenant, Map<String, String> params, Long templateWithHtml, Long templateWithoutHtml) {
+        if (message != null) {
+            params.put("HTML", OptionalString.of(message.getEmailHtml()).orElse(""));
+            sendEmailToTenant(tenant, params, templateWithHtml);
+        } else {
+            sendEmailToTenant(tenant, params, templateWithoutHtml);
         }
     }
 
@@ -163,7 +180,7 @@ public class MailService {
     }
 
     @Async
-    public void sendEmailToTenantAfterTenantDenied(TenantDto tenant, TenantDto deniedTenant) {
+    public void sendEmailToTenantAfterTenantDenied(TenantDto tenant, TenantDto deniedTenant, Message message) {
         Map<String, String> params = new HashMap<>();
         params.put("PRENOM", deniedTenant.getFirstName());
         params.put("NOM", Strings.isNullOrEmpty(deniedTenant.getPreferredName()) ? deniedTenant.getLastName() : deniedTenant.getPreferredName());
@@ -174,10 +191,9 @@ public class MailService {
             params.put("partnerName", userApi.getName2());
             params.put("logoUrl", userApi.getLogoUrl());
             params.put("callToActionUrl", OptionalString.of(userApi.getDeniedUrl()).orElse(defaultDeniedUrl));
-
-            sendEmailToTenant(tenant, params, templateIdDossierTenantDeniedWithPartner);
+            sendMailWithHtmlDetails(message, tenant, params, templateIdDossierTenantDeniedWithPartnerAndDetails, templateIdDossierTenantDeniedWithPartner);
         } else {
-            sendEmailToTenant(tenant, params, templateIdDossierTenantDenied);
+            sendMailWithHtmlDetails(message, tenant, params, templateIdDossierTenantDeniedWithDetails, templateIdDossierTenantDenied);
         }
     }
 
