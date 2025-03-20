@@ -4,24 +4,9 @@ import fr.dossierfacile.api.front.register.guarantor.legal_person.DocumentIdenti
 import fr.dossierfacile.api.front.register.guarantor.legal_person.DocumentIdentificationRepresentanGuarantorLegalPerson;
 import fr.dossierfacile.api.front.register.guarantor.legal_person.NameGuarantorLegalPerson;
 import fr.dossierfacile.api.front.register.guarantor.legal_person.NameRepresentantGuarantorLegalPerson;
-import fr.dossierfacile.api.front.register.guarantor.natural_person.DocumentFinancialGuarantorNaturalPerson;
-import fr.dossierfacile.api.front.register.guarantor.natural_person.DocumentIdentificationGuarantorNaturalPerson;
-import fr.dossierfacile.api.front.register.guarantor.natural_person.DocumentIdentificationGuarantorNaturalPersonFile;
-import fr.dossierfacile.api.front.register.guarantor.natural_person.DocumentProfessionalGuarantorNaturalPerson;
-import fr.dossierfacile.api.front.register.guarantor.natural_person.DocumentResidencyGuarantorNaturalPerson;
-import fr.dossierfacile.api.front.register.guarantor.natural_person.DocumentTaxGuarantorNaturalPerson;
-import fr.dossierfacile.api.front.register.guarantor.natural_person.NameGuarantorNaturalPerson;
+import fr.dossierfacile.api.front.register.guarantor.natural_person.*;
 import fr.dossierfacile.api.front.register.guarantor.organism.DocumentGuaranteeProviderCertificate;
-import fr.dossierfacile.api.front.register.tenant.AccountApiPartner;
-import fr.dossierfacile.api.front.register.tenant.Application;
-import fr.dossierfacile.api.front.register.tenant.DocumentFinancial;
-import fr.dossierfacile.api.front.register.tenant.DocumentIdentification;
-import fr.dossierfacile.api.front.register.tenant.DocumentProfessional;
-import fr.dossierfacile.api.front.register.tenant.DocumentResidency;
-import fr.dossierfacile.api.front.register.tenant.DocumentTax;
-import fr.dossierfacile.api.front.register.tenant.GuarantorType;
-import fr.dossierfacile.api.front.register.tenant.HonorDeclaration;
-import fr.dossierfacile.api.front.register.tenant.Names;
+import fr.dossierfacile.api.front.register.tenant.*;
 import lombok.Getter;
 
 @Getter
