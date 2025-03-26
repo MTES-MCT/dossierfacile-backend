@@ -42,7 +42,6 @@ public class ApplicationFormV2 implements FormWithTenantId {
     private ApplicationType applicationType;
 
     @DistinctCoTenantEmailList
-    @DistinctCoTenantFullNameList
     @Valid
     private List<CoTenantForm> coTenants = new ArrayList<>();
 
