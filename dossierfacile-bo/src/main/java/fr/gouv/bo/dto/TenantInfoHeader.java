@@ -2,6 +2,7 @@ package fr.gouv.bo.dto;
 
 import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.entity.TenantLog;
+import fr.dossierfacile.common.enums.TenantOwnerType;
 import fr.gouv.bo.utils.DateFormatUtil;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
@@ -26,7 +27,7 @@ public class TenantInfoHeader {
 
     public static TenantInfoHeader build(Tenant tenant, List<UserApi> partners, List<TenantLog> tenantLogs) {
         List<HeaderElement> elements = List.of(
-                new HeaderElement("FranceConnecté", (tenant.getFranceConnect() == Boolean.TRUE) ? "Oui" : "Non"),
+                new HeaderElement("FranceConnecté", (tenant.getFranceConnect() == Boolean.TRUE && tenant.getOwnerType() == TenantOwnerType.SELF) ? "Oui" : "Non"),
                 new HeaderElement("Nom", tenant.getFullName()),
                 new HeaderElement("Dossier", getApplicationType(tenant)),
                 new HeaderElement("Partenaires", getPartnerNames(partners)),
