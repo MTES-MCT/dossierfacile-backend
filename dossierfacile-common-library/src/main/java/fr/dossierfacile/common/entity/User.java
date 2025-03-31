@@ -136,7 +136,7 @@ public abstract class User implements Serializable {
     }
 
     public String getFullName() {
-        String displayName = isBlank(preferredName) ? lastName : preferredName;
-        return isNotBlank(firstName) && isNotBlank(displayName) ? String.join(" ", firstName, displayName) : "";
+        String displayName = isBlank(getPreferredName()) ? getLastName() : getPreferredName();
+        return isNotBlank(getFirstName()) && isNotBlank(displayName) ? String.join(" ", getFirstName(), displayName) : "";
     }
 }

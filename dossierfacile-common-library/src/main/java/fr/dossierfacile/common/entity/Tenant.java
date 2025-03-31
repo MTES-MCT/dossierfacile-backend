@@ -282,6 +282,10 @@ public class Tenant extends User implements Person, Serializable {
 
     @Override
     public void setFirstName(String firstName) {
+        if (ownerType == null) {
+            super.setFirstName(firstName);
+            return;
+        }
         if (ownerType == TenantOwnerType.SELF) {
             if (!getFranceConnect()) {
                 super.setFirstName(firstName);
@@ -294,6 +298,10 @@ public class Tenant extends User implements Person, Serializable {
 
     @Override
     public void setLastName(String lastName) {
+        if (ownerType == null) {
+            super.setLastName(lastName);
+            return;
+        }
         if (ownerType == TenantOwnerType.SELF) {
             if (!getFranceConnect()) {
                 super.setLastName(lastName);
@@ -306,6 +314,10 @@ public class Tenant extends User implements Person, Serializable {
 
     @Override
     public void setPreferredName(String preferredName) {
+        if (ownerType == null) {
+            super.setPreferredName(preferredName);
+            return;
+        }
         if (ownerType == TenantOwnerType.SELF) {
             if (!getFranceConnect()) {
                 super.setPreferredName(preferredName);
