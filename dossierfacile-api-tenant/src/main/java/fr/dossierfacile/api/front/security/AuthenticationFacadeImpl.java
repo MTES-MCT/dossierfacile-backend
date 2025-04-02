@@ -12,6 +12,7 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
+import fr.dossierfacile.common.enums.TenantOwnerType;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import lombok.RequiredArgsConstructor;
@@ -160,7 +161,8 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
             tenant.setFranceConnectBirthPlace(user.getFranceConnectBirthPlace());
             tenant.setFranceConnectBirthDate(user.getFranceConnectBirthDate());
 
-            if (user.isFranceConnect()) {
+            // If the owner type is SELF, we do not update the name of the tenant otherwise we will overwrite the name of the account
+            if (user.isFranceConnect() && tenant.getOwnerType() == TenantOwnerType.SELF) {
                 if (!StringUtils.equals(tenant.getFirstName(), user.getGivenName())
                         || !StringUtils.equals(tenant.getLastName(), user.getFamilyName())
                         || (user.getPreferredUsername() != null && !StringUtils.equals(tenant.getPreferredName(), user.getPreferredUsername()))) {

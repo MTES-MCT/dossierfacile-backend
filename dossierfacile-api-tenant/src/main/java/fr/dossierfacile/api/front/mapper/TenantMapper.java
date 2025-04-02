@@ -43,7 +43,20 @@ public abstract class TenantMapper {
         this.categoriesMapper = categoriesMapper;
     }
 
+    @Mapping(source = "tenant", target = "franceConnectIdentity", qualifiedByName = "franceConnectIdentity")
     public abstract TenantModel toTenantModel(Tenant tenant, @Context UserApi userApi);
+
+    @Named("franceConnectIdentity")
+    FranceConnectIdentity franceConnectIdentity(Tenant item) {
+        if (item.getFranceConnect()) {
+            return FranceConnectIdentity.builder()
+                    .firstName(item.getUserFirstName())
+                    .lastName(item.getUserLastName())
+                    .preferredName(item.getUserPreferredName())
+                    .build();
+        }
+        return null;
+    }
 
     @Mapping(target = "name", expression = "java((document.getWatermarkFile() != null )? applicationBaseUrl + \"/" + PATH + "/\" + document.getName() : null)")
     @Mapping(target = "files", expression = "java((userApi == null || isHybrid(userApi))? mapFiles(document.getFiles()) : null)")
@@ -54,6 +67,18 @@ public abstract class TenantMapper {
 
     @Mapping(target = "connectedTenantId", source = "id")
     public abstract ConnectedTenantModel toTenantModelDfc(Tenant tenant, @Context UserApi userApi);
+
+    @Mapping(target = "franceConnectIdentity")
+    void mapFranceConnectIdentity(Tenant tenant, @MappingTarget TenantModel.TenantModelBuilder tenantModelBuilder) {
+        if (tenant.getFranceConnect()) {
+            var franceConnectIdentity = FranceConnectIdentity.builder()
+                    .firstName(tenant.getUserFirstName())
+                    .lastName(tenant.getUserLastName())
+                    .preferredName(tenant.getUserPreferredName())
+                    .build();
+            tenantModelBuilder.franceConnectIdentity(franceConnectIdentity);
+        }
+    }
 
     @Mapping(target = "preview", expression = "java((documentFile.getPreview() != null )? applicationBaseUrl + \"" + PREVIEW_PATH + "\" + documentFile.getId() : null)")
     @Mapping(target = "size", source = "documentFile.storageFile.size")

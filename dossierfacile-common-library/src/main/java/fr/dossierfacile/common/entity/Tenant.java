@@ -30,7 +30,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static fr.dossierfacile.common.enums.DocumentStatus.DECLINED;
@@ -251,6 +250,18 @@ public class Tenant extends User implements Person, Serializable {
      */
     public boolean isBelongToPartner() {
         return this.getKeycloakId() == null && this.getTenantsUserApi().size() == 1;
+    }
+
+    public String getUserFirstName() {
+        return super.getFirstName();
+    }
+
+    public String getUserLastName() {
+        return super.getLastName();
+    }
+
+    public String getUserPreferredName() {
+        return super.getPreferredName();
     }
 
     @Override

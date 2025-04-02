@@ -9,6 +9,7 @@ import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
 import fr.dossierfacile.common.converter.AcquisitionData;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.enums.TenantOwnerType;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import org.junit.jupiter.api.*;
@@ -681,6 +682,7 @@ class AuthenticationFacadeImplTest {
                     .email("test@test.fr")
                     .franceConnect(true)
                     .firstName("test2")
+                    .ownerType(TenantOwnerType.SELF)
                     .lastName("test2")
                     .build();
             var keycloakUser = KeycloakUser.builder()
