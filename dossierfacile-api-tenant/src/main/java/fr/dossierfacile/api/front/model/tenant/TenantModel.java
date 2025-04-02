@@ -36,4 +36,5 @@ public class TenantModel {
     private List<GuarantorModel> guarantors;
     private boolean franceConnect;
     private String warningMessage;
+    private FranceConnectIdentity franceConnectIdentity;
 }
