@@ -16,8 +16,9 @@ public class CheckFranceConnectValidator extends TenantConstraintValidator<Check
     public boolean isValid(NamesForm namesForm, ConstraintValidatorContext constraintValidatorContext) {
         var tenant = getTenant(namesForm);
         return (!Boolean.TRUE.equals(tenant.getFranceConnect()) ||
-                        (tenant.getFranceConnect() && namesForm.getOwnerType() == TenantOwnerType.THIRD_PARTY) ||
-                        (tenant.getFranceConnect() && namesForm.getOwnerType() == TenantOwnerType.SELF &&
-                         tenant.getFirstName().equals(namesForm.getFirstName()) && tenant.getLastName().equals(namesForm.getLastName())));
+                (tenant.getFranceConnect() && namesForm.getOwnerType() == TenantOwnerType.THIRD_PARTY) ||
+                (tenant.getFranceConnect() && namesForm.getOwnerType() == TenantOwnerType.SELF &&
+                        // We use userFirstName because the FranceConnect information are stored in the user and not in the tenant
+                        tenant.getUserFirstName().equals(namesForm.getFirstName()) && tenant.getUserLastName().equals(namesForm.getLastName())));
     }
 }
