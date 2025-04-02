@@ -78,6 +78,7 @@
             <artifactId>springdoc-openapi-ui</artifactId>
             <version>${springdoc.version}</version>
         </dependency>
+        <!--Brevo is sleeping : https://github.com/getbrevo/brevo-java/issues/1-->
         <dependency>
             <groupId>com.brevo</groupId>
             <artifactId>brevo</artifactId>

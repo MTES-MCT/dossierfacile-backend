@@ -146,6 +146,7 @@
             <artifactId>metadata-extractor</artifactId>
             <version>2.19.0</version>
         </dependency>
+        <!--Brevo is sleeping : https://github.com/getbrevo/brevo-java/issues/1-->
         <dependency>
             <groupId>com.brevo</groupId>
             <artifactId>brevo</artifactId>
@@ -169,6 +170,11 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-test</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-properties-migrator</artifactId>
+            <scope>runtime</scope>
         </dependency>
     </dependencies>
 
