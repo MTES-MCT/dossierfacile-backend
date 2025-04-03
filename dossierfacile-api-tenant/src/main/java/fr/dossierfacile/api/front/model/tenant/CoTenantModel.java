@@ -2,6 +2,7 @@ package fr.dossierfacile.api.front.model.tenant;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import fr.dossierfacile.common.enums.TenantFileStatus;
+import fr.dossierfacile.common.enums.TenantOwnerType;
 import fr.dossierfacile.common.enums.TenantType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,5 +26,6 @@ public class CoTenantModel {
     private TenantFileStatus status;
     private List<DocumentModel> documents;
     private List<GuarantorModel> guarantors;
+    private TenantOwnerType ownerType;
     private boolean franceConnect;
 }
