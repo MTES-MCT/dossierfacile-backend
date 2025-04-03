@@ -68,18 +68,6 @@ public abstract class TenantMapper {
     @Mapping(target = "connectedTenantId", source = "id")
     public abstract ConnectedTenantModel toTenantModelDfc(Tenant tenant, @Context UserApi userApi);
 
-    @Mapping(target = "franceConnectIdentity")
-    void mapFranceConnectIdentity(Tenant tenant, @MappingTarget TenantModel.TenantModelBuilder tenantModelBuilder) {
-        if (tenant.getFranceConnect()) {
-            var franceConnectIdentity = FranceConnectIdentity.builder()
-                    .firstName(tenant.getUserFirstName())
-                    .lastName(tenant.getUserLastName())
-                    .preferredName(tenant.getUserPreferredName())
-                    .build();
-            tenantModelBuilder.franceConnectIdentity(franceConnectIdentity);
-        }
-    }
-
     @Mapping(target = "preview", expression = "java((documentFile.getPreview() != null )? applicationBaseUrl + \"" + PREVIEW_PATH + "\" + documentFile.getId() : null)")
     @Mapping(target = "size", source = "documentFile.storageFile.size")
     @Mapping(target = "contentType", source = "documentFile.storageFile.contentType")
