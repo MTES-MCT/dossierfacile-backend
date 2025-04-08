@@ -26,6 +26,7 @@ public class LoggerUtil {
     private static final String API_URL = "uri";
     private static final String API_NORMALIZED_URI = "normalized_uri";
     private static final String API_RESPONSE_STATUS = "response_status";
+    private static final String API_METHOD = "method";
     private static final String API_REAL_IP = "ip";
     private static final String API_BODY = "body";
     private static final String API_FORM_PARAMETERS = "form_parameters";
@@ -96,6 +97,7 @@ public class LoggerUtil {
 
     public static void prepareMDCForHttpRequest(HttpServletRequest request, Map<String, String> additionalContextElements) {
         MDC.put(API_URL, request.getRequestURI());
+        MDC.put(API_METHOD, request.getMethod());
         MDC.put(API_NORMALIZED_URI, LoggerUtil.normalizeUrl(request.getRequestURI()));
         MDC.put(REQUEST_ID, UUID.randomUUID().toString());
         MDC.put(API_REAL_IP, request.getHeader("X-Real-Ip")); // specific to Scalingo infra

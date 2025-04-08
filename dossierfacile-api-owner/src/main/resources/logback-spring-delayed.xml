@@ -49,6 +49,7 @@
                 <customFields>{"application":"${APPLICATION_NAME}", "environment":"${ENVIRONMENT}", "profiles":"${APPLICATION_PROFILES}"}</customFields>
                 <includeMdcKeyName>uri</includeMdcKeyName>
                 <includeMdcKeyName>normalized_uri</includeMdcKeyName>
+                <includeMdcKeyName>method</includeMdcKeyName>
                 <includeMdcKeyName>request_id</includeMdcKeyName>
                 <includeMdcKeyName>ip</includeMdcKeyName>
                 <includeMdcKeyName>execution_time</includeMdcKeyName>
