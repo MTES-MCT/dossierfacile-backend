@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import fr.dossierfacile.common.enums.TenantFileStatus;
+import fr.dossierfacile.common.enums.TenantOwnerType;
 import fr.dossierfacile.common.enums.TenantType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,6 +30,7 @@ public class TenantModel {
     private String email;
     private TenantType tenantType;
     private Boolean franceConnect;
+    private TenantOwnerType ownerType;
     private TenantFileStatus status;
     private List<DocumentModel> documents;
     private List<GuarantorModel> guarantors;
