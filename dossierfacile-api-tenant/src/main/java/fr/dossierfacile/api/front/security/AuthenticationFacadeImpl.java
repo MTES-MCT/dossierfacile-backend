@@ -187,8 +187,8 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
                 && tenant.getFranceConnect() == user.isFranceConnect()
                 && (!user.isFranceConnect() ||
                 // TODO : The || should be a &&
-                (StringUtils.equalsIgnoreCase(tenant.getFirstName(), user.getGivenName()) ||
-                        StringUtils.equalsIgnoreCase(tenant.getLastName(), user.getFamilyName())
+                (StringUtils.equalsIgnoreCase(tenant.getUserFirstName(), user.getGivenName()) ||
+                        StringUtils.equalsIgnoreCase(tenant.getUserLastName(), user.getFamilyName())
                 ));
     }
 

@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -36,6 +37,7 @@ public class RegisterGuarantorLegalPersonController {
 
     @PreAuthorize("hasPermissionOnTenant(#nameGuarantorLegalPersonForm.tenantId)")
     @PostMapping("/name")
+    @Transactional
     public ResponseEntity<TenantModel> guarantorName(@Validated(Dossier.class) NameGuarantorLegalPersonForm nameGuarantorLegalPersonForm) {
         var tenant = authenticationFacade.getTenant(nameGuarantorLegalPersonForm.getTenantId());
         var tenantModel = tenantService.saveStepRegister(tenant, nameGuarantorLegalPersonForm, StepRegister.NAME_GUARANTOR_LEGAL_PERSON);
@@ -46,6 +48,7 @@ public class RegisterGuarantorLegalPersonController {
 
     @PreAuthorize("hasPermissionOnTenant(#documentIdentificationGuarantorLegalPersonForm.tenantId)")
     @PostMapping("/documentIdentification")
+    @Transactional
     public ResponseEntity<TenantModel> documentIdentification(@Validated({Dossier.class, DocumentIdentificationGuarantor.class}) DocumentIdentificationGuarantorLegalPersonForm documentIdentificationGuarantorLegalPersonForm) {
         Tenant tenant = authenticationFacade.getTenant(documentIdentificationGuarantorLegalPersonForm.getTenantId());
         tenantService.saveStepRegister(tenant, documentIdentificationGuarantorLegalPersonForm, StepRegister.DOCUMENT_IDENTIFICATION_GUARANTOR_LEGAL_PERSON);
@@ -55,6 +58,7 @@ public class RegisterGuarantorLegalPersonController {
 
     @PreAuthorize("hasPermissionOnTenant(#documentIdentificationRepresentantGuarantorLegalPersonForm.tenantId)")
     @PostMapping("/documentRepresentantIdentification")
+    @Transactional
     public ResponseEntity<TenantModel> documentIdentificationRepresentant(@Validated({Dossier.class, DocumentIdentificationGuarantor.class}) DocumentIdentificationRepresentanGuarantorLegalPersonForm documentIdentificationRepresentantGuarantorLegalPersonForm) {
         Tenant tenant = authenticationFacade.getTenant(documentIdentificationRepresentantGuarantorLegalPersonForm.getTenantId());
         tenantService.saveStepRegister(tenant, documentIdentificationRepresentantGuarantorLegalPersonForm, StepRegister.DOCUMENT_IDENTIFICATION_REPRESENTANT_GUARANTOR_LEGAL_PERSON);
@@ -64,6 +68,7 @@ public class RegisterGuarantorLegalPersonController {
 
     @PreAuthorize("hasPermissionOnTenant(#nameGuarantorRepresentantLegalPersonForm.tenantId)")
     @PostMapping("/representing-name")
+    @Transactional
     public ResponseEntity<TenantModel> guarantorRepresentingName(@Validated(Dossier.class) NameGuarantorRepresentantLegalPersonForm nameGuarantorRepresentantLegalPersonForm) {
         var tenant = authenticationFacade.getTenant(nameGuarantorRepresentantLegalPersonForm.getTenantId());
         var tenantModel = tenantService.saveStepRegister(tenant, nameGuarantorRepresentantLegalPersonForm, StepRegister.NAME_IDENTIFICATION_REPRESENTANT_GUARANTOR_LEGAL_PERSON);
