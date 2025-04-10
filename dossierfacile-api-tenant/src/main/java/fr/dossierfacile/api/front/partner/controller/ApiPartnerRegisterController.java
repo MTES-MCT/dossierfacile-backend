@@ -30,6 +30,7 @@ import org.hibernate.validator.internal.engine.constraintvalidation.ConstraintVa
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -74,6 +75,7 @@ public class ApiPartnerRegisterController {
 
     @PreAuthorize("hasPermissionOnTenant(#namesForm.tenantId)")
     @PostMapping(value = "/names", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @Transactional
     public ResponseEntity<TenantModel> names(@Validated(ApiPartner.class) @RequestBody NamesForm namesForm) {
         var tenant = tenantService.findById(namesForm.getTenantId());
         var tenantModel = tenantService.saveStepRegister(tenant, namesForm, StepRegister.NAMES);
@@ -84,6 +86,7 @@ public class ApiPartnerRegisterController {
     @ApiOperation("En cas de couple(COUPLE), le nom et le prénom sont requis mais pas l'email.<br/>En cas de colocation(GROUP): nom, prénom et email sont requis")
     @PreAuthorize("hasPermissionOnTenant(#applicationForm.tenantId)")
     @PostMapping(value = "/application/v2", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @Transactional
     public ResponseEntity<TenantModel> application(@Validated(ApiPartner.class) @RequestBody ApplicationFormV2 applicationForm) {
         var tenant = tenantService.findById(applicationForm.getTenantId());
         var tenantModel = tenantService.saveStepRegister(tenant, applicationForm, StepRegister.APPLICATION);
@@ -93,6 +96,7 @@ public class ApiPartnerRegisterController {
 
     @PreAuthorize("hasPermissionOnTenant(#honorDeclarationForm.tenantId)")
     @PostMapping(value = "/honorDeclaration", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @Transactional
     public ResponseEntity<TenantModel> honorDeclaration(@Validated(ApiPartner.class) @RequestBody HonorDeclarationForm honorDeclarationForm) {
         log.info("Tenant Id:" + honorDeclarationForm.getTenantId());
         var tenant = tenantService.findById(honorDeclarationForm.getTenantId());
@@ -103,6 +107,7 @@ public class ApiPartnerRegisterController {
 
     @PreAuthorize("hasPermissionOnTenant(#documentIdentificationForm.tenantId)")
     @PostMapping(value = "/documentIdentification", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Transactional
     public ResponseEntity<TenantModel> documentIdentification(@Validated(ApiPartner.class) DocumentIdentificationForm documentIdentificationForm) {
         var tenant = tenantService.findById(documentIdentificationForm.getTenantId());
         var tenantModel = tenantService.saveStepRegister(tenant, documentIdentificationForm, StepRegister.DOCUMENT_IDENTIFICATION);
@@ -111,6 +116,7 @@ public class ApiPartnerRegisterController {
 
     @PreAuthorize("hasPermissionOnTenant(#documentResidencyForm.tenantId)")
     @PostMapping(value = "/documentResidency", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Transactional
     public ResponseEntity<?> documentResidency(DocumentResidencyForm documentResidencyForm) {
         // Validate form according partner api version
         UserApi userApi = clientAuthenticationFacade.getClient();
@@ -124,6 +130,7 @@ public class ApiPartnerRegisterController {
 
     @PreAuthorize("hasPermissionOnTenant(#documentProfessionalForm.tenantId)")
     @PostMapping(value = "/documentProfessional", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Transactional
     public ResponseEntity<TenantModel> documentProfessional(@Validated(ApiPartner.class) DocumentProfessionalForm documentProfessionalForm) {
         var tenant = tenantService.findById(documentProfessionalForm.getTenantId());
         var tenantModel = tenantService.saveStepRegister(tenant, documentProfessionalForm, StepRegister.DOCUMENT_PROFESSIONAL);
@@ -138,6 +145,7 @@ public class ApiPartnerRegisterController {
             @ApiResponse(code = 403, message = "Forbidden: User not verified"),
             @ApiResponse(code = 400, message = "Wrong request params")
     })
+    @Transactional
     public ResponseEntity<TenantModel> documentFinancial(@Validated(ApiPartner.class) DocumentFinancialForm documentFinancialForm) {
         financialDocumentService.setFinancialDocumentCategoryStep(documentFinancialForm);
         var tenant = tenantService.findById(documentFinancialForm.getTenantId());
@@ -147,6 +155,7 @@ public class ApiPartnerRegisterController {
 
     @PreAuthorize("hasPermissionOnTenant(#documentTaxForm.tenantId)")
     @PostMapping(value = "/documentTax", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Transactional
     public ResponseEntity<TenantModel> documentTax(@Validated(ApiPartner.class) DocumentTaxForm documentTaxForm) {
         var tenant = tenantService.findById(documentTaxForm.getTenantId());
         var tenantModel = tenantService.saveStepRegister(tenant, documentTaxForm, StepRegister.DOCUMENT_TAX);
@@ -155,6 +164,7 @@ public class ApiPartnerRegisterController {
 
     @PreAuthorize("hasPermissionOnTenant(#guarantorTypeForm.tenantId)")
     @PostMapping(value = "/guarantorType", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Transactional
     public ResponseEntity<TenantModel> guarantor(@Validated(ApiPartner.class) @RequestBody GuarantorTypeForm guarantorTypeForm) {
         var tenant = tenantService.findById(guarantorTypeForm.getTenantId());
         var tenantModel = tenantService.saveStepRegister(tenant, guarantorTypeForm, StepRegister.GUARANTOR_TYPE);
