@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,6 +26,7 @@ public class ApiPartnerRegisterGuarantorOrganismController {
 
     @PreAuthorize("hasPermissionOnTenant(#form.tenantId)")
     @PostMapping("/documentCertificate")
+    @Transactional
     public ResponseEntity<TenantModel> documentCertificate(@Validated({ApiPartner.class}) DocumentGuaranteeProviderCertificateForm form) {
         var tenant = tenantService.findById(form.getTenantId());
         var tenantModel = tenantService.saveStepRegister(tenant, form, StepRegister.DOCUMENT_GUARANTEE_PROVIDER_CERTIFICATE);

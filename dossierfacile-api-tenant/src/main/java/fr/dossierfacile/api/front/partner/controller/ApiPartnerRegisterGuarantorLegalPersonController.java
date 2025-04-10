@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,6 +31,7 @@ public class ApiPartnerRegisterGuarantorLegalPersonController {
 
     @PreAuthorize("hasPermissionOnTenant(#nameGuarantorLegalPersonForm.tenantId)")
     @PostMapping("/name")
+    @Transactional
     public ResponseEntity<TenantModel> guarantorName(@Validated(ApiPartner.class) NameGuarantorLegalPersonForm nameGuarantorLegalPersonForm) {
         var tenant = tenantService.findById(nameGuarantorLegalPersonForm.getTenantId());
         var tenantModel = tenantService.saveStepRegister(tenant, nameGuarantorLegalPersonForm, StepRegister.NAME_GUARANTOR_LEGAL_PERSON);
@@ -39,6 +41,7 @@ public class ApiPartnerRegisterGuarantorLegalPersonController {
 
     @PreAuthorize("hasPermissionOnTenant(#documentIdentificationGuarantorLegalPersonForm.tenantId)")
     @PostMapping("/documentIdentification")
+    @Transactional
     public ResponseEntity<TenantModel> documentIdentification(@Validated({ApiPartner.class, DocumentIdentificationGuarantor.class}) DocumentIdentificationGuarantorLegalPersonForm documentIdentificationGuarantorLegalPersonForm) {
         var tenant = tenantService.findById(documentIdentificationGuarantorLegalPersonForm.getTenantId());
         var tenantModel = tenantService.saveStepRegister(tenant, documentIdentificationGuarantorLegalPersonForm, StepRegister.DOCUMENT_IDENTIFICATION_GUARANTOR_LEGAL_PERSON);
@@ -47,6 +50,7 @@ public class ApiPartnerRegisterGuarantorLegalPersonController {
 
     @PreAuthorize("hasPermissionOnTenant(#documentIdentificationRepresentanGuarantorLegalPersonForm.tenantId)")
     @PostMapping("/documentRepresentantIdentification")
+    @Transactional
     public ResponseEntity<TenantModel> documentIdentificationRepresentant(@Validated({ApiPartner.class, DocumentIdentificationGuarantor.class}) DocumentIdentificationRepresentanGuarantorLegalPersonForm documentIdentificationRepresentanGuarantorLegalPersonForm) {
         var tenant = tenantService.findById(documentIdentificationRepresentanGuarantorLegalPersonForm.getTenantId());
         var tenantModel = tenantService.saveStepRegister(tenant, documentIdentificationRepresentanGuarantorLegalPersonForm, StepRegister.DOCUMENT_IDENTIFICATION_REPRESENTANT_GUARANTOR_LEGAL_PERSON);

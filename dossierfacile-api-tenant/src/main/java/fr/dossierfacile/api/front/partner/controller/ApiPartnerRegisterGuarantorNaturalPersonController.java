@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -51,6 +52,7 @@ public class ApiPartnerRegisterGuarantorNaturalPersonController {
 
     @PreAuthorize("hasPermissionOnTenant(#documentIdentificationGuarantorNaturalPersonForm.tenantId)")
     @PostMapping("/documentIdentification")
+    @Transactional
     public ResponseEntity<TenantModel> documentIdentification(@Validated(ApiPartner.class) DocumentIdentificationGuarantorNaturalPersonForm documentIdentificationGuarantorNaturalPersonForm) {
         var tenant = tenantService.findById(documentIdentificationGuarantorNaturalPersonForm.getTenantId());
         var tenantModel = tenantService.saveStepRegister(tenant, documentIdentificationGuarantorNaturalPersonForm, StepRegister.DOCUMENT_IDENTIFICATION_GUARANTOR_NATURAL_PERSON);
@@ -59,6 +61,7 @@ public class ApiPartnerRegisterGuarantorNaturalPersonController {
 
     @PreAuthorize("hasPermissionOnTenant(#documentIdentificationGuarantorNaturalPersonFileForm.tenantId)")
     @PostMapping("/documentIdentification/v2")
+    @Transactional
     public ResponseEntity<TenantModel> documentIdentificationFile(@Validated(ApiPartner.class) DocumentIdentificationGuarantorNaturalPersonFileForm documentIdentificationGuarantorNaturalPersonFileForm) {
         var tenant = tenantService.findById(documentIdentificationGuarantorNaturalPersonFileForm.getTenantId());
         var tenantModel = tenantService.saveStepRegister(tenant, documentIdentificationGuarantorNaturalPersonFileForm, StepRegister.DOCUMENT_IDENTIFICATION_GUARANTOR_NATURAL_PERSON_FILE);
@@ -67,6 +70,7 @@ public class ApiPartnerRegisterGuarantorNaturalPersonController {
 
     @PreAuthorize("hasPermissionOnTenant(#nameGuarantorNaturalPersonForm.tenantId)")
     @PostMapping("/name")
+    @Transactional
     public ResponseEntity<TenantModel> guarantorName(@Validated(ApiPartner.class) NameGuarantorNaturalPersonForm nameGuarantorNaturalPersonForm) {
         var tenant = tenantService.findById(nameGuarantorNaturalPersonForm.getTenantId());
         var tenantModel = tenantService.saveStepRegister(tenant, nameGuarantorNaturalPersonForm, StepRegister.NAME_GUARANTOR_NATURAL_PERSON);
@@ -75,6 +79,7 @@ public class ApiPartnerRegisterGuarantorNaturalPersonController {
 
     @PreAuthorize("hasPermissionOnTenant(#documentResidencyGuarantorNaturalPersonForm.tenantId)")
     @PostMapping("/documentResidency")
+    @Transactional
     public ResponseEntity<TenantModel> documentResidency(@Validated(ApiPartner.class) DocumentResidencyGuarantorNaturalPersonForm documentResidencyGuarantorNaturalPersonForm) {
         // Validate form according partner api version
         UserApi userApi = clientAuthenticationFacade.getClient();
@@ -87,6 +92,7 @@ public class ApiPartnerRegisterGuarantorNaturalPersonController {
 
     @PreAuthorize("hasPermissionOnTenant(#documentProfessionalGuarantorNaturalPersonForm.tenantId)")
     @PostMapping("/documentProfessional")
+    @Transactional
     public ResponseEntity<TenantModel> documentProfessional(@Validated(ApiPartner.class) DocumentProfessionalGuarantorNaturalPersonForm documentProfessionalGuarantorNaturalPersonForm) {
         var tenant = tenantService.findById(documentProfessionalGuarantorNaturalPersonForm.getTenantId());
         var tenantModel = tenantService.saveStepRegister(tenant, documentProfessionalGuarantorNaturalPersonForm, StepRegister.DOCUMENT_PROFESSIONAL_GUARANTOR_NATURAL_PERSON);
@@ -95,6 +101,7 @@ public class ApiPartnerRegisterGuarantorNaturalPersonController {
 
     @PreAuthorize("hasPermissionOnTenant(#documentFinancialGuarantorNaturalPersonForm.tenantId)")
     @PostMapping("/documentFinancial")
+    @Transactional
     public ResponseEntity<TenantModel> documentFinancial(@Validated(ApiPartner.class) DocumentFinancialGuarantorNaturalPersonForm documentFinancialGuarantorNaturalPersonForm) {
         financialDocumentService.setFinancialDocumentCategoryStep(documentFinancialGuarantorNaturalPersonForm);
         var tenant = tenantService.findById(documentFinancialGuarantorNaturalPersonForm.getTenantId());
@@ -105,6 +112,7 @@ public class ApiPartnerRegisterGuarantorNaturalPersonController {
 
     @PreAuthorize("hasPermissionOnTenant(#documentTaxGuarantorNaturalPersonForm.tenantId)")
     @PostMapping("/documentTax")
+    @Transactional
     public ResponseEntity<TenantModel> documentTax(@Validated(ApiPartner.class) DocumentTaxGuarantorNaturalPersonForm documentTaxGuarantorNaturalPersonForm) {
         var tenant = tenantService.findById(documentTaxGuarantorNaturalPersonForm.getTenantId());
         var tenantModel = tenantService.saveStepRegister(tenant, documentTaxGuarantorNaturalPersonForm, StepRegister.DOCUMENT_TAX_GUARANTOR_NATURAL_PERSON);
