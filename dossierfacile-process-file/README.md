@@ -54,5 +54,22 @@ For the dev environment the appender Logstash is disabled by default.
 mvn spring-boot:run -D mvn spring-boot:run -D spring-boot.run.profiles=dev,mockOvh
 ```
 
+## Run the FileProcess Tests
+
+You need to configure some library on your computer to run the tests.
+You need to install : 
+    - tesseract
+    - tesseract-lang
+On Macos with Homebrew, you can run the following commands: 
+```shell
+brew install tesseract
+brew install tesseract-lang
+```
+
+Then you need to set the environment variable `TESSDATA_PREFIX` to the path of the tesseract language files.
+You need to set -Djna.library.path= to the path of the tesseract library files.
+```shell
+ENABLE_TESTS_FILE_ANALYSIS=true TESSDATA_PREFIX=/opt/homebrew/share/tessdata/ mvn test -Dtest=GuaranteeProviderDocumentTest -Djna.library.path=/opt/homebrew/lib
+```
 
 

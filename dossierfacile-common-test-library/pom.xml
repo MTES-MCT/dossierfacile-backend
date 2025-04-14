@@ -103,8 +103,20 @@
     <description>Common tools for tests</description>
 
     <properties>
-        <kotlin.version>1.9.24</kotlin.version>
+        <kotlin.version>2.1.20</kotlin.version>
     </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>aws.sdk.kotlin</groupId>
+                <artifactId>bom</artifactId>
+                <version>1.4.60</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <dependency>
@@ -122,6 +134,31 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jetbrains.kotlinx</groupId>
+            <artifactId>kotlinx-coroutines-jdk8</artifactId>
+            <version>1.10.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jetbrains.kotlinx</groupId>
+            <artifactId>kotlinx-coroutines-core</artifactId>
+            <version>1.10.2</version>
+            <type>pom</type>
+            <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>aws.sdk.kotlin</groupId>
+            <artifactId>s3-jvm</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>aws.smithy.kotlin</groupId>
+            <artifactId>http-client-engine-crt-jvm</artifactId>
+            <version>1.4.12</version>
         </dependency>
 
         <dependency>
@@ -150,6 +187,12 @@
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-stdlib-jdk8</artifactId>
             <version>${kotlin.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-stdlib</artifactId>
+            <version>2.1.20</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 
