@@ -1,0 +1,16 @@
+{
+  "Statement": [
+    {
+      "Sid": "unit-test-bucket-policy",
+      "Principal": "*",
+      "Action": [
+        "s3:GetObject"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:s3:::documents-analysis-test",
+        "arn:aws:s3:::documents-analysis-test/*"
+      ]
+    }
+  ]
+}
