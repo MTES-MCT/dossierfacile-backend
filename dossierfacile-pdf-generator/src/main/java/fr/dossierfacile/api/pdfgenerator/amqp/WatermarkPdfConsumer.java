@@ -27,6 +27,7 @@ public class WatermarkPdfConsumer {
     public void receiveMessage(String message) {
         var jobContext = new JobContext(null, null, QueueName.AMQP_GENERIC_WATERMARK.name());
         LoggerUtil.addProcessId(jobContext.getProcessId());
+        jobContext.setJobStatus(JobStatus.SUCCESS);
         log.info("Received message on watermark.generic API WM to process:{}", message);
         try {
             DocumentModel documentModel = gson.fromJson(message, DocumentModel.class);
