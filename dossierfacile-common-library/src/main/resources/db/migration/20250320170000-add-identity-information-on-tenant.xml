@@ -13,10 +13,5 @@
             <column name="owner_type" type="varchar(50)"/>
         </addColumn>
 
-        <!-- Mise à jour des nouvelles colonnes avec les données de user_account -->
-        <update tableName="tenant">
-            <column name="owner_type" value="SELF"/>
-        </update>
-
     </changeSet>
 </databaseChangeLog>
