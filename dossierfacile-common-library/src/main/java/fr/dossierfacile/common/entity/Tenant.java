@@ -264,6 +264,18 @@ public class Tenant extends User implements Person, Serializable {
         return super.getPreferredName();
     }
 
+    public void setUserFirstName(String firstName) {
+        super.setFirstName(firstName);
+    }
+
+    public void setUserLastName(String lastName) {
+        super.setLastName(lastName);
+    }
+
+    public void setUserPreferredName(String preferredName) {
+        super.setPreferredName(preferredName);
+    }
+
     @Override
     public String getFirstName() {
         if (ownerType == TenantOwnerType.SELF) {
