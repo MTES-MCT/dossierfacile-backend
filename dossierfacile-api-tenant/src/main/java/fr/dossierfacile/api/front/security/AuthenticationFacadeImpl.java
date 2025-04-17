@@ -144,11 +144,13 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
                 tenant.setWarningMessage("Attention, l'email de compte est '%s' et l'email de connexion est '%s'".formatted(tenant.getEmail(), user.getEmail()));
                 return tenant;
             }
+            var userHasBeenLinkedToFranceConnect = false;
 
             // update tenant from keycloakUser
             if (!Boolean.TRUE.equals(tenant.getFranceConnect()) && user.isFranceConnect()) {
                 log.info("Local account link to FranceConnect account, for tenant with ID {}", tenant.getId());
                 logService.saveLog(LogType.FC_ACCOUNT_LINK, tenant.getId());
+                userHasBeenLinkedToFranceConnect = true;
             } else if (tenant.getKeycloakId() == null ){
                 log.info("First tenant connection from DF, for tenant with ID {}", tenant.getId());
                 logService.saveLog(LogType.ACCOUNT_LINK, tenant.getId());
@@ -161,17 +163,20 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
             tenant.setFranceConnectBirthPlace(user.getFranceConnectBirthPlace());
             tenant.setFranceConnectBirthDate(user.getFranceConnectBirthDate());
 
-            // If the owner type is SELF, we do not update the name of the tenant otherwise we will overwrite the name of the account
-            if (user.isFranceConnect() && tenant.getOwnerType() == TenantOwnerType.SELF) {
+            // We have a special case to handle when the user linked his account to FranceConnect
+            // We update the userAccount informations only if the user is FranceConnected and his ownerType is SELF.
+            if (userHasBeenLinkedToFranceConnect || (user.isFranceConnect() && tenant.getOwnerType() == TenantOwnerType.SELF)) {
                 if (!StringUtils.equals(tenant.getFirstName(), user.getGivenName())
                         || !StringUtils.equals(tenant.getLastName(), user.getFamilyName())
                         || (user.getPreferredUsername() != null && !StringUtils.equals(tenant.getPreferredName(), user.getPreferredUsername()))) {
                     documentService.resetValidatedOrInProgressDocumentsAccordingCategories(tenant.getDocuments(),
                             Arrays.asList(DocumentCategory.values()));
                 }
-                tenant.setFirstName(user.getGivenName());
-                tenant.setLastName(user.getFamilyName());
-                tenant.setPreferredName(user.getPreferredUsername() == null ? tenant.getPreferredName() : user.getPreferredUsername());
+                // When the user doesn't match the keycloak user information and is France connected we only update
+                // the name / first name / preferred name of the user_account entity .
+                tenant.setUserFirstName(user.getGivenName());
+                tenant.setUserLastName(user.getFamilyName());
+                tenant.setUserPreferredName(user.getPreferredUsername() == null ? tenant.getUserPreferredName() : user.getPreferredUsername());
             }
             tenantStatusService.updateTenantStatus(tenant);
 
