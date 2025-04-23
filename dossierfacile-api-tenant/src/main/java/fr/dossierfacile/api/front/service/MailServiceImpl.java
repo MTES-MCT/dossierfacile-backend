@@ -195,6 +195,7 @@ public class MailServiceImpl implements MailService {
         Map<String, String> variables = new HashMap<>();
         variables.put("PRENOM", user.getFirstName());
         variables.put("NOM", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
+        variables.put("TENANT_ID", user.getId().toString());
         variables.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
 
         sendEmailToTenant(user, variables, templateEmailWhenAccountNotYetCompleted);
