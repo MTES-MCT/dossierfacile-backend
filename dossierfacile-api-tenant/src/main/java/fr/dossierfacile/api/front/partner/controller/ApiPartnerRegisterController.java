@@ -14,6 +14,7 @@ import fr.dossierfacile.api.front.validator.group.FinancialDocumentGroup;
 import fr.dossierfacile.common.config.ApiVersion;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.DocumentCategoryStep;
+import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.mapper.CategoriesMapper;
 import fr.dossierfacile.common.service.interfaces.LogService;
@@ -133,6 +134,9 @@ public class ApiPartnerRegisterController {
     @Transactional
     public ResponseEntity<TenantModel> documentProfessional(@Validated(ApiPartner.class) DocumentProfessionalForm documentProfessionalForm) {
         var tenant = tenantService.findById(documentProfessionalForm.getTenantId());
+        if (DocumentSubCategory.CDI_TRIAL.equals(documentProfessionalForm.getTypeDocumentProfessional())) {
+            documentProfessionalForm.setTypeDocumentProfessional(DocumentSubCategory.CDI);
+        }
         var tenantModel = tenantService.saveStepRegister(tenant, documentProfessionalForm, StepRegister.DOCUMENT_PROFESSIONAL);
         return ok(tenantModel);
     }
