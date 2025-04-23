@@ -3,6 +3,7 @@ package fr.dossierfacile.process.file.service.parsers;
 import fr.dossierfacile.common.entity.ocr.ParsedFile;
 import fr.dossierfacile.common.utils.FileUtility;
 import fr.dossierfacile.process.file.service.parsers.tools.PageExtractorModel;
+import fr.dossierfacile.process.file.util.ImageUtils;
 import fr.dossierfacile.process.file.util.MemoryUtils;
 import lombok.extern.slf4j.Slf4j;
 import net.sourceforge.tess4j.ITessAPI;
@@ -37,25 +38,10 @@ public abstract class AbstractImagesParser<T extends ParsedFile> implements File
         }
     }
 
-    private BufferedImage[] getImages(File file) throws IOException {
-        if ("pdf".equalsIgnoreCase(FilenameUtils.getExtension(file.getName()))) {
-            BufferedImage[] images = FileUtility.convertPdfToImage(file);
-            if (images == null || images.length < 1) {
-                throw new IllegalStateException("pdf file cannot be convert to images");
-            }
-            return images;
-        }
-        BufferedImage image = ImageIO.read(file);
-        if (image == null) {
-            throw new IllegalStateException("image cannot be extracted from file " + file.getName());
-        }
-        return new BufferedImage[]{image};
-    }
-
     @Override
     public T parse(File file) {
         try {
-            return parse(getImages(file));
+            return parse(ImageUtils.getImagesFromFile(file));
         } catch (IOException e) {
             log.error("Unable to read Image");
             return null;
