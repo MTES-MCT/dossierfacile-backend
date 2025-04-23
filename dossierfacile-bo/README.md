@@ -68,10 +68,14 @@ keycloak.server.client.secret=
 # Leave this empty for dev
 brevo.apikey=
 brevo.template.id.message.notification=
+brevo.template.id.message.notification.with.details=
+brevo.template.id.message.notification.with.partner.and.details=
 brevo.template.id.account.deleted=
 brevo.template.id.dossier.validated=
 brevo.template.id.dossier.fully.validated=
 brevo.template.id.dossier.tenant.denied=
+brevo.template.id.dossier.tenant.denied.with.details=
+brevo.template.id.dossier.tenant.denied.with.partner.and.details=
 brevo.template.id.message.notification.with.partner=
 brevo.template.id.dossier.fully.validated.with.partner=
 brevo.template.id.dossier.tenant.denied.with.partner=
