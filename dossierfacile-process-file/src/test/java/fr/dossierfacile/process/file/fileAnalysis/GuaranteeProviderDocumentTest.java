@@ -6,6 +6,9 @@ import fr.dossierfacile.common.enums.*;
 import fr.dossierfacile.fileAnalysis.*;
 import fr.dossierfacile.process.file.service.documentrules.GuaranteeProviderRulesValidationService;
 import fr.dossierfacile.process.file.service.parsers.GuaranteeVisaleParser;
+import fr.dossierfacile.process.file.service.processors.blurry.algorithm.FFTBlurryAlgorithm;
+import fr.dossierfacile.process.file.service.processors.blurry.algorithm.LaplacianBlurryAlgorithm;
+import fr.dossierfacile.process.file.service.processors.blurry.algorithm.SobelBlurryAlgorithm;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
@@ -30,7 +33,7 @@ import java.util.stream.Collectors;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = {OvhConfiguration.class, DatasetLoader.class})
+@ContextConfiguration(classes = {TestProperties.class, DatasetLoader.class, LaplacianBlurryAlgorithm.class, SobelBlurryAlgorithm.class, FFTBlurryAlgorithm.class})
 @TestPropertySource(locations = "/document_analysis.properties")
 @EnabledIfEnvironmentVariable(named = "ENABLE_TESTS_FILE_ANALYSIS", matches = "true")
 // See README.md for tutorial to start those test.
