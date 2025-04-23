@@ -112,6 +112,13 @@
             <artifactId>commons-imaging</artifactId>
             <version>1.0-alpha3</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.bytedeco</groupId>
+            <artifactId>opencv</artifactId>
+            <version>4.10.0-1.5.11</version>
+        </dependency>
+
     </dependencies>
     <build>
         <finalName>dossierfacile-process-file</finalName>

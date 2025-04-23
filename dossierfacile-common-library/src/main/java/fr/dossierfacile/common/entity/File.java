@@ -3,12 +3,7 @@ package fr.dossierfacile.common.entity;
 import fr.dossierfacile.common.enums.FileStorageStatus;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 import org.hibernate.Hibernate;
 
 import java.io.Serial;
@@ -56,8 +51,12 @@ public class File implements Serializable {
     private BarCodeFileAnalysis fileAnalysis;
 
     @Nullable
-    @OneToOne(mappedBy= "file", fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "file", fetch = FetchType.LAZY)
     private ParsedFileAnalysis parsedFileAnalysis;
+
+    @Nullable
+    @OneToOne(mappedBy = "file", fetch = FetchType.LAZY)
+    private BlurryFileAnalysis blurryFileAnalysis;
 
     @PreRemove
     void deleteCascade() {
