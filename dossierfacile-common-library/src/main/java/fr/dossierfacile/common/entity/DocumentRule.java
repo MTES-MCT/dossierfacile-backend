@@ -34,7 +34,9 @@ public enum DocumentRule {
     R_RENT_RECEIPT_NB_DOCUMENTS(Level.WARN, "Un seul document a été détecté"),
 
     R_FRANCE_IDENTITE_NAMES(Level.CRITICAL, "Les noms et prénoms ne correspondent pas"),
-    R_FRANCE_IDENTITE_STATUS(Level.CRITICAL, "Ce document n'a pas pu être validé par France Identité");
+    R_FRANCE_IDENTITE_STATUS(Level.CRITICAL, "Ce document n'a pas pu être validé par France Identité"),
+
+    R_BLURRY_FILE(Level.WARN, "Le document est flou");
 
     public enum Level {
         CRITICAL, WARN

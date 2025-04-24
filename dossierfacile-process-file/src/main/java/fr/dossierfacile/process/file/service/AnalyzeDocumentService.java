@@ -2,6 +2,7 @@ package fr.dossierfacile.process.file.service;
 
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentAnalysisReport;
+import fr.dossierfacile.common.entity.DocumentAnalysisStatus;
 import fr.dossierfacile.common.entity.messaging.QueueMessageStatus;
 import fr.dossierfacile.common.entity.messaging.QueueName;
 import fr.dossierfacile.common.exceptions.RetryableOperationException;
@@ -55,6 +56,7 @@ public class AnalyzeDocumentService {
                 DocumentAnalysisReport report = DocumentAnalysisReport.builder()
                         .document(document)
                         .brokenRules(new LinkedList<>())
+                        .analysisStatus(DocumentAnalysisStatus.UNDEFINED)
                         .build();
                 rulesValidationServices.forEach(rulesService -> rulesService.process(document, report));
                 document.setDocumentAnalysisReport(report);
