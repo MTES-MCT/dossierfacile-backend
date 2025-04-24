@@ -35,16 +35,21 @@ data class FileAnalysisTestData<V, I, F>(
     val invalidDocuments: List<InvalidDocumentData<I, F>>
 )
 
-abstract class DocumentData<F>(open val bucketPath: String, open val fileDescription: F)
+abstract class DocumentData<F>(open val bucketPath: String, open val fileDescription: F?)
+
 
 data class ValidDocumentData<T, F>(
     override val bucketPath: String,
-    override val fileDescription: F,
-    val expectedResult: T
-) : DocumentData<F>(bucketPath, fileDescription)
+    override val fileDescription: F?,
+    val expectedResult: T?
+) : DocumentData<F>(bucketPath, fileDescription) {
+    constructor(bucketPath: String) : this(bucketPath, null, null)
+}
 
 data class InvalidDocumentData<T, F>(
     override val bucketPath: String,
-    override val fileDescription: F,
-    val expectedError: T
-) : DocumentData<F>(bucketPath, fileDescription)
+    override val fileDescription: F?,
+    val expectedError: T?
+) : DocumentData<F>(bucketPath, fileDescription) {
+    constructor(bucketPath: String) : this(bucketPath, null, null)
+}
