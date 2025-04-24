@@ -37,7 +37,6 @@ public class BlurryFileAnalysis {
     private BlurryFileAnalysisStatus analysisStatus;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Convert(converter = ListToJsonConverter.class)
     @Column(columnDefinition = "jsonb")
     private List<BlurryResult> blurryResults;
 
