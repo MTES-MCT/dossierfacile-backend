@@ -10,6 +10,7 @@ import fr.dossierfacile.api.front.validator.group.ApiPartner;
 import fr.dossierfacile.common.config.ApiVersion;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
+import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.mapper.CategoriesMapper;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -95,6 +96,9 @@ public class ApiPartnerRegisterGuarantorNaturalPersonController {
     @Transactional
     public ResponseEntity<TenantModel> documentProfessional(@Validated(ApiPartner.class) DocumentProfessionalGuarantorNaturalPersonForm documentProfessionalGuarantorNaturalPersonForm) {
         var tenant = tenantService.findById(documentProfessionalGuarantorNaturalPersonForm.getTenantId());
+        if (DocumentSubCategory.CDI_TRIAL.equals(documentProfessionalGuarantorNaturalPersonForm.getTypeDocumentProfessional())) {
+            documentProfessionalGuarantorNaturalPersonForm.setTypeDocumentProfessional(DocumentSubCategory.CDI);
+        }
         var tenantModel = tenantService.saveStepRegister(tenant, documentProfessionalGuarantorNaturalPersonForm, StepRegister.DOCUMENT_PROFESSIONAL_GUARANTOR_NATURAL_PERSON);
         return ok(tenantModel);
     }
