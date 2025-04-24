@@ -22,7 +22,7 @@ public class BODashboardController {
     private TenantLogService logService;
     @Autowired
     private UserService userService;
-    @Value("${dashboard.days.before.to.display:5}")
+    @Value("${dashboard.days.before.to.display:35}")
     private Integer minusDays;
 
     @GetMapping("")
