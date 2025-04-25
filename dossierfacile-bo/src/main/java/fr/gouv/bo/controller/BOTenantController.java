@@ -218,10 +218,10 @@ public class BOTenantController {
         return "redirect:/bo/colocation/" + tenant.getApartmentSharing().getId() + "#tenant" + tenant.getId();
     }
 
-    private List<ItemDetail> getItemDetailForSubcategoryOfDocument(DocumentSubCategory documentSubCategory, String tenantOrGuarantor) {
+    private List<ItemDetail> getItemDetailForSubcategoryOfDocument(DocumentSubCategory documentSubCategory, String documentUserType) {
 
         List<ItemDetail> itemDetails = new ArrayList<>();
-        for (DocumentDeniedOptions documentDeniedOptions : documentService.findDocumentDeniedOptionsByDocumentSubCategoryAndDocumentUserType(documentSubCategory, tenantOrGuarantor)) {
+        for (DocumentDeniedOptions documentDeniedOptions : documentService.findDocumentDeniedOptionsByDocumentSubCategoryAndDocumentUserTypeIncludeGeneric(documentSubCategory, documentUserType)) {
             ItemDetail itemDetail1 = ItemDetail.builder()
                     .check(false)
                     .message(documentDeniedOptions.getMessageValue())
