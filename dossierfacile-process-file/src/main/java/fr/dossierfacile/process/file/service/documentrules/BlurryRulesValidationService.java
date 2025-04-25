@@ -13,12 +13,14 @@ import org.springframework.util.CollectionUtils;
 @Slf4j
 public class BlurryRulesValidationService implements RulesValidationService {
 
-    @Value("${blurry.laplacian.threshold}")
+    @Value("${blurry.laplacian.threshold:400}")
     private double laplacianThreshold;
-    @Value("${blurry.sobel.threshold}")
+    @Value("${blurry.sobel.threshold:30}")
     private double sobelThreshold;
-    @Value("${blurry.fft.threshold}")
+    @Value("${blurry.fft.threshold:170}")
     private double fftThreshold;
+    @Value("${blurry.dog.threshold:20}")
+    private double dogThreshold;
 
     @Override
     public boolean shouldBeApplied(Document document) {
@@ -41,6 +43,14 @@ public class BlurryRulesValidationService implements RulesValidationService {
                     .build());
             report.setAnalysisStatus(DocumentAnalysisStatus.DENIED);
         }
+        if (report.getBrokenRules().isEmpty()) {
+            report.setAnalysisStatus(DocumentAnalysisStatus.CHECKED);
+        } else if (report.getBrokenRules().stream().anyMatch(r -> r.getRule().getLevel() == DocumentRule.Level.CRITICAL)) {
+            report.setAnalysisStatus(DocumentAnalysisStatus.DENIED);
+        } else {
+            report.setAnalysisStatus(DocumentAnalysisStatus.UNDEFINED);
+        }
+
         return report;
     }
 
@@ -55,7 +65,10 @@ public class BlurryRulesValidationService implements RulesValidationService {
         if (checkFFTBlurryFile(blurryFileAnalysis)) {
             score++;
         }
-        return score >= 2;
+        if (checkDogBlurryFile(blurryFileAnalysis)) {
+            score++;
+        }
+        return score >= 3;
     }
 
     private boolean checkLaplacianBlurryFile(BlurryFileAnalysis blurryFileAnalysis) {
@@ -76,6 +89,13 @@ public class BlurryRulesValidationService implements RulesValidationService {
         var fftResult = blurryFileAnalysis.getBlurryResults().stream().filter(item -> item.algorithm() == BlurryAlgorithmType.FFT).findFirst();
         return fftResult
                 .filter(blurryResult -> blurryResult.score() > fftThreshold)
+                .isPresent();
+    }
+
+    private boolean checkDogBlurryFile(BlurryFileAnalysis blurryFileAnalysis) {
+        var fftResult = blurryFileAnalysis.getBlurryResults().stream().filter(item -> item.algorithm() == BlurryAlgorithmType.DOG).findFirst();
+        return fftResult
+                .filter(blurryResult -> blurryResult.score() < dogThreshold)
                 .isPresent();
     }
 

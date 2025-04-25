@@ -156,13 +156,16 @@ brew install tesseract
 brew install tesseract-lang
 ```
 
+You also need to install OpenCV on your system, follow this doc :
+https://opencv-java-tutorials.readthedocs.io/en/latest/01-installing-opencv-for-java.html#:~:text=To%20do%20so%2C%20open%20the,with%20Homebrew%3A%20brew%20install%20ant%20.
+Take care to install OpenCV 4.X
+
 Then, configure the environment variables:
 
 - Set `TESSDATA_PREFIX` to point to the directory containing the Tesseract language files.
 - Use the `-Djna.library.path` argument to indicate the path to the Tesseract library.
 
 Example command to run the tests:
-
 ```shell
 ENABLE_TESTS_FILE_ANALYSIS=true \
 TESSDATA_PREFIX=/opt/homebrew/share/tessdata/ \
@@ -178,4 +181,9 @@ s3.access.key=[[ovh_access_key]]
 s3.secret.key=[[ovh_secret_key]]
 s3.region=sbg
 s3.bucket.name=documents-analysis-test
+
+blurry.laplacian.threshold=400
+blurry.sobel.threshold=30
+blurry.fft.threshold=170
+blurry.dog.threshold=20
 ```

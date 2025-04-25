@@ -36,7 +36,7 @@ public enum DocumentRule {
     R_FRANCE_IDENTITE_NAMES(Level.CRITICAL, "Les noms et prénoms ne correspondent pas"),
     R_FRANCE_IDENTITE_STATUS(Level.CRITICAL, "Ce document n'a pas pu être validé par France Identité"),
 
-    R_BLURRY_FILE(Level.WARN, "Le document est flou");
+    R_BLURRY_FILE(Level.CRITICAL, "Votre document semble flou");
 
     public enum Level {
         CRITICAL, WARN

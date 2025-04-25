@@ -10,14 +10,36 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 
+/*
+ * FFTBlurryAlgorithm assesses the sharpness of an image using frequency domain analysis.
+ *
+ * The algorithm performs the following steps:
+ * 1. It applies a Fourier Transform (FFT) to the image to compute its frequency spectrum.
+ * 2. It shifts the low-frequency components to the center of the spectrum (fftShift).
+ * 3. It analyzes a circular region around the center to calculate the mean energy.
+ *
+ * - A low mean energy in the center suggests a rich presence of high frequencies (sharp image).
+ * - A high mean energy in the center indicates that most of the energy is concentrated in low frequencies (potentially blurry image).
+ *
+ * Important notes:
+ * - The FFT is computed with optimal padding for efficient processing.
+ * - The magnitude spectrum is log-scaled and normalized for better numerical stability.
+ * - The radius of the center analysis area is defined by DEFAULT_RADIUS (typically set to 30 pixels).
+ *
+ * The final mean value is returned in a BlurryResult with the BlurryAlgorithmType.FFT.
+ *
+ * Usage context:
+ * This algorithm complements spatial-based methods (e.g., Sobel, Laplacian) within a voting system
+ * to provide a robust multi-perspective assessment of document sharpness.
+ */
 @Service
 @AllArgsConstructor
 public class FFTBlurryAlgorithm implements BlurryAlgorithm {
 
-    private static final int DEFAULT_RADIUS = 60;
+    private static final int DEFAULT_RADIUS = 30;
 
     @Override
-    public BlurryResult isBlurry(Mat img) {
+    public BlurryResult getBlurryResult(Mat img) {
         Mat padded = optimalPadding(img);
         // FFT
         Mat complexImage = new Mat();
