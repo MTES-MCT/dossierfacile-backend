@@ -108,7 +108,7 @@ public class DocumentService {
         documentRepository.updateDocumentWithDocumentDeniedReasons(documentDeniedReasons, documentId);
     }
 
-    public List<DocumentDeniedOptions> findDocumentDeniedOptionsByDocumentSubCategoryAndDocumentUserType(DocumentSubCategory documentSubCategory, String tenantOrGuarantor) {
-        return documentDeniedOptionsRepository.findAllByDocumentSubCategoryAndDocumentUserTypeOrderByCode(documentSubCategory, tenantOrGuarantor);
+    public List<DocumentDeniedOptions> findDocumentDeniedOptionsByDocumentSubCategoryAndDocumentUserTypeIncludeGeneric(DocumentSubCategory documentSubCategory, String documentUserType) {
+        return documentDeniedOptionsRepository.findAllByDocumentSubCategoryAndDocumentUserTypeIncludeGeneric(documentSubCategory.name(), documentUserType);
     }
 }
