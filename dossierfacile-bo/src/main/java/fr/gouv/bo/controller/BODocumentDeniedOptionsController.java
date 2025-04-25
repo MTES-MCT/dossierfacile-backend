@@ -23,7 +23,7 @@ import static java.util.Comparator.comparing;
 public class BODocumentDeniedOptionsController {
 
     private static final String EMAIL = "email";
-    private static final List<String> DOCUMENT_USER_TYPES = List.of("tenant", "guarantor");
+    private static final List<String> DOCUMENT_USER_TYPES = List.of("tenant", "guarantor", "all");
 
     private final DocumentDeniedOptionsService service;
 
