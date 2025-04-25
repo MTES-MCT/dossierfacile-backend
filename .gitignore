@@ -5,6 +5,7 @@ application-*.properties
 !application-test.properties
 document_analysis.properties
 .env
+dossierfacile-process-file/testResult/
 target/
 mockstorage/
 mock-storage/

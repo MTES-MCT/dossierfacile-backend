@@ -1,15 +1,17 @@
 package fr.dossierfacile.process.file.fileAnalysis;
 
 import fr.dossierfacile.common.enums.BlurryFileAnalysisStatus;
-import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.repository.BlurryFileAnalysisRepository;
 import fr.dossierfacile.fileAnalysis.FileAnalysisTestData;
 import fr.dossierfacile.fileAnalysis.InvalidDocumentData;
 import fr.dossierfacile.fileAnalysis.TestOvhFileStorageServiceImpl;
 import fr.dossierfacile.fileAnalysis.ValidDocumentData;
+import fr.dossierfacile.process.file.fileAnalysis.config.OVHConfiguration;
+import fr.dossierfacile.process.file.fileAnalysis.config.OpenCVConfiguration;
 import fr.dossierfacile.process.file.repository.FileRepository;
 import fr.dossierfacile.process.file.service.StorageFileLoaderService;
 import fr.dossierfacile.process.file.service.processors.blurry.BlurryProcessor;
+import fr.dossierfacile.process.file.service.processors.blurry.algorithm.DifferenceOfGaussiansBlurryAlgorithm;
 import fr.dossierfacile.process.file.service.processors.blurry.algorithm.FFTBlurryAlgorithm;
 import fr.dossierfacile.process.file.service.processors.blurry.algorithm.LaplacianBlurryAlgorithm;
 import fr.dossierfacile.process.file.service.processors.blurry.algorithm.SobelBlurryAlgorithm;
@@ -40,11 +42,13 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {
-        TestProperties.class,
+        OVHConfiguration.class,
+        OpenCVConfiguration.class,
         BlurryProcessor.class,
         FFTBlurryAlgorithm.class,
         LaplacianBlurryAlgorithm.class,
         SobelBlurryAlgorithm.class,
+        DifferenceOfGaussiansBlurryAlgorithm.class,
         StorageFileLoaderService.class,
         BlurryFileAnalysisRepository.class,
         FileRepository.class,
