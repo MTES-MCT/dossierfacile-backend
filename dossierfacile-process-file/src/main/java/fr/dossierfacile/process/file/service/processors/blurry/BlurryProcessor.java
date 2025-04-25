@@ -30,14 +30,17 @@ import java.util.List;
 // This processor use OpenCV to analyze if a file is blurry
 public class BlurryProcessor implements Processor {
 
-    @Value("${blurry.laplacian.threshold:100}")
+    @Value("${blurry.laplacian.threshold:400}")
     private int blurryLaplacianThreshold;
 
-    @Value("${blurry.sobel.threshold:35}")
+    @Value("${blurry.sobel.threshold:30}")
     private int blurrySobelThreshold;
 
-    @Value("${blurry.fft.threshold:240}")
+    @Value("${blurry.fft.threshold:170}")
     private int blurryFftThreshold;
+
+    @Value("${blurry.dog.threshold:20}")
+    private int blurryDogThreshold;
 
     @Value("${opencv.lib.path}")
     private String opencvLibPath;
@@ -63,10 +66,10 @@ public class BlurryProcessor implements Processor {
     @PostConstruct
     public void initBlurryProcessor() {
         try {
-            System.out.println("Loading OpenCV library from path: " + opencvLibPath);
+            log.info("Loading OpenCV library from path: {}", opencvLibPath);
             System.load(opencvLibPath);
         } catch (UnsatisfiedLinkError e) {
-            System.err.println("Error loading OpenCV library: " + e.getMessage());
+            log.error("Error loading OpenCV library: {}", e.getMessage());
         }
     }
 
@@ -87,10 +90,10 @@ public class BlurryProcessor implements Processor {
             var images = ImageUtils.getImagesFromFile(file);
             // We get a blurryResult for each algorithm and each image of a file (multiple images for pdf)
             List<List<BlurryResult>> listOfBlurryResults = Arrays.stream(images)
-                    .map(image -> blurryAlgorithms.stream().map(algo -> {
+                    .map(image -> {
                         var img = getOpenCvOptimizedFile(image);
-                        return algo.isBlurry(img);
-                    }).toList()).toList();
+                        return blurryAlgorithms.stream().map(algo -> algo.getBlurryResult(img)).toList();
+                    }).toList();
 
             blurryFileAnalysisBuilder.blurryResults(getWorstBlurryResult(listOfBlurryResults));
             blurryFileAnalysisBuilder.analysisStatus(BlurryFileAnalysisStatus.COMPLETED);
@@ -140,6 +143,7 @@ public class BlurryProcessor implements Processor {
                     case LAPLACIEN -> br.score() / blurryLaplacianThreshold;
                     case SOBEL -> br.score() / blurrySobelThreshold;
                     case FFT -> blurryFftThreshold / br.score();
+                    case DOG -> br.score() / blurryDogThreshold;
                 })
                 .sum();
     }

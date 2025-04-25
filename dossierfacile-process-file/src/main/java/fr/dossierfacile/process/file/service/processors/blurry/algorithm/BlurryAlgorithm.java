@@ -4,5 +4,5 @@ import fr.dossierfacile.common.entity.ocr.BlurryResult;
 import org.opencv.core.Mat;
 
 public interface BlurryAlgorithm {
-    BlurryResult isBlurry(Mat img);
+    BlurryResult getBlurryResult(Mat img);
 }

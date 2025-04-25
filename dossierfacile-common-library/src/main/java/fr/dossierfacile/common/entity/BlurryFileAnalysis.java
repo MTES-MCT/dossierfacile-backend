@@ -1,21 +1,17 @@
 package fr.dossierfacile.common.entity;
 
-import fr.dossierfacile.common.converter.ListToJsonConverter;
-import fr.dossierfacile.common.converter.ParsedFileConverter;
 import fr.dossierfacile.common.entity.ocr.BlurryResult;
-import fr.dossierfacile.common.entity.ocr.ParsedFile;
 import fr.dossierfacile.common.enums.BlurryFileAnalysisStatus;
-import fr.dossierfacile.common.enums.ParsedFileAnalysisStatus;
-import fr.dossierfacile.common.enums.ParsedFileClassification;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.ColumnTransformer;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.List;
 
 @Data
@@ -24,7 +20,11 @@ import java.util.List;
 @Table(name = "blurry_file_analysis")
 @AllArgsConstructor
 @NoArgsConstructor
-public class BlurryFileAnalysis {
+public class BlurryFileAnalysis implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 2405172041950251807L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
