@@ -17,7 +17,7 @@
         .edit-form {
             margin: 2% 20%;
             padding: 50px;
-            background-color: #eaeaf3;
+            background-color: var(--bs-body-bg);
             border: 1px solid #c6c7cc;
             border-radius: 3px;
             overflow: hidden;
@@ -67,7 +67,7 @@
                         <textarea id="messageValue" class="input" rows="4" required
                                   th:field="*{messageValue}"></textarea>
                         <div style="font-size: 12px">
-                            <p>
+                            <p class="mb-0">
                                 <strong>Note :</strong>
                                 Le format <a style="text-decoration: underline" href="https://www.markdownguide.org/basic-syntax">markdown</a> est supporté dans le message.
                             </p>
@@ -76,6 +76,11 @@
                                 <li>Pour mettre en italique : <code>*texte*</code></li>
                                 <li>Pour mettre en gras : <code>**texte**</code></li>
                             </ul>
+                            <p>
+                                Les placeholders <code>{mois}</code>, <code>{moisN-1}</code>, <code>{moisN-2}</code> et <code>{moisN-3}</code> seront
+                                remplacés par <strong th:text="${monthN}" />, <strong th:text="${monthN1}" />, <strong th:text="${monthN2}"/> et
+                                <strong th:text="${monthN3}"/>
+                            </p>
                         </div>
                     </div>
                     <button type="submit" class="btn btn-info btn-save">Sauvegarder</button>
