@@ -615,11 +615,6 @@
                                               th:text="${document.getDocumentStatus()}">
                                         </span>
 
-                                        <span class="btn-right-pull badge bg-info pull-right" style="color: black;"
-                                              th:if="${document.getDocumentStatus().name()=='TO_PROCESS'}"
-                                              th:text="${document.getDocumentStatus()}">
-                                        </span>
-
                                         <div class="container" style="margin-top: 5px; padding-left: 0">
                                             <div class="container" style="margin-top: 5px; padding-left: 0">
                                                 PDF status:
