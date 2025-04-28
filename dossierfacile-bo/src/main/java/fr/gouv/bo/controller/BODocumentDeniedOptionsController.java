@@ -4,6 +4,7 @@ import fr.dossierfacile.common.entity.DocumentDeniedOptions;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.gouv.bo.dto.DocumentDeniedOptionsDTO;
 import fr.gouv.bo.service.DocumentDeniedOptionsService;
+import fr.gouv.bo.utils.DateFormatUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -46,6 +47,10 @@ public class BODocumentDeniedOptionsController {
             return "redirect:/bo/documentDeniedOptions";
         }
         model.addAttribute("documentDeniedOption", optionToEdit.get());
+        model.addAttribute("monthN", DateFormatUtil.replaceMonthPlaceholder("{mois}"));
+        model.addAttribute("monthN1", DateFormatUtil.replaceMonthPlaceholder("{moisN-1}"));
+        model.addAttribute("monthN2", DateFormatUtil.replaceMonthPlaceholder("{moisN-2}"));
+        model.addAttribute("monthN3", DateFormatUtil.replaceMonthPlaceholder("{moisN-3}"));
         return "bo/edit-document-denied-option";
     }
 

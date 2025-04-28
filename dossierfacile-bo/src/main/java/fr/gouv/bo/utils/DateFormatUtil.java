@@ -5,6 +5,8 @@ import org.ocpsoft.prettytime.PrettyTime;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
+import java.time.format.TextStyle;
 import java.util.List;
 import java.util.Locale;
 
@@ -33,5 +35,16 @@ public class DateFormatUtil {
     public static String getExpectedRentReceiptMonths() {
         return ExpectedMonths.forRentReceipt(LocalDate.now()).format(LOCALE);
     }
+
+    public static String replaceMonthPlaceholder(String message) {
+        LocalDate now = LocalDate.now();
+        Month month = now.getDayOfMonth() < 15 ? now.getMonth().minus(1) : now.getMonth();
+        return message
+            .replace("{mois}", month.getDisplayName(TextStyle.FULL, LOCALE))
+            .replace("{moisN-1}", month.minus(1).getDisplayName(TextStyle.FULL, LOCALE))
+            .replace("{moisN-2}", month.minus(2).getDisplayName(TextStyle.FULL, LOCALE))
+            .replace("{moisN-3}", month.minus(3).getDisplayName(TextStyle.FULL, LOCALE));
+    }
+
 
 }
