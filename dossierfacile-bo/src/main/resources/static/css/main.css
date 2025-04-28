@@ -620,7 +620,6 @@ textarea {
 
 .label-check {
     background-color: #ffc81c;
-!important;
     color: black !important;
 }
 
@@ -636,11 +635,9 @@ textarea {
     background-color: red !important;
     color: white !important;
 }
-form-search{}
 
 .search {
     display: flex;
-    background: #f2f2f2;
 }
 
 .searchTerm {
