@@ -36,14 +36,19 @@ public class DateFormatUtil {
         return ExpectedMonths.forRentReceipt(LocalDate.now()).format(LOCALE);
     }
 
+    private static String formatMonth(Month month) {
+        String name = month.getDisplayName(TextStyle.FULL, LOCALE);
+        return name.substring(0, 1).toUpperCase() + name.substring(1);
+    }
+
     public static String replaceMonthPlaceholder(String message) {
         LocalDate now = LocalDate.now();
         Month month = now.getDayOfMonth() < 15 ? now.getMonth().minus(1) : now.getMonth();
         return message
-            .replace("{mois}", month.getDisplayName(TextStyle.FULL, LOCALE))
-            .replace("{moisN-1}", month.minus(1).getDisplayName(TextStyle.FULL, LOCALE))
-            .replace("{moisN-2}", month.minus(2).getDisplayName(TextStyle.FULL, LOCALE))
-            .replace("{moisN-3}", month.minus(3).getDisplayName(TextStyle.FULL, LOCALE));
+            .replace("{mois}", formatMonth(month))
+            .replace("{moisN-1}", formatMonth(month.minus(1)))
+            .replace("{moisN-2}", formatMonth(month.minus(2)))
+            .replace("{moisN-3}", formatMonth(month.minus(3)));
     }
 
 
