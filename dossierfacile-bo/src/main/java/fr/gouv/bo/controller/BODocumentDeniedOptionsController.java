@@ -59,6 +59,10 @@ public class BODocumentDeniedOptionsController {
         model.addAttribute("documentSubCategories", DocumentSubCategory.alphabeticallySortedValues());
         model.addAttribute("documentUserTypes", DOCUMENT_USER_TYPES);
         model.addAttribute("documentDeniedOption", new DocumentDeniedOptionsDTO());
+        model.addAttribute("monthN", DateFormatUtil.replaceMonthPlaceholder("{mois}"));
+        model.addAttribute("monthN1", DateFormatUtil.replaceMonthPlaceholder("{moisN-1}"));
+        model.addAttribute("monthN2", DateFormatUtil.replaceMonthPlaceholder("{moisN-2}"));
+        model.addAttribute("monthN3", DateFormatUtil.replaceMonthPlaceholder("{moisN-3}"));
         return "bo/create-document-denied-option";
     }
 
