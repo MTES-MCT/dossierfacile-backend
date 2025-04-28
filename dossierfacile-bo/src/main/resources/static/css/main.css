@@ -31,18 +31,10 @@ html[data-fr-theme="dark"] .table-hover > tbody > tr:hover {
   color: #666666;
 }
 
-/*
-.card {
-    background-color: inherit;
-}
-*/
-
 @media (max-width: 700px) {
     .btn-responsive {
         font-size: 18px !important;
         max-width: 90%;
-        white-space: pre-wrap;
-        /* css-3 */
         white-space: -moz-pre-wrap;
         /* Mozilla, since 1999 */
         white-space: pre-wrap;
@@ -181,10 +173,6 @@ html[data-fr-theme="dark"] .header-bg {
     border-top: 1px solid #b6caee;
 }
 
-p {
-    line-height: 1.5;
-}
-
 .padding {
     padding: 15px;
 }
@@ -261,6 +249,7 @@ p {
 
 textarea {
     line-height: 1.5;
+    resize: vertical;
 }
 
 input.form-control {
@@ -292,13 +281,6 @@ input.form-control {
 .form-control-untouched::-webkit-input-placeholder, .form-control-untouched:-moz-placeholder, .form-control-untouched::-moz-placeholder, .form-control-untouched:-ms-input-placeholder {
     color: #b6caee;
 }
-
-/*
-label {
-    color: #003189;
-    opacity: 0.8;
-}
-*/
 
 .formatted-label {
     padding-left: 20px;
@@ -592,10 +574,6 @@ ul.customMessage li:not(:last-child) {
 
 .message-admin ul {
     background-color: #f8f8f8 !important;
-}
-
-textarea {
-    resize: vertical;
 }
 
 .container-message p {
