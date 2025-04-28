@@ -1,5 +1,6 @@
 package fr.gouv.bo.dto;
 
+import fr.gouv.bo.utils.DateFormatUtil;
 import fr.gouv.bo.utils.MarkdownUtil;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,7 +18,7 @@ public class ItemDetail {
     private Integer idOptionMessage;
 
     public String getFormattedMessage() {
-        return MarkdownUtil.markdownToHtml(message);
+        return MarkdownUtil.markdownToHtml(DateFormatUtil.replaceMonthPlaceholder(message));
     }
 
 }
