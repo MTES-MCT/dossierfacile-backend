@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+    <changeSet id="202504290000" author="Nicolas">
+        <!-- Ajout des colonnes dans la table tenant -->
+        <addColumn tableName="document_denied_reasons">
+            <column name="document_category" type="varchar(50)" defaultValue="NULL"/>
+            <column name="document_sub_category" type="varchar(50)"/>
+            <column name="document_category_step" type="varchar(50)"/>
+            <column name="document_tenant_type" type="varchar(50)"/>
+        </addColumn>
+
+    </changeSet>
+
+    <changeSet id="202504290001" author="Nicolas">
+        <sql>
+            <![CDATA[
+            update document_denied_reasons
+            set document_category      = document.document_category,
+                document_sub_category  = document.document_sub_category,
+                document_category_step = document.document_category_step,
+                document_tenant_type   = CASE
+                                             WHEN document.tenant_id IS NOT NULL THEN 'tenant'
+                                             WHEN document.guarantor_id IS NOT NULL THEN 'guarantor'
+                                             ELSE 'undefined'
+                    END from document
+            where document_denied_reasons.document_id = document.id;
+            ]]>
+        </sql>
+    </changeSet>
+</databaseChangeLog>

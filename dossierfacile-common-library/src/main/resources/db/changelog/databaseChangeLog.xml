@@ -166,5 +166,6 @@
     <include file="db/migration/202503170000-set-default-category_step-for-financial-doc.xml"/>
     <include file="db/migration/202504230000-update-cdi-trial.xml"/>
     <include file="db/migration/202504220000-create-blurry-file-analysis-table.xml" />
+    <include file="db/migration/202504290000-update-document-denied-reason.xml"/>
 
 </databaseChangeLog>
