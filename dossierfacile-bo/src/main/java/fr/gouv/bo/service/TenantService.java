@@ -261,6 +261,14 @@ public class TenantService {
         if (!documentDeniedReasons.getCheckedOptionsId().isEmpty() || (documentDeniedReasons.getComment() != null && !documentDeniedReasons.getComment().isBlank())) {
             Document document = documentRepository.findById(messageItem.getDocumentId()).orElseThrow(() -> new DocumentNotFoundException(messageItem.getDocumentId()));
             documentDeniedReasons.setDocument(document);
+            documentDeniedReasons.setDocumentCategory(document.getDocumentCategory());
+            documentDeniedReasons.setDocumentSubCategory(document.getDocumentSubCategory());
+            documentDeniedReasons.setDocumentCategoryStep(document.getDocumentCategoryStep());
+            if (document.getGuarantor() != null) {
+                documentDeniedReasons.setDocumentTenantType("guarantor");
+            } else {
+                documentDeniedReasons.setDocumentTenantType("tenant");
+            }
             documentDeniedReasonsRepository.save(documentDeniedReasons);
             DocumentDeniedReasons documentDeniedReasonsToDelete = document.getDocumentDeniedReasons();
             documentService.updateDocumentWithDocumentDeniedReasons(documentDeniedReasons, messageItem.getDocumentId());

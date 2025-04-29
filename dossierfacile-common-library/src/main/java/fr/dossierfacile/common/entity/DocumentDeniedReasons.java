@@ -1,13 +1,9 @@
 package fr.dossierfacile.common.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import fr.dossierfacile.common.enums.DocumentCategory;
+import fr.dossierfacile.common.enums.DocumentCategoryStep;
+import fr.dossierfacile.common.enums.DocumentSubCategory;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -68,6 +64,21 @@ public class DocumentDeniedReasons implements Serializable {
     @Builder.Default
     @Column(name = "creation_date")
     private LocalDateTime creationDate = LocalDateTime.now();
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "document_category")
+    private DocumentCategory documentCategory;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "document_sub_category")
+    private DocumentSubCategory documentSubCategory;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "document_category_step")
+    private DocumentCategoryStep documentCategoryStep;
+
+    @Column(name = "document_tenant_type")
+    private String documentTenantType;
 
     @Override
     public boolean equals(Object o) {
