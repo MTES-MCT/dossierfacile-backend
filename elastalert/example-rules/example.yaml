@@ -1,0 +1,48 @@
+name: test-alert
+
+type: any
+
+index: aggregator-logs-%Y.%m.%d   # The index name to search
+use_strftime_index: true # Use srtftime to replace the %Y, %m, %d in the index name
+
+#The maximum time between changes. After this time period, ElastAlert 2 will forget the old value of the compare_key field.
+timeframe:
+  days: 1
+
+filter:
+  - match_phrase:
+      environment: "preprod"
+  - match_phrase:
+      application: "api-tenant"
+  - match_phrase:
+      normalized_uri: "/api/user/deleteAccount"
+
+# Use slack alerter to notify mattermost. The mattermost notifier is not good
+alert:
+  - slack
+
+slack_webhook_url: "mattermost webhook url"
+slack_msg_pretext: ":rotating_light: *ALERTE API DELETE ACCOUNT* :rotating_light:"
+slack_msg_color: danger
+slack_username_override: "ElastAlert"
+slack_emoji_override: ":warning:"
+
+slack_alert_fields:
+  - title: URI
+    value: "normalized_uri"
+    short: true
+  - title: Méthode
+    value: "method"
+    short: true
+  - title: Statut HTTP
+    value: "response_status"
+    short: true
+  - title: Utilisateur
+    value: "user"
+    short: false
+  - title: Adresse IP
+    value: "ip"
+    short: true
+  - title: Timestamp
+    value: "@timestamp"
+    short: false
