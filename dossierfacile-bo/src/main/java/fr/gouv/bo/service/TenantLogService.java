@@ -1,7 +1,8 @@
 package fr.gouv.bo.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.TenantLog;
 import fr.dossierfacile.common.enums.LogType;
@@ -48,7 +49,7 @@ public class TenantLogService {
                 .logType(LogType.OPERATOR_COMMENT)
                 .tenantId(tenant.getId())
                 .creationDateTime(LocalDateTime.now())
-                .logDetails(writeAsString(Map.of("comment", operatorComment)))
+                .logDetails(writeAsObjectNode(Map.of("comment", operatorComment)))
                 .build();
         saveByLog(log);
     }
@@ -61,12 +62,14 @@ public class TenantLogService {
         return logRepository.countTreatedFromTodayGroupByOperator();
     }
 
-    private String writeAsString(Object object) {
+    private ObjectNode writeAsObjectNode(Object object) {
         try {
-            return objectMapper.writeValueAsString(object);
-        } catch (JsonProcessingException e) {
-            log.error("FATAL: Cannot write log details as string", e);
+            return (ObjectNode) objectMapper.valueToTree(object);
+        } catch (IllegalArgumentException e) {
+            log.error("FATAL: Cannot write log details as object node", e);
         }
         return null;
     }
+
+
 }

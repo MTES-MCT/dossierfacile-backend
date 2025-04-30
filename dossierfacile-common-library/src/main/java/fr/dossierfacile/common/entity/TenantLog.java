@@ -17,6 +17,8 @@ import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
@@ -57,7 +59,7 @@ public class TenantLog implements Serializable {
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
-    private Object logDetails;
+    private ObjectNode logDetails;
 
     @Column
     private Long messageId;
