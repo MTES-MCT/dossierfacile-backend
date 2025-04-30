@@ -773,7 +773,9 @@ public class TenantService {
 
     @Transactional
     public Tenant deleteDocument(Long id, User operator) {
+        Document document = documentService.findDocumentById(id);
         Tenant tenant = documentService.deleteDocument(id);
+        tenantLogService.addDeleteDocumentLog(tenant.getId(), operator.getId(), document);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         updateTenantStatus(tenant, operator);
         return tenant;
