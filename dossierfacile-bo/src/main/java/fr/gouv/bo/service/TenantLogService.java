@@ -3,9 +3,12 @@ package fr.gouv.bo.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.TenantLog;
 import fr.dossierfacile.common.enums.LogType;
+import fr.dossierfacile.common.model.log.EditedDocument;
+import fr.dossierfacile.common.model.log.EditionType;
 import fr.gouv.bo.repository.BoTenantLogRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,6 +54,17 @@ public class TenantLogService {
                 .creationDateTime(LocalDateTime.now())
                 .logDetails(writeAsObjectNode(Map.of("comment", operatorComment)))
                 .build();
+        saveByLog(log);
+    }
+
+    public void addDeleteDocumentLog(Long tenantId, Long operatorId, Document document) {
+        TenantLog log = TenantLog.builder()
+            .logType(LogType.ACCOUNT_EDITED)
+            .tenantId(tenantId)
+            .operatorId(operatorId)
+            .creationDateTime(LocalDateTime.now())
+            .logDetails(writeAsObjectNode(EditedDocument.from(document, EditionType.DELETE)))
+            .build();
         saveByLog(log);
     }
 
