@@ -1,7 +1,8 @@
 package fr.dossierfacile.common.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.Owner;
 import fr.dossierfacile.common.entity.OwnerLog;
@@ -53,7 +54,7 @@ public class LogServiceImpl implements LogService {
                 .logType(LogType.ACCOUNT_EDITED)
                 .tenantId(tenantId)
                 .creationDateTime(LocalDateTime.now())
-                .logDetails(writeAsString(new EditedStep(stepName)))
+                .logDetails(writeAsObjectNode(new EditedStep(stepName)))
                 .build();
         saveLog(log);
     }
@@ -65,7 +66,7 @@ public class LogServiceImpl implements LogService {
                         .logType(logType)
                         .ownerId(owner.getId())
                         .creationDateTime(LocalDateTime.now())
-                        .jsonProfile(writeAsString(deletedOwnerMapper.toDeletedOwnerModel(owner)))
+                        .jsonProfile(writeAsObjectNode(deletedOwnerMapper.toDeletedOwnerModel(owner)))
                         .build()
         );
     }
@@ -79,7 +80,7 @@ public class LogServiceImpl implements LogService {
                         .creationDateTime(LocalDateTime.now())
                         .userApis(tenant.getTenantsUserApi().stream()
                                 .mapToLong(tenantUserApi -> tenantUserApi.getUserApi().getId()).toArray())
-                        .jsonProfile(writeAsString(deletedTenantMapper.toDeletedTenantModel(tenant)))
+                        .jsonProfile(writeAsObjectNode(deletedTenantMapper.toDeletedTenantModel(tenant)))
                         .build()
         );
     }
@@ -90,7 +91,7 @@ public class LogServiceImpl implements LogService {
                 .logType(LogType.ACCOUNT_EDITED)
                 .tenantId(editor.getId())
                 .creationDateTime(LocalDateTime.now())
-                .logDetails(writeAsString(EditedDocument.from(document, editionType)))
+                .logDetails(writeAsObjectNode(EditedDocument.from(document, editionType)))
                 .build();
         saveLog(log);
     }
@@ -116,17 +117,17 @@ public class LogServiceImpl implements LogService {
                     .logType(LogType.APPLICATION_TYPE_CHANGED)
                     .tenantId(tenant.getId())
                     .creationDateTime(LocalDateTime.now())
-                    .logDetails(writeAsString(new ApplicationTypeChange(oldType, newType)))
+                    .logDetails(writeAsObjectNode(new ApplicationTypeChange(oldType, newType)))
                     .build();
             saveLog(log);
         }
     }
 
-    private String writeAsString(Object object) {
+    private ObjectNode writeAsObjectNode(Object object) {
         try {
-            return objectMapper.writeValueAsString(object);
-        } catch (JsonProcessingException e) {
-            log.error("FATAL: Cannot write log details as string", e);
+            return (ObjectNode) objectMapper.valueToTree(object);
+        } catch (IllegalArgumentException e) {
+            log.error("FATAL: Cannot write log details as object node", e);
         }
         return null;
     }
