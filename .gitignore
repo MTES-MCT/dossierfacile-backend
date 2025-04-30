@@ -15,6 +15,7 @@ logs/
 hs_err_pid*.log
 tmp
 **/certs/*
+elastalert/dist
 
 ### STS ###
 .apt_generated
