@@ -346,7 +346,7 @@
                                 <div aria-hidden="true" aria-labelledby="exampleModalScrollableTitle" class="modal fade"
                                      role="dialog"
                                      tabindex="-1" th:id="'target'+${tenant.getId()}">
-                                    <div class="modal-dialog modal-dialog-scrollable" role="document">
+                                    <div class="modal-dialog modal-dialog-scrollable" role="document" style="--bs-modal-width: 600px">
                                         <div class="modal-content">
                                             <div class="modal-header" style="background: cadetblue;">
                                                 <h3 class="modal-title" id="exampleModalScrollableTitle"
@@ -360,9 +360,13 @@
                                                 <div class="bg-warning-subtle" style="display: grid; padding: 7px;margin-bottom: 10px;"
                                                      th:each="log: ${logser.getLogByTenantId(tenant.getId())}">
                                                     <div style="font-weight: bold;"
-                                                       th:text="${log.getLogType()} + ${ (log.getOperatorId() != null)? ' by opId: ' + log.getOperatorId() : ''}">
+                                                       th:text="${log.getLogType()} + ${ (log.getOperatorId() != null)? ' by opId: ' + log.getOperatorId() : ''} + ${log.getLogDetails() != null && log.getLogDetails().get('editionType') != null ? ' : DOCUMENT ' + (log.getLogDetails().get('editionType').asText().equals('ADD') ? 'ADDED' : 'DELETED'): ''}">
                                                     </div>
-                                                    <span style="padding-left: 5px;"
+                                                    <span th:if="${log != null && log.getLogDetails() != null && log.getLogDetails().get('documentCategory') != null && log.getLogDetails().get('documentSubCategory') != null}" class="bold" style="font-size: 14px">
+                                                        <span th:text="${log.getLogDetails().get('documentCategory').asText()}"></span> -
+                                                        <span th:text="${log.getLogDetails().get('documentSubCategory').asText()}"></span>
+                                                    </span>
+                                                    <span
                                                           th:text="'date: ' + ${log.getCreationDateTime().getYear()} + '-' + ${log.getCreationDateTime().getMonthValue()} + '-' + ${log.getCreationDateTime().getDayOfMonth()} + ' ' + ${log.getCreationDateTime().getHour()} + ':' + ${log.getCreationDateTime().getMinute()} + ':' + ${log.getCreationDateTime().getSecond()}">
                                                     </span>
                                                 </div>
