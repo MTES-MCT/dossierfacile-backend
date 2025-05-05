@@ -39,7 +39,7 @@ class LogServiceImplTest {
         TenantLog savedLog = getSavedLog();
         assertThat(savedLog.getLogType()).isEqualTo(LogType.ACCOUNT_EDITED);
         assertThat(savedLog.getTenantId()).isEqualTo(1L);
-        assertThat(savedLog.getLogDetails()).isEqualTo("""
+        assertThat(savedLog.getLogDetails().toString()).isEqualTo("""
                 {"documentCategory":"IDENTIFICATION","documentSubCategory":"FRENCH_IDENTITY_CARD","tenantId":2,"editionType":"ADD"}""");
     }
 
@@ -56,7 +56,7 @@ class LogServiceImplTest {
         TenantLog savedLog = getSavedLog();
         assertThat(savedLog.getLogType()).isEqualTo(LogType.ACCOUNT_EDITED);
         assertThat(savedLog.getTenantId()).isEqualTo(2L);
-        assertThat(savedLog.getLogDetails()).isEqualTo("""
+        assertThat(savedLog.getLogDetails().toString()).isEqualTo("""
                 {"documentCategory":"FINANCIAL","documentSubCategory":"SALARY","guarantorId":3,"editionType":"DELETE"}""");
     }
 
@@ -77,7 +77,7 @@ class LogServiceImplTest {
         TenantLog savedLog = getSavedLog();
         assertThat(savedLog.getLogType()).isEqualTo(LogType.APPLICATION_TYPE_CHANGED);
         assertThat(savedLog.getTenantId()).isEqualTo(1L);
-        assertThat(savedLog.getLogDetails()).isEqualTo("""
+        assertThat(savedLog.getLogDetails().toString()).isEqualTo("""
                 {"oldType":"ALONE","newType":"GROUP"}""");
     }
 
