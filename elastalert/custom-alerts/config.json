@@ -1,0 +1,18 @@
+{
+  "alerts": [
+    {
+      "rule_file": "rules/api_500_ratio_alert.py",
+      "application": "api-tenant",
+      "index": "aggregator-logs-*",
+      "error_threshold": 0.05,
+      "env": "prod"
+    },
+    {
+      "rule_file": "rules/api_4xx_ratio_alert.py",
+      "application": "api-tenant",
+      "index": "aggregator-logs-*",
+      "error_threshold": 0.05,
+      "env": "prod"
+    }
+  ]
+}
