@@ -4,7 +4,8 @@
 
 This shell script manages rules for ElastAlert. It provides two main features:
 1. **Build**: Generates rule files by replacing dynamic variables (such as the Mattermost webhook URL).
-2. **Deploy**: Deploys the generated rules to a remote server and restarts the ElastAlert service.
+2. **Build**: Generate a Zip file for the custom alerts.
+3. **Deploy**: Deploys the generated rules to a remote server and restarts the ElastAlert service.
 
 ---
 
@@ -21,7 +22,7 @@ This shell script manages rules for ElastAlert. It provides two main features:
 ### Available commands
 
 1. **Build only**  
-   Compiles rule files by replacing dynamic variables.
+   Compiles rule files by replacing dynamic variables, and generating a zip file for custom alerts.
 
    ```bash
    ./deploy-rules.sh build --mattermost <url>
@@ -67,13 +68,17 @@ This shell script manages rules for ElastAlert. It provides two main features:
 1. **Build**:
    - Iterates through all files in the `rules/` folder.
    - Replaces the variable `{{mattermost_webhook_url}}` with the provided URL.
-   - Saves the generated files in the `dist/` folder.
+   - Saves the generated files in the `dist/elastalert` folder.
+   - Create a zip file of the custom alerts in the `dist/custom_alerts` folder.
 
 2. **Deploy**:
    - Stops the ElastAlert service on the remote server.
    - Deletes old rules from the server.
-   - Transfers the new rules from the `dist/` folder to the server.
+   - Transfers the new rules from the `dist/elastalert` folder to the server.
    - Restarts the ElastAlert service.
+   - Transfers and unzip the custom alerts zip file to the server.
+   - Install python dependencies for custom alerts.
+   - Link the env file to the new script version.
 
 ---
 
