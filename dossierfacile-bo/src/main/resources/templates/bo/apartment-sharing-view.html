@@ -363,6 +363,7 @@
                                                        th:text="${log.getLogType()} + ${ (log.getOperatorId() != null)? ' by opId: ' + log.getOperatorId() : ''} + ${log.getLogDetails() != null && log.getLogDetails().get('editionType') != null ? ' : DOCUMENT ' + (log.getLogDetails().get('editionType').asText().equals('ADD') ? 'ADDED' : 'DELETED'): ''}">
                                                     </div>
                                                     <span th:if="${log != null && log.getLogDetails() != null && log.getLogDetails().get('documentCategory') != null && log.getLogDetails().get('documentSubCategory') != null}" class="bold" style="font-size: 14px">
+                                                        <span th:if="${log.getLogDetails().get('guarantorId') != null}">GUARANTOR - </span>
                                                         <span th:text="${log.getLogDetails().get('documentCategory').asText()}"></span> -
                                                         <span th:text="${log.getLogDetails().get('documentSubCategory').asText()}"></span>
                                                     </span>
