@@ -1,7 +1,7 @@
 package fr.gouv.bo.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.Gson;
 import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.*;
@@ -89,7 +89,7 @@ public class UserService {
                         .logType(LogType.ACCOUNT_DELETE)
                         .tenantId(tenant.getId())
                         .operatorId(operator.getId())
-                        .jsonProfile(writeValueAsString(tenantMapper.toTenantModel(tenant)))
+                        .jsonProfile(writeAsObjectNode(tenantMapper.toTenantModel(tenant)))
                         .creationDateTime(LocalDateTime.now())
                         .build());
     }
@@ -184,11 +184,11 @@ public class UserService {
         addRoles(userRepository.save(user), Collections.singletonList(role));
     }
 
-    private String writeValueAsString(Object object) {
+    private ObjectNode writeAsObjectNode(Object object) {
         try {
-            return objectMapper.writeValueAsString(object);
-        } catch (JsonProcessingException e) {
-            log.error("FATAL: Something very bad happened " + object.getClass(), e);
+            return objectMapper.valueToTree(object);
+        } catch (IllegalArgumentException e) {
+            log.error("FATAL: cannot write jsonProfile as object node", e);
         }
         return null;
     }
