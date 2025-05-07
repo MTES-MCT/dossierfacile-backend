@@ -1,23 +1,11 @@
 package fr.dossierfacile.common.entity;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.dossierfacile.common.enums.LogType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
-
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -55,7 +43,7 @@ public class TenantLog implements Serializable {
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
-    private Object jsonProfile;
+    private ObjectNode jsonProfile;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
