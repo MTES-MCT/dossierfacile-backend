@@ -34,6 +34,9 @@ public class ProcessingCapacityServiceImpl implements ProcessingCapacityService 
 
         // Get processingCapacity for today
         ProcessingCapacity processingCapacity = processingCapacityRepository.findByDate(processingDate);
+        if (processingCapacity == null) {
+            return null;
+        }
         long dailyRemaining = processingCapacity.getDailyCount() - tenantLogRepository.countProcessedDossiersFromToday();
 
         // Find the processing day
