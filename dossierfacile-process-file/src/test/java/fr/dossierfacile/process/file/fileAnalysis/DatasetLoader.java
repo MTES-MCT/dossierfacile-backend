@@ -2,6 +2,7 @@ package fr.dossierfacile.process.file.fileAnalysis;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import fr.dossierfacile.fileAnalysis.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -16,7 +17,7 @@ public class DatasetLoader {
     @Autowired
     private TestOvhFileStorageServiceImpl ovhFileStorageService;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
     public <V, I, F> FileAnalysisTestData<V, I, F> loadDataset(
             String datasetPath,

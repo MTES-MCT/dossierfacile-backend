@@ -1,16 +1,19 @@
 {
   "Statement": [
     {
-      "Sid": "unit-test-bucket-policy",
-      "Principal": "*",
       "Action": [
-        "s3:GetObject"
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:ListBucket",
+        "s3:ListMultipartUploadParts",
+        "s3:ListBucketMultipartUploads"
       ],
       "Effect": "Allow",
       "Resource": [
         "arn:aws:s3:::documents-analysis-test",
         "arn:aws:s3:::documents-analysis-test/*"
-      ]
+      ],
+      "Sid": "ROContainer"
     }
   ]
 }

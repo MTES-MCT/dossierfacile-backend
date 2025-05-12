@@ -58,10 +58,12 @@ public class RentalReceiptRulesValidationService implements RulesValidationServi
         YearMonth yearMonth = YearMonth.now();
         return (localDate.getDayOfMonth() <= 15) ?
                 List.of(
+                        List.of(yearMonth, yearMonth.minusMonths(1), yearMonth.minusMonths(2)),
                         List.of(yearMonth.minusMonths(1), yearMonth.minusMonths(2), yearMonth.minusMonths(3)),
                         List.of(yearMonth.minusMonths(2), yearMonth.minusMonths(3), yearMonth.minusMonths(4)),
                         List.of(yearMonth.minusMonths(3), yearMonth.minusMonths(4), yearMonth.minusMonths(5))) :
                 List.of(
+                        List.of(yearMonth, yearMonth.minusMonths(1), yearMonth.minusMonths(2)),
                         List.of(yearMonth.minusMonths(1), yearMonth.minusMonths(2), yearMonth.minusMonths(3)),
                         List.of(yearMonth.minusMonths(2), yearMonth.minusMonths(3), yearMonth.minusMonths(4)));
     }
@@ -71,12 +73,20 @@ public class RentalReceiptRulesValidationService implements RulesValidationServi
         YearMonth yearMonth = YearMonth.now();
         return (localDate.getDayOfMonth() <= 15) ?
                 List.of(
+                        List.of(yearMonth),
                         List.of(yearMonth.minusMonths(1)),
                         List.of(yearMonth.minusMonths(2)),
-                        List.of(yearMonth.minusMonths(3))) :
+                        List.of(yearMonth.minusMonths(3)),
+                        List.of(yearMonth.minusMonths(4)),
+                        List.of(yearMonth.minusMonths(5))
+                ) :
                 List.of(
+                        List.of(yearMonth),
                         List.of(yearMonth.minusMonths(1)),
-                        List.of(yearMonth.minusMonths(2)));
+                        List.of(yearMonth.minusMonths(2)),
+                        List.of(yearMonth.minusMonths(3)),
+                        List.of(yearMonth.minusMonths(4))
+                );
     }
 
     private boolean checkMonthsValidityRule(Document document) {
