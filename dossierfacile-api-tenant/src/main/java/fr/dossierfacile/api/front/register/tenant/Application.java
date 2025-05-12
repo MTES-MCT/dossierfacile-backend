@@ -57,41 +57,52 @@ public class Application implements SaveStep<ApplicationFormV2> {
                 .filter(t -> !t.getId().equals(tenant.getId()))
                 .collect(Collectors.toList());
 
-        List<Tenant> tenantToDelete = oldCoTenant.stream()
-                .filter(t -> applicationForm.getCoTenants().parallelStream()
-                        .noneMatch(currentTenant -> t.getFirstName().equals(currentTenant.getFirstName())
-                                && t.getLastName().equals(currentTenant.getLastName())
-                                && (StringUtils.isBlank(t.getEmail()) || t.getEmail().equals(currentTenant.getEmail()))))
-                .collect(Collectors.toList());
+        List<Tenant> tenantToDelete = getTenantsToDelete(oldCoTenant, applicationForm);
 
-        List<CoTenantForm> tenantToCreate = applicationForm.getCoTenants().stream()
-                .filter(currentTenant -> oldCoTenant.parallelStream()
-                        .noneMatch(oldTenant -> oldTenant.getFirstName().equals(currentTenant.getFirstName())
-                                && oldTenant.getLastName().equals(currentTenant.getLastName())
-                                && (StringUtils.isBlank(oldTenant.getEmail()) || oldTenant.getEmail().equals(currentTenant.getEmail()))))
-                .collect(Collectors.toList());
+        List<CoTenantForm> tenantToCreate = getTenantsToCreate(oldCoTenant, applicationForm);
 
-        List<Pair<Tenant, String>> tenantWitNewEmailToUpdate = applicationForm.getCoTenants().stream()
-                .map(currentTenant -> {
-                            Optional<Tenant> updatedTenant = oldCoTenant.parallelStream()
-                                    .filter(oldTenant ->
-                                            oldTenant.getFirstName().equals(currentTenant.getFirstName())
-                                                    && oldTenant.getLastName().equals(currentTenant.getLastName())
-                                                    && !StringUtils.equals(oldTenant.getEmail(), currentTenant.getEmail())
-                                                    && oldTenant.getEmail() == null
-                                    ).findFirst();
-                            if (updatedTenant.isEmpty()) {
-                                return null;
-                            }
-                            return new ImmutablePair<>(updatedTenant.get(), currentTenant.getEmail());
-                        }
-                )
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+        List<Pair<Tenant, String>> tenantWitNewEmailToUpdate = getTenantWitNewEmailToUpdate(oldCoTenant, applicationForm);
 
         linkEmailToTenants(tenant, tenantWitNewEmailToUpdate);
 
         return saveStep(tenant, applicationForm.getApplicationType(), tenantToDelete, tenantToCreate);
+    }
+
+    @VisibleForTesting
+    protected List<Tenant> getTenantsToDelete(List<Tenant> oldCoTenant, ApplicationFormV2 applicationForm) {
+        return oldCoTenant.stream()
+                .filter(t -> applicationForm.getCoTenants().parallelStream()
+                        .noneMatch(currentTenant -> Objects.equals(t.getFirstName(), currentTenant.getFirstName())
+                                && Objects.equals(t.getLastName(), currentTenant.getLastName())
+                                && (StringUtils.isBlank(t.getEmail()) || t.getEmail().equals(currentTenant.getEmail()))))
+                .collect(Collectors.toList());
+    }
+
+    @VisibleForTesting
+    protected List<CoTenantForm> getTenantsToCreate(List<Tenant> oldCoTenant, ApplicationFormV2 applicationForm) {
+        return applicationForm.getCoTenants().stream()
+                .filter(currentTenant -> oldCoTenant.parallelStream()
+                        .noneMatch(oldTenant -> Objects.equals(oldTenant.getFirstName(), currentTenant.getFirstName())
+                                && Objects.equals(oldTenant.getLastName(), currentTenant.getLastName())
+                                && (StringUtils.isBlank(oldTenant.getEmail()) || oldTenant.getEmail().equals(currentTenant.getEmail()))))
+                .collect(Collectors.toList());
+    }
+
+    protected List<Pair<Tenant, String>> getTenantWitNewEmailToUpdate(List<Tenant> oldCoTenant, ApplicationFormV2 applicationForm) {
+        return applicationForm.getCoTenants().stream()
+                .map(currentTenant -> {
+                            Optional<Tenant> updatedTenant = oldCoTenant.parallelStream()
+                                    .filter(oldTenant ->
+                                            Objects.equals(oldTenant.getFirstName(), currentTenant.getFirstName())
+                                                    && Objects.equals(oldTenant.getLastName(), currentTenant.getLastName())
+                                                    && !StringUtils.equals(oldTenant.getEmail(), currentTenant.getEmail())
+                                                    && oldTenant.getEmail() == null
+                                    ).findFirst();
+                            return updatedTenant.map(tenant -> new ImmutablePair<>(tenant, currentTenant.getEmail())).orElse(null);
+                        }
+                )
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 
     @VisibleForTesting
