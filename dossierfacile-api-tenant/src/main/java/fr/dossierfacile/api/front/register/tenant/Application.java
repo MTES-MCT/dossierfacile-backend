@@ -59,15 +59,15 @@ public class Application implements SaveStep<ApplicationFormV2> {
 
         List<Tenant> tenantToDelete = oldCoTenant.stream()
                 .filter(t -> applicationForm.getCoTenants().parallelStream()
-                        .noneMatch(currentTenant -> t.getFirstName().equals(currentTenant.getFirstName())
-                                && t.getLastName().equals(currentTenant.getLastName())
+                        .noneMatch(currentTenant -> Objects.equals(t.getFirstName(), currentTenant.getFirstName())
+                                && Objects.equals(t.getLastName(), currentTenant.getLastName())
                                 && (StringUtils.isBlank(t.getEmail()) || t.getEmail().equals(currentTenant.getEmail()))))
                 .collect(Collectors.toList());
 
         List<CoTenantForm> tenantToCreate = applicationForm.getCoTenants().stream()
                 .filter(currentTenant -> oldCoTenant.parallelStream()
-                        .noneMatch(oldTenant -> oldTenant.getFirstName().equals(currentTenant.getFirstName())
-                                && oldTenant.getLastName().equals(currentTenant.getLastName())
+                        .noneMatch(oldTenant -> Objects.equals(oldTenant.getFirstName(), currentTenant.getFirstName())
+                                && Objects.equals(oldTenant.getLastName(), currentTenant.getLastName())
                                 && (StringUtils.isBlank(oldTenant.getEmail()) || oldTenant.getEmail().equals(currentTenant.getEmail()))))
                 .collect(Collectors.toList());
 
@@ -75,8 +75,8 @@ public class Application implements SaveStep<ApplicationFormV2> {
                 .map(currentTenant -> {
                             Optional<Tenant> updatedTenant = oldCoTenant.parallelStream()
                                     .filter(oldTenant ->
-                                            oldTenant.getFirstName().equals(currentTenant.getFirstName())
-                                                    && oldTenant.getLastName().equals(currentTenant.getLastName())
+                                            Objects.equals(oldTenant.getFirstName(), currentTenant.getFirstName())
+                                                    && Objects.equals(oldTenant.getLastName(), currentTenant.getLastName())
                                                     && !StringUtils.equals(oldTenant.getEmail(), currentTenant.getEmail())
                                                     && oldTenant.getEmail() == null
                                     ).findFirst();
