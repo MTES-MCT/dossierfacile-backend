@@ -215,7 +215,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
     public ByteArrayOutputStream zipDocuments(Tenant tenant) {
         logService.saveLog(LogType.ZIP_DOWNLOAD, tenant.getId());
         final Path tmpDir = Paths.get("tmp");
-        String zipFileName = tmpDir + File.separator + "dossier_location_" + tenant.getLastName() + "_" + ThreadLocalRandom.current().nextInt() + ".zip";
+        String zipFileName = tmpDir + File.separator + "dossier_location_" + ThreadLocalRandom.current().nextInt() + ".zip";
         try {
             Files.createDirectories(tmpDir);
             final ZipOutputStream outputStream = new ZipOutputStream(new FileOutputStream(zipFileName));
