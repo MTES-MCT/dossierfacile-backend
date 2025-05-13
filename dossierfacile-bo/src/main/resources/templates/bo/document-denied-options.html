@@ -57,6 +57,8 @@
                 <form method="get" class="filter">
                     <select name="documentSubCategory" class="form-control form-select dropdown">
                         <option disabled selected>Type de document</option>
+                        <option th:value="${documentUndefinedCategory}" label="Pour tous les documents"></option>
+                        <option disabled label="-------------------"></option>
                         <option th:each="category : ${documentSubCategories}"
                                 th:value="${category}" th:text="${category}">
                         </option>
@@ -84,8 +86,8 @@
                     </thead>
                     <tbody>
                     <tr th:each="option : ${documentDeniedOptions}">
-                        <td th:text="${option.documentSubCategory}"></td>
-                        <td th:text="${option.documentUserType}"></td>
+                        <td th:text="${documentSubCategoryUtils.getSpecificLabel(option.documentSubCategory)}"></td>
+                        <td th:text="${documentSubCategoryUtils.getDocumentUserTypeLabel(option.documentUserType)}"></td>
                         <td th:text="${option.messageValue}"></td>
                         <td>
                             <a th:href="${'/bo/documentDeniedOptions/' + option.id}" class="action-edit">

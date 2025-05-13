@@ -5,6 +5,7 @@ import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.gouv.bo.dto.DocumentDeniedOptionsDTO;
 import fr.gouv.bo.service.DocumentDeniedOptionsService;
 import fr.gouv.bo.utils.DateFormatUtil;
+import fr.gouv.bo.utils.DocumentSubCategoryUtils;
 import lombok.AllArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -23,7 +24,7 @@ import static java.util.Comparator.comparing;
 public class BODocumentDeniedOptionsController {
 
     private static final String EMAIL = "email";
-    private static final List<String> DOCUMENT_USER_TYPES = List.of("tenant", "guarantor", "all");
+    private static final List<String> DOCUMENT_USER_TYPES = List.of("tenant", "guarantor");
 
     private final DocumentDeniedOptionsService service;
 
@@ -34,7 +35,9 @@ public class BODocumentDeniedOptionsController {
         documentDeniedOptions.sort(comparing(DocumentDeniedOptions::getCode));
 
         model.addAttribute("documentDeniedOptions", documentDeniedOptions);
-        model.addAttribute("documentSubCategories", DocumentSubCategory.alphabeticallySortedValues());
+        model.addAttribute("documentUndefinedCategory", DocumentSubCategory.UNDEFINED);
+        model.addAttribute("documentSubCategories", DocumentSubCategory.alphabeticallySortedValues().stream().filter(item -> item != DocumentSubCategory.UNDEFINED));
+        model.addAttribute("documentSubCategoryUtils", new DocumentSubCategoryUtils());
 
         return "bo/document-denied-options";
     }
@@ -47,6 +50,7 @@ public class BODocumentDeniedOptionsController {
             return "redirect:/bo/documentDeniedOptions";
         }
         model.addAttribute("documentDeniedOption", optionToEdit.get());
+        model.addAttribute("documentSubCategoryUtils", new DocumentSubCategoryUtils());
         model.addAttribute("monthN", DateFormatUtil.replaceMonthPlaceholder("{mois}"));
         model.addAttribute("monthN1", DateFormatUtil.replaceMonthPlaceholder("{moisN-1}"));
         model.addAttribute("monthN2", DateFormatUtil.replaceMonthPlaceholder("{moisN-2}"));
@@ -56,9 +60,11 @@ public class BODocumentDeniedOptionsController {
 
     @GetMapping("/create")
     public String createDocumentDeniedOption(Model model) {
-        model.addAttribute("documentSubCategories", DocumentSubCategory.alphabeticallySortedValues());
+        model.addAttribute("documentUndefinedCategory", DocumentSubCategory.UNDEFINED);
+        model.addAttribute("documentSubCategories", DocumentSubCategory.alphabeticallySortedValues().stream().filter(item -> item != DocumentSubCategory.UNDEFINED));
         model.addAttribute("documentUserTypes", DOCUMENT_USER_TYPES);
         model.addAttribute("documentDeniedOption", new DocumentDeniedOptionsDTO());
+        model.addAttribute("documentSubCategoryUtils", new DocumentSubCategoryUtils());
         model.addAttribute("monthN", DateFormatUtil.replaceMonthPlaceholder("{mois}"));
         model.addAttribute("monthN1", DateFormatUtil.replaceMonthPlaceholder("{moisN-1}"));
         model.addAttribute("monthN2", DateFormatUtil.replaceMonthPlaceholder("{moisN-2}"));
