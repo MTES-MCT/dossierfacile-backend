@@ -49,6 +49,8 @@
                     <div>
                         <label for="documentSubCategory" class="form-label">Type de document</label>
                         <select name="documentSubCategory" id="documentSubCategory" class="form-control form-select dropdown">
+                            <option th:value="${documentUndefinedCategory}" label="Pour tous les documents"></option>
+                            <option disabled label="-------------------"></option>
                             <option th:each="category : ${documentSubCategories}"
                                     th:value="${category}" th:text="${category}">
                             </option>
@@ -57,8 +59,10 @@
                     <div>
                         <label for="documentUserType" class="form-label">Personne concernée</label>
                         <select name="documentUserType" id="documentUserType" class="form-control dropdown">
+                            <option value="all" label="Pour toutes les personnes"></option>
+                            <option disabled label="-------------"></option>
                             <option th:each="type : ${documentUserTypes}"
-                                    th:value="${type}" th:text="${type}">
+                                    th:value="${type}" th:text="${documentSubCategoryUtils.getDocumentUserTypeLabel(type)}">
                             </option>
                         </select>
                     </div>

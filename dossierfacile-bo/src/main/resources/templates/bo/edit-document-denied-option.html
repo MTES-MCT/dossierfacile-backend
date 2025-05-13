@@ -49,11 +49,15 @@
                       th:object="${documentDeniedOption}">
                     <div>
                         <label class="form-label">Type de document</label>
-                        <p class="input disabled" th:text="*{documentSubCategory}"></p>
+                        <p class="input disabled"
+                           th:text="${documentSubCategoryUtils.getSpecificLabel(documentDeniedOption.getDocumentSubCategory())}">
+                        </p>
                     </div>
                     <div>
                         <label class="form-label">Personne concernée</label>
-                        <p class="input disabled" th:text="*{documentUserType}"></p>
+                        <p class="input disabled"
+                           th:text="${documentSubCategoryUtils.getDocumentUserTypeLabel(documentDeniedOption.getDocumentUserType())}">
+                        </p>
                     </div>
                     <div>
                         <label class="form-label" for="messageValue">Message</label>
@@ -62,7 +66,9 @@
                         <div style="font-size: 12px">
                             <p class="mb-0">
                                 <strong>Note :</strong>
-                                Le format <a style="text-decoration: underline" href="https://www.markdownguide.org/basic-syntax">markdown</a> est supporté dans le message.
+                                Le format <a style="text-decoration: underline"
+                                             href="https://www.markdownguide.org/basic-syntax">markdown</a> est supporté
+                                dans le message.
                             </p>
                             <ul>
                                 <li>Pour faire un lien : <code>[texte du lien](url)</code></li>
@@ -70,8 +76,10 @@
                                 <li>Pour mettre en gras : <code>**texte**</code></li>
                             </ul>
                             <p>
-                                Les placeholders <code>{mois}</code>, <code>{moisN-1}</code>, <code>{moisN-2}</code> et <code>{moisN-3}</code> seront
-                                remplacés par <strong th:text="${monthN}" />, <strong th:text="${monthN1}" />, <strong th:text="${monthN2}"/> et
+                                Les placeholders <code>{mois}</code>, <code>{moisN-1}</code>, <code>{moisN-2}</code> et
+                                <code>{moisN-3}</code> seront
+                                remplacés par <strong th:text="${monthN}"/>, <strong th:text="${monthN1}"/>, <strong
+                                    th:text="${monthN2}"/> et
                                 <strong th:text="${monthN3}"/>
                             </p>
                         </div>
