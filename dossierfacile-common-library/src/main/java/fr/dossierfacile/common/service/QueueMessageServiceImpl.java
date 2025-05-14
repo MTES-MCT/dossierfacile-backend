@@ -48,7 +48,7 @@ public class QueueMessageServiceImpl implements QueueMessageService {
                 log.error("Thread interrupted", e);
                 Thread.currentThread().interrupt();
             } catch (RetryableOperationException e) {
-                log.error("Message can be re-queued", e);
+                log.warn("Message can be re-queued");
                 jobContext.setJobStatus(JobStatus.RETRYABLE);
                 message.setStatus(QueueMessageStatus.PENDING);
                 message.setTimestamp(System.currentTimeMillis());

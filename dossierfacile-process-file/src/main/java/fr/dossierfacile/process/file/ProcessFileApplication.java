@@ -1,7 +1,9 @@
 package fr.dossierfacile.process.file;
 
+import co.elastic.apm.attach.ElasticApmAttacher;
 import fr.dossierfacile.common.config.ImageIOInitializer;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -23,7 +25,6 @@ import java.lang.management.MemoryMXBean;
 public class ProcessFileApplication {
 
     public static void main(String[] args) {
-        //System.setProperty("jna.library.path", "/usr/local/lib");
         ImageIOInitializer.initialize();
         SpringApplication.run(ProcessFileApplication.class, args);
         int mb = 1024 * 1024;

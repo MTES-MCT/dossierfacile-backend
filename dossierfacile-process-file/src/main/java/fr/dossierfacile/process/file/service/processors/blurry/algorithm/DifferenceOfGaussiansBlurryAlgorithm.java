@@ -1,5 +1,6 @@
 package fr.dossierfacile.process.file.service.processors.blurry.algorithm;
 
+import co.elastic.apm.api.CaptureSpan;
 import fr.dossierfacile.common.entity.ocr.BlurryAlgorithmType;
 import fr.dossierfacile.common.entity.ocr.BlurryResult;
 import lombok.AllArgsConstructor;
@@ -39,6 +40,7 @@ public class DifferenceOfGaussiansBlurryAlgorithm implements BlurryAlgorithm {
     private static final double SIGMA2 = 2.0;
 
     @Override
+    @CaptureSpan(value="GaussiansBlurryAlgorithm", discardable = false, type = "ANALYSIS")
     public BlurryResult getBlurryResult(Mat img) {
         Mat blur1 = new Mat();
         Mat blur2 = new Mat();
