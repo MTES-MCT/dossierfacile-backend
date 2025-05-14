@@ -1,5 +1,6 @@
 package fr.dossierfacile.process.file.service.processors.blurry.algorithm;
 
+import co.elastic.apm.api.CaptureSpan;
 import fr.dossierfacile.common.entity.ocr.BlurryAlgorithmType;
 import fr.dossierfacile.common.entity.ocr.BlurryResult;
 import lombok.AllArgsConstructor;
@@ -39,6 +40,7 @@ public class FFTBlurryAlgorithm implements BlurryAlgorithm {
     private static final int DEFAULT_RADIUS = 30;
 
     @Override
+    @CaptureSpan(value="FFTBlurryAlgorithm", discardable = false, type = "ANALYSIS")
     public BlurryResult getBlurryResult(Mat img) {
         Mat padded = optimalPadding(img);
         // FFT
@@ -54,6 +56,10 @@ public class FFTBlurryAlgorithm implements BlurryAlgorithm {
 
         // Analyse autour du centre
         double fftMean = analyzeCenterRegion(shiftedMagnitude);
+
+        padded.release();
+        magnitude.release();
+        shiftedMagnitude.release();
 
         return new BlurryResult(BlurryAlgorithmType.FFT, fftMean);
     }

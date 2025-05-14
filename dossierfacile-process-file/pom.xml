@@ -118,6 +118,16 @@
             <artifactId>opencv</artifactId>
             <version>4.10.0-1.5.11</version>
         </dependency>
+        <dependency>
+            <groupId>co.elastic.apm</groupId>
+            <artifactId>apm-agent-attach</artifactId>
+            <version>1.53.0</version>
+        </dependency>
+        <dependency>
+            <groupId>co.elastic.apm</groupId>
+            <artifactId>apm-agent-api</artifactId>
+            <version>1.53.0</version>
+        </dependency>
 
     </dependencies>
     <build>

@@ -1,5 +1,6 @@
 package fr.dossierfacile.process.file.service.processors.blurry;
 
+import co.elastic.apm.api.CaptureSpan;
 import fr.dossierfacile.common.entity.BlurryFileAnalysis;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.ocr.BlurryResult;
@@ -73,6 +74,7 @@ public class BlurryProcessor implements Processor {
         }
     }
 
+    @CaptureSpan(value = "blurryAnalysis", type = "ANALYSIS", discardable = false)
     @Override
     public File process(File dfFile) {
         long start = System.currentTimeMillis();
@@ -92,7 +94,9 @@ public class BlurryProcessor implements Processor {
             List<List<BlurryResult>> listOfBlurryResults = Arrays.stream(images)
                     .map(image -> {
                         var img = getOpenCvOptimizedFile(image);
-                        return blurryAlgorithms.stream().map(algo -> algo.getBlurryResult(img)).toList();
+                        var result =  blurryAlgorithms.stream().map(algo -> algo.getBlurryResult(img)).toList();
+                        img.release();
+                        return result;
                     }).toList();
 
             blurryFileAnalysisBuilder.blurryResults(getWorstBlurryResult(listOfBlurryResults));
@@ -172,6 +176,8 @@ public class BlurryProcessor implements Processor {
         // Convert to grayscale
         Mat gray = new Mat();
         Imgproc.cvtColor(resizedImg, gray, Imgproc.COLOR_BGR2GRAY);
+
+        img.release();
 
         return gray;
     }

@@ -1,5 +1,6 @@
 package fr.dossierfacile.process.file.service.processors;
 
+import co.elastic.apm.api.CaptureSpan;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.ParsedFileAnalysis;
 import fr.dossierfacile.common.entity.ocr.ParsedFile;
@@ -44,6 +45,7 @@ public class FileParserProcessor implements Processor {
         return fileParsers.stream().filter(parser -> parser.shouldTryToApply(file)).toList();
     }
 
+    @CaptureSpan(value = "fileParser", type = "ANALYSIS", discardable = false)
     public File process(File dfFile) {
 
         List<FileParser<?>> parsers = getParsers(dfFile);

@@ -1,5 +1,7 @@
 package fr.dossierfacile.process.file.service;
 
+import co.elastic.apm.api.CaptureTransaction;
+import co.elastic.apm.api.ElasticApm;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.enums.FileStorageStatus;
@@ -25,8 +27,10 @@ public class MinifyFileServiceImpl implements MinifyFileService {
     private final FileStorageService fileStorageService;
     private final DocumentHelperService documentHelperService;
 
+    @CaptureTransaction(type = "MINIFY_FILE")
     @Override
     public void process(Long fileId) {
+        ElasticApm.currentTransaction().setName("MinifyFile [" + fileId + "]");
         fileRepository.findById(fileId)
                 .ifPresent(file -> {
                     try (InputStream inputStream = fileStorageService.download(file.getStorageFile())) {
@@ -46,6 +50,7 @@ public class MinifyFileServiceImpl implements MinifyFileService {
                         log.error(e.getMessage(), e.getCause());
                     }
                 });
+
     }
 
 }
