@@ -1,5 +1,7 @@
 package fr.dossierfacile.process.file.service;
 
+import co.elastic.apm.api.CaptureTransaction;
+import co.elastic.apm.api.ElasticApm;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.process.file.repository.FileRepository;
 import fr.dossierfacile.process.file.service.processors.BarCodeFileProcessor;
@@ -20,6 +22,7 @@ public class AnalyzeFileService {
     private final BlurryProcessor blurryProcessor;
     private final FileRepository fileRepository;
 
+    @CaptureTransaction(type="ANALYSIS", value = "FileAnalysis")
     public void processFile(Long fileId) {
         Optional<File> optFile = fileRepository.findById(fileId);
         if (optFile.isPresent()) {

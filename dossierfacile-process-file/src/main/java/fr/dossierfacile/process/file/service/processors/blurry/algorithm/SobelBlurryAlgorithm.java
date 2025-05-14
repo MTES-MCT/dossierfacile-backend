@@ -1,5 +1,6 @@
 package fr.dossierfacile.process.file.service.processors.blurry.algorithm;
 
+import co.elastic.apm.api.CaptureSpan;
 import fr.dossierfacile.common.entity.ocr.BlurryAlgorithmType;
 import fr.dossierfacile.common.entity.ocr.BlurryResult;
 import lombok.AllArgsConstructor;
@@ -35,6 +36,7 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class SobelBlurryAlgorithm implements BlurryAlgorithm {
 
+    @CaptureSpan(value="SobelBlurryAlgorithm", discardable = false, type = "ANALYSIS")
     @Override
     public BlurryResult getBlurryResult(Mat img) {
         Mat sobelX = new Mat();
@@ -48,6 +50,10 @@ public class SobelBlurryAlgorithm implements BlurryAlgorithm {
 
         Scalar mean = Core.mean(magnitude);
         double meanVal = mean.val[0];
+
+        sobelY.release();
+        sobelX.release();
+        magnitude.release();
 
         return new BlurryResult(BlurryAlgorithmType.SOBEL, meanVal);
     }

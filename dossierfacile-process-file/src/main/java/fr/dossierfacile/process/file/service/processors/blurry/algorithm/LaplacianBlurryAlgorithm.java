@@ -1,5 +1,6 @@
 package fr.dossierfacile.process.file.service.processors.blurry.algorithm;
 
+import co.elastic.apm.api.CaptureSpan;
 import fr.dossierfacile.common.entity.ocr.BlurryAlgorithmType;
 import fr.dossierfacile.common.entity.ocr.BlurryResult;
 import lombok.AllArgsConstructor;
@@ -34,6 +35,7 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class LaplacianBlurryAlgorithm implements BlurryAlgorithm {
 
+    @CaptureSpan(value="LaplacianBlurryAlgorithm", discardable = false, type = "ANALYSIS")
     @Override
     public BlurryResult getBlurryResult(Mat img) {
         Mat laplacian = new Mat();
@@ -44,6 +46,9 @@ public class LaplacianBlurryAlgorithm implements BlurryAlgorithm {
         Core.meanStdDev(laplacian, mean, stdDev);
 
         double variance = Math.pow(stdDev.get(0, 0)[0], 2);
+
+        laplacian.release();
+
         return new BlurryResult(BlurryAlgorithmType.LAPLACIEN, variance);
     }
 }

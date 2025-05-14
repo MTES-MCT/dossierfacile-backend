@@ -1,5 +1,6 @@
 package fr.dossierfacile.process.file.service.processors.blurry;
 
+import co.elastic.apm.api.CaptureSpan;
 import fr.dossierfacile.common.entity.BlurryFileAnalysis;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.ocr.BlurryResult;
@@ -11,6 +12,7 @@ import fr.dossierfacile.process.file.service.processors.Processor;
 import fr.dossierfacile.process.file.service.processors.blurry.algorithm.BlurryAlgorithm;
 import fr.dossierfacile.process.file.util.ImageUtils;
 import lombok.extern.slf4j.Slf4j;
+import nu.pattern.OpenCV;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Size;
@@ -22,6 +24,7 @@ import javax.annotation.PostConstruct;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.io.IOException;
+import java.lang.management.GarbageCollectorMXBean;
 import java.util.Arrays;
 import java.util.List;
 
@@ -66,13 +69,14 @@ public class BlurryProcessor implements Processor {
     @PostConstruct
     public void initBlurryProcessor() {
         try {
-            log.info("Loading OpenCV library from path: {}", opencvLibPath);
-            System.load(opencvLibPath);
-        } catch (UnsatisfiedLinkError e) {
-            log.error("Error loading OpenCV library: {}", e.getMessage());
+            log.info("Loading OpenCV library");
+            OpenCV.loadLocally();
+        } catch (Exception e) {
+            log.error("Error loading OpenCV library ", e);
         }
     }
 
+    @CaptureSpan(value = "blurryAnalysis", type = "ANALYSIS", discardable = false)
     @Override
     public File process(File dfFile) {
         long start = System.currentTimeMillis();
@@ -92,7 +96,9 @@ public class BlurryProcessor implements Processor {
             List<List<BlurryResult>> listOfBlurryResults = Arrays.stream(images)
                     .map(image -> {
                         var img = getOpenCvOptimizedFile(image);
-                        return blurryAlgorithms.stream().map(algo -> algo.getBlurryResult(img)).toList();
+                        var result =  blurryAlgorithms.stream().map(algo -> algo.getBlurryResult(img)).toList();
+                        img.release();
+                        return result;
                     }).toList();
 
             blurryFileAnalysisBuilder.blurryResults(getWorstBlurryResult(listOfBlurryResults));
@@ -148,6 +154,7 @@ public class BlurryProcessor implements Processor {
                 .sum();
     }
 
+    @CaptureSpan(value = "getOpenCvOptimizedFile", type = "ANALYSIS", discardable = false)
     private Mat getOpenCvOptimizedFile(BufferedImage image) {
         Mat img = convert(image);
 
@@ -173,9 +180,13 @@ public class BlurryProcessor implements Processor {
         Mat gray = new Mat();
         Imgproc.cvtColor(resizedImg, gray, Imgproc.COLOR_BGR2GRAY);
 
+        img.release();
+        resizedImg.release();
+
         return gray;
     }
 
+    @CaptureSpan(value = "convertImageForOpencv", type = "ANALYSIS", discardable = false)
     private Mat convert(BufferedImage image) {
         int width = image.getWidth();
         int height = image.getHeight();

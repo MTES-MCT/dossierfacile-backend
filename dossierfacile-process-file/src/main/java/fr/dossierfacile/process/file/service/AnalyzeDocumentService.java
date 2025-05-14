@@ -1,5 +1,9 @@
 package fr.dossierfacile.process.file.service;
 
+import co.elastic.apm.api.CaptureTransaction;
+import co.elastic.apm.api.ElasticApm;
+import co.elastic.apm.api.Scope;
+import co.elastic.apm.api.Transaction;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentAnalysisReport;
 import fr.dossierfacile.common.entity.messaging.QueueMessageStatus;
@@ -29,8 +33,11 @@ public class AnalyzeDocumentService {
     private final DocumentRulesValidationServiceFactory documentRulesValidationServiceFactory;
     private final QueueMessageRepository queueMessageRepository;
 
+
+    @CaptureTransaction(type="ANALYSIS", value = "DocumentAnalysis")
     @Transactional
     public void processDocument(Long documentId) throws RetryableOperationException {
+
         Document document = documentRepository.findById(documentId).orElse(null);
         if (document == null) {
             log.info("Document {} does not exist anymore", documentId);

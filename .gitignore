@@ -16,6 +16,7 @@ hs_err_pid*.log
 tmp
 **/certs/*
 elastalert/dist
+**/elasticapm.properties
 
 ### STS ###
 .apt_generated

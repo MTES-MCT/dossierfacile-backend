@@ -39,7 +39,7 @@ public class AnalyzeDocumentReceiver {
                     documentAnalysisDelay,
                     documentAnalysisTimeout,
                     (message) -> {
-                        log.info("Received {} to process : {}", ActionType.ANALYZE_DOCUMENT.name(), message.getFileId());
+                        log.info("Received {} to process : {}", ActionType.ANALYZE_DOCUMENT.name(), message.getDocumentId());
                         analyzeDocumentService.processDocument(message.getDocumentId());
                     }, (jobContext) -> {
                         log.info("Ending processing");

@@ -1,5 +1,6 @@
 package fr.dossierfacile.process.file.service.processors;
 
+import co.elastic.apm.api.CaptureSpan;
 import fr.dossierfacile.common.entity.BarCodeFileAnalysis;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
@@ -26,6 +27,7 @@ public class BarCodeFileProcessor implements Processor {
     private final BarCodeFileAnalysisRepository analysisRepository;
     private final FileStorageService fileStorageService;
 
+    @CaptureSpan(value = "processBarCodeFile", type = "ANALYSIS", discardable = false)
     public File process(File file) {
         if (QrCodeFileAnalysisCriteria.shouldBeAnalyzed(file) &&
                 analysisRepository.hasNotAlreadyBeenAnalyzed(file)) {
