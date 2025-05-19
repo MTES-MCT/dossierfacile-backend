@@ -26,6 +26,7 @@ public interface BoTenantLogRepository extends JpaRepository<TenantLog, Long> {
                 AND ( log_type = 'ACCOUNT_VALIDATED' OR log_type = 'ACCOUNT_DENIED' )
                 AND creation_date BETWEEN CURRENT_DATE - :minusDays AND CURRENT_DATE + 1
             GROUP BY DATE(creation_date)
+            ORDER BY DATE(creation_date) DESC
             """, nativeQuery = true)
     List<Object[]> countTreatedFromXDaysGroupByDate(@Param("operatorId") Long operatorId, @Param("minusDays") int minusDays);
 
