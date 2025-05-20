@@ -79,4 +79,4 @@ def run(es, es_index, error_threshold, env, application, start_time, end_time, s
                 f"**4xx Errors**: {error_count}\n"
                 f"**Error Rate**: {ratio:.2%} over the last {int((end_time - start_time).total_seconds() / 60)} minutes"
             )
-            send_alert("High 4xx Error Rate Detected", alert_msg)
+            send_alert("High 4xx Error Rate Detected", alert_msg, "warning")
