@@ -293,7 +293,12 @@ public class MailServiceImpl implements MailService {
         try {
             apiInstance.sendTransacEmail(sendSmtpEmail);
         } catch (ApiException e) {
-            log.error("Email Api Exception", e);
+            log.error("Error with brevo send mail – code={} , headers={} , body={}, message={}",
+                    e.getCode(),
+                    e.getResponseHeaders(),
+                    e.getResponseBody(),
+                    e.getMessage(),
+                    e);
             throw new InternalError("Mail cannot be send - try later");
         }
     }
