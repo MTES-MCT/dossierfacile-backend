@@ -449,14 +449,13 @@ class TenantControllerTest {
                                     Collections.emptyList()
                             )
                     ),
-                    Pair.of("Should respond 500 when internal error on sendFileByMail",
+                    Pair.of("Should respond 400 when invalid email is passed",
                             new ControllerParameter<>(
-                                    new SendFileByMailParam(null, "SHARE_TYPE"),
-                                    500,
+                                    new SendFileByMailParam("test", "SHARE_TYPE"),
+                                    400,
                                     jwtTokenWithDossier,
                                     (v) -> {
                                         when(authenticationFacade.getLoggedTenant()).thenReturn(tenant);
-                                        doThrow(new InternalError("Mail cannot be send - try later")).when(tenantService).sendFileByMail(tenant, null, "SHARE_TYPE");
                                         return v;
                                     },
                                     Collections.emptyList()
