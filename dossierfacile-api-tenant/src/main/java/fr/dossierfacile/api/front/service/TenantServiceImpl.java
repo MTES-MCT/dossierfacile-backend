@@ -1,6 +1,7 @@
 package fr.dossierfacile.api.front.service;
 
 import fr.dossierfacile.api.front.exception.MailSentLimitException;
+import fr.dossierfacile.api.front.exception.ResendLinkTooShortException;
 import fr.dossierfacile.api.front.exception.TenantNotFoundException;
 import fr.dossierfacile.api.front.model.KeycloakUser;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
@@ -215,7 +216,7 @@ public class TenantServiceImpl implements TenantService {
         }
         if (link.getLastSentDatetime() != null && link.getLastSentDatetime().isAfter(LocalDateTime.now().minusHours(1))) {
             log.info("Email has been sent previously from less than one hour");
-            throw new IllegalStateException("Delay between two resend is too short");
+            throw new ResendLinkTooShortException();
         }
         String url = (link.isFullData() ? "/file/" : "/public-file/") + link.getToken();
         mailService.sendFileByMail(url, link.getEmail(), tenant.getFirstName(), tenant.getFullName(), tenant.getEmail());
