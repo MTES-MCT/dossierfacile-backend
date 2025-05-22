@@ -65,6 +65,7 @@ public class WarningMailSender {
         variables.put("NOM", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
         variables.put("confirmToken", confirmationToken.getToken());
         variables.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
+        variables.put("TENANT_ID", user.getId().toString());
         sendWarningMail(user, templateId, variables);
     }
 
