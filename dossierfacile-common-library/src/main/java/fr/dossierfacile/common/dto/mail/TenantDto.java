@@ -13,6 +13,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TenantDto extends UserDto {
+    private Long id;
     private List<UserApiDto> userApis;
     private TenantFileStatus status;
 

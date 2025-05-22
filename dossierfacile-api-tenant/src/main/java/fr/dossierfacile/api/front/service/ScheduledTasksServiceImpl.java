@@ -131,11 +131,7 @@ public class ScheduledTasksServiceImpl implements ScheduledTasksService {
                 List<Tenant> tenants = tenantRepository.findAllTenantsValidatedSinceXDaysAgo(startDate, endDate);
                 log.info(tenants.size() + " tenants found, to be notified after " + daysForSatisfactionEmail + " days of account validation");
                 for (Tenant tenant : tenants) {
-                    if (tenant.getTenantsUserApi().size() > 0) {
-                        mailService.sendEmailWhenTenantYESAssociatedToPartnersAndValidatedXDaysAgo(tenant);
-                    } else {
-                        mailService.sendEmailWhenTenantNOTAssociatedToPartnersAndValidatedXDaysAgo(tenant);
-                    }
+                    mailService.sendEmailToTenantValidatedXDaysAgo(tenant);
                     Thread.sleep(1000);// avoid to spam - softBounce
                 }
             } catch (Exception e) {

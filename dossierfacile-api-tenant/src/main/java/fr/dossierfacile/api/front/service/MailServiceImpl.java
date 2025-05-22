@@ -60,10 +60,8 @@ public class MailServiceImpl implements MailService {
     private Long templateEmailWhenAccountNotYetCompleted;
     @Value("${brevo.template.id.account.declined.reminder}")
     private Long templateEmailWhenAccountIsStillDeclined;
-    @Value("${brevo.template.id.account.satisf.not.assoc.to.partners}")
-    private Long templateEmailWhenTenantNOTAssociatedToPartnersAndValidated;
-    @Value("${brevo.template.id.account.satisf.yes.assoc.to.partners}")
-    private Long templateEmailWhenTenantYESAssociatedToPartnersAndValidated;
+    @Value("${brevo.template.id.account.satisf}")
+    private Long templateIdAccountSatisf;
     @Value("${brevo.template.id.contact.support}")
     private Long templateIdContactSupport;
     @Value("${brevo.template.id.token.expiration}")
@@ -212,18 +210,12 @@ public class MailServiceImpl implements MailService {
     }
 
     @Override
-    public void sendEmailWhenTenantNOTAssociatedToPartnersAndValidatedXDaysAgo(User user) {
+    public void sendEmailToTenantValidatedXDaysAgo(User user) {
         Map<String, String> variables = new HashMap<>();
         variables.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
+        variables.put("TENANT_ID", user.getId().toString());
 
-        sendEmailToTenant(user, variables, templateEmailWhenTenantNOTAssociatedToPartnersAndValidated);
-    }
-
-    @Override
-    public void sendEmailWhenTenantYESAssociatedToPartnersAndValidatedXDaysAgo(User user) {
-        Map<String, String> variables = new HashMap<>();
-        variables.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
-        sendEmailToTenant(user, variables, templateEmailWhenTenantYESAssociatedToPartnersAndValidated);
+        sendEmailToTenant(user, variables, templateIdAccountSatisf);
     }
 
     @Override

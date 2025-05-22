@@ -24,9 +24,7 @@ public interface MailService {
 
     void sendEmailWhenAccountIsStillDeclined(User user);
 
-    void sendEmailWhenTenantNOTAssociatedToPartnersAndValidatedXDaysAgo(User user);
-
-    void sendEmailWhenTenantYESAssociatedToPartnersAndValidatedXDaysAgo(User user);
+    void sendEmailToTenantValidatedXDaysAgo(User user);
 
     void sendEmailToSupport(ContactForm form);
 

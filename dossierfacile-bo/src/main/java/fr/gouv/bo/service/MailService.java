@@ -128,6 +128,7 @@ public class MailService {
         params.put("PRENOM", tenant.getFirstName());
         params.put("NOM", OptionalString.of(tenant.getPreferredName()).orElse(tenant.getLastName()));
         params.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
+        params.put("TENANT_ID", tenant.getId().toString());
 
         if (tenant.isBelongToPartner()) {
             UserApiDto userApi = tenant.getUserApis().getFirst();
@@ -166,6 +167,7 @@ public class MailService {
         params.put("PRENOM", tenant.getFirstName());
         params.put("NOM", OptionalString.of(tenant.getPreferredName()).orElse(tenant.getLastName()));
         params.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
+        params.put("TENANT_ID", tenant.getId().toString());
 
         if (tenant.isBelongToPartner()) {
             UserApiDto userApi = tenant.getUserApis().getFirst();
