@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.front.controller;
 
+import fr.dossierfacile.api.front.exception.ResendLinkTooShortException;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.common.entity.ApartmentSharing;
@@ -55,6 +56,7 @@ public class ApartmentSharingLinkController {
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Link resent successfully"),
             @ApiResponse(code = 403, message = "Forbidden: JWT token missing or invalid scope or email unverified or apartment sharing not in tenant"),
+            @ApiResponse(code = 429, message = "Failed because the 1 hour delay is not respected"),
             @ApiResponse(code = 500, message = "link is disabled or call too soon or error when sending email")
     })
     @PostMapping("/{id}/resend")
