@@ -1,0 +1,39 @@
+name: process-file-monitoring
+
+type: flatline
+
+index: aggregator-logs-%Y.%m.%d
+use_strftime_index: true
+
+timeframe:
+  hours: 1
+
+threshold: 1  # Moins de 1 hit = alerte
+
+filter:
+  - match_phrase:
+      environment: "prod"
+  - match_phrase:
+      application: "process-file"
+
+alert:
+  - slack
+
+slack_webhook_url: "{{mattermost_webhook_url}}"
+slack_msg_pretext: "📛 **ALERTE PROD** : **Aucun message sur le service Process-file** depuis 1h"
+
+slack_msg_color: danger
+slack_username_override: "AlerteFacile"
+slack_emoji_override: ":no_entry_sign:"
+slack_text_string: "@nicolas.sagon, @romaric.haldenwang, @jean-marie.poissonnier *It's time to shine*"
+
+slack_alert_fields:
+  - title: Application
+    value: "application"
+    short: true
+  - title: Environnement
+    value: "environment"
+    short: true
+  - title: Heure de détection
+    value: "@timestamp"
+    short: false

@@ -3,6 +3,7 @@
 !.mvn/wrapper/maven-wrapper.jar
 application-*.properties
 !application-test.properties
+document_analysis.properties
 .env
 target/
 mockstorage/
@@ -13,6 +14,7 @@ logs/
 hs_err_pid*.log
 tmp
 **/certs/*
+elastalert/dist
 
 ### STS ###
 .apt_generated

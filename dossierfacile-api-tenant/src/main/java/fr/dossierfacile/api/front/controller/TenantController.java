@@ -15,6 +15,7 @@ import fr.dossierfacile.common.entity.Property;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.service.interfaces.ProcessingCapacityService;
 import io.swagger.annotations.*;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -108,8 +109,7 @@ public class TenantController {
             @ApiResponse(code = 403, message = "Forbidden: JWT token missing or invalid"),
             @ApiResponse(code = 500, message = "Internal error: mail cannot be sent")
     })
-    public ResponseEntity<String> sendFileByMail(@RequestBody ShareFileByMailForm shareFileByMailForm) {
-        // Todo : Should add the @Valid annotation to match ShareFileByMailForm validations
+    public ResponseEntity<String> sendFileByMail(@Valid @RequestBody ShareFileByMailForm shareFileByMailForm) {
         Tenant tenant = authenticationFacade.getLoggedTenant();
         try {
             tenantService.sendFileByMail(tenant, shareFileByMailForm.getEmail(), shareFileByMailForm.getShareType());
