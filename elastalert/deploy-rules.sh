@@ -64,7 +64,7 @@ deploy() {
   scp dist/elastalert/* "$SSH_USERNAME@$SERVER_IP:/home/$SSH_USERNAME/docker-elk/elastalert/rules/"
 
   echo "Suppression de l'ancienne version de custom-alerts..."
-  ssh "$SSH_USERNAME@$SERVER_IP" "rm -rf /home/$SSH_USERNAME/custom-alerts/current"
+  ssh "$SSH_USERNAME@$SERVER_IP" "sudo rm -rf /home/$SSH_USERNAME/custom-alerts/current"
 
   echo "Transfert du projet custom-alerts..."
   scp dist/custom-alerts/custom-alerts.zip "$SSH_USERNAME@$SERVER_IP:/home/$SSH_USERNAME/custom-alerts"

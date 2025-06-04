@@ -1,21 +1,23 @@
-name: process-file-monitoring
+name: task-scheduler-monitoring
 
-type: flatline
+type: any
 
 index: aggregator-logs-%Y.%m.%d
 use_strftime_index: true
 
+#The maximum time between changes. After this time period, ElastAlert 2 will forget the old value of the compare_key field.
 timeframe:
   hours: 1
-
-threshold: 1  # Moins de 1 hit = alerte
 
 filter:
   - match_phrase:
       environment: "prod"
   - match_phrase:
-      application: "process-file"
+      application: "task-scheduler"
+  - match_phrase:
+      task_status: "ERROR"
 
+query_key: task_name
 realert:
   hours: 24  # ⬅️ N’envoie qu’un seul message toutes les 24h
 
@@ -23,12 +25,11 @@ alert:
   - slack
 
 slack_webhook_url: "{{mattermost_webhook_url}}"
-slack_msg_pretext: "📛 **ALERTE PROD** : **Aucun message sur le service Process-file** depuis 1h"
+slack_msg_pretext: "📛 **ALERTE PROD** : Erreur détectée sur une tâche planifiée"
 
 slack_msg_color: danger
 slack_username_override: "AlerteFacile"
 slack_emoji_override: ":no_entry_sign:"
-slack_text_string: "@nicolas.sagon, @romaric.haldenwang, @jean-marie.poissonnier *It's time to shine*"
 
 slack_alert_fields:
   - title: Application
@@ -37,6 +38,9 @@ slack_alert_fields:
   - title: Environnement
     value: "environment"
     short: true
-  - title: Heure de détection
+  - title: Tâche
+    value: "task_name"
+    short: true
+  - title: Heure
     value: "@timestamp"
     short: false
