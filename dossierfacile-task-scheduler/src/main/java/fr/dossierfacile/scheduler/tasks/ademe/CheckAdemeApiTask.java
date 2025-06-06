@@ -40,8 +40,8 @@ public class CheckAdemeApiTask extends AbstractTask {
             try (HttpClient client = HttpClient.newHttpClient()) {
                 response = client.send(request, HttpResponse.BodyHandlers.ofString());
                 String json = response.body();
-                if (response.statusCode() == 404) {
-                    log.error("ADEME API ERROR 404 : DPE NOT FOUND");
+                if (response.statusCode() >= 400) {
+                    log.error("ADEME API ERROR : status code {}, message {}", response.statusCode(), json);
                 }
                 objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
                 AdemeApiResultModel ademeApiResultModel = objectMapper.readValue(json, AdemeApiResultModel.class);
