@@ -34,7 +34,7 @@ public class AdemeApiServiceImpl {
     private final ObjectMapper objectMapper = MapperUtil.newObjectMapper();
 
     public AdemeApiResultModel getDpeDetails(String dpeNumber) throws IOException, InterruptedException {
-        String url = ademeApiBaseUrl + "/dpe/" + dpeNumber;
+        String url = ademeApiBaseUrl + "/pub/dpe/" + dpeNumber;
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create(url))
