@@ -68,6 +68,11 @@ brevo.template.id.follow-up.validated.property=
 
 #Enabled the log aggregator for spring boot API
 dossierfacile.logging.aggregator=true
+
+#Ademe api configuration 
+ademe.api.base.url=https://prd-x-ademe-externe-api.de-c1.eu1.cloudhub.io/api/v1
+ademe.api.client.id=
+ademe.api.client.secret=
 ```
 # LogStash :
 

@@ -46,7 +46,7 @@ public class PropertyController {
     private final PropertyMapper propertyMapper;
 
     @PostMapping
-    public ResponseEntity<PropertyModel> createOrUpdate(@Valid @RequestBody PropertyForm property) throws HttpResponseException, InterruptedException {
+    public ResponseEntity<PropertyModel> createOrUpdate(@Valid @RequestBody PropertyForm property) throws InterruptedException, HttpResponseException {
         PropertyModel propertyModel;
         propertyModel = propertyService.createOrUpdate(property);
         logService.saveLog(LogType.ACCOUNT_EDITED, propertyModel.getId());

@@ -5,6 +5,21 @@
       "type": "java.lang.Boolean",
       "defaultValue": false,
       "description": "Enable spring boot global exception handler."
+    },
+    {
+      "name": "ademe.api.base.url",
+      "type": "java.lang.String",
+      "description": "L'URL de base de l'API ADEME."
+    },
+    {
+      "name": "ademe.api.client.id",
+      "type": "java.lang.String",
+      "description": "L'identifiant client pour l'authentification à l'API ADEME."
+    },
+    {
+      "name": "ademe.api.client.secret",
+      "type": "java.lang.String",
+      "description": "Le secret client pour l'authentification à l'API ADEME."
     }
   ]
 }
