@@ -1,48 +1,83 @@
 package fr.dossierfacile.common.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import fr.dossierfacile.common.exceptions.AdemeApiBadRequestException;
 import fr.dossierfacile.common.exceptions.AdemeApiInternalServerErrorException;
 import fr.dossierfacile.common.exceptions.AdemeApiNotFoundException;
 import fr.dossierfacile.common.exceptions.AdemeApiUnauthorizedException;
-import fr.dossierfacile.common.model.AdemeApiResultModel;
-import fr.dossierfacile.common.utils.MapperUtil;
-
+import fr.dossierfacile.common.mapper.AdemeApiResultModelToAdemeResultModelMapper;
+import fr.dossierfacile.common.model.AdemeResultModel;
+import fr.dossierfacile.common.model.ademe.AdemeApiResultModel;
+import fr.dossierfacile.common.service.interfaces.AdemeApiService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.io.IOException;
 
-@Service("ademeApiService")
+@ConditionalOnProperty(name = "ademe.api.base.url")
 @Slf4j
-public class AdemeApiServiceImpl {
+@Service
+public class AdemeApiServiceImpl implements AdemeApiService {
 
-    @Value("${ademe.api.base.url:default}")
+    @Value("${ademe.api.base.url}")
     private String ademeApiBaseUrl;
-    @Value("${ademe.api.client.id:default}")
+    @Value("${ademe.api.client.id}")
     private String ademeApiClientId;
-    @Value("${ademe.api.client.secret:default}")
+    @Value("${ademe.api.client.secret}")
     private String ademeApiClientSecret;
 
-    private final ObjectMapper objectMapper = MapperUtil.newObjectMapper();
+    private final ObjectMapper objectMapper;
+    private final HttpClient httpClient;
 
-    public AdemeApiResultModel getDpeDetails(String dpeNumber) throws IOException, InterruptedException {
+    private final AdemeApiResultModelToAdemeResultModelMapper mapper = new AdemeApiResultModelToAdemeResultModelMapper();
+
+    AdemeApiServiceImpl(
+            String ademeApiBaseUrl,
+            String ademeApiClientId,
+            String ademeApiClientSecret,
+            ObjectMapper objectMapper,
+            HttpClient httpClient
+    ) {
+        this.ademeApiBaseUrl = ademeApiBaseUrl;
+        this.ademeApiClientId = ademeApiClientId;
+        this.ademeApiClientSecret = ademeApiClientSecret;
+        this.objectMapper = objectMapper;
+        this.httpClient = httpClient;
+    }
+
+    @Autowired
+    AdemeApiServiceImpl(ObjectMapper objectMapper, HttpClient httpClient) {
+        this.objectMapper = objectMapper;
+        this.httpClient = httpClient;
+    }
+
+    public AdemeResultModel getDpeDetails(String dpeNumber) throws AdemeApiInternalServerErrorException, AdemeApiBadRequestException, AdemeApiUnauthorizedException, AdemeApiNotFoundException, InterruptedException {
         String url = ademeApiBaseUrl + "/pub/dpe/" + dpeNumber;
-        HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(url))
-            .header("client_id", ademeApiClientId)
-            .header("client_secret", ademeApiClientSecret)
-            .GET()
-            .build();
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                .uri(URI.create(url))
+                .header("client_id", ademeApiClientId)
+                .header("client_secret", ademeApiClientSecret)
+                .GET()
+                .build();
+
+        HttpResponse<String> response = null;
+
+        try {
+            response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        } catch (IOException e) {
+            log.error("ADEME API CLIENT ERROR: {}", e.getMessage());
+            throw new AdemeApiInternalServerErrorException(e.getMessage());
+        }
 
         if (response.statusCode() == 404) {
             log.error("ADEME API Not Found Error: status code {}, message {}", response.statusCode(), response.body());
@@ -65,8 +100,13 @@ public class AdemeApiServiceImpl {
         }
 
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        AdemeApiResultModel ademeApiResultModel = objectMapper.readValue(response.body(), AdemeApiResultModel.class);
 
-        return ademeApiResultModel;
+        try {
+            var ademeApiModel = objectMapper.readValue(response.body(), AdemeApiResultModel.class);
+            return mapper.convert(ademeApiModel);
+        } catch (IllegalArgumentException | JsonProcessingException e) {
+            log.error("ADEME API Response Parsing Error: {}", e.getMessage());
+            throw new AdemeApiInternalServerErrorException("Failed to parse ADEME API response");
+        }
     }
 }

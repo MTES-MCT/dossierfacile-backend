@@ -9,28 +9,20 @@ import fr.dossierfacile.common.entity.Property;
 import fr.dossierfacile.common.entity.PropertyLog;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.OwnerLogType;
-import fr.dossierfacile.common.exceptions.AdemeApiBadRequestException;
-import fr.dossierfacile.common.exceptions.AdemeApiInternalServerErrorException;
-import fr.dossierfacile.common.exceptions.AdemeApiNotFoundException;
-import fr.dossierfacile.common.exceptions.AdemeApiUnauthorizedException;
-import fr.dossierfacile.common.exceptions.HttpBadGatewayException;
-import fr.dossierfacile.common.exceptions.HttpBadRequestException;
-import fr.dossierfacile.common.exceptions.NotFoundException;
-import fr.dossierfacile.common.model.AdemeApiResultModel;
+import fr.dossierfacile.common.exceptions.*;
+import fr.dossierfacile.common.model.AdemeResultModel;
 import fr.dossierfacile.common.repository.PropertyLogRepository;
-import fr.dossierfacile.common.service.AdemeApiServiceImpl;
+import fr.dossierfacile.common.service.interfaces.AdemeApiService;
 import fr.dossierfacile.common.service.interfaces.TenantCommonService;
 import fr.dossierfacile.common.utils.MapperUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.client.HttpResponseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
@@ -53,13 +45,14 @@ public class PropertyServiceImpl implements PropertyService {
     private final OwnerLogService ownerLogService;
     private final MailService mailService;
     private final ObjectMapper objectMapper = MapperUtil.newObjectMapper();
+    private final AdemeApiService ademeApiService;
 
     @Qualifier("tenantJwtDecoder")
     @Autowired
     private JwtDecoder tenantJwtDecoder;
 
     @Override
-    public PropertyModel createOrUpdate(PropertyForm propertyForm) throws HttpResponseException, InterruptedException, IOException {
+    public PropertyModel createOrUpdate(PropertyForm propertyForm) throws InterruptedException {
         Owner owner = authenticationFacade.getOwner();
         Property property;
         if (propertyForm.getId() != null) {
@@ -121,19 +114,17 @@ public class PropertyServiceImpl implements PropertyService {
         return propertyMapper.toPropertyModel(propertyRepository.save(property));
     }
 
-    private void setAdemeResult(PropertyForm propertyForm, Property property) throws HttpResponseException, InterruptedException, IOException {
-        AdemeApiServiceImpl ademeApiService = new AdemeApiServiceImpl();
+    private void setAdemeResult(PropertyForm propertyForm, Property property) throws InterruptedException {
         try {
-            AdemeApiResultModel ademeApiResultModel = ademeApiService.getDpeDetails(propertyForm.getAdemeNumber());
+            AdemeResultModel ademeResultModel = ademeApiService.getDpeDetails(propertyForm.getAdemeNumber());
 
-            property.setAdemeNumber(ademeApiResultModel.getNumero());
-            property.setAdemeApiResult(objectMapper.valueToTree(ademeApiResultModel));
-            property.setEnergyConsumption(Float.valueOf(ademeApiResultModel.getConsommation()).intValue());
-            property.setCo2Emission(Float.valueOf(ademeApiResultModel.getEmission()).intValue());
-            Instant instant = Instant.parse(ademeApiResultModel.getDateRealisation());
+            property.setAdemeNumber(ademeResultModel.getNumero());
+            property.setAdemeApiResult(objectMapper.valueToTree(ademeResultModel));
+            property.setEnergyConsumption(Float.valueOf(ademeResultModel.getConsommation()).intValue());
+            property.setCo2Emission(Float.valueOf(ademeResultModel.getEmission()).intValue());
+            Instant instant = Instant.parse(ademeResultModel.getDateRealisation());
             Date dateRealisation = Date.from(instant);
             property.setDpeDate(dateRealisation);
-            return;
         } catch (AdemeApiNotFoundException e) {
             throw new NotFoundException(e.getMessage());
         } catch (AdemeApiBadRequestException e) {

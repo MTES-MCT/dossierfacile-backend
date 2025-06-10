@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class AdemeApiResultModel {
+public class AdemeResultModel {
 
 //    {"id":null
 //"type":"DPE 3CL 2021 méthode logement"

@@ -1,7 +1,5 @@
 package fr.dossierfacile.api.dossierfacileapiowner.property;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import fr.dossierfacile.api.dossierfacileapiowner.log.OwnerLogService;
 import fr.dossierfacile.api.dossierfacileapiowner.mail.MailService;
 import fr.dossierfacile.api.dossierfacileapiowner.register.AuthenticationFacade;
@@ -9,20 +7,21 @@ import fr.dossierfacile.common.entity.Owner;
 import fr.dossierfacile.common.entity.Property;
 import fr.dossierfacile.common.enums.OwnerLogType;
 import fr.dossierfacile.common.repository.PropertyLogRepository;
+import fr.dossierfacile.common.service.interfaces.AdemeApiService;
 import fr.dossierfacile.common.service.interfaces.TenantCommonService;
-import org.apache.http.client.HttpResponseException;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.AdditionalAnswers;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.io.IOException;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 
 class PropertyServiceImplTest {
@@ -40,8 +39,9 @@ class PropertyServiceImplTest {
         OwnerLogService ownerLogService = mock(OwnerLogService.class);
         MailService mailService = mock(MailService.class);
         JwtDecoder tenantJwtDecoder = mock(JwtDecoder.class);
+        AdemeApiService ademeApiService = mock(AdemeApiService.class);
 
-        PropertyServiceImpl propertyService = new PropertyServiceImpl(authenticationFacade, propertyRepository, propertyMapper, propertyApartmentSharingService, tenantService, propertyLogRepository, ownerLogService, mailService);
+        PropertyServiceImpl propertyService = new PropertyServiceImpl(authenticationFacade, propertyRepository, propertyMapper, propertyApartmentSharingService, tenantService, propertyLogRepository, ownerLogService, mailService, ademeApiService);
         ReflectionTestUtils.setField(propertyService, "tenantJwtDecoder", tenantJwtDecoder);
 
         Owner owner = new Owner();
@@ -57,11 +57,7 @@ class PropertyServiceImplTest {
 
         // Act
         PropertyModel result = null;
-        try {
-            result = propertyService.createOrUpdate(propertyForm);
-        } catch (HttpResponseException e) {
-            throw new RuntimeException(e);
-        }
+        result = propertyService.createOrUpdate(propertyForm);
 
         // Assert
         assertNotNull(result);
@@ -81,8 +77,9 @@ class PropertyServiceImplTest {
         OwnerLogService ownerLogService = mock(OwnerLogService.class);
         MailService mailService = mock(MailService.class);
         JwtDecoder tenantJwtDecoder = mock(JwtDecoder.class);
+        AdemeApiService ademeApiService = mock(AdemeApiService.class);
 
-        PropertyServiceImpl propertyService = new PropertyServiceImpl(authenticationFacade, propertyRepository, propertyMapper, propertyApartmentSharingService, tenantService, propertyLogRepository, ownerLogService, mailService);
+        PropertyServiceImpl propertyService = new PropertyServiceImpl(authenticationFacade, propertyRepository, propertyMapper, propertyApartmentSharingService, tenantService, propertyLogRepository, ownerLogService, mailService, ademeApiService);
         ReflectionTestUtils.setField(propertyService, "tenantJwtDecoder", tenantJwtDecoder);
 
         Owner owner = new Owner();
@@ -100,11 +97,7 @@ class PropertyServiceImplTest {
 
         // Act
         PropertyModel result = null;
-        try {
-            result = propertyService.createOrUpdate(propertyForm);
-        } catch (HttpResponseException e) {
-            throw new RuntimeException(e);
-        }
+        result = propertyService.createOrUpdate(propertyForm);
 
         // Assert
         assertNotNull(result);
@@ -124,8 +117,9 @@ class PropertyServiceImplTest {
         OwnerLogService ownerLogService = mock(OwnerLogService.class);
         MailService mailService = mock(MailService.class);
         JwtDecoder tenantJwtDecoder = mock(JwtDecoder.class);
+        AdemeApiService ademeApiService = mock(AdemeApiService.class);
 
-        PropertyServiceImpl propertyService = new PropertyServiceImpl(authenticationFacade, propertyRepository, propertyMapper, propertyApartmentSharingService, tenantService, propertyLogRepository, ownerLogService, mailService);
+        PropertyServiceImpl propertyService = new PropertyServiceImpl(authenticationFacade, propertyRepository, propertyMapper, propertyApartmentSharingService, tenantService, propertyLogRepository, ownerLogService, mailService, ademeApiService);
         ReflectionTestUtils.setField(propertyService, "tenantJwtDecoder", tenantJwtDecoder);
 
         Owner owner = new Owner();
@@ -144,11 +138,7 @@ class PropertyServiceImplTest {
 
         // Act
         PropertyModel result = null;
-        try {
-            result = propertyService.createOrUpdate(propertyForm);
-        } catch (HttpResponseException e) {
-            throw new RuntimeException(e);
-        }
+        result = propertyService.createOrUpdate(propertyForm);
 
         // Assert
         assertNotNull(result);
