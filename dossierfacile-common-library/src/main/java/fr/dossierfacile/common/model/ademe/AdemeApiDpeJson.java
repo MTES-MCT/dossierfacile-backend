@@ -20,4 +20,6 @@ public class AdemeApiDpeJson {
     private String statut;
     private AdemeApiDpeAdministrationJson administratif;
     private AdemeApiDpeHousingJson logement;
+    @JsonProperty("logement_neuf")
+    private AdemeApiDpeHousingJson logementNeuf;
 }
