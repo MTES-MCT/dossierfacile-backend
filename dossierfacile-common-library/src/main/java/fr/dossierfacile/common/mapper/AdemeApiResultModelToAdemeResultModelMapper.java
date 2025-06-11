@@ -2,6 +2,7 @@ package fr.dossierfacile.common.mapper;
 
 import fr.dossierfacile.common.model.AdemeResultModel;
 import fr.dossierfacile.common.model.ademe.AdemeApiResultModel;
+import fr.dossierfacile.common.model.ademe.housing.AdemeApiDpeHousingJson;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -15,29 +16,39 @@ public class AdemeApiResultModelToAdemeResultModelMapper {
             return null;
         }
 
+        var logement = getLogement(input);
+
         return AdemeResultModel.builder()
                 .numero(input.getDpe().getNumeroDpe())
                 .statut(input.getDpe().getStatut())
-                .anneeConstruction(input.getDpe().getLogement().getCaracteristiqueGenerale().getAnneeConstruction())
+                .anneeConstruction(logement.getCaracteristiqueGenerale().getAnneeConstruction())
                 .adresse(input.getDpe().getAdministratif().getGeolocalisation().getAdresses().getAdresseBien().getAdresseBrut())
                 .dpe2012(false)
-                .emission(input.getDpe().getLogement().getSortie().getEmissionGes().getEmissionGes5UsagesM2())
+                .emission(logement.getSortie().getEmissionGes().getEmissionGes5UsagesM2())
                 .anonymise(false)
                 .codePostal(input.getDpe().getAdministratif().getGeolocalisation().getAdresses().getAdresseBien().getCodePostalBrut())
                 .masquerDiag(true)
-                .consommation(input.getDpe().getLogement().getSortie().getEpConso().getEpConso5UsagesM2())
-                .typeBatiment(getTypeBatiment(input))
-                .etiquetteBilan(input.getDpe().getLogement().getSortie().getEpConso().getClasseBilanDpe())
+                .consommation(logement.getSortie().getEpConso().getEpConso5UsagesM2())
+                .typeBatiment(getTypeBatiment(logement))
+                .etiquetteBilan(logement.getSortie().getEpConso().getClasseBilanDpe())
                 .dateFinValidite(getDateFinValidite(input))
                 .dateRealisation(getDateRealisation(input))
-                .surfaceHabitable(input.getDpe().getLogement().getCaracteristiqueGenerale().getSurfaceHabitableLogement())
-                .etiquetteEmission(input.getDpe().getLogement().getSortie().getEmissionGes().getClasseEmissionGes())
+                .surfaceHabitable(logement.getCaracteristiqueGenerale().getSurfaceHabitableLogement())
+                .etiquetteEmission(logement.getSortie().getEmissionGes().getClasseEmissionGes())
                 .suppressionEnCours(false)
                 .consommationEnergieFinale(input.getConsommationEnergieFinale().toString()).build();
     }
 
-    private String getTypeBatiment(AdemeApiResultModel input) {
-        if(input.getDpe().getLogement().getCaracteristiqueGenerale().getNombreAppartement() == null) {
+    private AdemeApiDpeHousingJson getLogement(AdemeApiResultModel input) {
+        if (input.getDpe().getLogementNeuf() != null) {
+            return input.getDpe().getLogementNeuf();
+        } else {
+            return input.getDpe().getLogement();
+        }
+    }
+
+    private String getTypeBatiment(AdemeApiDpeHousingJson input) {
+        if(input.getCaracteristiqueGenerale().getNombreAppartement() == null) {
             return "maison";
         } else {
             return "appartement";
