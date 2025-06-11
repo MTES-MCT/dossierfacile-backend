@@ -23,7 +23,7 @@ import static java.util.Comparator.comparing;
 @RequestMapping("/bo/documentDeniedOptions")
 public class BODocumentDeniedOptionsController {
 
-    private static final String EMAIL = "email";
+    private static final String MONTH_N = "monthN";
     private static final List<String> DOCUMENT_USER_TYPES = List.of("tenant", "guarantor");
 
     private final DocumentDeniedOptionsService service;
@@ -43,18 +43,17 @@ public class BODocumentDeniedOptionsController {
     }
 
     @GetMapping("/{id}")
-    public String editDocumentDeniedOption(Model model,
-                                           @PathVariable(value = "id") int id) {
+    public String editDocumentDeniedOption(Model model, @PathVariable(value = "id") int id) {
         Optional<DocumentDeniedOptions> optionToEdit = service.findDocumentDeniedOption(id);
         if (optionToEdit.isEmpty()) {
             return "redirect:/bo/documentDeniedOptions";
         }
         model.addAttribute("documentDeniedOption", optionToEdit.get());
         model.addAttribute("documentSubCategoryUtils", new DocumentSubCategoryUtils());
-        model.addAttribute("monthN", DateFormatUtil.replaceMonthPlaceholder("{mois}"));
-        model.addAttribute("monthN1", DateFormatUtil.replaceMonthPlaceholder("{moisN-1}"));
-        model.addAttribute("monthN2", DateFormatUtil.replaceMonthPlaceholder("{moisN-2}"));
-        model.addAttribute("monthN3", DateFormatUtil.replaceMonthPlaceholder("{moisN-3}"));
+        model.addAttribute(MONTH_N, DateFormatUtil.replaceMonthPlaceholder("{mois}"));
+        for (int i = 1; i <= 6; i++) {
+            model.addAttribute(MONTH_N + i, DateFormatUtil.replaceMonthPlaceholder(String.format("{moisN-%d}", i)));
+        }
         return "bo/edit-document-denied-option";
     }
 
@@ -65,10 +64,10 @@ public class BODocumentDeniedOptionsController {
         model.addAttribute("documentUserTypes", DOCUMENT_USER_TYPES);
         model.addAttribute("documentDeniedOption", new DocumentDeniedOptionsDTO());
         model.addAttribute("documentSubCategoryUtils", new DocumentSubCategoryUtils());
-        model.addAttribute("monthN", DateFormatUtil.replaceMonthPlaceholder("{mois}"));
-        model.addAttribute("monthN1", DateFormatUtil.replaceMonthPlaceholder("{moisN-1}"));
-        model.addAttribute("monthN2", DateFormatUtil.replaceMonthPlaceholder("{moisN-2}"));
-        model.addAttribute("monthN3", DateFormatUtil.replaceMonthPlaceholder("{moisN-3}"));
+        model.addAttribute(MONTH_N, DateFormatUtil.replaceMonthPlaceholder("{mois}"));
+        for (int i = 1; i <= 6; i++) {
+            model.addAttribute(MONTH_N + i, DateFormatUtil.replaceMonthPlaceholder(String.format("{moisN-%d}", i)));
+        }
         return "bo/create-document-denied-option";
     }
 
