@@ -44,11 +44,11 @@ public class DateFormatUtil {
     public static String replaceMonthPlaceholder(String message) {
         LocalDate now = LocalDate.now();
         Month month = now.getDayOfMonth() < 15 ? now.getMonth().minus(1) : now.getMonth();
-        return message
-            .replace("{mois}", formatMonth(month))
-            .replace("{moisN-1}", formatMonth(month.minus(1)))
-            .replace("{moisN-2}", formatMonth(month.minus(2)))
-            .replace("{moisN-3}", formatMonth(month.minus(3)));
+        String output = message.replace("{mois}", formatMonth(month));
+        for (int i = 1; i <= 6; i++) {
+            output = output.replace(String.format("{moisN-%d}", i), formatMonth(month.minus(i)));
+        }
+        return output;
     }
 
 

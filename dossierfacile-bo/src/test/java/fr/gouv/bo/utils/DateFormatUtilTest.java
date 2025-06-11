@@ -30,9 +30,9 @@ class DateFormatUtilTest {
         try (MockedStatic<LocalDate> mockedStatic = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
             LocalDate testDate = LocalDate.of(2025, 4, 28);
             mockedStatic.when(LocalDate::now).thenReturn(testDate);
-            String message = "Les mois de {mois}, {moisN-1}, {moisN-2} et {moisN-3}";
+            String message = "Les mois de {mois}, {moisN-1}, {moisN-2}, {moisN-3}, {moisN-4}, {moisN-5} et {moisN-6}";
             String formatted = DateFormatUtil.replaceMonthPlaceholder(message);
-            assertThat(formatted).isEqualTo("Les mois de Avril, Mars, Février et Janvier");
+            assertThat(formatted).isEqualTo("Les mois de Avril, Mars, Février, Janvier, Décembre, Novembre et Octobre");
         }
     }
 

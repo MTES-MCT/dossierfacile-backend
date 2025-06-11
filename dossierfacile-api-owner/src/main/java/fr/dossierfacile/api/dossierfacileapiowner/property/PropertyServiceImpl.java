@@ -1,35 +1,28 @@
 package fr.dossierfacile.api.dossierfacileapiowner.property;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.dossierfacile.api.dossierfacileapiowner.log.OwnerLogService;
 import fr.dossierfacile.api.dossierfacileapiowner.mail.MailService;
 import fr.dossierfacile.api.dossierfacileapiowner.register.AuthenticationFacade;
-import fr.dossierfacile.api.dossierfacileapiowner.register.DPENotFoundException;
 import fr.dossierfacile.common.entity.Owner;
 import fr.dossierfacile.common.entity.Property;
 import fr.dossierfacile.common.entity.PropertyLog;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.OwnerLogType;
-import fr.dossierfacile.common.model.AdemeApiResultModel;
+import fr.dossierfacile.common.exceptions.*;
+import fr.dossierfacile.common.model.AdemeResultModel;
 import fr.dossierfacile.common.repository.PropertyLogRepository;
+import fr.dossierfacile.common.service.interfaces.AdemeApiService;
 import fr.dossierfacile.common.service.interfaces.TenantCommonService;
 import fr.dossierfacile.common.utils.MapperUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.client.HttpResponseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
@@ -52,13 +45,14 @@ public class PropertyServiceImpl implements PropertyService {
     private final OwnerLogService ownerLogService;
     private final MailService mailService;
     private final ObjectMapper objectMapper = MapperUtil.newObjectMapper();
+    private final AdemeApiService ademeApiService;
 
     @Qualifier("tenantJwtDecoder")
     @Autowired
     private JwtDecoder tenantJwtDecoder;
 
     @Override
-    public PropertyModel createOrUpdate(PropertyForm propertyForm) throws HttpResponseException, InterruptedException {
+    public PropertyModel createOrUpdate(PropertyForm propertyForm) throws InterruptedException {
         Owner owner = authenticationFacade.getOwner();
         Property property;
         if (propertyForm.getId() != null) {
@@ -120,40 +114,24 @@ public class PropertyServiceImpl implements PropertyService {
         return propertyMapper.toPropertyModel(propertyRepository.save(property));
     }
 
-    private void setAdemeResult(PropertyForm propertyForm, Property property) throws HttpResponseException, InterruptedException {
-        URI uri;
-        HttpResponse<String> response;
+    private void setAdemeResult(PropertyForm propertyForm, Property property) throws InterruptedException {
         try {
-            uri = new URI("https://observatoire-dpe-audit.ademe.fr/pub/dpe/" + propertyForm.getAdemeNumber());
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(uri)
-                    .GET()
-                    .build();
-            try (HttpClient client = HttpClient.newHttpClient()) {
-                response = client.send(request, HttpResponse.BodyHandlers.ofString());
-                String json = response.body();
-                if (response.statusCode() == 404) {
-                    throw new DPENotFoundException("DPE not found");
-                }
-                objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-                AdemeApiResultModel ademeApiResultModel = objectMapper.readValue(json, AdemeApiResultModel.class);
+            AdemeResultModel ademeResultModel = ademeApiService.getDpeDetails(propertyForm.getAdemeNumber());
 
-                property.setAdemeNumber(ademeApiResultModel.getNumero());
-                ObjectMapper mapper = new ObjectMapper();
-                property.setAdemeApiResult(mapper.valueToTree(ademeApiResultModel));
-                property.setEnergyConsumption(Float.valueOf(ademeApiResultModel.getConsommation()).intValue());
-                property.setCo2Emission(Float.valueOf(ademeApiResultModel.getEmission()).intValue());
-                Instant instant = Instant.parse(ademeApiResultModel.getDateRealisation());
-                Date dateRealisation = Date.from(instant);
-                property.setDpeDate(dateRealisation);
-                return;
-            } catch (IOException e) {
-                log.error("An error occurred while processing the request", e);
-            }
-        } catch (URISyntaxException e) {
-            log.error("An error occurred while processing the request", e);
+            property.setAdemeNumber(ademeResultModel.getNumero());
+            property.setAdemeApiResult(objectMapper.valueToTree(ademeResultModel));
+            property.setEnergyConsumption(Float.valueOf(ademeResultModel.getConsommation()).intValue());
+            property.setCo2Emission(Float.valueOf(ademeResultModel.getEmission()).intValue());
+            Instant instant = Instant.parse(ademeResultModel.getDateRealisation());
+            Date dateRealisation = Date.from(instant);
+            property.setDpeDate(dateRealisation);
+        } catch (AdemeApiNotFoundException e) {
+            throw new NotFoundException(e.getMessage());
+        } catch (AdemeApiBadRequestException e) {
+            throw new HttpBadRequestException(e.getMessage());
+        } catch (AdemeApiUnauthorizedException | AdemeApiInternalServerErrorException e) {
+            throw new HttpBadGatewayException("Service Unavailable");
         }
-        throw new HttpResponseException(500, "An error occured processing ademe api request");
     }
 
     @Override

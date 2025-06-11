@@ -1,7 +1,6 @@
 package fr.dossierfacile.api.dossierfacileapiowner.property;
 
 import fr.dossierfacile.api.dossierfacileapiowner.register.AuthenticationFacade;
-import fr.dossierfacile.api.dossierfacileapiowner.register.DPENotFoundException;
 import fr.dossierfacile.api.dossierfacileapiowner.user.OwnerMapper;
 import fr.dossierfacile.api.dossierfacileapiowner.user.OwnerModel;
 import fr.dossierfacile.common.entity.Owner;
@@ -10,7 +9,6 @@ import fr.dossierfacile.common.entity.PropertyApartmentSharing;
 import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.exceptions.NotFoundException;
 import fr.dossierfacile.common.service.interfaces.LogService;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.apache.http.client.HttpResponseException;
@@ -20,7 +18,6 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -49,16 +46,11 @@ public class PropertyController {
     private final PropertyMapper propertyMapper;
 
     @PostMapping
-    public ResponseEntity<PropertyModel> createOrUpdate(HttpServletResponse response, @Valid @RequestBody PropertyForm property) throws HttpResponseException, InterruptedException {
-        try {
-            PropertyModel propertyModel;
-            propertyModel = propertyService.createOrUpdate(property);
-            logService.saveLog(LogType.ACCOUNT_EDITED, propertyModel.getId());
-            return ok(propertyModel);
-        } catch (DPENotFoundException e) {
-            response.setStatus(404);
-        }
-        return null;
+    public ResponseEntity<PropertyModel> createOrUpdate(@Valid @RequestBody PropertyForm property) throws InterruptedException, HttpResponseException {
+        PropertyModel propertyModel;
+        propertyModel = propertyService.createOrUpdate(property);
+        logService.saveLog(LogType.ACCOUNT_EDITED, propertyModel.getId());
+        return ok(propertyModel);
     }
 
     @GetMapping
