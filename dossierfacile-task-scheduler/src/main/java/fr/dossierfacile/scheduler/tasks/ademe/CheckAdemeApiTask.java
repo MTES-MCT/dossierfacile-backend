@@ -20,7 +20,7 @@ public class CheckAdemeApiTask extends AbstractTask {
     private final AdemeApiService ademeApiService;
 
     // Used to check if the API is down and log details
-    @Scheduled(fixedDelayString = "${scheduled.process.check.api.ademe:1}", initialDelayString = "${scheduled.process.check.api.ademe:1}", timeUnit = TimeUnit.MINUTES)
+    @Scheduled(fixedDelayString = "${scheduled.process.check.api.ademe:10}", initialDelayString = "${scheduled.process.check.api.ademe:1}", timeUnit = TimeUnit.MINUTES)
     public void checkAdemeApi() {
         super.startTask(CHECK_API_ADEME);
         
