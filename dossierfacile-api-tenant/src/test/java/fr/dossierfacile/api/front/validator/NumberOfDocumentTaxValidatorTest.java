@@ -6,7 +6,7 @@ import fr.dossierfacile.api.front.security.AuthenticationFacadeImpl;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.TenantServiceImpl;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
-import fr.dossierfacile.api.front.validator.tenant.tax.NumberOfDocumentTaxValidator;
+import fr.dossierfacile.api.front.validator.tenant.tax.TenantNumberOfDocumentTaxValidator;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import jakarta.validation.ConstraintValidatorContext;
@@ -26,7 +26,7 @@ public class NumberOfDocumentTaxValidatorTest {
     private final TenantService tenantService = mock(TenantServiceImpl.class);
     private final FileRepository fileRepository = mock(FileRepository.class);
 
-    private final NumberOfDocumentTaxValidator validator = new NumberOfDocumentTaxValidator(fileRepository);
+    private final TenantNumberOfDocumentTaxValidator validator = new TenantNumberOfDocumentTaxValidator(fileRepository);
 
 
     private Tenant tenant = Tenant.builder().id(1L).firstName("John").lastName("Doe").build();
@@ -69,7 +69,7 @@ public class NumberOfDocumentTaxValidatorTest {
         documentTaxForm.setTypeDocumentTax(DocumentSubCategory.MY_NAME);
         assertThat(validator.isValid(documentTaxForm, validationContext)).isFalse();
 
-        verify(validationContext, times(1)).buildConstraintViolationWithTemplate(NumberOfDocumentTaxValidator.TOO_MANY_DOCUMENTS_RESPONSE);
+        verify(validationContext, times(1)).buildConstraintViolationWithTemplate(TenantNumberOfDocumentTaxValidator.TOO_MANY_DOCUMENTS_RESPONSE);
     }
 
     @Test
@@ -88,7 +88,7 @@ public class NumberOfDocumentTaxValidatorTest {
         documentTaxForm.setTypeDocumentTax(DocumentSubCategory.MY_NAME);
         assertThat(validator.isValid(documentTaxForm, validationContext)).isFalse();
 
-        verify(validationContext, times(1)).buildConstraintViolationWithTemplate(NumberOfDocumentTaxValidator.MISSING_DOCUMENT_RESPONSE);
+        verify(validationContext, times(1)).buildConstraintViolationWithTemplate(TenantNumberOfDocumentTaxValidator.MISSING_DOCUMENT_RESPONSE);
     }
 
     @Test
@@ -123,7 +123,7 @@ public class NumberOfDocumentTaxValidatorTest {
         documentTaxForm.setTypeDocumentTax(DocumentSubCategory.MY_PARENTS);
         assertThat(validator.isValid(documentTaxForm, validationContext)).isFalse();
 
-        verify(validationContext, times(1)).buildConstraintViolationWithTemplate(NumberOfDocumentTaxValidator.NO_DOCUMENT_RESPONSE);
+        verify(validationContext, times(1)).buildConstraintViolationWithTemplate(TenantNumberOfDocumentTaxValidator.NO_DOCUMENT_RESPONSE);
     }
 
     @Test
@@ -144,7 +144,7 @@ public class NumberOfDocumentTaxValidatorTest {
 
         assertThat(validator.isValid(documentTaxForm, validationContext)).isFalse();
 
-        verify(validationContext, times(1)).buildConstraintViolationWithTemplate(NumberOfDocumentTaxValidator.NO_DOCUMENT_RESPONSE);
+        verify(validationContext, times(1)).buildConstraintViolationWithTemplate(TenantNumberOfDocumentTaxValidator.NO_DOCUMENT_RESPONSE);
     }
 
     @Test

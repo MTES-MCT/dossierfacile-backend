@@ -1,19 +1,15 @@
-package fr.dossierfacile.api.front.validator.tenant.tax;
+package fr.dossierfacile.api.front.validator;
 
-import fr.dossierfacile.api.front.register.form.tenant.DocumentTaxForm;
+import fr.dossierfacile.api.front.form.interfaces.FormWithTenantId;
 import fr.dossierfacile.api.front.repository.FileRepository;
-import fr.dossierfacile.api.front.validator.TenantConstraintValidator;
-import fr.dossierfacile.api.front.validator.annotation.tenant.tax.NumberOfDocumentTax;
-import fr.dossierfacile.common.entity.Tenant;
-import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import jakarta.validation.ConstraintValidatorContext;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
 
-@Component
+import java.lang.annotation.Annotation;
+
 @RequiredArgsConstructor
-public class NumberOfDocumentTaxValidator extends TenantConstraintValidator<NumberOfDocumentTax, DocumentTaxForm> {
+public abstract class NumberOfDocumentTaxValidator<A extends Annotation, F extends FormWithTenantId> extends TenantConstraintValidator<A, F> {
 
     private static final String DOCUMENTS = "documents";
 
@@ -22,22 +18,15 @@ public class NumberOfDocumentTaxValidator extends TenantConstraintValidator<Numb
     public static final String MISSING_DOCUMENT_RESPONSE = "number of document must be at least 1";
     public static final String NO_DOCUMENT_RESPONSE = "number of document must be 0";
 
-    private final FileRepository fileRepository;
+    protected final FileRepository fileRepository;
 
     @Override
-    public boolean isValid(DocumentTaxForm documentTaxForm, ConstraintValidatorContext constraintValidatorContext) {
-
-        Tenant tenant = getTenant(documentTaxForm);
-        long countOld = fileRepository.countFileByDocumentCategoryTenant(DocumentCategory.TAX, tenant);
-        long countNew = documentTaxForm.getDocuments().stream().filter(f -> !f.isEmpty()).count();
+    public boolean isValid(F documentTaxForm, ConstraintValidatorContext constraintValidatorContext) {
+        long countOld = getOldCount(documentTaxForm);
+        long countNew = getNewCount(documentTaxForm);
 
         boolean isValid;
-        if (documentTaxForm.getTypeDocumentTax() == DocumentSubCategory.MY_NAME) {
-            isValid = countNew + countOld >= 1 && countNew + countOld <= 5;
-            if (!isValid) {
-                setInvalidMessage(constraintValidatorContext, countNew + countOld == 0);
-            }
-        } else if (documentTaxForm.getTypeDocumentTax() == DocumentSubCategory.OTHER_TAX && !documentTaxForm.getNoDocument()) {
+        if ((getTypeDocumentTax(documentTaxForm) == DocumentSubCategory.MY_NAME) || (getTypeDocumentTax(documentTaxForm) == DocumentSubCategory.OTHER_TAX && !getNoDocument(documentTaxForm))) {
             isValid = countNew + countOld >= 1 && countNew + countOld <= 5;
             if (!isValid) {
                 setInvalidMessage(constraintValidatorContext, countNew + countOld == 0);
@@ -52,6 +41,7 @@ public class NumberOfDocumentTaxValidator extends TenantConstraintValidator<Numb
             }
         }
         return isValid;
+
     }
 
     private void setInvalidMessage(ConstraintValidatorContext context, boolean isEmpty) {
@@ -61,4 +51,13 @@ public class NumberOfDocumentTaxValidator extends TenantConstraintValidator<Numb
                 .buildConstraintViolationWithTemplate(message)
                 .addPropertyNode(DOCUMENTS).addConstraintViolation();
     }
+
+    protected abstract long getOldCount(F documentTaxForm);
+
+    protected abstract long getNewCount(F documentTaxForm);
+
+    protected abstract DocumentSubCategory getTypeDocumentTax(F documentTaxForm);
+
+    protected abstract boolean getNoDocument(F documentTaxForm);
+
 }
