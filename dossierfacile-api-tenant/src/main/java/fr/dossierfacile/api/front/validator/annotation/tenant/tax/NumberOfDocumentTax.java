@@ -1,6 +1,6 @@
 package fr.dossierfacile.api.front.validator.annotation.tenant.tax;
 
-import fr.dossierfacile.api.front.validator.tenant.tax.NumberOfDocumentTaxValidator;
+import fr.dossierfacile.api.front.validator.tenant.tax.TenantNumberOfDocumentTaxValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
@@ -13,7 +13,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 
 @Constraint(
-        validatedBy = {NumberOfDocumentTaxValidator.class}
+        validatedBy = {TenantNumberOfDocumentTaxValidator.class}
 )
 
 public @interface NumberOfDocumentTax {
