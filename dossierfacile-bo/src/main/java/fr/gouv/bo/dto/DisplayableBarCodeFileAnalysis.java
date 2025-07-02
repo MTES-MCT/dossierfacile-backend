@@ -52,15 +52,15 @@ public class DisplayableBarCodeFileAnalysis {
     }
 
     public String getAuthenticationStatusCssClass() {
-        return analysis.getAuthenticationStatus() == VALID ? "fa-check text-success" : "fa-times text-danger";
+        return analysis.getAuthenticationStatus() == VALID ? "fa-info text-info" : "fa-times text-danger";
     }
 
     public String getAuthenticationStatus() {
         return switch (analysis.getAuthenticationStatus()) {
-            case VALID -> "Authentifié";
-            case INVALID -> analysis.getBarCodeType() == TWO_D_DOC ? "Falsifié" : "Non authentifié";
-            case API_ERROR -> "Impossible de vérifier l'authenticité auprès de l'émetteur";
-            case ERROR -> "Erreur lors de l'authentification";
+            case VALID -> "2D-Doc lu";
+            case INVALID -> analysis.getBarCodeType() == TWO_D_DOC ? "2D-Doc falsifié" : "2D-Doc non lu";
+            case API_ERROR -> "Impossible de vérifier la signature du 2D-Doc";
+            case ERROR -> "Erreur lors de la lecture du 2D-Doc";
         };
     }
 
