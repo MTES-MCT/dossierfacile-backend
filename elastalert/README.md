@@ -14,6 +14,12 @@ This shell script manages rules for ElastAlert. It provides two main features:
 - **SSH access** to the server where ElastAlert is deployed.
 - **Docker** and **docker-compose** configured on the remote server.
 - A rule file in the `rules/` folder containing dynamic variables like `{{mattermost_webhook_url}}`.
+- An .env file at the root of the project containing the mattermost webhook URL to use in rules.
+
+```
+MATTERMOST_ELK_ALERT=https://mattermost.incubateur.net/hooks/xxxx
+MATTERMOST_CDN_ALERT=https://mattermost.incubateur.net/hooks/xxxx
+```
 
 ---
 

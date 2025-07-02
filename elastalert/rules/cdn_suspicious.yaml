@@ -1,0 +1,38 @@
+name: "CDN Suspicious Activity"
+type: frequency
+index: cdn-logs-*
+
+num_events: 1
+timeframe:
+  hours: 1
+
+filter:
+  - term:
+      alert_code.keyword: "CDN_SUSPICIOUS"
+
+query_key: referer.keyword
+realert:
+  hours: 24
+
+alert:
+  - slack
+
+slack_webhook_url: "{{mattermost_webhook_cdn_alert_url}}"
+slack_msg_pretext: "📛 **ALERTE PROD** : Activité suspecte détectée sur le CDN @romaric.haldenwang @jean-marie.poissonnier @nicolas.sagon It's time to shine"
+slack_msg_color: danger
+slack_username_override: "AlerteFacile"
+slack_emoji_override: ":no_entry_sign:"
+
+slack_alert_fields:
+  - title: Referer
+    value: "referer"
+    short: true
+  - title: IP distante
+    value: "remote_addr"
+    short: true
+  - title: URI
+    value: "uri"
+    short: false
+  - title: Heure
+    value: "@timestamp"
+    short: false
