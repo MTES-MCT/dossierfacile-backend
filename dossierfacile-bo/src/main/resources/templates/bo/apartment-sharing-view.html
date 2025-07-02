@@ -739,7 +739,6 @@
                                     </ul>
                                     <div th:if="${document.getDocumentAnalysisReport()!=null}"
                                          th:class="${'prevalidation-background-' + document.getDocumentAnalysisReport().getAnalysisStatus() }">
-                                        <hr/>
                                         Statut de la vérification automatique:
                                         <span th:text="${document.getDocumentAnalysisReport().getAnalysisStatus}"></span>
                                         <ul>
@@ -957,7 +956,6 @@
                                     </ul>
                                     <div th:if="${document.getDocumentAnalysisReport()!=null}"
                                          th:class="${'prevalidation-background-' + document.getDocumentAnalysisReport().getAnalysisStatus() }">
-                                        <hr/>
                                         Statut de la vérification automatique:
                                         <span th:text="${document.getDocumentAnalysisReport().getAnalysisStatus}"></span>
                                         <ul>
