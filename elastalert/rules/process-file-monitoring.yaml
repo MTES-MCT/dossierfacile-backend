@@ -22,7 +22,7 @@ realert:
 alert:
   - slack
 
-slack_webhook_url: "{{mattermost_webhook_url}}"
+slack_webhook_url: "{{mattermost_webhook_elk_alert_url}}"
 slack_msg_pretext: "📛 **ALERTE PROD** : **Aucun message sur le service Process-file** depuis 1h"
 
 slack_msg_color: danger
