@@ -46,6 +46,9 @@ public class ProcessingCapacityServiceImpl implements ProcessingCapacityService 
             processingHour = WORKING_TIME_BEGIN;
             processingDate = processingDate.plusDays(1);
             processingCapacity = processingCapacityRepository.findByDate(processingDate);
+            if (processingCapacity == null) {
+                return null;
+            }
             dailyRemaining = processingCapacity.getDailyCount();
         }
         //Find the processing time - in the day
