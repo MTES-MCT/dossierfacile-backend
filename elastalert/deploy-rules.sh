@@ -7,20 +7,29 @@ mkdir -p dist/elastalert
 
 # Fonction pour afficher l'aide
 usage() {
-  echo "Usage: $0 [build --mattermost <url>] [deploy --build --mattermost <url> --username <username> --serverIp <ip>]"
+  echo "Usage: $0 [build] [deploy --build --username <username> --serverIp <ip>]"
   exit 1
+}
+
+# Charger les variables d'environnement depuis .env
+load_env() {
+  if [ -f ".env" ]; then
+    export $(grep -v '^#' .env | xargs)
+  else
+    echo "Erreur : le fichier .env est manquant."
+    exit 1
+  fi
 }
 
 # Fonction pour la construction des règles
 build() {
-  local MATTERMOST_URL="$1"
-  if [ -z "$MATTERMOST_URL" ]; then
-    read -p "Entrez l'URL Mattermost : " MATTERMOST_URL
-  fi
 
   for file in rules/*; do
     if [ -f "$file" ]; then
-      perl -pe "s/{{mattermost_webhook_url}}/$(printf '%s' "$MATTERMOST_URL" | sed 's/[&/\]/\\&/g')/g" "$file" > "dist/elastalert/$(basename "$file")"
+      OUTPUT_FILE="dist/elastalert/$(basename "$file")"
+      cp "$file" "$OUTPUT_FILE"
+      sed -i '' "s|{{mattermost_webhook_elk_alert_url}}|$MATTERMOST_ELK_ALERT|g" "$OUTPUT_FILE"
+      sed -i '' "s|{{mattermost_webhook_cdn_alert_url}}|$MATTERMOST_CDN_ALERT|g" "$OUTPUT_FILE"
     fi
   done
 
@@ -33,15 +42,13 @@ build() {
 
 # Fonction pour le déploiement
 deploy() {
-  local MATTERMOST_URL="$1"
-  local BUILD="$2"
+  local BUILD="$1"
+
+  echo "Déploiement des règles ElastAlert... ${BUILD}"
 
   if [ "$BUILD" = true ]; then
-    if [ -z "$MATTERMOST_URL" ]; then
-      echo "Erreur : L'option --mattermost <url> est requise avec --build."
-      exit 1
-    fi
-    build "$MATTERMOST_URL"
+    echo "Construction des règles ElastAlert..."
+    build
   fi
 
   if [ -z "$SSH_USERNAME" ]; then
@@ -87,33 +94,39 @@ deploy() {
   echo "Déploiement terminé..."
 }
 
+load_env
+
 # Vérifier les arguments
 ACTION=""
-MATTERMOST_URL=""
 BUILD=false
 
 while [[ "$#" -gt 0 ]]; do
   case $1 in
-    build) ACTION="build" ;;
-    deploy) ACTION="deploy" ;;
-    --mattermost) MATTERMOST_URL="$2"; shift ;;
-    --build) BUILD=true ;;
-    --username) SSH_USERNAME="$2"; shift ;;
-    --serverIp) SERVER_IP="$2"; shift ;;
-    *) usage ;;
+  build) ACTION="build" ;;
+  deploy) ACTION="deploy" ;;
+  --build) BUILD=true ;;
+  --username)
+    SSH_USERNAME="$2"
+    shift
+    ;;
+  --serverIp)
+    SERVER_IP="$2"
+    shift
+    ;;
+  *) usage ;;
   esac
   shift
 done
 
 # Exécuter l'action appropriée
 case $ACTION in
-  build)
-    build "$MATTERMOST_URL"
-    ;;
-  deploy)
-    deploy "$MATTERMOST_URL" "$BUILD"
-    ;;
-  *)
-    usage
-    ;;
+build)
+  build
+  ;;
+deploy)
+  deploy "$BUILD"
+  ;;
+*)
+  usage
+  ;;
 esac

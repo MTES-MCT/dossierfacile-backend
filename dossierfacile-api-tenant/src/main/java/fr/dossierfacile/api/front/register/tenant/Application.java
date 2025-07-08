@@ -1,6 +1,7 @@
 package fr.dossierfacile.api.front.register.tenant;
 
 import com.google.common.annotations.VisibleForTesting;
+import fr.dossierfacile.api.front.exception.CoTenantEmailAlreadyExists;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.SaveStep;
@@ -11,6 +12,7 @@ import fr.dossierfacile.api.front.service.interfaces.*;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.PasswordRecoveryToken;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.entity.User;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.enums.TenantType;
@@ -52,6 +54,9 @@ public class Application implements SaveStep<ApplicationFormV2> {
     @Override
     @Transactional
     public TenantModel saveStep(Tenant tenant, ApplicationFormV2 applicationForm) {
+
+        checkIfEmailIsUnique(tenant, applicationForm);
+
         List<Tenant> oldCoTenant = tenant.getApartmentSharing().getTenants()
                 .stream()
                 .filter(t -> !t.getId().equals(tenant.getId()))
@@ -226,6 +231,26 @@ public class Application implements SaveStep<ApplicationFormV2> {
 
         apartmentSharing.getTenants().addAll(joinTenants);
         apartmentSharingRepository.save(apartmentSharing);
+    }
+
+    private void checkIfEmailIsUnique(Tenant tenant, ApplicationFormV2 applicationForm) {
+        var emails = applicationForm.getCoTenants().stream()
+                .map(CoTenantForm::getEmail)
+                .filter(StringUtils::isNotBlank)
+                .toList();
+
+        if (emails.isEmpty()) {
+            return;
+        }
+
+        var existingEmails = tenantRepository.findByEmailInAndApartmentSharingNot(emails, tenant.getApartmentSharing())
+                .stream()
+                .map(User::getEmail)
+                .toList();
+
+        if (!existingEmails.isEmpty()) {
+            throw new CoTenantEmailAlreadyExists();
+        }
     }
 
     private void deleteCoTenants(List<Tenant> tenantToDelete) {

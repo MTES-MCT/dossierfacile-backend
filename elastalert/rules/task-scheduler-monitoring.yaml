@@ -24,7 +24,7 @@ realert:
 alert:
   - slack
 
-slack_webhook_url: "{{mattermost_webhook_url}}"
+slack_webhook_url: "{{mattermost_webhook_elk_alert_url}}"
 slack_msg_pretext: "📛 **ALERTE PROD** : Erreur détectée sur une tâche planifiée"
 
 slack_msg_color: danger

@@ -6,6 +6,7 @@
       xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4">
 <head>
     <title>DossierFacile</title>
+    <link rel="stylesheet" href="/css/apartment-sharing-view.css"/>
 </head>
 <body>
 <div layout:fragment="content" th:remove="tag">
@@ -736,8 +737,8 @@
                                             </span>
                                         </li>
                                     </ul>
-                                    <div th:if="${document.getDocumentAnalysisReport()!=null}">
-                                        <hr/>
+                                    <div th:if="${document.getDocumentAnalysisReport()!=null}"
+                                         th:class="${'prevalidation-background-' + document.getDocumentAnalysisReport().getAnalysisStatus() }">
                                         Statut de la vérification automatique:
                                         <span th:text="${document.getDocumentAnalysisReport().getAnalysisStatus}"></span>
                                         <ul>
@@ -953,8 +954,8 @@
                                             </span>
                                         </li>
                                     </ul>
-                                    <div th:if="${document.getDocumentAnalysisReport()!=null}">
-                                        <hr/>
+                                    <div th:if="${document.getDocumentAnalysisReport()!=null}"
+                                         th:class="${'prevalidation-background-' + document.getDocumentAnalysisReport().getAnalysisStatus() }">
                                         Statut de la vérification automatique:
                                         <span th:text="${document.getDocumentAnalysisReport().getAnalysisStatus}"></span>
                                         <ul>

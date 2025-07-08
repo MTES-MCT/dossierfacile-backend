@@ -133,8 +133,14 @@ public class TenantController {
             @ApiResponse(code = 403, message = "Forbidden: Access denied"),
     })
     public ResponseEntity<LocalDateTime> expectedProcessingTime(@PathVariable("id") Long tenantId) {
-        LocalDateTime expectedProcessingTime = processingCapacityService.getExpectedProcessingTime(tenantId);
-        return ok(expectedProcessingTime);
+        try {
+            LocalDateTime expectedProcessingTime = processingCapacityService.getExpectedProcessingTime(tenantId);
+            return ok(expectedProcessingTime);
+        }
+        catch (Exception e) {
+            log.error("Error retrieving expected processing time for tenant with ID: {}", tenantId, e);
+            return status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @GetMapping(value = "/doNotArchive/{token}", produces = MediaType.APPLICATION_JSON_VALUE)
