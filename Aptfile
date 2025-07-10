@@ -1,3 +1,5 @@
 ttf-mscorefonts-installer
 tesseract-ocr
 imagemagick
+libblas-dev
+libopencv-dev
