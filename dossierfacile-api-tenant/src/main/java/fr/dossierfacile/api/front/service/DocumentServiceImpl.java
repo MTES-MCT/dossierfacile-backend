@@ -130,6 +130,7 @@ public class DocumentServiceImpl implements DocumentService {
         markDocumentAsEdited(document);
         producer.minifyFile(document.getId(), file.getId());
         producer.analyzeFile(document.getId(), file.getId());
+        producer.amqpAnalyseFile(file.getId());
     }
 
     @Override
