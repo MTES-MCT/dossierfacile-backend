@@ -31,9 +31,12 @@ public class Producer {
     //Pdf generation
     @Value("${rabbitmq.exchange.pdf.generator}")
     private String exchangePdfGenerator;
+    @Value("${rabbitmq.exchange.file.analysis}")
+    private String exchangeFileAnalysis;
     @Value("${rabbitmq.routing.key.pdf.generator.apartment-sharing}")
     private String routingKeyPdfGeneratorApartmentSharing;
-
+    @Value("${rabbitmq.routing.key.file.analysis}")
+    private String routingKeyFileAnalysis;
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Async
@@ -41,6 +44,14 @@ public class Producer {
         Message msg = new Message(gson.toJson(Collections.singletonMap("id", String.valueOf(apartmentSharingId))).getBytes());
         log.info("Sending apartmentSharing with ID [" + apartmentSharingId + "] for Full PDF generation");
         amqpTemplate.send(exchangePdfGenerator, routingKeyPdfGeneratorApartmentSharing, msg);
+    }
+
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    @Async
+    public void amqpAnalyseFile(Long fileId) {
+        Message msg = new Message(gson.toJson(Collections.singletonMap("fileId", fileId)).getBytes());
+        log.info("Sending message to analyse file with ID [{}]", fileId);
+        amqpTemplate.send(exchangeFileAnalysis, routingKeyFileAnalysis, msg);
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)

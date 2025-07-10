@@ -1,7 +1,9 @@
 package fr.dossierfacile.process.file.service;
 
+import fr.dossierfacile.common.entity.BlurryFileAnalysis;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentAnalysisReport;
+import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.messaging.QueueMessageStatus;
 import fr.dossierfacile.common.entity.messaging.QueueName;
 import fr.dossierfacile.common.exceptions.RetryableOperationException;
@@ -18,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Slf4j
@@ -73,6 +76,13 @@ public class AnalyzeDocumentService {
         List<?> messages = queueMessageRepository.findByQueueNameAndDocumentIdAndStatusIn(QueueName.QUEUE_FILE_ANALYSIS,
                 document.getId(),
                 List.of(QueueMessageStatus.PENDING, QueueMessageStatus.PROCESSING));
+        List<BlurryFileAnalysis> blurryAnalysis = document.getFiles().stream().map(File::getBlurryFileAnalysis).filter(Objects::nonNull).toList();
+        blurryAnalysis.forEach(blurryAnalysis1 -> log.info("Found blurry file analysis : {}", blurryAnalysis1));
+        if (blurryAnalysis.size() != document.getFiles().size()) {
+            log.info("Document {} is not ready to be analysed because it has {} files with blurry analysis, but {} files in total",
+                    document.getId(), blurryAnalysis.size(), document.getFiles().size());
+            return false;
+        }
         return CollectionUtils.isEmpty(messages);
     }
 
