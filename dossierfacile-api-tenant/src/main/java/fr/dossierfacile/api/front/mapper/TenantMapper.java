@@ -72,6 +72,7 @@ public abstract class TenantMapper {
     @Mapping(target = "size", source = "documentFile.storageFile.size")
     @Mapping(target = "contentType", source = "documentFile.storageFile.contentType")
     @Mapping(target = "originalName", source = "documentFile.storageFile.name")
+    @Mapping(target = "md5", source = "documentFile.storageFile.md5")
     public abstract FileModel toFileModel(File documentFile);
 
     boolean isHybrid(UserApi userApi) {

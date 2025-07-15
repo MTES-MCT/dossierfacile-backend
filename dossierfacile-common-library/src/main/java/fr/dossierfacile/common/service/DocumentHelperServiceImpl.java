@@ -32,9 +32,12 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigInteger;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -56,6 +59,7 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
                 .encryptionKey(encryptionKeyService.getCurrentKey())
                 .build();
         String originalFilename = multipartFile.getOriginalFilename();
+        storageFile.setMd5(getFileMd5Hash(multipartFile));
         if (originalFilename == null) {
             originalFilename = UUID.randomUUID().toString();
         }
@@ -194,4 +198,14 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
         return resizedImage;
     }
 
+    private String getFileMd5Hash(MultipartFile file) throws IOException {
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            byte[] digest = md.digest(file.getBytes());
+            return new BigInteger(1, digest).toString(16);
+        } catch (NoSuchAlgorithmException e) {
+            log.error("MD5 algorithm not found", e);
+            return null;
+        }
+    }
 }
