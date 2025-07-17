@@ -55,9 +55,17 @@
         <div class="container actions-section bg-secondary">
             <div class="col-md-6">
                 <form method="get" class="filter">
-                    <select name="documentSubCategory" class="form-control form-select dropdown">
+                    <select name="documentCategory" class="form-control form-select dropdown">
                         <option disabled selected>Type de document</option>
                         <option th:value="${documentUndefinedCategory}" label="Pour tous les documents"></option>
+                        <option disabled label="-------------------"></option>
+                        <option th:each="category : ${documentCategories}"
+                                th:value="${category}" th:text="${category}">
+                        </option>
+                    </select>
+                    <select name="documentSubCategory" class="form-control form-select dropdown">
+                        <option disabled selected>Sous type de document</option>
+                        <option th:value="${documentUndefinedSubCategory}" label="Pour tous les documents"></option>
                         <option disabled label="-------------------"></option>
                         <option th:each="category : ${documentSubCategories}"
                                 th:value="${category}" th:text="${category}">
@@ -78,6 +86,7 @@
                     <thead>
                     <tr>
                         <th>Type de document</th>
+                        <th>Sous type de document</th>
                         <th>Personne concernée</th>
                         <th>Message de refus</th>
                         <th></th>
@@ -86,8 +95,9 @@
                     </thead>
                     <tbody>
                     <tr th:each="option : ${documentDeniedOptions}">
-                        <td th:text="${documentSubCategoryUtils.getSpecificLabel(option.documentSubCategory)}"></td>
-                        <td th:text="${documentSubCategoryUtils.getDocumentUserTypeLabel(option.documentUserType)}"></td>
+                        <td th:text="${documentLabelUtils.getSpecificCategoryLabel(option.documentCategory)}"></td>
+                        <td th:text="${documentLabelUtils.getSpecificSubCategoryLabel(option.documentSubCategory)}"></td>
+                        <td th:text="${documentLabelUtils.getDocumentUserTypeLabel(option.documentUserType)}"></td>
                         <td th:text="${option.messageValue}"></td>
                         <td>
                             <a th:href="${'/bo/documentDeniedOptions/' + option.id}" class="action-edit">

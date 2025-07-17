@@ -1,11 +1,12 @@
 package fr.gouv.bo.controller;
 
 import fr.dossierfacile.common.entity.DocumentDeniedOptions;
+import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.gouv.bo.dto.DocumentDeniedOptionsDTO;
 import fr.gouv.bo.service.DocumentDeniedOptionsService;
 import fr.gouv.bo.utils.DateFormatUtil;
-import fr.gouv.bo.utils.DocumentSubCategoryUtils;
+import fr.gouv.bo.utils.DocumentLabelUtils;
 import lombok.AllArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -29,15 +30,19 @@ public class BODocumentDeniedOptionsController {
     private final DocumentDeniedOptionsService service;
 
     @GetMapping
-    public String documentDeniedOptions(Model model,
-                                        @RequestParam(value = "documentSubCategory", required = false) String documentSubCategory) {
-        List<DocumentDeniedOptions> documentDeniedOptions = service.findDocumentDeniedOptions(documentSubCategory);
-        documentDeniedOptions.sort(comparing(DocumentDeniedOptions::getCode));
-
+    public String documentDeniedOptions(
+            Model model,
+            @RequestParam(value = "documentSubCategory", required = false) String documentSubCategory,
+            @RequestParam(value = "documentCategory", required = false) String documentCategory
+    ) {
+        List<DocumentDeniedOptions> documentDeniedOptions = service.findDocumentDeniedOptions(documentCategory, documentSubCategory);
+        documentDeniedOptions.sort(DocumentDeniedOptions::compareDocumentDeniedOptions);
         model.addAttribute("documentDeniedOptions", documentDeniedOptions);
-        model.addAttribute("documentUndefinedCategory", DocumentSubCategory.UNDEFINED);
+        model.addAttribute("documentUndefinedSubCategory", DocumentSubCategory.UNDEFINED);
         model.addAttribute("documentSubCategories", DocumentSubCategory.alphabeticallySortedValues().stream().filter(item -> item != DocumentSubCategory.UNDEFINED));
-        model.addAttribute("documentSubCategoryUtils", new DocumentSubCategoryUtils());
+        model.addAttribute("documentUndefinedCategory", DocumentCategory.NULL);
+        model.addAttribute("documentCategories", DocumentCategory.alphabeticallySortedValues().stream().filter(item -> item != DocumentCategory.NULL));
+        model.addAttribute("documentLabelUtils", new DocumentLabelUtils());
 
         return "bo/document-denied-options";
     }
@@ -49,7 +54,7 @@ public class BODocumentDeniedOptionsController {
             return "redirect:/bo/documentDeniedOptions";
         }
         model.addAttribute("documentDeniedOption", optionToEdit.get());
-        model.addAttribute("documentSubCategoryUtils", new DocumentSubCategoryUtils());
+        model.addAttribute("documentLabelUtils", new DocumentLabelUtils());
         model.addAttribute(MONTH_N, DateFormatUtil.replaceMonthPlaceholder("{mois}"));
         for (int i = 1; i <= 6; i++) {
             model.addAttribute(MONTH_N + i, DateFormatUtil.replaceMonthPlaceholder(String.format("{moisN-%d}", i)));
@@ -60,10 +65,12 @@ public class BODocumentDeniedOptionsController {
     @GetMapping("/create")
     public String createDocumentDeniedOption(Model model) {
         model.addAttribute("documentUndefinedCategory", DocumentSubCategory.UNDEFINED);
+        model.addAttribute("documentNullCategory", DocumentCategory.NULL);
+        model.addAttribute("documentCategories", DocumentCategory.alphabeticallySortedValues().stream().filter(item -> item != DocumentCategory.NULL));
         model.addAttribute("documentSubCategories", DocumentSubCategory.alphabeticallySortedValues().stream().filter(item -> item != DocumentSubCategory.UNDEFINED));
         model.addAttribute("documentUserTypes", DOCUMENT_USER_TYPES);
         model.addAttribute("documentDeniedOption", new DocumentDeniedOptionsDTO());
-        model.addAttribute("documentSubCategoryUtils", new DocumentSubCategoryUtils());
+        model.addAttribute("documentLabelUtils", new DocumentLabelUtils());
         model.addAttribute(MONTH_N, DateFormatUtil.replaceMonthPlaceholder("{mois}"));
         for (int i = 1; i <= 6; i++) {
             model.addAttribute(MONTH_N + i, DateFormatUtil.replaceMonthPlaceholder(String.format("{moisN-%d}", i)));

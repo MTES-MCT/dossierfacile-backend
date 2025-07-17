@@ -5,6 +5,7 @@ import fr.dossierfacile.common.entity.DocumentDeniedOptions;
 import fr.dossierfacile.common.entity.DocumentDeniedReasons;
 import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
@@ -108,7 +109,7 @@ public class DocumentService {
         documentRepository.updateDocumentWithDocumentDeniedReasons(documentDeniedReasons, documentId);
     }
 
-    public List<DocumentDeniedOptions> findDocumentDeniedOptionsByDocumentSubCategoryAndDocumentUserTypeIncludeGeneric(DocumentSubCategory documentSubCategory, String documentUserType) {
-        return documentDeniedOptionsRepository.findAllByDocumentSubCategoryAndDocumentUserTypeIncludeGeneric(documentSubCategory.name(), documentUserType);
+    public List<DocumentDeniedOptions> findDocumentDeniedOptionsByDocumentSubCategoryAndDocumentUserTypeIncludeGeneric(DocumentCategory documentCategory, DocumentSubCategory documentSubCategory, String documentUserType) {
+        return documentDeniedOptionsRepository.findAllByDocumentCategoryAndDocumentSubCategoryAndDocumentUserTypeIncludeGeneric(documentCategory.name(), documentSubCategory.name(), documentUserType);
     }
 }

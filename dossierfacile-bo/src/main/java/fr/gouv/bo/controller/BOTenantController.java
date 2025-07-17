@@ -1,13 +1,7 @@
 package fr.gouv.bo.controller;
 
 import fr.dossierfacile.common.entity.*;
-import fr.dossierfacile.common.enums.DocumentStatus;
-import fr.dossierfacile.common.enums.DocumentSubCategory;
-import fr.dossierfacile.common.enums.MessageStatus;
-import fr.dossierfacile.common.enums.PartnerCallBackType;
-import fr.dossierfacile.common.enums.Role;
-import fr.dossierfacile.common.enums.TenantFileStatus;
-import fr.dossierfacile.common.enums.TenantType;
+import fr.dossierfacile.common.enums.*;
 import fr.dossierfacile.common.exceptions.NotFoundException;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
@@ -218,10 +212,10 @@ public class BOTenantController {
         return "redirect:/bo/colocation/" + tenant.getApartmentSharing().getId() + "#tenant" + tenant.getId();
     }
 
-    private List<ItemDetail> getItemDetailForSubcategoryOfDocument(DocumentSubCategory documentSubCategory, String documentUserType) {
+    private List<ItemDetail> getItemDetailForSubcategoryOfDocument(DocumentCategory documentCategory, DocumentSubCategory documentSubCategory, String documentUserType) {
 
         List<ItemDetail> itemDetails = new ArrayList<>();
-        for (DocumentDeniedOptions documentDeniedOptions : documentService.findDocumentDeniedOptionsByDocumentSubCategoryAndDocumentUserTypeIncludeGeneric(documentSubCategory, documentUserType)) {
+        for (DocumentDeniedOptions documentDeniedOptions : documentService.findDocumentDeniedOptionsByDocumentSubCategoryAndDocumentUserTypeIncludeGeneric(documentCategory, documentSubCategory, documentUserType)) {
             ItemDetail itemDetail1 = ItemDetail.builder()
                     .check(false)
                     .message(documentDeniedOptions.getMessageValue())
@@ -247,7 +241,7 @@ public class BOTenantController {
                         .documentCategory(document.getDocumentCategory())
                         .documentSubCategory(document.getDocumentSubCategory())
                         .documentCategoryStep(document.getDocumentCategoryStep())
-                        .itemDetailList(getItemDetailForSubcategoryOfDocument(document.getDocumentSubCategory(), TENANT))
+                        .itemDetailList(getItemDetailForSubcategoryOfDocument(document.getDocumentCategory(), document.getDocumentSubCategory(), TENANT))
                         .documentId(document.getId())
                         .documentName(document.getName())
                         .analyzedFiles(DisplayableFile.onlyAnalyzedFilesOf(document))
@@ -277,7 +271,7 @@ public class BOTenantController {
                             .customTex(document.getCustomText())
                             .documentCategory(document.getDocumentCategory())
                             .documentSubCategory(document.getDocumentSubCategory())
-                            .itemDetailList(getItemDetailForSubcategoryOfDocument(document.getDocumentSubCategory(), GUARANTOR))
+                            .itemDetailList(getItemDetailForSubcategoryOfDocument(document.getDocumentCategory(), document.getDocumentSubCategory(), GUARANTOR))
                             .documentId(document.getId())
                             .documentName(document.getName())
                             .analyzedFiles(DisplayableFile.onlyAnalyzedFilesOf(document))

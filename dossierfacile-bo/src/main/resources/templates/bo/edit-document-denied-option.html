@@ -50,13 +50,19 @@
                     <div>
                         <label class="form-label">Type de document</label>
                         <p class="input disabled"
-                           th:text="${documentSubCategoryUtils.getSpecificLabel(documentDeniedOption.getDocumentSubCategory())}">
+                           th:text="${documentLabelUtils.getSpecificCategoryLabel(documentDeniedOption.getDocumentCategory())}">
+                        </p>
+                    </div>
+                    <div>
+                        <label class="form-label">Sous type de document</label>
+                        <p class="input disabled"
+                           th:text="${documentLabelUtils.getSpecificSubCategoryLabel(documentDeniedOption.getDocumentSubCategory())}">
                         </p>
                     </div>
                     <div>
                         <label class="form-label">Personne concernée</label>
                         <p class="input disabled"
-                           th:text="${documentSubCategoryUtils.getDocumentUserTypeLabel(documentDeniedOption.getDocumentUserType())}">
+                           th:text="${documentLabelUtils.getDocumentUserTypeLabel(documentDeniedOption.getDocumentUserType())}">
                         </p>
                     </div>
                     <div>
