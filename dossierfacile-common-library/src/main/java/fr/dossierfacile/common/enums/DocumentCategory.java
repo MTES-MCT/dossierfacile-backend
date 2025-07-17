@@ -2,6 +2,10 @@ package fr.dossierfacile.common.enums;
 
 import lombok.Getter;
 
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+
 @Getter
 public enum DocumentCategory {
 
@@ -22,5 +26,11 @@ public enum DocumentCategory {
     DocumentCategory(String label, String text) {
         this.label = label;
         this.text = text;
+    }
+
+    public static List<DocumentCategory> alphabeticallySortedValues() {
+        List<DocumentCategory> values = Arrays.asList(values());
+        values.sort(Comparator.comparing(DocumentCategory::name));
+        return values;
     }
 }

@@ -29,14 +29,14 @@ class DocumentDeniedOptionsServiceTest {
     @ParameterizedTest
     @ValueSource(strings = {"", " "})
     void should_find_all_document_denied_options(String input) {
-        service.findDocumentDeniedOptions(input);
-        verify(repository).findAll();
+        service.findDocumentDeniedOptions(input, input);
+        verify(repository).findAllByDocumentSubCategoryAndDocumentCategory(input, input);
     }
 
     @Test
     void should_find_documents_denied_options_by_category() {
-        service.findDocumentDeniedOptions("ALTERNATION");
-        verify(repository).findAllByDocumentSubCategory(ALTERNATION);
+        service.findDocumentDeniedOptions("", "ALTERNATION");
+        verify(repository).findAllByDocumentSubCategoryAndDocumentCategory("", "ALTERNATION");
     }
 
     @Test

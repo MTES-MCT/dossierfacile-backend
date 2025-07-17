@@ -47,7 +47,17 @@
                 <form th:method="post" th:action="*{'/bo/documentDeniedOptions'}"
                       th:object="${documentDeniedOption}">
                     <div>
-                        <label for="documentSubCategory" class="form-label">Type de document</label>
+                        <label for="documentCategory" class="form-label">Type de document</label>
+                        <select name="documentCategory" id="documentCategory" class="form-control form-select dropdown">
+                            <option th:value="${documentNullCategory}" label="Pour tous les documents"></option>
+                            <option disabled label="-------------------"></option>
+                            <option th:each="category : ${documentCategories}"
+                                    th:value="${category}" th:text="${category}">
+                            </option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="documentSubCategory" class="form-label">Sous type de document</label>
                         <select name="documentSubCategory" id="documentSubCategory" class="form-control form-select dropdown">
                             <option th:value="${documentUndefinedCategory}" label="Pour tous les documents"></option>
                             <option disabled label="-------------------"></option>
@@ -62,7 +72,7 @@
                             <option value="all" label="Pour toutes les personnes"></option>
                             <option disabled label="-------------"></option>
                             <option th:each="type : ${documentUserTypes}"
-                                    th:value="${type}" th:text="${documentSubCategoryUtils.getDocumentUserTypeLabel(type)}">
+                                    th:value="${type}" th:text="${documentLabelUtils.getDocumentUserTypeLabel(type)}">
                             </option>
                         </select>
                     </div>
