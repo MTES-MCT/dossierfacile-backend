@@ -56,7 +56,7 @@ public class RegisterGuarantorNaturalPersonController {
     @PreAuthorize("hasPermissionOnTenant(#nameGuarantorNaturalPersonForm.tenantId)")
     @PostMapping("/name")
     @Transactional
-    public ResponseEntity<TenantModel> guarantorName(NameGuarantorNaturalPersonForm nameGuarantorNaturalPersonForm) {
+    public ResponseEntity<TenantModel> guarantorName(@Validated NameGuarantorNaturalPersonForm nameGuarantorNaturalPersonForm) {
         var tenant = authenticationFacade.getTenant(nameGuarantorNaturalPersonForm.getTenantId());
         var tenantModel = tenantService.saveStepRegister(tenant, nameGuarantorNaturalPersonForm, StepRegister.NAME_GUARANTOR_NATURAL_PERSON);
         logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
