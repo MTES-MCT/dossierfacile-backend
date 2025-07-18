@@ -41,15 +41,39 @@ $(document).on("change", "#documentCategory", function () {
     const selectValue = $(this).val();
     const subCategorySelectedValue = subCategorySelect.val();
 
-    if (subCategorySelectedValue === 'UNDEFINED') {
-        return;
-    }
-
-    if (!isValidSubDocumentCategory(selectValue, subCategorySelectedValue)) {
+    if (subCategorySelectedValue !== 'UNDEFINED' && !isValidSubDocumentCategory(selectValue, subCategorySelectedValue)) {
         subCategorySelect.val("UNDEFINED");
     }
 
+    updateSubDocumentCategoryOptions();
+
 })
+
+function updateSubDocumentCategoryOptions() {
+    const categorySelect = $('#documentCategory');
+    const subCategorySelect = $('#documentSubCategory');
+    const selectedCategory = categorySelect.val();
+
+    subCategorySelect.empty();
+    subCategorySelect.append(new Option("Pour tous les documents", "UNDEFINED"));
+    const emptyOption = new Option("-------------------", null, false, false);
+    emptyOption.disabled = true;
+    subCategorySelect.append(emptyOption);
+
+    const category = mapOfDocumentCategory.find(cat => cat.category === selectedCategory);
+    const availableSubCategories = [];
+    if (category) {
+        availableSubCategories.push(...category.subCategories);
+    } else {
+        for (const item of mapOfDocumentCategory) {
+            availableSubCategories.push(...item.subCategories);
+        }
+    }
+
+    for (const subCat of availableSubCategories) {
+        subCategorySelect.append(new Option(subCat, subCat));
+    }
+}
 
 $(document).on("change", "#documentSubCategory", function () {
     const subCategoryValue = $(this).val();
