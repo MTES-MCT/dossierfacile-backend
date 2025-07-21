@@ -6,7 +6,8 @@ import java.io.Serializable;
 public record BlurryResult(
         boolean isBlank,
         boolean isBlurry,
-        float laplacianVariance
+        float laplacianVariance,
+        boolean isReadable
 ) implements Serializable {
 
     @Serial

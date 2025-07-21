@@ -52,7 +52,11 @@ public class BlurryRulesValidationService implements RulesValidationService {
         if (blurryFileAnalysis.getAnalysisStatus() == BlurryFileAnalysisStatus.FAILED || blurryFileAnalysis.getBlurryResults() == null) {
             return false; // If the analysis failed, we cannot determine if the file is blurry
         } else {
-            return blurryFileAnalysis.getBlurryResults().isBlurry();
+            if (blurryFileAnalysis.getBlurryResults().isReadable()) {
+                return blurryFileAnalysis.getBlurryResults().isBlurry();
+            } else {
+                return true;
+            }
         }
     }
 }
