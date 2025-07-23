@@ -4,21 +4,11 @@ import fr.dossierfacile.api.front.amqp.Producer;
 import fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException;
 import fr.dossierfacile.api.front.exception.ApartmentSharingUnexpectedException;
 import fr.dossierfacile.api.front.model.MappingFormat;
+import fr.dossierfacile.api.front.model.tenant.FullFolderFile;
 import fr.dossierfacile.api.front.repository.ApiTenantLogRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
-import fr.dossierfacile.common.entity.ApartmentSharing;
-import fr.dossierfacile.common.entity.ApartmentSharingLink;
-import fr.dossierfacile.common.entity.Document;
-import fr.dossierfacile.common.entity.LinkLog;
-import fr.dossierfacile.common.entity.TenantLog;
-import fr.dossierfacile.common.entity.StorageFile;
-import fr.dossierfacile.common.entity.Tenant;
-import fr.dossierfacile.common.entity.UserApi;
-import fr.dossierfacile.common.enums.FileStatus;
-import fr.dossierfacile.common.enums.LinkType;
-import fr.dossierfacile.common.enums.LogType;
-import fr.dossierfacile.common.enums.TenantFileStatus;
-import fr.dossierfacile.common.enums.TypeGuarantor;
+import fr.dossierfacile.common.entity.*;
+import fr.dossierfacile.common.enums.*;
 import fr.dossierfacile.common.mapper.ApartmentSharingMapper;
 import fr.dossierfacile.common.mapper.ApplicationBasicMapper;
 import fr.dossierfacile.common.mapper.ApplicationFullMapper;
@@ -37,13 +27,8 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
-import java.io.ByteArrayOutputStream;
+import java.io.*;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.UnknownServiceException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -51,7 +36,6 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -118,7 +102,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
     }
 
     @Override
-    public ByteArrayOutputStream downloadFullPdf(String token) throws IOException {
+    public FullFolderFile downloadFullPdf(String token) throws IOException {
         ApartmentSharing apartmentSharing = apartmentSharingRepository.findByToken(token)
                 .orElseThrow(() -> new ApartmentSharingNotFoundException(token));
 
@@ -138,7 +122,11 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
                     log.error("Unable to download Dossier pdf [" + apartmentSharing.getId() + "].");
                     throw new UnknownServiceException("Unable to get Full PDF from Storage");
                 }
-                return outputStreamResult;
+
+                return FullFolderFile.builder()
+                        .fileOutputStream(outputStreamResult)
+                        .fileName(getFullFolderName(apartmentSharing, "pdf"))
+                        .build();
             }
             case IN_PROGRESS -> {
                 throw new IllegalStateException("Full PDF doesn't exist - FileStatus " + apartmentSharing.getDossierPdfDocumentStatus());
@@ -212,10 +200,11 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
     }
 
     @Override
-    public ByteArrayOutputStream zipDocuments(Tenant tenant) {
+    public FullFolderFile zipDocuments(Tenant tenant) {
         logService.saveLog(LogType.ZIP_DOWNLOAD, tenant.getId());
         final Path tmpDir = Paths.get("tmp");
-        String zipFileName = tmpDir + File.separator + "dossier_location_" + ThreadLocalRandom.current().nextInt() + ".zip";
+        var fileName = getFullFolderName(tenant.getApartmentSharing(), "zip");
+        String zipFileName = tmpDir + File.separator + fileName;
         try {
             Files.createDirectories(tmpDir);
             final ZipOutputStream outputStream = new ZipOutputStream(new FileOutputStream(zipFileName));
@@ -231,7 +220,10 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
             try (InputStream fileIS = new FileInputStream(f)) {
                 log.info("Dossier zip downloaded for tenant with ID [" + tenant.getId() + "]");
                 IOUtils.copy(fileIS, outputStreamResult);
-                return outputStreamResult;
+                return FullFolderFile.builder()
+                        .fileOutputStream(outputStreamResult)
+                        .fileName(fileName)
+                        .build();
             }
         } catch (IOException e) {
             log.error("Error while zipping", e);
@@ -248,15 +240,14 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
         String tenantFolder = tenant.getFullName().replace(" ", "_");
         tenant.getDocuments().forEach(document -> addDocumentToZip(outputStream, document, tenantFolder));
         tenant.getGuarantors().forEach(guarantor -> guarantor.getDocuments().forEach(document -> {
-                    String guarantorFolderName = "";
-                    if (TypeGuarantor.NATURAL_PERSON.equals( guarantor.getTypeGuarantor())) {
-                        guarantorFolderName = File.separator + guarantor.getCompleteName().replace(" ", "_");
-                    } else {
-                        guarantorFolderName = File.separator + "garant";
-                    }
-                    addDocumentToZip(outputStream, document, tenantFolder + guarantorFolderName);
-        }
-        ));
+            String guarantorFolderName = "";
+            if (TypeGuarantor.NATURAL_PERSON.equals(guarantor.getTypeGuarantor())) {
+                guarantorFolderName = File.separator + guarantor.getCompleteName().replace(" ", "_");
+            } else {
+                guarantorFolderName = File.separator + "garant";
+            }
+            addDocumentToZip(outputStream, document, tenantFolder + guarantorFolderName);
+        }));
     }
 
     private void addDocumentToZip(ZipOutputStream outputStream, Document document, String folder) {
@@ -265,9 +256,9 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
             log.error("Error watermark is null : " + document.getId());
             return;
         }
-        String filename = folder + File.separator + document.getDocumentCategory().getText() + "_" + document.getId() + ".pdf";
+        String fileName = folder + File.separator + String.format(getZipFileStringFormat(document), document.getId());
         try (InputStream inputStream = fileStorageService.download(watermarkFile)) {
-            addToZipFile(outputStream, filename, inputStream);
+            addToZipFile(outputStream, fileName, inputStream);
         } catch (IOException e) {
             log.error("Error while zipping document : " + document.getId(), e);
         }
@@ -297,5 +288,61 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
         if (numberOfTenants > 0) {
             throw new ApartmentSharingUnexpectedException(token);
         }
+    }
+
+    private String getFullFolderName(ApartmentSharing apartmentSharing, String extension) {
+        var fileName = String.format("DossierFacile.%s", extension);
+        var ownerTenant = apartmentSharing.getOwnerTenant();
+        if (ownerTenant.isEmpty()) {
+            return fileName;
+        }
+
+        if (apartmentSharing.getApplicationType() == ApplicationType.ALONE) {
+            return String.format("DossierFacile_%s.%s", ownerTenant.get().getNormalizedName(), extension);
+        }
+        if (apartmentSharing.getApplicationType() == ApplicationType.COUPLE) {
+            return String.format("DossierFacile_%s_%s.%s", ownerTenant.get().getNormalizedName(), "couple", extension);
+        }
+        if (apartmentSharing.getApplicationType() == ApplicationType.GROUP) {
+            return String.format("DossierFacile_%s_%s.%s", ownerTenant.get().getNormalizedName(), "collocation", extension);
+        }
+
+        return fileName;
+    }
+
+    private String getZipFileStringFormat(Document document) {
+        return switch (document.getDocumentSubCategory()) {
+            case FRENCH_IDENTITY_CARD, FRENCH_PASSPORT, FRENCH_RESIDENCE_PERMIT, DRIVERS_LICENSE, FRANCE_IDENTITE,
+                 OTHER_IDENTIFICATION -> "Identité_%s.pdf";
+            case TENANT, OWNER, GUEST_PARENTS, GUEST, GUEST_COMPANY, GUEST_ORGANISM, SHORT_TERM_RENTAL,
+                 OTHER_RESIDENCY -> "Hébergement_%s.pdf";
+            case CDI -> "Activité_cdi_%s.pdf";
+            case CDD -> "Activité_cdd_%s.pdf";
+            case ALTERNATION -> "Activité_alternance_%s.pdf";
+            case INTERNSHIP -> "Activité_stage_%s.pdf";
+            case STUDENT -> "Activité_études_%s.pdf";
+            case PUBLIC -> "Activité_public_%s.pdf";
+            case CTT -> "Activité_ctt_%s.pdf";
+            case RETIRED -> "Activité_retraite_%s.pdf";
+            case UNEMPLOYED -> "Activité_chomage_%s.pdf";
+            case INDEPENDENT -> "Activité_indépendant_%s.pdf";
+            case INTERMITTENT -> "Activité_intermittent_%s.pdf";
+            case STAY_AT_HOME_PARENT -> "Activité_au_foyer_%s.pdf";
+            case NO_ACTIVITY -> "Activité_sans_emploi_%s.pdf";
+            case ARTIST -> "Activité_artiste_auteur_%s.pdf";
+            case OTHER -> "Activité_autre_%s.pdf";
+            case SALARY -> "Ressources_revenus_%s.pdf";
+            case SCHOLARSHIP -> "Ressources_bourse_%s.pdf";
+            case SOCIAL_SERVICE -> "Ressources_aides_sociales_%s.pdf";
+            case RENT -> "Ressources_rentes_%s.pdf";
+            case PENSION -> "Ressources_pensions_%s.pdf";
+            case NO_INCOME -> "Ressources_sans_revenus_%s.pdf";
+            case MY_NAME, MY_PARENTS, LESS_THAN_YEAR, OTHER_TAX -> "Imposition_%s.pdf";
+            case CERTIFICATE_VISA -> "garant_visa_%s.pdf";
+            case VISALE -> "garant_visale_%s.pdf";
+            case OTHER_GUARANTEE -> "garant_autre_%s.pdf";
+            case LEGAL_PERSON -> "garant_personne_morale_%s.pdf";
+            default -> document.getDocumentCategory().getText() + "_%s.pdf";
+        };
     }
 }
