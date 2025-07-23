@@ -43,7 +43,8 @@ public interface DocumentDeniedOptionsRepository extends JpaRepository<DocumentD
                     when document_category = 'NULL' and document_sub_category = 'UNDEFINED' and document_user_type = :documentUserType then 5
                     when document_category = 'NULL' and document_sub_category = 'UNDEFINED' and document_user_type = 'all' then 6
                     else 7
-            end;
+            end,
+            code;
             """, nativeQuery = true)
     List<DocumentDeniedOptions> findAllByDocumentCategoryAndDocumentSubCategoryAndDocumentUserTypeIncludeGeneric(String documentCategory, String documentSubCategory, String documentUserType);
 
