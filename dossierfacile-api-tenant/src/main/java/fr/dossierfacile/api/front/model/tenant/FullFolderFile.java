@@ -11,7 +11,7 @@ import java.io.ByteArrayOutputStream;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class FullPdfFile {
+public class FullFolderFile {
     private ByteArrayOutputStream fileOutputStream;
     private String fileName;
 }
