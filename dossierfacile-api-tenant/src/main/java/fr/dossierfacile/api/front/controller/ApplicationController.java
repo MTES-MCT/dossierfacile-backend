@@ -3,6 +3,7 @@ package fr.dossierfacile.api.front.controller;
 import fr.dossierfacile.api.front.aop.annotation.MethodLogTime;
 import fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException;
 import fr.dossierfacile.api.front.exception.ApartmentSharingUnexpectedException;
+import fr.dossierfacile.api.front.model.tenant.FullPdfFile;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.common.entity.Tenant;
@@ -50,11 +51,12 @@ public class ApplicationController {
     @GetMapping(value = "/fullPdf/{token}", produces = MediaType.APPLICATION_PDF_VALUE)
     public void downloadFullPdf(@PathVariable("token") String token, HttpServletResponse response) {
         try {
-            ByteArrayOutputStream byteArrayOutputStream = apartmentSharingService.downloadFullPdf(token);
-            if (byteArrayOutputStream.size() > 0) {
-                response.setHeader("Content-Disposition", "attachment; filename=" + UUID.randomUUID() + ".pdf");
+            FullPdfFile pdfFile = apartmentSharingService.downloadFullPdf(token);
+            if (pdfFile.getFileOutputStream().size() > 0) {
+                response.setHeader("Access-Control-Expose-Headers", "Content-Disposition, Content-Type");
+                response.setHeader("Content-Disposition", String.format("attachment; filename=\"%s\"", pdfFile.getFileName()));
                 response.setHeader("Content-Type", MediaType.APPLICATION_PDF_VALUE);
-                response.getOutputStream().write(byteArrayOutputStream.toByteArray());
+                response.getOutputStream().write(pdfFile.getFileOutputStream().toByteArray());
             } else {
                 log.error(DOCUMENT_NOT_EXIST);
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);

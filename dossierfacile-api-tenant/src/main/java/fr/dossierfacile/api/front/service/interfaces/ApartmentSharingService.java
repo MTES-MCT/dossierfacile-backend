@@ -1,6 +1,7 @@
 package fr.dossierfacile.api.front.service.interfaces;
 
 import fr.dossierfacile.api.front.model.MappingFormat;
+import fr.dossierfacile.api.front.model.tenant.FullPdfFile;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
@@ -18,7 +19,7 @@ public interface ApartmentSharingService {
 
     ApplicationModel light(String token);
 
-    ByteArrayOutputStream downloadFullPdf(String token) throws IOException;
+    FullPdfFile downloadFullPdf(String token) throws IOException;
 
     void resetDossierPdfGenerated(ApartmentSharing apartmentSharing);
 

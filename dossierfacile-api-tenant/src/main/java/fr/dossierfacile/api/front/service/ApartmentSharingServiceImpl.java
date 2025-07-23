@@ -4,6 +4,7 @@ import fr.dossierfacile.api.front.amqp.Producer;
 import fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException;
 import fr.dossierfacile.api.front.exception.ApartmentSharingUnexpectedException;
 import fr.dossierfacile.api.front.model.MappingFormat;
+import fr.dossierfacile.api.front.model.tenant.FullPdfFile;
 import fr.dossierfacile.api.front.repository.ApiTenantLogRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.common.entity.ApartmentSharing;
@@ -14,11 +15,7 @@ import fr.dossierfacile.common.entity.TenantLog;
 import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
-import fr.dossierfacile.common.enums.FileStatus;
-import fr.dossierfacile.common.enums.LinkType;
-import fr.dossierfacile.common.enums.LogType;
-import fr.dossierfacile.common.enums.TenantFileStatus;
-import fr.dossierfacile.common.enums.TypeGuarantor;
+import fr.dossierfacile.common.enums.*;
 import fr.dossierfacile.common.mapper.ApartmentSharingMapper;
 import fr.dossierfacile.common.mapper.ApplicationBasicMapper;
 import fr.dossierfacile.common.mapper.ApplicationFullMapper;
@@ -118,7 +115,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
     }
 
     @Override
-    public ByteArrayOutputStream downloadFullPdf(String token) throws IOException {
+    public FullPdfFile downloadFullPdf(String token) throws IOException {
         ApartmentSharing apartmentSharing = apartmentSharingRepository.findByToken(token)
                 .orElseThrow(() -> new ApartmentSharingNotFoundException(token));
 
@@ -138,7 +135,11 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
                     log.error("Unable to download Dossier pdf [" + apartmentSharing.getId() + "].");
                     throw new UnknownServiceException("Unable to get Full PDF from Storage");
                 }
-                return outputStreamResult;
+
+                return FullPdfFile.builder()
+                        .fileOutputStream(outputStreamResult)
+                        .fileName(getFullPdfFileName(apartmentSharing))
+                        .build();
             }
             case IN_PROGRESS -> {
                 throw new IllegalStateException("Full PDF doesn't exist - FileStatus " + apartmentSharing.getDossierPdfDocumentStatus());
@@ -297,5 +298,26 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
         if (numberOfTenants > 0) {
             throw new ApartmentSharingUnexpectedException(token);
         }
+    }
+
+    private String getFullPdfFileName(ApartmentSharing apartmentSharing) {
+        var fileName = "DossierFacile.pdf";
+        //var fileName = "DossierFacile_Nicolas_Sagon_couple.pdf";
+        var ownerTenant = apartmentSharing.getOwnerTenant();
+        if (ownerTenant.isEmpty()) {
+            return fileName;
+        }
+
+        if (apartmentSharing.getApplicationType() == ApplicationType.ALONE) {
+            return String.format("DossierFacile_%s.pdf", ownerTenant.get().getNormalizedName());
+        }
+        if (apartmentSharing.getApplicationType() == ApplicationType.COUPLE) {
+            return String.format("DossierFacile_%s_%s.pdf", ownerTenant.get().getNormalizedName(), "couple");
+        }
+        if (apartmentSharing.getApplicationType() == ApplicationType.GROUP) {
+            return String.format("DossierFacile_%s_%s.pdf", ownerTenant.get().getNormalizedName(), "collocation");
+        }
+
+        return fileName;
     }
 }
