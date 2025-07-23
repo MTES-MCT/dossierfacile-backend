@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+    <changeSet id="202507170001" author="SAGON NICOLAS">
+        <!-- Ajout des colonnes dans la table tenant -->
+        <addColumn tableName="document_denied_options">
+            <column name="document_category" type="varchar(50)" defaultValue="NULL"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="202507170002" author="SAGON NICOLAS">
+        <sql>
+            UPDATE document_denied_options SET document_category = 'IDENTIFICATION' WHERE document_sub_category IN ('FRENCH_IDENTITY_CARD', 'FRENCH_PASSPORT', 'FRENCH_RESIDENCE_PERMIT', 'DRIVERS_LICENSE', 'FRANCE_IDENTITE', 'OTHER_IDENTIFICATION');
+            UPDATE document_denied_options SET document_category = 'RESIDENCY' WHERE document_sub_category IN ('TENANT', 'OWNER', 'GUEST_PARENTS', 'GUEST', 'GUEST_COMPANY', 'GUEST_ORGANISM', 'SHORT_TERM_RENTAL', 'OTHER_RESIDENCY');
+            UPDATE document_denied_options SET document_category = 'PROFESSIONAL' WHERE document_sub_category IN ('CDI','CDI_TRIAL','CDD','ALTERNATION','INTERNSHIP','STUDENT','PUBLIC','CTT','RETIRED','UNEMPLOYED','INDEPENDENT','INTERMITTENT','STAY_AT_HOME_PARENT','NO_ACTIVITY','ARTIST','OTHER');
+            UPDATE document_denied_options SET document_category = 'FINANCIAL' WHERE document_sub_category IN ('SALARY','SCHOLARSHIP','SOCIAL_SERVICE','RENT','PENSION','NO_INCOME');
+            UPDATE document_denied_options SET document_category = 'TAX' WHERE document_sub_category IN ('MY_NAME','MY_PARENTS','LESS_THAN_YEAR','OTHER_TAX');
+            UPDATE document_denied_options SET document_category = 'IDENTIFICATION_LEGAL_PERSON' WHERE document_sub_category IN ('LEGAL_PERSON');
+            UPDATE document_denied_options SET document_category = 'GUARANTEE_PROVIDER_CERTIFICATE' WHERE document_sub_category IN ('OTHER_GUARANTEE', 'VISALE');
+            UPDATE document_denied_options SET document_category = 'NULL' WHERE document_sub_category IN ('UNDEFINED');
+        </sql>
+    </changeSet>
+
+    <changeSet id="202507170003" author="SAGON NICOLAS">
+        <delete tableName="document_denied_options">
+            <where>document_sub_category = 'OTHER_PROFESSION_GUARANTOR'</where>
+        </delete>
+    </changeSet>
+</databaseChangeLog>
+

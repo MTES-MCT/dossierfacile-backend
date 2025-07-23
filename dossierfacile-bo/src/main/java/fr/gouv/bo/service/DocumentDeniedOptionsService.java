@@ -1,14 +1,17 @@
 package fr.gouv.bo.service;
 
 import fr.dossierfacile.common.entity.DocumentDeniedOptions;
+import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.gouv.bo.dto.DocumentDeniedOptionsDTO;
 import fr.gouv.bo.repository.DocumentDeniedOptionsRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
@@ -22,11 +25,8 @@ public class DocumentDeniedOptionsService {
         return repository.findById(id);
     }
 
-    public List<DocumentDeniedOptions> findDocumentDeniedOptions(String documentSubCategory) {
-        if (isNotBlank(documentSubCategory)) {
-            return repository.findAllByDocumentSubCategory(DocumentSubCategory.valueOf(documentSubCategory));
-        }
-        return repository.findAll();
+    public List<DocumentDeniedOptions> findDocumentDeniedOptions(String documentCategory, String documentSubCategory) {
+        return repository.findAllByDocumentSubCategoryAndDocumentCategory(documentCategory, documentSubCategory);
     }
 
     public void updateMessage(int id, String message) {
@@ -37,13 +37,15 @@ public class DocumentDeniedOptionsService {
     }
 
     public void createDocumentDeniedOption(DocumentDeniedOptionsDTO createdOption) {
-        DocumentSubCategory category = createdOption.getDocumentSubCategory();
+        DocumentSubCategory subCategory = createdOption.getDocumentSubCategory();
+        DocumentCategory category = createdOption.getDocumentCategory();
         String userType = createdOption.getDocumentUserType();
         DocumentDeniedOptions documentDeniedOptions = DocumentDeniedOptions.builder()
-                .documentSubCategory(category)
+                .documentCategory(category)
+                .documentSubCategory(subCategory)
                 .documentUserType(userType)
                 .messageValue(createdOption.getMessageValue())
-                .code(buildNewCode(category, userType))
+                .code(buildNewCode(subCategory, userType))
                 .build();
         repository.save(documentDeniedOptions);
     }

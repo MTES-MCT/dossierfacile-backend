@@ -64,7 +64,6 @@ public enum DocumentSubCategory {
     VISALE("document_sub_category.VISALE"),
     OTHER_GUARANTEE("document_sub_category.OTHER_GUARANTEE"),
     LEGAL_PERSON("document_sub_category.LEGAL_PERSON"),
-    OTHER_PROFESSION_GUARANTOR("document_sub_category.OTHER_PROFESSION_GUARANTOR"),
 
     UNDEFINED("document_sub_category.UNDEFINED");
 
