@@ -56,7 +56,7 @@ public class BackupFilesTask extends AbstractTask {
             for (ObjectStorageProvider objectStorageProvider : dynamicProviderConfig.getProviders()) {
                 if (isNotPresentOnProvider(storageFile, objectStorageProvider)) {
                     try (InputStream is = fileStorageService.download(storageFile)) {
-                        fileStorageService.uploadToProvider(is, storageFile, objectStorageProvider);
+                        fileStorageService.uploadToProvider(is, storageFile, objectStorageProvider, null);
                     } catch (Exception e) {
                         log.error("Failed copy for {} to {}", storageFile.getId(), objectStorageProvider);
                     }
