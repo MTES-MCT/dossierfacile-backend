@@ -4,6 +4,7 @@ import fr.dossierfacile.common.config.ImageMagickConfig;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.StorageFile;
+import fr.dossierfacile.common.model.S3Bucket;
 import fr.dossierfacile.common.repository.SharedFileRepository;
 import fr.dossierfacile.common.service.interfaces.DocumentHelperService;
 import fr.dossierfacile.common.service.interfaces.EncryptionKeyService;
@@ -56,13 +57,14 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
     public File addFile(MultipartFile multipartFile, Document document) throws IOException {
         StorageFile storageFile = StorageFile.builder()
                 .size(multipartFile.getSize())
-                .encryptionKey(encryptionKeyService.getCurrentKey())
+                .encryptionKey(null)
+                .bucket(S3Bucket.RAW_FILE)
                 .build();
         String originalFilename = multipartFile.getOriginalFilename();
-        storageFile.setMd5(getFileMd5Hash(multipartFile));
         if (originalFilename == null) {
             originalFilename = UUID.randomUUID().toString();
         }
+        storageFile.setPath(document.getTenant().getId() + "/" + document.getDocumentCategory().getText() + "/" + UUID.randomUUID());
         if ("image/heif".equals(multipartFile.getContentType())) {
             storageFile.setName(originalFilename.replaceAll("(?i)\\.heic$", "") + ".jpg");
             storageFile.setContentType("image/jpeg");
@@ -78,7 +80,6 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
             storageFile.setContentType(multipartFile.getContentType());
             storageFile = fileStorageService.upload(multipartFile.getInputStream(), storageFile);
         }
-
 
         File file = File.builder()
                 .storageFile(storageFile)
