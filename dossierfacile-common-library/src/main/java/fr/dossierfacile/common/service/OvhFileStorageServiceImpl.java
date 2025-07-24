@@ -5,10 +5,12 @@ import fr.dossierfacile.common.entity.ObjectStorageProvider;
 import fr.dossierfacile.common.exceptions.OvhConnectionFailedException;
 import fr.dossierfacile.common.exceptions.RetryableOperationException;
 import fr.dossierfacile.common.exceptions.UnsupportedKeyException;
+import fr.dossierfacile.common.model.S3Bucket;
 import fr.dossierfacile.common.service.interfaces.FileStorageProviderService;
 import jakarta.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.api.exceptions.AuthenticationException;
@@ -35,6 +37,7 @@ import java.util.List;
 @Service("ovhFileStorageProvider")
 @Slf4j
 @Profile("!mockOvh")
+@Deprecated
 public class OvhFileStorageServiceImpl implements FileStorageProviderService {
     @Value("${ovh.project.domain:default}")
     private String ovhProjectDomain;
@@ -187,6 +190,16 @@ public class OvhFileStorageServiceImpl implements FileStorageProviderService {
                 .stream()
                 .map(SwiftObject::getName)
                 .toList();
+    }
+
+    @Override
+    public void uploadV2(S3Bucket s3Bucket, String fileKey, InputStream inputStream, String contentType) throws RetryableOperationException, IOException {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public InputStream downloadV2(S3Bucket bucket, String path) throws IOException {
+        throw new NotImplementedException();
     }
 
 }
