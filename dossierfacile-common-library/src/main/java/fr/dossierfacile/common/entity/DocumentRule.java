@@ -39,7 +39,9 @@ public enum DocumentRule {
     R_BLURRY_FILE(Level.INFO, "Votre document semble flou");
 
     public enum Level {
-        CRITICAL, WARN, INFO
+        INFO,
+        WARN,
+        CRITICAL
     }
 
     private final Level level;

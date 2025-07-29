@@ -4,5 +4,11 @@
       "name": "ovh.auth.url",
       "type": "java.lang.String",
       "description": "Description for ovh.auth.url."
-  }
-] }
+    },
+    {
+      "name": "api.broken.rules.min.level",
+      "type": "fr.dossierfacile.common.entity.DocumentRule.Level",
+      "description": "Minimum level of document rules to be considered broken. Default is WARN."
+    }
+  ]
+}

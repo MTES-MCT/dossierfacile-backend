@@ -64,24 +64,15 @@ public class ScholarshipRulesValidationService implements RulesValidationService
 
             if (!checkNamesRule(scholarshipFile, document)) {
                 log.error("Document names mismatches :" + document.getId());
-                report.getBrokenRules().add(DocumentBrokenRule.builder()
-                        .rule(DocumentRule.R_SCHOLARSHIP_NAME)
-                        .message(DocumentRule.R_SCHOLARSHIP_NAME.getDefaultMessage())
-                        .build());
+                report.addDocumentBrokenRule(DocumentBrokenRule.of(DocumentRule.R_SCHOLARSHIP_NAME));
                 report.setAnalysisStatus(DocumentAnalysisStatus.DENIED);
             } else if (!checkYearValidityRule(scholarshipFile, document)) {
                 log.error("Document is expired :" + document.getId());
-                report.getBrokenRules().add(DocumentBrokenRule.builder()
-                        .rule(DocumentRule.R_SCHOLARSHIP_EXPIRED)
-                        .message(DocumentRule.R_SCHOLARSHIP_EXPIRED.getDefaultMessage())
-                        .build());
+                report.addDocumentBrokenRule(DocumentBrokenRule.of(DocumentRule.R_SCHOLARSHIP_EXPIRED));
                 report.setAnalysisStatus(DocumentAnalysisStatus.DENIED);
             } else if (!checkAmountValidityRule(scholarshipFile, document)) {
                 log.error("Amount specified on document mismatch :" + document.getId());
-                report.getBrokenRules().add(DocumentBrokenRule.builder()
-                        .rule(DocumentRule.R_SCHOLARSHIP_AMOUNT)
-                        .message(DocumentRule.R_SCHOLARSHIP_AMOUNT.getDefaultMessage())
-                        .build());
+                report.addDocumentBrokenRule(DocumentBrokenRule.of(DocumentRule.R_SCHOLARSHIP_AMOUNT));
                 report.setAnalysisStatus(DocumentAnalysisStatus.DENIED);
             } else {
                 report.setAnalysisStatus(DocumentAnalysisStatus.CHECKED);
