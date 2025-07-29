@@ -2,10 +2,7 @@ package fr.dossierfacile.api.front.mapper;
 
 import fr.dossierfacile.api.front.model.dfc.tenant.ConnectedTenantModel;
 import fr.dossierfacile.api.front.model.tenant.*;
-import fr.dossierfacile.common.entity.Document;
-import fr.dossierfacile.common.entity.File;
-import fr.dossierfacile.common.entity.Tenant;
-import fr.dossierfacile.common.entity.UserApi;
+import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.mapper.CategoriesMapper;
@@ -32,6 +29,9 @@ public abstract class TenantMapper {
 
     @Value("${application.base.url}")
     protected String applicationBaseUrl;
+
+    @Value("${api.broken.rules.min.level:INFO}")
+    protected DocumentRule.Level minBrokenRulesLevel;
 
     @Value("${tenant.base.url}")
     protected String tenantBaseUrl;
@@ -92,6 +92,10 @@ public abstract class TenantMapper {
         }
         var isDossierUser = SecurityContextHolder.getContext().getAuthentication().getAuthorities().contains(new SimpleGrantedAuthority("SCOPE_dossier"));
         var filePath = isDossierUser ? "/api/file/resource/" : "/api-partner/tenant/" + tenantModel.getId() + "/file/resource/";
+
+        // We hide the analysis report broken rules of info level
+        hideDocumentAnalysisReportInfoLevel(tenantModel.getDocuments());
+
         setDocumentDeniedReasonsAndDocumentAndFilesRoutes(tenantModel.getDocuments(), filePath, false, userApi);
 
         tenantModel.getApartmentSharing().getTenants().stream().filter(t -> Objects.equals(t.getId(), tenantModel.getId())).forEach(
@@ -110,6 +114,8 @@ public abstract class TenantMapper {
                             tenantModel.getApartmentSharing().getApplicationType() != ApplicationType.COUPLE,
                             userApi
                     );
+                    // We hide the analysis report broken rules of info level
+                    hideDocumentAnalysisReportInfoLevel(coTenantModel.getDocuments());
                     Optional.ofNullable(coTenantModel.getGuarantors())
                             .ifPresent(guarantorModels -> guarantorModels.forEach(guarantorModel -> setDocumentDeniedReasonsAndDocumentAndFilesRoutes(guarantorModel.getDocuments(), filePath, true, userApi)));
                 }));
@@ -170,6 +176,23 @@ public abstract class TenantMapper {
         connectedTenantModel.getApartmentSharing().getTenants().forEach(tenantModel ->
                 Optional.ofNullable(tenantModel.getGuarantors()).ifPresent(guarantorModels ->
                         guarantorModels.forEach(guarantorModel -> setDocumentDeniedReasonsAndDocumentAndFilesRoutes(guarantorModel.getDocuments(), null, true, userApi))));
+    }
+
+    private void hideDocumentAnalysisReportInfoLevel(List<DocumentModel> documents) {
+        if (documents != null) {
+            documents.forEach(it -> removeInfoAnalysisReportBrokenRules(it.getDocumentAnalysisReport()));
+        }
+    }
+
+    private void removeInfoAnalysisReportBrokenRules(DocumentAnalysisReport documentAnalysisReport) {
+
+        if (documentAnalysisReport != null) {
+            documentAnalysisReport.setBrokenRules(
+                    documentAnalysisReport.getBrokenRules().stream().filter(it -> it.getLevel().ordinal() >= minBrokenRulesLevel.ordinal())
+                            .toList()
+            );
+        }
+
     }
 
 }

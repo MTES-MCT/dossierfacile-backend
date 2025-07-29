@@ -105,31 +105,19 @@ public abstract class AbstractPayslipRulesValidationService implements RulesVali
 
             if (!checkQRCode(document)) {
                 log.error("Document mismatch to QR CODE :" + document.getId());
-                report.getBrokenRules().add(DocumentBrokenRule.builder()
-                        .rule(DocumentRule.R_PAYSLIP_QRCHECK)
-                        .message(DocumentRule.R_PAYSLIP_QRCHECK.getDefaultMessage())
-                        .build());
+                report.addDocumentBrokenRule(DocumentBrokenRule.of(DocumentRule.R_PAYSLIP_QRCHECK));
                 report.setAnalysisStatus(DocumentAnalysisStatus.DENIED);
             } else if (!checkNamesRule(document)) {
                 log.error("Document names mismatches :" + document.getId());
-                report.getBrokenRules().add(DocumentBrokenRule.builder()
-                        .rule(DocumentRule.R_PAYSLIP_NAME)
-                        .message(DocumentRule.R_PAYSLIP_NAME.getDefaultMessage())
-                        .build());
+                report.addDocumentBrokenRule(DocumentBrokenRule.of(DocumentRule.R_PAYSLIP_NAME));
                 report.setAnalysisStatus(DocumentAnalysisStatus.DENIED);
             } else if (!checkMonthsValidityRule(document)) {
                 log.error("Document is expired :" + document.getId());
-                report.getBrokenRules().add(DocumentBrokenRule.builder()
-                        .rule(DocumentRule.R_PAYSLIP_MONTHS)
-                        .message(DocumentRule.R_PAYSLIP_MONTHS.getDefaultMessage())
-                        .build());
+                report.addDocumentBrokenRule(DocumentBrokenRule.of(DocumentRule.R_PAYSLIP_MONTHS));
                 report.setAnalysisStatus(DocumentAnalysisStatus.DENIED);
             } else if (!checkAmountValidityRule(document)) {
                 log.error("Amount specified on document mismatch :" + document.getId());
-                report.getBrokenRules().add(DocumentBrokenRule.builder()
-                        .rule(DocumentRule.R_PAYSLIP_AMOUNT_MISMATCHES)
-                        .message(DocumentRule.R_PAYSLIP_AMOUNT_MISMATCHES.getDefaultMessage())
-                        .build());
+                report.addDocumentBrokenRule(DocumentBrokenRule.of(DocumentRule.R_PAYSLIP_AMOUNT_MISMATCHES));
                 report.setAnalysisStatus(DocumentAnalysisStatus.DENIED);
             } else {
                 report.setAnalysisStatus(DocumentAnalysisStatus.CHECKED);

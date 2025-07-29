@@ -1,10 +1,8 @@
 package fr.dossierfacile.common.entity;
 
-import fr.dossierfacile.common.converter.ListToJsonConverter;
-import jakarta.persistence.*;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
+import fr.dossierfacile.common.converter.ListOfBrokenRulesJsonConverter;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -32,9 +30,17 @@ public class DocumentAnalysisReport {
     private DocumentAnalysisStatus analysisStatus;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Convert(converter = ListToJsonConverter.class)
+    @Convert(converter = ListOfBrokenRulesJsonConverter.class)
     @Column(columnDefinition = "jsonb")
     private List<DocumentBrokenRule> brokenRules;
     private String comment;
+
+    public void addDocumentBrokenRule(DocumentBrokenRule documentBrokenRule) {
+        if (brokenRules == null) {
+            brokenRules = List.of(documentBrokenRule);
+        } else {
+            brokenRules.add(documentBrokenRule);
+        }
+    }
 
 }

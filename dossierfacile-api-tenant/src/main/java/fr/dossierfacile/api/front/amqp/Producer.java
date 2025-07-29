@@ -42,10 +42,12 @@ public class Producer {
     @Async
     public void generateFullPdf(Long apartmentSharingId) {
         Message msg = new Message(gson.toJson(Collections.singletonMap("id", String.valueOf(apartmentSharingId))).getBytes());
-        log.info("Sending apartmentSharing with ID [" + apartmentSharingId + "] for Full PDF generation");
+        log.info("Sending apartmentSharing with ID [{}] for Full PDF generation", apartmentSharingId);
         amqpTemplate.send(exchangePdfGenerator, routingKeyPdfGeneratorApartmentSharing, msg);
     }
 
+    // This method is used to trigger the analysis of a file with the new Analysis service on Python with RabbitMQ
+    // It sends a message to the RabbitMQ exchange with the fileId to be analysed.
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Async
     public void amqpAnalyseFile(Long fileId) {
@@ -54,6 +56,8 @@ public class Producer {
         amqpTemplate.send(exchangeFileAnalysis, routingKeyFileAnalysis, msg);
     }
 
+    // This method is used to trigger the analysis of a file with the old Java service
+    // It saves a message in the database to be processed later by the FileAnalysisService.
     @Transactional(propagation = Propagation.SUPPORTS)
     public void analyzeFile(Long documentId, Long fileId) {
         log.info("Sending file with ID [{}] for analysis", fileId);

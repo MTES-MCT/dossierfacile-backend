@@ -28,10 +28,7 @@ public class BlurryRulesValidationService implements RulesValidationService {
             }
         }
         if (isBlurryDocument) {
-            report.getBrokenRules().add(DocumentBrokenRule.builder()
-                    .rule(DocumentRule.R_BLURRY_FILE)
-                    .message(DocumentRule.R_BLURRY_FILE.getDefaultMessage())
-                    .build());
+            report.addDocumentBrokenRule(DocumentBrokenRule.of(DocumentRule.R_BLURRY_FILE));
             report.setAnalysisStatus(DocumentAnalysisStatus.DENIED);
         }
         if (report.getBrokenRules().isEmpty()) {

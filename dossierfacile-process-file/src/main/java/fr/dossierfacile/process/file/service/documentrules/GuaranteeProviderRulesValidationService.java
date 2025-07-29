@@ -61,17 +61,11 @@ public class GuaranteeProviderRulesValidationService implements RulesValidationS
                 report.setAnalysisStatus(DocumentAnalysisStatus.UNDEFINED);
             } else if (!checkNamesRule(document, parsedFile)) {
                 log.error("Document names mismatches :" + document.getGuarantor().getTenant().getId());
-                report.getBrokenRules().add(DocumentBrokenRule.builder()
-                        .rule(DocumentRule.R_GUARANTEE_NAMES)
-                        .message(DocumentRule.R_GUARANTEE_NAMES.getDefaultMessage())
-                        .build());
+                report.addDocumentBrokenRule(DocumentBrokenRule.of(DocumentRule.R_GUARANTEE_NAMES));
                 report.setAnalysisStatus(DocumentAnalysisStatus.DENIED);
             } else if (!checkValidityRule(parsedFile)) {
                 log.error("Document is expired :" + document.getGuarantor().getTenant().getId());
-                report.getBrokenRules().add(DocumentBrokenRule.builder()
-                        .rule(DocumentRule.R_GUARANTEE_EXPIRED)
-                        .message(DocumentRule.R_GUARANTEE_EXPIRED.getDefaultMessage())
-                        .build());
+                report.addDocumentBrokenRule(DocumentBrokenRule.of(DocumentRule.R_GUARANTEE_EXPIRED));
                 report.setAnalysisStatus(DocumentAnalysisStatus.DENIED);
             } else {
                 report.setAnalysisStatus(DocumentAnalysisStatus.CHECKED);
