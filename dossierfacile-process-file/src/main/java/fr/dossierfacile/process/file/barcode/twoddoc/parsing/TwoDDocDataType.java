@@ -79,6 +79,8 @@ public enum TwoDDocDataType {
     ID_49("49", 13, 13, "Numéro fiscal du déclarant 2"),
     ID_4A("4A", 8, 8, "Date de mise en recouvrement"),
     ID_4B("4B", 8, 8, "Date de la déclaration"),
+    ID_4X("4X", 0, -1, "Retenue à la source"),
+    ID_4Y("4Y", 0, -1, "Adresse"),
     ID_50("50", 14, 14, "SIRET de l’employeur"),
     ID_51("51", 6, 6, "Nombre d’heures travaillées"),
     ID_52("52", 7, 7, "Cumul du nombre d’heures travaillées"),
