@@ -9,6 +9,7 @@ import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.common.entity.Document;
+import fr.dossierfacile.common.enums.TypeGuarantor;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -52,6 +53,15 @@ public class DocumentController {
 
         try (InputStream in = fileStorageService.download(document.getWatermarkFile())) {
             response.setContentType(MediaType.APPLICATION_PDF_VALUE);
+            response.setHeader("Access-Control-Expose-Headers", "Content-Disposition, Content-Type");
+            var ownerName = getDocumentOwnerNormalizeName(document);
+            String fileName;
+            if (ownerName.isEmpty()) {
+                fileName = document.getDocumentName();
+            } else {
+                fileName = ownerName + "_" + document.getDocumentName();
+            }
+            response.setHeader("Content-Disposition", "inline; filename=\"" + fileName + "\"");
             IOUtils.copy(in, response.getOutputStream());
         } catch (FileNotFoundException e) {
             log.error(FILE_NO_EXIST);
@@ -75,5 +85,19 @@ public class DocumentController {
             return ok(tenantMapper.toTenantModel(authenticationFacade.getTenant(null), null));
         }
         return ok(tenantMapper.toTenantModel(tenant, null));
+    }
+
+    private String getDocumentOwnerNormalizeName(Document document) {
+        if (document.getTenant() != null) {
+            return document.getTenant().getNormalizedName();
+        } else {
+            if (document.getGuarantor() != null) {
+                if (document.getGuarantor().getTypeGuarantor() == TypeGuarantor.ORGANISM) {
+                    return "";
+                }
+                return "guarant_" + document.getGuarantor().getNormalizedName();
+            }
+        }
+        return "";
     }
 }

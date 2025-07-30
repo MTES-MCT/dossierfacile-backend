@@ -256,7 +256,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
             log.error("Error watermark is null : " + document.getId());
             return;
         }
-        String fileName = folder + File.separator + String.format(getZipFileStringFormat(document), document.getId());
+        String fileName = folder + File.separator + document.getDocumentName();
         try (InputStream inputStream = fileStorageService.download(watermarkFile)) {
             addToZipFile(outputStream, fileName, inputStream);
         } catch (IOException e) {
@@ -310,39 +310,5 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
         return fileName;
     }
 
-    private String getZipFileStringFormat(Document document) {
-        return switch (document.getDocumentSubCategory()) {
-            case FRENCH_IDENTITY_CARD, FRENCH_PASSPORT, FRENCH_RESIDENCE_PERMIT, DRIVERS_LICENSE, FRANCE_IDENTITE,
-                 OTHER_IDENTIFICATION -> "Identité_%s.pdf";
-            case TENANT, OWNER, GUEST_PARENTS, GUEST, GUEST_COMPANY, GUEST_ORGANISM, SHORT_TERM_RENTAL,
-                 OTHER_RESIDENCY -> "Hébergement_%s.pdf";
-            case CDI -> "Activité_cdi_%s.pdf";
-            case CDD -> "Activité_cdd_%s.pdf";
-            case ALTERNATION -> "Activité_alternance_%s.pdf";
-            case INTERNSHIP -> "Activité_stage_%s.pdf";
-            case STUDENT -> "Activité_études_%s.pdf";
-            case PUBLIC -> "Activité_public_%s.pdf";
-            case CTT -> "Activité_ctt_%s.pdf";
-            case RETIRED -> "Activité_retraite_%s.pdf";
-            case UNEMPLOYED -> "Activité_chomage_%s.pdf";
-            case INDEPENDENT -> "Activité_indépendant_%s.pdf";
-            case INTERMITTENT -> "Activité_intermittent_%s.pdf";
-            case STAY_AT_HOME_PARENT -> "Activité_au_foyer_%s.pdf";
-            case NO_ACTIVITY -> "Activité_sans_emploi_%s.pdf";
-            case ARTIST -> "Activité_artiste_auteur_%s.pdf";
-            case OTHER -> "Activité_autre_%s.pdf";
-            case SALARY -> "Ressources_revenus_%s.pdf";
-            case SCHOLARSHIP -> "Ressources_bourse_%s.pdf";
-            case SOCIAL_SERVICE -> "Ressources_aides_sociales_%s.pdf";
-            case RENT -> "Ressources_rentes_%s.pdf";
-            case PENSION -> "Ressources_pensions_%s.pdf";
-            case NO_INCOME -> "Ressources_sans_revenus_%s.pdf";
-            case MY_NAME, MY_PARENTS, LESS_THAN_YEAR, OTHER_TAX -> "Imposition_%s.pdf";
-            case CERTIFICATE_VISA -> "garant_visa_%s.pdf";
-            case VISALE -> "garant_visale_%s.pdf";
-            case OTHER_GUARANTEE -> "garant_autre_%s.pdf";
-            case LEGAL_PERSON -> "garant_personne_morale_%s.pdf";
-            default -> document.getDocumentCategory().getText() + "_%s.pdf";
-        };
-    }
+
 }
