@@ -80,11 +80,6 @@ public class LocalMockStorage implements FileStorageProviderService {
     }
 
     @Override
-    public InputStream downloadV2(S3Bucket bucket, String path) throws IOException {
-        throw new NotImplementedException();
-    }
-
-    @Override
     public void upload(String path, InputStream inputStream, EncryptionKey key, String contentType) throws RetryableOperationException, IOException {
         if (key != null) {
             try {
@@ -112,11 +107,6 @@ public class LocalMockStorage implements FileStorageProviderService {
     }
 
     @Override
-    public void uploadV2(S3Bucket s3Bucket, String fileKey, InputStream inputStream, String contentType) throws RetryableOperationException, IOException {
-        throw new NotImplementedException();
-    }
-
-    @Override
     public List<String> listObjectNames(@Nullable String marker, int maxObjects) {
 
         Path directory = Path.of(filePath);
@@ -128,6 +118,21 @@ public class LocalMockStorage implements FileStorageProviderService {
             }
         }
         throw new IllegalStateException("File path" + filePath + " is not a directory");
+    }
+
+    @Override
+    public void uploadV2(S3Bucket s3Bucket, String fileKey, InputStream inputStream, String contentType) throws RetryableOperationException, IOException {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public void deleteV2(S3Bucket bucket, String path) {
+        throw new NotImplementedException("OVH does not support deleteV2 operation");
+    }
+
+    @Override
+    public InputStream downloadV2(S3Bucket bucket, String path) throws IOException {
+        throw new NotImplementedException();
     }
 
 }
