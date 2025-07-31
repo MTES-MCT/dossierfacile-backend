@@ -155,4 +155,9 @@ public class OutscaleFileStorageServiceImpl implements FileStorageProviderServic
         throw new NotImplementedException();
     }
 
+    @Override
+    public void deleteV2(S3Bucket bucket, String path) {
+        throw new NotImplementedException("OVH does not support deleteV2 operation");
+    }
+
 }

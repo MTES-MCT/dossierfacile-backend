@@ -32,7 +32,7 @@ public class BackupFilesTask extends AbstractTask {
         return !storageFile.getProviders().contains(objectStorageProvider.name());
     }
 
-    @Scheduled(fixedDelayString = "${scheduled.process.storage.backup.delay.ms}", initialDelayString = "${scheduled.process.storage.backup.delay.ms}")
+    @Deprecated
     public void scheduleBackupTask() {
         super.startTask(STORAGE_FILES_BACKUP);
         Pageable limit = PageRequest.of(0, 100);
@@ -41,7 +41,7 @@ public class BackupFilesTask extends AbstractTask {
         super.endTask();
     }
 
-    @Scheduled(fixedDelayString = "${scheduled.process.storage.backup.retry.failed.copy.delay.minutes}", initialDelayString = "${scheduled.process.storage.backup.retry.failed.copy.delay.minutes}", timeUnit = TimeUnit.MINUTES)
+    @Deprecated
     public void retryFailedCopy() {
         super.startTask(STORAGE_FILES_BACKUP_RETRY);
         Pageable limit = PageRequest.of(0, 100);
@@ -56,7 +56,7 @@ public class BackupFilesTask extends AbstractTask {
             for (ObjectStorageProvider objectStorageProvider : dynamicProviderConfig.getProviders()) {
                 if (isNotPresentOnProvider(storageFile, objectStorageProvider)) {
                     try (InputStream is = fileStorageService.download(storageFile)) {
-                        fileStorageService.uploadToProvider(is, storageFile, objectStorageProvider, null);
+                        fileStorageService.uploadToProvider(is, storageFile, objectStorageProvider);
                     } catch (Exception e) {
                         log.error("Failed copy for {} to {}", storageFile.getId(), objectStorageProvider);
                     }
