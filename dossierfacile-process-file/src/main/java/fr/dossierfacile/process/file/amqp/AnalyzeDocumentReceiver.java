@@ -30,7 +30,7 @@ public class AnalyzeDocumentReceiver {
 
     @PostConstruct
     public void startConsumer() {
-        scheduler.scheduleAtFixedRate(this::receiveDocument, 0, 2, TimeUnit.SECONDS);
+        //scheduler.scheduleAtFixedRate(this::receiveDocument, 0, 2, TimeUnit.SECONDS);
     }
 
     private void receiveDocument() {
