@@ -22,5 +22,5 @@ public interface DocumentHelperService {
      */
     void deleteFiles(Document document);
 
-    StorageFile generatePreview(InputStream fileInputStream, String originalName);
+    StorageFile generatePreview(Document document, InputStream fileInputStream, String originalName);
 }
