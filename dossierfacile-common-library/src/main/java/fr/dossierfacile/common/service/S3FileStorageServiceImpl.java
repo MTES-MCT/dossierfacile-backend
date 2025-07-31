@@ -89,6 +89,16 @@ public class S3FileStorageServiceImpl implements FileStorageProviderService {
     }
 
     @Override
+    public void deleteV2(S3Bucket bucket, String path) throws IOException {
+        try {
+            s3Client.deleteObject(bucketMapping.get(bucket), path);
+        } catch (SdkClientException e) {
+            log.error("Error deleting file from S3 bucket: {}", e.getMessage());
+            throw new IOException("Failed to delete file from S3 bucket", e);
+        }
+    }
+
+    @Override
     public List<String> listObjectNames(@Nullable String marker, int maxObjects) {
         throw new NotImplementedException();
     }

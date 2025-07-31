@@ -14,7 +14,10 @@ public interface FileStorageProviderService {
 
     ObjectStorageProvider getProvider();
 
+    @Deprecated
     void delete(String name);
+
+    void deleteV2(S3Bucket bucket, String path) throws IOException;
 
     @Deprecated
     InputStream download(String path, EncryptionKey key) throws IOException;
