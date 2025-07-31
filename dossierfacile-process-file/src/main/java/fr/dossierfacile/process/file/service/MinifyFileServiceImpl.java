@@ -30,7 +30,7 @@ public class MinifyFileServiceImpl implements MinifyFileService {
         fileRepository.findById(fileId)
                 .ifPresent(file -> {
                     try (InputStream inputStream = fileStorageService.download(file.getStorageFile())) {
-                        StorageFile storageFile = documentHelperService.generatePreview(inputStream, file.getStorageFile().getName());
+                        StorageFile storageFile = documentHelperService.generatePreview(file.getDocument(), inputStream, file.getStorageFile().getName());
 
                         // This is a long operation and method is not transactional - refresh to check status
                         Optional<File> dbFile = fileRepository.findById(file.getId());

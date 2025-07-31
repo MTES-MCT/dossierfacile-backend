@@ -65,7 +65,7 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
         if (originalFilename == null) {
             originalFilename = UUID.randomUUID().toString();
         }
-        storageFile.setPath(document.getTenant().getId() + "/" + document.getDocumentCategory().name() + "/" + UUID.randomUUID());
+        storageFile.setPath(document.getDocumentS3PrefixPath() + "/" + UUID.randomUUID());
         if ("image/heif".equals(multipartFile.getContentType())) {
             storageFile.setName(originalFilename.replaceAll("(?i)\\.heic$", "") + ".jpg");
             storageFile.setContentType("image/jpeg");
@@ -141,14 +141,14 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
     }
 
     @Override
-    public StorageFile generatePreview(InputStream fileInputStream, String originalName) {
+    public StorageFile generatePreview(Document document, InputStream fileInputStream, String originalName) {
         try {
             String imageExtension = FilenameUtils.getExtension(originalName);
             BufferedImage preview;
             if ("pdf".equalsIgnoreCase(imageExtension)) {
                 long startTime = System.currentTimeMillis();
-                try (PDDocument document = Loader.loadPDF(fileInputStream.readAllBytes())) {
-                    PDFRenderer pdfRenderer = new PDFRenderer(document);
+                try (PDDocument pdfDocument = Loader.loadPDF(fileInputStream.readAllBytes())) {
+                    PDFRenderer pdfRenderer = new PDFRenderer(pdfDocument);
                     BufferedImage bufferedImage = pdfRenderer.renderImageWithDPI(0, 200, ImageType.RGB);
                     preview = resizeImage(bufferedImage);
                     log.info("resize pdf duration : {}", System.currentTimeMillis() - startTime);
@@ -165,9 +165,10 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
 
             StorageFile storageFile = StorageFile.builder()
                     .name(originalName)
-                    .path("minified_" + UUID.randomUUID() + ".jpg")
+                    .bucket(S3Bucket.RAW_MINIFIED)
+                    .path(document.getDocumentS3PrefixPath() + "/" + UUID.randomUUID())
                     .contentType(MediaType.IMAGE_JPEG_VALUE)
-                    .encryptionKey(encryptionKeyService.getCurrentKey())
+                    .encryptionKey(null)
                     .build();
 
             try (InputStream is = new ByteArrayInputStream(baos.toByteArray())) {
