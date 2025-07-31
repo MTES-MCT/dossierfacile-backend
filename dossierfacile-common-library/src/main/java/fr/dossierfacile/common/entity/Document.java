@@ -126,9 +126,9 @@ public class Document implements Serializable {
     // This is necessary for the document upload on a guarant tenant.
     public String getDocumentS3PrefixPath() {
         if (getTenant() == null) {
-            return String.format("%s/guarant_%s/%s", getGuarantor().getTenant().getId(), getGuarantor().getId(), getDocumentCategory().name());
+            return String.format("tenant_%s/guarant_%s/%s", getGuarantor().getTenant().getId(), getGuarantor().getId(), getDocumentCategory().name());
         } else {
-            return String.format("%s/%s", getTenant().getId(), getDocumentCategory().name());
+            return String.format("tenant_%s/%s", getTenant().getId(), getDocumentCategory().name());
         }
     }
 
