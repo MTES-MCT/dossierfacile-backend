@@ -10,6 +10,7 @@ import fr.dossierfacile.common.service.interfaces.FileStorageProviderService;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.james.mime4j.storage.StorageProvider;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -54,7 +55,12 @@ public class FileStorageServiceImpl implements FileStorageService {
         }
         try {
             for (String provider : storageFile.getProviders()) {
-                getStorageService(ObjectStorageProvider.valueOf(provider)).delete(storageFile.getPath());
+                var providerService = getStorageService(ObjectStorageProvider.valueOf(provider));
+                if (provider.equals(ObjectStorageProvider.S3.name())) {
+                    providerService.deleteV2(storageFile.getBucket(), storageFile.getPath());
+                } else {
+                    providerService.delete(storageFile.getPath());
+                }
             }
             storageFileRepository.delete(storageFile);
         } catch (Exception e) {

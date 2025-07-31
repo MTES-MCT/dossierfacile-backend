@@ -61,10 +61,11 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
                 .bucket(S3Bucket.RAW_FILE)
                 .build();
         String originalFilename = multipartFile.getOriginalFilename();
+        storageFile.setMd5(getFileMd5Hash(multipartFile));
         if (originalFilename == null) {
             originalFilename = UUID.randomUUID().toString();
         }
-        storageFile.setPath(document.getTenant().getId() + "/" + document.getDocumentCategory().getText() + "/" + UUID.randomUUID());
+        storageFile.setPath(document.getTenant().getId() + "/" + document.getDocumentCategory().name() + "/" + UUID.randomUUID());
         if ("image/heif".equals(multipartFile.getContentType())) {
             storageFile.setName(originalFilename.replaceAll("(?i)\\.heic$", "") + ".jpg");
             storageFile.setContentType("image/jpeg");
