@@ -10,7 +10,7 @@ import java.util.Map;
 @Configuration
 public class S3BucketConfig {
 
-    @Value("${s3.bucket.raw.file.name}")
+    @Value("${s3.bucket.raw.file.name:raw-file}")
     String rawFileBucketName;
     @Value("${s3.bucket.raw.minified.name:raw-minified}")
     String rawMinifiedBucketName;
