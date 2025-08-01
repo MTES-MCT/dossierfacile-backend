@@ -33,17 +33,23 @@ public class WatermarkPdfConsumer {
             DocumentModel documentModel = gson.fromJson(message, DocumentModel.class);
             jobContext.setDocumentId(documentModel.getId());
             pdfGeneratorService.processPdfGenerationFormWatermark(documentModel.getId());
+            jobContext.setJobStatus(JobStatus.SUCCESS);
         } catch (Exception e) {
             jobContext.setJobStatus(JobStatus.ERROR);
             log.error(e.getMessage(), e.getCause());
             throw e;
         } finally {
-            logAggregator.sendWorkerLogs(
-                    jobContext.getProcessId(),
-                    ActionType.WATERMARK.name(),
-                    jobContext.getStartTime(),
-                    JobContextUtil.prepareJobAttributes(jobContext)
-            );
+            try {
+                logAggregator.sendWorkerLogs(
+                        jobContext.getProcessId(),
+                        ActionType.WATERMARK.name(),
+                        jobContext.getStartTime(),
+                        JobContextUtil.prepareJobAttributes(jobContext)
+                );
+            }
+            catch (Exception e) {
+                log.error("Error while sending logs for processId: {}", jobContext.getProcessId(), e);
+            }
         }
     }
 

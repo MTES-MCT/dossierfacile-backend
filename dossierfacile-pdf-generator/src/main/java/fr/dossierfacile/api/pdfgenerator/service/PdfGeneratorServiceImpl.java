@@ -84,9 +84,13 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
 
             StorageFile pdfFile = StorageFile.builder()
                     .name("dossierfacile-watermark-" + UUID.randomUUID() + ".pdf")
+                    .path("watermark/" + UUID.randomUUID())
                     .contentType(MediaType.APPLICATION_PDF_VALUE)
+                    .bucket(S3Bucket.FILIGRANE)
+                    .provider(ObjectStorageProvider.S3)
                     .status(FileStorageStatus.TEMPORARY)
                     .build();
+
             document.setPdfFile(fileStorageService.upload(inputStream, pdfFile));
 
             document.setPdfStatus(FileStatus.COMPLETED);
