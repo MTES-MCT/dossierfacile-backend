@@ -20,6 +20,51 @@
       "name": "ademe.api.client.secret",
       "type": "java.lang.String",
       "description": "Le secret client pour l'authentification à l'API ADEME."
+    },
+    {
+      "name": "s3.region",
+      "type": "java.lang.String",
+      "description": "Région S3 à utiliser, par exemple 'sbg' pour Strasbourg."
+    },
+    {
+      "name": "s3.endpoint.url",
+      "type": "java.lang.String",
+      "description": "L'URL de l'endpoint S3."
+    },
+    {
+      "name": "s3.access.key",
+      "type": "java.lang.String",
+      "description": "Access key pour S3."
+    },
+    {
+      "name": "s3.secret.access.key",
+      "type": "java.lang.String",
+      "description": "La clé secrète d'accès S3."
+    },
+    {
+      "name": "s3.bucket.raw.file.name",
+      "type": "java.lang.String",
+      "description": "Le nom du bucket S3 pour les fichiers raw."
+    },
+    {
+      "name": "s3.bucket.raw.minified.name",
+      "type": "java.lang.String",
+      "description": "Le nom du bucket S3 pour les fichiers raw."
+    },
+    {
+      "name": "s3.bucket.watermark.doc.name",
+      "type": "java.lang.String",
+      "description": "Le nom du bucket S3 pour les documents avec watermark."
+    },
+    {
+      "name": "s3.bucket.full.pdf.name",
+      "type": "java.lang.String",
+      "description": "Le nom du bucket S3 pour les fichiers PDF complets."
+    },
+    {
+      "name": "s3.bucket.filigrane.name",
+      "type": "java.lang.String",
+      "description": "Le nom du bucket S3 pour les fichiers avec filigrane."
     }
   ]
 }

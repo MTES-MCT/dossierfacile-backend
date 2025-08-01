@@ -12,6 +12,7 @@ import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.FileStatus;
 import fr.dossierfacile.common.enums.FileStorageStatus;
+import fr.dossierfacile.common.model.S3Bucket;
 import fr.dossierfacile.common.repository.StorageFileRepository;
 import fr.dossierfacile.common.repository.WatermarkDocumentRepository;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
@@ -83,9 +84,13 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
 
             StorageFile pdfFile = StorageFile.builder()
                     .name("dossierfacile-watermark-" + UUID.randomUUID() + ".pdf")
+                    .path("watermark/" + UUID.randomUUID())
                     .contentType(MediaType.APPLICATION_PDF_VALUE)
+                    .bucket(S3Bucket.FILIGRANE)
+                    .provider(ObjectStorageProvider.S3)
                     .status(FileStorageStatus.TEMPORARY)
                     .build();
+
             document.setPdfFile(fileStorageService.upload(inputStream, pdfFile));
 
             document.setPdfStatus(FileStatus.COMPLETED);
@@ -152,8 +157,9 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
         try (InputStream documentInputStream = renderBODocumentPdf(document)) {
 
             pdfFile = StorageFile.builder()
-                    .name("dossierfacile-pdf-" + document.getId())
-                    .path("dossierfacile_pdf_" + UUID.randomUUID() + ".pdf")
+                    .name("dossierfacile-pdf-" + document.getId() + ".pdf")
+                    .path(String.format("%s/%s", document.getDocumentS3PrefixPath(), UUID.randomUUID()))
+                    .bucket(S3Bucket.WATERMARK_DOC)
                     .contentType(MediaType.APPLICATION_PDF_VALUE)
                     .build();
             return fileStorageService.upload(documentInputStream, pdfFile);
@@ -172,7 +178,8 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
             try {
                 StorageFile storageFile = StorageFile.builder()
                         .name("dossier_" + apartmentSharingId)
-                        .path("dossier_pdf_" + UUID.randomUUID() + ".pdf")
+                        .bucket(S3Bucket.FULL_PDF)
+                        .path(String.format("Apartment_%s/%s", apartmentSharing.getId(), UUID.randomUUID()))
                         .contentType(MediaType.APPLICATION_PDF_VALUE)
                         .build();
                 InputStream pdfStream = apartmentSharingPdfDocumentTemplate.render(apartmentSharing);

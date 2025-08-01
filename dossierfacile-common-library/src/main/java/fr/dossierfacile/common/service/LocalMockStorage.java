@@ -4,11 +4,13 @@ import fr.dossierfacile.common.entity.EncryptionKey;
 import fr.dossierfacile.common.entity.ObjectStorageProvider;
 import fr.dossierfacile.common.exceptions.RetryableOperationException;
 import fr.dossierfacile.common.exceptions.UnsupportedKeyException;
+import fr.dossierfacile.common.model.S3Bucket;
 import fr.dossierfacile.common.service.interfaces.FileStorageProviderService;
 import jakarta.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
@@ -116,6 +118,21 @@ public class LocalMockStorage implements FileStorageProviderService {
             }
         }
         throw new IllegalStateException("File path" + filePath + " is not a directory");
+    }
+
+    @Override
+    public void uploadV2(S3Bucket s3Bucket, String fileKey, InputStream inputStream, String contentType) throws RetryableOperationException, IOException {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public void deleteV2(S3Bucket bucket, String path) {
+        throw new NotImplementedException("OVH does not support deleteV2 operation");
+    }
+
+    @Override
+    public InputStream downloadV2(S3Bucket bucket, String path) throws IOException {
+        throw new NotImplementedException();
     }
 
 }
