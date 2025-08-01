@@ -101,6 +101,7 @@ public class S3FileStorageServiceImpl implements FileStorageProviderService {
             var putRequest = PutObjectRequest.builder()
                     .bucket(bucketMapping.get(s3Bucket))
                     .key(fileKey)
+                    .metadata(Map.of("x-delete-after", "1"))
                     .contentType(contentType)
                     .build();
             s3Client.putObject(putRequest, RequestBody.fromBytes(bytes));
