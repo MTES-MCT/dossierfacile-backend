@@ -3,7 +3,6 @@ package fr.dossierfacile.common.service.interfaces;
 import fr.dossierfacile.common.entity.ObjectStorageProvider;
 import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.exceptions.RetryableOperationException;
-import fr.dossierfacile.common.model.S3Bucket;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,7 +13,9 @@ public interface FileStorageService {
      * Soft delete
      */
     void delete(StorageFile storageFile);
+
     void hardDelete(StorageFile storageFile);
+
     /**
      * Get the downloaded file's inputStream.
      * If {@code key} is null then the inputStream is directly returned without decrypt operation.
