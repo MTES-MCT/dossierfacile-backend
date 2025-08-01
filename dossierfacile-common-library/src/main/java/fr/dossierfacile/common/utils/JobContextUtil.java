@@ -15,7 +15,7 @@ public class JobContextUtil {
                 PROCESS_FILE_ID, String.valueOf(jobContext.getFileId()),
                 PROCESS_DOCUMENT_ID, String.valueOf(jobContext.getDocumentId()),
                 PROCESS_QUEUE_NAME, jobContext.getQueueName(),
-                PROCESS_JOB_STATUS, jobContext.getJobStatus().name()
+                PROCESS_JOB_STATUS, jobContext.getJobStatus() == null ? "UNKNOWN" : jobContext.getJobStatus().name()
         );
     }
 }
