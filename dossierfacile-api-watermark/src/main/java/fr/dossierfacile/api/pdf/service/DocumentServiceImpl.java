@@ -7,10 +7,12 @@ import fr.dossierfacile.api.pdf.form.DocumentForm;
 import fr.dossierfacile.api.pdf.response.DocumentUrlResponse;
 import fr.dossierfacile.api.pdf.response.UploadFilesResponse;
 import fr.dossierfacile.api.pdf.service.interfaces.DocumentService;
+import fr.dossierfacile.common.entity.ObjectStorageProvider;
 import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.entity.WatermarkDocument;
 import fr.dossierfacile.common.enums.FileStatus;
 import fr.dossierfacile.common.enums.FileStorageStatus;
+import fr.dossierfacile.common.model.S3Bucket;
 import fr.dossierfacile.common.repository.WatermarkDocumentRepository;
 import fr.dossierfacile.common.service.interfaces.DocumentHelperService;
 import fr.dossierfacile.common.service.interfaces.EncryptionKeyService;
@@ -147,9 +149,12 @@ public class DocumentServiceImpl implements DocumentService {
                 .map(multipartFile -> {
                     StorageFile file = StorageFile.builder()
                             .name(multipartFile.getOriginalFilename())
+                            .path("raw/" + UUID.randomUUID())
                             .contentType(multipartFile.getContentType())
                             .size(multipartFile.getSize())
-                            .encryptionKey(encryptionKeyService.getCurrentKey())
+                            .bucket(S3Bucket.FILIGRANE)
+                            .provider(ObjectStorageProvider.S3)
+                            .encryptionKey(null)
                             .status(FileStorageStatus.TEMPORARY)
                             .build();
 
