@@ -1,14 +1,5 @@
 package fr.dossierfacile.common.service;
 
-import com.amazonaws.SdkClientException;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.client.builder.AwsClientBuilder;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.GetObjectRequest;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.PutObjectRequest;
 import fr.dossierfacile.common.entity.EncryptionKey;
 import fr.dossierfacile.common.entity.ObjectStorageProvider;
 import fr.dossierfacile.common.exceptions.RetryableOperationException;
@@ -20,10 +11,23 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
@@ -43,14 +47,29 @@ public class S3FileStorageServiceImpl implements FileStorageProviderService {
 
     private final Map<S3Bucket, String> bucketMapping;
 
-    private AmazonS3 s3Client;
+    private S3Client s3Client;
 
     @PostConstruct
     public void init() {
         log.info("S3FileStorageService initialized with region: {}, endpoint: {}", region, endpointUrl);
-        s3Client = AmazonS3ClientBuilder.standard()
-                .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(endpointUrl, region))
-                .withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials(accessKeyId, secretAccessKey)))
+        // We need to set the properties to avoid using the default AWS config files
+        System.setProperty("aws.configFile", "/dev/null");
+        System.setProperty("aws.sharedCredentialsFile", "/dev/null");
+
+        s3Client = S3Client.builder()
+                .endpointOverride(URI.create(endpointUrl))
+                .region(Region.of(region))
+                .credentialsProvider(
+                        StaticCredentialsProvider.create(
+                                AwsBasicCredentials.create(accessKeyId, secretAccessKey)
+                        )
+                )
+                .serviceConfiguration(S3Configuration.builder()
+                        .pathStyleAccessEnabled(true)
+                        .build())
+                .httpClientBuilder(UrlConnectionHttpClient.builder())
+                .overrideConfiguration(ClientOverrideConfiguration.builder()
+                        .build())
                 .build();
     }
 
@@ -63,35 +82,42 @@ public class S3FileStorageServiceImpl implements FileStorageProviderService {
     @Override
     public InputStream downloadV2(S3Bucket bucket, String path) throws IOException {
         try {
-            return s3Client.getObject(
-                    new GetObjectRequest(bucketMapping.get(bucket), path)
-            ).getObjectContent();
-        } catch (SdkClientException e) {
-            log.error("Error downloading file from S3 bucket: {}", e.getMessage());
+            return s3Client.getObject(getObjectRequest ->
+                    getObjectRequest.bucket(bucketMapping.get(bucket)).key(path).build()
+            );
+        } catch (NoSuchKeyException e) {
+            log.error("Error downloading file from S3 bucket: {} with key {}", bucket, path, e);
+            throw new IOException("Failed to download file from S3 bucket", e);
+        } catch (SdkClientException | S3Exception e) {
+            log.error("Error downloading file from S3 bucket: {}", bucket, e);
             throw new IOException("Failed to download file from S3 bucket", e);
         }
     }
 
     @Override
     public void uploadV2(S3Bucket s3Bucket, String fileKey, InputStream inputStream, String contentType) throws RetryableOperationException {
-        var metadata = new ObjectMetadata();
-        metadata.setContentType(contentType);
         try {
-            s3Client.putObject(
-                    new PutObjectRequest(
-                            bucketMapping.get(s3Bucket), fileKey, inputStream, metadata
-                    )
-            );
+            byte[] bytes = inputStream.readAllBytes();
+            var putRequest = PutObjectRequest.builder()
+                    .bucket(bucketMapping.get(s3Bucket))
+                    .key(fileKey)
+                    .contentType(contentType)
+                    .build();
+            s3Client.putObject(putRequest, RequestBody.fromBytes(bytes));
         } catch (SdkClientException e) {
             log.error("Error uploading file to S3 bucket: {}", e.getMessage());
             throw new RetryableOperationException("Failed to upload file to S3 bucket", e);
+        } catch (IOException e) {
+            log.error("Impossible to read input stream for upload: {}", e.getMessage());
         }
     }
 
     @Override
     public void deleteV2(S3Bucket bucket, String path) throws IOException {
         try {
-            s3Client.deleteObject(bucketMapping.get(bucket), path);
+            s3Client.deleteObject(deleteObjectRequest ->
+                    deleteObjectRequest.bucket(bucketMapping.get(bucket)).key(path).build()
+            );
         } catch (SdkClientException e) {
             log.error("Error deleting file from S3 bucket: {}", e.getMessage());
             throw new IOException("Failed to delete file from S3 bucket", e);
