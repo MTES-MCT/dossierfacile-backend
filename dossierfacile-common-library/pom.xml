@@ -196,10 +196,22 @@
             <artifactId>HikariCP</artifactId>
             <version>5.0.1</version>
         </dependency>
+        <!--Old version of s3 need for outscale s3-->
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-s3</artifactId>
             <version>${amazonaws.version}</version>
+        </dependency>
+        <!--new version of the s3 lib-->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
+            <version>2.32.13</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>url-connection-client</artifactId>
+            <version>2.32.12</version> <!-- ou version compatible -->
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
