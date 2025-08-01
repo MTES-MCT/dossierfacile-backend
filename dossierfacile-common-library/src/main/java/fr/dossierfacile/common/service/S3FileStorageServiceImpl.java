@@ -31,7 +31,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
-@Service("S3FileStorageProvider")
+@Service("s3FileStorageProvider")
 @RequiredArgsConstructor
 @Slf4j
 public class S3FileStorageServiceImpl implements FileStorageProviderService {

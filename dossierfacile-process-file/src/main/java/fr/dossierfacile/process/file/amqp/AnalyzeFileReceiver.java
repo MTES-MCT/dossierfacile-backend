@@ -28,7 +28,7 @@ public class AnalyzeFileReceiver {
 
     @PostConstruct
     public void startConsumer() {
-        //scheduler.scheduleAtFixedRate(this::receiveFile, 0, 2, TimeUnit.SECONDS);
+        scheduler.scheduleAtFixedRate(this::receiveFile, 0, 2, TimeUnit.SECONDS);
     }
 
     private void receiveFile() {
