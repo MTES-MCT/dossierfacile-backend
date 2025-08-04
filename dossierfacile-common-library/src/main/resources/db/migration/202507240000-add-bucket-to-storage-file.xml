@@ -10,5 +10,11 @@
             <column name="bucket" type="varchar(50)" defaultValue="NONE"/>
         </addColumn>
     </changeSet>
+
+    <changeSet id="202507240002" author="SAGON NICOLAS">
+        <update tableName="encryption_key">
+            <column name="status" value="ARCHIVED"/>
+        </update>
+    </changeSet>
 </databaseChangeLog>
 

@@ -57,7 +57,7 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
     public File addFile(MultipartFile multipartFile, Document document) throws IOException {
         StorageFile storageFile = StorageFile.builder()
                 .size(multipartFile.getSize())
-                .encryptionKey(null)
+                .encryptionKey(encryptionKeyService.getCurrentKey())
                 .bucket(S3Bucket.RAW_FILE)
                 .build();
         String originalFilename = multipartFile.getOriginalFilename();
@@ -166,6 +166,7 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
             StorageFile storageFile = StorageFile.builder()
                     .name(originalName)
                     .bucket(S3Bucket.RAW_MINIFIED)
+                    .encryptionKey(encryptionKeyService.getCurrentKey())
                     .path(document.getDocumentS3PrefixPath() + "/" + UUID.randomUUID())
                     .contentType(MediaType.IMAGE_JPEG_VALUE)
                     .encryptionKey(null)
