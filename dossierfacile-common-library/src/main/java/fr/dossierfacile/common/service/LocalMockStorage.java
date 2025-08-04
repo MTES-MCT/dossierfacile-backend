@@ -32,11 +32,11 @@ import static java.lang.String.format;
 @Service
 @Profile("mockOvh")
 public class LocalMockStorage implements FileStorageProviderService {
-    private final String filePath;
+    private final String directoryPath;
 
-    public LocalMockStorage(@Value("${mock.storage.path:./mockstorage/}") String filePath) {
-        this.filePath = filePath;
-        new File(filePath).mkdirs();
+    public LocalMockStorage(@Value("${mock.storage.path:./mockstorage/}") String directoryPath) {
+        this.directoryPath = directoryPath;
+        new File(directoryPath).mkdirs();
     }
 
     @Override
@@ -47,19 +47,19 @@ public class LocalMockStorage implements FileStorageProviderService {
     @Override
     public void delete(String path) {
         try {
-            Files.delete(Path.of(filePath, path));
+            Files.delete(Path.of(directoryPath, path));
         } catch (NoSuchFileException e) {
-            log.error(format("File %s does not exist", filePath + path), e);
+            log.error(format("File %s does not exist", directoryPath + path), e);
         } catch (DirectoryNotEmptyException e) {
-            log.error(format("File %s is a non empty directory", filePath + path), e);
+            log.error(format("File %s is a non empty directory", directoryPath + path), e);
         } catch (IOException e) {
-            log.error(format("File %s cannot be deleted", filePath + path), e);
+            log.error(format("File %s cannot be deleted", directoryPath + path), e);
         }
     }
 
     @Override
     public InputStream download(String path, EncryptionKey key) throws IOException {
-        InputStream in = Files.newInputStream(Path.of(filePath, path));
+        InputStream in = Files.newInputStream(Path.of(directoryPath, path));
         if (key != null) {
             if (key.getVersion() != 2) {
                 throw new UnsupportedKeyException("Unsupported key version " + key.getVersion());
@@ -95,7 +95,9 @@ public class LocalMockStorage implements FileStorageProviderService {
             }
         }
         try {
-            File file = Path.of(filePath, path).toFile();
+            var filePath = Path.of(directoryPath, path);
+            Files.createDirectories(filePath.getParent());
+            File file = filePath.toFile();
 
             try (OutputStream outputStream = new FileOutputStream(file)) {
                 IOUtils.copy(inputStream, outputStream);
@@ -109,7 +111,7 @@ public class LocalMockStorage implements FileStorageProviderService {
     @Override
     public List<String> listObjectNames(@Nullable String marker, int maxObjects) {
 
-        Path directory = Path.of(filePath);
+        Path directory = Path.of(directoryPath);
         if (Files.isDirectory(directory)) {
             try {
                 return Files.list(directory).map(Path::toString).toList();
@@ -117,11 +119,11 @@ public class LocalMockStorage implements FileStorageProviderService {
                 throw new RuntimeException(e);
             }
         }
-        throw new IllegalStateException("File path" + filePath + " is not a directory");
+        throw new IllegalStateException("File path" + directoryPath + " is not a directory");
     }
 
     @Override
-    public void uploadV2(S3Bucket s3Bucket, String fileKey, InputStream inputStream, String contentType) throws RetryableOperationException, IOException {
+    public void uploadV2(S3Bucket s3Bucket, String fileKey, InputStream inputStream, String contentType, EncryptionKey key) throws RetryableOperationException, IOException {
         throw new NotImplementedException();
     }
 
@@ -131,7 +133,7 @@ public class LocalMockStorage implements FileStorageProviderService {
     }
 
     @Override
-    public InputStream downloadV2(S3Bucket bucket, String path) throws IOException {
+    public InputStream downloadV2(S3Bucket bucket, String path, EncryptionKey key) throws IOException {
         throw new NotImplementedException();
     }
 
