@@ -18,7 +18,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.Cipher;
@@ -146,12 +145,12 @@ public class OutscaleFileStorageServiceImpl implements FileStorageProviderServic
     }
 
     @Override
-    public void uploadV2(S3Bucket s3Bucket, String fileKey, InputStream inputStream, String contentType) throws RetryableOperationException, IOException {
+    public void uploadV2(S3Bucket s3Bucket, String fileKey, InputStream inputStream, String contentType, EncryptionKey key) throws RetryableOperationException, IOException {
         throw new NotImplementedException();
     }
 
     @Override
-    public InputStream downloadV2(S3Bucket bucket, String path) throws IOException {
+    public InputStream downloadV2(S3Bucket bucket, String path, EncryptionKey key) throws IOException {
         throw new NotImplementedException();
     }
 
