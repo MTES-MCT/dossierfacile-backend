@@ -22,12 +22,12 @@ public interface FileStorageProviderService {
     @Deprecated
     InputStream download(String path, EncryptionKey key) throws IOException;
 
-    InputStream downloadV2(S3Bucket bucket, String path) throws IOException;
+    InputStream downloadV2(S3Bucket bucket, String path, EncryptionKey key) throws IOException;
 
     @Deprecated
     void upload(String ovhPath, InputStream inputStream, EncryptionKey key, String contentType) throws RetryableOperationException, IOException;
 
-    void uploadV2(S3Bucket s3Bucket, String fileKey, InputStream inputStream, String contentType) throws RetryableOperationException, IOException;
+    void uploadV2(S3Bucket s3Bucket, String fileKey, InputStream inputStream, String contentType, EncryptionKey key) throws RetryableOperationException, IOException;
 
     List<String> listObjectNames(@Nullable String marker, int maxObjects);
 
