@@ -20,6 +20,7 @@ import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
@@ -28,6 +29,9 @@ import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
@@ -38,11 +42,11 @@ public class S3FileStorageServiceImpl implements FileStorageProviderService {
 
     @Value("${s3.region:sbg}")
     private String region;
-    @Value("${s3.endpoint.url}")
+    @Value("${s3.endpoint.url:https://test.fr}")
     private String endpointUrl;
-    @Value("${s3.access.key}")
+    @Value("${s3.access.key:key}")
     private String accessKeyId;
-    @Value("${s3.secret.access.key}")
+    @Value("${s3.secret.access.key:secretKey}")
     private String secretAccessKey;
 
     private final Map<S3Bucket, String> bucketMapping;
@@ -80,14 +84,15 @@ public class S3FileStorageServiceImpl implements FileStorageProviderService {
 
 
     @Override
-    public InputStream downloadV2(S3Bucket bucket, String path) throws IOException {
+    public InputStream downloadV2(S3Bucket bucket, String path, EncryptionKey key) throws IOException {
         try {
-            return s3Client.getObject(getObjectRequest ->
-                    getObjectRequest.bucket(bucketMapping.get(bucket)).key(path).build()
-            );
+            return s3Client.getObject(getObjectRequest(bucket, path, key));
         } catch (NoSuchKeyException e) {
             log.error("Error downloading file from S3 bucket: {} with key {}", bucket, path, e);
             throw new IOException("Failed to download file from S3 bucket", e);
+        } catch (NoSuchAlgorithmException e) {
+            log.error("No such algorithm for encryption key: {}", e.getMessage());
+            throw new RuntimeException(e);
         } catch (SdkClientException | S3Exception e) {
             log.error("Error downloading file from S3 bucket: {}", bucket, e);
             throw new IOException("Failed to download file from S3 bucket", e);
@@ -95,19 +100,16 @@ public class S3FileStorageServiceImpl implements FileStorageProviderService {
     }
 
     @Override
-    public void uploadV2(S3Bucket s3Bucket, String fileKey, InputStream inputStream, String contentType) throws RetryableOperationException {
+    public void uploadV2(S3Bucket s3Bucket, String fileKey, InputStream inputStream, String contentType, EncryptionKey key) throws RetryableOperationException {
         try {
             byte[] bytes = inputStream.readAllBytes();
-            var putRequest = PutObjectRequest.builder()
-                    .bucket(bucketMapping.get(s3Bucket))
-                    .key(fileKey)
-                    .metadata(Map.of("x-delete-after", "1"))
-                    .contentType(contentType)
-                    .build();
-            s3Client.putObject(putRequest, RequestBody.fromBytes(bytes));
+            s3Client.putObject(putObjectRequest(s3Bucket, fileKey, contentType, key), RequestBody.fromBytes(bytes));
         } catch (SdkClientException e) {
             log.error("Error uploading file to S3 bucket: {}", e.getMessage());
             throw new RetryableOperationException("Failed to upload file to S3 bucket", e);
+        } catch (NoSuchAlgorithmException e) {
+            log.error("No such algorithm for encryption key: {}", e.getMessage());
+            throw new RuntimeException(e);
         } catch (IOException e) {
             log.error("Impossible to read input stream for upload: {}", e.getMessage());
         }
@@ -145,4 +147,39 @@ public class S3FileStorageServiceImpl implements FileStorageProviderService {
         throw new NotImplementedException();
     }
 
+    private GetObjectRequest getObjectRequest(S3Bucket bucket, String path, EncryptionKey key) throws NoSuchAlgorithmException {
+        var builder = GetObjectRequest.builder()
+                .bucket(bucketMapping.get(bucket))
+                .key(path);
+
+        if (key != null) {
+            builder.sseCustomerAlgorithm("AES256");
+            builder.sseCustomerKey(getSSEBase64Key(key));
+            builder.sseCustomerKeyMD5(getSSEBase64KeyMD5(key));
+        }
+        return builder.build();
+    }
+
+    private PutObjectRequest putObjectRequest(S3Bucket bucket, String fileKey, String contentType, EncryptionKey key) throws NoSuchAlgorithmException {
+        var builder = PutObjectRequest.builder()
+                .bucket(bucketMapping.get(bucket))
+                .key(fileKey)
+                .contentType(contentType);
+
+        if (key != null) {
+            builder.sseCustomerAlgorithm("AES256");
+            builder.sseCustomerKey(getSSEBase64Key(key));
+            builder.sseCustomerKeyMD5(getSSEBase64KeyMD5(key));
+        }
+        return builder.build();
+
+    }
+
+    private String getSSEBase64Key(EncryptionKey key) {
+        return Base64.getEncoder().encodeToString(key.getEncodedSecret());
+    }
+
+    private String getSSEBase64KeyMD5(EncryptionKey key) throws NoSuchAlgorithmException {
+        return Base64.getEncoder().encodeToString(MessageDigest.getInstance("MD5").digest(key.getEncodedSecret()));
+    }
 }

@@ -154,7 +154,7 @@ public class DocumentServiceImpl implements DocumentService {
                             .size(multipartFile.getSize())
                             .bucket(S3Bucket.FILIGRANE)
                             .provider(ObjectStorageProvider.S3)
-                            .encryptionKey(null)
+                            .encryptionKey(encryptionKeyService.getCurrentKey())
                             .status(FileStorageStatus.TEMPORARY)
                             .build();
 
