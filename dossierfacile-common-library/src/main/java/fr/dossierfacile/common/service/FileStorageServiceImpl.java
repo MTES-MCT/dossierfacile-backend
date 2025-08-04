@@ -10,7 +10,6 @@ import fr.dossierfacile.common.service.interfaces.FileStorageProviderService;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.james.mime4j.storage.StorageProvider;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -78,7 +77,7 @@ public class FileStorageServiceImpl implements FileStorageService {
                 try {
                     var storageFileProviderService = getStorageService(ObjectStorageProvider.valueOf(selectedProvider.get()));
                     if (storageFileProviderService.getProvider() == ObjectStorageProvider.S3) {
-                        return storageFileProviderService.downloadV2(storageFile.getBucket(), storageFile.getPath());
+                        return storageFileProviderService.downloadV2(storageFile.getBucket(), storageFile.getPath(), storageFile.getEncryptionKey());
                     } else {
                         return storageFileProviderService.download(storageFile.getPath(), storageFile.getEncryptionKey());
                     }
@@ -104,7 +103,7 @@ public class FileStorageServiceImpl implements FileStorageService {
             inputStream.mark(100000000);
         }
         try {
-            storageFile = uploadToProvider(inputStream, storageFile, ObjectStorageProvider.S3);
+            storageFile = uploadToProvider(inputStream, storageFile, getBestStorageProvider());
         } catch (IOException e) {
             log.error("Error uploading to S3", e);
         }
@@ -118,7 +117,7 @@ public class FileStorageServiceImpl implements FileStorageService {
     @Override
     public StorageFile uploadToProvider(InputStream inputStream, StorageFile storageFile, ObjectStorageProvider provider) throws RetryableOperationException, IOException {
         if (provider == ObjectStorageProvider.S3) {
-            getStorageService(provider).uploadV2(storageFile.getBucket(), storageFile.getPath(), inputStream, storageFile.getContentType());
+            getStorageService(provider).uploadV2(storageFile.getBucket(), storageFile.getPath(), inputStream, storageFile.getContentType(), storageFile.getEncryptionKey());
         } else {
             getStorageService(provider)
                     .upload(storageFile.getPath(), inputStream, storageFile.getEncryptionKey(), storageFile.getContentType());
@@ -134,6 +133,15 @@ public class FileStorageServiceImpl implements FileStorageService {
         }
         // TODO maybe not a good idea to do here (transactional managment)
         return storageFileRepository.save(storageFile);
+    }
+
+    private ObjectStorageProvider getBestStorageProvider() {
+        var providers = dynamicProviderConfig.getProviders();
+        if (providers.contains(ObjectStorageProvider.S3)) {
+            return ObjectStorageProvider.S3;
+        } else {
+            return  providers.stream().findFirst().orElse(ObjectStorageProvider.LOCAL);
+        }
     }
 
 }

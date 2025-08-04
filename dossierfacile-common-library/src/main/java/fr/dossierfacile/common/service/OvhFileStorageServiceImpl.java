@@ -193,12 +193,12 @@ public class OvhFileStorageServiceImpl implements FileStorageProviderService {
     }
 
     @Override
-    public void uploadV2(S3Bucket s3Bucket, String fileKey, InputStream inputStream, String contentType) throws RetryableOperationException, IOException {
+    public void uploadV2(S3Bucket s3Bucket, String fileKey, InputStream inputStream, String contentType, EncryptionKey key) throws RetryableOperationException, IOException {
         throw new NotImplementedException();
     }
 
     @Override
-    public InputStream downloadV2(S3Bucket bucket, String path) throws IOException {
+    public InputStream downloadV2(S3Bucket bucket, String path, EncryptionKey key) throws IOException {
         throw new NotImplementedException();
     }
 
