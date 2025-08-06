@@ -127,10 +127,7 @@ public class RentalReceiptRulesValidationService implements RulesValidationServi
 
         if (document.getDocumentCategoryStep() != DocumentCategoryStep.TENANT_PROOF && !checkNumberOfPage(document)) {
             log.error("Document number of pages mismatches :{}", document.getId());
-            report.getBrokenRules().add(DocumentBrokenRule.builder()
-                    .rule(DocumentRule.R_RENT_RECEIPT_NB_DOCUMENTS)
-                    .message(DocumentRule.R_RENT_RECEIPT_NB_DOCUMENTS.getDefaultMessage())
-                    .build());
+            report.addDocumentBrokenRule(DocumentBrokenRule.of(DocumentRule.R_RENT_RECEIPT_NB_DOCUMENTS));
             report.setAnalysisStatus(DocumentAnalysisStatus.DENIED);
         }
 
@@ -141,24 +138,15 @@ public class RentalReceiptRulesValidationService implements RulesValidationServi
         try {
             if (!checkNamesRule(document)) {
                 log.error("Document names mismatches :{}", document.getId());
-                report.getBrokenRules().add(DocumentBrokenRule.builder()
-                        .rule(DocumentRule.R_RENT_RECEIPT_NAME)
-                        .message(DocumentRule.R_RENT_RECEIPT_NAME.getDefaultMessage())
-                        .build());
+                report.addDocumentBrokenRule(DocumentBrokenRule.of(DocumentRule.R_RENT_RECEIPT_NAME));
                 report.setAnalysisStatus(DocumentAnalysisStatus.DENIED);
             } else if (!checkMonthsValidityRule(document)) {
                 log.error("Document is expired :{}", document.getId());
-                report.getBrokenRules().add(DocumentBrokenRule.builder()
-                        .rule(DocumentRule.R_RENT_RECEIPT_MONTHS)
-                        .message(DocumentRule.R_RENT_RECEIPT_MONTHS.getDefaultMessage())
-                        .build());
+                report.addDocumentBrokenRule(DocumentBrokenRule.of(DocumentRule.R_RENT_RECEIPT_MONTHS));
                 report.setAnalysisStatus(DocumentAnalysisStatus.DENIED);
             } else if (!checkAddressWithSalary(document)) {
                 log.error("Document with wrong address :{}", document.getId());
-                report.getBrokenRules().add(DocumentBrokenRule.builder()
-                        .rule(DocumentRule.R_RENT_RECEIPT_ADDRESS_SALARY)
-                        .message(DocumentRule.R_RENT_RECEIPT_ADDRESS_SALARY.getDefaultMessage())
-                        .build());
+                report.addDocumentBrokenRule(DocumentBrokenRule.of(DocumentRule.R_RENT_RECEIPT_ADDRESS_SALARY));
                 report.setAnalysisStatus(DocumentAnalysisStatus.DENIED);
             } else {
                 report.setAnalysisStatus(DocumentAnalysisStatus.CHECKED);

@@ -32,7 +32,7 @@ public record TwoDDoc(
 
     public BarCodeDocumentType getDocumentType() {
         return switch (header.documentTypeId()) {
-            case "04" -> BarCodeDocumentType.TAX_ASSESSMENT;
+            case "04", "28" -> BarCodeDocumentType.TAX_ASSESSMENT;
             case "18", "24" -> BarCodeDocumentType.TAX_DECLARATION;
             case "06" -> switch (header.certId()) {
                 case "SNC2", "SNC3" -> BarCodeDocumentType.SNCF_PAYSLIP;

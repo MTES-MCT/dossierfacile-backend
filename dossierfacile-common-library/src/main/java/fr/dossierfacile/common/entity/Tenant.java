@@ -1,29 +1,12 @@
 package fr.dossierfacile.common.entity;
 
 import fr.dossierfacile.common.enums.*;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.DiscriminatorValue;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OrderBy;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -313,8 +296,7 @@ public class Tenant extends User implements Person, Serializable {
             if (!getFranceConnect()) {
                 super.setFirstName(firstName);
             }
-        }
-        else {
+        } else {
             this.tenantFirstName = firstName;
         }
     }
@@ -329,8 +311,7 @@ public class Tenant extends User implements Person, Serializable {
             if (!getFranceConnect()) {
                 super.setLastName(lastName);
             }
-        }
-        else {
+        } else {
             this.tenantLastName = lastName;
         }
     }
@@ -345,10 +326,21 @@ public class Tenant extends User implements Person, Serializable {
             if (!getFranceConnect()) {
                 super.setPreferredName(preferredName);
             }
-        }
-        else {
+        } else {
             this.tenantPreferredName = preferredName;
         }
+    }
+
+    public String getNormalizedName() {
+        // Only get the first name when a user has multiple first names
+        var normalizedFirstName = StringUtils.stripAccents(getFirstName()).split(" ")[0];
+        var normalizedLastName = StringUtils.stripAccents(getLastName());
+        if (getPreferredName() != null && !getPreferredName().isEmpty()) {
+            normalizedLastName = StringUtils.stripAccents(getPreferredName());
+        }
+        return String.format("%s_%s",
+                normalizedFirstName.substring(0, 1).toUpperCase() + normalizedFirstName.substring(1),
+                normalizedLastName.substring(0, 1).toUpperCase() + normalizedLastName.substring(1));
     }
 
 }

@@ -79,6 +79,20 @@ public class Guarantor implements Person, Serializable {
         return fullName.toString();
     }
 
+    public String getNormalizedName() {
+        if (typeGuarantor == TypeGuarantor.NATURAL_PERSON) {
+            var normalizedFirstName = StringUtils.stripAccents(getFirstName()).split(" ")[0];
+            var normalizedLastName = StringUtils.stripAccents(getLastName());
+            return String.format("%s_%s",
+                    normalizedFirstName.substring(0, 1).toUpperCase() + normalizedFirstName.substring(1),
+                    normalizedLastName.substring(0, 1).toUpperCase() + normalizedLastName.substring(1));
+        } else if (typeGuarantor == TypeGuarantor.LEGAL_PERSON) {
+            var normalizedLegalPersonName = StringUtils.stripAccents(getLegalPersonName());
+            return normalizedLegalPersonName.substring(0,1).toUpperCase() + normalizedLegalPersonName.substring(1);
+        }
+        return "";
+    }
+
     public int getTotalSalary() {
         return documents.stream().filter(d -> d.getDocumentCategory() == DocumentCategory.FINANCIAL).map(Document::getMonthlySum)
                 .filter(Objects::nonNull).reduce(0, Integer::sum);

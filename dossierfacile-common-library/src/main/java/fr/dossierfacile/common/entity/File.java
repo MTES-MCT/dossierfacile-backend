@@ -59,6 +59,10 @@ public class File implements Serializable {
     @OneToOne(mappedBy= "file", fetch = FetchType.LAZY)
     private ParsedFileAnalysis parsedFileAnalysis;
 
+    @Nullable
+    @OneToOne(mappedBy = "file", fetch = FetchType.LAZY)
+    private BlurryFileAnalysis blurryFileAnalysis;
+
     @PreRemove
     void deleteCascade() {
         if (storageFile != null)

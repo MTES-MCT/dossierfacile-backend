@@ -1,12 +1,12 @@
 package fr.dossierfacile.api.front.service.interfaces;
 
 import fr.dossierfacile.api.front.model.MappingFormat;
+import fr.dossierfacile.api.front.model.tenant.FullFolderFile;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,7 +18,7 @@ public interface ApartmentSharingService {
 
     ApplicationModel light(String token);
 
-    ByteArrayOutputStream downloadFullPdf(String token) throws IOException;
+    FullFolderFile downloadFullPdf(String token) throws IOException;
 
     void resetDossierPdfGenerated(ApartmentSharing apartmentSharing);
 
@@ -37,5 +37,5 @@ public interface ApartmentSharingService {
      */
     void delete(ApartmentSharing apartmentSharing);
 
-    ByteArrayOutputStream zipDocuments(Tenant tenant);
+    FullFolderFile zipDocuments(Tenant tenant);
 }

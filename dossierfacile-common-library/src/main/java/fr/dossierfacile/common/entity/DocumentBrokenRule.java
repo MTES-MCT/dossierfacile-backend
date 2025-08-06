@@ -20,4 +20,17 @@ public class DocumentBrokenRule {
 
     private String message;
 
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private DocumentRule.Level level = DocumentRule.Level.CRITICAL;
+
+
+    public static DocumentBrokenRule of(DocumentRule rule) {
+        return DocumentBrokenRule.builder()
+                .rule(rule)
+                .message(rule.getDefaultMessage())
+                .level(rule.getLevel())
+                .build();
+    }
+
 }

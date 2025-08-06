@@ -1,15 +1,8 @@
 package fr.dossierfacile.common.entity;
 
-import fr.dossierfacile.common.enums.ApplicationType;
-import fr.dossierfacile.common.enums.FileStatus;
-import fr.dossierfacile.common.enums.FileStorageStatus;
-import fr.dossierfacile.common.enums.TenantFileStatus;
+import fr.dossierfacile.common.enums.*;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -17,6 +10,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Entity
@@ -128,5 +122,9 @@ public class ApartmentSharing implements Serializable {
             totalSalary += tenant.getGuarantorsTotalSalary();
         }
         return totalSalary;
+    }
+
+    public Optional<Tenant> getOwnerTenant() {
+        return tenants.stream().filter(it -> it.getTenantType() == TenantType.CREATE).findFirst();
     }
 }

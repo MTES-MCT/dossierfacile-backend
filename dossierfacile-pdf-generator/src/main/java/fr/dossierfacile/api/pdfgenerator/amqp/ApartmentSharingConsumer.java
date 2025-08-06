@@ -31,17 +31,22 @@ public class ApartmentSharingConsumer {
         log.info("Received full PDF for apartment sharing to process:{}", item);
         try {
             pdfGeneratorService.generateFullDossierPdf(Long.valueOf(item.get("id")));
+            jobContext.setJobStatus(JobStatus.SUCCESS);
         } catch (Exception e) {
             jobContext.setJobStatus(JobStatus.ERROR);
             log.error(e.getMessage(), e.getCause());
             throw e;
         } finally {
-            logAggregator.sendWorkerLogs(
-                    jobContext.getProcessId(),
-                    ActionType.FULL_DOSSIER_PDF.name(),
-                    jobContext.getStartTime(),
-                    JobContextUtil.prepareJobAttributes(jobContext)
-            );
+            try {
+                logAggregator.sendWorkerLogs(
+                        jobContext.getProcessId(),
+                        ActionType.FULL_DOSSIER_PDF.name(),
+                        jobContext.getStartTime(),
+                        JobContextUtil.prepareJobAttributes(jobContext)
+                );
+            } catch (Exception e) {
+                log.error("Could not send worker logs for apartment sharing {}", item.get("id"), e);
+            }
         }
     }
 

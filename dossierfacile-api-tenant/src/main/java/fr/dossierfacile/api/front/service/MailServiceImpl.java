@@ -31,6 +31,7 @@ import static fr.dossierfacile.common.enums.ApplicationType.GROUP;
 @Slf4j
 public class MailServiceImpl implements MailService {
     private static final String TENANT_BASE_URL_KEY = "tenantBaseUrl";
+    private static final String TENANT_ID_KEY = "TENANT_ID";
     private final TransactionalEmailsApi apiInstance;
     @Value("${tenant.base.url}")
     private String tenantBaseUrl;
@@ -137,6 +138,7 @@ public class MailServiceImpl implements MailService {
 
         Long templateId = templateIdCoupleApplication;
         variables.put("PRENOM", flatmate.getFirstName());
+        variables.put(TENANT_ID_KEY, flatmate.getId().toString());
         variables.put("confirmToken", passwordRecoveryToken.getToken());
         variables.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
         if (applicationType == GROUP) {
@@ -193,7 +195,7 @@ public class MailServiceImpl implements MailService {
         Map<String, String> variables = new HashMap<>();
         variables.put("PRENOM", user.getFirstName());
         variables.put("NOM", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
-        variables.put("TENANT_ID", user.getId().toString());
+        variables.put(TENANT_ID_KEY, user.getId().toString());
         variables.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
 
         sendEmailToTenant(user, variables, templateEmailWhenAccountNotYetCompleted);
@@ -213,7 +215,7 @@ public class MailServiceImpl implements MailService {
     public void sendEmailToTenantValidatedXDaysAgo(User user) {
         Map<String, String> variables = new HashMap<>();
         variables.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
-        variables.put("TENANT_ID", user.getId().toString());
+        variables.put(TENANT_ID_KEY, user.getId().toString());
 
         sendEmailToTenant(user, variables, templateIdAccountSatisf);
     }

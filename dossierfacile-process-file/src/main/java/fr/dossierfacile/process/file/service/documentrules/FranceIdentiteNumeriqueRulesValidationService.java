@@ -34,11 +34,6 @@ public class FranceIdentiteNumeriqueRulesValidationService implements RulesValid
 
     @Override
     public DocumentAnalysisReport process(Document document, DocumentAnalysisReport report) {
-        List<DocumentBrokenRule> brokenRules = Optional.ofNullable(report.getBrokenRules())
-                .orElseGet(() -> {
-                    report.setBrokenRules(new LinkedList<>());
-                    return report.getBrokenRules();
-                });
         boolean parsingOk = false;
         for (File dfFile : document.getFiles()) {
             ParsedFileAnalysis analysis = dfFile.getParsedFileAnalysis();
@@ -55,19 +50,13 @@ public class FranceIdentiteNumeriqueRulesValidationService implements RulesValid
                         || parsedDocument.getAttributes().getFamilyName() == null
                         || parsedDocument.getAttributes().getGivenName() == null
                         || parsedDocument.getAttributes().getValidityDate() == null) {
-                    brokenRules.add(DocumentBrokenRule.builder()
-                            .rule(DocumentRule.R_FRANCE_IDENTITE_STATUS)
-                            .message(DocumentRule.R_FRANCE_IDENTITE_STATUS.getDefaultMessage())
-                            .build());
+                    report.addDocumentBrokenRule(DocumentBrokenRule.of(DocumentRule.R_FRANCE_IDENTITE_STATUS));
                     continue;
                 }
 
                 // Fake Rule
                 if (!("VALID".equals(parsedDocument.getStatus()))) {
-                    brokenRules.add(DocumentBrokenRule.builder()
-                            .rule(DocumentRule.R_FRANCE_IDENTITE_STATUS)
-                            .message(DocumentRule.R_FRANCE_IDENTITE_STATUS.getDefaultMessage())
-                            .build());
+                    report.addDocumentBrokenRule(DocumentBrokenRule.of(DocumentRule.R_FRANCE_IDENTITE_STATUS));
                     continue;
                 }
 
@@ -79,17 +68,15 @@ public class FranceIdentiteNumeriqueRulesValidationService implements RulesValid
                         && (normalizeName(parsedDocument.getAttributes().getFamilyName()).contains(normalizeName(lastName)))
                 )) {
                     log.error("Le nom/prenom ne correpond pas à l'utilisateur tenantId:" + document.getTenant().getId() + " firstname: " + firstName);
-                    brokenRules.add(DocumentBrokenRule.builder()
-                            .rule(DocumentRule.R_FRANCE_IDENTITE_NAMES)
-                            .message(DocumentRule.R_FRANCE_IDENTITE_NAMES.getDefaultMessage())
-                            .build());
+                    report.addDocumentBrokenRule(DocumentBrokenRule.of(DocumentRule.R_FRANCE_IDENTITE_NAMES));
                 }
                 parsingOk = true;
             }
         }
-        if (brokenRules.isEmpty() && parsingOk ) {
+        var brokenRules = report.getBrokenRules();
+        if (brokenRules != null && brokenRules.isEmpty() && parsingOk ) {
             report.setAnalysisStatus(DocumentAnalysisStatus.CHECKED);
-        } else if (brokenRules.stream().anyMatch(r -> r.getRule().getLevel() == DocumentRule.Level.CRITICAL)) {
+        } else if (brokenRules != null && brokenRules.stream().anyMatch(r -> r.getRule().getLevel() == DocumentRule.Level.CRITICAL)) {
             report.setAnalysisStatus(DocumentAnalysisStatus.DENIED);
         } else {
             report.setAnalysisStatus(DocumentAnalysisStatus.UNDEFINED);

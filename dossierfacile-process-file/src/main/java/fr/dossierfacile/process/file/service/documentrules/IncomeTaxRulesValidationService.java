@@ -134,7 +134,6 @@ public class IncomeTaxRulesValidationService implements RulesValidationService {
     @Transactional
     public DocumentAnalysisReport process(Document document, @NotNull DocumentAnalysisReport report) {
         try {
-            List<DocumentBrokenRule> brokenRules = report.getBrokenRules();
 
             if (!check2DDocPresent(document)) {
                 log.warn("Document has not 2DDoc :" + document.getId());
@@ -143,29 +142,20 @@ public class IncomeTaxRulesValidationService implements RulesValidationService {
             }
             if (!checkClassificationFrom2DDoc(document)) {
                 log.error("Document is not a Tax Assessment :" + document.getId());
-                brokenRules.add(DocumentBrokenRule.builder()
-                        .rule(DocumentRule.R_TAX_BAD_CLASSIFICATION)
-                        .message(DocumentRule.R_TAX_BAD_CLASSIFICATION.getDefaultMessage())
-                        .build());
+                report.addDocumentBrokenRule(DocumentBrokenRule.of(DocumentRule.R_TAX_BAD_CLASSIFICATION));
                 report.setAnalysisStatus(DocumentAnalysisStatus.DENIED);
                 return report;
             }
             if (!checkDocumentParsed(document)) {
                 log.warn("Document has not been correctly parsed :" + document.getId());
-                brokenRules.add(DocumentBrokenRule.builder()
-                        .rule(DocumentRule.R_TAX_PARSE)
-                        .message(DocumentRule.R_TAX_PARSE.getDefaultMessage())
-                        .build());
+                report.addDocumentBrokenRule(DocumentBrokenRule.of(DocumentRule.R_TAX_PARSE));
                 report.setAnalysisStatus(DocumentAnalysisStatus.UNDEFINED);
                 return report;
             }
 
             if (!checkConsistency(document)) {
                 log.error("Le 2DDoc code ne correspond pas au contenu du document :" + document.getId());
-                brokenRules.add(DocumentBrokenRule.builder()
-                        .rule(DocumentRule.R_TAX_FAKE)
-                        .message(DocumentRule.R_TAX_FAKE.getDefaultMessage())
-                        .build());
+                report.addDocumentBrokenRule(DocumentBrokenRule.of(DocumentRule.R_TAX_FAKE));
             } else {
 
                 // Provide N-1 tax income / not more N-3
@@ -183,20 +173,24 @@ public class IncomeTaxRulesValidationService implements RulesValidationService {
                 if (now.isBefore(LocalDate.of(now.getYear(), 9, 15))) {
                     if (maxYear != (now.getYear() - 1) && maxYear != (now.getYear() - 2)) {
                         log.error("Tax income is deprecated :" + document.getId());
-                        brokenRules.add(DocumentBrokenRule.builder()
-                                .rule(DocumentRule.R_TAX_N1)
-                                .message("L'avis d'impots sur les revenus " + maxYear
-                                        + ", vous devez fournir un avis d'impots sur les revenus " + (now.getYear() - 1)
-                                        + " ou " + (now.getYear() - 2))
-                                .build());
+                        report.addDocumentBrokenRule(
+                                DocumentBrokenRule.builder()
+                                        .rule(DocumentRule.R_TAX_N1)
+                                        .message("L'avis d'impots sur les revenus " + maxYear
+                                                + ", vous devez fournir un avis d'impots sur les revenus " + (now.getYear() - 1)
+                                                + " ou " + (now.getYear() - 2))
+                                        .build()
+                        );
                     }
                 } else if (maxYear != (now.getYear() - 1)) {
                     log.error("Tax income is deprecated :" + document.getId());
-                    brokenRules.add(DocumentBrokenRule.builder()
-                            .rule(DocumentRule.R_TAX_N1)
-                            .message("L'avis d'impots sur les revenus " + maxYear
-                                    + " n'est pas accepté, vous devez fournir un avis d'impots sur les revenus " + (now.getYear() - 1))
-                            .build());
+                    report.addDocumentBrokenRule(
+                            DocumentBrokenRule.builder()
+                                    .rule(DocumentRule.R_TAX_N1)
+                                    .message("L'avis d'impots sur les revenus " + maxYear
+                                            + " n'est pas accepté, vous devez fournir un avis d'impots sur les revenus " + (now.getYear() - 1))
+                                    .build()
+                    );
                 }
 
                 // N-3 check
@@ -204,10 +198,7 @@ public class IncomeTaxRulesValidationService implements RulesValidationService {
                 int authorisedYear = now.minusMonths(9).minusDays(15).getYear();
                 if (minYear < (authorisedYear - 2)) {
                     log.error("Tax income is deprecated :" + document.getId());
-                    brokenRules.add(DocumentBrokenRule.builder()
-                            .rule(DocumentRule.R_TAX_N3)
-                            .message(DocumentRule.R_TAX_N3.getDefaultMessage())
-                            .build());
+                    report.addDocumentBrokenRule(DocumentBrokenRule.of(DocumentRule.R_TAX_N3));
                 }
 
                 // Firstname LastName PreferredName
@@ -227,10 +218,7 @@ public class IncomeTaxRulesValidationService implements RulesValidationService {
                                         || PersonNameComparator.bearlyEqualsTo(qrDocument.getDeclarant2Nom(), preferredName, firstName)))
                         )) {
                             log.error("Le nom/prenom ne correpond pas à l'utilisateur docId:" + document.getId() + " firstname: " + firstName);
-                            brokenRules.add(DocumentBrokenRule.builder()
-                                    .rule(DocumentRule.R_TAX_NAMES)
-                                    .message(DocumentRule.R_TAX_NAMES.getDefaultMessage())
-                                    .build());
+                            report.addDocumentBrokenRule(DocumentBrokenRule.of(DocumentRule.R_TAX_NAMES));
                         }
                     }
                 }
@@ -246,24 +234,19 @@ public class IncomeTaxRulesValidationService implements RulesValidationService {
                         TaxIncomeMainFile parsedDocument = (TaxIncomeMainFile) analysis.getParsedFile();
                         if (CollectionUtils.isEmpty(parsedDocument.getTaxIncomeLeaves())) {
                             log.error("Income tax has not incometaxleaf:" + document.getId());
-                            brokenRules.add(DocumentBrokenRule.builder()
-                                    .rule(DocumentRule.R_TAX_LEAF)
-                                    .message(DocumentRule.R_TAX_LEAF.getDefaultMessage())
-                                    .build());
+                            report.addDocumentBrokenRule(DocumentBrokenRule.of(DocumentRule.R_TAX_LEAF));
                             break;
                         }
                         TaxIncomeLeaf leaf = parsedDocument.getTaxIncomeLeaves().get(0);
                         if (leaf != null && leaf.getPageCount() != null && leaf.getPageCount() > parsedDocument.getTaxIncomeLeaves().size()) {
                             log.error("Income tax has not ALL incometaxleaf:" + document.getId());
-                            brokenRules.add(DocumentBrokenRule.builder()
-                                    .rule(DocumentRule.R_TAX_ALL_LEAF)
-                                    .message(DocumentRule.R_TAX_ALL_LEAF.getDefaultMessage())
-                                    .build());
+                            report.addDocumentBrokenRule(DocumentBrokenRule.of(DocumentRule.R_TAX_ALL_LEAF));
                         }
 
                     }
                 }
             }
+            var brokenRules = report.getBrokenRules();
             if (brokenRules.isEmpty()) {
                 report.setAnalysisStatus(DocumentAnalysisStatus.CHECKED);
             } else if (brokenRules.stream().anyMatch(r -> r.getRule().getLevel() == DocumentRule.Level.CRITICAL)) {
