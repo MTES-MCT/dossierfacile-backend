@@ -53,7 +53,7 @@ public class Producer {
     public void amqpAnalyseFile(Long fileId) {
         Message msg = new Message(gson.toJson(Collections.singletonMap("fileId", fileId)).getBytes());
         log.info("Sending message to analyse file with ID [{}]", fileId);
-        amqpTemplate.send(exchangeFileAnalysis, routingKeyFileAnalysis, msg);
+        //amqpTemplate.send(exchangeFileAnalysis, routingKeyFileAnalysis, msg);
     }
 
     // This method is used to trigger the analysis of a file with the old Java service

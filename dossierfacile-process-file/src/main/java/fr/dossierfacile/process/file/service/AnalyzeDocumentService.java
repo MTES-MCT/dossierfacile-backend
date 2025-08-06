@@ -83,13 +83,13 @@ public class AnalyzeDocumentService {
         List<?> messages = queueMessageRepository.findByQueueNameAndDocumentIdAndStatusIn(QueueName.QUEUE_FILE_ANALYSIS,
                 document.getId(),
                 List.of(QueueMessageStatus.PENDING, QueueMessageStatus.PROCESSING));
-        List<BlurryFileAnalysis> blurryAnalysis = document.getFiles().stream().map(File::getBlurryFileAnalysis).filter(Objects::nonNull).toList();
-        blurryAnalysis.forEach(blurryAnalysis1 -> log.info("Found blurry file analysis : {}", blurryAnalysis1));
-        if (blurryAnalysis.size() != document.getFiles().size()) {
-            log.info("Document {} is not ready to be analysed because it has {} files with blurry analysis, but {} files in total",
-                    document.getId(), blurryAnalysis.size(), document.getFiles().size());
-            return false;
-        }
+        //List<BlurryFileAnalysis> blurryAnalysis = document.getFiles().stream().map(File::getBlurryFileAnalysis).filter(Objects::nonNull).toList();
+        //blurryAnalysis.forEach(blurryAnalysis1 -> log.info("Found blurry file analysis : {}", blurryAnalysis1));
+        //if (blurryAnalysis.size() != document.getFiles().size()) {
+        //    log.info("Document {} is not ready to be analysed because it has {} files with blurry analysis, but {} files in total",
+        //            document.getId(), blurryAnalysis.size(), document.getFiles().size());
+        //    return false;
+        //}
         return CollectionUtils.isEmpty(messages);
     }
 
