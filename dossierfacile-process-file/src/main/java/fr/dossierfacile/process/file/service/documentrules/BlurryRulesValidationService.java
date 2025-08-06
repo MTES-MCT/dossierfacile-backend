@@ -8,9 +8,9 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
-@Service
+/*@Service
 @RequiredArgsConstructor
-@Slf4j
+@Slf4j*/
 public class BlurryRulesValidationService implements RulesValidationService {
 
     @Override
