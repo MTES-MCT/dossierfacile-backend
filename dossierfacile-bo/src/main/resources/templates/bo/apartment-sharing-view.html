@@ -720,7 +720,8 @@
                                     <ul>
                                         <li style="margin-top: 5px"
                                             th:each="file : ${filesByDocument.get(document.getId())}">
-                                            <a th:href="${'/files/' + file.getId()}"
+                                            <a target="_blank" rel="noopener"
+                                               th:href="${'/files/' + file.getId()}"
                                                th:text="${file.summary}"></a>
                                             <span th:if="${file.hasBeenAnalyzed()}" th:with="analysis=${file.analysis}">
                                                 <span class="fa"
@@ -937,7 +938,8 @@
                                     <ul>
                                         <li style="margin-top: 5px"
                                             th:each="file : ${filesByDocument.get(document.getId())}">
-                                            <a th:href="${'/files/' + file.getId()}"
+                                            <a target="_blank" rel="noopener"
+                                               th:href="${'/files/' + file.getId()}"
                                                th:text="${file.summary}"></a>
                                             <span th:if="${file.hasBeenAnalyzed()}" th:with="analysis=${file.analysis}">
                                                 <span class="fa"
