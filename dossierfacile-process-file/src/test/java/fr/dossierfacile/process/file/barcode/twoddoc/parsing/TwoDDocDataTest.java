@@ -48,4 +48,37 @@ class TwoDDocDataTest {
         ));
     }
 
+    @Test
+    void should_parse_2025_avis_imposition_2ddoc_data_with_1_declarant() {
+        TwoDDocData data = TwoDDocData.parse("431\u001D442544A3295123445202446MARIO BROSSE\u001D4A310720254YAVENUE DE LA REPUBLIQUE/75003 PARIS\u001D4712345404911074117311\u001D4V41\u001D4X126\u001D");
+
+        assertThat(data.withLabels()).containsAllEntriesOf(Map.of(
+                "Année des revenus", "2024",
+                "Date de mise en recouvrement", "31072025",
+                "Déclarant 1", "MARIO BROSSE",
+                "Nombre de parts", "1",
+                "Numéro fiscal du déclarant 1", "1234540491107",
+                "Revenu fiscal de référence", "17311",
+                "Référence d’avis d’impôt", "2544A32951234",
+                "Adresse", "AVENUE DE LA REPUBLIQUE/75003 PARIS"
+        ));
+    }
+
+    @Test
+    void should_parse_2025_avis_imposition_2ddoc_data_with_2_declarant() {
+        TwoDDocData data = TwoDDocData.parse("432\u001D44256901234879045202446TIMOTHEE QUENTIN\u001D4A310720254Y1 ESPLANADE DE LA DEFENSE/PUTEAUX\u001D47301284563329648MARIE DUPONT\u001D49301791234511341100009\u001D4V18488\u001D4X16873\u001D");
+
+        assertThat(data.withLabels()).containsAllEntriesOf(Map.of(
+                "Année des revenus", "2024",
+                "Date de mise en recouvrement", "31072025",
+                "Déclarant 1", "TIMOTHEE QUENTIN",
+                "Déclarant 2", "MARIE DUPONT",
+                "Nombre de parts", "2",
+                "Numéro fiscal du déclarant 1", "3012845633296",
+                "Numéro fiscal du déclarant 2", "3017912345113",
+                "Revenu fiscal de référence", "100009",
+                "Référence d’avis d’impôt", "2569012348790",
+                "Adresse", "1 ESPLANADE DE LA DEFENSE/PUTEAUX"
+        ));
+    }
 }
