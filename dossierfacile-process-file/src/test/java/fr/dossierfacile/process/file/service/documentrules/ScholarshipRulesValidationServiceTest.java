@@ -77,7 +77,7 @@ class ScholarshipRulesValidationServiceTest {
 
         DocumentAnalysisReport report = DocumentAnalysisReport.builder()
                 .document(document)
-                .brokenRules(new LinkedList<>())
+                .failedRules(new LinkedList<>())
                 .build();
         scholarValidationService.process(document, report);
 
@@ -90,13 +90,13 @@ class ScholarshipRulesValidationServiceTest {
 
         DocumentAnalysisReport report = DocumentAnalysisReport.builder()
                 .document(document)
-                .brokenRules(new LinkedList<>())
+                .failedRules(new LinkedList<>())
                 .build();
         scholarValidationService.process(document, report);
 
         Assertions.assertThat(report.getAnalysisStatus()).isEqualTo(DocumentAnalysisStatus.DENIED);
-        Assertions.assertThat(report.getBrokenRules()).hasSize(1);
-        Assertions.assertThat(report.getBrokenRules().get(0)).matches(docRule -> docRule.getRule() == DocumentRule.R_SCHOLARSHIP_EXPIRED);
+        Assertions.assertThat(report.getFailedRules()).hasSize(1);
+        Assertions.assertThat(report.getFailedRules().get(0)).matches(docRule -> docRule.getRule() == DocumentRule.R_SCHOLARSHIP_EXPIRED);
     }
 
     @Test
@@ -105,12 +105,12 @@ class ScholarshipRulesValidationServiceTest {
         document.setMonthlySum(1020);
         DocumentAnalysisReport report = DocumentAnalysisReport.builder()
                 .document(document)
-                .brokenRules(new LinkedList<>())
+                .failedRules(new LinkedList<>())
                 .build();
         scholarValidationService.process(document, report);
 
         Assertions.assertThat(report.getAnalysisStatus()).isEqualTo(DocumentAnalysisStatus.DENIED);
-        Assertions.assertThat(report.getBrokenRules()).hasSize(1);
-        Assertions.assertThat(report.getBrokenRules().get(0)).matches(docRule -> docRule.getRule() == DocumentRule.R_SCHOLARSHIP_AMOUNT);
+        Assertions.assertThat(report.getFailedRules()).hasSize(1);
+        Assertions.assertThat(report.getFailedRules().get(0)).matches(docRule -> docRule.getRule() == DocumentRule.R_SCHOLARSHIP_AMOUNT);
     }
 }

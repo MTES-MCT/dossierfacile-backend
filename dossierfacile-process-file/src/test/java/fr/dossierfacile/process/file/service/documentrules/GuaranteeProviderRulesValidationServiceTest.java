@@ -71,7 +71,7 @@ class GuaranteeProviderRulesValidationServiceTest {
                 .setValidityDate(LocalDate.now().plusMonths(1).format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
         DocumentAnalysisReport report = DocumentAnalysisReport.builder()
                 .document(document)
-                .brokenRules(new LinkedList<>())
+                .failedRules(new LinkedList<>())
                 .build();
         guaranteeProviderRulesValidationService.process(document, report);
 
@@ -85,13 +85,13 @@ class GuaranteeProviderRulesValidationServiceTest {
                 .setValidityDate(LocalDate.now().minusDays(1).format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
         DocumentAnalysisReport report = DocumentAnalysisReport.builder()
                 .document(document)
-                .brokenRules(new LinkedList<>())
+                .failedRules(new LinkedList<>())
                 .build();
         guaranteeProviderRulesValidationService.process(document, report);
 
         Assertions.assertThat(report.getAnalysisStatus()).isEqualTo(DocumentAnalysisStatus.DENIED);
-        Assertions.assertThat(report.getBrokenRules()).hasSize(1);
-        Assertions.assertThat(report.getBrokenRules().get(0)).matches(docRule -> docRule.getRule() == DocumentRule.R_GUARANTEE_EXPIRED);
+        Assertions.assertThat(report.getFailedRules()).hasSize(1);
+        Assertions.assertThat(report.getFailedRules().get(0)).matches(docRule -> docRule.getRule() == DocumentRule.R_GUARANTEE_EXPIRED);
     }
 
     @Test
@@ -103,7 +103,7 @@ class GuaranteeProviderRulesValidationServiceTest {
                 .setValidityDate(LocalDate.now().plusDays(15).format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
         DocumentAnalysisReport report = DocumentAnalysisReport.builder()
                 .document(document)
-                .brokenRules(new LinkedList<>())
+                .failedRules(new LinkedList<>())
                 .build();
         guaranteeProviderRulesValidationService.process(document, report);
 
@@ -118,12 +118,12 @@ class GuaranteeProviderRulesValidationServiceTest {
                 .setValidityDate(LocalDate.now().plusDays(15).format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
         DocumentAnalysisReport report = DocumentAnalysisReport.builder()
                 .document(document)
-                .brokenRules(new LinkedList<>())
+                .failedRules(new LinkedList<>())
                 .build();
         guaranteeProviderRulesValidationService.process(document, report);
 
         Assertions.assertThat(report.getAnalysisStatus()).isEqualTo(DocumentAnalysisStatus.DENIED);
-        Assertions.assertThat(report.getBrokenRules()).hasSize(1);
-        Assertions.assertThat(report.getBrokenRules().get(0)).matches(docRule -> docRule.getRule() == DocumentRule.R_GUARANTEE_NAMES);
+        Assertions.assertThat(report.getFailedRules()).hasSize(1);
+        Assertions.assertThat(report.getFailedRules().get(0)).matches(docRule -> docRule.getRule() == DocumentRule.R_GUARANTEE_NAMES);
     }
 }
