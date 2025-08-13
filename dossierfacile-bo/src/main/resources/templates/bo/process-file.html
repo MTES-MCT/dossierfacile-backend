@@ -135,7 +135,7 @@
                                         <span th:text="${messageItem.getDocumentAnalysisReport().getAnalysisStatus}"></span>
                                         <ul>
                                             <li style="margin-top: 5px"
-                                                th:each="rule : ${messageItem.getDocumentAnalysisReport().getBrokenRules()}">
+                                                th:each="rule : ${messageItem.getDocumentAnalysisReport().getFailedRules()()}">
                                                 <span style="font-size:smaller" th:text="' ' + ${rule.message}"></span>
                                             </li>
                                         </ul>
@@ -312,7 +312,7 @@
                                             <span th:text="${messageItem.getDocumentAnalysisReport().getAnalysisStatus}"></span>
                                             <ul>
                                                 <li style="margin-top: 5px"
-                                                    th:each="rule : ${messageItem.getDocumentAnalysisReport().getBrokenRules()}">
+                                                    th:each="rule : ${messageItem.getDocumentAnalysisReport().getFailedRules()}">
                                                     <span style="font-size:smaller"
                                                           th:text="' ' + ${rule.message}"></span>
                                                 </li>

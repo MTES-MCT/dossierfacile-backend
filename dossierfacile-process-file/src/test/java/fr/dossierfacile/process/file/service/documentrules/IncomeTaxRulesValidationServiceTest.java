@@ -82,7 +82,7 @@ class IncomeTaxRulesValidationServiceTest {
         Document document = buildValidTaxDocument();
         DocumentAnalysisReport report = DocumentAnalysisReport.builder()
                 .document(document)
-                .brokenRules(new LinkedList<>())
+                .failedRules(new LinkedList<>())
                 .build();
         incomeTaxRulesValidationService.process(document, report);
 
@@ -95,7 +95,7 @@ class IncomeTaxRulesValidationServiceTest {
         document.getFiles().add(buildValidDfFileWithYear(LocalDate.now().minusMonths(30).getYear()));
         DocumentAnalysisReport report = DocumentAnalysisReport.builder()
                 .document(document)
-                .brokenRules(new LinkedList<>())
+                .failedRules(new LinkedList<>())
                 .build();
         incomeTaxRulesValidationService.process(document, report);
 
@@ -110,7 +110,7 @@ class IncomeTaxRulesValidationServiceTest {
 
         DocumentAnalysisReport report = DocumentAnalysisReport.builder()
                 .document(document)
-                .brokenRules(new LinkedList<>())
+                .failedRules(new LinkedList<>())
                 .build();
         incomeTaxRulesValidationService.process(document, report);
 
@@ -123,12 +123,12 @@ class IncomeTaxRulesValidationServiceTest {
         document.getTenant().setFirstName("Joseph");
         DocumentAnalysisReport report = DocumentAnalysisReport.builder()
                 .document(document)
-                .brokenRules(new LinkedList<>())
+                .failedRules(new LinkedList<>())
                 .build();
         incomeTaxRulesValidationService.process(document, report);
 
         Assertions.assertThat(report.getAnalysisStatus()).isEqualTo(DocumentAnalysisStatus.DENIED);
-        Assertions.assertThat(report.getBrokenRules()).hasSize(1);
-        Assertions.assertThat(report.getBrokenRules().get(0)).matches(docRule -> docRule.getRule() == DocumentRule.R_TAX_NAMES);
+        Assertions.assertThat(report.getFailedRules()).hasSize(1);
+        Assertions.assertThat(report.getFailedRules().get(0)).matches(docRule -> docRule.getRule() == DocumentRule.R_TAX_NAMES);
     }
 }
