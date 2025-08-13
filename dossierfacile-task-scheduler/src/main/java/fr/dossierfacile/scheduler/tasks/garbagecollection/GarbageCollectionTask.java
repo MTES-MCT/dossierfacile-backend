@@ -11,6 +11,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static fr.dossierfacile.scheduler.tasks.TaskName.GARBAGE_COLLECTION;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -28,7 +29,11 @@ public class GarbageCollectionTask extends AbstractTask {
     @Scheduled(fixedDelayString = "${garbage-collection.seconds-between-iterations}", timeUnit = SECONDS)
     void cleanGarbage() {
         super.startTask(GARBAGE_COLLECTION);
-        storageProviderServices.keySet().forEach(this::cleanGarbageOn);
+        // We need to review this method with the new multi bucket S3 implementation.
+        var filteredStorageProviderServices = storageProviderServices.entrySet().stream()
+                .filter(entry -> entry.getKey() != ObjectStorageProvider.S3)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        filteredStorageProviderServices.keySet().forEach(this::cleanGarbageOn);
         super.endTask();
     }
 
