@@ -1,9 +1,6 @@
 package fr.dossierfacile.process.file.service;
 
-import fr.dossierfacile.common.entity.BlurryFileAnalysis;
-import fr.dossierfacile.common.entity.Document;
-import fr.dossierfacile.common.entity.DocumentAnalysisReport;
-import fr.dossierfacile.common.entity.File;
+import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.entity.messaging.QueueMessageStatus;
 import fr.dossierfacile.common.entity.messaging.QueueName;
 import fr.dossierfacile.common.exceptions.RetryableOperationException;
@@ -18,6 +15,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -55,11 +53,21 @@ public class AnalyzeDocumentService {
                     document.setDocumentAnalysisReport(null);
                     documentAnalysisReportRepository.delete(report);
                 });
+
                 DocumentAnalysisReport report = DocumentAnalysisReport.builder()
                         .document(document)
-                        .brokenRules(new LinkedList<>())
+                        .dataDocumentId(documentId)
+                        .failedRules(new LinkedList<>())
+                        .passedRules(new LinkedList<>())
+                        .inconclusiveRules(new LinkedList<>())
+                        .analysisStatus(DocumentAnalysisStatus.CHECKED)
+                        .createdAt(LocalDateTime.now())
                         .build();
+
                 rulesValidationServices.forEach(rulesService -> rulesService.process(document, report));
+
+                computeDocumentAnalysisReportStatus(report);
+
                 document.setDocumentAnalysisReport(report);
                 documentAnalysisReportRepository.save(report);
                 documentRepository.save(document);// necessaire?
@@ -84,6 +92,30 @@ public class AnalyzeDocumentService {
             return false;
         }
         return CollectionUtils.isEmpty(messages);
+    }
+
+    private void computeDocumentAnalysisReportStatus(DocumentAnalysisReport documentAnalysisReport) {
+        // This will happen if there was an exception during the analysis
+        if (documentAnalysisReport.getAnalysisStatus() == DocumentAnalysisStatus.UNDEFINED) {
+            return;
+        }
+        // If there are rules of type Inconclusive on the report the analysis status is UNDEFINED
+        if (CollectionUtils.isNotEmpty(documentAnalysisReport.getInconclusiveRules())) {
+            documentAnalysisReport.setAnalysisStatus(DocumentAnalysisStatus.UNDEFINED);
+            return;
+        }
+        // If there are some failed rules, the analysis status is DENIED
+        if (CollectionUtils.isNotEmpty(documentAnalysisReport.getFailedRules())) {
+            documentAnalysisReport.setAnalysisStatus(DocumentAnalysisStatus.DENIED);
+            return;
+        }
+        // If there are no failed rules and no inconclusive rules, the analysis status is CHECKED
+        if (CollectionUtils.isEmpty(documentAnalysisReport.getFailedRules()) && CollectionUtils.isEmpty(documentAnalysisReport.getInconclusiveRules())) {
+            documentAnalysisReport.setAnalysisStatus(DocumentAnalysisStatus.CHECKED);
+            return;
+        }
+        // If no other condition is met, the analysis status is UNDEFINED
+        documentAnalysisReport.setAnalysisStatus(DocumentAnalysisStatus.UNDEFINED);
     }
 
     private boolean hasBeenAnalysed(Document document) {

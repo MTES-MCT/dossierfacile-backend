@@ -119,16 +119,15 @@ public class RentalReceiptRulesValidationService implements RulesValidationServi
 
     @Override
     public DocumentAnalysisReport process(Document document, DocumentAnalysisReport report) {
-        report.setAnalysisStatus(DocumentAnalysisStatus.UNDEFINED);
-
         if (CollectionUtils.isEmpty(document.getFiles())) {
             return report;
         }
 
         if (document.getDocumentCategoryStep() != DocumentCategoryStep.TENANT_PROOF && !checkNumberOfPage(document)) {
-            log.error("Document number of pages mismatches :{}", document.getId());
-            report.addDocumentBrokenRule(DocumentBrokenRule.of(DocumentRule.R_RENT_RECEIPT_NB_DOCUMENTS));
-            report.setAnalysisStatus(DocumentAnalysisStatus.DENIED);
+            log.info("Document number of pages mismatches :{}", document.getId());
+            report.addDocumentFailedRule(DocumentAnalysisRule.documentFailedRuleFrom(DocumentRule.R_RENT_RECEIPT_NB_DOCUMENTS));
+        } else {
+            report.addDocumentPassedRule(DocumentAnalysisRule.documentPassedRuleFrom(DocumentRule.R_RENT_RECEIPT_NB_DOCUMENTS));
         }
 
         if (document.getFiles().stream().anyMatch(f -> f.getParsedFileAnalysis() == null || f.getParsedFileAnalysis().getParsedFile() == null)) {
@@ -136,21 +135,28 @@ public class RentalReceiptRulesValidationService implements RulesValidationServi
         }
 
         try {
-            if (!checkNamesRule(document)) {
-                log.error("Document names mismatches :{}", document.getId());
-                report.addDocumentBrokenRule(DocumentBrokenRule.of(DocumentRule.R_RENT_RECEIPT_NAME));
-                report.setAnalysisStatus(DocumentAnalysisStatus.DENIED);
-            } else if (!checkMonthsValidityRule(document)) {
-                log.error("Document is expired :{}", document.getId());
-                report.addDocumentBrokenRule(DocumentBrokenRule.of(DocumentRule.R_RENT_RECEIPT_MONTHS));
-                report.setAnalysisStatus(DocumentAnalysisStatus.DENIED);
-            } else if (!checkAddressWithSalary(document)) {
-                log.error("Document with wrong address :{}", document.getId());
-                report.addDocumentBrokenRule(DocumentBrokenRule.of(DocumentRule.R_RENT_RECEIPT_ADDRESS_SALARY));
-                report.setAnalysisStatus(DocumentAnalysisStatus.DENIED);
+
+            if (checkNamesRule(document)) {
+                report.addDocumentPassedRule(DocumentAnalysisRule.documentPassedRuleFrom(DocumentRule.R_RENT_RECEIPT_NAME));
             } else {
-                report.setAnalysisStatus(DocumentAnalysisStatus.CHECKED);
+                log.info("Document names mismatches :{}", document.getId());
+                report.addDocumentFailedRule(DocumentAnalysisRule.documentFailedRuleFrom(DocumentRule.R_RENT_RECEIPT_NAME));
             }
+
+            if (checkMonthsValidityRule(document)) {
+                report.addDocumentPassedRule(DocumentAnalysisRule.documentPassedRuleFrom(DocumentRule.R_RENT_RECEIPT_MONTHS));
+            } else {
+                log.info("Document is expired :{}", document.getId());
+                report.addDocumentFailedRule(DocumentAnalysisRule.documentFailedRuleFrom(DocumentRule.R_RENT_RECEIPT_MONTHS));
+            }
+
+            // TODO : implement the address check
+            /*if (checkAddressWithSalary(document)) {
+                report.addDocumentPassedRule(DocumentAnalysisRule.documentPassedRuleFrom(DocumentRule.R_RENT_RECEIPT_ADDRESS_SALARY));
+            } else {
+                log.info("Document with wrong address :{}", document.getId());
+                report.addDocumentFailedRule(DocumentAnalysisRule.documentFailedRuleFrom(DocumentRule.R_RENT_RECEIPT_ADDRESS_SALARY));
+            }*/
 
         } catch (Exception e) {
             log.error("Error during the rules validation execution pocess", e);

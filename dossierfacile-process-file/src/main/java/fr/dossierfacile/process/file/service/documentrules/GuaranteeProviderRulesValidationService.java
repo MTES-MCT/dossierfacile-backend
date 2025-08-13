@@ -33,6 +33,9 @@ public class GuaranteeProviderRulesValidationService implements RulesValidationS
 
     private boolean checkNamesRule(Document document, GuaranteeProviderFile parsedFile) {
         Tenant tenant = document.getGuarantor().getTenant();
+        if (parsedFile.getStatus() == ParsedStatus.INCOMPLETE) {
+            return false;
+        }
         return parsedFile.getNames().stream().anyMatch(
                 (fullname) -> PersonNameComparator.bearlyEqualsTo(fullname.firstName(), tenant.getFirstName())
                         && (PersonNameComparator.bearlyEqualsTo(fullname.lastName(), tenant.getLastName())
@@ -40,6 +43,9 @@ public class GuaranteeProviderRulesValidationService implements RulesValidationS
     }
 
     private boolean checkValidityRule(GuaranteeProviderFile parsedFile) {
+        if (parsedFile.getStatus() == ParsedStatus.INCOMPLETE) {
+            return false;
+        }
         LocalDate validityDate = LocalDate.parse(parsedFile.getValidityDate(), DateTimeFormatter.ofPattern("dd/MM/yyyy"));
         return validityDate.isAfter(LocalDate.now());
     }
@@ -48,27 +54,37 @@ public class GuaranteeProviderRulesValidationService implements RulesValidationS
     public DocumentAnalysisReport process(Document document, DocumentAnalysisReport report) {
 
         try {
+            var firstDocument = document.getFiles().getFirst();
             if (CollectionUtils.isEmpty(document.getFiles())
-                    || document.getFiles().get(0).getParsedFileAnalysis() == null
-                    || document.getFiles().get(0).getParsedFileAnalysis().getParsedFile() == null) {
-                report.setAnalysisStatus(DocumentAnalysisStatus.UNDEFINED);
+                    || firstDocument.getParsedFileAnalysis() == null
+                    || firstDocument.getParsedFileAnalysis().getParsedFile() == null) {
+
+                log.info("Document was not correctly parsed :{}", document.getGuarantor().getTenant().getId());
+                report.addDocumentInconclusiveRule(DocumentAnalysisRule.documentInconclusiveRuleFrom(DocumentRule.R_GUARANTEE_PARSING));
                 return report;
             }
 
-            GuaranteeProviderFile parsedFile = (GuaranteeProviderFile) document.getFiles().get(0).getParsedFileAnalysis().getParsedFile();
-            if (parsedFile.getStatus() == ParsedStatus.INCOMPLETE) {
-                log.error("Document was not correctly parsed :" + document.getGuarantor().getTenant().getId());
-                report.setAnalysisStatus(DocumentAnalysisStatus.UNDEFINED);
-            } else if (!checkNamesRule(document, parsedFile)) {
-                log.error("Document names mismatches :" + document.getGuarantor().getTenant().getId());
-                report.addDocumentBrokenRule(DocumentBrokenRule.of(DocumentRule.R_GUARANTEE_NAMES));
-                report.setAnalysisStatus(DocumentAnalysisStatus.DENIED);
-            } else if (!checkValidityRule(parsedFile)) {
-                log.error("Document is expired :" + document.getGuarantor().getTenant().getId());
-                report.addDocumentBrokenRule(DocumentBrokenRule.of(DocumentRule.R_GUARANTEE_EXPIRED));
-                report.setAnalysisStatus(DocumentAnalysisStatus.DENIED);
+            GuaranteeProviderFile parsedFile = (GuaranteeProviderFile) firstDocument.getParsedFileAnalysis().getParsedFile();
+            if (parsedFile.getStatus() == ParsedStatus.COMPLETE) {
+                report.addDocumentPassedRule(DocumentAnalysisRule.documentPassedRuleFrom(DocumentRule.R_GUARANTEE_PARSING));
             } else {
-                report.setAnalysisStatus(DocumentAnalysisStatus.CHECKED);
+                log.info("Document was not correctly parsed :{}", document.getGuarantor().getTenant().getId());
+                report.addDocumentInconclusiveRule(DocumentAnalysisRule.documentInconclusiveRuleFrom(DocumentRule.R_GUARANTEE_PARSING));
+                return report;
+            }
+
+            if (checkNamesRule(document, parsedFile)) {
+                report.addDocumentPassedRule(DocumentAnalysisRule.documentPassedRuleFrom(DocumentRule.R_GUARANTEE_NAMES));
+            } else {
+                log.info("Document names mismatches :{}", document.getGuarantor().getTenant().getId());
+                report.addDocumentFailedRule(DocumentAnalysisRule.documentFailedRuleFrom(DocumentRule.R_GUARANTEE_NAMES));
+            }
+
+            if (checkValidityRule(parsedFile)) {
+                report.addDocumentPassedRule(DocumentAnalysisRule.documentPassedRuleFrom(DocumentRule.R_GUARANTEE_EXPIRED));
+            } else {
+                log.info("Document is expired :{}", document.getGuarantor().getTenant().getId());
+                report.addDocumentFailedRule(DocumentAnalysisRule.documentFailedRuleFrom(DocumentRule.R_GUARANTEE_EXPIRED));
             }
 
         } catch (Exception e) {

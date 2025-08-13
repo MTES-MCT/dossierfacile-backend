@@ -105,7 +105,7 @@ class RentalReceiptRulesValidationServiceTest {
 
         DocumentAnalysisReport report = DocumentAnalysisReport.builder()
                 .document(document)
-                .brokenRules(new LinkedList<>())
+                .failedRules(new LinkedList<>())
                 .build();
         validationService.process(document, report);
 
@@ -118,13 +118,13 @@ class RentalReceiptRulesValidationServiceTest {
 
         DocumentAnalysisReport report = DocumentAnalysisReport.builder()
                 .document(document)
-                .brokenRules(new LinkedList<>())
+                .failedRules(new LinkedList<>())
                 .build();
         validationService.process(document, report);
 
         Assertions.assertThat(report.getAnalysisStatus()).isEqualTo(DocumentAnalysisStatus.DENIED);
-        Assertions.assertThat(report.getBrokenRules()).hasSize(1);
-        Assertions.assertThat(report.getBrokenRules().getFirst()).matches(docRule -> docRule.getRule() == DocumentRule.R_RENT_RECEIPT_MONTHS);
+        Assertions.assertThat(report.getFailedRules()).hasSize(1);
+        Assertions.assertThat(report.getFailedRules().getFirst()).matches(docRule -> docRule.getRule() == DocumentRule.R_RENT_RECEIPT_MONTHS);
     }
 
     @Test
@@ -132,12 +132,12 @@ class RentalReceiptRulesValidationServiceTest {
         Document document = buildRentalReceiptDocumentWithOneMonth();
         DocumentAnalysisReport report = DocumentAnalysisReport.builder()
                 .document(document)
-                .brokenRules(new LinkedList<>())
+                .failedRules(new LinkedList<>())
                 .build();
         validationService.process(document, report);
 
         Assertions.assertThat(report.getAnalysisStatus()).isEqualTo(DocumentAnalysisStatus.DENIED);
-        Assertions.assertThat(report.getBrokenRules()).hasSize(2);
-        Assertions.assertThat( report.getBrokenRules().stream().anyMatch(docRule -> docRule.getRule() == DocumentRule.R_RENT_RECEIPT_NB_DOCUMENTS)).isTrue();
+        Assertions.assertThat(report.getFailedRules()).hasSize(2);
+        Assertions.assertThat( report.getFailedRules().stream().anyMatch(docRule -> docRule.getRule() == DocumentRule.R_RENT_RECEIPT_NB_DOCUMENTS)).isTrue();
     }
 }

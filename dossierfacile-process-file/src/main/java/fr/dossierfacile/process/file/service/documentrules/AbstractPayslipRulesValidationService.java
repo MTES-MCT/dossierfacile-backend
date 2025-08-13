@@ -103,24 +103,32 @@ public abstract class AbstractPayslipRulesValidationService implements RulesVali
                 return report;
             }
 
-            if (!checkQRCode(document)) {
-                log.error("Document mismatch to QR CODE :" + document.getId());
-                report.addDocumentBrokenRule(DocumentBrokenRule.of(DocumentRule.R_PAYSLIP_QRCHECK));
-                report.setAnalysisStatus(DocumentAnalysisStatus.DENIED);
-            } else if (!checkNamesRule(document)) {
-                log.error("Document names mismatches :" + document.getId());
-                report.addDocumentBrokenRule(DocumentBrokenRule.of(DocumentRule.R_PAYSLIP_NAME));
-                report.setAnalysisStatus(DocumentAnalysisStatus.DENIED);
-            } else if (!checkMonthsValidityRule(document)) {
-                log.error("Document is expired :" + document.getId());
-                report.addDocumentBrokenRule(DocumentBrokenRule.of(DocumentRule.R_PAYSLIP_MONTHS));
-                report.setAnalysisStatus(DocumentAnalysisStatus.DENIED);
-            } else if (!checkAmountValidityRule(document)) {
-                log.error("Amount specified on document mismatch :" + document.getId());
-                report.addDocumentBrokenRule(DocumentBrokenRule.of(DocumentRule.R_PAYSLIP_AMOUNT_MISMATCHES));
-                report.setAnalysisStatus(DocumentAnalysisStatus.DENIED);
+            if (checkQRCode(document)) {
+                report.addDocumentPassedRule(DocumentAnalysisRule.documentPassedRuleFrom(DocumentRule.R_PAYSLIP_QRCHECK));
             } else {
-                report.setAnalysisStatus(DocumentAnalysisStatus.CHECKED);
+                log.info("Document mismatch to QR CODE :{}", document.getId());
+                report.addDocumentFailedRule(DocumentAnalysisRule.documentFailedRuleFrom(DocumentRule.R_PAYSLIP_QRCHECK));
+            }
+
+            if (checkNamesRule(document)) {
+                report.addDocumentPassedRule(DocumentAnalysisRule.documentPassedRuleFrom(DocumentRule.R_PAYSLIP_NAME));
+            } else {
+                log.info("Document names mismatches :{}", document.getId());
+                report.addDocumentFailedRule(DocumentAnalysisRule.documentFailedRuleFrom(DocumentRule.R_PAYSLIP_NAME));
+            }
+
+            if (checkMonthsValidityRule(document)) {
+                report.addDocumentPassedRule(DocumentAnalysisRule.documentPassedRuleFrom(DocumentRule.R_PAYSLIP_MONTHS));
+            } else {
+                log.info("Document is expired :{}", document.getId());
+                report.addDocumentFailedRule(DocumentAnalysisRule.documentFailedRuleFrom(DocumentRule.R_PAYSLIP_MONTHS));
+            }
+
+            if (checkAmountValidityRule(document)) {
+                report.addDocumentPassedRule(DocumentAnalysisRule.documentPassedRuleFrom(DocumentRule.R_PAYSLIP_AMOUNT_MISMATCHES));
+            } else {
+                log.info("Document amount mismatch :{}", document.getId());
+                report.addDocumentFailedRule(DocumentAnalysisRule.documentFailedRuleFrom(DocumentRule.R_PAYSLIP_AMOUNT_MISMATCHES));
             }
 
         } catch (Exception e) {

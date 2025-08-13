@@ -62,10 +62,10 @@ public class PayslipRulesValidationServiceTest {
 
         DocumentAnalysisReport report = DocumentAnalysisReport.builder()
                 .document(document)
-                .brokenRules(new LinkedList<>())
+                .failedRules(new LinkedList<>())
                 .build();
         payslipRVS.process(document, report);
-        report.getBrokenRules().forEach((r) -> System.out.println(r.getMessage()));
+        report.getFailedRules().forEach((r) -> System.out.println(r.getMessage()));
         Assertions.assertThat(report.getAnalysisStatus()).isEqualTo(DocumentAnalysisStatus.CHECKED);
     }
 
@@ -76,11 +76,11 @@ public class PayslipRulesValidationServiceTest {
 
         DocumentAnalysisReport report = DocumentAnalysisReport.builder()
                 .document(document)
-                .brokenRules(new LinkedList<>())
+                .failedRules(new LinkedList<>())
                 .build();
         payslipRVS.process(document, report);
 
         Assertions.assertThat(report.getAnalysisStatus()).isEqualTo(DocumentAnalysisStatus.DENIED);
-        report.getBrokenRules().forEach((r) -> Assertions.assertThat(r.getRule()).isEqualTo(DocumentRule.R_PAYSLIP_NAME));
+        report.getFailedRules().forEach((r) -> Assertions.assertThat(r.getRule()).isEqualTo(DocumentRule.R_PAYSLIP_NAME));
     }
 }

@@ -744,7 +744,7 @@
                                         <span th:text="${document.getDocumentAnalysisReport().getAnalysisStatus}"></span>
                                         <ul>
                                             <li style="margin-top: 5px"
-                                                th:each="rule : ${document.getDocumentAnalysisReport().getBrokenRules()}">
+                                                th:each="rule : ${document.getDocumentAnalysisReport().getFailedRules()}">
                                                 <span style="font-size:smaller" th:text="' ' + ${rule.message}"></span>
                                             </li>
                                         </ul>
@@ -962,7 +962,7 @@
                                         <span th:text="${document.getDocumentAnalysisReport().getAnalysisStatus}"></span>
                                         <ul>
                                             <li style="margin-top: 5px"
-                                                th:each="rule : ${document.getDocumentAnalysisReport().getBrokenRules()}">
+                                                th:each="rule : ${document.getDocumentAnalysisReport().getFailedRules()}">
                                                 <span style="font-size:smaller" th:text="' ' + ${rule.message}"></span>
                                             </li>
                                         </ul>

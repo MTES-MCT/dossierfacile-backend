@@ -187,8 +187,8 @@ public abstract class TenantMapper {
     private void removeInfoAnalysisReportBrokenRules(DocumentAnalysisReport documentAnalysisReport) {
 
         if (documentAnalysisReport != null) {
-            documentAnalysisReport.setBrokenRules(
-                    documentAnalysisReport.getBrokenRules().stream().filter(it -> it.getLevel().ordinal() >= minBrokenRulesLevel.ordinal())
+            documentAnalysisReport.setFailedRules(
+                    documentAnalysisReport.getFailedRules().stream().filter(it -> it.getLevel().ordinal() >= minBrokenRulesLevel.ordinal())
                             .toList()
             );
         }

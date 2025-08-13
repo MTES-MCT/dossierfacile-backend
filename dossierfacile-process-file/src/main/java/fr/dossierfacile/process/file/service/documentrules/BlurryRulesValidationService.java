@@ -21,39 +21,56 @@ public class BlurryRulesValidationService implements RulesValidationService {
 
     @Override
     public DocumentAnalysisReport process(Document document, DocumentAnalysisReport report) {
-        var isBlurryDocument = false;
+        boolean isBlurryDocument = false;
+        boolean isAllBlank = true;
         for (var file : document.getFiles()) {
-            if (isFileBlurry(file.getBlurryFileAnalysis())) {
-                isBlurryDocument = true;
+            BlurryFileAnalysis blurryFileAnalysis = file.getBlurryFileAnalysis();
+            if (!hasBeenAnalysed(blurryFileAnalysis)) {
+                log.warn("Blurry analysis for file {} has failed, skipping blurry rules validation", file.getId());
+                report.addDocumentInconclusiveRule(DocumentAnalysisRule.documentInconclusiveRuleFrom(DocumentRule.R_BLURRY_FILE));
+                break;
+            } else {
+                if (!isBlank(blurryFileAnalysis)) {
+                    isAllBlank = false;
+                }
+                isBlurryDocument = isFileBlurry(blurryFileAnalysis);
             }
         }
+        if (isAllBlank) {
+            log.warn("Blurry analysis for document {} is blank, skipping blurry rules validation", document.getId());
+            report.addDocumentInconclusiveRule(DocumentAnalysisRule.documentInconclusiveRuleFrom(DocumentRule.R_BLURRY_FILE));
+            return report;
+        }
         if (isBlurryDocument) {
-            report.addDocumentBrokenRule(DocumentBrokenRule.of(DocumentRule.R_BLURRY_FILE));
-            report.setAnalysisStatus(DocumentAnalysisStatus.DENIED);
-        }
-        if (report.getBrokenRules().isEmpty()) {
-            report.setAnalysisStatus(DocumentAnalysisStatus.CHECKED);
-        } else if (report.getBrokenRules().stream().anyMatch(r -> r.getRule().getLevel() == DocumentRule.Level.CRITICAL)) {
-            report.setAnalysisStatus(DocumentAnalysisStatus.DENIED);
+            report.addDocumentFailedRule(DocumentAnalysisRule.documentFailedRuleFrom(DocumentRule.R_BLURRY_FILE));
         } else {
-            report.setAnalysisStatus(DocumentAnalysisStatus.UNDEFINED);
+            report.addDocumentPassedRule(DocumentAnalysisRule.documentPassedRuleFrom(DocumentRule.R_BLURRY_FILE));
         }
-
         return report;
+    }
+
+    private boolean hasBeenAnalysed(@Nullable BlurryFileAnalysis blurryFileAnalysis) {
+        if (blurryFileAnalysis == null) {
+            return false;
+        }
+        return blurryFileAnalysis.getAnalysisStatus() != BlurryFileAnalysisStatus.FAILED;
+    }
+
+    private boolean isBlank(@Nullable BlurryFileAnalysis blurryFileAnalysis) {
+        if (blurryFileAnalysis == null) {
+            return false; // If the analysis is null, we consider it as blank
+        }
+        return blurryFileAnalysis.getBlurryResults().isBlank();
     }
 
     private boolean isFileBlurry(@Nullable BlurryFileAnalysis blurryFileAnalysis) {
         if (blurryFileAnalysis == null) {
             return false;
         }
-        if (blurryFileAnalysis.getAnalysisStatus() == BlurryFileAnalysisStatus.FAILED || blurryFileAnalysis.getBlurryResults() == null) {
-            return false; // If the analysis failed, we cannot determine if the file is blurry
+        if (blurryFileAnalysis.getBlurryResults().isReadable()) {
+            return blurryFileAnalysis.getBlurryResults().isBlurry();
         } else {
-            if (blurryFileAnalysis.getBlurryResults().isReadable()) {
-                return blurryFileAnalysis.getBlurryResults().isBlurry();
-            } else {
-                return true;
-            }
+            return true;
         }
     }
 }

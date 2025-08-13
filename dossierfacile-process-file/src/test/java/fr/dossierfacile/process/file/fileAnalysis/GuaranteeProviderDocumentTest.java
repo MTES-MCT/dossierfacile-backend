@@ -81,7 +81,7 @@ public class GuaranteeProviderDocumentTest {
 
                     var documentAnalysisReport = DocumentAnalysisReport.builder()
                             .document(document)
-                            .brokenRules(new ArrayList<>())
+                            .failedRules(new ArrayList<>())
                             .analysisStatus(DocumentAnalysisStatus.UNDEFINED)
                             .id(1L)
                             .build();
@@ -151,15 +151,15 @@ public class GuaranteeProviderDocumentTest {
 
                     var documentAnalysisReport = DocumentAnalysisReport.builder()
                             .document(document)
-                            .brokenRules(new ArrayList<>())
+                            .failedRules(new ArrayList<>())
                             .analysisStatus(DocumentAnalysisStatus.UNDEFINED)
                             .id(1L)
                             .build();
 
                     guaranteeProviderRulesValidationService.process(document, documentAnalysisReport);
                     assertThat(documentAnalysisReport.getAnalysisStatus()).isEqualTo(DocumentAnalysisStatus.DENIED);
-                    assertThat(documentAnalysisReport.getBrokenRules().size()).isEqualTo(1);
-                    assertThat(documentAnalysisReport.getBrokenRules().getFirst().getRule()).isEqualTo(DocumentRule.R_GUARANTEE_NAMES);
+                    assertThat(documentAnalysisReport.getFailedRules().size()).isEqualTo(1);
+                    assertThat(documentAnalysisReport.getFailedRules().getFirst().getRule()).isEqualTo(DocumentRule.R_GUARANTEE_NAMES);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
@@ -178,7 +178,7 @@ public class GuaranteeProviderDocumentTest {
 
                     var documentAnalysisReport = DocumentAnalysisReport.builder()
                             .document(document)
-                            .brokenRules(new ArrayList<>())
+                            .failedRules(new ArrayList<>())
                             .analysisStatus(DocumentAnalysisStatus.UNDEFINED)
                             .id(1L)
                             .build();

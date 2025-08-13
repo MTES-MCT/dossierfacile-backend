@@ -62,20 +62,25 @@ public class ScholarshipRulesValidationService implements RulesValidationService
                     .map(file -> (ScholarshipFile) file.getParsedFileAnalysis().getParsedFile())
                     .findFirst().orElseThrow(NotFoundException::new);
 
-            if (!checkNamesRule(scholarshipFile, document)) {
-                log.error("Document names mismatches :" + document.getId());
-                report.addDocumentBrokenRule(DocumentBrokenRule.of(DocumentRule.R_SCHOLARSHIP_NAME));
-                report.setAnalysisStatus(DocumentAnalysisStatus.DENIED);
-            } else if (!checkYearValidityRule(scholarshipFile, document)) {
-                log.error("Document is expired :" + document.getId());
-                report.addDocumentBrokenRule(DocumentBrokenRule.of(DocumentRule.R_SCHOLARSHIP_EXPIRED));
-                report.setAnalysisStatus(DocumentAnalysisStatus.DENIED);
-            } else if (!checkAmountValidityRule(scholarshipFile, document)) {
-                log.error("Amount specified on document mismatch :" + document.getId());
-                report.addDocumentBrokenRule(DocumentBrokenRule.of(DocumentRule.R_SCHOLARSHIP_AMOUNT));
-                report.setAnalysisStatus(DocumentAnalysisStatus.DENIED);
+            if (checkNamesRule(scholarshipFile, document)) {
+                report.addDocumentPassedRule(DocumentAnalysisRule.documentPassedRuleFrom(DocumentRule.R_SCHOLARSHIP_NAME));
             } else {
-                report.setAnalysisStatus(DocumentAnalysisStatus.CHECKED);
+                log.info("Document names mismatches :{}", document.getId());
+                report.addDocumentFailedRule(DocumentAnalysisRule.documentFailedRuleFrom(DocumentRule.R_SCHOLARSHIP_NAME));
+            }
+
+            if (checkYearValidityRule(scholarshipFile, document)) {
+                report.addDocumentPassedRule(DocumentAnalysisRule.documentPassedRuleFrom(DocumentRule.R_SCHOLARSHIP_EXPIRED));
+            } else {
+                log.info("Document is expired :{}", document.getId());
+                report.addDocumentFailedRule(DocumentAnalysisRule.documentFailedRuleFrom(DocumentRule.R_SCHOLARSHIP_EXPIRED));
+            }
+
+            if (checkAmountValidityRule(scholarshipFile, document)) {
+                report.addDocumentPassedRule(DocumentAnalysisRule.documentPassedRuleFrom(DocumentRule.R_SCHOLARSHIP_AMOUNT));
+            } else {
+                log.info("Amount specified on document mismatch :{}", document.getId());
+                report.addDocumentFailedRule(DocumentAnalysisRule.documentFailedRuleFrom(DocumentRule.R_SCHOLARSHIP_AMOUNT));
             }
 
         } catch (Exception e) {
