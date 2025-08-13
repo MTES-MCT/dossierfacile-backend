@@ -3,7 +3,7 @@ package fr.dossierfacile.common.converter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import fr.dossierfacile.common.entity.DocumentBrokenRule;
+import fr.dossierfacile.common.entity.DocumentAnalysisRule;
 import fr.dossierfacile.common.exceptions.ParsingException;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
@@ -13,12 +13,12 @@ import java.util.Collections;
 import java.util.List;
 
 @Converter
-public class ListOfBrokenRulesJsonConverter implements AttributeConverter<List<DocumentBrokenRule>, String> {
+public class ListOfRulesJsonConverter implements AttributeConverter<List<DocumentAnalysisRule>, String> {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
-    public String convertToDatabaseColumn(List<DocumentBrokenRule> list) {
+    public String convertToDatabaseColumn(List<DocumentAnalysisRule> list) {
         if (list == null) {
             return null;
         }
@@ -30,7 +30,7 @@ public class ListOfBrokenRulesJsonConverter implements AttributeConverter<List<D
     }
 
     @Override
-    public List<DocumentBrokenRule> convertToEntityAttribute(String data) {
+    public List<DocumentAnalysisRule> convertToEntityAttribute(String data) {
         if (data == null) {
             return Collections.emptyList();
         }

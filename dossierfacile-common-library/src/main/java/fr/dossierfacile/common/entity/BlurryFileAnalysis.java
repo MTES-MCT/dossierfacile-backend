@@ -39,6 +39,7 @@ public class BlurryFileAnalysis implements Serializable {
     @Column(columnDefinition = "jsonb")
     private BlurryResult blurryResults;
 
+    private Long dataFileId;
 
     public String toString() {
         return "BlurryFileAnalysis{" +
