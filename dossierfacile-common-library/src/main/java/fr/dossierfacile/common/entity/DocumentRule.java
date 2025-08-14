@@ -131,6 +131,12 @@ public enum DocumentRule {
             "Le nom et le prénom correspondent",
             ""
     ),
+    R_RENT_RECEIPT_PARSED(
+            Level.INFO,
+            "",
+            "Le document a été analysé",
+            "Le document n'a pas pu être analysé"
+    ),
     R_RENT_RECEIPT_MONTHS(
             Level.CRITICAL,
             "Les quittances sont trop anciennes",
