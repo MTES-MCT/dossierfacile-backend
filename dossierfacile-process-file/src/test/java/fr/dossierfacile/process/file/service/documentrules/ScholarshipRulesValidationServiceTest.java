@@ -1,116 +1,173 @@
 package fr.dossierfacile.process.file.service.documentrules;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.entity.ocr.ScholarshipFile;
+import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
-import fr.dossierfacile.common.enums.ParsedFileAnalysisStatus;
 import fr.dossierfacile.common.enums.ParsedFileClassification;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.LinkedList;
+import java.util.List;
 
-class ScholarshipRulesValidationServiceTest {
+public class ScholarshipRulesValidationServiceTest {
 
-    private final ScholarshipRulesValidationService scholarValidationService = new ScholarshipRulesValidationService();
+    private final ScholarshipRulesValidationService service = new ScholarshipRulesValidationService();
 
-    private File buildValidDfFile(LocalDate date) {
-        int endYear = date.isBefore(LocalDate.of(date.getYear(), 9, 15)) ? date.getYear() : date.getYear() + 1;
-
-        ScholarshipFile parsedFile = ScholarshipFile.builder()
-                .firstName("Tom")
-                .lastName("Mme Sawyer")
-                .startYear(endYear - 1)
+    private File scholarshipFile(String firstName, String lastName, int startYear, int endYear, int annualAmount) {
+        ScholarshipFile sf = ScholarshipFile.builder()
+                .firstName(firstName)
+                .lastName(lastName)
+                .startYear(startYear)
                 .endYear(endYear)
-                .annualAmount(10000)
+                .annualAmount(annualAmount)
                 .build();
-
-        ParsedFileAnalysis parsedFileAnalysis = ParsedFileAnalysis.builder().parsedFile(parsedFile)
-                .analysisStatus(ParsedFileAnalysisStatus.COMPLETED)
+        ParsedFileAnalysis pfa = ParsedFileAnalysis.builder()
                 .classification(ParsedFileClassification.SCHOLARSHIP)
+                .parsedFile(sf)
                 .build();
-
-        return File.builder()
-                .parsedFileAnalysis(parsedFileAnalysis)
-                .build();
+        return File.builder().parsedFileAnalysis(pfa).build();
     }
 
-
-    Document buildDocument() throws JsonProcessingException {
-        Tenant tenant = Tenant.builder()
-                .firstName("Tom")
-                .lastName("Sawyer")
+    private File nonScholarshipFile() {
+        ParsedFileAnalysis pfa = ParsedFileAnalysis.builder()
+                .classification(ParsedFileClassification.PAYSLIP)
+                .parsedFile(null)
                 .build();
+        return File.builder().parsedFileAnalysis(pfa).build();
+    }
 
+    private Tenant tenant(String firstName, String lastName) {
+        ApartmentSharing sharing = ApartmentSharing.builder().applicationType(ApplicationType.ALONE).build();
+        Tenant t = Tenant.builder().firstName(firstName).lastName(lastName).apartmentSharing(sharing).build();
+        sharing.setTenants(List.of(t));
+        return t;
+    }
+
+    private Document baseDoc(List<File> files) {
         return Document.builder()
-                .tenant(tenant)
-                .monthlySum(1000)
                 .documentCategory(DocumentCategory.FINANCIAL)
                 .documentSubCategory(DocumentSubCategory.SCHOLARSHIP)
-                .files(Collections.singletonList(buildValidDfFile(LocalDate.now())))
+                .files(files)
                 .build();
     }
 
-    Document buildDocumentWithWrongYear() {
-        Tenant tenant = Tenant.builder()
-                .firstName("Tom")
-                .lastName("Sawyer")
-                .build();
-
-        LocalDate currentDate = LocalDate.now().minusYears(1);
-        return Document.builder()
-                .tenant(tenant)
-                .monthlySum(1000)
-                .documentCategory(DocumentCategory.FINANCIAL)
-                .documentSubCategory(DocumentSubCategory.SCHOLARSHIP)
-                .files(Collections.singletonList(buildValidDfFile(currentDate)))
+    private DocumentAnalysisReport emptyReport(Document d) {
+        return DocumentAnalysisReport.builder()
+                .document(d)
+                .failedRules(new LinkedList<>())
+                .passedRules(new LinkedList<>())
+                .inconclusiveRules(new LinkedList<>())
                 .build();
     }
 
     @Test
-    void document_full_test_ok() throws Exception {
-        Document document = buildDocument();
-
-        DocumentAnalysisReport report = DocumentAnalysisReport.builder()
-                .document(document)
-                .failedRules(new LinkedList<>())
-                .build();
-        scholarValidationService.process(document, report);
-
-        Assertions.assertThat(report.getAnalysisStatus()).isEqualTo(DocumentAnalysisStatus.CHECKED);
+    void shouldBeApplied_true() {
+        int y = LocalDate.now().getYear();
+        Document doc = baseDoc(List.of(scholarshipFile("JEAN", "DUPONT", y-1, y, 1200)));
+        doc.setTenant(tenant("JEAN", "DUPONT"));
+        Assertions.assertThat(service.shouldBeApplied(doc)).isTrue();
     }
 
     @Test
-    void document_full_test_wrong_year() {
-        Document document = buildDocumentWithWrongYear();
-
-        DocumentAnalysisReport report = DocumentAnalysisReport.builder()
-                .document(document)
-                .failedRules(new LinkedList<>())
-                .build();
-        scholarValidationService.process(document, report);
-
-        Assertions.assertThat(report.getAnalysisStatus()).isEqualTo(DocumentAnalysisStatus.DENIED);
-        Assertions.assertThat(report.getFailedRules()).hasSize(1);
-        Assertions.assertThat(report.getFailedRules().get(0)).matches(docRule -> docRule.getRule() == DocumentRule.R_SCHOLARSHIP_EXPIRED);
+    void shouldBeApplied_false_no_scholarship_file() {
+        int y = LocalDate.now().getYear();
+        Document doc = baseDoc(List.of(nonScholarshipFile()));
+        doc.setTenant(tenant("JEAN", "DUPONT"));
+        Assertions.assertThat(service.shouldBeApplied(doc)).isFalse();
     }
 
     @Test
-    void document_full_test_wrong_average_amount() throws Exception {
-        Document document = buildDocument();
-        document.setMonthlySum(1020);
-        DocumentAnalysisReport report = DocumentAnalysisReport.builder()
-                .document(document)
-                .failedRules(new LinkedList<>())
-                .build();
-        scholarValidationService.process(document, report);
+    void process_all_rules_pass() {
+        int y = LocalDate.now().getYear();
+        Document doc = baseDoc(List.of(scholarshipFile("JEAN", "DUPONT", y-1, y+1, 10000)));
+        doc.setMonthlySum(1000); // annual /12 = 1000
+        doc.setTenant(tenant("JEAN", "DUPONT"));
+        var report = emptyReport(doc);
+        service.process(doc, report);
+        Assertions.assertThat(report.getPassedRules()).extracting(DocumentAnalysisRule::getRule)
+                .containsExactly(
+                        DocumentRule.R_SCHOLARSHIP_PARSED,
+                        DocumentRule.R_SCHOLARSHIP_NAME,
+                        DocumentRule.R_SCHOLARSHIP_EXPIRED,
+                        DocumentRule.R_SCHOLARSHIP_AMOUNT
+                );
+        Assertions.assertThat(report.getFailedRules()).isEmpty();
+        Assertions.assertThat(report.getInconclusiveRules()).isEmpty();
+    }
 
-        Assertions.assertThat(report.getAnalysisStatus()).isEqualTo(DocumentAnalysisStatus.DENIED);
-        Assertions.assertThat(report.getFailedRules()).hasSize(1);
-        Assertions.assertThat(report.getFailedRules().get(0)).matches(docRule -> docRule.getRule() == DocumentRule.R_SCHOLARSHIP_AMOUNT);
+    @Test
+    void process_inconclusive_first_rule_blocks() {
+        int y = LocalDate.now().getYear();
+        Document doc = baseDoc(List.of(nonScholarshipFile())); // no scholarship classification
+        doc.setTenant(tenant("JEAN", "DUPONT"));
+        doc.setMonthlySum(1000);
+        var report = emptyReport(doc);
+        service.process(doc, report);
+        Assertions.assertThat(report.getInconclusiveRules()).extracting(DocumentAnalysisRule::getRule)
+                .containsExactly(DocumentRule.R_SCHOLARSHIP_PARSED);
+        Assertions.assertThat(report.getPassedRules()).isEmpty();
+        Assertions.assertThat(report.getFailedRules()).isEmpty();
+    }
+
+    @Test
+    void process_name_fail_year_and_amount_pass() {
+        int y = LocalDate.now().getYear();
+        Document doc = baseDoc(List.of(scholarshipFile("JEAN", "DURAND", y-1, y+1, 6000)));
+        doc.setTenant(tenant("JEAN", "DUPONT")); // last name mismatch
+        doc.setMonthlySum(600); // 6000 /10 = 600
+        var report = emptyReport(doc);
+        service.process(doc, report);
+        Assertions.assertThat(report.getPassedRules()).extracting(DocumentAnalysisRule::getRule)
+                .containsExactly(
+                        DocumentRule.R_SCHOLARSHIP_PARSED,
+                        DocumentRule.R_SCHOLARSHIP_EXPIRED,
+                        DocumentRule.R_SCHOLARSHIP_AMOUNT
+                );
+        Assertions.assertThat(report.getFailedRules()).extracting(DocumentAnalysisRule::getRule)
+                .containsExactly(DocumentRule.R_SCHOLARSHIP_NAME);
+        Assertions.assertThat(report.getInconclusiveRules()).isEmpty();
+    }
+
+    @Test
+    void process_year_fail_amount_pass() {
+        int y = LocalDate.now().getYear();
+        // endYear strictly less than current year => always fail year validity
+        Document doc = baseDoc(List.of(scholarshipFile("JEAN", "DUPONT", y-3, y-1, 10000)));
+        doc.setTenant(tenant("JEAN", "DUPONT"));
+        doc.setMonthlySum(1000);
+        var report = emptyReport(doc);
+        service.process(doc, report);
+        Assertions.assertThat(report.getPassedRules()).extracting(DocumentAnalysisRule::getRule)
+                .containsExactly(
+                        DocumentRule.R_SCHOLARSHIP_PARSED,
+                        DocumentRule.R_SCHOLARSHIP_NAME,
+                        DocumentRule.R_SCHOLARSHIP_AMOUNT
+                );
+        Assertions.assertThat(report.getFailedRules()).extracting(DocumentAnalysisRule::getRule)
+                .containsExactly(DocumentRule.R_SCHOLARSHIP_EXPIRED);
+    }
+
+    @Test
+    void process_amount_fail() {
+        int y = LocalDate.now().getYear();
+        // annual 12000 => avg 1000; monthlySum 1015 diff=15>10
+        Document doc = baseDoc(List.of(scholarshipFile("JEAN", "DUPONT", y-1, y+1, 12000)));
+        doc.setTenant(tenant("JEAN", "DUPONT"));
+        doc.setMonthlySum(1015);
+        var report = emptyReport(doc);
+        service.process(doc, report);
+        Assertions.assertThat(report.getPassedRules()).extracting(DocumentAnalysisRule::getRule)
+                .containsExactly(
+                        DocumentRule.R_SCHOLARSHIP_PARSED,
+                        DocumentRule.R_SCHOLARSHIP_NAME,
+                        DocumentRule.R_SCHOLARSHIP_EXPIRED
+                );
+        Assertions.assertThat(report.getFailedRules()).extracting(DocumentAnalysisRule::getRule)
+                .containsExactly(DocumentRule.R_SCHOLARSHIP_AMOUNT);
     }
 }
+
