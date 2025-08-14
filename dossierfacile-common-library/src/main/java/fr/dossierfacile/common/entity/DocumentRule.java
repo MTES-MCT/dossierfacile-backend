@@ -105,7 +105,12 @@ public enum DocumentRule {
             "Le montant spécifié correspond au montant des bulletins",
             ""
     ),
-
+    R_SCHOLARSHIP_PARSED(
+            Level.INFO,
+            "",
+            "Le document a été analysé",
+            "Le document n'a pas pu être analysé"
+    ),
     R_SCHOLARSHIP_NAME(
             Level.CRITICAL,
             "Le nom/prénom sur la notification de bourse ne correspond pas",
@@ -130,6 +135,12 @@ public enum DocumentRule {
             "Le nom et le prénom ne correspondent pas",
             "Le nom et le prénom correspondent",
             ""
+    ),
+    R_RENT_RECEIPT_PARSED(
+            Level.INFO,
+            "",
+            "Le document a été analysé",
+            "Le document n'a pas pu être analysé"
     ),
     R_RENT_RECEIPT_MONTHS(
             Level.CRITICAL,
@@ -163,6 +174,18 @@ public enum DocumentRule {
             ""
             ),
 
+    R_BLURRY_FILE_ANALYSED(
+            Level.INFO,
+            "",
+            "Le document a été analysé pour la détection de flou",
+            "Impossible de déterminer si le document est flou ou non"
+    ),
+    R_BLURRY_FILE_BLANK(
+            Level.INFO,
+            "",
+            "Le document n'est pas vide",
+            "Le document semble vide"
+    ),
     R_BLURRY_FILE(
             Level.INFO,
             "Votre document semble flou",
