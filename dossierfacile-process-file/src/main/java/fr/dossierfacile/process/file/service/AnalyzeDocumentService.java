@@ -60,7 +60,6 @@ public class AnalyzeDocumentService {
                         .failedRules(new LinkedList<>())
                         .passedRules(new LinkedList<>())
                         .inconclusiveRules(new LinkedList<>())
-                        .analysisStatus(DocumentAnalysisStatus.CHECKED)
                         .createdAt(LocalDateTime.now())
                         .build();
 
