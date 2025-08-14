@@ -163,6 +163,18 @@ public enum DocumentRule {
             ""
             ),
 
+    R_BLURRY_FILE_ANALYSED(
+            Level.INFO,
+            "",
+            "Le document a été analysé pour la détection de flou",
+            "Impossible de déterminer si le document est flou ou non"
+    ),
+    R_BLURRY_FILE_BLANK(
+            Level.INFO,
+            "",
+            "Le document n'est pas vide",
+            "Le document semble vide"
+    ),
     R_BLURRY_FILE(
             Level.INFO,
             "Votre document semble flou",
