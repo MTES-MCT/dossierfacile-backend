@@ -105,7 +105,12 @@ public enum DocumentRule {
             "Le montant spécifié correspond au montant des bulletins",
             ""
     ),
-
+    R_SCHOLARSHIP_PARSED(
+            Level.INFO,
+            "",
+            "Le document a été analysé",
+            "Le document n'a pas pu être analysé"
+    ),
     R_SCHOLARSHIP_NAME(
             Level.CRITICAL,
             "Le nom/prénom sur la notification de bourse ne correspond pas",
