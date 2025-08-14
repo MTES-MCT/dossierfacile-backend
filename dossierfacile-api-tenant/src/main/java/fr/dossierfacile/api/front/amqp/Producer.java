@@ -84,7 +84,7 @@ public class Producer {
 
     @Transactional(propagation = Propagation.SUPPORTS)
     public void sendDocumentForAnalysis(Document document) {
-        log.debug("Sending document with ID [{}] for analysis", document.getId());
+        log.info("Sending document with ID [{}] for analysis", document.getId());
         List<QueueMessage> messages = queueMessageRepository.findByQueueNameAndDocumentIdAndStatusIn(QueueName.QUEUE_DOCUMENT_ANALYSIS, document.getId(), List.of(QueueMessageStatus.PENDING));
         QueueMessage message = CollectionUtils.isNotEmpty(messages) ? messages.getFirst() : null;
         if (message == null) {
