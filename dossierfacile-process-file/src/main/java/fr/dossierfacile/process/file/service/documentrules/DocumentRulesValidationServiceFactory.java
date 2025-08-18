@@ -10,9 +10,9 @@ import java.util.stream.Collectors;
 @Service
 @AllArgsConstructor
 public class DocumentRulesValidationServiceFactory {
-    private List<RulesValidationService> rulesValidationServiceList;
+    private List<AbstractRulesValidationService> rulesValidationServiceList;
 
-    public List<RulesValidationService> getServices(Document document) {
+    public List<AbstractRulesValidationService> getServices(Document document) {
         return rulesValidationServiceList.stream().filter(rvs -> rvs.shouldBeApplied(document)).collect(Collectors.toList());
     }
 }
