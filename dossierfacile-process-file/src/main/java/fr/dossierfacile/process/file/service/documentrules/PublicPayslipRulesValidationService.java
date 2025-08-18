@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class PublicPayslipRulesValidationService extends AbstractPayslipRulesValidationService implements RulesValidationService {
+public class PublicPayslipRulesValidationService extends AbstractPayslipRulesValidationService {
     @Override
     protected boolean isFileWithQrcode() {
         return true;

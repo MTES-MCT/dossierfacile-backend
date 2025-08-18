@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class PayslipStandardRulesValidationService extends AbstractPayslipRulesValidationService implements RulesValidationService {
+public class PayslipStandardRulesValidationService extends AbstractPayslipRulesValidationService {
 
     @Override
     protected ParsedFileClassification getPayslipClassification() {
