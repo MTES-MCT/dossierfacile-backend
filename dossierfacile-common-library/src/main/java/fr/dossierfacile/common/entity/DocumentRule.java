@@ -173,10 +173,10 @@ public enum DocumentRule {
             ""
     ),
     R_FRANCE_IDENTITE_STATUS(
-            Level.CRITICAL,
-            "Ce document n'a pas pu être validé par France Identité",
+            Level.INFO,
+            "",
             "Ce document a été validé par France Identité",
-            ""
+            "Ce document n'a pas pu être validé par France Identité"
             ),
 
     R_BLURRY_FILE_ANALYSED(
