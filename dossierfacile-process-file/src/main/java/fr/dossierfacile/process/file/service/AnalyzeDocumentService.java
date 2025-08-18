@@ -7,8 +7,10 @@ import fr.dossierfacile.common.exceptions.RetryableOperationException;
 import fr.dossierfacile.common.repository.DocumentAnalysisReportRepository;
 import fr.dossierfacile.common.repository.QueueMessageRepository;
 import fr.dossierfacile.process.file.repository.DocumentRepository;
+import fr.dossierfacile.process.file.service.documentrules.AbstractRulesValidationService;
 import fr.dossierfacile.process.file.service.documentrules.DocumentRulesValidationServiceFactory;
 import fr.dossierfacile.process.file.service.documentrules.RulesValidationService;
+import fr.dossierfacile.process.file.service.documentrules.validator.AbstractDocumentRuleValidator;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -47,7 +49,7 @@ public class AnalyzeDocumentService {
         }
 
         try {
-            List<RulesValidationService> rulesValidationServices = documentRulesValidationServiceFactory.getServices(document);
+            List<AbstractRulesValidationService> rulesValidationServices = documentRulesValidationServiceFactory.getServices(document);
             if (!CollectionUtils.isEmpty(rulesValidationServices)) {
                 Optional.ofNullable(document.getDocumentAnalysisReport()).ifPresent((report) -> {
                     document.setDocumentAnalysisReport(null);
