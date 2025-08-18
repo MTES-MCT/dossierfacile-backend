@@ -80,7 +80,12 @@ public enum DocumentRule {
             "La lecture des informations de la garantie a réussi",
             "La lecture des informations de la garantie a échoué"
     ),
-
+    R_PAYSLIP_PARSING(
+            Level.INFO,
+            "",
+            "La lecture des informations du bulletin de salaire a réussi",
+            "La lecture des informations du bulletin de salaire a échoué"
+    ),
     R_PAYSLIP_QRCHECK(
             Level.CRITICAL,
             "La lecture des informations et du QR Code ne correspondent pas",
