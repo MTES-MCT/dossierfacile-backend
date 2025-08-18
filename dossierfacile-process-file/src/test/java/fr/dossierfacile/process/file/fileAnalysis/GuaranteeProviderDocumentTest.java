@@ -4,7 +4,7 @@ import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.entity.ocr.GuaranteeProviderFile;
 import fr.dossierfacile.common.enums.*;
 import fr.dossierfacile.fileAnalysis.*;
-import fr.dossierfacile.process.file.service.documentrules.GuaranteeProviderRulesValidationService;
+import fr.dossierfacile.process.file.service.document_rules.GuaranteeProviderRulesValidationService;
 import fr.dossierfacile.process.file.service.parsers.GuaranteeVisaleParser;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
