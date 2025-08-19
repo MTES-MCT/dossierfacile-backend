@@ -2,7 +2,7 @@ package fr.dossierfacile.process.file.service.document_rules;
 
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.process.file.service.document_rules.validator.AbstractDocumentRuleValidator;
-import fr.dossierfacile.process.file.service.document_rules.validator.france_identite.FranceIdentiteHasBeenParsed;
+import fr.dossierfacile.process.file.service.document_rules.validator.france_identite.FranceIdentiteHasBeenParsedBI;
 import fr.dossierfacile.process.file.service.document_rules.validator.france_identite.FranceIdentiteRuleNamesMatch;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +25,7 @@ public class FranceIdentiteNumeriqueRulesValidationService extends AbstractRules
     @Override
     List<AbstractDocumentRuleValidator> getDocumentRuleValidators() {
         return List.of(
-                new FranceIdentiteHasBeenParsed(),
+                new FranceIdentiteHasBeenParsedBI(),
                 new FranceIdentiteRuleNamesMatch()
         );
     }

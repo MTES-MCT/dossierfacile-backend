@@ -27,10 +27,10 @@ public class IncomeTaxRulesValidationService extends AbstractRulesValidationServ
     @Override
     List<AbstractDocumentRuleValidator> getDocumentRuleValidators() {
         return List.of(
-                new IncomeTaxHas2DDoc(),
-                new IncomeTaxHasGoodClassification(),
-                new IncomeTaxHasBeenParsed(),
-                new IncomeTaxRuleConsistency(),
+                new IncomeTaxHas2DDocBI(),
+                new IncomeTaxHasGoodClassificationB(),
+                new IncomeTaxHasBeenParsedBI(),
+                new IncomeTaxRuleConsistencyB(),
                 new IncomeTaxRuleCheckNMinus1(),
                 new IncomeTaxRuleCheckNMinus3(),
                 new IncomeTaxRuleNamesMatch(),

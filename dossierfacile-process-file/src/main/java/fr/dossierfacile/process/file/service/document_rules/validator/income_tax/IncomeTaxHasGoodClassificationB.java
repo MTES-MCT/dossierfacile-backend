@@ -5,7 +5,7 @@ import fr.dossierfacile.process.file.service.document_rules.validator.AbstractDo
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class IncomeTaxHasGoodClassification extends AbstractDocumentRuleValidator {
+public class IncomeTaxHasGoodClassificationB extends AbstractDocumentRuleValidator {
 
     @Override
     protected boolean isBlocking() {

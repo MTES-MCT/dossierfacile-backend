@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 import java.time.YearMonth;
 import java.util.List;
 
-class PayslipHasBeenParsedTest {
+class PayslipHasBeenParsedBITest {
 
     private File fileWithParsed() {
         PayslipFile pf = PayslipFile.builder()
@@ -38,7 +38,7 @@ class PayslipHasBeenParsedTest {
     }
 
     private RuleValidatorOutput validate(Document document) {
-        return new PayslipHasBeenParsed().validate(document);
+        return new PayslipHasBeenParsedBI().validate(document);
     }
 
     @Test

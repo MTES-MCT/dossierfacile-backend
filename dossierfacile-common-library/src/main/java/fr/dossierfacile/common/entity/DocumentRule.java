@@ -43,12 +43,6 @@ public enum DocumentRule {
             "Tous les feuillets des avis ont été fournis",
             ""
     ),
-    R_TAX_ALL_LEAF(
-            Level.WARN,
-            "Veuillez fournir tous les feuillets des avis",
-            "Tous les feuillets des avis sont présents",
-            ""
-    ),
     R_TAX_N3(
             Level.CRITICAL,
             "Les avis d'imposition antérieur à N-3 ne sont pas autorisé",
@@ -153,14 +147,8 @@ public enum DocumentRule {
             "Les quittances sont récentes",
             ""
     ),
-    R_RENT_RECEIPT_ADDRESS_SALARY(
-            Level.WARN,
-            "TODO. L'adresse de la location semble ne pas correspondre à l'adresse des bulletins de payes",
-            "L'adresse de la location correspond à celle des bulletins de paye",
-            ""
-    ),
     R_RENT_RECEIPT_NB_DOCUMENTS(
-            Level.WARN,
+            Level.CRITICAL,
             "Un seul document a été détecté",
             "Le nombre de documents requis a été détecté",
             ""

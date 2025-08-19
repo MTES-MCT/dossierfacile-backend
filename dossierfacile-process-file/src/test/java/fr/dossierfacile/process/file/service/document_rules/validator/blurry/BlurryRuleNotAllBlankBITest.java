@@ -8,7 +8,7 @@ import fr.dossierfacile.process.file.service.document_rules.validator.RuleValida
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-class BlurryRuleNotAllBlankTest {
+class BlurryRuleNotAllBlankBITest {
 
     private BlurryFileAnalysis buildBlurryFileAnalysis(boolean isBlank) {
         return BlurryFileAnalysis.builder()
@@ -35,7 +35,7 @@ class BlurryRuleNotAllBlankTest {
     @Test
     void should_be_valid_when_at_least_one_file_not_blank() {
         Document document = buildDocument(true, false, true); // one file not blank
-        BlurryRuleNotAllBlank rule = new BlurryRuleNotAllBlank();
+        BlurryRuleNotAllBlankBI rule = new BlurryRuleNotAllBlankBI();
 
         RuleValidatorOutput output = rule.validate(document);
 
@@ -46,7 +46,7 @@ class BlurryRuleNotAllBlankTest {
     @Test
     void should_be_invalid_when_all_files_blank() {
         Document document = buildDocument(true, true); // all blank
-        BlurryRuleNotAllBlank rule = new BlurryRuleNotAllBlank();
+        BlurryRuleNotAllBlankBI rule = new BlurryRuleNotAllBlankBI();
 
         RuleValidatorOutput output = rule.validate(document);
 

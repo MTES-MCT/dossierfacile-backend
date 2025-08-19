@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-class FranceIdentiteHasBeenParsedTest {
+class FranceIdentiteHasBeenParsedBITest {
 
     private File fileValid(String status) {
         FranceIdentiteApiResult parsed = FranceIdentiteApiResult.builder()
@@ -104,7 +104,7 @@ class FranceIdentiteHasBeenParsedTest {
     }
 
     private RuleValidatorOutput validate(Document d) {
-        return new FranceIdentiteHasBeenParsed().validate(d);
+        return new FranceIdentiteHasBeenParsedBI().validate(d);
     }
 
     @Test

@@ -6,7 +6,7 @@ import fr.dossierfacile.process.file.service.document_rules.validator.AbstractDo
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class FranceIdentiteHasBeenParsed extends AbstractDocumentRuleValidator {
+public class FranceIdentiteHasBeenParsedBI extends AbstractDocumentRuleValidator {
 
     @Override
     protected boolean isBlocking() {

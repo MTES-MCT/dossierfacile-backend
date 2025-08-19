@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Arrays;
 import java.util.List;
 
-class BlurryRuleHasBeenAnalysedTest {
+class BlurryRuleHasBeenAnalysedBITest {
 
     private File buildFileWithStatus(BlurryFileAnalysisStatus status) {
         File f = File.builder().build();
@@ -37,7 +37,7 @@ class BlurryRuleHasBeenAnalysedTest {
                 buildFileWithStatus(BlurryFileAnalysisStatus.COMPLETED),
                 buildFileWithStatus(BlurryFileAnalysisStatus.COMPLETED)
         ));
-        BlurryRuleHasBeenAnalysed rule = new BlurryRuleHasBeenAnalysed();
+        BlurryRuleHasBeenAnalysedBI rule = new BlurryRuleHasBeenAnalysedBI();
 
         RuleValidatorOutput out = rule.validate(document);
 
@@ -51,7 +51,7 @@ class BlurryRuleHasBeenAnalysedTest {
                 buildFileWithStatus(BlurryFileAnalysisStatus.COMPLETED),
                 buildFileWithStatus(BlurryFileAnalysisStatus.FAILED)
         ));
-        BlurryRuleHasBeenAnalysed rule = new BlurryRuleHasBeenAnalysed();
+        BlurryRuleHasBeenAnalysedBI rule = new BlurryRuleHasBeenAnalysedBI();
 
         RuleValidatorOutput out = rule.validate(document);
 
@@ -65,7 +65,7 @@ class BlurryRuleHasBeenAnalysedTest {
                 buildFileWithStatus(BlurryFileAnalysisStatus.COMPLETED),
                 buildFileWithoutAnalysis()
         ));
-        BlurryRuleHasBeenAnalysed rule = new BlurryRuleHasBeenAnalysed();
+        BlurryRuleHasBeenAnalysedBI rule = new BlurryRuleHasBeenAnalysedBI();
 
         RuleValidatorOutput out = rule.validate(document);
 

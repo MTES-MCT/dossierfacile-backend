@@ -5,7 +5,7 @@ import fr.dossierfacile.common.entity.DocumentRule;
 import fr.dossierfacile.process.file.service.document_rules.validator.AbstractDocumentRuleValidator;
 import org.springframework.util.CollectionUtils;
 
-public class PayslipHasBeenParsed extends AbstractDocumentRuleValidator {
+public class PayslipHasBeenParsedBI extends AbstractDocumentRuleValidator {
 
     @Override
     protected boolean isBlocking() {

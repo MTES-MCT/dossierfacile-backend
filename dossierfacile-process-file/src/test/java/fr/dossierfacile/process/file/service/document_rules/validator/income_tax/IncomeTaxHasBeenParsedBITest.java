@@ -18,7 +18,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import java.time.YearMonth;
 import java.util.List;
 
-class IncomeTaxHasBeenParsedTest {
+class IncomeTaxHasBeenParsedBITest {
 
     private File taxFile(Integer year, String declarant1Nom, Integer rfr) {
         TaxIncomeMainFile parsed = TaxIncomeMainFile.builder()
@@ -100,7 +100,7 @@ class IncomeTaxHasBeenParsedTest {
     }
 
     private RuleValidatorOutput validate(Document d) {
-        return new IncomeTaxHasBeenParsed().validate(d);
+        return new IncomeTaxHasBeenParsedBI().validate(d);
     }
 
     @Test

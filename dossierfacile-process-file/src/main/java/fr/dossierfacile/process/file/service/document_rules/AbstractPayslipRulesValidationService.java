@@ -34,7 +34,7 @@ public abstract class AbstractPayslipRulesValidationService extends AbstractRule
     @Override
     List<AbstractDocumentRuleValidator> getDocumentRuleValidators() {
         return List.of(
-                new PayslipHasBeenParsed(),
+                new PayslipHasBeenParsedBI(),
                 new PayslipRuleCheckQRCode(isFileWithQrcode()),
                 new PayslipRuleNamesMatch(),
                 new PayslipRuleMonthValidity(),
