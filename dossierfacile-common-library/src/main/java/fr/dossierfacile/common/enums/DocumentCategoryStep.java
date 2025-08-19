@@ -45,7 +45,13 @@ public enum DocumentCategoryStep {
     RENT_RENTAL_RECEIPT("document_category_step.RENT_RENTAL_RECEIPT"),
     RENT_RENTAL_NO_RECEIPT("document_category_step.RENT_RENTAL_NO_RECEIPT"),
     RENT_ANNUITY_LIFE("document_category_step.RENT_ANNUITY_LIFE"),
-    RENT_OTHER("document_category_step.RENT_OTHER");
+    RENT_OTHER("document_category_step.RENT_OTHER"),
+
+    // Tax
+    TAX_FRENCH_NOTICE("document_category_step.TAX_FRENCH_NOTICE"),
+    TAX_FOREIGN_NOTICE("document_category_step.TAX_FOREIGN_NOTICE"),
+    TAX_NO_DECLARATION("document_category_step.TAX_NO_DECLARATION"),
+    TAX_NOT_RECEIVED("document_category_step.TAX_NOT_RECEIVED");
 
     final String label;
 
