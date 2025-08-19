@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-class IncomeTaxHas2DDocTest {
+class IncomeTaxHas2DDocBITest {
 
     private File fileWithBarcode() {
         File f = File.builder().build();
@@ -25,7 +25,7 @@ class IncomeTaxHas2DDocTest {
     }
 
     private RuleValidatorOutput validate(Document d) {
-        return new IncomeTaxHas2DDoc().validate(d);
+        return new IncomeTaxHas2DDocBI().validate(d);
     }
 
     @Test

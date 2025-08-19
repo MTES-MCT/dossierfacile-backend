@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-class GuaranteeProviderHasBeenParsedTest {
+class GuaranteeProviderHasBeenParsedBITest {
 
     private File fileWithGuaranteeProvider() {
         GuaranteeProviderFile gpf = GuaranteeProviderFile.builder()
@@ -39,7 +39,7 @@ class GuaranteeProviderHasBeenParsedTest {
     }
 
     private RuleValidatorOutput validate(Document d) {
-        return new GuaranteeProviderHasBeenParsed().validate(d);
+        return new GuaranteeProviderHasBeenParsedBI().validate(d);
     }
 
     @Test

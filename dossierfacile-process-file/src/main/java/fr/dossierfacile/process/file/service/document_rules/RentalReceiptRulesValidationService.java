@@ -4,7 +4,7 @@ import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.process.file.service.document_rules.validator.AbstractDocumentRuleValidator;
-import fr.dossierfacile.process.file.service.document_rules.validator.rental.RentalHasBeenParsed;
+import fr.dossierfacile.process.file.service.document_rules.validator.rental.RentalHasBeenParsedBI;
 import fr.dossierfacile.process.file.service.document_rules.validator.rental.RentalRuleMonthValidity;
 import fr.dossierfacile.process.file.service.document_rules.validator.rental.RentalRuleNamesMatch;
 import fr.dossierfacile.process.file.service.document_rules.validator.rental.RentalRuleNumberOfPage;
@@ -31,7 +31,7 @@ public class RentalReceiptRulesValidationService extends AbstractRulesValidation
     List<AbstractDocumentRuleValidator> getDocumentRuleValidators() {
         return List.of(
                 new RentalRuleNumberOfPage(),
-                new RentalHasBeenParsed(),
+                new RentalHasBeenParsedBI(),
                 new RentalRuleNamesMatch(),
                 new RentalRuleMonthValidity()
         );

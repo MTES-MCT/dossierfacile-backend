@@ -8,7 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import static fr.dossierfacile.process.file.service.document_rules.validator.guarantee_provider.GuaranteeProviderHelper.getGuaranteeProviderFile;
 
 @Slf4j
-public class GuaranteeProviderHasBeenParsed extends AbstractDocumentRuleValidator {
+public class GuaranteeProviderHasBeenParsedBI extends AbstractDocumentRuleValidator {
 
     @Override
     protected boolean isBlocking() {

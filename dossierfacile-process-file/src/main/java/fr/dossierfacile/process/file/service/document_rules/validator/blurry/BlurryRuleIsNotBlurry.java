@@ -26,7 +26,7 @@ public class BlurryRuleIsNotBlurry extends AbstractDocumentRuleValidator {
 
     @Override
     protected boolean isBlocking() {
-        return true;
+        return false;
     }
 
     @Override
