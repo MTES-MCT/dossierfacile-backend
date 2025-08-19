@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-class IncomeTaxRuleConsistencyTest {
+class IncomeTaxRuleConsistencyBTest {
 
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -132,7 +132,7 @@ class IncomeTaxRuleConsistencyTest {
     }
 
     private RuleValidatorOutput validate(Document d) {
-        return new IncomeTaxRuleConsistency().validate(d);
+        return new IncomeTaxRuleConsistencyB().validate(d);
     }
 
     @Test

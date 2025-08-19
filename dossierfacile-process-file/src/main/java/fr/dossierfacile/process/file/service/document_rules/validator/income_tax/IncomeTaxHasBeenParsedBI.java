@@ -8,7 +8,7 @@ import fr.dossierfacile.process.file.service.document_rules.validator.AbstractDo
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class IncomeTaxHasBeenParsed extends AbstractDocumentRuleValidator {
+public class IncomeTaxHasBeenParsedBI extends AbstractDocumentRuleValidator {
 
     @Override
     protected boolean isBlocking() {

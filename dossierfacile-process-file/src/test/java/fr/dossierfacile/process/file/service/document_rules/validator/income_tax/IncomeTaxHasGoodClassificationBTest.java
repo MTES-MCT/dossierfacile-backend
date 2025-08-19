@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-class IncomeTaxHasGoodClassificationTest {
+class IncomeTaxHasGoodClassificationBTest {
 
     private File fileWithBarcode(BarCodeDocumentType type) {
         File f = File.builder().build();
@@ -29,7 +29,7 @@ class IncomeTaxHasGoodClassificationTest {
     }
 
     private RuleValidatorOutput validate(Document d) {
-        return new IncomeTaxHasGoodClassification().validate(d);
+        return new IncomeTaxHasGoodClassificationB().validate(d);
     }
 
     @Test

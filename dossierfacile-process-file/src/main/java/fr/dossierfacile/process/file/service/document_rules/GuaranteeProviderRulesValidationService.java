@@ -3,7 +3,7 @@ package fr.dossierfacile.process.file.service.document_rules;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.process.file.service.document_rules.validator.AbstractDocumentRuleValidator;
-import fr.dossierfacile.process.file.service.document_rules.validator.guarantee_provider.GuaranteeProviderHasBeenParsed;
+import fr.dossierfacile.process.file.service.document_rules.validator.guarantee_provider.GuaranteeProviderHasBeenParsedBI;
 import fr.dossierfacile.process.file.service.document_rules.validator.guarantee_provider.GuaranteeProviderNamesMatch;
 import fr.dossierfacile.process.file.service.document_rules.validator.guarantee_provider.GuaranteeProviderRuleYearValidity;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +32,7 @@ public class GuaranteeProviderRulesValidationService extends AbstractRulesValida
     @Override
     List<AbstractDocumentRuleValidator> getDocumentRuleValidators() {
         return List.of(
-                new GuaranteeProviderHasBeenParsed(),
+                new GuaranteeProviderHasBeenParsedBI(),
                 new GuaranteeProviderNamesMatch(),
                 new GuaranteeProviderRuleYearValidity()
         );

@@ -4,7 +4,7 @@ import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentRule;
 import fr.dossierfacile.process.file.service.document_rules.validator.AbstractDocumentRuleValidator;
 
-public class RentalHasBeenParsed extends AbstractDocumentRuleValidator {
+public class RentalHasBeenParsedBI extends AbstractDocumentRuleValidator {
 
     @Override
     protected boolean isBlocking() {

@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 import java.time.YearMonth;
 import java.util.Arrays;
 
-class RentalHasBeenParsedTest {
+class RentalHasBeenParsedBITest {
 
     private File fileWithParsed() {
         ParsedFileAnalysis pfa = ParsedFileAnalysis.builder()
@@ -38,7 +38,7 @@ class RentalHasBeenParsedTest {
     }
 
     private RuleValidatorOutput validate(Document document) {
-        return new RentalHasBeenParsed().validate(document);
+        return new RentalHasBeenParsedBI().validate(document);
     }
 
     @Test
