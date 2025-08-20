@@ -179,3 +179,25 @@ s3.secret.key=[[ovh_secret_key]]
 s3.region=sbg
 s3.bucket.name=documents-analysis-test
 ```
+
+## Document Analysis : 
+There are 3 level of rules : 
+1. INFO => Those rules will not be displayed inside the BO or the API
+2. WARN => Those rules will be displayed inside the BO but not in the API
+3. CRITICAL => Those rules will be displayed inside the BO and the API
+
+The analysis of the document is store inside 3 set of rules : 
+- passed_rules => The validated rules for a document
+- inconclusive_rules => The rules that are inconclusive. A rule failed, and we can not analyse the rest of the document.
+- failed_rules => The rules that failed for a document
+
+When a rule is Blocking it means that the analysis will stop if the rule failed.
+When a rule is Inconclusive it means that the analysis status will be UNDEFINED.
+
+You can easily know if a rule is blocking or inconclusive by looking at the end of the rule name.
+B means blocking and I means inconclusive.
+
+Analysis status : 
+If a document has only passed rules, the status is CHECKED.
+If one FAILED rule with the level CRITICAL is present the status is FAILED.
+If one INCONCLUSIVE rule is present the status is UNDEFINED.

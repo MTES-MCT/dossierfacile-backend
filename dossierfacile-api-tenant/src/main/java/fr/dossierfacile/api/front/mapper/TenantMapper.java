@@ -30,8 +30,8 @@ public abstract class TenantMapper {
     @Value("${application.base.url}")
     protected String applicationBaseUrl;
 
-    @Value("${api.broken.rules.min.level:INFO}")
-    protected DocumentRule.Level minBrokenRulesLevel;
+    @Value("${api.failed.rules.min.level:WARN}")
+    protected DocumentRuleLevel minBrokenRulesLevel;
 
     @Value("${tenant.base.url}")
     protected String tenantBaseUrl;

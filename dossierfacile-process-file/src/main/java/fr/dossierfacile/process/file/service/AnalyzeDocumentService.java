@@ -103,8 +103,11 @@ public class AnalyzeDocumentService {
             documentAnalysisReport.setAnalysisStatus(DocumentAnalysisStatus.UNDEFINED);
             return;
         }
-        // If there are some failed rules, the analysis status is DENIED
-        if (CollectionUtils.isNotEmpty(documentAnalysisReport.getFailedRules())) {
+        // If there are some critical failed rules, the analysis status is DENIED
+        var criticalFailedRules = documentAnalysisReport.getFailedRules().stream()
+                .filter(rule -> rule.getLevel() == DocumentRuleLevel.CRITICAL)
+                .toList();
+        if (CollectionUtils.isNotEmpty(criticalFailedRules)) {
             documentAnalysisReport.setAnalysisStatus(DocumentAnalysisStatus.DENIED);
             return;
         }

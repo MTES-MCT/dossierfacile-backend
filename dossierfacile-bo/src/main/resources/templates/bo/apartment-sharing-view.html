@@ -3,7 +3,7 @@
       layout:decorate="~{bo/layout-bo}"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4">
+>
 <head>
     <title>DossierFacile</title>
     <link rel="stylesheet" href="/css/apartment-sharing-view.css"/>
@@ -85,7 +85,7 @@
                                             <button aria-label="Close" class="btn-close" data-bs-dismiss="modal"
                                                     type="button"></button>
                                         </div>
-                                        <div class="modal-body bg-body-tertiary" >
+                                        <div class="modal-body bg-body-tertiary">
                                             <form method="post"
                                                   style="margin-top: 8px;"
                                                   th:action="@{/bo/tenant/partner/}+${tenantPrincipal.getId()}"
@@ -347,7 +347,8 @@
                                 <div aria-hidden="true" aria-labelledby="exampleModalScrollableTitle" class="modal fade"
                                      role="dialog"
                                      tabindex="-1" th:id="'target'+${tenant.getId()}">
-                                    <div class="modal-dialog modal-dialog-scrollable" role="document" style="--bs-modal-width: 600px">
+                                    <div class="modal-dialog modal-dialog-scrollable" role="document"
+                                         style="--bs-modal-width: 600px">
                                         <div class="modal-content">
                                             <div class="modal-header" style="background: cadetblue;">
                                                 <h3 class="modal-title" id="exampleModalScrollableTitle"
@@ -358,18 +359,20 @@
                                             </div>
                                             <div class="modal-body bg-body-tertiary"
                                                  style="max-height: 80vh;overflow-y: auto;height: auto">
-                                                <div class="bg-warning-subtle" style="display: grid; padding: 7px;margin-bottom: 10px;"
+                                                <div class="bg-warning-subtle"
+                                                     style="display: grid; padding: 7px;margin-bottom: 10px;"
                                                      th:each="log: ${logser.getLogByTenantId(tenant.getId())}">
                                                     <div style="font-weight: bold;"
-                                                       th:text="${log.getLogType()} + ${ (log.getOperatorId() != null)? ' by opId: ' + log.getOperatorId() : ''} + ${log.getLogDetails() != null && log.getLogDetails().get('editionType') != null ? ' : DOCUMENT ' + (log.getLogDetails().get('editionType').asText().equals('ADD') ? 'ADDED' : 'DELETED'): ''}">
+                                                         th:text="${log.getLogType()} + ${ (log.getOperatorId() != null)? ' by opId: ' + log.getOperatorId() : ''} + ${log.getLogDetails() != null && log.getLogDetails().get('editionType') != null ? ' : DOCUMENT ' + (log.getLogDetails().get('editionType').asText().equals('ADD') ? 'ADDED' : 'DELETED'): ''}">
                                                     </div>
-                                                    <span th:if="${log != null && log.getLogDetails() != null && log.getLogDetails().get('documentCategory') != null && log.getLogDetails().get('documentSubCategory') != null}" class="bold" style="font-size: 14px">
+                                                    <span th:if="${log != null && log.getLogDetails() != null && log.getLogDetails().get('documentCategory') != null && log.getLogDetails().get('documentSubCategory') != null}"
+                                                          class="bold" style="font-size: 14px">
                                                         <span th:if="${log.getLogDetails().get('guarantorId') != null}">GUARANTOR - </span>
                                                         <span th:text="${log.getLogDetails().get('documentCategory').asText()}"></span> -
                                                         <span th:text="${log.getLogDetails().get('documentSubCategory').asText()}"></span>
                                                     </span>
                                                     <span
-                                                          th:text="'date: ' + ${log.getCreationDateTime().getYear()} + '-' + ${log.getCreationDateTime().getMonthValue()} + '-' + ${log.getCreationDateTime().getDayOfMonth()} + ' ' + ${log.getCreationDateTime().getHour()} + ':' + ${log.getCreationDateTime().getMinute()} + ':' + ${log.getCreationDateTime().getSecond()}">
+                                                            th:text="'date: ' + ${log.getCreationDateTime().getYear()} + '-' + ${log.getCreationDateTime().getMonthValue()} + '-' + ${log.getCreationDateTime().getDayOfMonth()} + ' ' + ${log.getCreationDateTime().getHour()} + ':' + ${log.getCreationDateTime().getMinute()} + ':' + ${log.getCreationDateTime().getSecond()}">
                                                     </span>
                                                 </div>
                                             </div>
@@ -576,14 +579,14 @@
 
                         <div class="medium-space-separator" id="update-status">
                             <div class="card panel-primary mb-3"
-                                 th:each="document : ${tenantService.getAllDocumentCategories(tenant)}">
+                                 th:each="document,iter : ${tenantService.getAllDocumentCategories(tenant)}">
 
                                 <div class="card-header">
 
                                     <div class="card-title" th:if="${document.getId() == null}">
                                         <span>Category:
                                             <span
-                                                  th:text="${document.getDocumentCategory().name()}">
+                                                    th:text="${document.getDocumentCategory().name()}">
                                             </span>
                                         </span>
                                     </div>
@@ -592,12 +595,12 @@
                                          th:if="${document.getId() != null} and ${document.getWatermarkFile() == null}">
                                         <span>Category:
                                             <span
-                                                  th:text="${document.getDocumentCategory().name()}">
+                                                    th:text="${document.getDocumentCategory().name()}">
                                             </span>
                                         </span>
                                         <span> Subcategory:
                                             <span
-                                                  th:text="${document.getDocumentSubCategory().name()}">
+                                                    th:text="${document.getDocumentSubCategory().name()}">
                                             </span>
                                         </span>
 
@@ -738,16 +741,17 @@
                                             </span>
                                         </li>
                                     </ul>
-                                    <div th:if="${document.getDocumentAnalysisReport()!=null}"
-                                         th:class="${'prevalidation-background-' + document.getDocumentAnalysisReport().getAnalysisStatus() }">
-                                        Statut de la vérification automatique:
-                                        <span th:text="${document.getDocumentAnalysisReport().getAnalysisStatus}"></span>
-                                        <ul>
-                                            <li style="margin-top: 5px"
-                                                th:each="rule : ${document.getDocumentAnalysisReport().getFailedRules()}">
-                                                <span style="font-size:smaller" th:text="' ' + ${rule.message}"></span>
-                                            </li>
-                                        </ul>
+                                    <div th:if="${document.documentAnalysisReport != null}"
+                                         th:class="${'prevalidation-background-' + document.documentAnalysisReport.analysisStatus}"
+                                    >
+                                        <div th:replace="~{bo/fragments/document-analysis :: analysis(
+                                            report=${document.documentAnalysisReport},
+                                            documentRuleLevel=${documentRuleLevel},
+                                            uid=${(document.id != null) ? 'doc-' + document.id : 'doc-' + iter.index},
+                                            label=${'Statut de la vérification automatique :'}
+                                          )}">
+                                        </div>
+
                                     </div>
                                     <div th:if="${document.avisDetected}">
                                         - Attention, un avis de situation a été détecté !
@@ -798,12 +802,12 @@
                                 ></a>
                             </div>
                             <div class="card panel-primary mb-3"
-                                 th:each="document : ${tenantService.getAllDocumentCategoriesGuarantor(guarantor)}">
+                                 th:each="document,iter : ${tenantService.getAllDocumentCategoriesGuarantor(guarantor)}">
                                 <div class="card-header">
                                     <div class="card-title" th:if="${ document.getId() == null }">
                                         <span>Category:
                                             <span
-                                                  th:text="${document.getDocumentCategory().name()}">
+                                                    th:text="${document.getDocumentCategory().name()}">
                                             </span>
                                         </span>
                                     </div>
@@ -812,12 +816,12 @@
                                          th:if="${document.getId() != null} and ${document.getWatermarkFile() == null}">
                                         <span>Category:
                                             <span
-                                                  th:text="${document.getDocumentCategory().name()}">
+                                                    th:text="${document.getDocumentCategory().name()}">
                                             </span>
                                         </span>
                                         <span> Subcategory:
                                             <span
-                                                  th:text="${document.getDocumentSubCategory().name()}">
+                                                    th:text="${document.getDocumentSubCategory().name()}">
                                             </span>
                                         </span>
 
@@ -956,16 +960,17 @@
                                             </span>
                                         </li>
                                     </ul>
-                                    <div th:if="${document.getDocumentAnalysisReport()!=null}"
-                                         th:class="${'prevalidation-background-' + document.getDocumentAnalysisReport().getAnalysisStatus() }">
-                                        Statut de la vérification automatique:
-                                        <span th:text="${document.getDocumentAnalysisReport().getAnalysisStatus}"></span>
-                                        <ul>
-                                            <li style="margin-top: 5px"
-                                                th:each="rule : ${document.getDocumentAnalysisReport().getFailedRules()}">
-                                                <span style="font-size:smaller" th:text="' ' + ${rule.message}"></span>
-                                            </li>
-                                        </ul>
+                                    <div th:if="${document.documentAnalysisReport != null}"
+                                         th:class="${'prevalidation-background-' + document.documentAnalysisReport.analysisStatus}"
+                                    >
+                                        <div th:replace="~{bo/fragments/document-analysis :: analysis(
+                                            report=${document.documentAnalysisReport},
+                                            documentRuleLevel=${documentRuleLevel},
+                                            uid=${(document.id != null) ? 'doc-' + document.id : 'doc-' + iter.index},
+                                            label=${'Statut de la vérification automatique :'}
+                                          )}">
+                                        </div>
+
                                     </div>
                                     <div th:if="${document.avisDetected}">
                                         - Attention, un avis de situation a été détecté !

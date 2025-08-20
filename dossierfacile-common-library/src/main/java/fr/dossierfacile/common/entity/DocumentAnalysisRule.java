@@ -22,7 +22,7 @@ public class DocumentAnalysisRule {
 
     @Enumerated(EnumType.STRING)
     @Builder.Default
-    private DocumentRule.Level level = DocumentRule.Level.CRITICAL;
+    private DocumentRuleLevel level = DocumentRuleLevel.CRITICAL;
 
 
     public static DocumentAnalysisRule documentFailedRuleFrom(DocumentRule rule) {

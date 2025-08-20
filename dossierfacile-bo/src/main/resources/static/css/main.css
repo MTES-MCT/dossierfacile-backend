@@ -659,3 +659,7 @@ html[data-fr-theme="dark"] .searchTerm:focus {
 .btn-right-pull{
     margin-right: 5px;
 }
+/* Toggle texte Voir plus / Voir moins sans JS */
+button.btn .label-expanded { display: none; }
+button.btn[aria-expanded="true"] .label-expanded { display: inline; }
+button.btn[aria-expanded="true"] .label-collapsed { display: none; }
