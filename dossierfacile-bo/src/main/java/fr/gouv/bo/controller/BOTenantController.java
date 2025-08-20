@@ -5,40 +5,19 @@ import fr.dossierfacile.common.enums.*;
 import fr.dossierfacile.common.exceptions.NotFoundException;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
-import fr.gouv.bo.dto.CustomMessage;
-import fr.gouv.bo.dto.DisplayableFile;
-import fr.gouv.bo.dto.GuarantorItem;
-import fr.gouv.bo.dto.ItemDetail;
-import fr.gouv.bo.dto.MessageDTO;
-import fr.gouv.bo.dto.MessageItem;
-import fr.gouv.bo.dto.PartnerDTO;
-import fr.gouv.bo.dto.TenantInfoHeader;
-import fr.gouv.bo.service.DocumentDeniedReasonsService;
-import fr.gouv.bo.service.DocumentService;
-import fr.gouv.bo.service.TenantLogService;
-import fr.gouv.bo.service.MessageService;
-import fr.gouv.bo.service.TenantService;
-import fr.gouv.bo.service.UserApiService;
-import fr.gouv.bo.service.UserService;
+import fr.gouv.bo.dto.*;
+import fr.gouv.bo.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.security.Principal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 import static org.springframework.http.ResponseEntity.ok;
 
@@ -53,6 +32,7 @@ public class BOTenantController {
     private static final String GUARANTOR = "guarantor";
     private static final String NEW_MESSAGE = "newMessage";
     private static final String HEADER = "header";
+    private static final String DOCUMENT_RULE_LEVEL = "documentRuleLevel";
     private static final String REDIRECT_BO = "redirect:/bo";
     private static final String CUSTOM_MESSAGE = "customMessage";
     private static final String CLARIFICATION = "clarification";
@@ -143,18 +123,20 @@ public class BOTenantController {
     @GetMapping("/status/{id}")
     public String changeStatusOfDocument(@PathVariable("id") Long id, MessageDTO messageDTO, Principal principal) {
         User operator = userService.findUserByEmail(principal.getName());
-        Tenant tenant = tenantService.changeDocumentStatus(id,messageDTO, operator);
+        Tenant tenant = tenantService.changeDocumentStatus(id, messageDTO, operator);
 
         return redirectToTenantPage(tenant);
     }
-    private void checkPartnerRights(Tenant tenant, Principal principal){
+
+    private void checkPartnerRights(Tenant tenant, Principal principal) {
         BOUser operator = userService.findUserByEmail(principal.getName());
-        if (operator.getUserRoles().stream().anyMatch( r -> r.getRole() == Role.ROLE_PARTNER)
-                && tenant.getTenantsUserApi().stream().noneMatch( apiUser -> apiUser.getUserApi().getId().equals(operator.getExclusivePartnerId()))){
+        if (operator.getUserRoles().stream().anyMatch(r -> r.getRole() == Role.ROLE_PARTNER)
+                && tenant.getTenantsUserApi().stream().noneMatch(apiUser -> apiUser.getUserApi().getId().equals(operator.getExclusivePartnerId()))) {
             log.error("Access Denied");
             throw new AccessDeniedException("Access denied");
         }
     }
+
     @GetMapping("/{id}/processFile")
     public String processFileForm(Model model, @PathVariable("id") Long id, Principal principal) throws IOException {
         Tenant tenant = tenantService.find(id);
@@ -170,6 +152,7 @@ public class BOTenantController {
         model.addAttribute(HEADER, header);
         model.addAttribute(NEW_MESSAGE, findNewMessageFromTenant(id));
         model.addAttribute(TENANT, tenant);
+        model.addAttribute(DOCUMENT_RULE_LEVEL, DocumentRuleLevel.WARN);
         model.addAttribute(CUSTOM_MESSAGE, getCustomMessage(tenant));
         model.addAttribute(CLARIFICATION, splitInParagraphs(tenant.getClarification()));
         model.addAttribute(OPERATOR_COMMENT, splitInParagraphs(tenant.getOperatorComment()));
@@ -247,7 +230,7 @@ public class BOTenantController {
                         .analyzedFiles(DisplayableFile.onlyAnalyzedFilesOf(document))
                         .previousDeniedReasons(documentDeniedReasonsService.getLastDeniedReason(document, tenant).orElse(null))
                         .documentAnalysisReport(document.getDocumentAnalysisReport())
-                        .analysisReportComment(document.getDocumentAnalysisReport() != null && (DocumentAnalysisStatus.DENIED == document.getDocumentAnalysisReport().getAnalysisStatus())  ? document.getDocumentAnalysisReport().getComment() : null)
+                        .analysisReportComment(document.getDocumentAnalysisReport() != null && (DocumentAnalysisStatus.DENIED == document.getDocumentAnalysisReport().getAnalysisStatus()) ? document.getDocumentAnalysisReport().getComment() : null)
                         .build());
             }
         }
@@ -276,7 +259,7 @@ public class BOTenantController {
                             .documentName(document.getName())
                             .analyzedFiles(DisplayableFile.onlyAnalyzedFilesOf(document))
                             .documentAnalysisReport(document.getDocumentAnalysisReport())
-                            .analysisReportComment(document.getDocumentAnalysisReport() != null && (DocumentAnalysisStatus.DENIED == document.getDocumentAnalysisReport().getAnalysisStatus())  ? document.getDocumentAnalysisReport().getComment() : null)
+                            .analysisReportComment(document.getDocumentAnalysisReport() != null && (DocumentAnalysisStatus.DENIED == document.getDocumentAnalysisReport().getAnalysisStatus()) ? document.getDocumentAnalysisReport().getComment() : null)
                             .previousDeniedReasons(documentDeniedReasonsService.getLastDeniedReason(document, tenant).orElse(null))
                             .build());
                 }

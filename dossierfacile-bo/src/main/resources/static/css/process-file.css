@@ -178,6 +178,11 @@ html[data-fr-theme="dark"] .span1 {
     padding-right:10px
 }
 
+.verification-block {
+    padding-left: 15px;
+    padding-bottom: 5px;
+}
+
 .span-style{
     display: flex;
     line-height: 20pt;

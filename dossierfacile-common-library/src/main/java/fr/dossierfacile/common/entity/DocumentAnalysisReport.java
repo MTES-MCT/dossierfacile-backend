@@ -76,4 +76,16 @@ public class DocumentAnalysisReport {
         }
     }
 
+    public List<DocumentAnalysisRule> getFilteredPassedRules(DocumentRuleLevel level) {
+        return passedRules.stream().filter(item -> item.getLevel().ordinal() >= level.ordinal()).toList();
+    }
+
+    public List<DocumentAnalysisRule> getFilteredFailedRules(DocumentRuleLevel level) {
+        return failedRules.stream().filter(item -> item.getLevel().ordinal() >= level.ordinal()).toList();
+    }
+
+    public List<DocumentAnalysisRule> getFilteredInconclusiveRules(DocumentRuleLevel level) {
+        return inconclusiveRules.stream().filter(item -> item.getLevel().ordinal() >= level.ordinal()).toList();
+    }
+
 }
