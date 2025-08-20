@@ -128,17 +128,16 @@
                                             </li>
                                         </ul>
                                     </div>
-                                    <div th:if="${messageItem.getDocumentAnalysisReport()!=null}"
-                                         th:class="${'prevalidation-background-' + messageItem.getDocumentAnalysisReport().getAnalysisStatus() }"
-                                         style="padding: 15px 5px 5px 5px">
-                                        Statut de la vérification automatique:
-                                        <span th:text="${messageItem.getDocumentAnalysisReport().getAnalysisStatus}"></span>
-                                        <ul>
-                                            <li style="margin-top: 5px"
-                                                th:each="rule : ${messageItem.getDocumentAnalysisReport().getFailedRules()()}">
-                                                <span style="font-size:smaller" th:text="' ' + ${rule.message}"></span>
-                                            </li>
-                                        </ul>
+                                    <div th:if="${messageItem.documentAnalysisReport != null}"
+                                         th:class="${'prevalidation-background-' + messageItem.documentAnalysisReport.analysisStatus + ' verification-block'}"
+                                    >
+                                        <div th:replace="~{bo/fragments/document-analysis :: analysis(
+                                            report=${messageItem.documentAnalysisReport},
+                                            documentRuleLevel=${documentRuleLevel},
+                                            uid=${(messageItem.getDocumentId() != null) ? 'doc-' + messageItem.getDocumentId() : 'doc-' + iter.index},
+                                            label=${'Statut de la vérification automatique :'}
+                                          )}">
+                                        </div>
                                     </div>
                                     <div th:if="${messageItem.getAnalysisReportComment()} != null"
                                          class="card-header file2-background-color letter">
@@ -305,18 +304,17 @@
                                                 </li>
                                             </ul>
                                         </div>
-                                        <div th:if="${messageItem.getDocumentAnalysisReport()!=null}"
-                                             th:class="${'prevalidation-background-' + messageItem.getDocumentAnalysisReport().getAnalysisStatus() }"
-                                             style="padding: 15px 5px 5px 5px">
-                                            Statut de la vérification automatique:
-                                            <span th:text="${messageItem.getDocumentAnalysisReport().getAnalysisStatus}"></span>
-                                            <ul>
-                                                <li style="margin-top: 5px"
-                                                    th:each="rule : ${messageItem.getDocumentAnalysisReport().getFailedRules()}">
-                                                    <span style="font-size:smaller"
-                                                          th:text="' ' + ${rule.message}"></span>
-                                                </li>
-                                            </ul>
+                                        <div th:if="${messageItem.documentAnalysisReport != null}"
+                                             th:class="${'prevalidation-background-' + messageItem.documentAnalysisReport.analysisStatus + ' verification-block'}"
+                                        >
+                                            <div th:replace="~{bo/fragments/document-analysis :: analysis(
+                                            report=${messageItem.documentAnalysisReport},
+                                            documentRuleLevel=${documentRuleLevel},
+                                            uid=${(messageItem.getDocumentId() != null) ? 'doc-' + messageItem.getDocumentId() : 'doc-' + iter.index},
+                                            label=${'Statut de la vérification automatique :'}
+                                          )}">
+                                            </div>
+
                                         </div>
                                         <div th:if="${messageItem.getAnalysisReportComment()} != null"
                                              class="card-header file2-background-color letter">
