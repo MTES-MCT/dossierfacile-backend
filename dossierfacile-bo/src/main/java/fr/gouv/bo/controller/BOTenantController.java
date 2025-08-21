@@ -15,6 +15,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import fr.gouv.bo.utils.DocumentLabelUtils;
+
 import java.io.IOException;
 import java.security.Principal;
 import java.util.*;
