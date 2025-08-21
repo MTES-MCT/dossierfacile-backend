@@ -111,8 +111,12 @@ public class AnalyzeDocumentService {
             documentAnalysisReport.setAnalysisStatus(DocumentAnalysisStatus.DENIED);
             return;
         }
-        // If there are no failed rules and no inconclusive rules, the analysis status is CHECKED
-        if (CollectionUtils.isEmpty(documentAnalysisReport.getFailedRules()) && CollectionUtils.isEmpty(documentAnalysisReport.getInconclusiveRules())) {
+        var criticalPassedRules = documentAnalysisReport.getPassedRules().stream()
+                .filter(rule -> rule.getLevel() == DocumentRuleLevel.CRITICAL)
+                .toList();
+        // If there are no failed rules and no inconclusive rules and at least a critical passed rule the analysis status is CHECKED
+        // If there is no critical passed rule, the analysis status is UNDEFINED because it means that we can not conclude that the document is valid or not.
+        if (CollectionUtils.isEmpty(documentAnalysisReport.getFailedRules()) && CollectionUtils.isEmpty(documentAnalysisReport.getInconclusiveRules()) && CollectionUtils.isNotEmpty(criticalPassedRules)) {
             documentAnalysisReport.setAnalysisStatus(DocumentAnalysisStatus.CHECKED);
             return;
         }
