@@ -46,8 +46,8 @@
         <jbig2-imageio.version>3.0.4</jbig2-imageio.version>
         <jai-imageio-core.version>1.4.0</jai-imageio-core.version>
         <jai-imageio-jpeg2000.version>1.4.0</jai-imageio-jpeg2000.version>
-        <bcprov-jdk18on.version>1.78.1</bcprov-jdk18on.version>
-        <bcpkix-jdk18on.version>1.78.1</bcpkix-jdk18on.version>
+        <bcprov-jdk18on.version>1.81</bcprov-jdk18on.version>
+        <bcpkix-jdk18on.version>1.81</bcpkix-jdk18on.version>
     </properties>
 
     <dependencyManagement>
