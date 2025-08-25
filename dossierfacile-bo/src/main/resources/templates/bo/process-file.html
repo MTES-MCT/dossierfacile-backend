@@ -138,6 +138,12 @@
                                           )}">
                                         </div>
                                     </div>
+                                    <!-- contenu si le rapport n'existe pas (else) -->
+                                    <div th:unless="${messageItem.documentAnalysisReport != null}" th:class="${'prevalidation-background-UNDEFINED'}">
+                                        <div class="mb-1 ms-1">
+                                            <span class="fw-semibold">Aucune analyse disponible</span>
+                                        </div>
+                                    </div>
                                     <div th:if="${messageItem.getAnalysisReportComment()} != null"
                                          class="card-header file2-background-color letter">
                                         <div style="font-size: 12px; line-height: 20px">
@@ -312,7 +318,12 @@
                                             uid=${(messageItem.getDocumentId() != null) ? 'doc-' + messageItem.getDocumentId() : 'doc-' + iter.index}
                                           )}">
                                             </div>
-
+                                        </div>
+                                        <!-- contenu si le rapport n'existe pas (else) -->
+                                        <div th:unless="${messageItem.documentAnalysisReport != null}" th:class="${'prevalidation-background-UNDEFINED'}">
+                                            <div class="mb-1 ms-1">
+                                                <span class="fw-semibold">Aucune analyse disponible</span>
+                                            </div>
                                         </div>
                                         <div th:if="${messageItem.getAnalysisReportComment()} != null"
                                              class="card-header file2-background-color letter">
