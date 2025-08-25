@@ -98,30 +98,26 @@ public class AnalyzeDocumentService {
         if (documentAnalysisReport.getAnalysisStatus() == DocumentAnalysisStatus.UNDEFINED) {
             return;
         }
-        // If there are rules of type Inconclusive on the report the analysis status is UNDEFINED
-        if (CollectionUtils.isNotEmpty(documentAnalysisReport.getInconclusiveRules())) {
-            documentAnalysisReport.setAnalysisStatus(DocumentAnalysisStatus.UNDEFINED);
-            return;
-        }
-        // If there are some critical failed rules, the analysis status is DENIED
+
+        // If there is at least one critical failed rule, the analysis statis will be DENIED (This is temporary until we are confident with the blurry algorithms)
         var criticalFailedRules = documentAnalysisReport.getFailedRules().stream()
                 .filter(rule -> rule.getLevel() == DocumentRuleLevel.CRITICAL)
                 .toList();
+
         if (CollectionUtils.isNotEmpty(criticalFailedRules)) {
             documentAnalysisReport.setAnalysisStatus(DocumentAnalysisStatus.DENIED);
             return;
         }
-        var criticalPassedRules = documentAnalysisReport.getPassedRules().stream()
-                .filter(rule -> rule.getLevel() == DocumentRuleLevel.CRITICAL)
-                .toList();
-        // If there are no failed rules and no inconclusive rules and at least a critical passed rule the analysis status is CHECKED
-        // If there is no critical passed rule, the analysis status is UNDEFINED because it means that we can not conclude that the document is valid or not.
-        if (CollectionUtils.isEmpty(documentAnalysisReport.getFailedRules()) && CollectionUtils.isEmpty(documentAnalysisReport.getInconclusiveRules()) && CollectionUtils.isNotEmpty(criticalPassedRules)) {
-            documentAnalysisReport.setAnalysisStatus(DocumentAnalysisStatus.CHECKED);
+
+        // Other wise we check if the analysis is inclusive or not
+        // If there is at least one inconclusive rule, the analysis status is UNDEFINED
+        if (CollectionUtils.isNotEmpty(documentAnalysisReport.getInconclusiveRules())) {
+            documentAnalysisReport.setAnalysisStatus(DocumentAnalysisStatus.UNDEFINED);
             return;
         }
-        // If no other condition is met, the analysis status is UNDEFINED
-        documentAnalysisReport.setAnalysisStatus(DocumentAnalysisStatus.UNDEFINED);
+
+        // Other wise it means that the analysis is Checked
+        documentAnalysisReport.setAnalysisStatus(DocumentAnalysisStatus.CHECKED);
     }
 
     private boolean hasBeenAnalysed(Document document) {

@@ -29,17 +29,17 @@ public class DocumentLabelUtils {
 
     public static String getDocumentAnalysStatusLabel(DocumentAnalysisStatus documentAnalysisStatus) {
         return switch (documentAnalysisStatus) {
-            case UNDEFINED -> "Impossible";
-            case CHECKED -> "Validé";
-            case DENIED -> "Refusé";
+            case UNDEFINED -> "Analyse incomplète";
+            case CHECKED -> "Analyse complète";
+            case DENIED -> "Anomalie détectée";
         };
     }
 
     public static String getDocumentAnalysStatusSubLabel(DocumentAnalysisStatus documentAnalysisStatus) {
         return switch (documentAnalysisStatus) {
-            case UNDEFINED -> "- Le système n'a pas pu analyser ce document.";
-            case CHECKED -> null;
-            case DENIED -> "- Une ou plusieurs règles sont rejetées.";
+            case UNDEFINED -> "- Le système n’a pas pu analyser tout le document.";
+            case CHECKED -> "- Toutes les règles ont été validées";
+            case DENIED -> "- Une ou plusieurs règles ont été rejetées.";
         };
     }
 

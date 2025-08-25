@@ -211,14 +211,17 @@ div.scrollmenu a:hover {
 .prevalidation-background-DENIED{
     background-color: #fff6f7;
     color: #000000;
+    padding-right: 5px;
 }
 .prevalidation-background-UNDEFINED{
     background-color: #f6f4d7;
     color: #000000;
+    padding-right: 5px;
 }
 .prevalidation-background-CHECKED{
     background-color: #e9f6f0;
     color: #000000;
+    padding-right: 5px;
 }
 
 .card-header.category-IDENTIFICATION {

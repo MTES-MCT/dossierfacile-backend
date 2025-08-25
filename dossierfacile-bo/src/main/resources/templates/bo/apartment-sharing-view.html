@@ -750,7 +750,12 @@
                                             uid=${(document.id != null) ? 'doc-' + document.id : 'doc-' + iter.index}
                                           )}">
                                         </div>
-
+                                    </div>
+                                    <!-- contenu si le rapport n'existe pas (else) -->
+                                    <div th:unless="${document.documentAnalysisReport != null}" th:class="${'prevalidation-background-UNDEFINED'}">
+                                        <div class="mb-1">
+                                            <span class="fw-semibold">Aucune analyse disponible</span>
+                                        </div>
                                     </div>
                                     <div th:if="${document.avisDetected}">
                                         - Attention, un avis de situation a été détecté !
@@ -968,7 +973,12 @@
                                             uid=${(document.id != null) ? 'doc-' + document.id : 'doc-' + iter.index}
                                           )}">
                                         </div>
-
+                                    </div>
+                                    <!-- contenu si le rapport n'existe pas (else) -->
+                                    <div th:unless="${document.documentAnalysisReport != null}" th:class="${'prevalidation-background-UNDEFINED'}">
+                                        <div class="mb-1">
+                                            <span class="fw-semibold">Aucune analyse disponible</span>
+                                        </div>
                                     </div>
                                     <div th:if="${document.avisDetected}">
                                         - Attention, un avis de situation a été détecté !

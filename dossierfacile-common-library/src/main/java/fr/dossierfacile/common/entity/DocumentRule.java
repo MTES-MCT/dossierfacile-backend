@@ -166,7 +166,6 @@ public enum DocumentRule {
             "Ce document a été validé par France Identité",
             "Ce document n'a pas pu être validé par France Identité"
             ),
-
     R_BLURRY_FILE_ANALYSED(
             DocumentRuleLevel.INFO,
             "",

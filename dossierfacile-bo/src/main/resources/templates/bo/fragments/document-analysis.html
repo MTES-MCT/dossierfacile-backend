@@ -10,9 +10,8 @@
          th:class="${'prevalidation-background-' + status}">
 
         <div class="mb-1">
-            <span>Statut de l’analyse automatique :</span>
             <span class="fw-semibold" th:text="${T(fr.gouv.bo.utils.DocumentLabelUtils).getDocumentAnalysStatusLabel(status)}"></span>
-            <span th:if="${T(fr.gouv.bo.utils.DocumentLabelUtils).getDocumentAnalysStatusSubLabel(status) != null}" th:text="${T(fr.gouv.bo.utils.DocumentLabelUtils).getDocumentAnalysStatusSubLabel(status)}"></span>
+            <span th:text="${T(fr.gouv.bo.utils.DocumentLabelUtils).getDocumentAnalysStatusSubLabel(status)}"></span>
         </div>
 
         <!-- Visibles selon le statut courant -->
