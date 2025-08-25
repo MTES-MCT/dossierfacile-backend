@@ -128,22 +128,26 @@
                                             </li>
                                         </ul>
                                     </div>
-                                    <div th:if="${messageItem.getDocumentAnalysisReport()!=null}"
-                                         th:class="${'prevalidation-background-' + messageItem.getDocumentAnalysisReport().getAnalysisStatus() }"
-                                         style="padding: 15px 5px 5px 5px">
-                                        Statut de la vérification automatique:
-                                        <span th:text="${messageItem.getDocumentAnalysisReport().getAnalysisStatus}"></span>
-                                        <ul>
-                                            <li style="margin-top: 5px"
-                                                th:each="rule : ${messageItem.getDocumentAnalysisReport().getBrokenRules()}">
-                                                <span style="font-size:smaller" th:text="' ' + ${rule.message}"></span>
-                                            </li>
-                                        </ul>
+                                    <div th:if="${messageItem.documentAnalysisReport != null}"
+                                         th:class="${'prevalidation-background-' + messageItem.documentAnalysisReport.analysisStatus + ' verification-block'}"
+                                    >
+                                        <div th:replace="~{bo/fragments/document-analysis :: analysis(
+                                            report=${messageItem.documentAnalysisReport},
+                                            documentRuleLevel=${documentRuleLevel},
+                                            uid=${(messageItem.getDocumentId() != null) ? 'doc-' + messageItem.getDocumentId() : 'doc-' + iter.index}
+                                          )}">
+                                        </div>
+                                    </div>
+                                    <!-- contenu si le rapport n'existe pas (else) -->
+                                    <div th:unless="${messageItem.documentAnalysisReport != null}" th:class="${'prevalidation-background-UNDEFINED'}">
+                                        <div class="mb-1 ms-1">
+                                            <span class="fw-semibold">Aucune analyse disponible</span>
+                                        </div>
                                     </div>
                                     <div th:if="${messageItem.getAnalysisReportComment()} != null"
                                          class="card-header file2-background-color letter">
                                         <div style="font-size: 12px; line-height: 20px">
-                                            Les règles ont été forcées avec l'explication suivante :
+                                            Document forcé par l'utilisateur avec motif :
                                         </div>
                                         <p th:text="${messageItem.getAnalysisReportComment()}"></p>
                                     </div>
@@ -305,23 +309,26 @@
                                                 </li>
                                             </ul>
                                         </div>
-                                        <div th:if="${messageItem.getDocumentAnalysisReport()!=null}"
-                                             th:class="${'prevalidation-background-' + messageItem.getDocumentAnalysisReport().getAnalysisStatus() }"
-                                             style="padding: 15px 5px 5px 5px">
-                                            Statut de la vérification automatique:
-                                            <span th:text="${messageItem.getDocumentAnalysisReport().getAnalysisStatus}"></span>
-                                            <ul>
-                                                <li style="margin-top: 5px"
-                                                    th:each="rule : ${messageItem.getDocumentAnalysisReport().getBrokenRules()}">
-                                                    <span style="font-size:smaller"
-                                                          th:text="' ' + ${rule.message}"></span>
-                                                </li>
-                                            </ul>
+                                        <div th:if="${messageItem.documentAnalysisReport != null}"
+                                             th:class="${'prevalidation-background-' + messageItem.documentAnalysisReport.analysisStatus + ' verification-block'}"
+                                        >
+                                            <div th:replace="~{bo/fragments/document-analysis :: analysis(
+                                            report=${messageItem.documentAnalysisReport},
+                                            documentRuleLevel=${documentRuleLevel},
+                                            uid=${(messageItem.getDocumentId() != null) ? 'doc-' + messageItem.getDocumentId() : 'doc-' + iter.index}
+                                          )}">
+                                            </div>
+                                        </div>
+                                        <!-- contenu si le rapport n'existe pas (else) -->
+                                        <div th:unless="${messageItem.documentAnalysisReport != null}" th:class="${'prevalidation-background-UNDEFINED'}">
+                                            <div class="mb-1 ms-1">
+                                                <span class="fw-semibold">Aucune analyse disponible</span>
+                                            </div>
                                         </div>
                                         <div th:if="${messageItem.getAnalysisReportComment()} != null"
                                              class="card-header file2-background-color letter">
                                             <div style="font-size: 12px; line-height: 20px">
-                                                Les règles ont été forcées avec l'explication suivante :
+                                                Document forcé par l'utilisateur avec motif :
                                             </div>
                                             <p th:text="${messageItem.getAnalysisReportComment()}"></p>
                                         </div>

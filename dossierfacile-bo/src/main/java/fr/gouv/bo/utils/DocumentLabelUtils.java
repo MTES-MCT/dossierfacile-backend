@@ -1,5 +1,6 @@
 package fr.gouv.bo.utils;
 
+import fr.dossierfacile.common.entity.DocumentAnalysisStatus;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import org.springframework.stereotype.Component;
@@ -23,6 +24,22 @@ public class DocumentLabelUtils {
             case "guarantor" -> "Garant";
             case "tenant" -> "Locataire";
             default -> documentUserType;
+        };
+    }
+
+    public static String getDocumentAnalysStatusLabel(DocumentAnalysisStatus documentAnalysisStatus) {
+        return switch (documentAnalysisStatus) {
+            case UNDEFINED -> "Analyse incomplète";
+            case CHECKED -> "Analyse complète";
+            case DENIED -> "Anomalie détectée";
+        };
+    }
+
+    public static String getDocumentAnalysStatusSubLabel(DocumentAnalysisStatus documentAnalysisStatus) {
+        return switch (documentAnalysisStatus) {
+            case UNDEFINED -> "- Le système n’a pas pu analyser tout le document.";
+            case CHECKED -> "- Toutes les règles ont été validées";
+            case DENIED -> "- Une ou plusieurs règles ont été rejetées.";
         };
     }
 

@@ -1,11 +1,13 @@
 $(document).ready(function () {
 
-    setTimeout(function() {
+    setTimeout(function () {
         $('#successMessage').fadeOut('fast');
     }, 5000); // <-- time in milliseconds
 
-    $(function() {
-        setTimeout(function() { $("#hideDiv").fadeOut(1500); }, 4000)
+    $(function () {
+        setTimeout(function () {
+            $("#hideDiv").fadeOut(1500);
+        }, 4000)
 
     })
     $('#apartmentSharingTable').DataTable({
@@ -70,7 +72,6 @@ $(document).ready(function () {
             }
         ]
     });
-
 
 });
 

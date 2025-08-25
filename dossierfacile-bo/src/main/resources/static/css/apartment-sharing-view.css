@@ -1,14 +1,15 @@
 .prevalidation-background-DENIED{
-    background-color: var(--bs-danger-bg-subtle);
+    background-color: #fff6f7;
+    color: #000000;
     padding: 0px 5px 5px 5px;
 }
 .prevalidation-background-UNDEFINED{
-    background-color: #f0d39c;
-    color: #929292;
+    background-color: #f6f4d7;
+    color: #000000;
     padding: 0px 5px 5px 5px;
 }
 .prevalidation-background-CHECKED{
-    background-color: #e1f2e4;
-    color: #929292;
+    background-color: #e9f6f0;
+    color: #000000;
     padding: 0px 5px 5px 5px;
 }
