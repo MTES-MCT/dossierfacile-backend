@@ -14,7 +14,6 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
-import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.enums.TypeGuarantor;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.DocumentHelperService;
@@ -55,6 +54,7 @@ public class DocumentTaxGuarantorNaturalPerson extends AbstractDocumentSaveStep<
         document.setDocumentStatus(DocumentStatus.TO_PROCESS);
         document.setDocumentDeniedReasons(null);
         document.setDocumentSubCategory(documentSubCategory);
+        document.setDocumentCategoryStep(documentTaxGuarantorNaturalPersonForm.getCategoryStep());
         document.setCustomText(null);
         if (document.getNoDocument() != null && !document.getNoDocument() && documentTaxGuarantorNaturalPersonForm.getNoDocument()) {
             deleteFilesIfExistedBefore(document);
@@ -62,6 +62,9 @@ public class DocumentTaxGuarantorNaturalPerson extends AbstractDocumentSaveStep<
         document.setNoDocument(documentTaxGuarantorNaturalPersonForm.getNoDocument());
         if (documentTaxGuarantorNaturalPersonForm.getAvisDetected() != null) {
             document.setAvisDetected(documentTaxGuarantorNaturalPersonForm.getAvisDetected());
+        }
+        if (documentSubCategory == OTHER_TAX && documentTaxGuarantorNaturalPersonForm.getNoDocument()) {
+            document.setCustomText(documentTaxGuarantorNaturalPersonForm.getCustomText());
         }
         documentRepository.save(document);
 
@@ -73,10 +76,7 @@ public class DocumentTaxGuarantorNaturalPerson extends AbstractDocumentSaveStep<
                 log.info("Refreshing info in [TAX] document with ID [" + document.getId() + "]");
             }
         }
-        if (documentSubCategory == OTHER_TAX && documentTaxGuarantorNaturalPersonForm.getNoDocument()) {
-            document.setCustomText(documentTaxGuarantorNaturalPersonForm.getCustomText());
-        }
-        documentRepository.save(document);
+
         tenant.lastUpdateDateProfile(LocalDateTime.now(), DocumentCategory.TAX);
         documentService.resetValidatedOrInProgressDocumentsAccordingCategories(guarantor.getDocuments(), List.of(DocumentCategory.PROFESSIONAL, DocumentCategory.FINANCIAL, DocumentCategory.TAX));
 

@@ -15,7 +15,7 @@ public class OtherTaxCustomTextValidator implements ConstraintValidator<OtherTax
     @Override
     public boolean isValid(DocumentTaxForm documentTaxForm, ConstraintValidatorContext constraintValidatorContext) {
         boolean isValid = true;
-        if (documentTaxForm.getTypeDocumentTax() == DocumentSubCategory.OTHER_TAX && documentTaxForm.getNoDocument()) {
+        if (documentTaxForm.getTypeDocumentTax() == DocumentSubCategory.OTHER_TAX && documentTaxForm.getNoDocument() && documentTaxForm.getCategoryStep() == null) {
             isValid = documentTaxForm.getCustomText() != null && !documentTaxForm.getCustomText().isBlank();
             if (!isValid) {
                 constraintValidatorContext.disableDefaultConstraintViolation();

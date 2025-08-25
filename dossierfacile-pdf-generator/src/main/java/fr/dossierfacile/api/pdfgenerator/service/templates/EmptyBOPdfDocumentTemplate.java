@@ -10,6 +10,7 @@ import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.Guarantor;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
+import fr.dossierfacile.common.enums.DocumentCategoryStep;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +29,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Locale;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 import static fr.dossierfacile.api.pdfgenerator.service.templates.PdfFileTemplate.DOCUMENT_FINANCIAL;
 import static fr.dossierfacile.api.pdfgenerator.service.templates.PdfFileTemplate.DOCUMENT_TAX;
@@ -51,8 +54,8 @@ public class EmptyBOPdfDocumentTemplate implements PdfTemplate<Document> {
     private ByteArrayOutputStream createPdfFromTemplate(Document document) throws Exception {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         PdfFileTemplate pdfTemplate = null;
-
-        PdfTextElements textElements = new PdfTextElements(getPersonName(document));
+        String name = getPersonName(document);
+        PdfTextElements textElements = new PdfTextElements(name);
         DocumentCategory documentCategory = document.getDocumentCategory();
         if (documentCategory == DocumentCategory.FINANCIAL) {
             pdfTemplate = DOCUMENT_FINANCIAL;
@@ -65,11 +68,12 @@ public class EmptyBOPdfDocumentTemplate implements PdfTemplate<Document> {
             textElements.addExplanation(document.getCustomText());
         } else { //DocumentCategory.TAX
             pdfTemplate = DOCUMENT_TAX;
-            textElements.addTextToHeader(messageSource.getMessage("tenant.document.tax.justification.nodocument", null, locale));
             if (document.getDocumentSubCategory() == DocumentSubCategory.MY_PARENTS) {
                 textElements.addExplanation(messageSource.getMessage("tenant.document.tax.justification.parents", null, locale));
-            } else if (document.getDocumentSubCategory() == DocumentSubCategory.LESS_THAN_YEAR) {
-                textElements.addExplanation(messageSource.getMessage("tenant.document.tax.justification.less_than_year", null, locale));
+            } else if (document.getDocumentCategoryStep() == DocumentCategoryStep.TAX_NO_DECLARATION) {
+                textElements.addExplanation(messageSource.getMessage("tenant.document.tax.justification.nodeclaration", null, locale));
+            } else if (document.getDocumentCategoryStep() == DocumentCategoryStep.TAX_NOT_RECEIVED) {
+                textElements.addExplanation(messageSource.getMessage("tenant.document.tax.justification.notreceived", null, locale));
             } else { //DocumentSubCategory.OTHER_TAX
                 textElements.addExplanation(document.getCustomText());
             }
@@ -93,8 +97,23 @@ public class EmptyBOPdfDocumentTemplate implements PdfTemplate<Document> {
 
             contentStream.setLeading(leading);
 
-            Utility.addText(contentStream, width, startX, startY, textElements.header, font, fontSize, alternativeFont);
-            Utility.addText(contentStream, width, startX, startY - 36, textElements.explanation, font, fontSize, alternativeFont);
+            if (documentCategory == DocumentCategory.TAX) {
+                fontSize = 16;
+                leading = 1.5f * fontSize;
+                startY = mediaBox.getUpperRightY() - 200;
+                contentStream.setLeading(leading);
+                contentStream.setNonStrokingColor(0, 0, 0);
+                String today = LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+                String header = messageSource.getMessage("tenant.document.tax.justification.certify", new String[]{name}, locale);
+                Utility.addText(contentStream, width, startX, startY, header, font, fontSize, alternativeFont);
+                Utility.addText(contentStream, width, startX, startY - 36, textElements.explanation, font, fontSize, alternativeFont);
+                Utility.addText(contentStream, width, startX, startY - 120, String.format("Fait le %s", today), font, fontSize, alternativeFont);
+                Utility.addText(contentStream, width, startX, startY - 156, "Signature", font, fontSize, alternativeFont);
+                Utility.addText(contentStream, width, startX, startY - 180, name, font, fontSize, alternativeFont);
+            } else {
+                Utility.addText(contentStream, width, startX, startY, textElements.header, font, fontSize, alternativeFont);
+                Utility.addText(contentStream, width, startX, startY - 36, textElements.explanation, font, fontSize, alternativeFont);
+            }
 
             contentStream.close();
             pdfSignatureService.signAndSave(pdDocument, outputStream);
@@ -119,12 +138,8 @@ public class EmptyBOPdfDocumentTemplate implements PdfTemplate<Document> {
 
     private String getPersonName(Document document) {
         Long documentId = document.getId();
-        return tenantRepository.getTenantByDocumentId(documentId)
-                .map(Tenant::getFullName)
-                .orElseGet(() -> guarantorRepository.getGuarantorByDocumentId(documentId)
-                        .map(Guarantor::getCompleteName)
-                        .orElse("")
-                );
+        return tenantRepository.getTenantByDocumentId(documentId).map(Tenant::getFullName).orElseGet(() -> guarantorRepository.getGuarantorByDocumentId(documentId).map(Guarantor::getCompleteName).orElse("")
+        );
     }
 
     private static final class PdfTextElements {
