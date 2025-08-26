@@ -20,10 +20,7 @@ import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Configuration;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.model.S3Exception;
+import software.amazon.awssdk.services.s3.model.*;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -124,6 +121,36 @@ public class S3FileStorageServiceImpl implements FileStorageProviderService {
         } catch (SdkClientException e) {
             log.error("Error deleting file from S3 bucket: {}", e.getMessage());
             throw new IOException("Failed to delete file from S3 bucket", e);
+        }
+    }
+
+    @Override
+    public List<String> listObjectNamesV2(S3Bucket s3Bucket, String prefix) {
+        try {
+            return s3Client.listObjects(listObjectRequest ->
+                    listObjectRequest.bucket(bucketMapping.get(s3Bucket)).prefix(prefix).build()
+            ).contents().stream().map(S3Object::key).toList();
+        } catch (SdkClientException e) {
+            log.error("Error listing objects from S3 bucket: {}", e.getMessage());
+            throw new RuntimeException("Failed to list objects from S3 bucket", e);
+        }
+    }
+
+    public void deleteListOfObjects(S3Bucket s3Bucket, List<String> listOfKeys) {
+        try {
+            List<ObjectIdentifier> objectsToDelete = listOfKeys.stream()
+                    .map(key -> ObjectIdentifier.builder().key(key).build())
+                    .toList();
+
+            if (!objectsToDelete.isEmpty()) {
+                Delete delete = Delete.builder().objects(objectsToDelete).build();
+                s3Client.deleteObjects(deleteObjectsRequest ->
+                        deleteObjectsRequest.bucket(bucketMapping.get(s3Bucket)).delete(delete).build()
+                );
+            }
+        } catch (SdkClientException e) {
+            log.error("Error deleting list of objects from S3 bucket: {}", e.getMessage());
+            throw new RuntimeException("Failed to delete list of objects from S3 bucket", e);
         }
     }
 
