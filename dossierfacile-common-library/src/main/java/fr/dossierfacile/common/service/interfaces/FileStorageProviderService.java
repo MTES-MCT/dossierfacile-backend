@@ -31,4 +31,8 @@ public interface FileStorageProviderService {
 
     List<String> listObjectNames(@Nullable String marker, int maxObjects);
 
+    default List<String> listObjectNamesV2(S3Bucket s3Bucket, String prefix) {
+        throw new UnsupportedOperationException("listObjectNamesV2 is not implemented");
+    }
+
 }
