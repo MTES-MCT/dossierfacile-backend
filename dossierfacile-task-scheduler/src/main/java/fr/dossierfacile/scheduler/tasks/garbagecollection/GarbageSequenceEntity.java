@@ -26,7 +26,7 @@ public class GarbageSequenceEntity {
     GarbageSequenceName name;
 
     @Column
-    int value;
+    long value;
 
     @Column
     LocalDateTime lastUpdateDate;

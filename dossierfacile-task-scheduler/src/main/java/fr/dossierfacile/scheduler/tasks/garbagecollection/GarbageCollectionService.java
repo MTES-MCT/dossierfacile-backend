@@ -18,8 +18,6 @@ import java.util.List;
 @Slf4j
 public class GarbageCollectionService {
 
-    private static final int BATCH_SIZE = 100;
-
     private final TenantLogRepository tenantLogRepository;
     private final GarbageSequenceRepository garbageSequenceRepository;
     private final List<LogType> targetedLogStatus = List.of(LogType.ACCOUNT_DELETE, LogType.ACCOUNT_ARCHIVED, LogType.DOCUMENT_DELETION_AFTER_2_ACCOUNT_WARNINGS);
@@ -30,13 +28,14 @@ public class GarbageCollectionService {
         if (currentGarbageSequence == null) {
             currentGarbageSequence = initGarbageSequence();
         }
-        var batchToProcess = tenantLogRepository.findLastStatusBatch(currentGarbageSequence.value, BATCH_SIZE);
+        var batchToProcess = tenantLogRepository.findLastStatusBatch(currentGarbageSequence.value);
         try {
             batchToProcess.stream()
-                    .filter(item -> targetedLogStatus.contains(item.getStatus()))
+                    .filter(item -> targetedLogStatus.contains(item.getLastStatus()))
                     .forEach(this::ensureTenantDocumentDeleted);
             if (CollectionUtils.isNotEmpty(batchToProcess)) {
-                currentGarbageSequence.setValue(currentGarbageSequence.getValue() + BATCH_SIZE);
+                var lastItem = batchToProcess.getLast();
+                currentGarbageSequence.setValue(lastItem.getLastLogId());
                 currentGarbageSequence.setLastUpdateDate(LocalDateTime.now());
                 garbageSequenceRepository.save(currentGarbageSequence);
             } else {
