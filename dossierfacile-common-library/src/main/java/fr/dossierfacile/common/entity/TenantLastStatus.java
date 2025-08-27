@@ -12,8 +12,9 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class TenantLastStatus {
     private Long tenantId;
-    private LogType status;
-    private LocalDateTime creationDate;
+    private LogType lastStatus;
+    private LocalDateTime lastStatusDate;
+    private Long lastLogId;
 }
 
 
