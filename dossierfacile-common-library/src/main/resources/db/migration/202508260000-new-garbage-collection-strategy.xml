@@ -11,8 +11,15 @@
                 <constraints nullable="false" primaryKey="true" primaryKeyName="garbage_sequence_pkey"/>
             </column>
             <column name="value" type="BIGINT"/>
-            <column name="last_update_date" type="TIMESTAMP" />
+            <column name="last_update_date" type="TIMESTAMP"/>
         </createTable>
+    </changeSet>
+    <changeSet id="202508260002" author="SAGON NICOLAS">
+        <insert tableName="garbage_sequence">
+            <column name="name" value="TENANT_DOCUMENTS"/>
+            <column name="value" valueComputed="(SELECT id FROM tenant_log ORDER BY id DESC LIMIT 1)"/>
+            <column name="last_update_date" valueDate="NOW()"/>
+        </insert>
     </changeSet>
 </databaseChangeLog>
 
