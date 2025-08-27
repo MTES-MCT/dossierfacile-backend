@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 public interface TenantLastStatusProjection {
     Long getTenantId();
-    String getStatus();
-    LocalDateTime getCreationDate();
+    String getLastStatus();
+    LocalDateTime getLastStatusAt();
+    Long getLastLogId();
 }
