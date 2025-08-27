@@ -21,7 +21,7 @@ public class GarbageCollectionConfiguration {
             name = "garbage-collection.enabled",
             havingValue = "true"
     )
-    GarbageCollectionTaskOld garbageCollectionTask(
+    GarbageCollectionTaskOld garbageCollectionTaskOld(
             GarbageCollectionDetailsRepository garbageCollectionDetailsRepository,
             StorageFileRepository storageFileRepository,
             List<FileStorageProviderService> fileStorageProviderServices,
