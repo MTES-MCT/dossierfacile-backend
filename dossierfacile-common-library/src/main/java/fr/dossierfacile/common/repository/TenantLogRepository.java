@@ -22,34 +22,31 @@ public interface TenantLogRepository extends JpaRepository<TenantLog, Long> {
 
     @Query(value = """
             WITH logs_window AS (
-                SELECT id, tenant_id
+                SELECT id, tenant_id, creation_date, log_type
                 FROM tenant_log
                 WHERE id > :startId
-                ORDER BY id
-                LIMIT :windowSize
-            ), tenants AS (
-                SELECT DISTINCT tenant_id
-                FROM logs_window
+                ORDER BY id desc
             )
-            SELECT t.tenant_id AS tenantId,
-                   x.log_type AS status,
-                   x.creation_date AS creationDate
-            FROM tenants t
-            CROSS JOIN LATERAL (
-                SELECT log_type, creation_date, id
-                FROM tenant_log l
-                WHERE l.tenant_id = t.tenant_id
-                ORDER BY creation_date DESC, id DESC
-                LIMIT 1
-            ) x
-            ORDER BY x.creation_date DESC, x.id DESC
+            SELECT DISTINCT
+                tenant_id AS tenantId,
+                LAST_VALUE(log_type) over (
+                    partition by tenant_id
+                    order by creation_date asc
+                    rows between unbounded preceding and unbounded following
+                ) as lastStatus,
+                LAST_VALUE(creation_date) over (
+                    partition by tenant_id
+                    order by creation_date asc
+                    rows between unbounded preceding and unbounded following
+                    ) as lastStatusAt,
+                (select id from tenant_log order by id desc limit 1) as lastLogId
+            FROM logs_window
             """, nativeQuery = true)
-    List<TenantLastStatusProjection> findLastStatusBatchAfterLogId(@Param("startId") long startId,
-                                                                  @Param("windowSize") int windowSize);
+    List<TenantLastStatusProjection> findLastStatusBatchAfterLogId(@Param("startId") long startId);
 
-    default List<TenantLastStatus> findLastStatusBatch(long startId, int windowSize) {
-        return findLastStatusBatchAfterLogId(startId, windowSize).stream()
-                .map(p -> new TenantLastStatus(p.getTenantId(), LogType.valueOf(p.getStatus()), p.getCreationDate()))
+    default List<TenantLastStatus> findLastStatusBatch(long startId) {
+        return findLastStatusBatchAfterLogId(startId).stream()
+                .map(p -> new TenantLastStatus(p.getTenantId(), LogType.valueOf(p.getLastStatus()), p.getLastStatusAt(), p.getLastLogId()))
                 .toList();
     }
 }
