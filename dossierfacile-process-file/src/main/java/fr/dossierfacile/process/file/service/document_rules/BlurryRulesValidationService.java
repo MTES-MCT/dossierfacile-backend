@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Service
+//@Service
 @RequiredArgsConstructor
 @Slf4j
 public class BlurryRulesValidationService extends AbstractRulesValidationService {
