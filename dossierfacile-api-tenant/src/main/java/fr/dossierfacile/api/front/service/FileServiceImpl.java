@@ -44,6 +44,15 @@ public class FileServiceImpl implements FileService {
         documentService.changeDocumentStatus(document, DocumentStatus.TO_PROCESS);
 
         producer.sendDocumentForAnalysis(document);
+        // We do that in the MEP of blurry analysis to handle the documents sent again to analysis
+        // it will be possible that some files doesn't have any blurry analysis if they were added before the MEP
+        // So we process them to avoid blocking the analysis of the document.
+        // TODO : remove this after a while
+        document.getFiles().forEach(documentFile -> {
+            if (documentFile.getBlurryFileAnalysis() == null) {
+                producer.amqpAnalyseFile(documentFile.getId());
+            }
+        });
         producer.sendDocumentForPdfGeneration(document);
 
         return document;

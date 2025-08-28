@@ -116,6 +116,15 @@ public class DocumentServiceImpl implements DocumentService {
                         documentRepository.save(document);
 
                         producer.sendDocumentForAnalysis(document);// analysis should be relaunched for update rules
+                        // We do that in the MEP of blurry analysis to handle the documents sent again to analysis
+                        // it will be possible that some files doesn't have any blurry analysis if they were added before the MEP
+                        // So we process them to avoid blocking the analysis of the document.
+                        // TODO : remove this after a while
+                        document.getFiles().forEach(file -> {
+                            if (file.getBlurryFileAnalysis() == null) {
+                                producer.amqpAnalyseFile(file.getId());
+                            }
+                        });
                         if (Boolean.TRUE == document.getNoDocument()) {
                             producer.sendDocumentForPdfGeneration(document);
                         }
