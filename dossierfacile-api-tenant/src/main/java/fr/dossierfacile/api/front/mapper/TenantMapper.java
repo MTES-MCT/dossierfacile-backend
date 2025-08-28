@@ -30,8 +30,8 @@ public abstract class TenantMapper {
     @Value("${application.base.url}")
     protected String applicationBaseUrl;
 
-    @Value("${api.broken.rules.min.level:INFO}")
-    protected DocumentRule.Level minBrokenRulesLevel;
+    @Value("${api.failed.rules.min.level:WARN}")
+    protected DocumentRuleLevel minBrokenRulesLevel;
 
     @Value("${tenant.base.url}")
     protected String tenantBaseUrl;
@@ -184,11 +184,11 @@ public abstract class TenantMapper {
         }
     }
 
-    private void removeInfoAnalysisReportBrokenRules(DocumentAnalysisReport documentAnalysisReport) {
+    private void removeInfoAnalysisReportBrokenRules(DocumentAnalysisReportModel documentAnalysisReport) {
 
         if (documentAnalysisReport != null) {
-            documentAnalysisReport.setBrokenRules(
-                    documentAnalysisReport.getBrokenRules().stream().filter(it -> it.getLevel().ordinal() >= minBrokenRulesLevel.ordinal())
+            documentAnalysisReport.setFailedRules(
+                    documentAnalysisReport.getFailedRules().stream().filter(it -> it.getLevel().ordinal() >= minBrokenRulesLevel.ordinal())
                             .toList()
             );
         }

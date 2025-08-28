@@ -96,7 +96,7 @@ public class Document implements Serializable {
     private Boolean avisDetected = false;
 
     @Nullable
-    @OneToOne(mappedBy = "document", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @OneToOne(mappedBy = "document", fetch = FetchType.LAZY)
     private DocumentAnalysisReport documentAnalysisReport;
 
     @PreRemove

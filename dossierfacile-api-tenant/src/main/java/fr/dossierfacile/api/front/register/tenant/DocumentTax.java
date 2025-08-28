@@ -1,7 +1,6 @@
 package fr.dossierfacile.api.front.register.tenant;
 
 import fr.dossierfacile.api.front.register.AbstractDocumentSaveStep;
-import fr.dossierfacile.api.front.register.SaveStep;
 import fr.dossierfacile.api.front.register.form.tenant.DocumentTaxForm;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
@@ -12,7 +11,6 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
-import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.DocumentHelperService;
 import lombok.AllArgsConstructor;
@@ -28,7 +26,7 @@ import static fr.dossierfacile.common.enums.DocumentSubCategory.OTHER_TAX;
 @Slf4j
 @Service
 @AllArgsConstructor
-public class DocumentTax extends AbstractDocumentSaveStep<DocumentTaxForm> implements SaveStep<DocumentTaxForm> {
+public class DocumentTax extends AbstractDocumentSaveStep<DocumentTaxForm> {
 
     private final DocumentHelperService documentHelperService;
     private final TenantCommonRepository tenantRepository;
@@ -49,6 +47,7 @@ public class DocumentTax extends AbstractDocumentSaveStep<DocumentTaxForm> imple
         document.setDocumentStatus(DocumentStatus.TO_PROCESS);
         document.setDocumentDeniedReasons(null);
         document.setDocumentSubCategory(documentSubCategory);
+        document.setDocumentCategoryStep(documentTaxForm.getCategoryStep());
         document.setCustomText(null);
         if (document.getNoDocument() != null && !document.getNoDocument() && documentTaxForm.getNoDocument()) {
             deleteFilesIfExistedBefore(document);
@@ -56,6 +55,9 @@ public class DocumentTax extends AbstractDocumentSaveStep<DocumentTaxForm> imple
         document.setNoDocument(documentTaxForm.getNoDocument());
         if (documentTaxForm.getAvisDetected() != null) {
             document.setAvisDetected(documentTaxForm.getAvisDetected());
+        }
+        if (documentSubCategory == OTHER_TAX) {
+            document.setCustomText(documentTaxForm.getCustomText());
         }
         documentRepository.save(document);
 
@@ -67,10 +69,6 @@ public class DocumentTax extends AbstractDocumentSaveStep<DocumentTaxForm> imple
                 log.info("Refreshing info in [TAX] document with ID [" + document.getId() + "]");
             }
         }
-        if (documentSubCategory == OTHER_TAX && documentTaxForm.getNoDocument()) {
-            document.setCustomText(documentTaxForm.getCustomText());
-        }
-        documentRepository.save(document);
         tenant.lastUpdateDateProfile(LocalDateTime.now(), DocumentCategory.TAX);
         documentService.resetValidatedOrInProgressDocumentsAccordingCategories(tenant.getDocuments(), List.of(DocumentCategory.PROFESSIONAL, DocumentCategory.FINANCIAL, DocumentCategory.TAX));
 

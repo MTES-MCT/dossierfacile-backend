@@ -11,7 +11,7 @@ public class OtherTaxCustomTextGuarantorNaturalPersonValidator implements Constr
     @Override
     public boolean isValid(DocumentTaxGuarantorNaturalPersonForm documentTaxGuarantorNaturalPersonForm, ConstraintValidatorContext constraintValidatorContext) {
         boolean isValid = true;
-        if (documentTaxGuarantorNaturalPersonForm.getTypeDocumentTax() == DocumentSubCategory.OTHER_TAX && documentTaxGuarantorNaturalPersonForm.getNoDocument()) {
+        if (documentTaxGuarantorNaturalPersonForm.getTypeDocumentTax() == DocumentSubCategory.OTHER_TAX && documentTaxGuarantorNaturalPersonForm.getNoDocument() && documentTaxGuarantorNaturalPersonForm.getCategoryStep() == null) {
             isValid = documentTaxGuarantorNaturalPersonForm.getCustomText() != null && !documentTaxGuarantorNaturalPersonForm.getCustomText().isBlank();
             if (!isValid) {
                 constraintValidatorContext.disableDefaultConstraintViolation();

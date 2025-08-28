@@ -178,6 +178,11 @@ html[data-fr-theme="dark"] .span1 {
     padding-right:10px
 }
 
+.verification-block {
+    padding-left: 15px;
+    padding-bottom: 5px;
+}
+
 .span-style{
     display: flex;
     line-height: 20pt;
@@ -204,15 +209,19 @@ div.scrollmenu a:hover {
 }
 
 .prevalidation-background-DENIED{
-    background-color: var(--bs-danger-bg-subtle);
+    background-color: #fff6f7;
+    color: #000000;
+    padding-right: 5px;
 }
 .prevalidation-background-UNDEFINED{
-    background-color: #f0d39c;
-    color: #929292;
+    background-color: #f6f4d7;
+    color: #000000;
+    padding-right: 5px;
 }
 .prevalidation-background-CHECKED{
-    background-color: #e1f2e4;
-    color: #929292;
+    background-color: #e9f6f0;
+    color: #000000;
+    padding-right: 5px;
 }
 
 .card-header.category-IDENTIFICATION {

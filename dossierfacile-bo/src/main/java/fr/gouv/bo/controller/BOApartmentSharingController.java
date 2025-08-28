@@ -1,6 +1,8 @@
 package fr.gouv.bo.controller;
 
 import fr.dossierfacile.common.entity.Document;
+import fr.dossierfacile.common.entity.DocumentRule;
+import fr.dossierfacile.common.entity.DocumentRuleLevel;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.gouv.bo.dto.DisplayableFile;
 import fr.gouv.bo.dto.MessageDTO;
@@ -35,6 +37,7 @@ public class BOApartmentSharingController {
     private static final String LOG_SER = "logser";
     private static final String TENANTS = "tenants";
     private static final String TENANT_SERVICE = "tenantService";
+    private static final String DOCUMENT_RULE_LEVEL = "documentRuleLevel";
     private static final String MESSAGE_DTO = "messageDTO";
     private static final String PARTNERS_LIST = "partnersList";
     private static final String PARTNER_UPDATE = "partnerUpdate";
@@ -69,6 +72,7 @@ public class BOApartmentSharingController {
         model.addAttribute(PARTNER_UPDATE, partnerDTO);
         model.addAttribute(TENANT_PRINCIPAL, tenants.get(0));
         model.addAttribute(TENANT_SERVICE, tenantService);
+        model.addAttribute(DOCUMENT_RULE_LEVEL, DocumentRuleLevel.WARN);
         model.addAttribute(PARTNER_LIST_BY_TENANT, userApiService);
         model.addAttribute(PARTNERS_LIST, userApiService.getAllPartners());
         model.addAttribute(APARTMENT_SHARING, tenants.get(0).getApartmentSharing());

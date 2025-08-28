@@ -1,23 +1,21 @@
 package fr.dossierfacile.process.file.service;
 
-import fr.dossierfacile.common.entity.BlurryFileAnalysis;
-import fr.dossierfacile.common.entity.Document;
-import fr.dossierfacile.common.entity.DocumentAnalysisReport;
-import fr.dossierfacile.common.entity.File;
+import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.entity.messaging.QueueMessageStatus;
 import fr.dossierfacile.common.entity.messaging.QueueName;
 import fr.dossierfacile.common.exceptions.RetryableOperationException;
 import fr.dossierfacile.common.repository.DocumentAnalysisReportRepository;
 import fr.dossierfacile.common.repository.QueueMessageRepository;
 import fr.dossierfacile.process.file.repository.DocumentRepository;
-import fr.dossierfacile.process.file.service.documentrules.DocumentRulesValidationServiceFactory;
-import fr.dossierfacile.process.file.service.documentrules.RulesValidationService;
+import fr.dossierfacile.process.file.service.document_rules.AbstractRulesValidationService;
+import fr.dossierfacile.process.file.service.document_rules.DocumentRulesValidationServiceFactory;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -49,17 +47,26 @@ public class AnalyzeDocumentService {
         }
 
         try {
-            List<RulesValidationService> rulesValidationServices = documentRulesValidationServiceFactory.getServices(document);
+            List<AbstractRulesValidationService> rulesValidationServices = documentRulesValidationServiceFactory.getServices(document);
             if (!CollectionUtils.isEmpty(rulesValidationServices)) {
                 Optional.ofNullable(document.getDocumentAnalysisReport()).ifPresent((report) -> {
                     document.setDocumentAnalysisReport(null);
                     documentAnalysisReportRepository.delete(report);
                 });
+
                 DocumentAnalysisReport report = DocumentAnalysisReport.builder()
                         .document(document)
-                        .brokenRules(new LinkedList<>())
+                        .dataDocumentId(documentId)
+                        .failedRules(new LinkedList<>())
+                        .passedRules(new LinkedList<>())
+                        .inconclusiveRules(new LinkedList<>())
+                        .createdAt(LocalDateTime.now())
                         .build();
+
                 rulesValidationServices.forEach(rulesService -> rulesService.process(document, report));
+
+                computeDocumentAnalysisReportStatus(report);
+
                 document.setDocumentAnalysisReport(report);
                 documentAnalysisReportRepository.save(report);
                 documentRepository.save(document);// necessaire?
@@ -84,6 +91,33 @@ public class AnalyzeDocumentService {
             return false;
         }
         return CollectionUtils.isEmpty(messages);
+    }
+
+    private void computeDocumentAnalysisReportStatus(DocumentAnalysisReport documentAnalysisReport) {
+        // This will happen if there was an exception during the analysis
+        if (documentAnalysisReport.getAnalysisStatus() == DocumentAnalysisStatus.UNDEFINED) {
+            return;
+        }
+
+        // If there is at least one critical failed rule, the analysis statis will be DENIED (This is temporary until we are confident with the blurry algorithms)
+        var criticalFailedRules = documentAnalysisReport.getFailedRules().stream()
+                .filter(rule -> rule.getLevel() == DocumentRuleLevel.CRITICAL)
+                .toList();
+
+        if (CollectionUtils.isNotEmpty(criticalFailedRules)) {
+            documentAnalysisReport.setAnalysisStatus(DocumentAnalysisStatus.DENIED);
+            return;
+        }
+
+        // Other wise we check if the analysis is inclusive or not
+        // If there is at least one inconclusive rule, the analysis status is UNDEFINED
+        if (CollectionUtils.isNotEmpty(documentAnalysisReport.getInconclusiveRules())) {
+            documentAnalysisReport.setAnalysisStatus(DocumentAnalysisStatus.UNDEFINED);
+            return;
+        }
+
+        // Other wise it means that the analysis is Checked
+        documentAnalysisReport.setAnalysisStatus(DocumentAnalysisStatus.CHECKED);
     }
 
     private boolean hasBeenAnalysed(Document document) {
