@@ -184,7 +184,7 @@ public abstract class TenantMapper {
         }
     }
 
-    private void removeInfoAnalysisReportBrokenRules(DocumentAnalysisReport documentAnalysisReport) {
+    private void removeInfoAnalysisReportBrokenRules(DocumentAnalysisReportModel documentAnalysisReport) {
 
         if (documentAnalysisReport != null) {
             documentAnalysisReport.setFailedRules(
