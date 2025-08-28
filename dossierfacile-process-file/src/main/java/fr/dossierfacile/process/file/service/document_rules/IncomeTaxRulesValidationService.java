@@ -20,8 +20,7 @@ public class IncomeTaxRulesValidationService extends AbstractRulesValidationServ
     public boolean shouldBeApplied(Document document) {
         return document.getDocumentCategory() == DocumentCategory.TAX
                 && document.getDocumentSubCategory() == DocumentSubCategory.MY_NAME
-                && !CollectionUtils.isEmpty(document.getFiles())
-                && document.getFiles().stream().anyMatch((f) -> f.getFileAnalysis() != null);
+                && !CollectionUtils.isEmpty(document.getFiles());
     }
 
     @Override
