@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.io.FileNotFoundException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -44,7 +45,12 @@ public class WatermarkDFDocumentConsumer {
                     documentPdfGenerationTimeout,
                     (msg) -> {
                         long executionTimestamp = System.currentTimeMillis();
-                        StorageFile watermarkFile = pdfGeneratorService.generateBOPdfDocument(documentService.getDocument(msg.getDocumentId()));
+                        StorageFile watermarkFile = null;
+                        try {
+                            watermarkFile = pdfGeneratorService.generateBOPdfDocument(msg.getDocumentId());
+                        } catch (FileNotFoundException e) {
+                            throw new RuntimeException(e);
+                        };
                         documentService.saveWatermarkFileAt(executionTimestamp, watermarkFile, msg.getDocumentId());
                     }, (jobContext -> {
                         log.info("Ending processing");
