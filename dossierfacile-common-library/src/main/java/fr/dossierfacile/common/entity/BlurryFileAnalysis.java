@@ -41,6 +41,8 @@ public class BlurryFileAnalysis implements Serializable {
 
     private Long dataFileId;
 
+    private Long dataDocumentId;
+
     public String toString() {
         return "BlurryFileAnalysis{" +
                 "id=" + id +
