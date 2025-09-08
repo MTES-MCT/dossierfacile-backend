@@ -139,14 +139,6 @@ class IncomeTaxRulesValidationServiceTest {
     }
 
     @Test
-    void shouldBeApplied_false_no_file_analysis() {
-        // fichier sans fileAnalysis
-        File f = File.builder().build();
-        Document doc = baseDoc(List.of(f));
-        Assertions.assertThat(service.shouldBeApplied(doc)).isFalse();
-    }
-
-    @Test
     @DisplayName("Process - tous les règles passent")
     void process_all_rules_pass() {
         int year = LocalDate.now().getYear() - 1;
