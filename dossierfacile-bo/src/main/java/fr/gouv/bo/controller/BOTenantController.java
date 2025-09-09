@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -59,12 +60,14 @@ public class BOTenantController {
         throw new NotFoundException("Tenant is not found. Still exists?");
     }
 
+    @PreAuthorize("hasRole('SUPPORT')")
     @GetMapping("/setAsTenantCreate/{id}")
     public String setAsTenantCreate(@PathVariable Long id) {
         Tenant tenant = userService.setAsTenantCreate(tenantService.findTenantById(id));
         return redirectToTenantPage(tenant);
     }
 
+    @PreAuthorize("hasRole('SUPPORT')")
     @GetMapping("/deleteCoTenant/{id}")
     public String deleteCoTenant(@PathVariable Long id, Principal principal) {
         Tenant tenant = tenantService.findTenantById(id);
@@ -76,6 +79,7 @@ public class BOTenantController {
         return "redirect:/bo/colocation/" + tenant.getApartmentSharing().getId();
     }
 
+    @PreAuthorize("hasRole('SUPPORT')")
     @GetMapping("/deleteApartmentSharing/{id}")
     public String deleteApartmentSharing(@PathVariable("id") Long id, Principal principal) {
         Tenant create = tenantService.findTenantById(id);
@@ -84,6 +88,7 @@ public class BOTenantController {
         return REDIRECT_BO;
     }
 
+    @PreAuthorize("hasRole('SUPPORT')")
     @PostMapping("/partner/{id}")
     public String sendCallbackToPartner(@PathVariable("id") Long id, PartnerDTO partnerDTO) {
         Tenant tenant = tenantService.find(id);
@@ -98,12 +103,14 @@ public class BOTenantController {
         return "redirect:/bo/colocation/" + tenant.getApartmentSharing().getId();
     }
 
+    @PreAuthorize("hasRole('SUPPORT')")
     @PostMapping("/{id}/validate")
     public ResponseEntity<Void> validateTenantFile(@PathVariable("id") Long tenantId, Principal principal) {
         tenantService.validateTenantFile(principal, tenantId);
         return ok().build();
     }
 
+    @PreAuthorize("hasRole('SUPPORT')")
     @PostMapping("/{id}/decline")
     public ResponseEntity<Void> declineTenantFile(@PathVariable("id") Long tenantId, Principal principal) {
         tenantService.declineTenant(principal, tenantId);
@@ -115,6 +122,7 @@ public class BOTenantController {
         return tenantService.customMessage(principal, tenantId, customMessage);
     }
 
+    @PreAuthorize("hasRole('SUPPORT')")
     @GetMapping("/delete/document/{id}")
     public String deleteDocument(@PathVariable("id") Long id, Principal principal) {
         User operator = userService.findUserByEmail(principal.getName());
@@ -130,20 +138,10 @@ public class BOTenantController {
         return redirectToTenantPage(tenant);
     }
 
-    private void checkPartnerRights(Tenant tenant, Principal principal) {
-        BOUser operator = userService.findUserByEmail(principal.getName());
-        if (operator.getUserRoles().stream().anyMatch(r -> r.getRole() == Role.ROLE_PARTNER)
-                && tenant.getTenantsUserApi().stream().noneMatch(apiUser -> apiUser.getUserApi().getId().equals(operator.getExclusivePartnerId()))) {
-            log.error("Access Denied");
-            throw new AccessDeniedException("Access denied");
-        }
-    }
-
     @GetMapping("/{id}/processFile")
-    public String processFileForm(Model model, @PathVariable("id") Long id, Principal principal) throws IOException {
+    public String processFileForm(Model model, @PathVariable("id") Long id) {
         Tenant tenant = tenantService.find(id);
 
-        checkPartnerRights(tenant, principal);
         if (tenant == null) {
             log.error("BOTenantController processFile not found tenant with id : {}", id);
             return REDIRECT_ERROR;
@@ -161,6 +159,7 @@ public class BOTenantController {
         return "bo/process-file";
     }
 
+    @PreAuthorize("hasRole('SUPPORT')")
     @GetMapping("/delete/guarantor/{guarantorId}")
     public String deleteGuarantor(@PathVariable("guarantorId") Long guarantorId, Principal principal) {
         User operator = userService.findUserByEmail(principal.getName());
@@ -181,15 +180,18 @@ public class BOTenantController {
 
     @PostMapping("/{id}/processFile")
     public String processFile(@PathVariable("id") Long id, CustomMessage customMessage, Principal principal) {
-        Tenant tenant = tenantService.find(id);
-        checkPartnerRights(tenant, principal);
         tenantService.processFile(id, customMessage, principal);
         return tenantService.redirectToApplication(principal, null);
     }
 
     @PostMapping("/{id}/comment")
-    public String addOperatorComment(@PathVariable("id") Long tenantId, @RequestParam String comment) {
+    public String addOperatorComment(@PathVariable("id") Long tenantId,
+                                     @RequestParam String comment,
+                                     @RequestParam(value = "returnTo", required = false) String returnTo) {
         Tenant tenant = tenantService.addOperatorComment(tenantId, comment);
+        if ("processFile".equals(returnTo)) {
+            return "redirect:/bo/tenant/" + tenantId + "/processFile";
+        }
         return redirectToTenantPage(tenant);
     }
 

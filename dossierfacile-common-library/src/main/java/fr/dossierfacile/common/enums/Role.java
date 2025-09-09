@@ -7,5 +7,4 @@ public enum Role {
     ROLE_OPERATOR, // 3
     ROLE_SUPPORT, // 4
     ROLE_MANAGER, // 5
-    ROLE_PARTNER // 6
 }

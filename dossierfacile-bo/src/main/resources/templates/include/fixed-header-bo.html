@@ -1,14 +1,15 @@
 <!DOCTYPE HTML>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4"
+>
 <div th:fragment="fixed-header-bo">
     <header class="row header-bg space-separator">
         <div class="col" style="display: flex;">
             <a class="logo" th:href="@{/}"></a>
-            <a sec:authorize="hasRole('ROLE_ADMIN') or hasRole('ROLE_OPERATOR')" th:href="@{/bo/dashboard}"
+            <a th:href="@{/bo/dashboard}"
                class="profile fixed-header-link" th:text="Dashboard"></a>
-        </div
-        >
-        <div class="col">
+        </div>
+        <div class="col" sec:authorize="hasRole('SUPPORT')">
             <form th:method="get" th:action="@{/bo/searchTenant}">
                 <div class="wrap">
                     <div class="search">
