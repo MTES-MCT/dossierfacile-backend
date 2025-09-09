@@ -2,6 +2,7 @@
 <html lang="en"
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
       layout:decorate="~{bo/layout-bo}">
 <head>
     <title>DossierFacile</title>
@@ -53,8 +54,12 @@
                 <label for="email" class="form-label" id="">Email:</label>
                 <input required type="text" name="name" id="email" placeholder="on domain dossierfacile.fr ..."
                        oninput="setCustomValidity('')"  th:field="*{email}"/>
-                <button style="font-size: initial;float: right;padding: 10px 16px 11px;" type="submit" name='action' value='ROLE_ADMIN' class="btn btn-info">create admin</button>
-                <button style="margin-right: 10px;font-size: initial;float: right;padding: 10px 16px 11px;" type="submit" name='action' value='ROLE_OPERATOR' class="btn btn-success">create operator</button>
+                <button style="font-size: initial;float: right;padding: 10px 16px 11px;"
+                        sec:authorize="hasRole('ADMIN')"
+                        type="submit" name='action' value='ROLE_ADMIN' class="btn btn-info">create admin</button>
+                <button style="margin-right: 10px;font-size: initial;float: right;padding: 10px 16px 11px;"
+                        sec:authorize="hasAnyRole('ADMIN','MANAGER')"
+                        type="submit" name='action' value='ROLE_OPERATOR' class="btn btn-success">create operator</button>
                 <button style="margin-right: 10px;font-size: initial;float: right;padding: 10px 16px 11px;" type="submit" name='action' value='ROLE_PARTNER' class="btn btn-success">create partner (action db requise)</button>
             </form>
         </div>
@@ -80,7 +85,7 @@
                                         <form th:action="@{/bo/users/{email}/roles/{role}(email=${user.email},role=${role.role})}" th:method="delete">
                                             <span th:text="${role.role}"> </span>
 
-                                            <button class="btn-delete btn-modal-confirm-before-submit" type="button">
+                                            <button th:if="${availableRoles.contains(role.role)}" class="btn-delete btn-modal-confirm-before-submit" type="button">
                                                 <span style="color:red" class="fa fa-minus-circle"></span>
                                             </button>
                                             <div class="modal" role="dialog" tabindex="-1">
@@ -106,13 +111,11 @@
                             <td>
                                 <form style="display:inline-flex;" th:action="@{/bo/users/{email}/roles(email=${user.email})}" th:method="post">
                                     <select name='role' class="form-control dropdown">
-                                        <option value="ROLE_ADMIN">ADMIN</option>
-                                        <option value="ROLE_OPERATOR">OPERATOR</option>
+                                        <option th:each="ar : ${availableRolesDto}"
+                                                th:value="${ar.value}"
+                                                th:text="${ar.displayValue}">ROLE</option>
                                     </select>
                                     <button class="btn-add" type="submit"><span style="color:green" class="fa fa-plus-circle"></span></button>
-
-
-
                                 </form>
                             </td>
                         </tr>
