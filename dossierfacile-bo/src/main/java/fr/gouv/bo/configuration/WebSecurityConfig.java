@@ -57,8 +57,10 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/login", "/login/auth/**", "/login/oauth2/**", "/actuator/health", "/assets/public/**")
                         .permitAll()
-                        .requestMatchers("/bo/userApi", "/bo/userApi/**", "/bo/admin", "/bo/admin/**", "/bo/statistic/admin", "/bo/users", "/bo/users/**")
+                        .requestMatchers("/bo/userApi", "/bo/userApi/**", "/bo/admin", "/bo/admin/**", "/bo/statistic/admin")
                         .hasRole("ADMIN")
+                        .requestMatchers("/bo/users", "/bo/users/**")
+                        .hasRole("MANAGER")
                         .requestMatchers("/bo/tenant/{tenantId}/processFile")
                         .hasAnyRole("ADMIN", "OPERATOR", "PARTNER")
                         .requestMatchers("/bo/**", "/bo", "/bo/dashboard")
