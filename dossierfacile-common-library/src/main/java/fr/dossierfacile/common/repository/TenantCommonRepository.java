@@ -52,7 +52,7 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
                                  @Param("operatorId") Long operatorId);
 
     @Procedure(procedureName = "refresh_mv")
-    void refreshMaterializedView(@Param("viewName") String viewName);
+    void refreshMaterializedView(@Param("view_name") String viewName);
 
     default void refreshRank() {
         refreshMaterializedView("latest_operator");

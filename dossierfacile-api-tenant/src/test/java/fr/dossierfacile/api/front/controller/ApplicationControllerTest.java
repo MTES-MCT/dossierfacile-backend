@@ -12,11 +12,11 @@ import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Collections;
@@ -27,7 +27,8 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.head;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ApplicationController.class)
 @ActiveProfiles("test")
@@ -46,13 +47,13 @@ class ApplicationControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @MockitoBean
     private ApartmentSharingService apartmentSharingService;
 
-    @MockBean
+    @MockitoBean
     private AuthenticationFacade authenticationFacade;
 
-    @MockBean
+    @MockitoBean
     private JwtDecoder jwtDecoder;
 
     private static final UUID TEST_TOKEN = UUID.fromString("186ed480-968b-4bcd-aaab-afa747b953da");
@@ -71,7 +72,7 @@ class ApplicationControllerTest {
         // Given
         UUID nonExistentToken = UUID.randomUUID();
         doThrow(new fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException(
-                        nonExistentToken.toString()))
+                nonExistentToken.toString()))
                 .when(apartmentSharingService).linkExists(eq(nonExistentToken), eq(true));
 
         // When & Then

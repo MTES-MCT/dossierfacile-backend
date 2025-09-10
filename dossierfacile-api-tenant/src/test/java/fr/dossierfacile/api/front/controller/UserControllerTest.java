@@ -19,15 +19,16 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import javax.annotation.PostConstruct;
 import java.util.Collections;
 import java.util.List;
 
@@ -48,11 +49,19 @@ class UserControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
-    private static UserService userService;
+    @MockitoBean
+    private UserService userService;
 
-    @MockBean
-    private static AuthenticationFacade authenticationFacade;
+    @MockitoBean
+    private AuthenticationFacade authenticationFacade;
+
+    // Référence statique à l’instance courante du test
+    private static UserControllerTest self;
+
+    @PostConstruct
+    void setSelf() {
+        self = this;
+    }
 
     @Test
     void shouldReturnNotFoundForInvalidUrl() throws Exception {
@@ -106,7 +115,7 @@ class UserControllerTest {
                                     404,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        doThrow(new UserNotFoundException("test@test.fr")).when(userService).forgotPassword(any());
+                                        doThrow(new UserNotFoundException("test@test.fr")).when(self.userService).forgotPassword(any());
                                         return v;
                                     },
                                     List.of(content().bytes(new byte[0]))
@@ -199,7 +208,7 @@ class UserControllerTest {
                                     403,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        doThrow(new AccessDeniedException("User not verified")).when(authenticationFacade).getLoggedTenant();
+                                        doThrow(new AccessDeniedException("User not verified")).when(self.authenticationFacade).getLoggedTenant();
                                         return v;
                                     },
                                     List.of(
@@ -213,8 +222,8 @@ class UserControllerTest {
                                     200,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(authenticationFacade.getLoggedTenant()).thenReturn(tenant);
-                                        when(userService.createPassword(tenant, validPassword)).thenReturn(tenantModel);
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(tenant);
+                                        when(self.userService.createPassword(tenant, validPassword)).thenReturn(tenantModel);
                                         return v;
                                     },
                                     List.of(
@@ -306,7 +315,7 @@ class UserControllerTest {
                                     404,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        doThrow(new PasswordRecoveryTokenNotFoundException(invalidToken)).when(userService).createPassword(invalidToken, validPassword);
+                                        doThrow(new PasswordRecoveryTokenNotFoundException(invalidToken)).when(self.userService).createPassword(invalidToken, validPassword);
                                         return v;
                                     },
                                     Collections.emptyList()
@@ -318,7 +327,7 @@ class UserControllerTest {
                                     200,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(userService.createPassword(validToken, validPassword)).thenReturn(tenantModel);
+                                        when(self.userService.createPassword(validToken, validPassword)).thenReturn(tenantModel);
                                         return v;
                                     },
                                     List.of(
@@ -379,7 +388,7 @@ class UserControllerTest {
                                     403,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        doThrow(new AccessDeniedException("User not verified")).when(authenticationFacade).getLoggedTenant();
+                                        doThrow(new AccessDeniedException("User not verified")).when(self.authenticationFacade).getLoggedTenant();
                                         return v;
                                     },
                                     List.of(
@@ -393,7 +402,7 @@ class UserControllerTest {
                                     403,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        doThrow(new AccessDeniedException("User not verified")).when(authenticationFacade).getLoggedTenant();
+                                        doThrow(new AccessDeniedException("User not verified")).when(self.authenticationFacade).getLoggedTenant();
                                         return v;
                                     },
                                     List.of(
@@ -407,7 +416,7 @@ class UserControllerTest {
                                     200,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(authenticationFacade.getLoggedTenant()).thenReturn(tenant);
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(tenant);
                                         return v;
                                     },
                                     List.of(
@@ -463,7 +472,7 @@ class UserControllerTest {
                                     403,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        doThrow(new AccessDeniedException("User not verified")).when(authenticationFacade).getLoggedTenant();
+                                        doThrow(new AccessDeniedException("User not verified")).when(self.authenticationFacade).getLoggedTenant();
                                         return v;
                                     },
                                     List.of(
@@ -477,7 +486,7 @@ class UserControllerTest {
                                     200,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(authenticationFacade.getLoggedTenant()).thenReturn(tenant);
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(tenant);
                                         return v;
                                     },
                                     List.of(
@@ -527,7 +536,7 @@ class UserControllerTest {
                                     200,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(authenticationFacade.getKeycloakUserId()).thenReturn("keycloakId");
+                                        when(self.authenticationFacade.getKeycloakUserId()).thenReturn("keycloakId");
                                         return v;
                                     },
                                     List.of(
