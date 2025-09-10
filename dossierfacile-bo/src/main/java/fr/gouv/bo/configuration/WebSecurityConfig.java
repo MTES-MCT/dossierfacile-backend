@@ -6,7 +6,7 @@ import fr.dossierfacile.common.utils.LocalDateTimeTypeAdapter;
 import fr.gouv.bo.security.BOQuotaAuthorizationManager;
 import fr.gouv.bo.security.oidc.CustomOidcUserService;
 import lombok.AllArgsConstructor;
-import nz.net.ultraq.thymeleaf.LayoutDialect;
+import nz.net.ultraq.thymeleaf.layoutdialect.LayoutDialect;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;

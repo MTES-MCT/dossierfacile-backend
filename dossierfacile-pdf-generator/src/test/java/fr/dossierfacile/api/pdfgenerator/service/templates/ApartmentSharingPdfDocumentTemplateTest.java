@@ -13,7 +13,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -27,13 +27,13 @@ import static org.mockito.ArgumentMatchers.anyLong;
 @ExtendWith(ApartmentSharingResolver.class)
 public class ApartmentSharingPdfDocumentTemplateTest {
 
-    @MockBean
+    @MockitoBean
     private TenantCommonRepository tenantRepository;
-    @MockBean
+    @MockitoBean
     private ApplicationLogRepository applicationLogRepository;
-    @MockBean
+    @MockitoBean
     private DownloadServiceImpl downloadService;
-    @MockBean
+    @MockitoBean
     private LogAggregator logAggregator;
     @Autowired
     private ApartmentSharingPdfDocumentTemplate pdfService;
