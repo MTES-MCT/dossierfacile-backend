@@ -13,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -23,7 +25,10 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+// Need those 3 conditions to avoid issues in test environment with brevo with the new SpringBoot versions
+@ConditionalOnClass(TransactionalEmailsApi.class)
 @ConditionalOnBean(TransactionalEmailsApi.class)
+@ConditionalOnProperty(name = "brevo.enabled", havingValue = "true", matchIfMissing = true)
 public class MailCommonServiceImpl implements MailCommonService {
 
     private static final String TENANT_BASE_URL_KEY = "tenantBaseUrl";

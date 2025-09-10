@@ -21,15 +21,16 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import javax.annotation.PostConstruct;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -52,14 +53,22 @@ class DfcSettingsControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
-    private static ClientAuthenticationFacade clientAuthenticationFacade;
+    @MockitoBean
+    private ClientAuthenticationFacade clientAuthenticationFacade;
 
-    @MockBean
-    private static UserApiService userApiService;
+    @MockitoBean
+    private UserApiService userApiService;
 
-    @MockBean
+    @MockitoBean
     private JwtDecoder jwtDecoder;
+
+    // Référence statique à l’instance courante du test
+    private static DfcSettingsControllerTest self;
+
+    @PostConstruct
+    void setSelf() {
+        self = this;
+    }
 
     private static ObjectMapper mapper = new ObjectMapper();
 
@@ -122,7 +131,7 @@ class DfcSettingsControllerTest {
                                     200,
                                     jwtTokenWithDfc,
                                     (v) -> {
-                                        when(clientAuthenticationFacade.getClient()).thenReturn(userApi);
+                                        when(self.clientAuthenticationFacade.getClient()).thenReturn(userApi);
                                         return v;
                                     },
                                     List.of(
@@ -215,8 +224,8 @@ class DfcSettingsControllerTest {
                                     200,
                                     jwtTokenWithDfc,
                                     (v) -> {
-                                        when(clientAuthenticationFacade.getClient()).thenReturn(userApi);
-                                        when(userApiService.update(any(), any())).thenReturn(expectedUserApiModified);
+                                        when(self.clientAuthenticationFacade.getClient()).thenReturn(userApi);
+                                        when(self.userApiService.update(any(), any())).thenReturn(expectedUserApiModified);
                                         return v;
                                     },
                                     List.of(
