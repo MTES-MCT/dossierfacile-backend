@@ -24,7 +24,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockPart;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -33,6 +32,7 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.lang.reflect.Field;
@@ -54,7 +54,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         GlobalExceptionHandler.class,
         NumberOfPagesValidator.class,
         ResourceServerConfig.class
-    }
+}
 )
 @TestPropertySource(properties = {"application.api.version = 4", "dossierfacile.common.global.exception.handler=true"})
 class RegisterControllerTest {
@@ -62,19 +62,19 @@ class RegisterControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
-    private static TenantService tenantService;
+    @MockitoBean
+    private TenantService tenantService;
 
-    @MockBean
-    private static AuthenticationFacade authenticationFacade;
+    @MockitoBean
+    private AuthenticationFacade authenticationFacade;
 
-    @MockBean
-    private static LogService logService;
+    @MockitoBean
+    private LogService logService;
 
-    @MockBean
-    private static FileRepository fileRepository;
+    @MockitoBean
+    private FileRepository fileRepository;
 
-    @MockBean
+    @MockitoBean
     private JwtDecoder jwtDecoder;
 
     @Nested

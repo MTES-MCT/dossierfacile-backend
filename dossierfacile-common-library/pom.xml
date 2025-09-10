@@ -121,7 +121,7 @@
             </exclusions>
         </dependency>
 
-        <!--Libraries needed for OVH storage-->
+        <!--Libraries needed for OVH storage DEPRECATED will be removed-->
         <dependency>
             <groupId>com.github.openstack4j.core</groupId>
             <artifactId>openstack4j-core</artifactId>
@@ -207,7 +207,7 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>s3</artifactId>
-            <version>2.32.14</version>
+            <version>2.40.9</version>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
@@ -229,17 +229,12 @@
         <dependency>
             <groupId>com.brevo</groupId>
             <artifactId>brevo</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-web</artifactId>
             <scope>provided</scope>
         </dependency>
-
         <dependency>
             <groupId>net.java.dev.jna</groupId>
             <artifactId>jna</artifactId>
-            <version>5.14.0</version>
+            <version>5.18.1</version>
         </dependency>
     </dependencies>
 </project>

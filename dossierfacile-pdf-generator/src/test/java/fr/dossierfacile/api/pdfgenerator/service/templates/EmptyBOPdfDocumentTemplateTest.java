@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,7 +36,7 @@ class EmptyBOPdfDocumentTemplateTest {
     @Autowired
     private EmptyBOPdfDocumentTemplate emptyBOPdfDocumentTemplate;
 
-    @MockBean
+    @MockitoBean
     private TenantRepository tenantRepository;
 
     private final Path outputPdf = Paths.get("outputFile.pdf");
