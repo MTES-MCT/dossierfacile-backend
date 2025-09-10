@@ -2,7 +2,6 @@ package fr.dossierfacile.api.front.controller.registerController;
 
 import fr.dossierfacile.api.front.TestApplication;
 import fr.dossierfacile.api.front.config.ResourceServerConfig;
-import fr.dossierfacile.api.front.controller.RegisterController;
 import fr.dossierfacile.api.front.controller.RegisterGuarantorNaturalPersonController;
 import fr.dossierfacile.api.front.mapper.PropertyOMapperImpl;
 import fr.dossierfacile.api.front.mapper.TenantMapperImpl;
@@ -26,7 +25,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockPart;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -35,6 +33,7 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.lang.reflect.Field;
@@ -64,22 +63,22 @@ class RegisterGuarantorNaturalPersonControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
-    private static TenantService tenantService;
+    @MockitoBean
+    private TenantService tenantService;
 
-    @MockBean
-    private static AuthenticationFacade authenticationFacade;
+    @MockitoBean
+    private AuthenticationFacade authenticationFacade;
 
-    @MockBean
-    private static LogService logService;
+    @MockitoBean
+    private LogService logService;
 
-    @MockBean
-    private static FileRepository fileRepository;
+    @MockitoBean
+    private FileRepository fileRepository;
 
-    @MockBean
-    private static GuarantorRepository guarantorRepository;
+    @MockitoBean
+    private GuarantorRepository guarantorRepository;
 
-    @MockBean
+    @MockitoBean
     private JwtDecoder jwtDecoder;
 
     @Nested
