@@ -121,7 +121,7 @@
             </exclusions>
         </dependency>
 
-        <!--Libraries needed for OVH storage-->
+        <!--Libraries needed for OVH storage DEPRECATED will be removed-->
         <dependency>
             <groupId>com.github.openstack4j.core</groupId>
             <artifactId>openstack4j-core</artifactId>
@@ -213,11 +213,6 @@
         <dependency>
             <groupId>org.apache.httpcomponents.client5</groupId>
             <artifactId>httpclient5</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-web</artifactId>
-            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>
