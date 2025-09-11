@@ -31,6 +31,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -150,7 +151,7 @@ public class DocumentServiceImpl implements DocumentService {
                 .map(multipartFile -> {
                     StorageFile file = StorageFile.builder()
                             .name(multipartFile.getOriginalFilename())
-                            .path("raw/" + UUID.randomUUID())
+                            .path(StorageFile.getWatermarkRawPath())
                             .contentType(multipartFile.getContentType())
                             .size(multipartFile.getSize())
                             .bucket(S3Bucket.FILIGRANE)
