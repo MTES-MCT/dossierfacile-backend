@@ -30,6 +30,8 @@ import org.springframework.util.CollectionUtils;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.rmi.UnexpectedException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -89,7 +91,7 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
 
             StorageFile pdfFile = StorageFile.builder()
                     .name("dossierfacile-watermark-" + UUID.randomUUID() + ".pdf")
-                    .path("watermark/" + UUID.randomUUID())
+                    .path(StorageFile.getWatermarkPdfPath())
                     .contentType(MediaType.APPLICATION_PDF_VALUE)
                     .bucket(S3Bucket.FILIGRANE)
                     .encryptionKey(encryptionKeyService.getCurrentKey())
