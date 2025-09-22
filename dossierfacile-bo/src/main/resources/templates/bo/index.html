@@ -2,6 +2,7 @@
 <html lang="en"
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
       layout:decorate="bo/layout-bo">
 <head>
     <title>DossierFacile</title>
@@ -9,84 +10,90 @@
 <body>
 
 <div layout:fragment="content" th:remove="tag" th:with="email=${email}">
-    <div class="container-lg" >
+    <div class="container-lg">
         <div class="d-flex justify-content-between">
             <div class="" style="display: inline-grid;grid-auto-columns: max-content; margin-left: 20px; float: left">
-                <div th:if="${isUserAdmin} == true">
-                    <a href="/bo/dashboard/all" class="btn btn-danger" id="dashboardAll" >
+                <div sec:authorize="hasRole('MANAGER')">
+                    <a href="/bo/dashboard/all" class="btn btn-danger" id="dashboardAll">
                         Dashboard - dossiers traités du jour
                     </a>
                 </div>
-                <div class="mt-2" th:if="${isUserAdmin} == true">
+                <div class="mt-2" sec:authorize="hasRole('MANAGER')">
                     <a href="/bo/admin/process/capacities" class="btn btn-danger" id="boProcessCapacity">
                         Capacités de traitement
                     </a>
                 </div>
-                <div class="mt-2" th:if="${isUserAdmin} == true">
-                    <a href="/bo/users" class="btn btn-danger" id="boUsersListing" >
+                <div class="mt-2" sec:authorize="hasRole('MANAGER')">
+                    <a href="/bo/users" class="btn btn-danger" id="boUsersListing">
                         Gestion Utilisateurs BO
                     </a>
                 </div>
-                <div class="mt-2" th:if="${isUserAdmin} == true">
+                <div class="mt-2" sec:authorize="hasRole('MANAGER')">
                     <a href="/bo/documentDeniedOptions" class="btn btn-danger" id="editMessages">
                         Editer les messages
                     </a>
                 </div>
-                <div class="mt-2" th:if="${isUserAdmin} == true">
+                <div class="mt-2" sec:authorize="hasRole('ADMIN')">
                     <a href="/bo/userApi" class="btn btn-danger" id="userApi">
                         API Partners
                     </a>
                 </div>
-                <div class="mt-2" th:if="${isUserAdmin} == true">
+                <div class="mt-2" sec:authorize="hasRole('MANAGER')">
                     <a href="/bo/log" class="btn btn-danger" id="displayLogs">
                         Afficher les logs
                     </a>
                 </div>
-                <div class="mt-2">
+                <div class="mt-2" sec:authorize="hasRole('SUPPORT')">
                     <a href="/bo/owners" class="btn btn-info" id="displayOwner">
                         Liste des comptes propriétaires
                     </a>
                 </div>
-                <div class="mt-2">
+                <div class="mt-2" sec:authorize="hasRole('SUPPORT')">
                     <a href="/bo/regroup" class="btn btn-info" id="nextApplication3">Regrouper deux locataires</a>
                 </div>
             </div>
 
             <div>
-                <div th:if="${oldestApplication.isPresent()}"
-                     th:with="tenant=${oldestApplication.get()}">
+                <div
+                        sec:authorize="hasRole('MANAGER')"
+                        th:if="${oldestApplication.isPresent()}"
+                        th:with="tenant=${oldestApplication.get()}">
                     <div class="bg-warning-subtle" style="padding: 10px; font-size: 16px">
                         <p style="color: red; font-weight: bold;">
                             Dossier à traiter le plus ancien :
                         </p>
                         <span
-                          th:with="date=${tenant.getLastUpdateDate()},
+                                th:with="date=${tenant.getLastUpdateDate()},
                                    formattedDate=${T(fr.gouv.bo.utils.DateFormatUtil).formatPreciselyRelativeToNow(date)}"
-                          th:text="'Modifié ' + ${formattedDate}"
+                                th:text="'Modifié ' + ${formattedDate}"
                         ></span>
                     </div>
                     <div>
                         <a th:href="@{/bo/colocation/} + ${tenant.getApartmentSharing().getId()} + '#tenant' + ${tenant.getId()}">
-                            <button style="border-radius: 5px; width: 100%" class="btn btn-danger bo-btn" name="action" type="submit">
+                            <button style="border-radius: 5px; width: 100%" class="btn btn-danger bo-btn" name="action"
+                                    type="submit">
                                 Voir le dossier
                             </button>
                         </a>
                     </div>
                 </div>
-                <div class="bg-warning-subtle" style="padding: 10px; font-size: 16px; margin-top: 15px;">
-                    <a th:href="@{/bo/documentFailedList}" style="text-decoration: none;">
+                <div sec:authorize="hasRole('MANAGER')">
+                    <div class="bg-warning-subtle" style="padding: 10px; font-size: 16px; margin-top: 15px;">
+                        <a th:href="@{/bo/documentFailedList}" style="text-decoration: none;">
                         <span>
                             <span style="color: red; font-weight: bold;">Locataires avec erreur PDF :</span>
                             <span th:text="${TenantsWithFailedGeneratedPdf}"></span>
                         </span>
-                    </a>
-                </div>
-                <div th:if="${TenantsWithFailedGeneratedPdf != 0}">
-                    <form th:action="@{/bo/regeneratePdfDocument}" th:method="post">
-                        <button style="border-radius: 5px; width: 100%" class="btn btn-danger bo-btn" name="action" type="submit">
-                            Regénération PDF en echec
-                        </button>
-                    </form>
+                        </a>
+                    </div>
+                    <div th:if="${TenantsWithFailedGeneratedPdf != 0}">
+                        <form th:action="@{/bo/regeneratePdfDocument}" th:method="post">
+                            <button style="border-radius: 5px; width: 100%" class="btn btn-danger bo-btn" name="action"
+                                    type="submit">
+                                Regénération PDF en echec
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
 
@@ -101,36 +108,39 @@
             <a th:href="@{/bo/nextApplication}" class="btn btn-primary" id="nextApplication">Traiter un dossier</a>
         </div>
         <div class="clearfix"></div>
-        <div class="table-responsive">
-            <table th:object="${tenants}" id="userTable" class="table table-striped table-bordered table-hover">
-                <thead>
-                <tr>
-                    <td></td>
-                    <td>Id</td>
-                    <td>Dernière modification</td>
-                    <td>Prénom</td>
-                    <td>Nom</td>
-                    <td>Email</td>
-                </tr>
-                </thead>
-                <tr th:each="tenant : ${tenants}">
-                    <td><a class="btn btn-warning bo-btn text-nowrap" th:href="'/bo/nextApplication?tenant_id='+${tenant.getId()}">
-                        Traiter le dossier
-                    </a></td>
-                    <td>
-                        <span th:text="${tenant.getId()}"></span>
-                    </td>
-                    <td
-                      th:with="formattedDate=${T(fr.gouv.bo.utils.DateFormatUtil).formatPreciselyRelativeToNow(tenant.getLastUpdateDate())}"
-                      th:text="${formattedDate}"></td>
-                    <td th:text="${tenant.getFirstName()}"></td>
-                    <td th:text="${tenant.getLastName()}"></td>
-                    <td th:text="${tenant.getEmail()}"></td>
-                </tr>
-            </table>
-        </div>
-        <div class="row">
-            <div th:replace="~{bo/fragments/pagination :: pagination (items=${tenants}, paramKey='none', paramValue='', pageSizes=${pageSizes}, endpoint='/bo')}"></div>
+        <div sec:authorize="hasRole('SUPPORT')">
+            <div class="table-responsive">
+                <table th:object="${tenants}" id="userTable" class="table table-striped table-bordered table-hover">
+                    <thead>
+                    <tr>
+                        <td></td>
+                        <td>Id</td>
+                        <td>Dernière modification</td>
+                        <td>Prénom</td>
+                        <td>Nom</td>
+                        <td>Email</td>
+                    </tr>
+                    </thead>
+                    <tr th:each="tenant : ${tenants}">
+                        <td><a class="btn btn-warning bo-btn text-nowrap"
+                               th:href="'/bo/nextApplication?tenant_id='+${tenant.getId()}">
+                            Traiter le dossier
+                        </a></td>
+                        <td>
+                            <span th:text="${tenant.getId()}"></span>
+                        </td>
+                        <td
+                                th:with="formattedDate=${T(fr.gouv.bo.utils.DateFormatUtil).formatPreciselyRelativeToNow(tenant.getLastUpdateDate())}"
+                                th:text="${formattedDate}"></td>
+                        <td th:text="${tenant.getFirstName()}"></td>
+                        <td th:text="${tenant.getLastName()}"></td>
+                        <td th:text="${tenant.getEmail()}"></td>
+                    </tr>
+                </table>
+            </div>
+            <div class="row">
+                <div th:replace="~{bo/fragments/pagination :: pagination (items=${tenants}, paramKey='none', paramValue='', pageSizes=${pageSizes}, endpoint='/bo')}"></div>
+            </div>
         </div>
 
     </div>

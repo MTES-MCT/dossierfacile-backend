@@ -2,7 +2,9 @@
 <html lang="fr"
       layout:decorate="~{bo/process-file-layout}"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      xmlns:th="http://www.thymeleaf.org">
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+>
 <head>
     <title>DossierFacile</title>
 </head>
@@ -23,7 +25,11 @@
                 </div>
             </div>
             <div class="pe-4" style="display:flex;align-self: center;align-items: center;gap:15px">
-                <a class="btn btn-warning bo-btn"
+                <a class="btn btn-warning bo-btn" data-bs-toggle="modal"
+                   th:data-bs-target="'#add-comment-'+${tenant.getId()}">
+                    <span th:text="${T(org.apache.commons.lang3.StringUtils).isBlank(tenant.getOperatorComment())} ? 'Ajouter un commentaire' : 'Editer le commentaire'"></span>
+                </a>
+                <a sec:authorize="hasRole('SUPPORT')" class="btn btn-warning bo-btn"
                    th:href="@{/bo/colocation/} + ${tenant.getApartmentSharing().getId()} + '#tenant' + ${tenant.getId()}">
                     Voir le Dossier
                 </a>
@@ -65,12 +71,14 @@
 
             <div th:each="messageItem, i:${customMessage.getMessageItems()}" th:remove="tag">
                 <div class="row mt-4">
-                    <div class="col-md-8" style="min-height: 700px; max-height: 1050px" th:if="${messageItem.getCustomTex()}==null">
+                    <div class="col-md-8" style="min-height: 700px; max-height: 1050px"
+                         th:if="${messageItem.getCustomTex()}==null">
                         <embed class="document-embed" height="100%"
                                th:src="'/pdf-viewer/pdfjs-dist/web/viewer.html?file=/documents/'+${messageItem.getDocumentName()}"
                                width="100%"/>
                     </div>
-                    <div class="col-md-8" style="min-height: 700px; max-height: 1050px" th:if="${messageItem.getCustomTex()}!=null">
+                    <div class="col-md-8" style="min-height: 700px; max-height: 1050px"
+                         th:if="${messageItem.getCustomTex()}!=null">
                         <div class="full-size-div">
                             <div class="card-div">
                                 <div class="card" style="background-color: rgb(232, 237, 241)">
@@ -95,7 +103,8 @@
                                     <div class="card-header file1-border-color file1-background-color bold">
                                         <div class="letter">
                                             <span th:text=" 'Type : ' + #{${messageItem.getDocumentSubCategory().getLabel()}}"></span>
-                                            <span th:if="${messageItem.getDocumentCategoryStep() != null}" th:text=" ' | ' + #{${messageItem.getDocumentCategoryStep().getLabel()}}"></span>
+                                            <span th:if="${messageItem.getDocumentCategoryStep() != null}"
+                                                  th:text=" ' | ' + #{${messageItem.getDocumentCategoryStep().getLabel()}}"></span>
                                         </div>
                                         <div class="letter" style="padding-top: 7px"
                                              th:if="${messageItem.getMonthlySum()}!=null">
@@ -139,7 +148,8 @@
                                         </div>
                                     </div>
                                     <!-- contenu si le rapport n'existe pas (else) -->
-                                    <div th:unless="${messageItem.documentAnalysisReport != null}" th:class="${'prevalidation-background-UNDEFINED'}">
+                                    <div th:unless="${messageItem.documentAnalysisReport != null}"
+                                         th:class="${'prevalidation-background-UNDEFINED'}">
                                         <div class="mb-1 ms-1">
                                             <span class="fw-semibold">Aucune analyse disponible</span>
                                         </div>
@@ -222,12 +232,14 @@
                 <div th:each="messageItem, i:${guarantorItem.getMessageItems()}" th:remove="tag">
                     <div class="row mt-4">
 
-                        <div class="col-md-8" style="min-height: 700px; max-height: 1050px" th:if="${messageItem.getCustomTex()}==null">
+                        <div class="col-md-8" style="min-height: 700px; max-height: 1050px"
+                             th:if="${messageItem.getCustomTex()}==null">
                             <embed class="document-embed" height="100%"
                                    th:src="'/pdf-viewer/pdfjs-dist/web/viewer.html?file=/documents/'+${messageItem.getDocumentName()}"
                                    width="100%"/>
                         </div>
-                        <div class="col-md-8" style="min-height: 700px; max-height: 1050px" th:if="${messageItem.getCustomTex()}!=null">
+                        <div class="col-md-8" style="min-height: 700px; max-height: 1050px"
+                             th:if="${messageItem.getCustomTex()}!=null">
                             <div class="full-size-div">
                                 <div class="card-div">
                                     <div class="card" style="background-color: rgb(232, 237, 241)">
@@ -320,7 +332,8 @@
                                             </div>
                                         </div>
                                         <!-- contenu si le rapport n'existe pas (else) -->
-                                        <div th:unless="${messageItem.documentAnalysisReport != null}" th:class="${'prevalidation-background-UNDEFINED'}">
+                                        <div th:unless="${messageItem.documentAnalysisReport != null}"
+                                             th:class="${'prevalidation-background-UNDEFINED'}">
                                             <div class="mb-1 ms-1">
                                                 <span class="fw-semibold">Aucune analyse disponible</span>
                                             </div>
@@ -411,6 +424,42 @@
         </form>
     </div>
     <div class="clearfix">
+    </div>
+
+    <div class="modal fade" th:id="'add-comment-' + ${tenant.getId()}" role="dialog"
+         tabindex="-1">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title bold" style="width: 80%;float: left;">
+                        Précisions concernant le traitement du dossier
+                    </h5>
+                    <button aria-label="Close" class="btn-close" data-bs-dismiss="modal"
+                            type="button"></button>
+                </div>
+
+                <form method="post" th:action="@{/bo/tenant/__${tenant.getId()}__/comment}">
+                    <div class="modal-body">
+                        <input type="hidden" name="returnTo" value="processFile"/>
+                        <textarea id="comment" name="comment" class="input" rows="6"
+                                  type="text"
+                                  th:text="${tenant.getOperatorComment()}"></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-info btn-save"
+                                style="border-radius: 50px;font-size: 15px;line-height: 1;padding: 5px 8px 7px;">
+                            Sauvegarder
+                        </button>
+                        <button class="btn btn-secondary" data-bs-dismiss="modal"
+                                style="border-radius: 50px;font-size: 15px;line-height: 1;padding: 5px 8px 7px;"
+                                type="button">
+                            Annuler
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
     </div>
 
 </div>

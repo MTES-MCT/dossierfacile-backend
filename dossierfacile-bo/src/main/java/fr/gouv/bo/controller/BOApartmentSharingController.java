@@ -53,11 +53,6 @@ public class BOApartmentSharingController {
     private final UserApiService userApiService;
     private final TenantLogService logService;
 
-    @GetMapping("")
-    public String index() {
-        return "bo/apartment-sharing";
-    }
-
     @GetMapping("/{id}")
     public String view(Model model, @PathVariable("id") Long id) {
 

@@ -20,7 +20,7 @@ import static java.util.Comparator.comparing;
 
 @Controller
 @AllArgsConstructor
-@PreAuthorize("hasRole('ROLE_ADMIN')")
+@PreAuthorize("hasRole('MANAGER')")
 @RequestMapping("/bo/documentDeniedOptions")
 public class BODocumentDeniedOptionsController {
 
