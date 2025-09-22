@@ -3,6 +3,7 @@
       layout:decorate="~{bo/layout-bo}"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
 >
 <head>
     <title>DossierFacile</title>
@@ -16,7 +17,7 @@
 
             <ul class="nav nav-tabs" role="tablist">
 
-                <li class="nav-item active" role="presentation">
+                <li class="nav-item active" role="presentation" sec:authorize="hasRole('ROLE_SUPPORT')">
                     <a class="nav-link active"
                        data-bs-toggle="tab"
                        href="#colocatio"
@@ -28,7 +29,7 @@
                     ></a>
                 </li>
 
-                <li class="nav-item" role="presentation" th:each="tenant,iter:${tenants}">
+                <li class="nav-item" role="presentation" th:each="tenant,iter:${tenants}" sec:authorize="hasRole('ROLE_SUPPORT')">
                     <a class="nav-link data-tab2"
                        th:id="'badge2' + ${tenant.id}"
                        data-bs-toggle="tab"
@@ -59,7 +60,7 @@
             <!-- Tab panes -->
 
             <div class="tab-content">
-                <div class="tab-pane show active" id="colocatio" role="tabpanel">
+                <div class="tab-pane show active" id="colocatio" role="tabpanel" sec:authorize="hasRole('ROLE_SUPPORT')">
                     <div class="container">
                         <div class="medium-space-separator">
                             <div clas="row">
@@ -284,7 +285,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="tab-pane data-tab2" role="tabpanel"
+                <div class="tab-pane data-tab2" role="tabpanel" sec:authorize="hasRole('ROLE_SUPPORT')"
                      th:each="tenant,iter: ${tenants}" th:id="'tenant'+${tenant.id}">
                     <div class="container">
                         <div class="medium-space-separator">
@@ -752,7 +753,8 @@
                                         </div>
                                     </div>
                                     <!-- contenu si le rapport n'existe pas (else) -->
-                                    <div th:unless="${document.documentAnalysisReport != null}" th:class="${'prevalidation-background-UNDEFINED'}">
+                                    <div th:unless="${document.documentAnalysisReport != null}"
+                                         th:class="${'prevalidation-background-UNDEFINED'}">
                                         <div class="mb-1">
                                             <span class="fw-semibold">Aucune analyse disponible</span>
                                         </div>
@@ -975,7 +977,8 @@
                                         </div>
                                     </div>
                                     <!-- contenu si le rapport n'existe pas (else) -->
-                                    <div th:unless="${document.documentAnalysisReport != null}" th:class="${'prevalidation-background-UNDEFINED'}">
+                                    <div th:unless="${document.documentAnalysisReport != null}"
+                                         th:class="${'prevalidation-background-UNDEFINED'}">
                                         <div class="mb-1">
                                             <span class="fw-semibold">Aucune analyse disponible</span>
                                         </div>

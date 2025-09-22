@@ -53,4 +53,10 @@ $(document).ready(function () {
      updateStatus();
    });
 
+    // Fix Bootstrap modal stacking context: ensure modal is appended to <body>
+    $(document).on('show.bs.modal', '.modal', function () {
+        // Déplace la modale dans <body> pour sortir d’éventuels contextes d’empilement
+        $(this).appendTo('body');
+    });
+
 });

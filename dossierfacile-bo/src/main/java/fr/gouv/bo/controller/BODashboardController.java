@@ -39,7 +39,7 @@ public class BODashboardController {
         return "bo/dashboard";
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('MANAGER')")
     @GetMapping("/all")
     public String boUserDashboard(Model model) {
         List<Object[]> listTreatedCountByOperator = logService.listDailyTreatedFilesByOperator();

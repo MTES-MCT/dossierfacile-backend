@@ -24,6 +24,7 @@ import org.springframework.core.ResolvableType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.stereotype.Controller;
@@ -85,6 +86,7 @@ public class BOController {
         return "login";
     }
 
+    @PreAuthorize("hasRole('MANAGER')")
     @GetMapping("/bo/documentFailedList")
     public String documentFailedList(Model model,
                                      @RequestParam(value = "pageSize", defaultValue = INITIAL_PAGE_SIZE) int pageSize,
@@ -124,6 +126,7 @@ public class BOController {
         return "bo/index";
     }
 
+    @PreAuthorize("hasRole('SUPPORT')")
     @GetMapping("/bo/regroup")
     public String getRegroupTenants(RedirectAttributes redirectAttributes, Model model, ReGroupDTO reGroupDTO, @ModelAttribute("showAlert") BooleanDTO booleanDTO) {
         model.addAttribute("reGroupData", reGroupDTO);
@@ -162,7 +165,7 @@ public class BOController {
         return "redirect:/bo/regroup";
     }
 
-
+    @PreAuthorize("hasRole('SUPPORT')")
     @GetMapping("/bo/searchTenant")
     public String searchTenant(Model model,
                                @RequestParam(value = EMAIL) String email,

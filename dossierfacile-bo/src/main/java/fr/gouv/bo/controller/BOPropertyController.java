@@ -24,7 +24,6 @@ public class BOPropertyController {
     @Value("${link.shared.property}")
     private String propertyLinkBaseUrl;
 
-
     @GetMapping("/{id}")
     public String get(Model model, @PathVariable("id") Long id) throws JsonProcessingException {
         Property property = propertyService.findById(id).get();
