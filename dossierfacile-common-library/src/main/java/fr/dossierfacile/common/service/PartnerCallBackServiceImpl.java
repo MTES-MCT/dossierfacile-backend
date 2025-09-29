@@ -2,13 +2,14 @@ package fr.dossierfacile.common.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.dossierfacile.common.entity.*;
+import fr.dossierfacile.common.enums.ApartmentSharingLinkType;
 import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.mapper.ApplicationFullMapper;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
+import fr.dossierfacile.common.repository.ApartmentSharingLinkRepository;
 import fr.dossierfacile.common.repository.ApartmentSharingRepository;
 import fr.dossierfacile.common.repository.CallbackLogRepository;
-import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.repository.TenantUserApiRepository;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.dossierfacile.common.service.interfaces.RequestService;
@@ -21,10 +22,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -32,12 +35,12 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 @Slf4j
 public class PartnerCallBackServiceImpl implements PartnerCallBackService {
-    private final TenantCommonRepository tenantRepository;
     private final TenantUserApiRepository tenantUserApiRepository;
     private final ApplicationFullMapper applicationFullMapper;
     private final RequestService requestService;
     private final CallbackLogRepository callbackLogRepository;
     private final ApartmentSharingRepository apartmentSharingRepository;
+    private final ApartmentSharingLinkRepository apartmentSharingLinkRepository;
     private final ObjectMapper objectMapper;
 
     public void registerTenant(Tenant tenant, UserApi userApi) {
@@ -51,6 +54,12 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
 
             tenantUserApiRepository.save(tenantUserApi);
 
+            ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
+            ApartmentSharingLink apartmentSharingLink = buildApartmentSharingLink(userApi, apartmentSharing, false);
+            ApartmentSharingLink apartmentSharingLinkFull = buildApartmentSharingLink(userApi, apartmentSharing, true);
+            apartmentSharingLinkRepository.save(apartmentSharingLink);
+            apartmentSharingLinkRepository.save(apartmentSharingLinkFull);
+
             if (userApi.getVersion() != null && userApi.getUrlCallback() != null && (
                     tenant.getStatus() == TenantFileStatus.VALIDATED
                             || tenant.getStatus() == TenantFileStatus.TO_PROCESS)) {
@@ -61,6 +70,18 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
                 sendCallBack(tenant, userApi, webhookDTO);
             }
         }
+    }
+
+    private ApartmentSharingLink buildApartmentSharingLink(UserApi userApi, ApartmentSharing apartmentSharing, boolean fullData) {
+        return ApartmentSharingLink.builder()
+            .apartmentSharing(apartmentSharing)
+            .token(UUID.randomUUID())
+            .creationDate(LocalDateTime.now())
+            .fullData(fullData)
+            .linkType(ApartmentSharingLinkType.PARTNER)
+            .title(userApi.getName2())
+            .partnerId(userApi.getId())
+            .build();
     }
 
     private List<UserApi> findAllUserApi(ApartmentSharing as) {

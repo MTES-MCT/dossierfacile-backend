@@ -1,14 +1,12 @@
 package fr.gouv.bo.controller;
 
 import fr.dossierfacile.common.entity.Document;
-import fr.dossierfacile.common.entity.DocumentRule;
 import fr.dossierfacile.common.entity.DocumentRuleLevel;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.gouv.bo.dto.DisplayableFile;
 import fr.gouv.bo.dto.MessageDTO;
 import fr.gouv.bo.dto.PartnerDTO;
 import fr.dossierfacile.common.service.ApartmentSharingLinkService;
-import fr.gouv.bo.service.ApartmentSharingService;
 import fr.gouv.bo.service.TenantLogService;
 import fr.gouv.bo.service.TenantService;
 import fr.gouv.bo.service.UserApiService;
@@ -33,7 +31,6 @@ import java.util.stream.Stream;
 @Slf4j
 public class BOApartmentSharingController {
 
-    private static final String EMAIL = "email";
     private static final String LOG_SER = "logser";
     private static final String TENANTS = "tenants";
     private static final String TENANT_SERVICE = "tenantService";
@@ -48,7 +45,6 @@ public class BOApartmentSharingController {
     private static final String FILES_BY_DOCUMENT = "filesByDocument";
 
     private final TenantService tenantService;
-    private final ApartmentSharingService apartmentSharingService;
     private final ApartmentSharingLinkService apartmentSharingLinkService;
     private final UserApiService userApiService;
     private final TenantLogService logService;
@@ -75,12 +71,6 @@ public class BOApartmentSharingController {
         model.addAttribute(FILES_BY_DOCUMENT, getFilesByDocument(tenants));
 
         return "bo/apartment-sharing-view";
-    }
-
-    @DeleteMapping("/{id}/tokens/")
-    public String regenerateToken(Model model, @PathVariable("id") Long id) {
-        apartmentSharingService.regenerateTokens(id);
-        return "redirect:/bo/colocation/" + id ;
     }
 
     @DeleteMapping("/{id}/apartmentSharingLinks/{link_id}")

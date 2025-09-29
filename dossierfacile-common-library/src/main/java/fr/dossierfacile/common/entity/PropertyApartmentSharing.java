@@ -13,7 +13,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.hibernate.annotations.NotFound;
 import org.hibernate.annotations.NotFoundAction;
 
@@ -47,8 +46,5 @@ public class PropertyApartmentSharing implements Serializable {
     @Builder.Default
     @Column(nullable = false)
     private boolean accessFull = false;
-
-    @Builder.Default
-    @Column
-    private String token = RandomStringUtils.randomAlphanumeric(20);
 }
+

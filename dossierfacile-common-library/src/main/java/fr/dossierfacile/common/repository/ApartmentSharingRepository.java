@@ -15,10 +15,6 @@ public interface ApartmentSharingRepository extends JpaRepository<ApartmentShari
     @Query(value = "select a.* from apartment_sharing a join tenant t on a.id = t.apartment_sharing_id where t.id=:id", nativeQuery = true)
     Optional<ApartmentSharing> findByTenant(@Param("id") Long id);
 
-    Optional<ApartmentSharing> findByToken(String token);
-
-    Optional<ApartmentSharing> findByTokenPublic(String token);
-
     @Query(value = """
             SELECT a 
             FROM ApartmentSharing a
