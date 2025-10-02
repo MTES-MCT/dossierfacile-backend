@@ -52,6 +52,7 @@ public class FileController {
             response.setContentType(file.getStorageFile().getContentType());
             response.setHeader("Access-Control-Expose-Headers", "Content-Disposition, Content-Type");
             response.setHeader("Content-Disposition", "inline; filename=\"" + file.getStorageFile().getName() + "\"");
+            response.setHeader("X-Robots-Tag", "noindex");
             IOUtils.copy(in, response.getOutputStream());
         } catch (final java.io.FileNotFoundException e) {
             log.error(FILE_NO_EXIST, e);

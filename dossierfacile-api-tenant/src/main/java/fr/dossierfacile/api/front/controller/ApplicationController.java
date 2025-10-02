@@ -17,10 +17,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.UUID;
 
 
 import static org.springframework.http.ResponseEntity.accepted;
@@ -56,6 +54,7 @@ public class ApplicationController {
                 response.setHeader("Access-Control-Expose-Headers", "Content-Disposition, Content-Type");
                 response.setHeader("Content-Disposition", String.format("attachment; filename=\"%s\"", pdfFile.getFileName()));
                 response.setHeader("Content-Type", MediaType.APPLICATION_PDF_VALUE);
+                response.setHeader("X-Robots-Tag", "noindex");
                 response.getOutputStream().write(pdfFile.getFileOutputStream().toByteArray());
             } else {
                 log.error(DOCUMENT_NOT_EXIST);
@@ -113,6 +112,7 @@ public class ApplicationController {
                 response.setHeader("Access-Control-Expose-Headers", "Content-Disposition, Content-Type");
                 response.setHeader("Content-Disposition", String.format("attachment; filename=\"%s\"", fullFolderFile.getFileName()));
                 response.setHeader("Content-Type", "application/zip");
+                response.setHeader("X-Robots-Tag", "noindex");
                 response.getOutputStream().write(fullFolderFile.getFileOutputStream().toByteArray());
             } else {
                 log.error(DOCUMENT_NOT_EXIST);
