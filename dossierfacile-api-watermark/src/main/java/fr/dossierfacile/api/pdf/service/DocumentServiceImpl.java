@@ -111,6 +111,7 @@ public class DocumentServiceImpl implements DocumentService {
 
         try (InputStream in = fileStorageService.download(document.getPdfFile())) {
             response.setContentType(document.getPdfFile().getContentType());
+            response.setHeader("X-Robots-Tag", "noindex");
             IOUtils.copy(in, response.getOutputStream());
             cleanData(document);
         } catch (FileNotFoundException e) {

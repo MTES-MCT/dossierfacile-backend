@@ -62,6 +62,7 @@ public class DocumentController {
                 fileName = ownerName + "_" + document.getDocumentName();
             }
             response.setHeader("Content-Disposition", "inline; filename=\"" + fileName + "\"");
+            response.setHeader("X-Robots-Tag", "noindex");
             IOUtils.copy(in, response.getOutputStream());
         } catch (FileNotFoundException e) {
             log.error(FILE_NO_EXIST);
