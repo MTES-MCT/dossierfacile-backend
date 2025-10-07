@@ -29,7 +29,7 @@
                     ></a>
                 </li>
 
-                <li class="nav-item" role="presentation" th:each="tenant,iter:${tenants}" sec:authorize="hasRole('ROLE_SUPPORT')">
+                <li class="nav-item" role="presentation" th:each="tenant,iter:${tenants}">
                     <a class="nav-link data-tab2"
                        th:id="'badge2' + ${tenant.id}"
                        data-bs-toggle="tab"
@@ -285,13 +285,14 @@
                         </div>
                     </div>
                 </div>
-                <div class="tab-pane data-tab2" role="tabpanel" sec:authorize="hasRole('ROLE_SUPPORT')"
+                <div class="tab-pane data-tab2" role="tabpanel"
                      th:each="tenant,iter: ${tenants}" th:id="'tenant'+${tenant.id}">
                     <div class="container">
                         <div class="medium-space-separator">
                             <div class="row">
                                 <div class="col-md-5">
                                     <form
+                                            sec:authorize="hasRole('ROLE_SUPPORT')"
                                             class="form-inline btn-validate-form"
                                             style="float: left; margin-right: 10px;"
                                             th:action="@{/bo/tenant/} + ${tenant.getId()} + '/validate'"
@@ -304,6 +305,7 @@
                                         </button>
                                     </form>
                                     <form
+                                            sec:authorize="hasRole('ROLE_SUPPORT')"
                                             class="form-inline btn-denied-form"
                                             style="float: left; margin-right: 10px;"
                                             th:action="@{/bo/tenant/} + ${tenant.getId()} + '/decline'"
