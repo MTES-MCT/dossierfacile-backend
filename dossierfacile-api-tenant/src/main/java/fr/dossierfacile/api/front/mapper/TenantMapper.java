@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.front.mapper;
 
+import fr.dossierfacile.api.front.model.BaseApartmentSharingModel;
 import fr.dossierfacile.api.front.model.dfc.tenant.ConnectedTenantModel;
 import fr.dossierfacile.api.front.model.tenant.*;
 import fr.dossierfacile.common.entity.*;
@@ -19,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 @Component
 @Mapper(componentModel = "spring")
@@ -84,29 +86,7 @@ public abstract class TenantMapper {
     void modificationsAfterMapping(@MappingTarget TenantModel.TenantModelBuilder tenantModelBuilder, @Context UserApi userApi, Tenant tenant) {
         TenantModel tenantModel = tenantModelBuilder.build();
         ApartmentSharingModel apartmentSharingModel = tenantModel.getApartmentSharing();
-        String token = null;
-        String tokenPublic = null;
-        if (apartmentSharingModel.getStatus() == TenantFileStatus.VALIDATED) {
-            List<ApartmentSharingLink> links = tenant.getApartmentSharing().getApartmentSharingLinks();
-            if (links != null) {
-                Optional<ApartmentSharingLink> fullLink = links.stream()
-                    .filter(l -> l.getLinkType() == ApartmentSharingLinkType.LINK && l.isFullData())
-                    .findFirst();
-                Optional<ApartmentSharingLink> link = links.stream()
-                    .filter(l -> l.getLinkType() == ApartmentSharingLinkType.LINK && !l.isFullData())
-                    .findFirst();
-                if (fullLink.isPresent()) {
-                    token = fullLink.get().getToken().toString();
-                    apartmentSharingModel.setDossierPdfUrl(applicationBaseUrl + DOSSIER_PDF_PATH + token);
-                    apartmentSharingModel.setDossierUrl(tenantBaseUrl + DOSSIER_PATH + token);
-                }
-                if (link.isPresent()) {
-                    tokenPublic = link.get().getToken().toString();
-                }
-            }
-        }
-        apartmentSharingModel.setToken(token);
-        apartmentSharingModel.setTokenPublic(tokenPublic);
+        updateTokens(tenant, apartmentSharingModel, l -> l.getLinkType() == ApartmentSharingLinkType.LINK);
 
         var isDossierUser = SecurityContextHolder.getContext().getAuthentication().getAuthorities().contains(new SimpleGrantedAuthority("SCOPE_dossier"));
         var filePath = isDossierUser ? "/api/file/resource/" : "/api-partner/tenant/" + tenantModel.getId() + "/file/resource/";
@@ -141,6 +121,32 @@ public abstract class TenantMapper {
         Optional.ofNullable(tenantModel.getGuarantors())
                 .ifPresent(guarantorModels -> guarantorModels.forEach(guarantorModel -> setDocumentDeniedReasonsAndDocumentAndFilesRoutes(guarantorModel.getDocuments(), filePath, false, userApi)));
 
+    }
+
+    private void updateTokens(Tenant tenant, BaseApartmentSharingModel apartmentSharingModel, Predicate<ApartmentSharingLink> isRightLink) {
+        String token = null;
+        String tokenPublic = null;
+        if (apartmentSharingModel.getStatus() == TenantFileStatus.VALIDATED) {
+            List<ApartmentSharingLink> links = tenant.getApartmentSharing().getApartmentSharingLinks();
+            if (links != null) {
+                Optional<ApartmentSharingLink> fullLink = links.stream()
+                    .filter(l -> isRightLink.test(l) && l.isFullData())
+                    .findFirst();
+                Optional<ApartmentSharingLink> link = links.stream()
+                    .filter(l -> isRightLink.test(l) && !l.isFullData())
+                    .findFirst();
+                if (fullLink.isPresent()) {
+                    token = fullLink.get().getToken().toString();
+                    apartmentSharingModel.setDossierPdfUrl(applicationBaseUrl + DOSSIER_PDF_PATH + token);
+                    apartmentSharingModel.setDossierUrl(tenantBaseUrl + DOSSIER_PATH + token);
+                }
+                if (link.isPresent()) {
+                    tokenPublic = link.get().getToken().toString();
+                }
+            }
+        }
+        apartmentSharingModel.setToken(token);
+        apartmentSharingModel.setTokenPublic(tokenPublic);
     }
 
     private void setDocumentDeniedReasonsAndDocumentAndFilesRoutes(List<DocumentModel> list, String filePath, boolean previewOnly, UserApi userApi) {
@@ -183,27 +189,7 @@ public abstract class TenantMapper {
     void modificationsAfterMapping(@MappingTarget ConnectedTenantModel.ConnectedTenantModelBuilder connectedTenantModelBuilder, @Context UserApi userApi, Tenant tenant) {
         ConnectedTenantModel connectedTenantModel = connectedTenantModelBuilder.build();
         fr.dossierfacile.api.front.model.dfc.apartment_sharing.ApartmentSharingModel apartmentSharingModel = connectedTenantModel.getApartmentSharing();
-        String token = null;
-        String tokenPublic = null;
-        if (apartmentSharingModel.getStatus() == TenantFileStatus.VALIDATED) {
-            List<ApartmentSharingLink> links = tenant.getApartmentSharing().getApartmentSharingLinks();
-            Optional<ApartmentSharingLink> fullLink = links.stream()
-                .filter(l -> l.getLinkType() == ApartmentSharingLinkType.PARTNER && l.getPartnerId() == userApi.getId() && l.isFullData())
-                .findFirst();
-            Optional<ApartmentSharingLink> link = links.stream()
-                .filter(l -> l.getLinkType() == ApartmentSharingLinkType.PARTNER && l.getPartnerId() == userApi.getId() && !l.isFullData())
-                .findFirst();
-            if (fullLink.isPresent()) {
-                token = fullLink.get().getToken().toString();
-                apartmentSharingModel.setDossierPdfUrl(applicationBaseUrl + DOSSIER_PDF_PATH + token);
-                apartmentSharingModel.setDossierUrl(tenantBaseUrl + DOSSIER_PATH + token);
-            }
-            if (link.isPresent()) {
-                tokenPublic = link.get().getToken().toString();
-            }
-        }
-        apartmentSharingModel.setToken(token);
-        apartmentSharingModel.setTokenPublic(tokenPublic);
+        updateTokens(tenant, apartmentSharingModel, l -> l.getLinkType() == ApartmentSharingLinkType.PARTNER && l.getPartnerId() == userApi.getId());
         connectedTenantModel.getApartmentSharing().getTenants().forEach(tenantModel -> setDocumentDeniedReasonsAndDocumentAndFilesRoutes(tenantModel.getDocuments(), null, true, userApi));
         connectedTenantModel.getApartmentSharing().getTenants().forEach(tenantModel ->
                 Optional.ofNullable(tenantModel.getGuarantors()).ifPresent(guarantorModels ->
