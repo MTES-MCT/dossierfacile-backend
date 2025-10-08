@@ -1,11 +1,14 @@
 package fr.gouv.bo.controller;
 
 import fr.dossierfacile.common.entity.BOUser;
+import fr.gouv.bo.security.UserPrincipal;
 import fr.gouv.bo.service.TenantLogService;
 import fr.gouv.bo.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,11 +29,11 @@ public class BODashboardController {
     private Integer minusDays;
 
     @GetMapping("")
-    public String myDashboard(Model model, Principal principal) {
+    public String myDashboard(Model model,  @AuthenticationPrincipal UserPrincipal principal) {
         if (principal == null) {
             return "redirect:/login";
         }
-        BOUser operator = userService.findUserByEmail(principal.getName());
+        BOUser operator = userService.findUserByEmail(principal.getEmail());
         List<Object[]> listTreatedCountByDay = logService.listLastTreatedFilesByOperator(operator.getId(), minusDays);
 
         model.addAttribute("operator", operator);

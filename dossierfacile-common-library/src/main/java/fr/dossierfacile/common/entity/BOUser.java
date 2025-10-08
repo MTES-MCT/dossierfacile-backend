@@ -26,7 +26,7 @@ public class BOUser extends User implements Serializable {
     public static BOUser.BOUserBuilder<?, ?> builder() {
         BOUser.BOUserBuilder<?, ?> builder = BOUser.lombokBuilder();
         builder.userType(UserType.BO);
-        builder.provider(AuthProvider.google);
+        builder.provider(AuthProvider.keycloak);
         return builder;
     }
 }

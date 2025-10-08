@@ -12,6 +12,7 @@ import fr.gouv.bo.amqp.Producer;
 import fr.gouv.bo.dto.BooleanDTO;
 import fr.gouv.bo.dto.ReGroupDTO;
 import fr.gouv.bo.dto.ResultDTO;
+import fr.gouv.bo.security.UserPrincipal;
 import fr.gouv.bo.service.DocumentService;
 import fr.gouv.bo.service.TenantService;
 import fr.gouv.bo.service.UserService;
@@ -25,6 +26,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.stereotype.Controller;
@@ -32,7 +37,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -56,7 +60,7 @@ public class BOController {
     private final ClientRegistrationRepository clientRegistrationRepository;
 
     @GetMapping("/")
-    public String index(Principal principal) {
+    public String index(@AuthenticationPrincipal UserPrincipal principal) {
         if (principal == null) {
             return "redirect:/login";
         } else {
@@ -65,25 +69,36 @@ public class BOController {
     }
 
     @GetMapping("/login")
-    public String loginPage(Model model) {
+    public String loginPage(Model model, @RequestParam(value = "logout", required = false) String logout) {
+        // If already authenticated, redirect to /bo
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && !(auth instanceof AnonymousAuthenticationToken)) {
+            return REDIRECT_BO;
+        }
+
+        // Load OIDC providers
         Iterable<ClientRegistration> clientRegistrations = null;
         ResolvableType type = ResolvableType.forInstance(clientRegistrationRepository)
                 .as(Iterable.class);
-        if (type != ResolvableType.NONE &&
-                ClientRegistration.class.isAssignableFrom(type.resolveGenerics()[0])) {
+        if (type != ResolvableType.NONE && ClientRegistration.class.isAssignableFrom(type.resolveGenerics()[0])) {
             clientRegistrations = (Iterable<ClientRegistration>) clientRegistrationRepository;
         }
 
-        Collection<ClientRegistrationLight> clients = new ArrayList<>();
-        clientRegistrations.forEach(registration ->
-                clients.add(
-                        new ClientRegistrationLight(
-                                registration.getClientId(),
-                                registration.getClientName(),
-                                "oauth2/authorization/" + registration.getRegistrationId())));
-        model.addAttribute("clientRegistrations", clients);
+        // only one provider : redirect to it
+        if (clientRegistrations != null) {
+            int count = 0;
+            ClientRegistration single = null;
+            for (ClientRegistration cr : clientRegistrations) {
+                count++; single = cr; if (count > 1) break;
+            }
+            if (count == 1 && single != null) {
+                // Redirige directement vers le provider unique
+                return "redirect:/oauth2/authorization/" + single.getRegistrationId();
+            }
+        }
 
-        return "login";
+        // Pas de fallback vers une page de login multiple : redirige vers une page d'erreur
+        return "redirect:/error";
     }
 
     @PreAuthorize("hasRole('MANAGER')")
@@ -105,19 +120,19 @@ public class BOController {
                      Model model,
                      @RequestParam(value = "pageSize", defaultValue = INITIAL_PAGE_SIZE) int pageSize,
                      @RequestParam(value = "page", defaultValue = "1") int page,
-                     Principal principal) {
+                     @AuthenticationPrincipal UserPrincipal principal) {
 
         Page<Tenant> tenants = tenantService.listTenantsToProcess(PageRequest.of(page - 1, pageSize));
 
-        User login_user = userService.findUserByEmail(principal.getName());
-        boolean is_admin = login_user.getUserRoles().stream().anyMatch(userRole -> userRole.getRole().name().equals(Role.ROLE_ADMIN.name()));
+        User loginUser = userService.findUserByEmail(principal.getEmail());
+        boolean isAdmin = loginUser.getUserRoles().stream().anyMatch(userRole -> userRole.getRole().name().equals(Role.ROLE_ADMIN.name()));
         model.addAttribute("numberOfTenantsToProcess", tenantService.countTenantsWithStatusInToProcess());
         long result = 0;
         if (numberOfDocumentsToProcess.getId() == null) {
             result = tenantService.getCountOfTenantsWithFailedGeneratedPdfDocument();
         }
         model.addAttribute("TenantsWithFailedGeneratedPdf", result);
-        model.addAttribute("isUserAdmin", is_admin);
+        model.addAttribute("isUserAdmin", isAdmin);
         model.addAttribute("tenants", tenants);
         model.addAttribute("pageSize", pageSize);
         model.addAttribute("pageSizes", PAGE_SIZES);
@@ -187,7 +202,7 @@ public class BOController {
     }
 
     @GetMapping("/bo/nextApplication")
-    public String nextApplication(Principal principal, @RequestParam(value = "tenant_id", required = false) Long tenantId) {
+    public String nextApplication(@AuthenticationPrincipal UserPrincipal principal, @RequestParam(value = "tenant_id", required = false) Long tenantId) {
         if (principal == null) {
             return "redirect:/error";
         }

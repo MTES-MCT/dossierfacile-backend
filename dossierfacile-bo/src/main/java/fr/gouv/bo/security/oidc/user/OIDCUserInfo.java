@@ -1,11 +1,11 @@
-package fr.gouv.bo.security.oauth2.user;
+package fr.gouv.bo.security.oidc.user;
 
 import java.util.Map;
 
-public abstract class OAuth2UserInfo {
+public abstract class OIDCUserInfo {
     protected Map<String, Object> attributes;
 
-    protected OAuth2UserInfo(Map<String, Object> attributes) {
+    protected OIDCUserInfo(Map<String, Object> attributes) {
         this.attributes = attributes;
     }
 
@@ -15,7 +15,9 @@ public abstract class OAuth2UserInfo {
 
     public abstract String getId();
 
-    public abstract String getName();
+    public abstract String getFirstName();
+
+    public abstract String getLastName();
 
     public abstract String getEmail();
 
