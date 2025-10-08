@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import fr.dossierfacile.common.utils.LocalDateTimeTypeAdapter;
 import fr.gouv.bo.security.BOQuotaAuthorizationManager;
+import fr.gouv.bo.security.oidc.CustomOidcUserService;
 import lombok.AllArgsConstructor;
 import nz.net.ultraq.thymeleaf.LayoutDialect;
 import org.springframework.context.annotation.Bean;
@@ -15,9 +16,12 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
+import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
 import org.springframework.web.client.RestTemplate;
@@ -37,9 +41,10 @@ import static org.springframework.security.config.Customizer.withDefaults;
 public class WebSecurityConfig {
 
     private final BOQuotaAuthorizationManager quotaAuthorizationManager;
+    private final CustomOidcUserService customOidcUserService;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, ClientRegistrationRepository clientRegistrationRepository) throws Exception {
         http
                 .addFilterBefore(new BOConnectionContextFilter(), FilterSecurityInterceptor.class)
                 .requiresChannel(channel -> channel.anyRequest().requiresSecure())
@@ -78,14 +83,27 @@ public class WebSecurityConfig {
                 .exceptionHandling(ex -> ex.accessDeniedHandler(new BOAccessDeniedHandler()))
                 .oauth2Login(login -> login
                         .loginPage("/login")
+                        .userInfoEndpoint(ui -> ui
+                                .oidcUserService(customOidcUserService)
+                        )
                         .successHandler(new SavedRequestAwareAuthenticationSuccessHandler())
                 )
                 .logout(logout -> logout
                         .invalidateHttpSession(true)
                         .deleteCookies("JSESSIONID", "JWT", "_csrf")
+                        .clearAuthentication(true)
+                        .logoutSuccessHandler(oidcLogoutSuccessHandler(clientRegistrationRepository))
                 );
 
         return http.build();
+    }
+
+    @Bean
+    public LogoutSuccessHandler oidcLogoutSuccessHandler(ClientRegistrationRepository clientRegistrationRepository) {
+        OidcClientInitiatedLogoutSuccessHandler handler = new OidcClientInitiatedLogoutSuccessHandler(clientRegistrationRepository);
+        // Utilise l'URL de base détectée (https/http + host) et redirige vers la page de login avec un paramètre logout
+        handler.setPostLogoutRedirectUri("{baseUrl}/login?logout");
+        return handler;
     }
 
     private CsrfTokenRepository csrfTokenRepository() {

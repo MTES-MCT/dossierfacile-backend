@@ -30,11 +30,16 @@ spring.datasource.username=
 #Password of the database
 spring.datasource.password=
 
-# SSO Google (You can get the Google client-id and the google-client-secret on the vault warden)
-spring.security.oauth2.client.registration.google.client-id=
-spring.security.oauth2.client.registration.google.client-secret=
-spring.security.oauth2.client.registration.google.redirect-uri-template={baseUrl}/oauth2/callback/{registrationId}
-spring.security.oauth2.client.registration.google.scope=email,profile
+# SSO Keycloak
+spring.security.oauth2.client.provider.keycloak.issuer-uri={keycloak.server}/auth/realms/{realm_name}
+spring.security.oauth2.client.registration.keycloak.provider=keycloak
+spring.security.oauth2.client.registration.keycloak.client-id={client_id}
+spring.security.oauth2.client.registration.keycloak.client-secret={client_secret}
+spring.security.oauth2.client.registration.keycloak.authorization-grant-type=authorization_code
+spring.security.oauth2.client.registration.keycloak.redirect-uri={baseUrl}/login/oauth2/code/{registrationId}
+spring.security.oauth2.client.registration.keycloak.scope=openid,profile,email
+spring.security.oauth2.client.registration.keycloak.client-name=Keycloak
+
 # Allow the connection from every one who has a dossierfacile.fr email
 authorize.domain.bo=dossierfacile.fr
 # Allow the connection to specific emails (used in preprod)
@@ -132,3 +137,51 @@ For the dev environment the appender Logstash is disabled by default.
 ```shell
     mvn spring-boot:run -D mvn spring-boot:run -D spring-boot.run.profiles=dev,mockOvh
 ```
+
+## Configure keycloak for sso with pro-connect : 
+- Create a Realm "dossier-facile-bo"
+- Create a client "dossier-facile-bo"
+- Root URL : https://bo-local.dossierfacile.fr
+- Home URL : https://bo-local.dossierfacile.fr
+- Valid redirect Uris : *
+- Valid post logout redirect Uris : *
+- Web origins : *
+- Capability config : 
+    - Client authentication : ON
+    - Authorization : OFF
+    - Authentication flow: Standard Flow, Implicit Flow, Direct access grants
+- Logout settings : 
+  - Front channel logout : ON
+
+You can now create a user, valid his email and set a password. You can connect through keycloak and add rights in the database to user your user.
+
+### Add Pro connect :
+- Create a basic flow "Authentication Flow" named "Pro connect first broker login simple"
+  - Add Step "Review Profile" with requirement "REQUIRED"
+  - Add sub flow "Pro connect User creation or linking" with requirement "REQUIRED"
+  - add sub step "Create User if Unique" with requirement "ALTERNATIVE"
+  - add sub flow "Pro connect handle existing account" with requirement "Alternative"
+  - add sub step "Automatically set existing user" with requirement "Alternative" 
+- Create a new identity provider : "Agentconnect" with the alias : "pro-connect" 
+- On the portal : https://partenaires.proconnect.gouv.fr/apps create a new app :
+  - redirect uri : {keycloak_url}/auth/realms/{realm_name}/broker/{idp_alias}/endpoint
+  - logout_uri : {keycloak_url}/auth/realms/{realm_name}/broker/{idp_alias}/endpoint/logout_response
+  - save clientId and clientSecret
+- On the identity provider set the clientId and clientSecret
+- For the environment AgentConnect use : "INTEGRATION_INTERNET"
+- Advanced settings : 
+  - scopes : "openid given_name usual_name email uid" 
+  - store tokens: ON
+  - Accepts prompt=none forward from client = ON
+  - Disable user info : OFF
+  - Trust Email : ON
+  - Account linking only : OFF
+  - Hide on login page : OFF
+  - Verify essential claim : OFF
+  - First login flow override : "Pro connect first broker login simple"
+  - Mappers : 
+    - Name : "email", "Sync : Force", "Mapper type : Attribute Importer", "Claim : email", "User attribute : email"
+    - Name : "lastName", "Sync : Force", "Mapper type : Attribute Importer", "Claim : usual_name", "User attribute : lastName"
+    - Name : "provider", "Sync : Force", "Mapper type : Hardcoded Attribute", "User attribute : provider", "User attribute value : PRO_CONNECT"
+    - Name : "pro-connect", "Sync : Force", "Mapper type : Hardcoded Attribute", "User attribute : pro-connect", "User attribute value : true"
+On the keycloak login page you should now see the button "pro-connect"

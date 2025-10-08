@@ -37,6 +37,7 @@
                th:text="#{locatio.header.link.login}" class="profile fixed-header-link"></a>
             <form th:if="${#authorization.expression('isAuthenticated()')}" th:method="post"
                   th:action="@{/logout}">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                 <button th:type="submit" class="fixed-header-link logout"
                         th:text="#{locatio.header.link.logout}"></button>
             </form>
