@@ -84,7 +84,11 @@ public class ApartmentSharingLink implements Serializable {
     @Column
     private Long partnerId;
 
-    @Column
+    @Column(name = "property_id", insertable = false, updatable = false)
     private Long propertyId;
+
+    @ManyToOne
+    @JoinColumn(name = "property_id")
+    private Property property;
 
 }

@@ -84,9 +84,8 @@ public class Property implements Serializable {
     @OneToMany(mappedBy = "property", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     private List<PropertyApartmentSharing> propertiesApartmentSharing;
 
-    @OneToMany(mappedBy = "property", cascade = CascadeType.ALL)
-    @JsonIgnore
-    private List<PropertyId> mergedPropertyId;
+    @OneToMany(mappedBy = "property", fetch = FetchType.LAZY)
+    private List<ApartmentSharingLink> apartmentSharingLinks;
 
     @Builder.Default
     @Column(nullable = false, columnDefinition = "boolean default true")
