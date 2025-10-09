@@ -170,4 +170,5 @@
     <include file="db/migration/202507170000-add-document-category-on-denied-options.xml"/>
     <include file="db/migration/202508120000-update-document-analysis-report.xml"/>
     <include file="db/migration/202509080000-update-blurry-file-analysis-report.xml"/>
+    <include file="db/migration/202510030000-update-apartment-sharing-link.xml"/>
 </databaseChangeLog>

@@ -20,8 +20,6 @@ public class ApartmentSharingResolver extends TypeBasedParameterResolver<Apartme
     private ApartmentSharing buildApartmentSharing() {
         ApartmentSharing apartmentSharing = new ApartmentSharing();
         apartmentSharing.setId(1L);
-        apartmentSharing.setToken("7fdad8b1-6a9e-40dc-acab-d698701f76db");
-        apartmentSharing.setTokenPublic("da566c0f-1ef7-4906-8a9f-cab667c9434d");
         apartmentSharing.setApplicationType(ApplicationType.ALONE);
 
         Tenant tenant = TenantResolver.buildTenant();

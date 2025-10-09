@@ -1,9 +1,7 @@
-INSERT INTO public.apartment_sharing (id, token, token_public, operator_date, application_type, dossier_pdf_document_status, last_update_date, pdf_dossier_file_id)
+INSERT INTO public.apartment_sharing (id, operator_date, application_type, dossier_pdf_document_status, last_update_date, pdf_dossier_file_id)
 VALUES
 (
     1, -- id
-    NULL, -- token
-    NULL, -- token_public
     CURRENT_TIMESTAMP, -- operator_date
     'COUPLE', -- application_type
     NULL,

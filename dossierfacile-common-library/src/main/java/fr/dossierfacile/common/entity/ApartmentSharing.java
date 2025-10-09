@@ -11,7 +11,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @Entity
 @Table(name = "apartment_sharing")
@@ -32,12 +31,6 @@ public class ApartmentSharing implements Serializable {
 
     @OneToMany(mappedBy = "apartmentSharing", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     private List<PropertyApartmentSharing> propertiesApartmentSharing = new ArrayList<>();
-
-    @Column
-    private String token;
-
-    @Column
-    private String tokenPublic;
 
     @Column(name = "operator_date")
     private LocalDateTime operatorDateTime;
@@ -69,8 +62,6 @@ public class ApartmentSharing implements Serializable {
     public ApartmentSharing(Tenant tenant) {
         tenants.add(tenant);
         this.applicationType = ApplicationType.ALONE;
-        this.token = UUID.randomUUID().toString();
-        this.tokenPublic = UUID.randomUUID().toString();
     }
 
     public TenantFileStatus getStatus() {

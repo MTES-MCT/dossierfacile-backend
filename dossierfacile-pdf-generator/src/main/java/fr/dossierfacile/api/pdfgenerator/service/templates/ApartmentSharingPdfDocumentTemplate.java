@@ -1221,17 +1221,17 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
         return yLocation;
     }
 
-    private void checkingAllTenantsInTheApartmentAreValidatedAndAllDocumentsAreNotNull(long apartmentSharingId, String token) {
+    private void checkingAllTenantsInTheApartmentAreValidatedAndAllDocumentsAreNotNull(long apartmentSharingId, Long id) {
         int numberOfTenants = tenantRepository.countTenantsInTheApartmentNotValidatedOrWithSomeNullDocument(apartmentSharingId);
         if (numberOfTenants > 0) {
-            throw new ApartmentSharingUnexpectedException(token);
+            throw new ApartmentSharingUnexpectedException(id);
         }
     }
 
     @Override
     public InputStream render(ApartmentSharing apartmentSharing) throws IOException {
 
-        checkingAllTenantsInTheApartmentAreValidatedAndAllDocumentsAreNotNull(apartmentSharing.getId(), apartmentSharing.getToken());
+        checkingAllTenantsInTheApartmentAreValidatedAndAllDocumentsAreNotNull(apartmentSharing.getId(), apartmentSharing.getId());
 
         PDFMergerUtility ut = new PDFMergerUtility();
         List<Tenant> tenantList = apartmentSharing.getTenants().stream().sorted(Comparator.comparing(Tenant::getTenantType)).collect(Collectors.toList());

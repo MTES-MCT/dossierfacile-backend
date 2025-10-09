@@ -26,7 +26,7 @@ public class ApartmentSharingLinkService {
     private final LinkLogService linkLogService;
 
     public List<ApartmentSharingLinkModel> getLinksByMail(ApartmentSharing apartmentSharing) {
-        return apartmentSharingLinkRepository.findByApartmentSharingAndLinkType(apartmentSharing, MAIL)
+        return apartmentSharingLinkRepository.findByApartmentSharingAndLinkTypeAndDeletedIsFalse(apartmentSharing, MAIL)
                 .stream()
                 .map(link -> mapApartmentSharingLink(link, apartmentSharing))
                 .toList();
@@ -34,6 +34,7 @@ public class ApartmentSharingLinkService {
 
     private ApartmentSharingLinkModel mapApartmentSharingLink(ApartmentSharingLink link, ApartmentSharing apartmentSharing) {
         LocalDateTime lastVisit = linkLogService.getLastVisit(link.getToken(), apartmentSharing).orElse(null);
+        long nbVisits = linkLogService.countVisits(link.getToken(), apartmentSharing);
         return ApartmentSharingLinkModel.builder()
                 .id(link.getId())
                 .creationDate(link.getCreationDate())
@@ -41,11 +42,15 @@ public class ApartmentSharingLinkService {
                 .lastVisit(lastVisit)
                 .enabled(!link.isDisabled())
                 .fullData(link.isFullData())
+                .expirationDate(link.getExpirationDate())
+                .title(link.getTitle())
+                .type(link.getLinkType().toString())
+                .nbVisits(nbVisits)
                 .build();
     }
 
     public void updateStatus(Long linkId, boolean enabled, ApartmentSharing apartmentSharing) {
-        var link = apartmentSharingLinkRepository.findByIdAndApartmentSharing(linkId, apartmentSharing).orElseThrow(NotFoundException::new);
+        var link = apartmentSharingLinkRepository.findByIdAndApartmentSharingAndDeletedIsFalse(linkId, apartmentSharing).orElseThrow(NotFoundException::new);
         link.setDisabled(!enabled);
         linkLogService.createNewLog(link, enabled ? ENABLED_LINK : DISABLED_LINK);
         apartmentSharingLinkRepository.save(link);

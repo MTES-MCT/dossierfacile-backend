@@ -7,11 +7,14 @@ import fr.dossierfacile.common.enums.LinkType;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.UUID;
 
 public interface LinkLogService {
     LinkLog save(LinkLog log);
 
-    Optional<LocalDateTime> getLastVisit(String token, ApartmentSharing apartmentSharing);
+    Optional<LocalDateTime> getLastVisit(UUID token, ApartmentSharing apartmentSharing);
+
+    long countVisits(UUID token, ApartmentSharing apartmentSharing);
 
     LinkLog createNewLog(ApartmentSharingLink link, LinkType linkType);
 }

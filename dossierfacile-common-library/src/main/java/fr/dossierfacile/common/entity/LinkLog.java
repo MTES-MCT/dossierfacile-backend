@@ -19,6 +19,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "link_log")
@@ -39,7 +40,7 @@ public class LinkLog {
     @JoinColumn(name = "apartment_sharing_id")
     private ApartmentSharing apartmentSharing;
 
-    private String token;
+    private UUID token;
 
     @Column
     @Enumerated(EnumType.STRING)
@@ -47,10 +48,14 @@ public class LinkLog {
 
     private LocalDateTime creationDate;
 
-    public LinkLog(ApartmentSharing apartmentSharing, String token, LinkType linkType) {
+    @Column
+    private String ipAddress;
+
+    public LinkLog(ApartmentSharing apartmentSharing, UUID token, LinkType linkType, String ip) {
         this.apartmentSharing = apartmentSharing;
         this.token = token;
         this.linkType = linkType;
+        this.ipAddress = ip;
         creationDate = LocalDateTime.now();
     }
 

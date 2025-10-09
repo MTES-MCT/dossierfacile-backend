@@ -11,18 +11,19 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public interface ApartmentSharingService {
 
-    ApplicationModel full(String token);
+    ApplicationModel full(UUID token);
 
-    ApplicationModel light(String token);
+    ApplicationModel light(UUID token);
 
-    FullFolderFile downloadFullPdf(String token) throws IOException;
+    FullFolderFile downloadFullPdf(UUID token) throws IOException;
 
     void resetDossierPdfGenerated(ApartmentSharing apartmentSharing);
 
-    void createFullPdf(String token);
+    void createFullPdf(UUID token);
 
     Optional<ApartmentSharing> findById(Long apartmentSharingId);
 

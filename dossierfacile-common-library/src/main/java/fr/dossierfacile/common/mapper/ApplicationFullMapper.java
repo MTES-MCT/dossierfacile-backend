@@ -1,13 +1,18 @@
 package fr.dossierfacile.common.mapper;
 
 import fr.dossierfacile.common.entity.ApartmentSharing;
+import fr.dossierfacile.common.entity.ApartmentSharingLink;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
+import fr.dossierfacile.common.enums.ApartmentSharingLinkType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
 import fr.dossierfacile.common.model.apartment_sharing.DocumentModel;
 import fr.dossierfacile.common.model.apartment_sharing.TenantModel;
+
+import java.util.Optional;
+
 import org.mapstruct.BeforeMapping;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
@@ -48,10 +53,19 @@ public abstract class ApplicationFullMapper implements ApartmentSharingMapper {
     public abstract TenantModel toTenantModel(Tenant tenant, @Context UserApi userApi);
 
     @BeforeMapping
-    void enrichModelWithDossierPdfUrl(ApartmentSharing apartmentSharing, @MappingTarget ApplicationModel.ApplicationModelBuilder applicationModelBuilder) {
-        if (apartmentSharing.getStatus() == TenantFileStatus.VALIDATED) {
-            applicationModelBuilder.dossierPdfUrl(applicationBaseUrl + DOSSIER_PDF_PATH + apartmentSharing.getToken());
-            applicationModelBuilder.dossierUrl(tenantBaseUrl + DOSSIER_PATH + apartmentSharing.getToken());
+    void enrichModelWithDossierPdfUrl(ApartmentSharing apartmentSharing, @MappingTarget ApplicationModel.ApplicationModelBuilder applicationModelBuilder, @Context UserApi userApi) {
+        if (apartmentSharing.getStatus() != TenantFileStatus.VALIDATED) {
+            return;
+        }
+        Optional<ApartmentSharingLink> link = apartmentSharing.getApartmentSharingLinks().stream()
+            .filter(l -> l.getLinkType() == ApartmentSharingLinkType.PARTNER 
+                && l.getPartnerId() == userApi.getId()
+                && l.isFullData())
+            .findFirst();
+        if (link.isPresent()) {
+            String token = link.get().getToken().toString();
+            applicationModelBuilder.dossierPdfUrl(applicationBaseUrl + DOSSIER_PDF_PATH + token);
+            applicationModelBuilder.dossierUrl(tenantBaseUrl + DOSSIER_PATH + token);
         }
     }
 }

@@ -29,7 +29,6 @@ import fr.dossierfacile.common.utils.TransactionalUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -177,9 +176,9 @@ public class TenantServiceImpl implements TenantService {
 
     @Override
     public void sendFileByMail(Tenant tenant, String email, String shareType) {
-        String token = UUID.randomUUID().toString();
+        UUID token = UUID.randomUUID();
         LocalDateTime date = LocalDateTime.now().minusDays(1);
-        List<ApartmentSharingLink> existingASL = apartmentSharingLinkRepository.findByApartmentSharingAndCreationDateIsAfter(tenant.getApartmentSharing(), date);
+        List<ApartmentSharingLink> existingASL = apartmentSharingLinkRepository.findByApartmentSharingAndCreationDateIsAfterAndDeletedIsFalse(tenant.getApartmentSharing(), date);
         if (existingASL.size() > 10) {
             log.info("Daily limit reached for file sharing by mail");
             throw new MailSentLimitException();

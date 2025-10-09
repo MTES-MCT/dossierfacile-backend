@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-
+import java.util.UUID;
 
 import static org.springframework.http.ResponseEntity.accepted;
 import static org.springframework.http.ResponseEntity.ok;
@@ -34,20 +34,20 @@ public class ApplicationController {
     private final AuthenticationFacade authenticationFacade;
 
     @GetMapping(value = "/full/{token}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ApplicationModel> full(@PathVariable String token) {
+    public ResponseEntity<ApplicationModel> full(@PathVariable UUID token) {
         ApplicationModel applicationModel = apartmentSharingService.full(token);
         return ok(applicationModel);
     }
 
     @GetMapping(value = "/light/{token}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ApplicationModel> light(@PathVariable String token) {
+    public ResponseEntity<ApplicationModel> light(@PathVariable UUID token) {
         ApplicationModel applicationModel = apartmentSharingService.light(token);
         return ok(applicationModel);
     }
 
     @MethodLogTime
     @GetMapping(value = "/fullPdf/{token}", produces = MediaType.APPLICATION_PDF_VALUE)
-    public void downloadFullPdf(@PathVariable("token") String token, HttpServletResponse response) {
+    public void downloadFullPdf(@PathVariable UUID token, HttpServletResponse response) {
         try {
             FullFolderFile pdfFile = apartmentSharingService.downloadFullPdf(token);
             if (pdfFile.getFileOutputStream().size() > 0) {
@@ -86,7 +86,7 @@ public class ApplicationController {
     }
 
     @PostMapping(value = "/fullPdf/{token}", produces = MediaType.APPLICATION_PDF_VALUE)
-    public ResponseEntity<String> createFullPdf(@PathVariable("token") String token) {
+    public ResponseEntity<String> createFullPdf(@PathVariable UUID token) {
         try {
             apartmentSharingService.createFullPdf(token);
             return accepted().build();
