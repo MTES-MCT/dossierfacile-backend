@@ -62,6 +62,7 @@ public class PropertyApartmentSharingServiceImpl implements PropertyApartmentSha
                 logRepository.save(applicationReceived(property, apartmentSharing));
                 ApartmentSharingLink apartmentSharingLink = ApartmentSharingLink.builder()
                     .apartmentSharing(apartmentSharing)
+                    .property(property)
                     .token(UUID.randomUUID())
                     .creationDate(LocalDateTime.now())
                     .expirationDate(LocalDateTime.now().plusMonths(1))
