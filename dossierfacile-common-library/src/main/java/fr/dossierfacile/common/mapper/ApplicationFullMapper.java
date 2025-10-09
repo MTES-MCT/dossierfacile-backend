@@ -12,6 +12,7 @@ import fr.dossierfacile.common.model.apartment_sharing.DocumentModel;
 import fr.dossierfacile.common.model.apartment_sharing.TenantModel;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import org.mapstruct.BeforeMapping;
 import org.mapstruct.Context;
@@ -44,6 +45,13 @@ public abstract class ApplicationFullMapper implements ApartmentSharingMapper {
 
     public abstract ApplicationModel toApplicationModel(ApartmentSharing apartmentSharing, @Context UserApi userApi);
 
+    public ApplicationModel toApplicationModelWithToken(ApartmentSharing apartmentSharing, UUID token) {
+        ApplicationModel model = toApplicationModel(apartmentSharing, null);
+        model.setDossierPdfUrl(applicationBaseUrl + DOSSIER_PDF_PATH + token);
+        model.setDossierUrl(tenantBaseUrl + DOSSIER_PATH + token);
+        return model;
+    }
+
     @Mapping(target = "name", expression = "java((document.getWatermarkFile() != null )? applicationBaseUrl + \"/\" + PATH + \"/\" + document.getName() : null)")
     @Mapping(target = "authenticityStatus", expression = "java(fr.dossierfacile.common.entity.AuthenticityStatus.isAuthentic(document))")
     @MapDocumentCategories
@@ -54,7 +62,7 @@ public abstract class ApplicationFullMapper implements ApartmentSharingMapper {
 
     @BeforeMapping
     void enrichModelWithDossierPdfUrl(ApartmentSharing apartmentSharing, @MappingTarget ApplicationModel.ApplicationModelBuilder applicationModelBuilder, @Context UserApi userApi) {
-        if (apartmentSharing.getStatus() != TenantFileStatus.VALIDATED) {
+        if (apartmentSharing.getStatus() != TenantFileStatus.VALIDATED || userApi == null) {
             return;
         }
         Optional<ApartmentSharingLink> link = apartmentSharing.getApartmentSharingLinks().stream()

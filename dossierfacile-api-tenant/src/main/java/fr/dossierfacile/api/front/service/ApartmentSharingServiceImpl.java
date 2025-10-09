@@ -66,7 +66,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
     public ApplicationModel full(UUID token) {
         ApartmentSharing apartmentSharing = findValidApartmentSharing(token, true);
         saveLinkLog(apartmentSharing, token, LinkType.FULL_APPLICATION);
-        ApplicationModel applicationModel = applicationFullMapper.toApplicationModel(apartmentSharing, null);
+        ApplicationModel applicationModel = applicationFullMapper.toApplicationModelWithToken(apartmentSharing, token);
         applicationModel.setLastUpdateDate(getLastUpdateDate(apartmentSharing));
         return applicationModel;
     }
