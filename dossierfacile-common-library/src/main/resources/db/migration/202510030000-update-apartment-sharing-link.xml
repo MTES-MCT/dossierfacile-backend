@@ -16,10 +16,12 @@
             <column name="partner_id" type="int8" defaultValue="NULL"/>
             <column name="property_id" type="int8" defaultValue="NULL"/>
         </addColumn>
+        <dropDefaultValue tableName="apartment_sharing_link" columnName="token" />
         <modifyDataType tableName="apartment_sharing_link" columnName="token" newDataType="uuid" />
         <createIndex tableName="apartment_sharing_link" indexName="apartment_sharing_link_token_index" unique="true">
             <column name="token"/>
         </createIndex>
+        <dropDefaultValue tableName="link_log" columnName="token" />
         <modifyDataType tableName="link_log" columnName="token" newDataType="uuid" />
         <addColumn tableName="link_log">
             <column name="ip_address" type="varchar" defaultValue="NULL"/>
