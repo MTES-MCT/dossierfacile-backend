@@ -5,6 +5,7 @@ import fr.dossierfacile.common.entity.Property;
 import fr.dossierfacile.common.entity.PropertyApartmentSharing;
 import fr.dossierfacile.common.enums.ApartmentSharingLinkType;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.mapstruct.AfterMapping;
@@ -27,7 +28,11 @@ public abstract class OwnerPropertyMapper {
     @AfterMapping
     void modificationsAfterMapping(@MappingTarget PropertyModel.PropertyModelBuilder propertyModelBuilder, Property property) {
         PropertyModel propertyModel = propertyModelBuilder.build();
-        for (PropertyApartmentSharingModel propertyApartmentSharing : propertyModel.getPropertiesApartmentSharing()) {
+        List<PropertyApartmentSharingModel> propertiesApartmentSharing = propertyModel.getPropertiesApartmentSharing();
+        if (propertiesApartmentSharing == null) {
+            return;
+        }
+        for (PropertyApartmentSharingModel propertyApartmentSharing : propertiesApartmentSharing) {
             Optional<PropertyApartmentSharing> aptSharing = property.getPropertiesApartmentSharing().stream()
                 .filter(p -> p.getId().equals(propertyApartmentSharing.getId()))
                 .findFirst();
