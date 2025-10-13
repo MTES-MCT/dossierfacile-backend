@@ -188,6 +188,8 @@ public class TenantServiceImpl implements TenantService {
                 .apartmentSharing(tenant.getApartmentSharing())
                 .disabled(false)
                 .lastSentDatetime(LocalDateTime.now())
+                .expirationDate(LocalDateTime.now().plusMonths(1))
+                .createdBy(tenant.getId())
                 .fullData("full".equals(shareType))
                 .token(token)
                 .linkType(ApartmentSharingLinkType.MAIL)
