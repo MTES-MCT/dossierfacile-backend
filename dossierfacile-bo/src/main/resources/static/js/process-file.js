@@ -53,4 +53,51 @@ $(document).ready(function () {
      updateStatus();
    });
 
+   function toggleForm($parent) {
+     var $input = $parent.find(".input-amount");
+     var $cancelButton = $parent.find(".cancel-update-amount");
+     var $validateButton = $parent.find(".validate-amount");
+     var $changeButton = $parent.find(".change-amount");
+
+     $input.toggle();
+     $cancelButton.toggle();
+     $validateButton.toggle();
+     $changeButton.toggle();
+   }
+
+   $(".change-amount").on("click", function () {
+     var $parent = $(this).parent();
+     var $textAmount = $parent.find(".text-amount");
+     $textAmount.text($textAmount.text().replace(/\d+$/, ""));
+     toggleForm($parent);
+   });
+
+   function validateAmount($parent) {
+     var $input = $parent.find(".input-amount");
+     var $textAmount = $parent.find(".text-amount");
+     $textAmount.text($textAmount.text() + $input.val());
+     $input.attr("value", $input.val());
+     toggleForm($parent);
+   }
+
+   $(".validate-amount").on("click", function () {
+     validateAmount($(this).parent());
+   });
+
+   $(".input-amount").on("keypress", function (event) {
+     if (event.key === "Enter") {
+       event.preventDefault();
+       validateAmount($(this).parent());
+     }
+   });
+
+   $(".cancel-update-amount").on("click", function () {
+     var $parent = $(this).parent();
+     var $input = $parent.find(".input-amount");
+     var $textAmount = $parent.find(".text-amount");
+     $input.val($input.attr("value"));
+     $textAmount.text($textAmount.text() + $input.val());
+     toggleForm($parent);
+   });
+
 });
