@@ -8,7 +8,6 @@ import fr.dossierfacile.common.mapper.mail.ApartmentSharingMapperForMail;
 import fr.dossierfacile.common.mapper.mail.TenantMapperForMail;
 import fr.dossierfacile.common.repository.ApartmentSharingLinkRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
-import fr.dossierfacile.common.service.interfaces.LogService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.dossierfacile.common.utils.TransactionalUtil;
 import fr.gouv.bo.dto.*;
@@ -59,7 +58,6 @@ public class TenantService {
     private final DocumentService documentService;
     private final TenantLogService tenantLogService;
     private final KeycloakService keycloakService;
-    private final LogService communTenantLogService;
     private final ApartmentSharingService apartmentSharingService;
     private final GuarantorRepository guarantorRepository;
     private final TenantMapperForMail tenantMapperForMail;
@@ -365,6 +363,21 @@ public class TenantService {
         return "Garant : " + guarantor.getCompleteName();
     }
 
+    private void updateMonthlySums(CustomMessage customMessage) {
+        for (MessageItem item : customMessage.getMessageItems()) {
+            if (item.getMonthlySum() != null && !item.getMonthlySum().equals(item.getNewMonthlySum())) {
+                Document document = documentRepository.findById(item.getDocumentId()).orElse(null);
+                if (document != null) {
+                    log.info("Update document monthly sum : " + item.getDocumentId() + ", from " + item.getMonthlySum() + " to " + item.getNewMonthlySum());
+                    document.setMonthlySum(item.getNewMonthlySum());
+                    documentRepository.save(document);
+                } else {
+                    log.warn("Document not found: " + item.getDocumentId());
+                }
+            }
+        }
+    }
+
     public Message sendCustomMessage(Tenant tenant, CustomMessage customMessage) {
         boolean forTenant = hasCheckedItem(customMessage.getMessageItems());
         boolean forGuarantor = hasGuarantorCheckedItem(customMessage.getGuarantorItems());
@@ -514,6 +527,8 @@ public class TenantService {
 
         ProcessedDocuments processedDocuments = ProcessedDocuments.in(customMessage);
         boolean allDocumentsValid = updateFileStatus(customMessage);
+
+        updateMonthlySums(customMessage);
 
         if (allDocumentsValid) {
             changeTenantStatusToValidated(tenant, operator, processedDocuments);

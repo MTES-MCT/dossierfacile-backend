@@ -13,12 +13,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
 import java.util.*;
 
 import static org.springframework.http.ResponseEntity.ok;
@@ -205,11 +203,11 @@ public class BOTenantController {
 
     @PostMapping("/{id}/processFile")
     public String processFile(
-            @PathVariable("id") Long id,
+            @PathVariable Long id,
             CustomMessage customMessage,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
-        tenantService.processFile(id, customMessage, principal);
+        tenantService.processFile(id, customMessage, principal); 
         return tenantService.redirectToApplication(principal, null);
     }
 
@@ -252,6 +250,7 @@ public class BOTenantController {
             if (document.getDocumentStatus().equals(DocumentStatus.TO_PROCESS)) {
                 customMessage.getMessageItems().add(MessageItem.builder()
                         .monthlySum(document.getMonthlySum())
+                        .newMonthlySum(document.getMonthlySum())
                         .customTex(document.getCustomText())
                         .avisDetected(document.getAvisDetected())
                         .documentCategory(document.getDocumentCategory())
