@@ -35,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -189,6 +190,7 @@ public class TenantServiceImpl implements TenantService {
                 .disabled(false)
                 .lastSentDatetime(LocalDateTime.now())
                 .expirationDate(LocalDateTime.now().plusMonths(1))
+                .title("Lien créé le " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
                 .createdBy(tenant.getId())
                 .fullData("full".equals(shareType))
                 .token(token)
