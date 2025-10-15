@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+
+    <changeSet id="202510030001" author="Jean-Marie">
+        <addColumn tableName="apartment_sharing_link">
+            <column name="title" type="varchar(255)" defaultValue="NULL"/>
+            <column name="expiration_date" type="timestamp" defaultValue="NULL"/>
+            <column name="deleted" type="boolean" defaultValue="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by" type="int8" defaultValue="NULL"/>
+            <column name="partner_id" type="int8" defaultValue="NULL"/>
+            <column name="property_id" type="int8" defaultValue="NULL"/>
+        </addColumn>
+        <dropDefaultValue tableName="apartment_sharing_link" columnName="token" />
+        <modifyDataType tableName="apartment_sharing_link" columnName="token" newDataType="uuid" />
+        <createIndex tableName="apartment_sharing_link" indexName="apartment_sharing_link_token_index" unique="true">
+            <column name="token"/>
+        </createIndex>
+        <dropDefaultValue tableName="link_log" columnName="token" />
+        <modifyDataType tableName="link_log" columnName="token" newDataType="uuid" />
+        <addColumn tableName="link_log">
+            <column name="ip_address" type="varchar" defaultValue="NULL"/>
+        </addColumn>
+        <createIndex tableName="link_log" indexName="link_log_token_index">
+            <column name="token"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="202510030002" author="Jean-Marie">
+        <sql>
+            UPDATE apartment_sharing_link SET title = 'Lien créé le ' || to_char(creation_date, 'DD/MM/YYYY');
+            UPDATE apartment_sharing_link SET expiration_date = now() + interval '1 month';
+
+            INSERT INTO apartment_sharing_link (creation_date, expiration_date, apartment_sharing_id, token, full_data, disabled, link_type, title)
+            SELECT now(), now() + interval '1 month', id, token::uuid, true, false, 'LINK', 'Lien créé le ' || to_char(now(), 'DD/MM/YYYY')
+            FROM apartment_sharing;
+
+            INSERT INTO apartment_sharing_link (creation_date, expiration_date, apartment_sharing_id, token, full_data, disabled, link_type, title)
+            SELECT now(), now() + interval '1 month', id, token_public::uuid, false, false, 'LINK', 'Lien créé le ' || to_char(now(), 'DD/MM/YYYY')
+            FROM apartment_sharing;
+
+            INSERT INTO apartment_sharing_link (creation_date, apartment_sharing_id, token, full_data, disabled, link_type, title, partner_id)
+            SELECT now(), t.apartment_sharing_id, gen_random_uuid(), false, false, 'PARTNER', ua.name2, tu.userapi_id
+            FROM tenant_userapi tu
+            INNER JOIN user_api ua ON ua.id = tu.userapi_id
+            INNER JOIN tenant t ON t.id = tu.tenant_id;
+
+            INSERT INTO apartment_sharing_link (creation_date, apartment_sharing_id, token, full_data, disabled, link_type, title, partner_id)
+            SELECT now(), t.apartment_sharing_id, gen_random_uuid(), true, false, 'PARTNER', ua.name2, tu.userapi_id
+            FROM tenant_userapi tu
+            INNER JOIN user_api ua ON ua.id = tu.userapi_id
+            INNER JOIN tenant t ON t.id = tu.tenant_id;
+
+            INSERT INTO apartment_sharing_link (creation_date, expiration_date, apartment_sharing_id, token, full_data, disabled, link_type, title, property_id)
+            SELECT now(), now() + interval '1 month', pas.apartment_sharing_id, gen_random_uuid(), pas.access_full, false, 'OWNER', p.address, p.id
+            FROM property_apartment_sharing pas
+            INNER JOIN property p ON p.id = pas.property_id;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
+

@@ -6,6 +6,7 @@ import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.*;
 import fr.dossierfacile.common.mapper.mail.ApartmentSharingMapperForMail;
 import fr.dossierfacile.common.mapper.mail.TenantMapperForMail;
+import fr.dossierfacile.common.repository.ApartmentSharingLinkRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
@@ -32,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.security.Principal;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -48,6 +50,7 @@ public class TenantService {
     private final PartnerCallBackService partnerCallBackService;
     private final UserService userService;
     private final MessageSource messageSource;
+    private final ApartmentSharingLinkRepository apartmentSharingLinkRepository;
     private final DocumentRepository documentRepository;
     private final DocumentDeniedReasonsRepository documentDeniedReasonsRepository;
     private final MessageService messageService;
@@ -573,6 +576,16 @@ public class TenantService {
         tenant.setStatus(TenantFileStatus.VALIDATED);
         tenantRepository.save(tenant);
 
+        // TODO: Remove after sharing page is implemented
+        boolean hasLinks = tenant.getApartmentSharing().getApartmentSharingLinks().stream()
+            .anyMatch(link -> link.getLinkType() == ApartmentSharingLinkType.LINK && link.getCreatedBy() == tenant.getId());
+        if (!hasLinks) {
+            ApartmentSharingLink link = buildApartmentSharingLink(tenant.getApartmentSharing(), tenant.getId(), false);
+            ApartmentSharingLink linkFull = buildApartmentSharingLink(tenant.getApartmentSharing(), tenant.getId(), true);
+            apartmentSharingLinkRepository.save(link);
+            apartmentSharingLinkRepository.save(linkFull);
+        }
+
         messageService.markReadAdmin(tenant);
 
         tenantLogService.saveByLog(new TenantLog(LogType.ACCOUNT_VALIDATED, tenant.getId(), operator.getId()));
@@ -606,6 +619,21 @@ public class TenantService {
         });
 
     }
+
+    private ApartmentSharingLink buildApartmentSharingLink(ApartmentSharing apartmentSharing, Long userId, boolean fullData) {
+        return ApartmentSharingLink.builder()
+            .apartmentSharing(apartmentSharing)
+            .token(UUID.randomUUID())
+            .creationDate(LocalDateTime.now())
+            .expirationDate(LocalDateTime.now().plusMonths(1))
+            .fullData(fullData)
+            .linkType(ApartmentSharingLinkType.LINK)
+            .title("Lien créé le " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
+            .createdBy(userId)
+            .build();
+    }
+
+
 
     private void changeTenantStatusToDeclined(Tenant tenant, User operator, Message message, ProcessedDocuments processedDocuments) {
         tenant.setStatus(TenantFileStatus.DECLINED);

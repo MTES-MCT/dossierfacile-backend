@@ -17,10 +17,13 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import org.hibernate.annotations.SQLDelete;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "apartment_sharing_link")
@@ -30,6 +33,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 @EntityListeners(AuditingEntityListener.class)
+@SQLDelete(sql = "UPDATE apartment_sharing_link SET deleted = true WHERE id=?")
 public class ApartmentSharingLink implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -44,12 +48,14 @@ public class ApartmentSharingLink implements Serializable {
     private ApartmentSharing apartmentSharing;
 
     @Column
-    private String token;
+    private UUID token;
 
     @Column
+    @Builder.Default
     private boolean fullData = false;
 
     @Column
+    @Builder.Default
     private boolean disabled = false;
 
     @Column
@@ -61,5 +67,28 @@ public class ApartmentSharingLink implements Serializable {
 
     @Column
     private String email;
+
+    @Column
+    @Builder.Default
+    private boolean deleted = false;
+
+    @Column
+    private String title;
+
+    @Column
+    private Long createdBy;
+
+    @Column
+    private LocalDateTime expirationDate;
+
+    @Column
+    private Long partnerId;
+
+    @Column(name = "property_id", insertable = false, updatable = false)
+    private Long propertyId;
+
+    @ManyToOne
+    @JoinColumn(name = "property_id")
+    private Property property;
 
 }

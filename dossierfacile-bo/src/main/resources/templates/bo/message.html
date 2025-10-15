@@ -6,11 +6,6 @@
 
 <div th:fragment="message" th:remove="tag">
     <div class="container">
-        <a class="btn btn-success bo-btn mt-3"
-            sec:authorize="!hasRole('ROLE_SUPPORT')"
-            th:href="@{/bo/tenant/} + ${tenant.getId()} + '/processFile'">
-            Traiter les documents
-        </a>
         <div id="chat-page">
             <div class="chat-container bg-primary-subtle">
                 <div class="row hidden-xs">

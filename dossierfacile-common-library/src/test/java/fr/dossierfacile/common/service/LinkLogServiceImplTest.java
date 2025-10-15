@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -23,7 +24,7 @@ class LinkLogServiceImplTest {
     void should_find_last_visit_date() {
         LocalDateTime date = LocalDateTime.of(2023, 1, 1, 12, 0);
         ApartmentSharing apartmentSharing = ApartmentSharing.builder().id(1L).build();
-        String token = "abc";
+        UUID token = UUID.randomUUID();
 
         when(repository.findByApartmentSharingAndToken(apartmentSharing, token)).thenReturn(List.of(
                 log(LinkType.FULL_APPLICATION, date.plusHours(1)),
@@ -42,7 +43,7 @@ class LinkLogServiceImplTest {
     void should_find_no_visit() {
         LocalDateTime date = LocalDateTime.of(2023, 1, 1, 12, 0);
         ApartmentSharing apartmentSharing = ApartmentSharing.builder().id(1L).build();
-        String token = "abc";
+        UUID token = UUID.randomUUID();
 
         when(repository.findByApartmentSharingAndToken(apartmentSharing, token)).thenReturn(List.of(
                 log(LinkType.REBUILT_TOKENS, date.plusHours(1)),

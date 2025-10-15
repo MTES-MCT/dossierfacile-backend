@@ -5,9 +5,10 @@ import fr.dossierfacile.common.entity.LinkLog;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface LinkLogRepository extends JpaRepository<LinkLog, Long> {
 
-    List<LinkLog> findByApartmentSharingAndToken(ApartmentSharing apartmentSharing, String token);
+    List<LinkLog> findByApartmentSharingAndToken(ApartmentSharing apartmentSharing, UUID token);
 
 }
