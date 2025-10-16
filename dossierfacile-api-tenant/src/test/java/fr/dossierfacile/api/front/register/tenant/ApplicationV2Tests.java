@@ -7,6 +7,7 @@ import fr.dossierfacile.common.enums.ApplicationType;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,7 +35,7 @@ public class ApplicationV2Tests {
 
         @Test
         void whenOldTenantsIsEmptyNoDelete() {
-            List<Tenant> oldTenants = List.of();
+            List<Tenant> oldTenants = new ArrayList<>();
             var applicationForm = ApplicationFormV2.builder()
                     .applicationType(ApplicationType.GROUP)
                     .acceptAccess(true)
@@ -169,7 +170,7 @@ public class ApplicationV2Tests {
 
         @Test
         void whenNoOldTenantsCreateOneWithoutNames() {
-            List<Tenant> oldTenants = List.of();
+            List<Tenant> oldTenants = new ArrayList<>();
             var applicationForm = ApplicationFormV2.builder()
                     .applicationType(ApplicationType.GROUP)
                     .acceptAccess(true)
