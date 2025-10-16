@@ -1,6 +1,7 @@
 package fr.dossierfacile.api.pdfgenerator.service;
 
 import fr.dossierfacile.api.pdfgenerator.model.FileInputStream;
+import fr.dossierfacile.api.pdfgenerator.repository.DocumentRepository;
 import fr.dossierfacile.api.pdfgenerator.repository.FileRepository;
 import fr.dossierfacile.api.pdfgenerator.service.interfaces.PdfGeneratorService;
 import fr.dossierfacile.api.pdfgenerator.service.templates.ApartmentSharingPdfDocumentTemplate;
@@ -12,8 +13,10 @@ import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.FileStatus;
 import fr.dossierfacile.common.enums.FileStorageStatus;
+import fr.dossierfacile.common.model.S3Bucket;
 import fr.dossierfacile.common.repository.StorageFileRepository;
 import fr.dossierfacile.common.repository.WatermarkDocumentRepository;
+import fr.dossierfacile.common.service.interfaces.EncryptionKeyService;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,11 +24,14 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.rmi.UnexpectedException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -47,6 +53,8 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
     private final BOIdentificationPdfDocumentTemplate identificationPdfDocumentTemplate;
     private final ApartmentSharingPdfDocumentTemplate apartmentSharingPdfDocumentTemplate;
     private final ApartmentSharingPdfDossierFileGenerationServiceImpl pdfFileGenerationService;
+    private final EncryptionKeyService encryptionKeyService;
+    private final DocumentRepository documentRepository;
 
 
     @Value("${pdf.generation.reattempts}")
@@ -83,9 +91,14 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
 
             StorageFile pdfFile = StorageFile.builder()
                     .name("dossierfacile-watermark-" + UUID.randomUUID() + ".pdf")
+                    .path(StorageFile.getWatermarkPdfPath())
                     .contentType(MediaType.APPLICATION_PDF_VALUE)
+                    .bucket(S3Bucket.FILIGRANE)
+                    .encryptionKey(encryptionKeyService.getCurrentKey())
+                    .provider(ObjectStorageProvider.S3)
                     .status(FileStorageStatus.TEMPORARY)
                     .build();
+
             document.setPdfFile(fileStorageService.upload(inputStream, pdfFile));
 
             document.setPdfStatus(FileStatus.COMPLETED);
@@ -143,8 +156,9 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
     }
 
     @Override
-    public StorageFile generateBOPdfDocument(Document document) {
-        long documentId = document.getId();
+    @Transactional
+    public StorageFile generateBOPdfDocument(Long documentId) throws FileNotFoundException {
+        Document document = documentRepository.findById(documentId).orElseThrow(() -> new FileNotFoundException(documentId.toString()));
         DocumentCategory documentCategory = document.getDocumentCategory();
         String documentCategoryName = documentCategory.name();
         log.info("Generating PDF for document [" + documentCategoryName + "] with ID [" + documentId + "]");
@@ -152,8 +166,10 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
         try (InputStream documentInputStream = renderBODocumentPdf(document)) {
 
             pdfFile = StorageFile.builder()
-                    .name("dossierfacile-pdf-" + document.getId())
-                    .path("dossierfacile_pdf_" + UUID.randomUUID() + ".pdf")
+                    .name("dossierfacile-pdf-" + document.getId() + ".pdf")
+                    .path(String.format("%s/%s", document.getDocumentS3PrefixPath(), UUID.randomUUID()))
+                    .bucket(S3Bucket.WATERMARK_DOC)
+                    .encryptionKey(encryptionKeyService.getCurrentKey())
                     .contentType(MediaType.APPLICATION_PDF_VALUE)
                     .build();
             return fileStorageService.upload(documentInputStream, pdfFile);
@@ -172,7 +188,9 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
             try {
                 StorageFile storageFile = StorageFile.builder()
                         .name("dossier_" + apartmentSharingId)
-                        .path("dossier_pdf_" + UUID.randomUUID() + ".pdf")
+                        .bucket(S3Bucket.FULL_PDF)
+                        .encryptionKey(encryptionKeyService.getCurrentKey())
+                        .path(String.format("Apartment_%s/%s", apartmentSharing.getId(), UUID.randomUUID()))
                         .contentType(MediaType.APPLICATION_PDF_VALUE)
                         .build();
                 InputStream pdfStream = apartmentSharingPdfDocumentTemplate.render(apartmentSharing);
