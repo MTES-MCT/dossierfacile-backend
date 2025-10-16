@@ -122,7 +122,7 @@ public class BOTenantController {
         return tenantService.customMessage(principal, tenantId, customMessage);
     }
 
-    @PreAuthorize("hasRole('SUPPORT')")
+    @PreAuthorize("hasRole('OPERATOR')")
     @GetMapping("/delete/document/{id}")
     public String deleteDocument(@PathVariable("id") Long id, Principal principal) {
         User operator = userService.findUserByEmail(principal.getName());
