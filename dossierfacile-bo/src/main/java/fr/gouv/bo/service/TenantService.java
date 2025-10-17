@@ -363,12 +363,13 @@ public class TenantService {
         return "Garant : " + guarantor.getCompleteName();
     }
 
-    private void updateMonthlySums(CustomMessage customMessage) {
+    private void updateMonthlySums(CustomMessage customMessage, Long tenantId, Long operatorId) {
         for (MessageItem item : customMessage.getMessageItems()) {
             if (item.getMonthlySum() != null && !item.getMonthlySum().equals(item.getNewMonthlySum())) {
                 Document document = documentRepository.findById(item.getDocumentId()).orElse(null);
                 if (document != null) {
                     log.info("Update document monthly sum : " + item.getDocumentId() + ", from " + item.getMonthlySum() + " to " + item.getNewMonthlySum());
+                    tenantLogService.addUpdateAmountLog(tenantId, operatorId, document, item.getNewMonthlySum());
                     document.setMonthlySum(item.getNewMonthlySum());
                     documentRepository.save(document);
                 } else {
@@ -528,7 +529,7 @@ public class TenantService {
         ProcessedDocuments processedDocuments = ProcessedDocuments.in(customMessage);
         boolean allDocumentsValid = updateFileStatus(customMessage);
 
-        updateMonthlySums(customMessage);
+        updateMonthlySums(customMessage, tenantId, operator.getId());
 
         if (allDocumentsValid) {
             changeTenantStatusToValidated(tenant, operator, processedDocuments);
