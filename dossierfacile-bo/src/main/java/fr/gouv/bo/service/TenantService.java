@@ -363,13 +363,14 @@ public class TenantService {
         return "Garant : " + guarantor.getCompleteName();
     }
 
-    private void updateMonthlySums(CustomMessage customMessage, Long tenantId, Long operatorId) {
+    private void updateMonthlySums(CustomMessage customMessage, Tenant tenant, Long operatorId) {
         for (MessageItem item : customMessage.getMessageItems()) {
             if (item.getMonthlySum() != null && !item.getMonthlySum().equals(item.getNewMonthlySum())) {
                 Document document = documentRepository.findById(item.getDocumentId()).orElse(null);
                 if (document != null) {
                     log.info("Update document monthly sum : " + item.getDocumentId() + ", from " + item.getMonthlySum() + " to " + item.getNewMonthlySum());
-                    tenantLogService.addUpdateAmountLog(tenantId, operatorId, document, item.getNewMonthlySum());
+                    tenantLogService.addUpdateAmountLog(tenant.getId(), operatorId, document, item.getNewMonthlySum());
+                    sendAmountChangedMessage(tenant, item.getMonthlySum(), item.getNewMonthlySum());
                     document.setMonthlySum(item.getNewMonthlySum());
                     documentRepository.save(document);
                 } else {
@@ -529,7 +530,7 @@ public class TenantService {
         ProcessedDocuments processedDocuments = ProcessedDocuments.in(customMessage);
         boolean allDocumentsValid = updateFileStatus(customMessage);
 
-        updateMonthlySums(customMessage, tenantId, operator.getId());
+        updateMonthlySums(customMessage, tenant, operator.getId());
 
         if (allDocumentsValid) {
             changeTenantStatusToValidated(tenant, operator, processedDocuments);
@@ -538,6 +539,23 @@ public class TenantService {
             changeTenantStatusToDeclined(tenant, operator, message, processedDocuments);
         }
         updateOperatorDateTimeTenant(tenantId);
+    }
+
+    private void sendAmountChangedMessage(Tenant tenant, Integer oldAmount, Integer newAmount) {
+        StringBuilder html = new StringBuilder();
+        html.append("<p>Bonjour,</p>");
+        html.append("<p>Nos agents ont ajusté le montant de <strong>votre revenu</strong> déclaré afin qu’il corresponde à vos bulletins de salaire.");
+        html.append("<br/> Vous aviez déclaré <strong>");
+        html.append(oldAmount);
+        html.append("€</strong>, il a été <strong>corrigé à ");
+        html.append(newAmount);
+        html.append("€</strong>.<br/> Cette modification vise à garantir la cohérence et la fiabilité de votre dossier.</p>");
+        html.append("<p>👉 Vous pouvez consulter la version mise à jour dans votre espace.</p>");
+        html.append("<p>Si vous souhaitez modifier ce montant, vous êtes libre de le faire, mais votre dossier devra alors repasser par le processus complet de validation.<br/> ");
+        html.append("<strong>Pour un traitement plus rapide, nous vous invitons à contacter notre support via ce lien : <a href=\"/contact?open=form\">Lien support</a>.</strong></p>");
+        html.append("<p><em>Rappel : vous avez accepté que notre équipe procède à cet ajustement en cas d’incohérence.</em></p>");
+        html.append("<p>Bonne journée</p>");
+        messageService.create(MessageDTO.builder().message(html.toString()).build(), tenant, false, false);
     }
 
     @Transactional
