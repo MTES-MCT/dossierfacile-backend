@@ -373,6 +373,8 @@ public class TenantService {
                     sendAmountChangedMessage(tenant, item.getMonthlySum(), item.getNewMonthlySum());
                     document.setMonthlySum(item.getNewMonthlySum());
                     documentRepository.save(document);
+                    TenantDto tenantDto = tenantMapperForMail.toDto(tenant);
+                    mailService.sendEmailAmountChanged(tenantDto);
                 } else {
                     log.warn("Document not found: " + item.getDocumentId());
                 }
