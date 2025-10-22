@@ -411,6 +411,8 @@
                                     </div>
                                     <input th:field="*{guarantorItems[__${k.index}__].messageItems[__${i.index}__].documentCategory}"
                                            th:value="${messageItem.getDocumentCategory()}" type="hidden"/>
+                                    <input th:field="*{guarantorItems[__${k.index}__].messageItems[__${i.index}__].documentSubCategory}"
+                                           th:value="${messageItem.getDocumentSubCategory()}" type="hidden"/>
                                     <input th:field="*{guarantorItems[__${k.index}__].messageItems[__${i.index}__].documentId}"
                                            th:value="${messageItem.getDocumentId()}" type="hidden"/>
                                     <div class="margin-bottom mt-4">
