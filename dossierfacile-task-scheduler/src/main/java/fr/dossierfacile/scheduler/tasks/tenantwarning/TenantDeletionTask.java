@@ -10,6 +10,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import static fr.dossierfacile.scheduler.tasks.TaskName.TENANT_DELETION;
@@ -38,7 +39,7 @@ public class TenantDeletionTask extends AbstractTask {
     }
 
     private void deleteTenantsNotActiveSince(LocalDateTime limitDate) {
-        List<Long> listOfTenantIds = List.of();
+        List<Long> listOfTenantIds = new ArrayList<>();
         Page<Long> toDelete = tenantRepository.findByLastUpdateDate(limitDate, PageRequest.of(0, PAGE_SIZE));
         log.info("Found {} inactive tenants to delete ({} months old)", toDelete.getTotalElements(), monthsForDeletionOfTenants);
 

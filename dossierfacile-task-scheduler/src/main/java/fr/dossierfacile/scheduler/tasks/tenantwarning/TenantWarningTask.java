@@ -13,6 +13,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import static fr.dossierfacile.scheduler.tasks.TaskName.TENANT_ARCHIVING;
@@ -53,7 +54,7 @@ public class TenantWarningTask extends AbstractTask {
     }
 
     private void processAllWarnings(LocalDateTime localDateTime, int warnings) {
-        List<Long> tenantIds = List.of();
+        List<Long> tenantIds = new ArrayList<>();
         Pageable pageable = PageRequest.of(0, PAGE_SIZE, Sort.Direction.DESC, "id");
         Page<Tenant> tenantPage = tenantRepository.findByLastLoginDateIsBeforeAndHasDocuments(pageable, localDateTime, warnings);
         switch (warnings) {
