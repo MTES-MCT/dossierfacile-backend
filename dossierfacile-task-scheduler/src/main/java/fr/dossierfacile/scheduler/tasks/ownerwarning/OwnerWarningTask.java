@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -59,7 +60,7 @@ public class OwnerWarningTask extends AbstractTask {
     }
 
     private void processAllWarnings(LocalDateTime localDateTime, int warnings) {
-        List<Long> listOfOwnerIds = List.of();
+        List<Long> listOfOwnerIds = new ArrayList<>();
         Pageable pageable = PageRequest.of(0, PAGE_SIZE, Sort.Direction.DESC, "id");
         Page<Owner> ownerPage = ownerRepository.findByLastLoginDate(pageable, localDateTime, warnings);
         switch (warnings) {
