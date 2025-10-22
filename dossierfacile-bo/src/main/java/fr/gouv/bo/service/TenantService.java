@@ -364,7 +364,14 @@ public class TenantService {
     }
 
     private void updateMonthlySums(CustomMessage customMessage, Tenant tenant, Long operatorId) {
-        for (MessageItem item : customMessage.getMessageItems()) {
+        updateMonthlySums(customMessage.getMessageItems(), tenant, operatorId);
+        for (GuarantorItem guarantorItem : customMessage.getGuarantorItems()) {
+            updateMonthlySums(guarantorItem.getMessageItems(), tenant, operatorId);
+        }
+    }
+
+    private void updateMonthlySums(List<MessageItem> items, Tenant tenant, Long operatorId) {
+        for (MessageItem item : items) {
             if (item.getMonthlySum() != null && !item.getMonthlySum().equals(item.getNewMonthlySum())) {
                 Document document = documentRepository.findById(item.getDocumentId()).orElse(null);
                 if (document != null) {

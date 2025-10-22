@@ -247,6 +247,16 @@
             <div th:each="guarantorItem,k : ${customMessage.getGuarantorItems()}" th:remove="tag">
 
                 <div th:each="messageItem, i:${guarantorItem.getMessageItems()}" th:remove="tag">
+                    <div th:with="documentLogs=${logser.getDocumentLogs(modificationLogs, messageItem.getDocumentId())}">
+                        <div
+                            th:if="${!documentLogs.isEmpty()}"
+                            class="letter col-md-8 mt-4 p-2"
+                            style="line-height: 20px; background-color: #c9302c; color: white;"
+                        >
+                            <p class="mb-0">⚠️ Modifications opérateurs :</p>
+                            <p class="mb-0" th:each="log : ${documentLogs}" th:text="${log.getModificationText()}"></p>
+                        </div>
+                    </div>
                     <div class="row mt-4">
 
                         <div class="col-md-8" style="min-height: 700px; max-height: 1050px"
@@ -305,8 +315,19 @@
                                                 <span th:text="${guarantorItem.getLastName()}"></span>
                                             </div>
                                             <div class="letter" style="padding-top: 7px"
-                                                 th:if="${messageItem.getMonthlySum()}!=null">
-                                                <span th:text="'Montant mensuel : ' + ${messageItem.getMonthlySum()}"></span>
+                                                th:if="${messageItem.getMonthlySum()}!=null">
+                                                <span class="text-amount" th:text="'Montant mensuel : ' + ${messageItem.getMonthlySum()}"></span>
+                                                <button type="button" class="bo-btn btn-alt change-amount">
+                                                    Modifier le montant
+                                                </button>
+                                                <input type="hidden" th:field="*{guarantorItems[__${k.index}__].messageItems[__${i.index}__].monthlySum}" />
+                                                <input type="number" class="input-amount"
+                                                    th:field="*{guarantorItems[__${k.index}__].messageItems[__${i.index}__].newMonthlySum}"
+                                                    style="display: none; width: 5rem;" />
+                                                <button type="button" class="bo-btn btn-alt validate-amount" style="display: none;">
+                                                    Valider la modification
+                                                </button>
+                                                <button type="button" class="bo-btn btn-alt cancel-update-amount" style="display: none;">X</button>
                                             </div>
                                             <div class="letter" style="padding-top: 7px"
                                                  th:if="${T(fr.dossierfacile.common.enums.DocumentSubCategory).SALARY == messageItem.getDocumentSubCategory()}">
