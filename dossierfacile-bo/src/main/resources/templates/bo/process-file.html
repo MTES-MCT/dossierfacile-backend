@@ -66,6 +66,16 @@
             </div>
 
             <div th:each="messageItem, i:${customMessage.getMessageItems()}" th:remove="tag">
+                <div th:with="documentLogs=${logser.getDocumentLogs(modificationLogs, messageItem.getDocumentId())}">
+                    <div
+                        th:if="${!documentLogs.isEmpty()}"
+                        class="letter col-md-8 mt-4 p-2"
+                        style="line-height: 20px; background-color: #c9302c; color: white;"
+                    >
+                        <p class="mb-0">⚠️ Modifications opérateurs :</p>
+                        <p class="mb-0" th:each="log : ${documentLogs}" th:text="${log.getModificationText()}"></p>
+                    </div>
+                </div>
                 <div class="row mt-4">
                     <div class="col-md-8" style="min-height: 700px; max-height: 1050px"
                          th:if="${messageItem.getCustomTex()}==null">
