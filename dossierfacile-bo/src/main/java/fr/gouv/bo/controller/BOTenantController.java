@@ -27,7 +27,8 @@ import static org.springframework.http.ResponseEntity.ok;
 @Slf4j
 public class BOTenantController {
 
-    private static final String EMAIL = "email";
+    private static final String LOGSER = "logser";
+    private static final String MODIFICATION_LOGS = "modificationLogs";
     private static final String TENANT = "tenant";
     private static final String GUARANTOR = "guarantor";
     private static final String NEW_MESSAGE = "newMessage";
@@ -166,9 +167,13 @@ public class BOTenantController {
             log.error("BOTenantController processFile not found tenant with id : {}", id);
             return REDIRECT_ERROR;
         }
-        TenantInfoHeader header = TenantInfoHeader.build(tenant,
-                userApiService.findPartnersLinkedToTenant(id),
-                logService.getLogByTenantId(id));
+        List<TenantLog> logs = logService.getLogByTenantId(id);
+        TenantInfoHeader header = TenantInfoHeader.build(tenant, userApiService.findPartnersLinkedToTenant(id), logs);
+        List<TenantLog> modificationLogs = logs.stream()
+            .filter(l -> l.getLogDetails() != null && l.getLogDetails().get("newSum") != null)
+            .toList();
+        model.addAttribute(MODIFICATION_LOGS, modificationLogs);
+        model.addAttribute(LOGSER, logService);
         model.addAttribute(HEADER, header);
         model.addAttribute(NEW_MESSAGE, findNewMessageFromTenant(id));
         model.addAttribute(TENANT, tenant);

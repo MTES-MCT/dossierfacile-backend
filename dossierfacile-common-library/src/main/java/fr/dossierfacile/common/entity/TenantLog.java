@@ -9,6 +9,7 @@ import org.hibernate.type.SqlTypes;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Entity
 @Table(name = "tenant_log")
@@ -108,6 +109,24 @@ public class TenantLog implements Serializable {
             builder.append(" - OLD AMOUNT: ");
             builder.append(details.get("oldSum").asInt());
             builder.append(" - NEW AMOUNT: ");
+            builder.append(details.get("newSum").asInt());
+        }
+        return builder.toString();
+    }
+
+    public String getModificationText() {
+        StringBuilder builder = new StringBuilder();
+        ObjectNode details = this.getLogDetails();
+        if (details != null
+          && details.get("documentSubCategory") != null
+          && details.get("oldSum") != null
+          && details.get("newSum") != null) {
+            builder.append(details.get("documentSubCategory").asText());
+            builder.append(" - Modification du ");
+            builder.append(this.getCreationDateTime().format(DateTimeFormatter.ofPattern("dd.MM.yy")));
+            builder.append(" - Ancien montant ");
+            builder.append(details.get("oldSum").asInt());
+            builder.append(" - Nouveau montant ");
             builder.append(details.get("newSum").asInt());
         }
         return builder.toString();

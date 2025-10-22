@@ -88,6 +88,12 @@ public class TenantLogService {
         return logRepository.countTreatedFromTodayGroupByOperator();
     }
 
+    public List<TenantLog> getDocumentLogs(List<TenantLog> logs, Long documentId) {
+        return logs.stream()
+            .filter(l -> documentId.equals(l.getLogDetails().get("documentId").asLong()))
+            .toList();
+    }
+
     private ObjectNode writeAsObjectNode(Object object) {
         try {
             return (ObjectNode) objectMapper.valueToTree(object);
