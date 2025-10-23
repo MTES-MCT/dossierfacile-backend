@@ -27,11 +27,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.security.Principal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -130,11 +129,10 @@ public class TenantService {
         return keyCloakUser.isEmailVerified();
     }
 
-    public synchronized String redirectToApplication(Principal principal, Long tenantId) {
+    public synchronized String redirectToApplication(UserPrincipal operator, Long tenantId) {
         LocalDateTime localDateTime = LocalDateTime.now().minusMinutes(timeReprocessApplicationMinutes);
         Tenant tenant;
         if (tenantId == null) {
-            UserPrincipal operator = (UserPrincipal) ((OAuth2AuthenticationToken) principal).getPrincipal();
             Long operatorId = operator.getId();
             // check less than x process are currently starting during the n lastMinutes
             if (operatorLogRepository.countByOperatorIdAndActionOperatorTypeAndCreationDateGreaterThanEqual(operatorId, ActionOperatorType.START_PROCESS, LocalDateTime.now().minusMinutes(timeInterval)) > maxDossiersByInterval) {
@@ -149,7 +147,7 @@ public class TenantService {
         }
 
         if (tenant != null) {
-            User user = userService.findUserByEmail(principal.getName());
+            User user = userService.findUserByEmail(operator.getName());
             operatorLogRepository.save(new OperatorLog(
                     tenant, user, tenant.getStatus(), ActionOperatorType.START_PROCESS
             ));
@@ -173,9 +171,9 @@ public class TenantService {
     }
 
     @Transactional
-    public void validateTenantFile(Principal principal, Long tenantId) {
+    public void validateTenantFile(UserPrincipal principal, Long tenantId) {
         Tenant tenant = find(tenantId);
-        BOUser operator = userService.findUserByEmail(principal.getName());
+        BOUser operator = userService.findUserByEmail(principal.getEmail());
 
         Optional.ofNullable(tenant.getDocuments())
                 .orElse(new ArrayList<>())
@@ -444,9 +442,9 @@ public class TenantService {
     }
 
     @Transactional
-    public void declineTenant(Principal principal, Long tenantId) {
+    public void declineTenant(UserPrincipal principal, Long tenantId) {
         Tenant tenant = find(tenantId);
-        User operator = userService.findUserByEmail(principal.getName());
+        User operator = userService.findUserByEmail(principal.getEmail());
 
         Optional.ofNullable(tenant.getDocuments())
                 .orElse(new ArrayList<>())
@@ -479,13 +477,13 @@ public class TenantService {
     }
 
     @Transactional
-    public String customMessage(Principal principal, Long tenantId, CustomMessage customMessage) {
+    public String customMessage(UserPrincipal principal, Long tenantId, CustomMessage customMessage) {
         Tenant tenant = find(tenantId);
         if (tenant == null) {
             log.error("BOTenantController customEmail not found tenant with id : {}", tenantId);
             return "redirect:/error";
         }
-        User operator = userService.findUserByEmail(principal.getName());
+        User operator = userService.findUserByEmail(principal.getEmail());
         updateFileStatus(customMessage);
         Message message = sendCustomMessage(tenant, customMessage);
         changeTenantStatusToDeclined(tenant, operator, message, ProcessedDocuments.NONE);
@@ -500,7 +498,7 @@ public class TenantService {
     }
 
     @Transactional
-    public void processFile(Long tenantId, CustomMessage customMessage, Principal principal) {
+    public void processFile(Long tenantId, CustomMessage customMessage, UserPrincipal principal) {
         Tenant tenant = find(tenantId);
 
         if (tenant == null) {
@@ -509,10 +507,10 @@ public class TenantService {
         }
         //check tenant status before trying to validate or to deny
         if (tenant.getStatus() != TenantFileStatus.TO_PROCESS) {
-            log.error("Operator try to validate/deny a not TO PROCESS tenant : t={} op={}", tenantId, principal.getName());
+            log.error("Operator try to validate/deny a not TO PROCESS tenant : t={} op={}", tenantId, principal.getEmail());
             throw new IllegalStateException("You cannot treat a tenant which is not TO PROCESS");
         }
-        User operator = userService.findUserByEmail(principal.getName());
+        User operator = userService.findUserByEmail(principal.getEmail());
 
         ProcessedDocuments processedDocuments = ProcessedDocuments.in(customMessage);
         boolean allDocumentsValid = updateFileStatus(customMessage);
@@ -528,8 +526,12 @@ public class TenantService {
 
     @Transactional
     //todo : Review this method to refactor with the others DENY OR VALIDATE documents for tenants
-    public String updateStatusOfTenantFromAdmin(Principal principal, MessageDTO messageDTO, Long tenantId) {
-        User operator = userService.findUserByEmail(principal.getName());
+    public String updateStatusOfTenantFromAdmin(
+            UserPrincipal principal,
+            MessageDTO messageDTO,
+            Long tenantId
+    ) {
+        User operator = userService.findUserByEmail(principal.getEmail());
         Tenant tenant = tenantRepository.findOneById(tenantId);
         messageService.create(messageDTO, tenant, false, false);
 

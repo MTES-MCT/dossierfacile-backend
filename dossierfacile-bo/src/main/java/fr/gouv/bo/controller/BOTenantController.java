@@ -6,19 +6,18 @@ import fr.dossierfacile.common.exceptions.NotFoundException;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.gouv.bo.dto.*;
+import fr.gouv.bo.security.UserPrincipal;
 import fr.gouv.bo.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import fr.gouv.bo.utils.DocumentLabelUtils;
-
-import java.io.IOException;
 import java.security.Principal;
 import java.util.*;
 
@@ -69,21 +68,27 @@ public class BOTenantController {
 
     @PreAuthorize("hasRole('SUPPORT')")
     @GetMapping("/deleteCoTenant/{id}")
-    public String deleteCoTenant(@PathVariable Long id, Principal principal) {
+    public String deleteCoTenant(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
         Tenant tenant = tenantService.findTenantById(id);
         if (tenant.getTenantType() == TenantType.CREATE) {
             throw new IllegalArgumentException("Delete main tenant is not allowed - set another user as main tenant before OR delete the entire apartmentSharing");
         }
-        BOUser operator = userService.findUserByEmail(principal.getName());
+        BOUser operator = userService.findUserByEmail(principal.getEmail());
         userService.deleteCoTenant(tenant, operator);
         return "redirect:/bo/colocation/" + tenant.getApartmentSharing().getId();
     }
 
     @PreAuthorize("hasRole('SUPPORT')")
     @GetMapping("/deleteApartmentSharing/{id}")
-    public String deleteApartmentSharing(@PathVariable("id") Long id, Principal principal) {
+    public String deleteApartmentSharing(
+            @PathVariable("id") Long id,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
         Tenant create = tenantService.findTenantById(id);
-        BOUser operator = userService.findUserByEmail(principal.getName());
+        BOUser operator = userService.findUserByEmail(principal.getEmail());
         userService.deleteApartmentSharing(create, operator);
         return REDIRECT_BO;
     }
@@ -105,34 +110,51 @@ public class BOTenantController {
 
     @PreAuthorize("hasRole('SUPPORT')")
     @PostMapping("/{id}/validate")
-    public ResponseEntity<Void> validateTenantFile(@PathVariable("id") Long tenantId, Principal principal) {
+    public ResponseEntity<Void> validateTenantFile(
+            @PathVariable("id") Long tenantId,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
         tenantService.validateTenantFile(principal, tenantId);
         return ok().build();
     }
 
     @PreAuthorize("hasRole('SUPPORT')")
     @PostMapping("/{id}/decline")
-    public ResponseEntity<Void> declineTenantFile(@PathVariable("id") Long tenantId, Principal principal) {
+    public ResponseEntity<Void> declineTenantFile(
+            @PathVariable("id") Long tenantId,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
         tenantService.declineTenant(principal, tenantId);
         return ok().build();
     }
 
     @PostMapping("/{id}/customMessage")
-    public String customEmail(@PathVariable("id") Long tenantId, CustomMessage customMessage, Principal principal) {
+    public String customEmail(
+            @PathVariable("id") Long tenantId,
+            CustomMessage customMessage,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
         return tenantService.customMessage(principal, tenantId, customMessage);
     }
 
     @PreAuthorize("hasRole('OPERATOR')")
     @GetMapping("/delete/document/{id}")
-    public String deleteDocument(@PathVariable("id") Long id, Principal principal) {
-        User operator = userService.findUserByEmail(principal.getName());
+    public String deleteDocument(
+            @PathVariable("id") Long id,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        User operator = userService.findUserByEmail(principal.getEmail());
         Tenant tenant = tenantService.deleteDocument(id, operator);
         return redirectToTenantPage(tenant);
     }
 
     @GetMapping("/status/{id}")
-    public String changeStatusOfDocument(@PathVariable("id") Long id, MessageDTO messageDTO, Principal principal) {
-        User operator = userService.findUserByEmail(principal.getName());
+    public String changeStatusOfDocument(
+            @PathVariable("id") Long id,
+            MessageDTO messageDTO,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        User operator = userService.findUserByEmail(principal.getEmail());
         Tenant tenant = tenantService.changeDocumentStatus(id, messageDTO, operator);
 
         return redirectToTenantPage(tenant);
@@ -161,8 +183,11 @@ public class BOTenantController {
 
     @PreAuthorize("hasRole('SUPPORT')")
     @GetMapping("/delete/guarantor/{guarantorId}")
-    public String deleteGuarantor(@PathVariable("guarantorId") Long guarantorId, Principal principal) {
-        User operator = userService.findUserByEmail(principal.getName());
+    public String deleteGuarantor(
+            @PathVariable("guarantorId") Long guarantorId,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        User operator = userService.findUserByEmail(principal.getEmail());
         Tenant tenant = tenantService.deleteGuarantor(guarantorId, operator);
         return redirectToTenantPage(tenant);
     }
@@ -179,7 +204,11 @@ public class BOTenantController {
     }
 
     @PostMapping("/{id}/processFile")
-    public String processFile(@PathVariable("id") Long id, CustomMessage customMessage, Principal principal) {
+    public String processFile(
+            @PathVariable("id") Long id,
+            CustomMessage customMessage,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
         tenantService.processFile(id, customMessage, principal);
         return tenantService.redirectToApplication(principal, null);
     }
