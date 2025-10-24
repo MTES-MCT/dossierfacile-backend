@@ -197,6 +197,26 @@
                                 </tr>
 
                             </table>
+                            <h2>Liste des liens de partage:</h2>
+                            <table class="table table-striped table-bordered table-hover">
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Accès</th>
+                                    <th>Lien</th>
+                                    <th>Expire le</th>
+                                </tr>
+                                <tr th:each="link : ${apartmentSharing.apartmentSharingLinks}" th:if="${link.linkType.toString() != 'MAIL'}">
+                                    <td th:text="${link.linkType}"></td>
+                                    <td th:text="${link.fullData ? 'full' : 'restricted'}"></td>
+                                    <td>
+                                        <a
+                                            target="_blank"
+                                            th:attr="href=${tenantBaseUrl + (link.fullData ? '/file/' : '/public-file/') + link.token}"
+                                            th:text="${link.token}"></a>
+                                    </td>
+                                    <td th:text="${link.expirationDate}"></td>
+                                </tr>
+                            </table>
                             <h2>Liste des liens envoyés:</h2>
                             <table class="table table-striped table-bordered table-hover">
                                 <tr>
