@@ -8,7 +8,6 @@ import fr.dossierfacile.common.mapper.mail.ApartmentSharingMapperForMail;
 import fr.dossierfacile.common.mapper.mail.TenantMapperForMail;
 import fr.dossierfacile.common.repository.ApartmentSharingLinkRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
-import fr.dossierfacile.common.service.interfaces.LogService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.dossierfacile.common.utils.TransactionalUtil;
 import fr.gouv.bo.dto.*;
@@ -59,7 +58,6 @@ public class TenantService {
     private final DocumentService documentService;
     private final TenantLogService tenantLogService;
     private final KeycloakService keycloakService;
-    private final LogService communTenantLogService;
     private final ApartmentSharingService apartmentSharingService;
     private final GuarantorRepository guarantorRepository;
     private final TenantMapperForMail tenantMapperForMail;
@@ -365,6 +363,34 @@ public class TenantService {
         return "Garant : " + guarantor.getCompleteName();
     }
 
+    private void updateMonthlySums(CustomMessage customMessage, Tenant tenant, Long operatorId) {
+        List<MessageItem> itemsChanged = new ArrayList<>();
+        itemsChanged.addAll(updateMonthlySums(customMessage.getMessageItems(), tenant, operatorId));
+        for (GuarantorItem guarantorItem : customMessage.getGuarantorItems()) {
+            itemsChanged.addAll(updateMonthlySums(guarantorItem.getMessageItems(), tenant, operatorId));
+        }
+        sendAmountChangedMessage(itemsChanged, tenant);
+    }
+
+    private List<MessageItem> updateMonthlySums(List<MessageItem> items, Tenant tenant, Long operatorId) {
+        List<MessageItem> itemsChanged = new ArrayList<>();
+        for (MessageItem item : items) {
+            if (item.getMonthlySum() != null && !item.getMonthlySum().equals(item.getNewMonthlySum())) {
+                Document document = documentRepository.findById(item.getDocumentId()).orElse(null);
+                if (document != null) {
+                    log.info("Update document monthly sum : " + item.getDocumentId() + ", from " + item.getMonthlySum() + " to " + item.getNewMonthlySum());
+                    tenantLogService.addUpdateAmountLog(tenant.getId(), operatorId, document, item.getNewMonthlySum());
+                    document.setMonthlySum(item.getNewMonthlySum());
+                    documentRepository.save(document);
+                    itemsChanged.add(item);
+                } else {
+                    log.warn("Document not found: " + item.getDocumentId());
+                }
+            }
+        }
+        return itemsChanged;
+    }
+
     public Message sendCustomMessage(Tenant tenant, CustomMessage customMessage) {
         boolean forTenant = hasCheckedItem(customMessage.getMessageItems());
         boolean forGuarantor = hasGuarantorCheckedItem(customMessage.getGuarantorItems());
@@ -515,6 +541,8 @@ public class TenantService {
         ProcessedDocuments processedDocuments = ProcessedDocuments.in(customMessage);
         boolean allDocumentsValid = updateFileStatus(customMessage);
 
+        updateMonthlySums(customMessage, tenant, operator.getId());
+
         if (allDocumentsValid) {
             changeTenantStatusToValidated(tenant, operator, processedDocuments);
         } else {
@@ -522,6 +550,49 @@ public class TenantService {
             changeTenantStatusToDeclined(tenant, operator, message, processedDocuments);
         }
         updateOperatorDateTimeTenant(tenantId);
+    }
+
+    private void sendAmountChangedMessage(List<MessageItem> items, Tenant tenant) {
+        StringBuilder html = new StringBuilder();
+        html.append("<p>Bonjour,</p>");
+        if (items.size() == 1) {
+            MessageItem item = items.getFirst();
+            html.append("<p>Nos agents ont ajusté <strong>le montant de votre revenu</strong> déclaré afin qu’il corresponde à vos justificatifs.");
+            html.append("<br/> Le montant suivant a été modifié pour garantir la cohérence et la fiabilité de votre dossier :");
+            html.append("<p><strong>");
+            html.append(messageSource.getMessage("document_sub_category." + item.getDocumentSubCategory(), null, locale));
+            html.append(" : </strong>");
+            html.append(" déclaré <strong>");
+            html.append(item.getMonthlySum());
+            html.append(" €</strong> → corrigé à <strong>");
+            html.append(item.getNewMonthlySum());
+            html.append(" €</strong></p>");
+        } else {
+            html.append("<p>Nos agents ont ajusté <strong>certains montants de revenus</strong> déclarés afin qu’ils correspondent à vos justificatifs.");
+            html.append("<br/> Les valeurs suivantes ont été modifiées pour garantir la cohérence et la fiabilité de votre dossier :");
+            html.append("<ul>");
+            for (MessageItem item: items) {
+                html.append("<li>");
+                html.append("<strong>");
+                html.append(messageSource.getMessage("document_sub_category." + item.getDocumentSubCategory(), null, locale));
+                html.append(" : </strong>");
+                html.append(" déclaré <strong>");
+                html.append(item.getMonthlySum());
+                html.append(" €</strong> → corrigé à <strong>");
+                html.append(item.getNewMonthlySum());
+                html.append(" €</strong>");
+                html.append("</li>");
+            }
+            html.append("</ul>");
+        }
+        html.append("<p>👉 Vous pouvez consulter la version mise à jour dans votre espace.</p>");
+        html.append("<p>Si vous souhaitez modifier ce montant, vous êtes libre de le faire, mais votre dossier devra alors repasser par le processus complet de validation.<br/> ");
+        html.append("<strong>Pour un traitement plus rapide, nous vous invitons à contacter notre support via ce lien : <a href=\"/contact?open=form\">Lien support</a>.</strong></p>");
+        html.append("<p><em>Rappel : vous avez accepté que notre équipe procède à cet ajustement en cas d’incohérence.</em></p>");
+        html.append("<p>Bonne journée</p>");
+        messageService.create(MessageDTO.builder().message(html.toString()).build(), tenant, false, false);
+        TenantDto tenantDto = tenantMapperForMail.toDto(tenant);
+        mailService.sendEmailAmountChanged(tenantDto);
     }
 
     @Transactional

@@ -13,12 +13,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
 import java.util.*;
 
 import static org.springframework.http.ResponseEntity.ok;
@@ -29,7 +27,8 @@ import static org.springframework.http.ResponseEntity.ok;
 @Slf4j
 public class BOTenantController {
 
-    private static final String EMAIL = "email";
+    private static final String LOGSER = "logser";
+    private static final String MODIFICATION_LOGS = "modificationLogs";
     private static final String TENANT = "tenant";
     private static final String GUARANTOR = "guarantor";
     private static final String NEW_MESSAGE = "newMessage";
@@ -168,9 +167,13 @@ public class BOTenantController {
             log.error("BOTenantController processFile not found tenant with id : {}", id);
             return REDIRECT_ERROR;
         }
-        TenantInfoHeader header = TenantInfoHeader.build(tenant,
-                userApiService.findPartnersLinkedToTenant(id),
-                logService.getLogByTenantId(id));
+        List<TenantLog> logs = logService.getLogByTenantId(id);
+        TenantInfoHeader header = TenantInfoHeader.build(tenant, userApiService.findPartnersLinkedToTenant(id), logs);
+        List<TenantLog> modificationLogs = logs.stream()
+            .filter(l -> l.getLogDetails() != null && l.getLogDetails().get("newSum") != null)
+            .toList();
+        model.addAttribute(MODIFICATION_LOGS, modificationLogs);
+        model.addAttribute(LOGSER, logService);
         model.addAttribute(HEADER, header);
         model.addAttribute(NEW_MESSAGE, findNewMessageFromTenant(id));
         model.addAttribute(TENANT, tenant);
@@ -205,11 +208,11 @@ public class BOTenantController {
 
     @PostMapping("/{id}/processFile")
     public String processFile(
-            @PathVariable("id") Long id,
+            @PathVariable Long id,
             CustomMessage customMessage,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
-        tenantService.processFile(id, customMessage, principal);
+        tenantService.processFile(id, customMessage, principal); 
         return tenantService.redirectToApplication(principal, null);
     }
 
@@ -252,6 +255,7 @@ public class BOTenantController {
             if (document.getDocumentStatus().equals(DocumentStatus.TO_PROCESS)) {
                 customMessage.getMessageItems().add(MessageItem.builder()
                         .monthlySum(document.getMonthlySum())
+                        .newMonthlySum(document.getMonthlySum())
                         .customTex(document.getCustomText())
                         .avisDetected(document.getAvisDetected())
                         .documentCategory(document.getDocumentCategory())
@@ -283,6 +287,7 @@ public class BOTenantController {
                 if (document.getDocumentStatus().equals(DocumentStatus.TO_PROCESS)) {
                     guarantorItem.getMessageItems().add(MessageItem.builder()
                             .monthlySum(document.getMonthlySum())
+                            .newMonthlySum(document.getMonthlySum())
                             .avisDetected(document.getAvisDetected())
                             .customTex(document.getCustomText())
                             .documentCategory(document.getDocumentCategory())

@@ -53,6 +53,8 @@ public class MailService {
     private Long templateIdDossierTenantDenied;
     @Value("${brevo.template.id.dossier.tenant.denied.with.details}")
     private Long templateIdDossierTenantDeniedWithDetails;
+    @Value("${brevo.template.id.dossier.amount.changed}")
+    private Long templateIdDossierAmountChanged;
     @Value("${brevo.template.id.message.notification.with.partner}")
     private Long templateIDMessageNotificationWithPartner;
     @Value("${brevo.template.id.message.notification.with.partner.and.details}")
@@ -93,6 +95,15 @@ public class MailService {
         params.put("PRENOM", tenant.getFirstName());
         params.put("NOM", OptionalString.of(tenant.getPreferredName()).orElse(tenant.getLastName()));
         sendEmailToTenant(tenant, params, templateIdAccountDeleted);
+    }
+
+    @Async
+    public void sendEmailAmountChanged(TenantDto tenant) {
+        Map<String, String> params = new HashMap<>();
+        params.put("PRENOM", tenant.getFirstName());
+        params.put("NOM", OptionalString.of(tenant.getPreferredName()).orElse(tenant.getLastName()));
+        params.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
+        sendEmailToTenant(tenant, params, templateIdDossierAmountChanged);
     }
 
     @Async
