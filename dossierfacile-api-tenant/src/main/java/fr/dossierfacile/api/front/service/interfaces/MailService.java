@@ -30,7 +30,7 @@ public interface MailService {
 
     void sendEmailWelcomeForPartnerUser(UserDto user, UserApiDto userApi);
 
-    void sendFileByMail(String url, String email, String tenantName, String fullName, String tenantEmail);
+    void sendFileByMail(String url, String email, String message, String tenantName, String fullName, String tenantEmail);
 
     void sendEmailPartnerAccessRevoked(Tenant receiver, UserApi userApi, Tenant revocationRequester);
 
