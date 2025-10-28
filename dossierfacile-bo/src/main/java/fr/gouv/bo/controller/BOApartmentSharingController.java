@@ -24,8 +24,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
 
 @Controller
 @RequiredArgsConstructor
@@ -79,6 +83,13 @@ public class BOApartmentSharingController {
 
         return "bo/apartment-sharing-view";
     }
+
+    @PostMapping("/{id}/tokens/{token}")
+    public String regenerateToken(Model model, @PathVariable UUID token, @PathVariable Long id) {
+        apartmentSharingLinkService.regenerateToken(token);
+        return "redirect:/bo/colocation/" + id ;
+    }
+    
 
     @DeleteMapping("/{id}/apartmentSharingLinks/{link_id}")
     public String deleteToken(Model model, @PathVariable("id") Long id, @PathVariable("link_id") Long linkId) {
