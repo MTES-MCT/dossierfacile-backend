@@ -28,6 +28,8 @@ public class ApartmentSharingLinkModel {
 
     private boolean enabled;
 
+    private boolean deleted;
+
     private boolean fullData;
 
     private String title;

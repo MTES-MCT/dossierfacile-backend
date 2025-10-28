@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import fr.dossierfacile.api.front.TestApplication;
 import fr.dossierfacile.api.front.exception.MailSentLimitException;
 import fr.dossierfacile.api.front.exception.PropertyNotFoundException;
+import fr.dossierfacile.api.front.form.ShareFileByMailForm;
 import fr.dossierfacile.api.front.mapper.PropertyOMapperImpl;
 import fr.dossierfacile.api.front.mapper.TenantMapperImpl;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
@@ -468,7 +469,7 @@ class TenantControllerTest {
                                     jwtTokenWithDossier,
                                     (v) -> {
                                         when(authenticationFacade.getLoggedTenant()).thenReturn(tenant);
-                                        doThrow(new MailSentLimitException()).when(tenantService).sendFileByMail(tenant, "test@test.com", "SHARE_TYPE");
+                                        doThrow(new MailSentLimitException()).when(tenantService).sendFileByMail(tenant, ShareFileByMailForm.builder().email("test@test.com").daysValid(30).build());
                                         return v;
                                     },
                                     Collections.emptyList()

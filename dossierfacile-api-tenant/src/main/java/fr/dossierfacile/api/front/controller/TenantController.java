@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.front.controller;
 
+import fr.dossierfacile.api.front.form.ShareFileByLinkForm;
 import fr.dossierfacile.api.front.form.ShareFileByMailForm;
 import fr.dossierfacile.api.front.mapper.PropertyOMapper;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
@@ -112,12 +113,19 @@ public class TenantController {
     public ResponseEntity<String> sendFileByMail(@Valid @RequestBody ShareFileByMailForm shareFileByMailForm) {
         Tenant tenant = authenticationFacade.getLoggedTenant();
         try {
-            tenantService.sendFileByMail(tenant, shareFileByMailForm.getEmail(), shareFileByMailForm.getShareType());
+            tenantService.sendFileByMail(tenant, shareFileByMailForm);
             // Todo : inside the method sendFileByMail, there is an Internal error thrown and this exception is not caught by the controller
         } catch (Exception e) {
             return badRequest().build();
         }
         return ok("");
+    }
+
+    @PostMapping("/createSharingLink")
+    public ResponseEntity<String> createSharingLink(@Valid @RequestBody ShareFileByLinkForm shareFileByLinkForm) {
+        Tenant tenant = authenticationFacade.getLoggedTenant();
+        String url = tenantService.createSharingLink(tenant, shareFileByLinkForm);
+        return ok(url);
     }
 
     @PreAuthorize("hasPermissionOnTenant(#tenantId)")
