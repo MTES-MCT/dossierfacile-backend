@@ -1,6 +1,5 @@
 package fr.dossierfacile.api.front.controller;
 
-import fr.dossierfacile.api.front.exception.ResendLinkTooShortException;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.common.entity.ApartmentSharing;
@@ -16,6 +15,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
 
 @RestController
 @RequestMapping("/api/application/links")
@@ -34,7 +36,7 @@ public class ApartmentSharingLinkController {
     @GetMapping
     public ResponseEntity<LinksResponse> getApartmentSharingLinks() {
         ApartmentSharing apartmentSharing = authenticationFacade.getLoggedTenant().getApartmentSharing();
-        List<ApartmentSharingLinkModel> linksByMail = apartmentSharingLinkService.getLinksByMail(apartmentSharing);
+        List<ApartmentSharingLinkModel> linksByMail = apartmentSharingLinkService.getLinks(apartmentSharing);
         return ResponseEntity.ok(new LinksResponse(linksByMail));
     }
 
@@ -78,6 +80,28 @@ public class ApartmentSharingLinkController {
         apartmentSharingLinkService.delete(id, tenant);
         return ResponseEntity.ok().build();
     }
+
+   
+    @DeleteMapping(value = "/", consumes = "application/json")
+    public ResponseEntity<Void> deleteLinks(@RequestBody List<Long> linkIds) {
+        Tenant tenant = authenticationFacade.getLoggedTenant();
+        apartmentSharingLinkService.deleteLinks(linkIds, tenant);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/disableAll")
+    public ResponseEntity<Void> disableAllLinks() {
+        Tenant tenant = authenticationFacade.getLoggedTenant();
+        apartmentSharingLinkService.disableValidLinks(tenant);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/enableAll")
+    public ResponseEntity<Void> enableAllLinks() {
+        Tenant tenant = authenticationFacade.getLoggedTenant();
+        apartmentSharingLinkService.enableValidLinks(tenant);
+        return ResponseEntity.ok().build();
+    } 
 
     @Data
     @AllArgsConstructor
