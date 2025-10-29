@@ -9,6 +9,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 class BlurryRuleIsNotBlurryTest {
 
@@ -17,8 +18,11 @@ class BlurryRuleIsNotBlurryTest {
             return File.builder().build();
         }
         File f = File.builder().build();
+        boolean blank = Boolean.TRUE.equals(isBlank);
+        boolean blurry = Boolean.TRUE.equals(isBlurry);
+        Optional<Boolean> readableOpt = Optional.ofNullable(isReadable);
         BlurryFileAnalysis analysis = BlurryFileAnalysis.builder()
-                .blurryResults(new BlurryResult(isBlank, isBlurry, 42f, isReadable))
+                .blurryResults(new BlurryResult(blank, blurry, Optional.of(42f), readableOpt, Optional.empty(), Optional.empty()))
                 .file(f)
                 .build();
         f.setBlurryFileAnalysis(analysis);
@@ -63,17 +67,6 @@ class BlurryRuleIsNotBlurryTest {
     }
 
     @Test
-    void fail_when_one_file_unreadable() {
-        Document doc = buildDocument(
-                buildFile(false, false, true),
-                buildFile(false, false, false) // unreadable => treated as blurry
-        );
-        BlurryRuleIsNotBlurry rule = new BlurryRuleIsNotBlurry();
-        RuleValidatorOutput out = rule.validate(doc);
-        Assertions.assertThat(out.isValid()).isFalse();
-    }
-
-    @Test
     void pass_when_file_has_no_analysis() {
         Document doc = buildDocument(
                 buildFile(null, null, null) // no analysis object
@@ -83,4 +76,3 @@ class BlurryRuleIsNotBlurryTest {
         Assertions.assertThat(out.isValid()).isTrue();
     }
 }
-

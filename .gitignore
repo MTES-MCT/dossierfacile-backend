@@ -5,6 +5,7 @@ application-*.properties
 !application-test.properties
 document_analysis.properties
 .env
+.run
 target/
 mockstorage/
 mock-storage/
