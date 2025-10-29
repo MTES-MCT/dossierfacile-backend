@@ -204,6 +204,7 @@
                                     <th>Accès</th>
                                     <th>Lien</th>
                                     <th>Expire le</th>
+                                    <th>Action</th>
                                 </tr>
                                 <tr th:each="link : ${apartmentSharing.apartmentSharingLinks}" th:if="${link.linkType.toString() != 'MAIL'}">
                                     <td th:text="${link.linkType}"></td>
@@ -215,6 +216,22 @@
                                             th:text="${link.token}"></a>
                                     </td>
                                     <td th:text="${link.expirationDate}"></td>
+                                    <td>
+                                        <form th:action="@{/bo/colocation/{id}/tokens/{token}(id=${apartmentSharing.id},token=${link.token})}" th:method="post">
+                                            <button class="btn btn-outline-danger btn-modal-confirm-before-submit" type="button">Régénérer</button>
+                                            <div class="modal" role="dialog" tabindex="-1">
+                                                <div class="modal-dialog" role="document">
+                                                    <div class="modal-content">
+                                                        <div class="modal-body">Voulez-vous régénérer ce token ?</div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                                            <button type="submit" class="btn btn-primary">Valider</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </td>
                                 </tr>
                             </table>
                             <h2>Liste des liens envoyés:</h2>

@@ -2,6 +2,7 @@ package fr.dossierfacile.common.service;
 
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.ApartmentSharingLink;
+import fr.dossierfacile.common.entity.LinkLog;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.exceptions.NotFoundException;
 import fr.dossierfacile.common.model.ApartmentSharingLinkModel;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 import static fr.dossierfacile.common.enums.ApartmentSharingLinkType.MAIL;
 import static fr.dossierfacile.common.enums.LinkType.*;
@@ -69,6 +71,15 @@ public class ApartmentSharingLinkService {
         if (hasAccess) {
             delete(linkId);
         }
+    }
+
+    public void regenerateToken(UUID token) {
+        var link = apartmentSharingLinkRepository.findByToken(token).orElseThrow(NotFoundException::new);
+        linkLogService.save(LinkLog.builder().creationDate(LocalDateTime.now()).linkType(REBUILT_TOKENS).token(token).apartmentSharing(link.getApartmentSharing()).build());
+        UUID newToken = UUID.randomUUID();
+        log.info("Regenerate token " + token + " to " + newToken);
+        link.setToken(newToken);
+        apartmentSharingLinkRepository.save(link);
     }
 
 }
