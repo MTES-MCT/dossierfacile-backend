@@ -292,6 +292,7 @@ public class BOTenantController {
                             .customTex(document.getCustomText())
                             .documentCategory(document.getDocumentCategory())
                             .documentSubCategory(document.getDocumentSubCategory())
+                            .documentCategoryStep(document.getDocumentCategoryStep())
                             .itemDetailList(getItemDetailForSubcategoryOfDocument(document.getDocumentCategory(), document.getDocumentSubCategory(), GUARANTOR))
                             .documentId(document.getId())
                             .documentName(document.getName())

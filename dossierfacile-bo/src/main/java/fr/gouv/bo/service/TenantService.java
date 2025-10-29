@@ -18,6 +18,8 @@ import fr.gouv.bo.repository.*;
 import fr.gouv.bo.security.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.apache.commons.lang3.tuple.Pair;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -26,7 +28,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -364,10 +365,16 @@ public class TenantService {
     }
 
     private void processMonthlySums(CustomMessage customMessage, Tenant tenant, Long operatorId) {
-        List<MessageItem> itemsChanged = new ArrayList<>();
-        itemsChanged.addAll(updateMonthlySums(customMessage.getMessageItems(), tenant, operatorId));
+        List<Pair<String, List<MessageItem>>> itemsChanged = new ArrayList<>();
+        var items = updateMonthlySums(customMessage.getMessageItems(), tenant, operatorId);
+        if (items.size() > 0) {
+            itemsChanged.add(Pair.of(tenant.getFullName(), items));
+        }
         for (GuarantorItem guarantorItem : customMessage.getGuarantorItems()) {
-            itemsChanged.addAll(updateMonthlySums(guarantorItem.getMessageItems(), tenant, operatorId));
+            var guarantorItems = updateMonthlySums(guarantorItem.getMessageItems(), tenant, operatorId);
+            if (guarantorItems.size() > 0) {
+                itemsChanged.add(Pair.of(guarantorLabel(guarantorItem), guarantorItems));
+            }
         }
         if (itemsChanged.size() > 0) {
             sendAmountChangedMessage(itemsChanged, tenant);
@@ -554,15 +561,23 @@ public class TenantService {
         updateOperatorDateTimeTenant(tenantId);
     }
 
-    private void sendAmountChangedMessage(List<MessageItem> items, Tenant tenant) {
+    private void sendAmountChangedMessage(List<Pair<String, List<MessageItem>>> changeList, Tenant tenant) {
         StringBuilder html = new StringBuilder();
         html.append("<p>Bonjour,</p>");
-        if (items.size() == 1) {
-            MessageItem item = items.getFirst();
+        if (changeList.size() == 1 && changeList.getFirst().getRight().size() == 1) {
+            String name = changeList.getFirst().getLeft();
+            MessageItem item = changeList.getFirst().getRight().getFirst();
             html.append("<p>Nos agents ont ajusté <strong>le montant de votre revenu</strong> déclaré afin qu’il corresponde à vos justificatifs.");
             html.append("<br/> Le montant suivant a été modifié pour garantir la cohérence et la fiabilité de votre dossier :");
+            html.append("<p class=\"fr-mb-0\"><strong>");
+            html.append(name);
+            html.append("</strong></p>");
             html.append("<p><strong>");
             html.append(messageSource.getMessage("document_sub_category." + item.getDocumentSubCategory(), null, locale));
+            if (item.getDocumentCategoryStep() != null) {
+                html.append(" - ");
+                html.append(messageSource.getMessage("document_category_step." + item.getDocumentCategoryStep(), null, locale));
+            }
             html.append(" : </strong>");
             html.append(" déclaré <strong>");
             html.append(item.getMonthlySum());
@@ -572,20 +587,29 @@ public class TenantService {
         } else {
             html.append("<p>Nos agents ont ajusté <strong>certains montants de revenus</strong> déclarés afin qu’ils correspondent à vos justificatifs.");
             html.append("<br/> Les valeurs suivantes ont été modifiées pour garantir la cohérence et la fiabilité de votre dossier :");
-            html.append("<ul>");
-            for (MessageItem item: items) {
-                html.append("<li>");
-                html.append("<strong>");
-                html.append(messageSource.getMessage("document_sub_category." + item.getDocumentSubCategory(), null, locale));
-                html.append(" : </strong>");
-                html.append(" déclaré <strong>");
-                html.append(item.getMonthlySum());
-                html.append(" €</strong> → corrigé à <strong>");
-                html.append(item.getNewMonthlySum());
-                html.append(" €</strong>");
-                html.append("</li>");
+            for (Pair<String,List<MessageItem>> change : changeList) {
+                html.append("<p class=\"fr-mb-0\"><strong>");
+                html.append(change.getLeft());
+                html.append("</strong></p>");
+                html.append("<ul>");
+                for (MessageItem item: change.getRight()) {
+                    html.append("<li>");
+                    html.append("<strong>");
+                    html.append(messageSource.getMessage("document_sub_category." + item.getDocumentSubCategory(), null, locale));
+                    if (item.getDocumentCategoryStep() != null) {
+                        html.append(" - ");
+                        html.append(messageSource.getMessage("document_category_step." + item.getDocumentCategoryStep(), null, locale));
+                    }
+                    html.append(" : </strong>");
+                    html.append(" déclaré <strong>");
+                    html.append(item.getMonthlySum());
+                    html.append(" €</strong> → corrigé à <strong>");
+                    html.append(item.getNewMonthlySum());
+                    html.append(" €</strong>");
+                    html.append("</li>");
+                }
+                html.append("</ul>");
             }
-            html.append("</ul>");
         }
         html.append("<p>👉 Vous pouvez consulter la version mise à jour dans votre espace.</p>");
         html.append("<p>Si vous souhaitez modifier ce montant, vous êtes libre de le faire, mais votre dossier devra alors repasser par le processus complet de validation.<br/> ");
