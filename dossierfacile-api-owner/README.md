@@ -15,18 +15,19 @@ Create a file `application-dev.properties` in `dossierfacile-api-owner/src/main/
 
 ```properties
 #Path to the folder when the files will be saved during dev
-mock.storage.path=/path/to/mock-storage/
+mock.storage.path=../mock-storage
 #Url of the owner front
 owner.url=http://localhost:3000
 #Port of this API
 server.port=8083
 
+#TODO: replace with your database credentials, can be found in root docker-compose-dev.yml
 #URL of the database
-spring.datasource.url=
+spring.datasource.url=<REPLACE_ME_DB_URL>
 #Username of the database
-spring.datasource.username=
+spring.datasource.username=<REPLACE_ME_DB_USERNAME>
 #Password of the database
-spring.datasource.password=
+spring.datasource.password=<REPLACE_ME_DB_PASSWORD>
 
 #Variable used to define the number of days after the creation of a property that the owner will receive a follow-up email
 days.after.validated.property.to.follow.up.email=42
@@ -84,7 +85,7 @@ For the dev environment the appender Logstash is disabled by default.
 # Run the application
 
 ```shell
-    mvn spring-boot:run -D mvn spring-boot:run -D spring-boot.run.profiles=dev,mockOvh
+    mvn spring-boot:run -D spring-boot.run.profiles=dev,mockOvh
 ```
 
 # Important information : 

@@ -23,12 +23,13 @@ mock.storage.path=../mock-storage
 # List of the providers to use for the storage
 storage.provider.list=LOCAL
 
+#TODO: replace with your database credentials, can be found in root docker-compose-dev.yml
 #URL of the database
-spring.datasource.url=
+spring.datasource.url=<REPLACE_ME_DB_URL>
 #Username of the database
-spring.datasource.username=
+spring.datasource.username=<REPLACE_ME_DB_USERNAME>
 #Password of the database
-spring.datasource.password=
+spring.datasource.password=<REPLACE_ME_DB_PASSWORD>
 
 # SSO Keycloak
 spring.security.oauth2.client.provider.keycloak.issuer-uri={keycloak.server}/auth/realms/{realm_name}
@@ -135,7 +136,7 @@ For the dev environment the appender Logstash is disabled by default.
 ## Run the application
 
 ```shell
-    mvn spring-boot:run -D mvn spring-boot:run -D spring-boot.run.profiles=dev,mockOvh
+    mvn spring-boot:run -D spring-boot.run.profiles=dev,mockOvh
 ```
 
 ## Configure keycloak for sso with pro-connect : 
