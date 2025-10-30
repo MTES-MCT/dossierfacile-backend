@@ -34,6 +34,18 @@ docker-compose -f docker-compose.dev.yml up -d
 
 To create a dedicated user and database for dossierfacile.
 
+### Linux users
+
+Add the following lines to your `docker-compose.dev.yml`  :
+```yaml
+services:
+  nginx:
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+```
+You may also need to add pgcrypt extension to your local database running this SQL query:
+`CREATE EXTENSION IF NOT EXISTS "pgcrypto";`
+
 ## Keycloak
 
 Follow those steps to use [Keycloak](https://www.keycloak.org/) in dev environment locally : 
