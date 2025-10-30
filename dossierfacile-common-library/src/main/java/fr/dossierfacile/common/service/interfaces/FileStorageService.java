@@ -13,7 +13,9 @@ public interface FileStorageService {
      * Soft delete
      */
     void delete(StorageFile storageFile);
+
     void hardDelete(StorageFile storageFile);
+
     /**
      * Get the downloaded file's inputStream.
      * If {@code key} is null then the inputStream is directly returned without decrypt operation.

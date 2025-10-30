@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+
+    <changeSet id="202508260001" author="SAGON NICOLAS">
+        <createTable tableName="garbage_sequence">
+            <column name="name" type="VARCHAR(32)">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="garbage_sequence_pkey"/>
+            </column>
+            <column name="value" type="BIGINT"/>
+            <column name="last_update_date" type="TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="202508260002" author="SAGON NICOLAS">
+        <insert tableName="garbage_sequence">
+            <column name="name" value="TENANT_DOCUMENTS"/>
+            <column name="value" valueComputed="(SELECT id FROM tenant_log ORDER BY id DESC LIMIT 1)"/>
+            <column name="last_update_date" valueDate="NOW()"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>
+
