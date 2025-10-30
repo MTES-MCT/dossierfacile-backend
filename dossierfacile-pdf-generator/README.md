@@ -14,18 +14,8 @@ Create a file `application-dev.properties` in `dossierfacile-pdf-generator/src/m
 # Storage path for the MockStorage
 mock.storage.path=../mock-storage
 # Storage provider list (Options: LOCAL, OVH, OUTSCALE, S3)
-# S3 is the new multi-AZ provider with bucket-based storage
 storage.provider.list=LOCAL
-
-# S3 Configuration (for new multi-AZ provider)
-# Required if storage.provider.list includes S3
-s3.region=sbg
-s3.endpoint.url=https://s3.sbg.io.cloud.ovh.net
-s3.access.key=
-s3.secret.access.key=
-# S3 Bucket names (optional, defaults shown)
-s3.bucket.watermark.doc.name=watermark-doc
-s3.bucket.full.pdf.name=full-pdf
+# For S3 provider: s3.region=sbg, s3.endpoint.url=https://s3.sbg.io.cloud.ovh.net, s3.access.key=, s3.secret.access.key=
 
 #URL of the database
 spring.datasource.url=

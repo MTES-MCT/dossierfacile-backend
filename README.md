@@ -13,29 +13,6 @@ The front-end code is also accessible in [this repository](https://github.com/MT
 
 ![Infrastructure diagram](docs/infrastructure_diagram.jpg)
 
-### Storage Providers
-
-The application supports multiple S3-compatible storage providers:
-
-- **LOCAL**: Mock storage for development (stored in `mock-storage` folder)
-- **OVH**: Legacy OVH S3 storage using AWS SDK v1
-- **OUTSCALE**: Outscale S3 storage using AWS SDK v1
-- **S3**: New multi-AZ S3 provider (OVH) using AWS SDK v2 with advanced features
-
-#### New S3 Multi-AZ Provider (OVH)
-
-The new S3 provider introduces several improvements:
-
-- **AWS SDK v2**: Uses the latest AWS SDK v2 for better performance and features
-- **Bucket-based storage**: Files are organized across multiple buckets for better management:
-  - `RAW_FILE`: Original uploaded files
-  - `RAW_MINIFIED`: Compressed/minified versions
-  - `WATERMARK_DOC`: Documents with watermarks
-  - `FULL_PDF`: Generated complete PDF files
-  - `FILIGRANE`: Files for FiligraneFacile service
-- **Server-side encryption**: Automatic encryption of files at rest using AES256
-- **Enhanced garbage collection**: Improved cleanup strategy for orphaned files
-
 ## Prerequisites
 
 You need to have [JDK 21](https://openjdk.org/projects/jdk/21/), [maven](https://maven.apache.org/) and [Docker](https://docs.docker.com/engine/install/) installed.
@@ -112,30 +89,17 @@ Save and copy the dossier-facile-api credentials (Client Secret).
 
 Create a new folder `mock-storage` to store files.
 
-### Storage Provider Configuration
+### Storage Configuration
 
-To configure storage providers, add the following properties to your `application-dev.properties`:
+For development, use the LOCAL provider with mock storage. For production, you can use S3 (OVH Multi-AZ), OVH, or OUTSCALE providers.
 
+Example configuration for the new S3 provider:
 ```properties
-# Storage provider list - comma-separated list of providers to use
-# Options: LOCAL, OVH, OUTSCALE, S3
-storage.provider.list=LOCAL
-
-# For LOCAL provider (development)
-mock.storage.path=../mock-storage
-
-# For new S3 provider (OVH Multi-AZ)
+storage.provider.list=S3
 s3.region=sbg
 s3.endpoint.url=https://s3.sbg.io.cloud.ovh.net
 s3.access.key=your-access-key
 s3.secret.access.key=your-secret-key
-
-# S3 Bucket names (optional, defaults are shown)
-s3.bucket.raw.file.name=raw-file
-s3.bucket.raw.minified.name=raw-minified
-s3.bucket.watermark.doc.name=watermark-doc
-s3.bucket.full.pdf.name=full-pdf
-s3.bucket.filigrane.name=filigrane
 ```
 
 - Project : [dossierfacile-api-owner](dossierfacile-api-owner/README.md)
@@ -157,100 +121,6 @@ In each application folder, run
 ```
 mvn spring-boot:run -D spring-boot.run.profiles=dev,mockOvh
 ```
-
-## Recent Changes: New S3 Multi-AZ Provider
-
-### Overview
-
-A new S3 storage provider has been added to the application with support for multi-AZ (Availability Zone) deployments on OVH. This update brings several improvements to file storage and management.
-
-### Key Features
-
-#### 1. AWS SDK v2 Migration
-- Migrated from AWS SDK v1 to v2 for the new S3 provider
-- Better performance and modern API
-- Improved error handling and retry mechanisms
-- Both SDK versions coexist (v1 for legacy OVH/Outscale, v2 for new S3)
-
-#### 2. Bucket-Based File Organization
-Files are now organized across 5 specialized S3 buckets:
-
-| Bucket | Purpose | Used By |
-|--------|---------|---------|
-| `raw-file` | Original uploaded files | api-tenant, process-file |
-| `raw-minified` | Compressed/optimized files | process-file |
-| `watermark-doc` | Documents with watermarks | pdf-generator |
-| `full-pdf` | Complete generated PDFs | pdf-generator |
-| `filigrane` | FiligraneFacile documents | api-watermark |
-
-#### 3. Server-Side Encryption
-- All files stored in the new S3 provider are automatically encrypted using AES256
-- Encryption is handled server-side by the S3 provider
-- No application-level encryption key management required
-
-#### 4. Enhanced Garbage Collection
-- New incremental garbage collection strategy
-- Uses `garbage_sequence` table to track processing progress
-- Optimized SQL queries for better performance
-- Supports all storage providers including the new S3 multi-AZ
-
-#### 5. Database Migrations
-Two new database migrations have been added:
-
-1. **202507240000-add-bucket-to-storage-file.xml**
-   - Adds `bucket` column to `storage_file` table
-   - Archives old encryption keys (no longer needed with server-side encryption)
-
-2. **202508260000-new-garbage-collection-strategy.xml**
-   - Creates `garbage_sequence` table for efficient garbage collection
-   - Initializes sequence tracking for tenant documents
-
-### Migration Guide
-
-#### For Existing Deployments
-
-1. **Update configuration** to include the new S3 provider:
-```properties
-storage.provider.list=S3,OVH  # Keep OVH for backward compatibility
-
-s3.region=sbg
-s3.endpoint.url=https://s3.sbg.io.cloud.ovh.net
-s3.access.key=your-access-key
-s3.secret.access.key=your-secret-key
-```
-
-2. **Database migrations** will run automatically via Liquibase
-
-3. **Enable garbage collection** (optional but recommended):
-```properties
-garbage-collection.enabled=true
-garbage-collection.objects-by-iteration=100
-garbage-collection.seconds-between-iterations=60
-```
-
-#### For New Deployments
-
-Simply configure the S3 provider from the start:
-```properties
-storage.provider.list=S3
-
-s3.region=sbg
-s3.endpoint.url=https://s3.sbg.io.cloud.ovh.net
-s3.access.key=your-access-key
-s3.secret.access.key=your-secret-key
-```
-
-### Breaking Changes
-
-- **BackupFilesTask removed**: The backup task for file replication has been removed as the new S3 multi-AZ provider handles replication natively
-- Legacy storage providers (OVH, OUTSCALE) continue to work for backward compatibility
-
-### Performance Improvements
-
-- **Optimized SQL queries** in garbage collection reduce database load
-- **Incremental processing** avoids re-scanning previously processed files
-- **Batch processing** limits handled in all storage operations
-- **Server-side encryption** offloads encryption overhead to S3
 
 ## Contributing
 

@@ -25,12 +25,12 @@ increasing loads and activity peaks.
 | `scheduled.process.check.api.ademe`                                | Check the availability of the ADEME API. Property : `scheduled.process.check.api.ademe`control the execution delay in minutes.                                                                                                                                                                                                                                           | Every 10 minutes                                 | `CheckAdemeApiTask.checkAdemeApi`                      |
 | `cron.process.pdf.generation.failed`                               | This task will check the documents where the PDF failed to be generated and try again (200 documents at a time)                                                                                                                                                                                                                                                          | Every day at 1:30 AM, 7:30 AM, 12:30 PM, 7:30 PM | `DocumentTask.reLaunchFailedPDFGeneration`             |
 | `cron.delete.document.with.failed.pdf`                             | Delete the documents where PDF are broken, Scan the error documents and remove after some time (`document.pdf.failed.delay.before.delete.hours`). After a deletion it will send an email to the tenant                                                                                                                                                                   | Every day at 6:00 AM and 10:00 PM                | `DocumentTask.deleteDocumentWithFailedPdfGeneration`   |
-| `garbage-collection`                                               | **New optimized garbage collection strategy**. Deletion of orphaned files, files without link inside the database. Uses an incremental sequence-based approach to efficiently scan and delete orphaned files across all storage providers including the new S3 multi-AZ provider. The process is managed by configuration that is enabled only when `garbage-collection.enabled=true`. It's possible to control the number of files by iteration : `garbage-collection.objects-by-iteration` and the delay of execution `garbage-collection.seconds-between-iterations`. The new strategy uses the `garbage_sequence` table to track progress and avoid re-scanning already processed files.                | Every minute                                     | `GarbageCollectionTask.cleanGarbage`                   |
+| `garbage-collection`                                               | Deletion of orphaned files, files without link inside the database. Uses an optimized incremental strategy with the `garbage_sequence` table. The process is managed by configuration that is enabled only when `garbage-collection.enabled=true`. It's possible to control the number of files by iteration : `garbage-collection.objects-by-iteration` and the delay of execution `garbage-collection.seconds-between-iterations`                | Every minute                                     | `GarbageCollectionTask.cleanGarbage`                   |
 | `cron.owner.delete`                                                | If the first period of activity is reached `owner_weeks_for_first_warning_deletion` send a first warning to the owner by email. After `owner_weeks_for_second_warning_deletion` send a second warning. After `owner_weeks_for_deletion` delete the account and send an email.                                                                                            | Every Friday at 10:10 AM                         | `OwnerWarningTask.accountWarningsForDocumentDeletion`  |
 | `scheduled.process.storage.delete.delay.ms`                        | Delete the files flag as "TO_DELETE" from the api. If the delete failed, the flag "DELETE_FAILED" is added to perform a retry. property `scheduled.process.storage.delete.delay.ms` control the execution delay in MS                                                                                                                                                    | Every 10 secondes                                | `DeleteFilesTask.deleteFileInProviderTask`             |
 | `scheduled.process.storage.delete.retry.dailed.delay.minutes`      | Delete the files flag as "DELETE_FAILED" from the delete task. Property `scheduled.process.storage.delete.retry.dailed.delay.minutes` control the execution delay in minutes                                                                                                                                                                                             | Every 5 minutes                                  | `DeleteFilesTask.retryDeleteFileInProviderTask`        |
-| ~~`scheduled.process.storage.backup.delay.ms`~~                    | ~~**REMOVED**: Copy the files to the other storage. This task has been removed as the new S3 multi-AZ provider handles replication natively.~~ | ~~Every 10 seconds~~                             | ~~`BackupFilesTask.scheduleBackupTask`~~               |
-| ~~`scheduled.process.storage.backup.retry.failed.copy.delay.minutes`~~ | ~~**REMOVED**: Retry copying failed files. This task has been removed as the new S3 multi-AZ provider handles replication natively.~~ | ~~Every 5 minutes~~                              | ~~`BackupFilesTask.retryFailedCopy`~~                  |
+| ~~`scheduled.process.storage.backup.delay.ms`~~                    | **Removed** - No longer needed with S3 multi-AZ provider | -                                 | -                   |
+| ~~`scheduled.process.storage.backup.retry.failed.copy.delay.minutes`~~ | **Removed** - No longer needed with S3 multi-AZ provider | -                              | -                  |
 | `cron.process.warnings`                                            | Delete the documents of a tenant if the account is inactive. After a period of `months_for_deletion_of_documents` (month) 2 email notifications are sent. After those 2 warnings the documents are deleted and the account archived. An other email is sent to inform the tenant.                                                                                        | Every Monday at 10:20 AM                         | `TenantWarningTask.accountWarningsForDocumentDeletion` |
 | `cron.account-deletion`                                            | Delete the tenant account after a period `months_for_deletion_of_archived_tenants` month of inactivity when the account is archived                                                                                                                                                                                                                                      | Every Monday at 7:10 AM                          | `TenantDeletionTask.deleteOldAccounts`                 |
 
@@ -42,6 +42,11 @@ Create a file `application-dev.properties` in `dossierfacile-task-scheduler/src/
 spring.config.import=file:../.env[.properties]
 mock.storage.path=../mock-storage
 storage.provider.list=LOCAL
+# For S3 provider (OVH Multi-AZ): storage.provider.list=S3
+# s3.region=sbg
+# s3.endpoint.url=https://s3.sbg.io.cloud.ovh.net
+# s3.access.key=
+# s3.secret.access.key=
 server.port=8089
 spring.datasource.url=jdbc:postgresql://localhost:5432/dossierfacile
 spring.datasource.username=dossierfacile
@@ -99,13 +104,6 @@ garbage-collection.objects-by-iteration=
 garbage-collection.seconds-between-iterations=60
 environment=local
 application.api.version=4
-# Storage provider list - include S3 for new multi-AZ provider
-storage.provider.list=LOCAL
-# S3 configuration for new multi-AZ provider
-s3.region=sbg
-s3.endpoint.url=https://s3.sbg.io.cloud.ovh.net
-s3.access.key=
-s3.secret.access.key=
 
 #Ademe api configuration 
 ademe.api.base.url=https://prd-x-ademe-externe-api.de-c1.eu1.cloudhub.io/api/v1
@@ -124,59 +122,5 @@ For the dev environment the appender Logstash is disabled by default.
 ## Run the application
 
 ```shell
-mvn spring-boot:run -D spring-boot.run.profiles=dev,mockOvh
+mvn spring-boot:run -D mvn spring-boot:run -D spring-boot.run.profiles=dev,mockOvh
 ```
-
-## New Features in Garbage Collection
-
-### Optimized Incremental Garbage Collection
-
-The new garbage collection strategy introduces significant improvements:
-
-#### Database Schema Changes
-
-A new table `garbage_sequence` tracks the progress of garbage collection:
-
-```sql
-CREATE TABLE garbage_sequence (
-    name VARCHAR(32) PRIMARY KEY,
-    value BIGINT,
-    last_update_date TIMESTAMP
-);
-```
-
-This table stores sequences for different garbage collection types:
-- `TENANT_DOCUMENTS`: Tracks the last processed tenant_log ID for document cleanup
-
-#### How It Works
-
-1. **Incremental Processing**: Instead of scanning all files every time, the garbage collector maintains a sequence number of the last processed item
-2. **Efficient Scanning**: Only new or modified items since the last run are checked
-3. **Storage Provider Support**: Works seamlessly with all storage providers including the new S3 multi-AZ provider
-4. **Configurable Batching**: Process files in batches (controlled by `garbage-collection.objects-by-iteration`)
-
-#### SQL Optimization
-
-The new implementation includes optimized SQL queries:
-- Uses `tenant_log` table to track document changes efficiently
-- Leverages indexes for better performance
-- Reduces database load by avoiding full table scans
-
-#### Configuration
-
-```properties
-# Enable garbage collection
-garbage-collection.enabled=true
-
-# Number of files to process per iteration (default: 100)
-garbage-collection.objects-by-iteration=100
-
-# Seconds between iterations (default: 60)
-garbage-collection.seconds-between-iterations=60
-```
-
-### Migration Notes
-
-- The old `BackupFilesTask` has been removed as the new S3 multi-AZ provider handles replication natively
-- Existing orphaned files will be cleaned up by the new garbage collection strategy
-- No manual migration needed - the system will automatically start using the new strategy
