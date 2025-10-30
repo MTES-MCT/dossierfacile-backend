@@ -29,7 +29,7 @@ public class GarbageCollectionTask extends AbstractTask {
     */
     @Scheduled(cron = "0 * * * * *")
     public void garbageCollectionTask() {
-        super.startTask(TaskName.GARBAGE_COLLECTION);
+        super.startTask(TaskName.GARBAGE_COLLECTION_V2);
         log.info("Garbage collection task started");
         garbageCollectionService.handleGarbageCollection();
         super.endTask();
