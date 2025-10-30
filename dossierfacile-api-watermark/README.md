@@ -15,8 +15,9 @@ Create a file `application-dev.properties` in `dossierfacile-api-watermark/src/m
 mock.storage.path=../mock-storage
 # Port of this API
 server.port=8091
-# List of storage providers
+# List of storage providers (Options: LOCAL, OVH, OUTSCALE, S3)
 storage.provider.list=LOCAL
+# For S3 provider: s3.region=sbg, s3.endpoint.url=https://s3.sbg.io.cloud.ovh.net, s3.access.key=, s3.secret.access.key=
 # SQL
 #URL of the database
 spring.datasource.url=
