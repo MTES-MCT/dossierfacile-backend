@@ -10,8 +10,10 @@ import fr.dossierfacile.common.service.ApartmentSharingLinkService;
 import fr.gouv.bo.service.TenantLogService;
 import fr.gouv.bo.service.TenantService;
 import fr.gouv.bo.service.UserApiService;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -22,11 +24,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
 
 @Controller
-@AllArgsConstructor
+@RequiredArgsConstructor
 @RequestMapping(value = "/bo/colocation")
 @Slf4j
 public class BOApartmentSharingController {
@@ -43,11 +49,15 @@ public class BOApartmentSharingController {
     private static final String PARTNER_LIST_BY_TENANT = "partnerListByTenant";
     private static final String NOW = "now";
     private static final String FILES_BY_DOCUMENT = "filesByDocument";
+    private static final String TENANT_BASE_URL = "tenantBaseUrl";
 
     private final TenantService tenantService;
     private final ApartmentSharingLinkService apartmentSharingLinkService;
     private final UserApiService userApiService;
     private final TenantLogService logService;
+
+    @Value("${tenant.base.url}")
+    private String tenantBaseUrl;
 
     @GetMapping("/{id}")
     public String view(Model model, @PathVariable("id") Long id) {
@@ -69,9 +79,17 @@ public class BOApartmentSharingController {
         model.addAttribute(APARTMENT_SHARING, tenants.get(0).getApartmentSharing());
         model.addAttribute(NOW, LocalDateTime.now());
         model.addAttribute(FILES_BY_DOCUMENT, getFilesByDocument(tenants));
+        model.addAttribute(TENANT_BASE_URL, tenantBaseUrl);
 
         return "bo/apartment-sharing-view";
     }
+
+    @PostMapping("/{id}/tokens/{token}")
+    public String regenerateToken(Model model, @PathVariable UUID token, @PathVariable Long id) {
+        apartmentSharingLinkService.regenerateToken(token);
+        return "redirect:/bo/colocation/" + id ;
+    }
+    
 
     @DeleteMapping("/{id}/apartmentSharingLinks/{link_id}")
     public String deleteToken(Model model, @PathVariable("id") Long id, @PathVariable("link_id") Long linkId) {

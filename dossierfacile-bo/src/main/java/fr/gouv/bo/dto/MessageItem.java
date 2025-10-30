@@ -21,6 +21,7 @@ public class MessageItem {
 
     private String commentDoc;
     private Integer monthlySum;
+    private Integer newMonthlySum;
     private String customTex;
     private DocumentCategory documentCategory;
     private DocumentSubCategory documentSubCategory;

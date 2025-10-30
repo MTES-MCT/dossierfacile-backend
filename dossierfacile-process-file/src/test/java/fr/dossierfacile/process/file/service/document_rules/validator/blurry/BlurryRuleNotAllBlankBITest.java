@@ -8,11 +8,13 @@ import fr.dossierfacile.process.file.service.document_rules.validator.RuleValida
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.util.Optional;
+
 class BlurryRuleNotAllBlankBITest {
 
     private BlurryFileAnalysis buildBlurryFileAnalysis(boolean isBlank) {
         return BlurryFileAnalysis.builder()
-                .blurryResults(new BlurryResult(isBlank, false, 0f, true))
+                .blurryResults(new BlurryResult(isBlank, false, Optional.of(0f), Optional.of(true), Optional.empty(), Optional.empty()))
                 .build();
     }
 
@@ -54,4 +56,3 @@ class BlurryRuleNotAllBlankBITest {
         Assertions.assertThat(output.isValid()).isFalse();
     }
 }
-

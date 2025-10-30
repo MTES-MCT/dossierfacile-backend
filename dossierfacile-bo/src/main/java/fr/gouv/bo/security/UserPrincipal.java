@@ -1,22 +1,37 @@
 package fr.gouv.bo.security;
 
 import fr.dossierfacile.common.entity.User;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.oauth2.core.oidc.OidcIdToken;
+import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
-public class UserPrincipal implements OAuth2User, UserDetails {
+public class UserPrincipal implements UserDetails, OidcUser {
+    @Getter
     private final Long id;
+    @Getter
     private final String email;
-    private final Collection<? extends GrantedAuthority> authorities;
-    private transient Map<String, Object> attributes;
+    @Getter
+    private final String firstName;
 
-    public UserPrincipal(Long id, String email, Collection<? extends GrantedAuthority> authorities) {
+    private final Collection<? extends GrantedAuthority> authorities;
+    @Setter
+    private transient Map<String, Object> attributes;
+    // OIDC fields
+    private transient OidcIdToken oidcIdToken;
+    private transient OidcUserInfo oidcUserInfo; // nullable
+    private transient Map<String, Object> oidcClaims; // nullable
+
+    public UserPrincipal(Long id, String firstName, String email, Collection<? extends GrantedAuthority> authorities) {
         this.id = id;
+        this.firstName = firstName;
         this.email = email;
         this.authorities = authorities;
     }
@@ -25,6 +40,7 @@ public class UserPrincipal implements OAuth2User, UserDetails {
 
         return new UserPrincipal(
                 user.getId(),
+                user.getFirstName(),
                 user.getEmail(),
                 authorities
         );
@@ -36,12 +52,14 @@ public class UserPrincipal implements OAuth2User, UserDetails {
         return userPrincipal;
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public String getEmail() {
-        return email;
+    public void setOidcData(OidcIdToken idToken, OidcUserInfo userInfo, Map<String, Object> claims) {
+        this.oidcIdToken = idToken;
+        this.oidcUserInfo = userInfo;
+        this.oidcClaims = claims;
+        // Pour compat: attributes = claims si non déjà définies
+        if (this.attributes == null && claims != null) {
+            this.attributes = claims;
+        }
     }
 
     @Override
@@ -84,12 +102,24 @@ public class UserPrincipal implements OAuth2User, UserDetails {
         return attributes;
     }
 
-    public void setAttributes(Map<String, Object> attributes) {
-        this.attributes = attributes;
+    // --- OIDC specific implementations ---
+    @Override
+    public Map<String, Object> getClaims() {
+        return oidcClaims != null ? oidcClaims : attributes; // fallback
+    }
+
+    @Override
+    public OidcUserInfo getUserInfo() {
+        return oidcUserInfo;
+    }
+
+    @Override
+    public OidcIdToken getIdToken() {
+        return oidcIdToken;
     }
 
     @Override
     public String getName() {
-        return String.valueOf(id);
+        return firstName;
     }
 }

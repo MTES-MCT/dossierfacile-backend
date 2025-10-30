@@ -8,7 +8,6 @@ import fr.dossierfacile.common.mapper.mail.ApartmentSharingMapperForMail;
 import fr.dossierfacile.common.mapper.mail.TenantMapperForMail;
 import fr.dossierfacile.common.repository.ApartmentSharingLinkRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
-import fr.dossierfacile.common.service.interfaces.LogService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.dossierfacile.common.utils.TransactionalUtil;
 import fr.gouv.bo.dto.*;
@@ -19,6 +18,8 @@ import fr.gouv.bo.repository.*;
 import fr.gouv.bo.security.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.apache.commons.lang3.tuple.Pair;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -27,11 +28,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.security.Principal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -60,7 +59,6 @@ public class TenantService {
     private final DocumentService documentService;
     private final TenantLogService tenantLogService;
     private final KeycloakService keycloakService;
-    private final LogService communTenantLogService;
     private final ApartmentSharingService apartmentSharingService;
     private final GuarantorRepository guarantorRepository;
     private final TenantMapperForMail tenantMapperForMail;
@@ -130,11 +128,10 @@ public class TenantService {
         return keyCloakUser.isEmailVerified();
     }
 
-    public synchronized String redirectToApplication(Principal principal, Long tenantId) {
+    public synchronized String redirectToApplication(UserPrincipal operator, Long tenantId) {
         LocalDateTime localDateTime = LocalDateTime.now().minusMinutes(timeReprocessApplicationMinutes);
         Tenant tenant;
         if (tenantId == null) {
-            UserPrincipal operator = (UserPrincipal) ((OAuth2AuthenticationToken) principal).getPrincipal();
             Long operatorId = operator.getId();
             // check less than x process are currently starting during the n lastMinutes
             if (operatorLogRepository.countByOperatorIdAndActionOperatorTypeAndCreationDateGreaterThanEqual(operatorId, ActionOperatorType.START_PROCESS, LocalDateTime.now().minusMinutes(timeInterval)) > maxDossiersByInterval) {
@@ -149,7 +146,7 @@ public class TenantService {
         }
 
         if (tenant != null) {
-            User user = userService.findUserByEmail(principal.getName());
+            User user = userService.findUserByEmail(operator.getName());
             operatorLogRepository.save(new OperatorLog(
                     tenant, user, tenant.getStatus(), ActionOperatorType.START_PROCESS
             ));
@@ -173,9 +170,9 @@ public class TenantService {
     }
 
     @Transactional
-    public void validateTenantFile(Principal principal, Long tenantId) {
+    public void validateTenantFile(UserPrincipal principal, Long tenantId) {
         Tenant tenant = find(tenantId);
-        BOUser operator = userService.findUserByEmail(principal.getName());
+        BOUser operator = userService.findUserByEmail(principal.getEmail());
 
         Optional.ofNullable(tenant.getDocuments())
                 .orElse(new ArrayList<>())
@@ -367,6 +364,42 @@ public class TenantService {
         return "Garant : " + guarantor.getCompleteName();
     }
 
+    private void processMonthlySums(CustomMessage customMessage, Tenant tenant, Long operatorId) {
+        List<Pair<String, List<MessageItem>>> itemsChanged = new ArrayList<>();
+        var items = updateMonthlySums(customMessage.getMessageItems(), tenant, operatorId);
+        if (items.size() > 0) {
+            itemsChanged.add(Pair.of(tenant.getFullName(), items));
+        }
+        for (GuarantorItem guarantorItem : customMessage.getGuarantorItems()) {
+            var guarantorItems = updateMonthlySums(guarantorItem.getMessageItems(), tenant, operatorId);
+            if (guarantorItems.size() > 0) {
+                itemsChanged.add(Pair.of(guarantorLabel(guarantorItem), guarantorItems));
+            }
+        }
+        if (itemsChanged.size() > 0) {
+            sendAmountChangedMessage(itemsChanged, tenant);
+        }
+    }
+
+    private List<MessageItem> updateMonthlySums(List<MessageItem> items, Tenant tenant, Long operatorId) {
+        List<MessageItem> itemsChanged = new ArrayList<>();
+        for (MessageItem item : items) {
+            if (item.getMonthlySum() != null && !item.getMonthlySum().equals(item.getNewMonthlySum())) {
+                Document document = documentRepository.findById(item.getDocumentId()).orElse(null);
+                if (document != null) {
+                    log.info("Update document monthly sum : " + item.getDocumentId() + ", from " + item.getMonthlySum() + " to " + item.getNewMonthlySum());
+                    tenantLogService.addUpdateAmountLog(tenant.getId(), operatorId, document, item.getNewMonthlySum());
+                    document.setMonthlySum(item.getNewMonthlySum());
+                    documentRepository.save(document);
+                    itemsChanged.add(item);
+                } else {
+                    log.warn("Document not found: " + item.getDocumentId());
+                }
+            }
+        }
+        return itemsChanged;
+    }
+
     public Message sendCustomMessage(Tenant tenant, CustomMessage customMessage) {
         boolean forTenant = hasCheckedItem(customMessage.getMessageItems());
         boolean forGuarantor = hasGuarantorCheckedItem(customMessage.getGuarantorItems());
@@ -444,9 +477,9 @@ public class TenantService {
     }
 
     @Transactional
-    public void declineTenant(Principal principal, Long tenantId) {
+    public void declineTenant(UserPrincipal principal, Long tenantId) {
         Tenant tenant = find(tenantId);
-        User operator = userService.findUserByEmail(principal.getName());
+        User operator = userService.findUserByEmail(principal.getEmail());
 
         Optional.ofNullable(tenant.getDocuments())
                 .orElse(new ArrayList<>())
@@ -479,13 +512,13 @@ public class TenantService {
     }
 
     @Transactional
-    public String customMessage(Principal principal, Long tenantId, CustomMessage customMessage) {
+    public String customMessage(UserPrincipal principal, Long tenantId, CustomMessage customMessage) {
         Tenant tenant = find(tenantId);
         if (tenant == null) {
             log.error("BOTenantController customEmail not found tenant with id : {}", tenantId);
             return "redirect:/error";
         }
-        User operator = userService.findUserByEmail(principal.getName());
+        User operator = userService.findUserByEmail(principal.getEmail());
         updateFileStatus(customMessage);
         Message message = sendCustomMessage(tenant, customMessage);
         changeTenantStatusToDeclined(tenant, operator, message, ProcessedDocuments.NONE);
@@ -500,7 +533,7 @@ public class TenantService {
     }
 
     @Transactional
-    public void processFile(Long tenantId, CustomMessage customMessage, Principal principal) {
+    public void processFile(Long tenantId, CustomMessage customMessage, UserPrincipal principal) {
         Tenant tenant = find(tenantId);
 
         if (tenant == null) {
@@ -509,13 +542,15 @@ public class TenantService {
         }
         //check tenant status before trying to validate or to deny
         if (tenant.getStatus() != TenantFileStatus.TO_PROCESS) {
-            log.error("Operator try to validate/deny a not TO PROCESS tenant : t={} op={}", tenantId, principal.getName());
+            log.error("Operator try to validate/deny a not TO PROCESS tenant : t={} op={}", tenantId, principal.getEmail());
             throw new IllegalStateException("You cannot treat a tenant which is not TO PROCESS");
         }
-        User operator = userService.findUserByEmail(principal.getName());
+        User operator = userService.findUserByEmail(principal.getEmail());
 
         ProcessedDocuments processedDocuments = ProcessedDocuments.in(customMessage);
         boolean allDocumentsValid = updateFileStatus(customMessage);
+
+        processMonthlySums(customMessage, tenant, operator.getId());
 
         if (allDocumentsValid) {
             changeTenantStatusToValidated(tenant, operator, processedDocuments);
@@ -526,10 +561,74 @@ public class TenantService {
         updateOperatorDateTimeTenant(tenantId);
     }
 
+    private void sendAmountChangedMessage(List<Pair<String, List<MessageItem>>> changeList, Tenant tenant) {
+        StringBuilder html = new StringBuilder();
+        html.append("<p>Bonjour,</p>");
+        if (changeList.size() == 1 && changeList.getFirst().getRight().size() == 1) {
+            String name = changeList.getFirst().getLeft();
+            MessageItem item = changeList.getFirst().getRight().getFirst();
+            html.append("<p>Nos agents ont ajusté <strong>le montant de votre revenu</strong> déclaré afin qu’il corresponde à vos justificatifs.");
+            html.append("<br/> Le montant suivant a été modifié pour garantir la cohérence et la fiabilité de votre dossier :");
+            html.append("<p class=\"fr-mb-0\"><strong>");
+            html.append(name);
+            html.append("</strong></p>");
+            html.append("<p><strong>");
+            html.append(messageSource.getMessage("document_sub_category." + item.getDocumentSubCategory(), null, locale));
+            if (item.getDocumentCategoryStep() != null) {
+                html.append(" - ");
+                html.append(messageSource.getMessage("document_category_step." + item.getDocumentCategoryStep(), null, locale));
+            }
+            html.append(" : </strong>");
+            html.append(" déclaré <strong>");
+            html.append(item.getMonthlySum());
+            html.append(" €</strong> → corrigé à <strong>");
+            html.append(item.getNewMonthlySum());
+            html.append(" €</strong></p>");
+        } else {
+            html.append("<p>Nos agents ont ajusté <strong>certains montants de revenus</strong> déclarés afin qu’ils correspondent à vos justificatifs.");
+            html.append("<br/> Les valeurs suivantes ont été modifiées pour garantir la cohérence et la fiabilité de votre dossier :");
+            for (Pair<String,List<MessageItem>> change : changeList) {
+                html.append("<p class=\"fr-mb-0\"><strong>");
+                html.append(change.getLeft());
+                html.append("</strong></p>");
+                html.append("<ul>");
+                for (MessageItem item: change.getRight()) {
+                    html.append("<li>");
+                    html.append("<strong>");
+                    html.append(messageSource.getMessage("document_sub_category." + item.getDocumentSubCategory(), null, locale));
+                    if (item.getDocumentCategoryStep() != null) {
+                        html.append(" - ");
+                        html.append(messageSource.getMessage("document_category_step." + item.getDocumentCategoryStep(), null, locale));
+                    }
+                    html.append(" : </strong>");
+                    html.append(" déclaré <strong>");
+                    html.append(item.getMonthlySum());
+                    html.append(" €</strong> → corrigé à <strong>");
+                    html.append(item.getNewMonthlySum());
+                    html.append(" €</strong>");
+                    html.append("</li>");
+                }
+                html.append("</ul>");
+            }
+        }
+        html.append("<p>👉 Vous pouvez consulter la version mise à jour dans votre espace.</p>");
+        html.append("<p>Si vous souhaitez modifier ce montant, vous êtes libre de le faire, mais votre dossier devra alors repasser par le processus complet de validation.<br/> ");
+        html.append("<strong>Pour un traitement plus rapide, nous vous invitons à contacter notre support via ce lien : <a href=\"/contact?open=form\">Lien support</a>.</strong></p>");
+        html.append("<p><em>Rappel : vous avez accepté que notre équipe procède à cet ajustement en cas d’incohérence.</em></p>");
+        html.append("<p>Bonne journée</p>");
+        messageService.create(MessageDTO.builder().message(html.toString()).build(), tenant, false, false);
+        TenantDto tenantDto = tenantMapperForMail.toDto(tenant);
+        mailService.sendEmailAmountChanged(tenantDto);
+    }
+
     @Transactional
     //todo : Review this method to refactor with the others DENY OR VALIDATE documents for tenants
-    public String updateStatusOfTenantFromAdmin(Principal principal, MessageDTO messageDTO, Long tenantId) {
-        User operator = userService.findUserByEmail(principal.getName());
+    public String updateStatusOfTenantFromAdmin(
+            UserPrincipal principal,
+            MessageDTO messageDTO,
+            Long tenantId
+    ) {
+        User operator = userService.findUserByEmail(principal.getEmail());
         Tenant tenant = tenantRepository.findOneById(tenantId);
         messageService.create(messageDTO, tenant, false, false);
 

@@ -20,6 +20,8 @@ public interface ApartmentSharingLinkRepository extends JpaRepository<ApartmentS
 
     Optional<ApartmentSharingLink> findByIdAndApartmentSharingAndDeletedIsFalse(Long id, ApartmentSharing apartmentSharing);
 
+    Optional<ApartmentSharingLink> findByToken(UUID token);
+
     @Query(value = """
             SELECT *
             FROM apartment_sharing_link

@@ -197,6 +197,43 @@
                                 </tr>
 
                             </table>
+                            <h2>Liste des liens de partage:</h2>
+                            <table class="table table-striped table-bordered table-hover">
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Accès</th>
+                                    <th>Lien</th>
+                                    <th>Expire le</th>
+                                    <th>Action</th>
+                                </tr>
+                                <tr th:each="link : ${apartmentSharing.apartmentSharingLinks}" th:if="${link.linkType.toString() != 'MAIL'}">
+                                    <td th:text="${link.linkType}"></td>
+                                    <td th:text="${link.fullData ? 'full' : 'restricted'}"></td>
+                                    <td>
+                                        <a
+                                            target="_blank"
+                                            th:attr="href=${tenantBaseUrl + (link.fullData ? '/file/' : '/public-file/') + link.token}"
+                                            th:text="${link.token}"></a>
+                                    </td>
+                                    <td th:text="${link.expirationDate}"></td>
+                                    <td>
+                                        <form th:action="@{/bo/colocation/{id}/tokens/{token}(id=${apartmentSharing.id},token=${link.token})}" th:method="post">
+                                            <button class="btn btn-outline-danger btn-modal-confirm-before-submit" type="button">Régénérer</button>
+                                            <div class="modal" role="dialog" tabindex="-1">
+                                                <div class="modal-dialog" role="document">
+                                                    <div class="modal-content">
+                                                        <div class="modal-body">Voulez-vous régénérer ce token ?</div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                                            <button type="submit" class="btn btn-primary">Valider</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </td>
+                                </tr>
+                            </table>
                             <h2>Liste des liens envoyés:</h2>
                             <table class="table table-striped table-bordered table-hover">
                                 <tr>
@@ -323,15 +360,8 @@
                                                 <div class="bg-warning-subtle"
                                                      style="display: grid; padding: 7px;margin-bottom: 10px;"
                                                      th:each="log: ${logser.getLogByTenantId(tenant.getId())}">
-                                                    <div style="font-weight: bold;"
-                                                         th:text="${log.getLogType()} + ${ (log.getOperatorId() != null)? ' by opId: ' + log.getOperatorId() : ''} + ${log.getLogDetails() != null && log.getLogDetails().get('editionType') != null ? ' : DOCUMENT ' + (log.getLogDetails().get('editionType').asText().equals('ADD') ? 'ADDED' : 'DELETED'): ''}">
-                                                    </div>
-                                                    <span th:if="${log != null && log.getLogDetails() != null && log.getLogDetails().get('documentCategory') != null && log.getLogDetails().get('documentSubCategory') != null}"
-                                                          class="bold" style="font-size: 14px">
-                                                        <span th:if="${log.getLogDetails().get('guarantorId') != null}">GUARANTOR - </span>
-                                                        <span th:text="${log.getLogDetails().get('documentCategory').asText()}"></span> -
-                                                        <span th:text="${log.getLogDetails().get('documentSubCategory').asText()}"></span>
-                                                    </span>
+                                                    <div style="font-weight: bold;" th:text="${log.getTitle()}"></div>
+                                                    <span class="bold" style="font-size: 14px;" th:if="${!log.getSubtitle().isEmpty()}" th:text="${log.getSubtitle()}"></span>
                                                     <span
                                                             th:text="'date: ' + ${log.getCreationDateTime().getYear()} + '-' + ${log.getCreationDateTime().getMonthValue()} + '-' + ${log.getCreationDateTime().getDayOfMonth()} + ' ' + ${log.getCreationDateTime().getHour()} + ':' + ${log.getCreationDateTime().getMinute()} + ':' + ${log.getCreationDateTime().getSecond()}">
                                                     </span>

@@ -13,16 +13,17 @@ import org.junit.jupiter.api.Test;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 class BlurryRulesValidationServiceTest {
 
     private final BlurryRulesValidationService service = new BlurryRulesValidationService();
 
-    private File fileWithStatusAndResult(BlurryFileAnalysisStatus status, boolean blank, boolean blurry, boolean readable) {
+    private File fileWithStatusAndResult(BlurryFileAnalysisStatus status, boolean blank, boolean blurry) {
         File f = File.builder().build();
         BlurryFileAnalysis analysis = BlurryFileAnalysis.builder()
                 .analysisStatus(status)
-                .blurryResults(new BlurryResult(blank, blurry, 10f, readable))
+                .blurryResults(new BlurryResult(blank, blurry, Optional.of(10f), Optional.of(true), Optional.empty(), Optional.empty()))
                 .file(f)
                 .build();
         f.setBlurryFileAnalysis(analysis);
@@ -49,8 +50,8 @@ class BlurryRulesValidationServiceTest {
     @Test
     void shouldBeApplied_true_when_all_files_have_analysis() {
         Document doc = documentWithFiles(
-                fileWithStatusAndResult(BlurryFileAnalysisStatus.COMPLETED, true, false, true),
-                fileWithStatusAndResult(BlurryFileAnalysisStatus.FAILED, true, false, true)
+                fileWithStatusAndResult(BlurryFileAnalysisStatus.COMPLETED, true, false),
+                fileWithStatusAndResult(BlurryFileAnalysisStatus.FAILED, true, false)
         );
         Assertions.assertThat(service.shouldBeApplied(doc)).isTrue();
     }
@@ -58,7 +59,7 @@ class BlurryRulesValidationServiceTest {
     @Test
     void shouldBeApplied_false_when_one_file_missing_analysis() {
         Document doc = documentWithFiles(
-                fileWithStatusAndResult(BlurryFileAnalysisStatus.COMPLETED, true, false, true),
+                fileWithStatusAndResult(BlurryFileAnalysisStatus.COMPLETED, true, false),
                 fileWithoutAnalysis()
         );
         Assertions.assertThat(service.shouldBeApplied(doc)).isFalse();
@@ -67,8 +68,8 @@ class BlurryRulesValidationServiceTest {
     @Test
     void process_all_rules_pass_when_not_all_blank_and_not_blurry() {
         Document doc = documentWithFiles(
-                fileWithStatusAndResult(BlurryFileAnalysisStatus.COMPLETED, false, false, true),
-                fileWithStatusAndResult(BlurryFileAnalysisStatus.COMPLETED, true, false, true)
+                fileWithStatusAndResult(BlurryFileAnalysisStatus.COMPLETED, false, false),
+                fileWithStatusAndResult(BlurryFileAnalysisStatus.COMPLETED, true, false)
         );
         DocumentAnalysisReport report = emptyReport(doc);
         service.process(doc, report);
@@ -87,8 +88,8 @@ class BlurryRulesValidationServiceTest {
     @Test
     void process_stops_on_inconclusive_second_rule_when_all_blank() {
         Document doc = documentWithFiles(
-                fileWithStatusAndResult(BlurryFileAnalysisStatus.COMPLETED, true, false, true),
-                fileWithStatusAndResult(BlurryFileAnalysisStatus.COMPLETED, true, false, true)
+                fileWithStatusAndResult(BlurryFileAnalysisStatus.COMPLETED, true, false),
+                fileWithStatusAndResult(BlurryFileAnalysisStatus.COMPLETED, true, false)
         );
         DocumentAnalysisReport report = emptyReport(doc);
         service.process(doc, report);
@@ -106,7 +107,7 @@ class BlurryRulesValidationServiceTest {
     void process_inconclusive_first_rule_blocks_others() {
         // Analyse FAILED -> première règle INCONCLUSIVE et bloque
         Document doc = documentWithFiles(
-                fileWithStatusAndResult(BlurryFileAnalysisStatus.FAILED, true, false, true)
+                fileWithStatusAndResult(BlurryFileAnalysisStatus.FAILED, true, false)
         );
         DocumentAnalysisReport report = emptyReport(doc);
         service.process(doc, report);
@@ -121,7 +122,7 @@ class BlurryRulesValidationServiceTest {
     @Test
     void process_second_rule_passes_then_third_checks_blurriness() {
         Document doc = documentWithFiles(
-                fileWithStatusAndResult(BlurryFileAnalysisStatus.COMPLETED, false, true, true)
+                fileWithStatusAndResult(BlurryFileAnalysisStatus.COMPLETED, false, true)
         );
         DocumentAnalysisReport report = emptyReport(doc);
         service.process(doc, report);

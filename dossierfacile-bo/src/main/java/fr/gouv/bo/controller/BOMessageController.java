@@ -5,10 +5,12 @@ import fr.dossierfacile.common.entity.Message;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.User;
 import fr.gouv.bo.dto.MessageDTO;
+import fr.gouv.bo.security.UserPrincipal;
 import fr.gouv.bo.service.MessageService;
 import fr.gouv.bo.service.TenantService;
 import fr.gouv.bo.service.UserService;
 import lombok.AllArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,7 +18,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.security.Principal;
 import java.util.List;
 
 @Controller
@@ -34,12 +35,16 @@ public class BOMessageController {
     private final UserService userService;
 
     @GetMapping("/tenant/{id}")
-    public String tenantMessages(Model model, @PathVariable("id") Long id, Principal principal) {
+    public String tenantMessages(
+            Model model,
+            @PathVariable("id") Long id,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
 
         User tenant = tenantService.getUserById(id);
         Tenant tenant1 = tenantService.getTenantById(tenant.getId());
         ApartmentSharing apartmentSharing = tenant1.getApartmentSharing();
-        User loggedUser = userService.findUserByEmail(principal.getName());
+        User loggedUser = userService.findUserByEmail(principal.getEmail());
         List<Message> messages = messageService.findTenantMessages(tenant);
 
         model.addAttribute("message", MessageDTO.builder().message("Bonjour,\n\n" +
@@ -54,7 +59,11 @@ public class BOMessageController {
     }
 
     @PostMapping("/new/{id}")
-    public String newMessage(MessageDTO messageDTO, @PathVariable("id") Long tenantId, Principal principal) {
+    public String newMessage(
+            MessageDTO messageDTO,
+            @PathVariable("id") Long tenantId,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
         return tenantService.updateStatusOfTenantFromAdmin(principal, messageDTO, tenantId);
     }
 

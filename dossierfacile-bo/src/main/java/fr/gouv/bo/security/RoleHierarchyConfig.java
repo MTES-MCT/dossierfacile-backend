@@ -17,7 +17,8 @@ public class RoleHierarchyConfig {
         roleHierarchy.setHierarchy(String.join("\n",
                 "ROLE_ADMIN > ROLE_MANAGER",
                 "ROLE_MANAGER > ROLE_SUPPORT",
-                "ROLE_SUPPORT > ROLE_OPERATOR"
+                "ROLE_SUPPORT > ROLE_OPERATOR",
+                "ROLE_OPERATOR > ROLE_USER"
         ));
         return roleHierarchy;
     }

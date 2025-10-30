@@ -5,20 +5,16 @@ import fr.dossierfacile.common.enums.Role;
 import fr.gouv.bo.dto.EmailDTO;
 import fr.gouv.bo.model.RoleDTO;
 import fr.gouv.bo.security.RoleService;
+import fr.gouv.bo.security.UserPrincipal;
 import fr.gouv.bo.service.UserService;
 import jakarta.ws.rs.ForbiddenException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
 import java.util.Collections;
 
 @Slf4j
@@ -30,9 +26,9 @@ public class BOUserController {
     private final RoleService roleComparator;
 
     @GetMapping("/bo/users")
-    public String getBOUser(Model model, Principal principal) {
+    public String getBOUser(Model model, @AuthenticationPrincipal UserPrincipal principal) {
 
-        var highestRole = roleComparator.getHighestRole(((AbstractAuthenticationToken) principal).getAuthorities());
+        var highestRole = roleComparator.getHighestRole(principal.getAuthorities());
         var availableRolesDto = roleComparator.getAvailableRoles(highestRole);
         model.addAttribute(EMAIL, new EmailDTO());
         model.addAttribute("users", userService.findAll());
@@ -42,9 +38,14 @@ public class BOUserController {
     }
 
     @PostMapping("/bo/users")
-    public String createBOUser(EmailDTO emailDTO, Model model, @RequestParam(defaultValue = "ROLE_OPERATOR", name = "action") Role role, Principal principal) {
+    public String createBOUser(
+            EmailDTO emailDTO,
+            Model model,
+            @RequestParam(defaultValue = "ROLE_OPERATOR", name = "action") Role role,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
         BOUser user = userService.findUserByEmail(emailDTO.getEmail());
-        var highestRole = roleComparator.getHighestRole(((AbstractAuthenticationToken) principal).getAuthorities());
+        var highestRole = roleComparator.getHighestRole(principal.getAuthorities());
         if (highestRole == null || !roleComparator.isRoleGreaterOrEqual(highestRole, role)) {
             throw new ForbiddenException("Vous n'avez pas les droits suffisants pour effectuer cette action");
         }
@@ -58,11 +59,15 @@ public class BOUserController {
     }
 
     @DeleteMapping("/bo/users/{email}/roles/{role}")
-    public String deleteRole(Model model, @PathVariable(name = "email") String email, @PathVariable(name = "role") Role role, Principal principal) {
+    public String deleteRole(
+            Model model,
+            @PathVariable(name = "email") String email,
+            @PathVariable(name = "role") Role role,
+            @AuthenticationPrincipal UserPrincipal principal) {
         if (principal == null) {
             return "redirect:/login";
         }
-        var highestRole = roleComparator.getHighestRole(((AbstractAuthenticationToken) principal).getAuthorities());
+        var highestRole = roleComparator.getHighestRole(principal.getAuthorities());
         if (highestRole == null || !roleComparator.isRoleGreaterOrEqual(highestRole, role)) {
             throw new ForbiddenException("Vous n'avez pas les droits suffisants pour effectuer cette action");
         }
@@ -72,9 +77,14 @@ public class BOUserController {
     }
 
     @PostMapping("/bo/users/{email}/roles")
-    public String addRole(@RequestParam(name = "role") Role role, Model model, @PathVariable(name = "email") String email, Principal principal) {
+    public String addRole(
+            @RequestParam(name = "role") Role role,
+            Model model,
+            @PathVariable(name = "email") String email,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
         BOUser user = userService.findUserByEmail(email);
-        var highestRole = roleComparator.getHighestRole(((AbstractAuthenticationToken) principal).getAuthorities());
+        var highestRole = roleComparator.getHighestRole(principal.getAuthorities());
         if (highestRole == null || !roleComparator.isRoleGreaterOrEqual(highestRole, role)) {
             throw new ForbiddenException("Vous n'avez pas les droits suffisants pour effectuer cette action");
         }
