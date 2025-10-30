@@ -15,8 +15,18 @@ Create a file `application-dev.properties` in `dossierfacile-api-watermark/src/m
 mock.storage.path=../mock-storage
 # Port of this API
 server.port=8091
-# List of storage providers
+# List of storage providers (Options: LOCAL, OVH, OUTSCALE, S3)
+# S3 is the new multi-AZ provider with bucket-based storage
 storage.provider.list=LOCAL
+
+# S3 Configuration (for new multi-AZ provider)
+# Required if storage.provider.list includes S3
+s3.region=sbg
+s3.endpoint.url=https://s3.sbg.io.cloud.ovh.net
+s3.access.key=
+s3.secret.access.key=
+# S3 Bucket name for filigrane files
+s3.bucket.filigrane.name=filigrane
 # SQL
 #URL of the database
 spring.datasource.url=
