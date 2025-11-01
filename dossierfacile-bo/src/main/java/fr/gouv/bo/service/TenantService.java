@@ -145,7 +145,8 @@ public class TenantService {
         }
 
         if (tenant != null) {
-            User user = userService.findUserByEmail(operator.getName());
+
+            User user = userService.findUserByEmail(operator.getEmail());
             operatorLogRepository.save(new OperatorLog(
                     tenant, user, tenant.getStatus(), ActionOperatorType.START_PROCESS
             ));
