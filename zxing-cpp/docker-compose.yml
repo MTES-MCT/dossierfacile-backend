@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  zxing-cpp-vm:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    platform: linux/amd64
+    container_name: zxing-cpp-vm
+    volumes:
+      - ./data:/project/zxing-cpp/data
+    working_dir: /project/zxing-cpp
+    stdin_open: true  # Équivalent de -i (interactive)
+    tty: true         # Équivalent de -t (terminal)
+    command: /bin/bash -c "tail -f /dev/null"
+    restart: unless-stopped
+

@@ -17,6 +17,9 @@ tmp
 **/certs/*
 elastalert/dist
 
+zxing-cpp/data/build_lib
+zxing-cpp/data/zxing-cpp
+
 ### STS ###
 .apt_generated
 .classpath

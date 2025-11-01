@@ -4,13 +4,7 @@ import com.drew.imaging.ImageMetadataReader;
 import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.exif.ExifIFD0Directory;
-import com.google.zxing.BinaryBitmap;
-import com.google.zxing.DecodeHintType;
-import com.google.zxing.LuminanceSource;
-import com.google.zxing.MultiFormatReader;
-import com.google.zxing.NotFoundException;
-import com.google.zxing.Result;
-import com.google.zxing.ResultPoint;
+import com.google.zxing.*;
 import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.multi.GenericMultipleBarcodeReader;
@@ -22,6 +16,8 @@ import fr.dossierfacile.api.pdfgenerator.model.PageDimension;
 import fr.dossierfacile.api.pdfgenerator.model.PdfTemplateParameters;
 import fr.dossierfacile.api.pdfgenerator.service.interfaces.PdfSignatureService;
 import fr.dossierfacile.api.pdfgenerator.service.interfaces.PdfTemplate;
+import fr.dossierfacile.common.service.zxing.BarcodeHit;
+import fr.dossierfacile.common.service.zxing.NativeBarcodeReader;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -52,13 +48,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Hashtable;
+import java.util.*;
 import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Service
@@ -298,23 +289,18 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
             graphic.dispose();
 
             BufferedImage cropedRotated = rotated.getSubimage(diagonal / 2 - bim.getWidth() / 2, diagonal / 2 - bim.getHeight() / 2, diagonal / 2 + bim.getWidth() / 2, diagonal / 2 + bim.getHeight() / 2);
-            List<Result> qrCodes = detectQRCodes(bim);
+            List<BarcodeHit> qrCodes = detectQRCodes(bim);
+            log.info("[QR_CODE] Qr codes detected: " + qrCodes.size());
 
             Graphics2D graphics = cropedRotated.createGraphics();
             graphics.setComposite(AlphaComposite.Clear);
             int MAGIC_BORDER_SIZE = 20;
-            for (Result qrCode : qrCodes) {
-                ResultPoint[] points = qrCode.getResultPoints();
-                if (points.length == 3) {
-                    int minX = (int) Math.min(points[0].getX(), Math.min(points[1].getX(), points[2].getX())) - MAGIC_BORDER_SIZE;
-                    int minY = (int) Math.min(points[0].getY(), Math.min(points[1].getY(), points[2].getY())) - MAGIC_BORDER_SIZE;
-                    int maxX = (int) Math.max(points[0].getX(), Math.max(points[1].getX(), points[2].getX())) + MAGIC_BORDER_SIZE;
-                    int maxY = (int) Math.max(points[0].getY(), Math.max(points[1].getY(), points[2].getY())) + MAGIC_BORDER_SIZE;
-
-                    int width = maxX - minX;
-                    int height = maxY - minY;
-                    graphics.fillRect(minX, minY, (width), (height));
-                }
+            for (BarcodeHit qrCode : qrCodes) {
+                int x = Math.max(qrCode.bbox().topLeft().x() - MAGIC_BORDER_SIZE, 0);
+                int y = Math.max(qrCode.bbox().topLeft().y() - MAGIC_BORDER_SIZE, 0);
+                int w = Math.min(qrCode.bbox().width() + MAGIC_BORDER_SIZE * 2, cropedRotated.getWidth() - x);
+                int h = Math.min(qrCode.bbox().height() + MAGIC_BORDER_SIZE * 2, cropedRotated.getHeight() - y);
+                graphics.fillRect(x, y, w, h);
             }
             graphics.dispose();
 
@@ -329,16 +315,12 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
         }
     }
 
-    private static List<Result> detectQRCodes(BufferedImage image) {
-        LuminanceSource source = new BufferedImageLuminanceSource(image);
-        BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
-        com.google.zxing.Reader reader = new MultiFormatReader();
-        MultipleBarcodeReader bcReader = new GenericMultipleBarcodeReader(reader);
-        Hashtable<DecodeHintType, Object> hints = new Hashtable<>();
-        hints.put(DecodeHintType.TRY_HARDER, Boolean.TRUE);
+    private static List<BarcodeHit> detectQRCodes(BufferedImage image) {
+        var reader = new NativeBarcodeReader();
         try {
-            return List.of(bcReader.decodeMultiple(bitmap, hints));
-        } catch (NotFoundException e) {
+            return reader.decode(image);
+        } catch (Exception e) {
+            log.error("Native barcode reader failed", e);
             return new ArrayList<>();
         }
     }
