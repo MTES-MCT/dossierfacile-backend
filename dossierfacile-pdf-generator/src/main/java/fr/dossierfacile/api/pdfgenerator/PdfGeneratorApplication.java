@@ -1,6 +1,7 @@
 package fr.dossierfacile.api.pdfgenerator;
 
 import fr.dossierfacile.common.config.ImageIOInitializer;
+import fr.dossierfacile.common.service.zxing.ZXingJnaLoader;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -24,6 +25,7 @@ public class PdfGeneratorApplication {
 
     public static void main(String[] args) {
         ImageIOInitializer.initialize();
+        ZXingJnaLoader.load();
         SpringApplication.run(PdfGeneratorApplication.class, args);
         int mb = 1024 * 1024;
         MemoryMXBean memoryBean = ManagementFactory.getMemoryMXBean();
