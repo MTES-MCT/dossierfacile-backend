@@ -30,12 +30,13 @@ server.port=8090
 # Url of the tenant API
 application.base.url=http://localhost:8090
 
+#TODO: replace with your database credentials, can be found in root docker-compose-dev.yml
 #URL of the database
-spring.datasource.url=
+spring.datasource.url=<REPLACE_ME_DB_URL>
 #Username of the database
-spring.datasource.username=
+spring.datasource.username=<REPLACE_ME_DB_USERNAME>
 #Password of the database
-spring.datasource.password=
+spring.datasource.password=<REPLACE_ME_DB_PASSWORD>
 
 #Configuration for rabbitmq (example with the docker-compose)
 spring.rabbitmq.username=dev
@@ -52,13 +53,9 @@ keycloak.server.client.id=dossier-facile-api
 #Keycloak secret that need to be retrieved from keycloak. 
 keycloak.server.client.secret=
 #Issuer URI of the keycloak server
-spring.security.oauth2.resourceserver.jwt.issuer-uri=http://localhost:8085/auth/realms/dossier-facile-owner
+spring.security.oauth2.resourceserver.jwt.issuer-uri=http://localhost:8085/auth/realms/dossier-facile
 #JWK set URI of the keycloak server
-spring.security.oauth2.resourceserver.jwt.jwk-set-uri=http://localhost:8085/auth/realms/dossier-facile-owner/protocol/openid-connect/certs
-#Issuer URI of the tenant keycloak server (not used)
-tenant.jwt.issuer-uri=http://localhost:8085/auth/realms/dossier-facile
-#JWK set URI of the tenant keycloak server (not used)
-tenant.jwt.jwk-set-uri=http://localhost:8085/auth/realms/dossier-facile/protocol/openid-connect/certs
+spring.security.oauth2.resourceserver.jwt.jwk-set-uri=http://localhost:8085/auth/realms/dossier-facile/protocol/openid-connect/certs
 
 # Log configuration
 environment=localhost
@@ -103,5 +100,5 @@ For the dev environment the appender Logstash is disabled by default.
 # Run the application
 
 ```shell
-    mvn spring-boot:run -D mvn spring-boot:run -D spring-boot.run.profiles=dev,mockOvh
+    mvn spring-boot:run -D spring-boot.run.profiles=dev,mockOvh
 ```
