@@ -93,12 +93,12 @@ public class ApartmentSharingPdfDocumentTemplate implements PdfTemplate<Apartmen
     private static final String TENANT_RESIDENCY_TEXT_HEADER = "Le justificatif de situation d'hébergement de ";
     private static final String TENANT_PROFESSIONAL_TEXT_HEADER = "Le justificatif de situation professionnelle de ";
     private static final String TENANT_FINANCIAL_TEXT_HEADER = "Le justificatif de ressources n°";
-    private static final String TENANT_TAX_TEXT_HEADER = "L'avis d'imposition conforme de ";
+    private static final String TENANT_TAX_TEXT_HEADER = "L'avis d'imposition de ";
     private static final String NATURAL_GUARANTOR_IDENTIFICATION_TEXT_HEADER = "La pièce d'identité du garant ";
     private static final String NATURAL_GUARANTOR_RESIDENCY_TEXT_HEADER = "Le justificatif de situation d'hébergement du garant ";
     private static final String NATURAL_GUARANTOR_PROFESSIONAL_TEXT_HEADER = "Le justificatif de situation professionnelle du garant ";
     private static final String NATURAL_GUARANTOR_FINANCIAL_TEXT_HEADER = "Le justificatif de ressources n°";
-    private static final String NATURAL_GUARANTOR_TAX_TEXT_HEADER = "L'avis d'imposition conforme du garant ";
+    private static final String NATURAL_GUARANTOR_TAX_TEXT_HEADER = "L'avis d'imposition du garant ";
     private static final String LEGAL_GUARANTOR_IDENTIFICATION_TEXT_HEADER = "Identité de la personne morale qui se porte garant pour ";
     private static final String LEGAL_GUARANTOR_LEGAL_IDENTIFICATION_TEXT_HEADER = "Justificatif d'identité du représentant de la personne morale qui se porte garant pour ";
     private static final String ORGANISM_GUARANTOR_IDENTIFICATION_TEXT_HEADER = "L'attestation de l'organisme qui se porte garant pour ";
