@@ -15,7 +15,7 @@ import java.util.UUID;
 
 public interface ApartmentSharingService {
 
-    ApplicationModel full(UUID token);
+    ApplicationModel full(UUID token, String trigram);
 
     ApplicationModel light(UUID token);
 

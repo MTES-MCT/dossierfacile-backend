@@ -3,6 +3,7 @@ package fr.dossierfacile.api.front.service;
 import fr.dossierfacile.api.front.amqp.Producer;
 import fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException;
 import fr.dossierfacile.api.front.exception.ApartmentSharingUnexpectedException;
+import fr.dossierfacile.api.front.exception.TrigramNotAuthorizedException;
 import fr.dossierfacile.api.front.model.MappingFormat;
 import fr.dossierfacile.api.front.model.tenant.FullFolderFile;
 import fr.dossierfacile.api.front.repository.ApiTenantLogRepository;
@@ -17,6 +18,7 @@ import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
 import fr.dossierfacile.common.repository.ApartmentSharingLinkRepository;
 import fr.dossierfacile.common.repository.ApartmentSharingRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
+import fr.dossierfacile.common.utils.TrigramUtils;
 import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.common.service.interfaces.LinkLogService;
@@ -63,8 +65,9 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
     private final LogService logService;
 
     @Override
-    public ApplicationModel full(UUID token) {
+    public ApplicationModel full(UUID token, String trigram) {
         ApartmentSharing apartmentSharing = findValidApartmentSharing(token, true);
+        validateTrigram(apartmentSharing, trigram);
         saveLinkLog(apartmentSharing, token, LinkType.FULL_APPLICATION);
         ApplicationModel applicationModel = applicationFullMapper.toApplicationModelWithToken(apartmentSharing, token);
         applicationModel.setLastUpdateDate(getLastUpdateDate(apartmentSharing));
@@ -177,6 +180,21 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
             throw new ApartmentSharingNotFoundException(token.toString());
         }
         return apartmentSharingLink.get().getApartmentSharing();
+    }
+
+    private void validateTrigram(ApartmentSharing apartmentSharing, String trigram) {
+        List<String> validTrigrams = apartmentSharing.getTenants() == null ? List.of() : apartmentSharing.getTenants().stream()
+                .map(Tenant::getLastName)
+                .map(TrigramUtils::compute)
+                .flatMap(Optional::stream)
+                .toList();
+
+        boolean trigramMatches = validTrigrams.stream().anyMatch(candidate -> candidate.equalsIgnoreCase(trigram));
+
+        if (!trigramMatches) {
+            log.warn("Unauthorized trigram [{}] for apartmentSharing [{}]. Valid trigrams: {}", trigram, apartmentSharing.getId(), validTrigrams);
+            throw new TrigramNotAuthorizedException("Trigram does not match any tenant for this application");
+        }
     }
 
     @Override

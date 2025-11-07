@@ -3,6 +3,7 @@ package fr.dossierfacile.api.front.controller;
 import fr.dossierfacile.api.front.aop.annotation.MethodLogTime;
 import fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException;
 import fr.dossierfacile.api.front.exception.ApartmentSharingUnexpectedException;
+import fr.dossierfacile.api.front.exception.MissingTrigramHeaderException;
 import fr.dossierfacile.api.front.model.tenant.FullFolderFile;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
@@ -16,10 +17,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.util.StringUtils;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.UUID;
+import java.util.Locale;
 
 import static org.springframework.http.ResponseEntity.accepted;
 import static org.springframework.http.ResponseEntity.ok;
@@ -34,8 +37,14 @@ public class ApplicationController {
     private final AuthenticationFacade authenticationFacade;
 
     @GetMapping(value = "/full/{token}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ApplicationModel> full(@PathVariable UUID token) {
-        ApplicationModel applicationModel = apartmentSharingService.full(token);
+    public ResponseEntity<ApplicationModel> full(@PathVariable UUID token,
+                                                 @RequestHeader(value = "X-Tenant-Trigram", required = false) String trigramHeader) {
+        if (!StringUtils.hasText(trigramHeader)) {
+            throw new MissingTrigramHeaderException("Header X-Tenant-Trigram is required");
+        }
+
+        String normalizedTrigram = trigramHeader.strip().toUpperCase(Locale.ROOT);
+        ApplicationModel applicationModel = apartmentSharingService.full(token, normalizedTrigram);
         return ok(applicationModel);
     }
 
