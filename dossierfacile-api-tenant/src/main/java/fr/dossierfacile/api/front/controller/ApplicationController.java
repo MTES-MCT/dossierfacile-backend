@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.UUID;
+import java.util.Locale;
 
 import static org.springframework.http.ResponseEntity.accepted;
 import static org.springframework.http.ResponseEntity.ok;
@@ -34,8 +35,11 @@ public class ApplicationController {
     private final AuthenticationFacade authenticationFacade;
 
     @GetMapping(value = "/full/{token}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ApplicationModel> full(@PathVariable UUID token) {
-        ApplicationModel applicationModel = apartmentSharingService.full(token);
+    public ResponseEntity<ApplicationModel> full(@PathVariable UUID token,
+                                                 @RequestHeader(value = "X-Tenant-Trigram", required = true) String trigramHeader) {
+
+        String normalizedTrigram = trigramHeader.strip().toUpperCase(Locale.ROOT);
+        ApplicationModel applicationModel = apartmentSharingService.full(token, normalizedTrigram);
         return ok(applicationModel);
     }
 
