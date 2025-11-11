@@ -13,6 +13,7 @@ import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
 import org.junit.jupiter.api.Test;
+import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.parameterizedtest.ArgumentBuilder;
 import fr.dossierfacile.parameterizedtest.ControllerParameter;
 import fr.dossierfacile.parameterizedtest.ParameterizedTestHelper;
@@ -303,7 +304,7 @@ class ApplicationControllerTest {
         @ParameterizedTest(name = "{0}")
         @MethodSource("provideGetFullPdfForLoggedTenantParameters")
         void parameterizedTests(ControllerParameter<GetFullPdfForLoggedTenantTestParameter> parameter) throws Exception {
-            var mockMvcRequestBuilder = get("/api/application/fullPdf")
+            var mockMvcRequestBuilder = get("/api/application/current-tenant/fullPdf")
                     .contentType("application/pdf");
 
             ParameterizedTestHelper.runControllerTest(
@@ -391,8 +392,72 @@ class ApplicationControllerTest {
         @ParameterizedTest(name = "{0}")
         @MethodSource("providePostFullPdfForLoggedTenantParameters")
         void parameterizedTests(ControllerParameter<PostFullPdfForLoggedTenantTestParameter> parameter) throws Exception {
-            var mockMvcRequestBuilder = post("/api/application/fullPdf")
+            var mockMvcRequestBuilder = post("/api/application/current-tenant/fullPdf")
                     .contentType("application/pdf");
+
+            ParameterizedTestHelper.runControllerTest(
+                    mockMvc,
+                    mockMvcRequestBuilder,
+                    parameter
+            );
+        }
+    }
+
+    @Nested
+    class GetFullForLoggedTenantTests {
+
+        record GetFullForLoggedTenantTestParameter() {
+        }
+
+        static List<Arguments> provideGetFullForLoggedTenantParameters() {
+            SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwtTokenWithDossier = jwt().authorities(new SimpleGrantedAuthority("SCOPE_dossier"));
+
+            ApartmentSharing apartmentSharing = new ApartmentSharing();
+            apartmentSharing.setId(1L);
+
+            Tenant tenant = Tenant.builder()
+                    .id(1L)
+                    .email("test@example.com")
+                    .firstName("Test")
+                    .lastName("User")
+                    .status(TenantFileStatus.VALIDATED)
+                    .apartmentSharing(apartmentSharing)
+                    .build();
+
+            fr.dossierfacile.common.model.apartment_sharing.ApplicationModel applicationModel =
+                    new fr.dossierfacile.common.model.apartment_sharing.ApplicationModel();
+
+            return ArgumentBuilder.buildListOfArguments(
+                    Pair.of("Should respond 401 when no user is logged in",
+                            new ControllerParameter<>(
+                                    new GetFullForLoggedTenantTestParameter(),
+                                    401,
+                                    null,
+                                    null,
+                                    Collections.emptyList()
+                            )
+                    ),
+                    Pair.of("Should respond 200 when logged tenant has valid data",
+                            new ControllerParameter<>(
+                                    new GetFullForLoggedTenantTestParameter(),
+                                    200,
+                                    jwtTokenWithDossier,
+                                    (v) -> {
+                                        when(authenticationFacade.getLoggedTenant()).thenReturn(tenant);
+                                        when(apartmentSharingService.full(tenant)).thenReturn(applicationModel);
+                                        return v;
+                                    },
+                                    Collections.emptyList()
+                            )
+                    )
+            );
+        }
+
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("provideGetFullForLoggedTenantParameters")
+        void parameterizedTests(ControllerParameter<GetFullForLoggedTenantTestParameter> parameter) throws Exception {
+            var mockMvcRequestBuilder = get("/api/application/current-tenant/full")
+                    .contentType("application/json");
 
             ParameterizedTestHelper.runControllerTest(
                     mockMvc,

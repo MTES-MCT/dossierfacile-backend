@@ -115,6 +115,14 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
         return applicationModel;
     }
 
+    public ApplicationModel full(Tenant tenant) {
+        ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
+        ApplicationModel applicationModel = applicationFullMapper.toApplicationModel(apartmentSharing);
+        applicationModel.setLastUpdateDate(getLastUpdateDate(apartmentSharing));
+        return applicationModel;
+    }
+
+
     @Override
     public ApplicationModel light(UUID token) {
         ApartmentSharing apartmentSharing = findValidApartmentSharing(token, false);

@@ -19,6 +19,8 @@ public interface ApartmentSharingService {
 
     ApplicationModel full(UUID token, String trigram);
 
+    ApplicationModel full(Tenant tenant);
+
     ApplicationModel light(UUID token);
 
     FullFolderFile downloadFullPdf(UUID token) throws IOException;
