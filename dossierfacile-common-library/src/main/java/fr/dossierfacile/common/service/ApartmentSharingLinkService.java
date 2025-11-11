@@ -42,13 +42,14 @@ public class ApartmentSharingLinkService {
     }
 
     private ApartmentSharingLinkModel mapApartmentSharingLink(ApartmentSharingLink link, ApartmentSharing apartmentSharing) {
-        LocalDateTime lastVisit = linkLogService.getLastVisit(link.getToken(), apartmentSharing).orElse(null);
+        LinkLogServiceImpl.FirstAndLastVisit firstAndLastVisit = linkLogService.getFirstAndLastVisit(link.getToken(), apartmentSharing);
         long nbVisits = linkLogService.countVisits(link.getToken(), apartmentSharing);
         return ApartmentSharingLinkModel.builder()
                 .id(link.getId())
                 .creationDate(link.getCreationDate())
                 .ownerEmail(link.getEmail())
-                .lastVisit(lastVisit)
+                .lastVisit(firstAndLastVisit.last().orElse(null))
+                .firstVisit(firstAndLastVisit.first().orElse(null))
                 .enabled(!link.isDisabled())
                 .deleted(link.isDeleted())
                 .fullData(link.isFullData())
