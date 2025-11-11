@@ -63,14 +63,21 @@ public class ApplicationController {
         return handlePdfCreation(() -> apartmentSharingService.createFullPdf(token));
     }
 
-    @PostMapping(value = "/fullPdf", produces = MediaType.APPLICATION_PDF_VALUE)
+    @GetMapping(value = "/current-tenant/full", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<ApplicationModel> fullForLoggedTenant() {
+        Tenant tenant = authenticationFacade.getLoggedTenant();
+        ApplicationModel applicationModel = apartmentSharingService.full(tenant);
+        return ok(applicationModel);
+    }
+
+    @PostMapping(value = "/current-tenant/fullPdf", produces = MediaType.APPLICATION_PDF_VALUE)
     public ResponseEntity<String> createFullPdfForLoggedTenant() {
         Tenant tenant = authenticationFacade.getLoggedTenant();
         return handlePdfCreation(() -> apartmentSharingService.createFullPdfForTenant(tenant));
     }
 
     @MethodLogTime
-    @GetMapping(value = "/fullPdf", produces = MediaType.APPLICATION_PDF_VALUE)
+    @GetMapping(value = "/current-tenant/fullPdf", produces = MediaType.APPLICATION_PDF_VALUE)
     public void downloadFullPdf(HttpServletResponse response) {
         Tenant tenant = authenticationFacade.getLoggedTenant();
         handlePdfDownload(() -> apartmentSharingService.downloadFullPdfForTenant(tenant), response);
@@ -97,7 +104,6 @@ public class ApplicationController {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
-
 
     private void handlePdfDownload(PdfDownloadSupplier downloadSupplier, HttpServletResponse response) {
         try {
