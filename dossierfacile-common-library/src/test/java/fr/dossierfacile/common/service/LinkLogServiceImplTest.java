@@ -21,7 +21,7 @@ class LinkLogServiceImplTest {
     private final LinkLogService service = new LinkLogServiceImpl(repository);
 
     @Test
-    void should_find_last_visit_date() {
+    void should_find_first_and_last_visit_date() {
         LocalDateTime date = LocalDateTime.of(2023, 1, 1, 12, 0);
         ApartmentSharing apartmentSharing = ApartmentSharing.builder().id(1L).build();
         UUID token = UUID.randomUUID();
@@ -31,12 +31,20 @@ class LinkLogServiceImplTest {
                 log(LinkType.REBUILT_TOKENS, date.plusHours(2)),
                 log(LinkType.LIGHT_APPLICATION, date.plusHours(3)),
                 log(LinkType.DOCUMENT, date.plusHours(4)),
-                log(LinkType.DELETED_LINK_TOKEN, date.plusHours(5))
+                log(LinkType.DOCUMENT, date.plusHours(5)),
+                log(LinkType.DELETED_LINK_TOKEN, date.plusHours(6))
         ));
 
-        assertThat(service.getLastVisit(token, apartmentSharing))
+        LinkLogServiceImpl.FirstAndLastVisit result = service.getFirstAndLastVisit(token, apartmentSharing);
+
+        assertThat(result.first())
                 .isPresent()
-                .contains(date.plusHours(4));
+                .contains(date.plusHours(1));
+
+        assertThat(result.last())
+                .isPresent()
+                .contains(date.plusHours(5));
+
     }
 
     @Test

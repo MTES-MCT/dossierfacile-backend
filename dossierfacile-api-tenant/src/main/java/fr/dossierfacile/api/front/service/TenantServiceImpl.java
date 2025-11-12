@@ -3,6 +3,8 @@ package fr.dossierfacile.api.front.service;
 import fr.dossierfacile.api.front.exception.MailSentLimitException;
 import fr.dossierfacile.api.front.exception.ResendLinkTooShortException;
 import fr.dossierfacile.api.front.exception.TenantNotFoundException;
+import fr.dossierfacile.api.front.form.ShareFileByLinkForm;
+import fr.dossierfacile.api.front.form.ShareFileByMailForm;
 import fr.dossierfacile.api.front.model.KeycloakUser;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.RegisterFactory;
@@ -35,7 +37,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -176,7 +177,7 @@ public class TenantServiceImpl implements TenantService {
     }
 
     @Override
-    public void sendFileByMail(Tenant tenant, String email, String shareType) {
+    public void sendFileByMail(Tenant tenant, ShareFileByMailForm form) {
         UUID token = UUID.randomUUID();
         LocalDateTime date = LocalDateTime.now().minusDays(1);
         List<ApartmentSharingLink> existingASL = apartmentSharingLinkRepository.findByApartmentSharingAndCreationDateIsAfterAndDeletedIsFalse(tenant.getApartmentSharing(), date);
@@ -189,23 +190,42 @@ public class TenantServiceImpl implements TenantService {
                 .apartmentSharing(tenant.getApartmentSharing())
                 .disabled(false)
                 .lastSentDatetime(LocalDateTime.now())
-                .expirationDate(LocalDateTime.now().plusMonths(1))
-                .title("Lien créé le " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
+                .expirationDate(LocalDateTime.now().plusDays(form.getDaysValid()))
+                .title(form.getTitle())
                 .createdBy(tenant.getId())
-                .fullData("full".equals(shareType))
+                .fullData(form.isFullData())
                 .token(token)
                 .linkType(ApartmentSharingLinkType.MAIL)
-                .email(email)
+                .email(form.getEmail())
                 .build();
 
         String url = "/file/" + apartmentSharingLink.getToken();
-        if ("resume".equals(shareType)) {
+        if (!form.isFullData()) {
             url = "/public-file/" + apartmentSharingLink.getToken();
         }
-        mailService.sendFileByMail(url, email, tenant.getFirstName(), tenant.getFullName(), tenant.getEmail());
+        mailService.sendFileByMail(url, form.getEmail(), form.getMessage(), tenant.getFirstName(), tenant.getFullName(), tenant.getEmail());
 
         // save after successfully sent
         apartmentSharingLinkRepository.save(apartmentSharingLink);
+    }
+
+    @Override
+    public String createSharingLink(Tenant tenant, ShareFileByLinkForm form) {
+        UUID token = UUID.randomUUID();
+        ApartmentSharingLink apartmentSharingLink = ApartmentSharingLink.builder()
+                .apartmentSharing(tenant.getApartmentSharing())
+                .disabled(false)
+                .expirationDate(LocalDateTime.now().plusDays(form.getDaysValid()))
+                .title(form.getTitle())
+                .createdBy(tenant.getId())
+                .fullData(form.isFullData())
+                .token(token)
+                .linkType(ApartmentSharingLinkType.LINK)
+                .build();
+        apartmentSharingLinkRepository.save(apartmentSharingLink);
+
+        String path = form.isFullData() ? "/file/" : "/public-file/";
+        return path + token;
     }
 
     @Override
@@ -222,7 +242,7 @@ public class TenantServiceImpl implements TenantService {
             throw new ResendLinkTooShortException();
         }
         String url = (link.isFullData() ? "/file/" : "/public-file/") + link.getToken();
-        mailService.sendFileByMail(url, link.getEmail(), tenant.getFirstName(), tenant.getFullName(), tenant.getEmail());
+        mailService.sendFileByMail(url, link.getEmail(), "", tenant.getFirstName(), tenant.getFullName(), tenant.getEmail());
 
         link.setLastSentDatetime(LocalDateTime.now());
         apartmentSharingLinkRepository.save(link);
