@@ -122,6 +122,16 @@ public class Document implements Serializable {
         return String.format(getDocumentNameFormat(), id);
     }
 
+    // This method is used to get the tenant id for the document.
+    // This is necessary for the document upload on a guarant tenant.
+    public String getDocumentS3PrefixPath() {
+        if (getTenant() == null) {
+            return String.format("tenant_%s/guarant_%s/%s", getGuarantor().getTenant().getId(), getGuarantor().getId(), getDocumentCategory().name());
+        } else {
+            return String.format("tenant_%s/%s", getTenant().getId(), getDocumentCategory().name());
+        }
+    }
+
     private String getDocumentNameFormat() {
         return switch (getDocumentSubCategory()) {
             case FRENCH_IDENTITY_CARD, FRENCH_PASSPORT, FRENCH_RESIDENCE_PERMIT, DRIVERS_LICENSE, FRANCE_IDENTITE,

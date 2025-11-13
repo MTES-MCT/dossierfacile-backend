@@ -4,6 +4,7 @@ import fr.dossierfacile.common.config.ImageMagickConfig;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.StorageFile;
+import fr.dossierfacile.common.model.S3Bucket;
 import fr.dossierfacile.common.repository.SharedFileRepository;
 import fr.dossierfacile.common.service.interfaces.DocumentHelperService;
 import fr.dossierfacile.common.service.interfaces.EncryptionKeyService;
@@ -57,12 +58,14 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
         StorageFile storageFile = StorageFile.builder()
                 .size(multipartFile.getSize())
                 .encryptionKey(encryptionKeyService.getCurrentKey())
+                .bucket(S3Bucket.RAW_FILE)
                 .build();
         String originalFilename = multipartFile.getOriginalFilename();
         storageFile.setMd5(getFileMd5Hash(multipartFile));
         if (originalFilename == null) {
             originalFilename = UUID.randomUUID().toString();
         }
+        storageFile.setPath(document.getDocumentS3PrefixPath() + "/" + UUID.randomUUID());
         if ("image/heif".equals(multipartFile.getContentType())) {
             storageFile.setName(originalFilename.replaceAll("(?i)\\.heic$", "") + ".jpg");
             storageFile.setContentType("image/jpeg");
@@ -78,7 +81,6 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
             storageFile.setContentType(multipartFile.getContentType());
             storageFile = fileStorageService.upload(multipartFile.getInputStream(), storageFile);
         }
-
 
         File file = File.builder()
                 .storageFile(storageFile)
@@ -139,14 +141,14 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
     }
 
     @Override
-    public StorageFile generatePreview(InputStream fileInputStream, String originalName) {
+    public StorageFile generatePreview(Document document, InputStream fileInputStream, String originalName) {
         try {
             String imageExtension = FilenameUtils.getExtension(originalName);
             BufferedImage preview;
             if ("pdf".equalsIgnoreCase(imageExtension)) {
                 long startTime = System.currentTimeMillis();
-                try (PDDocument document = Loader.loadPDF(fileInputStream.readAllBytes())) {
-                    PDFRenderer pdfRenderer = new PDFRenderer(document);
+                try (PDDocument pdfDocument = Loader.loadPDF(fileInputStream.readAllBytes())) {
+                    PDFRenderer pdfRenderer = new PDFRenderer(pdfDocument);
                     BufferedImage bufferedImage = pdfRenderer.renderImageWithDPI(0, 200, ImageType.RGB);
                     preview = resizeImage(bufferedImage);
                     log.info("resize pdf duration : {}", System.currentTimeMillis() - startTime);
@@ -163,9 +165,11 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
 
             StorageFile storageFile = StorageFile.builder()
                     .name(originalName)
-                    .path("minified_" + UUID.randomUUID() + ".jpg")
-                    .contentType(MediaType.IMAGE_JPEG_VALUE)
+                    .bucket(S3Bucket.RAW_MINIFIED)
                     .encryptionKey(encryptionKeyService.getCurrentKey())
+                    .path(document.getDocumentS3PrefixPath() + "/" + UUID.randomUUID())
+                    .contentType(MediaType.IMAGE_JPEG_VALUE)
+                    .encryptionKey(null)
                     .build();
 
             try (InputStream is = new ByteArrayInputStream(baos.toByteArray())) {

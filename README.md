@@ -34,6 +34,18 @@ docker-compose -f docker-compose.dev.yml up -d
 
 To create a dedicated user and database for dossierfacile.
 
+### Linux users
+
+Add the following lines to your `docker-compose.dev.yml`  :
+```yaml
+services:
+  nginx:
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+```
+You may also need to add pgcrypt extension to your local database running this SQL query:
+`CREATE EXTENSION IF NOT EXISTS "pgcrypto";`
+
 ## Keycloak
 
 Follow those steps to use [Keycloak](https://www.keycloak.org/) in dev environment locally : 
@@ -88,6 +100,19 @@ Save and copy the dossier-facile-api credentials (Client Secret).
 ## General Config 
 
 Create a new folder `mock-storage` to store files.
+
+### Storage Configuration
+
+For development, use the LOCAL provider with mock storage. For production, you can use S3 (OVH Multi-AZ), OVH, or OUTSCALE providers.
+
+Example configuration for the new S3 provider:
+```properties
+storage.provider.list=S3
+s3.region=sbg
+s3.endpoint.url=https://s3.sbg.io.cloud.ovh.net
+s3.access.key=your-access-key
+s3.secret.access.key=your-secret-key
+```
 
 - Project : [dossierfacile-api-owner](dossierfacile-api-owner/README.md)
 - Project : [dossierfacile-api-tenant](dossierfacile-api-tenant/README.md)

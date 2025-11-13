@@ -64,7 +64,6 @@ class PdfGeneratorServiceImplTest {
 
         pdfGeneratorService.generateFullDossierPdf(1L);
 
-
         Assertions.assertEquals(FileStatus.COMPLETED, apartmentSharing.getDossierPdfDocumentStatus());
         Assertions.assertNotNull(apartmentSharing.getPdfDossierFile());
 

@@ -8,15 +8,16 @@ import fr.dossierfacile.common.entity.EncryptionKey;
 import fr.dossierfacile.common.entity.ObjectStorageProvider;
 import fr.dossierfacile.common.exceptions.RetryableOperationException;
 import fr.dossierfacile.common.exceptions.UnsupportedKeyException;
+import fr.dossierfacile.common.model.S3Bucket;
 import fr.dossierfacile.common.service.interfaces.FileStorageProviderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.Cipher;
@@ -32,6 +33,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 @Profile("!mockOvh")
+@Deprecated
 public class OutscaleFileStorageServiceImpl implements FileStorageProviderService {
 
     @Autowired
@@ -140,6 +142,21 @@ public class OutscaleFileStorageServiceImpl implements FileStorageProviderServic
                 .getObjectSummaries().stream()
                 .map(S3ObjectSummary::getKey)
                 .toList();
+    }
+
+    @Override
+    public void uploadV2(S3Bucket s3Bucket, String fileKey, InputStream inputStream, String contentType, EncryptionKey key) throws RetryableOperationException, IOException {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public InputStream downloadV2(S3Bucket bucket, String path, EncryptionKey key) throws IOException {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public void deleteV2(S3Bucket bucket, String path) {
+        throw new NotImplementedException("OVH does not support deleteV2 operation");
     }
 
 }

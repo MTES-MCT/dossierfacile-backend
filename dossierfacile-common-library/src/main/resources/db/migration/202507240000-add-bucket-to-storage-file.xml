@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+    <changeSet id="202507240001" author="SAGON NICOLAS">
+        <!-- Ajout des colonnes dans la table tenant -->
+        <addColumn tableName="storage_file">
+            <column name="bucket" type="varchar(50)" defaultValue="NONE"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="202507240002" author="SAGON NICOLAS">
+        <update tableName="encryption_key">
+            <column name="status" value="ARCHIVED"/>
+        </update>
+    </changeSet>
+</databaseChangeLog>
+

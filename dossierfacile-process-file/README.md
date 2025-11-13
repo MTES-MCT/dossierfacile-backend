@@ -14,8 +14,9 @@ Create a file `application-dev.properties` in `dossierfacile-process-file/src/ma
 ```properties
 # Storage path for the MockStorage
 mock.storage.path=../mock-storage
-# Storage provider list
+# Storage provider list (Options: LOCAL, OVH, OUTSCALE, S3)
 storage.provider.list=LOCAL
+# For S3 provider: s3.region=sbg, s3.endpoint.url=https://s3.sbg.io.cloud.ovh.net, s3.access.key=, s3.secret.access.key=
 # Port of this service
 server.port=8088
 
@@ -51,7 +52,7 @@ For the dev environment the appender Logstash is disabled by default.
 # Run the application
 
 ```shell
-mvn spring-boot:run -D mvn spring-boot:run -D spring-boot.run.profiles=dev,mockOvh
+mvn spring-boot:run -D  spring-boot.run.profiles=dev,mockOvh
 ```
 
 ## Running the File Processing Tests

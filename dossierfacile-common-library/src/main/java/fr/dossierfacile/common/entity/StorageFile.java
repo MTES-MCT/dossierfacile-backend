@@ -2,27 +2,17 @@ package fr.dossierfacile.common.entity;
 
 import fr.dossierfacile.common.entity.shared.AbstractAuditable;
 import fr.dossierfacile.common.enums.FileStorageStatus;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Inheritance;
-import jakarta.persistence.InheritanceType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import fr.dossierfacile.common.model.S3Bucket;
+import jakarta.persistence.*;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.io.Serial;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
@@ -52,6 +42,9 @@ public class StorageFile extends AbstractAuditable<String, Long> {
     @Enumerated(EnumType.STRING)
     protected ObjectStorageProvider provider;
 
+    @Enumerated(EnumType.STRING)
+    protected S3Bucket bucket;
+
     @Column(
             name = "providers",
             columnDefinition = "character varying[]"
@@ -61,5 +54,13 @@ public class StorageFile extends AbstractAuditable<String, Long> {
     @ManyToOne
     @JoinColumn(name = "encryption_key_id")
     protected EncryptionKey encryptionKey;
+
+    public static String getWatermarkRawPath() {
+        return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")) + "/raw/" + UUID.randomUUID();
+    }
+
+    public static String getWatermarkPdfPath() {
+        return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")) + "/watermark/" + UUID.randomUUID();
+    }
 
 }
