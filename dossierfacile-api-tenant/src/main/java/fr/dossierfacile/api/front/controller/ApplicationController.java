@@ -56,117 +56,25 @@ public class ApplicationController {
     @MethodLogTime
     @GetMapping(value = "/fullPdf/{token}", produces = MediaType.APPLICATION_PDF_VALUE)
     public void downloadFullPdf(@PathVariable UUID token, HttpServletResponse response) {
-        try {
-            FullFolderFile pdfFile = apartmentSharingService.downloadFullPdf(token);
-            if (pdfFile.getFileOutputStream().size() > 0) {
-                response.setHeader("Access-Control-Expose-Headers", "Content-Disposition, Content-Type");
-                response.setHeader("Content-Disposition", String.format("attachment; filename=\"%s\"", pdfFile.getFileName()));
-                response.setHeader("Content-Type", MediaType.APPLICATION_PDF_VALUE);
-                response.setHeader("X-Robots-Tag", "noindex");
-                response.getOutputStream().write(pdfFile.getFileOutputStream().toByteArray());
-            } else {
-                log.error(DOCUMENT_NOT_EXIST);
-                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            }
-        } catch (ApartmentSharingNotFoundException e) {
-            log.error(e.getMessage(), e.getCause());
-            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-        } catch (IllegalStateException e) {
-            log.warn("ApartmentSharing full pdf in not available yet");
-            try {
-                response.sendError(HttpServletResponse.SC_CONFLICT, "File is not yet available retry later");
-            } catch (IOException ex) {
-                log.error("Something wrong on response status enrichment", ex);
-                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            }
-        } catch (FileNotFoundException e) {
-            log.error(e.getMessage(), e.getCause());
-            try {
-                response.sendError(HttpServletResponse.SC_CONFLICT, "File is not available - check status");
-            } catch (IOException ex) {
-                log.error("Something wrong on response status enrichment", ex);
-                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            }
-        } catch (IOException e) {
-            log.error(e.getMessage(), e.getCause());
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        }
+        handlePdfDownload(() -> apartmentSharingService.downloadFullPdf(token), response);
     }
 
     @PostMapping(value = "/fullPdf/{token}", produces = MediaType.APPLICATION_PDF_VALUE)
     public ResponseEntity<String> createFullPdf(@PathVariable UUID token) {
-        try {
-            apartmentSharingService.createFullPdf(token);
-            return accepted().build();
-        } catch (ApartmentSharingNotFoundException e) {
-            log.error(e.getMessage(), e.getCause());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        } catch (ApartmentSharingUnexpectedException e) {
-            log.error(e.getMessage(), e.getCause());
-            return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(e.getMessage());
-        } catch (Exception e) {
-            log.error(e.getMessage(), e.getCause());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-        }
+        return handlePdfCreation(() -> apartmentSharingService.createFullPdf(token));
     }
 
     @PostMapping(value = "/fullPdf", produces = MediaType.APPLICATION_PDF_VALUE)
     public ResponseEntity<String> createFullPdfForLoggedTenant() {
-        try {
-            Tenant tenant = authenticationFacade.getLoggedTenant();
-            apartmentSharingService.createFullPdfForTenant(tenant);
-            return accepted().build();
-        } catch (ApartmentSharingNotFoundException e) {
-            log.error(e.getMessage(), e.getCause());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        } catch (ApartmentSharingUnexpectedException e) {
-            log.error(e.getMessage(), e.getCause());
-            return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(e.getMessage());
-        } catch (Exception e) {
-            log.error(e.getMessage(), e.getCause());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-        }
+        Tenant tenant = authenticationFacade.getLoggedTenant();
+        return handlePdfCreation(() -> apartmentSharingService.createFullPdfForTenant(tenant));
     }
 
     @MethodLogTime
     @GetMapping(value = "/fullPdf", produces = MediaType.APPLICATION_PDF_VALUE)
     public void downloadFullPdf(HttpServletResponse response) {
-        try {
-            Tenant tenant = authenticationFacade.getLoggedTenant();
-            FullFolderFile pdfFile = apartmentSharingService.downloadFullPdfForTenant(tenant);
-            if (pdfFile.getFileOutputStream().size() > 0) {
-                response.setHeader("Access-Control-Expose-Headers", "Content-Disposition, Content-Type");
-                response.setHeader("Content-Disposition", String.format("attachment; filename=\"%s\"", pdfFile.getFileName()));
-                response.setHeader("Content-Type", MediaType.APPLICATION_PDF_VALUE);
-                response.setHeader("X-Robots-Tag", "noindex");
-                response.getOutputStream().write(pdfFile.getFileOutputStream().toByteArray());
-            } else {
-                log.error(DOCUMENT_NOT_EXIST);
-                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            }
-        } catch (ApartmentSharingNotFoundException e) {
-            log.error(e.getMessage(), e.getCause());
-            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-        } catch (IllegalStateException e) {
-            log.warn("ApartmentSharing full pdf in not available yet");
-            try {
-                response.sendError(HttpServletResponse.SC_CONFLICT, "File is not yet available retry later");
-            } catch (IOException ex) {
-                log.error("Something wrong on response status enrichment", ex);
-                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            }
-        } catch (FileNotFoundException e) {
-            log.error(e.getMessage(), e.getCause());
-            try {
-                response.sendError(HttpServletResponse.SC_CONFLICT, "File is not available - check status");
-            } catch (IOException ex) {
-                log.error("Something wrong on response status enrichment", ex);
-                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            }
-        } catch (IOException e) {
-            log.error(e.getMessage(), e.getCause());
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        }
+        Tenant tenant = authenticationFacade.getLoggedTenant();
+        handlePdfDownload(() -> apartmentSharingService.downloadFullPdfForTenant(tenant), response);
     }
 
     @MethodLogTime
@@ -189,5 +97,70 @@ public class ApplicationController {
             log.error(e.getMessage(), e.getCause());
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
+    }
+
+
+    private void handlePdfDownload(PdfDownloadSupplier downloadSupplier, HttpServletResponse response) {
+        try {
+            FullFolderFile pdfFile = downloadSupplier.get();
+            if (pdfFile.getFileOutputStream().size() > 0) {
+                response.setHeader("Access-Control-Expose-Headers", "Content-Disposition, Content-Type");
+                response.setHeader("Content-Disposition", String.format("attachment; filename=\"%s\"", pdfFile.getFileName()));
+                response.setHeader("Content-Type", MediaType.APPLICATION_PDF_VALUE);
+                response.setHeader("X-Robots-Tag", "noindex");
+                response.getOutputStream().write(pdfFile.getFileOutputStream().toByteArray());
+            } else {
+                log.error(DOCUMENT_NOT_EXIST);
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            }
+        } catch (ApartmentSharingNotFoundException e) {
+            log.error(e.getMessage(), e.getCause());
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+        } catch (IllegalStateException e) {
+            log.warn("ApartmentSharing full pdf in not available yet");
+            try {
+                response.sendError(HttpServletResponse.SC_CONFLICT, "File is not yet available retry later");
+            } catch (IOException ex) {
+                log.error("Something wrong on response status enrichment", ex);
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            }
+        } catch (FileNotFoundException e) {
+            log.error(e.getMessage(), e.getCause());
+            try {
+                response.sendError(HttpServletResponse.SC_CONFLICT, "File is not available - check status");
+            } catch (IOException ex) {
+                log.error("Something wrong on response status enrichment", ex);
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            }
+        } catch (IOException e) {
+            log.error(e.getMessage(), e.getCause());
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private ResponseEntity<String> handlePdfCreation(PdfCreateSupplier createSupplier) {
+        try {
+            createSupplier.execute();
+            return accepted().build();
+        } catch (ApartmentSharingNotFoundException e) {
+            log.error(e.getMessage(), e.getCause());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (ApartmentSharingUnexpectedException e) {
+            log.error(e.getMessage(), e.getCause());
+            return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(e.getMessage());
+        } catch (Exception e) {
+            log.error(e.getMessage(), e.getCause());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    @FunctionalInterface
+    private interface PdfDownloadSupplier {
+        FullFolderFile get() throws IOException;
+    }
+
+    @FunctionalInterface
+    private interface PdfCreateSupplier {
+        void execute() throws ApartmentSharingNotFoundException, ApartmentSharingUnexpectedException;
     }
 }
