@@ -94,40 +94,11 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
     @Override
     public FullFolderFile downloadFullPdf(UUID token) throws IOException {
         ApartmentSharing apartmentSharing = findValidApartmentSharing(token, true);
-
-        FileStatus status = apartmentSharing.getDossierPdfDocumentStatus() == null ? FileStatus.NONE : apartmentSharing.getDossierPdfDocumentStatus();
-        switch (status) {
-            case COMPLETED -> {
-                ByteArrayOutputStream outputStreamResult = new ByteArrayOutputStream();
-                try (InputStream fileIS = fileStorageService.download(apartmentSharing.getPdfDossierFile())) {
-                    log.info("Dossier PDF downloaded for ApartmentSharing with ID [" + apartmentSharing.getId() + "]");
-                    IOUtils.copy(fileIS, outputStreamResult);
-                    saveLinkLog(apartmentSharing, token, LinkType.DOCUMENT);
-
-                } catch (FileNotFoundException e) {
-                    log.error("Unable to download Dossier pdf [" + apartmentSharing.getId() + "].");
-                    throw e;
-                } catch (IOException e) {
-                    log.error("Unable to download Dossier pdf [" + apartmentSharing.getId() + "].");
-                    throw new UnknownServiceException("Unable to get Full PDF from Storage");
-                }
-
-                return FullFolderFile.builder()
-                        .fileOutputStream(outputStreamResult)
-                        .fileName(getFullFolderName(apartmentSharing, "pdf"))
-                        .build();
-            }
-            case IN_PROGRESS -> {
-                throw new IllegalStateException("Full PDF doesn't exist - FileStatus " + apartmentSharing.getDossierPdfDocumentStatus());
-            }
-            case FAILED -> {
-                throw new FileNotFoundException("Full PDF doesn't exist - FileStatus " + apartmentSharing.getDossierPdfDocumentStatus());
-            }
-            default -> {
-                createFullPdf(token);
-                throw new IllegalStateException("Full PDF doesn't exist - create it - FileStatus " + apartmentSharing.getDossierPdfDocumentStatus());
-            }
-        }
+        return handlePdfDownloadByStatus(
+                apartmentSharing,
+                () -> saveLinkLog(apartmentSharing, token, LinkType.DOCUMENT),
+                () -> createFullPdf(token)
+        );
     }
 
     @Override
@@ -232,6 +203,41 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
         return null;
     }
 
+
+    @Override
+    public void createFullPdfForTenant(Tenant tenant) {
+        ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
+        if (apartmentSharing == null) {
+            throw new ApartmentSharingNotFoundException("No apartment sharing found for tenant");
+        }
+
+        checkingAllTenantsInTheApartmentAreValidatedAndAllDocumentsAreNotNull(apartmentSharing.getId(), null);
+
+        FileStatus status = apartmentSharing.getDossierPdfDocumentStatus() == null ? FileStatus.NONE : apartmentSharing.getDossierPdfDocumentStatus();
+        switch (status) {
+            case COMPLETED -> log.warn("Trying to create Full PDF on completed Status");
+            case IN_PROGRESS -> log.warn("Trying to create Full PDF on in progress Status");
+            default -> {
+                apartmentSharing.setDossierPdfDocumentStatus(FileStatus.NONE);
+                producer.generateFullPdf(apartmentSharing.getId());
+            }
+        }
+    }
+
+
+    @Override
+    public FullFolderFile downloadFullPdfForTenant(Tenant tenant) throws IOException {
+        ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
+        if (apartmentSharing == null) {
+            throw new ApartmentSharingNotFoundException("No apartment sharing found for tenant");
+        }
+        return handlePdfDownloadByStatus(
+                apartmentSharing,
+                () -> logService.saveLog(LogType.PDF_DOWNLOAD, tenant.getId()),
+                () -> createFullPdfForTenant(tenant)
+        );
+    }
+
     private void addTenantDocumentsToZip(Tenant tenant, ZipOutputStream outputStream) {
         String tenantFolder = tenant.getFullName().replace(" ", "_");
         tenant.getDocuments().forEach(document -> addDocumentToZip(outputStream, document, tenantFolder));
@@ -282,9 +288,14 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
     private void checkingAllTenantsInTheApartmentAreValidatedAndAllDocumentsAreNotNull(long apartmentSharingId, String token) {
         int numberOfTenants = tenantRepository.countTenantsInTheApartmentNotValidatedOrWithSomeNullDocument(apartmentSharingId);
         if (numberOfTenants > 0) {
-            throw new ApartmentSharingUnexpectedException(token);
+            if (token != null) {
+                throw new ApartmentSharingUnexpectedException(token);
+            } else {
+                throw new ApartmentSharingUnexpectedException();
+            }
         }
     }
+
 
     private String getFullFolderName(ApartmentSharing apartmentSharing, String extension) {
         var fileName = String.format("DossierFacile.%s", extension);
@@ -306,5 +317,47 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
         return fileName;
     }
 
+    private FullFolderFile handlePdfDownloadByStatus(
+            ApartmentSharing apartmentSharing,
+            Runnable onSuccessLog,
+            Runnable onCreatePdf) throws IOException {
+
+        FileStatus status = apartmentSharing.getDossierPdfDocumentStatus() == null
+                ? FileStatus.NONE
+                : apartmentSharing.getDossierPdfDocumentStatus();
+
+        switch (status) {
+            case COMPLETED -> {
+                ByteArrayOutputStream outputStreamResult = new ByteArrayOutputStream();
+                try (InputStream fileIS = fileStorageService.download(apartmentSharing.getPdfDossierFile())) {
+                    log.info("Dossier PDF downloaded for ApartmentSharing with ID [" + apartmentSharing.getId() + "]");
+                    IOUtils.copy(fileIS, outputStreamResult);
+                    onSuccessLog.run();
+
+                } catch (FileNotFoundException e) {
+                    log.error("Unable to download Dossier pdf [" + apartmentSharing.getId() + "].");
+                    throw e;
+                } catch (IOException e) {
+                    log.error("Unable to download Dossier pdf [" + apartmentSharing.getId() + "].");
+                    throw new UnknownServiceException("Unable to get Full PDF from Storage");
+                }
+
+                return FullFolderFile.builder()
+                        .fileOutputStream(outputStreamResult)
+                        .fileName(getFullFolderName(apartmentSharing, "pdf"))
+                        .build();
+            }
+            case IN_PROGRESS -> {
+                throw new IllegalStateException("Full PDF doesn't exist - FileStatus " + apartmentSharing.getDossierPdfDocumentStatus());
+            }
+            case FAILED -> {
+                throw new FileNotFoundException("Full PDF doesn't exist - FileStatus " + apartmentSharing.getDossierPdfDocumentStatus());
+            }
+            default -> {
+                onCreatePdf.run();
+                throw new IllegalStateException("Full PDF doesn't exist - FileStatus " + apartmentSharing.getDossierPdfDocumentStatus());
+            }
+        }
+    }
 
 }

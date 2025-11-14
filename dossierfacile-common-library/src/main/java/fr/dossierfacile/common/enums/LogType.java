@@ -27,6 +27,7 @@ public enum LogType {
     FC_ACCOUNT_LINK,
     PARTNER_ACCESS_REVOKED,
     ZIP_DOWNLOAD,
+    PDF_DOWNLOAD,
     OPERATOR_COMMENT
 
 }
