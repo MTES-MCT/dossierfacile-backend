@@ -330,6 +330,7 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
     }
 
     private static List<Result> detectQRCodes(BufferedImage image) {
+        long start = System.currentTimeMillis();
         LuminanceSource source = new BufferedImageLuminanceSource(image);
         BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
         com.google.zxing.Reader reader = new MultiFormatReader();
@@ -341,6 +342,10 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
         } catch (NotFoundException e) {
             return new ArrayList<>();
         }
+        finally {
+            log.info("[METRIC] detectQRCodes has been executed in " + (System.currentTimeMillis() - start) + "ms ");
+        }
+
     }
 
     /**
