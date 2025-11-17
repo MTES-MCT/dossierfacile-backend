@@ -7,6 +7,7 @@ import com.sun.jna.Pointer;
 public interface ZXingNative extends Library {
     ZXingNative INSTANCE = Native.load("zxing_jna", ZXingNative.class);
 
-    Pointer zxingcpp_read_lum8(byte[] data, int width, int height, int stride, int rotateDeg);
+    // channels: 1 pour gris, 3 pour RGB/BGR
+    Pointer zxingcpp_read_image(byte[] data, int width, int height, int channels, int stride);
     void zxingcpp_free_str(Pointer p);
 }

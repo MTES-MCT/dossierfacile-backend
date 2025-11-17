@@ -11,8 +11,17 @@ WORKDIR /src
 # ---- ZXing-CPP (shared) ----
 # Pin sur un tag stable ; change si besoin.
 ARG ZXING_REF=v2.3.0
-RUN git clone --depth=1 --branch ${ZXING_REF} https://github.com/zxing-cpp/zxing-cpp.git
+RUN git clone https://github.com/zxing-cpp/zxing-cpp.git
 
+RUN cd zxing-cpp \
+    && cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -DBUILD_EXAMPLES=OFF -DBUILD_TESTING=OFF \
+    && cmake --build build --config Release \
+    && cmake --install build --prefix ../local \
+    && cd ..
+
+COPY zxing_wrapper.cpp /src/
+
+ # Build libZXing en shared
 RUN cmake -S zxing-cpp -B zxing-cpp/build -DCMAKE_BUILD_TYPE=Release \
     -DBUILD_SHARED_LIBS=ON -DBUILD_EXAMPLES=OFF -DBUILD_TESTING=OFF
 RUN cmake --build zxing-cpp/build --config Release -j
@@ -38,6 +47,3 @@ RUN mkdir -p /dist/natives/linux-x86_64 \
  && cp /out/libzxing_jna.so /dist/natives/linux-x86_64/ \
  # copie "réelle" (pas symlink) sous le nom attendu libZXing.so.3
  && cp -L /src/local/lib/libZXing.so.3 /dist/natives/linux-x86_64/ \
- # réduction de taille (optionnel)
- && strip --strip-unneeded /dist/natives/linux-x86_64/libzxing_jna.so || true \
- && strip --strip-unneeded /dist/natives/linux-x86_64/libZXing.so.3 || true

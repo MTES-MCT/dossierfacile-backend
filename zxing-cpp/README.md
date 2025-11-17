@@ -51,3 +51,8 @@ docker rm "$cid"
 
 Finally, copy the files from the dist folder to the `src/main/resources` directory of the common-library project inside the folder :
 natives.linux-x86_64
+
+
+rm -rf build_lib
+cmake -B build_lib -S .
+cmake --build build_lib --config Release

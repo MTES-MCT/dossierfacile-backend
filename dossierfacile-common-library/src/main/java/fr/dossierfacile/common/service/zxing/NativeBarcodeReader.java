@@ -18,8 +18,7 @@ public class NativeBarcodeReader {
 
     public List<BarcodeHit> decode(BufferedImage img) {
         ImageUtils.GrayBytes gb = ImageUtils.toGrayBytes(img);
-        log.info("nat-> width={} height={} stride={}", gb.width, gb.height, gb.stride);
-        Pointer p = ZXingNative.INSTANCE.zxingcpp_read_lum8(gb.data, gb.width, gb.height, gb.stride, 0);
+        Pointer p = ZXingNative.INSTANCE.zxingcpp_read_image(gb.data, gb.width, gb.height, 1, gb.stride);
         if (p == null) return List.of();
         String json = p.getString(0);
         ZXingNative.INSTANCE.zxingcpp_free_str(p);

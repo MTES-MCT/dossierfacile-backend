@@ -138,6 +138,18 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>repackage-cli</id>
+						<goals><goal>repackage</goal></goals>
+						<configuration>
+							<!-- suffixe du nom de fichier -->
+							<classifier>cli</classifier>
+							<!-- TON main CLI -->
+							<mainClass>fr.dossierfacile.api.pdfgenerator.ZXDebugCli</mainClass>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

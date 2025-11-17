@@ -23,6 +23,8 @@ zxing-cpp/zxing-cpp
 zxing-cpp/libzxing_jna.dylib
 zxing-cpp/libzxing_jna.so
 
+zxing-cpp/docker
+
 ### STS ###
 .apt_generated
 .classpath
