@@ -4,6 +4,7 @@ import fr.dossierfacile.common.dto.mail.ApartmentSharingDto;
 import fr.dossierfacile.common.dto.mail.TenantDto;
 import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.*;
+import fr.dossierfacile.common.exceptions.NotFoundException;
 import fr.dossierfacile.common.mapper.mail.ApartmentSharingMapperForMail;
 import fr.dossierfacile.common.mapper.mail.TenantMapperForMail;
 import fr.dossierfacile.common.repository.ApartmentSharingLinkRepository;
@@ -191,6 +192,34 @@ public class TenantService {
                             documentRepository.save(document);
                         }));
         changeTenantStatusToValidated(tenant, operator, ProcessedDocuments.NONE);
+    }
+
+    @Transactional
+    public void validateTenantForTesting(Long tenantId) {
+        Tenant tenant = find(tenantId);
+
+        Optional.ofNullable(tenant.getDocuments())
+                .orElse(new ArrayList<>())
+                .forEach(document -> {
+                    document.setDocumentStatus(DocumentStatus.VALIDATED);
+                    document.setDocumentDeniedReasons(null);
+                    documentRepository.save(document);
+                });
+        Optional.ofNullable(tenant.getGuarantors())
+                .orElse(new ArrayList<>())
+                .forEach(guarantor -> Optional.ofNullable(guarantor.getDocuments())
+                        .orElse(new ArrayList<>())
+                        .forEach(document -> {
+                            document.setDocumentStatus(DocumentStatus.VALIDATED);
+                            document.setDocumentDeniedReasons(null);
+                            documentRepository.save(document);
+                        }));
+        changeTenantStatusToValidatedForTesting(tenant);
+    }
+
+    public Tenant findTenantByEmail(String email) {
+        return tenantRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new NotFoundException("Tenant not found with email: " + email));
     }
 
     private boolean updateFileStatus(CustomMessage customMessage) {
@@ -716,6 +745,23 @@ public class TenantService {
                 log.error("CAUTION Unable to send notification to user ", e);
             }
         });
+
+    }
+
+    private void changeTenantStatusToValidatedForTesting(Tenant tenant) {
+        tenant.setStatus(TenantFileStatus.VALIDATED);
+        tenantRepository.save(tenant);
+
+        boolean hasLinks = tenant.getApartmentSharing().getApartmentSharingLinks().stream()
+            .anyMatch(link -> link.getLinkType() == ApartmentSharingLinkType.LINK && link.getCreatedBy() == tenant.getId());
+        if (!hasLinks) {
+            ApartmentSharingLink link = buildApartmentSharingLink(tenant.getApartmentSharing(), tenant.getId(), false);
+            ApartmentSharingLink linkFull = buildApartmentSharingLink(tenant.getApartmentSharing(), tenant.getId(), true);
+            apartmentSharingLinkRepository.save(link);
+            apartmentSharingLinkRepository.save(linkFull);
+        }
+
+        messageService.markReadAdmin(tenant);
 
     }
 

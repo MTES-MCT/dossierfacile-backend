@@ -39,6 +39,13 @@ public class ApplicationController {
         return ok(applicationModel);
     }
 
+    @GetMapping(value = "/full", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<ApplicationModel> fullForLoggedTenant() {
+        Tenant tenant = authenticationFacade.getLoggedTenant();
+        ApplicationModel applicationModel = apartmentSharingService.full(tenant);
+        return ok(applicationModel);
+    }
+
     @GetMapping(value = "/light/{token}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ApplicationModel> light(@PathVariable UUID token) {
         ApplicationModel applicationModel = apartmentSharingService.light(token);
