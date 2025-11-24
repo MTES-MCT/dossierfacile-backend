@@ -10,10 +10,11 @@ import org.springframework.security.web.SecurityFilterChain;
 
 /**
  * Security configuration for testing endpoints.
- * Only active in dev and preprod environments.
+ * Only active in dev, preprod, and test environments.
+ * Explicitly blocked in production.
  */
 @Configuration
-@Profile({"dev"})
+@Profile({"dev", "preprod", "test", "!prod"})
 public class TestingSecurityConfig {
 
     @Bean
