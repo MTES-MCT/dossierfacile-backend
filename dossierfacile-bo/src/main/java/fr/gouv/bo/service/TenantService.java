@@ -175,22 +175,8 @@ public class TenantService {
         Tenant tenant = find(tenantId);
         BOUser operator = userService.findUserByEmail(principal.getEmail());
 
-        Optional.ofNullable(tenant.getDocuments())
-                .orElse(new ArrayList<>())
-                .forEach(document -> {
-                    document.setDocumentStatus(DocumentStatus.VALIDATED);
-                    document.setDocumentDeniedReasons(null);
-                    documentRepository.save(document);
-                });
-        Optional.ofNullable(tenant.getGuarantors())
-                .orElse(new ArrayList<>())
-                .forEach(guarantor -> Optional.ofNullable(guarantor.getDocuments())
-                        .orElse(new ArrayList<>())
-                        .forEach(document -> {
-                            document.setDocumentStatus(DocumentStatus.VALIDATED);
-                            document.setDocumentDeniedReasons(null);
-                            documentRepository.save(document);
-                        }));
+        validateTenantDocuments(tenant);
+        validateTenantGuarantors(tenant);
         changeTenantStatusToValidated(tenant, operator, ProcessedDocuments.NONE);
     }
 
@@ -198,6 +184,12 @@ public class TenantService {
     public void validateTenantForTesting(Long tenantId) {
         Tenant tenant = find(tenantId);
 
+        validateTenantDocuments(tenant);
+        validateTenantGuarantors(tenant);
+        changeTenantStatusToValidatedForTesting(tenant);
+    }
+
+    private void validateTenantDocuments(Tenant tenant) {
         Optional.ofNullable(tenant.getDocuments())
                 .orElse(new ArrayList<>())
                 .forEach(document -> {
@@ -205,6 +197,9 @@ public class TenantService {
                     document.setDocumentDeniedReasons(null);
                     documentRepository.save(document);
                 });
+    }
+
+    private void validateTenantGuarantors(Tenant tenant) {
         Optional.ofNullable(tenant.getGuarantors())
                 .orElse(new ArrayList<>())
                 .forEach(guarantor -> Optional.ofNullable(guarantor.getDocuments())
@@ -214,7 +209,6 @@ public class TenantService {
                             document.setDocumentDeniedReasons(null);
                             documentRepository.save(document);
                         }));
-        changeTenantStatusToValidatedForTesting(tenant);
     }
 
     public Tenant findTenantByEmail(String email) {
@@ -751,18 +745,7 @@ public class TenantService {
     private void changeTenantStatusToValidatedForTesting(Tenant tenant) {
         tenant.setStatus(TenantFileStatus.VALIDATED);
         tenantRepository.save(tenant);
-
-        boolean hasLinks = tenant.getApartmentSharing().getApartmentSharingLinks().stream()
-            .anyMatch(link -> link.getLinkType() == ApartmentSharingLinkType.LINK && link.getCreatedBy() == tenant.getId());
-        if (!hasLinks) {
-            ApartmentSharingLink link = buildApartmentSharingLink(tenant.getApartmentSharing(), tenant.getId(), false);
-            ApartmentSharingLink linkFull = buildApartmentSharingLink(tenant.getApartmentSharing(), tenant.getId(), true);
-            apartmentSharingLinkRepository.save(link);
-            apartmentSharingLinkRepository.save(linkFull);
-        }
-
         messageService.markReadAdmin(tenant);
-
     }
 
     private ApartmentSharingLink buildApartmentSharingLink(ApartmentSharing apartmentSharing, Long userId, boolean fullData) {

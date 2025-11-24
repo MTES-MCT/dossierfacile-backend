@@ -27,25 +27,25 @@ public class BOE2ETestController {
     @Value("${testing.api.allowed-tenant-email}")
     private String allowedTenantEmail;
 
-    @PostMapping("/tenant/{tenantUsername}/validate")
-    public ResponseEntity<Void> validateTenant(@PathVariable String tenantUsername) {
-        log.info("Testing endpoint: validating tenant with username: {}", tenantUsername);
+    @PostMapping("/tenant/{tenantEmail}/validate")
+    public ResponseEntity<Void> validateTenant(@PathVariable String tenantEmail) {
+        log.info("Testing endpoint: validating tenant with tenantEmail: {}", tenantEmail);
 
-        if (!tenantUsername.equals(allowedTenantEmail)){
-            log.warn("Attempted to validate non-test tenant: {}", tenantUsername);
+        if (!tenantEmail.equals(allowedTenantEmail)){
+            log.warn("Attempted to validate non-test tenant: {}", tenantEmail);
             return ResponseEntity.badRequest().build();
         }
 
         try {
-            Tenant tenant = tenantService.findTenantByEmail(tenantUsername);
+            Tenant tenant = tenantService.findTenantByEmail(tenantEmail);
             tenantService.validateTenantForTesting(tenant.getId());
-            log.info("Successfully validated test tenant: {}", tenantUsername);
+            log.info("Successfully validated test tenant: {}", tenantEmail);
             return ResponseEntity.ok().build();
         } catch (NotFoundException e) {
-            log.error("Tenant not found: {}", tenantUsername);
+            log.error("Tenant not found: {}", tenantEmail);
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
-            log.error("Error validating tenant: {}", tenantUsername, e);
+            log.error("Error validating tenant: {}", tenantEmail, e);
             return ResponseEntity.internalServerError().build();
         }
     }
