@@ -45,6 +45,10 @@ public abstract class ApplicationFullMapper implements ApartmentSharingMapper {
 
     public abstract ApplicationModel toApplicationModel(ApartmentSharing apartmentSharing, @Context UserApi userApi);
 
+    public ApplicationModel toApplicationModel(ApartmentSharing apartmentSharing) {
+        return toApplicationModel(apartmentSharing, null);
+    }
+
     public ApplicationModel toApplicationModelWithToken(ApartmentSharing apartmentSharing, UUID token) {
         ApplicationModel model = toApplicationModel(apartmentSharing, null);
         model.setDossierPdfUrl(applicationBaseUrl + DOSSIER_PDF_PATH + token);
