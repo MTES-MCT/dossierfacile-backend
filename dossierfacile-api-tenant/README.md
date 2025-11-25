@@ -88,6 +88,10 @@ brevo.template.id.application.group.invitation.existing=
 brevo.template.id.partner.access.revoked=
 # Use to blacklist domains default value is : example.com
 brevo.domains.blacklist=
+
+# Document IA
+document.ia.api.base.url=
+document.ia.api.key=
 ```
 
 # LogStash :
