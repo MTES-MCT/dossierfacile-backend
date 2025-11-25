@@ -4,6 +4,7 @@ import fr.dossierfacile.common.dto.mail.ApartmentSharingDto;
 import fr.dossierfacile.common.dto.mail.TenantDto;
 import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.*;
+import fr.dossierfacile.common.exceptions.NotFoundException;
 import fr.dossierfacile.common.mapper.mail.ApartmentSharingMapperForMail;
 import fr.dossierfacile.common.mapper.mail.TenantMapperForMail;
 import fr.dossierfacile.common.repository.ApartmentSharingLinkRepository;
@@ -174,6 +175,21 @@ public class TenantService {
         Tenant tenant = find(tenantId);
         BOUser operator = userService.findUserByEmail(principal.getEmail());
 
+        validateTenantDocuments(tenant);
+        validateTenantGuarantors(tenant);
+        changeTenantStatusToValidated(tenant, operator, ProcessedDocuments.NONE);
+    }
+
+    @Transactional
+    public void validateTenantForTesting(Long tenantId) {
+        Tenant tenant = find(tenantId);
+
+        validateTenantDocuments(tenant);
+        validateTenantGuarantors(tenant);
+        changeTenantStatusToValidatedForTesting(tenant);
+    }
+
+    private void validateTenantDocuments(Tenant tenant) {
         Optional.ofNullable(tenant.getDocuments())
                 .orElse(new ArrayList<>())
                 .forEach(document -> {
@@ -181,6 +197,9 @@ public class TenantService {
                     document.setDocumentDeniedReasons(null);
                     documentRepository.save(document);
                 });
+    }
+
+    private void validateTenantGuarantors(Tenant tenant) {
         Optional.ofNullable(tenant.getGuarantors())
                 .orElse(new ArrayList<>())
                 .forEach(guarantor -> Optional.ofNullable(guarantor.getDocuments())
@@ -190,7 +209,11 @@ public class TenantService {
                             document.setDocumentDeniedReasons(null);
                             documentRepository.save(document);
                         }));
-        changeTenantStatusToValidated(tenant, operator, ProcessedDocuments.NONE);
+    }
+
+    public Tenant findTenantByEmail(String email) {
+        return tenantRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new NotFoundException("Tenant not found with email: " + email));
     }
 
     private boolean updateFileStatus(CustomMessage customMessage) {
@@ -717,6 +740,12 @@ public class TenantService {
             }
         });
 
+    }
+
+    private void changeTenantStatusToValidatedForTesting(Tenant tenant) {
+        tenant.setStatus(TenantFileStatus.VALIDATED);
+        tenantRepository.save(tenant);
+        messageService.markReadAdmin(tenant);
     }
 
     private ApartmentSharingLink buildApartmentSharingLink(ApartmentSharing apartmentSharing, Long userId, boolean fullData) {
