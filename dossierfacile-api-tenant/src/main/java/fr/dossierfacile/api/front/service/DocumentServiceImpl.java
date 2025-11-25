@@ -4,6 +4,7 @@ import fr.dossierfacile.api.front.amqp.Producer;
 import fr.dossierfacile.api.front.exception.DocumentNotFoundException;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
+import fr.dossierfacile.api.front.service.interfaces.DocumentIAService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
 import fr.dossierfacile.common.entity.ApartmentSharing;
@@ -46,6 +47,7 @@ public class DocumentServiceImpl implements DocumentService {
     private final DocumentHelperService documentHelperService;
     private final LogService logService;
     private final Producer producer;
+    private final DocumentIAService documentIAService;
 
     @Override
     @Transactional
@@ -141,6 +143,7 @@ public class DocumentServiceImpl implements DocumentService {
         producer.minifyFile(document.getId(), file.getId());
         producer.analyzeFile(document.getId(), file.getId());
         producer.amqpAnalyseFile(file.getId());
+        documentIAService.sendForAnalysis(multipartFile, file, document);
     }
 
     @Override

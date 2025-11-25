@@ -69,6 +69,9 @@ public class File implements Serializable {
     private BlurryFileAnalysis blurryFileAnalysis;
 
     @Nullable
+    @OneToOne(mappedBy = "file", fetch = FetchType.LAZY)
+    private DocumentIAFileAnalysis documentIAFileAnalysis;
+
     @OneToOne(cascade = {CascadeType.REMOVE}, mappedBy = "file", fetch = FetchType.LAZY)
     private FileMetadata fileMetadata;
 
