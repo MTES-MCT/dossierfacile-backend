@@ -1,0 +1,153 @@
+meta {
+  name: document-ia
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{server}}/api/webhook/v1/document-ia
+  body: json
+  auth: apikey
+}
+
+auth:apikey {
+  key: X-Api-Key
+  value: Azerty123!
+  placement: header
+}
+
+body:json {
+  {
+    "id": "33cae79f-09b0-4717-a9d5-e1d106d8c5ad",
+    "status": "SUCCESS",
+    "data": {
+      "total_processing_time_ms": 13861,
+      "result": {
+        "classification": {
+          "document_type": "cni",
+          "confidence": 0.99,
+          "explanation": "Présence des mentions 'République Française' et 'Carte Nationale d'Identité'. Contient nom, prénoms, date et lieu de naissance, numéro de document à 12 chiffres, et dates de validité."
+        },
+        "extraction": {
+          "type": "cni",
+          "properties": [
+            {
+              "name": "numero_document",
+              "value": "MCLND07Y6",
+              "type": "string"
+            },
+            {
+              "name": "date_expiration",
+              "value": "10/08/2031",
+              "type": "string"
+            },
+            {
+              "name": "nom",
+              "value": "ISumame",
+              "type": "string"
+            },
+            {
+              "name": "prenom",
+              "value": "Nicolas",
+              "type": "string"
+            },
+            {
+              "name": "date_naissance",
+              "value": "07/10/1993",
+              "type": "string"
+            },
+            {
+              "name": "lieu_naissance",
+              "value": "ÉCULLY",
+              "type": "string"
+            },
+            {
+              "name": "nationalite",
+              "value": "FRA",
+              "type": "string"
+            },
+            {
+              "name": "bande_mrz",
+              "value": "MCLND07Y6\nNICOLAS PATRICK\nFRA9310073M380820<<<<<<<<<<<<<<<<<<\n07Y600000000000000000000000000",
+              "type": "string"
+            }
+          ]
+        },
+        "barcodes": [
+          {
+            "position": {
+              "top_left": [
+                245,
+                176
+              ],
+              "top_right": [
+                446,
+                180
+              ],
+              "bottom_right": [
+                443,
+                385
+              ],
+              "bottom_left": [
+                242,
+                383
+              ]
+            },
+            "page_number": 2,
+            "type": "DATA_MATRIX",
+            "is_valid": true,
+            "data": {
+              "fields": {
+                "60": "NICOLAS/PATRICK",
+                "62": "SAGON",
+                "65": "ID",
+                "66": "MCLND07Y6",
+                "67": "FR",
+                "68": "M",
+                "6C": "FR"
+              },
+              "country": "FR",
+              "doc_type": "07",
+              "perimeter": "01"
+            }
+          }
+        ],
+        "workflow_metadata": [
+          {
+            "step_name": "DownloadFileStep",
+            "execution_time": 0.18137345800641924
+          },
+          {
+            "step_name": "PreprocessFileStep",
+            "execution_time": 0.15958420798415318
+          },
+          {
+            "step_name": "ExtractBarcodeData",
+            "execution_time": 0.0959704170236364
+          },
+          {
+            "step_name": "ExtractContentMarkerOcrStep",
+            "execution_time": 3.5028272090130486
+          },
+          {
+            "step_name": "LLMClassifyDocumentStep",
+            "execution_time": 2.7598340830008965,
+            "request_tokens": 1117,
+            "response_tokens": 79
+          },
+          {
+            "step_name": "LLMExtractDocumentStep",
+            "execution_time": 6.878677457978483,
+            "request_tokens": 1581,
+            "response_tokens": 170
+          }
+        ]
+      }
+    }
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
