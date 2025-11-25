@@ -71,6 +71,10 @@ brevo.apikey=
 # Use to blacklist domains default value is : example.com
 brevo.domains.blacklist=
 link.shared.property=
+
+# Document IA
+document.ia.api.base.url=
+document.ia.api.key=
 ```
 
 ## LogStash :
