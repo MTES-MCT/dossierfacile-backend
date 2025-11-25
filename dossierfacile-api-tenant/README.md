@@ -110,6 +110,10 @@ brevo.template.id.tenant.validated.dossier.not.valid.w.partner=
 link.after.denied.default=
 link.after.validated.default=
 link.shared.property=
+
+# Document IA
+document.ia.api.base.url=
+document.ia.api.key=
 ```
 
 ## LogStash :

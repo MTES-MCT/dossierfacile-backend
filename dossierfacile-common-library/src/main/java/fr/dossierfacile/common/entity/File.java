@@ -65,6 +65,10 @@ public class File implements Serializable {
 
     @Nullable
     @OneToOne(mappedBy = "file", fetch = FetchType.LAZY)
+    private DocumentIAFileAnalysis documentIAFileAnalysis;
+
+    @Nullable
+    @OneToOne(mappedBy = "file", fetch = FetchType.LAZY)
     private FileMetadata fileMetadata;
 
     @PreRemove
