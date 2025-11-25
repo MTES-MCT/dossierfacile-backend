@@ -24,11 +24,7 @@ public class NativeBarcodeReader {
         ZXingNative.INSTANCE.zxingcpp_free_str(p);
 
         try {
-            List<BarcodeHit> hits = mapper.readValue(json, new TypeReference<>() {
-            });
-            LinkedHashMap<String, BarcodeHit> uniq = new LinkedHashMap<>();
-            for (BarcodeHit h : hits) uniq.put(h.format() + "|" + h.text(), h);
-            return new ArrayList<>(uniq.values());
+            return mapper.readValue(json, new TypeReference<>() {});
         } catch (Exception e) {
             throw new RuntimeException("Failed to parse native JSON: " + json, e);
         }
