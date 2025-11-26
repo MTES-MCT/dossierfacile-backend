@@ -677,7 +677,7 @@ public class TenantService {
 
         // TODO: Remove after sharing page is implemented
         boolean hasLinks = tenant.getApartmentSharing().getApartmentSharingLinks().stream()
-            .anyMatch(link -> link.getLinkType() == ApartmentSharingLinkType.LINK && link.getCreatedBy() == tenant.getId());
+            .anyMatch(link -> link.getLinkType() == ApartmentSharingLinkType.LINK);
         if (!hasLinks) {
             ApartmentSharingLink link = buildApartmentSharingLink(tenant.getApartmentSharing(), tenant.getId(), false);
             ApartmentSharingLink linkFull = buildApartmentSharingLink(tenant.getApartmentSharing(), tenant.getId(), true);
