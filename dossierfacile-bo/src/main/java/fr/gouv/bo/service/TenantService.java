@@ -9,6 +9,7 @@ import fr.dossierfacile.common.mapper.mail.TenantMapperForMail;
 import fr.dossierfacile.common.repository.ApartmentSharingLinkRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
+import fr.dossierfacile.common.service.interfaces.TenantCommonService;
 import fr.dossierfacile.common.utils.TransactionalUtil;
 import fr.gouv.bo.dto.*;
 import fr.gouv.bo.exception.DocumentNotFoundException;
@@ -63,6 +64,7 @@ public class TenantService {
     private final GuarantorRepository guarantorRepository;
     private final TenantMapperForMail tenantMapperForMail;
     private final ApartmentSharingMapperForMail apartmentSharingMapperForMail;
+    private final TenantCommonService tenantCommonService;
 
     @Value("${time.reprocess.application.minutes}")
     private int timeReprocessApplicationMinutes;
@@ -672,51 +674,12 @@ public class TenantService {
 
 
     private void changeTenantStatusToValidated(Tenant tenant, User operator, ProcessedDocuments processedDocuments) {
-        tenant.setStatus(TenantFileStatus.VALIDATED);
-        tenantRepository.save(tenant);
+        // Call core validation logic
+        tenantCommonService.changeTenantStatusToValidated(tenant);
 
-        // TODO: Remove after sharing page is implemented
-        boolean hasLinks = tenant.getApartmentSharing().getApartmentSharingLinks().stream()
-            .anyMatch(link -> link.getLinkType() == ApartmentSharingLinkType.LINK);
-        if (!hasLinks) {
-            ApartmentSharingLink link = buildApartmentSharingLink(tenant.getApartmentSharing(), tenant.getId(), false);
-            ApartmentSharingLink linkFull = buildApartmentSharingLink(tenant.getApartmentSharing(), tenant.getId(), true);
-            apartmentSharingLinkRepository.save(link);
-            apartmentSharingLinkRepository.save(linkFull);
-        }
-
-        messageService.markReadAdmin(tenant);
-
+        // Add operator-specific logging
         tenantLogService.saveByLog(new TenantLog(LogType.ACCOUNT_VALIDATED, tenant.getId(), operator.getId()));
         operatorLogRepository.save(new OperatorLog(tenant, operator, tenant.getStatus(), ActionOperatorType.STOP_PROCESS, processedDocuments.count(), processedDocuments.timeSpent()));
-
-        // prepare for mail
-        TenantDto tenantDto = tenantMapperForMail.toDto(tenant);
-        ApartmentSharingDto apartmentSharingDto = apartmentSharingMapperForMail.toDto(tenant.getApartmentSharing());
-
-        // sendCallBack is sent after Commit
-        partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.VERIFIED_ACCOUNT);
-
-        TransactionalUtil.afterCommit(() -> {
-            try {
-                if (apartmentSharingDto.getTenants().stream().allMatch(t -> t.getStatus() == TenantFileStatus.VALIDATED)) {
-                    apartmentSharingDto.getTenants().stream()
-                            .filter(t -> isNotBlank(t.getEmail()))
-                            .forEach(t -> {
-                                if (tenant.getApartmentSharing().getApplicationType() == ApplicationType.GROUP) {
-                                    mailService.sendEmailToTenantAfterValidateAllTenantForGroup(t);
-                                } else {
-                                    mailService.sendEmailToTenantAfterValidateAllDocuments(t);
-                                }
-                            });
-                } else if (apartmentSharingDto.getApplicationType() == ApplicationType.GROUP) {
-                    mailService.sendEmailToTenantAfterValidatedApartmentSharingNotValidated(tenantDto);
-                }
-            } catch (Exception e) {
-                log.error("CAUTION Unable to send notification to user ", e);
-            }
-        });
-
     }
 
     private ApartmentSharingLink buildApartmentSharingLink(ApartmentSharing apartmentSharing, Long userId, boolean fullData) {

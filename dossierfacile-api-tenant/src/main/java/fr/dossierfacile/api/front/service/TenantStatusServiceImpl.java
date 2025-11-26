@@ -8,6 +8,7 @@ import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
+import fr.dossierfacile.common.service.interfaces.TenantCommonService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,7 @@ public class TenantStatusServiceImpl implements TenantStatusService {
     private ApartmentSharingService apartmentSharingService;
     private final PartnerCallBackService partnerCallBackService;
     private final TenantCommonRepository tenantRepository;
+    private final TenantCommonService tenantCommonService;
 
     @Override
     @Transactional(propagation = Propagation.SUPPORTS, isolation = Isolation.READ_COMMITTED)
@@ -37,7 +39,9 @@ public class TenantStatusServiceImpl implements TenantStatusService {
 
         if (previousStatus != tenant.getStatus()) {
             switch (tenant.getStatus()) {
-                case VALIDATED -> partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.VERIFIED_ACCOUNT);
+                case VALIDATED -> {
+                    tenantCommonService.changeTenantStatusToValidated(tenant);
+                }
                 case DECLINED -> partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.DENIED_ACCOUNT);
                 case TO_PROCESS -> {
                     if (previousStatus == TenantFileStatus.INCOMPLETE) {
