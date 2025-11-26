@@ -6,7 +6,6 @@ import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.*;
 import fr.dossierfacile.common.mapper.mail.ApartmentSharingMapperForMail;
 import fr.dossierfacile.common.mapper.mail.TenantMapperForMail;
-import fr.dossierfacile.common.repository.ApartmentSharingLinkRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.dossierfacile.common.service.interfaces.TenantCommonService;
@@ -33,7 +32,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -50,7 +48,6 @@ public class TenantService {
     private final PartnerCallBackService partnerCallBackService;
     private final UserService userService;
     private final MessageSource messageSource;
-    private final ApartmentSharingLinkRepository apartmentSharingLinkRepository;
     private final DocumentRepository documentRepository;
     private final DocumentDeniedReasonsRepository documentDeniedReasonsRepository;
     private final MessageService messageService;
@@ -659,7 +656,7 @@ public class TenantService {
 
 
     @Transactional
-    private void updateTenantStatus(Tenant tenant, User operator) {
+    protected void updateTenantStatus(Tenant tenant, User operator) {
         TenantFileStatus previousStatus = tenant.getStatus();
         tenant.setStatus(tenant.computeStatus());
         tenantRepository.save(tenant);
@@ -673,7 +670,8 @@ public class TenantService {
     }
 
 
-    private void changeTenantStatusToValidated(Tenant tenant, User operator, ProcessedDocuments processedDocuments) {
+    @Transactional
+    protected void changeTenantStatusToValidated(Tenant tenant, User operator, ProcessedDocuments processedDocuments) {
         // Call core validation logic
         tenantCommonService.changeTenantStatusToValidated(tenant);
 

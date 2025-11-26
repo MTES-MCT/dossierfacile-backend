@@ -39,16 +39,6 @@ public class MailService {
     private Long templateIDMessageNotificationWithDetails;
     @Value("${brevo.template.id.account.deleted}")
     private Long templateIdAccountDeleted;
-    @Value("${brevo.template.id.tenant.validated.dossier.validated}")
-    private Long templateIdTenantValidatedDossierValidated;
-    @Value("${brevo.template.id.tenant.validated.dossier.validated.w.partner}")
-    private Long templateIdTenantValidatedDossierValidatedWithPartner;
-    @Value("${brevo.template.id.tenant.validated.dossier.not.valid}")
-    private Long templateIdTenantValidatedDossierNotValidated;
-    @Value("${brevo.template.id.tenant.validated.dossier.not.valid.w.partner}")
-    private Long templateIdTenantValidatedDossierNotValidatedWithPartner;
-    @Value("${brevo.template.id.dossier.fully.validated}")
-    private Long templateIdDossierFullyValidated;
     @Value("${brevo.template.id.dossier.tenant.denied}")
     private Long templateIdDossierTenantDenied;
     @Value("${brevo.template.id.dossier.tenant.denied.with.details}")
@@ -59,8 +49,6 @@ public class MailService {
     private Long templateIDMessageNotificationWithPartner;
     @Value("${brevo.template.id.message.notification.with.partner.and.details}")
     private Long templateIdMessageNotificationWithPartnerAndDetails;
-    @Value("${brevo.template.id.dossier.fully.validated.with.partner}")
-    private Long templateIdDossierFullyValidatedWithPartner;
     @Value("${brevo.template.id.dossier.tenant.denied.with.partner}")
     private Long templateIdDossierTenantDeniedWithPartner;
     @Value("${brevo.template.id.dossier.tenant.denied.with.partner.and.details}")
@@ -130,65 +118,6 @@ public class MailService {
             sendEmailToTenant(tenant, params, templateWithHtml);
         } else {
             sendEmailToTenant(tenant, params, templateWithoutHtml);
-        }
-    }
-
-    @Async
-    public void sendEmailToTenantAfterValidateAllTenantForGroup(TenantDto tenant) {
-        Map<String, String> params = new HashMap<>();
-        params.put("PRENOM", tenant.getFirstName());
-        params.put("NOM", OptionalString.of(tenant.getPreferredName()).orElse(tenant.getLastName()));
-        params.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
-        params.put("TENANT_ID", tenant.getId().toString());
-
-        if (tenant.isBelongToPartner()) {
-            UserApiDto userApi = tenant.getUserApis().getFirst();
-            params.put("partnerName", userApi.getName2());
-            params.put("logoUrl", userApi.getLogoUrl());
-            params.put("callToActionUrl", OptionalString.of(userApi.getValidatedUrl()).orElse(defaultValidatedUrl));
-
-            sendEmailToTenant(tenant, params, templateIdTenantValidatedDossierValidatedWithPartner);
-        } else {
-            sendEmailToTenant(tenant, params, templateIdTenantValidatedDossierValidated);
-        }
-    }
-
-    @Async
-    public void sendEmailToTenantAfterValidatedApartmentSharingNotValidated(TenantDto tenant) {
-        Map<String, String> params = new HashMap<>();
-        params.put("PRENOM", tenant.getFirstName());
-        params.put("NOM", OptionalString.of(tenant.getPreferredName()).orElse(tenant.getLastName()));
-        params.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
-
-        if (tenant.isBelongToPartner()) {
-            UserApiDto userApi = tenant.getUserApis().getFirst();
-            params.put("partnerName", userApi.getName2());
-            params.put("logoUrl", userApi.getLogoUrl());
-            params.put("callToActionUrl", OptionalString.of(userApi.getValidatedUrl()).orElse(defaultValidatedUrl));
-
-            sendEmailToTenant(tenant, params, templateIdTenantValidatedDossierNotValidatedWithPartner);
-        } else {
-            sendEmailToTenant(tenant, params, templateIdTenantValidatedDossierNotValidated);
-        }
-    }
-
-    @Async
-    public void sendEmailToTenantAfterValidateAllDocuments(TenantDto tenant) {
-        Map<String, String> params = new HashMap<>();
-        params.put("PRENOM", tenant.getFirstName());
-        params.put("NOM", OptionalString.of(tenant.getPreferredName()).orElse(tenant.getLastName()));
-        params.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
-        params.put("TENANT_ID", tenant.getId().toString());
-
-        if (tenant.isBelongToPartner()) {
-            UserApiDto userApi = tenant.getUserApis().getFirst();
-            params.put("partnerName", userApi.getName2());
-            params.put("logoUrl", userApi.getLogoUrl());
-            params.put("callToActionUrl", OptionalString.of(userApi.getValidatedUrl()).orElse(defaultValidatedUrl));
-
-            sendEmailToTenant(tenant, params, templateIdDossierFullyValidatedWithPartner);
-        } else {
-            sendEmailToTenant(tenant, params, templateIdDossierFullyValidated);
         }
     }
 
