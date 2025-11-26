@@ -35,15 +35,16 @@ public class TenantStatusServiceImpl implements TenantStatusService {
             tenant.getGuarantors().forEach(Guarantor::getDocuments);
         }
 
-        if (previousStatus != tenant.getStatus()) {
-            if (tenant.getStatus() == TenantFileStatus.VALIDATED) {
+        var newTenantStatus = tenant.computeStatus();
+        if (previousStatus != newTenantStatus) {
+            if (newTenantStatus == TenantFileStatus.VALIDATED) {
                 tenantCommonService.changeTenantStatusToValidated(tenant);
             } else {
-                tenant.setStatus(tenant.computeStatus());
+                tenant.setStatus(newTenantStatus);
                 tenant = tenantRepository.save(tenant);
-                if (tenant.getStatus() == TenantFileStatus.DECLINED) {
+                if (newTenantStatus == TenantFileStatus.DECLINED) {
                     partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.DENIED_ACCOUNT);
-                } else if (tenant.getStatus() == TenantFileStatus.TO_PROCESS && previousStatus == TenantFileStatus.INCOMPLETE) {
+                } else if (newTenantStatus == TenantFileStatus.TO_PROCESS && previousStatus == TenantFileStatus.INCOMPLETE) {
                     partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.CREATED_ACCOUNT);
                 }
             }
