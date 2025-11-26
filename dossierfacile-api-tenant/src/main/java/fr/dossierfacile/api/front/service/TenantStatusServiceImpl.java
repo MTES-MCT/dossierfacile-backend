@@ -41,14 +41,10 @@ public class TenantStatusServiceImpl implements TenantStatusService {
             } else {
                 tenant.setStatus(tenant.computeStatus());
                 tenant = tenantRepository.save(tenant);
-                switch (tenant.getStatus()) {
-                    case DECLINED -> partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.DENIED_ACCOUNT);
-                    case TO_PROCESS -> {
-                        if (previousStatus == TenantFileStatus.INCOMPLETE) {
-                            partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.CREATED_ACCOUNT);
-                        }
-                    }
-
+                if (tenant.getStatus() == TenantFileStatus.DECLINED) {
+                    partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.DENIED_ACCOUNT);
+                } else if (tenant.getStatus() == TenantFileStatus.TO_PROCESS && previousStatus == TenantFileStatus.INCOMPLETE) {
+                    partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.CREATED_ACCOUNT);
                 }
             }
             apartmentSharingService.refreshUpdateDate(tenant.getApartmentSharing());

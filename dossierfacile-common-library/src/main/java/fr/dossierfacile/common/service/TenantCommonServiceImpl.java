@@ -89,7 +89,6 @@ public class TenantCommonServiceImpl implements TenantCommonService {
         }
 
         // prepare for mail
-        TenantDto tenantDto = tenantMapperForMail.toDto(tenant);
         ApartmentSharingDto apartmentSharingDto = apartmentSharingMapperForMail.toDto(tenant.getApartmentSharing());
 
         // sendCallBack is sent after Commit
