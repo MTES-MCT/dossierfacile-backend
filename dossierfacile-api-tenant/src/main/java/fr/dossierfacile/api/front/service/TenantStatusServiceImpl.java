@@ -42,7 +42,6 @@ public class TenantStatusServiceImpl implements TenantStatusService {
                 tenant.setStatus(tenant.computeStatus());
                 tenant = tenantRepository.save(tenant);
                 switch (tenant.getStatus()) {
-                    case VALIDATED -> tenantCommonService.changeTenantStatusToValidated(tenant);
                     case DECLINED -> partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.DENIED_ACCOUNT);
                     case TO_PROCESS -> {
                         if (previousStatus == TenantFileStatus.INCOMPLETE) {
