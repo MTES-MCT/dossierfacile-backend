@@ -8,4 +8,6 @@ public interface TenantCommonService {
     Tenant findByKeycloakId(String keycloakId);
 
     Long getTenantRank(Long id);
+
+    void changeTenantStatusToValidated(Tenant tenant);
 }
