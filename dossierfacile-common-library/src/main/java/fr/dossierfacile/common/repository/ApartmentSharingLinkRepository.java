@@ -18,6 +18,8 @@ public interface ApartmentSharingLinkRepository extends JpaRepository<ApartmentS
 
     List<ApartmentSharingLink> findByApartmentSharingAndLinkTypeAndDeletedIsFalse(ApartmentSharing apartmentSharing, ApartmentSharingLinkType linkType);
 
+    List<ApartmentSharingLink> findByApartmentSharingOrderByCreationDate(ApartmentSharing apartmentSharing);
+
     Optional<ApartmentSharingLink> findByIdAndApartmentSharingAndDeletedIsFalse(Long id, ApartmentSharing apartmentSharing);
 
     Optional<ApartmentSharingLink> findByToken(UUID token);

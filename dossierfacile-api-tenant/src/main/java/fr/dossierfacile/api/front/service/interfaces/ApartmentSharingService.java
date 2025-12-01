@@ -39,4 +39,9 @@ public interface ApartmentSharingService {
     void delete(ApartmentSharing apartmentSharing);
 
     FullFolderFile zipDocuments(Tenant tenant);
+
+    void createFullPdfForTenant(Tenant tenant);
+
+    FullFolderFile downloadFullPdfForTenant(Tenant tenant) throws IOException;
+
 }
