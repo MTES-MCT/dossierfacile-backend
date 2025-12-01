@@ -8,6 +8,7 @@ import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
+import fr.dossierfacile.common.service.interfaces.TenantCommonService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,7 @@ public class TenantStatusServiceImpl implements TenantStatusService {
     private ApartmentSharingService apartmentSharingService;
     private final PartnerCallBackService partnerCallBackService;
     private final TenantCommonRepository tenantRepository;
+    private final TenantCommonService tenantCommonService;
 
     @Override
     @Transactional(propagation = Propagation.SUPPORTS, isolation = Isolation.READ_COMMITTED)
@@ -32,19 +34,19 @@ public class TenantStatusServiceImpl implements TenantStatusService {
         if (tenant.getGuarantors() != null) {
             tenant.getGuarantors().forEach(Guarantor::getDocuments);
         }
-        tenant.setStatus(tenant.computeStatus());
-        tenant = tenantRepository.save(tenant);
 
-        if (previousStatus != tenant.getStatus()) {
-            switch (tenant.getStatus()) {
-                case VALIDATED -> partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.VERIFIED_ACCOUNT);
-                case DECLINED -> partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.DENIED_ACCOUNT);
-                case TO_PROCESS -> {
-                    if (previousStatus == TenantFileStatus.INCOMPLETE) {
-                        partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.CREATED_ACCOUNT);
-                    }
+        var newTenantStatus = tenant.computeStatus();
+        if (previousStatus != newTenantStatus) {
+            if (newTenantStatus == TenantFileStatus.VALIDATED) {
+                tenantCommonService.changeTenantStatusToValidated(tenant);
+            } else {
+                tenant.setStatus(newTenantStatus);
+                tenant = tenantRepository.save(tenant);
+                if (newTenantStatus == TenantFileStatus.DECLINED) {
+                    partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.DENIED_ACCOUNT);
+                } else if (newTenantStatus == TenantFileStatus.TO_PROCESS && previousStatus == TenantFileStatus.INCOMPLETE) {
+                    partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.CREATED_ACCOUNT);
                 }
-
             }
             apartmentSharingService.refreshUpdateDate(tenant.getApartmentSharing());
         }

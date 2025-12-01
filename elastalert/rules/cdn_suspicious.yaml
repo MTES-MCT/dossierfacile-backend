@@ -18,7 +18,7 @@ alert:
   - slack
 
 slack_webhook_url: "{{mattermost_webhook_cdn_alert_url}}"
-slack_msg_pretext: "📛 **ALERTE PROD** : Activité suspecte détectée sur le CDN @romaric.haldenwang @jean-marie.poissonnier @nicolas.sagon It's time to shine"
+slack_msg_pretext: "📛 **ALERTE PROD** : Activité suspecte détectée sur le CDN @romaric.haldenwang @alix.deschamps @nicolas.sagon It's time to shine"
 slack_msg_color: danger
 slack_username_override: "AlerteFacile"
 slack_emoji_override: ":no_entry_sign:"

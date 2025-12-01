@@ -1,18 +1,37 @@
 package fr.dossierfacile.common.service;
 
+import fr.dossierfacile.common.dto.mail.ApartmentSharingDto;
+import fr.dossierfacile.common.dto.mail.TenantDto;
 import fr.dossierfacile.common.entity.ApartmentSharing;
+import fr.dossierfacile.common.entity.ApartmentSharingLink;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.enums.ApartmentSharingLinkType;
+import fr.dossierfacile.common.enums.ApplicationType;
+import fr.dossierfacile.common.enums.PartnerCallBackType;
+import fr.dossierfacile.common.enums.TenantFileStatus;
+import fr.dossierfacile.common.mapper.mail.ApartmentSharingMapperForMail;
+import fr.dossierfacile.common.mapper.mail.TenantMapperForMail;
+import fr.dossierfacile.common.repository.ApartmentSharingLinkRepository;
 import fr.dossierfacile.common.repository.ApartmentSharingRepository;
 import fr.dossierfacile.common.repository.DocumentCommonRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
+import fr.dossierfacile.common.service.interfaces.MailCommonService;
+import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.dossierfacile.common.service.interfaces.TenantCommonService;
+import fr.dossierfacile.common.utils.TransactionalUtil;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Optional;
+import java.util.UUID;
+
+import static org.apache.commons.lang3.StringUtils.*;
 
 @Service
 @AllArgsConstructor
@@ -22,6 +41,11 @@ public class TenantCommonServiceImpl implements TenantCommonService {
     private final ApartmentSharingRepository apartmentSharingRepository;
     private final DocumentCommonRepository documentRepository;
     private final TenantCommonRepository tenantCommonRepository;
+    private final ApartmentSharingLinkRepository apartmentSharingLinkRepository;
+    private final PartnerCallBackService partnerCallBackService;
+    private final MailCommonService mailCommonService;
+    private final TenantMapperForMail tenantMapperForMail;
+    private final ApartmentSharingMapperForMail apartmentSharingMapperForMail;
     private ApartmentSharingCommonService apartmentSharingCommonService;
 
     @Override
@@ -53,5 +77,62 @@ public class TenantCommonServiceImpl implements TenantCommonService {
     @Override
     public Long getTenantRank(Long id) {
         return tenantCommonRepository.getTenantRank(id);
+    }
+
+    @Override
+    @Transactional
+    public void changeTenantStatusToValidated(Tenant tenant) {
+        tenant.setStatus(TenantFileStatus.VALIDATED);
+        tenantCommonRepository.save(tenant);
+
+        // TODO: Remove after sharing page is implemented
+        boolean hasLinks = tenant.getApartmentSharing().getApartmentSharingLinks().stream()
+            .anyMatch(link -> link.getLinkType() == ApartmentSharingLinkType.LINK);
+        if (!hasLinks) {
+            ApartmentSharingLink link = buildApartmentSharingLink(tenant.getApartmentSharing(), tenant.getId(), false);
+            ApartmentSharingLink linkFull = buildApartmentSharingLink(tenant.getApartmentSharing(), tenant.getId(), true);
+            apartmentSharingLinkRepository.save(link);
+            apartmentSharingLinkRepository.save(linkFull);
+        }
+
+        // prepare for mail
+        TenantDto tenantDto = tenantMapperForMail.toDto(tenant);
+        ApartmentSharingDto apartmentSharingDto = apartmentSharingMapperForMail.toDto(tenant.getApartmentSharing());
+
+        // sendCallBack is sent after Commit
+        partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.VERIFIED_ACCOUNT);
+
+        TransactionalUtil.afterCommit(() -> {
+            try {
+                if (apartmentSharingDto.getTenants().stream().allMatch(t -> t.getStatus() == TenantFileStatus.VALIDATED)) {
+                    apartmentSharingDto.getTenants().stream()
+                            .filter(t -> isNotBlank(t.getEmail()))
+                            .forEach(t -> {
+                                if (tenant.getApartmentSharing().getApplicationType() == ApplicationType.GROUP) {
+                                    mailCommonService.sendEmailToTenantAfterValidateAllTenantForGroup(t);
+                                } else {
+                                    mailCommonService.sendEmailToTenantAfterValidateAllDocuments(t);
+                                }
+                            });
+                } else if (apartmentSharingDto.getApplicationType() == ApplicationType.GROUP) {
+                    mailCommonService.sendEmailToTenantAfterValidatedApartmentSharingNotValidated(tenantDto);
+                }
+            } catch (Exception e) {
+                log.error("CAUTION Unable to send notification to user ", e);
+            }
+        });
+    }
+
+    private ApartmentSharingLink buildApartmentSharingLink(ApartmentSharing apartmentSharing, Long userId, boolean fullData) {
+        return ApartmentSharingLink.builder()
+                .apartmentSharing(apartmentSharing)
+                .token(UUID.randomUUID())
+                .creationDate(LocalDateTime.now())
+                .expirationDate(LocalDateTime.now().plusMonths(1))
+                .fullData(fullData)
+                .linkType(ApartmentSharingLinkType.LINK)
+                .title("Lien créé le " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
+                .createdBy(userId)
+                .build();
     }
 }

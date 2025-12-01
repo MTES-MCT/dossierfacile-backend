@@ -226,9 +226,19 @@
             <artifactId>httpclient5</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.brevo</groupId>
+            <artifactId>brevo</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-web</artifactId>
             <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>net.java.dev.jna</groupId>
+            <artifactId>jna</artifactId>
+            <version>5.14.0</version>
         </dependency>
     </dependencies>
 </project>
