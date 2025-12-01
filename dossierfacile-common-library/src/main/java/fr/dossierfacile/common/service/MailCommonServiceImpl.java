@@ -6,14 +6,15 @@ import brevoModel.SendSmtpEmail;
 import brevoModel.SendSmtpEmailTo;
 import fr.dossierfacile.common.dto.mail.TenantDto;
 import fr.dossierfacile.common.dto.mail.UserApiDto;
+import fr.dossierfacile.common.dto.mail.UserDto;
 import fr.dossierfacile.common.service.interfaces.MailCommonService;
 import fr.dossierfacile.common.utils.OptionalString;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import fr.dossierfacile.common.dto.mail.UserDto;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -22,6 +23,7 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@ConditionalOnBean(TransactionalEmailsApi.class)
 public class MailCommonServiceImpl implements MailCommonService {
 
     private static final String TENANT_BASE_URL_KEY = "tenantBaseUrl";
@@ -81,7 +83,7 @@ public class MailCommonServiceImpl implements MailCommonService {
     }
 
     private void sendEmailWithPartnerAwareness(TenantDto tenant, Map<String, String> params,
-                                                Long templateWithPartner, Long templateWithoutPartner) {
+                                               Long templateWithPartner, Long templateWithoutPartner) {
         if (tenant.isBelongToPartner()) {
             UserApiDto userApi = tenant.getUserApis().getFirst();
             addPartnerParams(params, userApi);
@@ -96,8 +98,8 @@ public class MailCommonServiceImpl implements MailCommonService {
     public void sendEmailToTenantAfterValidateAllTenantForGroup(TenantDto tenant) {
         Map<String, String> params = createBaseParams(tenant, true);
         sendEmailWithPartnerAwareness(tenant, params,
-            templateIdTenantValidatedDossierValidatedWithPartner,
-            templateIdTenantValidatedDossierValidated);
+                templateIdTenantValidatedDossierValidatedWithPartner,
+                templateIdTenantValidatedDossierValidated);
     }
 
     @Async
@@ -105,8 +107,8 @@ public class MailCommonServiceImpl implements MailCommonService {
     public void sendEmailToTenantAfterValidatedApartmentSharingNotValidated(TenantDto tenant) {
         Map<String, String> params = createBaseParams(tenant, false);
         sendEmailWithPartnerAwareness(tenant, params,
-            templateIdTenantValidatedDossierNotValidatedWithPartner,
-            templateIdTenantValidatedDossierNotValidated);
+                templateIdTenantValidatedDossierNotValidatedWithPartner,
+                templateIdTenantValidatedDossierNotValidated);
     }
 
     @Async
@@ -114,9 +116,9 @@ public class MailCommonServiceImpl implements MailCommonService {
     public void sendEmailToTenantAfterValidateAllDocuments(TenantDto tenant) {
         Map<String, String> params = createBaseParams(tenant, true);
         sendEmailWithPartnerAwareness(tenant, params,
-            templateIdDossierFullyValidatedWithPartner,
-            templateIdDossierFullyValidated);
+                templateIdDossierFullyValidatedWithPartner,
+                templateIdDossierFullyValidated);
     }
-    
+
 
 }
