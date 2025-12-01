@@ -20,10 +20,10 @@ import fr.dossierfacile.common.service.interfaces.MailCommonService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.dossierfacile.common.service.interfaces.TenantCommonService;
 import fr.dossierfacile.common.utils.TransactionalUtil;
-import org.springframework.transaction.annotation.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.apache.commons.lang3.StringUtils.*;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 @Service
 @AllArgsConstructor
@@ -43,7 +43,9 @@ public class TenantCommonServiceImpl implements TenantCommonService {
     private final TenantCommonRepository tenantCommonRepository;
     private final ApartmentSharingLinkRepository apartmentSharingLinkRepository;
     private final PartnerCallBackService partnerCallBackService;
-    private final MailCommonService mailCommonService;
+    // Can be null in some projects ! ex: Owner use this TenantCommonServiceImpl but has no MailCommonService bean
+    // In this case, mails are not sent.
+    private final Optional<MailCommonService> mailCommonService;
     private final TenantMapperForMail tenantMapperForMail;
     private final ApartmentSharingMapperForMail apartmentSharingMapperForMail;
     private ApartmentSharingCommonService apartmentSharingCommonService;
@@ -65,8 +67,10 @@ public class TenantCommonServiceImpl implements TenantCommonService {
 
         Optional.ofNullable(tenant.getGuarantors())
                 .orElse(new ArrayList<>())
-                .forEach(guarantor -> {documentRepository.deleteAll(guarantor.getDocuments());
-                guarantor.setDocuments(new ArrayList<>());});
+                .forEach(guarantor -> {
+                    documentRepository.deleteAll(guarantor.getDocuments());
+                    guarantor.setDocuments(new ArrayList<>());
+                });
     }
 
     @Override
@@ -87,7 +91,7 @@ public class TenantCommonServiceImpl implements TenantCommonService {
 
         // TODO: Remove after sharing page is implemented
         boolean hasLinks = tenant.getApartmentSharing().getApartmentSharingLinks().stream()
-            .anyMatch(link -> link.getLinkType() == ApartmentSharingLinkType.LINK);
+                .anyMatch(link -> link.getLinkType() == ApartmentSharingLinkType.LINK);
         if (!hasLinks) {
             ApartmentSharingLink link = buildApartmentSharingLink(tenant.getApartmentSharing(), tenant.getId(), false);
             ApartmentSharingLink linkFull = buildApartmentSharingLink(tenant.getApartmentSharing(), tenant.getId(), true);
@@ -109,13 +113,19 @@ public class TenantCommonServiceImpl implements TenantCommonService {
                             .filter(t -> isNotBlank(t.getEmail()))
                             .forEach(t -> {
                                 if (tenant.getApartmentSharing().getApplicationType() == ApplicationType.GROUP) {
-                                    mailCommonService.sendEmailToTenantAfterValidateAllTenantForGroup(t);
+                                    mailCommonService.ifPresent(it ->
+                                            it.sendEmailToTenantAfterValidateAllTenantForGroup(t)
+                                    );
                                 } else {
-                                    mailCommonService.sendEmailToTenantAfterValidateAllDocuments(t);
+                                    mailCommonService.ifPresent(it ->
+                                            it.sendEmailToTenantAfterValidateAllDocuments(t)
+                                    );
                                 }
                             });
                 } else if (apartmentSharingDto.getApplicationType() == ApplicationType.GROUP) {
-                    mailCommonService.sendEmailToTenantAfterValidatedApartmentSharingNotValidated(tenantDto);
+                    mailCommonService.ifPresent(it ->
+                            it.sendEmailToTenantAfterValidatedApartmentSharingNotValidated(tenantDto)
+                    );
                 }
             } catch (Exception e) {
                 log.error("CAUTION Unable to send notification to user ", e);
