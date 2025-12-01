@@ -43,10 +43,11 @@ public class MailCommonServiceImpl implements MailCommonService {
     @Value("${link.after.validated.default}")
     private String defaultValidatedUrl;
 
-    private void sendEmailToTenant(UserDto tenant, Map<String, String> params, Long templateId) {
+    @Override
+    public void sendEmailToTenant(UserDto tenant, Map<String, String> params, Long templateId) {
         SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
         sendSmtpEmailTo.setEmail(tenant.getEmail());
-        OptionalString.of(tenant.getFullName()).ifNotBlank(name -> sendSmtpEmailTo.setName(name));
+        OptionalString.of(tenant.getFullName()).ifNotBlank(sendSmtpEmailTo::setName);
 
         SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
         sendSmtpEmail.templateId(templateId);
@@ -60,68 +61,62 @@ public class MailCommonServiceImpl implements MailCommonService {
         }
     }
 
-    @Async
-    @Override
-    public void sendEmailToTenantAfterValidateAllTenantForGroup(TenantDto tenant) {
+    private Map<String, String> createBaseParams(TenantDto tenant, boolean includeTenantId) {
         Map<String, String> params = new HashMap<>();
         params.put("PRENOM", tenant.getFirstName());
         params.put("NOM", OptionalString.of(tenant.getPreferredName()).orElse(tenant.getLastName()));
         params.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
-        params.put("TENANT_ID", tenant.getId().toString());
 
+        if (includeTenantId) {
+            params.put("TENANT_ID", tenant.getId().toString());
+        }
+
+        return params;
+    }
+
+    private void addPartnerParams(Map<String, String> params, UserApiDto userApi) {
+        params.put("partnerName", userApi.getName2());
+        params.put("logoUrl", userApi.getLogoUrl());
+        params.put("callToActionUrl", OptionalString.of(userApi.getValidatedUrl()).orElse(defaultValidatedUrl));
+    }
+
+    private void sendEmailWithPartnerAwareness(TenantDto tenant, Map<String, String> params,
+                                                Long templateWithPartner, Long templateWithoutPartner) {
         if (tenant.isBelongToPartner()) {
             UserApiDto userApi = tenant.getUserApis().getFirst();
-            params.put("partnerName", userApi.getName2());
-            params.put("logoUrl", userApi.getLogoUrl());
-            params.put("callToActionUrl", OptionalString.of(userApi.getValidatedUrl()).orElse(defaultValidatedUrl));
-
-            sendEmailToTenant(tenant, params, templateIdTenantValidatedDossierValidatedWithPartner);
+            addPartnerParams(params, userApi);
+            sendEmailToTenant(tenant, params, templateWithPartner);
         } else {
-            sendEmailToTenant(tenant, params, templateIdTenantValidatedDossierValidated);
+            sendEmailToTenant(tenant, params, templateWithoutPartner);
         }
+    }
+
+    @Async
+    @Override
+    public void sendEmailToTenantAfterValidateAllTenantForGroup(TenantDto tenant) {
+        Map<String, String> params = createBaseParams(tenant, true);
+        sendEmailWithPartnerAwareness(tenant, params,
+            templateIdTenantValidatedDossierValidatedWithPartner,
+            templateIdTenantValidatedDossierValidated);
     }
 
     @Async
     @Override
     public void sendEmailToTenantAfterValidatedApartmentSharingNotValidated(TenantDto tenant) {
-        Map<String, String> params = new HashMap<>();
-        params.put("PRENOM", tenant.getFirstName());
-        params.put("NOM", OptionalString.of(tenant.getPreferredName()).orElse(tenant.getLastName()));
-        params.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
-
-        if (tenant.isBelongToPartner()) {
-            UserApiDto userApi = tenant.getUserApis().getFirst();
-            params.put("partnerName", userApi.getName2());
-            params.put("logoUrl", userApi.getLogoUrl());
-            params.put("callToActionUrl", OptionalString.of(userApi.getValidatedUrl()).orElse(defaultValidatedUrl));
-
-            sendEmailToTenant(tenant, params, templateIdTenantValidatedDossierNotValidatedWithPartner);
-        } else {
-            sendEmailToTenant(tenant, params, templateIdTenantValidatedDossierNotValidated);
-        }
+        Map<String, String> params = createBaseParams(tenant, false);
+        sendEmailWithPartnerAwareness(tenant, params,
+            templateIdTenantValidatedDossierNotValidatedWithPartner,
+            templateIdTenantValidatedDossierNotValidated);
     }
 
     @Async
     @Override
     public void sendEmailToTenantAfterValidateAllDocuments(TenantDto tenant) {
-        Map<String, String> params = new HashMap<>();
-        params.put("PRENOM", tenant.getFirstName());
-        params.put("NOM", OptionalString.of(tenant.getPreferredName()).orElse(tenant.getLastName()));
-        params.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
-        params.put("TENANT_ID", tenant.getId().toString());
-
-        if (tenant.isBelongToPartner()) {
-            UserApiDto userApi = tenant.getUserApis().getFirst();
-            params.put("partnerName", userApi.getName2());
-            params.put("logoUrl", userApi.getLogoUrl());
-            params.put("callToActionUrl", OptionalString.of(userApi.getValidatedUrl()).orElse(defaultValidatedUrl));
-
-            sendEmailToTenant(tenant, params, templateIdDossierFullyValidatedWithPartner);
-        } else {
-            sendEmailToTenant(tenant, params, templateIdDossierFullyValidated);
-        }
+        Map<String, String> params = createBaseParams(tenant, true);
+        sendEmailWithPartnerAwareness(tenant, params,
+            templateIdDossierFullyValidatedWithPartner,
+            templateIdDossierFullyValidated);
     }
     
 
 }
-

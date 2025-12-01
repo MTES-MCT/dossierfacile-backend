@@ -366,16 +366,16 @@ public class TenantService {
     private void processMonthlySums(CustomMessage customMessage, Tenant tenant, Long operatorId) {
         List<Pair<String, List<MessageItem>>> itemsChanged = new ArrayList<>();
         var items = updateMonthlySums(customMessage.getMessageItems(), tenant, operatorId);
-        if (items.size() > 0) {
+        if (!items.isEmpty()) {
             itemsChanged.add(Pair.of(tenant.getFullName(), items));
         }
         for (GuarantorItem guarantorItem : customMessage.getGuarantorItems()) {
             var guarantorItems = updateMonthlySums(guarantorItem.getMessageItems(), tenant, operatorId);
-            if (guarantorItems.size() > 0) {
+            if (!guarantorItems.isEmpty()) {
                 itemsChanged.add(Pair.of(guarantorLabel(guarantorItem), guarantorItems));
             }
         }
-        if (itemsChanged.size() > 0) {
+        if (!itemsChanged.isEmpty()) {
             sendAmountChangedMessage(itemsChanged, tenant);
         }
     }
@@ -670,8 +670,7 @@ public class TenantService {
     }
 
 
-    @Transactional
-    protected void changeTenantStatusToValidated(Tenant tenant, User operator, ProcessedDocuments processedDocuments) {
+    private void changeTenantStatusToValidated(Tenant tenant, User operator, ProcessedDocuments processedDocuments) {
         // Call core validation logic
         tenantCommonService.changeTenantStatusToValidated(tenant);
 

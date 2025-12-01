@@ -7,9 +7,9 @@ import brevoModel.SendSmtpEmailTo;
 import com.google.common.base.Strings;
 import fr.dossierfacile.common.dto.mail.TenantDto;
 import fr.dossierfacile.common.dto.mail.UserApiDto;
-import fr.dossierfacile.common.dto.mail.UserDto;
 import fr.dossierfacile.common.entity.Message;
 import fr.dossierfacile.common.entity.UserApi;
+import fr.dossierfacile.common.service.interfaces.MailCommonService;
 import fr.dossierfacile.common.utils.OptionalString;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +18,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,32 +56,16 @@ public class MailService {
     private Long templateIdAdminPartnerConfiguration;
     @Value("${link.after.denied.default}")
     private String defaultDeniedUrl;
-    @Value("${link.after.validated.default}")
-    private String defaultValidatedUrl;
 
-    private void sendEmailToTenant(UserDto tenant, Map<String, String> params, Long templateId) {
-        SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
-        sendSmtpEmailTo.setEmail(tenant.getEmail());
-        OptionalString.of(tenant.getFullName()).ifNotBlank(name -> sendSmtpEmailTo.setName(name));
+    private final MailCommonService mailCommonService;
 
-        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
-        sendSmtpEmail.templateId(templateId);
-        sendSmtpEmail.params(params);
-        sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
-
-        try {
-            apiInstance.sendTransacEmail(sendSmtpEmail);
-        } catch (ApiException e) {
-            log.error("Email Api Exception", e);
-        }
-    }
 
     @Async
     public void sendEmailAccountDeleted(TenantDto tenant) {
         Map<String, String> params = new HashMap<>();
         params.put("PRENOM", tenant.getFirstName());
         params.put("NOM", OptionalString.of(tenant.getPreferredName()).orElse(tenant.getLastName()));
-        sendEmailToTenant(tenant, params, templateIdAccountDeleted);
+        mailCommonService.sendEmailToTenant(tenant, params, templateIdAccountDeleted);
     }
 
     @Async
@@ -91,7 +74,7 @@ public class MailService {
         params.put("PRENOM", tenant.getFirstName());
         params.put("NOM", OptionalString.of(tenant.getPreferredName()).orElse(tenant.getLastName()));
         params.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
-        sendEmailToTenant(tenant, params, templateIdDossierAmountChanged);
+        mailCommonService.sendEmailToTenant(tenant, params, templateIdDossierAmountChanged);
     }
 
     @Async
@@ -115,9 +98,9 @@ public class MailService {
     private void sendMailWithHtmlDetails(Message message, TenantDto tenant, Map<String, String> params, Long templateWithHtml, Long templateWithoutHtml) {
         if (message != null) {
             params.put("HTML", OptionalString.of(message.getEmailHtml()).orElse(""));
-            sendEmailToTenant(tenant, params, templateWithHtml);
+            mailCommonService.sendEmailToTenant(tenant, params, templateWithHtml);
         } else {
-            sendEmailToTenant(tenant, params, templateWithoutHtml);
+            mailCommonService.sendEmailToTenant(tenant, params, templateWithoutHtml);
         }
     }
 
