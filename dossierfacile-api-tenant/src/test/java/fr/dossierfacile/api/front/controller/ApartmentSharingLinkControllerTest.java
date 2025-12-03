@@ -483,4 +483,93 @@ public class ApartmentSharingLinkControllerTest {
             );
         }
     }
+
+    @Nested
+    class UpdateTitleTests {
+
+        record UpdateTitleTestParameter(Long id, String title) {
+        }
+
+        static List<Arguments> provideUpdateTitleParameters() {
+
+            SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwtTokenWithDossier = jwt().authorities(new SimpleGrantedAuthority("SCOPE_dossier"));
+
+            ApartmentSharing apartmentSharing = new ApartmentSharing();
+
+            return ArgumentBuilder.buildListOfArguments(
+                    Pair.of("Should respond 403 when no jwt is passed",
+                            new ControllerParameter<>(
+                                    new UpdateTitleTestParameter(1L, "test"),
+                                    403,
+                                    null,
+                                    null,
+                                    Collections.emptyList()
+                            )
+                    ),
+                    Pair.of("Should respond 403 when email is not verified",
+                            new ControllerParameter<>(
+                                    new UpdateTitleTestParameter(1L, "test"),
+                                    403,
+                                    jwtTokenWithDossier,
+                                    (v) -> {
+                                        doThrow(new AccessDeniedException("User not verified")).when(authenticationFacade).getLoggedTenant();
+                                        return v;
+                                    },
+                                    List.of(
+                                            jsonPath("$.status").value("FORBIDDEN")
+                                    )
+                            )
+                    ),
+                    Pair.of("Should respond 404 when link not found",
+                            new ControllerParameter<>(
+                                    new UpdateTitleTestParameter(1L, "test"),
+                                    404,
+                                    jwtTokenWithDossier,
+                                    (v) -> {
+                                        when(authenticationFacade.getLoggedTenant()).thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
+                                        doThrow(new NotFoundException()).when(apartmentSharingLinkService).updateTitle(1L, "test", apartmentSharing);
+                                        return v;
+                                    },
+                                    Collections.emptyList()
+                            )
+                    ),
+                    Pair.of("Should respond 200 when jwt is passed and valid title",
+                            new ControllerParameter<>(
+                                    new UpdateTitleTestParameter(1L, "test"),
+                                    200,
+                                    jwtTokenWithDossier,
+                                    (v) -> {
+                                        when(authenticationFacade.getLoggedTenant()).thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
+                                        return v;
+                                    },
+                                    Collections.emptyList()
+                            )
+                    )
+            );
+        }
+
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("provideUpdateTitleParameters")
+        void parameterizedTests(ControllerParameter<UpdateTitleTestParameter> parameter) throws Exception {
+
+            var url = "/api/application/links";
+            if (parameter.getParameterData().id != null) {
+                url += "/" + parameter.getParameterData().id + "/title";
+            }
+
+            var mockMvcRequestBuilder = put(url)
+                    .contentType("application/json");
+
+            if (parameter.getParameterData().title != null) {
+                String requestBody = "{\"title\":\"" + parameter.getParameterData().title + "\"}";
+                mockMvcRequestBuilder = mockMvcRequestBuilder.content(requestBody);
+            }
+
+            ParameterizedTestHelper.runControllerTest(
+                    mockMvc,
+                    mockMvcRequestBuilder,
+                    parameter
+            );
+        }
+    }
 }
