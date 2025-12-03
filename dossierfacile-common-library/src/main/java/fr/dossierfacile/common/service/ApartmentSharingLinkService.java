@@ -125,4 +125,12 @@ public class ApartmentSharingLinkService {
         apartmentSharingLinkRepository.save(link);
     }
 
+    public void updateExpirationDate(Long linkId, LocalDateTime expirationDate, ApartmentSharing apartmentSharing) {
+        var link = apartmentSharingLinkRepository.findByIdAndApartmentSharingAndDeletedIsFalse(linkId, apartmentSharing)
+                .orElseThrow(NotFoundException::new);
+        log.info("Update expiration date for link: " + link.getId() + " from " + link.getExpirationDate() + " to " + expirationDate);
+        link.setExpirationDate(expirationDate);
+        apartmentSharingLinkRepository.save(link);
+    }
+
 }
