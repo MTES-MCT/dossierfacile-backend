@@ -30,6 +30,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import javax.annotation.PostConstruct;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
@@ -150,7 +152,7 @@ public class ApartmentSharingLinkControllerTest {
                                     403,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        doThrow(new AccessDeniedException("User not verified")).when(self.authenticationFacade).getLoggedTenant();
+                                        doThrow(new AccessDeniedException("User not verified")).when(authenticationFacade).getLoggedTenant();
                                         return v;
                                     },
                                     List.of(
@@ -393,6 +395,96 @@ public class ApartmentSharingLinkControllerTest {
 
             var mockMvcRequestBuilder = delete("/api/application/links/1")
                     .contentType("application/json");
+
+            ParameterizedTestHelper.runControllerTest(
+                    mockMvc,
+                    mockMvcRequestBuilder,
+                    parameter
+            );
+        }
+    }
+
+    @Nested
+    class UpdateExpirationDateTests {
+
+        record UpdateExpirationDateTestParameter(Long id, String expirationDate) {
+        }
+
+        static List<Arguments> provideUpdateExpirationDateParameters() {
+
+            SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwtTokenWithDossier = jwt().authorities(new SimpleGrantedAuthority("SCOPE_dossier"));
+
+            ApartmentSharing apartmentSharing = new ApartmentSharing();
+
+            return ArgumentBuilder.buildListOfArguments(
+                    Pair.of("Should respond 403 when no jwt is passed",
+                            new ControllerParameter<>(
+                                    new UpdateExpirationDateTestParameter(1L, "2025-12-27"),
+                                    403,
+                                    null,
+                                    null,
+                                    Collections.emptyList()
+                            )
+                    ),
+                    Pair.of("Should respond 403 when email is not verified",
+                            new ControllerParameter<>(
+                                    new UpdateExpirationDateTestParameter(1L, "2025-12-27"),
+                                    403,
+                                    jwtTokenWithDossier,
+                                    (v) -> {
+                                        doThrow(new AccessDeniedException("User not verified")).when(authenticationFacade).getLoggedTenant();
+                                        return v;
+                                    },
+                                    List.of(
+                                            jsonPath("$.status").value("FORBIDDEN")
+                                    )
+                            )
+                    ),
+                    Pair.of("Should respond 404 when link not found",
+                            new ControllerParameter<>(
+                                    new UpdateExpirationDateTestParameter(1L, "2025-12-27"),
+                                    404,
+                                    jwtTokenWithDossier,
+                                    (v) -> {
+                                        when(authenticationFacade.getLoggedTenant()).thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
+                                        LocalDateTime expectedDateTime = LocalDate.parse("2025-12-27").atStartOfDay();
+                                        doThrow(new NotFoundException()).when(apartmentSharingLinkService).updateExpirationDate(1L, expectedDateTime, apartmentSharing);
+                                        return v;
+                                    },
+                                    Collections.emptyList()
+                            )
+                    ),
+                    Pair.of("Should respond 200 when jwt is passed and valid expiration date without time",
+                            new ControllerParameter<>(
+                                    new UpdateExpirationDateTestParameter(1L, "2025-12-27"),
+                                    200,
+                                    jwtTokenWithDossier,
+                                    (v) -> {
+                                        when(authenticationFacade.getLoggedTenant()).thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
+                                        return v;
+                                    },
+                                    Collections.emptyList()
+                            )
+                    )
+            );
+        }
+
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("provideUpdateExpirationDateParameters")
+        void parameterizedTests(ControllerParameter<UpdateExpirationDateTestParameter> parameter) throws Exception {
+
+            var url = "/api/application/links";
+            if (parameter.getParameterData().id != null) {
+                url += "/" + parameter.getParameterData().id + "/expiration";
+            }
+
+            var mockMvcRequestBuilder = put(url)
+                    .contentType("application/json");
+
+            if (parameter.getParameterData().expirationDate != null) {
+                String requestBody = "{\"expirationDate\":\"" + parameter.getParameterData().expirationDate + "\"}";
+                mockMvcRequestBuilder = mockMvcRequestBuilder.content(requestBody);
+            }
 
             ParameterizedTestHelper.runControllerTest(
                     mockMvc,
