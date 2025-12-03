@@ -14,6 +14,8 @@ import lombok.Data;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -101,12 +103,32 @@ public class ApartmentSharingLinkController {
         Tenant tenant = authenticationFacade.getLoggedTenant();
         apartmentSharingLinkService.enableValidLinks(tenant);
         return ResponseEntity.ok().build();
-    } 
+    }
+
+    @ApiOperation(value = "Update apartment sharing link expiration date", notes = "Updates the expiration date of an apartment sharing link.")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Expiration date updated successfully"),
+            @ApiResponse(code = 400, message = "Invalid request"),
+            @ApiResponse(code = 403, message = "Forbidden: JWT token missing or invalid scope"),
+            @ApiResponse(code = 404, message = "Link not found")
+    })
+    @PutMapping("/{id}/expiration")
+    public ResponseEntity<Void> updateExpirationDate(@PathVariable Long id, @RequestBody ExpirationDateRequest request) {
+        ApartmentSharing apartmentSharing = authenticationFacade.getLoggedTenant().getApartmentSharing();
+        LocalDateTime expirationDateTime = request.getExpirationDate().atStartOfDay();
+        apartmentSharingLinkService.updateExpirationDate(id, expirationDateTime, apartmentSharing);
+        return ResponseEntity.ok().build();
+    }
 
     @Data
     @AllArgsConstructor
     public static class LinksResponse {
         List<ApartmentSharingLinkModel> links;
+    }
+
+    @Data
+    public static class ExpirationDateRequest {
+        private LocalDate expirationDate;
     }
 
 }
