@@ -70,6 +70,20 @@ public class ApartmentSharingLinkControllerTest {
             ApartmentSharing apartmentSharing = new ApartmentSharing();
             List<ApartmentSharingLinkModel> links = Collections.emptyList();
 
+            ApartmentSharingLinkModel linkWithCreator = ApartmentSharingLinkModel.builder()
+                    .id(1L)
+                    .creationDate(LocalDateTime.now())
+                    .ownerEmail("test@example.com")
+                    .enabled(true)
+                    .deleted(false)
+                    .fullData(false)
+                    .title("Test Link")
+                    .type("MAIL")
+                    .nbVisits(0L)
+                    .createdBy("John Doe")
+                    .url("/public-file/test-token-123")
+                    .build();
+
             return ArgumentBuilder.buildListOfArguments(
                     Pair.of("Should respond 401 when no jwt is passed",
                             new ControllerParameter<>(
@@ -87,11 +101,28 @@ public class ApartmentSharingLinkControllerTest {
                                     jwtTokenWithDossier,
                                     (v) -> {
                                         when(authenticationFacade.getLoggedTenant()).thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
-                                        when(apartmentSharingLinkService.getLinksByMail(apartmentSharing)).thenReturn(links);
+                                        when(apartmentSharingLinkService.getLinks(apartmentSharing)).thenReturn(links);
                                         return v;
                                     },
                                     List.of(
                                             jsonPath("$.links").isArray()
+                                    )
+                            )
+                    ),
+                    Pair.of("Should respond 200 and include createdBy and url fields when link has creator",
+                            new ControllerParameter<>(
+                                    new GetApartmentSharingLinksTestParameter(),
+                                    200,
+                                    jwtTokenWithDossier,
+                                    (v) -> {
+                                        when(authenticationFacade.getLoggedTenant()).thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
+                                        when(apartmentSharingLinkService.getLinks(apartmentSharing)).thenReturn(List.of(linkWithCreator));
+                                        return v;
+                                    },
+                                    List.of(
+                                            jsonPath("$.links").isArray(),
+                                            jsonPath("$.links[0].createdBy").value("John Doe"),
+                                            jsonPath("$.links[0].url").value("/public-file/test-token-123")
                                     )
                             )
                     )

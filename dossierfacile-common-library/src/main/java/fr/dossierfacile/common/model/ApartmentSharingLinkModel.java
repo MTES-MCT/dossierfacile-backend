@@ -44,4 +44,8 @@ public class ApartmentSharingLinkModel {
 
     private Long nbVisits;
 
+    private String createdBy;
+
+    private String url;
+
 }

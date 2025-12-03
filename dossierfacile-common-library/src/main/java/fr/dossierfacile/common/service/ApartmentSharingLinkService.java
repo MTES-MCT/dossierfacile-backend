@@ -7,6 +7,7 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.exceptions.NotFoundException;
 import fr.dossierfacile.common.model.ApartmentSharingLinkModel;
 import fr.dossierfacile.common.repository.ApartmentSharingLinkRepository;
+import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.LinkLogService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +17,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-import static fr.dossierfacile.common.enums.ApartmentSharingLinkType.MAIL;
 import static fr.dossierfacile.common.enums.LinkType.*;
 
 @Service
@@ -26,13 +26,7 @@ public class ApartmentSharingLinkService {
 
     private final ApartmentSharingLinkRepository apartmentSharingLinkRepository;
     private final LinkLogService linkLogService;
-
-    public List<ApartmentSharingLinkModel> getLinksByMail(ApartmentSharing apartmentSharing) {
-        return apartmentSharingLinkRepository.findByApartmentSharingAndLinkTypeAndDeletedIsFalse(apartmentSharing, MAIL)
-                .stream()
-                .map(link -> mapApartmentSharingLink(link, apartmentSharing))
-                .toList();
-    }
+    private final TenantCommonRepository tenantCommonRepository;
 
     public List<ApartmentSharingLinkModel> getLinks(ApartmentSharing apartmentSharing) {
         return apartmentSharingLinkRepository.findByApartmentSharingOrderByCreationDate(apartmentSharing)
@@ -44,6 +38,17 @@ public class ApartmentSharingLinkService {
     private ApartmentSharingLinkModel mapApartmentSharingLink(ApartmentSharingLink link, ApartmentSharing apartmentSharing) {
         LinkLogServiceImpl.FirstAndLastVisit firstAndLastVisit = linkLogService.getFirstAndLastVisit(link.getToken(), apartmentSharing);
         long nbVisits = linkLogService.countVisits(link.getToken(), apartmentSharing);
+
+        String createdByFullName = null;
+        if (link.getCreatedBy() != null) {
+            Tenant creator = tenantCommonRepository.findById(link.getCreatedBy()).orElse(null);
+            if (creator != null) {
+                createdByFullName = creator.getFullName();
+            }
+        }
+
+        String url = (link.isFullData() ? "/file/" : "/public-file/") + link.getToken();
+
         return ApartmentSharingLinkModel.builder()
                 .id(link.getId())
                 .creationDate(link.getCreationDate())
@@ -57,6 +62,8 @@ public class ApartmentSharingLinkService {
                 .title(link.getTitle())
                 .type(link.getLinkType().toString())
                 .nbVisits(nbVisits)
+                .createdBy(createdByFullName)
+                .url(url)
                 .build();
     }
 
