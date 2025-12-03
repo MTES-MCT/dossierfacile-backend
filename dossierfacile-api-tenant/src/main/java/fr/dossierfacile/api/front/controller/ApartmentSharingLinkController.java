@@ -120,6 +120,20 @@ public class ApartmentSharingLinkController {
         return ResponseEntity.ok().build();
     }
 
+    @ApiOperation(value = "Update apartment sharing link title", notes = "Updates the title of an apartment sharing link.")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Title updated successfully"),
+            @ApiResponse(code = 400, message = "Invalid request"),
+            @ApiResponse(code = 403, message = "Forbidden: JWT token missing or invalid scope"),
+            @ApiResponse(code = 404, message = "Link not found")
+    })
+    @PutMapping("/{id}/title")
+    public ResponseEntity<Void> updateTitle(@PathVariable Long id, @RequestBody TitleRequest request) {
+        ApartmentSharing apartmentSharing = authenticationFacade.getLoggedTenant().getApartmentSharing();
+        apartmentSharingLinkService.updateTitle(id, request.getTitle(), apartmentSharing);
+        return ResponseEntity.ok().build();
+    }
+
     @Data
     @AllArgsConstructor
     public static class LinksResponse {
@@ -129,6 +143,11 @@ public class ApartmentSharingLinkController {
     @Data
     public static class ExpirationDateRequest {
         private LocalDate expirationDate;
+    }
+
+    @Data
+    public static class TitleRequest {
+        private String title;
     }
 
 }

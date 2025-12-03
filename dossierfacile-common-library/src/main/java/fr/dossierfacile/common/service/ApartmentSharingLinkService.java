@@ -133,4 +133,12 @@ public class ApartmentSharingLinkService {
         apartmentSharingLinkRepository.save(link);
     }
 
+    public void updateTitle(Long linkId, String title, ApartmentSharing apartmentSharing) {
+        var link = apartmentSharingLinkRepository.findByIdAndApartmentSharingAndDeletedIsFalse(linkId, apartmentSharing)
+                .orElseThrow(NotFoundException::new);
+        log.info("Update title for link: " + link.getId() + " from " + link.getTitle() + " to " + title);
+        link.setTitle(title);
+        apartmentSharingLinkRepository.save(link);
+    }
+
 }
