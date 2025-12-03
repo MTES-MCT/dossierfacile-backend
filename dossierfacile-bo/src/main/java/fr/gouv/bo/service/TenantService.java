@@ -4,6 +4,7 @@ import fr.dossierfacile.common.dto.mail.ApartmentSharingDto;
 import fr.dossierfacile.common.dto.mail.TenantDto;
 import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.*;
+import fr.dossierfacile.common.exceptions.NotFoundException;
 import fr.dossierfacile.common.mapper.mail.ApartmentSharingMapperForMail;
 import fr.dossierfacile.common.mapper.mail.TenantMapperForMail;
 import fr.dossierfacile.common.repository.ApartmentSharingLinkRepository;
@@ -174,6 +175,21 @@ public class TenantService {
         Tenant tenant = find(tenantId);
         BOUser operator = userService.findUserByEmail(principal.getEmail());
 
+        validateTenantDocuments(tenant);
+        validateTenantGuarantors(tenant);
+        changeTenantStatusToValidated(tenant, operator, ProcessedDocuments.NONE);
+    }
+
+    @Transactional
+    public void validateTenantForTesting(Long tenantId) {
+        Tenant tenant = find(tenantId);
+
+        validateTenantDocuments(tenant);
+        validateTenantGuarantors(tenant);
+        changeTenantStatusToValidatedForTesting(tenant);
+    }
+
+    private void validateTenantDocuments(Tenant tenant) {
         Optional.ofNullable(tenant.getDocuments())
                 .orElse(new ArrayList<>())
                 .forEach(document -> {
@@ -181,6 +197,9 @@ public class TenantService {
                     document.setDocumentDeniedReasons(null);
                     documentRepository.save(document);
                 });
+    }
+
+    private void validateTenantGuarantors(Tenant tenant) {
         Optional.ofNullable(tenant.getGuarantors())
                 .orElse(new ArrayList<>())
                 .forEach(guarantor -> Optional.ofNullable(guarantor.getDocuments())
@@ -190,7 +209,11 @@ public class TenantService {
                             document.setDocumentDeniedReasons(null);
                             documentRepository.save(document);
                         }));
-        changeTenantStatusToValidated(tenant, operator, ProcessedDocuments.NONE);
+    }
+
+    public Tenant findTenantByEmail(String email) {
+        return tenantRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new NotFoundException("Tenant not found with email: " + email));
     }
 
     private boolean updateFileStatus(CustomMessage customMessage) {
@@ -367,16 +390,16 @@ public class TenantService {
     private void processMonthlySums(CustomMessage customMessage, Tenant tenant, Long operatorId) {
         List<Pair<String, List<MessageItem>>> itemsChanged = new ArrayList<>();
         var items = updateMonthlySums(customMessage.getMessageItems(), tenant, operatorId);
-        if (items.size() > 0) {
+        if (!items.isEmpty()) {
             itemsChanged.add(Pair.of(tenant.getFullName(), items));
         }
         for (GuarantorItem guarantorItem : customMessage.getGuarantorItems()) {
             var guarantorItems = updateMonthlySums(guarantorItem.getMessageItems(), tenant, operatorId);
-            if (guarantorItems.size() > 0) {
+            if (!guarantorItems.isEmpty()) {
                 itemsChanged.add(Pair.of(guarantorLabel(guarantorItem), guarantorItems));
             }
         }
-        if (itemsChanged.size() > 0) {
+        if (!itemsChanged.isEmpty()) {
             sendAmountChangedMessage(itemsChanged, tenant);
         }
     }
@@ -657,7 +680,7 @@ public class TenantService {
 
 
     @Transactional
-    private void updateTenantStatus(Tenant tenant, User operator) {
+    protected void updateTenantStatus(Tenant tenant, User operator) {
         TenantFileStatus previousStatus = tenant.getStatus();
         tenant.setStatus(tenant.computeStatus());
         tenantRepository.save(tenant);
@@ -677,7 +700,7 @@ public class TenantService {
 
         // TODO: Remove after sharing page is implemented
         boolean hasLinks = tenant.getApartmentSharing().getApartmentSharingLinks().stream()
-            .anyMatch(link -> link.getLinkType() == ApartmentSharingLinkType.LINK && link.getCreatedBy() == tenant.getId());
+                .anyMatch(link -> link.getLinkType() == ApartmentSharingLinkType.LINK && Objects.equals(link.getCreatedBy(), tenant.getId()));
         if (!hasLinks) {
             ApartmentSharingLink link = buildApartmentSharingLink(tenant.getApartmentSharing(), tenant.getId(), false);
             ApartmentSharingLink linkFull = buildApartmentSharingLink(tenant.getApartmentSharing(), tenant.getId(), true);
@@ -719,17 +742,23 @@ public class TenantService {
 
     }
 
+    private void changeTenantStatusToValidatedForTesting(Tenant tenant) {
+        tenant.setStatus(TenantFileStatus.VALIDATED);
+        tenantRepository.save(tenant);
+        messageService.markReadAdmin(tenant);
+    }
+
     private ApartmentSharingLink buildApartmentSharingLink(ApartmentSharing apartmentSharing, Long userId, boolean fullData) {
         return ApartmentSharingLink.builder()
-            .apartmentSharing(apartmentSharing)
-            .token(UUID.randomUUID())
-            .creationDate(LocalDateTime.now())
-            .expirationDate(LocalDateTime.now().plusMonths(1))
-            .fullData(fullData)
-            .linkType(ApartmentSharingLinkType.LINK)
-            .title("Lien créé le " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
-            .createdBy(userId)
-            .build();
+                .apartmentSharing(apartmentSharing)
+                .token(UUID.randomUUID())
+                .creationDate(LocalDateTime.now())
+                .expirationDate(LocalDateTime.now().plusMonths(1))
+                .fullData(fullData)
+                .linkType(ApartmentSharingLinkType.LINK)
+                .title("Lien créé le " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
+                .createdBy(userId)
+                .build();
     }
 
 
@@ -815,33 +844,32 @@ public class TenantService {
         List<Document> documentList = guarantor.getDocuments();
         List<DocumentCategory> listCategories = new ArrayList<>();
 
-        if (guarantor.getTypeGuarantor().name().equals("NATURAL_PERSON")) {
+        switch (guarantor.getTypeGuarantor().name()) {
+            case "NATURAL_PERSON" -> {
 
-            listCategories.add(DocumentCategory.IDENTIFICATION);
-            listCategories.add(DocumentCategory.RESIDENCY);
-            listCategories.add(DocumentCategory.PROFESSIONAL);
-            listCategories.add(DocumentCategory.FINANCIAL);
-            listCategories.add(DocumentCategory.TAX);
+                listCategories.add(DocumentCategory.IDENTIFICATION);
+                listCategories.add(DocumentCategory.RESIDENCY);
+                listCategories.add(DocumentCategory.PROFESSIONAL);
+                listCategories.add(DocumentCategory.FINANCIAL);
+                listCategories.add(DocumentCategory.TAX);
 
-            documentList = getMissingDocuments(guarantor, listCategories, documentList);
-            return documentList;
-        }
-
-        if (guarantor.getTypeGuarantor().name().equals("LEGAL_PERSON")) {
-
-            listCategories.add(DocumentCategory.IDENTIFICATION);
-            listCategories.add(DocumentCategory.IDENTIFICATION_LEGAL_PERSON);
-            documentList = getMissingDocuments(guarantor, listCategories, documentList);
-            return documentList;
-
-        }
-
-        if (guarantor.getTypeGuarantor().name().equals("ORGANISM")) {
-            if (guarantor.getDocuments().size() != 1) {
-                Document docMissing = new Document();
-                docMissing.setDocumentCategory(DocumentCategory.IDENTIFICATION);
-                documentList.add(docMissing);
+                documentList = getMissingDocuments(guarantor, listCategories, documentList);
                 return documentList;
+            }
+            case "LEGAL_PERSON" -> {
+
+                listCategories.add(DocumentCategory.IDENTIFICATION);
+                listCategories.add(DocumentCategory.IDENTIFICATION_LEGAL_PERSON);
+                documentList = getMissingDocuments(guarantor, listCategories, documentList);
+                return documentList;
+            }
+            case "ORGANISM" -> {
+                if (guarantor.getDocuments().size() != 1) {
+                    Document docMissing = new Document();
+                    docMissing.setDocumentCategory(DocumentCategory.IDENTIFICATION);
+                    documentList.add(docMissing);
+                    return documentList;
+                }
             }
         }
 
@@ -936,4 +964,3 @@ public class TenantService {
         return tenant;
     }
 }
-
