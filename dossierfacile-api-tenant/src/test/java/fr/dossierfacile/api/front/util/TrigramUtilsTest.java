@@ -1,4 +1,4 @@
-package fr.dossierfacile.common.utils;
+package fr.dossierfacile.api.front.util;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -54,7 +54,7 @@ class TrigramUtilsTest {
     @Test
     @DisplayName("compute handles spaces inside name")
     void compute_withSpecialCharacters() {
-        Optional<String> result = TrigramUtils.compute("N’Bala");
+        Optional<String> result = TrigramUtils.compute("N'Bala");
         assertThat(result).contains("NBA");
     }
 }
