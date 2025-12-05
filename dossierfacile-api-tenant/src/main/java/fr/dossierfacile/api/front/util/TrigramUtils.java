@@ -1,4 +1,4 @@
-package fr.dossierfacile.common.utils;
+package fr.dossierfacile.api.front.util;
 
 import org.apache.commons.lang3.StringUtils;
 
