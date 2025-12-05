@@ -91,4 +91,11 @@ public class ApartmentSharingLink implements Serializable {
     @JoinColumn(name = "property_id")
     private Property property;
 
+    @Builder.Default
+    @Column(name = "failed_attempt_count")
+    private Integer failedAttemptCount = 0;
+
+    @Column(name = "first_failed_attempt_at")
+    private LocalDateTime firstFailedAttemptAt;
+
 }

@@ -34,8 +34,9 @@ public class ApplicationController {
     private final AuthenticationFacade authenticationFacade;
 
     @GetMapping(value = "/full/{token}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ApplicationModel> full(@PathVariable UUID token) {
-        ApplicationModel applicationModel = apartmentSharingService.full(token);
+    public ResponseEntity<ApplicationModel> full(@PathVariable UUID token,
+                                                 @RequestHeader(value = "X-Tenant-Trigram", required = false) String trigramHeader) {
+        ApplicationModel applicationModel = apartmentSharingService.full(token, trigramHeader);
         return ok(applicationModel);
     }
 
