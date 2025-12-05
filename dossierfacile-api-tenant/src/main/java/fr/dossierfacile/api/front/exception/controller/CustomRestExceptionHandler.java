@@ -1,6 +1,5 @@
 package fr.dossierfacile.api.front.exception.controller;
 
-import fr.dossierfacile.api.front.exception.TrigramNotAuthorizedException;
 import fr.dossierfacile.api.front.exception.model.ApiError;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -16,7 +15,6 @@ import org.springframework.validation.ObjectError;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -67,15 +65,6 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
 
         final String error = ex.getRequestPartName() + " part is missing";
         final ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST, ex.getLocalizedMessage(), error);
-        return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
-    }
-
-    @ExceptionHandler({MissingRequestHeaderException.class})
-    public ResponseEntity<Object> handleMissingRequestHeader(final MissingRequestHeaderException ex, final WebRequest request) {
-        logger.error(ex.getMessage(), ex);
-
-        final String error = "Required header '" + ex.getHeaderName() + "' is not present.";
-        final ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST, error);
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
     }
 
@@ -165,14 +154,6 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
         logger.error(ex.getMessage(), ex);
 
         final ApiError apiError = new ApiError(HttpStatus.FORBIDDEN, ex.getLocalizedMessage());
-        return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
-    }
-
-    @ExceptionHandler({TrigramNotAuthorizedException.class})
-    public ResponseEntity<Object> handleTrigramNotAuthorizedException(final TrigramNotAuthorizedException ex) {
-        logger.error(ex.getMessage(), ex);
-
-        final ApiError apiError = new ApiError(HttpStatus.FORBIDDEN, ex.getMessage());
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
     }
 
