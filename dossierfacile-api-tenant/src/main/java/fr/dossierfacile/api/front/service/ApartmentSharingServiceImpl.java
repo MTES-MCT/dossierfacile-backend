@@ -68,28 +68,30 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
 
     @Override
     public ApplicationModel full(UUID token, String trigram) {
-        // Find the valid link for the token
+        // 1. Check if the link exists and is valid
         Optional<ApartmentSharingLink> apartmentSharingLink = apartmentSharingLinkRepository.findValidLinkByToken(token, true);
         if (apartmentSharingLink.isEmpty()) {
             throw new ApartmentSharingNotFoundException(token.toString());
         }
         ApartmentSharingLink link = apartmentSharingLink.get();
 
-        // Check if the link is blocked
+        // 2. Check if the link is blocked by brute force protection
         bruteForceProtectionService.checkAndEnforceProtection(link);
 
-        // Check if the trigram is valid
+        // 3. Check if the trigram is present and valid
         ApartmentSharing apartmentSharing = link.getApartmentSharing();
 
         try {
-            validateTrigram(apartmentSharing, trigram);
+            validateAndNormalizeTrigram(apartmentSharing, trigram);
         } catch (TrigramNotAuthorizedException e) {
             bruteForceProtectionService.recordFailedAttempt(link);
             throw e;
         }
-        // Reset the attempts if the trigram is valid
+        
+        // 4. Reset the attempts if the trigram is valid
         bruteForceProtectionService.resetAttempts(link);
 
+        // 5. Save log and return the application model
         saveLinkLog(apartmentSharing, token, LinkType.FULL_APPLICATION);
         ApplicationModel applicationModel = applicationFullMapper.toApplicationModelWithToken(apartmentSharing, token);
         applicationModel.setLastUpdateDate(getLastUpdateDate(apartmentSharing));
@@ -204,17 +206,28 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
         return apartmentSharingLink.get().getApartmentSharing();
     }
 
-    private void validateTrigram(ApartmentSharing apartmentSharing, String trigram) {
+    private void validateAndNormalizeTrigram(ApartmentSharing apartmentSharing, String trigram) {
+        // Check if trigram is provided
+        if (trigram == null || trigram.isBlank()) {
+            log.warn("Missing trigram for apartmentSharing [{}]", apartmentSharing.getId());
+            throw new TrigramNotAuthorizedException("Trigram is required to access full application");
+        }
+
+        // Normalize trigram (strip whitespace and convert to uppercase)
+        String normalizedTrigram = trigram.strip().toUpperCase();
+
+        // Get valid trigrams for this apartment sharing
         List<String> validTrigrams = apartmentSharing.getTenants() == null ? List.of() : apartmentSharing.getTenants().stream()
                 .map(Tenant::getLastName)
                 .map(TrigramUtils::compute)
                 .flatMap(Optional::stream)
                 .toList();
 
-        boolean trigramMatches = validTrigrams.stream().anyMatch(candidate -> candidate.equalsIgnoreCase(trigram));
+        // Check if the provided trigram matches any valid trigram
+        boolean trigramMatches = validTrigrams.stream().anyMatch(candidate -> candidate.equalsIgnoreCase(normalizedTrigram));
 
         if (!trigramMatches) {
-            log.warn("Unauthorized trigram [{}] for apartmentSharing [{}]. Valid trigrams: {}", trigram, apartmentSharing.getId(), validTrigrams);    
+            log.warn("Unauthorized trigram [{}] for apartmentSharing [{}]. Valid trigrams: {}", normalizedTrigram, apartmentSharing.getId(), validTrigrams);    
             throw new TrigramNotAuthorizedException("Trigram does not match any tenant for this application");
         }
     }
