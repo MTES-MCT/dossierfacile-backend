@@ -21,11 +21,25 @@ $(document).ready(function () {
         }
       }
     });
+    var processFileForm = document.getElementById('processFileForm');
+    var originalAction = processFileForm.action;
+
     document.getElementById('validDecline').addEventListener('click', function () {
       var timeSpent = (new Date() - startTime) + Number(document.getElementById('timeSpent').value);
       document.getElementById('timeSpent').value = timeSpent;
       console.log('time spent in ms = ' + timeSpent);
-      document.getElementById('processFileForm').submit();
+      // Restore original action for "Envoyer" button
+      processFileForm.action = originalAction;
+      processFileForm.submit();
+    });
+
+    document.getElementById('validDeclineAndClose').addEventListener('click', function () {
+      var timeSpent = (new Date() - startTime) + Number(document.getElementById('timeSpent').value);
+      document.getElementById('timeSpent').value = timeSpent;
+      console.log('time spent in ms = ' + timeSpent);
+      // Add returnToHome parameter to action to processFile endpoint
+      processFileForm.action = processFileForm.action + '?returnToHome=true';
+      processFileForm.submit();
     });
 
    function updateStatus() {

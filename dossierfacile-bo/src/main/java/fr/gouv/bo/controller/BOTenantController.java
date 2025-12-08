@@ -209,10 +209,14 @@ public class BOTenantController {
     @PostMapping("/{id}/processFile")
     public String processFile(
             @PathVariable Long id,
+            @RequestParam(value = "returnToHome", required = false) String returnToHome,
             CustomMessage customMessage,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
         tenantService.processFile(id, customMessage, principal); 
+        if (returnToHome != null && returnToHome.equals("true")) {
+            return "redirect:/bo";
+        }
         return tenantService.redirectToApplication(principal, null);
     }
 
