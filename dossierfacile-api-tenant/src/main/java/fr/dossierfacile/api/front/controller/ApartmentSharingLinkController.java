@@ -114,6 +114,9 @@ public class ApartmentSharingLinkController {
     })
     @PutMapping("/{id}/expiration")
     public ResponseEntity<Void> updateExpirationDate(@PathVariable Long id, @RequestBody ExpirationDateRequest request) {
+        if (request.getExpirationDate() == null || request.getExpirationDate().isBefore(LocalDate.now())) {
+            return ResponseEntity.badRequest().build();
+        }
         ApartmentSharing apartmentSharing = authenticationFacade.getLoggedTenant().getApartmentSharing();
         LocalDateTime expirationDateTime = request.getExpirationDate().atStartOfDay();
         apartmentSharingLinkService.updateExpirationDate(id, expirationDateTime, apartmentSharing);
@@ -129,8 +132,12 @@ public class ApartmentSharingLinkController {
     })
     @PutMapping("/{id}/title")
     public ResponseEntity<Void> updateTitle(@PathVariable Long id, @RequestBody TitleRequest request) {
+        String title = request.getTitle();
+        if (title == null || title.trim().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
         ApartmentSharing apartmentSharing = authenticationFacade.getLoggedTenant().getApartmentSharing();
-        apartmentSharingLinkService.updateTitle(id, request.getTitle(), apartmentSharing);
+        apartmentSharingLinkService.updateTitle(id, title, apartmentSharing);
         return ResponseEntity.ok().build();
     }
 
