@@ -21,11 +21,11 @@ $(document).ready(function () {
         }
       }
     });
-    var processFileForm = document.getElementById('processFileForm');
-    var originalAction = processFileForm.action;
+    let processFileForm = document.getElementById('processFileForm');
+    let originalAction = processFileForm.action;
 
     document.getElementById('validDecline').addEventListener('click', function () {
-      var timeSpent = (new Date() - startTime) + Number(document.getElementById('timeSpent').value);
+      const timeSpent = (Date.now() - startTime) + Number(document.getElementById('timeSpent').value);
       document.getElementById('timeSpent').value = timeSpent;
       console.log('time spent in ms = ' + timeSpent);
       // Restore original action for "Envoyer" button
@@ -34,7 +34,7 @@ $(document).ready(function () {
     });
 
     document.getElementById('validDeclineAndClose').addEventListener('click', function () {
-      var timeSpent = (new Date() - startTime) + Number(document.getElementById('timeSpent').value);
+      const timeSpent = (Date.now() - startTime) + Number(document.getElementById('timeSpent').value);
       document.getElementById('timeSpent').value = timeSpent;
       console.log('time spent in ms = ' + timeSpent);
       // Add returnToHome parameter to action to processFile endpoint
