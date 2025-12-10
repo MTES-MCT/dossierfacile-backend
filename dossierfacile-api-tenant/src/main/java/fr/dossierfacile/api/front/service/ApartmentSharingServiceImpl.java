@@ -81,11 +81,15 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
         // 3. Check if the trigram is present and valid
         ApartmentSharing apartmentSharing = link.getApartmentSharing();
 
-        try {
-            validateAndNormalizeTrigram(apartmentSharing, trigram);
-        } catch (TrigramNotAuthorizedException e) {
-            bruteForceProtectionService.recordFailedAttempt(link);
-            throw e;
+        // TODO: remove if statement when the feature is fully rolled out
+        // Allow access without trigram for now (header optional)
+        if (trigram != null && !trigram.isBlank()) {
+            try {
+                validateAndNormalizeTrigram(apartmentSharing, trigram);
+            } catch (TrigramNotAuthorizedException e) {
+                bruteForceProtectionService.recordFailedAttempt(link);
+                throw e;
+            }
         }
         
         // 4. Reset the attempts if the trigram is valid
