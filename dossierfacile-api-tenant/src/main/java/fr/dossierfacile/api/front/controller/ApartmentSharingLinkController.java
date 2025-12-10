@@ -1,5 +1,7 @@
 package fr.dossierfacile.api.front.controller;
 
+import fr.dossierfacile.api.front.model.ExpirationDateRequest;
+import fr.dossierfacile.api.front.model.TitleRequest;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.common.entity.ApartmentSharing;
@@ -9,12 +11,12 @@ import fr.dossierfacile.common.service.ApartmentSharingLinkService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -113,10 +115,7 @@ public class ApartmentSharingLinkController {
             @ApiResponse(code = 404, message = "Link not found")
     })
     @PutMapping("/{id}/expiration")
-    public ResponseEntity<Void> updateExpirationDate(@PathVariable Long id, @RequestBody ExpirationDateRequest request) {
-        if (request.getExpirationDate() == null || request.getExpirationDate().isBefore(LocalDate.now())) {
-            return ResponseEntity.badRequest().build();
-        }
+    public ResponseEntity<Void> updateExpirationDate(@PathVariable Long id, @Valid @RequestBody ExpirationDateRequest request) {
         ApartmentSharing apartmentSharing = authenticationFacade.getLoggedTenant().getApartmentSharing();
         LocalDateTime expirationDateTime = request.getExpirationDate().atStartOfDay();
         apartmentSharingLinkService.updateExpirationDate(id, expirationDateTime, apartmentSharing);
@@ -131,13 +130,9 @@ public class ApartmentSharingLinkController {
             @ApiResponse(code = 404, message = "Link not found")
     })
     @PutMapping("/{id}/title")
-    public ResponseEntity<Void> updateTitle(@PathVariable Long id, @RequestBody TitleRequest request) {
-        String title = request.getTitle();
-        if (title == null || title.trim().isEmpty()) {
-            return ResponseEntity.badRequest().build();
-        }
+    public ResponseEntity<Void> updateTitle(@PathVariable Long id, @Valid @RequestBody TitleRequest request) {
         ApartmentSharing apartmentSharing = authenticationFacade.getLoggedTenant().getApartmentSharing();
-        apartmentSharingLinkService.updateTitle(id, title, apartmentSharing);
+        apartmentSharingLinkService.updateTitle(id, request.getTitle(), apartmentSharing);
         return ResponseEntity.ok().build();
     }
 
@@ -145,16 +140,6 @@ public class ApartmentSharingLinkController {
     @AllArgsConstructor
     public static class LinksResponse {
         List<ApartmentSharingLinkModel> links;
-    }
-
-    @Data
-    public static class ExpirationDateRequest {
-        private LocalDate expirationDate;
-    }
-
-    @Data
-    public static class TitleRequest {
-        private String title;
     }
 
 }
