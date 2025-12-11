@@ -1,8 +1,10 @@
 package fr.dossierfacile.process.file.service;
 
+import fr.dossierfacile.common.config.DocumentIAConfig;
 import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.entity.messaging.QueueMessageStatus;
 import fr.dossierfacile.common.entity.messaging.QueueName;
+import fr.dossierfacile.common.enums.DocumentIAFileAnalysisStatus;
 import fr.dossierfacile.common.exceptions.RetryableOperationException;
 import fr.dossierfacile.common.repository.DocumentAnalysisReportRepository;
 import fr.dossierfacile.common.repository.QueueMessageRepository;
@@ -29,6 +31,7 @@ public class AnalyzeDocumentService {
     private final DocumentAnalysisReportRepository documentAnalysisReportRepository;
     private final DocumentRulesValidationServiceFactory documentRulesValidationServiceFactory;
     private final QueueMessageRepository queueMessageRepository;
+    private final DocumentIAConfig documentIAConfig;
 
     @Transactional
     public void processDocument(Long documentId) throws RetryableOperationException {
@@ -90,6 +93,19 @@ public class AnalyzeDocumentService {
                     document.getId(), blurryAnalysis.size(), document.getFiles().size());
             return false;
         }
+
+        // If the document is supposed to be analysed by document IA. Check that all files has been analyzed
+        if (documentIAConfig.hasToSendFileForAnalysis(document)) {
+            List<DocumentIAFileAnalysis> startedAnalysis = document.getFiles().stream().map(File::getDocumentIAFileAnalysis).filter(Objects::nonNull).filter(it -> it.getAnalysisStatus() == DocumentIAFileAnalysisStatus.STARTED).toList();
+            if (!startedAnalysis.isEmpty()) {
+                // This means that some analysis are still in progress
+                log.info("Document {} is not ready to be analysed because it has {} files with IA analysis still in progress",
+                        document.getId(), startedAnalysis.size());
+                return false;
+            }
+
+        }
+
         return CollectionUtils.isEmpty(messages);
     }
 
