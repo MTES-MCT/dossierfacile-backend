@@ -152,9 +152,9 @@ class ApartmentSharingServiceImplBruteForceTest {
 
         // Setup request context mock
         RequestContextHolder.setRequestAttributes(servletRequestAttributes);
-        when(servletRequestAttributes.getRequest()).thenReturn(httpServletRequest);
-        when(httpServletRequest.getHeader("X-Real-Ip")).thenReturn(null);
-        when(httpServletRequest.getRemoteAddr()).thenReturn("127.0.0.1");
+        lenient().when(servletRequestAttributes.getRequest()).thenReturn(httpServletRequest);
+        lenient().when(httpServletRequest.getHeader("X-Real-Ip")).thenReturn(null);
+        lenient().when(httpServletRequest.getRemoteAddr()).thenReturn("127.0.0.1");
     }
 
     @Test
@@ -162,7 +162,7 @@ class ApartmentSharingServiceImplBruteForceTest {
         // Given
         when(apartmentSharingLinkRepository.findValidLinkByToken(testToken, true))
                 .thenReturn(Optional.of(fullDataLink));
-        when(apartmentSharingLinkRepository.findByToken(testToken))
+        lenient().when(apartmentSharingLinkRepository.findByToken(testToken))
                 .thenReturn(Optional.of(fullDataLink));
         when(applicationFullMapper.toApplicationModelWithToken(eq(apartmentSharing), eq(testToken)))
                 .thenReturn(new ApplicationModel());
@@ -181,7 +181,7 @@ class ApartmentSharingServiceImplBruteForceTest {
         // Given
         when(apartmentSharingLinkRepository.findValidLinkByToken(testToken, true))
                 .thenReturn(Optional.of(fullDataLink));
-        when(apartmentSharingLinkRepository.findByToken(testToken))
+        lenient().when(apartmentSharingLinkRepository.findByToken(testToken))
                 .thenReturn(Optional.of(fullDataLink));
 
         // When
@@ -199,7 +199,7 @@ class ApartmentSharingServiceImplBruteForceTest {
         // Given
         when(apartmentSharingLinkRepository.findValidLinkByToken(testToken, true))
                 .thenReturn(Optional.of(fullDataLink));
-        when(apartmentSharingLinkRepository.findByToken(testToken))
+        lenient().when(apartmentSharingLinkRepository.findByToken(testToken))
                 .thenReturn(Optional.of(fullDataLink));
         when(applicationFullMapper.toApplicationModelWithToken(eq(apartmentSharing), eq(testToken)))
                 .thenReturn(new ApplicationModel());
@@ -236,7 +236,7 @@ class ApartmentSharingServiceImplBruteForceTest {
 
         when(apartmentSharingLinkRepository.findValidLinkByToken(testToken, true))
                 .thenReturn(Optional.of(fullDataLink));
-        when(apartmentSharingLinkRepository.findByToken(testToken))
+        lenient().when(apartmentSharingLinkRepository.findByToken(testToken))
                 .thenReturn(Optional.of(fullDataLink));
         when(applicationFullMapper.toApplicationModelWithToken(eq(apartmentSharing), eq(testToken)))
                 .thenReturn(new ApplicationModel());
@@ -261,7 +261,7 @@ class ApartmentSharingServiceImplBruteForceTest {
 
         when(apartmentSharingLinkRepository.findValidLinkByToken(testToken, true))
                 .thenReturn(Optional.of(fullDataLink));
-        when(apartmentSharingLinkRepository.findByToken(testToken))
+        lenient().when(apartmentSharingLinkRepository.findByToken(testToken))
                 .thenReturn(Optional.of(fullDataLink));
         when(applicationFullMapper.toApplicationModelWithToken(eq(apartmentSharing), eq(testToken)))
                 .thenReturn(new ApplicationModel());
@@ -321,7 +321,7 @@ class ApartmentSharingServiceImplBruteForceTest {
         // Given - This test verifies that recordFailedAttempt is called for each invalid trigram
         when(apartmentSharingLinkRepository.findValidLinkByToken(testToken, true))
                 .thenReturn(Optional.of(fullDataLink));
-        when(apartmentSharingLinkRepository.findByToken(testToken))
+        lenient().when(apartmentSharingLinkRepository.findByToken(testToken))
                 .thenReturn(Optional.of(fullDataLink));
 
         // First failed attempt
