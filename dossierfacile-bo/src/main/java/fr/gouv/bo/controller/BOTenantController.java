@@ -185,7 +185,7 @@ public class BOTenantController {
         return "bo/process-file";
     }
 
-    @PreAuthorize("hasRole('SUPPORT')")
+    @PreAuthorize("hasRole('OPERATOR')")
     @GetMapping("/delete/guarantor/{guarantorId}")
     public String deleteGuarantor(
             @PathVariable("guarantorId") Long guarantorId,
