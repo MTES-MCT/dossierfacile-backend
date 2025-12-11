@@ -881,5 +881,30 @@ public class TenantService {
         updateTenantStatus(tenant, operator);
         return tenant;
     }
+
+    /**
+     * Trouve le prochain tenant de la meme dossier COUPLE (apartment sharing) en statut TO_PROCESS
+     * pour router les locataires d'un meme dossier COUPLE vers le même opérateur
+     */
+    public Optional<Tenant> findNextTenantInCouple(Long currentTenantId) {
+        Tenant currentTenant = find(currentTenantId);
+
+        ApartmentSharing apartmentSharing = currentTenant.getApartmentSharing();
+        if (currentTenant == null || apartmentSharing == null) {
+            return Optional.empty();
+        }
+
+        if (apartmentSharing.getApplicationType() != ApplicationType.COUPLE) {
+            return Optional.empty();
+        }
+
+        List<Tenant> allTenants = tenantRepository.findAllByApartmentSharingId(
+                currentTenant.getApartmentSharing().getId());
+
+        return allTenants.stream()
+                .filter(tenant -> !tenant.getId().equals(currentTenantId))
+                .filter(tenant -> tenant.getStatus() == TenantFileStatus.TO_PROCESS)
+                .findFirst();
+    }
 }
 
