@@ -20,7 +20,7 @@ class AnalyzeDocumentServiceTest {
     @BeforeEach
     void setUp() throws Exception {
         // Le constructeur prend 4 dépendances mais la méthode testée n'en a pas besoin
-        service = new AnalyzeDocumentService(null, null, null, null);
+        service = new AnalyzeDocumentService(null, null, null, null, null);
         method = AnalyzeDocumentService.class.getDeclaredMethod("computeDocumentAnalysisReportStatus", DocumentAnalysisReport.class);
         method.setAccessible(true);
     }
