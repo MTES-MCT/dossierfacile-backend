@@ -183,6 +183,36 @@ public enum DocumentRule {
             "Votre document semble flou",
             "Votre document semble net et lisible",
             ""
+    ),
+    R_DOCUMENT_IA_ANALYSED(
+            DocumentRuleLevel.INFO,
+            "",
+            "Le document a été analysé par Document IA",
+            "Le document n'a pas pu être analysé par Document IA"
+    ),
+    R_DOCUMENT_IA_CLASSIFICATION(
+            DocumentRuleLevel.CRITICAL,
+            "Le document n'a pas été correctement classifié par Document IA",
+            "Le document a été correctement classifié par Document IA",
+            ""
+    ),
+    R_DOCUMENT_IA_OTHER_DOCUMENTS(
+            DocumentRuleLevel.WARN,
+            "Le document comprends des éléments inattendus",
+            "Tous les fichiers sont de la bonne catégorie",
+            ""
+    ),
+    R_FRENCH_IDENTITY_CARD_NAME_MATCH(
+            DocumentRuleLevel.CRITICAL,
+            "Le nom et le prénom sur la carte d'identité ne correspondent pas",
+            "Le nom et le prénom sur la carte d'identité correspondent",
+            "Impossible de vérifier le nom et le prénom sur la carte d'identité"
+    ),
+    R_FRENCH_IDENTITY_CARD_EXPIRATION(
+            DocumentRuleLevel.CRITICAL,
+            "La carte d'identité est expirée",
+            "La carte d'identité est valide",
+            "Impossible de vérifier la date de validité de la carte d'identité"
     );
 
     private final DocumentRuleLevel level;
