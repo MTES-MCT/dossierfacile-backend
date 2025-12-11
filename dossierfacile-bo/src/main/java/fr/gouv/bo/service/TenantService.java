@@ -888,9 +888,12 @@ public class TenantService {
      */
     public Optional<Tenant> findNextTenantInCouple(Long currentTenantId) {
         Tenant currentTenant = find(currentTenantId);
+        if (currentTenant == null) {
+            return Optional.empty();
+        }
 
         ApartmentSharing apartmentSharing = currentTenant.getApartmentSharing();
-        if (currentTenant == null || apartmentSharing == null) {
+        if (apartmentSharing == null) {
             return Optional.empty();
         }
 
