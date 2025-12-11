@@ -67,6 +67,19 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
     private final BruteForceProtectionService bruteForceProtectionService;
 
     @Override
+    public void linkExists(UUID token, boolean fullData) {
+        Optional<ApartmentSharingLink> apartmentSharingLink = apartmentSharingLinkRepository.findValidLinkByToken(token, true);
+        // 1. Check if the link exists and is valid
+        if (apartmentSharingLink.isEmpty()) {
+            throw new ApartmentSharingNotFoundException(token.toString());
+        }
+
+        ApartmentSharingLink link = apartmentSharingLink.get();
+        // 2. Check if the link is blocked by brute force protection
+        bruteForceProtectionService.checkAndEnforceProtection(link);
+    }
+
+    @Override
     public ApplicationModel full(UUID token, String trigram) {
         // 1. Check if the link exists and is valid
         Optional<ApartmentSharingLink> apartmentSharingLink = apartmentSharingLinkRepository.findValidLinkByToken(token, true);
