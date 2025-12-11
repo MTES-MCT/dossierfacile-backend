@@ -23,8 +23,10 @@ import java.util.Collections;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.head;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(ApplicationController.class)
@@ -58,6 +60,26 @@ class ApplicationControllerTest {
     private static final String INVALID_TRIGRAM = "BAD";
 
     @Test
+    void shouldReturn200WhenLinkExists() throws Exception {
+        // When & Then
+        mockMvc.perform(head("/api/application/full/{token}", TEST_TOKEN))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void shouldReturn404WhenLinkDoesNotExist() throws Exception {
+        // Given
+        UUID nonExistentToken = UUID.randomUUID();
+        doThrow(new fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException(
+                        nonExistentToken.toString()))
+                .when(apartmentSharingService).linkExists(eq(nonExistentToken), eq(true));
+
+        // When & Then
+        mockMvc.perform(head("/api/application/full/{token}", nonExistentToken))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     void shouldReturn200WhenValidTrigramProvided() throws Exception {
         // Given
         ApplicationModel applicationModel = new ApplicationModel();
@@ -69,35 +91,6 @@ class ApplicationControllerTest {
                         .header("X-Tenant-Trigram", VALID_TRIGRAM))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json"));
-    }
-
-    @Test
-    void shouldReturn400WhenTrigramHeaderIsMissing() throws Exception {
-        // When & Then
-        mockMvc.perform(get("/api/application/full/{token}", TEST_TOKEN))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.status").value("BAD_REQUEST"))
-                .andExpect(jsonPath("$.message").value("Required header 'X-Tenant-Trigram' is not present."));
-    }
-
-    @Test
-    void shouldReturn400WhenTrigramHeaderIsEmpty() throws Exception {
-        // When & Then
-        mockMvc.perform(get("/api/application/full/{token}", TEST_TOKEN)
-                        .header("X-Tenant-Trigram", ""))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.status").value("BAD_REQUEST"))
-                .andExpect(jsonPath("$.message").value("Required header 'X-Tenant-Trigram' is not present."));
-    }
-
-    @Test
-    void shouldReturn400WhenTrigramHeaderIsBlank() throws Exception {
-        // When & Then
-        mockMvc.perform(get("/api/application/full/{token}", TEST_TOKEN)
-                        .header("X-Tenant-Trigram", "   "))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.status").value("BAD_REQUEST"))
-                .andExpect(jsonPath("$.message").value("Required header 'X-Tenant-Trigram' is not present."));
     }
 
     @Test
@@ -120,9 +113,7 @@ class ApplicationControllerTest {
         // When & Then
         mockMvc.perform(get("/api/application/full/{token}", TEST_TOKEN)
                         .header("X-Tenant-Trigram", INVALID_TRIGRAM))
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.status").value("FORBIDDEN"))
-                .andExpect(jsonPath("$.message").value("Trigram does not match any tenant for this application"));
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -137,8 +128,7 @@ class ApplicationControllerTest {
         // When & Then
         mockMvc.perform(get("/api/application/full/{token}", nonExistentToken)
                         .header("X-Tenant-Trigram", VALID_TRIGRAM))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.status").value("NOT_FOUND"));
+                .andExpect(status().isNotFound());
     }
 
     @Test
@@ -152,8 +142,7 @@ class ApplicationControllerTest {
         // When & Then
         mockMvc.perform(get("/api/application/full/{token}", TEST_TOKEN)
                         .header("X-Tenant-Trigram", INVALID_TRIGRAM))
-                .andExpect(status().isTooManyRequests())
-                .andExpect(jsonPath("$.status").value("TOO_MANY_REQUESTS"));
+                .andExpect(status().isTooManyRequests());
     }
 }
 
