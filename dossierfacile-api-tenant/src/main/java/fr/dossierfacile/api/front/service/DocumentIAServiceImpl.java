@@ -4,6 +4,7 @@ import fr.dossierfacile.api.front.external.documentIA.DocumentIAClient;
 import fr.dossierfacile.api.front.external.documentIA.DocumentIARequest;
 import fr.dossierfacile.api.front.model.documentIA.WebhookModel;
 import fr.dossierfacile.api.front.service.interfaces.DocumentIAService;
+import fr.dossierfacile.common.config.DocumentIAConfig;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentIAFileAnalysis;
 import fr.dossierfacile.common.entity.File;
@@ -20,14 +21,17 @@ public class DocumentIAServiceImpl implements DocumentIAService {
 
     private final DocumentIAClient documentIAClient;
     private final DocumentIAFileAnalysisRepository documentIAFileAnalysisRepository;
+    private final DocumentIAConfig documentIAConfig;
 
 
     DocumentIAServiceImpl(
             DocumentIAClient documentIAClient,
-            DocumentIAFileAnalysisRepository documentIAFileAnalysisRepository
+            DocumentIAFileAnalysisRepository documentIAFileAnalysisRepository,
+            DocumentIAConfig documentIAConfig
     ) {
         this.documentIAClient = documentIAClient;
         this.documentIAFileAnalysisRepository = documentIAFileAnalysisRepository;
+        this.documentIAConfig = documentIAConfig;
     }
 
     @Override
@@ -56,7 +60,7 @@ public class DocumentIAServiceImpl implements DocumentIAService {
 
     @Override
     public void sendForAnalysis(MultipartFile multipartFile, File file, Document document) {
-        if (!hasToSendFileForAnalysis(document)) {
+        if (!documentIAConfig.hasToSendFileForAnalysis(document)) {
             return;
         }
         var request = DocumentIARequest.builder().metadata("{ \"document_id\": " + document.getId() + " }").file(multipartFile).build();
@@ -76,14 +80,5 @@ public class DocumentIAServiceImpl implements DocumentIAService {
             // Log the exception or handle it as needed
             System.err.println("Error sending document for analysis: " + e.getMessage());
         }
-    }
-
-    private boolean hasToSendFileForAnalysis(Document document) {
-        return
-                document.getDocumentSubCategory() == DocumentSubCategory.FRENCH_IDENTITY_CARD ||
-                document.getDocumentSubCategory() == DocumentSubCategory.MY_NAME ||
-                document.getDocumentSubCategory() == DocumentSubCategory.DRIVERS_LICENSE ||
-                document.getDocumentSubCategory() == DocumentSubCategory.FRENCH_PASSPORT ||
-                document.getDocumentSubCategory() == DocumentSubCategory.SALARY;
     }
 }
