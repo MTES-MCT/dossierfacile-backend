@@ -66,6 +66,7 @@ public class ResourceServerConfig {
                                 "/api/support/email",
                                 "/api/stats/**",
                                 "/api/onetimesecret/**",
+                                "/error",
                                 "/actuator/health").permitAll()
                         .requestMatchers("/api-partner/**").access(apiPartnerAuthorizationManager())
                         .requestMatchers("/dfc/api/**").access(dfcPartnerServiceAuthorizationManager())
