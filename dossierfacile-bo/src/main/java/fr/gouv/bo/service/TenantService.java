@@ -678,7 +678,7 @@ public class TenantService {
         tenantCommonService.changeTenantStatusToValidated(tenant);
 
         // Add operator-specific logging
-        tenantLogCommonService.saveByLog(new TenantLog(LogType.ACCOUNT_VALIDATED, tenant.getId(), operator.getId()));
+        tenantLogCommonService.saveTenantLog(new TenantLog(LogType.ACCOUNT_VALIDATED, tenant.getId(), operator.getId()));
         operatorLogRepository.save(new OperatorLog(tenant, operator, tenant.getStatus(), ActionOperatorType.STOP_PROCESS, processedDocuments.count(), processedDocuments.timeSpent()));
     }
 
@@ -687,7 +687,7 @@ public class TenantService {
         tenantRepository.save(tenant);
         messageService.markReadAdmin(tenant);
 
-        tenantLogService.saveByLog(new TenantLog(LogType.ACCOUNT_DENIED, tenant.getId(), operator.getId(), (message == null) ? null : message.getId()));
+        tenantLogCommonService.saveTenantLog(new TenantLog(LogType.ACCOUNT_DENIED, tenant.getId(), operator.getId(), (message == null) ? null : message.getId()));
         operatorLogRepository.save(new OperatorLog(
                 tenant, operator, tenant.getStatus(), ActionOperatorType.STOP_PROCESS, processedDocuments.count(), processedDocuments.timeSpent()
         ));

@@ -4,6 +4,6 @@ import fr.dossierfacile.common.entity.TenantLog;
 
 public interface TenantLogCommonService {
 
-    void saveByLog(TenantLog log);
+    void saveTenantLog(TenantLog log);
 
 }

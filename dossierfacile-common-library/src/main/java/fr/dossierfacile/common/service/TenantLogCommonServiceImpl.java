@@ -13,7 +13,7 @@ public class TenantLogCommonServiceImpl implements TenantLogCommonService {
     private final TenantLogRepository tenantLogRepository;
 
     @Override
-    public void saveByLog(TenantLog log) {
+    public void saveTenantLog(TenantLog log) {
         tenantLogRepository.save(log);
     }
 

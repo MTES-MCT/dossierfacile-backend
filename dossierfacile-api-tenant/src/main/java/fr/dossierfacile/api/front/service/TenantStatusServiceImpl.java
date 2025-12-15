@@ -43,7 +43,7 @@ public class TenantStatusServiceImpl implements TenantStatusService {
         if (previousStatus != newTenantStatus) {
             if (newTenantStatus == TenantFileStatus.VALIDATED) {
                 tenantCommonService.changeTenantStatusToValidated(tenant);
-                tenantLogCommonService.saveByLog(new TenantLog(LogType.ACCOUNT_VALIDATED, tenant.getId()));
+                tenantLogCommonService.saveTenantLog(new TenantLog(LogType.ACCOUNT_VALIDATED, tenant.getId()));
 
             } else {
                 tenant.setStatus(newTenantStatus);
