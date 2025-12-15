@@ -9,6 +9,7 @@ import fr.dossierfacile.common.mapper.mail.TenantMapperForMail;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.dossierfacile.common.service.interfaces.TenantCommonService;
+import fr.dossierfacile.common.service.interfaces.TenantLogCommonService;
 import fr.dossierfacile.common.utils.TransactionalUtil;
 import fr.gouv.bo.dto.*;
 import fr.gouv.bo.exception.DocumentNotFoundException;
@@ -62,6 +63,7 @@ public class TenantService {
     private final TenantMapperForMail tenantMapperForMail;
     private final ApartmentSharingMapperForMail apartmentSharingMapperForMail;
     private final TenantCommonService tenantCommonService;
+    private final TenantLogCommonService tenantLogCommonService;
 
     @Value("${time.reprocess.application.minutes}")
     private int timeReprocessApplicationMinutes;
@@ -676,7 +678,7 @@ public class TenantService {
         tenantCommonService.changeTenantStatusToValidated(tenant);
 
         // Add operator-specific logging
-        tenantLogService.saveByLog(new TenantLog(LogType.ACCOUNT_VALIDATED, tenant.getId(), operator.getId()));
+        tenantLogCommonService.saveTenantLog(new TenantLog(LogType.ACCOUNT_VALIDATED, tenant.getId(), operator.getId()));
         operatorLogRepository.save(new OperatorLog(tenant, operator, tenant.getStatus(), ActionOperatorType.STOP_PROCESS, processedDocuments.count(), processedDocuments.timeSpent()));
     }
 
@@ -685,7 +687,7 @@ public class TenantService {
         tenantRepository.save(tenant);
         messageService.markReadAdmin(tenant);
 
-        tenantLogService.saveByLog(new TenantLog(LogType.ACCOUNT_DENIED, tenant.getId(), operator.getId(), (message == null) ? null : message.getId()));
+        tenantLogCommonService.saveTenantLog(new TenantLog(LogType.ACCOUNT_DENIED, tenant.getId(), operator.getId(), (message == null) ? null : message.getId()));
         operatorLogRepository.save(new OperatorLog(
                 tenant, operator, tenant.getStatus(), ActionOperatorType.STOP_PROCESS, processedDocuments.count(), processedDocuments.timeSpent()
         ));

@@ -10,6 +10,7 @@ import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.model.log.EditedDocument;
 import fr.dossierfacile.common.model.log.EditionType;
 import fr.dossierfacile.common.model.log.UpdateMonthlySum;
+import fr.dossierfacile.common.service.interfaces.TenantLogCommonService;
 import fr.gouv.bo.repository.BoTenantLogRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +29,7 @@ import java.util.Map;
 public class TenantLogService {
 
     private final BoTenantLogRepository logRepository;
+    private final TenantLogCommonService tenantLogCommonService;
     private final ObjectMapper objectMapper;
 
     public List<TenantLog> getLogByTenantId(Long tenantId) {
@@ -44,41 +46,6 @@ public class TenantLogService {
         return logRepository.findAllByTenantId(tenantId, page);
     }
 
-    public void saveByLog(TenantLog log) {
-        logRepository.save(log);
-    }
-
-    public void addOperatorCommentLog(Tenant tenant, String operatorComment) {
-        TenantLog log = TenantLog.builder()
-                .logType(LogType.OPERATOR_COMMENT)
-                .tenantId(tenant.getId())
-                .creationDateTime(LocalDateTime.now())
-                .logDetails(writeAsObjectNode(Map.of("comment", operatorComment)))
-                .build();
-        saveByLog(log);
-    }
-
-    public void addDeleteDocumentLog(Long tenantId, Long operatorId, Document document) {
-        TenantLog log = TenantLog.builder()
-            .logType(LogType.ACCOUNT_EDITED)
-            .tenantId(tenantId)
-            .operatorId(operatorId)
-            .creationDateTime(LocalDateTime.now())
-            .logDetails(writeAsObjectNode(EditedDocument.from(document, EditionType.DELETE)))
-            .build();
-        saveByLog(log);
-    }
-
-    public void addUpdateAmountLog(Long tenantId, Long operatorId, Document document, Integer newSum) {
-        TenantLog log = TenantLog.builder()
-            .logType(LogType.ACCOUNT_EDITED)
-            .tenantId(tenantId)
-            .operatorId(operatorId)
-            .creationDateTime(LocalDateTime.now())
-            .logDetails(writeAsObjectNode(UpdateMonthlySum.from(document, newSum)))
-            .build();
-        saveByLog(log);
-    }
 
     public List<Object[]> listLastTreatedFilesByOperator(Long operatorId, int minusDays) {
         return logRepository.countTreatedFromXDaysGroupByDate(operatorId, minusDays);
@@ -94,6 +61,38 @@ public class TenantLogService {
             .toList();
     }
 
+    public void addOperatorCommentLog(Tenant tenant, String operatorComment) {
+        TenantLog log = TenantLog.builder()
+                .logType(LogType.OPERATOR_COMMENT)
+                .tenantId(tenant.getId())
+                .creationDateTime(LocalDateTime.now())
+                .logDetails(writeAsObjectNode(Map.of("comment", operatorComment)))
+                .build();
+        tenantLogCommonService.saveTenantLog(log);
+    }
+
+    public void addDeleteDocumentLog(Long tenantId, Long operatorId, Document document) {
+        TenantLog log = TenantLog.builder()
+            .logType(LogType.ACCOUNT_EDITED)
+            .tenantId(tenantId)
+            .operatorId(operatorId)
+            .creationDateTime(LocalDateTime.now())
+            .logDetails(writeAsObjectNode(EditedDocument.from(document, EditionType.DELETE)))
+            .build();
+        tenantLogCommonService.saveTenantLog(log);
+    }
+
+    public void addUpdateAmountLog(Long tenantId, Long operatorId, Document document, Integer newSum) {
+        TenantLog log = TenantLog.builder()
+            .logType(LogType.ACCOUNT_EDITED)
+            .tenantId(tenantId)
+            .operatorId(operatorId)
+            .creationDateTime(LocalDateTime.now())
+            .logDetails(writeAsObjectNode(UpdateMonthlySum.from(document, newSum)))
+            .build();
+        tenantLogCommonService.saveTenantLog(log);
+    }
+
     private ObjectNode writeAsObjectNode(Object object) {
         try {
             return (ObjectNode) objectMapper.valueToTree(object);
@@ -102,6 +101,5 @@ public class TenantLogService {
         }
         return null;
     }
-
 
 }
