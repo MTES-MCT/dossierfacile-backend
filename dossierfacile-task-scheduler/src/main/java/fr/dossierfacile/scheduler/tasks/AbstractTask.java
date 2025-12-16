@@ -5,12 +5,14 @@ import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.logging.util.LoggerUtil;
 import fr.dossierfacile.logging.task.LogAggregator;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Lookup;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class AbstractTask {
 
     @Lookup
@@ -20,9 +22,11 @@ public class AbstractTask {
 
     protected void startTask(TaskName taskName) {
         LoggerUtil.prepareMDCForScheduledTask(taskName.name());
+        log.info("Starting task {}", taskName);
     }
 
     protected void endTask() {
+        log.info("Ending task");
         logAggregator().sendLogs();
     }
 
