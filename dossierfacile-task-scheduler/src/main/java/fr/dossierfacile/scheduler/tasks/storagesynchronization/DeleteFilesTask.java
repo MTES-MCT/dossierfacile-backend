@@ -29,25 +29,35 @@ public class DeleteFilesTask extends AbstractTask {
     @Scheduled(fixedDelayString = "${scheduled.process.storage.delete.delay.ms}", initialDelayString = "${scheduled.process.storage.delete.delay.ms}")
     public void deleteFileInProviderTask() {
         super.startTask(STORAGE_FILES_DELETION);
-        Pageable limit = PageRequest.of(0, 500);
-        List<StorageFile> storageFileToDeleteList = storageFileRepository.findAllByStatusOrderByIdAsc(FileStorageStatus.TO_DELETE, limit);
-        addFileIdListForLogging(storageFileToDeleteList);
-        for (StorageFile storageFileToDelete : storageFileToDeleteList) {
-            fileStorageService.hardDelete(storageFileToDelete);
+        try {
+            Pageable limit = PageRequest.of(0, 500);
+            List<StorageFile> storageFileToDeleteList = storageFileRepository.findAllByStatusOrderByIdAsc(FileStorageStatus.TO_DELETE, limit);
+            addFileIdListForLogging(storageFileToDeleteList);
+            for (StorageFile storageFileToDelete : storageFileToDeleteList) {
+                fileStorageService.hardDelete(storageFileToDelete);
+            }
+        } catch (Exception e) {
+            log.error("Error during deleteFileInProviderTask: {}", e.getMessage(), e);
+        } finally {
+            super.endTask();
         }
-        super.endTask();
     }
 
     @Scheduled(fixedDelayString = "${scheduled.process.storage.delete.retry.failed.delay.minutes}", initialDelayString = "${scheduled.process.storage.delete.retry.failed.delay.minutes}", timeUnit = TimeUnit.MINUTES)
     public void retryDeleteFileInProviderTask() {
         super.startTask(STORAGE_FILES_DELETION_RETRY);
-        Pageable limit = PageRequest.of(0, 1000);
-        List<StorageFile> storageFileToDeleteList = storageFileRepository.findAllByStatusOrderByIdAsc(FileStorageStatus.DELETE_FAILED, limit);
-        addFileIdListForLogging(storageFileToDeleteList);
-        for (StorageFile storageFileToDelete : storageFileToDeleteList) {
-            fileStorageService.hardDelete(storageFileToDelete);
+        try {
+            Pageable limit = PageRequest.of(0, 1000);
+            List<StorageFile> storageFileToDeleteList = storageFileRepository.findAllByStatusOrderByIdAsc(FileStorageStatus.DELETE_FAILED, limit);
+            addFileIdListForLogging(storageFileToDeleteList);
+            for (StorageFile storageFileToDelete : storageFileToDeleteList) {
+                fileStorageService.hardDelete(storageFileToDelete);
+            }
+        } catch (Exception e) {
+            log.error("Error during deleteFileInProviderTask: {}", e.getMessage(), e);
+        } finally {
+            super.endTask();
         }
-        super.endTask();
     }
 
 }

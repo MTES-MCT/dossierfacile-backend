@@ -29,12 +29,17 @@ public class GarbageCollectionTaskOld extends AbstractTask {
     @Scheduled(fixedDelayString = "${garbage-collection.seconds-between-iterations}", timeUnit = SECONDS)
     void cleanGarbage() {
         super.startTask(GARBAGE_COLLECTION);
-        // We need to review this method with the new multi bucket S3 implementation.
-        var filteredStorageProviderServices = storageProviderServices.entrySet().stream()
-                .filter(entry -> entry.getKey() != ObjectStorageProvider.S3)
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-        filteredStorageProviderServices.keySet().forEach(this::cleanGarbageOn);
-        super.endTask();
+        try {
+            // We need to review this method with the new multi bucket S3 implementation.
+            var filteredStorageProviderServices = storageProviderServices.entrySet().stream()
+                    .filter(entry -> entry.getKey() != ObjectStorageProvider.S3)
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            filteredStorageProviderServices.keySet().forEach(this::cleanGarbageOn);
+        } catch (Exception e) {
+            log.error("Error during garbage collection task", e);
+        } finally {
+            super.endTask();
+        }
     }
 
     private void cleanGarbageOn(ObjectStorageProvider provider) {
