@@ -62,13 +62,21 @@ public class LogAggregationFilter extends OncePerRequestFilter {
         ContentCachingResponseWrapper responseWrapped = new ContentCachingResponseWrapper(response);
 
         String requestId = LoggerUtil.getRequestId();
+        boolean requestFinishedInError = false;
 
         //Save the time before the request is processed
         long startTime = System.currentTimeMillis();
 
         try {
             filterChain.doFilter(requestWrapped, responseWrapped);
-        } finally {
+        }
+        catch (Exception e) {
+            requestFinishedInError = true;
+            logger.error("Uncaught exception during the request : ", e);
+            throw e;
+        }
+        finally
+        {
             LoggerUtil.addRequestStatusToMdc(response.getStatus());
             List<LogModel> logs = customAppender.getLogsForUniqueIdentifier(requestId);
             String logMessages = objectMapper.writeValueAsString(logs);
@@ -100,11 +108,17 @@ public class LogAggregationFilter extends OncePerRequestFilter {
             }
 
             long responseTime = System.currentTimeMillis() - startTime;
+            var finalStatus = response.getStatus();
+            if (requestFinishedInError && finalStatus == HttpServletResponse.SC_OK) {
+                finalStatus = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+                LoggerUtil.addRequestStatusToMdc(finalStatus);
+
+            }
             String enrichedLogs = String.format(
                     "Request completed: URI:%s, Method:%s, Status:%d, response time: %s",
                     request.getRequestURI(),
                     request.getMethod(),
-                    response.getStatus(),
+                    finalStatus,
                     responseTime
             );
 
