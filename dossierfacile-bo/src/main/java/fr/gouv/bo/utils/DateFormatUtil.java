@@ -43,7 +43,7 @@ public class DateFormatUtil {
 
     public static String replaceMonthPlaceholder(String message) {
         LocalDate now = LocalDate.now();
-        Month month = now.getDayOfMonth() < 15 ? now.getMonth().minus(1) : now.getMonth();
+        Month month = now.getDayOfMonth() < 16 ? now.getMonth().minus(1) : now.getMonth();
         String output = message.replace("{mois}", formatMonth(month));
         for (int i = 1; i <= 6; i++) {
             output = output.replace(String.format("{moisN-%d}", i), formatMonth(month.minus(i)));
