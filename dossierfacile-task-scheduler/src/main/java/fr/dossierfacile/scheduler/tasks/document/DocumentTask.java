@@ -37,36 +37,47 @@ public class DocumentTask extends AbstractTask {
     @Scheduled(cron = "${cron.process.pdf.generation.failed}")
     public void reLaunchFailedPDFGeneration() {
         super.startTask(PDF_GENERATION);
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime toDateTime = now.minusMinutes(30);
-        List<Document> documents = documentRepository.findWithoutPDFToDate(toDateTime);
-        addDocumentIdListForLogging(documents);
-        log.info("Relaunch {} failed documents to {}", documents.size(), toDateTime);
-        documents.forEach(this::sendForPDFGeneration);
-        super.endTask();
+        try {
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime toDateTime = now.minusMinutes(30);
+            List<Document> documents = documentRepository.findWithoutPDFToDate(toDateTime);
+            addDocumentIdListForLogging(documents);
+            log.info("Relaunch {} failed documents to {}", documents.size(), toDateTime);
+            documents.forEach(this::sendForPDFGeneration);
+        } catch (Exception e) {
+            log.error("Error during re-launching pdf generation for failed documents", e);
+        } finally {
+            super.endTask();
+        }
     }
 
     @Scheduled(cron = "${cron.delete.document.with.failed.pdf}")
     public void deleteDocumentWithFailedPdfGeneration() {
         super.startTask(DELETE_FAILED_DOCUMENT);
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime toDateTime = now.minusHours(delayBeforeDeleteHours);
 
-        List<Document> documents = documentRepository.findDocumentWithoutPDFToDate(toDateTime);
-        if (CollectionUtils.isEmpty(documents)) {
-            log.info("There is no file with empty pdf");
-        } else {
-            addDocumentIdListForLogging(documents);
-            Map<Tenant, List<Document>> tenantDocuments = documents.stream()
-                    .collect(Collectors.groupingBy(d ->
-                            Optional.ofNullable(d.getTenant())
-                                    .orElseGet(() -> d.getGuarantor().getTenant())
-                    ));
-            tenantDocuments.forEach((tenant, docs) -> documentDeleteMailService.sendMailWithDocumentFailed(tenant.getId(), docs));
-            documentRepository.deleteAll(documents);
-            tenantDocuments.forEach((tenant, docs) -> partnerCallbackService.sendPartnerCallback(tenant.getId()));
+        try {
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime toDateTime = now.minusHours(delayBeforeDeleteHours);
+
+            List<Document> documents = documentRepository.findDocumentWithoutPDFToDate(toDateTime);
+            if (CollectionUtils.isEmpty(documents)) {
+                log.info("There is no file with empty pdf");
+            } else {
+                addDocumentIdListForLogging(documents);
+                Map<Tenant, List<Document>> tenantDocuments = documents.stream()
+                        .collect(Collectors.groupingBy(d ->
+                                Optional.ofNullable(d.getTenant())
+                                        .orElseGet(() -> d.getGuarantor().getTenant())
+                        ));
+                tenantDocuments.forEach((tenant, docs) -> documentDeleteMailService.sendMailWithDocumentFailed(tenant.getId(), docs));
+                documentRepository.deleteAll(documents);
+                tenantDocuments.forEach((tenant, docs) -> partnerCallbackService.sendPartnerCallback(tenant.getId()));
+            }
+        } catch (Exception e) {
+            log.error("Error during deleting documents with failed pdf generation", e);
+        } finally {
+            super.endTask();
         }
-        super.endTask();
     }
 
     private void sendForPDFGeneration(Document document) {

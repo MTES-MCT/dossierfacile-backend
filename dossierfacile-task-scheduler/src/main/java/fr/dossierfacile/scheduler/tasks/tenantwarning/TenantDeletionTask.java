@@ -32,10 +32,14 @@ public class TenantDeletionTask extends AbstractTask {
     private void deleteOldAccounts() {
         super.startTask(TENANT_DELETION);
 
-        LocalDateTime limitDate = now().minusMonths(monthsForDeletionOfTenants);
-        deleteTenantsNotActiveSince(limitDate);
-
-        super.endTask();
+        try {
+            LocalDateTime limitDate = now().minusMonths(monthsForDeletionOfTenants);
+            deleteTenantsNotActiveSince(limitDate);
+        } catch (Exception e) {
+            log.error("Error during tenant deletion task: {}", e.getMessage(), e);
+        } finally {
+            super.endTask();
+        }
     }
 
     private void deleteTenantsNotActiveSince(LocalDateTime limitDate) {

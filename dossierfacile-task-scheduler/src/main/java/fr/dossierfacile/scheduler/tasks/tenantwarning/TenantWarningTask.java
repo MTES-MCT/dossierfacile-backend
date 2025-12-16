@@ -41,16 +41,26 @@ public class TenantWarningTask extends AbstractTask {
 
     private void archiveAccounts(LocalDateTime limitDate) {
         super.startTask(TENANT_ARCHIVING);
-        processAllWarnings(limitDate, 2);
-        archiveCotenantAccounts();
-        super.endTask();
+        try {
+            processAllWarnings(limitDate, 2);
+            archiveCotenantAccounts();
+        } catch (Exception e) {
+            log.error("Error during tenant archiving task: {}", e.getMessage(), e);
+        } finally {
+            super.endTask();
+        }
     }
 
     private void sendWarningMails(LocalDateTime limitDate) {
         super.startTask(TENANT_WARNINGS);
-        processAllWarnings(limitDate, 1);
-        processAllWarnings(limitDate, 0);
-        super.endTask();
+        try {
+            processAllWarnings(limitDate, 1);
+            processAllWarnings(limitDate, 0);
+        } catch (Exception e) {
+            log.error("Error during tenant warning task: {}", e.getMessage(), e);
+        } finally {
+            super.endTask();
+        }
     }
 
     private void processAllWarnings(LocalDateTime localDateTime, int warnings) {
@@ -58,8 +68,10 @@ public class TenantWarningTask extends AbstractTask {
         Pageable pageable = PageRequest.of(0, PAGE_SIZE, Sort.Direction.DESC, "id");
         Page<Tenant> tenantPage = tenantRepository.findByLastLoginDateIsBeforeAndHasDocuments(pageable, localDateTime, warnings);
         switch (warnings) {
-            case 0 -> log.info("Found {} tenants who will be warned for FIRST time by email", tenantPage.getTotalElements());
-            case 1 -> log.info("Found {} tenants who will be warned for SECOND time by email", tenantPage.getTotalElements());
+            case 0 ->
+                    log.info("Found {} tenants who will be warned for FIRST time by email", tenantPage.getTotalElements());
+            case 1 ->
+                    log.info("Found {} tenants who will be warned for SECOND time by email", tenantPage.getTotalElements());
             case 2 -> log.info("Found {} tenants whose documents will be deleted", tenantPage.getTotalElements());
         }
 
