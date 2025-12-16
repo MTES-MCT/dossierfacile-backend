@@ -45,7 +45,9 @@ public class ResourceServerConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .cors(withDefaults())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/v3/**", "/swagger-ui/**", "/api/register/account",
+                        .requestMatchers(
+                                "/error",
+                                "/v3/**", "/swagger-ui/**", "/api/register/account",
                                 "/api/register/confirmAccount/**", "/api/auth/**",
                                 "/api/register/forgotPassword", "/api/register/createPassword/**",
                                 "/actuator/health", "/api/property/public/**", "/webhook/**")
