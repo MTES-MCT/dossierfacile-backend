@@ -4,19 +4,21 @@ import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.ApartmentSharingLink;
 import fr.dossierfacile.common.entity.LinkLog;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.exceptions.NotFoundException;
 import fr.dossierfacile.common.model.ApartmentSharingLinkModel;
 import fr.dossierfacile.common.repository.ApartmentSharingLinkRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
+import fr.dossierfacile.common.repository.UserApiRepository;
 import fr.dossierfacile.common.service.interfaces.LinkLogService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
+import static fr.dossierfacile.common.constants.PartnerConstants.DF_OWNER_NAME;
 import static fr.dossierfacile.common.enums.LinkType.*;
 
 @Service
@@ -27,10 +29,29 @@ public class ApartmentSharingLinkService {
     private final ApartmentSharingLinkRepository apartmentSharingLinkRepository;
     private final LinkLogService linkLogService;
     private final TenantCommonRepository tenantCommonRepository;
+    private final UserApiRepository userApiRepository;
 
     public List<ApartmentSharingLinkModel> getLinks(ApartmentSharing apartmentSharing) {
-        return apartmentSharingLinkRepository.findByApartmentSharingOrderByCreationDate(apartmentSharing)
-                .stream()
+        var links = apartmentSharingLinkRepository.findByApartmentSharingOrderByCreationDate(apartmentSharing);
+        List<ApartmentSharingLink> noPartnerLinks = links.stream()
+                .filter(l -> l.getPartnerId() == null)
+                .toList();
+
+        // Get the ID of the DF_OWNER partner to exclude it
+        Long dfOwnerPartnerId = userApiRepository.findByName(DF_OWNER_NAME)
+                .map(UserApi::getId)
+                .orElse(null);
+
+        // Filter out links with the DF_OWNER partner
+        List<ApartmentSharingLink> FullDataPerPartnerLinks = links.stream()
+                .filter(l -> l.getPartnerId() != null && l.isFullData())
+                .filter(l -> !l.getPartnerId().equals(dfOwnerPartnerId))
+                .toList();
+
+        List<ApartmentSharingLink> validLinks = new ArrayList<>();
+        validLinks.addAll(noPartnerLinks);
+        validLinks.addAll(FullDataPerPartnerLinks);
+        return validLinks.stream()
                 .map(link -> mapApartmentSharingLink(link, apartmentSharing))
                 .toList();
     }
