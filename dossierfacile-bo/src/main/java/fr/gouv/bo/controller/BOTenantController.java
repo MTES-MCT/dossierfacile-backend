@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
+import static fr.gouv.bo.controller.BOController.REDIRECT_BO_HOME;
 import static org.springframework.http.ResponseEntity.ok;
 
 @RequiredArgsConstructor
@@ -34,7 +35,6 @@ public class BOTenantController {
     private static final String NEW_MESSAGE = "newMessage";
     private static final String HEADER = "header";
     private static final String DOCUMENT_RULE_LEVEL = "documentRuleLevel";
-    private static final String REDIRECT_BO = "redirect:/bo";
     private static final String REDIRECT_BO_COLOCATION = "redirect:/bo/colocation/";
     private static final String CUSTOM_MESSAGE = "customMessage";
     private static final String CLARIFICATION = "clarification";
@@ -90,7 +90,7 @@ public class BOTenantController {
         Tenant create = tenantService.findTenantById(id);
         BOUser operator = userService.findUserByEmail(principal.getEmail());
         userService.deleteApartmentSharing(create, operator);
-        return REDIRECT_BO;
+        return REDIRECT_BO_HOME;
     }
 
     @PreAuthorize("hasRole('SUPPORT')")
@@ -218,7 +218,7 @@ public class BOTenantController {
 
         // Si returnToHome est demandé, retourner à l'accueil
         if (returnToHome != null && returnToHome.equals("true")) {
-            return REDIRECT_BO;
+            return REDIRECT_BO_HOME;
         }
 
         // Trouver le prochain tenant du même dossier COUPLE en statut TO_PROCESS
@@ -239,7 +239,7 @@ public class BOTenantController {
                                      @RequestParam(value = "returnTo", required = false) String returnTo) {
         Tenant tenant = tenantService.addOperatorComment(tenantId, comment);
         if ("processFile".equals(returnTo)) {
-            return REDIRECT_BO + "/tenant/" + tenantId + "/processFile";
+            return REDIRECT_BO_HOME + "/tenant/" + tenantId + "/processFile";
         }
         return redirectToTenantPage(tenant);
     }
