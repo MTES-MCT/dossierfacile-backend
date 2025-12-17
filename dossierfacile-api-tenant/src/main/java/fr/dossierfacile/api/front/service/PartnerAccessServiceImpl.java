@@ -19,12 +19,12 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static fr.dossierfacile.common.constants.PartnerConstants.DF_OWNER_NAME;
+
 @Slf4j
 @Service
 @AllArgsConstructor
 public class PartnerAccessServiceImpl implements PartnerAccessService {
-
-    private static final String DF_OWNER_NAME = "dfconnect-proprietaire";
 
     private final TenantUserApiRepository tenantUserApiRepository;
     private final PartnerCallBackService partnerCallBackService;
