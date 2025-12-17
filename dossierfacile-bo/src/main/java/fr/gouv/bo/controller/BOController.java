@@ -45,6 +45,8 @@ import java.util.Collection;
 @Controller
 @RequiredArgsConstructor
 public class BOController {
+    public static final String REDIRECT_BO_HOME = "redirect:/bo";
+
     private static final String EMAIL = "email";
     private static final String OLDEST_APPLICATION = "oldestApplication";
     private static final String REDIRECT_BO_COLOCATION = "redirect:/bo/colocation/";

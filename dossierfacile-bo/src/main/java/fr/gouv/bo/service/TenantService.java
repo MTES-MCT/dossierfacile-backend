@@ -36,6 +36,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static fr.gouv.bo.controller.BOController.REDIRECT_BO_HOME;
 import static org.apache.commons.lang3.StringUtils.*;
 
 @Service
@@ -132,8 +133,9 @@ public class TenantService {
     public synchronized String redirectToApplication(UserPrincipal operator, Long tenantId) {
         LocalDateTime localDateTime = LocalDateTime.now().minusMinutes(timeReprocessApplicationMinutes);
         Tenant tenant;
+        Long operatorId = operator.getId();
+
         if (tenantId == null) {
-            Long operatorId = operator.getId();
             // check less than x process are currently starting during the n lastMinutes
             if (operatorLogRepository.countByOperatorIdAndActionOperatorTypeAndCreationDateGreaterThanEqual(operatorId, ActionOperatorType.START_PROCESS, LocalDateTime.now().minusMinutes(timeInterval)) > maxDossiersByInterval) {
                 throw new IllegalStateException("Vous ne pouvez pas ouvrir plus de " + maxDossiersByInterval + " dossiers pour traitement toutes les " + timeInterval + " minutes");
@@ -144,6 +146,14 @@ public class TenantService {
             tenant = tenantRepository.findMyNextApplication(localDateTime, operatorId);
         } else {
             tenant = find(tenantId);
+            // Safety check: if tenant is still locked (operatorDateTime within last X minutes), fallback to automatic selection
+            if (tenant != null && tenant.getOperatorDateTime() != null
+                    && tenant.getOperatorDateTime().isAfter(localDateTime)) {
+                log.warn("Attempt to open tenant {} while operator lock is still active (operatorDateTime={}, threshold={})",
+                        tenant.getId(), tenant.getOperatorDateTime(), localDateTime);
+                // if operator try to open a locked tenant, we redirect him to the home of the BO
+                return REDIRECT_BO_HOME;
+            }
         }
 
         if (tenant != null) {
@@ -152,10 +162,18 @@ public class TenantService {
             operatorLogRepository.save(new OperatorLog(
                     tenant, user, tenant.getStatus(), ActionOperatorType.START_PROCESS
             ));
+
             updateOperatorDateTimeTenant(tenant.getId());
+
+            var nextTenantInCouple = findNextTenantInCouple(tenant.getId());
+            // If the current finded tenant is in a couple application, we also lock the next tenant of the couple for 5 minutes to allow the same operator to process it after
+            if (nextTenantInCouple.isPresent()) {
+                updateOperatorDateTimeTenant(nextTenantInCouple.get().getId());
+            }
+
             return "redirect:/bo/tenant/" + tenant.getId() + "/processFile";
         } else {
-            return "redirect:/bo";
+            return REDIRECT_BO_HOME;
         }
     }
 
@@ -525,7 +543,7 @@ public class TenantService {
         Message message = sendCustomMessage(tenant, customMessage);
         changeTenantStatusToDeclined(tenant, operator, message, ProcessedDocuments.NONE);
 
-        return "redirect:/bo";
+        return REDIRECT_BO_HOME;
     }
 
     public void updateOperatorDateTimeTenant(Long tenantId) {
