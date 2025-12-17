@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import fr.dossierfacile.api.front.TestApplication;
 import fr.dossierfacile.api.front.exception.MailSentLimitException;
 import fr.dossierfacile.api.front.exception.PropertyNotFoundException;
+import fr.dossierfacile.api.front.form.ShareFileByMailForm;
 import fr.dossierfacile.api.front.mapper.PropertyOMapperImpl;
 import fr.dossierfacile.api.front.mapper.TenantMapperImpl;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
@@ -440,7 +441,7 @@ class TenantControllerTest {
     @Nested
     class SendFileByMailTest {
 
-        record SendFileByMailParam(String email, String shareType) {
+        record SendFileByMailParam(String email, String shareType, String title, String message) {
         }
 
         static List<Arguments> provideSendFileByMailParameters() {
@@ -451,7 +452,7 @@ class TenantControllerTest {
             return ArgumentBuilder.buildListOfArguments(
                     Pair.of("Should respond 403 when not jwt is passed",
                             new ControllerParameter<>(
-                                    new SendFileByMailParam("test@test.com", "SHARE_TYPE"),
+                                    new SendFileByMailParam("test@test.com", "SHARE_TYPE", "Test Title", "Test Message"),
                                     403,
                                     null,
                                     null,
@@ -460,7 +461,7 @@ class TenantControllerTest {
                     ),
                     Pair.of("Should respond 400 when invalid email is passed",
                             new ControllerParameter<>(
-                                    new SendFileByMailParam("test", "SHARE_TYPE"),
+                                    new SendFileByMailParam("test", "SHARE_TYPE", "Test Title", "Test Message"),
                                     400,
                                     jwtTokenWithDossier,
                                     (v) -> {
@@ -472,12 +473,14 @@ class TenantControllerTest {
                     ),
                     Pair.of("Should respond 400 when email limit reached",
                             new ControllerParameter<>(
-                                    new SendFileByMailParam("test@test.com", "SHARE_TYPE"),
+                                    new SendFileByMailParam("test@test.com", "SHARE_TYPE", "Test Title", "Test Message"),
                                     400,
                                     jwtTokenWithDossier,
                                     (v) -> {
                                         when(self.authenticationFacade.getLoggedTenant()).thenReturn(tenant);
-                                        doThrow(new MailSentLimitException()).when(self.tenantService).sendFileByMail(tenant, "test@test.com", "SHARE_TYPE");
+                                        doThrow(new MailSentLimitException())
+                                                .when(self.tenantService)
+                                                .sendFileByMail(any(Tenant.class), any(ShareFileByMailForm.class));
                                         return v;
                                     },
                                     Collections.emptyList()
@@ -485,7 +488,7 @@ class TenantControllerTest {
                     ),
                     Pair.of("Should respond 200 when file is sent successfully",
                             new ControllerParameter<>(
-                                    new SendFileByMailParam("test@test.com", "SHARE_TYPE"),
+                                    new SendFileByMailParam("test@test.com", "SHARE_TYPE", "Test Title", "Test Message"),
                                     200,
                                     jwtTokenWithDossier,
                                     (v) -> {
