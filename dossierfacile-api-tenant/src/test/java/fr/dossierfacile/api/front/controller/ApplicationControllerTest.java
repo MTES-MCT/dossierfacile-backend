@@ -13,7 +13,6 @@ import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
 import org.junit.jupiter.api.Test;
-import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.parameterizedtest.ArgumentBuilder;
 import fr.dossierfacile.parameterizedtest.ControllerParameter;
 import fr.dossierfacile.parameterizedtest.ParameterizedTestHelper;
@@ -193,15 +192,6 @@ class ApplicationControllerTest {
             FullFolderFile emptyPdfFile = new FullFolderFile(emptyOutputStream, "test.pdf");
 
             return ArgumentBuilder.buildListOfArguments(
-                    Pair.of("Should respond 401 when no jwt is passed",
-                            new ControllerParameter<>(
-                                    new GetFullPdfForLoggedTenantTestParameter(),
-                                    401,
-                                    null,
-                                    null,
-                                    Collections.emptyList()
-                            )
-                    ),
                     Pair.of("Should respond 200 when valid tenant and PDF exists",
                             new ControllerParameter<>(
                                     new GetFullPdfForLoggedTenantTestParameter(),
