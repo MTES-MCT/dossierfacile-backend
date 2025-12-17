@@ -18,6 +18,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static fr.gouv.bo.controller.BOController.REDIRECT_BO_HOME;
 import static org.springframework.http.ResponseEntity.ok;
@@ -171,8 +172,8 @@ public class BOTenantController {
         List<TenantLog> logs = logService.getLogByTenantId(id);
         TenantInfoHeader header = TenantInfoHeader.build(tenant, userApiService.findPartnersLinkedToTenant(id), logs);
         List<TenantLog> modificationLogs = logs.stream()
-            .filter(l -> l.getLogDetails() != null && l.getLogDetails().get("newSum") != null)
-            .toList();
+                .filter(l -> l.getLogDetails() != null && l.getLogDetails().get("newSum") != null)
+                .toList();
         model.addAttribute(MODIFICATION_LOGS, modificationLogs);
         model.addAttribute(LOGSER, logService);
         model.addAttribute(HEADER, header);
@@ -270,6 +271,7 @@ public class BOTenantController {
         documents.sort(Comparator.comparing(Document::getDocumentCategory));
         for (Document document : documents) {
             if (document.getDocumentStatus().equals(DocumentStatus.TO_PROCESS)) {
+                
                 customMessage.getMessageItems().add(MessageItem.builder()
                         .monthlySum(document.getMonthlySum())
                         .newMonthlySum(document.getMonthlySum())
@@ -281,6 +283,7 @@ public class BOTenantController {
                         .itemDetailList(getItemDetailForSubcategoryOfDocument(document.getDocumentCategory(), document.getDocumentSubCategory(), TENANT))
                         .documentId(document.getId())
                         .documentName(document.getName())
+                        .metadataOfFiles(getFilesMetadata(document))
                         .analyzedFiles(DisplayableFile.onlyAnalyzedFilesOf(document))
                         .previousDeniedReasons(documentDeniedReasonsService.getLastDeniedReason(document, tenant).orElse(null))
                         .documentAnalysisReport(document.getDocumentAnalysisReport())
@@ -302,6 +305,7 @@ public class BOTenantController {
             documents.sort(Comparator.comparing(Document::getDocumentCategory));
             for (Document document : documents) {
                 if (document.getDocumentStatus().equals(DocumentStatus.TO_PROCESS)) {
+
                     guarantorItem.getMessageItems().add(MessageItem.builder()
                             .monthlySum(document.getMonthlySum())
                             .newMonthlySum(document.getMonthlySum())
@@ -313,6 +317,7 @@ public class BOTenantController {
                             .itemDetailList(getItemDetailForSubcategoryOfDocument(document.getDocumentCategory(), document.getDocumentSubCategory(), GUARANTOR))
                             .documentId(document.getId())
                             .documentName(document.getName())
+                            .metadataOfFiles(getFilesMetadata(document))
                             .analyzedFiles(DisplayableFile.onlyAnalyzedFilesOf(document))
                             .documentAnalysisReport(document.getDocumentAnalysisReport())
                             .analysisReportComment(document.getDocumentAnalysisReport() != null && (DocumentAnalysisStatus.DENIED == document.getDocumentAnalysisReport().getAnalysisStatus()) ? document.getDocumentAnalysisReport().getComment() : null)
@@ -332,6 +337,23 @@ public class BOTenantController {
         return Arrays.stream(string.split("\n"))
                 .filter(paragraph -> !paragraph.isBlank())
                 .toList();
+    }
+
+    private List<MetadataItem> getFilesMetadata(Document document) {
+
+        return document.getFiles()
+                .stream()
+                .map(file -> {
+                    if (file == null || file.getFileMetadata() == null) {
+                        return null;
+                    }
+                    var metadataMap = file.getFileMetadata().getMetadata();
+                    return new MetadataItem(
+                            file.getStorageFile().getName(),
+                            metadataMap
+                    );
+                })
+                .filter(Objects::nonNull).collect(Collectors.toList());
     }
 
 }

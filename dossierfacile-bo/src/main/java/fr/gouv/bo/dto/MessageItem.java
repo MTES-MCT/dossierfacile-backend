@@ -31,6 +31,8 @@ public class MessageItem {
     private Long documentId;
     private String documentName;
     @Builder.Default
+    private List<MetadataItem> metadataOfFiles = new ArrayList<>();
+    @Builder.Default
     private List<DisplayableFile> analyzedFiles = new ArrayList<>();
     private Boolean avisDetected;
     private DocumentDeniedReasons previousDeniedReasons;

@@ -3,7 +3,6 @@
       layout:decorate="~{bo/process-file-layout}"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
 >
 <head>
     <title>DossierFacile</title>
@@ -68,18 +67,78 @@
             <div th:each="messageItem, i:${customMessage.getMessageItems()}" th:remove="tag">
                 <div th:with="documentLogs=${logser.getDocumentLogs(modificationLogs, messageItem.getDocumentId())}">
                     <div
-                        th:if="${!documentLogs.isEmpty()}"
-                        class="letter col-md-8 mt-4 p-2"
-                        style="line-height: 20px; background-color: #c9302c; color: white;"
+                            th:if="${!documentLogs.isEmpty()}"
+                            class="letter col-md-8 mt-4 p-2"
+                            style="line-height: 20px; background-color: #c9302c; color: white;"
                     >
                         <p class="mb-0">⚠️ Modifications opérateurs :</p>
                         <p class="mb-0" th:each="log : ${documentLogs}" th:text="${log.getModificationText()}"></p>
                     </div>
                 </div>
                 <div class="row mt-4">
-                    <div class="col-md-8" style="min-height: 700px; max-height: 1050px"
+                    <div class="col-md-8 d-flex flex-column" style="min-height: 700px; max-height: 1050px"
                          th:if="${messageItem.getCustomTex()}==null">
-                        <embed class="document-embed" height="100%"
+
+                        <div class="d-flex justify-content-end mb-2">
+                            <button type="button" class="btn btn-outline-info btn-sm"
+                                    data-bs-toggle="modal"
+                                    th:data-bs-target="'#modal-tenant-' + ${i.index}">
+                                <i class="fa fa-info-circle"></i> Voir les métadonnées techniques
+                            </button>
+                        </div>
+
+                        <div class="modal fade" th:id="'modal-tenant-' + ${i.index}" tabindex="-1" role="dialog"
+                             aria-hidden="true">
+                            <div class="modal-dialog modal-lg" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header px-4 py-3 align-items-center">
+                                        <h5 class="modal-title font-weight-bold" style="font-size: 1.1rem"  th:text="'Métadonnées Fichiers (Locataire) - ' + #{${messageItem.getDocumentCategory().getLabel()}}"></h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                                        </button>
+                                    </div>
+                                    <div class="modal-body text-left" style="background-color: #f8f9fa;">
+                                        <div th:if="${messageItem.getMetadataOfFiles() == null or messageItem.getMetadataOfFiles().isEmpty()}"
+                                             class="alert alert-warning">
+                                            Aucune métadonnée technique trouvée.
+                                        </div>
+                                        <div th:each="metadataItem, index : ${messageItem.getMetadataOfFiles()}"
+                                             class="card mb-3 shadow-sm">
+                                            <div class="card-header bg-white font-weight-bold text-primary">
+                                                <i class="fa fa-file-pdf-o"></i> <span
+                                                    th:text="'Fichier : ' + ${metadataItem.fileName}"></span>
+                                            </div>
+                                            <div class="card-body p-0">
+                                                <div class="table-responsive">
+                                                    <table class="table table-striped table-hover table-sm mb-0"
+                                                           style="font-size: 13px;">
+                                                        <thead class="thead-light">
+                                                        <tr>
+                                                            <th style="width: 40%">Clé</th>
+                                                            <th style="width: 60%">Valeur</th>
+                                                        </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                        <tr th:each="entry : ${metadataItem.metadata}">
+                                                            <td style="word-break: break-word;"><span
+                                                                    th:text="${entry.key}"
+                                                                    class="text-secondary font-weight-bold"></span></td>
+                                                            <td style="word-break: break-all;"><span
+                                                                    th:text="${entry.value}"></span></td>
+                                                        </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <embed class="document-embed flex-grow-1"
                                th:src="'/pdf-viewer/pdfjs-dist/web/viewer.html?file=/documents/'+${messageItem.getDocumentName()}"
                                width="100%"/>
                     </div>
@@ -114,18 +173,22 @@
                                         </div>
                                         <div class="letter" style="padding-top: 7px"
                                              th:if="${messageItem.getMonthlySum()}!=null">
-                                            <span class="text-amount" th:text="'Montant mensuel : ' + ${messageItem.getMonthlySum()}"></span>
+                                            <span class="text-amount"
+                                                  th:text="'Montant mensuel : ' + ${messageItem.getMonthlySum()}"></span>
                                             <button type="button" class="bo-btn btn-alt change-amount">
                                                 Modifier le montant
                                             </button>
-                                            <input type="hidden" th:field="*{messageItems[__${i.index}__].monthlySum}" />
+                                            <input type="hidden" th:field="*{messageItems[__${i.index}__].monthlySum}"/>
                                             <input type="number" class="input-amount"
-                                                th:field="*{messageItems[__${i.index}__].newMonthlySum}"
-                                                style="display: none; width: 5rem;" />
-                                            <button type="button" class="bo-btn btn-alt validate-amount" style="display: none;">
+                                                   th:field="*{messageItems[__${i.index}__].newMonthlySum}"
+                                                   style="display: none; width: 5rem;"/>
+                                            <button type="button" class="bo-btn btn-alt validate-amount"
+                                                    style="display: none;">
                                                 Valider la modification
                                             </button>
-                                            <button type="button" class="bo-btn btn-alt cancel-update-amount" style="display: none;">X</button>
+                                            <button type="button" class="bo-btn btn-alt cancel-update-amount"
+                                                    style="display: none;">X
+                                            </button>
                                         </div>
                                         <div class="letter" style="padding-top: 7px"
                                              th:if="${T(fr.dossierfacile.common.enums.DocumentSubCategory).SALARY == messageItem.getDocumentSubCategory()}">
@@ -251,9 +314,9 @@
                 <div th:each="messageItem, i:${guarantorItem.getMessageItems()}" th:remove="tag">
                     <div th:with="documentLogs=${logser.getDocumentLogs(modificationLogs, messageItem.getDocumentId())}">
                         <div
-                            th:if="${!documentLogs.isEmpty()}"
-                            class="letter col-md-8 mt-4 p-2"
-                            style="line-height: 20px; background-color: #c9302c; color: white;"
+                                th:if="${!documentLogs.isEmpty()}"
+                                class="letter col-md-8 mt-4 p-2"
+                                style="line-height: 20px; background-color: #c9302c; color: white;"
                         >
                             <p class="mb-0">⚠️ Modifications opérateurs :</p>
                             <p class="mb-0" th:each="log : ${documentLogs}" th:text="${log.getModificationText()}"></p>
@@ -261,9 +324,71 @@
                     </div>
                     <div class="row mt-4">
 
-                        <div class="col-md-8" style="min-height: 700px; max-height: 1050px"
+                        <div class="col-md-8 d-flex flex-column" style="min-height: 700px; max-height: 1050px"
                              th:if="${messageItem.getCustomTex()}==null">
-                            <embed class="document-embed" height="100%"
+
+                            <div class="d-flex justify-content-end mb-2">
+                                <button type="button" class="btn btn-outline-info btn-sm"
+                                        data-bs-toggle="modal"
+                                        th:data-bs-target="'#modal-guarantor-' + ${k.index} + '-' + ${i.index}">
+                                    <i class="fa fa-info-circle"></i> Voir les métadonnées techniques
+                                </button>
+                            </div>
+
+                            <div class="modal fade" th:id="'modal-guarantor-' + ${k.index} + '-' + ${i.index}"
+                                 tabindex="-1" role="dialog" aria-hidden="true">
+                                <div class="modal-dialog modal-lg" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header px-4 py-3 align-items-center">
+                                            <h5 class="modal-title font-weight-bold" style="font-size: 1.1rem"  th:text="'Métadonnées Fichiers (Garant) - ' + #{${messageItem.getDocumentCategory().getLabel()}}"></h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                                            </button>
+                                        </div>
+                                        <div class="modal-body text-left" style="background-color: #f8f9fa;">
+                                            <div th:if="${messageItem.getMetadataOfFiles() == null or messageItem.getMetadataOfFiles().isEmpty()}"
+                                                 class="alert alert-warning">
+                                                Aucune métadonnée technique trouvée.
+                                            </div>
+                                            <div th:each="metadataItem, index : ${messageItem.getMetadataOfFiles()}"
+                                                 class="card mb-3 shadow-sm">
+                                                <div class="card-header bg-white font-weight-bold text-primary">
+                                                    <i class="fa fa-file-pdf-o"></i> <span
+                                                        th:text="'Fichier : ' + ${metadataItem.fileName}"></span>
+                                                </div>
+                                                <div class="card-body p-0">
+                                                    <div class="table-responsive">
+                                                        <table class="table table-striped table-hover table-sm mb-0"
+                                                               style="font-size: 13px;">
+                                                            <thead class="thead-light">
+                                                            <tr>
+                                                                <th style="width: 40%">Clé</th>
+                                                                <th style="width: 60%">Valeur</th>
+                                                            </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                            <tr th:each="entry : ${metadataItem.metadata}">
+                                                                <td style="word-break: break-word;"><span
+                                                                        th:text="${entry.key}"
+                                                                        class="text-secondary font-weight-bold"></span>
+                                                                </td>
+                                                                <td style="word-break: break-all;"><span
+                                                                        th:text="${entry.value}"></span></td>
+                                                            </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                Fermer
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <embed class="document-embed flex-grow-1"
                                    th:src="'/pdf-viewer/pdfjs-dist/web/viewer.html?file=/documents/'+${messageItem.getDocumentName()}"
                                    width="100%"/>
                         </div>
@@ -317,19 +442,24 @@
                                                 <span th:text="${guarantorItem.getLastName()}"></span>
                                             </div>
                                             <div class="letter" style="padding-top: 7px"
-                                                th:if="${messageItem.getMonthlySum()}!=null">
-                                                <span class="text-amount" th:text="'Montant mensuel : ' + ${messageItem.getMonthlySum()}"></span>
+                                                 th:if="${messageItem.getMonthlySum()}!=null">
+                                                <span class="text-amount"
+                                                      th:text="'Montant mensuel : ' + ${messageItem.getMonthlySum()}"></span>
                                                 <button type="button" class="bo-btn btn-alt change-amount">
                                                     Modifier le montant
                                                 </button>
-                                                <input type="hidden" th:field="*{guarantorItems[__${k.index}__].messageItems[__${i.index}__].monthlySum}" />
+                                                <input type="hidden"
+                                                       th:field="*{guarantorItems[__${k.index}__].messageItems[__${i.index}__].monthlySum}"/>
                                                 <input type="number" class="input-amount"
-                                                    th:field="*{guarantorItems[__${k.index}__].messageItems[__${i.index}__].newMonthlySum}"
-                                                    style="display: none; width: 5rem;" />
-                                                <button type="button" class="bo-btn btn-alt validate-amount" style="display: none;">
+                                                       th:field="*{guarantorItems[__${k.index}__].messageItems[__${i.index}__].newMonthlySum}"
+                                                       style="display: none; width: 5rem;"/>
+                                                <button type="button" class="bo-btn btn-alt validate-amount"
+                                                        style="display: none;">
                                                     Valider la modification
                                                 </button>
-                                                <button type="button" class="bo-btn btn-alt cancel-update-amount" style="display: none;">X</button>
+                                                <button type="button" class="bo-btn btn-alt cancel-update-amount"
+                                                        style="display: none;">X
+                                                </button>
                                             </div>
                                             <div class="letter" style="padding-top: 7px"
                                                  th:if="${T(fr.dossierfacile.common.enums.DocumentSubCategory).SALARY == messageItem.getDocumentSubCategory()}">
@@ -475,8 +605,10 @@
     </div>
 
 </div>
+
 <div layout:fragment="javascripts" th:remove="tag">
     <script src="/js/process-file.js"></script>
 </div>
+
 </body>
 </html>
