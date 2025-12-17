@@ -72,6 +72,8 @@ class ApartmentSharingServiceImplTest {
     private ApiTenantLogRepository tenantLogRepository;
     @MockBean
     private LogService logService;
+    @MockBean
+    private fr.dossierfacile.api.front.service.interfaces.BruteForceProtectionService bruteForceProtectionService;
 
     private Tenant tenant;
     private ApartmentSharing apartmentSharing;

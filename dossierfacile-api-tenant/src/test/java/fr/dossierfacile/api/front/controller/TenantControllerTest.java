@@ -432,7 +432,7 @@ class TenantControllerTest {
     @Nested
     class SendFileByMailTest {
 
-        record SendFileByMailParam(String email, String shareType) {
+        record SendFileByMailParam(String email, String shareType, String title, String message) {
         }
 
         static List<Arguments> provideSendFileByMailParameters() {
@@ -443,7 +443,7 @@ class TenantControllerTest {
             return ArgumentBuilder.buildListOfArguments(
                     Pair.of("Should respond 403 when not jwt is passed",
                             new ControllerParameter<>(
-                                    new SendFileByMailParam("test@test.com", "SHARE_TYPE"),
+                                    new SendFileByMailParam("test@test.com", "SHARE_TYPE", "Test Title", "Test Message"),
                                     403,
                                     null,
                                     null,
@@ -452,7 +452,7 @@ class TenantControllerTest {
                     ),
                     Pair.of("Should respond 400 when invalid email is passed",
                             new ControllerParameter<>(
-                                    new SendFileByMailParam("test", "SHARE_TYPE"),
+                                    new SendFileByMailParam("test", "SHARE_TYPE", "Test Title", "Test Message"),
                                     400,
                                     jwtTokenWithDossier,
                                     (v) -> {
@@ -464,12 +464,14 @@ class TenantControllerTest {
                     ),
                     Pair.of("Should respond 400 when email limit reached",
                             new ControllerParameter<>(
-                                    new SendFileByMailParam("test@test.com", "SHARE_TYPE"),
+                                    new SendFileByMailParam("test@test.com", "SHARE_TYPE", "Test Title", "Test Message"),
                                     400,
                                     jwtTokenWithDossier,
                                     (v) -> {
                                         when(authenticationFacade.getLoggedTenant()).thenReturn(tenant);
-                                        doThrow(new MailSentLimitException()).when(tenantService).sendFileByMail(tenant, ShareFileByMailForm.builder().email("test@test.com").daysValid(30).build());
+                                        doThrow(new MailSentLimitException())
+                                                .when(tenantService)
+                                                .sendFileByMail(any(Tenant.class), any(ShareFileByMailForm.class));
                                         return v;
                                     },
                                     Collections.emptyList()
@@ -477,7 +479,7 @@ class TenantControllerTest {
                     ),
                     Pair.of("Should respond 200 when file is sent successfully",
                             new ControllerParameter<>(
-                                    new SendFileByMailParam("test@test.com", "SHARE_TYPE"),
+                                    new SendFileByMailParam("test@test.com", "SHARE_TYPE", "Test Title", "Test Message"),
                                     200,
                                     jwtTokenWithDossier,
                                     (v) -> {

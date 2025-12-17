@@ -712,20 +712,6 @@ public class TenantService {
         messageService.markReadAdmin(tenant);
     }
 
-    private ApartmentSharingLink buildApartmentSharingLink(ApartmentSharing apartmentSharing, Long userId, boolean fullData) {
-        return ApartmentSharingLink.builder()
-                .apartmentSharing(apartmentSharing)
-                .token(UUID.randomUUID())
-                .creationDate(LocalDateTime.now())
-                .expirationDate(LocalDateTime.now().plusMonths(1))
-                .fullData(fullData)
-                .linkType(ApartmentSharingLinkType.LINK)
-                .title("Lien créé le " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
-                .createdBy(userId)
-                .build();
-    }
-
-
 
     private void changeTenantStatusToDeclined(Tenant tenant, User operator, Message message, ProcessedDocuments processedDocuments) {
         tenant.setStatus(TenantFileStatus.DECLINED);
