@@ -35,6 +35,7 @@ public class BOTenantController {
     private static final String HEADER = "header";
     private static final String DOCUMENT_RULE_LEVEL = "documentRuleLevel";
     private static final String REDIRECT_BO = "redirect:/bo";
+    private static final String REDIRECT_BO_COLOCATION = "redirect:/bo/colocation/";
     private static final String CUSTOM_MESSAGE = "customMessage";
     private static final String CLARIFICATION = "clarification";
     private static final String OPERATOR_COMMENT = "operatorComment";
@@ -77,7 +78,7 @@ public class BOTenantController {
         }
         BOUser operator = userService.findUserByEmail(principal.getEmail());
         userService.deleteCoTenant(tenant, operator);
-        return "redirect:/bo/colocation/" + tenant.getApartmentSharing().getId();
+        return REDIRECT_BO_COLOCATION + tenant.getApartmentSharing().getId();
     }
 
     @PreAuthorize("hasRole('SUPPORT')")
@@ -104,7 +105,7 @@ public class BOTenantController {
         ApplicationModel webhookDTO = partnerCallBackService.getWebhookDTO(tenant, userApi, partnerCallBackType);
         partnerCallBackService.sendCallBack(tenant, userApi, webhookDTO);
 
-        return "redirect:/bo/colocation/" + tenant.getApartmentSharing().getId();
+        return REDIRECT_BO_COLOCATION + tenant.getApartmentSharing().getId();
     }
 
     @PreAuthorize("hasRole('SUPPORT')")
@@ -184,7 +185,7 @@ public class BOTenantController {
         return "bo/process-file";
     }
 
-    @PreAuthorize("hasRole('SUPPORT')")
+    @PreAuthorize("hasRole('OPERATOR')")
     @GetMapping("/delete/guarantor/{guarantorId}")
     public String deleteGuarantor(
             @PathVariable("guarantorId") Long guarantorId,
@@ -209,10 +210,26 @@ public class BOTenantController {
     @PostMapping("/{id}/processFile")
     public String processFile(
             @PathVariable Long id,
+            @RequestParam(value = "returnToHome", required = false) String returnToHome,
             CustomMessage customMessage,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
-        tenantService.processFile(id, customMessage, principal); 
+        tenantService.processFile(id, customMessage, principal);
+
+        // Si returnToHome est demandé, retourner à l'accueil
+        if (returnToHome != null && returnToHome.equals("true")) {
+            return REDIRECT_BO;
+        }
+
+        // Trouver le prochain tenant du même dossier COUPLE en statut TO_PROCESS
+        // pour router les locataires d'un meme dossier COUPLE vers le même opérateur
+        Optional<Tenant> nextTenantInCouple = tenantService.findNextTenantInCouple(id);
+        if (nextTenantInCouple.isPresent()) {
+            // Rediriger vers le prochain locataire du dossier
+            return tenantService.redirectToApplication(principal, nextTenantInCouple.get().getId());
+        }
+
+        // Sinon, continuer avec le comportement normal (prochain dossier disponible)
         return tenantService.redirectToApplication(principal, null);
     }
 
@@ -222,13 +239,13 @@ public class BOTenantController {
                                      @RequestParam(value = "returnTo", required = false) String returnTo) {
         Tenant tenant = tenantService.addOperatorComment(tenantId, comment);
         if ("processFile".equals(returnTo)) {
-            return "redirect:/bo/tenant/" + tenantId + "/processFile";
+            return REDIRECT_BO + "/tenant/" + tenantId + "/processFile";
         }
         return redirectToTenantPage(tenant);
     }
 
     private static String redirectToTenantPage(Tenant tenant) {
-        return "redirect:/bo/colocation/" + tenant.getApartmentSharing().getId() + "#tenant" + tenant.getId();
+        return REDIRECT_BO_COLOCATION + tenant.getApartmentSharing().getId() + "#tenant" + tenant.getId();
     }
 
     private List<ItemDetail> getItemDetailForSubcategoryOfDocument(DocumentCategory documentCategory, DocumentSubCategory documentSubCategory, String documentUserType) {

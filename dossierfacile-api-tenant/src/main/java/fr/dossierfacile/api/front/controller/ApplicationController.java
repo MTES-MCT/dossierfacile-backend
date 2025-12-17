@@ -8,6 +8,7 @@ import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
+import fr.dossierfacile.common.repository.ApartmentSharingLinkRepository;
 
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -33,9 +34,16 @@ public class ApplicationController {
     private final ApartmentSharingService apartmentSharingService;
     private final AuthenticationFacade authenticationFacade;
 
+    @RequestMapping(value = "/full/{token}", method = RequestMethod.HEAD, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Void> headFull(@PathVariable UUID token) {
+        apartmentSharingService.linkExists(token, true);
+        return ok().build();
+    }
+
     @GetMapping(value = "/full/{token}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ApplicationModel> full(@PathVariable UUID token) {
-        ApplicationModel applicationModel = apartmentSharingService.full(token);
+    public ResponseEntity<ApplicationModel> full(@PathVariable UUID token,
+                                                 @RequestHeader(value = "X-Tenant-Trigram", required = false) String trigramHeader) {
+        ApplicationModel applicationModel = apartmentSharingService.full(token, trigramHeader);
         return ok(applicationModel);
     }
 

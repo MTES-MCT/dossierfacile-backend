@@ -2,12 +2,12 @@ package fr.gouv.bo.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.gson.Gson;
 import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.*;
 import fr.dossierfacile.common.mapper.mail.TenantMapperForMail;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
+import fr.dossierfacile.common.service.interfaces.TenantLogCommonService;
 import fr.gouv.bo.mapper.TenantMapper;
 import fr.gouv.bo.repository.BOApartmentSharingRepository;
 import fr.gouv.bo.repository.BOUserRepository;
@@ -31,7 +31,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class UserService {
 
-    private final Gson gson;
     private final BOUserRepository userRepository;
     private final UserRoleRepository userRoleRepository;
     private final TenantCommonRepository tenantRepository;
@@ -42,7 +41,7 @@ public class UserService {
     private final PropertyApartmentSharingRepository propertyApartmentSharingRepository;
     private final ApartmentSharingService apartmentSharingService;
     private final PartnerCallBackService partnerCallBackService;
-    private final TenantLogService logService;
+    private final TenantLogCommonService tenantLogCommonService;
     private final ObjectMapper objectMapper;
     private final TenantMapperForMail tenantMapperForMail;
 
@@ -84,7 +83,7 @@ public class UserService {
 
     private void saveAndDeleteInfoByTenant(Tenant tenant, BOUser operator) {
         mailService.sendEmailAccountDeleted(tenantMapperForMail.toDto(tenant));
-        logService.saveByLog(
+        tenantLogCommonService.saveTenantLog(
                 TenantLog.builder()
                         .logType(LogType.ACCOUNT_DELETE)
                         .tenantId(tenant.getId())

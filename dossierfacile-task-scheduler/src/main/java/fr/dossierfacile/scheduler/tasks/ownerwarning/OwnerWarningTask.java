@@ -42,21 +42,36 @@ public class OwnerWarningTask extends AbstractTask {
         // Delete 2 years old Accounts
         LocalDateTime limitDate = LocalDateTime.now().minusWeeks(ownerWeeksForDeletion);
         super.startTask(OWNER_DELETE);
-        processAllWarnings(limitDate, 2);
-        super.endTask();
+        try {
+            processAllWarnings(limitDate, 2);
+        } catch (Exception e) {
+            log.error("Error during owner deletion task: {}", e.getMessage(), e);
+        } finally {
+            super.endTask();
+        }
 
         // Send second warning
         limitDate = LocalDateTime.now().minusWeeks(ownerWeeksForSecondWarningDelete);
+
         super.startTask(OWNER_WARNINGS_2);
-        processAllWarnings(limitDate, 1);
-        super.endTask();
+        try {
+            processAllWarnings(limitDate, 1);
+        } catch (Exception e) {
+            log.error("Error during owner deletion task: {}", e.getMessage(), e);
+        } finally {
+            super.endTask();
+        }
 
         // Send First warning
         limitDate = LocalDateTime.now().minusWeeks(ownerWeeksForFirstWarningDelete);
         super.startTask(OWNER_WARNINGS_1);
-        processAllWarnings(limitDate, 0);
-        super.endTask();
-
+        try {
+            processAllWarnings(limitDate, 0);
+        } catch (Exception e) {
+            log.error("Error during owner deletion task: {}", e.getMessage(), e);
+        } finally {
+            super.endTask();
+        }
     }
 
     private void processAllWarnings(LocalDateTime localDateTime, int warnings) {
