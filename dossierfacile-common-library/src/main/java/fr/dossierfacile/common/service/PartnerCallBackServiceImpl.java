@@ -19,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,14 +53,28 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
                     .userApi(userApi)
                     .build();
 
-            tenantUserApiRepository.save(tenantUserApi);
+            try {
+                tenantUserApiRepository.save(tenantUserApi);
+            } catch (DataIntegrityViolationException e) {
+                // Handle race condition: another thread may have inserted the same record
+                if (e.getMessage() != null && e.getMessage().contains("tenant_userapi_pkey")) {
+                    log.debug("TenantUserApi already exists for tenant {} and userApi {} (race condition handled)", 
+                            tenant.getId(), userApi.getId());
+                    // The record already exists, which is fine - return without creating links and sending callback to partner
+                    return;
+                }
+                // If it's a different constraint violation, rethrow the exception
+                throw e;
+            }
 
+            // Create sharing links and send callback
             ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
             ApartmentSharingLink apartmentSharingLink = buildApartmentSharingLink(userApi, apartmentSharing, false);
             ApartmentSharingLink apartmentSharingLinkFull = buildApartmentSharingLink(userApi, apartmentSharing, true);
             apartmentSharingLinkRepository.save(apartmentSharingLink);
             apartmentSharingLinkRepository.save(apartmentSharingLinkFull);
 
+            // Send callback notification
             if (userApi.getVersion() != null && userApi.getUrlCallback() != null && (
                     tenant.getStatus() == TenantFileStatus.VALIDATED
                             || tenant.getStatus() == TenantFileStatus.TO_PROCESS)) {
