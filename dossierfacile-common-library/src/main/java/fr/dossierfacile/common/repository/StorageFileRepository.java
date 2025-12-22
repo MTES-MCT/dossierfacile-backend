@@ -1,11 +1,11 @@
 package fr.dossierfacile.common.repository;
 
+import fr.dossierfacile.common.entity.ObjectStorageProvider;
 import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.enums.FileStorageStatus;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -44,6 +44,8 @@ public interface StorageFileRepository extends JpaRepository<StorageFile, Long> 
     List<String> findExistingPathsIn(@Param("pathsToSearch") List<String> paths);
 
     List<StorageFile> findAllByStatusOrderByIdAsc(FileStorageStatus fileStorageStatus, Pageable pageable);
+
+    List<StorageFile> findAllByStatusAndProviderOrderByIdAsc(FileStorageStatus status, ObjectStorageProvider provider, Pageable pageable);
 
     void delete(@NotNull StorageFile storageFile);
 }
