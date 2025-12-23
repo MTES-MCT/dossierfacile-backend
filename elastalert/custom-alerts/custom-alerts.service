@@ -1,0 +1,17 @@
+[Unit]
+Description=Custom Alerts Monitor Service
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/custom-alerts/current
+ExecStart=/home/ubuntu/custom-alerts/venv/bin/python /home/ubuntu/custom-alerts/current/monitor_controller.py
+Restart=always
+RestartSec=10
+StandardOutput=append:/var/log/custom-alerts.log
+StandardError=append:/var/log/custom-alerts.log
+
+[Install]
+WantedBy=multi-user.target
+

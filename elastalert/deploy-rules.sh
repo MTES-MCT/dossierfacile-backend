@@ -83,13 +83,43 @@ deploy() {
   ssh "$SSH_USERNAME@$SERVER_IP" "rm -rf /home/$SSH_USERNAME/custom-alerts/custom-alerts.zip"
 
   echo "Création d'un lien symbolique pour le fichier .env"
-  ssh "$SSH_USERNAME@$SERVER_IP" "ln -s /home/$SSH_USERNAME/custom-alerts/.env /home/$SSH_USERNAME/custom-alerts/current/.env"
+  ssh "$SSH_USERNAME@$SERVER_IP" "ln -sf /home/$SSH_USERNAME/custom-alerts/.env /home/$SSH_USERNAME/custom-alerts/current/.env"
 
   echo "Redémarrage du service ElastAlert..."
   ssh "$SSH_USERNAME@$SERVER_IP" "cd /home/$SSH_USERNAME/docker-elk && sudo docker-compose -f docker-compose-elastalert.yml up -d"
 
   echo "Installation des dépendances python..."
   ssh "$SSH_USERNAME@$SERVER_IP" "cd /home/$SSH_USERNAME/custom-alerts && source venv/bin/activate && cd current && pip install -r requirements.txt"
+
+  echo "Installation du service systemd custom-alerts..."
+  # Copier le fichier service vers le serveur
+  if [ -f "custom-alerts/custom-alerts.service" ]; then
+    echo "Transfert du fichier custom-alerts.service..."
+    scp custom-alerts/custom-alerts.service "$SSH_USERNAME@$SERVER_IP:/tmp/custom-alerts.service"
+    
+    # Remplacer le placeholder USER par le vrai username si nécessaire
+    # Note: Le fichier service utilise déjà 'ubuntu' en dur, mais on pourrait le rendre dynamique
+    echo "Copie du fichier service vers /etc/systemd/system/..."
+    ssh "$SSH_USERNAME@$SERVER_IP" "sudo cp /tmp/custom-alerts.service /etc/systemd/system/custom-alerts.service && sudo chmod 644 /etc/systemd/system/custom-alerts.service && rm /tmp/custom-alerts.service"
+    
+    echo "Rechargement de la configuration systemd..."
+    ssh "$SSH_USERNAME@$SERVER_IP" "sudo systemctl daemon-reload"
+    
+    # Vérifier si le service existe déjà (première installation ou mise à jour)
+    if ssh "$SSH_USERNAME@$SERVER_IP" "sudo systemctl list-unit-files | grep -q 'custom-alerts.service'"; then
+      echo "Activation et démarrage du service custom-alerts..."
+      ssh "$SSH_USERNAME@$SERVER_IP" "sudo systemctl enable custom-alerts && sudo systemctl restart custom-alerts"
+      echo "Vérification du statut du service..."
+      ssh "$SSH_USERNAME@$SERVER_IP" "sudo systemctl status custom-alerts --no-pager -l || true"
+    else
+      echo "⚠️  Erreur: Le service n'a pas pu être créé correctement."
+    fi
+  else
+    echo "⚠️  ATTENTION: Le fichier custom-alerts/custom-alerts.service est introuvable."
+    echo "   Le service systemd ne sera pas installé automatiquement."
+    echo "   Créez manuellement le fichier /etc/systemd/system/custom-alerts.service sur le serveur."
+    echo "   Voir custom-alerts/README.md pour plus de détails."
+  fi
 
   echo "Déploiement terminé..."
 }

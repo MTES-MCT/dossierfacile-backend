@@ -1,3 +1,5 @@
 elasticsearch<9.0.0
 requests
 dotenv
+APScheduler==3.11.1
+tzlocal==5.3.1
