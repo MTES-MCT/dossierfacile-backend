@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+
+    <!-- Création de la table file_metadata pour stocker des métadonnées (Map<String,String>) associées à un file -->
+    <changeSet id="202516120001" author="SAGON NICOLAS">
+        <createTable tableName="file_metadata">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="file_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="metadata" type="TEXT">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+
+        <!-- Ajout explicite de la contrainte de clé étrangère avec ON DELETE CASCADE -->
+        <addForeignKeyConstraint
+                baseTableName="file_metadata"
+                baseColumnNames="file_id"
+                referencedTableName="file"
+                referencedColumnNames="id"
+                constraintName="fk_file_metadata_file"
+                onDelete="CASCADE"/>
+
+        <!-- Contrainte d'unicité pour garantir une relation OneToOne au niveau base -->
+        <addUniqueConstraint
+                tableName="file_metadata"
+                columnNames="file_id"
+                constraintName="uk_file_metadata_file_id"/>
+
+        <!-- Index pour accélérer la recherche par file_id (facultatif si unique constraint déjà indexée) -->
+        <createIndex tableName="file_metadata" indexName="idx_file_metadata_file_id">
+            <column name="file_id"/>
+        </createIndex>
+
+        <rollback>
+            <!-- On supprime d'abord l'index -->
+            <dropIndex indexName="idx_file_metadata_file_id"
+                       tableName="file_metadata"/>
+
+            <!-- Puis la contrainte d'unicité -->
+            <dropUniqueConstraint
+                    tableName="file_metadata"
+                    constraintName="uk_file_metadata_file_id"/>
+
+            <!-- Ensuite la table file_metadata (ce qui supprimera aussi la FK associée) -->
+            <dropTable tableName="file_metadata"/>
+        </rollback>
+
+    </changeSet>
+</databaseChangeLog>
