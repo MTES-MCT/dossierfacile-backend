@@ -5,13 +5,26 @@
       "application": "api-tenant",
       "index": "aggregator-logs-*",
       "error_threshold": 0.05,
+      "webhook": "MATTERMOST_ELK_ALERT",
+      "frequency": 60,
       "env": "prod"
     },
     {
       "rule_file": "rules/api_4xx_ratio_alert.py",
       "application": "api-tenant",
       "index": "aggregator-logs-*",
-      "error_threshold": 0.05,
+      "error_threshold": 0.10,
+      "webhook": "MATTERMOST_ELK_ALERT",
+      "frequency": 120,
+      "env": "prod"
+    },
+    {
+      "rule_file": "rules/cdn_suspicious.py",
+      "application": "cdn_suspicious",
+      "index": "cdn-logs-*",
+      "error_threshold": 0,
+      "webhook": "MATTERMOST_CDN_ALERT",
+      "frequency": 1440,
       "env": "prod"
     }
   ]
