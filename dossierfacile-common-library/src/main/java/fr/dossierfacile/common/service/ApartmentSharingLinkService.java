@@ -43,14 +43,14 @@ public class ApartmentSharingLinkService {
                 .orElse(null);
 
         // Filter out links with the DF_OWNER partner
-        List<ApartmentSharingLink> FullDataPerPartnerLinks = links.stream()
+        List<ApartmentSharingLink> fullDataPerPartnerLinks = links.stream()
                 .filter(l -> l.getPartnerId() != null && l.isFullData())
                 .filter(l -> !l.getPartnerId().equals(dfOwnerPartnerId))
                 .toList();
 
         List<ApartmentSharingLink> validLinks = new ArrayList<>();
         validLinks.addAll(noPartnerLinks);
-        validLinks.addAll(FullDataPerPartnerLinks);
+        validLinks.addAll(fullDataPerPartnerLinks);
         return validLinks.stream()
                 .map(link -> mapApartmentSharingLink(link, apartmentSharing))
                 .toList();
