@@ -27,6 +27,7 @@ import java.util.Map;
 @Slf4j
 public class MailService {
     private static final String TENANT_BASE_URL_KEY = "tenantBaseUrl";
+    private static final String TENANT_ID_KEY = "TENANT_ID";
     private final TransactionalEmailsApi apiInstance;
     @Value("${tenant.base.url}")
     private String tenantBaseUrl;
@@ -83,6 +84,7 @@ public class MailService {
         params.put("PRENOM", tenant.getFirstName());
         params.put("NOM", OptionalString.of(tenant.getPreferredName()).orElse(tenant.getLastName()));
         params.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
+        params.put(TENANT_ID_KEY, tenant.getId().toString());
 
         if (tenant.isBelongToPartner()) {
             UserApiDto userApi = tenant.getUserApis().getFirst();
@@ -110,6 +112,7 @@ public class MailService {
         params.put("PRENOM", deniedTenant.getFirstName());
         params.put("NOM", Strings.isNullOrEmpty(deniedTenant.getPreferredName()) ? deniedTenant.getLastName() : deniedTenant.getPreferredName());
         params.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
+        params.put(TENANT_ID_KEY, tenant.getId().toString());
 
         if (tenant.isBelongToPartner()) {
             UserApiDto userApi = tenant.getUserApis().getFirst();
