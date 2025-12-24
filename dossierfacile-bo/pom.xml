@@ -12,7 +12,6 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <groupId>fr.gouv</groupId>
     <artifactId>dossierfacile-bo</artifactId>
     <version>${revision}</version>
     <name>dossierfacile-bo</name>
@@ -24,26 +23,6 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <commonmark.version>0.21.0</commonmark.version>
     </properties>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.thymeleaf</groupId>
-                <artifactId>thymeleaf-spring6</artifactId>
-                <version>3.1.2.RELEASE</version>
-            </dependency>
-            <dependency>
-                <groupId>org.thymeleaf.extras</groupId>
-                <artifactId>thymeleaf-extras-java8time</artifactId>
-                <version>3.0.4.RELEASE</version>
-            </dependency>
-            <dependency>
-                <groupId>nz.net.ultraq.thymeleaf</groupId>
-                <artifactId>thymeleaf-layout-dialect</artifactId>
-                <version>2.4.1</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
 
     <dependencies>
         <dependency>
@@ -57,12 +36,12 @@
         <dependency>
             <groupId>nz.net.ultraq.thymeleaf</groupId>
             <artifactId>thymeleaf-layout-dialect</artifactId>
+            <version>3.4.0</version>
         </dependency>
         <dependency>
             <groupId>org.keycloak</groupId>
             <artifactId>keycloak-admin-client</artifactId>
         </dependency>
-
         <dependency>
             <groupId>fr.dossierfacile</groupId>
             <artifactId>dossierfacile-common-library</artifactId>
@@ -88,6 +67,7 @@
         <dependency>
             <groupId>org.thymeleaf.extras</groupId>
             <artifactId>thymeleaf-extras-java8time</artifactId>
+            <version>3.0.4.RELEASE</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -147,7 +127,7 @@
         <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>datatables</artifactId>
-            <version>1.10.20</version>
+            <version>2.3.2</version>
         </dependency>
         <dependency>
             <groupId>org.mapstruct</groupId>
@@ -170,11 +150,6 @@
         <dependency>
             <groupId>com.github.jai-imageio</groupId>
             <artifactId>jai-imageio-jpeg2000</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>net.sf.cssbox</groupId>
-            <artifactId>pdf2dom</artifactId>
-            <version>2.0.3</version>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>

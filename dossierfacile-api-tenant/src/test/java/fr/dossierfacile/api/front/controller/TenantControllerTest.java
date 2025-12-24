@@ -30,7 +30,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -38,10 +37,12 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -61,20 +62,28 @@ class TenantControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
-    private static TenantService tenantService;
+    @MockitoBean
+    private TenantService tenantService;
 
-    @MockBean
-    private static ProcessingCapacityService processingCapacityService;
+    @MockitoBean
+    private ProcessingCapacityService processingCapacityService;
 
-    @MockBean
-    private static PropertyService propertyService;
+    @MockitoBean
+    private PropertyService propertyService;
 
-    @MockBean
-    private static AuthenticationFacade authenticationFacade;
+    @MockitoBean
+    private AuthenticationFacade authenticationFacade;
 
-    @MockBean
-    private static UserService userService;
+    @MockitoBean
+    private UserService userService;
+
+    // Référence statique à l’instance courante du test
+    private static TenantControllerTest self;
+
+    @PostConstruct
+    void setSelf() {
+        self = this;
+    }
 
     @Nested
     class ProfileTest {
@@ -129,7 +138,7 @@ class TenantControllerTest {
                                     200,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(authenticationFacade.getLoggedTenant(emptyAcquisitionData)).thenReturn(tenantWithoutCampaign);
+                                        when(self.authenticationFacade.getLoggedTenant(emptyAcquisitionData)).thenReturn(tenantWithoutCampaign);
                                         return v;
                                     },
                                     List.of(
@@ -144,7 +153,7 @@ class TenantControllerTest {
                                     200,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(authenticationFacade.getLoggedTenant(utmAcquisitionData)).thenReturn(tenantWithoutCampaign);
+                                        when(self.authenticationFacade.getLoggedTenant(utmAcquisitionData)).thenReturn(tenantWithoutCampaign);
                                         return v;
                                     },
                                     List.of(
@@ -159,7 +168,7 @@ class TenantControllerTest {
                                     403,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        doThrow(new AccessDeniedException("User not verified")).when(authenticationFacade).getLoggedTenant(utmAcquisitionData);
+                                        doThrow(new AccessDeniedException("User not verified")).when(self.authenticationFacade).getLoggedTenant(utmAcquisitionData);
                                         return v;
                                     },
                                     List.of(
@@ -233,7 +242,7 @@ class TenantControllerTest {
                                     404,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        doThrow(new PropertyNotFoundException("token")).when(propertyService).getPropertyByToken("token");
+                                        doThrow(new PropertyNotFoundException("token")).when(self.propertyService).getPropertyByToken("token");
                                         return v;
                                     },
                                     Collections.emptyList()
@@ -245,7 +254,7 @@ class TenantControllerTest {
                                     200,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(propertyService.getPropertyByToken("token")).thenReturn(property);
+                                        when(self.propertyService.getPropertyByToken("token")).thenReturn(property);
                                         return v;
                                     },
                                     List.of(
@@ -305,7 +314,7 @@ class TenantControllerTest {
                                     403,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        doThrow(new AccessDeniedException("User not verified")).when(authenticationFacade).getLoggedTenant();
+                                        doThrow(new AccessDeniedException("User not verified")).when(self.authenticationFacade).getLoggedTenant();
                                         return v;
                                     },
                                     Collections.emptyList()
@@ -317,8 +326,8 @@ class TenantControllerTest {
                                     200,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(authenticationFacade.getLoggedTenant()).thenReturn(tenant);
-                                        when(userService.deleteCoTenant(tenant, 1L)).thenReturn(true);
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(tenant);
+                                        when(self.userService.deleteCoTenant(tenant, 1L)).thenReturn(true);
                                         return v;
                                     },
                                     List.of(content().bytes(new byte[0]))
@@ -331,8 +340,8 @@ class TenantControllerTest {
                                     403,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(authenticationFacade.getLoggedTenant()).thenReturn(tenant);
-                                        when(userService.deleteCoTenant(tenant, 1L)).thenReturn(false);
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(tenant);
+                                        when(self.userService.deleteCoTenant(tenant, 1L)).thenReturn(false);
                                         return v;
                                     },
                                     Collections.emptyList()
@@ -397,7 +406,7 @@ class TenantControllerTest {
                                     200,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(authenticationFacade.getFranceConnectLink("test.com")).thenReturn("test.com");
+                                        when(self.authenticationFacade.getFranceConnectLink("test.com")).thenReturn("test.com");
                                         return v;
                                     },
                                     List.of(
@@ -455,7 +464,7 @@ class TenantControllerTest {
                                     400,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(authenticationFacade.getLoggedTenant()).thenReturn(tenant);
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(tenant);
                                         return v;
                                     },
                                     Collections.emptyList()
@@ -467,8 +476,8 @@ class TenantControllerTest {
                                     400,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(authenticationFacade.getLoggedTenant()).thenReturn(tenant);
-                                        doThrow(new MailSentLimitException()).when(tenantService).sendFileByMail(tenant, "test@test.com", "SHARE_TYPE");
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(tenant);
+                                        doThrow(new MailSentLimitException()).when(self.tenantService).sendFileByMail(tenant, "test@test.com", "SHARE_TYPE");
                                         return v;
                                     },
                                     Collections.emptyList()
@@ -480,7 +489,7 @@ class TenantControllerTest {
                                     200,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(authenticationFacade.getLoggedTenant()).thenReturn(tenant);
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(tenant);
                                         return v;
                                     },
                                     List.of(content().bytes(new byte[0]))
@@ -540,7 +549,7 @@ class TenantControllerTest {
                                     200,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(processingCapacityService.getExpectedProcessingTime(tenantId)).thenReturn(expectedProcessingTime);
+                                        when(self.processingCapacityService.getExpectedProcessingTime(tenantId)).thenReturn(expectedProcessingTime);
                                         return v;
                                     },
                                     List.of(
@@ -555,7 +564,7 @@ class TenantControllerTest {
                                     200,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(processingCapacityService.getExpectedProcessingTime(tenantId)).thenReturn(null);
+                                        when(self.processingCapacityService.getExpectedProcessingTime(tenantId)).thenReturn(null);
                                         return v;
                                     },
                                     List.of(
@@ -617,7 +626,7 @@ class TenantControllerTest {
                                     200,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        doNothing().when(tenantService).doNotArchive("token");
+                                        doNothing().when(self.tenantService).doNotArchive("token");
                                         return v;
                                     },
                                     List.of(content().bytes(new byte[0]))

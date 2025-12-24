@@ -27,15 +27,16 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import javax.annotation.PostConstruct;
 import java.util.Collections;
 import java.util.List;
 
@@ -62,20 +63,28 @@ class RegisterControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
-    private static TenantService tenantService;
+    @MockitoBean
+    private TenantService tenantService;
 
-    @MockBean
-    private static AuthenticationFacade authenticationFacade;
+    @MockitoBean
+    private AuthenticationFacade authenticationFacade;
 
-    @MockBean
-    private static LogService logService;
+    @MockitoBean
+    private LogService logService;
 
-    @MockBean
-    private static FileRepository fileRepository;
+    @MockitoBean
+    private FileRepository fileRepository;
 
-    @MockBean
+    @MockitoBean
     private JwtDecoder jwtDecoder;
+
+    // Référence statique à l’instance courante du test
+    private static RegisterControllerTest self;
+
+    @PostConstruct
+    void setSelf() {
+        self = this;
+    }
 
     @Nested
     class NamesFinancialTest {
@@ -113,7 +122,7 @@ class RegisterControllerTest {
                                     400,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(authenticationFacade.getLoggedTenant()).thenReturn(actualTenant);
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(actualTenant);
                                         return v;
                                     },
                                     Collections.emptyList()
@@ -143,9 +152,9 @@ class RegisterControllerTest {
                                                 .lastName("lastName")
                                                 .franceConnect(false)
                                                 .build();
-                                        when(authenticationFacade.getLoggedTenant()).thenReturn(actualTenant);
-                                        when(tenantService.findById(any())).thenReturn(actualTenant);
-                                        when(tenantService.saveStepRegister(any(), any(), any())).thenReturn(
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(actualTenant);
+                                        when(self.tenantService.findById(any())).thenReturn(actualTenant);
+                                        when(self.tenantService.saveStepRegister(any(), any(), any())).thenReturn(
                                                 tenantModel
                                         );
                                         return v;
