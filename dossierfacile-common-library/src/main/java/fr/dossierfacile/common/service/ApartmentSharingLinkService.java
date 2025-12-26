@@ -7,6 +7,7 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.exceptions.NotFoundException;
 import fr.dossierfacile.common.model.ApartmentSharingLinkModel;
 import fr.dossierfacile.common.repository.ApartmentSharingLinkRepository;
+import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.LinkLogService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +17,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-import static fr.dossierfacile.common.enums.ApartmentSharingLinkType.MAIL;
 import static fr.dossierfacile.common.enums.LinkType.*;
 
 @Service
@@ -26,28 +26,44 @@ public class ApartmentSharingLinkService {
 
     private final ApartmentSharingLinkRepository apartmentSharingLinkRepository;
     private final LinkLogService linkLogService;
+    private final TenantCommonRepository tenantCommonRepository;
 
-    public List<ApartmentSharingLinkModel> getLinksByMail(ApartmentSharing apartmentSharing) {
-        return apartmentSharingLinkRepository.findByApartmentSharingAndLinkTypeAndDeletedIsFalse(apartmentSharing, MAIL)
+    public List<ApartmentSharingLinkModel> getLinks(ApartmentSharing apartmentSharing) {
+        return apartmentSharingLinkRepository.findByApartmentSharingOrderByCreationDate(apartmentSharing)
                 .stream()
                 .map(link -> mapApartmentSharingLink(link, apartmentSharing))
                 .toList();
     }
 
     private ApartmentSharingLinkModel mapApartmentSharingLink(ApartmentSharingLink link, ApartmentSharing apartmentSharing) {
-        LocalDateTime lastVisit = linkLogService.getLastVisit(link.getToken(), apartmentSharing).orElse(null);
+        LinkLogServiceImpl.FirstAndLastVisit firstAndLastVisit = linkLogService.getFirstAndLastVisit(link.getToken(), apartmentSharing);
         long nbVisits = linkLogService.countVisits(link.getToken(), apartmentSharing);
+
+        String createdByFullName = null;
+        if (link.getCreatedBy() != null) {
+            Tenant creator = tenantCommonRepository.findById(link.getCreatedBy()).orElse(null);
+            if (creator != null) {
+                createdByFullName = creator.getFullName();
+            }
+        }
+
+        String url = (link.isFullData() ? "/file/" : "/public-file/") + link.getToken();
+
         return ApartmentSharingLinkModel.builder()
                 .id(link.getId())
                 .creationDate(link.getCreationDate())
                 .ownerEmail(link.getEmail())
-                .lastVisit(lastVisit)
+                .lastVisit(firstAndLastVisit.last().orElse(null))
+                .firstVisit(firstAndLastVisit.first().orElse(null))
                 .enabled(!link.isDisabled())
+                .deleted(link.isDeleted())
                 .fullData(link.isFullData())
                 .expirationDate(link.getExpirationDate())
                 .title(link.getTitle())
                 .type(link.getLinkType().toString())
                 .nbVisits(nbVisits)
+                .createdBy(createdByFullName)
+                .url(url)
                 .build();
     }
 
@@ -62,7 +78,9 @@ public class ApartmentSharingLinkService {
         var link = apartmentSharingLinkRepository.findById(linkId).orElseThrow(NotFoundException::new);
         log.info("Delete token: " + link.getToken() + " by " + link.getLinkType() + " on apartmentSharing" + link.getApartmentSharing().getId());
         linkLogService.createNewLog(link, DELETED_LINK_TOKEN);
-        apartmentSharingLinkRepository.deleteById(link.getId());
+        link.setExpirationDate(LocalDateTime.now());
+        link.setDeleted(true);
+        apartmentSharingLinkRepository.save(link);
     }
 
     public void delete(Long linkId, Tenant tenant) {
@@ -73,12 +91,60 @@ public class ApartmentSharingLinkService {
         }
     }
 
+    private boolean isValidLink(ApartmentSharingLink link) {
+        return !link.isDeleted() && (link.getExpirationDate() == null || LocalDateTime.now().isBefore(link.getExpirationDate()));
+    }
+
+    public void deleteLinks(List<Long> linkIds, Tenant tenant) {
+        for (var link : tenant.getApartmentSharing().getApartmentSharingLinks()) {
+            if (linkIds.contains(link.getId())) {
+                delete(link.getId());
+            }
+        }
+    }
+
+    public void disableValidLinks(Tenant tenant) {
+        log.info("Pause all valid links on apartmentSharing" + tenant.getApartmentSharing().getId());
+        for (var link : tenant.getApartmentSharing().getApartmentSharingLinks()) {
+            if (isValidLink(link) && !link.isDisabled()) {
+                link.setDisabled(true);
+                apartmentSharingLinkRepository.save(link);
+            }
+        }
+    }
+
+    public void enableValidLinks(Tenant tenant) {
+        log.info("Enable all valid links on apartmentSharing" + tenant.getApartmentSharing().getId());
+        for (var link : tenant.getApartmentSharing().getApartmentSharingLinks()) {
+            if (isValidLink(link) && link.isDisabled()) {
+                link.setDisabled(false);
+                apartmentSharingLinkRepository.save(link);
+            }
+        }
+    }
+
     public void regenerateToken(UUID token) {
         var link = apartmentSharingLinkRepository.findByToken(token).orElseThrow(NotFoundException::new);
         linkLogService.save(LinkLog.builder().creationDate(LocalDateTime.now()).linkType(REBUILT_TOKENS).token(token).apartmentSharing(link.getApartmentSharing()).build());
         UUID newToken = UUID.randomUUID();
         log.info("Regenerate token " + token + " to " + newToken);
         link.setToken(newToken);
+        apartmentSharingLinkRepository.save(link);
+    }
+
+    public void updateExpirationDate(Long linkId, LocalDateTime expirationDate, ApartmentSharing apartmentSharing) {
+        var link = apartmentSharingLinkRepository.findByIdAndApartmentSharingAndDeletedIsFalse(linkId, apartmentSharing)
+                .orElseThrow(NotFoundException::new);
+        log.info("Update expiration date for link: " + link.getId() + " from " + link.getExpirationDate() + " to " + expirationDate);
+        link.setExpirationDate(expirationDate);
+        apartmentSharingLinkRepository.save(link);
+    }
+
+    public void updateTitle(Long linkId, String title, ApartmentSharing apartmentSharing) {
+        var link = apartmentSharingLinkRepository.findByIdAndApartmentSharingAndDeletedIsFalse(linkId, apartmentSharing)
+                .orElseThrow(NotFoundException::new);
+        log.info("Update title for link: " + link.getId() + " from " + link.getTitle() + " to " + title);
+        link.setTitle(title);
         apartmentSharingLinkRepository.save(link);
     }
 

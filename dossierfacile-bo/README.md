@@ -23,6 +23,9 @@ mock.storage.path=../mock-storage
 # List of the providers to use for the storage
 storage.provider.list=LOCAL
 
+# E2e tests
+testing.api.allowed-tenant-email=ywiwyne-1268@yopmail.com
+
 #TODO: replace with your database credentials, can be found in root docker-compose-dev.yml
 #URL of the database
 spring.datasource.url=<REPLACE_ME_DB_URL>

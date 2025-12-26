@@ -29,6 +29,24 @@ public class LinkLogServiceImpl implements LinkLogService {
         return linkLogRepository.save(log);
     }
 
+
+    public record FirstAndLastVisit(Optional<LocalDateTime> first, Optional<LocalDateTime> last) {}
+
+    public FirstAndLastVisit getFirstAndLastVisit(UUID token, ApartmentSharing apartmentSharing) {
+        List<LinkType> visitLogs = List.of(LinkType.FULL_APPLICATION, LinkType.LIGHT_APPLICATION, LinkType.DOCUMENT);
+        List<LocalDateTime> sortedVisits = linkLogRepository.findByApartmentSharingAndToken(apartmentSharing, token)
+                .stream()
+                .filter(log -> visitLogs.contains(log.getLinkType()))
+                .sorted(Comparator.comparing(LinkLog::getCreationDate))
+                .map(LinkLog::getCreationDate)
+                .toList();
+
+        Optional<LocalDateTime> first = sortedVisits.isEmpty() ? Optional.empty() : Optional.of(sortedVisits.getFirst());
+        Optional<LocalDateTime> last = sortedVisits.isEmpty() ? Optional.empty() : Optional.of(sortedVisits.getLast());
+
+        return new FirstAndLastVisit(first, last);
+    }
+
     public Optional<LocalDateTime> getLastVisit(UUID token, ApartmentSharing apartmentSharing) {
         List<LinkType> visitLogs = List.of(LinkType.FULL_APPLICATION, LinkType.LIGHT_APPLICATION, LinkType.DOCUMENT);
         return linkLogRepository.findByApartmentSharingAndToken(apartmentSharing, token)
