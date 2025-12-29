@@ -1,34 +1,41 @@
 package fr.gouv.bo.controller;
 
+import fr.dossierfacile.common.entity.ApartmentSharingLink;
+import fr.dossierfacile.common.entity.BOUser;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentRuleLevel;
+import fr.dossierfacile.common.entity.LinkLog;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.entity.UserApi;
+import fr.dossierfacile.common.enums.ApartmentSharingLinkType;
+import fr.dossierfacile.common.enums.LinkType;
+import fr.dossierfacile.common.repository.LinkLogRepository;
+import fr.dossierfacile.common.service.ApartmentSharingLinkService;
+import fr.dossierfacile.common.service.interfaces.LinkLogService;
+import fr.gouv.bo.dto.ApartmentSharingLinkEnrichedDTO;
 import fr.gouv.bo.dto.DisplayableFile;
 import fr.gouv.bo.dto.MessageDTO;
 import fr.gouv.bo.dto.PartnerDTO;
-import fr.dossierfacile.common.service.ApartmentSharingLinkService;
 import fr.gouv.bo.service.TenantLogService;
 import fr.gouv.bo.service.TenantService;
 import fr.gouv.bo.service.UserApiService;
+import fr.gouv.bo.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 
 
 @Controller
@@ -36,6 +43,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 @RequestMapping(value = "/bo/colocation")
 @Slf4j
 public class BOApartmentSharingController {
+
+    private static final String REDIRECT_BO_COLOCATION = "redirect:/bo/colocation/";
 
     private static final String LOG_SER = "logser";
     private static final String TENANTS = "tenants";
@@ -50,11 +59,15 @@ public class BOApartmentSharingController {
     private static final String NOW = "now";
     private static final String FILES_BY_DOCUMENT = "filesByDocument";
     private static final String TENANT_BASE_URL = "tenantBaseUrl";
+    private static final String ENRICHED_LINKS = "enrichedLinks";
 
     private final TenantService tenantService;
     private final ApartmentSharingLinkService apartmentSharingLinkService;
     private final UserApiService userApiService;
     private final TenantLogService logService;
+    private final LinkLogService linkLogService;
+    private final LinkLogRepository linkLogRepository;
+    private final UserService userService;
 
     @Value("${tenant.base.url}")
     private String tenantBaseUrl;
@@ -66,20 +79,24 @@ public class BOApartmentSharingController {
         PartnerDTO partnerDTO = new PartnerDTO();
 
         List<Tenant> tenants = tenantService.findAllTenantsByApartmentSharingAndReorderDocumentsByCategory(id);
+        
+        // Enrich apartment sharing links with visit data and creator info
+        List<ApartmentSharingLinkEnrichedDTO> enrichedLinks = enrichApartmentSharingLinks(tenants.getFirst().getApartmentSharing().getApartmentSharingLinks());
 
         model.addAttribute(TENANTS, tenants);
         model.addAttribute(LOG_SER, logService);
         model.addAttribute(MESSAGE_DTO, messageDTO);
         model.addAttribute(PARTNER_UPDATE, partnerDTO);
-        model.addAttribute(TENANT_PRINCIPAL, tenants.get(0));
+        model.addAttribute(TENANT_PRINCIPAL, tenants.getFirst());
         model.addAttribute(TENANT_SERVICE, tenantService);
         model.addAttribute(DOCUMENT_RULE_LEVEL, DocumentRuleLevel.WARN);
         model.addAttribute(PARTNER_LIST_BY_TENANT, userApiService);
         model.addAttribute(PARTNERS_LIST, userApiService.getAllPartners());
-        model.addAttribute(APARTMENT_SHARING, tenants.get(0).getApartmentSharing());
+        model.addAttribute(APARTMENT_SHARING, tenants.getFirst().getApartmentSharing());
         model.addAttribute(NOW, LocalDateTime.now());
         model.addAttribute(FILES_BY_DOCUMENT, getFilesByDocument(tenants));
         model.addAttribute(TENANT_BASE_URL, tenantBaseUrl);
+        model.addAttribute(ENRICHED_LINKS, enrichedLinks);
 
         return "bo/apartment-sharing-view";
     }
@@ -87,14 +104,21 @@ public class BOApartmentSharingController {
     @PostMapping("/{id}/tokens/{token}")
     public String regenerateToken(Model model, @PathVariable UUID token, @PathVariable Long id) {
         apartmentSharingLinkService.regenerateToken(token);
-        return "redirect:/bo/colocation/" + id ;
+        return REDIRECT_BO_COLOCATION + id;
     }
-    
+
 
     @DeleteMapping("/{id}/apartmentSharingLinks/{link_id}")
-    public String deleteToken(Model model, @PathVariable("id") Long id, @PathVariable("link_id") Long linkId) {
+    public String deleteToken(Model model, @PathVariable Long id, @PathVariable("link_id") Long linkId) {
         apartmentSharingLinkService.delete(linkId);
-        return "redirect:/bo/colocation/" + id ;
+        return REDIRECT_BO_COLOCATION + id;
+    }
+
+    @PutMapping("/{id}/apartmentSharingLinks/{link_id}")
+    public String updateTokenStatus(Model model, @PathVariable("link_id") Long linkId, @PathVariable Long id, @RequestParam boolean enabled) {
+        List<Tenant> tenants = tenantService.findAllTenantsByApartmentSharingAndReorderDocumentsByCategory(id);
+        apartmentSharingLinkService.updateStatus(linkId, enabled, tenants.getFirst().getApartmentSharing());
+        return REDIRECT_BO_COLOCATION + id;
     }
 
     private Map<Long, List<DisplayableFile>> getFilesByDocument(List<Tenant> tenants) {
@@ -108,6 +132,65 @@ public class BOApartmentSharingController {
         Stream<Document> guarantorDocuments = tenant.getGuarantors().stream()
                 .flatMap(guarantor -> guarantor.getDocuments().stream());
         return Stream.concat(tenantDocuments, guarantorDocuments);
+    }
+    
+    private List<ApartmentSharingLinkEnrichedDTO> enrichApartmentSharingLinks(List<ApartmentSharingLink> links) {
+        List<ApartmentSharingLinkEnrichedDTO> enrichedLinks = new ArrayList<>();
+        
+        for (ApartmentSharingLink link : links) {
+            // Skip deleted links
+            if (link.isDeleted()) {
+                continue;
+            }
+            
+            // Only process LINK type for the new section
+            if (link.getLinkType() != ApartmentSharingLinkType.LINK) {
+                continue;
+            }
+            
+            ApartmentSharingLinkEnrichedDTO dto = ApartmentSharingLinkEnrichedDTO.fromEntity(link);
+            
+            // Get visit statistics
+            var firstAndLastVisit = linkLogService.getFirstAndLastVisit(link.getToken(), link.getApartmentSharing());
+            dto.setFirstVisit(firstAndLastVisit.first().orElse(null));
+            dto.setLastVisit(firstAndLastVisit.last().orElse(null));
+            dto.setNbVisits(linkLogService.countVisits(link.getToken(), link.getApartmentSharing()));
+            
+            // Get access logs (filtered by visit types)
+            List<LinkLog> allLogs = linkLogRepository.findByApartmentSharingAndToken(link.getApartmentSharing(), link.getToken());
+            List<LinkType> visitLogs = List.of(LinkType.FULL_APPLICATION, LinkType.LIGHT_APPLICATION, LinkType.DOCUMENT);
+            List<LinkLog> accessLogs = allLogs.stream()
+                    .filter(log -> visitLogs.contains(log.getLinkType()))
+                    .sorted(Comparator.comparing(LinkLog::getCreationDate).reversed())
+                    .toList();
+            dto.setAccessLogs(accessLogs);
+            
+            // Get creator name
+            if (link.getCreatedBy() != null) {
+                BOUser creator = userService.findUserById(link.getCreatedBy());
+                if (creator != null) {
+                    dto.setCreatedByName(creator.getEmail());
+                }
+            }
+            
+            // Get partner name if applicable
+            if (link.getPartnerId() != null) {
+                try {
+                    UserApi partner = userApiService.findById(link.getPartnerId());
+                    dto.setPartnerName(partner.getName());
+                } catch (Exception e) {
+                    log.warn("Partner not found for id: {}", link.getPartnerId());
+                }
+            }
+            
+            // Build full URL
+            String urlPath = link.isFullData() ? "/file/" : "/public-file/";
+            dto.setFullUrl(tenantBaseUrl + urlPath + link.getToken());
+            
+            enrichedLinks.add(dto);
+        }
+        
+        return enrichedLinks;
     }
 
 }

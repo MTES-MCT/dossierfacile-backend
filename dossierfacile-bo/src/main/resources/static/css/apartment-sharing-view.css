@@ -13,3 +13,310 @@
     color: #000000;
     padding: 0px 5px 5px 5px;
 }
+
+/* === Nouvelle section Partages du dossier === */
+
+.partages-dossier-section {
+    margin-top: 30px;
+    margin-bottom: 30px;
+}
+
+.partages-title {
+    font-family: 'Marianne', sans-serif;
+    font-weight: 700;
+    font-size: 28px;
+    line-height: 36px;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.partages-count {
+    font-family: 'Marianne', sans-serif;
+    font-size: 18px;
+    line-height: 28px;
+    color: #000;
+    margin-bottom: 16px;
+}
+
+.partages-count strong {
+    font-weight: 700;
+}
+
+.partages-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* Carte de partage */
+.partage-card {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+/* Header de la carte */
+.partage-header {
+    background-color: #474747;
+    padding: 10px;
+    display: flex;
+    gap: 16px;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.partage-header-left {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.partage-header-right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-end;
+}
+
+.partage-link-title {
+    font-family: 'Marianne', sans-serif;
+    font-size: 18px;
+    line-height: 28px;
+    color: #fff;
+    margin: 0;
+}
+
+.partage-link-title strong {
+    font-weight: 700;
+}
+
+.partage-url {
+    font-family: 'Marianne', sans-serif;
+    font-size: 16px;
+    line-height: 24px;
+    color: #fff;
+    margin: 0;
+    word-break: break-all;
+}
+
+.partage-url-link {
+    color: #fff;
+    text-decoration: underline;
+}
+
+.partage-url-link:hover {
+    color: #e3e3fd;
+}
+
+/* Badge de statut */
+.badge-status {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: 'Marianne', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    line-height: 15px;
+    text-align: center;
+}
+
+.badge-actif {
+    background-color: #198754;
+    color: #000;
+}
+
+.badge-pause {
+    background-color: #efcb3a;
+    color: #000;
+}
+
+/* Boutons d'action dans le header */
+.partage-actions-buttons {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.partage-actions-buttons button {
+    background-color: #f8f9fa;
+    border: 1px solid #acacac;
+    border-radius: 4px;
+    padding: 4px 12px;
+    font-family: 'Marianne', sans-serif;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 24px;
+    color: #000;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.partage-actions-buttons button:hover {
+    background-color: #e0e3e6;
+    color: #000;
+}
+
+/* Body de la carte */
+.partage-body {
+    padding: 10px 16px;
+    display: flex;
+    gap: 16px;
+}
+
+.partage-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Sections d'informations */
+.partage-info-section {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.partage-info-row {
+    display: flex;
+    gap: 40px;
+    align-items: flex-start;
+}
+
+.partage-info-label {
+    font-family: 'Marianne', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    line-height: 24px;
+    color: #000;
+    min-width: 60px;
+}
+
+.partage-info-values {
+    flex: 1;
+    display: flex;
+    gap: 40px;
+    flex-wrap: wrap;
+    font-family: 'Marianne', sans-serif;
+    font-size: 14px;
+    line-height: 24px;
+    color: #666;
+}
+
+.partage-info-values strong {
+    font-weight: 700;
+}
+
+.partage-data-type {
+    font-weight: 700;
+}
+
+.partage-separator {
+    height: 1px;
+    background-color: #ddd;
+    margin: 5px 0;
+}
+
+/* Accordéon */
+.partage-accordion {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.accordion-separator {
+    height: 1px;
+    background-color: #ddd;
+}
+
+.accordion-button {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 16px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+}
+
+.accordion-button:hover {
+    background-color: #f8f9fa;
+}
+
+.accordion-title {
+    font-family: 'Marianne', sans-serif;
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 24px;
+    color: #000091;
+}
+
+.accordion-icon {
+    font-size: 12px;
+    color: #000091;
+    transition: transform 0.3s ease;
+}
+
+.accordion-button.expanded .accordion-icon {
+    transform: rotate(180deg);
+}
+
+.accordion-content {
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.accordion-content.expanded {
+    background-color: #e3e3fd;
+}
+
+.accordion-body {
+    padding: 12px 16px;
+    background-color: #eee;
+    font-family: 'Marianne', sans-serif;
+    font-size: 14px;
+    line-height: 24px;
+    color: #161616;
+}
+
+.access-logs-list {
+    list-style: disc;
+    padding-left: 21px;
+    margin: 0;
+}
+
+.access-logs-list li {
+    margin-bottom: 10px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .partage-header {
+        flex-direction: column;
+    }
+    
+    .partage-header-right {
+        align-items: flex-start;
+    }
+    
+    .partage-actions-buttons {
+        justify-content: flex-start;
+    }
+    
+    .partage-info-row {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .partage-info-values {
+        flex-direction: column;
+        gap: 10px;
+    }
+}
