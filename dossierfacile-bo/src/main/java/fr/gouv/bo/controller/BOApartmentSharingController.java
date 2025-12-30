@@ -7,7 +7,6 @@ import fr.dossierfacile.common.entity.DocumentRuleLevel;
 import fr.dossierfacile.common.entity.LinkLog;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
-import fr.dossierfacile.common.enums.ApartmentSharingLinkType;
 import fr.dossierfacile.common.enums.LinkType;
 import fr.dossierfacile.common.repository.LinkLogRepository;
 import fr.dossierfacile.common.service.ApartmentSharingLinkService;
@@ -79,9 +78,11 @@ public class BOApartmentSharingController {
         PartnerDTO partnerDTO = new PartnerDTO();
 
         List<Tenant> tenants = tenantService.findAllTenantsByApartmentSharingAndReorderDocumentsByCategory(id);
-        
+
         // Enrich apartment sharing links with visit data and creator info
-        List<ApartmentSharingLinkEnrichedDTO> enrichedLinks = enrichApartmentSharingLinks(tenants.getFirst().getApartmentSharing().getApartmentSharingLinks());
+        List<ApartmentSharingLink> filteredLinks = apartmentSharingLinkService.getFilteredLinks(tenants.getFirst().getApartmentSharing());
+
+        List<ApartmentSharingLinkEnrichedDTO> enrichedLinks = enrichApartmentSharingLinks(filteredLinks);
 
         model.addAttribute(TENANTS, tenants);
         model.addAttribute(LOG_SER, logService);
@@ -136,18 +137,13 @@ public class BOApartmentSharingController {
     
     private List<ApartmentSharingLinkEnrichedDTO> enrichApartmentSharingLinks(List<ApartmentSharingLink> links) {
         List<ApartmentSharingLinkEnrichedDTO> enrichedLinks = new ArrayList<>();
-        
+
         for (ApartmentSharingLink link : links) {
-            // Skip deleted links
-            if (link.isDeleted()) {
+
+            if(link.isDeleted()) {
                 continue;
             }
-            
-            // Only process LINK type for the new section
-            if (link.getLinkType() != ApartmentSharingLinkType.LINK) {
-                continue;
-            }
-            
+
             ApartmentSharingLinkEnrichedDTO dto = ApartmentSharingLinkEnrichedDTO.fromEntity(link);
             
             // Get visit statistics
