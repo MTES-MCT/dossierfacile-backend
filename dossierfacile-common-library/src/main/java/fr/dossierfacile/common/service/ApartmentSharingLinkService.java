@@ -31,18 +31,25 @@ public class ApartmentSharingLinkService {
     private final TenantCommonRepository tenantCommonRepository;
     private final UserApiRepository userApiRepository;
 
-    public List<ApartmentSharingLinkModel> getLinks(ApartmentSharing apartmentSharing) {
+    /**
+     * Returns filtered links according to business rules:
+     * - Excludes DF_OWNER partner links
+     * - Excludes non-full-data partner links
+     * - Includes all non-partner links
+     */
+    public List<ApartmentSharingLink> getFilteredLinks(ApartmentSharing apartmentSharing) {
         var links = apartmentSharingLinkRepository.findByApartmentSharingOrderByCreationDate(apartmentSharing);
-        List<ApartmentSharingLink> noPartnerLinks = links.stream()
-                .filter(l -> l.getPartnerId() == null)
-                .toList();
 
         // Get the ID of the DF_OWNER partner to exclude it
         Long dfOwnerPartnerId = userApiRepository.findByName(DF_OWNER_NAME)
                 .map(UserApi::getId)
                 .orElse(null);
 
-        // Filter out links with the DF_OWNER partner
+        List<ApartmentSharingLink> noPartnerLinks = links.stream()
+                .filter(l -> l.getPartnerId() == null)
+                .toList();
+
+        // Filter out links with the DF_OWNER partner and non-full-data partner links
         List<ApartmentSharingLink> fullDataPerPartnerLinks = links.stream()
                 .filter(l -> l.getPartnerId() != null && l.isFullData())
                 .filter(l -> !l.getPartnerId().equals(dfOwnerPartnerId))
@@ -51,7 +58,11 @@ public class ApartmentSharingLinkService {
         List<ApartmentSharingLink> validLinks = new ArrayList<>();
         validLinks.addAll(noPartnerLinks);
         validLinks.addAll(fullDataPerPartnerLinks);
-        return validLinks.stream()
+        return validLinks;
+    }
+
+    public List<ApartmentSharingLinkModel> getLinks(ApartmentSharing apartmentSharing) {
+        return getFilteredLinks(apartmentSharing).stream()
                 .map(link -> mapApartmentSharingLink(link, apartmentSharing))
                 .toList();
     }
