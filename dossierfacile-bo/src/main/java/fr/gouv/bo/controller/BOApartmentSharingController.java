@@ -161,6 +161,12 @@ public class BOApartmentSharingController {
                     .toList();
             dto.setAccessLogs(accessLogs);
             
+            // Get download statistics (for partner links)
+            long nbDownloads = allLogs.stream()
+                    .filter(log -> log.getLinkType() == LinkType.DOCUMENT)
+                    .count();
+            dto.setNbDownloads(nbDownloads);
+            
             // Get creator name
             if (link.getCreatedBy() != null) {
                 BOUser creator = userService.findUserById(link.getCreatedBy());
