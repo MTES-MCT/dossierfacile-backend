@@ -213,19 +213,23 @@
                                             <div class="partage-header-left">
                                                 <div class="partage-title-container">
                                                     <p class="partage-link-title">
+                                                        <!-- Pour les liens OWNER -->
+                                                        <span th:if="${link.linkType.toString() == 'OWNER'}">
+                                                            Propriétaire DossierFacile : <strong th:text="${link.title ?: 'Sans titre'}">Sans titre</strong>
+                                                        </span>
                                                         <!-- Pour les liens PARTNER -->
                                                         <span th:if="${link.linkType.toString() == 'PARTNER'}">
                                                             Partenaire : <strong th:text="${link.partnerName ?: 'Inconnu'}">Partenaire</strong>
                                                         </span>
                                                         <!-- Pour les autres types de liens -->
-                                                        <span th:unless="${link.linkType.toString() == 'PARTNER'}">
+                                                        <span th:if="${link.linkType.toString() == 'MAIL' or link.linkType.toString() == 'LINK'}">
                                                             <span th:text="${link.linkType.toString() == 'MAIL' ? 'Mail : ' : 'Titre du lien : '}">Titre du lien : </span>
                                                             <strong th:text="${link.title ?: 'Sans titre'}">Sans titre</strong>
                                                         </span>
                                                     </p>
                                                 </div>
-                                                <!-- Masquer l'URL pour les liens PARTNER -->
-                                                <div class="partage-url-container" th:unless="${link.linkType.toString() == 'PARTNER'}">
+                                                <!-- Masquer l'URL pour les liens PARTNER et OWNER -->
+                                                <div class="partage-url-container" th:if="${link.linkType.toString() == 'MAIL' or link.linkType.toString() == 'LINK'}">
                                                     <p class="partage-url">
                                                         Lien : <a th:href="${link.fullUrl}" target="_blank" class="partage-url-link" th:text="${link.fullUrl}">URL</a>
                                                     </p>
@@ -237,8 +241,8 @@
                                                           th:text="${link.disabled ? 'PAUSE' : 'ACTIF'}">ACTIF</span>
                                                 </div>
                                                 <div class="partage-actions-buttons">
-                                                    <!-- Boutons spécifiques aux liens non-PARTNER -->
-                                                    <span th:unless="${link.linkType.toString() == 'PARTNER'}">
+                                                    <!-- Boutons spécifiques aux liens LINK et MAIL -->
+                                                    <span th:if="${link.linkType.toString() == 'MAIL' or link.linkType.toString() == 'LINK'}">
                                                         <button type="button" class="btn btn-outline-secondary btn-sm btn-copy-link" 
                                                                 th:attr="data-url=${link.fullUrl}">
                                                             Copier le lien
@@ -281,29 +285,33 @@
                                                             <span th:if="${link.linkType.toString() == 'PARTNER'}">
                                                                 <strong>Partenaire :</strong> <span th:text="${link.partnerName}">Partenaire</span>
                                                             </span>
+                                                            <!-- Affichage pour les liens propriétaires -->
+                                                            <span th:if="${link.linkType.toString() == 'OWNER'}">
+                                                                <strong>Propriétaire DossierFacile</strong>
+                                                            </span>
                                                             <!-- Affichage pour les liens simples -->
                                                             <span th:if="${link.linkType.toString() == 'LINK'}">
                                                                 <strong>Par lien</strong>
                                                             </span>
-                                                            <!-- Dernier envoi (pour MAIL et PARTNER) -->
+                                                            <!-- Dernier envoi (pour MAIL, PARTNER et OWNER) -->
                                                             <span th:if="${link.lastSentDatetime != null}">
                                                                 <strong>Dernier envoi :</strong> 
                                                                 <span th:text="${#temporals.format(link.lastSentDatetime, 'dd MMMM yyyy à HH''h''mm', new java.util.Locale('fr'))}">Date</span>
                                                             </span>
-                                                            <!-- Pour les liens non-PARTNER : afficher Créé le et Expire le -->
-                                                            <span th:if="${link.linkType.toString() != 'PARTNER' and link.creationDate != null}">
+                                                            <!-- Pour les liens non-PARTNER et non-OWNER : afficher Créé le et Expire le -->
+                                                            <span th:if="${link.linkType.toString() != 'PARTNER' and link.linkType.toString() != 'OWNER' and link.creationDate != null}">
                                                                 <strong>Créé le :</strong> 
                                                                 <span th:text="${#temporals.format(link.creationDate, 'dd MMMM yyyy', new java.util.Locale('fr'))}">Date</span>
                                                             </span>
-                                                            <span th:if="${link.linkType.toString() != 'PARTNER' and link.expirationDate != null}">
+                                                            <span th:if="${link.linkType.toString() != 'PARTNER' and link.linkType.toString() != 'OWNER' and link.expirationDate != null}">
                                                                 <strong>Expire le :</strong> 
                                                                 <span th:text="${#temporals.format(link.expirationDate, 'dd MMMM yyyy', new java.util.Locale('fr'))}">Date</span>
                                                             </span>
                                                         </div>
                                                     </div>
                                                     
-                                                    <!-- Créé par (sur une ligne séparée pour non-PARTNER) -->
-                                                    <div class="partage-info-row" th:if="${link.linkType.toString() != 'PARTNER' and link.createdByName != null}">
+                                                    <!-- Créé par (sur une ligne séparée pour non-PARTNER et non-OWNER) -->
+                                                    <div class="partage-info-row" th:if="${link.linkType.toString() != 'PARTNER' and link.linkType.toString() != 'OWNER' and link.createdByName != null}">
                                                         <div class="partage-info-label"></div>
                                                         <div class="partage-info-values">
                                                             <span>
@@ -313,8 +321,8 @@
                                                     </div>
                                                 </div>
                                                 
-                                                <!-- Section Durée (uniquement pour PARTNER) -->
-                                                <div th:if="${link.linkType.toString() == 'PARTNER'}">
+                                                <!-- Section Durée (pour PARTNER et OWNER) -->
+                                                <div th:if="${link.linkType.toString() == 'PARTNER' or link.linkType.toString() == 'OWNER'}">
                                                     <div class="partage-separator"></div>
                                                     
                                                     <div class="partage-info-section">
@@ -354,8 +362,8 @@
                                                         </div>
                                                     </div>
                                                     
-                                                    <!-- Téléchargements du dossier (uniquement pour PARTNER) -->
-                                                    <div class="partage-info-row" th:if="${link.linkType.toString() == 'PARTNER'}">
+                                                    <!-- Téléchargements du dossier (pour PARTNER et OWNER) -->
+                                                    <div class="partage-info-row" th:if="${link.linkType.toString() == 'PARTNER' or link.linkType.toString() == 'OWNER'}">
                                                         <div class="partage-info-label"></div>
                                                         <div class="partage-info-values">
                                                             <span>

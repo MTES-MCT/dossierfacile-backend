@@ -191,7 +191,10 @@ public class BOApartmentSharingController {
             
             enrichedLinks.add(dto);
         }
-        
+
+        // Sort by creation date (most recent first)
+        enrichedLinks.sort(Comparator.comparing(ApartmentSharingLinkEnrichedDTO::getCreationDate).reversed());
+
         return enrichedLinks;
     }
 
