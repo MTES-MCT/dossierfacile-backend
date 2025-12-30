@@ -213,10 +213,19 @@
                                             <div class="partage-header-left">
                                                 <div class="partage-title-container">
                                                     <p class="partage-link-title">
-                                                        <span th:text="${link.linkType.name() == 'MAIL' ? 'Mail : ' : 'Titre du lien : '}">Titre du lien : </span><strong th:text="${link.title ?: 'Sans titre'}">Sans titre</strong>
+                                                        <!-- Pour les liens PARTNER -->
+                                                        <span th:if="${link.linkType.toString() == 'PARTNER'}">
+                                                            Partenaire : <strong th:text="${link.partnerName ?: 'Inconnu'}">Partenaire</strong>
+                                                        </span>
+                                                        <!-- Pour les autres types de liens -->
+                                                        <span th:unless="${link.linkType.toString() == 'PARTNER'}">
+                                                            <span th:text="${link.linkType.toString() == 'MAIL' ? 'Mail : ' : 'Titre du lien : '}">Titre du lien : </span>
+                                                            <strong th:text="${link.title ?: 'Sans titre'}">Sans titre</strong>
+                                                        </span>
                                                     </p>
                                                 </div>
-                                                <div class="partage-url-container">
+                                                <!-- Masquer l'URL pour les liens PARTNER -->
+                                                <div class="partage-url-container" th:unless="${link.linkType.toString() == 'PARTNER'}">
                                                     <p class="partage-url">
                                                         Lien : <a th:href="${link.fullUrl}" target="_blank" class="partage-url-link" th:text="${link.fullUrl}">URL</a>
                                                     </p>
@@ -228,18 +237,22 @@
                                                           th:text="${link.disabled ? 'PAUSE' : 'ACTIF'}">ACTIF</span>
                                                 </div>
                                                 <div class="partage-actions-buttons">
-                                                    <button type="button" class="btn btn-outline-secondary btn-sm btn-copy-link" 
-                                                            th:attr="data-url=${link.fullUrl}">
-                                                        Copier le lien
-                                                    </button>
-                                                    <form th:action="@{/bo/colocation/{id}/apartmentSharingLinks/{link_id}(id=${apartmentSharing.id},link_id=${link.id})}" 
-                                                          th:method="put" style="display: inline;">
-                                                        <input type="hidden" name="enabled" th:value="${link.disabled}" />
-                                                        <button type="submit" class="btn btn-outline-secondary btn-sm"
-                                                                th:text="${link.disabled ? 'Réactiver le lien' : 'Mettre en pause le lien'}">
-                                                            Mettre en pause le lien
+                                                    <!-- Boutons spécifiques aux liens non-PARTNER -->
+                                                    <span th:unless="${link.linkType.toString() == 'PARTNER'}">
+                                                        <button type="button" class="btn btn-outline-secondary btn-sm btn-copy-link" 
+                                                                th:attr="data-url=${link.fullUrl}">
+                                                            Copier le lien
                                                         </button>
-                                                    </form>
+                                                        <form th:action="@{/bo/colocation/{id}/apartmentSharingLinks/{link_id}(id=${apartmentSharing.id},link_id=${link.id})}" 
+                                                              th:method="put" style="display: inline;">
+                                                            <input type="hidden" name="enabled" th:value="${link.disabled}" />
+                                                            <button type="submit" class="btn btn-outline-secondary btn-sm"
+                                                                    th:text="${link.disabled ? 'Réactiver le lien' : 'Mettre en pause le lien'}">
+                                                                Mettre en pause le lien
+                                                            </button>
+                                                        </form>
+                                                    </span>
+                                                    <!-- Bouton Supprimer (commun à tous les types) -->
                                                     <form th:action="@{/bo/colocation/{id}/apartmentSharingLinks/{link_id}(id=${apartmentSharing.id},link_id=${link.id})}" 
                                                           th:method="delete" 
                                                           style="display: inline;"
@@ -272,26 +285,47 @@
                                                             <span th:if="${link.linkType.toString() == 'LINK'}">
                                                                 <strong>Par lien</strong>
                                                             </span>
-                                                            <!-- Dernier envoi (spécifique aux liens MAIL) -->
+                                                            <!-- Dernier envoi (pour MAIL et PARTNER) -->
                                                             <span th:if="${link.lastSentDatetime != null}">
                                                                 <strong>Dernier envoi :</strong> 
                                                                 <span th:text="${#temporals.format(link.lastSentDatetime, 'dd MMMM yyyy à HH''h''mm', new java.util.Locale('fr'))}">Date</span>
-                                                            </span><span th:if="${link.creationDate != null}">
+                                                            </span>
+                                                            <!-- Pour les liens non-PARTNER : afficher Créé le et Expire le -->
+                                                            <span th:if="${link.linkType.toString() != 'PARTNER' and link.creationDate != null}">
                                                                 <strong>Créé le :</strong> 
                                                                 <span th:text="${#temporals.format(link.creationDate, 'dd MMMM yyyy', new java.util.Locale('fr'))}">Date</span>
-                                                            </span><span th:if="${link.expirationDate != null}">
+                                                            </span>
+                                                            <span th:if="${link.linkType.toString() != 'PARTNER' and link.expirationDate != null}">
                                                                 <strong>Expire le :</strong> 
                                                                 <span th:text="${#temporals.format(link.expirationDate, 'dd MMMM yyyy', new java.util.Locale('fr'))}">Date</span>
                                                             </span>
                                                         </div>
                                                     </div>
-
-                                                    <div class="partage-info-row" th:if="${link.createdByName != null}">
+                                                    
+                                                    <!-- Créé par (sur une ligne séparée pour non-PARTNER) -->
+                                                    <div class="partage-info-row" th:if="${link.linkType.toString() != 'PARTNER' and link.createdByName != null}">
                                                         <div class="partage-info-label"></div>
                                                         <div class="partage-info-values">
                                                             <span>
                                                                 <strong>Créé par :</strong> <span th:text="${link.createdByName}">Créateur</span>
                                                             </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Section Durée (uniquement pour PARTNER) -->
+                                                <div th:if="${link.linkType.toString() == 'PARTNER'}">
+                                                    <div class="partage-separator"></div>
+                                                    
+                                                    <div class="partage-info-section">
+                                                        <div class="partage-info-row">
+                                                            <div class="partage-info-label">Durée :</div>
+                                                            <div class="partage-info-values">
+                                                                <span th:if="${link.creationDate != null}">
+                                                                    <strong>Créé le :</strong> 
+                                                                    <span th:text="${#temporals.format(link.creationDate, 'dd MMMM yyyy', new java.util.Locale('fr'))}">Date</span>
+                                                                </span>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -316,6 +350,16 @@
                                                             <span th:if="${link.lastVisit != null}">
                                                                 <strong>Dernière consultation :</strong> 
                                                                 <span th:text="${#temporals.format(link.lastVisit, 'dd MMMM yyyy à HH:mm', new java.util.Locale('fr'))}">Date</span>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <!-- Téléchargements du dossier (uniquement pour PARTNER) -->
+                                                    <div class="partage-info-row" th:if="${link.linkType.toString() == 'PARTNER'}">
+                                                        <div class="partage-info-label"></div>
+                                                        <div class="partage-info-values">
+                                                            <span>
+                                                                <strong>Téléchargements du dossier :</strong> <span th:text="${link.nbDownloads}">0</span>
                                                             </span>
                                                         </div>
                                                     </div>

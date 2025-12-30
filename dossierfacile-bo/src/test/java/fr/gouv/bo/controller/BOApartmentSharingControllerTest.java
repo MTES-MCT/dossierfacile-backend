@@ -6,8 +6,8 @@ import fr.dossierfacile.common.entity.LinkLog;
 import fr.dossierfacile.common.enums.ApartmentSharingLinkType;
 import fr.dossierfacile.common.enums.LinkType;
 import fr.dossierfacile.common.repository.LinkLogRepository;
+import fr.dossierfacile.common.service.LinkLogServiceImpl;
 import fr.dossierfacile.common.service.interfaces.LinkLogService;
-import fr.dossierfacile.common.service.LinkLogServiceImpl.FirstAndLastVisit;
 import fr.gouv.bo.dto.ApartmentSharingLinkEnrichedDTO;
 import fr.gouv.bo.service.UserApiService;
 import fr.gouv.bo.service.UserService;
@@ -66,29 +66,48 @@ class BOApartmentSharingControllerTest {
     }
 
     @Test
-    void enrichApartmentSharingLinks_shouldFilterAccessLogsByVisitTypes() throws Exception {
+    void enrichApartmentSharingLinks_shouldCountDownloadsBasedOnDocumentLogsOnly() throws Exception {
         // Given
         ApartmentSharingLink link = createLink(1L, ApartmentSharingLinkType.LINK, false);
-        
-        LinkLog visitLog1 = createLinkLog(LinkType.FULL_APPLICATION);
-        LinkLog visitLog2 = createLinkLog(LinkType.DOCUMENT);
-        LinkLog nonVisitLog = createLinkLog(LinkType.ENABLED_LINK);
+
+        LinkLog documentLog1 = createLinkLog(LinkType.DOCUMENT);
+        LinkLog documentLog2 = createLinkLog(LinkType.DOCUMENT);
+        LinkLog documentLog3 = createLinkLog(LinkType.DOCUMENT);
+        LinkLog fullAppLog = createLinkLog(LinkType.FULL_APPLICATION);
+        LinkLog lightAppLog = createLinkLog(LinkType.LIGHT_APPLICATION);
+        LinkLog enabledLinkLog = createLinkLog(LinkType.ENABLED_LINK);
+        LinkLog rebuiltTokensLog = createLinkLog(LinkType.REBUILT_TOKENS);
 
         when(linkLogService.getFirstAndLastVisit(any(UUID.class), any(ApartmentSharing.class)))
-                .thenReturn(new FirstAndLastVisit(Optional.empty(), Optional.empty()));
+                .thenReturn(new LinkLogServiceImpl.FirstAndLastVisit(Optional.empty(), Optional.empty()));
         when(linkLogService.countVisits(any(UUID.class), any(ApartmentSharing.class)))
-                .thenReturn(0L);
+                .thenReturn(5L); // DOCUMENT + FULL_APPLICATION + LIGHT_APPLICATION
         when(linkLogRepository.findByApartmentSharingAndToken(any(ApartmentSharing.class), any(UUID.class)))
-                .thenReturn(List.of(visitLog1, visitLog2, nonVisitLog));
+                .thenReturn(List.of(documentLog1, documentLog2, documentLog3, fullAppLog, lightAppLog, enabledLinkLog, rebuiltTokensLog));
 
         // When
         List<ApartmentSharingLinkEnrichedDTO> result = invokeEnrichMethod(List.of(link));
 
         // Then
         assertThat(result).hasSize(1);
-        assertThat(result.getFirst().getAccessLogs()).hasSize(2)
+        ApartmentSharingLinkEnrichedDTO enrichedLink = result.getFirst();
+
+        // Verify that nbDownloads counts ONLY DOCUMENT type logs
+        assertThat(enrichedLink.getNbDownloads()).isEqualTo(3L);
+
+        // Verify that nbVisits counts all visit types (DOCUMENT, FULL_APPLICATION, LIGHT_APPLICATION)
+        assertThat(enrichedLink.getNbVisits()).isEqualTo(5L);
+
+        // Verify that accessLogs contains all visit types
+        assertThat(enrichedLink.getAccessLogs()).hasSize(5)
                 .extracting(LinkLog::getLinkType)
-                .containsExactlyInAnyOrder(LinkType.FULL_APPLICATION, LinkType.DOCUMENT);
+                .containsExactlyInAnyOrder(
+                    LinkType.DOCUMENT,
+                    LinkType.DOCUMENT,
+                    LinkType.DOCUMENT,
+                    LinkType.FULL_APPLICATION,
+                    LinkType.LIGHT_APPLICATION
+                );
     }
 
     private ApartmentSharingLink createLink(Long id, ApartmentSharingLinkType type, boolean deleted) {

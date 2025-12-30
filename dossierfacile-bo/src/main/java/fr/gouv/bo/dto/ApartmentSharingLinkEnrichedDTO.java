@@ -40,6 +40,9 @@ public class ApartmentSharingLinkEnrichedDTO {
     private LocalDateTime firstVisit;
     private LocalDateTime lastVisit;
     
+    // Download statistics (for partner links)
+    private long nbDownloads;
+    
     // Access logs
     private List<LinkLog> accessLogs;
     
