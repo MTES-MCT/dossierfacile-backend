@@ -2,27 +2,6 @@
 
 document.addEventListener('DOMContentLoaded', function() {
     
-    const accordionButtons = document.querySelectorAll('.accordion-button');
-    
-    accordionButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const content = this.nextElementSibling.nextElementSibling; // Skip separator
-            const isExpanded = this.classList.contains('expanded');
-            
-            if (isExpanded) {
-                // Fermer l'accordéon
-                this.classList.remove('expanded');
-                content.style.display = 'none';
-                content.classList.remove('expanded');
-            } else {
-                // Ouvrir l'accordéon
-                this.classList.add('expanded');
-                content.style.display = 'block';
-                content.classList.add('expanded');
-            }
-        });
-    });
-
     const copyButtons = document.querySelectorAll('.btn-copy-link');
     
     copyButtons.forEach(button => {

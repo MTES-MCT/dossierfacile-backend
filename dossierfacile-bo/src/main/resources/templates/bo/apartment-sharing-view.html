@@ -293,7 +293,6 @@
                                                             <span th:if="${link.linkType.toString() == 'LINK'}">
                                                                 <strong>Par lien</strong>
                                                             </span>
-                                                            <!-- Dernier envoi (pour MAIL, PARTNER et OWNER) -->
                                                             <span th:if="${link.lastSentDatetime != null}">
                                                                 <strong>Dernier envoi :</strong> 
                                                                 <span th:text="${#temporals.format(link.lastSentDatetime, 'dd MMMM yyyy à HH''h''mm', new java.util.Locale('fr'))}">Date</span>
@@ -373,25 +372,33 @@
                                                     </div>
                                                 </div>
                                                 
-                                                <!-- Accordéon Liste des accès -->
-                                                <div class="partage-accordion" th:if="${not #lists.isEmpty(link.accessLogs)}">
-                                                    <div class="accordion-separator"></div>
-                                                    <button class="accordion-button collapsed" type="button">
-                                                        <span class="accordion-title">Liste des accès</span>
-                                                        <span class="accordion-icon">▼</span>
-                                                    </button>
-                                                    <div class="accordion-separator"></div>
+                                                <!-- Section Liste des accès -->
+                                                <div class="access-logs-section" th:if="${not #lists.isEmpty(link.accessLogs)}">
+                                                    <div class="access-logs-separator"></div>
                                                     
-                                                    <div class="accordion-content" style="display: none;">
-                                                        <div class="accordion-body">
-                                                            <ul class="access-logs-list">
-                                                                <li th:each="log : ${link.accessLogs}">
-                                                                    <span th:text="${#temporals.format(log.creationDate, 'dd MMMM yyyy à HH:mm', new java.util.Locale('fr'))}">Date</span>
-                                                                    <span th:if="${log.ipAddress != null}"> - IP : <span th:text="${log.ipAddress}">IP</span></span>
-                                                                </li>
-                                                            </ul>
-                                                        </div>
+                                                    <div class="access-logs-header">
+                                                        <p class="access-logs-title">Liste des accès</p>
+                                                        <button 
+                                                            class="btn btn-voir-plus" 
+                                                            type="button" 
+                                                            data-bs-toggle="collapse" 
+                                                            th:attr="data-bs-target='#access-logs-' + ${link.id}"
+                                                            aria-expanded="false">
+                                                            <span class="label-collapsed">Voir plus</span>
+                                                            <span class="label-expanded">Voir moins</span>
+                                                        </button>
                                                     </div>
+                                                    
+                                                    <div class="collapse access-logs-content" th:id="'access-logs-' + ${link.id}">
+                                                        <ul class="access-logs-list">
+                                                            <li th:each="log : ${link.accessLogs}">
+                                                                <span th:text="${#temporals.format(log.creationDate, 'dd MMMM yyyy à HH:mm', new java.util.Locale('fr'))}">Date</span>
+                                                                <span th:if="${log.ipAddress != null}"> - IP : <span th:text="${log.ipAddress}">IP</span></span>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                    
+                                                    <div class="access-logs-separator"></div>
                                                 </div>
                                             </div>
                                         </div>
