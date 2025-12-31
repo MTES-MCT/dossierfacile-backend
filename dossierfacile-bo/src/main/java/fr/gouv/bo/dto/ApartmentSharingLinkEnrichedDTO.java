@@ -26,6 +26,7 @@ public class ApartmentSharingLinkEnrichedDTO {
     private LocalDateTime lastSentDatetime;
     private boolean fullData;
     private boolean disabled;
+    private boolean deleted;
     private ApartmentSharingLinkType linkType;
     private String email;
     private Long partnerId;
@@ -59,6 +60,7 @@ public class ApartmentSharingLinkEnrichedDTO {
                 .lastSentDatetime(link.getLastSentDatetime())
                 .fullData(link.isFullData())
                 .disabled(link.isDisabled())
+                .deleted(link.isDeleted())
                 .linkType(link.getLinkType())
                 .email(link.getEmail())
                 .partnerId(link.getPartnerId())
