@@ -58,7 +58,8 @@ public class BOApartmentSharingController {
     private static final String NOW = "now";
     private static final String FILES_BY_DOCUMENT = "filesByDocument";
     private static final String TENANT_BASE_URL = "tenantBaseUrl";
-    private static final String ENRICHED_LINKS = "enrichedLinks";
+    private static final String ACTIVE_LINKS = "activeLinks";
+    private static final String DELETED_LINKS = "deletedLinks";
 
     private final TenantService tenantService;
     private final ApartmentSharingLinkService apartmentSharingLinkService;
@@ -84,6 +85,14 @@ public class BOApartmentSharingController {
 
         List<ApartmentSharingLinkEnrichedDTO> enrichedLinks = enrichApartmentSharingLinks(filteredLinks);
 
+        List<ApartmentSharingLinkEnrichedDTO> activeLinks = enrichedLinks.stream()
+                .filter(link -> !link.isDeleted())
+                .toList();
+
+        List<ApartmentSharingLinkEnrichedDTO> deletedLinks = enrichedLinks.stream()
+                .filter(link -> link.isDeleted())
+                .toList();
+
         model.addAttribute(TENANTS, tenants);
         model.addAttribute(LOG_SER, logService);
         model.addAttribute(MESSAGE_DTO, messageDTO);
@@ -97,7 +106,8 @@ public class BOApartmentSharingController {
         model.addAttribute(NOW, LocalDateTime.now());
         model.addAttribute(FILES_BY_DOCUMENT, getFilesByDocument(tenants));
         model.addAttribute(TENANT_BASE_URL, tenantBaseUrl);
-        model.addAttribute(ENRICHED_LINKS, enrichedLinks);
+        model.addAttribute(DELETED_LINKS, deletedLinks);
+        model.addAttribute(ACTIVE_LINKS, activeLinks);
 
         return "bo/apartment-sharing-view";
     }
@@ -139,10 +149,6 @@ public class BOApartmentSharingController {
         List<ApartmentSharingLinkEnrichedDTO> enrichedLinks = new ArrayList<>();
 
         for (ApartmentSharingLink link : links) {
-
-            if(link.isDeleted()) {
-                continue;
-            }
 
             ApartmentSharingLinkEnrichedDTO dto = ApartmentSharingLinkEnrichedDTO.fromEntity(link);
             
