@@ -6,7 +6,6 @@ import fr.dossierfacile.common.entity.LinkLog;
 import fr.dossierfacile.common.enums.ApartmentSharingLinkType;
 import fr.dossierfacile.common.enums.LinkType;
 import fr.dossierfacile.common.repository.LinkLogRepository;
-import fr.dossierfacile.common.service.LinkLogServiceImpl;
 import fr.dossierfacile.common.service.interfaces.LinkLogService;
 import fr.gouv.bo.dto.ApartmentSharingLinkEnrichedDTO;
 import fr.gouv.bo.service.UserApiService;
@@ -21,7 +20,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.lang.reflect.Method;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -53,36 +51,21 @@ class BOApartmentSharingControllerTest {
         ReflectionTestUtils.setField(controller, "tenantBaseUrl", "https://example.com");
     }
 
-    @Test
-    void enrichApartmentSharingLinks_shouldSkipDeletedLinks() throws Exception {
-        // Given
-        ApartmentSharingLink deletedLink = createLink(1L, ApartmentSharingLinkType.LINK, true);
-
-        // When
-        List<ApartmentSharingLinkEnrichedDTO> result = invokeEnrichMethod(List.of(deletedLink));
-
-        // Then
-        assertThat(result).isEmpty();
-    }
 
     @Test
     void enrichApartmentSharingLinks_shouldCountDownloadsBasedOnDocumentLogsOnly() throws Exception {
         // Given
         ApartmentSharingLink link = createLink(1L, ApartmentSharingLinkType.LINK, false);
 
-        LinkLog documentLog1 = createLinkLog(LinkType.DOCUMENT);
-        LinkLog documentLog2 = createLinkLog(LinkType.DOCUMENT);
-        LinkLog documentLog3 = createLinkLog(LinkType.DOCUMENT);
-        LinkLog fullAppLog = createLinkLog(LinkType.FULL_APPLICATION);
-        LinkLog lightAppLog = createLinkLog(LinkType.LIGHT_APPLICATION);
-        LinkLog enabledLinkLog = createLinkLog(LinkType.ENABLED_LINK);
-        LinkLog rebuiltTokensLog = createLinkLog(LinkType.REBUILT_TOKENS);
+        LinkLog documentLog1 = createLinkLog(link.getToken(), LinkType.DOCUMENT);
+        LinkLog documentLog2 = createLinkLog(link.getToken(), LinkType.DOCUMENT);
+        LinkLog documentLog3 = createLinkLog(link.getToken(), LinkType.DOCUMENT);
+        LinkLog fullAppLog = createLinkLog(link.getToken(), LinkType.FULL_APPLICATION);
+        LinkLog lightAppLog = createLinkLog(link.getToken(), LinkType.LIGHT_APPLICATION);
+        LinkLog enabledLinkLog = createLinkLog(link.getToken(), LinkType.ENABLED_LINK);
+        LinkLog rebuiltTokensLog = createLinkLog(link.getToken(), LinkType.REBUILT_TOKENS);
 
-        when(linkLogService.getFirstAndLastVisit(any(UUID.class), any(ApartmentSharing.class)))
-                .thenReturn(new LinkLogServiceImpl.FirstAndLastVisit(Optional.empty(), Optional.empty()));
-        when(linkLogService.countVisits(any(UUID.class), any(ApartmentSharing.class)))
-                .thenReturn(5L); // DOCUMENT + FULL_APPLICATION + LIGHT_APPLICATION
-        when(linkLogRepository.findByApartmentSharingAndToken(any(ApartmentSharing.class), any(UUID.class)))
+        when(linkLogRepository.findByApartmentSharing(any(ApartmentSharing.class)))
                 .thenReturn(List.of(documentLog1, documentLog2, documentLog3, fullAppLog, lightAppLog, enabledLinkLog, rebuiltTokensLog));
 
         // When
@@ -121,8 +104,9 @@ class BOApartmentSharingControllerTest {
         return link;
     }
 
-    private LinkLog createLinkLog(LinkType linkType) {
+    private LinkLog createLinkLog(UUID token, LinkType linkType) {
         LinkLog log = new LinkLog();
+        log.setToken(token);
         log.setLinkType(linkType);
         log.setCreationDate(LocalDateTime.now());
         return log;

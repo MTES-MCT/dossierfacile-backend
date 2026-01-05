@@ -16,7 +16,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 import static fr.dossierfacile.common.constants.PartnerConstants.DF_OWNER_NAME;
 import static fr.dossierfacile.common.enums.LinkType.*;
