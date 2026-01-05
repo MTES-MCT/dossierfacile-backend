@@ -6,9 +6,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     copyButtons.forEach(button => {
         button.addEventListener('click', function() {
-            const url = this.getAttribute('data-url');
-            
-            if (navigator.clipboard && navigator.clipboard.writeText) {
+            const url = this.dataset.url;
+
+            if (navigator.clipboard?.writeText) {
                 navigator.clipboard.writeText(url)
                     .then(() => {
                         showNotification('Lien copié dans le presse-papier !', 'success');
@@ -53,12 +53,18 @@ document.addEventListener('DOMContentLoaded', function() {
             showNotification('Erreur lors de la copie', 'error');
         }
         
-        document.body.removeChild(textArea);
+        textArea.remove();
     }
 
-    // === Fonction pour afficher des notifications ===
     function showNotification(message, type = 'info') {
-        // Créer l'élément de notification
+        const colors = {
+            'success': '#198754',
+            'error': '#dc3545',
+            'warning': '#efcb3a',
+            'info': '#0d6efd'
+        };
+        const backgroundColor = colors[type] || colors.info;
+
         const notification = document.createElement('div');
         notification.className = `notification notification-${type}`;
         notification.textContent = message;
@@ -67,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function() {
             top: 20px;
             right: 20px;
             padding: 15px 20px;
-            background-color: ${type === 'success' ? '#198754' : type === 'error' ? '#dc3545' : type === 'warning' ? '#efcb3a' : '#0d6efd'};
+            background-color: ${backgroundColor};
             color: white;
             border-radius: 4px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
@@ -77,7 +83,6 @@ document.addEventListener('DOMContentLoaded', function() {
             animation: slideIn 0.3s ease-out;
         `;
         
-        // Ajouter l'animation CSS
         if (!document.querySelector('#notification-styles')) {
             const style = document.createElement('style');
             style.id = 'notification-styles';
@@ -108,11 +113,10 @@ document.addEventListener('DOMContentLoaded', function() {
         
         document.body.appendChild(notification);
         
-        // Supprimer la notification après 3 secondes
         setTimeout(() => {
             notification.style.animation = 'slideOut 0.3s ease-out';
             setTimeout(() => {
-                document.body.removeChild(notification);
+                notification.remove();
             }, 300);
         }, 3000);
     }
