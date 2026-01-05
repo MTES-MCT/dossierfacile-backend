@@ -1,5 +1,6 @@
 package fr.gouv.bo.controller;
 
+import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.ApartmentSharingLink;
 import fr.dossierfacile.common.entity.BOUser;
 import fr.dossierfacile.common.entity.Document;
@@ -146,41 +147,51 @@ public class BOApartmentSharingController {
     }
     
     private List<ApartmentSharingLinkEnrichedDTO> enrichApartmentSharingLinks(List<ApartmentSharingLink> links) {
+        if (links.isEmpty()) {
+            return new ArrayList<>();
+        }
+
         List<ApartmentSharingLinkEnrichedDTO> enrichedLinks = new ArrayList<>();
 
-        for (ApartmentSharingLink link : links) {
+        ApartmentSharing apartmentSharing = links.getFirst().getApartmentSharing();
+        List<LinkLog> allLinkLogs = linkLogRepository.findByApartmentSharing(apartmentSharing);
 
+        Map<UUID, List<LinkLog>> logsByToken = allLinkLogs.stream()
+                .collect(Collectors.groupingBy(LinkLog::getToken));
+
+        // Define visit log types
+        List<LinkType> visitLogTypes = List.of(LinkType.FULL_APPLICATION, LinkType.LIGHT_APPLICATION, LinkType.DOCUMENT);
+
+        for (ApartmentSharingLink link : links) {
             ApartmentSharingLinkEnrichedDTO dto = ApartmentSharingLinkEnrichedDTO.fromEntity(link);
-            
-            // Get visit statistics
-            var firstAndLastVisit = linkLogService.getFirstAndLastVisit(link.getToken(), link.getApartmentSharing());
-            dto.setFirstVisit(firstAndLastVisit.first().orElse(null));
-            dto.setLastVisit(firstAndLastVisit.last().orElse(null));
-            dto.setNbVisits(linkLogService.countVisits(link.getToken(), link.getApartmentSharing()));
-            
-            // Get access logs (filtered by visit types)
-            List<LinkLog> allLogs = linkLogRepository.findByApartmentSharingAndToken(link.getApartmentSharing(), link.getToken());
-            List<LinkType> visitLogs = List.of(LinkType.FULL_APPLICATION, LinkType.LIGHT_APPLICATION, LinkType.DOCUMENT);
-            List<LinkLog> accessLogs = allLogs.stream()
-                    .filter(log -> visitLogs.contains(log.getLinkType()))
+
+            List<LinkLog> logsForToken = logsByToken.getOrDefault(link.getToken(), List.of());
+
+            List<LinkLog> accessLogs = logsForToken.stream()
+                    .filter(log -> visitLogTypes.contains(log.getLinkType()))
                     .sorted(Comparator.comparing(LinkLog::getCreationDate).reversed())
                     .toList();
             dto.setAccessLogs(accessLogs);
-            
-            // Get download statistics (for partner links)
-            long nbDownloads = allLogs.stream()
+
+            if (!accessLogs.isEmpty()) {
+                dto.setFirstVisit(accessLogs.getLast().getCreationDate());
+                dto.setLastVisit(accessLogs.getFirst().getCreationDate());
+                dto.setNbVisits(accessLogs.size());
+            }
+
+            long nbDownloads = logsForToken.stream()
                     .filter(log -> log.getLinkType() == LinkType.DOCUMENT)
                     .count();
             dto.setNbDownloads(nbDownloads);
-            
-            // Get creator name
+
+            // Get creator name if applicable
             if (link.getCreatedBy() != null) {
                 BOUser creator = userService.findUserById(link.getCreatedBy());
                 if (creator != null) {
                     dto.setCreatedByName(creator.getEmail());
                 }
             }
-            
+
             // Get partner name if applicable
             if (link.getPartnerId() != null) {
                 try {
@@ -190,11 +201,10 @@ public class BOApartmentSharingController {
                     log.warn("Partner not found for id: {}", link.getPartnerId());
                 }
             }
-            
-            // Build full URL
+
             String urlPath = link.isFullData() ? "/file/" : "/public-file/";
             dto.setFullUrl(tenantBaseUrl + urlPath + link.getToken());
-            
+
             enrichedLinks.add(dto);
         }
 
