@@ -77,21 +77,21 @@ ademe.api.client.id=
 ademe.api.client.secret=
 ```
 
-# LogStash :
+## LogStash :
 
 For the dev environment the appender Logstash is disabled by default.
 
-# Database :
+## Database :
 
 ⚠️ The database is managed by the project dossierfacile-api-tenant.
 
-# Run the application
+## Run the application
 
 ```shell
     mvn spring-boot:run -D spring-boot.run.profiles=dev,mockOvh
 ```
 
-# Important information :
+## Important information :
 
 - There is a specific configuration for the routes /webhook/\* with a basic auth configured inside the properties.
 - A cron task is running every day at 2am to send follow-up emails to the owners.

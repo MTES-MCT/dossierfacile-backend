@@ -112,15 +112,15 @@ link.after.validated.default=
 link.shared.property=
 ```
 
-# LogStash :
+## LogStash :
 
 For the dev environment the appender Logstash is disabled by default.
 
-# Database :
+## Database :
 
 ⚠️ The database is managed by this project. When you start it, liquibase will update the scheme according to the code.
 
-# Run the application
+## Run the application
 
 ```shell
     mvn spring-boot:run -D spring-boot.run.profiles=dev,mockOvh
