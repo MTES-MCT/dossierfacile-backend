@@ -20,7 +20,7 @@ You need to have [JDK 21](https://openjdk.org/projects/jdk/21/), [maven](https:/
 ## Docker
 
 In this project we use a Docker Compose to setup the dev environment.
-Several services are used: 
+Several services are used:
 
 - PostgreSQL => Database for all the applications
 - NGINX => Reverse proxy for the BO to serve SSL
@@ -36,24 +36,28 @@ To create a dedicated user and database for dossierfacile.
 
 ### Linux users
 
-Add the following lines to your `docker-compose.dev.yml`  :
+Add the following lines to your `docker-compose.dev.yml` :
+
 ```yaml
 services:
   nginx:
     extra_hosts:
       - "host.docker.internal:host-gateway"
 ```
-You may also need to add pgcrypt extension to your local database running this SQL query:
-`CREATE EXTENSION IF NOT EXISTS "pgcrypto";`
+
+You may also need to add pgcrypt extension to your local database:
+
+1. Connect to the container database `docker exec -it <container_name_or_id> psql -U <username> -d <database_name>`
+2. Run this SQL query `CREATE EXTENSION IF NOT EXISTS "pgcrypto";`
 
 ## Keycloak
 
-Follow those steps to use [Keycloak](https://www.keycloak.org/) in dev environment locally : 
+Follow those steps to use [Keycloak](https://www.keycloak.org/) in dev environment locally :
 
     1 - Follow the README instructions on repo [Dossier-Facile-Keycloak](https://github.com/MTES-MCT/Dossier-Facile-Keycloak).
     2 - Connect to your keycloak admin console (default : http://localhost:8085/auth)
     3 - Create a new realm "dossier-facile"
-    4 - Inside the realm create a new Client scope : 
+    4 - Inside the realm create a new Client scope :
         - Name: dossier
         - Type: Default
         - Display on consent screen: On
@@ -66,10 +70,10 @@ Follow those steps to use [Keycloak](https://www.keycloak.org/) in dev environme
         - web Origins: *
         - Client authentication : Off
         - authentication flow: Standard flow and Direct access Grants
-        - Theme : df 
+        - Theme : df
         - Client scopes : add dossier
     6 - Create a new realm "dossier-facile-owner :
-    7 - Inside the realm create a new Client scope : 
+    7 - Inside the realm create a new Client scope :
         - Name: dossier
         - Type: Default
         - Display on consent screen: On
@@ -82,7 +86,7 @@ Follow those steps to use [Keycloak](https://www.keycloak.org/) in dev environme
         - web Origins: *
         - Client authentication : Off
         - authentication flow: Standard flow and Direct access Grants
-        - Theme : df 
+        - Theme : df
         - Client scopes : add dossier
     9 - Inside the realm Master create a new client : "dossier-facile-api"
         - Root: empty
@@ -97,7 +101,7 @@ Follow those steps to use [Keycloak](https://www.keycloak.org/) in dev environme
 
 Save and copy the dossier-facile-api credentials (Client Secret).
 
-## General Config 
+## General Config
 
 Create a new folder `mock-storage` to store files.
 
@@ -106,6 +110,7 @@ Create a new folder `mock-storage` to store files.
 For development, use the LOCAL provider with mock storage. For production, you can use S3 (OVH Multi-AZ), OVH, or OUTSCALE providers.
 
 Example configuration for the new S3 provider:
+
 ```properties
 storage.provider.list=S3
 s3.region=sbg
