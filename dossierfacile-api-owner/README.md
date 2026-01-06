@@ -1,6 +1,7 @@
 # API Propriétaire (dossierfacile-api-owner)
 
 ## Description
+
 Rest API dedicated to the owner space, allowing the management and consultation of tenant files.
 
 ## Functionalities
@@ -9,7 +10,7 @@ Rest API dedicated to the owner space, allowing the management and consultation 
 - Creation and management of owner properties
 - Creation and management of owner leases
 
-## Configuration : 
+## Configuration :
 
 Create a file `application-dev.properties` in `dossierfacile-api-owner/src/main/resources`
 
@@ -42,10 +43,10 @@ callback.http.auth.token.header.name=
 keycloak.server.url=http://localhost:8085/auth
 #Keycloak Realm
 keycloak.server.realm=dossier-facile
-#Keycloak Client Id for admin purpose => need to be inside the realm Master 
+#Keycloak Client Id for admin purpose => need to be inside the realm Master
 keycloak.server.client.id=dossier-facile-api
-#Keycloak secret that need to be retrieved from keycloak. 
-keycloak.server.client.secret=
+#Keycloak secret that need to be retrieved from `keycloak > master realm > Clients > dossier-facile-api > Credentials > Client Secret`
+keycloak.server.client.secret=<REPLACE_ME_KEYCLOAK_SECRET>
 #Issuer URI of the keycloak server
 spring.security.oauth2.resourceserver.jwt.issuer-uri=http://localhost:8085/auth/realms/dossier-facile-owner
 #JWK set URI of the keycloak server
@@ -70,26 +71,27 @@ brevo.template.id.follow-up.validated.property=
 #Enabled the log aggregator for spring boot API
 dossierfacile.logging.aggregator=true
 
-#Ademe api configuration 
+#Ademe api configuration
 ademe.api.base.url=https://prd-x-ademe-externe-api.de-c1.eu1.cloudhub.io/api/v1
 ademe.api.client.id=
 ademe.api.client.secret=
 ```
-# LogStash :
+
+## LogStash :
 
 For the dev environment the appender Logstash is disabled by default.
 
-# Database :
+## Database :
+
 ⚠️ The database is managed by the project dossierfacile-api-tenant.
 
-# Run the application
+## Run the application
 
 ```shell
     mvn spring-boot:run -D spring-boot.run.profiles=dev,mockOvh
 ```
 
-# Important information : 
- - There is a specific configuration for the routes /webhook/* with a basic auth configured inside the properties.
- - A cron task is running every day at 2am to send follow-up emails to the owners.
+## Important information :
 
-
+- There is a specific configuration for the routes /webhook/\* with a basic auth configured inside the properties.
+- A cron task is running every day at 2am to send follow-up emails to the owners.
