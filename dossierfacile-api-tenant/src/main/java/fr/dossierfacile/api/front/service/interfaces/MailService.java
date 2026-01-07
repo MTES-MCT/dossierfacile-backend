@@ -32,7 +32,5 @@ public interface MailService {
 
     void sendFileByMail(String url, String email, String message, String tenantName, String fullName, String tenantEmail);
 
-    void sendEmailPartnerAccessRevoked(Tenant receiver, UserApi userApi, Tenant revocationRequester);
-
     void sendDefaultEmailExpiredToken(String email, OperationAccessToken token);
 }

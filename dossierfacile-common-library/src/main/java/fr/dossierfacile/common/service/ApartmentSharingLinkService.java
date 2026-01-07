@@ -1,16 +1,13 @@
 package fr.dossierfacile.common.service;
 
-import fr.dossierfacile.common.entity.ApartmentSharing;
-import fr.dossierfacile.common.entity.ApartmentSharingLink;
-import fr.dossierfacile.common.entity.LinkLog;
-import fr.dossierfacile.common.entity.Tenant;
-import fr.dossierfacile.common.entity.UserApi;
+import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.exceptions.NotFoundException;
 import fr.dossierfacile.common.model.ApartmentSharingLinkModel;
 import fr.dossierfacile.common.repository.ApartmentSharingLinkRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
+import fr.dossierfacile.common.repository.TenantUserApiRepository;
 import fr.dossierfacile.common.repository.UserApiRepository;
-import fr.dossierfacile.common.service.interfaces.LinkLogService;
+import fr.dossierfacile.common.service.interfaces.*;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -32,6 +29,11 @@ public class ApartmentSharingLinkService {
     private final LinkLogService linkLogService;
     private final TenantCommonRepository tenantCommonRepository;
     private final UserApiRepository userApiRepository;
+    private final TenantUserApiRepository tenantUserApiRepository;
+    private final PartnerCallBackService partnerCallBackService;
+    private final KeycloakCommonService keycloakCommonService;
+    private final MailCommonService mailCommonService;
+    private final LogService logService;
 
     /**
      * Returns filtered links according to business rules:
@@ -123,6 +125,26 @@ public class ApartmentSharingLinkService {
         if (hasAccess) {
             delete(linkId);
         }
+    }
+
+    public void deleteAccess(Tenant tenant, Long userApiId) {
+        tenantUserApiRepository.findAllByApartmentSharingAndUserApi(tenant.getApartmentSharing().getId(), userApiId)
+                .forEach(this::revokeAccess);
+    }
+
+    private void revokeAccess(TenantUserApi tenantUserApi) {
+        UserApi userApi = tenantUserApi.getUserApi();
+        Tenant tenant = tenantUserApi.getTenant();
+        tenant.setLastUpdateDate(LocalDateTime.now());
+        tenantCommonRepository.save(tenant);
+
+        tenantUserApiRepository.delete(tenantUserApi);
+        partnerCallBackService.sendRevokedAccessCallback(tenant, userApi);
+        keycloakCommonService.revokeUserConsent(tenant, userApi);
+        logService.savePartnerAccessRevocationLog(tenant, userApi);
+        mailCommonService.sendEmailPartnerAccessRevoked(tenant, userApi, tenant);
+
+        log.info("Revoked access of partner {} to tenant {}", userApi.getId(), tenant.getId());
     }
 
     private boolean isValidLink(ApartmentSharingLink link) {
