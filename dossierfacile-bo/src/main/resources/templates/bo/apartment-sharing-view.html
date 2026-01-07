@@ -203,7 +203,7 @@
                             <div class="partages-dossier-section" th:if="${not #lists.isEmpty(activeLinks)}">
                                 <h2 class="partages-title">Partages du dossier</h2>
                                 <p class="partages-count">
-                                    <strong>Nombre de partage</strong> : <span th:text="${#lists.size(activeLinks)}">0</span>
+                                    <strong>Nombre de partages</strong> : <span th:text="${#lists.size(activeLinks)}">0</span>
                                 </p>
                                 
                                 <div class="partages-cards">
@@ -231,7 +231,7 @@
                                                 <!-- Masquer l'URL pour les liens PARTNER et OWNER -->
                                                 <div class="partage-url-container" th:if="${link.linkType.toString() == 'MAIL' or link.linkType.toString() == 'LINK'}">
                                                     <p class="partage-url">
-                                                        Lien : <a th:href="${link.fullUrl}" target="_blank" class="partage-url-link" th:text="${link.fullUrl}">URL</a>
+                                                        Lien : <a th:href="${link.fullUrl}" target="_blank" rel="noopener noreferrer" class="partage-url-link" th:text="${link.fullUrl}">URL</a>
                                                     </p>
                                                 </div>
                                             </div>
