@@ -2,17 +2,25 @@ package fr.dossierfacile.common.service;
 
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.ApartmentSharingLink;
+import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.entity.TenantUserApi;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.ApartmentSharingLinkType;
 import fr.dossierfacile.common.model.ApartmentSharingLinkModel;
 import fr.dossierfacile.common.repository.ApartmentSharingLinkRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
+import fr.dossierfacile.common.repository.TenantUserApiRepository;
 import fr.dossierfacile.common.repository.UserApiRepository;
+import fr.dossierfacile.common.service.interfaces.KeycloakCommonService;
 import fr.dossierfacile.common.service.interfaces.LinkLogService;
+import fr.dossierfacile.common.service.interfaces.LogService;
+import fr.dossierfacile.common.service.interfaces.MailCommonService;
+import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -20,13 +28,17 @@ import java.util.UUID;
 import static fr.dossierfacile.common.constants.PartnerConstants.DF_OWNER_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.when;
 
 class ApartmentSharingLinkServiceTest {
 
     private ApartmentSharingLinkRepository apartmentSharingLinkRepository;
     private UserApiRepository userApiRepository;
+    private TenantUserApiRepository tenantUserApiRepository;
+    private PartnerCallBackService partnerCallBackService;
+    private KeycloakCommonService keycloakCommonService;
+    private MailCommonService mailCommonService;
     private ApartmentSharingLinkService service;
 
     private ApartmentSharing apartmentSharing;
@@ -39,15 +51,28 @@ class ApartmentSharingLinkServiceTest {
         LinkLogService linkLogService = mock(LinkLogService.class);
         TenantCommonRepository tenantCommonRepository = mock(TenantCommonRepository.class);
         userApiRepository = mock(UserApiRepository.class);
+        tenantUserApiRepository = mock(TenantUserApiRepository.class);
+        partnerCallBackService = mock(PartnerCallBackService.class);
+        keycloakCommonService = mock(KeycloakCommonService.class);
+        mailCommonService = mock(MailCommonService.class);
+        LogService logService = mock(LogService.class);
 
         service = new ApartmentSharingLinkService(
                 apartmentSharingLinkRepository,
                 linkLogService,
                 tenantCommonRepository,
-                userApiRepository
+                userApiRepository,
+                tenantUserApiRepository,
+                partnerCallBackService,
+                keycloakCommonService,
+                mailCommonService,
+                logService
         );
 
-        apartmentSharing = ApartmentSharing.builder().id(1L).build();
+        apartmentSharing = ApartmentSharing.builder()
+                .id(1L)
+                .apartmentSharingLinks(new ArrayList<>())
+                .build();
 
         // Setup default mocks
         when(linkLogService.getFirstAndLastVisit(any(), any()))
@@ -165,8 +190,156 @@ class ApartmentSharingLinkServiceTest {
                 .fullData(fullData)
                 .creationDate(LocalDateTime.now())
                 .linkType(ApartmentSharingLinkType.LINK)
+                .apartmentSharing(apartmentSharing)
                 .disabled(false)
                 .deleted(false)
+                .build();
+    }
+
+    @Test
+    void should_delete_owner_link_and_associated_df_owner_partner_links() {
+        // Given
+        Long ownerLinkId = 1L;
+        UserApi dfOwnerPartner = UserApi.builder().id(DF_OWNER_ID).name(DF_OWNER_NAME).build();
+
+        ApartmentSharingLink ownerLink = createOwnerLink(ownerLinkId);
+        ApartmentSharingLink dfOwnerPartnerLink1 = createPartnerLink(2L, DF_OWNER_ID, true);
+        ApartmentSharingLink dfOwnerPartnerLink2 = createPartnerLink(3L, DF_OWNER_ID, false);
+        ApartmentSharingLink otherPartnerLink = createPartnerLink(4L, OTHER_PARTNER_ID, true);
+
+        when(apartmentSharingLinkRepository.findById(ownerLinkId))
+                .thenReturn(Optional.of(ownerLink));
+        when(userApiRepository.findByName(DF_OWNER_NAME))
+                .thenReturn(Optional.of(dfOwnerPartner));
+
+        // When
+        service.delete(ownerLinkId);
+
+        // Then
+        // Verify all DF_OWNER links are deleted
+        assertThat(ownerLink.isDeleted()).isTrue();
+        assertThat(dfOwnerPartnerLink1.isDeleted()).isTrue();
+        assertThat(dfOwnerPartnerLink2.isDeleted()).isTrue();
+        assertThat(otherPartnerLink.isDeleted()).isFalse();
+
+        // Verify NO OAuth revocation happened
+        verify(tenantUserApiRepository, never()).findAllByApartmentSharingAndUserApi(any(), any());
+        verify(keycloakCommonService, never()).revokeUserConsent(any(), any());
+    }
+
+    @Test
+    void should_delete_partner_link_and_revoke_oauth_access() {
+        // Given
+        Long partnerLinkId = 1L;
+        Long partnerId = 200L;
+
+        ApartmentSharingLink partnerLinkFull = createPartnerLink(partnerLinkId, partnerId, true);
+        ApartmentSharingLink partnerLinkLight = createPartnerLink(2L, partnerId, false);
+        ApartmentSharingLink otherPartnerLink = createPartnerLink(3L, 300L, true);
+
+        Tenant tenant1 = createTenant(10L);
+        Tenant tenant2 = createTenant(11L);
+        UserApi userApi = createUserApi(partnerId);
+        TenantUserApi tenantUserApi1 = createTenantUserApi(tenant1, userApi);
+        TenantUserApi tenantUserApi2 = createTenantUserApi(tenant2, userApi);
+
+        when(apartmentSharingLinkRepository.findById(partnerLinkId))
+                .thenReturn(Optional.of(partnerLinkFull));
+        when(tenantUserApiRepository.findAllByApartmentSharingAndUserApi(apartmentSharing.getId(), partnerId))
+                .thenReturn(List.of(tenantUserApi1, tenantUserApi2));
+
+        // When
+        service.delete(partnerLinkId);
+
+        // Then
+        // OAuth revocation happened for all tenants
+        verify(tenantUserApiRepository).delete(tenantUserApi1);
+        verify(tenantUserApiRepository).delete(tenantUserApi2);
+        verify(keycloakCommonService).revokeUserConsent(tenant1, userApi);
+        verify(keycloakCommonService).revokeUserConsent(tenant2, userApi);
+        verify(partnerCallBackService).sendRevokedAccessCallback(tenant1, userApi);
+        verify(partnerCallBackService).sendRevokedAccessCallback(tenant2, userApi);
+        verify(mailCommonService).sendEmailPartnerAccessRevoked(tenant1, userApi, tenant1);
+        verify(mailCommonService).sendEmailPartnerAccessRevoked(tenant2, userApi, tenant2);
+
+        // Both partner links (full and light) deleted
+        assertThat(partnerLinkFull.isDeleted()).isTrue();
+        assertThat(partnerLinkLight.isDeleted()).isTrue();
+        assertThat(otherPartnerLink.isDeleted()).isFalse();
+    }
+
+    @Test
+    void should_delete_simple_link_without_revocation() {
+        // Given
+        Long linkId = 1L;
+        ApartmentSharingLink simpleLink = createLink(linkId, null, false);
+        ApartmentSharingLink otherLink = createLink(2L, null, false);
+
+        apartmentSharing.getApartmentSharingLinks().add(simpleLink);
+        apartmentSharing.getApartmentSharingLinks().add(otherLink);
+
+        when(apartmentSharingLinkRepository.findById(linkId))
+                .thenReturn(Optional.of(simpleLink));
+
+        // When
+        service.delete(linkId);
+
+        // Then
+        assertThat(simpleLink.isDeleted()).isTrue();
+        assertThat(otherLink.isDeleted()).isFalse();
+
+        // No OAuth revocation
+        verify(tenantUserApiRepository, never()).findAllByApartmentSharingAndUserApi(any(), any());
+    }
+
+    private ApartmentSharingLink createOwnerLink(Long id) {
+        ApartmentSharingLink link = ApartmentSharingLink.builder()
+                .id(id)
+                .token(UUID.randomUUID())
+                .linkType(ApartmentSharingLinkType.OWNER)
+                .apartmentSharing(apartmentSharing)
+                .creationDate(LocalDateTime.now())
+                .disabled(false)
+                .deleted(false)
+                .build();
+        apartmentSharing.getApartmentSharingLinks().add(link);
+        return link;
+    }
+
+    private ApartmentSharingLink createPartnerLink(Long id, Long partnerId, boolean fullData) {
+        ApartmentSharingLink link = ApartmentSharingLink.builder()
+                .id(id)
+                .token(UUID.randomUUID())
+                .partnerId(partnerId)
+                .fullData(fullData)
+                .linkType(ApartmentSharingLinkType.PARTNER)
+                .apartmentSharing(apartmentSharing)
+                .creationDate(LocalDateTime.now())
+                .disabled(false)
+                .deleted(false)
+                .build();
+        apartmentSharing.getApartmentSharingLinks().add(link);
+        return link;
+    }
+
+    private Tenant createTenant(Long id) {
+        return Tenant.builder()
+                .id(id)
+                .apartmentSharing(apartmentSharing)
+                .build();
+    }
+
+    private UserApi createUserApi(Long id) {
+        return UserApi.builder()
+                .id(id)
+                .name("partner-" + id)
+                .build();
+    }
+
+    private TenantUserApi createTenantUserApi(Tenant tenant, UserApi userApi) {
+        return TenantUserApi.builder()
+                .tenant(tenant)
+                .userApi(userApi)
                 .build();
     }
 }
