@@ -1,7 +1,6 @@
 package fr.dossierfacile.api.front.service.interfaces;
 
 import fr.dossierfacile.common.entity.Tenant;
-import fr.dossierfacile.common.entity.UserApi;
 import org.keycloak.representations.idm.UserRepresentation;
 
 public interface KeycloakService {
@@ -24,7 +23,5 @@ public interface KeycloakService {
     void unlinkFranceConnect(Tenant tenant);
 
     void disableAccount(String keycloakId);
-
-    void revokeUserConsent(Tenant tenant, UserApi userApi);
 
 }
