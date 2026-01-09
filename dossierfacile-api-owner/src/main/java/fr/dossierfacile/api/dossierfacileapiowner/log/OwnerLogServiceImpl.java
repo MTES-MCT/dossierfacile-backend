@@ -1,6 +1,7 @@
 package fr.dossierfacile.api.dossierfacileapiowner.log;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.dossierfacile.common.entity.Owner;
 import fr.dossierfacile.common.entity.OwnerLog;
 import fr.dossierfacile.common.enums.OwnerLogType;
@@ -31,11 +32,11 @@ public class OwnerLogServiceImpl implements OwnerLogService {
 
     @Override
     public void saveLogWithOwnerData(OwnerLogType logType, Owner owner) {
-        String content = null;
+        ObjectNode content = null;
         try {
-            content = objectMapper.writeValueAsString(deletedOwnerMapper.toDeletedOwnerModel(owner));
+            content = (ObjectNode) objectMapper.valueToTree(deletedOwnerMapper.toDeletedOwnerModel(owner));
         } catch (Exception e) {
-            log.error("Cannot correclty record tenant information in tenant_log");
+            log.error("Cannot correctly record owner information in owner_log", e);
         }
         this.saveLog(
                 OwnerLog.builder()

@@ -24,6 +24,10 @@ public class OwnerWarningService {
     private final OwnerRepository ownerRepository;
     private final KeycloakCommonService keycloakCommonService;
 
+    /**
+     * Handles owner warnings (0, 1) in a transaction.
+     * For deletion (warning 2), see {@link #deleteOwnerAccount(Owner)}.
+     */
     @Transactional
     public void handleOwnerWarning(Owner o, int warnings) {
         Optional<Owner> optionalOwner = ownerRepository.findById(o.getId());
@@ -32,28 +36,45 @@ public class OwnerWarningService {
         }
         Owner owner = optionalOwner.get();
         switch (warnings) {
-            case 0 -> handleWarning0(owner);
-            case 1 -> handleWarning1(owner);
-            case 2 -> handleWarning2(owner);
+            case 0 -> handleFirstWarning(owner);
+            case 1 -> handleSecondWarning(owner);
+            case 2 -> deleteOwnerAccount(owner);
         }
     }
 
-    private void handleWarning2(Owner owner) {
-        log.info("Deleting owner {}", owner.getId());
-        mailSender.sendEmailOwnerDeleted(owner);
+    /**
+     * Deletes owner account: first performs all database/keycloak operations,
+     * then sends the confirmation email AFTER successful deletion.
+     * This ensures the email is only sent if the account is actually deleted.
+     */
+    private void deleteOwnerAccount(Owner owner) {
+        Long ownerId = owner.getId();
+        log.info("Deleting owner {}", ownerId);
+
+        // 1. Log the deletion first (while we still have the owner data)
         logService.saveLogWithOwnerData(OwnerLogType.ACCOUNT_DELETED, owner);
+
+        // 2. Delete from Keycloak
         keycloakCommonService.deleteKeycloakUser(owner);
+
+        // 3. Delete from database
         ownerRepository.delete(owner);
+        ownerRepository.flush(); // Force the delete to execute now
+
+        log.info("Owner {} successfully deleted from database and Keycloak", ownerId);
+
+        // 4. Send confirmation email (best-effort, failure is handled internally by the mail sender)
+        mailSender.sendEmailOwnerDeleted(owner);
     }
 
-    private void handleWarning1(Owner o) {
+    private void handleSecondWarning(Owner o) {
         mailSender.sendEmailSecondWarningForDeletionOfOwner(o, confirmationTokenService.createToken(o));
         o.setWarnings(2);
         ownerRepository.save(o);
         logService.saveLog(LogType.SECOND_ACCOUNT_WARNING_FOR_DOCUMENT_DELETION, o.getId());
     }
 
-    private void handleWarning0(Owner o) {
+    private void handleFirstWarning(Owner o) {
         mailSender.sendEmailFirstWarningForDeletionOfOwner(o, confirmationTokenService.createToken(o));
         o.setWarnings(1);
         ownerRepository.save(o);

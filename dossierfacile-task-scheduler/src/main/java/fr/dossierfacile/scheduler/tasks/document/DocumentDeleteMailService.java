@@ -48,7 +48,12 @@ public class DocumentDeleteMailService {
             try {
                 apiInstance.sendTransacEmail(sendSmtpEmail);
             } catch (ApiException e) {
-                log.error("Email api exception", e);
+                log.error("Brevo API error - email: {}, templateId: {}, httpCode: {}, responseBody: {}",
+                        tenant.getEmail(),
+                        templateDeletedDocumentWithFailedPdf,
+                        e.getCode(),
+                        e.getResponseBody(),
+                        e);
             }
         }
 

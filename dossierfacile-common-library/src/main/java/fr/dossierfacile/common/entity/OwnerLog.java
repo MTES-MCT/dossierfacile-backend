@@ -1,5 +1,6 @@
 package fr.dossierfacile.common.entity;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.dossierfacile.common.enums.OwnerLogType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -43,5 +44,5 @@ public class OwnerLog {
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
-    private Object jsonProfile;
+    private ObjectNode jsonProfile;
 }
