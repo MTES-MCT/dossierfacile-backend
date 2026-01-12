@@ -135,7 +135,7 @@ Run `mvn clean install` from the root folder. This will build every module.
 
 In each application folder, run
 
-```
+```shell
 mvn spring-boot:run -D spring-boot.run.profiles=dev,mockOvh
 ```
 

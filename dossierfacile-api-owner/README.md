@@ -88,7 +88,7 @@ For the dev environment the appender Logstash is disabled by default.
 ## Run the application
 
 ```shell
-    mvn spring-boot:run -D spring-boot.run.profiles=dev,mockOvh
+mvn spring-boot:run -D spring-boot.run.profiles=dev,mockOvh
 ```
 
 ## Important information :

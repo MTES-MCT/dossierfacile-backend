@@ -1,15 +1,18 @@
 # PDF File Generator (dossierfacile-pdf-generator)
 
 ## Description
+
 Service dedicated to the generation of PDF documents.
 
 ## Main Features
+
 - Conversion of documents and files to PDF with watermark
 - Generation of rental files in PDF format
 
 ## Configuration :
 
 Create a file `application-dev.properties` in `dossierfacile-pdf-generator/src/main/resources`
+
 ```properties
 # Storage path for the MockStorage
 mock.storage.path=../mock-storage
@@ -29,9 +32,9 @@ spring.datasource.password=
 keycloak.server.url=http://localhost:8085/auth
 #Keycloak Realm
 keycloak.server.realm=dossier-facile
-#Keycloak Client Id for admin purpose => need to be inside the realm Master 
+#Keycloak Client Id for admin purpose => need to be inside the realm Master
 keycloak.server.client.id=dossier-facile-api
-#Keycloak secret that need to be retrieved from keycloak. 
+#Keycloak secret that need to be retrieved from keycloak.
 keycloak.server.client.secret=
 
 #Pdf generator configuration
@@ -63,15 +66,17 @@ spring.rabbitmq.host=127.0.0.1
 brevo.apikey=
 
 ```
+
 # LogStash :
 
 For the dev environment the appender Logstash is disabled by default.
 
 # Database :
+
 ⚠️ The database is managed by this project. When you start it, liquibase will update the scheme according to the code.
 
 # Run the application
 
 ```shell
-    mvn spring-boot:run -D  spring-boot.run.profiles=dev,mockOvh
+mvn spring-boot:run -D  spring-boot.run.profiles=dev,mockOvh
 ```
