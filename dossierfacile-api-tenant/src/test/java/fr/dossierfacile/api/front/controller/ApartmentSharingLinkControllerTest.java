@@ -436,11 +436,12 @@ public class ApartmentSharingLinkControllerTest {
             SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwtTokenWithDossier = jwt().authorities(new SimpleGrantedAuthority("SCOPE_dossier"));
 
             ApartmentSharing apartmentSharing = new ApartmentSharing();
+            String futureDate = LocalDate.now().plusDays(30).toString();
 
             return ArgumentBuilder.buildListOfArguments(
                     Pair.of("Should respond 403 when no jwt is passed",
                             new ControllerParameter<>(
-                                    new UpdateExpirationDateTestParameter(1L, "2025-12-27"),
+                                    new UpdateExpirationDateTestParameter(1L, futureDate),
                                     403,
                                     null,
                                     null,
@@ -449,7 +450,7 @@ public class ApartmentSharingLinkControllerTest {
                     ),
                     Pair.of("Should respond 403 when email is not verified",
                             new ControllerParameter<>(
-                                    new UpdateExpirationDateTestParameter(1L, "2025-12-27"),
+                                    new UpdateExpirationDateTestParameter(1L, futureDate),
                                     403,
                                     jwtTokenWithDossier,
                                     (v) -> {
@@ -463,21 +464,21 @@ public class ApartmentSharingLinkControllerTest {
                     ),
                     Pair.of("Should respond 404 when link not found",
                             new ControllerParameter<>(
-                                    new UpdateExpirationDateTestParameter(1L, "2025-12-27"),
+                                    new UpdateExpirationDateTestParameter(1L, futureDate),
                                     404,
                                     jwtTokenWithDossier,
                                     (v) -> {
                                         when(authenticationFacade.getLoggedTenant()).thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
-                                        LocalDateTime expectedDateTime = LocalDate.parse("2025-12-27").atStartOfDay();
+                                        LocalDateTime expectedDateTime = LocalDate.parse(futureDate).atStartOfDay();
                                         doThrow(new NotFoundException()).when(apartmentSharingLinkService).updateExpirationDate(1L, expectedDateTime, apartmentSharing);
                                         return v;
                                     },
                                     Collections.emptyList()
                             )
                     ),
-                    Pair.of("Should respond 200 when jwt is passed and valid expiration date without time",
+                    Pair.of("Should respond 200 when jwt is passed and valid expiration date",
                             new ControllerParameter<>(
-                                    new UpdateExpirationDateTestParameter(1L, "2025-12-27"),
+                                    new UpdateExpirationDateTestParameter(1L, futureDate),
                                     200,
                                     jwtTokenWithDossier,
                                     (v) -> {
