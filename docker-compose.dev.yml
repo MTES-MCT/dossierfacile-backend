@@ -9,8 +9,6 @@ services:
       - ./.nginx/nginx.conf:/etc/nginx/nginx.conf
       - ./.nginx/certs:/etc/nginx/certs
     restart: unless-stopped
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     networks:
       - dossierfacile_network
   postgres:

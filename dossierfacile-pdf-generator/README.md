@@ -20,32 +20,33 @@ mock.storage.path=../mock-storage
 storage.provider.list=LOCAL
 # For S3 provider: s3.region=sbg, s3.endpoint.url=https://s3.sbg.io.cloud.ovh.net, s3.access.key=, s3.secret.access.key=
 
-#URL of the database
-spring.datasource.url=
-#Username of the database
-spring.datasource.username=
-#Password of the database
-spring.datasource.password=
+# TODO: replace with your database credentials if changed in root docker-compose-dev.yml
+# URL of the database
+spring.datasource.url=jdbc:postgresql://localhost:5432/dossierfacile
+# Username of the database
+spring.datasource.username=dossierfacile
+# Password of the database
+spring.datasource.password=your_very_secure_password
 
-#Keycloak configuration
-#Keycloak Url
+# Keycloak configuration
+# Keycloak Url
 keycloak.server.url=http://localhost:8085/auth
-#Keycloak Realm
+# Keycloak Realm
 keycloak.server.realm=dossier-facile
-#Keycloak Client Id for admin purpose => need to be inside the realm Master
+# Keycloak Client Id for admin purpose => need to be inside the realm Master
 keycloak.server.client.id=dossier-facile-api
-#Keycloak secret that need to be retrieved from keycloak.
+# Keycloak secret that need to be retrieved from keycloak.
 keycloak.server.client.secret=
 
-#Pdf generator configuration
-#key used to generate a certificate
+# Pdf generator configuration
+# key used to generate a certificate
 pdf.certificate=
-#Is the signature of the pdf activated (default is false)
+# Is the signature of the pdf activated (default is false)
 pdf.signature.activation=
 # Key used to sign the pdf
 pdf.private_key=
 
-#RabbitMQ
+# RabbitMQ
 # Number of message a worker will receive at a time before he acknowledge them
 rabbitmq.prefetch=
 # Name of the queue apartment-sharing
@@ -61,21 +62,21 @@ spring.rabbitmq.username=dev
 spring.rabbitmq.password=password
 spring.rabbitmq.host=127.0.0.1
 
-#Brevo config
+# Brevo config
 # Leave this empty for dev
 brevo.apikey=
 
 ```
 
-# LogStash :
+## LogStash
 
 For the dev environment the appender Logstash is disabled by default.
 
-# Database :
+## Database
 
 ⚠️ The database is managed by this project. When you start it, liquibase will update the scheme according to the code.
 
-# Run the application
+## Run the application
 
 ```shell
 mvn spring-boot:run -D  spring-boot.run.profiles=dev,mockOvh
