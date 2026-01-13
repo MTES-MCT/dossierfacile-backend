@@ -342,4 +342,151 @@ class ApartmentSharingLinkServiceTest {
                 .userApi(userApi)
                 .build();
     }
+
+    @Test
+    void should_create_new_link_when_no_valid_link_exists() {
+        // Given
+        Tenant tenant = createTenant(10L);
+        boolean fullData = true;
+
+        when(apartmentSharingLinkRepository.findValidDefaultLinks(apartmentSharing.getId(), fullData, tenant.getId()))
+                .thenReturn(List.of());
+
+        // Mock the save to return a link with ID
+        when(apartmentSharingLinkRepository.save(any(ApartmentSharingLink.class)))
+                .thenAnswer(invocation -> {
+                    ApartmentSharingLink link = invocation.getArgument(0);
+                    link.setId(999L); // Simulate DB-generated ID
+                    return link;
+                });
+
+        // When
+        ApartmentSharingLinkModel result = service.getDefaultLink(apartmentSharing, tenant, fullData);
+
+        // Then
+        verify(apartmentSharingLinkRepository).save(any(ApartmentSharingLink.class));
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isNotNull();
+        assertThat(result.isFullData()).isTrue();
+    }
+
+    @Test
+    void should_return_existing_link_when_expiration_is_more_than_10_days() {
+        // Given
+        Tenant tenant = createTenant(10L);
+        boolean fullData = true;
+        LocalDateTime expirationDate = LocalDateTime.now().plusDays(15);
+
+        ApartmentSharingLink existingLink = ApartmentSharingLink.builder()
+                .id(100L)
+                .token(UUID.randomUUID())
+                .apartmentSharing(apartmentSharing)
+                .fullData(fullData)
+                .createdBy(tenant.getId())
+                .expirationDate(expirationDate)
+                .linkType(ApartmentSharingLinkType.LINK)
+                .disabled(false)
+                .deleted(false)
+                .creationDate(LocalDateTime.now())
+                .build();
+
+        when(apartmentSharingLinkRepository.findValidDefaultLinks(apartmentSharing.getId(), fullData, tenant.getId()))
+                .thenReturn(List.of(existingLink));
+
+        // When
+        ApartmentSharingLinkModel result = service.getDefaultLink(apartmentSharing, tenant, fullData);
+
+        // Then
+        verify(apartmentSharingLinkRepository, never()).save(any(ApartmentSharingLink.class));
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(100L);
+        assertThat(result.isFullData()).isTrue();
+    }
+
+    @Test
+    void should_create_new_link_when_expiration_is_10_days_or_less() {
+        // Given
+        Tenant tenant = createTenant(10L);
+        boolean fullData = true;
+        LocalDateTime expirationDate = LocalDateTime.now().plusDays(10);
+
+        ApartmentSharingLink existingLink = ApartmentSharingLink.builder()
+                .id(100L)
+                .token(UUID.randomUUID())
+                .apartmentSharing(apartmentSharing)
+                .fullData(fullData)
+                .createdBy(tenant.getId())
+                .expirationDate(expirationDate)
+                .linkType(ApartmentSharingLinkType.LINK)
+                .disabled(false)
+                .deleted(false)
+                .creationDate(LocalDateTime.now())
+                .build();
+
+        when(apartmentSharingLinkRepository.findValidDefaultLinks(apartmentSharing.getId(), fullData, tenant.getId()))
+                .thenReturn(List.of(existingLink));
+
+        // Mock the save to return a link with ID
+        when(apartmentSharingLinkRepository.save(any(ApartmentSharingLink.class)))
+                .thenAnswer(invocation -> {
+                    ApartmentSharingLink link = invocation.getArgument(0);
+                    link.setId(999L); // Simulate DB-generated ID
+                    return link;
+                });
+
+        // When
+        ApartmentSharingLinkModel result = service.getDefaultLink(apartmentSharing, tenant, fullData);
+
+        // Then
+        verify(apartmentSharingLinkRepository).save(any(ApartmentSharingLink.class));
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isNotNull();
+        assertThat(result.getId()).isNotEqualTo(100L); // New link created
+        assertThat(result.isFullData()).isTrue();
+    }
+
+    @Test
+    void should_select_link_with_furthest_expiration_date() {
+        // Given
+        Tenant tenant = createTenant(10L);
+        boolean fullData = true;
+
+        ApartmentSharingLink linkExpiring15Days = ApartmentSharingLink.builder()
+                .id(100L)
+                .token(UUID.randomUUID())
+                .apartmentSharing(apartmentSharing)
+                .fullData(fullData)
+                .createdBy(tenant.getId())
+                .expirationDate(LocalDateTime.now().plusDays(15))
+                .linkType(ApartmentSharingLinkType.LINK)
+                .disabled(false)
+                .deleted(false)
+                .creationDate(LocalDateTime.now())
+                .build();
+
+        ApartmentSharingLink linkExpiring30Days = ApartmentSharingLink.builder()
+                .id(200L)
+                .token(UUID.randomUUID())
+                .apartmentSharing(apartmentSharing)
+                .fullData(fullData)
+                .createdBy(tenant.getId())
+                .expirationDate(LocalDateTime.now().plusDays(30))
+                .linkType(ApartmentSharingLinkType.LINK)
+                .disabled(false)
+                .deleted(false)
+                .creationDate(LocalDateTime.now())
+                .build();
+
+        // Repository returns sorted by expiration DESC, so 30 days first
+        when(apartmentSharingLinkRepository.findValidDefaultLinks(apartmentSharing.getId(), fullData, tenant.getId()))
+                .thenReturn(List.of(linkExpiring30Days, linkExpiring15Days));
+
+        // When
+        ApartmentSharingLinkModel result = service.getDefaultLink(apartmentSharing, tenant, fullData);
+
+        // Then
+        verify(apartmentSharingLinkRepository, never()).save(any(ApartmentSharingLink.class));
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(200L); // Link with 30 days selected
+    }
 }
