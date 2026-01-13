@@ -1,7 +1,6 @@
 package fr.dossierfacile.scheduler.tasks.ownerwarning;
 
 import fr.dossierfacile.common.entity.Owner;
-import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.enums.OwnerLogType;
 import fr.dossierfacile.common.service.interfaces.ConfirmationTokenService;
 import fr.dossierfacile.common.service.interfaces.KeycloakCommonService;
@@ -50,14 +49,14 @@ public class OwnerWarningService {
         mailSender.sendEmailSecondWarningForDeletionOfOwner(o, confirmationTokenService.createToken(o));
         o.setWarnings(2);
         ownerRepository.save(o);
-        logService.saveLog(LogType.SECOND_ACCOUNT_WARNING_FOR_DOCUMENT_DELETION, o.getId());
+        logService.saveLogWithOwnerData(OwnerLogType.SECOND_ACCOUNT_WARNING_FOR_DELETION, o);
     }
 
     private void handleWarning0(Owner o) {
         mailSender.sendEmailFirstWarningForDeletionOfOwner(o, confirmationTokenService.createToken(o));
         o.setWarnings(1);
         ownerRepository.save(o);
-        logService.saveLog(LogType.FIRST_ACCOUNT_WARNING_FOR_OWNER_DELETION, o.getId());
+        logService.saveLogWithOwnerData(OwnerLogType.FIRST_ACCOUNT_WARNING_FOR_DELETION, o);
     }
 
 }
