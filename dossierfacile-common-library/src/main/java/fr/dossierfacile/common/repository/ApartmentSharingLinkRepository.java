@@ -2,7 +2,6 @@ package fr.dossierfacile.common.repository;
 
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.ApartmentSharingLink;
-import fr.dossierfacile.common.enums.ApartmentSharingLinkType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,9 +15,26 @@ public interface ApartmentSharingLinkRepository extends JpaRepository<ApartmentS
 
     List<ApartmentSharingLink> findByApartmentSharingAndCreationDateIsAfterAndDeletedIsFalse(ApartmentSharing apartmentSharing, LocalDateTime creationDate);
 
-    List<ApartmentSharingLink> findByApartmentSharingAndLinkTypeAndDeletedIsFalse(ApartmentSharing apartmentSharing, ApartmentSharingLinkType linkType);
-
     List<ApartmentSharingLink> findByApartmentSharingOrderByCreationDate(ApartmentSharing apartmentSharing);
+
+    @Query(value = """
+            SELECT *
+            FROM apartment_sharing_link
+            WHERE apartment_sharing_id = :apartmentSharingId
+            AND link_type = 'LINK'
+            AND deleted = false
+            AND disabled = false
+            AND full_data = :fullData
+            AND created_by = :createdBy
+            AND expiration_date IS NOT NULL
+            AND expiration_date > NOW()
+            ORDER BY expiration_date DESC
+            """, nativeQuery = true)
+    List<ApartmentSharingLink> findValidDefaultLinks(
+            @Param("apartmentSharingId") Long apartmentSharingId,
+            @Param("fullData") boolean fullData,
+            @Param("createdBy") Long createdBy
+    );
 
     Optional<ApartmentSharingLink> findByIdAndApartmentSharingAndDeletedIsFalse(Long id, ApartmentSharing apartmentSharing);
 

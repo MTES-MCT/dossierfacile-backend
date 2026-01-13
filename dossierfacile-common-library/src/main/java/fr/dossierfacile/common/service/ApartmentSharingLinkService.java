@@ -1,6 +1,7 @@
 package fr.dossierfacile.common.service;
 
 import fr.dossierfacile.common.entity.*;
+import fr.dossierfacile.common.enums.ApartmentSharingLinkType;
 import fr.dossierfacile.common.exceptions.NotFoundException;
 import fr.dossierfacile.common.model.ApartmentSharingLinkModel;
 import fr.dossierfacile.common.repository.ApartmentSharingLinkRepository;
@@ -15,9 +16,11 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static fr.dossierfacile.common.constants.PartnerConstants.DF_OWNER_NAME;
+import static java.time.temporal.ChronoUnit.DAYS;
 import static fr.dossierfacile.common.enums.ApartmentSharingLinkType.OWNER;
 import static fr.dossierfacile.common.enums.ApartmentSharingLinkType.PARTNER;
 import static fr.dossierfacile.common.enums.LinkType.*;
@@ -72,6 +75,50 @@ public class ApartmentSharingLinkService {
                 .map(link -> mapApartmentSharingLink(link, apartmentSharing))
                 .toList();
     }
+
+    public ApartmentSharingLinkModel getDefaultLink(ApartmentSharing apartmentSharing, Tenant tenant, boolean isFullData) {
+        List<ApartmentSharingLink> validLinks = apartmentSharingLinkRepository
+                .findValidDefaultLinks(apartmentSharing.getId(), isFullData, tenant.getId());
+
+        Optional<ApartmentSharingLink> linkWithFurthestExpiration = validLinks.stream().findFirst();
+
+        // if no valid link exists -> create new link
+        if (linkWithFurthestExpiration.isEmpty()) {
+            return createNewLink(apartmentSharing, isFullData, tenant.getId());
+        }
+
+        ApartmentSharingLink link = linkWithFurthestExpiration.get();
+
+        LocalDateTime now = LocalDateTime.now();
+        long daysUntilExpiration = DAYS.between(now, link.getExpirationDate());
+
+        // If valid link exist and expiration date is in more than 10 days -> return this link
+        if (daysUntilExpiration > 10) {
+            return mapApartmentSharingLink(link, apartmentSharing);
+        }
+
+        // if expiration date is in less than 10 days -> create new link
+        return createNewLink(apartmentSharing, isFullData, tenant.getId());
+    }
+
+    private ApartmentSharingLinkModel createNewLink(ApartmentSharing apartmentSharing, boolean fullData, Long tenantId) {
+        ApartmentSharingLink newLink = ApartmentSharingLink.builder()
+                .apartmentSharing(apartmentSharing)
+                .token(UUID.randomUUID())
+                .creationDate(LocalDateTime.now())
+                .expirationDate(LocalDateTime.now().plusMonths(1))
+                .fullData(fullData)
+                .linkType(ApartmentSharingLinkType.LINK)
+                .title("Lien créé le " + LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")))
+                .createdBy(tenantId)
+                .build();
+
+        apartmentSharingLinkRepository.save(newLink);
+        log.info("Created new default link for apartmentSharing {} with fullData={}", apartmentSharing.getId(), fullData);
+
+        return mapApartmentSharingLink(newLink, apartmentSharing);
+    }
+
 
     private ApartmentSharingLinkModel mapApartmentSharingLink(ApartmentSharingLink link, ApartmentSharing apartmentSharing) {
         LinkLogServiceImpl.FirstAndLastVisit firstAndLastVisit = linkLogService.getFirstAndLastVisit(link.getToken(), apartmentSharing);
@@ -248,5 +295,6 @@ public class ApartmentSharingLinkService {
         link.setTitle(title);
         apartmentSharingLinkRepository.save(link);
     }
+
 
 }

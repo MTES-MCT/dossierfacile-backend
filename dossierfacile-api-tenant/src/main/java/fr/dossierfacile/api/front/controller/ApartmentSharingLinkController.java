@@ -44,6 +44,14 @@ public class ApartmentSharingLinkController {
         return ResponseEntity.ok(new LinksResponse(linksByMail));
     }
 
+    @PutMapping("/default")
+    public ResponseEntity<ApartmentSharingLinkModel> updateApartmentSharingLinksStatus( @RequestParam boolean isFullData) {
+        Tenant tenant = authenticationFacade.getLoggedTenant();
+        ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
+        ApartmentSharingLinkModel defaultLink = apartmentSharingLinkService.getDefaultLink(apartmentSharing, tenant, isFullData);
+        return ResponseEntity.ok(defaultLink);
+    }
+
     @ApiOperation(value = "Update apartment sharing link status", notes = "Updates the status of an apartment sharing link.")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Status updated successfully"),
