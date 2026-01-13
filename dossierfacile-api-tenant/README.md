@@ -34,13 +34,13 @@ server.port=8090
 # Url of the tenant API
 application.base.url=http://localhost:8090
 
-#TODO: replace with your database credentials, can be found in root docker-compose-dev.yml
-#URL of the database
-spring.datasource.url=<REPLACE_ME_DB_URL>
-#Username of the database
-spring.datasource.username=<REPLACE_ME_DB_USERNAME>
-#Password of the database
-spring.datasource.password=<REPLACE_ME_DB_PASSWORD>
+# TODO: replace with your database credentials if changed in root docker-compose-dev.yml
+# URL of the database
+spring.datasource.url=jdbc:postgresql://localhost:5432/dossierfacile
+# Username of the database
+spring.datasource.username=dossierfacile
+# Password of the database
+spring.datasource.password=your_very_secure_password
 
 #Configuration for rabbitmq (example with the docker-compose)
 spring.rabbitmq.username=dev
@@ -123,5 +123,5 @@ For the dev environment the appender Logstash is disabled by default.
 ## Run the application
 
 ```shell
-    mvn spring-boot:run -D spring-boot.run.profiles=dev,mockOvh
+mvn spring-boot:run -D spring-boot.run.profiles=dev,mockOvh
 ```
