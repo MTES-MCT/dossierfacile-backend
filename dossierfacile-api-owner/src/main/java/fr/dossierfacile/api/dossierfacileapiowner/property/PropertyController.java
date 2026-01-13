@@ -6,9 +6,7 @@ import fr.dossierfacile.api.dossierfacileapiowner.user.OwnerModel;
 import fr.dossierfacile.common.entity.Owner;
 import fr.dossierfacile.common.entity.Property;
 import fr.dossierfacile.common.entity.PropertyApartmentSharing;
-import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.exceptions.NotFoundException;
-import fr.dossierfacile.common.service.interfaces.LogService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.apache.http.client.HttpResponseException;
@@ -38,7 +36,6 @@ import static org.springframework.http.ResponseEntity.ok;
 @RequestMapping("/api/property")
 public class PropertyController {
 
-    private final LogService logService;
     private final PropertyService propertyService;
     private final PropertyApartmentSharingService propertyApartmentSharingService;
     private final AuthenticationFacade authenticationFacade;
@@ -49,7 +46,6 @@ public class PropertyController {
     public ResponseEntity<PropertyModel> createOrUpdate(@Valid @RequestBody PropertyForm property) throws InterruptedException, HttpResponseException {
         PropertyModel propertyModel;
         propertyModel = propertyService.createOrUpdate(property);
-        logService.saveLog(LogType.ACCOUNT_EDITED, propertyModel.getId());
         return ok(propertyModel);
     }
 
