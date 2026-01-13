@@ -11,4 +11,6 @@ public interface LinkLogRepository extends JpaRepository<LinkLog, Long> {
 
     List<LinkLog> findByApartmentSharingAndToken(ApartmentSharing apartmentSharing, UUID token);
 
+    List<LinkLog> findByApartmentSharing(ApartmentSharing apartmentSharing);
+
 }

@@ -1,22 +1,25 @@
 package fr.dossierfacile.common.service;
 
-import fr.dossierfacile.common.entity.ApartmentSharing;
-import fr.dossierfacile.common.entity.ApartmentSharingLink;
-import fr.dossierfacile.common.entity.LinkLog;
-import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.exceptions.NotFoundException;
 import fr.dossierfacile.common.model.ApartmentSharingLinkModel;
 import fr.dossierfacile.common.repository.ApartmentSharingLinkRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
-import fr.dossierfacile.common.service.interfaces.LinkLogService;
+import fr.dossierfacile.common.repository.TenantUserApiRepository;
+import fr.dossierfacile.common.repository.UserApiRepository;
+import fr.dossierfacile.common.service.interfaces.*;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import static fr.dossierfacile.common.constants.PartnerConstants.DF_OWNER_NAME;
+import static fr.dossierfacile.common.enums.ApartmentSharingLinkType.OWNER;
+import static fr.dossierfacile.common.enums.ApartmentSharingLinkType.PARTNER;
 import static fr.dossierfacile.common.enums.LinkType.*;
 
 @Service
@@ -27,10 +30,45 @@ public class ApartmentSharingLinkService {
     private final ApartmentSharingLinkRepository apartmentSharingLinkRepository;
     private final LinkLogService linkLogService;
     private final TenantCommonRepository tenantCommonRepository;
+    private final UserApiRepository userApiRepository;
+    private final TenantUserApiRepository tenantUserApiRepository;
+    private final PartnerCallBackService partnerCallBackService;
+    private final KeycloakCommonService keycloakCommonService;
+    private final MailCommonService mailCommonService;
+    private final LogService logService;
+
+    /**
+     * Returns filtered links according to business rules:
+     * - Excludes DF_OWNER partner links
+     * - Excludes non-full-data partner links
+     * - Includes all non-partner links
+     */
+    public List<ApartmentSharingLink> getFilteredLinks(ApartmentSharing apartmentSharing) {
+        var links = apartmentSharingLinkRepository.findByApartmentSharingOrderByCreationDate(apartmentSharing);
+
+        // Get the ID of the DF_OWNER partner to exclude it
+        Long dfOwnerPartnerId = userApiRepository.findByName(DF_OWNER_NAME)
+                .map(UserApi::getId)
+                .orElse(null);
+
+        List<ApartmentSharingLink> noPartnerLinks = links.stream()
+                .filter(l -> l.getPartnerId() == null)
+                .toList();
+
+        // Filter out links with the DF_OWNER partner and non-full-data partner links
+        List<ApartmentSharingLink> fullDataPerPartnerLinks = links.stream()
+                .filter(l -> l.getPartnerId() != null && l.isFullData())
+                .filter(l -> !l.getPartnerId().equals(dfOwnerPartnerId))
+                .toList();
+
+        List<ApartmentSharingLink> validLinks = new ArrayList<>();
+        validLinks.addAll(noPartnerLinks);
+        validLinks.addAll(fullDataPerPartnerLinks);
+        return validLinks;
+    }
 
     public List<ApartmentSharingLinkModel> getLinks(ApartmentSharing apartmentSharing) {
-        return apartmentSharingLinkRepository.findByApartmentSharingOrderByCreationDate(apartmentSharing)
-                .stream()
+        return getFilteredLinks(apartmentSharing).stream()
                 .map(link -> mapApartmentSharingLink(link, apartmentSharing))
                 .toList();
     }
@@ -76,7 +114,55 @@ public class ApartmentSharingLinkService {
 
     public void delete(Long linkId) {
         var link = apartmentSharingLinkRepository.findById(linkId).orElseThrow(NotFoundException::new);
-        log.info("Delete token: " + link.getToken() + " by " + link.getLinkType() + " on apartmentSharing" + link.getApartmentSharing().getId());
+
+        if (link.getLinkType() == OWNER) {
+            // Special logic for OWNER links: delete OWNER + associated DF_OWNER PARTNER links
+            deleteOwnerLink(link);
+        } else if (link.getLinkType() == PARTNER && link.getPartnerId() != null) {
+            // Special logic for PARTNER links: revoke OAuth access + delete link pair
+            deletePartnerLinkWithRevocation(link);
+        } else {
+            // Standard behavior for LINK and MAIL sharing links
+            deleteLinkStandard(link);
+        }
+    }
+
+    private void deleteOwnerLink(ApartmentSharingLink ownerLink) {
+        ApartmentSharing apartmentSharing = ownerLink.getApartmentSharing();
+
+        // Delete OWNER link
+        deleteLinkStandard(ownerLink);
+
+        // Delete related PARTNER links
+        userApiRepository.findByName(DF_OWNER_NAME).map(UserApi::getId).ifPresent(
+                dfOwnerPartnerId -> apartmentSharing.getApartmentSharingLinks().stream()
+                        .filter(l -> l.getLinkType() == PARTNER
+                                && dfOwnerPartnerId.equals(l.getPartnerId())
+                                && !l.isDeleted())
+                        .forEach(this::deleteLinkStandard));
+
+    }
+
+    private void deletePartnerLinkWithRevocation(ApartmentSharingLink link) {
+        ApartmentSharing apartmentSharing = link.getApartmentSharing();
+
+        // Revoke access for all tenants of the ApartmentSharing
+        tenantUserApiRepository.findAllByApartmentSharingAndUserApi(
+            apartmentSharing.getId(),
+            link.getPartnerId()
+        ).forEach(this::revokeAccess);
+
+        // Remove sharing link pair (fullData and non fullData)
+        apartmentSharing.getApartmentSharingLinks().stream()
+            .filter(l -> l.getLinkType() == PARTNER
+                      && link.getPartnerId().equals(l.getPartnerId())
+                      && !l.isDeleted())
+            .forEach(this::deleteLinkStandard);
+    }
+
+    private void deleteLinkStandard(ApartmentSharingLink link) {
+        log.info("Delete token: " + link.getToken() + " by " + link.getLinkType()
+                + " on apartmentSharing" + link.getApartmentSharing().getId());
         linkLogService.createNewLog(link, DELETED_LINK_TOKEN);
         link.setExpirationDate(LocalDateTime.now());
         link.setDeleted(true);
@@ -89,6 +175,21 @@ public class ApartmentSharingLinkService {
         if (hasAccess) {
             delete(linkId);
         }
+    }
+
+    private void revokeAccess(TenantUserApi tenantUserApi) {
+        UserApi userApi = tenantUserApi.getUserApi();
+        Tenant tenant = tenantUserApi.getTenant();
+        tenant.setLastUpdateDate(LocalDateTime.now());
+        tenantCommonRepository.save(tenant);
+
+        tenantUserApiRepository.delete(tenantUserApi);
+        partnerCallBackService.sendRevokedAccessCallback(tenant, userApi);
+        keycloakCommonService.revokeUserConsent(tenant, userApi);
+        logService.savePartnerAccessRevocationLog(tenant, userApi);
+        mailCommonService.sendEmailPartnerAccessRevoked(tenant, userApi, tenant);
+
+        log.info("Revoked access of partner {} to tenant {}", userApi.getId(), tenant.getId());
     }
 
     private boolean isValidLink(ApartmentSharingLink link) {

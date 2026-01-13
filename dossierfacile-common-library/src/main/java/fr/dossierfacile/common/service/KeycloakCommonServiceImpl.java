@@ -1,11 +1,14 @@
 package fr.dossierfacile.common.service;
 
+import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.User;
+import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.service.interfaces.KeycloakCommonService;
 import jakarta.ws.rs.core.Response;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.admin.client.resource.RealmResource;
+import org.keycloak.admin.client.resource.UserResource;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -44,6 +47,16 @@ public class KeycloakCommonServiceImpl implements KeycloakCommonService {
         try (Response response = realmResource.get().users().delete(keycloakId)) {
             checkResult(response);
         }
+    }
+
+    @Override
+    public void revokeUserConsent(Tenant tenant, UserApi userApi) {
+        if (realmResource.isEmpty()) {
+            return;
+        }
+        String keycloakId = tenant.getKeycloakId();
+        UserResource user = realmResource.get().users().get(keycloakId);
+        user.revokeConsent(userApi.getName());
     }
 
     private static void checkResult(Response response) {

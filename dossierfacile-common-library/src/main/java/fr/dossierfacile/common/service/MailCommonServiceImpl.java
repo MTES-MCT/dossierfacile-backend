@@ -7,6 +7,9 @@ import brevoModel.SendSmtpEmailTo;
 import fr.dossierfacile.common.dto.mail.TenantDto;
 import fr.dossierfacile.common.dto.mail.UserApiDto;
 import fr.dossierfacile.common.dto.mail.UserDto;
+import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.entity.UserApi;
+import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.service.interfaces.MailCommonService;
 import fr.dossierfacile.common.utils.OptionalString;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +22,8 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+
+import static fr.dossierfacile.common.enums.ApplicationType.COUPLE;
 
 @Service
 @RequiredArgsConstructor
@@ -42,6 +47,8 @@ public class MailCommonServiceImpl implements MailCommonService {
     private Long templateIdDossierFullyValidated;
     @Value("${brevo.template.id.dossier.fully.validated.with.partner}")
     private Long templateIdDossierFullyValidatedWithPartner;
+    @Value("${brevo.template.id.partner.access.revoked}")
+    private Long templateIDPartnerAccessRevoked;
     @Value("${link.after.validated.default}")
     private String defaultValidatedUrl;
 
@@ -120,5 +127,35 @@ public class MailCommonServiceImpl implements MailCommonService {
                 templateIdDossierFullyValidated);
     }
 
+    @Override
+    public void sendEmailPartnerAccessRevoked(Tenant receiver, UserApi userApi, Tenant revocationRequester) {
+        Map<String, String> params = new HashMap<>();
+        params.put("PRENOM", receiver.getFirstName());
+        params.put("NOM", OptionalString.of(receiver.getPreferredName()).orElse(receiver.getLastName()));
+        params.put("partnerName", userApi.getName2());
+        params.put("requestOrigin", new RevocationRequest(revocationRequester, receiver).getOrigin());
+
+        UserDto receiverDto = new UserDto(
+                receiver.getFirstName(),
+                receiver.getLastName(),
+                receiver.getPreferredName(),
+                receiver.getEmail(),
+                receiver.getKeycloakId()
+        );
+        sendEmailToTenant(receiverDto, params, templateIDPartnerAccessRevoked);
+    }
+
+    private record RevocationRequest(Tenant requester, Tenant emailReceiver) {
+
+        String getOrigin() {
+            if (requester.getId().equals(emailReceiver.getId())) {
+                return "votre demande";
+            }
+            ApplicationType applicationType = requester.getApartmentSharing().getApplicationType();
+            String requesterType = applicationType == COUPLE ? "conjoint(e)" : "colocataire";
+            return String.format("la demande de votre %s %s", requesterType, requester.getFirstName());
+        }
+
+    }
 
 }
