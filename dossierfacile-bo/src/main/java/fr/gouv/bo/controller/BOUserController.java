@@ -7,12 +7,14 @@ import fr.gouv.bo.model.RoleDTO;
 import fr.gouv.bo.security.RoleService;
 import fr.gouv.bo.security.UserPrincipal;
 import fr.gouv.bo.service.UserService;
+import jakarta.validation.Valid;
 import jakarta.ws.rs.ForbiddenException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
@@ -39,16 +41,28 @@ public class BOUserController {
 
     @PostMapping("/bo/users")
     public String createBOUser(
-            EmailDTO emailDTO,
+            @Valid EmailDTO emailDTO,
+            BindingResult bindingResult,
             Model model,
             @RequestParam(defaultValue = "ROLE_OPERATOR", name = "action") Role role,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
-        BOUser user = userService.findUserByEmail(emailDTO.getEmail());
         var highestRole = roleComparator.getHighestRole(principal.getAuthorities());
+        var availableRolesDto = roleComparator.getAvailableRoles(highestRole);
+
+        if (bindingResult.hasErrors()) {
+            model.addAttribute(EMAIL, emailDTO);
+            model.addAttribute("users", userService.findAll());
+            model.addAttribute("availableRolesDto", availableRolesDto);
+            model.addAttribute("availableRoles", availableRolesDto.stream().map(RoleDTO::value).toList());
+            return "bo/users";
+        }
+
         if (highestRole == null || !roleComparator.isRoleGreaterOrEqual(highestRole, role)) {
             throw new ForbiddenException("Vous n'avez pas les droits suffisants pour effectuer cette action");
         }
+
+        BOUser user = userService.findUserByEmail(emailDTO.getEmail());
         if (user == null) {
             userService.createUserByEmail(emailDTO.getEmail(), role);
         } else {

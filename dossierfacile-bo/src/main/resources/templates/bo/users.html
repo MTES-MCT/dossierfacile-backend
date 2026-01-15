@@ -52,14 +52,15 @@
         <div class="container">
             <form th:method="post" th:action="@{/bo/users}" th:object="${email}" >
                 <label for="email" class="form-label" id="">Email:</label>
-                <input required type="text" name="name" id="email" placeholder="on domain dossierfacile.fr ..."
-                       oninput="setCustomValidity('')"  th:field="*{email}"/>
-                <button style="font-size: initial;float: right;padding: 10px 16px 11px;"
-                        sec:authorize="hasRole('ADMIN')"
-                        type="submit" name='action' value='ROLE_ADMIN' class="btn btn-info">create admin</button>
+                <input required type="email" id="email" placeholder="prenom.nom@beta.gouv.fr" th:field="*{email}"
+                       th:classappend="${#fields.hasErrors('email')} ? 'is-invalid' : ''"/>
+                <span th:if="${#fields.hasErrors('email')}" th:errors="*{email}" style="color: red; display: block; margin-bottom: 10px;"></span>
                 <button style="margin-right: 10px;font-size: initial;float: right;padding: 10px 16px 11px;"
                         sec:authorize="hasAnyRole('ADMIN','MANAGER')"
                         type="submit" name='action' value='ROLE_OPERATOR' class="btn btn-success">create operator</button>
+                <button style="font-size: initial;float: right;padding: 10px 16px 11px;"
+                        sec:authorize="hasRole('ADMIN')"
+                        type="submit" name='action' value='ROLE_ADMIN' class="btn btn-info">create admin</button>
             </form>
         </div>
         <div class="container">
