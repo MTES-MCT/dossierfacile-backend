@@ -38,12 +38,12 @@ To create a dedicated user and database for dossierfacile.
 2. Add the following to it:
    ```yaml
    services:
-   nginx:
-     extra_hosts:
-       - "host.docker.internal:host-gateway"
+     nginx:
+       extra_hosts:
+         - "host.docker.internal:host-gateway"
    ```
 3. Add it to the `./.git/info/exclude` file to ignore it without modifying the shared `.gitignore`
-4. run the stack with `docker compose -f docker-compose.dev.yml -f docker-compose.overwrite.yml up -d`
+4. Run the stack with `docker compose -f docker-compose.dev.yml -f docker-compose.overwrite.yml up -d`
 
 You may also need to add pgcrypt extension to your local database:
 
@@ -72,7 +72,7 @@ Follow those steps to use [Keycloak](https://www.keycloak.org/) in dev environme
    - authentication flow: Standard flow and Direct access Grants
    - Theme: df
    - Client scopes: add dossier
-6. Create a new realm "dossier-facile-owner:
+6. Create a new realm: "dossier-facile-owner"
 7. Inside the realm create a new Client scope:
    - Name: dossier
    - Type: Default

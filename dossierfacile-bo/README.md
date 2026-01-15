@@ -45,14 +45,14 @@ keycloak.server.url=http://localhost:8085/auth
 keycloak.server.realm=dossier-facile-bo
 # Keycloak Client Id for admin purpose => need to be inside the realm Master
 keycloak.server.client.id=dossier-facile-bo
-#Keycloak secret that need to be retrieved from `keycloak > master realm > Clients > dossier-facile-api > Credentials > Client Secret`
+# Keycloak secret that need to be retrieved from `keycloak > master realm > Clients > dossier-facile-api > Credentials > Client Secret`
 keycloak.server.client.secret=<REPLACE_ME_KEYCLOAK_SECRET>
 
 # SSO Keycloak
 spring.security.oauth2.client.provider.keycloak.issuer-uri=${keycloak.server.url}/realms/${keycloak.server.realm}
 spring.security.oauth2.client.registration.keycloak.provider=keycloak
 spring.security.oauth2.client.registration.keycloak.client-id=${keycloak.server.client.id}
-spring.security.oauth2.client.registration.keycloak.client-secret={keycloak.server.client.secret}
+spring.security.oauth2.client.registration.keycloak.client-secret=${keycloak.server.client.secret}
 spring.security.oauth2.client.registration.keycloak.authorization-grant-type=authorization_code
 spring.security.oauth2.client.registration.keycloak.redirect-uri={baseUrl}/login/oauth2/code/{registrationId}
 spring.security.oauth2.client.registration.keycloak.scope=openid,profile,email
@@ -80,18 +80,18 @@ display.client.secret.expiration.delay=
 
 # Brevo config
 # Leave this empty for dev
-brevo.apikey=<BREVO_API_KEY>
-brevo.template.id.message.notification=36
-brevo.template.id.message.notification.with.details=155
-brevo.template.id.account.deleted=155
-brevo.template.id.dossier.fully.validated=128
-brevo.template.id.dossier.tenant.denied=69
-brevo.template.id.message.notification.with.partner=79
-brevo.template.id.message.notification.with.partner.and.details=156
-brevo.template.id.dossier.fully.validated.with.partner=80
-brevo.template.id.dossier.tenant.denied.with.partner=81
-brevo.template.id.dossier.tenant.denied.with.partner.and.details=157
-brevo.template.id.dossier.tenant.denied.with.details=158
+brevo.apikey=
+brevo.template.id.message.notification=
+brevo.template.id.message.notification.with.details=
+brevo.template.id.account.deleted=
+brevo.template.id.dossier.fully.validated=
+brevo.template.id.dossier.tenant.denied=
+brevo.template.id.message.notification.with.partner=
+brevo.template.id.message.notification.with.partner.and.details=
+brevo.template.id.dossier.fully.validated.with.partner=
+brevo.template.id.dossier.tenant.denied.with.partner=
+brevo.template.id.dossier.tenant.denied.with.partner.and.details=
+brevo.template.id.dossier.tenant.denied.with.details=
 brevo.template.id.partner.access.revoked=
 ```
 
@@ -170,7 +170,7 @@ mvn spring-boot:run -D spring-boot.run.profiles=dev,mockOvh
 9. Logout settings:
    - Front channel logout: ON
 
-You can now create a user, valid his email and set a password. You can connect through keycloak and add rights in the database to user your user.
+You can now create a user, validate his email and set a password. You can connect through keycloak and add rights in the database for your user.
 
 ### Add Pro connect
 
