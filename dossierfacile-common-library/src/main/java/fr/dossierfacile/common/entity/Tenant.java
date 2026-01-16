@@ -297,7 +297,7 @@ public class Tenant extends User implements Person, Serializable {
                 super.setFirstName(firstName);
             }
         } else {
-            this.tenantFirstName = firstName;
+            this.tenantFirstName = StringUtils.trimToNull(firstName);
         }
     }
 
@@ -312,7 +312,7 @@ public class Tenant extends User implements Person, Serializable {
                 super.setLastName(lastName);
             }
         } else {
-            this.tenantLastName = lastName;
+            this.tenantLastName = StringUtils.trimToNull(lastName);
         }
     }
 
@@ -327,7 +327,7 @@ public class Tenant extends User implements Person, Serializable {
                 super.setPreferredName(preferredName);
             }
         } else {
-            this.tenantPreferredName = preferredName;
+            this.tenantPreferredName = StringUtils.trimToNull(preferredName);
         }
     }
 

@@ -62,6 +62,18 @@ public class Guarantor implements Person, Serializable {
 
     private String legalPersonName;
 
+    public void setFirstName(String firstName) {
+        this.firstName = StringUtils.trimToNull(firstName);
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = StringUtils.trimToNull(lastName);
+    }
+
+    public void setLegalPersonName(String legalPersonName) {
+        this.legalPersonName = StringUtils.trimToNull(legalPersonName);
+    }
+
     public String getCompleteName() {
         StringBuilder fullName = new StringBuilder();
         if (typeGuarantor == TypeGuarantor.NATURAL_PERSON) {
