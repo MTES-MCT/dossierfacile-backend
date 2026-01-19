@@ -19,7 +19,6 @@ import fr.gouv.bo.repository.*;
 import fr.gouv.bo.security.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.tuple.Pair;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
@@ -146,12 +145,9 @@ public class TenantService {
             tenant = tenantRepository.findMyNextApplication(localDateTime, operatorId);
         } else {
             tenant = find(tenantId);
-            // Safety check: if tenant is still locked (operatorDateTime within last X minutes), fallback to automatic selection
-            if (tenant != null && tenant.getOperatorDateTime() != null
-                    && tenant.getOperatorDateTime().isAfter(localDateTime)) {
-                log.warn("Attempt to open tenant {} while operator lock is still active (operatorDateTime={}, threshold={})",
-                        tenant.getId(), tenant.getOperatorDateTime(), localDateTime);
-                // if operator try to open a locked tenant, we redirect him to the home of the BO
+            if (tenant == null) {
+                log.warn("Attempt to open a tenant that does not exists : t={}", tenantId);
+                // we redirect him to the home of the BO
                 return REDIRECT_BO_HOME;
             }
         }
@@ -607,12 +603,12 @@ public class TenantService {
         } else {
             html.append("<p>Nos agents ont ajusté <strong>certains montants de revenus</strong> déclarés afin qu’ils correspondent à vos justificatifs.");
             html.append("<br/> Les valeurs suivantes ont été modifiées pour garantir la cohérence et la fiabilité de votre dossier :");
-            for (Pair<String,List<MessageItem>> change : changeList) {
+            for (Pair<String, List<MessageItem>> change : changeList) {
                 html.append("<p class=\"fr-mb-0\"><strong>");
                 html.append(change.getLeft());
                 html.append("</strong></p>");
                 html.append("<ul>");
-                for (MessageItem item: change.getRight()) {
+                for (MessageItem item : change.getRight()) {
                     html.append("<li>");
                     html.append("<strong>");
                     html.append(messageSource.getMessage("document_sub_category." + item.getDocumentSubCategory(), null, locale));
