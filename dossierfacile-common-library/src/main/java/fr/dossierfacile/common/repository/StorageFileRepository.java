@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface StorageFileRepository extends JpaRepository<StorageFile, Long> {
@@ -46,6 +47,13 @@ public interface StorageFileRepository extends JpaRepository<StorageFile, Long> 
     List<StorageFile> findAllByStatusOrderByIdAsc(FileStorageStatus fileStorageStatus, Pageable pageable);
 
     List<StorageFile> findAllByStatusAndProviderOrderByIdAsc(FileStorageStatus status, ObjectStorageProvider provider, Pageable pageable);
+
+    List<StorageFile> findAllByStatusAndProviderAndLastModifiedDateBeforeOrderByIdAsc(
+            FileStorageStatus status,
+            ObjectStorageProvider provider,
+            LocalDateTime lastModifiedDate,
+            Pageable pageable
+    );
 
     void delete(@NotNull StorageFile storageFile);
 }
