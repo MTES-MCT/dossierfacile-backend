@@ -31,7 +31,11 @@ public record BulkDeleteResult(
     public static BulkDeleteResult allFailed(List<String> paths, String errorMessage) {
         return new BulkDeleteResult(
                 Set.of(),
-                paths.stream().collect(java.util.stream.Collectors.toMap(p -> p, p -> errorMessage))
+                paths.stream().collect(java.util.stream.Collectors.toMap(
+                        p -> p,
+                        p -> errorMessage,
+                        (existing, replacement) -> existing // Keep first value on duplicate key
+                ))
         );
     }
 

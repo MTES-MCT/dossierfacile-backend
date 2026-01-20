@@ -192,6 +192,14 @@ public class FileBatchDeletionService {
                 Set<String> allSuccessful = new HashSet<>();
                 Map<String, String> allFailed = new java.util.HashMap<>();
 
+                // Handle files with null buckets - mark them as failed since we can't delete without a bucket
+                List<StorageFile> filesWithNullBucket = files.stream()
+                        .filter(f -> f.getBucket() == null)
+                        .toList();
+                for (StorageFile file : filesWithNullBucket) {
+                    allFailed.put(file.getPath(), "S3 bucket is null - cannot determine target bucket for deletion");
+                }
+
                 for (Map.Entry<S3Bucket, List<StorageFile>> bucketEntry : filesByBucket.entrySet()) {
                     S3Bucket bucket = bucketEntry.getKey();
                     List<String> bucketPaths = bucketEntry.getValue().stream()

@@ -37,6 +37,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -103,17 +104,39 @@ public class OvhFileStorageServiceImpl implements FileStorageProviderService {
 
     /**
      * Extract the Object Storage endpoint URL from the authenticated client.
-     * Uses the endpoint from the client which is derived from the service catalog.
+     * Retrieves the Swift/Object Storage endpoint from the service catalog.
+     * 
+     * NOTE: client.getEndpoint() returns the Keystone identity endpoint, not the Object Storage endpoint.
+     * Since OpenStack4j doesn't provide a direct API to get service-specific endpoints, we construct
+     * the endpoint URL based on OVH's standard pattern: https://storage.<region>.cloud.ovh.net/v1/AUTH_<project_id>
      */
     private String getObjectStorageEndpoint(OSClient.OSClientV3 client) {
-        // The getEndpoint() method returns the current endpoint URL for object storage
-        // after the client has been configured for object storage operations
-        String endpoint = client.getEndpoint();
-        if (endpoint != null && !endpoint.isEmpty()) {
-            return endpoint;
+        // Construct the endpoint URL manually based on OVH's standard pattern
+        // OVH Object Storage endpoints follow: https://storage.<region>.cloud.ovh.net/v1/AUTH_<project_id>
+        // We have the region from ovhRegion, and we can get the project ID from the token
+        
+        var token = client.getToken();
+        if (token == null) {
+            throw new OvhConnectionFailedException("Token is null");
         }
-
-        throw new OvhConnectionFailedException("Could not determine Object Storage endpoint URL");
+        
+        var project = token.getProject();
+        if (project == null) {
+            throw new OvhConnectionFailedException("Project is null in token");
+        }
+        
+        String projectId = project.getId();
+        if (projectId == null || projectId.isEmpty()) {
+            throw new OvhConnectionFailedException("Project ID is null or empty");
+        }
+        
+        // Construct OVH Object Storage endpoint
+        // Format: https://storage.<region>.cloud.ovh.net/v1/AUTH_<project_id>
+        String endpoint = String.format("https://storage.%s.cloud.ovh.net/v1/AUTH_%s", 
+                                        ovhRegion, projectId);
+        
+        log.debug("Constructed Object Storage endpoint: {}", endpoint);
+        return endpoint;
     }
 
     // TODO will be put in common abstract class when key version 1 will be deprecated
@@ -287,14 +310,26 @@ public class OvhFileStorageServiceImpl implements FileStorageProviderService {
 
     /**
      * Extract the original path from Swift response which includes container name.
+     * Swift returns URL-encoded paths (as they were sent), so we need to decode them
+     * to match the original unencoded paths used for comparison.
      */
     private String extractPathFromSwiftResponse(String swiftPath) {
         // Swift returns "container/path", we need just "path"
         String prefix = ovhContainerName + "/";
+        String path;
         if (swiftPath.startsWith(prefix)) {
-            return swiftPath.substring(prefix.length());
+            path = swiftPath.substring(prefix.length());
+        } else {
+            path = swiftPath;
         }
-        return swiftPath;
+        
+        // Decode the path to match the original unencoded paths
+        try {
+            return URLDecoder.decode(path, StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            log.warn("Failed to decode path from Swift response: {}. Using as-is.", path, e);
+            return path;
+        }
     }
 
     /**
