@@ -94,7 +94,7 @@ public class WarningMailSender {
         try {
             apiInstance.sendTransacEmail(sendSmtpEmail);
         } catch (ApiException e) {
-            log.error("Email api exception", e);
+            logBrevoApiError("sendWarningMail", user.getEmail(), templateId, e);
         }
     }
 
@@ -116,10 +116,11 @@ public class WarningMailSender {
         if (isEmpty(user.getEmail())) {
             return;
         }
-        log.info("User deleted {}", user.getId());
+        log.info("Sending deletion confirmation email to {} (id: {})", user.getEmail(), user.getId());
         Map<String, String> variables = new HashMap<>();
         variables.put("PRENOM", user.getFirstName());
         variables.put("NOM", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
+
         SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
         sendSmtpEmailTo.setEmail(user.getEmail());
         if (!Strings.isNullOrEmpty(user.getFullName())) {
@@ -133,8 +134,20 @@ public class WarningMailSender {
 
         try {
             apiInstance.sendTransacEmail(sendSmtpEmail);
+            log.info("Deletion confirmation email sent successfully to {}", user.getEmail());
         } catch (ApiException e) {
-            log.error("Email api exception", e);
+            // Log the error but don't throw - email is best-effort and should not affect the deletion
+            logBrevoApiError("sendEmailOwnerDeleted", user.getEmail(), templateOwnerDeleted, e);
         }
+    }
+
+    private void logBrevoApiError(String method, String email, Long templateId, ApiException e) {
+        log.error("Brevo API error in {} - email: {}, templateId: {}, httpCode: {}, responseBody: {}",
+                method,
+                email,
+                templateId,
+                e.getCode(),
+                e.getResponseBody(),
+                e);
     }
 }
