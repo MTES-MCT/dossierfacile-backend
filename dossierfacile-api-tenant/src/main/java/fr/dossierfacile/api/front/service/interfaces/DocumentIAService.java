@@ -8,4 +8,5 @@ import org.springframework.web.multipart.MultipartFile;
 public interface DocumentIAService {
     void handleWebhookCallback(WebhookModel payload);
     void sendForAnalysis(MultipartFile multipartFile, File file, Document document);
+    void analyseDocument(Document document);
 }
