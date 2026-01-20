@@ -87,11 +87,11 @@ public class BOApartmentSharingController {
         List<ApartmentSharingLinkEnrichedDTO> enrichedLinks = enrichApartmentSharingLinks(filteredLinks);
 
         List<ApartmentSharingLinkEnrichedDTO> activeLinks = enrichedLinks.stream()
-                .filter(link -> !link.isDeleted())
+                .filter(link -> !link.isDeleted() && link.getExpirationDate().isAfter(LocalDateTime.now()))
                 .toList();
 
         List<ApartmentSharingLinkEnrichedDTO> deletedLinks = enrichedLinks.stream()
-                .filter(link -> link.isDeleted())
+                .filter(link -> !activeLinks.contains(link))
                 .toList();
 
         model.addAttribute(TENANTS, tenants);
