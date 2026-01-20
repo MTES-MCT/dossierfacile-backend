@@ -235,7 +235,17 @@ public class OutscaleFileStorageServiceImpl implements FileStorageProviderServic
 
     @Override
     public void deleteV2(S3Bucket bucket, String path) {
-        throw new NotImplementedException("OVH does not support deleteV2 operation");
+        throw new NotImplementedException("Outscale does not support deleteV2 operation");
+    }
+
+    @Override
+    public BulkDeleteResult bulkDeleteV2(S3Bucket bucket, List<String> paths) {
+        throw new NotImplementedException("Outscale does not support bulkDeleteV2 operation");
+    }
+
+    @Override
+    public List<String> listObjectNamesV2(S3Bucket s3Bucket, String prefix) {
+        throw new NotImplementedException("Outscale does not support listObjectNamesV2 operation");
     }
 
 }

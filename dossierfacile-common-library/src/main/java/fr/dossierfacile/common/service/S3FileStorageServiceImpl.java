@@ -225,22 +225,27 @@ public class S3FileStorageServiceImpl implements FileStorageProviderService {
 
     @Override
     public List<String> listObjectNames(@Nullable String marker, int maxObjects) {
-        throw new NotImplementedException();
+        throw new NotImplementedException("S3 does not support listObjectNames operation");
     }
 
     @Override
     public void upload(String path, InputStream inputStream, EncryptionKey key, String contentType) throws RetryableOperationException, IOException {
-        throw new NotImplementedException();
+        throw new NotImplementedException("S3 does not support upload operation");
     }
 
     @Override
     public void delete(String path) {
-        throw new NotImplementedException();
+        throw new NotImplementedException("S3 does not support delete operation");
     }
 
     @Override
     public InputStream download(String path, EncryptionKey key) throws IOException {
-        throw new NotImplementedException();
+        throw new NotImplementedException("S3 does not support download operation");
+    }
+
+    @Override
+    public BulkDeleteResult bulkDelete(List<String> paths) {
+        throw new NotImplementedException("S3 does not support bulkDelete operation");
     }
 
     private GetObjectRequest getObjectRequest(S3Bucket bucket, String path, EncryptionKey key) throws NoSuchAlgorithmException {

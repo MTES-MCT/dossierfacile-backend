@@ -27,9 +27,8 @@ public interface FileStorageProviderService {
      * @param paths List of object paths to delete
      * @return BulkDeleteResult containing successful and failed deletions
      */
-    default BulkDeleteResult bulkDelete(List<String> paths) {
-        throw new UnsupportedOperationException("bulkDelete is not implemented for " + getProvider());
-    }
+    @Deprecated
+    BulkDeleteResult bulkDelete(List<String> paths);
 
     /**
      * Bulk delete multiple objects from a specific S3 bucket.
@@ -38,9 +37,7 @@ public interface FileStorageProviderService {
      * @param paths List of object paths to delete
      * @return BulkDeleteResult containing successful and failed deletions
      */
-    default BulkDeleteResult bulkDeleteV2(S3Bucket bucket, List<String> paths) {
-        throw new UnsupportedOperationException("bulkDeleteV2 is not implemented for " + getProvider());
-    }
+    BulkDeleteResult bulkDeleteV2(S3Bucket bucket, List<String> paths)
 
     @Deprecated
     InputStream download(String path, EncryptionKey key) throws IOException;
@@ -54,8 +51,6 @@ public interface FileStorageProviderService {
 
     List<String> listObjectNames(@Nullable String marker, int maxObjects);
 
-    default List<String> listObjectNamesV2(S3Bucket s3Bucket, String prefix) {
-        throw new UnsupportedOperationException("listObjectNamesV2 is not implemented");
-    }
+    List<String> listObjectNamesV2(S3Bucket s3Bucket, String prefix);
 
 }

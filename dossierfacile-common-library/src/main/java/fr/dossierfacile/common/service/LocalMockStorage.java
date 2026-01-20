@@ -6,6 +6,7 @@ import fr.dossierfacile.common.exceptions.RetryableOperationException;
 import fr.dossierfacile.common.exceptions.UnsupportedKeyException;
 import fr.dossierfacile.common.model.S3Bucket;
 import fr.dossierfacile.common.service.interfaces.FileStorageProviderService;
+import fr.dossierfacile.common.service.model.BulkDeleteResult;
 import jakarta.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -124,17 +125,31 @@ public class LocalMockStorage implements FileStorageProviderService {
 
     @Override
     public void uploadV2(S3Bucket s3Bucket, String fileKey, InputStream inputStream, String contentType, EncryptionKey key) throws RetryableOperationException, IOException {
-        throw new NotImplementedException();
+        throw new NotImplementedException("LocalMockStorage does not support uploadV2 operation");
     }
 
     @Override
     public void deleteV2(S3Bucket bucket, String path) {
-        throw new NotImplementedException("OVH does not support deleteV2 operation");
+        throw new NotImplementedException("LocalMockStorage does not support deleteV2 operation");
     }
 
     @Override
     public InputStream downloadV2(S3Bucket bucket, String path, EncryptionKey key) throws IOException {
-        throw new NotImplementedException();
+        throw new NotImplementedException("LocalMockStorage does not support downloadV2 operation");
     }
 
+    @Override
+    public BulkDeleteResult bulkDelete(List<String> paths) {
+        throw new NotImplementedException("LocalMockStorage does not support bulkDelete operation");
+    }
+
+    @Override
+    public BulkDeleteResult bulkDeleteV2(S3Bucket bucket, List<String> paths) {
+        throw new NotImplementedException("LocalMockStorage does not support bulkDeleteV2 operation");
+    }
+    
+    @Override
+    public List<String> listObjectNamesV2(S3Bucket s3Bucket, String prefix) {
+        throw new NotImplementedException("LocalMockStorage does not support listObjectNamesV2 operation");
+    }
 }
