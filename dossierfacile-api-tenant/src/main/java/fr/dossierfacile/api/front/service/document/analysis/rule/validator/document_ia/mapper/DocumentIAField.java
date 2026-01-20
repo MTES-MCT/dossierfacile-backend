@@ -1,6 +1,6 @@
-package fr.dossierfacile.process.file.service.document_rules.validator.document_ia.mapper;
+package fr.dossierfacile.api.front.service.document.analysis.rule.validator.document_ia.mapper;
 
-import fr.dossierfacile.process.file.service.document_rules.validator.document_ia.DocumentIAPropertyType;
+import fr.dossierfacile.api.front.service.document.analysis.rule.validator.document_ia.DocumentIAPropertyType;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
