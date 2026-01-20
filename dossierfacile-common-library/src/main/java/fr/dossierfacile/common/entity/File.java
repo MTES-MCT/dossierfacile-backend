@@ -72,6 +72,7 @@ public class File implements Serializable {
     @OneToOne(mappedBy = "file", fetch = FetchType.LAZY)
     private DocumentIAFileAnalysis documentIAFileAnalysis;
 
+    @Nullable
     @OneToOne(cascade = {CascadeType.REMOVE}, mappedBy = "file", fetch = FetchType.LAZY)
     private FileMetadata fileMetadata;
 
