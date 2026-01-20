@@ -1,12 +1,12 @@
-package fr.dossierfacile.process.file.service.document_rules.validator.french_identity_card;
+package fr.dossierfacile.api.front.service.document.analysis.rule.validator.french_identity_card;
 
+import fr.dossierfacile.api.front.service.document.analysis.rule.validator.RuleValidatorOutput;
+import fr.dossierfacile.api.front.service.document.analysis.rule.validator.document_ia.BaseDocumentIAValidator;
+import fr.dossierfacile.api.front.service.document.analysis.rule.validator.document_ia.mapper.DocumentIAMergerMapper;
+import fr.dossierfacile.api.front.service.document.analysis.rule.validator.french_identity_card.document_ia_model.DocumentExpiration;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentAnalysisRule;
 import fr.dossierfacile.common.entity.DocumentRule;
-import fr.dossierfacile.process.file.service.document_rules.validator.RuleValidatorOutput;
-import fr.dossierfacile.process.file.service.document_rules.validator.document_ia.BaseDocumentIAValidator;
-import fr.dossierfacile.process.file.service.document_rules.validator.document_ia.mapper.DocumentIAMergerMapper;
-import fr.dossierfacile.process.file.service.document_rules.validator.french_identity_card.document_ia_model.DocumentExpiration;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDate;

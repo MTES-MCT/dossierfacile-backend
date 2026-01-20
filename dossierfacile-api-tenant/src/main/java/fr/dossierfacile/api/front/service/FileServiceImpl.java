@@ -3,6 +3,7 @@ package fr.dossierfacile.api.front.service;
 import fr.dossierfacile.api.front.amqp.Producer;
 import fr.dossierfacile.api.front.exception.FileNotFoundException;
 import fr.dossierfacile.api.front.repository.FileRepository;
+import fr.dossierfacile.api.front.service.interfaces.DocumentIAService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.FileService;
 import fr.dossierfacile.common.entity.Document;
@@ -10,7 +11,6 @@ import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.model.log.EditionType;
-import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,10 +22,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class FileServiceImpl implements FileService {
     private final FileRepository fileRepository;
-    private final FileStorageService fileStorageService;
     private final DocumentService documentService;
     private final LogService logService;
     private final Producer producer;
+    private final DocumentIAService documentIAService;
 
     @Override
     @Transactional
@@ -46,7 +46,7 @@ public class FileServiceImpl implements FileService {
         }
         documentService.changeDocumentStatus(document, DocumentStatus.TO_PROCESS);
 
-        producer.sendDocumentForAnalysis(document);
+        documentIAService.analyseDocument(document);
         producer.sendDocumentForPdfGeneration(document);
 
         return document;
