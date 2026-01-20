@@ -26,7 +26,6 @@ public class FileServiceImpl implements FileService {
     private final LogService logService;
     private final Producer producer;
     private final DocumentIAService documentIAService;
-    private final EntityManager entityManager;
 
     @Override
     @Transactional
