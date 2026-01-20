@@ -139,10 +139,6 @@ public class DocumentServiceImpl implements DocumentService {
     @Override
     public void markDocumentAsEdited(Document document) {
         document.setLastModifiedDate(LocalDateTime.now());
-        if (document.getDocumentAnalysisReport() != null) {
-            documentAnalysisReportRepository.delete(document.getDocumentAnalysisReport());
-            document.setDocumentAnalysisReport(null);
-        }
         if (document.getWatermarkFile() != null) {
             fileStorageService.delete(document.getWatermarkFile());
             document.setWatermarkFile(null);

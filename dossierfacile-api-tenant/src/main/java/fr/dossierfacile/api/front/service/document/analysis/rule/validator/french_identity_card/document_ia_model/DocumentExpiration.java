@@ -1,7 +1,7 @@
-package fr.dossierfacile.process.file.service.document_rules.validator.french_identity_card.document_ia_model;
+package fr.dossierfacile.api.front.service.document.analysis.rule.validator.french_identity_card.document_ia_model;
 
-import fr.dossierfacile.process.file.service.document_rules.validator.document_ia.DocumentIAPropertyType;
-import fr.dossierfacile.process.file.service.document_rules.validator.document_ia.mapper.DocumentIAField;
+import fr.dossierfacile.api.front.service.document.analysis.rule.validator.document_ia.DocumentIAPropertyType;
+import fr.dossierfacile.api.front.service.document.analysis.rule.validator.document_ia.mapper.DocumentIAField;
 import lombok.Setter;
 
 import java.time.LocalDate;
