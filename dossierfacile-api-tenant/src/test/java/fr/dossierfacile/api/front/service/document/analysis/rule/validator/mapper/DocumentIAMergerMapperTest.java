@@ -52,6 +52,14 @@ class DocumentIAMergerMapperTest {
         String transformedField;
     }
 
+    public static class TestTargetModelOnlyExtraction {
+        @DocumentIAField(extractionName = "nom")
+        String lastName;
+
+        @DocumentIAField(extractionName = "prenom")
+        String firstNames;
+    }
+
     // ==========================
     // Fixtures helpers
     // ==========================
@@ -138,7 +146,7 @@ class DocumentIAMergerMapperTest {
                 analysisWithExtraction()
         );
 
-        Optional<TestTargetModel> result = DocumentIAMergerMapper.map(analyses, TestTargetModel.class);
+        Optional<TestTargetModel> result = new DocumentIAMergerMapper().map(analyses, TestTargetModel.class);
 
         assertThat(result).isEmpty();
     }
@@ -158,7 +166,7 @@ class DocumentIAMergerMapperTest {
                 )
         );
 
-        Optional<TestTargetModel> result = DocumentIAMergerMapper.map(analyses, TestTargetModel.class);
+        Optional<TestTargetModel> result = new DocumentIAMergerMapper().map(analyses, TestTargetModel.class);
 
         assertThat(result).isPresent();
         assertThat(result.get().lastName).isEqualTo("Dupont");
@@ -187,7 +195,7 @@ class DocumentIAMergerMapperTest {
                 )
         );
 
-        Optional<TestTargetModel> result = DocumentIAMergerMapper.map(analyses, TestTargetModel.class);
+        Optional<TestTargetModel> result = new DocumentIAMergerMapper().map(analyses, TestTargetModel.class);
 
         assertThat(result).isPresent();
         assertThat(result.get().lastName).isEqualTo("Dupont");
@@ -218,7 +226,7 @@ class DocumentIAMergerMapperTest {
                 )
         );
 
-        Optional<TestTargetModel> result = DocumentIAMergerMapper.map(analyses, TestTargetModel.class);
+        Optional<TestTargetModel> result = new DocumentIAMergerMapper().map(analyses, TestTargetModel.class);
 
         assertThat(result).isPresent();
         assertThat(result.get().lastName).isEqualTo("Dupont");
@@ -250,7 +258,7 @@ class DocumentIAMergerMapperTest {
                 )
         );
 
-        Optional<TestTargetModel> result = DocumentIAMergerMapper.map(analyses, TestTargetModel.class);
+        Optional<TestTargetModel> result = new DocumentIAMergerMapper().map(analyses, TestTargetModel.class);
 
         assertThat(result).isPresent();
         assertThat(result.get().lastName).isEqualTo("Dupont");
@@ -280,7 +288,7 @@ class DocumentIAMergerMapperTest {
                 )
         );
 
-        Optional<TestTargetModel> result = DocumentIAMergerMapper.map(analyses, TestTargetModel.class);
+        Optional<TestTargetModel> result = new DocumentIAMergerMapper().map(analyses, TestTargetModel.class);
 
         assertThat(result).isPresent();
         assertThat(result.get().lastName).isEqualTo("Dupont");
@@ -291,5 +299,21 @@ class DocumentIAMergerMapperTest {
 
     }
 
-}
+    @Test
+    @DisplayName("Mappe correctement les propriétés quand seul extractionName est défini")
+    void map_object_with_only_extraction_name() {
+        List<DocumentIAFileAnalysis> analyses = List.of(
+                analysisWithExtraction(
+                        stringProp("nom", "Martin"),
+                        stringProp("prenom", "Paul")
+                )
+        );
 
+        Optional<TestTargetModelOnlyExtraction> result = new DocumentIAMergerMapper().map(analyses, TestTargetModelOnlyExtraction.class);
+
+        assertThat(result).isPresent();
+        assertThat(result.get().lastName).isEqualTo("Martin");
+        assertThat(result.get().firstNames).isEqualTo("Paul");
+    }
+
+}
