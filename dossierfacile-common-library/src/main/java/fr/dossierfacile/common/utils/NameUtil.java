@@ -1,4 +1,4 @@
-package fr.dossierfacile.process.file.util;
+package fr.dossierfacile.common.utils;
 
 import javax.annotation.Nullable;
 import java.text.Normalizer;
