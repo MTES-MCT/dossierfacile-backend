@@ -1,9 +1,9 @@
-package fr.dossierfacile.process.file.service.document_rules.validator.french_identity_card.document_ia_model;
+package fr.dossierfacile.api.front.service.document.analysis.rule.validator.french_identity_card.document_ia_model;
 
-import fr.dossierfacile.process.file.service.document_rules.validator.document_ia.DocumentIAPropertyType;
-import fr.dossierfacile.process.file.service.document_rules.validator.document_ia.mapper.DocumentIAField;
-import fr.dossierfacile.process.file.service.document_rules.validator.document_ia.mapper.PropertyTransformer;
-import fr.dossierfacile.process.file.util.IDocumentIdentity;
+import fr.dossierfacile.api.front.service.document.analysis.rule.validator.document_ia.DocumentIAPropertyType;
+import fr.dossierfacile.api.front.service.document.analysis.rule.validator.document_ia.mapper.DocumentIAField;
+import fr.dossierfacile.api.front.service.document.analysis.rule.validator.document_ia.mapper.PropertyTransformer;
+import fr.dossierfacile.common.utils.IDocumentIdentity;
 import lombok.Setter;
 
 import java.util.List;
@@ -63,6 +63,10 @@ public class DocumentIdentity implements IDocumentIdentity {
             return List.of(firstName);
         }
         return firstNames;
+    }
+
+    public String getFirstNamesAsString() {
+        return String.join("/", getFirstNames());
     }
 
     @Override

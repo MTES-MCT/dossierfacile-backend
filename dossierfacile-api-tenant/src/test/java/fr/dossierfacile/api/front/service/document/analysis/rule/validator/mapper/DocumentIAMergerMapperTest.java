@@ -1,12 +1,15 @@
-package fr.dossierfacile.process.file.service.document_rules.validator.document_ia.mapper;
+package fr.dossierfacile.api.front.service.document.analysis.rule.validator.mapper;
 
+import fr.dossierfacile.api.front.service.document.analysis.rule.validator.document_ia.DocumentIAPropertyType;
+import fr.dossierfacile.api.front.service.document.analysis.rule.validator.document_ia.mapper.DocumentIAField;
+import fr.dossierfacile.api.front.service.document.analysis.rule.validator.document_ia.mapper.DocumentIAMergerMapper;
+import fr.dossierfacile.api.front.service.document.analysis.rule.validator.document_ia.mapper.PropertyTransformer;
 import fr.dossierfacile.common.entity.DocumentIAFileAnalysis;
 import fr.dossierfacile.common.enums.DocumentIAFileAnalysisStatus;
 import fr.dossierfacile.common.model.documentIA.BarcodeModel;
 import fr.dossierfacile.common.model.documentIA.ExtractionModel;
 import fr.dossierfacile.common.model.documentIA.GenericProperty;
 import fr.dossierfacile.common.model.documentIA.ResultModel;
-import fr.dossierfacile.process.file.service.document_rules.validator.document_ia.DocumentIAPropertyType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
