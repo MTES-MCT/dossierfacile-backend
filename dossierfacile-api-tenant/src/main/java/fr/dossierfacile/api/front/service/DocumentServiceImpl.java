@@ -146,14 +146,6 @@ public class DocumentServiceImpl implements DocumentService {
     @Override
     public void markDocumentAsEdited(Document document) {
         document.setLastModifiedDate(LocalDateTime.now());
-        if (document.getDocumentAnalysisReport() != null) {
-            var report = document.getDocumentAnalysisReport();
-            Long reportId = report.getId();
-            log.info("About to delete DocumentAnalysisReport (markDocumentAsEdited): documentId={}, reportId={}, thread={}",
-                    document.getId(), reportId, Thread.currentThread().getName());
-            documentAnalysisReportRepository.delete(report);
-            document.setDocumentAnalysisReport(null);
-        }
         if (document.getWatermarkFile() != null) {
             fileStorageService.delete(document.getWatermarkFile());
             document.setWatermarkFile(null);

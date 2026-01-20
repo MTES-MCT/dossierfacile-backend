@@ -1,5 +1,6 @@
-package fr.dossierfacile.process.file.service.document_rules.validator.french_identity_card;
+package fr.dossierfacile.api.front.service.document.analysis.rule.validator.french_identity_card;
 
+import fr.dossierfacile.api.front.service.document.analysis.rule.validator.RuleValidatorOutput;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentIAFileAnalysis;
 import fr.dossierfacile.common.entity.DocumentRule;
@@ -9,7 +10,6 @@ import fr.dossierfacile.common.model.documentIA.BarcodeModel;
 import fr.dossierfacile.common.model.documentIA.ExtractionModel;
 import fr.dossierfacile.common.model.documentIA.GenericProperty;
 import fr.dossierfacile.common.model.documentIA.ResultModel;
-import fr.dossierfacile.process.file.service.document_rules.validator.RuleValidatorOutput;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
