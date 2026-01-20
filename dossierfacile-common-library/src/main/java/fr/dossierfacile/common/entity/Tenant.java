@@ -297,7 +297,7 @@ public class Tenant extends User implements Person, Serializable {
                 super.setFirstName(firstName);
             }
         } else {
-            this.tenantFirstName = firstName;
+            this.tenantFirstName = StringUtils.trimToNull(firstName);
         }
     }
 
@@ -312,7 +312,7 @@ public class Tenant extends User implements Person, Serializable {
                 super.setLastName(lastName);
             }
         } else {
-            this.tenantLastName = lastName;
+            this.tenantLastName = StringUtils.trimToNull(lastName);
         }
     }
 
@@ -327,20 +327,20 @@ public class Tenant extends User implements Person, Serializable {
                 super.setPreferredName(preferredName);
             }
         } else {
-            this.tenantPreferredName = preferredName;
+            this.tenantPreferredName = StringUtils.trimToNull(preferredName);
         }
     }
 
     public String getNormalizedName() {
         // Only get the first name when a user has multiple first names
-        var normalizedFirstName = StringUtils.stripAccents(getFirstName()).split(" ")[0];
-        var normalizedLastName = StringUtils.stripAccents(getLastName());
-        if (getPreferredName() != null && !getPreferredName().isEmpty()) {
-            normalizedLastName = StringUtils.stripAccents(getPreferredName());
+        var normalizedFirstName = StringUtils.stripAccents(StringUtils.trimToEmpty(getFirstName())).split(" ")[0];
+        var normalizedLastName = StringUtils.stripAccents(StringUtils.trimToEmpty(getLastName()));
+        if (StringUtils.isNotBlank(getPreferredName())) {
+            normalizedLastName = StringUtils.stripAccents(StringUtils.trimToEmpty(getPreferredName()));
         }
         return String.format("%s_%s",
-                normalizedFirstName.substring(0, 1).toUpperCase() + normalizedFirstName.substring(1),
-                normalizedLastName.substring(0, 1).toUpperCase() + normalizedLastName.substring(1));
+            StringUtils.capitalize(normalizedFirstName),
+            StringUtils.capitalize(normalizedLastName));
     }
 
 }

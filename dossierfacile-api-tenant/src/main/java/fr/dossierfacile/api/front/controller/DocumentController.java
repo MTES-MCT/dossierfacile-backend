@@ -96,7 +96,7 @@ public class DocumentController {
                 if (document.getGuarantor().getTypeGuarantor() == TypeGuarantor.ORGANISM) {
                     return "";
                 }
-                return "guarant_" + document.getGuarantor().getNormalizedName();
+                return "garant_" + document.getGuarantor().getNormalizedName();
             }
         }
         return "";

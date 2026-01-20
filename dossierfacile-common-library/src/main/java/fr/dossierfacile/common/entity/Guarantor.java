@@ -62,6 +62,18 @@ public class Guarantor implements Person, Serializable {
 
     private String legalPersonName;
 
+    public void setFirstName(String firstName) {
+        this.firstName = StringUtils.trimToNull(firstName);
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = StringUtils.trimToNull(lastName);
+    }
+
+    public void setLegalPersonName(String legalPersonName) {
+        this.legalPersonName = StringUtils.trimToNull(legalPersonName);
+    }
+
     public String getCompleteName() {
         StringBuilder fullName = new StringBuilder();
         if (typeGuarantor == TypeGuarantor.NATURAL_PERSON) {
@@ -81,14 +93,14 @@ public class Guarantor implements Person, Serializable {
 
     public String getNormalizedName() {
         if (typeGuarantor == TypeGuarantor.NATURAL_PERSON) {
-            var normalizedFirstName = StringUtils.stripAccents(getFirstName()).split(" ")[0];
-            var normalizedLastName = StringUtils.stripAccents(getLastName());
+            var normalizedFirstName = StringUtils.stripAccents(StringUtils.trimToEmpty(getFirstName())).split(" ")[0];
+            var normalizedLastName = StringUtils.stripAccents(StringUtils.trimToEmpty(getLastName()));
             return String.format("%s_%s",
-                    normalizedFirstName.substring(0, 1).toUpperCase() + normalizedFirstName.substring(1),
-                    normalizedLastName.substring(0, 1).toUpperCase() + normalizedLastName.substring(1));
+                StringUtils.capitalize(normalizedFirstName),
+                StringUtils.capitalize(normalizedLastName));
         } else if (typeGuarantor == TypeGuarantor.LEGAL_PERSON) {
-            var normalizedLegalPersonName = StringUtils.stripAccents(getLegalPersonName());
-            return normalizedLegalPersonName.substring(0,1).toUpperCase() + normalizedLegalPersonName.substring(1);
+            var normalizedLegalPersonName = StringUtils.stripAccents(StringUtils.trimToEmpty(getLegalPersonName()));
+            return StringUtils.capitalize(normalizedLegalPersonName);
         }
         return "";
     }
