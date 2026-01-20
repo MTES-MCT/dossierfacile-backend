@@ -114,13 +114,6 @@ public class OutscaleFileStorageServiceImpl implements FileStorageProviderServic
                 }
             }
 
-            // Objects not in the deleted list might not have existed (which is ok)
-            for (String path : paths) {
-                if (!successfulPaths.contains(path) && !failedPaths.containsKey(path)) {
-                    successfulPaths.add(path);
-                }
-            }
-
             log.info("Outscale bulk delete completed: {} successful, {} failed out of {} requested",
                     successfulPaths.size(), failedPaths.size(), paths.size());
 

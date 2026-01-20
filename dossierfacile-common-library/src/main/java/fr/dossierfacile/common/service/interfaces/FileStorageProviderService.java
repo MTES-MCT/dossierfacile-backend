@@ -37,7 +37,7 @@ public interface FileStorageProviderService {
      * @param paths List of object paths to delete
      * @return BulkDeleteResult containing successful and failed deletions
      */
-    BulkDeleteResult bulkDeleteV2(S3Bucket bucket, List<String> paths)
+    BulkDeleteResult bulkDeleteV2(S3Bucket bucket, List<String> paths);
 
     @Deprecated
     InputStream download(String path, EncryptionKey key) throws IOException;

@@ -7,6 +7,7 @@ import fr.dossierfacile.common.model.S3Bucket;
 import fr.dossierfacile.common.repository.StorageFileRepository;
 import fr.dossierfacile.common.service.interfaces.FileStorageProviderService;
 import fr.dossierfacile.common.service.model.BulkDeleteResult;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,17 +26,11 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Service
+@AllArgsConstructor
 public class FileBatchDeletionService {
 
     private final StorageFileRepository storageFileRepository;
     private final List<FileStorageProviderService> fileStorageProviders;
-
-    public FileBatchDeletionService(
-            StorageFileRepository storageFileRepository,
-            List<FileStorageProviderService> fileStorageProviders) {
-        this.storageFileRepository = storageFileRepository;
-        this.fileStorageProviders = fileStorageProviders;
-    }
 
     /**
      * Result of a batch deletion operation.
@@ -43,11 +38,10 @@ public class FileBatchDeletionService {
     public record BatchDeletionResult(
             int totalProcessed,
             int successfullyDeleted,
-            int markedAsFailed,
-            int skipped
+            int markedAsFailed
     ) {
         public static BatchDeletionResult empty() {
-            return new BatchDeletionResult(0, 0, 0, 0);
+            return new BatchDeletionResult(0, 0, 0);
         }
     }
 
@@ -74,7 +68,6 @@ public class FileBatchDeletionService {
         // Track deletion status for each file
         Set<Long> fullyDeletedFileIds = new HashSet<>();
         Set<Long> failedFileIds = new HashSet<>();
-        Set<Long> skippedFileIds = new HashSet<>();
 
         // Track which providers each file still needs to be deleted from
         Map<Long, Set<String>> remainingProvidersPerFile = storageFiles.stream()
@@ -162,8 +155,7 @@ public class FileBatchDeletionService {
         BatchDeletionResult result = new BatchDeletionResult(
                 storageFiles.size(),
                 deletedFromDb,
-                markedAsFailed,
-                skippedFileIds.size()
+                markedAsFailed
         );
 
         log.info("Batch deletion completed: {}", result);
