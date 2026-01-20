@@ -42,7 +42,7 @@ public class FrenchIdentityCardExpirationRule extends BaseDocumentIAValidator {
 
         var isCardValid = Optional.of(false);
 
-        var extractedDates = DocumentIAMergerMapper.map(documentIAAnalyses, DocumentExpiration.class);
+        var extractedDates = new DocumentIAMergerMapper().map(documentIAAnalyses, DocumentExpiration.class);
 
         if (extractedDates.isPresent()) {
             isCardValid = isIdentityCardValid(extractedDates.get());
