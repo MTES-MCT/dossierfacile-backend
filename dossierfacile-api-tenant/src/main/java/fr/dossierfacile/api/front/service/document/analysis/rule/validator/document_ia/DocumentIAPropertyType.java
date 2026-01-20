@@ -1,4 +1,4 @@
-package fr.dossierfacile.process.file.service.document_rules.validator.document_ia;
+package fr.dossierfacile.api.front.service.document.analysis.rule.validator.document_ia;
 
 public enum DocumentIAPropertyType {
     STRING("string"),

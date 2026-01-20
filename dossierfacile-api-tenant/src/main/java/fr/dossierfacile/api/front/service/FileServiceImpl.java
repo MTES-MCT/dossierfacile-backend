@@ -3,6 +3,7 @@ package fr.dossierfacile.api.front.service;
 import fr.dossierfacile.api.front.amqp.Producer;
 import fr.dossierfacile.api.front.exception.FileNotFoundException;
 import fr.dossierfacile.api.front.repository.FileRepository;
+import fr.dossierfacile.api.front.service.interfaces.DocumentIAService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.FileService;
 import fr.dossierfacile.common.entity.Document;
@@ -24,6 +25,8 @@ public class FileServiceImpl implements FileService {
     private final DocumentService documentService;
     private final LogService logService;
     private final Producer producer;
+    private final DocumentIAService documentIAService;
+    private final EntityManager entityManager;
 
     @Override
     @Transactional
@@ -46,7 +49,8 @@ public class FileServiceImpl implements FileService {
         }
 
         documentService.changeDocumentStatus(document, DocumentStatus.TO_PROCESS);
-        producer.sendDocumentForAnalysis(document);
+
+        documentIAService.analyseDocument(document);
         producer.sendDocumentForPdfGeneration(document);
         return document;
     }
