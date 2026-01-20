@@ -12,11 +12,11 @@ import java.util.List;
 @Slf4j
 public abstract class AbstractRulesValidationService {
 
-    abstract List<AbstractDocumentRuleValidator> getDocumentRuleValidators();
+    abstract List<AbstractDocumentRuleValidator> getDocumentRuleValidators(Document document);
 
     public DocumentAnalysisReport process(Document document, DocumentAnalysisReport report) {
         try {
-            for (var ruleValidator : getDocumentRuleValidators()) {
+            for (var ruleValidator : getDocumentRuleValidators(document)) {
                 var output = ruleValidator.validate(document);
                 switch (output.ruleLevel()) {
                     case PASSED -> report.addDocumentPassedRule(output.rule());
