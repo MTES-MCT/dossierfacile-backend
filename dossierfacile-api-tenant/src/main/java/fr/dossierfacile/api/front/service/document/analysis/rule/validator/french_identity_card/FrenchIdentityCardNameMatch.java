@@ -54,7 +54,7 @@ public class FrenchIdentityCardNameMatch extends BaseDocumentIAValidator {
 
         var isNameMatch = false;
 
-        var extractedIdentity = DocumentIAMergerMapper.map(documentIAAnalyses, DocumentIdentity.class);
+        var extractedIdentity = new DocumentIAMergerMapper().map(documentIAAnalyses, DocumentIdentity.class);
 
         if (extractedIdentity.isPresent() && extractedIdentity.get().isValid()) {
             isNameMatch = NameUtil.isNameMatching(nameToMatch, extractedIdentity.get());
