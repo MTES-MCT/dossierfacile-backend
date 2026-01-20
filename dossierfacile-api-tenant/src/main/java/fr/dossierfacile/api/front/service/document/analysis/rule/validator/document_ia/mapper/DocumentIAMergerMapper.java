@@ -1,10 +1,10 @@
-package fr.dossierfacile.process.file.service.document_rules.validator.document_ia.mapper;
+package fr.dossierfacile.api.front.service.document.analysis.rule.validator.document_ia.mapper;
 
+import fr.dossierfacile.api.front.service.document.analysis.rule.validator.document_ia.DocumentIAPropertyType;
 import fr.dossierfacile.common.entity.DocumentIAFileAnalysis;
 import fr.dossierfacile.common.model.documentIA.BarcodeModel;
 import fr.dossierfacile.common.model.documentIA.GenericProperty;
 import fr.dossierfacile.common.model.documentIA.ResultModel;
-import fr.dossierfacile.process.file.service.document_rules.validator.document_ia.DocumentIAPropertyType;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -86,6 +86,7 @@ public class DocumentIAMergerMapper {
         if (!annotation.twoDDocName().isBlank()) {
             genericProperty = listOf2DDocItems.stream()
                     .filter(it -> it.getName().equals(annotation.twoDDocName()))
+                    .filter(it -> it.getValue() != null)
                     .findFirst()
                     .orElse(null);
         }
@@ -93,6 +94,7 @@ public class DocumentIAMergerMapper {
         if (genericProperty == null && !annotation.extractionName().isBlank()) {
             genericProperty = listOfExtractionItems.stream()
                     .filter(it -> it.getName().equals(annotation.extractionName()))
+                    .filter(it -> it.getValue() != null)
                     .findFirst()
                     .orElse(null);
         }
