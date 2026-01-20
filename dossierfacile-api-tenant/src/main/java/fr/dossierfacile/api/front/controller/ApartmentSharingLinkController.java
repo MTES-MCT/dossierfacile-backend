@@ -40,8 +40,8 @@ public class ApartmentSharingLinkController {
     @GetMapping
     public ResponseEntity<LinksResponse> getApartmentSharingLinks() {
         ApartmentSharing apartmentSharing = authenticationFacade.getLoggedTenant().getApartmentSharing();
-        List<ApartmentSharingLinkModel> linksByMail = apartmentSharingLinkService.getLinks(apartmentSharing);
-        return ResponseEntity.ok(new LinksResponse(linksByMail));
+        List<ApartmentSharingLinkModel> links = apartmentSharingLinkService.getLinks(apartmentSharing);
+        return ResponseEntity.ok(new LinksResponse(links));
     }
 
     @PutMapping("/default")
