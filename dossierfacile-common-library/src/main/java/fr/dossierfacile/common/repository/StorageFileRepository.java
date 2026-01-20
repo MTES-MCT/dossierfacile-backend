@@ -6,10 +6,11 @@ import fr.dossierfacile.common.enums.FileStorageStatus;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 
 public interface StorageFileRepository extends JpaRepository<StorageFile, Long> {
@@ -56,4 +57,40 @@ public interface StorageFileRepository extends JpaRepository<StorageFile, Long> 
     );
 
     void delete(@NotNull StorageFile storageFile);
+
+    // ============ Batch operations for bulk deletion ============
+
+    /**
+     * Delete multiple storage files by their IDs in a single query.
+     * This is much more efficient than deleting one by one.
+     *
+     * @param ids Collection of storage file IDs to delete
+     * @return Number of deleted records
+     */
+    @Modifying
+    @Query("DELETE FROM StorageFile sf WHERE sf.id IN :ids")
+    int deleteAllByIdIn(@Param("ids") Collection<Long> ids);
+
+    /**
+     * Update status to DELETE_FAILED for multiple storage files.
+     * Used when storage deletion fails for some files.
+     *
+     * @param ids Collection of storage file IDs to update
+     * @param status The new status to set (typically DELETE_FAILED)
+     * @return Number of updated records
+     */
+    @Modifying
+    @Query("UPDATE StorageFile sf SET sf.status = :status WHERE sf.id IN :ids")
+    int updateStatusByIdIn(@Param("ids") Collection<Long> ids, @Param("status") FileStorageStatus status);
+
+    /**
+     * Count files pending deletion for a specific provider.
+     * Useful for monitoring the backlog.
+     *
+     * @param status The status to count (typically TO_DELETE)
+     * @param provider The storage provider
+     * @return Count of matching files
+     */
+    @Query("SELECT COUNT(sf) FROM StorageFile sf WHERE sf.status = :status AND sf.provider = :provider")
+    long countByStatusAndProvider(@Param("status") FileStorageStatus status, @Param("provider") ObjectStorageProvider provider);
 }

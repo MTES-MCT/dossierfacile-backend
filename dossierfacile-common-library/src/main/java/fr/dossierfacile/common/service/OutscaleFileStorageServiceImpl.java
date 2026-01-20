@@ -10,6 +10,7 @@ import fr.dossierfacile.common.exceptions.RetryableOperationException;
 import fr.dossierfacile.common.exceptions.UnsupportedKeyException;
 import fr.dossierfacile.common.model.S3Bucket;
 import fr.dossierfacile.common.service.interfaces.FileStorageProviderService;
+import fr.dossierfacile.common.service.model.BulkDeleteResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -26,7 +27,11 @@ import javax.crypto.spec.GCMParameterSpec;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 
 @Service("outscaleFileStorageProvider")
@@ -69,6 +74,80 @@ public class OutscaleFileStorageServiceImpl implements FileStorageProviderServic
     public void delete(String name) {
         AmazonS3 s3client = threeDSOutscaleConfig.getAmazonS3Client();
         s3client.deleteObject(bucket, name);
+    }
+
+    /**
+     * Bulk delete multiple objects using AWS S3 deleteObjects API.
+     * Supports up to 1000 objects per request.
+     *
+     * @param paths List of object paths to delete
+     * @return BulkDeleteResult with successful and failed deletions
+     */
+    @Override
+    public BulkDeleteResult bulkDelete(List<String> paths) {
+        if (paths == null || paths.isEmpty()) {
+            return BulkDeleteResult.empty();
+        }
+
+        // S3 bulk delete limit is 1000 objects per request
+        if (paths.size() > 1000) {
+            log.warn("Bulk delete request exceeds S3 limit of 1000 objects. Processing first 1000 only.");
+            paths = paths.subList(0, 1000);
+        }
+
+        Set<String> successfulPaths = new HashSet<>();
+        Map<String, String> failedPaths = new HashMap<>();
+
+        try {
+            AmazonS3 s3Client = threeDSOutscaleConfig.getAmazonS3Client();
+
+            DeleteObjectsRequest deleteRequest = new DeleteObjectsRequest(bucket)
+                    .withKeys(paths.toArray(new String[0]))
+                    .withQuiet(false);
+
+            DeleteObjectsResult result = s3Client.deleteObjects(deleteRequest);
+
+            // Track successful deletions
+            if (result.getDeletedObjects() != null) {
+                for (DeleteObjectsResult.DeletedObject deleted : result.getDeletedObjects()) {
+                    successfulPaths.add(deleted.getKey());
+                }
+            }
+
+            // Objects not in the deleted list might not have existed (which is ok)
+            for (String path : paths) {
+                if (!successfulPaths.contains(path) && !failedPaths.containsKey(path)) {
+                    successfulPaths.add(path);
+                }
+            }
+
+            log.info("Outscale bulk delete completed: {} successful, {} failed out of {} requested",
+                    successfulPaths.size(), failedPaths.size(), paths.size());
+
+            return new BulkDeleteResult(successfulPaths, failedPaths);
+
+        } catch (MultiObjectDeleteException e) {
+            // Partial failure - some objects deleted, some failed
+            if (e.getDeletedObjects() != null) {
+                for (DeleteObjectsResult.DeletedObject deleted : e.getDeletedObjects()) {
+                    successfulPaths.add(deleted.getKey());
+                }
+            }
+            if (e.getErrors() != null) {
+                for (MultiObjectDeleteException.DeleteError error : e.getErrors()) {
+                    failedPaths.put(error.getKey(), error.getCode() + ": " + error.getMessage());
+                }
+            }
+
+            log.warn("Outscale bulk delete partial failure: {} successful, {} failed",
+                    successfulPaths.size(), failedPaths.size());
+
+            return new BulkDeleteResult(successfulPaths, failedPaths);
+
+        } catch (AmazonServiceException e) {
+            log.error("Outscale bulk delete failed: {}", e.getMessage(), e);
+            return BulkDeleteResult.allFailed(paths, "Outscale error: " + e.getMessage());
+        }
     }
 
     @Override
