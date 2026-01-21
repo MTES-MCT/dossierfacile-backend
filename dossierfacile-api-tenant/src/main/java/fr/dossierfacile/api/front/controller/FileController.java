@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.springframework.http.ContentDisposition;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 @RestController
@@ -51,7 +53,10 @@ public class FileController {
         try (InputStream in = fileStorageService.download(file.getStorageFile())) {
             response.setContentType(file.getStorageFile().getContentType());
             response.setHeader("Access-Control-Expose-Headers", "Content-Disposition, Content-Type");
-            response.setHeader("Content-Disposition", "inline; filename=\"" + file.getStorageFile().getName() + "\"");
+            ContentDisposition contentDisposition = ContentDisposition.inline()
+                    .filename(file.getStorageFile().getName(), StandardCharsets.UTF_8)
+                    .build();
+            response.setHeader("Content-Disposition", contentDisposition.toString());
             response.setHeader("X-Robots-Tag", "noindex");
             IOUtils.copy(in, response.getOutputStream());
         } catch (final java.io.FileNotFoundException e) {

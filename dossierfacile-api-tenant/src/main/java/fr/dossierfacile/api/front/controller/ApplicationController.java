@@ -12,6 +12,7 @@ import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 import static org.springframework.http.ResponseEntity.accepted;
@@ -100,7 +102,10 @@ public class ApplicationController {
             FullFolderFile fullFolderFile = apartmentSharingService.zipDocuments(tenant);
             if (fullFolderFile.getFileOutputStream().size() > 0) {
                 response.setHeader("Access-Control-Expose-Headers", "Content-Disposition, Content-Type");
-                response.setHeader("Content-Disposition", String.format("attachment; filename=\"%s\"", fullFolderFile.getFileName()));
+                ContentDisposition contentDisposition = ContentDisposition.attachment()
+                        .filename(fullFolderFile.getFileName(), StandardCharsets.UTF_8)
+                        .build();
+                response.setHeader("Content-Disposition", contentDisposition.toString());
                 response.setHeader("Content-Type", "application/zip");
                 response.setHeader("X-Robots-Tag", "noindex");
                 response.getOutputStream().write(fullFolderFile.getFileOutputStream().toByteArray());
@@ -119,7 +124,10 @@ public class ApplicationController {
             FullFolderFile pdfFile = downloadSupplier.get();
             if (pdfFile.getFileOutputStream().size() > 0) {
                 response.setHeader("Access-Control-Expose-Headers", "Content-Disposition, Content-Type");
-                response.setHeader("Content-Disposition", String.format("attachment; filename=\"%s\"", pdfFile.getFileName()));
+                ContentDisposition contentDisposition = ContentDisposition.attachment()
+                        .filename(pdfFile.getFileName(), StandardCharsets.UTF_8)
+                        .build();
+                response.setHeader("Content-Disposition", contentDisposition.toString());
                 response.setHeader("Content-Type", MediaType.APPLICATION_PDF_VALUE);
                 response.setHeader("X-Robots-Tag", "noindex");
                 response.getOutputStream().write(pdfFile.getFileOutputStream().toByteArray());
