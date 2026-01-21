@@ -23,6 +23,7 @@ import java.util.Objects;
 @Setter
 @ToString
 @Builder
+@EntityListeners(FileListener.class)
 public class File implements Serializable {
 
     @Serial

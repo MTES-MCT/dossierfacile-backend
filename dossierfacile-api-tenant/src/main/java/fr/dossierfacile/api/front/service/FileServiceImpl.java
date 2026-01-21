@@ -2,6 +2,7 @@ package fr.dossierfacile.api.front.service;
 
 import fr.dossierfacile.api.front.amqp.Producer;
 import fr.dossierfacile.api.front.exception.FileNotFoundException;
+import fr.dossierfacile.api.front.exception.TenantNotFoundException;
 import fr.dossierfacile.api.front.repository.FileRepository;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.FileService;
@@ -34,8 +35,7 @@ public class FileServiceImpl implements FileService {
                 .orElseThrow(() -> new FileNotFoundException(id, tenant));
 
         Document document = file.getDocument();
-
-        detachAnalyses(file, document);
+        
         document.getFiles().remove(file);
         file.setDocument(null);
         fileRepository.delete(file);
@@ -52,21 +52,6 @@ public class FileServiceImpl implements FileService {
         producer.sendDocumentForAnalysis(document);
         producer.sendDocumentForPdfGeneration(document);
         return document;
-    }
-
-    private void detachAnalyses(File file, Document document) {
-        Long fileId = file.getId();
-        Long documentId = document != null ? document.getId() : null;
-
-        // Blurry
-        BlurryFileAnalysis blurry = file.getBlurryFileAnalysis();
-        if (blurry != null && blurry.getFile() != null) {
-            // Sauvegarde des IDs dans les champs data* si pas déjà positionnés
-            if (hasValueNull(blurry.getDataFileId())) blurry.setDataFileId(fileId);
-            if (hasValueNull(blurry.getDataDocumentId())) blurry.setDataDocumentId(documentId);
-            blurry.setFile(null);
-            entityManager.merge(blurry);
-        }
     }
 
     private boolean hasValueNull(Object v) {
