@@ -27,21 +27,21 @@ public class MailServiceImpl implements MailService {
     private final TenantCommonRepository tenantCommonRepository;
     @Value("${brevo.apikey}")
     private String sendinblueApiKey;
-    @Value("${brevo.template.id.welcome}")
+    @Value("${brevo.template.id.welcome:10}")
     private Long templateIDWelcome;
-    @Value("${brevo.template.id.new.password}")
+    @Value("${brevo.template.id.new.password:21}")
     private Long templateIdNewPassword;
     @Value("${owner.url}")
     private String ownerUrl;
-    @Value("${brevo.template.id.applicant.validated}")
+    @Value("${brevo.template.id.applicant.validated:139}")
     private Long templateIdApplicantValidated;
-    @Value("${brevo.template.id.new.applicant.validated}")
+    @Value("${brevo.template.id.new.applicant.validated:137}")
     private Long templateIdNewApplicantValidated;
-    @Value("${brevo.template.id.new.applicant.not.validated}")
+    @Value("${brevo.template.id.new.applicant.not.validated:138}")
     private Long templateIdNewApplicantNotValidated;
-    @Value("${brevo.template.id.validated.property}")
+    @Value("${brevo.template.id.validated.property:95}")
     private Long templateIdValidatedProperty;
-    @Value("${brevo.template.id.follow-up.validated.property}")
+    @Value("${brevo.template.id.follow-up.validated.property:96}")
     private Long templateIdFollowUpAfterValidatedProperty;
 
     @Value("${property.path}")
