@@ -59,14 +59,6 @@ tenant.jwt.jwk-set-uri=${keycloak.server.url}/realms/dossier-facile/protocol/ope
 # Brevo config
 # Leave this empty for dev
 brevo.apikey=
-brevo.template.id.welcome=
-brevo.template.id.new.password=
-brevo.template.id.applicant.validated=
-brevo.template.id.new.applicant=
-brevo.template.id.new.applicant.validated=
-brevo.template.id.new.applicant.not.validated=
-brevo.template.id.validated.property=
-brevo.template.id.follow-up.validated.property=
 
 # Enabled the log aggregator for spring boot API
 dossierfacile.logging.aggregator=true
