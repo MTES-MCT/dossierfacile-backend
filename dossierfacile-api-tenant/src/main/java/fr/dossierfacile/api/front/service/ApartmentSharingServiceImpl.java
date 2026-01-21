@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -223,7 +224,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
         return apartmentSharingLink.get().getApartmentSharing();
     }
 
-    private void validateAndNormalizeTrigram(ApartmentSharing apartmentSharing, String trigram) {
+    boolean validateAndNormalizeTrigram(ApartmentSharing apartmentSharing, String trigram) {
         // Check if trigram is provided
         if (trigram == null || trigram.isBlank()) {
             log.warn("Missing trigram for apartmentSharing [{}]", apartmentSharing.getId());
@@ -233,11 +234,16 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
         // Normalize trigram (strip whitespace and convert to uppercase)
         String normalizedTrigram = trigram.strip().toUpperCase();
 
-        // Get valid trigrams for this apartment sharing
+        // Get valid trigrams for this apartment sharing (from lastName and preferredName of tenant and account owner)
         List<String> validTrigrams = apartmentSharing.getTenants() == null ? List.of() : apartmentSharing.getTenants().stream()
-                .map(Tenant::getLastName)
+                .flatMap(tenant -> Stream.of(
+                        tenant.getLastName(),
+                        tenant.getPreferredName(),
+                        tenant.getUserLastName(),
+                        tenant.getUserPreferredName()))
                 .map(TrigramUtils::compute)
                 .flatMap(Optional::stream)
+                .distinct()
                 .toList();
 
         // Check if the provided trigram matches any valid trigram
@@ -247,6 +253,8 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
             log.warn("Unauthorized trigram [{}] for apartmentSharing [{}]. Valid trigrams: {}", normalizedTrigram, apartmentSharing.getId(), validTrigrams);    
             throw new TrigramNotAuthorizedException("Trigram does not match any tenant for this application");
         }
+
+        return true;
     }
 
     @Override

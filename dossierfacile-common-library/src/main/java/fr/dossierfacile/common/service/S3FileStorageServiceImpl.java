@@ -5,6 +5,7 @@ import fr.dossierfacile.common.entity.ObjectStorageProvider;
 import fr.dossierfacile.common.exceptions.RetryableOperationException;
 import fr.dossierfacile.common.model.S3Bucket;
 import fr.dossierfacile.common.service.interfaces.FileStorageProviderService;
+import fr.dossierfacile.common.service.model.BulkDeleteResult;
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,8 +30,11 @@ import java.net.URI;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Service("s3FileStorageProvider")
 @RequiredArgsConstructor
@@ -136,42 +140,112 @@ public class S3FileStorageServiceImpl implements FileStorageProviderService {
         }
     }
 
-    public void deleteListOfObjects(S3Bucket s3Bucket, List<String> listOfKeys) {
+    /**
+     * Bulk delete multiple objects from S3 with detailed error tracking.
+     * S3 supports up to 1000 objects per delete request.
+     *
+     * @param s3Bucket The target bucket
+     * @param paths List of object keys to delete
+     * @return BulkDeleteResult with successful and failed deletions
+     */
+    @Override
+    public BulkDeleteResult bulkDeleteV2(S3Bucket s3Bucket, List<String> paths) {
+        if (paths == null || paths.isEmpty()) {
+            return BulkDeleteResult.empty();
+        }
+
+        // S3 bulk delete limit is 1000 objects per request
+        if (paths.size() > 1000) {
+            log.warn("Bulk delete request exceeds S3 limit of 1000 objects. Processing first 1000 only.");
+            paths = paths.subList(0, 1000);
+        }
+
+        Set<String> successfulPaths = new HashSet<>();
+        Map<String, String> failedPaths = new HashMap<>();
+
         try {
-            List<ObjectIdentifier> objectsToDelete = listOfKeys.stream()
+            List<ObjectIdentifier> objectsToDelete = paths.stream()
                     .map(key -> ObjectIdentifier.builder().key(key).build())
                     .toList();
 
-            if (!objectsToDelete.isEmpty()) {
-                Delete delete = Delete.builder().objects(objectsToDelete).build();
-                s3Client.deleteObjects(deleteObjectsRequest ->
-                        deleteObjectsRequest.bucket(bucketMapping.get(s3Bucket)).delete(delete).build()
-                );
+            Delete delete = Delete.builder()
+                    .objects(objectsToDelete)
+                    .quiet(false) // We want detailed response
+                    .build();
+
+            DeleteObjectsRequest deleteRequest = DeleteObjectsRequest.builder()
+                    .bucket(bucketMapping.get(s3Bucket))
+                    .delete(delete)
+                    .build();
+
+            DeleteObjectsResponse response = s3Client.deleteObjects(deleteRequest);
+
+            // Track successful deletions
+            if (response.deleted() != null) {
+                for (DeletedObject deleted : response.deleted()) {
+                    successfulPaths.add(deleted.key());
+                }
             }
+
+            // Track failed deletions
+            if (response.errors() != null) {
+                for (S3Error error : response.errors()) {
+                    String errorMessage = error.code() + ": " + error.message();
+                    failedPaths.put(error.key(), errorMessage);
+                }
+            }
+
+            // Objects not in either list might not exist (which is ok for delete)
+            Set<String> processedPaths = new HashSet<>();
+            processedPaths.addAll(successfulPaths);
+            processedPaths.addAll(failedPaths.keySet());
+
+            for (String path : paths) {
+                if (!processedPaths.contains(path)) {
+                    // Object wasn't in response - likely didn't exist, consider it successful
+                    successfulPaths.add(path);
+                }
+            }
+
+            log.info("S3 bulk delete completed for bucket {}: {} successful, {} failed out of {} requested",
+                    s3Bucket, successfulPaths.size(), failedPaths.size(), paths.size());
+
+            return new BulkDeleteResult(successfulPaths, failedPaths);
+
+        } catch (S3Exception e) {
+            // Server-side errors (permissions, bucket not found, etc.)
+            log.error("S3 bulk delete server error for bucket {}: {} - {}", s3Bucket, e.awsErrorDetails().errorCode(), e.getMessage(), e);
+            return BulkDeleteResult.allFailed(paths, "S3 server error: " + e.awsErrorDetails().errorCode() + " - " + e.getMessage());
         } catch (SdkClientException e) {
-            log.error("Error deleting list of objects from S3 bucket: {}", e.getMessage());
-            throw new RuntimeException("Failed to delete list of objects from S3 bucket", e);
+            // Client-side errors (network, configuration, etc.)
+            log.error("S3 bulk delete client error for bucket {}: {}", s3Bucket, e.getMessage(), e);
+            return BulkDeleteResult.allFailed(paths, "S3 client error: " + e.getMessage());
         }
     }
 
     @Override
     public List<String> listObjectNames(@Nullable String marker, int maxObjects) {
-        throw new NotImplementedException();
+        throw new NotImplementedException("S3 does not support listObjectNames operation");
     }
 
     @Override
     public void upload(String path, InputStream inputStream, EncryptionKey key, String contentType) throws RetryableOperationException, IOException {
-        throw new NotImplementedException();
+        throw new NotImplementedException("S3 does not support upload operation");
     }
 
     @Override
     public void delete(String path) {
-        throw new NotImplementedException();
+        throw new NotImplementedException("S3 does not support delete operation");
     }
 
     @Override
     public InputStream download(String path, EncryptionKey key) throws IOException {
-        throw new NotImplementedException();
+        throw new NotImplementedException("S3 does not support download operation");
+    }
+
+    @Override
+    public BulkDeleteResult bulkDelete(List<String> paths) {
+        throw new NotImplementedException("S3 does not support bulkDelete operation");
     }
 
     private GetObjectRequest getObjectRequest(S3Bucket bucket, String path, EncryptionKey key) throws NoSuchAlgorithmException {

@@ -60,7 +60,7 @@ public class GarbageCollectionService {
         var orphanFiles = s3Client.listObjectNamesV2(bucket, prefix);
         if (CollectionUtils.isNotEmpty(orphanFiles)) {
             log.info("Found {} orphan files for tenant id : {} in bucket {}", orphanFiles.size(), tenantId, bucket);
-            s3Client.deleteListOfObjects(bucket, orphanFiles);
+            s3Client.bulkDeleteV2(bucket, orphanFiles);
         } else {
             log.info("No orphan files found for tenant id : {} in bucket {}", tenantId, bucket);
         }

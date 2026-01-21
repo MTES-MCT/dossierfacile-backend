@@ -34,6 +34,7 @@ import java.util.Set;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.trimToNull;
 
 @Entity
 @Table(name = "user_account")
@@ -138,5 +139,17 @@ public abstract class User implements Serializable {
     public String getFullName() {
         String displayName = isBlank(getPreferredName()) ? getLastName() : getPreferredName();
         return isNotBlank(getFirstName()) && isNotBlank(displayName) ? String.join(" ", getFirstName(), displayName) : "";
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = trimToNull(firstName);
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = trimToNull(lastName);
+    }
+
+    public void setPreferredName(String preferredName) {
+        this.preferredName = trimToNull(preferredName);
     }
 }
