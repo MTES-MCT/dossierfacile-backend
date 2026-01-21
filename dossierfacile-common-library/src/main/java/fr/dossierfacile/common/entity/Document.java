@@ -95,6 +95,7 @@ public class Document implements Serializable {
     @Builder.Default
     private Boolean avisDetected = false;
 
+    // We need to implement a cascade set null on delete !
     @Nullable
     @OneToOne(mappedBy = "document", fetch = FetchType.LAZY)
     private DocumentAnalysisReport documentAnalysisReport;
@@ -103,6 +104,9 @@ public class Document implements Serializable {
     void deleteCascade() {
         if (watermarkFile != null)
             watermarkFile.setStatus(FileStorageStatus.TO_DELETE);
+        if (documentAnalysisReport != null) {
+            documentAnalysisReport.setDocument(null);
+        }
     }
 
     @Override

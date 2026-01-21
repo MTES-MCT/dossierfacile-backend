@@ -32,7 +32,7 @@ public class File implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
+    @OneToOne(cascade = {CascadeType.MERGE})
     @JoinColumn(name = "storage_file_id")
     private StorageFile storageFile;
 
@@ -52,19 +52,20 @@ public class File implements Serializable {
     private Date creationDateTime = new Date();
 
     @Nullable
-    @OneToOne(mappedBy = "file", fetch = FetchType.LAZY)
+    @OneToOne(cascade = {CascadeType.REMOVE}, mappedBy = "file", fetch = FetchType.LAZY)
     private BarCodeFileAnalysis fileAnalysis;
 
     @Nullable
-    @OneToOne(mappedBy= "file", fetch = FetchType.LAZY)
+    @OneToOne(cascade = {CascadeType.REMOVE}, mappedBy= "file", fetch = FetchType.LAZY)
     private ParsedFileAnalysis parsedFileAnalysis;
 
+    // We need to implement a cascade set null on delete !
     @Nullable
     @OneToOne(mappedBy = "file", fetch = FetchType.LAZY)
     private BlurryFileAnalysis blurryFileAnalysis;
 
     @Nullable
-    @OneToOne(mappedBy = "file", fetch = FetchType.LAZY)
+    @OneToOne(cascade = {CascadeType.REMOVE}, mappedBy = "file", fetch = FetchType.LAZY)
     private FileMetadata fileMetadata;
 
     @PreRemove
@@ -73,6 +74,9 @@ public class File implements Serializable {
             storageFile.setStatus(FileStorageStatus.TO_DELETE);
         if (preview != null)
             preview.setStatus(FileStorageStatus.TO_DELETE);
+        if (blurryFileAnalysis != null) {
+            blurryFileAnalysis.setFile(null);
+        }
     }
 
     @Override
