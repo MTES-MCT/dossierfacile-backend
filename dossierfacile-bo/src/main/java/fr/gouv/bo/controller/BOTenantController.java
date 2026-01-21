@@ -263,16 +263,13 @@ public class BOTenantController {
         return itemDetails;
     }
 
-    private CustomMessage getCustomMessage(Tenant tenant) {
+    private List<MessageItem> getMessageItemsForDocuments(List<Document> documents, Tenant tenant) {
+        List<MessageItem> messageItems = new ArrayList<>();
 
-        CustomMessage customMessage = new CustomMessage();
-
-        List<Document> documents = tenant.getDocuments();
-        documents.sort(Comparator.comparing(Document::getDocumentCategory));
         for (Document document : documents) {
             if (document.getDocumentStatus().equals(DocumentStatus.TO_PROCESS)) {
-                
-                customMessage.getMessageItems().add(MessageItem.builder()
+                var messageItemBuilder = MessageItem.builder();
+                messageItemBuilder
                         .monthlySum(document.getMonthlySum())
                         .newMonthlySum(document.getMonthlySum())
                         .customTex(document.getCustomText())
@@ -287,10 +284,29 @@ public class BOTenantController {
                         .analyzedFiles(DisplayableFile.onlyAnalyzedFilesOf(document))
                         .previousDeniedReasons(documentDeniedReasonsService.getLastDeniedReason(document, tenant).orElse(null))
                         .documentAnalysisReport(document.getDocumentAnalysisReport())
-                        .analysisReportComment(document.getDocumentAnalysisReport() != null && (DocumentAnalysisStatus.DENIED == document.getDocumentAnalysisReport().getAnalysisStatus()) ? document.getDocumentAnalysisReport().getComment() : null)
-                        .build());
+                        .analysisReportComment(document.getDocumentAnalysisReport() != null && (DocumentAnalysisStatus.DENIED == document.getDocumentAnalysisReport().getAnalysisStatus()) ? document.getDocumentAnalysisReport().getComment() : null);
+
+                var resultList = document.getFiles().stream().filter(
+                        it -> it.getDocumentIAFileAnalysis() != null && it.getDocumentIAFileAnalysis().getAnalysisStatus() == DocumentIAFileAnalysisStatus.SUCCESS
+                ).map(
+                        file -> file.getDocumentIAFileAnalysis().getResult()
+                ).toList();
+
+                messageItemBuilder.documentIAResults(resultList);
+                messageItems.add(messageItemBuilder.build());
             }
         }
+        return messageItems;
+    }
+
+    private CustomMessage getCustomMessage(Tenant tenant) {
+
+        CustomMessage customMessage = new CustomMessage();
+
+        List<Document> documents = tenant.getDocuments();
+        documents.sort(Comparator.comparing(Document::getDocumentCategory));
+
+        customMessage.setMessageItems(getMessageItemsForDocuments(documents, tenant));
 
         for (Guarantor guarantor : tenant.getGuarantors()) {
             GuarantorItem guarantorItem = GuarantorItem.builder()
@@ -303,30 +319,10 @@ public class BOTenantController {
 
             documents = guarantor.getDocuments();
             documents.sort(Comparator.comparing(Document::getDocumentCategory));
-            for (Document document : documents) {
-                if (document.getDocumentStatus().equals(DocumentStatus.TO_PROCESS)) {
-
-                    guarantorItem.getMessageItems().add(MessageItem.builder()
-                            .monthlySum(document.getMonthlySum())
-                            .newMonthlySum(document.getMonthlySum())
-                            .avisDetected(document.getAvisDetected())
-                            .customTex(document.getCustomText())
-                            .documentCategory(document.getDocumentCategory())
-                            .documentSubCategory(document.getDocumentSubCategory())
-                            .documentCategoryStep(document.getDocumentCategoryStep())
-                            .itemDetailList(getItemDetailForSubcategoryOfDocument(document.getDocumentCategory(), document.getDocumentSubCategory(), GUARANTOR))
-                            .documentId(document.getId())
-                            .documentName(document.getName())
-                            .metadataOfFiles(getFilesMetadata(document))
-                            .analyzedFiles(DisplayableFile.onlyAnalyzedFilesOf(document))
-                            .documentAnalysisReport(document.getDocumentAnalysisReport())
-                            .analysisReportComment(document.getDocumentAnalysisReport() != null && (DocumentAnalysisStatus.DENIED == document.getDocumentAnalysisReport().getAnalysisStatus()) ? document.getDocumentAnalysisReport().getComment() : null)
-                            .previousDeniedReasons(documentDeniedReasonsService.getLastDeniedReason(document, tenant).orElse(null))
-                            .build());
-                }
-            }
+            guarantorItem.setMessageItems(getMessageItemsForDocuments(documents, tenant));
             customMessage.getGuarantorItems().add(guarantorItem);
         }
+
         return customMessage;
     }
 

@@ -227,6 +227,13 @@
                                           )}">
                                         </div>
                                     </div>
+                                    <div th:if="${messageItem.documentIAResults.size() != 0}">
+                                        <div th:replace="~{bo/fragments/document-ia-data :: documentIA(
+                                            iaResults=${messageItem.documentIAResults},
+                                            uid=${(messageItem.getDocumentId() != null) ? 'document-ia-' + messageItem.getDocumentId() : 'document-ia' + iter.index}
+                                          )}">
+                                        </div>
+                                    </div>
                                     <!-- contenu si le rapport n'existe pas (else) -->
                                     <div th:unless="${messageItem.documentAnalysisReport != null}"
                                          th:class="${'prevalidation-background-UNDEFINED'}">
