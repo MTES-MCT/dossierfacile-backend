@@ -7,6 +7,7 @@ import fr.dossierfacile.common.enums.ApartmentSharingLinkType;
 import fr.dossierfacile.common.enums.LinkType;
 import fr.dossierfacile.common.repository.LinkLogRepository;
 import fr.gouv.bo.dto.ApartmentSharingLinkEnrichedDTO;
+import fr.gouv.bo.dto.LinkLogDTO;
 import fr.gouv.bo.service.UserApiService;
 import fr.gouv.bo.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -79,7 +80,7 @@ class BOApartmentSharingControllerTest {
 
         // Verify that accessLogs contains all visit types
         assertThat(enrichedLink.getAccessLogs()).hasSize(5)
-                .extracting(LinkLog::getLinkType)
+                .extracting(LinkLogDTO::getLinkType)
                 .containsExactlyInAnyOrder(
                     LinkType.DOCUMENT,
                     LinkType.DOCUMENT,
