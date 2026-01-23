@@ -410,22 +410,20 @@
                             <!-- Section Partages supprimés -->
                             <div class="deleted-shares-section" 
                                  th:with="
-                                   deletedLinksFiltered=${deletedLinks.?[linkType.toString() == 'LINK']},
-                                   deletedMails=${deletedLinks.?[linkType.toString() == 'MAIL']},
-                                   deletedOwners=${deletedLinks.?[linkType.toString() == 'OWNER']},
-                                   deletedPartners=${deletedLinks.?[linkType.toString() == 'PARTNER']}">
+                                   deletedLinksFiltered=${inactiveLinks.?[linkType.toString() == 'LINK']},
+                                   deletedMails=${inactiveLinks.?[linkType.toString() == 'MAIL']},
+                                   deletedOwners=${inactiveLinks.?[linkType.toString() == 'OWNER']},
+                                   deletedPartners=${inactiveLinks.?[linkType.toString() == 'PARTNER']}">
                                 
                                 <h2 class="deleted-shares-title">Partages supprimés</h2>
                                 
                                 <div class="deleted-shares-categories">
-                                    <!-- Catégorie : Partages par lien (LINK) - Toujours affichée -->
                                     <div class="deleted-category">
                                         <div class="deleted-category-header">
                                             <p class="deleted-category-title">
                                                 Partages par lien (<span th:text="${#lists.size(deletedLinksFiltered)}">0</span>)
                                             </p>
-                                            <!-- Bouton visible uniquement si la catégorie n'est pas vide -->
-                                            <button class="btn btn-voir-plus" 
+                                            <button class="btn btn-voir-plus"
                                                     type="button" 
                                                     data-bs-toggle="collapse" 
                                                     data-bs-target="#deleted-links"
@@ -446,7 +444,6 @@
                                         </div>
                                     </div>
                                     
-                                    <!-- Catégorie : Partages par email (MAIL) - Toujours affichée -->
                                     <div class="deleted-category">
                                         <div class="deleted-category-header">
                                             <p class="deleted-category-title">
@@ -473,7 +470,6 @@
                                         </div>
                                     </div>
                                     
-                                    <!-- Catégorie : Propriétaires DossierFacile (OWNER) - Toujours affichée -->
                                     <div class="deleted-category">
                                         <div class="deleted-category-header">
                                             <p class="deleted-category-title">
@@ -500,7 +496,6 @@
                                         </div>
                                     </div>
                                     
-                                    <!-- Catégorie : Partenaires (PARTNER) - Toujours affichée -->
                                     <div class="deleted-category">
                                         <div class="deleted-category-header">
                                             <p class="deleted-category-title">
@@ -528,88 +523,6 @@
                                     </div>
                                 </div>
                             </div>
-                            <!-- Fin section Partages supprimés -->
-                            
-                            <h2>Liste des liens de partage:</h2>
-                            <table class="table table-striped table-bordered table-hover">
-                                <tr>
-                                    <th>Type</th>
-                                    <th>Accès</th>
-                                    <th>Lien</th>
-                                    <th>Expire le</th>
-                                    <th>Action</th>
-                                </tr>
-                                <tr th:each="link : ${apartmentSharing.apartmentSharingLinks}" th:if="${link.linkType.toString() != 'MAIL'}">
-                                    <td th:text="${link.linkType}"></td>
-                                    <td th:text="${link.fullData ? 'full' : 'restricted'}"></td>
-                                    <td>
-                                        <a
-                                            target="_blank"
-                                            th:attr="href=${tenantBaseUrl + (link.fullData ? '/file/' : '/public-file/') + link.token}"
-                                            th:text="${link.token}"></a>
-                                    </td>
-                                    <td th:text="${link.expirationDate}"></td>
-                                    <td>
-                                        <form th:action="@{/bo/colocation/{id}/tokens/{token}(id=${apartmentSharing.id},token=${link.token})}" th:method="post">
-                                            <button class="btn btn-outline-danger btn-modal-confirm-before-submit" type="button">Régénérer</button>
-                                            <div class="modal" role="dialog" tabindex="-1">
-                                                <div class="modal-dialog" role="document">
-                                                    <div class="modal-content">
-                                                        <div class="modal-body">Voulez-vous régénérer ce token ?</div>
-                                                        <div class="modal-footer">
-                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                                                            <button type="submit" class="btn btn-primary">Valider</button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </form>
-                                    </td>
-                                </tr>
-                            </table>
-                            <h2>Liste des liens envoyés:</h2>
-                            <table class="table table-striped table-bordered table-hover">
-                                <tr>
-                                    <th>Type</th>
-                                    <th>Email</th>
-                                    <th>Token</th>
-                                    <th>Action</th>
-                                </tr>
-                                <tr th:each="link : ${apartmentSharing.apartmentSharingLinks}" th:if="${link.linkType.toString() == 'MAIL'}">
-                                    <td th:text="${link.linkType}"></td>
-                                    <td th:text="${link.email}"></td>
-                                    <td th:text="${link.token}"></td>
-                                    <td>
-                                        <form th:action="@{/bo/colocation/{id}/apartmentSharingLinks/{link_id}(id=${apartmentSharing.id},link_id=${link.id})}"
-                                              th:method="delete">
-                                            <button class="btn btn-outline-danger btn-modal-confirm-before-submit"
-                                                    type="button">
-                                                Supprimer
-                                            </button>
-                                            <div class="modal" role="dialog" tabindex="-1">
-                                                <div class="modal-dialog" role="document">
-                                                    <div class="modal-content">
-                                                        <div class="modal-body">
-                                                            <div class="modal-body">
-                                                                Voulez-vous supprimer le lien?
-                                                            </div>
-
-                                                            <div class="modal-footer">
-                                                                <button type="button" class="btn btn-secondary"
-                                                                        data-bs-dismiss="modal">Annuler
-                                                                </button>
-                                                                <button class="btn  btn-primary " type="submit">
-                                                                    Valider
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </form>
-                                    </td>
-                                </tr>
-                            </table>
                         </div>
                     </div>
                 </div>
@@ -783,7 +696,6 @@
                                                     </button>
                                                 </div>
                                             </form>
-
                                         </div>
                                     </div>
                                 </div>

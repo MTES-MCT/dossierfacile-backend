@@ -59,7 +59,7 @@ public class BOApartmentSharingController {
     private static final String FILES_BY_DOCUMENT = "filesByDocument";
     private static final String TENANT_BASE_URL = "tenantBaseUrl";
     private static final String ACTIVE_LINKS = "activeLinks";
-    private static final String DELETED_LINKS = "deletedLinks";
+    private static final String INACTIVE_LINKS = "inactiveLinks";
 
     private final TenantService tenantService;
     private final ApartmentSharingLinkService apartmentSharingLinkService;
@@ -85,10 +85,10 @@ public class BOApartmentSharingController {
         List<ApartmentSharingLinkEnrichedDTO> enrichedLinks = enrichApartmentSharingLinks(filteredLinks);
 
         List<ApartmentSharingLinkEnrichedDTO> activeLinks = enrichedLinks.stream()
-                .filter(link -> !link.isDeleted() && link.getExpirationDate().isAfter(LocalDateTime.now()))
+                .filter(ApartmentSharingLinkEnrichedDTO::isActive)
                 .toList();
 
-        List<ApartmentSharingLinkEnrichedDTO> deletedLinks = enrichedLinks.stream()
+        List<ApartmentSharingLinkEnrichedDTO> inactiveLinks = enrichedLinks.stream()
                 .filter(link -> !activeLinks.contains(link))
                 .toList();
 
@@ -105,7 +105,7 @@ public class BOApartmentSharingController {
         model.addAttribute(NOW, LocalDateTime.now());
         model.addAttribute(FILES_BY_DOCUMENT, getFilesByDocument(tenants));
         model.addAttribute(TENANT_BASE_URL, tenantBaseUrl);
-        model.addAttribute(DELETED_LINKS, deletedLinks);
+        model.addAttribute(INACTIVE_LINKS, inactiveLinks);
         model.addAttribute(ACTIVE_LINKS, activeLinks);
 
         return "bo/apartment-sharing-view";
