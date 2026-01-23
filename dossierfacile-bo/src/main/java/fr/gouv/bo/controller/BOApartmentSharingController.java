@@ -13,6 +13,7 @@ import fr.dossierfacile.common.repository.LinkLogRepository;
 import fr.dossierfacile.common.service.ApartmentSharingLinkService;
 import fr.gouv.bo.dto.ApartmentSharingLinkEnrichedDTO;
 import fr.gouv.bo.dto.DisplayableFile;
+import fr.gouv.bo.dto.LinkLogDTO;
 import fr.gouv.bo.dto.MessageDTO;
 import fr.gouv.bo.dto.PartnerDTO;
 import fr.gouv.bo.service.TenantLogService;
@@ -173,7 +174,9 @@ public class BOApartmentSharingController {
                 .filter(log -> visitLogTypes.contains(log.getLinkType()))
                 .sorted(Comparator.comparing(LinkLog::getCreationDate).reversed())
                 .toList();
-        dto.setAccessLogs(accessLogs);
+        dto.setAccessLogs(accessLogs.stream()
+                .map(LinkLogDTO::fromEntity)
+                .toList());
 
         if (!accessLogs.isEmpty()) {
             dto.setFirstVisit(accessLogs.getLast().getCreationDate());
