@@ -87,6 +87,7 @@ brevo.template.id.dossier.tenant.denied.with.partner.and.details=
 brevo.template.id.message.notification.with.partner=
 brevo.template.id.dossier.fully.validated.with.partner=
 brevo.template.id.dossier.tenant.denied.with.partner=
+brevo.template.id.partner.access.revoked=
 ```
 
 **Important**: This step is crucial because Google SSO is configured with this specific redirect URI. Omitting this will result in a `redirect_uri_mismatch` error during login: `Erreur 400 : redirect_uri_mismatch`
