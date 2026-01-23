@@ -38,7 +38,7 @@ public class ApartmentSharingPdfDossierFileGenerationServiceImpl implements Apar
         // Mark previous pdfDossierFile as TO_DELETE before replacing
         StorageFile previousPdfDossierFile = apartmentSharing.getPdfDossierFile();
         if (previousPdfDossierFile != null) {
-            log.warn("Previous pdfDossierFile {} was deleted during PDF generation, marking pdfDossierFile as TO_DELETE", previousPdfDossierFile.getId());
+            log.warn("Deleting previous pdfDossierFile {} before setting new one, marking pdfDossierFile as TO_DELETE", previousPdfDossierFile.getId());
             fileStorageService.delete(previousPdfDossierFile);
         }
 
