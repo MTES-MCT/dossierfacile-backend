@@ -162,6 +162,19 @@
     color: #000;
 }
 
+/* Bouton Supprimer le lien */
+.partage-actions-buttons .btn-delete-link {
+    background-color: #dc3545;
+    border: 1px solid #dc3545;
+    color: #fff;
+}
+
+.partage-actions-buttons .btn-delete-link:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+    color: #fff;
+}
+
 /* Body de la carte */
 .partage-body {
     padding: 10px 16px;

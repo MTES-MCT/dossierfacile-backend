@@ -257,11 +257,11 @@
                                                         </form>
                                                     </span>
                                                     <!-- Bouton Supprimer (commun à tous les types) -->
-                                                    <form th:action="@{/bo/colocation/{id}/apartmentSharingLinks/{link_id}(id=${apartmentSharing.id},link_id=${link.id})}" 
-                                                          th:method="delete" 
+                                                    <form th:action="@{/bo/colocation/{id}/apartmentSharingLinks/{link_id}(id=${apartmentSharing.id},link_id=${link.id})}"
+                                                          th:method="delete"
                                                           style="display: inline;"
                                                           onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce lien ?');">
-                                                        <button type="submit" class="btn btn-outline-secondary btn-sm">
+                                                        <button type="submit" class="btn btn-sm btn-delete-link">
                                                             Supprimer le lien
                                                         </button>
                                                     </form>
