@@ -111,13 +111,8 @@ public class DocumentServiceImpl implements DocumentService {
                             fileStorageService.delete(document.getWatermarkFile());
                             document.setWatermarkFile(null);
                         }
-                        if (document.getDocumentAnalysisReport() != null) {
-                            documentAnalysisReportRepository.delete(document.getDocumentAnalysisReport());
-                            document.setDocumentAnalysisReport(null);
-                        }
                         documentRepository.save(document);
-
-                        producer.sendDocumentForAnalysis(document);// analysis should be relaunched for update rules
+                        documentIAService.analyseDocument(document);
                         if (Boolean.TRUE == document.getNoDocument()) {
                             producer.sendDocumentForPdfGeneration(document);
                         }
