@@ -1,9 +1,9 @@
-package fr.dossierfacile.api.front.service.document.analysis.rule.validator.french_identity_card;
+package fr.dossierfacile.api.front.service.document.analysis.rule.validator.payslip;
 
 import fr.dossierfacile.api.front.service.document.analysis.rule.validator.RuleValidatorOutput;
 import fr.dossierfacile.api.front.service.document.analysis.rule.validator.document_ia.BaseDocumentIAValidator;
-import fr.dossierfacile.api.front.service.document.analysis.rule.validator.document_ia.mapper.DocumentIAMergerMapper;
-import fr.dossierfacile.api.front.service.document.analysis.rule.validator.french_identity_card.document_ia_model.DocumentIdentity;
+import fr.dossierfacile.api.front.service.document.analysis.rule.validator.document_ia.mapper.DocumentIAMultiMapper;
+import fr.dossierfacile.api.front.service.document.analysis.rule.validator.payslip.document_ia_model.PayslipNames;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentAnalysisRule;
 import fr.dossierfacile.common.entity.DocumentRule;
@@ -14,7 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.ArrayList;
 
 @Slf4j
-public class FrenchIdentityCardNameMatch extends BaseDocumentIAValidator {
+public class PayslipNameMatch extends BaseDocumentIAValidator {
 
     @Override
     protected boolean isBlocking() {
@@ -28,7 +28,7 @@ public class FrenchIdentityCardNameMatch extends BaseDocumentIAValidator {
 
     @Override
     protected DocumentRule getRule() {
-        return DocumentRule.R_FRENCH_IDENTITY_CARD_NAME_MATCH;
+        return DocumentRule.R_PAYSLIP_NAME_MATCH;
     }
 
     @Override
@@ -43,7 +43,7 @@ public class FrenchIdentityCardNameMatch extends BaseDocumentIAValidator {
             expectedDatas.add(new GenericProperty("preferredName", nameToMatch.getPreferredName() != null ? nameToMatch.getPreferredName() : "N/A", "String"));
         }
 
-        if (documentIAAnalyses.isEmpty()) {
+        if (documentIAAnalyses.isEmpty() || hasAnyNonSuccessfulDocumentIAAnalyses(document)) {
             return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFromWithData(getRule(), expectedDatas), RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
         }
 
@@ -51,20 +51,19 @@ public class FrenchIdentityCardNameMatch extends BaseDocumentIAValidator {
             return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFromWithData(getRule(), expectedDatas), RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
         }
 
-        var isNameMatch = false;
+        var isNameMatch = true;
 
-        var extractedIdentity = new DocumentIAMergerMapper().map(documentIAAnalyses, DocumentIdentity.class);
-
-        if (extractedIdentity.isPresent() && extractedIdentity.get().isValid()) {
-            isNameMatch = NameUtil.isNameMatching(nameToMatch, extractedIdentity.get());
-        } else {
-            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFromWithData(getRule(), expectedDatas), RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
-        }
+        var extractedIdentities = new DocumentIAMultiMapper().map(documentIAAnalyses, PayslipNames.class);
 
         var extractedDatas = new ArrayList<GenericProperty>();
-        extractedDatas.add(new GenericProperty("firstNames", extractedIdentity.get().getFirstNamesAsString(), "String"));
-        extractedDatas.add(new GenericProperty("lastName", extractedIdentity.get().getLastName(), "String"));
-        extractedDatas.add(new GenericProperty("preferredName", extractedIdentity.get().getPreferredName() != null ? extractedIdentity.get().getPreferredName() : "N/A", "String"));
+        var i = 1;
+        for (PayslipNames name : extractedIdentities) {
+            if (!NameUtil.isNameMatching(nameToMatch, name)) {
+                isNameMatch = false;
+            }
+            extractedDatas.add(new GenericProperty("document" + i, name.getFirstNames() + " " + name.getLastName(), "String"));
+            i++;
+        }
 
         if (isNameMatch) {
             return new RuleValidatorOutput(true, isBlocking(), DocumentAnalysisRule.documentPassedRuleFromWithData(getRule(), expectedDatas, extractedDatas), RuleValidatorOutput.RuleLevel.PASSED);

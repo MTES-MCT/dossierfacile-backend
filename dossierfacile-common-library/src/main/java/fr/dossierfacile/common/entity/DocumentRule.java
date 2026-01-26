@@ -213,6 +213,18 @@ public enum DocumentRule {
             "La carte d'identité est expirée",
             "La carte d'identité est valide",
             "Impossible de vérifier la date de validité de la carte d'identité"
+    ),
+    R_PAYSLIP_CONTINUITY(
+            DocumentRuleLevel.CRITICAL,
+            "Les bulletins de salaire ne sont pas continus",
+            "Les bulletins de salaire sont continus",
+            "Impossible de vérifier la continuité des bulletins de salaire"
+    ),
+    R_PAYSLIP_NAME_MATCH(
+            DocumentRuleLevel.CRITICAL,
+            "Le nom et le prénom sur les bulletins de salaire ne correspondent pas",
+            "Le nom et le prénom sur les bulletins de salaire correspondent",
+            "Impossible de vérifier le nom et le prénom sur les bulletins de salaire"
     );
 
     private final DocumentRuleLevel level;
