@@ -237,8 +237,9 @@ public class BOTenantController {
     @PostMapping("/{id}/comment")
     public String addOperatorComment(@PathVariable("id") Long tenantId,
                                      @RequestParam String comment,
-                                     @RequestParam(value = "returnTo", required = false) String returnTo) {
-        Tenant tenant = tenantService.addOperatorComment(tenantId, comment);
+                                     @RequestParam(value = "returnTo", required = false) String returnTo,
+                                     @AuthenticationPrincipal UserPrincipal principal) {
+        Tenant tenant = tenantService.addOperatorComment(principal, tenantId, comment);
         if ("processFile".equals(returnTo)) {
             return REDIRECT_BO_HOME + "/tenant/" + tenantId + "/processFile";
         }
