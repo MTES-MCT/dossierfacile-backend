@@ -55,10 +55,25 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
             tenantUserApiRepository.save(tenantUserApi);
 
             ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
-            ApartmentSharingLink apartmentSharingLink = buildApartmentSharingLink(userApi, apartmentSharing, false);
-            ApartmentSharingLink apartmentSharingLinkFull = buildApartmentSharingLink(userApi, apartmentSharing, true);
-            apartmentSharingLinkRepository.save(apartmentSharingLink);
-            apartmentSharingLinkRepository.save(apartmentSharingLinkFull);
+
+            // Check if PARTNER links already exist for this apartment sharing and partner
+            List<ApartmentSharingLink> existingLinks = apartmentSharingLinkRepository
+                    .findByApartmentSharingAndPartnerIdAndLinkTypeAndDeletedIsFalse(
+                            apartmentSharing,
+                            userApi.getId(),
+                            ApartmentSharingLinkType.PARTNER
+                    );
+
+            if (existingLinks.isEmpty()) {
+                ApartmentSharingLink apartmentSharingLink = buildApartmentSharingLink(userApi, apartmentSharing, false);
+                ApartmentSharingLink apartmentSharingLinkFull = buildApartmentSharingLink(userApi, apartmentSharing, true);
+                apartmentSharingLinkRepository.save(apartmentSharingLink);
+                apartmentSharingLinkRepository.save(apartmentSharingLinkFull);
+                log.info("Created PARTNER links for tenant {} and partner {}", tenant.getId(), userApi.getId());
+            } else {
+                log.info("PARTNER links already exist for apartmentSharing {} and partner {}, skipping creation",
+                        apartmentSharing.getId(), userApi.getId());
+            }
 
             if (userApi.getVersion() != null && userApi.getUrlCallback() != null && (
                     tenant.getStatus() == TenantFileStatus.VALIDATED
@@ -85,12 +100,22 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
     }
 
     private List<UserApi> findAllUserApi(ApartmentSharing as) {
-        return as.getTenants() == null ? Collections.emptyList() :
-                as.getTenants().stream()
-                        .flatMap(t -> t.getTenantsUserApi() == null ? Stream.empty() : t.getTenantsUserApi().stream())
-                        .map(TenantUserApi::getUserApi)
-                        .distinct()
-                        .collect(Collectors.toList());
+        if (as.getTenants() == null) {
+            return Collections.emptyList();
+        }
+
+        return as.getTenants().stream()
+                .flatMap(this::getTenantUserApiStream)
+                .map(TenantUserApi::getUserApi)
+                .distinct()
+                .toList();
+    }
+
+    private Stream<TenantUserApi> getTenantUserApiStream(Tenant tenant) {
+        if (tenant.getTenantsUserApi() == null) {
+            return Stream.empty();
+        }
+        return tenant.getTenantsUserApi().stream();
     }
 
     // TODO send callback should be transactionnal or have DTO
