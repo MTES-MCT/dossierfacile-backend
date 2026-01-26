@@ -8,7 +8,6 @@ import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
-import fr.dossierfacile.common.repository.ApartmentSharingLinkRepository;
 
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -42,7 +41,7 @@ public class ApplicationController {
 
     @GetMapping(value = "/full/{token}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ApplicationModel> full(@PathVariable UUID token,
-                                                 @RequestHeader(value = "X-Tenant-Trigram", required = false) String trigramHeader) {
+                                                 @RequestHeader(value = "X-Tenant-Trigram", required = true) String trigramHeader) {
         ApplicationModel applicationModel = apartmentSharingService.full(token, trigramHeader);
         return ok(applicationModel);
     }
