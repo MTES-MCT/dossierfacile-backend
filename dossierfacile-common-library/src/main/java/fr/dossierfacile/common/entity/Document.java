@@ -96,6 +96,10 @@ public class Document implements Serializable {
     private Boolean avisDetected = false;
 
     // We need to implement a cascade set null on delete !
+    // Since Spring boot 3.5.8 and Hibernate 6.2.11, when a foreign key doesn't have a cascade on delete, but a sql set null action.
+    // We need to manually set the relation to null before deleting the parent entity.
+    // So we use a @PreRemove method to set the documentAnalysisReport to null before deleting the document.
+    // Otherwise, we get an exception transient object error.
     @Nullable
     @OneToOne(mappedBy = "document", fetch = FetchType.LAZY)
     private DocumentAnalysisReport documentAnalysisReport;
