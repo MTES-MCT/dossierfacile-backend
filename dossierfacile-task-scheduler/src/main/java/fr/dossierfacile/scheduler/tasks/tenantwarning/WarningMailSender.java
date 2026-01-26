@@ -34,9 +34,9 @@ public class WarningMailSender {
     private String ownerBaseUrl;
     @Value("${brevo.owner.url.domain:proprietaire.dossierfacile.fr}")
     private String sendinBlueOwnerUrlDomain;
-    @Value("${brevo.template.id.first.warning.for.deletion.of.documents}")
+    @Value("${brevo.template.id.first.warning.for.deletion.of.documents:58}")
     private Long templateFirstWarningForDeletionOfDocuments;
-    @Value("${brevo.template.id.second.warning.for.deletion.of.documents}")
+    @Value("${brevo.template.id.second.warning.for.deletion.of.documents:59}")
     private Long templateSecondWarningForDeletionOfDocuments;
     @Value("${brevo.template.id.first.warning.for.deletion.of.owner:144}")
     private Long templateFirstWarningForDeletionOfOwner;
