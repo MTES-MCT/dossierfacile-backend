@@ -85,6 +85,9 @@ public class File implements Serializable {
         if (blurryFileAnalysis != null) {
             blurryFileAnalysis.setFile(null);
         }
+        if (documentIAFileAnalysis != null) {
+            documentIAFileAnalysis.setFile(null);
+        }
     }
 
     @Override
