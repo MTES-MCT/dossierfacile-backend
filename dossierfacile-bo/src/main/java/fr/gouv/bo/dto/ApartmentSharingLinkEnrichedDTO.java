@@ -50,7 +50,7 @@ public class ApartmentSharingLinkEnrichedDTO {
     private String fullUrl;
 
     public boolean isActive() {
-        return !deleted && expirationDate != null && expirationDate.isAfter(LocalDateTime.now());
+        return !deleted && (expirationDate == null || expirationDate.isAfter(LocalDateTime.now()));
     }
 
     public static ApartmentSharingLinkEnrichedDTO fromEntity(ApartmentSharingLink link) {
