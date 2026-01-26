@@ -3,6 +3,8 @@ package fr.dossierfacile.api.front.service.document.analysis.rule;
 import fr.dossierfacile.api.front.service.document.analysis.rule.validator.AbstractDocumentRuleValidator;
 import fr.dossierfacile.api.front.service.document.analysis.rule.validator.document_ia.ClassificationValidatorB;
 import fr.dossierfacile.api.front.service.document.analysis.rule.validator.document_ia.HasBeenDocumentIAAnalysedBI;
+import fr.dossierfacile.api.front.service.document.analysis.rule.validator.payslip.PayslipContinuityRule;
+import fr.dossierfacile.api.front.service.document.analysis.rule.validator.payslip.PayslipNameMatch;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.enums.DocumentCategoryStep;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +28,9 @@ public class BulletinSalaireRulesValidationService extends AbstractRulesValidati
 
         return List.of(
                 new HasBeenDocumentIAAnalysedBI(),
-                new ClassificationValidatorB(DOCUMENT_IA_DOCUMENT_TYPE)
+                new ClassificationValidatorB(DOCUMENT_IA_DOCUMENT_TYPE),
+                new PayslipNameMatch(),
+                new PayslipContinuityRule()
         );
     }
 }
