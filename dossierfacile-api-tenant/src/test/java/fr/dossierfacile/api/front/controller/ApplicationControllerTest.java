@@ -65,6 +65,17 @@ class ApplicationControllerTest {
         // When & Then
         mockMvc.perform(head("/api/application/full/{token}", TEST_TOKEN))
                 .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/application/full/{token}", TEST_TOKEN)
+                        .header("X-Tenant-Trigram", VALID_TRIGRAM))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void shouldReturn400WhenTrigramIsMissing() throws Exception {
+        // When & Then
+        mockMvc.perform(get("/api/application/full/{token}", TEST_TOKEN))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
