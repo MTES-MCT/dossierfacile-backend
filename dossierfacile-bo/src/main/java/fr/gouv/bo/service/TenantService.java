@@ -113,10 +113,10 @@ public class TenantService {
         return tenantRepository.findOneById(id);
     }
 
-    public Tenant addOperatorComment(Long tenantId, String comment) {
+    public Tenant addOperatorComment(UserPrincipal principal, Long tenantId, String comment) {
         Tenant tenant = find(tenantId);
         tenant.setOperatorComment(comment);
-        tenantLogService.addOperatorCommentLog(tenant, comment);
+        tenantLogService.addOperatorCommentLog(principal.getId(), tenant.getId(), comment);
         return tenantRepository.save(tenant);
     }
 
