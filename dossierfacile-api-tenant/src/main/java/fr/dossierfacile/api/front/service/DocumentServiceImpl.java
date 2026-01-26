@@ -114,17 +114,8 @@ public class DocumentServiceImpl implements DocumentService {
                             fileStorageService.delete(document.getWatermarkFile());
                             document.setWatermarkFile(null);
                         }
-                        if (document.getDocumentAnalysisReport() != null) {
-                            var report = document.getDocumentAnalysisReport();
-                            Long reportId = report.getId();
-                            log.info("About to delete DocumentAnalysisReport for conflict-prone reset: documentId={}, documentCategory={}, reportId={}, thread={}",
-                                    document.getId(), document.getDocumentCategory(), reportId, Thread.currentThread().getName());
-                            documentAnalysisReportRepository.delete(report);
-                            document.setDocumentAnalysisReport(null);
-                        }
                         documentRepository.save(document);
-
-                        producer.sendDocumentForAnalysis(document);// analysis should be relaunched for update rules
+                        documentIAService.analyseDocument(document);
                         if (Boolean.TRUE == document.getNoDocument()) {
                             producer.sendDocumentForPdfGeneration(document);
                         }
