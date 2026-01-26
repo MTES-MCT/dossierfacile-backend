@@ -2,7 +2,11 @@ package fr.dossierfacile.api.front.service.document.analysis.rule.validator.docu
 
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentRule;
+import fr.dossierfacile.common.entity.File;
+import fr.dossierfacile.common.enums.DocumentIAFileAnalysisStatus;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.Objects;
 
 @Slf4j
 public class HasBeenDocumentIAAnalysedBI extends BaseDocumentIAValidator {
@@ -24,8 +28,9 @@ public class HasBeenDocumentIAAnalysedBI extends BaseDocumentIAValidator {
 
     @Override
     protected boolean isValid(Document document) {
-        var documentIAAnalyses = this.getSuccessfulDocumentIAAnalyses(document);
-
-        return !documentIAAnalyses.isEmpty();
+        return document.getFiles().stream()
+                .map(File::getDocumentIAFileAnalysis)
+                .filter(Objects::nonNull)
+                .noneMatch(it -> it.getAnalysisStatus() != DocumentIAFileAnalysisStatus.SUCCESS);
     }
 }
