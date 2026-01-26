@@ -7,24 +7,24 @@ import lombok.Setter;
 import java.time.LocalDate;
 
 @Setter
-public class DocumentDate {
+public class PayslipDate {
 
     @DocumentIAField(
-            extractionName = "date_delivrance",
+            extractionName = "periode_debut",
             type = DocumentIAPropertyType.DATE
     )
-    public LocalDate deliveryDate;
+    public LocalDate startDate;
 
     @DocumentIAField(
-            extractionName = "date_expiration",
+            extractionName = "periode_fin",
             type = DocumentIAPropertyType.DATE
     )
-    public LocalDate expirationDate;
+    public LocalDate endDate;
 
     @DocumentIAField(
-            extractionName = "date_naissance",
+            extractionName = "date_paiement",
             type = DocumentIAPropertyType.DATE
     )
-    public LocalDate birthDate;
+    public LocalDate paymentDate;
 
 }
