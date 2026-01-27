@@ -1,18 +1,20 @@
 package fr.dossierfacile.common.entity;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import fr.dossierfacile.common.enums.DocumentIAFileAnalysisStatus;
-import fr.dossierfacile.common.model.documentIA.ResultModel;
+import fr.dossierfacile.common.model.document_ia.ResultModel;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.type.SqlTypes;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -52,6 +54,14 @@ public class DocumentIAFileAnalysis implements Serializable {
     @Column(name = "data_document_id")
     private Long dataDocumentId;
 
+    @CreationTimestamp
+    @Column(name = "creation_date", nullable = false, updatable = false)
+    private LocalDateTime creationDate;
+
+    @UpdateTimestamp
+    @Column(name = "last_modified_date", nullable = false)
+    private LocalDateTime lastModifiedDate;
+
     @Override
     public String toString() {
         return "DocumentIAFileAnalysis{" +
@@ -64,4 +74,3 @@ public class DocumentIAFileAnalysis implements Serializable {
                 '}';
     }
 }
-
