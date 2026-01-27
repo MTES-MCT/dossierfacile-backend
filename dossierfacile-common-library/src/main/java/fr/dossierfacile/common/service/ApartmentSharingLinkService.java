@@ -111,7 +111,6 @@ public class ApartmentSharingLinkService {
                 .linkType(ApartmentSharingLinkType.LINK)
                 .title("Lien créé le " + LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy à HH:mm")))
                 .createdBy(tenantId)
-                .createdBy(tenantId)
                 .build();
 
         apartmentSharingLinkRepository.save(newLink);

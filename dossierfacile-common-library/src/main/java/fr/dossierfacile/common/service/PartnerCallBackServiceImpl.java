@@ -47,58 +47,65 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
     public void registerTenant(Tenant tenant, UserApi userApi) {
         Optional<TenantUserApi> optionalTenantUserApi = tenantUserApiRepository.findFirstByTenantAndUserApi(tenant, userApi);
         if (optionalTenantUserApi.isEmpty()) {
-            TenantUserApi tenantUserApi = TenantUserApi.builder()
-                    .id(new TenantUserApiKey(tenant.getId(), userApi.getId()))
-                    .tenant(tenant)
-                    .userApi(userApi)
-                    .build();
-
-            try {
-                tenantUserApiRepository.save(tenantUserApi);
-            } catch (DataIntegrityViolationException e) {
-                // Handle race condition: another thread may have inserted the same record
-                if (e.getMessage() != null && e.getMessage().contains("tenant_userapi_pkey")) {
-                    log.warn("TenantUserApi already exists for tenant {} and userApi {} (race condition handled)", 
-                            tenant.getId(), userApi.getId());
-                    // The record already exists, which is fine - return without creating links and sending callback to partner
-                    return;
-                }
-                // If it's a different constraint violation, rethrow the exception
-                throw e;
+            if (!saveTenantUserApi(tenant, userApi)) {
+                return;
             }
 
-            // Create sharing links and send callback
             ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
+            createPartnerLinksIfNeeded(tenant, userApi, apartmentSharing);
+            sendCallbackIfEligible(tenant, userApi);
+        }
+    }
 
-            // Check if PARTNER links already exist for this apartment sharing and partner
-            List<ApartmentSharingLink> existingLinks = apartmentSharingLinkRepository
-                    .findByApartmentSharingAndPartnerIdAndLinkTypeAndDeletedIsFalse(
-                            apartmentSharing,
-                            userApi.getId(),
-                            ApartmentSharingLinkType.PARTNER
-                    );
+    private boolean saveTenantUserApi(Tenant tenant, UserApi userApi) {
+        TenantUserApi tenantUserApi = TenantUserApi.builder()
+                .id(new TenantUserApiKey(tenant.getId(), userApi.getId()))
+                .tenant(tenant)
+                .userApi(userApi)
+                .build();
 
-            if (existingLinks.isEmpty()) {
-                ApartmentSharingLink apartmentSharingLink = buildApartmentSharingLink(userApi, apartmentSharing, false);
-                ApartmentSharingLink apartmentSharingLinkFull = buildApartmentSharingLink(userApi, apartmentSharing, true);
-                apartmentSharingLinkRepository.save(apartmentSharingLink);
-                apartmentSharingLinkRepository.save(apartmentSharingLinkFull);
-                log.info("Created PARTNER links for tenant {} and partner {}", tenant.getId(), userApi.getId());
-            } else {
-                log.info("PARTNER links already exist for apartmentSharing {} and partner {}, skipping creation",
-                        apartmentSharing.getId(), userApi.getId());
+        try {
+            tenantUserApiRepository.save(tenantUserApi);
+            return true;
+        } catch (DataIntegrityViolationException e) {
+            if (e.getMessage() != null && e.getMessage().contains("tenant_userapi_pkey")) {
+                log.warn("TenantUserApi already exists for tenant {} and userApi {} (race condition handled)",
+                        tenant.getId(), userApi.getId());
+                return false;
             }
+            throw e;
+        }
+    }
 
-            // Send callback notification
-            if (userApi.getVersion() != null && userApi.getUrlCallback() != null && (
-                    tenant.getStatus() == TenantFileStatus.VALIDATED
-                            || tenant.getStatus() == TenantFileStatus.TO_PROCESS)) {
-                PartnerCallBackType partnerCallBackType = tenant.getStatus() == TenantFileStatus.VALIDATED ?
-                        PartnerCallBackType.VERIFIED_ACCOUNT :
-                        PartnerCallBackType.CREATED_ACCOUNT;
-                ApplicationModel webhookDTO = getWebhookDTO(tenant, userApi, partnerCallBackType);
-                sendCallBack(tenant, userApi, webhookDTO);
-            }
+    private void createPartnerLinksIfNeeded(Tenant tenant, UserApi userApi, ApartmentSharing apartmentSharing) {
+        List<ApartmentSharingLink> existingLinks = apartmentSharingLinkRepository
+                .findByApartmentSharingAndPartnerIdAndLinkTypeAndDeletedIsFalse(
+                        apartmentSharing,
+                        userApi.getId(),
+                        ApartmentSharingLinkType.PARTNER
+                );
+
+        if (existingLinks.isEmpty()) {
+            ApartmentSharingLink apartmentSharingLink = buildApartmentSharingLink(userApi, apartmentSharing, false);
+            ApartmentSharingLink apartmentSharingLinkFull = buildApartmentSharingLink(userApi, apartmentSharing, true);
+            apartmentSharingLinkRepository.save(apartmentSharingLink);
+            apartmentSharingLinkRepository.save(apartmentSharingLinkFull);
+            log.info("Created PARTNER links for tenant {} and partner {}", tenant.getId(), userApi.getId());
+        } else {
+            log.info("PARTNER links already exist for apartmentSharing {} and partner {}, skipping creation",
+                    apartmentSharing.getId(), userApi.getId());
+        }
+    }
+
+    private void sendCallbackIfEligible(Tenant tenant, UserApi userApi) {
+        if (userApi.getVersion() != null && userApi.getUrlCallback() != null && (
+                tenant.getStatus() == TenantFileStatus.VALIDATED
+                        || tenant.getStatus() == TenantFileStatus.TO_PROCESS)) {
+            PartnerCallBackType partnerCallBackType = tenant.getStatus() == TenantFileStatus.VALIDATED ?
+                    PartnerCallBackType.VERIFIED_ACCOUNT :
+                    PartnerCallBackType.CREATED_ACCOUNT;
+            ApplicationModel webhookDTO = getWebhookDTO(tenant, userApi, partnerCallBackType);
+            sendCallBack(tenant, userApi, webhookDTO);
         }
     }
 

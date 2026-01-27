@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDateTime;
 
@@ -30,7 +31,7 @@ public class LinkLogDTO {
     }
 
     private static String obfuscateIpAddress(String ipAddress) {
-        if (ipAddress == null || ipAddress.isEmpty()) {
+        if (StringUtils.isEmpty(ipAddress)) {
             return null;
         }
 
