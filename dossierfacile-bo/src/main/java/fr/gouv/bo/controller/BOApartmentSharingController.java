@@ -60,7 +60,7 @@ public class BOApartmentSharingController {
     private static final String FILES_BY_DOCUMENT = "filesByDocument";
     private static final String TENANT_BASE_URL = "tenantBaseUrl";
     private static final String ACTIVE_LINKS = "activeLinks";
-    private static final String INACTIVE_LINKS = "inactiveLinks";
+    private static final String INACTIVE_LINKS = "inactiveSharingLinks";
 
     private final TenantService tenantService;
     private final ApartmentSharingLinkService apartmentSharingLinkService;
@@ -90,7 +90,7 @@ public class BOApartmentSharingController {
                 .toList();
 
         List<ApartmentSharingLinkEnrichedDTO> inactiveLinks = enrichedLinks.stream()
-                .filter(link -> !activeLinks.contains(link))
+                .filter(link -> !link.isActive())
                 .toList();
 
         model.addAttribute(TENANTS, tenants);
