@@ -1,6 +1,6 @@
 package fr.dossierfacile.common.entity;
 
-import fr.dossierfacile.common.model.documentIA.GenericProperty;
+import fr.dossierfacile.common.model.document_ia.GenericProperty;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
