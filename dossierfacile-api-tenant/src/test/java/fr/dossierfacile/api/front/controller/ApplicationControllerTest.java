@@ -33,6 +33,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import javax.annotation.PostConstruct;
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -77,6 +78,15 @@ class ApplicationControllerTest {
 
     @MockitoBean
     private JwtDecoder jwtDecoder;
+
+    // Référence statique à l’instance courante du test
+    private static ApplicationControllerTest self;
+
+    @PostConstruct
+    void setSelf() {
+        self = this;
+    }
+
 
     private static final UUID TEST_TOKEN = UUID.fromString("186ed480-968b-4bcd-aaab-afa747b953da");
     private static final String VALID_TRIGRAM = "NOM";
@@ -210,9 +220,9 @@ class ApplicationControllerTest {
                                     200,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(authenticationFacade.getLoggedTenant()).thenReturn(tenant);
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(tenant);
                                         try {
-                                            when(apartmentSharingService.downloadFullPdfForTenant(tenant)).thenReturn(validPdfFile);
+                                            when(self.apartmentSharingService.downloadFullPdfForTenant(tenant)).thenReturn(validPdfFile);
                                         } catch (IOException e) {
                                             throw new RuntimeException(e);
                                         }
@@ -227,9 +237,9 @@ class ApplicationControllerTest {
                                     404,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(authenticationFacade.getLoggedTenant()).thenReturn(tenant);
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(tenant);
                                         try {
-                                            when(apartmentSharingService.downloadFullPdfForTenant(tenant)).thenReturn(emptyPdfFile);
+                                            when(self.apartmentSharingService.downloadFullPdfForTenant(tenant)).thenReturn(emptyPdfFile);
                                         } catch (IOException e) {
                                             throw new RuntimeException(e);
                                         }
@@ -244,9 +254,9 @@ class ApplicationControllerTest {
                                     404,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(authenticationFacade.getLoggedTenant()).thenReturn(tenant);
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(tenant);
                                         try {
-                                            when(apartmentSharingService.downloadFullPdfForTenant(tenant))
+                                            when(self.apartmentSharingService.downloadFullPdfForTenant(tenant))
                                                     .thenThrow(new ApartmentSharingNotFoundException("No apartment sharing found"));
                                         } catch (IOException e) {
                                             throw new RuntimeException(e);
@@ -262,9 +272,9 @@ class ApplicationControllerTest {
                                     409,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(authenticationFacade.getLoggedTenant()).thenReturn(tenant);
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(tenant);
                                         try {
-                                            when(apartmentSharingService.downloadFullPdfForTenant(tenant))
+                                            when(self.apartmentSharingService.downloadFullPdfForTenant(tenant))
                                                     .thenThrow(new IllegalStateException("PDF not ready"));
                                         } catch (IOException e) {
                                             throw new RuntimeException(e);
@@ -280,9 +290,9 @@ class ApplicationControllerTest {
                                     409,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(authenticationFacade.getLoggedTenant()).thenReturn(tenant);
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(tenant);
                                         try {
-                                            when(apartmentSharingService.downloadFullPdfForTenant(tenant))
+                                            when(self.apartmentSharingService.downloadFullPdfForTenant(tenant))
                                                     .thenThrow(new FileNotFoundException("File not found"));
                                         } catch (IOException e) {
                                             throw new RuntimeException(e);
@@ -298,9 +308,9 @@ class ApplicationControllerTest {
                                     500,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(authenticationFacade.getLoggedTenant()).thenReturn(tenant);
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(tenant);
                                         try {
-                                            when(apartmentSharingService.downloadFullPdfForTenant(tenant))
+                                            when(self.apartmentSharingService.downloadFullPdfForTenant(tenant))
                                                     .thenThrow(new IOException("IO error"));
                                         } catch (IOException e) {
                                             throw new RuntimeException(e);
@@ -349,8 +359,8 @@ class ApplicationControllerTest {
                                     202,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(authenticationFacade.getLoggedTenant()).thenReturn(tenant);
-                                        doNothing().when(apartmentSharingService).createFullPdfForTenant(tenant);
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(tenant);
+                                        doNothing().when(self.apartmentSharingService).createFullPdfForTenant(tenant);
                                         return v;
                                     },
                                     Collections.emptyList()
@@ -362,9 +372,9 @@ class ApplicationControllerTest {
                                     404,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(authenticationFacade.getLoggedTenant()).thenReturn(tenant);
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(tenant);
                                         doThrow(new ApartmentSharingNotFoundException("No apartment sharing found"))
-                                                .when(apartmentSharingService).createFullPdfForTenant(tenant);
+                                                .when(self.apartmentSharingService).createFullPdfForTenant(tenant);
                                         return v;
                                     },
                                     Collections.emptyList()
@@ -376,9 +386,9 @@ class ApplicationControllerTest {
                                     417,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(authenticationFacade.getLoggedTenant()).thenReturn(tenant);
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(tenant);
                                         doThrow(new ApartmentSharingUnexpectedException())
-                                                .when(apartmentSharingService).createFullPdfForTenant(tenant);
+                                                .when(self.apartmentSharingService).createFullPdfForTenant(tenant);
                                         return v;
                                     },
                                     Collections.emptyList()
@@ -390,9 +400,9 @@ class ApplicationControllerTest {
                                     500,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(authenticationFacade.getLoggedTenant()).thenReturn(tenant);
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(tenant);
                                         doThrow(new RuntimeException("Generic error"))
-                                                .when(apartmentSharingService).createFullPdfForTenant(tenant);
+                                                .when(self.apartmentSharingService).createFullPdfForTenant(tenant);
                                         return v;
                                     },
                                     Collections.emptyList()
@@ -455,8 +465,8 @@ class ApplicationControllerTest {
                                     200,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(authenticationFacade.getLoggedTenant()).thenReturn(tenant);
-                                        when(apartmentSharingService.full(tenant)).thenReturn(applicationModel);
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(tenant);
+                                        when(self.apartmentSharingService.full(tenant)).thenReturn(applicationModel);
                                         return v;
                                     },
                                     Collections.emptyList()

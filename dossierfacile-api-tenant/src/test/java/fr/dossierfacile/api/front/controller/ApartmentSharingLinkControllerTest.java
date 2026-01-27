@@ -13,7 +13,6 @@ import fr.dossierfacile.parameterizedtest.ArgumentBuilder;
 import fr.dossierfacile.parameterizedtest.ControllerParameter;
 import fr.dossierfacile.parameterizedtest.ParameterizedTestHelper;
 import org.apache.commons.lang3.tuple.Pair;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -183,7 +182,7 @@ public class ApartmentSharingLinkControllerTest {
                                     403,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        doThrow(new AccessDeniedException("User not verified")).when(authenticationFacade).getLoggedTenant();
+                                        doThrow(new AccessDeniedException("User not verified")).when(self.authenticationFacade).getLoggedTenant();
                                         return v;
                                     },
                                     List.of(
@@ -464,7 +463,7 @@ public class ApartmentSharingLinkControllerTest {
                                     403,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        doThrow(new AccessDeniedException("User not verified")).when(authenticationFacade).getLoggedTenant();
+                                        doThrow(new AccessDeniedException("User not verified")).when(self.authenticationFacade).getLoggedTenant();
                                         return v;
                                     },
                                     List.of(
@@ -478,9 +477,9 @@ public class ApartmentSharingLinkControllerTest {
                                     404,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(authenticationFacade.getLoggedTenant()).thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
                                         LocalDateTime expectedDateTime = LocalDate.parse(futureDate).atStartOfDay();
-                                        doThrow(new NotFoundException()).when(apartmentSharingLinkService).updateExpirationDate(1L, expectedDateTime, apartmentSharing);
+                                        doThrow(new NotFoundException()).when(self.apartmentSharingLinkService).updateExpirationDate(1L, expectedDateTime, apartmentSharing);
                                         return v;
                                     },
                                     Collections.emptyList()
@@ -492,7 +491,7 @@ public class ApartmentSharingLinkControllerTest {
                                     200,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(authenticationFacade.getLoggedTenant()).thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
                                         return v;
                                     },
                                     Collections.emptyList()
@@ -554,7 +553,7 @@ public class ApartmentSharingLinkControllerTest {
                                     403,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        doThrow(new AccessDeniedException("User not verified")).when(authenticationFacade).getLoggedTenant();
+                                        doThrow(new AccessDeniedException("User not verified")).when(self.authenticationFacade).getLoggedTenant();
                                         return v;
                                     },
                                     List.of(
@@ -568,8 +567,8 @@ public class ApartmentSharingLinkControllerTest {
                                     404,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(authenticationFacade.getLoggedTenant()).thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
-                                        doThrow(new NotFoundException()).when(apartmentSharingLinkService).updateTitle(1L, "test", apartmentSharing);
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
+                                        doThrow(new NotFoundException()).when(self.apartmentSharingLinkService).updateTitle(1L, "test", apartmentSharing);
                                         return v;
                                     },
                                     Collections.emptyList()
@@ -581,7 +580,7 @@ public class ApartmentSharingLinkControllerTest {
                                     200,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(authenticationFacade.getLoggedTenant()).thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
                                         return v;
                                     },
                                     Collections.emptyList()

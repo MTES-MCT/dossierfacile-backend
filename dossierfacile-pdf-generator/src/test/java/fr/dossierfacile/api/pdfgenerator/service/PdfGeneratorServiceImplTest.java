@@ -8,6 +8,7 @@ import fr.dossierfacile.common.repository.ApplicationLogRepository;
 import fr.dossierfacile.common.repository.StorageFileRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
+import fr.dossierfacile.common.service.interfaces.MailCommonService;
 import fr.dossierfacile.logging.job.LogAggregator;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -46,6 +47,9 @@ class PdfGeneratorServiceImplTest {
 
     @MockitoBean
     ApplicationLogRepository applicationLogRepository;
+
+    @MockitoBean
+    MailCommonService mailCommonService;
 
     @Value("${mock.storage.path}")
     private String filePath;
