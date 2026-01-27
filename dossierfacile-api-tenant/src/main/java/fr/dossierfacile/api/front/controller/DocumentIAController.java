@@ -1,7 +1,7 @@
 package fr.dossierfacile.api.front.controller;
 
-import fr.dossierfacile.api.front.model.documentIA.WebhookModel;
-import fr.dossierfacile.api.front.service.interfaces.DocumentIAService;
+import fr.dossierfacile.common.model.document_ia.DocumentIAResultModel;
+import fr.dossierfacile.document.analysis.service.DocumentIAService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -23,10 +23,10 @@ public class DocumentIAController {
     @PostMapping("/v1/document-ia")
     public ResponseEntity<Void> receiveDocumentIAWebhook(
             HttpServletRequest request,
-            @Valid @RequestBody WebhookModel body
+            @Valid @RequestBody DocumentIAResultModel body
     ) {
 
-        documentIAService.handleWebhookCallback(body);
+        documentIAService.saveFileAnalysis(body);
 
         return ResponseEntity.accepted().build();
     }
