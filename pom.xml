@@ -24,6 +24,7 @@
         <module>dossierfacile-api-watermark</module>
         <module>dossierfacile-pdf-generator</module>
         <module>dossierfacile-task-scheduler</module>
+        <module>dossierfacile-document-analysis</module>
     </modules>
     <packaging>pom</packaging>
 
