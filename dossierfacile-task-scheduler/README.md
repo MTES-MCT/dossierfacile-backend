@@ -20,6 +20,7 @@ increasing loads and activity peaks.
 
 ## Tasks:
 
+
 | Cron Name                                                          | Cron Description                                                                                                                                                                                                                                                                                                                                                         | Execution Frequency                              | Entry point                                            |
 |--------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------|--------------------------------------------------------|
 | `scheduled.process.check.api.ademe`                                | Check the availability of the ADEME API. Property : `scheduled.process.check.api.ademe`control the execution delay in minutes.                                                                                                                                                                                                                                           | Every 10 minutes                                 | `CheckAdemeApiTask.checkAdemeApi`                      |
@@ -33,6 +34,7 @@ increasing loads and activity peaks.
 | ~~`scheduled.process.storage.backup.retry.failed.copy.delay.minutes`~~ | **Removed** - No longer needed with S3 multi-AZ provider | -                              | -                  |
 | `cron.process.warnings`                                            | Delete the documents of a tenant if the account is inactive. First warning is sent after `days_for_first_warning_deletion` days (default: 30), second warning after `days_for_second_warning_deletion` days (default: 37), and documents are deleted after `days_for_deletion_of_documents` days (default: 45). The account is then archived. | Every monday at 10:20 AM                             | `TenantWarningTask.accountWarningsForDocumentDeletion` |
 | `cron.account-deletion`                                            | Delete the tenant account after a period `months_for_deletion_of_archived_tenants` month of inactivity when the account is archived                                                                                                                                                                                                                                      | Every Monday at 7:10 AM                          | `TenantDeletionTask.deleteOldAccounts`                 |
+| `scheduled.process.documentia.synchronization.delay.secondes`      | Synchronise the document ia analyse that has not been catch by the api tenant webhook. property `scheduled.process.documentia.synchronization.delay.secondes` control the execution delay between 2 executions                                                                                                                                                                                                                      | Every 10 Secondes                                | `SynchroniseDocumentIATask.synchroniseDocumentIA`      |
 
 ## Configuration
 
@@ -106,6 +108,9 @@ garbage-collection.enabled=
 garbage-collection.objects-by-iteration=
 # Number of seconds between two iterations
 garbage-collection.seconds-between-iterations=60
+
+scheduled.process.documentia.synchronization.delay.secondes=10
+
 environment=local
 application.api.version=4
 
