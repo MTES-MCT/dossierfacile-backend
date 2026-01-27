@@ -158,6 +158,12 @@
             <version>1.0-alpha3</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>fr.dossierfacile</groupId>
+            <artifactId>dossierfacile-document-analysis</artifactId>
+            <version>3.3.7</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>
