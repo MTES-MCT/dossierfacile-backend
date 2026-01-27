@@ -51,5 +51,16 @@
                 onDelete="SET NULL"/>
     </changeSet>
 
+    <changeSet id="202511250000-02" author="nsagon">
+        <addColumn tableName="document_ia_file_analysis">
+            <column name="creation_date" type="TIMESTAMP" defaultValueDate="now()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_modified_date" type="TIMESTAMP" defaultValueDate="now()">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>
 
