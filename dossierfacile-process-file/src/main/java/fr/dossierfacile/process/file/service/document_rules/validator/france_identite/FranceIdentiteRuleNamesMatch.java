@@ -6,7 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;
 
-import static fr.dossierfacile.process.file.util.NameUtil.normalizeName;
+import static org.apache.tika.language.detect.LanguageNames.normalizeName;
 
 @Slf4j
 public class FranceIdentiteRuleNamesMatch extends AbstractDocumentRuleValidator {
