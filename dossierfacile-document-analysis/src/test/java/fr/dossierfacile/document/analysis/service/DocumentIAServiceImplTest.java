@@ -1,6 +1,6 @@
 package fr.dossierfacile.document.analysis.service;
 
-import fr.dossierfacile.common.config.DocumentIAConfig;
+import fr.dossierfacile.document.analysis.DocumentIAConfig;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentIAFileAnalysis;
 import fr.dossierfacile.common.entity.File;
@@ -123,7 +123,7 @@ class DocumentIAServiceImplTest {
         Document document = Document.builder().id(456L).build();
 
         when(documentIAConfig.hasToSendFileForAnalysis(document)).thenReturn(true);
-        when(documentIAClient.sendForAnalysis(any(DocumentIARequest.class)))
+        when(documentIAClient.sendForAnalysis(any(DocumentIARequest.class), any()))
                 .thenReturn(DocumentIAResponse.builder()
                         .data(DocumentIAResponseData.builder()
                                 .workflowId("wf-1")
@@ -135,7 +135,7 @@ class DocumentIAServiceImplTest {
         documentIAService.sendForAnalysis(multipartFile, file, document);
 
         // Then
-        verify(documentIAClient).sendForAnalysis(any(DocumentIARequest.class));
+        verify(documentIAClient).sendForAnalysis(any(DocumentIARequest.class), any());
         verify(documentIAFileAnalysisRepository).save(any(DocumentIAFileAnalysis.class));
     }
 
