@@ -1,5 +1,6 @@
-package fr.dossierfacile.common.utils;
+package fr.dossierfacile.document.analysis.util;
 
+import fr.dossierfacile.document.analysis.rule.validator.french_identity_card.document_ia_model.DocumentIdentity;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -68,122 +69,122 @@ class NameUtilTest {
     private static java.util.stream.Stream<Arguments> provideNameMatchingTestCases() {
         return java.util.stream.Stream.of(
                 Arguments.of(
-                        new TestDocumentIdentity(List.of("Jean", "Pierre"), "Dupont"),
-                        new TestDocumentIdentity(List.of("Jean", "Pierre"), "Dupont"),
+                        new DocumentIdentity(List.of("Jean", "Pierre"), "Dupont"),
+                        new DocumentIdentity(List.of("Jean", "Pierre"), "Dupont"),
                         true,
                         "Exact match - Nom et prénoms identiques"
                 ),
                 Arguments.of(
-                        new TestDocumentIdentity(List.of("François"), "Dupont"),
-                        new TestDocumentIdentity(List.of("Francois"), "Dupont"),
+                        new DocumentIdentity(List.of("François"), "Dupont"),
+                        new DocumentIdentity(List.of("Francois"), "Dupont"),
                         true,
                         "Match avec accent - François vs Francois"
                 ),
                 Arguments.of(
-                        new TestDocumentIdentity(List.of("Jean-Pierre"), "Martin"),
-                        new TestDocumentIdentity(List.of("JeanPierre"), "Martin"),
+                        new DocumentIdentity(List.of("Jean-Pierre"), "Martin"),
+                        new DocumentIdentity(List.of("JeanPierre"), "Martin"),
                         true,
                         "Match avec tiret - Jean-Pierre vs JeanPierre"
                 ),
                 Arguments.of(
-                        new TestDocumentIdentity(List.of("Jean", "Pierre", "Paul"), "Dupont"),
-                        new TestDocumentIdentity(List.of("Pierre"), "Dupont"),
+                        new DocumentIdentity(List.of("Jean", "Pierre", "Paul"), "Dupont"),
+                        new DocumentIdentity(List.of("Pierre"), "Dupont"),
                         true,
                         "Match avec un prénom commun parmi plusieurs"
                 ),
                 Arguments.of(
-                        new TestDocumentIdentity(List.of("Marie"), "Dupont", "Martin"),
-                        new TestDocumentIdentity(List.of("Marie"), "Martin"),
+                        new DocumentIdentity(List.of("Marie"), "Dupont", "Martin"),
+                        new DocumentIdentity(List.of("Marie"), "Martin"),
                         true,
                         "Match avec nom d'usage - preferredName Martin matche avec lastName Martin"
                 ),
                 Arguments.of(
-                        new TestDocumentIdentity(List.of("Marie"), "Martin"),
-                        new TestDocumentIdentity(List.of("Marie"), "Dupont", "Martin"),
+                        new DocumentIdentity(List.of("Marie"), "Martin"),
+                        new DocumentIdentity(List.of("Marie"), "Dupont", "Martin"),
                         true,
                         "Match avec nom d'usage extraction - lastName Martin matche avec preferredName Martin"
                 ),
                 Arguments.of(
-                        new TestDocumentIdentity(List.of("Anne", "Sophie"), "De La Cruz"),
-                        new TestDocumentIdentity(List.of("Anne"), "DeLaCruz"),
+                        new DocumentIdentity(List.of("Anne", "Sophie"), "De La Cruz"),
+                        new DocumentIdentity(List.of("Anne"), "DeLaCruz"),
                         true,
                         "Match avec nom composé - De La Cruz vs DeLaCruz"
                 ),
                 Arguments.of(
-                        new TestDocumentIdentity(List.of("Søren"), "Larsen"),
-                        new TestDocumentIdentity(List.of("Soren"), "Larsen"),
+                        new DocumentIdentity(List.of("Søren"), "Larsen"),
+                        new DocumentIdentity(List.of("Soren"), "Larsen"),
                         true,
                         "Match avec caractère scandinave - Søren vs Soren"
                 ),
                 Arguments.of(
-                        new TestDocumentIdentity(List.of("Łukasz"), "Kowalski"),
-                        new TestDocumentIdentity(List.of("Lukasz"), "Kowalski"),
+                        new DocumentIdentity(List.of("Łukasz"), "Kowalski"),
+                        new DocumentIdentity(List.of("Lukasz"), "Kowalski"),
                         true,
                         "Match avec caractère slave - Łukasz vs Lukasz"
                 ),
                 Arguments.of(
-                        new TestDocumentIdentity(List.of("Jean"), "Dupont"),
-                        new TestDocumentIdentity(List.of("Pierre"), "Dupont"),
+                        new DocumentIdentity(List.of("Jean"), "Dupont"),
+                        new DocumentIdentity(List.of("Pierre"), "Dupont"),
                         false,
                         "Pas de match - Prénoms différents"
                 ),
                 Arguments.of(
-                        new TestDocumentIdentity(List.of("Jean"), "Dupont"),
-                        new TestDocumentIdentity(List.of("Jean"), "Martin"),
+                        new DocumentIdentity(List.of("Jean"), "Dupont"),
+                        new DocumentIdentity(List.of("Jean"), "Martin"),
                         false,
                         "Pas de match - Noms de famille différents"
                 ),
                 Arguments.of(
-                        new TestDocumentIdentity(List.of("Jean"), "Dupont"),
-                        new TestDocumentIdentity(List.of("Pierre"), "Martin"),
+                        new DocumentIdentity(List.of("Jean"), "Dupont"),
+                        new DocumentIdentity(List.of("Pierre"), "Martin"),
                         false,
                         "Pas de match - Prénom et nom différents"
                 ),
                 Arguments.of(
-                        new TestDocumentIdentity(List.of("Marie"), "Dupont-Martin"),
-                        new TestDocumentIdentity(List.of("Marie"), "Dupont"),
+                        new DocumentIdentity(List.of("Marie"), "Dupont-Martin"),
+                        new DocumentIdentity(List.of("Marie"), "Dupont"),
                         true,
                         "Match avec substring - Dupont-Martin contient Dupont"
                 ),
                 Arguments.of(
-                        new TestDocumentIdentity(List.of("JEAN"), "DUPONT"),
-                        new TestDocumentIdentity(List.of("jean"), "dupont"),
+                        new DocumentIdentity(List.of("JEAN"), "DUPONT"),
+                        new DocumentIdentity(List.of("jean"), "dupont"),
                         true,
                         "Match insensible à la casse"
                 ),
                 Arguments.of(
-                        new TestDocumentIdentity(List.of("Jean   Pierre"), "Du  Pont"),
-                        new TestDocumentIdentity(List.of("JeanPierre"), "DuPont"),
+                        new DocumentIdentity(List.of("Jean   Pierre"), "Du  Pont"),
+                        new DocumentIdentity(List.of("JeanPierre"), "DuPont"),
                         true,
                         "Match avec espaces multiples ignorés"
                 ),
                 Arguments.of(
-                        new TestDocumentIdentity(List.of("Marie", "Hélène"), "Dupont", "De Saint-Exupéry"),
-                        new TestDocumentIdentity(List.of("Marie"), "DeSaintExupery"),
+                        new DocumentIdentity(List.of("Marie", "Hélène"), "Dupont", "De Saint-Exupéry"),
+                        new DocumentIdentity(List.of("Marie"), "DeSaintExupery"),
                         true,
                         "Match avec nom d'usage composé et accents"
                 ),
                 Arguments.of(
-                        new TestDocumentIdentity(List.of("Romaric"), "HALDENWANG"),
-                        new TestDocumentIdentity(List.of("Romaric"), "HALDENWANG-TOURNESAC"),
+                        new DocumentIdentity(List.of("Romaric"), "HALDENWANG"),
+                        new DocumentIdentity(List.of("Romaric"), "HALDENWANG-TOURNESAC"),
                         true,
                         "Match Romaric 1"
                 ),
                 Arguments.of(
-                        new TestDocumentIdentity(List.of("Romaric"), "HALDENWANG-TOURNESAC"),
-                        new TestDocumentIdentity(List.of("Romaric"), "HALDENWANG"),
+                        new DocumentIdentity(List.of("Romaric"), "HALDENWANG-TOURNESAC"),
+                        new DocumentIdentity(List.of("Romaric"), "HALDENWANG"),
                         true,
                         "Match Romaric 2"
                 ),
                 Arguments.of(
-                        new TestDocumentIdentity(List.of("Romaric"), "TEST", "HALDENWANG-TOURNESAC"),
-                        new TestDocumentIdentity(List.of("Romaric"), "HALDENWANG"),
+                        new DocumentIdentity(List.of("Romaric"), "TEST", "HALDENWANG-TOURNESAC"),
+                        new DocumentIdentity(List.of("Romaric"), "HALDENWANG"),
                         true,
                         "Match Romaric 3"
                 ),
                 Arguments.of(
-                        new TestDocumentIdentity(List.of("Romaric"), "TEST"),
-                        new TestDocumentIdentity(List.of("Romaric"), "HALDENWANG", "TEST"),
+                        new DocumentIdentity(List.of("Romaric"), "TEST"),
+                        new DocumentIdentity(List.of("Romaric"), "HALDENWANG", "TEST"),
                         true,
                         "Match Romaric 4"
                 )
@@ -192,7 +193,7 @@ class NameUtilTest {
 
     @ParameterizedTest(name = "[{index}] {3}")
     @org.junit.jupiter.params.provider.MethodSource("provideNameMatchingTestCases")
-    void testIsNameMatching(TestDocumentIdentity document, TestDocumentIdentity extracted, boolean expectedMatch, String description) {
+    void testIsNameMatching(DocumentIdentity document, DocumentIdentity extracted, boolean expectedMatch, String description) {
         boolean result = NameUtil.isNameMatching(document, extracted);
         assertThat(result)
                 .as(description)

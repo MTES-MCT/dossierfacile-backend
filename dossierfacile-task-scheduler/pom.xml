@@ -21,8 +21,6 @@
         <dependency>
             <groupId>fr.dossierfacile</groupId>
             <artifactId>dossierfacile-document-analysis</artifactId>
-            <version>3.3.7</version>
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
