@@ -11,7 +11,6 @@ import fr.dossierfacile.common.repository.UserApiRepository;
 import fr.dossierfacile.common.service.interfaces.*;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -20,12 +19,11 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static fr.dossierfacile.common.constants.PartnerConstants.DF_OWNER_NAME;
-import static java.time.temporal.ChronoUnit.DAYS;
 import static fr.dossierfacile.common.enums.ApartmentSharingLinkType.OWNER;
 import static fr.dossierfacile.common.enums.ApartmentSharingLinkType.PARTNER;
 import static fr.dossierfacile.common.enums.LinkType.*;
+import static java.time.temporal.ChronoUnit.DAYS;
 
-@Service
 @Slf4j
 @AllArgsConstructor
 public class ApartmentSharingLinkService {
@@ -196,16 +194,16 @@ public class ApartmentSharingLinkService {
 
         // Revoke access for all tenants of the ApartmentSharing
         tenantUserApiRepository.findAllByApartmentSharingAndUserApi(
-            apartmentSharing.getId(),
-            link.getPartnerId()
+                apartmentSharing.getId(),
+                link.getPartnerId()
         ).forEach(this::revokeAccess);
 
         // Remove sharing link pair (fullData and non fullData)
         apartmentSharing.getApartmentSharingLinks().stream()
-            .filter(l -> l.getLinkType() == PARTNER
-                      && link.getPartnerId().equals(l.getPartnerId())
-                      && !l.isDeleted())
-            .forEach(this::deleteLinkStandard);
+                .filter(l -> l.getLinkType() == PARTNER
+                        && link.getPartnerId().equals(l.getPartnerId())
+                        && !l.isDeleted())
+                .forEach(this::deleteLinkStandard);
     }
 
     private void deleteLinkStandard(ApartmentSharingLink link) {
