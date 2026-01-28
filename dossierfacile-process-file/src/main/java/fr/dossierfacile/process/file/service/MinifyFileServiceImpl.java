@@ -29,21 +29,35 @@ public class MinifyFileServiceImpl implements MinifyFileService {
     public void process(Long fileId) {
         fileRepository.findById(fileId)
                 .ifPresent(file -> {
+                    StorageFile newPreview = null;
                     try (InputStream inputStream = fileStorageService.download(file.getStorageFile())) {
-                        StorageFile storageFile = documentHelperService.generatePreview(file.getDocument(), inputStream, file.getStorageFile().getName());
+                        newPreview = documentHelperService.generatePreview(file.getDocument(), inputStream, file.getStorageFile().getName());
 
                         // This is a long operation and method is not transactional - refresh to check status
                         Optional<File> dbFile = fileRepository.findById(file.getId());
                         if (dbFile.isPresent()) {
-                            dbFile.get().setPreview(storageFile);
+                            // Mark previous preview as TO_DELETE before replacing
+                            StorageFile previousPreview = dbFile.get().getPreview();
+                            if (previousPreview != null) {
+                                log.info("Replacing previous preview {} for fileId={}", previousPreview.getId(), fileId);
+                                fileStorageService.delete(previousPreview);
+                            }
+
+                            dbFile.get().setPreview(newPreview);
                             fileRepository.save(dbFile.get());
                         } else {
-                            storageFile.setStatus(FileStorageStatus.TO_DELETE);
-                            storageFileRepository.save(storageFile);
+                            log.warn("File {} was deleted during preview generation, marking preview as TO_DELETE", fileId);
+                            newPreview.setStatus(FileStorageStatus.TO_DELETE);
+                            storageFileRepository.save(newPreview);
                         }
 
                     } catch (Exception e) {
-                        log.error(e.getMessage(), e.getCause());
+                        log.error("Error during preview generation for fileId={}: {}", fileId, e.getMessage(), e);
+                        // Mark the new preview as TO_DELETE if it was created but not associated
+                        if (newPreview != null && newPreview.getId() != null) {
+                            newPreview.setStatus(FileStorageStatus.TO_DELETE);
+                            storageFileRepository.save(newPreview);
+                        }
                     }
                 });
     }
