@@ -19,12 +19,6 @@ public enum DocumentRule {
             "La lecture des informations de l'avis a réussi",
             "La lecture des informations de l'avis a échoué"
     ),
-    R_TAX_BAD_CLASSIFICATION(
-            DocumentRuleLevel.CRITICAL,
-            "Le document n'est pas un avis d'imposition",
-            "Le document est bien un avis d'imposition",
-            ""
-    ),
     R_TAX_FAKE(
             DocumentRuleLevel.CRITICAL,
             "Les informations sont floues ou corrompues",
@@ -53,7 +47,7 @@ public enum DocumentRule {
             DocumentRuleLevel.CRITICAL,
             "Les noms et prénoms ne correspondent pas",
             "Les noms et prénoms correspondent",
-            ""
+            "Impossible de vérifier les noms et prénoms"
     ),
 
     R_GUARANTEE_NAMES(
@@ -225,6 +219,25 @@ public enum DocumentRule {
             "Le nom et le prénom sur les bulletins de salaire ne correspondent pas",
             "Le nom et le prénom sur les bulletins de salaire correspondent",
             "Impossible de vérifier le nom et le prénom sur les bulletins de salaire"
+    ),
+    R_TAX_BAD_CLASSIFICATION(
+            DocumentRuleLevel.CRITICAL,
+            "Le document n'est pas un avis d'imposition",
+            "Le document est bien un avis d'imposition",
+            "Le document n'a pas été analysé"
+    ),
+    // Custom message for declarative situation
+    R_TAX_BAD_CLASSIFICATION_DECLARATIVE(
+            DocumentRuleLevel.CRITICAL,
+            "Le document est un avis déclaratif de situation",
+            "",
+            ""
+    ),
+    R_TAX_WRONG_YEAR(
+            DocumentRuleLevel.CRITICAL,
+            "L'avis d'imposition n'est pas de l'année requise",
+            "L'avis d'imposition est de l'année requise",
+            "Impossible de vérifier l'année de l'avis d'imposition"
     );
 
     private final DocumentRuleLevel level;

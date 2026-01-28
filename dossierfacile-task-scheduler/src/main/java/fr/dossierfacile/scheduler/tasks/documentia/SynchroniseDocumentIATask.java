@@ -36,7 +36,7 @@ public class SynchroniseDocumentIATask extends AbstractTask {
     private final DocumentIAFileAnalysisRepository documentIAFileAnalysisRepository;
     private final DocumentIAService documentIaService;
 
-    @Scheduled(fixedDelay = 10, timeUnit = TimeUnit.SECONDS)
+    @Scheduled(fixedDelay = 60, timeUnit = TimeUnit.SECONDS)
     public void synchroniseDocumentIA() {
         super.startTask(TaskName.SYNCHRONISE_DOCUMENT_IA);
 
