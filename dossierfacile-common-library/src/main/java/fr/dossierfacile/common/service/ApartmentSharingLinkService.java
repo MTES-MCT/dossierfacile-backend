@@ -140,6 +140,7 @@ public class ApartmentSharingLinkService {
                 .ownerEmail(link.getEmail())
                 .lastVisit(firstAndLastVisit.last().orElse(null))
                 .firstVisit(firstAndLastVisit.first().orElse(null))
+                .lastMailSentDate(link.getLinkType() == ApartmentSharingLinkType.MAIL ? link.getLastSentDatetime() : null)
                 .enabled(!link.isDisabled())
                 .deleted(link.isDeleted())
                 .fullData(link.isFullData())
