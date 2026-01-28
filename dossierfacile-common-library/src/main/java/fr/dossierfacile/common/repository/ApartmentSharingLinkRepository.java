@@ -16,7 +16,32 @@ public interface ApartmentSharingLinkRepository extends JpaRepository<ApartmentS
 
     List<ApartmentSharingLink> findByApartmentSharingAndCreationDateIsAfterAndDeletedIsFalse(ApartmentSharing apartmentSharing, LocalDateTime creationDate);
 
-    List<ApartmentSharingLink> findByApartmentSharingAndLinkTypeAndDeletedIsFalse(ApartmentSharing apartmentSharing, ApartmentSharingLinkType linkType);
+    List<ApartmentSharingLink> findByApartmentSharingOrderByCreationDate(ApartmentSharing apartmentSharing);
+
+    List<ApartmentSharingLink> findByApartmentSharingAndPartnerIdAndLinkTypeAndDeletedIsFalse(
+            ApartmentSharing apartmentSharing,
+            Long partnerId,
+            ApartmentSharingLinkType linkType
+    );
+
+    @Query(value = """
+            SELECT *
+            FROM apartment_sharing_link
+            WHERE apartment_sharing_id = :apartmentSharingId
+            AND link_type = 'LINK'
+            AND deleted = false
+            AND disabled = false
+            AND full_data = :fullData
+            AND created_by = :createdBy
+            AND expiration_date IS NOT NULL
+            AND expiration_date > NOW()
+            ORDER BY expiration_date DESC
+            """, nativeQuery = true)
+    List<ApartmentSharingLink> findValidDefaultLinks(
+            @Param("apartmentSharingId") Long apartmentSharingId,
+            @Param("fullData") boolean fullData,
+            @Param("createdBy") Long createdBy
+    );
 
     Optional<ApartmentSharingLink> findByIdAndApartmentSharingAndDeletedIsFalse(Long id, ApartmentSharing apartmentSharing);
 

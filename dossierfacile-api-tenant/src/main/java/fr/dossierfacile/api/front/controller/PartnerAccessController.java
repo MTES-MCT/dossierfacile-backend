@@ -8,15 +8,12 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.ResponseEntity.ok;
 
 @RestController
@@ -32,14 +29,6 @@ public class PartnerAccessController {
     public ResponseEntity<List<PartnerAccessModel>> getPartnerAccesses() {
         Tenant tenant = authenticationFacade.getLoggedTenant();
         return ok(partnerAccessService.getExternalPartners(tenant));
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> revokePartnerAccess(@PathVariable("id") Long userApiId) {
-        log.info("Requesting access revocation for partner {}", userApiId);
-        Tenant tenant = authenticationFacade.getLoggedTenant();
-        partnerAccessService.deleteAccess(tenant, userApiId);
-        return ok().build();
     }
 
 }

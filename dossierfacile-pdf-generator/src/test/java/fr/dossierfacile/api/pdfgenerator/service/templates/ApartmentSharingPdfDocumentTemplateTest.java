@@ -5,6 +5,7 @@ import fr.dossierfacile.api.pdfgenerator.util.parameterresolvers.ApartmentSharin
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.repository.ApplicationLogRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
+import fr.dossierfacile.common.service.interfaces.MailCommonService;
 import fr.dossierfacile.logging.job.LogAggregator;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,6 +36,8 @@ public class ApartmentSharingPdfDocumentTemplateTest {
     private DownloadServiceImpl downloadService;
     @MockitoBean
     private LogAggregator logAggregator;
+    @MockitoBean
+    private MailCommonService mailCommonService;
     @Autowired
     private ApartmentSharingPdfDocumentTemplate pdfService;
 

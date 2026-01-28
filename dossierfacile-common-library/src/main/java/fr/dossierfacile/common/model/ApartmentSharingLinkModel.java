@@ -26,7 +26,12 @@ public class ApartmentSharingLinkModel {
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS")
     private LocalDateTime lastVisit;
 
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS")
+    private LocalDateTime firstVisit;
+
     private boolean enabled;
+
+    private boolean deleted;
 
     private boolean fullData;
 
@@ -38,5 +43,9 @@ public class ApartmentSharingLinkModel {
     private String type;
 
     private Long nbVisits;
+
+    private String createdBy;
+
+    private String url;
 
 }

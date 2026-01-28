@@ -13,7 +13,6 @@ import fr.dossierfacile.parameterizedtest.ArgumentBuilder;
 import fr.dossierfacile.parameterizedtest.ControllerParameter;
 import fr.dossierfacile.parameterizedtest.ParameterizedTestHelper;
 import org.apache.commons.lang3.tuple.Pair;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -30,6 +29,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import javax.annotation.PostConstruct;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
@@ -78,6 +79,20 @@ public class ApartmentSharingLinkControllerTest {
             ApartmentSharing apartmentSharing = new ApartmentSharing();
             List<ApartmentSharingLinkModel> links = Collections.emptyList();
 
+            ApartmentSharingLinkModel linkWithCreator = ApartmentSharingLinkModel.builder()
+                    .id(1L)
+                    .creationDate(LocalDateTime.now())
+                    .ownerEmail("test@example.com")
+                    .enabled(true)
+                    .deleted(false)
+                    .fullData(false)
+                    .title("Test Link")
+                    .type("MAIL")
+                    .nbVisits(0L)
+                    .createdBy("John Doe")
+                    .url("/public-file/test-token-123")
+                    .build();
+
             return ArgumentBuilder.buildListOfArguments(
                     Pair.of("Should respond 401 when no jwt is passed",
                             new ControllerParameter<>(
@@ -95,11 +110,28 @@ public class ApartmentSharingLinkControllerTest {
                                     jwtTokenWithDossier,
                                     (v) -> {
                                         when(self.authenticationFacade.getLoggedTenant()).thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
-                                        when(self.apartmentSharingLinkService.getLinksByMail(apartmentSharing)).thenReturn(links);
+                                        when(self.apartmentSharingLinkService.getLinks(apartmentSharing)).thenReturn(links);
                                         return v;
                                     },
                                     List.of(
                                             jsonPath("$.links").isArray()
+                                    )
+                            )
+                    ),
+                    Pair.of("Should respond 200 and include createdBy and url fields when link has creator",
+                            new ControllerParameter<>(
+                                    new GetApartmentSharingLinksTestParameter(),
+                                    200,
+                                    jwtTokenWithDossier,
+                                    (v) -> {
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
+                                        when(self.apartmentSharingLinkService.getLinks(apartmentSharing)).thenReturn(List.of(linkWithCreator));
+                                        return v;
+                                    },
+                                    List.of(
+                                            jsonPath("$.links").isArray(),
+                                            jsonPath("$.links[0].createdBy").value("John Doe"),
+                                            jsonPath("$.links[0].url").value("/public-file/test-token-123")
                                     )
                             )
                     )
@@ -393,6 +425,186 @@ public class ApartmentSharingLinkControllerTest {
 
             var mockMvcRequestBuilder = delete("/api/application/links/1")
                     .contentType("application/json");
+
+            ParameterizedTestHelper.runControllerTest(
+                    mockMvc,
+                    mockMvcRequestBuilder,
+                    parameter
+            );
+        }
+    }
+
+    @Nested
+    class UpdateExpirationDateTests {
+
+        record UpdateExpirationDateTestParameter(Long id, String expirationDate) {
+        }
+
+        static List<Arguments> provideUpdateExpirationDateParameters() {
+
+            SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwtTokenWithDossier = jwt().authorities(new SimpleGrantedAuthority("SCOPE_dossier"));
+
+            ApartmentSharing apartmentSharing = new ApartmentSharing();
+            String futureDate = LocalDate.now().plusDays(30).toString();
+
+            return ArgumentBuilder.buildListOfArguments(
+                    Pair.of("Should respond 403 when no jwt is passed",
+                            new ControllerParameter<>(
+                                    new UpdateExpirationDateTestParameter(1L, futureDate),
+                                    403,
+                                    null,
+                                    null,
+                                    Collections.emptyList()
+                            )
+                    ),
+                    Pair.of("Should respond 403 when email is not verified",
+                            new ControllerParameter<>(
+                                    new UpdateExpirationDateTestParameter(1L, futureDate),
+                                    403,
+                                    jwtTokenWithDossier,
+                                    (v) -> {
+                                        doThrow(new AccessDeniedException("User not verified")).when(self.authenticationFacade).getLoggedTenant();
+                                        return v;
+                                    },
+                                    List.of(
+                                            jsonPath("$.status").value("FORBIDDEN")
+                                    )
+                            )
+                    ),
+                    Pair.of("Should respond 404 when link not found",
+                            new ControllerParameter<>(
+                                    new UpdateExpirationDateTestParameter(1L, futureDate),
+                                    404,
+                                    jwtTokenWithDossier,
+                                    (v) -> {
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
+                                        LocalDateTime expectedDateTime = LocalDate.parse(futureDate).atStartOfDay();
+                                        doThrow(new NotFoundException()).when(self.apartmentSharingLinkService).updateExpirationDate(1L, expectedDateTime, apartmentSharing);
+                                        return v;
+                                    },
+                                    Collections.emptyList()
+                            )
+                    ),
+                    Pair.of("Should respond 200 when jwt is passed and valid expiration date",
+                            new ControllerParameter<>(
+                                    new UpdateExpirationDateTestParameter(1L, futureDate),
+                                    200,
+                                    jwtTokenWithDossier,
+                                    (v) -> {
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
+                                        return v;
+                                    },
+                                    Collections.emptyList()
+                            )
+                    )
+            );
+        }
+
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("provideUpdateExpirationDateParameters")
+        void parameterizedTests(ControllerParameter<UpdateExpirationDateTestParameter> parameter) throws Exception {
+
+            var url = "/api/application/links";
+            if (parameter.getParameterData().id != null) {
+                url += "/" + parameter.getParameterData().id + "/expiration";
+            }
+
+            var mockMvcRequestBuilder = put(url)
+                    .contentType("application/json");
+
+            if (parameter.getParameterData().expirationDate != null) {
+                String requestBody = "{\"expirationDate\":\"" + parameter.getParameterData().expirationDate + "\"}";
+                mockMvcRequestBuilder = mockMvcRequestBuilder.content(requestBody);
+            }
+
+            ParameterizedTestHelper.runControllerTest(
+                    mockMvc,
+                    mockMvcRequestBuilder,
+                    parameter
+            );
+        }
+    }
+
+    @Nested
+    class UpdateTitleTests {
+
+        record UpdateTitleTestParameter(Long id, String title) {
+        }
+
+        static List<Arguments> provideUpdateTitleParameters() {
+
+            SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwtTokenWithDossier = jwt().authorities(new SimpleGrantedAuthority("SCOPE_dossier"));
+
+            ApartmentSharing apartmentSharing = new ApartmentSharing();
+
+            return ArgumentBuilder.buildListOfArguments(
+                    Pair.of("Should respond 403 when no jwt is passed",
+                            new ControllerParameter<>(
+                                    new UpdateTitleTestParameter(1L, "test"),
+                                    403,
+                                    null,
+                                    null,
+                                    Collections.emptyList()
+                            )
+                    ),
+                    Pair.of("Should respond 403 when email is not verified",
+                            new ControllerParameter<>(
+                                    new UpdateTitleTestParameter(1L, "test"),
+                                    403,
+                                    jwtTokenWithDossier,
+                                    (v) -> {
+                                        doThrow(new AccessDeniedException("User not verified")).when(self.authenticationFacade).getLoggedTenant();
+                                        return v;
+                                    },
+                                    List.of(
+                                            jsonPath("$.status").value("FORBIDDEN")
+                                    )
+                            )
+                    ),
+                    Pair.of("Should respond 404 when link not found",
+                            new ControllerParameter<>(
+                                    new UpdateTitleTestParameter(1L, "test"),
+                                    404,
+                                    jwtTokenWithDossier,
+                                    (v) -> {
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
+                                        doThrow(new NotFoundException()).when(self.apartmentSharingLinkService).updateTitle(1L, "test", apartmentSharing);
+                                        return v;
+                                    },
+                                    Collections.emptyList()
+                            )
+                    ),
+                    Pair.of("Should respond 200 when jwt is passed and valid title",
+                            new ControllerParameter<>(
+                                    new UpdateTitleTestParameter(1L, "test"),
+                                    200,
+                                    jwtTokenWithDossier,
+                                    (v) -> {
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
+                                        return v;
+                                    },
+                                    Collections.emptyList()
+                            )
+                    )
+            );
+        }
+
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("provideUpdateTitleParameters")
+        void parameterizedTests(ControllerParameter<UpdateTitleTestParameter> parameter) throws Exception {
+
+            var url = "/api/application/links";
+            if (parameter.getParameterData().id != null) {
+                url += "/" + parameter.getParameterData().id + "/title";
+            }
+
+            var mockMvcRequestBuilder = put(url)
+                    .contentType("application/json");
+
+            if (parameter.getParameterData().title != null) {
+                String requestBody = "{\"title\":\"" + parameter.getParameterData().title + "\"}";
+                mockMvcRequestBuilder = mockMvcRequestBuilder.content(requestBody);
+            }
 
             ParameterizedTestHelper.runControllerTest(
                     mockMvc,

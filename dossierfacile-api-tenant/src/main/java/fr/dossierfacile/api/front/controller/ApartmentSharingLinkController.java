@@ -1,6 +1,7 @@
 package fr.dossierfacile.api.front.controller;
 
-import fr.dossierfacile.api.front.exception.ResendLinkTooShortException;
+import fr.dossierfacile.api.front.model.ExpirationDateRequest;
+import fr.dossierfacile.api.front.model.TitleRequest;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.common.entity.ApartmentSharing;
@@ -10,12 +11,17 @@ import fr.dossierfacile.common.service.ApartmentSharingLinkService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
 
 @RestController
 @RequestMapping("/api/application/links")
@@ -34,8 +40,16 @@ public class ApartmentSharingLinkController {
     @GetMapping
     public ResponseEntity<LinksResponse> getApartmentSharingLinks() {
         ApartmentSharing apartmentSharing = authenticationFacade.getLoggedTenant().getApartmentSharing();
-        List<ApartmentSharingLinkModel> linksByMail = apartmentSharingLinkService.getLinksByMail(apartmentSharing);
-        return ResponseEntity.ok(new LinksResponse(linksByMail));
+        List<ApartmentSharingLinkModel> links = apartmentSharingLinkService.getLinks(apartmentSharing);
+        return ResponseEntity.ok(new LinksResponse(links));
+    }
+
+    @PutMapping("/default")
+    public ResponseEntity<ApartmentSharingLinkModel> updateApartmentSharingLinksStatus( @RequestParam boolean isFullData) {
+        Tenant tenant = authenticationFacade.getLoggedTenant();
+        ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
+        ApartmentSharingLinkModel defaultLink = apartmentSharingLinkService.getDefaultLink(apartmentSharing, tenant, isFullData);
+        return ResponseEntity.ok(defaultLink);
     }
 
     @ApiOperation(value = "Update apartment sharing link status", notes = "Updates the status of an apartment sharing link.")
@@ -76,6 +90,57 @@ public class ApartmentSharingLinkController {
     public ResponseEntity<Void> deleteApartmentSharingLink(@PathVariable Long id) {
         Tenant tenant = authenticationFacade.getLoggedTenant();
         apartmentSharingLinkService.delete(id, tenant);
+        return ResponseEntity.ok().build();
+    }
+
+   
+    @DeleteMapping(value = "/", consumes = "application/json")
+    public ResponseEntity<Void> deleteLinks(@RequestBody List<Long> linkIds) {
+        Tenant tenant = authenticationFacade.getLoggedTenant();
+        apartmentSharingLinkService.deleteLinks(linkIds, tenant);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/disableAll")
+    public ResponseEntity<Void> disableAllLinks() {
+        Tenant tenant = authenticationFacade.getLoggedTenant();
+        apartmentSharingLinkService.disableValidLinks(tenant);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/enableAll")
+    public ResponseEntity<Void> enableAllLinks() {
+        Tenant tenant = authenticationFacade.getLoggedTenant();
+        apartmentSharingLinkService.enableValidLinks(tenant);
+        return ResponseEntity.ok().build();
+    }
+
+    @ApiOperation(value = "Update apartment sharing link expiration date", notes = "Updates the expiration date of an apartment sharing link.")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Expiration date updated successfully"),
+            @ApiResponse(code = 400, message = "Invalid request"),
+            @ApiResponse(code = 403, message = "Forbidden: JWT token missing or invalid scope"),
+            @ApiResponse(code = 404, message = "Link not found")
+    })
+    @PutMapping("/{id}/expiration")
+    public ResponseEntity<Void> updateExpirationDate(@PathVariable Long id, @Valid @RequestBody ExpirationDateRequest request) {
+        ApartmentSharing apartmentSharing = authenticationFacade.getLoggedTenant().getApartmentSharing();
+        LocalDateTime expirationDateTime = request.getExpirationDate().atStartOfDay();
+        apartmentSharingLinkService.updateExpirationDate(id, expirationDateTime, apartmentSharing);
+        return ResponseEntity.ok().build();
+    }
+
+    @ApiOperation(value = "Update apartment sharing link title", notes = "Updates the title of an apartment sharing link.")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Title updated successfully"),
+            @ApiResponse(code = 400, message = "Invalid request"),
+            @ApiResponse(code = 403, message = "Forbidden: JWT token missing or invalid scope"),
+            @ApiResponse(code = 404, message = "Link not found")
+    })
+    @PutMapping("/{id}/title")
+    public ResponseEntity<Void> updateTitle(@PathVariable Long id, @Valid @RequestBody TitleRequest request) {
+        ApartmentSharing apartmentSharing = authenticationFacade.getLoggedTenant().getApartmentSharing();
+        apartmentSharingLinkService.updateTitle(id, request.getTitle(), apartmentSharing);
         return ResponseEntity.ok().build();
     }
 

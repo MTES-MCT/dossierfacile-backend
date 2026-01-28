@@ -2,7 +2,6 @@ package fr.dossierfacile.api.front.service;
 
 import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
 import fr.dossierfacile.common.entity.Tenant;
-import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.service.interfaces.KeycloakCommonService;
 import jakarta.ws.rs.NotFoundException;
 import lombok.AllArgsConstructor;
@@ -59,7 +58,7 @@ public class KeycloakServiceImpl implements KeycloakService {
     @Override
     public String getKeycloakId(String email) {
         var userRepresentations = realmResource.users().search(email);
-        return userRepresentations.isEmpty() ? createKeycloakUser(email) : userRepresentations.get(0).getId();
+        return userRepresentations.isEmpty() ? createKeycloakUser(email) : userRepresentations.getFirst().getId();
     }
 
     @Override
@@ -82,13 +81,6 @@ public class KeycloakServiceImpl implements KeycloakService {
         realmResource.users().get(keycloakId).update(userRepresentation);
     }
 
-    @Override
-    public void revokeUserConsent(Tenant tenant, UserApi userApi) {
-        String keycloakId = tenant.getKeycloakId();
-        UserResource user = realmResource.users().get(keycloakId);
-        user.revokeConsent(userApi.getName());
-    }
-
     private UserRepresentation createUser(String email) {
         var userRepresentation = new UserRepresentation();
         userRepresentation.setEmail(email);
@@ -109,7 +101,7 @@ public class KeycloakServiceImpl implements KeycloakService {
     private String createUserAndReturnId(UserRepresentation userRepresentation) {
         try (var response = realmResource.users().create(userRepresentation)) {
             if (response.getStatus() == HttpStatus.CONFLICT.value()) {
-                var keycloakUser = realmResource.users().search(userRepresentation.getEmail()).get(0);
+                var keycloakUser = realmResource.users().search(userRepresentation.getEmail()).getFirst();
                 return keycloakUser.getId();
             }
             var split = response.getHeaderString("Location").split("/");
