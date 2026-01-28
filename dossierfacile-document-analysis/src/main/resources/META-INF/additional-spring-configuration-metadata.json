@@ -11,9 +11,9 @@
       "description": "La clé API pour l'authentification à l'API Document IA."
     },
     {
-      "name": "document.ia.api.workflow.id",
+      "name": "document.ia.api.default.workflow.id",
       "type": "java.lang.String",
-      "description": "Workflow id à utiliser pour l'API Document IA."
+      "description": "Workflow id à utiliser pour l'API Document IA par défaut."
     }
   ]
 }
