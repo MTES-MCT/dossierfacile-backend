@@ -1,4 +1,6 @@
-package fr.dossierfacile.process.file.util;
+package fr.dossierfacile.document.analysis.util;
+
+import fr.dossierfacile.common.utils.IDocumentIdentity;
 
 import javax.annotation.Nullable;
 import java.text.Normalizer;
