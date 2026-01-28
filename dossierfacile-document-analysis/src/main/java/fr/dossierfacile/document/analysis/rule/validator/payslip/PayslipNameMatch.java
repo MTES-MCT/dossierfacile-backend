@@ -4,11 +4,11 @@ import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentAnalysisRule;
 import fr.dossierfacile.common.entity.DocumentRule;
 import fr.dossierfacile.common.model.document_ia.GenericProperty;
-import fr.dossierfacile.common.utils.NameUtil;
 import fr.dossierfacile.document.analysis.rule.validator.RuleValidatorOutput;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.BaseDocumentIAValidator;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.mapper.DocumentIAMultiMapper;
 import fr.dossierfacile.document.analysis.rule.validator.payslip.document_ia_model.PayslipNames;
+import fr.dossierfacile.document.analysis.util.NameUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
