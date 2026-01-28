@@ -14,22 +14,19 @@ public class DocumentIAClient {
     private final RestTemplate restTemplate;
     private final String baseUrl;
     private final String apiKey;
-    private final String workflowId;
 
     public DocumentIAClient(
             RestTemplate restTemplate,
             @Value("${document.ia.api.base.url}") String baseUrl,
-            @Value("${document.ia.api.key}") String apiKey,
-            @Value("${document.ia.api.workflow.id}") String workflowId
+            @Value("${document.ia.api.key}") String apiKey
     ) {
 
         this.restTemplate = restTemplate;
         this.baseUrl = baseUrl;
         this.apiKey = apiKey;
-        this.workflowId = workflowId;
     }
 
-    public DocumentIAResponse sendForAnalysis(DocumentIARequest request) {
+    public DocumentIAResponse sendForAnalysis(DocumentIARequest request, String workflowId) {
         String url = String.format("%s/workflows/%s/execute", baseUrl, workflowId);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
