@@ -1,6 +1,6 @@
 package fr.dossierfacile.document.analysis.service;
 
-import fr.dossierfacile.common.config.DocumentIAConfig;
+import fr.dossierfacile.document.analysis.DocumentIAConfig;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentIAFileAnalysis;
 import fr.dossierfacile.common.entity.File;
@@ -85,7 +85,7 @@ public class DocumentIAServiceImpl implements DocumentIAService {
         }
         var request = DocumentIARequest.builder().metadata("{ \"document_id\": " + document.getId() + " }").file(multipartFile).build();
         try {
-            var response = documentIAClient.sendForAnalysis(request);
+            var response = documentIAClient.sendForAnalysis(request, documentIAConfig.getWorkflowIdForDocumentSubCategory(document));
             documentIAFileAnalysisRepository.save(
                     DocumentIAFileAnalysis.builder()
                             .file(file)
