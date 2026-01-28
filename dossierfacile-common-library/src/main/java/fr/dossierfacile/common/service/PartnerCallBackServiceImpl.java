@@ -47,43 +47,65 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
     public void registerTenant(Tenant tenant, UserApi userApi) {
         Optional<TenantUserApi> optionalTenantUserApi = tenantUserApiRepository.findFirstByTenantAndUserApi(tenant, userApi);
         if (optionalTenantUserApi.isEmpty()) {
-            TenantUserApi tenantUserApi = TenantUserApi.builder()
-                    .id(new TenantUserApiKey(tenant.getId(), userApi.getId()))
-                    .tenant(tenant)
-                    .userApi(userApi)
-                    .build();
-
-            try {
-                tenantUserApiRepository.save(tenantUserApi);
-            } catch (DataIntegrityViolationException e) {
-                // Handle race condition: another thread may have inserted the same record
-                if (e.getMessage() != null && e.getMessage().contains("tenant_userapi_pkey")) {
-                    log.warn("TenantUserApi already exists for tenant {} and userApi {} (race condition handled)", 
-                            tenant.getId(), userApi.getId());
-                    // The record already exists, which is fine - return without creating links and sending callback to partner
-                    return;
-                }
-                // If it's a different constraint violation, rethrow the exception
-                throw e;
+            if (!saveTenantUserApi(tenant, userApi)) {
+                return;
             }
 
-            // Create sharing links and send callback
             ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
+            createPartnerLinksIfNeeded(tenant, userApi, apartmentSharing);
+            sendCallbackIfEligible(tenant, userApi);
+        }
+    }
+
+    private boolean saveTenantUserApi(Tenant tenant, UserApi userApi) {
+        TenantUserApi tenantUserApi = TenantUserApi.builder()
+                .id(new TenantUserApiKey(tenant.getId(), userApi.getId()))
+                .tenant(tenant)
+                .userApi(userApi)
+                .build();
+
+        try {
+            tenantUserApiRepository.save(tenantUserApi);
+            return true;
+        } catch (DataIntegrityViolationException e) {
+            if (e.getMessage() != null && e.getMessage().contains("tenant_userapi_pkey")) {
+                log.warn("TenantUserApi already exists for tenant {} and userApi {} (race condition handled)",
+                        tenant.getId(), userApi.getId());
+                return false;
+            }
+            throw e;
+        }
+    }
+
+    private void createPartnerLinksIfNeeded(Tenant tenant, UserApi userApi, ApartmentSharing apartmentSharing) {
+        List<ApartmentSharingLink> existingLinks = apartmentSharingLinkRepository
+                .findByApartmentSharingAndPartnerIdAndLinkTypeAndDeletedIsFalse(
+                        apartmentSharing,
+                        userApi.getId(),
+                        ApartmentSharingLinkType.PARTNER
+                );
+
+        if (existingLinks.isEmpty()) {
             ApartmentSharingLink apartmentSharingLink = buildApartmentSharingLink(userApi, apartmentSharing, false);
             ApartmentSharingLink apartmentSharingLinkFull = buildApartmentSharingLink(userApi, apartmentSharing, true);
             apartmentSharingLinkRepository.save(apartmentSharingLink);
             apartmentSharingLinkRepository.save(apartmentSharingLinkFull);
+            log.info("Created PARTNER links for tenant {} and partner {}", tenant.getId(), userApi.getId());
+        } else {
+            log.info("PARTNER links already exist for apartmentSharing {} and partner {}, skipping creation",
+                    apartmentSharing.getId(), userApi.getId());
+        }
+    }
 
-            // Send callback notification
-            if (userApi.getVersion() != null && userApi.getUrlCallback() != null && (
-                    tenant.getStatus() == TenantFileStatus.VALIDATED
-                            || tenant.getStatus() == TenantFileStatus.TO_PROCESS)) {
-                PartnerCallBackType partnerCallBackType = tenant.getStatus() == TenantFileStatus.VALIDATED ?
-                        PartnerCallBackType.VERIFIED_ACCOUNT :
-                        PartnerCallBackType.CREATED_ACCOUNT;
-                ApplicationModel webhookDTO = getWebhookDTO(tenant, userApi, partnerCallBackType);
-                sendCallBack(tenant, userApi, webhookDTO);
-            }
+    private void sendCallbackIfEligible(Tenant tenant, UserApi userApi) {
+        if (userApi.getVersion() != null && userApi.getUrlCallback() != null && (
+                tenant.getStatus() == TenantFileStatus.VALIDATED
+                        || tenant.getStatus() == TenantFileStatus.TO_PROCESS)) {
+            PartnerCallBackType partnerCallBackType = tenant.getStatus() == TenantFileStatus.VALIDATED ?
+                    PartnerCallBackType.VERIFIED_ACCOUNT :
+                    PartnerCallBackType.CREATED_ACCOUNT;
+            ApplicationModel webhookDTO = getWebhookDTO(tenant, userApi, partnerCallBackType);
+            sendCallBack(tenant, userApi, webhookDTO);
         }
     }
 
@@ -100,12 +122,22 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
     }
 
     private List<UserApi> findAllUserApi(ApartmentSharing as) {
-        return as.getTenants() == null ? Collections.emptyList() :
-                as.getTenants().stream()
-                        .flatMap(t -> t.getTenantsUserApi() == null ? Stream.empty() : t.getTenantsUserApi().stream())
-                        .map(TenantUserApi::getUserApi)
-                        .distinct()
-                        .collect(Collectors.toList());
+        if (as.getTenants() == null) {
+            return Collections.emptyList();
+        }
+
+        return as.getTenants().stream()
+                .flatMap(this::getTenantUserApiStream)
+                .map(TenantUserApi::getUserApi)
+                .distinct()
+                .toList();
+    }
+
+    private Stream<TenantUserApi> getTenantUserApiStream(Tenant tenant) {
+        if (tenant.getTenantsUserApi() == null) {
+            return Stream.empty();
+        }
+        return tenant.getTenantsUserApi().stream();
     }
 
     // TODO send callback should be transactionnal or have DTO

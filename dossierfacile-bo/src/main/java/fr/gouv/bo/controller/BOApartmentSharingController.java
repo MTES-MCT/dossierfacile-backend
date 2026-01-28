@@ -11,9 +11,9 @@ import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.enums.LinkType;
 import fr.dossierfacile.common.repository.LinkLogRepository;
 import fr.dossierfacile.common.service.ApartmentSharingLinkService;
-import fr.dossierfacile.common.service.interfaces.LinkLogService;
 import fr.gouv.bo.dto.ApartmentSharingLinkEnrichedDTO;
 import fr.gouv.bo.dto.DisplayableFile;
+import fr.gouv.bo.dto.LinkLogDTO;
 import fr.gouv.bo.dto.MessageDTO;
 import fr.gouv.bo.dto.PartnerDTO;
 import fr.gouv.bo.service.TenantLogService;
@@ -60,13 +60,12 @@ public class BOApartmentSharingController {
     private static final String FILES_BY_DOCUMENT = "filesByDocument";
     private static final String TENANT_BASE_URL = "tenantBaseUrl";
     private static final String ACTIVE_LINKS = "activeLinks";
-    private static final String DELETED_LINKS = "deletedLinks";
+    private static final String INACTIVE_LINKS = "inactiveSharingLinks";
 
     private final TenantService tenantService;
     private final ApartmentSharingLinkService apartmentSharingLinkService;
     private final UserApiService userApiService;
     private final TenantLogService logService;
-    private final LinkLogService linkLogService;
     private final LinkLogRepository linkLogRepository;
     private final UserService userService;
 
@@ -87,11 +86,11 @@ public class BOApartmentSharingController {
         List<ApartmentSharingLinkEnrichedDTO> enrichedLinks = enrichApartmentSharingLinks(filteredLinks);
 
         List<ApartmentSharingLinkEnrichedDTO> activeLinks = enrichedLinks.stream()
-                .filter(link -> !link.isDeleted())
+                .filter(ApartmentSharingLinkEnrichedDTO::isActive)
                 .toList();
 
-        List<ApartmentSharingLinkEnrichedDTO> deletedLinks = enrichedLinks.stream()
-                .filter(link -> link.isDeleted())
+        List<ApartmentSharingLinkEnrichedDTO> inactiveLinks = enrichedLinks.stream()
+                .filter(link -> !link.isActive())
                 .toList();
 
         model.addAttribute(TENANTS, tenants);
@@ -107,27 +106,27 @@ public class BOApartmentSharingController {
         model.addAttribute(NOW, LocalDateTime.now());
         model.addAttribute(FILES_BY_DOCUMENT, getFilesByDocument(tenants));
         model.addAttribute(TENANT_BASE_URL, tenantBaseUrl);
-        model.addAttribute(DELETED_LINKS, deletedLinks);
+        model.addAttribute(INACTIVE_LINKS, inactiveLinks);
         model.addAttribute(ACTIVE_LINKS, activeLinks);
 
         return "bo/apartment-sharing-view";
     }
 
     @PostMapping("/{id}/tokens/{token}")
-    public String regenerateToken(Model model, @PathVariable UUID token, @PathVariable Long id) {
+    public String regenerateToken(@PathVariable UUID token, @PathVariable Long id) {
         apartmentSharingLinkService.regenerateToken(token);
         return REDIRECT_BO_COLOCATION + id;
     }
 
 
     @DeleteMapping("/{id}/apartmentSharingLinks/{link_id}")
-    public String deleteToken(Model model, @PathVariable Long id, @PathVariable("link_id") Long linkId) {
+    public String deleteToken(@PathVariable Long id, @PathVariable("link_id") Long linkId) {
         apartmentSharingLinkService.delete(linkId);
         return REDIRECT_BO_COLOCATION + id;
     }
 
     @PutMapping("/{id}/apartmentSharingLinks/{link_id}")
-    public String updateTokenStatus(Model model, @PathVariable("link_id") Long linkId, @PathVariable Long id, @RequestParam boolean enabled) {
+    public String updateTokenStatus(@PathVariable("link_id") Long linkId, @PathVariable Long id, @RequestParam boolean enabled) {
         List<Tenant> tenants = tenantService.findAllTenantsByApartmentSharingAndReorderDocumentsByCategory(id);
         apartmentSharingLinkService.updateStatus(linkId, enabled, tenants.getFirst().getApartmentSharing());
         return REDIRECT_BO_COLOCATION + id;
@@ -151,8 +150,6 @@ public class BOApartmentSharingController {
             return new ArrayList<>();
         }
 
-        List<ApartmentSharingLinkEnrichedDTO> enrichedLinks = new ArrayList<>();
-
         ApartmentSharing apartmentSharing = links.getFirst().getApartmentSharing();
         List<LinkLog> allLinkLogs = linkLogRepository.findByApartmentSharing(apartmentSharing);
 
@@ -162,56 +159,58 @@ public class BOApartmentSharingController {
         // Define visit log types
         List<LinkType> visitLogTypes = List.of(LinkType.FULL_APPLICATION, LinkType.LIGHT_APPLICATION, LinkType.DOCUMENT);
 
-        for (ApartmentSharingLink link : links) {
-            ApartmentSharingLinkEnrichedDTO dto = ApartmentSharingLinkEnrichedDTO.fromEntity(link);
+        return links.stream()
+                .map(link -> enrichSingleLink(link, logsByToken, visitLogTypes))
+                .sorted(Comparator.comparing(ApartmentSharingLinkEnrichedDTO::getCreationDate).reversed())
+                .toList();
+    }
 
-            List<LinkLog> logsForToken = logsByToken.getOrDefault(link.getToken(), List.of());
+    private ApartmentSharingLinkEnrichedDTO enrichSingleLink(ApartmentSharingLink link, Map<UUID, List<LinkLog>> logsByToken, List<LinkType> visitLogTypes) {
+        ApartmentSharingLinkEnrichedDTO dto = ApartmentSharingLinkEnrichedDTO.fromEntity(link);
 
-            List<LinkLog> accessLogs = logsForToken.stream()
-                    .filter(log -> visitLogTypes.contains(log.getLinkType()))
-                    .sorted(Comparator.comparing(LinkLog::getCreationDate).reversed())
-                    .toList();
-            dto.setAccessLogs(accessLogs);
+        List<LinkLog> logsForToken = logsByToken.getOrDefault(link.getToken(), List.of());
 
-            if (!accessLogs.isEmpty()) {
-                dto.setFirstVisit(accessLogs.getLast().getCreationDate());
-                dto.setLastVisit(accessLogs.getFirst().getCreationDate());
-                dto.setNbVisits(accessLogs.size());
-            }
+        List<LinkLog> accessLogs = logsForToken.stream()
+                .filter(log -> visitLogTypes.contains(log.getLinkType()))
+                .sorted(Comparator.comparing(LinkLog::getCreationDate).reversed())
+                .toList();
+        dto.setAccessLogs(accessLogs.stream()
+                .map(LinkLogDTO::fromEntity)
+                .toList());
 
-            long nbDownloads = logsForToken.stream()
-                    .filter(log -> log.getLinkType() == LinkType.DOCUMENT)
-                    .count();
-            dto.setNbDownloads(nbDownloads);
-
-            // Get creator name if applicable
-            if (link.getCreatedBy() != null) {
-                BOUser creator = userService.findUserById(link.getCreatedBy());
-                if (creator != null) {
-                    dto.setCreatedByName(creator.getEmail());
-                }
-            }
-
-            // Get partner name if applicable
-            if (link.getPartnerId() != null) {
-                try {
-                    UserApi partner = userApiService.findById(link.getPartnerId());
-                    dto.setPartnerName(partner.getName());
-                } catch (Exception e) {
-                    log.warn("Partner not found for id: {}", link.getPartnerId());
-                }
-            }
-
-            String urlPath = link.isFullData() ? "/file/" : "/public-file/";
-            dto.setFullUrl(tenantBaseUrl + urlPath + link.getToken());
-
-            enrichedLinks.add(dto);
+        if (!accessLogs.isEmpty()) {
+            dto.setFirstVisit(accessLogs.getLast().getCreationDate());
+            dto.setLastVisit(accessLogs.getFirst().getCreationDate());
+            dto.setNbVisits(accessLogs.size());
         }
 
-        // Sort by creation date (most recent first)
-        enrichedLinks.sort(Comparator.comparing(ApartmentSharingLinkEnrichedDTO::getCreationDate).reversed());
+        long nbDownloads = logsForToken.stream()
+                .filter(log -> log.getLinkType() == LinkType.DOCUMENT)
+                .count();
+        dto.setNbDownloads(nbDownloads);
 
-        return enrichedLinks;
+        // Get creator name if applicable
+        if (link.getCreatedBy() != null) {
+            BOUser creator = userService.findUserById(link.getCreatedBy());
+            if (creator != null) {
+                dto.setCreatedByName(creator.getEmail());
+            }
+        }
+
+        // Get partner name if applicable
+        if (link.getPartnerId() != null) {
+            try {
+                UserApi partner = userApiService.findById(link.getPartnerId());
+                dto.setPartnerName(partner.getName());
+            } catch (Exception e) {
+                log.warn("Partner not found for id: {}", link.getPartnerId());
+            }
+        }
+
+        String urlPath = link.isFullData() ? "/file/" : "/public-file/";
+        dto.setFullUrl(tenantBaseUrl + urlPath + link.getToken());
+
+        return dto;
     }
 
 }

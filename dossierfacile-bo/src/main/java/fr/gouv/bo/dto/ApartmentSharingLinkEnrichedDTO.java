@@ -1,7 +1,6 @@
 package fr.gouv.bo.dto;
 
 import fr.dossierfacile.common.entity.ApartmentSharingLink;
-import fr.dossierfacile.common.entity.LinkLog;
 import fr.dossierfacile.common.enums.ApartmentSharingLinkType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -45,11 +44,15 @@ public class ApartmentSharingLinkEnrichedDTO {
     private long nbDownloads;
     
     // Access logs
-    private List<LinkLog> accessLogs;
+    private List<LinkLogDTO> accessLogs;
     
     // Complete URL
     private String fullUrl;
-    
+
+    public boolean isActive() {
+        return !deleted && (expirationDate == null || expirationDate.isAfter(LocalDateTime.now()));
+    }
+
     public static ApartmentSharingLinkEnrichedDTO fromEntity(ApartmentSharingLink link) {
         return ApartmentSharingLinkEnrichedDTO.builder()
                 .id(link.getId())

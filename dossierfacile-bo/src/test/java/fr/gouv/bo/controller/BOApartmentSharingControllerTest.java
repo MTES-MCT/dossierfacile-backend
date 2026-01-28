@@ -6,8 +6,8 @@ import fr.dossierfacile.common.entity.LinkLog;
 import fr.dossierfacile.common.enums.ApartmentSharingLinkType;
 import fr.dossierfacile.common.enums.LinkType;
 import fr.dossierfacile.common.repository.LinkLogRepository;
-import fr.dossierfacile.common.service.interfaces.LinkLogService;
 import fr.gouv.bo.dto.ApartmentSharingLinkEnrichedDTO;
+import fr.gouv.bo.dto.LinkLogDTO;
 import fr.gouv.bo.service.UserApiService;
 import fr.gouv.bo.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,9 +30,6 @@ import static org.mockito.Mockito.when;
 class BOApartmentSharingControllerTest {
 
     @Mock
-    private LinkLogService linkLogService;
-
-    @Mock
     private LinkLogRepository linkLogRepository;
 
     @Mock
@@ -46,7 +43,7 @@ class BOApartmentSharingControllerTest {
     @BeforeEach
     void setUp() {
         controller = new BOApartmentSharingController(
-                null, null, userApiService, null, linkLogService, linkLogRepository, userService
+                null, null, userApiService, null, linkLogRepository, userService
         );
         ReflectionTestUtils.setField(controller, "tenantBaseUrl", "https://example.com");
     }
@@ -83,7 +80,7 @@ class BOApartmentSharingControllerTest {
 
         // Verify that accessLogs contains all visit types
         assertThat(enrichedLink.getAccessLogs()).hasSize(5)
-                .extracting(LinkLog::getLinkType)
+                .extracting(LinkLogDTO::getLinkType)
                 .containsExactlyInAnyOrder(
                     LinkType.DOCUMENT,
                     LinkType.DOCUMENT,

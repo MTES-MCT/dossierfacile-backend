@@ -109,7 +109,7 @@ public class ApartmentSharingLinkService {
                 .expirationDate(LocalDateTime.now().plusMonths(1))
                 .fullData(fullData)
                 .linkType(ApartmentSharingLinkType.LINK)
-                .title("Lien créé le " + LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")))
+                .title("Lien créé le " + LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy à HH:mm")))
                 .createdBy(tenantId)
                 .build();
 

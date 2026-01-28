@@ -3,9 +3,7 @@ package fr.dossierfacile.common.service;
 import fr.dossierfacile.common.dto.mail.ApartmentSharingDto;
 import fr.dossierfacile.common.dto.mail.TenantDto;
 import fr.dossierfacile.common.entity.ApartmentSharing;
-import fr.dossierfacile.common.entity.ApartmentSharingLink;
 import fr.dossierfacile.common.entity.Tenant;
-import fr.dossierfacile.common.enums.ApartmentSharingLinkType;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
@@ -25,11 +23,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+
 import java.util.ArrayList;
 import java.util.Optional;
-import java.util.UUID;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
@@ -89,16 +85,6 @@ public class TenantCommonServiceImpl implements TenantCommonService {
         tenant.setStatus(TenantFileStatus.VALIDATED);
         tenantCommonRepository.save(tenant);
 
-        // TODO: Remove after sharing page is implemented
-        boolean hasLinks = tenant.getApartmentSharing().getApartmentSharingLinks().stream()
-                .anyMatch(link -> link.getLinkType() == ApartmentSharingLinkType.LINK);
-        if (!hasLinks) {
-            ApartmentSharingLink link = buildApartmentSharingLink(tenant.getApartmentSharing(), tenant.getId(), false);
-            ApartmentSharingLink linkFull = buildApartmentSharingLink(tenant.getApartmentSharing(), tenant.getId(), true);
-            apartmentSharingLinkRepository.save(link);
-            apartmentSharingLinkRepository.save(linkFull);
-        }
-
         // prepare for mail
         TenantDto tenantDto = tenantMapperForMail.toDto(tenant);
         ApartmentSharingDto apartmentSharingDto = apartmentSharingMapperForMail.toDto(tenant.getApartmentSharing());
@@ -131,18 +117,5 @@ public class TenantCommonServiceImpl implements TenantCommonService {
                 log.error("CAUTION Unable to send notification to user ", e);
             }
         });
-    }
-
-    private ApartmentSharingLink buildApartmentSharingLink(ApartmentSharing apartmentSharing, Long userId, boolean fullData) {
-        return ApartmentSharingLink.builder()
-                .apartmentSharing(apartmentSharing)
-                .token(UUID.randomUUID())
-                .creationDate(LocalDateTime.now())
-                .expirationDate(LocalDateTime.now().plusMonths(1))
-                .fullData(fullData)
-                .linkType(ApartmentSharingLinkType.LINK)
-                .title("Lien créé le " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
-                .createdBy(userId)
-                .build();
     }
 }

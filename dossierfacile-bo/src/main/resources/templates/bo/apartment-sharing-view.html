@@ -257,11 +257,11 @@
                                                         </form>
                                                     </span>
                                                     <!-- Bouton Supprimer (commun à tous les types) -->
-                                                    <form th:action="@{/bo/colocation/{id}/apartmentSharingLinks/{link_id}(id=${apartmentSharing.id},link_id=${link.id})}" 
-                                                          th:method="delete" 
+                                                    <form th:action="@{/bo/colocation/{id}/apartmentSharingLinks/{link_id}(id=${apartmentSharing.id},link_id=${link.id})}"
+                                                          th:method="delete"
                                                           style="display: inline;"
                                                           onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce lien ?');">
-                                                        <button type="submit" class="btn btn-outline-secondary btn-sm">
+                                                        <button type="submit" class="btn btn-sm btn-delete-link">
                                                             Supprimer le lien
                                                         </button>
                                                     </form>
@@ -410,34 +410,32 @@
                             <!-- Section Partages supprimés -->
                             <div class="deleted-shares-section" 
                                  th:with="
-                                   deletedLinksFiltered=${deletedLinks.?[linkType.toString() == 'LINK']},
-                                   deletedMails=${deletedLinks.?[linkType.toString() == 'MAIL']},
-                                   deletedOwners=${deletedLinks.?[linkType.toString() == 'OWNER']},
-                                   deletedPartners=${deletedLinks.?[linkType.toString() == 'PARTNER']}">
+                                   inactiveLinks=${inactiveSharingLinks.?[linkType.toString() == 'LINK']},
+                                   inactiveMails=${inactiveSharingLinks.?[linkType.toString() == 'MAIL']},
+                                   inactiveOwners=${inactiveSharingLinks.?[linkType.toString() == 'OWNER']},
+                                   inactivePartners=${inactiveSharingLinks.?[linkType.toString() == 'PARTNER']}">
                                 
                                 <h2 class="deleted-shares-title">Partages supprimés</h2>
                                 
                                 <div class="deleted-shares-categories">
-                                    <!-- Catégorie : Partages par lien (LINK) - Toujours affichée -->
                                     <div class="deleted-category">
                                         <div class="deleted-category-header">
                                             <p class="deleted-category-title">
-                                                Partages par lien (<span th:text="${#lists.size(deletedLinksFiltered)}">0</span>)
+                                                Partages par lien (<span th:text="${#lists.size(inactiveLinks)}">0</span>)
                                             </p>
-                                            <!-- Bouton visible uniquement si la catégorie n'est pas vide -->
-                                            <button class="btn btn-voir-plus" 
+                                            <button class="btn btn-voir-plus"
                                                     type="button" 
                                                     data-bs-toggle="collapse" 
                                                     data-bs-target="#deleted-links"
                                                     aria-expanded="false"
-                                                    th:if="${!#lists.isEmpty(deletedLinksFiltered)}">
+                                                    th:if="${!#lists.isEmpty(inactiveLinks)}">
                                                 <span class="label-collapsed">Voir plus</span>
                                                 <span class="label-expanded">Voir moins</span>
                                             </button>
                                         </div>
-                                        <div class="collapse deleted-category-content" id="deleted-links" th:if="${!#lists.isEmpty(deletedLinksFiltered)}">
+                                        <div class="collapse deleted-category-content" id="deleted-links" th:if="${!#lists.isEmpty(inactiveLinks)}">
                                             <ul class="deleted-links-list">
-                                                <li th:each="link : ${deletedLinksFiltered}">
+                                                <li th:each="link : ${inactiveLinks}">
                                                     <span th:text="${link.title ?: 'Sans titre'}">Titre</span> - 
                                                     <strong>Supprimé le : </strong>
                                                     <span th:text="${#temporals.format(link.expirationDate, 'dd MMMM yyyy - HH:mm', new java.util.Locale('fr'))}">Date</span>
@@ -446,25 +444,24 @@
                                         </div>
                                     </div>
                                     
-                                    <!-- Catégorie : Partages par email (MAIL) - Toujours affichée -->
                                     <div class="deleted-category">
                                         <div class="deleted-category-header">
                                             <p class="deleted-category-title">
-                                                Partages par email (<span th:text="${#lists.size(deletedMails)}">0</span>)
+                                                Partages par email (<span th:text="${#lists.size(inactiveMails)}">0</span>)
                                             </p>
                                             <button class="btn btn-voir-plus" 
                                                     type="button" 
                                                     data-bs-toggle="collapse" 
                                                     data-bs-target="#deleted-mails"
                                                     aria-expanded="false"
-                                                    th:if="${!#lists.isEmpty(deletedMails)}">
+                                                    th:if="${!#lists.isEmpty(inactiveMails)}">
                                                 <span class="label-collapsed">Voir plus</span>
                                                 <span class="label-expanded">Voir moins</span>
                                             </button>
                                         </div>
-                                        <div class="collapse deleted-category-content" id="deleted-mails" th:if="${!#lists.isEmpty(deletedMails)}">
+                                        <div class="collapse deleted-category-content" id="deleted-mails" th:if="${!#lists.isEmpty(inactiveMails)}">
                                             <ul class="deleted-links-list">
-                                                <li th:each="link : ${deletedMails}">
+                                                <li th:each="link : ${inactiveMails}">
                                                     <span th:text="${link.title ?: 'Sans titre'}">Titre</span> - 
                                                     <strong>Supprimé le : </strong>
                                                     <span th:text="${#temporals.format(link.expirationDate, 'dd MMMM yyyy - HH:mm', new java.util.Locale('fr'))}">Date</span>
@@ -473,25 +470,24 @@
                                         </div>
                                     </div>
                                     
-                                    <!-- Catégorie : Propriétaires DossierFacile (OWNER) - Toujours affichée -->
                                     <div class="deleted-category">
                                         <div class="deleted-category-header">
                                             <p class="deleted-category-title">
-                                                Propriétaires DossierFacile (<span th:text="${#lists.size(deletedOwners)}">0</span>)
+                                                Propriétaires DossierFacile (<span th:text="${#lists.size(inactiveOwners)}">0</span>)
                                             </p>
                                             <button class="btn btn-voir-plus" 
                                                     type="button" 
                                                     data-bs-toggle="collapse" 
                                                     data-bs-target="#deleted-owners"
                                                     aria-expanded="false"
-                                                    th:if="${!#lists.isEmpty(deletedOwners)}">
+                                                    th:if="${!#lists.isEmpty(inactiveOwners)}">
                                                 <span class="label-collapsed">Voir plus</span>
                                                 <span class="label-expanded">Voir moins</span>
                                             </button>
                                         </div>
-                                        <div class="collapse deleted-category-content" id="deleted-owners" th:if="${!#lists.isEmpty(deletedOwners)}">
+                                        <div class="collapse deleted-category-content" id="deleted-owners" th:if="${!#lists.isEmpty(inactiveOwners)}">
                                             <ul class="deleted-links-list">
-                                                <li th:each="link : ${deletedOwners}">
+                                                <li th:each="link : ${inactiveOwners}">
                                                     <span th:text="${link.title ?: 'Sans titre'}">Titre</span> - 
                                                     <strong>Supprimé le : </strong>
                                                     <span th:text="${#temporals.format(link.expirationDate, 'dd MMMM yyyy - HH:mm', new java.util.Locale('fr'))}">Date</span>
@@ -500,25 +496,24 @@
                                         </div>
                                     </div>
                                     
-                                    <!-- Catégorie : Partenaires (PARTNER) - Toujours affichée -->
                                     <div class="deleted-category">
                                         <div class="deleted-category-header">
                                             <p class="deleted-category-title">
-                                                Partenaires (<span th:text="${#lists.size(deletedPartners)}">0</span>)
+                                                Partenaires (<span th:text="${#lists.size(inactivePartners)}">0</span>)
                                             </p>
                                             <button class="btn btn-voir-plus" 
                                                     type="button" 
                                                     data-bs-toggle="collapse" 
                                                     data-bs-target="#deleted-partners"
                                                     aria-expanded="false"
-                                                    th:if="${!#lists.isEmpty(deletedPartners)}">
+                                                    th:if="${!#lists.isEmpty(inactivePartners)}">
                                                 <span class="label-collapsed">Voir plus</span>
                                                 <span class="label-expanded">Voir moins</span>
                                             </button>
                                         </div>
-                                        <div class="collapse deleted-category-content" id="deleted-partners" th:if="${!#lists.isEmpty(deletedPartners)}">
+                                        <div class="collapse deleted-category-content" id="deleted-partners" th:if="${!#lists.isEmpty(inactivePartners)}">
                                             <ul class="deleted-links-list">
-                                                <li th:each="link : ${deletedPartners}">
+                                                <li th:each="link : ${inactivePartners}">
                                                     <span th:text="${link.partnerName ?: 'Sans nom'}">Partenaire</span> - 
                                                     <strong>Supprimé le : </strong>
                                                     <span th:text="${#temporals.format(link.expirationDate, 'dd MMMM yyyy - HH:mm', new java.util.Locale('fr'))}">Date</span>
@@ -528,88 +523,6 @@
                                     </div>
                                 </div>
                             </div>
-                            <!-- Fin section Partages supprimés -->
-                            
-                            <h2>Liste des liens de partage:</h2>
-                            <table class="table table-striped table-bordered table-hover">
-                                <tr>
-                                    <th>Type</th>
-                                    <th>Accès</th>
-                                    <th>Lien</th>
-                                    <th>Expire le</th>
-                                    <th>Action</th>
-                                </tr>
-                                <tr th:each="link : ${apartmentSharing.apartmentSharingLinks}" th:if="${link.linkType.toString() != 'MAIL'}">
-                                    <td th:text="${link.linkType}"></td>
-                                    <td th:text="${link.fullData ? 'full' : 'restricted'}"></td>
-                                    <td>
-                                        <a
-                                            target="_blank"
-                                            th:attr="href=${tenantBaseUrl + (link.fullData ? '/file/' : '/public-file/') + link.token}"
-                                            th:text="${link.token}"></a>
-                                    </td>
-                                    <td th:text="${link.expirationDate}"></td>
-                                    <td>
-                                        <form th:action="@{/bo/colocation/{id}/tokens/{token}(id=${apartmentSharing.id},token=${link.token})}" th:method="post">
-                                            <button class="btn btn-outline-danger btn-modal-confirm-before-submit" type="button">Régénérer</button>
-                                            <div class="modal" role="dialog" tabindex="-1">
-                                                <div class="modal-dialog" role="document">
-                                                    <div class="modal-content">
-                                                        <div class="modal-body">Voulez-vous régénérer ce token ?</div>
-                                                        <div class="modal-footer">
-                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                                                            <button type="submit" class="btn btn-primary">Valider</button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </form>
-                                    </td>
-                                </tr>
-                            </table>
-                            <h2>Liste des liens envoyés:</h2>
-                            <table class="table table-striped table-bordered table-hover">
-                                <tr>
-                                    <th>Type</th>
-                                    <th>Email</th>
-                                    <th>Token</th>
-                                    <th>Action</th>
-                                </tr>
-                                <tr th:each="link : ${apartmentSharing.apartmentSharingLinks}" th:if="${link.linkType.toString() == 'MAIL'}">
-                                    <td th:text="${link.linkType}"></td>
-                                    <td th:text="${link.email}"></td>
-                                    <td th:text="${link.token}"></td>
-                                    <td>
-                                        <form th:action="@{/bo/colocation/{id}/apartmentSharingLinks/{link_id}(id=${apartmentSharing.id},link_id=${link.id})}"
-                                              th:method="delete">
-                                            <button class="btn btn-outline-danger btn-modal-confirm-before-submit"
-                                                    type="button">
-                                                Supprimer
-                                            </button>
-                                            <div class="modal" role="dialog" tabindex="-1">
-                                                <div class="modal-dialog" role="document">
-                                                    <div class="modal-content">
-                                                        <div class="modal-body">
-                                                            <div class="modal-body">
-                                                                Voulez-vous supprimer le lien?
-                                                            </div>
-
-                                                            <div class="modal-footer">
-                                                                <button type="button" class="btn btn-secondary"
-                                                                        data-bs-dismiss="modal">Annuler
-                                                                </button>
-                                                                <button class="btn  btn-primary " type="submit">
-                                                                    Valider
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </form>
-                                    </td>
-                                </tr>
-                            </table>
                         </div>
                     </div>
                 </div>
@@ -783,7 +696,6 @@
                                                     </button>
                                                 </div>
                                             </form>
-
                                         </div>
                                     </div>
                                 </div>

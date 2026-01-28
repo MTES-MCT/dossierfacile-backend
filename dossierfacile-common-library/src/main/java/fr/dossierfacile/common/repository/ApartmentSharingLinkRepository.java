@@ -2,6 +2,7 @@ package fr.dossierfacile.common.repository;
 
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.ApartmentSharingLink;
+import fr.dossierfacile.common.enums.ApartmentSharingLinkType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,6 +17,12 @@ public interface ApartmentSharingLinkRepository extends JpaRepository<ApartmentS
     List<ApartmentSharingLink> findByApartmentSharingAndCreationDateIsAfterAndDeletedIsFalse(ApartmentSharing apartmentSharing, LocalDateTime creationDate);
 
     List<ApartmentSharingLink> findByApartmentSharingOrderByCreationDate(ApartmentSharing apartmentSharing);
+
+    List<ApartmentSharingLink> findByApartmentSharingAndPartnerIdAndLinkTypeAndDeletedIsFalse(
+            ApartmentSharing apartmentSharing,
+            Long partnerId,
+            ApartmentSharingLinkType linkType
+    );
 
     @Query(value = """
             SELECT *
