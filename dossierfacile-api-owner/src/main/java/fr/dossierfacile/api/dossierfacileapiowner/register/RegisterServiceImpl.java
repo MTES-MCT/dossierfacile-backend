@@ -56,7 +56,7 @@ public class RegisterServiceImpl implements RegisterService {
         });
 
         confirmationTokenRepository.delete(confirmationToken);
-        keycloakService.confirmKeycloakUser(user.getKeycloakId());
+        keycloakService.confirmKeycloakUser(user);
         ownerLogService.saveLog(OwnerLogType.ACCOUNT_CONFIRMED, user.getId());
         return user.getId();
     }

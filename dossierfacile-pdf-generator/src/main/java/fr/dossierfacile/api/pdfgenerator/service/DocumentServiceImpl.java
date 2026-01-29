@@ -39,13 +39,27 @@ public class DocumentServiceImpl implements DocumentService {
     @Override
     public void saveWatermarkFileAt(long executionTimestamp, StorageFile watermarkFile, Long documentId) {
         Document document = documentRepository.findById(documentId).orElse(null);
+
+        // Handle case where document was deleted during processing
+        if (document == null) {
+            log.warn("Document {} was deleted during PDF generation, marking watermarkFile as TO_DELETE", documentId);
+            fileStorageService.delete(watermarkFile);
+            return;
+        }
+
         if (documentIsUpToDateAt(executionTimestamp, document.getId())) {
+            // Mark previous watermarkFile as TO_DELETE before replacing
+            StorageFile previousWatermarkFile = document.getWatermarkFile();
+            if (previousWatermarkFile != null) {
+                fileStorageService.delete(previousWatermarkFile);
+            }
+
             document.setWatermarkFile(watermarkFile);
             documentRepository.save(document);
-            log.warn("PDF Generation execution is a success for documentId=" + documentId);
+            log.info("PDF Generation execution is a success for documentId={}", documentId);
         } else {
             fileStorageService.delete(watermarkFile);
-            log.warn("PDF Generation execution is deprecated for documentId=" + documentId);
+            log.warn("Document {} was modified after PDF generation started, discarding outdated watermarkFile", documentId);
         }
     }
 }

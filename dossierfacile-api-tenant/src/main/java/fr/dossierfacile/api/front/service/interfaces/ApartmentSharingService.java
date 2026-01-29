@@ -19,6 +19,8 @@ public interface ApartmentSharingService {
 
     ApplicationModel full(UUID token, String trigram);
 
+    ApplicationModel full(Tenant tenant);
+
     ApplicationModel light(UUID token);
 
     FullFolderFile downloadFullPdf(UUID token) throws IOException;
@@ -41,4 +43,9 @@ public interface ApartmentSharingService {
     void delete(ApartmentSharing apartmentSharing);
 
     FullFolderFile zipDocuments(Tenant tenant);
+
+    void createFullPdfForTenant(Tenant tenant);
+
+    FullFolderFile downloadFullPdfForTenant(Tenant tenant) throws IOException;
+
 }

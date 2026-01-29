@@ -17,7 +17,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static fr.dossierfacile.scheduler.tasks.TaskName.TENANT_ARCHIVING;
-import static fr.dossierfacile.scheduler.tasks.TaskName.TENANT_WARNINGS;
+import static fr.dossierfacile.scheduler.tasks.TaskName.TENANT_WARNINGS_1;
+import static fr.dossierfacile.scheduler.tasks.TaskName.TENANT_WARNINGS_2;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 @Slf4j
@@ -27,16 +28,28 @@ public class TenantWarningTask extends AbstractTask {
 
     private static final int PAGE_SIZE = 100;
 
-    @Value("${months_for_deletion_of_documents:3}")
-    private Integer monthsForDeletionOfDocuments;
+    @Value("${days_for_deletion_of_documents:45}")
+    private Integer daysForDeletionOfDocuments;
+    @Value("${days_for_first_warning_deletion:30}")
+    private Integer daysForFirstWarningDeletion;
+    @Value("${days_for_second_warning_deletion:37}")
+    private Integer daysForSecondWarningDeletion;
     private final TenantRepository tenantRepository;
     private final TenantWarningService tenantWarningService;
 
     @Scheduled(cron = "${cron.process.warnings}")
     public void accountWarningsForDocumentDeletion() {
-        LocalDateTime localDateTime = LocalDateTime.now().minusMonths(monthsForDeletionOfDocuments);
-        archiveAccounts(localDateTime);
-        sendWarningMails(localDateTime);
+        // Delete documents after 45 days of inactivity (tenants with warnings=2)
+        LocalDateTime limitDateForDeletion = LocalDateTime.now().minusDays(daysForDeletionOfDocuments);
+        archiveAccounts(limitDateForDeletion);
+
+        // Send second warning after 37 days of inactivity (tenants with warnings=1)
+        LocalDateTime limitDateForSecondWarning = LocalDateTime.now().minusDays(daysForSecondWarningDeletion);
+        sendSecondWarningMails(limitDateForSecondWarning);
+
+        // Send first warning after 30 days of inactivity (tenants with warnings=0)
+        LocalDateTime limitDateForFirstWarning = LocalDateTime.now().minusDays(daysForFirstWarningDeletion);
+        sendFirstWarningMails(limitDateForFirstWarning);
     }
 
     private void archiveAccounts(LocalDateTime limitDate) {
@@ -51,13 +64,23 @@ public class TenantWarningTask extends AbstractTask {
         }
     }
 
-    private void sendWarningMails(LocalDateTime limitDate) {
-        super.startTask(TENANT_WARNINGS);
+    private void sendSecondWarningMails(LocalDateTime limitDate) {
+        super.startTask(TENANT_WARNINGS_2);
         try {
             processAllWarnings(limitDate, 1);
+        } catch (Exception e) {
+            log.error("Error during tenant second warning task: {}", e.getMessage(), e);
+        } finally {
+            super.endTask();
+        }
+    }
+
+    private void sendFirstWarningMails(LocalDateTime limitDate) {
+        super.startTask(TENANT_WARNINGS_1);
+        try {
             processAllWarnings(limitDate, 0);
         } catch (Exception e) {
-            log.error("Error during tenant warning task: {}", e.getMessage(), e);
+            log.error("Error during tenant first warning task: {}", e.getMessage(), e);
         } finally {
             super.endTask();
         }

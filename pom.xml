@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.12</version>
+        <version>3.5.8</version>
         <relativePath/>
     </parent>
 
@@ -31,7 +31,7 @@
     <description>DossierFacile</description>
 
     <properties>
-        <revision>3.3.7</revision>
+        <revision>3.4.0</revision>
         <java.version>21</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
@@ -46,8 +46,9 @@
         <jbig2-imageio.version>3.0.4</jbig2-imageio.version>
         <jai-imageio-core.version>1.4.0</jai-imageio-core.version>
         <jai-imageio-jpeg2000.version>1.4.0</jai-imageio-jpeg2000.version>
-        <bcprov-jdk18on.version>1.78.1</bcprov-jdk18on.version>
-        <bcpkix-jdk18on.version>1.78.1</bcpkix-jdk18on.version>
+        <bcprov-jdk18on.version>1.81</bcprov-jdk18on.version>
+        <bcpkix-jdk18on.version>1.81</bcpkix-jdk18on.version>
+        <org-apache-commons-lang3.version>3.18.0</org-apache-commons-lang3.version>
     </properties>
 
     <dependencyManagement>
@@ -90,19 +91,11 @@
             <dependency>
                 <groupId>com.brevo</groupId>
                 <artifactId>brevo</artifactId>
-                <version>1.0.0</version>
+                <version>1.1.0</version>
                 <exclusions>
                     <exclusion>
-                        <groupId>com.squareup.okhttp3</groupId>
-                        <artifactId>okhttp</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.squareup.okio</groupId>
-                        <artifactId>okio</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.google.code.gson</groupId>
-                        <artifactId>gson</artifactId>
+                        <groupId>org.apache.commons</groupId>
+                        <artifactId>commons-lang3</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>

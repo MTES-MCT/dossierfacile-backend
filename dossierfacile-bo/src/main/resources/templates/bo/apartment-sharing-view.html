@@ -8,6 +8,7 @@
 <head>
     <title>DossierFacile</title>
     <link rel="stylesheet" href="/css/apartment-sharing-view.css"/>
+    <script src="/js/partages-dossier.js" defer></script>
 </head>
 <body>
 <div layout:fragment="content" th:remove="tag">
@@ -63,7 +64,7 @@
                 <div class="tab-pane show active" id="colocatio" role="tabpanel" sec:authorize="hasRole('ROLE_SUPPORT')">
                     <div class="container">
                         <div class="medium-space-separator">
-                            <div clas="row">
+                            <div class="row">
                                 <div class="">
                                     <button class="btn btn-success bo-btn deleteApartmentSharing"
                                             style="color: white;background-color: #f0ad4e;float: right;margin-right: 10px;margin-bottom: 10px;background-color: #d9534f;border-color: #d43f3a;"
@@ -197,86 +198,331 @@
                                 </tr>
 
                             </table>
-                            <h2>Liste des liens de partage:</h2>
-                            <table class="table table-striped table-bordered table-hover">
-                                <tr>
-                                    <th>Type</th>
-                                    <th>Accès</th>
-                                    <th>Lien</th>
-                                    <th>Expire le</th>
-                                    <th>Action</th>
-                                </tr>
-                                <tr th:each="link : ${apartmentSharing.apartmentSharingLinks}" th:if="${link.linkType.toString() != 'MAIL'}">
-                                    <td th:text="${link.linkType}"></td>
-                                    <td th:text="${link.fullData ? 'full' : 'restricted'}"></td>
-                                    <td>
-                                        <a
-                                            target="_blank"
-                                            th:attr="href=${tenantBaseUrl + (link.fullData ? '/file/' : '/public-file/') + link.token}"
-                                            th:text="${link.token}"></a>
-                                    </td>
-                                    <td th:text="${link.expirationDate}"></td>
-                                    <td>
-                                        <form th:action="@{/bo/colocation/{id}/tokens/{token}(id=${apartmentSharing.id},token=${link.token})}" th:method="post">
-                                            <button class="btn btn-outline-danger btn-modal-confirm-before-submit" type="button">Régénérer</button>
-                                            <div class="modal" role="dialog" tabindex="-1">
-                                                <div class="modal-dialog" role="document">
-                                                    <div class="modal-content">
-                                                        <div class="modal-body">Voulez-vous régénérer ce token ?</div>
-                                                        <div class="modal-footer">
-                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                                                            <button type="submit" class="btn btn-primary">Valider</button>
+                            
+                            <!-- Nouvelle section Partages du dossier -->
+                            <div class="partages-dossier-section" th:if="${not #lists.isEmpty(activeLinks)}">
+                                <h2 class="partages-title">Partages du dossier</h2>
+                                <p class="partages-count">
+                                    <strong>Nombre de partages</strong> : <span th:text="${#lists.size(activeLinks)}">0</span>
+                                </p>
+                                
+                                <div class="partages-cards">
+                                    <div class="partage-card" th:each="link : ${activeLinks}">
+                                        <!-- Header -->
+                                        <div class="partage-header">
+                                            <div class="partage-header-left">
+                                                <div class="partage-title-container">
+                                                    <p class="partage-link-title">
+                                                        <!-- Pour les liens OWNER -->
+                                                        <span th:if="${link.linkType.toString() == 'OWNER'}">
+                                                            Propriétaire DossierFacile : <strong th:text="${link.title ?: 'Sans titre'}">Sans titre</strong>
+                                                        </span>
+                                                        <!-- Pour les liens PARTNER -->
+                                                        <span th:if="${link.linkType.toString() == 'PARTNER'}">
+                                                            Partenaire : <strong th:text="${link.partnerName ?: 'Inconnu'}">Partenaire</strong>
+                                                        </span>
+                                                        <!-- Pour les autres types de liens -->
+                                                        <span th:if="${link.linkType.toString() == 'MAIL' or link.linkType.toString() == 'LINK'}">
+                                                            <span th:text="${link.linkType.toString() == 'MAIL' ? 'Mail : ' : 'Titre du lien : '}">Titre du lien : </span>
+                                                            <strong th:text="${link.title ?: 'Sans titre'}">Sans titre</strong>
+                                                        </span>
+                                                    </p>
+                                                </div>
+                                                <!-- Masquer l'URL pour les liens PARTNER et OWNER -->
+                                                <div class="partage-url-container" th:if="${link.linkType.toString() == 'MAIL' or link.linkType.toString() == 'LINK'}">
+                                                    <p class="partage-url">
+                                                        Lien : <a th:href="${link.fullUrl}" target="_blank" rel="noopener noreferrer" class="partage-url-link" th:text="${link.fullUrl}">URL</a>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div class="partage-header-right">
+                                                <div class="partage-status-container">
+                                                    <span class="badge-status" th:classappend="${link.disabled ? 'badge-pause' : 'badge-actif'}" 
+                                                          th:text="${link.disabled ? 'PAUSE' : 'ACTIF'}">ACTIF</span>
+                                                </div>
+                                                <div class="partage-actions-buttons">
+                                                    <!-- Boutons spécifiques aux liens LINK et MAIL -->
+                                                    <span th:if="${link.linkType.toString() == 'MAIL' or link.linkType.toString() == 'LINK'}">
+                                                        <button type="button" class="btn btn-outline-secondary btn-sm btn-copy-link" 
+                                                                th:attr="data-url=${link.fullUrl}">
+                                                            Copier le lien
+                                                        </button>
+                                                        <form th:action="@{/bo/colocation/{id}/apartmentSharingLinks/{link_id}(id=${apartmentSharing.id},link_id=${link.id})}" 
+                                                              th:method="put" style="display: inline;">
+                                                            <input type="hidden" name="enabled" th:value="${link.disabled}" />
+                                                            <button type="submit" class="btn btn-outline-secondary btn-sm"
+                                                                    th:text="${link.disabled ? 'Réactiver le lien' : 'Mettre en pause le lien'}">
+                                                                Mettre en pause le lien
+                                                            </button>
+                                                        </form>
+                                                    </span>
+                                                    <!-- Bouton Supprimer (commun à tous les types) -->
+                                                    <form th:action="@{/bo/colocation/{id}/apartmentSharingLinks/{link_id}(id=${apartmentSharing.id},link_id=${link.id})}"
+                                                          th:method="delete"
+                                                          style="display: inline;"
+                                                          onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce lien ?');">
+                                                        <button type="submit" class="btn btn-sm btn-delete-link">
+                                                            Supprimer le lien
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Body -->
+                                        <div class="partage-body">
+                                            <div class="partage-content">
+                                                <!-- Section Partage -->
+                                                <div class="partage-info-section">
+                                                    <div class="partage-info-row">
+                                                        <div class="partage-info-label">Partage :</div>
+                                                        <div class="partage-info-values">
+                                                            <!-- Affichage pour les liens de type MAIL -->
+                                                            <span th:if="${link.linkType.toString() == 'MAIL'}">
+                                                                <strong>Par mail :</strong> <span th:text="${link.email}">email</span>
+                                                            </span>
+                                                            <!-- Affichage pour les liens partenaires -->
+                                                            <span th:if="${link.linkType.toString() == 'PARTNER'}">
+                                                                <strong>Partenaire :</strong> <span th:text="${link.partnerName}">Partenaire</span>
+                                                            </span>
+                                                            <!-- Affichage pour les liens propriétaires -->
+                                                            <span th:if="${link.linkType.toString() == 'OWNER'}">
+                                                                <strong>Propriétaire DossierFacile</strong>
+                                                            </span>
+                                                            <!-- Affichage pour les liens simples -->
+                                                            <span th:if="${link.linkType.toString() == 'LINK'}">
+                                                                <strong>Par lien</strong>
+                                                            </span>
+                                                            <span th:if="${link.lastSentDatetime != null}">
+                                                                <strong>Dernier envoi :</strong> 
+                                                                <span th:text="${#temporals.format(link.lastSentDatetime, 'dd MMMM yyyy à HH''h''mm', new java.util.Locale('fr'))}">Date</span>
+                                                            </span>
+                                                            <!-- Pour les liens non-PARTNER et non-OWNER : afficher Créé le et Expire le -->
+                                                            <span th:if="${link.linkType.toString() != 'PARTNER' and link.linkType.toString() != 'OWNER' and link.creationDate != null}">
+                                                                <strong>Créé le :</strong> 
+                                                                <span th:text="${#temporals.format(link.creationDate, 'dd MMMM yyyy', new java.util.Locale('fr'))}">Date</span>
+                                                            </span>
+                                                            <span th:if="${link.linkType.toString() != 'PARTNER' and link.linkType.toString() != 'OWNER' and link.expirationDate != null}">
+                                                                <strong>Expire le :</strong> 
+                                                                <span th:text="${#temporals.format(link.expirationDate, 'dd MMMM yyyy', new java.util.Locale('fr'))}">Date</span>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <!-- Créé par (sur une ligne séparée pour non-PARTNER et non-OWNER) -->
+                                                    <div class="partage-info-row" th:if="${link.linkType.toString() != 'PARTNER' and link.linkType.toString() != 'OWNER' and link.createdByName != null}">
+                                                        <div class="partage-info-label"></div>
+                                                        <div class="partage-info-values">
+                                                            <span>
+                                                                <strong>Créé par :</strong> <span th:text="${link.createdByName}">Créateur</span>
+                                                            </span>
                                                         </div>
                                                     </div>
                                                 </div>
+                                                
+                                                <!-- Section Durée (pour PARTNER et OWNER) -->
+                                                <div th:if="${link.linkType.toString() == 'PARTNER' or link.linkType.toString() == 'OWNER'}">
+                                                    <div class="partage-separator"></div>
+                                                    
+                                                    <div class="partage-info-section">
+                                                        <div class="partage-info-row">
+                                                            <div class="partage-info-label">Durée :</div>
+                                                            <div class="partage-info-values">
+                                                                <span th:if="${link.creationDate != null}">
+                                                                    <strong>Créé le :</strong> 
+                                                                    <span th:text="${#temporals.format(link.creationDate, 'dd MMMM yyyy', new java.util.Locale('fr'))}">Date</span>
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="partage-separator"></div>
+                                                
+                                                <!-- Section Dossier -->
+                                                <div class="partage-info-section">
+                                                    <div class="partage-info-row">
+                                                        <div class="partage-info-label">Dossier :</div>
+                                                        <div class="partage-info-values">
+                                                            <span class="partage-data-type" th:text="${link.fullData ? 'Avec justificatifs' : 'Sans justificatifs'}">
+                                                                Sans justificatifs
+                                                            </span>
+                                                            <span>
+                                                                <strong>Nombre de consultations :</strong> <span th:text="${link.nbVisits}">0</span>
+                                                            </span>
+                                                            <span th:if="${link.firstVisit != null}">
+                                                                <strong>Première consultation :</strong> 
+                                                                <span th:text="${#temporals.format(link.firstVisit, 'dd MMMM yyyy', new java.util.Locale('fr'))}">Date</span>
+                                                            </span>
+                                                            <span th:if="${link.lastVisit != null}">
+                                                                <strong>Dernière consultation :</strong> 
+                                                                <span th:text="${#temporals.format(link.lastVisit, 'dd MMMM yyyy à HH:mm', new java.util.Locale('fr'))}">Date</span>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <!-- Téléchargements du dossier (pour PARTNER et OWNER) -->
+                                                    <div class="partage-info-row" th:if="${link.linkType.toString() == 'PARTNER' or link.linkType.toString() == 'OWNER'}">
+                                                        <div class="partage-info-label"></div>
+                                                        <div class="partage-info-values">
+                                                            <span>
+                                                                <strong>Téléchargements du dossier :</strong> <span th:text="${link.nbDownloads}">0</span>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Section Liste des accès -->
+                                                <div class="access-logs-section" th:if="${not #lists.isEmpty(link.accessLogs)}">
+                                                    <div class="access-logs-separator"></div>
+                                                    
+                                                    <div class="access-logs-header">
+                                                        <p class="access-logs-title">Liste des accès</p>
+                                                        <button 
+                                                            class="btn btn-voir-plus" 
+                                                            type="button" 
+                                                            data-bs-toggle="collapse" 
+                                                            th:attr="data-bs-target='#access-logs-' + ${link.id}"
+                                                            aria-expanded="false">
+                                                            <span class="label-collapsed">Voir plus</span>
+                                                            <span class="label-expanded">Voir moins</span>
+                                                        </button>
+                                                    </div>
+                                                    
+                                                    <div class="collapse access-logs-content" th:id="'access-logs-' + ${link.id}">
+                                                        <ul class="access-logs-list">
+                                                            <li th:each="log : ${link.accessLogs}">
+                                                                <span th:text="${#temporals.format(log.creationDate, 'dd MMMM yyyy à HH:mm', new java.util.Locale('fr'))}">Date</span>
+                                                                <span th:if="${log.ipAddress != null}"> - IP : <span th:text="${log.ipAddress}">IP</span></span>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                    
+                                                    <div class="access-logs-separator"></div>
+                                                </div>
                                             </div>
-                                        </form>
-                                    </td>
-                                </tr>
-                            </table>
-                            <h2>Liste des liens envoyés:</h2>
-                            <table class="table table-striped table-bordered table-hover">
-                                <tr>
-                                    <th>Type</th>
-                                    <th>Email</th>
-                                    <th>Token</th>
-                                    <th>Action</th>
-                                </tr>
-                                <tr th:each="link : ${apartmentSharing.apartmentSharingLinks}" th:if="${link.linkType.toString() == 'MAIL'}">
-                                    <td th:text="${link.linkType}"></td>
-                                    <td th:text="${link.email}"></td>
-                                    <td th:text="${link.token}"></td>
-                                    <td>
-                                        <form th:action="@{/bo/colocation/{id}/apartmentSharingLinks/{link_id}(id=${apartmentSharing.id},link_id=${link.id})}"
-                                              th:method="delete">
-                                            <button class="btn btn-outline-danger btn-modal-confirm-before-submit"
-                                                    type="button">
-                                                Supprimer
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Fin section Partages du dossier -->
+                            
+                            <!-- Section Partages supprimés -->
+                            <div class="deleted-shares-section" 
+                                 th:with="
+                                   inactiveLinks=${inactiveSharingLinks.?[linkType.toString() == 'LINK']},
+                                   inactiveMails=${inactiveSharingLinks.?[linkType.toString() == 'MAIL']},
+                                   inactiveOwners=${inactiveSharingLinks.?[linkType.toString() == 'OWNER']},
+                                   inactivePartners=${inactiveSharingLinks.?[linkType.toString() == 'PARTNER']}">
+                                
+                                <h2 class="deleted-shares-title">Partages supprimés</h2>
+                                
+                                <div class="deleted-shares-categories">
+                                    <div class="deleted-category">
+                                        <div class="deleted-category-header">
+                                            <p class="deleted-category-title">
+                                                Partages par lien (<span th:text="${#lists.size(inactiveLinks)}">0</span>)
+                                            </p>
+                                            <button class="btn btn-voir-plus"
+                                                    type="button" 
+                                                    data-bs-toggle="collapse" 
+                                                    data-bs-target="#deleted-links"
+                                                    aria-expanded="false"
+                                                    th:if="${!#lists.isEmpty(inactiveLinks)}">
+                                                <span class="label-collapsed">Voir plus</span>
+                                                <span class="label-expanded">Voir moins</span>
                                             </button>
-                                            <div class="modal" role="dialog" tabindex="-1">
-                                                <div class="modal-dialog" role="document">
-                                                    <div class="modal-content">
-                                                        <div class="modal-body">
-                                                            <div class="modal-body">
-                                                                Voulez-vous supprimer le lien?
-                                                            </div>
-
-                                                            <div class="modal-footer">
-                                                                <button type="button" class="btn btn-secondary"
-                                                                        data-bs-dismiss="modal">Annuler
-                                                                </button>
-                                                                <button class="btn  btn-primary " type="submit">
-                                                                    Valider
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </form>
-                                    </td>
-                                </tr>
-                            </table>
+                                        </div>
+                                        <div class="collapse deleted-category-content" id="deleted-links" th:if="${!#lists.isEmpty(inactiveLinks)}">
+                                            <ul class="deleted-links-list">
+                                                <li th:each="link : ${inactiveLinks}">
+                                                    <span th:text="${link.title ?: 'Sans titre'}">Titre</span> - 
+                                                    <strong>Supprimé le : </strong>
+                                                    <span th:text="${#temporals.format(link.expirationDate, 'dd MMMM yyyy - HH:mm', new java.util.Locale('fr'))}">Date</span>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="deleted-category">
+                                        <div class="deleted-category-header">
+                                            <p class="deleted-category-title">
+                                                Partages par email (<span th:text="${#lists.size(inactiveMails)}">0</span>)
+                                            </p>
+                                            <button class="btn btn-voir-plus" 
+                                                    type="button" 
+                                                    data-bs-toggle="collapse" 
+                                                    data-bs-target="#deleted-mails"
+                                                    aria-expanded="false"
+                                                    th:if="${!#lists.isEmpty(inactiveMails)}">
+                                                <span class="label-collapsed">Voir plus</span>
+                                                <span class="label-expanded">Voir moins</span>
+                                            </button>
+                                        </div>
+                                        <div class="collapse deleted-category-content" id="deleted-mails" th:if="${!#lists.isEmpty(inactiveMails)}">
+                                            <ul class="deleted-links-list">
+                                                <li th:each="link : ${inactiveMails}">
+                                                    <span th:text="${link.title ?: 'Sans titre'}">Titre</span> - 
+                                                    <strong>Supprimé le : </strong>
+                                                    <span th:text="${#temporals.format(link.expirationDate, 'dd MMMM yyyy - HH:mm', new java.util.Locale('fr'))}">Date</span>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="deleted-category">
+                                        <div class="deleted-category-header">
+                                            <p class="deleted-category-title">
+                                                Propriétaires DossierFacile (<span th:text="${#lists.size(inactiveOwners)}">0</span>)
+                                            </p>
+                                            <button class="btn btn-voir-plus" 
+                                                    type="button" 
+                                                    data-bs-toggle="collapse" 
+                                                    data-bs-target="#deleted-owners"
+                                                    aria-expanded="false"
+                                                    th:if="${!#lists.isEmpty(inactiveOwners)}">
+                                                <span class="label-collapsed">Voir plus</span>
+                                                <span class="label-expanded">Voir moins</span>
+                                            </button>
+                                        </div>
+                                        <div class="collapse deleted-category-content" id="deleted-owners" th:if="${!#lists.isEmpty(inactiveOwners)}">
+                                            <ul class="deleted-links-list">
+                                                <li th:each="link : ${inactiveOwners}">
+                                                    <span th:text="${link.title ?: 'Sans titre'}">Titre</span> - 
+                                                    <strong>Supprimé le : </strong>
+                                                    <span th:text="${#temporals.format(link.expirationDate, 'dd MMMM yyyy - HH:mm', new java.util.Locale('fr'))}">Date</span>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="deleted-category">
+                                        <div class="deleted-category-header">
+                                            <p class="deleted-category-title">
+                                                Partenaires (<span th:text="${#lists.size(inactivePartners)}">0</span>)
+                                            </p>
+                                            <button class="btn btn-voir-plus" 
+                                                    type="button" 
+                                                    data-bs-toggle="collapse" 
+                                                    data-bs-target="#deleted-partners"
+                                                    aria-expanded="false"
+                                                    th:if="${!#lists.isEmpty(inactivePartners)}">
+                                                <span class="label-collapsed">Voir plus</span>
+                                                <span class="label-expanded">Voir moins</span>
+                                            </button>
+                                        </div>
+                                        <div class="collapse deleted-category-content" id="deleted-partners" th:if="${!#lists.isEmpty(inactivePartners)}">
+                                            <ul class="deleted-links-list">
+                                                <li th:each="link : ${inactivePartners}">
+                                                    <span th:text="${link.partnerName ?: 'Sans nom'}">Partenaire</span> - 
+                                                    <strong>Supprimé le : </strong>
+                                                    <span th:text="${#temporals.format(link.expirationDate, 'dd MMMM yyyy - HH:mm', new java.util.Locale('fr'))}">Date</span>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -450,7 +696,6 @@
                                                     </button>
                                                 </div>
                                             </form>
-
                                         </div>
                                     </div>
                                 </div>

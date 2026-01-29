@@ -8,6 +8,7 @@ import fr.dossierfacile.common.repository.ApplicationLogRepository;
 import fr.dossierfacile.common.repository.StorageFileRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
+import fr.dossierfacile.common.service.interfaces.MailCommonService;
 import fr.dossierfacile.logging.job.LogAggregator;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -19,31 +20,36 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
 
-@SpringBootTest
+@SpringBootTest(properties = "brevo.enabled=false")
 @ExtendWith(ApartmentSharingResolver.class)
 class PdfGeneratorServiceImplTest {
 
     @Autowired
     PdfGeneratorService pdfGeneratorService;
 
-    @MockBean
+    @MockitoBean
     ApartmentSharingCommonService apartmentSharingCommonService;
 
-    @MockBean
+    @MockitoBean
     LogAggregator logAggregator;
 
-    @MockBean
+    @MockitoBean
     TenantCommonRepository tenantRepository;
-    @MockBean
+
+    @MockitoBean
     StorageFileRepository storageFileRepository;
-    @MockBean
+
+    @MockitoBean
     ApplicationLogRepository applicationLogRepository;
+
+    @MockitoBean
+    MailCommonService mailCommonService;
 
     @Value("${mock.storage.path}")
     private String filePath;
@@ -73,7 +79,9 @@ class PdfGeneratorServiceImplTest {
 
     @AfterEach
     void tearDown() {
-        file.delete();
+        if (file != null && file.exists()) {
+            //noinspection ResultOfMethodCallIgnored
+            file.delete();
+        }
     }
-
 }

@@ -19,15 +19,18 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import javax.annotation.PostConstruct;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
@@ -46,14 +49,22 @@ public class ApartmentSharingLinkControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
-    private static AuthenticationFacade authenticationFacade;
+    @MockitoBean
+    private AuthenticationFacade authenticationFacade;
 
-    @MockBean
-    private static ApartmentSharingLinkService apartmentSharingLinkService;
+    @MockitoBean
+    private ApartmentSharingLinkService apartmentSharingLinkService;
 
-    @MockBean
-    private static TenantService tenantService;
+    @MockitoBean
+    private TenantService tenantService;
+
+    // Référence statique à l’instance courante du test
+    private static ApartmentSharingLinkControllerTest self;
+
+    @PostConstruct
+    void setSelf() {
+        self = this;
+    }
 
     @Nested
     class GetApartmentSharingLinksTests {
@@ -67,6 +78,20 @@ public class ApartmentSharingLinkControllerTest {
 
             ApartmentSharing apartmentSharing = new ApartmentSharing();
             List<ApartmentSharingLinkModel> links = Collections.emptyList();
+
+            ApartmentSharingLinkModel linkWithCreator = ApartmentSharingLinkModel.builder()
+                    .id(1L)
+                    .creationDate(LocalDateTime.now())
+                    .ownerEmail("test@example.com")
+                    .enabled(true)
+                    .deleted(false)
+                    .fullData(false)
+                    .title("Test Link")
+                    .type("MAIL")
+                    .nbVisits(0L)
+                    .createdBy("John Doe")
+                    .url("/public-file/test-token-123")
+                    .build();
 
             return ArgumentBuilder.buildListOfArguments(
                     Pair.of("Should respond 401 when no jwt is passed",
@@ -84,12 +109,29 @@ public class ApartmentSharingLinkControllerTest {
                                     200,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(authenticationFacade.getLoggedTenant()).thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
-                                        when(apartmentSharingLinkService.getLinksByMail(apartmentSharing)).thenReturn(links);
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
+                                        when(self.apartmentSharingLinkService.getLinks(apartmentSharing)).thenReturn(links);
                                         return v;
                                     },
                                     List.of(
                                             jsonPath("$.links").isArray()
+                                    )
+                            )
+                    ),
+                    Pair.of("Should respond 200 and include createdBy and url fields when link has creator",
+                            new ControllerParameter<>(
+                                    new GetApartmentSharingLinksTestParameter(),
+                                    200,
+                                    jwtTokenWithDossier,
+                                    (v) -> {
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
+                                        when(self.apartmentSharingLinkService.getLinks(apartmentSharing)).thenReturn(List.of(linkWithCreator));
+                                        return v;
+                                    },
+                                    List.of(
+                                            jsonPath("$.links").isArray(),
+                                            jsonPath("$.links[0].createdBy").value("John Doe"),
+                                            jsonPath("$.links[0].url").value("/public-file/test-token-123")
                                     )
                             )
                     )
@@ -140,7 +182,7 @@ public class ApartmentSharingLinkControllerTest {
                                     403,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        doThrow(new AccessDeniedException("User not verified")).when(authenticationFacade).getLoggedTenant();
+                                        doThrow(new AccessDeniedException("User not verified")).when(self.authenticationFacade).getLoggedTenant();
                                         return v;
                                     },
                                     List.of(
@@ -154,8 +196,8 @@ public class ApartmentSharingLinkControllerTest {
                                     404,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(authenticationFacade.getLoggedTenant()).thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
-                                        doThrow(new NotFoundException()).when(apartmentSharingLinkService).updateStatus(1L, true, apartmentSharing);
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
+                                        doThrow(new NotFoundException()).when(self.apartmentSharingLinkService).updateStatus(1L, true, apartmentSharing);
                                         return v;
                                     },
                                     Collections.emptyList()
@@ -176,7 +218,7 @@ public class ApartmentSharingLinkControllerTest {
                                     200,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(authenticationFacade.getLoggedTenant()).thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
                                         return v;
                                     },
                                     Collections.emptyList()
@@ -236,7 +278,7 @@ public class ApartmentSharingLinkControllerTest {
                                     403,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        doThrow(new AccessDeniedException("User not verified")).when(authenticationFacade).getLoggedTenant();
+                                        doThrow(new AccessDeniedException("User not verified")).when(self.authenticationFacade).getLoggedTenant();
                                         return v;
                                     },
                                     List.of(
@@ -250,38 +292,38 @@ public class ApartmentSharingLinkControllerTest {
                                     403,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(authenticationFacade.getLoggedTenant()).thenReturn(tenant);
-                                        doThrow(new AccessDeniedException("Access Denied")).when(tenantService).resendLink(1L, tenant);
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(tenant);
+                                        doThrow(new AccessDeniedException("Access Denied")).when(self.tenantService).resendLink(1L, tenant);
                                         return v;
                                     },
                                     Collections.emptyList()
                             )
                     ),
                     Pair.of("should respond 500 when link is disabled",
-                        new ControllerParameter<>(
-                            new ResendApartmentSharingLinkTestParameter(),
-                            500,
-                            jwtTokenWithDossier,
-                            (v) -> {
-                                when(authenticationFacade.getLoggedTenant()).thenReturn(tenant);
-                                doThrow(new IllegalStateException("A disabled link cannot be sent")).when(tenantService).resendLink(1L, tenant);
-                                return v;
-                            },
-                            Collections.emptyList()
-                        )
+                            new ControllerParameter<>(
+                                    new ResendApartmentSharingLinkTestParameter(),
+                                    500,
+                                    jwtTokenWithDossier,
+                                    (v) -> {
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(tenant);
+                                        doThrow(new IllegalStateException("A disabled link cannot be sent")).when(self.tenantService).resendLink(1L, tenant);
+                                        return v;
+                                    },
+                                    Collections.emptyList()
+                            )
                     ),
                     Pair.of("Should respond 500 when delay between 2 resend is too short",
-                        new ControllerParameter<>(
-                            new ResendApartmentSharingLinkTestParameter(),
-                            500,
-                            jwtTokenWithDossier,
-                            (v) -> {
-                                when(authenticationFacade.getLoggedTenant()).thenReturn(tenant);
-                                doThrow(new IllegalStateException("Delay between two resend is too short")).when(tenantService).resendLink(1L, tenant);
-                                return v;
-                            },
-                            Collections.emptyList()
-                        )
+                            new ControllerParameter<>(
+                                    new ResendApartmentSharingLinkTestParameter(),
+                                    500,
+                                    jwtTokenWithDossier,
+                                    (v) -> {
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(tenant);
+                                        doThrow(new IllegalStateException("Delay between two resend is too short")).when(self.tenantService).resendLink(1L, tenant);
+                                        return v;
+                                    },
+                                    Collections.emptyList()
+                            )
                     ),
                     Pair.of("Should respond 500 when error while sending mail",
                             new ControllerParameter<>(
@@ -289,8 +331,8 @@ public class ApartmentSharingLinkControllerTest {
                                     500,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(authenticationFacade.getLoggedTenant()).thenReturn(tenant);
-                                        doThrow(new InternalError("Mail cannot be send - try later")).when(tenantService).resendLink(1L, tenant);
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(tenant);
+                                        doThrow(new InternalError("Mail cannot be send - try later")).when(self.tenantService).resendLink(1L, tenant);
                                         return v;
                                     },
                                     Collections.emptyList()
@@ -302,7 +344,7 @@ public class ApartmentSharingLinkControllerTest {
                                     200,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(authenticationFacade.getLoggedTenant()).thenReturn(tenant);
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(tenant);
                                         return v;
                                     },
                                     Collections.emptyList()
@@ -354,7 +396,7 @@ public class ApartmentSharingLinkControllerTest {
                                     403,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        doThrow(new AccessDeniedException("User not verified")).when(authenticationFacade).getLoggedTenant();
+                                        doThrow(new AccessDeniedException("User not verified")).when(self.authenticationFacade).getLoggedTenant();
                                         return v;
                                     },
                                     List.of(
@@ -368,7 +410,7 @@ public class ApartmentSharingLinkControllerTest {
                                     200,
                                     jwtTokenWithDossier,
                                     (v) -> {
-                                        when(authenticationFacade.getLoggedTenant()).thenReturn(tenant);
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(tenant);
                                         return v;
                                     },
                                     Collections.emptyList()
@@ -383,6 +425,186 @@ public class ApartmentSharingLinkControllerTest {
 
             var mockMvcRequestBuilder = delete("/api/application/links/1")
                     .contentType("application/json");
+
+            ParameterizedTestHelper.runControllerTest(
+                    mockMvc,
+                    mockMvcRequestBuilder,
+                    parameter
+            );
+        }
+    }
+
+    @Nested
+    class UpdateExpirationDateTests {
+
+        record UpdateExpirationDateTestParameter(Long id, String expirationDate) {
+        }
+
+        static List<Arguments> provideUpdateExpirationDateParameters() {
+
+            SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwtTokenWithDossier = jwt().authorities(new SimpleGrantedAuthority("SCOPE_dossier"));
+
+            ApartmentSharing apartmentSharing = new ApartmentSharing();
+            String futureDate = LocalDate.now().plusDays(30).toString();
+
+            return ArgumentBuilder.buildListOfArguments(
+                    Pair.of("Should respond 403 when no jwt is passed",
+                            new ControllerParameter<>(
+                                    new UpdateExpirationDateTestParameter(1L, futureDate),
+                                    403,
+                                    null,
+                                    null,
+                                    Collections.emptyList()
+                            )
+                    ),
+                    Pair.of("Should respond 403 when email is not verified",
+                            new ControllerParameter<>(
+                                    new UpdateExpirationDateTestParameter(1L, futureDate),
+                                    403,
+                                    jwtTokenWithDossier,
+                                    (v) -> {
+                                        doThrow(new AccessDeniedException("User not verified")).when(self.authenticationFacade).getLoggedTenant();
+                                        return v;
+                                    },
+                                    List.of(
+                                            jsonPath("$.status").value("FORBIDDEN")
+                                    )
+                            )
+                    ),
+                    Pair.of("Should respond 404 when link not found",
+                            new ControllerParameter<>(
+                                    new UpdateExpirationDateTestParameter(1L, futureDate),
+                                    404,
+                                    jwtTokenWithDossier,
+                                    (v) -> {
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
+                                        LocalDateTime expectedDateTime = LocalDate.parse(futureDate).atStartOfDay();
+                                        doThrow(new NotFoundException()).when(self.apartmentSharingLinkService).updateExpirationDate(1L, expectedDateTime, apartmentSharing);
+                                        return v;
+                                    },
+                                    Collections.emptyList()
+                            )
+                    ),
+                    Pair.of("Should respond 200 when jwt is passed and valid expiration date",
+                            new ControllerParameter<>(
+                                    new UpdateExpirationDateTestParameter(1L, futureDate),
+                                    200,
+                                    jwtTokenWithDossier,
+                                    (v) -> {
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
+                                        return v;
+                                    },
+                                    Collections.emptyList()
+                            )
+                    )
+            );
+        }
+
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("provideUpdateExpirationDateParameters")
+        void parameterizedTests(ControllerParameter<UpdateExpirationDateTestParameter> parameter) throws Exception {
+
+            var url = "/api/application/links";
+            if (parameter.getParameterData().id != null) {
+                url += "/" + parameter.getParameterData().id + "/expiration";
+            }
+
+            var mockMvcRequestBuilder = put(url)
+                    .contentType("application/json");
+
+            if (parameter.getParameterData().expirationDate != null) {
+                String requestBody = "{\"expirationDate\":\"" + parameter.getParameterData().expirationDate + "\"}";
+                mockMvcRequestBuilder = mockMvcRequestBuilder.content(requestBody);
+            }
+
+            ParameterizedTestHelper.runControllerTest(
+                    mockMvc,
+                    mockMvcRequestBuilder,
+                    parameter
+            );
+        }
+    }
+
+    @Nested
+    class UpdateTitleTests {
+
+        record UpdateTitleTestParameter(Long id, String title) {
+        }
+
+        static List<Arguments> provideUpdateTitleParameters() {
+
+            SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwtTokenWithDossier = jwt().authorities(new SimpleGrantedAuthority("SCOPE_dossier"));
+
+            ApartmentSharing apartmentSharing = new ApartmentSharing();
+
+            return ArgumentBuilder.buildListOfArguments(
+                    Pair.of("Should respond 403 when no jwt is passed",
+                            new ControllerParameter<>(
+                                    new UpdateTitleTestParameter(1L, "test"),
+                                    403,
+                                    null,
+                                    null,
+                                    Collections.emptyList()
+                            )
+                    ),
+                    Pair.of("Should respond 403 when email is not verified",
+                            new ControllerParameter<>(
+                                    new UpdateTitleTestParameter(1L, "test"),
+                                    403,
+                                    jwtTokenWithDossier,
+                                    (v) -> {
+                                        doThrow(new AccessDeniedException("User not verified")).when(self.authenticationFacade).getLoggedTenant();
+                                        return v;
+                                    },
+                                    List.of(
+                                            jsonPath("$.status").value("FORBIDDEN")
+                                    )
+                            )
+                    ),
+                    Pair.of("Should respond 404 when link not found",
+                            new ControllerParameter<>(
+                                    new UpdateTitleTestParameter(1L, "test"),
+                                    404,
+                                    jwtTokenWithDossier,
+                                    (v) -> {
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
+                                        doThrow(new NotFoundException()).when(self.apartmentSharingLinkService).updateTitle(1L, "test", apartmentSharing);
+                                        return v;
+                                    },
+                                    Collections.emptyList()
+                            )
+                    ),
+                    Pair.of("Should respond 200 when jwt is passed and valid title",
+                            new ControllerParameter<>(
+                                    new UpdateTitleTestParameter(1L, "test"),
+                                    200,
+                                    jwtTokenWithDossier,
+                                    (v) -> {
+                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(Tenant.builder().apartmentSharing(apartmentSharing).build());
+                                        return v;
+                                    },
+                                    Collections.emptyList()
+                            )
+                    )
+            );
+        }
+
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("provideUpdateTitleParameters")
+        void parameterizedTests(ControllerParameter<UpdateTitleTestParameter> parameter) throws Exception {
+
+            var url = "/api/application/links";
+            if (parameter.getParameterData().id != null) {
+                url += "/" + parameter.getParameterData().id + "/title";
+            }
+
+            var mockMvcRequestBuilder = put(url)
+                    .contentType("application/json");
+
+            if (parameter.getParameterData().title != null) {
+                String requestBody = "{\"title\":\"" + parameter.getParameterData().title + "\"}";
+                mockMvcRequestBuilder = mockMvcRequestBuilder.content(requestBody);
+            }
 
             ParameterizedTestHelper.runControllerTest(
                     mockMvc,

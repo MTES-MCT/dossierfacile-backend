@@ -5,6 +5,7 @@ import fr.dossierfacile.api.pdfgenerator.util.parameterresolvers.ApartmentSharin
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.repository.ApplicationLogRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
+import fr.dossierfacile.common.service.interfaces.MailCommonService;
 import fr.dossierfacile.logging.job.LogAggregator;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,7 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -27,14 +28,16 @@ import static org.mockito.ArgumentMatchers.anyLong;
 @ExtendWith(ApartmentSharingResolver.class)
 public class ApartmentSharingPdfDocumentTemplateTest {
 
-    @MockBean
+    @MockitoBean
     private TenantCommonRepository tenantRepository;
-    @MockBean
+    @MockitoBean
     private ApplicationLogRepository applicationLogRepository;
-    @MockBean
+    @MockitoBean
     private DownloadServiceImpl downloadService;
-    @MockBean
+    @MockitoBean
     private LogAggregator logAggregator;
+    @MockitoBean
+    private MailCommonService mailCommonService;
     @Autowired
     private ApartmentSharingPdfDocumentTemplate pdfService;
 

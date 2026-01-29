@@ -9,7 +9,7 @@ public interface KeycloakService {
 
     String createKeycloakFromExistingUser(User user, String password);
 
-    void confirmKeycloakUser(String keycloakId);
+    void confirmKeycloakUser(User user);
 
     boolean isKeycloakUser(String keyCloakId);
 

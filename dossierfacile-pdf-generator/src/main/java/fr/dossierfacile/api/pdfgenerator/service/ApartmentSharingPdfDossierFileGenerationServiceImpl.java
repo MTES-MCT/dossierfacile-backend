@@ -4,7 +4,6 @@ import fr.dossierfacile.api.pdfgenerator.service.interfaces.ApartmentSharingPdfD
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.enums.FileStatus;
-import fr.dossierfacile.common.repository.StorageFileRepository;
 import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,7 +24,24 @@ public class ApartmentSharingPdfDossierFileGenerationServiceImpl implements Apar
 
     @Override
     public void complete(Long id, StorageFile file) {
-        ApartmentSharing apartmentSharing = apartmentSharingCommonService.findById(id).get();
+        Optional<ApartmentSharing> optionalApartmentSharing = apartmentSharingCommonService.findById(id);
+
+        // Handle case where ApartmentSharing was deleted during PDF generation
+        if (optionalApartmentSharing.isEmpty()) {
+            log.warn("ApartmentSharing {} was deleted during PDF generation, marking pdfDossierFile as TO_DELETE", id);
+            fileStorageService.delete(file);
+            return;
+        }
+
+        ApartmentSharing apartmentSharing = optionalApartmentSharing.get();
+
+        // Mark previous pdfDossierFile as TO_DELETE before replacing
+        StorageFile previousPdfDossierFile = apartmentSharing.getPdfDossierFile();
+        if (previousPdfDossierFile != null) {
+            log.warn("Deleting previous pdfDossierFile {} before setting new one, marking pdfDossierFile as TO_DELETE", previousPdfDossierFile.getId());
+            fileStorageService.delete(previousPdfDossierFile);
+        }
+
         apartmentSharing.setPdfDossierFile(file);
         apartmentSharing.setDossierPdfDocumentStatus(FileStatus.COMPLETED);
         apartmentSharingCommonService.save(apartmentSharing);
@@ -32,12 +49,20 @@ public class ApartmentSharingPdfDossierFileGenerationServiceImpl implements Apar
 
     @Override
     public void fail(Long apartmentSharingId, StorageFile file) {
-        ApartmentSharing apartmentSharing = apartmentSharingCommonService.findById(apartmentSharingId).get();
+        Optional<ApartmentSharing> optionalApartmentSharing = apartmentSharingCommonService.findById(apartmentSharingId);
+
+        // Handle case where ApartmentSharing was deleted during PDF generation
+        if (optionalApartmentSharing.isEmpty()) {
+            log.warn("ApartmentSharing {} was deleted during PDF generation, marking pdfDossierFile as TO_DELETE", apartmentSharingId);
+            fileStorageService.delete(file);
+            return;
+        }
+
+        ApartmentSharing apartmentSharing = optionalApartmentSharing.get();
         apartmentSharing.setDossierPdfDocumentStatus(FileStatus.FAILED);
         apartmentSharing.setPdfDossierFile(null);
         apartmentSharingCommonService.save(apartmentSharing);
         fileStorageService.delete(file);
-
     }
 
     @Override

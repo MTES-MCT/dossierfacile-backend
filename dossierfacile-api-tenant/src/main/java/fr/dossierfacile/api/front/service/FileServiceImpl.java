@@ -10,7 +10,6 @@ import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.model.log.EditionType;
-import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class FileServiceImpl implements FileService {
     private final FileRepository fileRepository;
-    private final FileStorageService fileStorageService;
     private final DocumentService documentService;
     private final LogService logService;
     private final Producer producer;
@@ -30,11 +28,13 @@ public class FileServiceImpl implements FileService {
     @Override
     @Transactional
     public Document delete(Long id, Tenant tenant) {
-        File file = fileRepository.findByIdForAppartmentSharing(id, tenant.getApartmentSharing().getId()).orElseThrow(() -> new FileNotFoundException(id, tenant));
+        File file = fileRepository.findByIdForAppartmentSharing(id, tenant.getApartmentSharing().getId())
+                .orElseThrow(() -> new FileNotFoundException(id, tenant));
 
         Document document = file.getDocument();
-        document.getFiles().remove(file);
 
+        document.getFiles().remove(file);
+        file.setDocument(null);
         fileRepository.delete(file);
 
         logService.saveDocumentEditedLog(document, tenant, EditionType.DELETE);
@@ -44,12 +44,10 @@ public class FileServiceImpl implements FileService {
             documentService.delete(document);
             return null;
         }
-        documentService.changeDocumentStatus(document, DocumentStatus.TO_PROCESS);
 
+        documentService.changeDocumentStatus(document, DocumentStatus.TO_PROCESS);
         producer.sendDocumentForAnalysis(document);
         producer.sendDocumentForPdfGeneration(document);
-
         return document;
-
     }
 }

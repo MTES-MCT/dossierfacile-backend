@@ -61,10 +61,11 @@ public class TenantLogService {
             .toList();
     }
 
-    public void addOperatorCommentLog(Tenant tenant, String operatorComment) {
+    public void addOperatorCommentLog(Long operatorId, Long tenantId, String operatorComment) {
         TenantLog log = TenantLog.builder()
                 .logType(LogType.OPERATOR_COMMENT)
-                .tenantId(tenant.getId())
+                .tenantId(tenantId)
+                .operatorId(operatorId)
                 .creationDateTime(LocalDateTime.now())
                 .logDetails(writeAsObjectNode(Map.of("comment", operatorComment)))
                 .build();

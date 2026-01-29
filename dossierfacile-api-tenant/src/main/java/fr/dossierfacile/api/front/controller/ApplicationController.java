@@ -8,7 +8,6 @@ import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
-import fr.dossierfacile.common.repository.ApartmentSharingLinkRepository;
 
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -42,7 +41,7 @@ public class ApplicationController {
 
     @GetMapping(value = "/full/{token}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ApplicationModel> full(@PathVariable UUID token,
-                                                 @RequestHeader(value = "X-Tenant-Trigram", required = false) String trigramHeader) {
+                                                 @RequestHeader(value = "X-Tenant-Trigram", required = true) String trigramHeader) {
         ApplicationModel applicationModel = apartmentSharingService.full(token, trigramHeader);
         return ok(applicationModel);
     }
@@ -56,8 +55,59 @@ public class ApplicationController {
     @MethodLogTime
     @GetMapping(value = "/fullPdf/{token}", produces = MediaType.APPLICATION_PDF_VALUE)
     public void downloadFullPdf(@PathVariable UUID token, HttpServletResponse response) {
+        handlePdfDownload(() -> apartmentSharingService.downloadFullPdf(token), response);
+    }
+
+    @PostMapping(value = "/fullPdf/{token}", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<String> createFullPdf(@PathVariable UUID token) {
+        return handlePdfCreation(() -> apartmentSharingService.createFullPdf(token));
+    }
+
+    @GetMapping(value = "/current-tenant/full", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<ApplicationModel> fullForLoggedTenant() {
+        Tenant tenant = authenticationFacade.getLoggedTenant();
+        ApplicationModel applicationModel = apartmentSharingService.full(tenant);
+        return ok(applicationModel);
+    }
+
+    @PostMapping(value = "/current-tenant/fullPdf", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<String> createFullPdfForLoggedTenant() {
+        Tenant tenant = authenticationFacade.getLoggedTenant();
+        return handlePdfCreation(() -> apartmentSharingService.createFullPdfForTenant(tenant));
+    }
+
+    @MethodLogTime
+    @GetMapping(value = "/current-tenant/fullPdf", produces = MediaType.APPLICATION_PDF_VALUE)
+    public void downloadFullPdf(HttpServletResponse response) {
+        Tenant tenant = authenticationFacade.getLoggedTenant();
+        handlePdfDownload(() -> apartmentSharingService.downloadFullPdfForTenant(tenant), response);
+    }
+
+    @MethodLogTime
+    @GetMapping(value = "/zip")
+    public void downloadFullZip(HttpServletResponse response) {
         try {
-            FullFolderFile pdfFile = apartmentSharingService.downloadFullPdf(token);
+            Tenant tenant = authenticationFacade.getLoggedTenant();
+            FullFolderFile fullFolderFile = apartmentSharingService.zipDocuments(tenant);
+            if (fullFolderFile.getFileOutputStream().size() > 0) {
+                response.setHeader("Access-Control-Expose-Headers", "Content-Disposition, Content-Type");
+                response.setHeader("Content-Disposition", String.format("attachment; filename=\"%s\"", fullFolderFile.getFileName()));
+                response.setHeader("Content-Type", "application/zip");
+                response.setHeader("X-Robots-Tag", "noindex");
+                response.getOutputStream().write(fullFolderFile.getFileOutputStream().toByteArray());
+            } else {
+                log.error(DOCUMENT_NOT_EXIST);
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            }
+        } catch (IOException e) {
+            log.error(e.getMessage(), e.getCause());
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private void handlePdfDownload(PdfDownloadSupplier downloadSupplier, HttpServletResponse response) {
+        try {
+            FullFolderFile pdfFile = downloadSupplier.get();
             if (pdfFile.getFileOutputStream().size() > 0) {
                 response.setHeader("Access-Control-Expose-Headers", "Content-Disposition, Content-Type");
                 response.setHeader("Content-Disposition", String.format("attachment; filename=\"%s\"", pdfFile.getFileName()));
@@ -93,10 +143,9 @@ public class ApplicationController {
         }
     }
 
-    @PostMapping(value = "/fullPdf/{token}", produces = MediaType.APPLICATION_PDF_VALUE)
-    public ResponseEntity<String> createFullPdf(@PathVariable UUID token) {
+    private ResponseEntity<String> handlePdfCreation(PdfCreateSupplier createSupplier) {
         try {
-            apartmentSharingService.createFullPdf(token);
+            createSupplier.execute();
             return accepted().build();
         } catch (ApartmentSharingNotFoundException e) {
             log.error(e.getMessage(), e.getCause());
@@ -110,25 +159,13 @@ public class ApplicationController {
         }
     }
 
-    @MethodLogTime
-    @GetMapping(value = "/zip")
-    public void downloadFullZip(HttpServletResponse response) {
-        try {
-            Tenant tenant = authenticationFacade.getLoggedTenant();
-            FullFolderFile fullFolderFile = apartmentSharingService.zipDocuments(tenant);
-            if (fullFolderFile.getFileOutputStream().size() > 0) {
-                response.setHeader("Access-Control-Expose-Headers", "Content-Disposition, Content-Type");
-                response.setHeader("Content-Disposition", String.format("attachment; filename=\"%s\"", fullFolderFile.getFileName()));
-                response.setHeader("Content-Type", "application/zip");
-                response.setHeader("X-Robots-Tag", "noindex");
-                response.getOutputStream().write(fullFolderFile.getFileOutputStream().toByteArray());
-            } else {
-                log.error(DOCUMENT_NOT_EXIST);
-                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            }
-        } catch (IOException e) {
-            log.error(e.getMessage(), e.getCause());
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        }
+    @FunctionalInterface
+    private interface PdfDownloadSupplier {
+        FullFolderFile get() throws IOException;
+    }
+
+    @FunctionalInterface
+    private interface PdfCreateSupplier {
+        void execute() throws ApartmentSharingNotFoundException, ApartmentSharingUnexpectedException;
     }
 }

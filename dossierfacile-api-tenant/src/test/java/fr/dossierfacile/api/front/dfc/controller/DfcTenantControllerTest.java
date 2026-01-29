@@ -30,15 +30,16 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import javax.annotation.PostConstruct;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -60,25 +61,33 @@ class DfcTenantControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
-    private static AuthenticationFacade authenticationFacade;
+    @MockitoBean
+    private AuthenticationFacade authenticationFacade;
 
-    @MockBean
-    private static TenantService tenantService;
+    @MockitoBean
+    private TenantService tenantService;
 
-    @MockBean
-    private static UserService userService;
+    @MockitoBean
+    private UserService userService;
 
-    @MockBean
-    private static UserApiService userApiService;
+    @MockitoBean
+    private UserApiService userApiService;
 
-    @MockBean
-    private static TenantPermissionsService tenantPermissionsService;
+    @MockitoBean
+    private TenantPermissionsService tenantPermissionsService;
 
-    @MockBean
+    @MockitoBean
     private JwtDecoder jwtDecoder;
 
     private static ObjectMapper mapper = new ObjectMapper();
+
+    // Référence statique à l’instance courante du test
+    private static DfcTenantControllerTest self;
+
+    @PostConstruct
+    void setSelf() {
+        self = this;
+    }
 
     @BeforeEach
     void beforeEach() {
@@ -171,18 +180,18 @@ class DfcTenantControllerTest {
                                     200,
                                     jwtWithClaimsMap,
                                     (v) -> {
-                                        when(authenticationFacade.getKeycloakClientId()).thenReturn("client_id");
-                                        when(authenticationFacade.getKeycloakUserId()).thenReturn("keycloak_id");
-                                        when(tenantService.findByKeycloakId("keycloak_id")).thenReturn(tenant);
-                                        when(userApiService.findByName("client_id")).thenReturn(Optional.of(userApi));
+                                        when(self.authenticationFacade.getKeycloakClientId()).thenReturn("client_id");
+                                        when(self.authenticationFacade.getKeycloakUserId()).thenReturn("keycloak_id");
+                                        when(self.tenantService.findByKeycloakId("keycloak_id")).thenReturn(tenant);
+                                        when(self.userApiService.findByName("client_id")).thenReturn(Optional.of(userApi));
                                         return v;
                                     },
                                     List.of(
                                             content().json(expectedJson)
                                     ),
                                     (v) -> {
-                                        verify(tenantService, times(0)).findByEmail(any());
-                                        verify(userService, times(1)).linkTenantToPartner(tenant, "client_id", null);
+                                        verify(self.tenantService, times(0)).findByEmail(any());
+                                        verify(self.userService, times(1)).linkTenantToPartner(tenant, "client_id", null);
                                         return v;
                                     }
                             )
@@ -193,21 +202,21 @@ class DfcTenantControllerTest {
                                     200,
                                     jwtWithClaimsMap,
                                     (v) -> {
-                                        when(authenticationFacade.getKeycloakClientId()).thenReturn("client_id");
-                                        when(tenantService.findByKeycloakId("keycloak_id")).thenReturn(null);
-                                        when(authenticationFacade.getUserEmail()).thenReturn("test@test.fr");
-                                        when(tenantService.findByEmail("test@test.fr")).thenReturn(Optional.of(tenant));
-                                        when(authenticationFacade.getKeycloakUserId()).thenReturn("keycloak_id");
-                                        when(userApiService.findByName("client_id")).thenReturn(Optional.of(userApi));
+                                        when(self.authenticationFacade.getKeycloakClientId()).thenReturn("client_id");
+                                        when(self.tenantService.findByKeycloakId("keycloak_id")).thenReturn(null);
+                                        when(self.authenticationFacade.getUserEmail()).thenReturn("test@test.fr");
+                                        when(self.tenantService.findByEmail("test@test.fr")).thenReturn(Optional.of(tenant));
+                                        when(self.authenticationFacade.getKeycloakUserId()).thenReturn("keycloak_id");
+                                        when(self.userApiService.findByName("client_id")).thenReturn(Optional.of(userApi));
                                         return v;
                                     },
                                     List.of(
                                             content().json(expectedJson)
                                     ),
                                     (v) -> {
-                                        verify(tenantService, times(1)).findByKeycloakId("keycloak_id");
-                                        verify(tenantService, times(1)).findByEmail("test@test.fr");
-                                        verify(userService, times(1)).linkTenantToPartner(tenant, "client_id", null);
+                                        verify(self.tenantService, times(1)).findByKeycloakId("keycloak_id");
+                                        verify(self.tenantService, times(1)).findByEmail("test@test.fr");
+                                        verify(self.userService, times(1)).linkTenantToPartner(tenant, "client_id", null);
                                         return v;
                                     }
                             )
@@ -218,24 +227,24 @@ class DfcTenantControllerTest {
                                     200,
                                     jwtWithClaimsMap,
                                     (v) -> {
-                                        when(authenticationFacade.getKeycloakClientId()).thenReturn("client_id");
-                                        when(tenantService.findByKeycloakId("keycloak_id")).thenReturn(null);
-                                        when(authenticationFacade.getUserEmail()).thenReturn("test@test.fr");
-                                        when(tenantService.findByEmail("test@test.fr")).thenReturn(Optional.empty());
-                                        when(authenticationFacade.getKeycloakUserId()).thenReturn("keycloak_id");
-                                        when(authenticationFacade.getKeycloakUser()).thenReturn(keycloakUser);
-                                        when(tenantService.registerFromKeycloakUser(keycloakUser, "client_id", null)).thenReturn(tenant);
-                                        when(userApiService.findByName("client_id")).thenReturn(Optional.of(userApi));
+                                        when(self.authenticationFacade.getKeycloakClientId()).thenReturn("client_id");
+                                        when(self.tenantService.findByKeycloakId("keycloak_id")).thenReturn(null);
+                                        when(self.authenticationFacade.getUserEmail()).thenReturn("test@test.fr");
+                                        when(self.tenantService.findByEmail("test@test.fr")).thenReturn(Optional.empty());
+                                        when(self.authenticationFacade.getKeycloakUserId()).thenReturn("keycloak_id");
+                                        when(self.authenticationFacade.getKeycloakUser()).thenReturn(keycloakUser);
+                                        when(self.tenantService.registerFromKeycloakUser(keycloakUser, "client_id", null)).thenReturn(tenant);
+                                        when(self.userApiService.findByName("client_id")).thenReturn(Optional.of(userApi));
                                         return v;
                                     },
                                     List.of(
                                             content().json(expectedJson)
                                     ),
                                     (v) -> {
-                                        verify(tenantService, times(1)).findByKeycloakId("keycloak_id");
-                                        verify(tenantService, times(1)).findByEmail("test@test.fr");
-                                        verify(tenantService, times(1)).registerFromKeycloakUser(keycloakUser, "client_id", null);
-                                        verify(userService, times(0)).linkTenantToPartner(any(), any(), any());
+                                        verify(self.tenantService, times(1)).findByKeycloakId("keycloak_id");
+                                        verify(self.tenantService, times(1)).findByEmail("test@test.fr");
+                                        verify(self.tenantService, times(1)).registerFromKeycloakUser(keycloakUser, "client_id", null);
+                                        verify(self.userService, times(0)).linkTenantToPartner(any(), any(), any());
                                         return v;
                                     }
                             )
@@ -291,7 +300,7 @@ class DfcTenantControllerTest {
                                     200,
                                     jwtTokenWithDfc,
                                     (v) -> {
-                                        when(authenticationFacade.getKeycloakUserId()).thenReturn("keycloak_id");
+                                        when(self.authenticationFacade.getKeycloakUserId()).thenReturn("keycloak_id");
                                         return v;
                                     },
                                     List.of(

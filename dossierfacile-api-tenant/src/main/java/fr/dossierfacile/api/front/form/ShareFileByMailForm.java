@@ -20,5 +20,12 @@ public class ShareFileByMailForm {
     private String email;
 
     @NotEmpty
-    private String shareType;
+    private String title;
+
+    @NotEmpty
+    private String message;
+
+    private boolean fullData;
+
+    private Integer daysValid;
 }

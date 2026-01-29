@@ -16,8 +16,13 @@ filter:
       environment: "prod"
   - match_phrase:
       application: "task-scheduler"
-  - match_phrase:
-      task_name: "TENANT_WARNINGS"
+  - bool:
+      should:
+        - match_phrase:
+            task_name: "TENANT_WARNINGS_1"
+        - match_phrase:
+            task_name: "TENANT_WARNINGS_2"
+      minimum_should_match: 1
   - match_phrase:
       task_status: "SUCCESS"
 

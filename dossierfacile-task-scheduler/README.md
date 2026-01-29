@@ -31,7 +31,7 @@ increasing loads and activity peaks.
 | `scheduled.process.storage.delete.retry.dailed.delay.minutes`      | Delete the files flag as "DELETE_FAILED" from the delete task. Property `scheduled.process.storage.delete.retry.dailed.delay.minutes` control the execution delay in minutes                                                                                                                                                                                             | Every 5 minutes                                  | `DeleteFilesTask.retryDeleteFileInProviderTask`        |
 | ~~`scheduled.process.storage.backup.delay.ms`~~                    | **Removed** - No longer needed with S3 multi-AZ provider | -                                 | -                   |
 | ~~`scheduled.process.storage.backup.retry.failed.copy.delay.minutes`~~ | **Removed** - No longer needed with S3 multi-AZ provider | -                              | -                  |
-| `cron.process.warnings`                                            | Delete the documents of a tenant if the account is inactive. After a period of `months_for_deletion_of_documents` (month) 2 email notifications are sent. After those 2 warnings the documents are deleted and the account archived. An other email is sent to inform the tenant.                                                                                        | Every Monday at 10:20 AM                         | `TenantWarningTask.accountWarningsForDocumentDeletion` |
+| `cron.process.warnings`                                            | Delete the documents of a tenant if the account is inactive. First warning is sent after `days_for_first_warning_deletion` days (default: 30), second warning after `days_for_second_warning_deletion` days (default: 37), and documents are deleted after `days_for_deletion_of_documents` days (default: 45). The account is then archived. | Every monday at 10:20 AM                             | `TenantWarningTask.accountWarningsForDocumentDeletion` |
 | `cron.account-deletion`                                            | Delete the tenant account after a period `months_for_deletion_of_archived_tenants` month of inactivity when the account is archived                                                                                                                                                                                                                                      | Every Monday at 7:10 AM                          | `TenantDeletionTask.deleteOldAccounts`                 |
 
 ## Configuration
@@ -80,8 +80,12 @@ owner_weeks_for_second_warning_deletion=
 cron.process.pdf.generation.failed=0 30 1,7,12,19 * * *
 # Cron to warn deletion of tenant account (Run every monday at 10:20 am)
 cron.process.warnings=0 20 10 * * 1
-# Number of month to trigger the warning (default: 3)
-months_for_deletion_of_documents=
+# Number of days for first warning deletion of documents (default: 30)
+days_for_first_warning_deletion=30
+# Number of days for second warning deletion of documents (default: 37)
+days_for_second_warning_deletion=37
+# Number of days for deletion of documents (default: 45)
+days_for_deletion_of_documents=45
 # Cron to delete documents with failed pdf (Run every day at 6:00 am and 10:00 pm)
 cron.delete.document.with.failed.pdf=0 0 6,22 * * *
 # Number of hours to delete documents with failed pdf
