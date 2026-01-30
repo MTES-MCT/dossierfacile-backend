@@ -168,12 +168,55 @@ class ApartmentSharingServiceImplBruteForceTest {
                 .thenReturn(new ApplicationModel());
 
         // When
-        ApplicationModel result = apartmentSharingService.full(testToken, "NOM");
+        ApplicationModel result = apartmentSharingService.full(testToken, "NOM", null);
 
         // Then
         assertThat(result).isNotNull();
         verify(bruteForceProtectionService, times(1)).checkAndEnforceProtection(fullDataLink);
         verify(bruteForceProtectionService, times(1)).resetAttempts(fullDataLink);
+    }
+
+    @Test
+    void shouldSkipLinkLogWhenLoggedTenantBelongsToApartmentSharing() {
+        // Given
+        when(apartmentSharingLinkRepository.findValidLinkByToken(testToken, true))
+                .thenReturn(Optional.of(fullDataLink));
+        lenient().when(apartmentSharingLinkRepository.findByToken(testToken))
+                .thenReturn(Optional.of(fullDataLink));
+        when(applicationFullMapper.toApplicationModelWithToken(eq(apartmentSharing), eq(testToken)))
+                .thenReturn(new ApplicationModel());
+
+        // When
+        ApplicationModel result = apartmentSharingService.full(testToken, "NOM", tenant);
+
+        // Then
+        assertThat(result).isNotNull();
+        verify(linkLogService, never()).save(any());
+    }
+
+    @Test
+    void shouldWriteLinkLogWhenLoggedTenantBelongsToAnotherApartmentSharing() {
+        // Given
+        when(apartmentSharingLinkRepository.findValidLinkByToken(testToken, true))
+                .thenReturn(Optional.of(fullDataLink));
+        lenient().when(apartmentSharingLinkRepository.findByToken(testToken))
+                .thenReturn(Optional.of(fullDataLink));
+        when(applicationFullMapper.toApplicationModelWithToken(eq(apartmentSharing), eq(testToken)))
+                .thenReturn(new ApplicationModel());
+
+        ApartmentSharing otherApartmentSharing = ApartmentSharing.builder().id(999L).build();
+        Tenant otherTenant = Tenant.builder()
+                .id(999L)
+                .lastName("Nom")
+                .apartmentSharing(otherApartmentSharing)
+                .build();
+
+        // When
+        ApplicationModel result = apartmentSharingService.full(testToken, "NOM", otherTenant);
+
+        // Then
+        assertThat(result).isNotNull();
+        verify(linkLogService, times(1)).save(any());
     }
 
     @Test
@@ -185,7 +228,7 @@ class ApartmentSharingServiceImplBruteForceTest {
                 .thenReturn(Optional.of(fullDataLink));
 
         // When
-        assertThatThrownBy(() -> apartmentSharingService.full(testToken, "INVALID"))
+        assertThatThrownBy(() -> apartmentSharingService.full(testToken, "INVALID", null))
                 .isInstanceOf(TrigramNotAuthorizedException.class);
 
         // Then - should call protection service to record failed attempt
@@ -205,7 +248,7 @@ class ApartmentSharingServiceImplBruteForceTest {
                 .thenReturn(new ApplicationModel());
 
         // When
-        apartmentSharingService.full(testToken, "NOM");
+        apartmentSharingService.full(testToken, "NOM", null);
 
         // Then - should check protection for full data links
         verify(bruteForceProtectionService, times(1)).checkAndEnforceProtection(fullDataLink);
@@ -220,7 +263,7 @@ class ApartmentSharingServiceImplBruteForceTest {
                 .when(bruteForceProtectionService).checkAndEnforceProtection(fullDataLink);
 
         // When & Then
-        assertThatThrownBy(() -> apartmentSharingService.full(testToken, "NOM"))
+        assertThatThrownBy(() -> apartmentSharingService.full(testToken, "NOM", null))
                 .isInstanceOf(ApplicationLinkBlockedException.class)
                 .hasMessageContaining("Too many failed attempts");
 
@@ -242,7 +285,7 @@ class ApartmentSharingServiceImplBruteForceTest {
                 .thenReturn(new ApplicationModel());
 
         // When
-        ApplicationModel result = apartmentSharingService.full(testToken, "NOM");
+        ApplicationModel result = apartmentSharingService.full(testToken, "NOM", null);
 
         // Then - Counter should be reset and access allowed
         assertThat(result).isNotNull();
@@ -267,7 +310,7 @@ class ApartmentSharingServiceImplBruteForceTest {
                 .thenReturn(new ApplicationModel());
 
         // When
-        ApplicationModel result = apartmentSharingService.full(testToken, "NOM");
+        ApplicationModel result = apartmentSharingService.full(testToken, "NOM", null);
 
         // Then - Counter should be reset
         assertThat(result).isNotNull();
@@ -307,7 +350,7 @@ class ApartmentSharingServiceImplBruteForceTest {
                 .when(bruteForceProtectionService).checkAndEnforceProtection(fullDataLink);
 
         // When & Then
-        assertThatThrownBy(() -> apartmentSharingService.full(testToken, "NOM"))
+        assertThatThrownBy(() -> apartmentSharingService.full(testToken, "NOM", null))
                 .isInstanceOf(ApplicationLinkBlockedException.class)
                 .satisfies(exception -> {
                     assertThat(exception).isInstanceOf(ApplicationLinkBlockedException.class);
@@ -325,7 +368,7 @@ class ApartmentSharingServiceImplBruteForceTest {
                 .thenReturn(Optional.of(fullDataLink));
 
         // First failed attempt
-        assertThatThrownBy(() -> apartmentSharingService.full(testToken, "INVALID1"))
+        assertThatThrownBy(() -> apartmentSharingService.full(testToken, "INVALID1", null))
                 .isInstanceOf(TrigramNotAuthorizedException.class);
         verify(bruteForceProtectionService, times(1)).recordFailedAttempt(fullDataLink);
 
@@ -333,7 +376,7 @@ class ApartmentSharingServiceImplBruteForceTest {
         reset(bruteForceProtectionService);
 
         // Second failed attempt
-        assertThatThrownBy(() -> apartmentSharingService.full(testToken, "INVALID2"))
+        assertThatThrownBy(() -> apartmentSharingService.full(testToken, "INVALID2", null))
                 .isInstanceOf(TrigramNotAuthorizedException.class);
         verify(bruteForceProtectionService, times(1)).recordFailedAttempt(fullDataLink);
 
@@ -341,7 +384,7 @@ class ApartmentSharingServiceImplBruteForceTest {
         reset(bruteForceProtectionService);
 
         // Third failed attempt
-        assertThatThrownBy(() -> apartmentSharingService.full(testToken, "INVALID3"))
+        assertThatThrownBy(() -> apartmentSharingService.full(testToken, "INVALID3", null))
                 .isInstanceOf(TrigramNotAuthorizedException.class);
         verify(bruteForceProtectionService, times(1)).recordFailedAttempt(fullDataLink);
 
@@ -353,7 +396,7 @@ class ApartmentSharingServiceImplBruteForceTest {
                 .when(bruteForceProtectionService).checkAndEnforceProtection(fullDataLink);
 
         // Fourth attempt - should be blocked by protection service
-        assertThatThrownBy(() -> apartmentSharingService.full(testToken, "INVALID4"))
+        assertThatThrownBy(() -> apartmentSharingService.full(testToken, "INVALID4", null))
                 .isInstanceOf(ApplicationLinkBlockedException.class);
         verify(bruteForceProtectionService, times(1)).checkAndEnforceProtection(fullDataLink);
     }
