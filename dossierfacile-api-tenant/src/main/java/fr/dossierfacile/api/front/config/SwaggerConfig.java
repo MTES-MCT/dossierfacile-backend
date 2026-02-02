@@ -26,4 +26,10 @@ public class SwaggerConfig {
     public GroupedOpenApi allOpenApi() {
         return GroupedOpenApi.builder().displayName("All API").group("all").pathsToMatch("/**").build();
     }
+
+    @Bean
+    @Profile("dev")
+    public GroupedOpenApi allOpenApi() {
+        return GroupedOpenApi.builder().displayName("All API").group("all").pathsToMatch("/**").build();
+    }
 }
