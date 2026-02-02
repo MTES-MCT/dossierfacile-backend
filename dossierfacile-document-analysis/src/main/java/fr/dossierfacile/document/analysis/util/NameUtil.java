@@ -10,6 +10,9 @@ import java.util.regex.Pattern;
 
 public class NameUtil {
 
+    private NameUtil() {
+    }
+
     // Pattern pour identifier les caractères diacritiques (les accents)
     private static final Pattern DIACRITICS_AND_FRIENDS = Pattern.compile("\\p{M}");
 

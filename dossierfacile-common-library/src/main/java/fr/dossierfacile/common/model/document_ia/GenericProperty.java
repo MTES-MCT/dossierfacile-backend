@@ -19,6 +19,9 @@ import java.util.Date;
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class GenericProperty {
+
+    public static final String TYPE_STRING = "string";
+
     private String name;
 
     private Object value;
