@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static fr.dossierfacile.common.model.document_ia.GenericProperty.TYPE_STRING;
+
 public class TaxNamesRule extends BaseTaxRule {
 
     @Override
@@ -39,9 +41,9 @@ public class TaxNamesRule extends BaseTaxRule {
 
         var expectedDatas = new ArrayList<GenericProperty>();
         if (nameToMatch != null) {
-            expectedDatas.add(new GenericProperty("firstNames", nameToMatch.getFirstNamesAsString(), "String"));
-            expectedDatas.add(new GenericProperty("lastName", nameToMatch.getLastName(), "String"));
-            expectedDatas.add(new GenericProperty("preferredName", nameToMatch.getPreferredName() != null ? nameToMatch.getPreferredName() : "N/A", "String"));
+            expectedDatas.add(new GenericProperty("firstNames", nameToMatch.getFirstNamesAsString(), TYPE_STRING));
+            expectedDatas.add(new GenericProperty("lastName", nameToMatch.getLastName(), TYPE_STRING));
+            expectedDatas.add(new GenericProperty("preferredName", nameToMatch.getPreferredName() != null ? nameToMatch.getPreferredName() : "N/A", TYPE_STRING));
         }
 
         var tax = documentIAAnalyses.stream()
@@ -65,7 +67,7 @@ public class TaxNamesRule extends BaseTaxRule {
                 if (NameUtil.isNameMatching(nameToMatch, name)) {
                     isNameMatch = true;
                 }
-                extractedDatas.add(new GenericProperty("document_" + i + "_declarant_" + j, name.getFirstNames() + " " + name.getLastName(), "String"));
+                extractedDatas.add(new GenericProperty("document_" + i + "_declarant_" + j, name.getFirstNames() + " " + name.getLastName(), TYPE_STRING));
                 j++;
             }
             i++;
