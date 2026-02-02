@@ -18,7 +18,7 @@ import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
-import org.springframework.beans.factory.annotation.Value;
+import org.hibernate.Hibernate;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,12 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.math.BigInteger;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.PosixFilePermission;
@@ -87,10 +82,18 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
                 .document(document)
                 .numberOfPages(FileUtility.countNumberOfPagesOfPdfDocument(multipartFile))
                 .build();
-        file = fileRepository.save(file);
-        if (!document.getFiles().contains(file)) {
-            document.getFiles().add(file);
+
+        // Initialize the collection before adding the new file.
+        // This is crucial to avoid "possible non-threadsafe access to the session" errors (AssertionFailure)
+        // that occur when Hibernate tries to lazy-load the collection later in the transaction (e.g. in the Mapper)
+        // after we've already modified it by adding a new entity. By forcing initialization now,
+        // we ensure the session state remains consistent.
+        if (!Hibernate.isInitialized(document.getFiles())) {
+            Hibernate.initialize(document.getFiles());
         }
+        file = fileRepository.save(file);
+        document.getFiles().add(file);
+
         return file;
     }
 
