@@ -88,12 +88,6 @@ class TaxClassificationRuleBTest {
                 .build();
     }
 
-    private DocumentIAFileAnalysis documentWithAnalysis(
-            BarcodeModel barcodeModel
-    ) {
-        return fileAnalysisWithBarcode(barcodeModel);
-    }
-
     private DocumentIAFileAnalysis fileAnalysisWithBarcode(BarcodeModel barcode) {
         ResultModel result = ResultModel.builder()
                 .barcodes(List.of(barcode))
