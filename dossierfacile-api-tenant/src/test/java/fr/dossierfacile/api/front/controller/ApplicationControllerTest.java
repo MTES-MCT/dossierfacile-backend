@@ -127,7 +127,7 @@ class ApplicationControllerTest {
     void shouldReturn200WhenValidTrigramProvided() throws Exception {
         // Given
         ApplicationModel applicationModel = new ApplicationModel();
-        when(apartmentSharingService.full(eq(TEST_TOKEN), eq(VALID_TRIGRAM)))
+        when(apartmentSharingService.full(eq(TEST_TOKEN), eq(VALID_TRIGRAM), eq(null)))
                 .thenReturn(applicationModel);
 
         // When & Then
@@ -150,7 +150,7 @@ class ApplicationControllerTest {
                 .build();
         apartmentSharing.setTenants(Collections.singletonList(tenant));
 
-        when(apartmentSharingService.full(eq(TEST_TOKEN), eq(INVALID_TRIGRAM)))
+        when(apartmentSharingService.full(eq(TEST_TOKEN), eq(INVALID_TRIGRAM), eq(null)))
                 .thenThrow(new fr.dossierfacile.api.front.exception.TrigramNotAuthorizedException(
                         "Trigram does not match any tenant for this application"));
 
@@ -165,7 +165,7 @@ class ApplicationControllerTest {
         // Given
         UUID nonExistentToken = UUID.fromString("11111111-1111-1111-1111-111111111111");
 
-        when(apartmentSharingService.full(eq(nonExistentToken), eq(VALID_TRIGRAM)))
+        when(apartmentSharingService.full(eq(nonExistentToken), eq(VALID_TRIGRAM), eq(null)))
                 .thenThrow(new fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException(
                         nonExistentToken.toString()));
 
@@ -179,7 +179,7 @@ class ApplicationControllerTest {
     void shouldReturn429WhenLinkIsBlockedByBruteForceProtection() throws Exception {
         // Given
         // Simulates scenario where brute-force.max-attempts has been exceeded
-        when(apartmentSharingService.full(eq(TEST_TOKEN), eq(INVALID_TRIGRAM)))
+        when(apartmentSharingService.full(eq(TEST_TOKEN), eq(INVALID_TRIGRAM), eq(null)))
                 .thenThrow(new fr.dossierfacile.api.front.exception.ApplicationLinkBlockedException(
                         "Too many failed attempts. Link is temporarily blocked."));
 
