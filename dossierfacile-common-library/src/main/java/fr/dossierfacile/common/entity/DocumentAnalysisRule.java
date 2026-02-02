@@ -45,7 +45,7 @@ public class DocumentAnalysisRule {
     public static DocumentAnalysisRule documentFailedRuleFromWithData(DocumentRule rule, List<GenericProperty> expectedDatas, List<GenericProperty> extractedDatas) {
         return DocumentAnalysisRule.builder()
                 .rule(rule)
-                .message(rule.getPassedMessage())
+                .message(rule.getFailedMessage())
                 .expectedDatas(expectedDatas)
                 .extractedDatas(extractedDatas)
                 .level(rule.getLevel())
