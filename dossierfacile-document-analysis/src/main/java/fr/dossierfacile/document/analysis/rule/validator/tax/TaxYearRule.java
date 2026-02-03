@@ -4,6 +4,7 @@ import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentAnalysisRule;
 import fr.dossierfacile.common.entity.DocumentIAFileAnalysis;
 import fr.dossierfacile.common.entity.DocumentRule;
+import fr.dossierfacile.common.entity.rule.TaxYearsRuleData;
 import fr.dossierfacile.common.model.document_ia.GenericProperty;
 import fr.dossierfacile.document.analysis.rule.validator.RuleValidatorOutput;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.BaseDocumentIAValidator;
@@ -53,12 +54,10 @@ public class TaxYearRule extends BaseTaxRule {
                 .filter(this::isTax)
                 .toList();
 
-        var expectedDatas = List.of(
-                new GenericProperty("expected_year", expectedYear, "number")
-        );
+        var taxYearRuleData = new TaxYearsRuleData(expectedYear, List.of());
 
         if (tax.isEmpty()) {
-            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFromWithData(getRule(), expectedDatas), RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
+            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFromWithData(getRule(), taxYearRuleData), RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
         }
 
         var listOfPresentYear = tax.stream().flatMap(it -> it.getTypedData().stream())
@@ -67,17 +66,19 @@ public class TaxYearRule extends BaseTaxRule {
                 .toList();
 
         if (listOfPresentYear.isEmpty()) {
-            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFromWithData(getRule(), expectedDatas), RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
+            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFromWithData(getRule(), taxYearRuleData), RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
         }
 
-        var foundsData = listOfPresentYear.stream().map(
-                it -> new GenericProperty("found_year", it, "number")
-        ).toList();
+        var extractedDates = listOfPresentYear.stream()
+                .map(it -> (Integer) it)
+                .toList();
+
+        taxYearRuleData = new TaxYearsRuleData(taxYearRuleData, extractedDates);
 
         if (listOfPresentYear.contains(expectedYear)) {
-            return new RuleValidatorOutput(true, isBlocking(), DocumentAnalysisRule.documentPassedRuleFromWithData(getRule(), expectedDatas, foundsData), RuleValidatorOutput.RuleLevel.PASSED);
+            return new RuleValidatorOutput(true, isBlocking(), DocumentAnalysisRule.documentPassedRuleFromWithData(getRule(), taxYearRuleData), RuleValidatorOutput.RuleLevel.PASSED);
         } else {
-            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentFailedRuleFromWithData(getRule(), expectedDatas, foundsData), RuleValidatorOutput.RuleLevel.FAILED);
+            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentFailedRuleFromWithData(getRule(), taxYearRuleData), RuleValidatorOutput.RuleLevel.FAILED);
         }
     }
 
