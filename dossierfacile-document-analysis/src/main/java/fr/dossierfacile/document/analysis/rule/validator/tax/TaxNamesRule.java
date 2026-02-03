@@ -4,6 +4,7 @@ import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentAnalysisRule;
 import fr.dossierfacile.common.entity.DocumentIAFileAnalysis;
 import fr.dossierfacile.common.entity.DocumentRule;
+import fr.dossierfacile.common.entity.rule.NamesRuleData;
 import fr.dossierfacile.common.model.document_ia.BarcodeModel;
 import fr.dossierfacile.common.model.document_ia.GenericProperty;
 import fr.dossierfacile.document.analysis.rule.validator.RuleValidatorOutput;
@@ -13,8 +14,6 @@ import fr.dossierfacile.document.analysis.util.NameUtil;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
-import static fr.dossierfacile.common.model.document_ia.GenericProperty.TYPE_STRING;
 
 public class TaxNamesRule extends BaseTaxRule {
 
@@ -39,11 +38,15 @@ public class TaxNamesRule extends BaseTaxRule {
 
         var nameToMatch = getNamesFromDocument(document);
 
-        var expectedDatas = new ArrayList<GenericProperty>();
+        NamesRuleData namesRuleData = null;
         if (nameToMatch != null) {
-            expectedDatas.add(new GenericProperty("firstNames", nameToMatch.getFirstNamesAsString(), TYPE_STRING));
-            expectedDatas.add(new GenericProperty("lastName", nameToMatch.getLastName(), TYPE_STRING));
-            expectedDatas.add(new GenericProperty("preferredName", nameToMatch.getPreferredName() != null ? nameToMatch.getPreferredName() : "N/A", TYPE_STRING));
+            var expectedName = new NamesRuleData.Name(
+                    nameToMatch.getFirstNamesAsString(),
+                    nameToMatch.getLastName(),
+                    nameToMatch.preferredName
+            );
+
+            namesRuleData = new NamesRuleData(expectedName, List.of());
         }
 
         var tax = documentIAAnalyses.stream()
@@ -53,30 +56,37 @@ public class TaxNamesRule extends BaseTaxRule {
                 .toList();
 
         if (tax.isEmpty() || nameToMatch == null) {
-            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFromWithData(getRule(), expectedDatas), RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
+            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFromWithData(getRule(), namesRuleData), RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
         }
 
         var isNameMatch = false;
-        var extractedDatas = new ArrayList<GenericProperty>();
 
-        int i = 1;
+        var listOfExtractedNames = new ArrayList<NamesRuleData.Name>();
         for (BarcodeModel barcodeModel : tax) {
             List<TaxName> barcodeTaxNames = convertBarcodeModelToTaxName(barcodeModel);
-            int j = 1;
             for (TaxName name : barcodeTaxNames) {
                 if (NameUtil.isNameMatching(nameToMatch, name)) {
                     isNameMatch = true;
                 }
-                extractedDatas.add(new GenericProperty("document_" + i + "_declarant_" + j, name.getFirstNames() + " " + name.getLastName(), TYPE_STRING));
-                j++;
+                listOfExtractedNames.add(
+                        new NamesRuleData.Name(
+                                String.join(" ", name.getFirstNames()),
+                                name.getLastName(),
+                                null
+                        )
+                );
             }
-            i++;
         }
 
+        namesRuleData = new NamesRuleData(
+                namesRuleData,
+                listOfExtractedNames
+        );
+
         if (isNameMatch) {
-            return new RuleValidatorOutput(true, isBlocking(), DocumentAnalysisRule.documentPassedRuleFromWithData(getRule(), expectedDatas, extractedDatas), RuleValidatorOutput.RuleLevel.PASSED);
+            return new RuleValidatorOutput(true, isBlocking(), DocumentAnalysisRule.documentPassedRuleFromWithData(getRule(), namesRuleData), RuleValidatorOutput.RuleLevel.PASSED);
         } else {
-            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentFailedRuleFromWithData(getRule(), expectedDatas, extractedDatas), RuleValidatorOutput.RuleLevel.FAILED);
+            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentFailedRuleFromWithData(getRule(), namesRuleData), RuleValidatorOutput.RuleLevel.FAILED);
         }
     }
 
