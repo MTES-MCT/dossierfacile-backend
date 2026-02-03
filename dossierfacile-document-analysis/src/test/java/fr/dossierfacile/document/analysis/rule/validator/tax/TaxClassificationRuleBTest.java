@@ -4,6 +4,7 @@ import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentIAFileAnalysis;
 import fr.dossierfacile.common.entity.DocumentRule;
 import fr.dossierfacile.common.entity.File;
+import fr.dossierfacile.common.entity.rule.TaxClassificationRuleData;
 import fr.dossierfacile.common.enums.DocumentIAFileAnalysisStatus;
 import fr.dossierfacile.common.model.document_ia.BarcodeModel;
 import fr.dossierfacile.common.model.document_ia.GenericProperty;
@@ -28,7 +29,11 @@ class TaxClassificationRuleBTest {
         Document document = documentWithAnalysis(List.of(fakeAvisDeclaratif()));
         RuleValidatorOutput result = rule.validate(document);
         assertThat(result.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.FAILED);
-        assertThat(result.rule().getRule()).isEqualTo(DocumentRule.R_TAX_BAD_CLASSIFICATION_DECLARATIVE);
+        assertThat(result.rule().getRule()).isEqualTo(DocumentRule.R_TAX_BAD_CLASSIFICATION);
+        var data = (TaxClassificationRuleData) result.rule().getRuleData();
+
+        assertThat(data).isNotNull();
+        assertThat(data.isDeclarativeSituation()).isTrue();
     }
 
     @Test
@@ -61,6 +66,11 @@ class TaxClassificationRuleBTest {
         RuleValidatorOutput result = rule.validate(documentWithAnalysis(List.of(analysis)));
         assertThat(result.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.FAILED);
         assertThat(result.rule().getRule()).isEqualTo(DocumentRule.R_TAX_BAD_CLASSIFICATION);
+
+        var data = (TaxClassificationRuleData) result.rule().getRuleData();
+
+        assertThat(data).isNotNull();
+        assertThat(data.isDeclarativeSituation()).isFalse();
     }
 
     @Test
