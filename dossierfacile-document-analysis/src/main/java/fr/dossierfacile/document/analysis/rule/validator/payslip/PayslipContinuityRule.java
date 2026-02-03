@@ -3,6 +3,7 @@ package fr.dossierfacile.document.analysis.rule.validator.payslip;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentAnalysisRule;
 import fr.dossierfacile.common.entity.DocumentRule;
+import fr.dossierfacile.common.entity.rule.PayslipContinuityRuleData;
 import fr.dossierfacile.common.model.document_ia.GenericProperty;
 import fr.dossierfacile.document.analysis.rule.validator.RuleValidatorOutput;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.BaseDocumentIAValidator;
@@ -63,6 +64,8 @@ public class PayslipContinuityRule extends BaseDocumentIAValidator {
                 .sorted()
                 .toList();
 
+        var continuityRuleData = new PayslipContinuityRuleData(expectedMonths, extractedMonths);
+
         var isValid = hasThreeConsecutiveMonths(validMonths);
 
         if (isValid) {
@@ -71,8 +74,7 @@ public class PayslipContinuityRule extends BaseDocumentIAValidator {
                     isBlocking(),
                     DocumentAnalysisRule.documentPassedRuleFromWithData(
                             getRule(),
-                            convertYearMonthsToGenericProperties(expectedMonths),
-                            convertYearMonthsToGenericProperties(extractedMonths)
+                            continuityRuleData
                     ),
                     RuleValidatorOutput.RuleLevel.PASSED
             );
@@ -82,8 +84,7 @@ public class PayslipContinuityRule extends BaseDocumentIAValidator {
                     isBlocking(),
                     DocumentAnalysisRule.documentFailedRuleFromWithData(
                             getRule(),
-                            convertYearMonthsToGenericProperties(expectedMonths),
-                            convertYearMonthsToGenericProperties(extractedMonths)
+                            continuityRuleData
                     ),
                     RuleValidatorOutput.RuleLevel.FAILED
             );
@@ -131,12 +132,6 @@ public class PayslipContinuityRule extends BaseDocumentIAValidator {
                     return YearMonth.from(startDate);
                 })
                 .distinct()
-                .toList();
-    }
-
-    private List<GenericProperty> convertYearMonthsToGenericProperties(List<YearMonth> months) {
-        return months.stream()
-                .map(month -> new GenericProperty("month", month.toString(), "YearMonth"))
                 .toList();
     }
 }
