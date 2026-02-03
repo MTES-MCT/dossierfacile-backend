@@ -1,6 +1,7 @@
 package fr.dossierfacile.document.analysis.rule.validator.tax;
 
 import fr.dossierfacile.common.entity.*;
+import fr.dossierfacile.common.entity.rule.NamesRuleData;
 import fr.dossierfacile.common.enums.DocumentIAFileAnalysisStatus;
 import fr.dossierfacile.common.model.document_ia.BarcodeModel;
 import fr.dossierfacile.common.model.document_ia.GenericProperty;
@@ -28,8 +29,14 @@ class TaxNamesRuleTest {
         assertThat(result.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.PASSED);
         assertThat(result.rule().getRule()).isEqualTo(DocumentRule.R_TAX_NAMES);
 
-        assertThat(result.rule().getExtractedDatas()).hasSize(1);
-        assertThat(result.rule().getExtractedDatas().getFirst()).extracting("name", "value").containsExactly("document_1_declarant_1", "[MIKEAL, JOHN] DOE");
+        assertThat(result.rule().getRuleData()).isInstanceOf(NamesRuleData.class);
+        NamesRuleData data = (NamesRuleData) result.rule().getRuleData();
+        assertThat(data.extractedNames()).hasSize(1);
+        assertThat(data.extractedNames())
+                .extracting("lastName", "firstNames")
+                .containsExactly(
+                        org.assertj.core.groups.Tuple.tuple("DOE", "MIKEAL JOHN")
+                );
     }
 
     @Test
@@ -41,10 +48,15 @@ class TaxNamesRuleTest {
         RuleValidatorOutput result = rule.validate(document);
         assertThat(result.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.PASSED);
 
-        assertThat(result.rule().getExtractedDatas()).hasSize(2);
-        assertThat(result.rule().getExtractedDatas())
-                .extracting("value")
-                .containsExactlyInAnyOrder("[JOHN] DOE", "[JANE] DOE");
+        assertThat(result.rule().getRuleData()).isInstanceOf(NamesRuleData.class);
+        NamesRuleData data = (NamesRuleData) result.rule().getRuleData();
+        assertThat(data.extractedNames()).hasSize(2);
+        assertThat(data.extractedNames())
+                .extracting("lastName", "firstNames")
+                .containsExactlyInAnyOrder(
+                        org.assertj.core.groups.Tuple.tuple("DOE", "JOHN"),
+                        org.assertj.core.groups.Tuple.tuple("DOE", "JANE")
+                );
     }
 
 
@@ -58,8 +70,14 @@ class TaxNamesRuleTest {
         assertThat(result.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.FAILED);
         assertThat(result.rule().getRule()).isEqualTo(DocumentRule.R_TAX_NAMES);
 
-        assertThat(result.rule().getExtractedDatas()).hasSize(1);
-        assertThat(result.rule().getExtractedDatas().getFirst()).extracting("name", "value").containsExactly("document_1_declarant_1", "[JANE] DOE");
+        assertThat(result.rule().getRuleData()).isInstanceOf(NamesRuleData.class);
+        NamesRuleData data = (NamesRuleData) result.rule().getRuleData();
+        assertThat(data.extractedNames()).hasSize(1);
+        assertThat(data.extractedNames())
+                .extracting("lastName", "firstNames")
+                .containsExactly(
+                        org.assertj.core.groups.Tuple.tuple("DOE", "JANE")
+                );
     }
 
     @Test
@@ -77,10 +95,15 @@ class TaxNamesRuleTest {
         RuleValidatorOutput result = rule.validate(document);
         assertThat(result.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.PASSED);
 
-        assertThat(result.rule().getExtractedDatas()).hasSize(2);
-        assertThat(result.rule().getExtractedDatas())
-                .extracting("value")
-                .containsExactlyInAnyOrder("[JANE] SMITH", "[JOHN] DOE");
+        assertThat(result.rule().getRuleData()).isInstanceOf(NamesRuleData.class);
+        NamesRuleData data = (NamesRuleData) result.rule().getRuleData();
+        assertThat(data.extractedNames()).hasSize(2);
+        assertThat(data.extractedNames())
+                .extracting("lastName", "firstNames")
+                .containsExactlyInAnyOrder(
+                        org.assertj.core.groups.Tuple.tuple("SMITH", "JANE"),
+                        org.assertj.core.groups.Tuple.tuple("DOE", "JOHN")
+                );
     }
 
     @Test
