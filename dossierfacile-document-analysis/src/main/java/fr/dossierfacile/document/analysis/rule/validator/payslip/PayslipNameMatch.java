@@ -3,7 +3,7 @@ package fr.dossierfacile.document.analysis.rule.validator.payslip;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentAnalysisRule;
 import fr.dossierfacile.common.entity.DocumentRule;
-import fr.dossierfacile.common.model.document_ia.GenericProperty;
+import fr.dossierfacile.common.entity.rule.NamesRuleData;
 import fr.dossierfacile.document.analysis.rule.validator.RuleValidatorOutput;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.BaseDocumentIAValidator;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.mapper.DocumentIAMultiMapper;
@@ -12,6 +12,7 @@ import fr.dossierfacile.document.analysis.util.NameUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
 public class PayslipNameMatch extends BaseDocumentIAValidator {
@@ -36,39 +37,56 @@ public class PayslipNameMatch extends BaseDocumentIAValidator {
         var documentIAAnalyses = this.getSuccessfulDocumentIAAnalyses(document);
 
         var nameToMatch = getNamesFromDocument(document);
-        var expectedDatas = new ArrayList<GenericProperty>();
+
+        NamesRuleData namesRuleData = null;
+
         if (nameToMatch != null) {
-            expectedDatas.add(new GenericProperty("firstNames", nameToMatch.getFirstNamesAsString(), "String"));
-            expectedDatas.add(new GenericProperty("lastName", nameToMatch.getLastName(), "String"));
-            expectedDatas.add(new GenericProperty("preferredName", nameToMatch.getPreferredName() != null ? nameToMatch.getPreferredName() : "N/A", "String"));
+            var expectedName = new NamesRuleData.Name(
+                    nameToMatch.getFirstNamesAsString(),
+                    nameToMatch.getLastName(),
+                    nameToMatch.preferredName
+            );
+
+            namesRuleData = new NamesRuleData(expectedName, List.of());
         }
 
         if (documentIAAnalyses.isEmpty() || hasAnyNonSuccessfulDocumentIAAnalyses(document)) {
-            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFromWithData(getRule(), expectedDatas), RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
+            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFromWithData(getRule(), namesRuleData), RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
         }
 
         if (nameToMatch == null) {
-            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFromWithData(getRule(), expectedDatas), RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
+            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFromWithData(getRule(), namesRuleData), RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
         }
 
         var isNameMatch = true;
 
         var extractedIdentities = new DocumentIAMultiMapper().map(documentIAAnalyses, PayslipNames.class);
 
-        var extractedDatas = new ArrayList<GenericProperty>();
+        var listOfExtractedNames = new ArrayList<NamesRuleData.Name>();
         var i = 1;
         for (PayslipNames name : extractedIdentities) {
             if (!NameUtil.isNameMatching(nameToMatch, name)) {
                 isNameMatch = false;
             }
-            extractedDatas.add(new GenericProperty("document" + i, name.getFirstNames() + " " + name.getLastName(), "String"));
+            listOfExtractedNames.add(
+                    new NamesRuleData.Name(
+                            String.join(" ", name.getFirstNames()),
+                            name.getLastName(),
+                            null
+                    )
+            );
             i++;
         }
 
+        namesRuleData = new NamesRuleData(
+                namesRuleData,
+                listOfExtractedNames
+        );
+
         if (isNameMatch) {
-            return new RuleValidatorOutput(true, isBlocking(), DocumentAnalysisRule.documentPassedRuleFromWithData(getRule(), expectedDatas, extractedDatas), RuleValidatorOutput.RuleLevel.PASSED);
+            return new RuleValidatorOutput(true, isBlocking(), DocumentAnalysisRule.documentPassedRuleFromWithData(getRule(), namesRuleData), RuleValidatorOutput.RuleLevel.PASSED);
         } else {
-            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentFailedRuleFromWithData(getRule(), expectedDatas, extractedDatas), RuleValidatorOutput.RuleLevel.FAILED);
+            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentFailedRuleFromWithData(getRule(), namesRuleData), RuleValidatorOutput.RuleLevel.FAILED);
         }
     }
 
