@@ -5,6 +5,7 @@ import fr.dossierfacile.common.entity.DocumentIAFileAnalysis;
 import fr.dossierfacile.common.entity.DocumentRule;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.enums.DocumentIAFileAnalysisStatus;
+import fr.dossierfacile.common.entity.rule.TaxYearsRuleData;
 import fr.dossierfacile.common.model.document_ia.BarcodeModel;
 import fr.dossierfacile.common.model.document_ia.GenericProperty;
 import fr.dossierfacile.common.model.document_ia.ResultModel;
@@ -43,11 +44,10 @@ class TaxYearRuleTest {
         assertThat(result.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.PASSED);
         assertThat(result.rule().getRule()).isEqualTo(DocumentRule.R_TAX_WRONG_YEAR);
 
-        assertThat(result.rule().getExpectedDatas()).hasSize(1);
-        assertThat(result.rule().getExpectedDatas().getFirst()).extracting("name", "value").containsExactly("expected_year", 2021);
-
-        assertThat(result.rule().getExtractedDatas()).hasSize(1);
-        assertThat(result.rule().getExtractedDatas().getFirst()).extracting("name", "value").containsExactly("found_year", 2021);
+        assertThat(result.rule().getRuleData()).isInstanceOf(TaxYearsRuleData.class);
+        TaxYearsRuleData data = (TaxYearsRuleData) result.rule().getRuleData();
+        assertThat(data.expectedYear()).isEqualTo(2021);
+        assertThat(data.extractedYears()).containsExactly(2021);
     }
 
     @Test
@@ -64,11 +64,10 @@ class TaxYearRuleTest {
         assertThat(result.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.FAILED);
         assertThat(result.rule().getRule()).isEqualTo(DocumentRule.R_TAX_WRONG_YEAR);
 
-        assertThat(result.rule().getExpectedDatas()).hasSize(1);
-        assertThat(result.rule().getExpectedDatas().getFirst()).extracting("name", "value").containsExactly("expected_year", 2021);
-
-        assertThat(result.rule().getExtractedDatas()).hasSize(1);
-        assertThat(result.rule().getExtractedDatas().getFirst()).extracting("name", "value").containsExactly("found_year", 2020);
+        assertThat(result.rule().getRuleData()).isInstanceOf(TaxYearsRuleData.class);
+        TaxYearsRuleData data = (TaxYearsRuleData) result.rule().getRuleData();
+        assertThat(data.expectedYear()).isEqualTo(2021);
+        assertThat(data.extractedYears()).containsExactly(2020);
     }
 
     @Test
@@ -83,11 +82,10 @@ class TaxYearRuleTest {
         RuleValidatorOutput result = validator.validate(document);
         assertThat(result.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.PASSED);
 
-        assertThat(result.rule().getExpectedDatas()).hasSize(1);
-        assertThat(result.rule().getExpectedDatas().getFirst()).extracting("name", "value").containsExactly("expected_year", 2022);
-
-        assertThat(result.rule().getExtractedDatas()).hasSize(1);
-        assertThat(result.rule().getExtractedDatas().getFirst()).extracting("name", "value").containsExactly("found_year", 2022);
+        assertThat(result.rule().getRuleData()).isInstanceOf(TaxYearsRuleData.class);
+        TaxYearsRuleData data = (TaxYearsRuleData) result.rule().getRuleData();
+        assertThat(data.expectedYear()).isEqualTo(2022);
+        assertThat(data.extractedYears()).containsExactly(2022);
     }
 
     @Test
@@ -103,11 +101,10 @@ class TaxYearRuleTest {
         RuleValidatorOutput result = validator.validate(document);
         assertThat(result.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.FAILED);
 
-        assertThat(result.rule().getExpectedDatas()).hasSize(1);
-        assertThat(result.rule().getExpectedDatas().getFirst()).extracting("name", "value").containsExactly("expected_year", 2022);
-
-        assertThat(result.rule().getExtractedDatas()).hasSize(1);
-        assertThat(result.rule().getExtractedDatas().getFirst()).extracting("name", "value").containsExactly("found_year", 2021);
+        assertThat(result.rule().getRuleData()).isInstanceOf(TaxYearsRuleData.class);
+        TaxYearsRuleData data = (TaxYearsRuleData) result.rule().getRuleData();
+        assertThat(data.expectedYear()).isEqualTo(2022);
+        assertThat(data.extractedYears()).containsExactly(2021);
     }
 
     @Test
@@ -123,13 +120,10 @@ class TaxYearRuleTest {
         RuleValidatorOutput result = validator.validate(document);
         assertThat(result.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.PASSED);
 
-        assertThat(result.rule().getExpectedDatas()).hasSize(1);
-        assertThat(result.rule().getExpectedDatas().getFirst()).extracting("name", "value").containsExactly("expected_year", 2021);
-
-        assertThat(result.rule().getExtractedDatas()).hasSize(2);
-        assertThat(result.rule().getExtractedDatas())
-                .extracting("value")
-                .containsExactlyInAnyOrder(2021, 2022);
+        assertThat(result.rule().getRuleData()).isInstanceOf(TaxYearsRuleData.class);
+        TaxYearsRuleData data = (TaxYearsRuleData) result.rule().getRuleData();
+        assertThat(data.expectedYear()).isEqualTo(2021);
+        assertThat(data.extractedYears()).containsExactlyInAnyOrder(2021, 2022);
     }
 
     @Test
@@ -144,8 +138,10 @@ class TaxYearRuleTest {
         RuleValidatorOutput result = validator.validate(document);
         assertThat(result.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
 
-        assertThat(result.rule().getExpectedDatas()).hasSize(1);
-        assertThat(result.rule().getExpectedDatas().getFirst()).extracting("name", "value").containsExactly("expected_year", 2021);
+        assertThat(result.rule().getRuleData()).isInstanceOf(TaxYearsRuleData.class);
+        TaxYearsRuleData data = (TaxYearsRuleData) result.rule().getRuleData();
+        assertThat(data.expectedYear()).isEqualTo(2021);
+        assertThat(data.extractedYears()).isEmpty();
     }
 
     @Test
