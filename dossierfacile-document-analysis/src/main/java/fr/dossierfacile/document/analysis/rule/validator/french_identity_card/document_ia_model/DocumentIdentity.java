@@ -66,7 +66,7 @@ public class DocumentIdentity implements IDocumentIdentity {
     }
 
     public String getFirstNamesAsString() {
-        return String.join("/", getFirstNames());
+        return String.join(" ", getFirstNames());
     }
 
     @Override
