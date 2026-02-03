@@ -38,10 +38,12 @@ public class Names implements SaveStep<NamesForm> {
     @Override
     @Transactional
     public TenantModel saveStep(Tenant tenant, NamesForm namesForm) {
+        // When preferred is not set, the front send an empty string that will cause trouble when comparing
+        var preferredName = StringUtils.trimToNull(namesForm.getPreferredName());
         // any change of first, last and preferred names triggers a document status update from validated -> to_process
         if (!StringUtils.equals(tenant.getFirstName(), namesForm.getFirstName())
                 || !StringUtils.equals(tenant.getLastName(), namesForm.getLastName())
-                || !StringUtils.equals(tenant.getPreferredName(), namesForm.getPreferredName())) {
+                || !StringUtils.equals(tenant.getPreferredName(), preferredName)) {
             List<Document> documentsToCheck = new ArrayList<>(tenant.getDocuments());
             if (CollectionUtils.isNotEmpty(tenant.getGuarantors())
                     && (tenant.getGuarantors().getFirst().getTypeGuarantor() == TypeGuarantor.LEGAL_PERSON
