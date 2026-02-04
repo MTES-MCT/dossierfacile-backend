@@ -45,7 +45,7 @@ public class FrenchIdentityCardNameMatch extends BaseDocumentIAValidator {
             var expectedName = new NamesRuleData.Name(
                     nameToMatch.getFirstNamesAsString(),
                     nameToMatch.getLastName(),
-                    nameToMatch.preferredName
+                    nameToMatch.getPreferredName()
             );
 
             namesRuleData = new NamesRuleData(expectedName, List.of());

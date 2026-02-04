@@ -69,16 +69,21 @@ public class TaxYearRule extends BaseTaxRule {
             return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFromWithData(getRule(), taxYearRuleData), RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
         }
 
-        var extractedDates = listOfPresentYear.stream()
-                .map(it -> (Integer) it)
-                .toList();
+        try {
+            var extractedDates = listOfPresentYear.stream()
+                    .map(it -> (Integer) it)
+                    .toList();
 
-        taxYearRuleData = new TaxYearsRuleData(taxYearRuleData, extractedDates);
+            taxYearRuleData = new TaxYearsRuleData(taxYearRuleData, extractedDates);
 
-        if (listOfPresentYear.contains(expectedYear)) {
-            return new RuleValidatorOutput(true, isBlocking(), DocumentAnalysisRule.documentPassedRuleFromWithData(getRule(), taxYearRuleData), RuleValidatorOutput.RuleLevel.PASSED);
-        } else {
-            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentFailedRuleFromWithData(getRule(), taxYearRuleData), RuleValidatorOutput.RuleLevel.FAILED);
+            if (listOfPresentYear.contains(expectedYear)) {
+                return new RuleValidatorOutput(true, isBlocking(), DocumentAnalysisRule.documentPassedRuleFromWithData(getRule(), taxYearRuleData), RuleValidatorOutput.RuleLevel.PASSED);
+            } else {
+                return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentFailedRuleFromWithData(getRule(), taxYearRuleData), RuleValidatorOutput.RuleLevel.FAILED);
+            }
+        }
+        catch (ClassCastException e) {
+            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFromWithData(getRule(), taxYearRuleData), RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
         }
     }
 
