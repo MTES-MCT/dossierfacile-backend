@@ -5,8 +5,9 @@ import com.google.gson.GsonBuilder;
 import fr.dossierfacile.common.utils.LocalDateTimeTypeAdapter;
 import fr.gouv.bo.security.BOQuotaAuthorizationManager;
 import fr.gouv.bo.security.oidc.CustomOidcUserService;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import nz.net.ultraq.thymeleaf.layoutdialect.LayoutDialect;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -37,11 +38,14 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @EnableWebSecurity
 @EnableAsync
 @EnableMethodSecurity(securedEnabled = true)
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class WebSecurityConfig {
 
     private final BOQuotaAuthorizationManager quotaAuthorizationManager;
     private final CustomOidcUserService customOidcUserService;
+
+    @Value("${security.csp.content}")
+    private String cspContent;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, ClientRegistrationRepository clientRegistrationRepository) throws Exception {
@@ -53,7 +57,7 @@ public class WebSecurityConfig {
                         .contentTypeOptions(withDefaults())
                         .xssProtection(withDefaults())
                         .cacheControl(withDefaults())
-                        .contentSecurityPolicy(csp -> csp.policyDirectives("frame-ancestors *.dossierfacile.fr *.dossierfacile.logement.gouv.fr; frame-src *.dossierfacile.fr *.dossierfacile.logement.gouv.fr; child-src 'none'; upgrade-insecure-requests; default-src 'none'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' fonts.googleapis.com 'unsafe-inline'; object-src *.dossierfacile.fr *.dossierfacile.logement.gouv.fr; img-src 'self' *.dossierfacile.fr *.dossierfacile.logement.gouv.fr data:; font-src 'self' fonts.gstatic.com; connect-src *.dossierfacile.fr *.dossierfacile.logement.gouv.fr; base-uri 'self'; media-src 'none'; worker-src *.dossierfacile.fr *.dossierfacile.logement.gouv.fr; manifest-src 'none';"))
+                        .contentSecurityPolicy(csp -> csp.policyDirectives(cspContent))
                         .httpStrictTransportSecurity(HeadersConfigurer.HstsConfig::disable) // Scalingo force https and add this policy
                         .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
                 )
