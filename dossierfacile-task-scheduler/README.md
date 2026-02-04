@@ -41,7 +41,6 @@ increasing loads and activity peaks.
 Create a file `application-dev.properties` in `dossierfacile-task-scheduler/src/main/resources`
 
 ```properties
-spring.config.import=file:../.env[.properties]
 mock.storage.path=../mock-storage
 storage.provider.list=LOCAL
 # For S3 provider (OVH Multi-AZ): storage.provider.list=S3
