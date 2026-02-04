@@ -121,15 +121,15 @@
                                           th:text="${barcode.antsType}"></span>
 
                                     <!-- Statut de validité (si non null) -->
-                                    <span th:if="${barcode.is_valid != null}"
+                                    <span th:if="${barcode.isValid != null}"
                                           class="badge d-flex align-items-center gap-1"
-                                          th:classappend="${barcode.is_valid} ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'">
-                                           <svg th:if="${barcode.is_valid}" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                           <svg th:unless="${barcode.is_valid}" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                                           <span th:text="${barcode.is_valid} ? 'Valide' : 'Invalide'"></span>
+                                          th:classappend="${barcode.isValid} ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'">
+                                           <svg th:if="${barcode.isValid}" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                           <svg th:unless="${barcode.isValid}" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                           <span th:text="${barcode.isValid} ? 'Valide' : 'Invalide'"></span>
                                      </span>
                                 </div>
-                                <small class="text-muted" th:text="'Page ' + ${barcode.page_number}"></small>
+                                <small class="text-muted" th:text="'Page ' + ${barcode.pageNumber}"></small>
                             </div>
 
                             <!-- CAS 1: 2D-Doc Connu (antsType présent) -> Affichage structuré -->
