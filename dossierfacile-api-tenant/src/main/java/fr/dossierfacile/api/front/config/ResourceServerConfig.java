@@ -1,6 +1,7 @@
 package fr.dossierfacile.api.front.config;
 
 import fr.dossierfacile.api.front.config.filter.ConnectionContextFilter;
+import fr.dossierfacile.api.front.config.filter.DossierFacileWebhookApiKeyFilter;
 import fr.dossierfacile.api.front.security.PartnerAuthorizationManager;
 import fr.dossierfacile.logging.request.Oauth2LoggingHandler;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 import org.springframework.security.web.header.writers.StaticHeadersWriter;
@@ -36,6 +38,8 @@ public class ResourceServerConfig {
 
     private final AuthenticationEntryPoint authenticationEntryPoint = new Oauth2LoggingHandler();
 
+    private final DossierFacileWebhookApiKeyFilter dossierFacileWebhookApiKeyFilter;
+
     @Value("${resource.server.config.csp}")
     private String configCsp;
 
@@ -43,6 +47,7 @@ public class ResourceServerConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .addFilterBefore(new ConnectionContextFilter(), FilterSecurityInterceptor.class)
+                .addFilterBefore(dossierFacileWebhookApiKeyFilter, AuthorizationFilter.class)
                 .headers(headers -> headers
                         .addHeaderWriter(new StaticHeadersWriter("X-Content-Type-Options", "nosniff"))
                         .contentTypeOptions(withDefaults())
@@ -67,7 +72,8 @@ public class ResourceServerConfig {
                                 "/api/stats/**",
                                 "/api/onetimesecret/**",
                                 "/error",
-                                "/actuator/health").permitAll()
+                                "/actuator/health",
+                                "/api/webhook/**").permitAll()
                         .requestMatchers("/api-partner/**").access(apiPartnerAuthorizationManager())
                         .requestMatchers("/dfc/api/**").access(dfcPartnerServiceAuthorizationManager())
                         .requestMatchers("/dfc/**").hasAuthority("SCOPE_dfc")

@@ -17,6 +17,7 @@ import fr.dossierfacile.common.repository.DocumentAnalysisReportRepository;
 import fr.dossierfacile.common.service.interfaces.DocumentHelperService;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.common.service.interfaces.LogService;
+import fr.dossierfacile.document.analysis.service.DocumentIAService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -43,6 +44,7 @@ public class DocumentServiceImpl implements DocumentService {
     private final DocumentHelperService documentHelperService;
     private final LogService logService;
     private final Producer producer;
+    private final DocumentIAService documentIAService;
 
     @Override
     @Transactional
@@ -109,13 +111,8 @@ public class DocumentServiceImpl implements DocumentService {
                             fileStorageService.delete(document.getWatermarkFile());
                             document.setWatermarkFile(null);
                         }
-                        if (document.getDocumentAnalysisReport() != null) {
-                            documentAnalysisReportRepository.delete(document.getDocumentAnalysisReport());
-                            document.setDocumentAnalysisReport(null);
-                        }
                         documentRepository.save(document);
-
-                        producer.sendDocumentForAnalysis(document);// analysis should be relaunched for update rules
+                        documentIAService.analyseDocument(document);
                         if (Boolean.TRUE == document.getNoDocument()) {
                             producer.sendDocumentForPdfGeneration(document);
                         }
@@ -131,15 +128,12 @@ public class DocumentServiceImpl implements DocumentService {
         producer.minifyFile(document.getId(), file.getId());
         producer.analyzeFile(document.getId(), file.getId());
         producer.amqpAnalyseFile(file.getId());
+        documentIAService.sendForAnalysis(multipartFile, file, document);
     }
 
     @Override
     public void markDocumentAsEdited(Document document) {
         document.setLastModifiedDate(LocalDateTime.now());
-        if (document.getDocumentAnalysisReport() != null) {
-            documentAnalysisReportRepository.delete(document.getDocumentAnalysisReport());
-            document.setDocumentAnalysisReport(null);
-        }
         if (document.getWatermarkFile() != null) {
             fileStorageService.delete(document.getWatermarkFile());
             document.setWatermarkFile(null);
