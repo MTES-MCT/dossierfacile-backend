@@ -12,7 +12,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         @JsonSubTypes.Type(value = FrenchIdentityCardExpirationRuleData.class, name = RuleData.R_FRENCH_IDENTITY_CARD_EXPIRATION),
         @JsonSubTypes.Type(value = TaxClassificationRuleData.class, name = RuleData.R_TAX_CLASSIFICATION),
         @JsonSubTypes.Type(value = NamesRuleData.class, name = RuleData.R_NAMES),
-        @JsonSubTypes.Type(value = TaxYearsRuleData.class, name = RuleData.R_TAX_YEARS)
+        @JsonSubTypes.Type(value = TaxYearsRuleData.class, name = RuleData.R_TAX_YEARS),
+        @JsonSubTypes.Type(value = PayslipContinuityRuleData.class, name = RuleData.R_PAYSLIP_CONTINUITY),
 })
 public sealed interface RuleData permits
         FrenchIdentityCardExpirationRuleData,
