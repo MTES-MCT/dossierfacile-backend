@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.dossierfacile.common.entity.DocumentAnalysisRule;
 import fr.dossierfacile.common.exceptions.ParsingException;
+import fr.dossierfacile.common.utils.MapperUtil;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
@@ -15,7 +16,7 @@ import java.util.List;
 @Converter
 public class ListOfRulesJsonConverter implements AttributeConverter<List<DocumentAnalysisRule>, String> {
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper objectMapper = MapperUtil.newObjectMapper();
 
     @Override
     public String convertToDatabaseColumn(List<DocumentAnalysisRule> list) {
