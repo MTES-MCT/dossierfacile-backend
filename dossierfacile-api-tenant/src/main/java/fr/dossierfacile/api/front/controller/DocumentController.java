@@ -2,6 +2,7 @@ package fr.dossierfacile.api.front.controller;
 
 import fr.dossierfacile.api.front.form.CommentAnalysisForm;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
+import fr.dossierfacile.api.front.model.tenant.DocumentAnalysisStatusResponse;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
@@ -76,6 +77,13 @@ public class DocumentController {
             return ok(tenantMapper.toTenantModel(authenticationFacade.getTenant(null), null));
         }
         return ok(tenantMapper.toTenantModel(tenant, null));
+    }
+
+    @GetMapping("/{documentId}/analysis-status")
+    public ResponseEntity<DocumentAnalysisStatusResponse> getAnalysisStatus(@PathVariable Long documentId) {
+        var tenant = authenticationFacade.getLoggedTenant();
+        DocumentAnalysisStatusResponse response = documentService.getDocumentAnalysisStatus(documentId, tenant);
+        return ok(response);
     }
 
     private String getDocumentOwnerNormalizeName(Document document) {

@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.front.service.interfaces;
 
+import fr.dossierfacile.api.front.model.tenant.DocumentAnalysisStatusResponse;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
@@ -22,4 +23,6 @@ public interface DocumentService {
     void markDocumentAsEdited(Document document);
 
     Document getAuthorizedDocument(String documentName, Tenant tenant);
+
+    DocumentAnalysisStatusResponse getDocumentAnalysisStatus(Long documentId, Tenant tenant);
 }
