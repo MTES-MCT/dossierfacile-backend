@@ -2,11 +2,15 @@ package fr.dossierfacile.api.front.service;
 
 import fr.dossierfacile.api.front.amqp.Producer;
 import fr.dossierfacile.api.front.exception.DocumentNotFoundException;
+import fr.dossierfacile.api.front.model.tenant.AnalysisStatus;
+import fr.dossierfacile.api.front.model.tenant.DocumentAnalysisReportModel;
+import fr.dossierfacile.api.front.model.tenant.DocumentAnalysisStatusResponse;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
 import fr.dossierfacile.common.entity.Document;
+import fr.dossierfacile.common.entity.DocumentAnalysisReport;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Person;
 import fr.dossierfacile.common.entity.Tenant;
@@ -14,12 +18,14 @@ import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.model.log.EditionType;
 import fr.dossierfacile.common.repository.DocumentAnalysisReportRepository;
+import fr.dossierfacile.common.repository.DocumentIAFileAnalysisRepository;
 import fr.dossierfacile.common.service.interfaces.DocumentHelperService;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import fr.dossierfacile.document.analysis.service.DocumentIAService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -38,6 +44,7 @@ public class DocumentServiceImpl implements DocumentService {
 
     private final DocumentRepository documentRepository;
     private final DocumentAnalysisReportRepository documentAnalysisReportRepository;
+    private final DocumentIAFileAnalysisRepository documentIAFileAnalysisRepository;
     private final FileStorageService fileStorageService;
     private final TenantStatusService tenantStatusService;
     private final ApartmentSharingService apartmentSharingService;
@@ -139,6 +146,69 @@ public class DocumentServiceImpl implements DocumentService {
             document.setWatermarkFile(null);
         }
         documentRepository.save(document);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public DocumentAnalysisStatusResponse getDocumentAnalysisStatus(Long documentId, Tenant tenant) {
+        Document document = documentRepository.findById(documentId)
+                .orElseThrow(() -> new DocumentNotFoundException(documentId));
+
+        if (!hasPermissionOnDocument(document, tenant)) {
+            throw new AccessDeniedException("Access Denied");
+        }
+
+        Long totalFiles = documentIAFileAnalysisRepository.countTotalFilesByDocumentId(documentId);
+        if (totalFiles == 0) {
+            // NO_ANALYSIS_SCHEDULED scenario
+            return DocumentAnalysisStatusResponse.builder()
+                    .status(AnalysisStatus.NO_ANALYSIS_SCHEDULED)
+                    .build();
+        }
+
+        Long analyzedFiles = documentIAFileAnalysisRepository.countAnalyzedFilesByDocumentId(documentId);
+
+        if (analyzedFiles.equals(totalFiles)) {
+            // All files analyzed - COMPLETED scenario
+            Optional<DocumentAnalysisReport> reportOptional = documentAnalysisReportRepository.findByDocumentId(documentId);
+            DocumentAnalysisReportModel reportModel = reportOptional
+                    .map(this::toDocumentAnalysisReportModel)
+                    .orElse(null);
+
+            return DocumentAnalysisStatusResponse.builder()
+                    .status(AnalysisStatus.COMPLETED)
+                    .analysisReport(reportModel)
+                    .build();
+        }
+        else {
+            // 6. IN_PROGRESS scenario
+            return DocumentAnalysisStatusResponse.builder()
+                    .status(AnalysisStatus.IN_PROGRESS)
+                    .analyzedFiles(analyzedFiles.intValue())
+                    .totalFiles(totalFiles.intValue())
+                    .build();
+        }
+    }
+
+    private boolean hasPermissionOnDocument(Document document, Tenant tenant) {
+        // Check if tenant owns the document
+        if (document.getTenant() != null && Objects.equals(document.getTenant().getId(), tenant.getId())) {
+            return true;
+        }
+
+        // TODO : Add other permissions?
+        return false;
+    }
+
+    private DocumentAnalysisReportModel toDocumentAnalysisReportModel(DocumentAnalysisReport report) {
+        return DocumentAnalysisReportModel.builder()
+                .id(report.getId())
+                .analysisStatus(report.getAnalysisStatus())
+                .failedRules(report.getFailedRules())
+                .passedRules(report.getPassedRules())
+                .inconclusiveRules(report.getInconclusiveRules())
+                .createdAt(report.getCreatedAt())
+                .build();
     }
 
 }
