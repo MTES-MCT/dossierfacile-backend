@@ -15,7 +15,7 @@
                     <h6 class="m-0 fw-bold text-primary-emphasis">Analyse IA</h6>
                     <!-- Le sous-titre (Type) est maintenant dynamique -->
                     <small class="text-muted ia-current-type"
-                           th:text="${!iaResults.isEmpty()} ? ${iaResults[0].classification.documentType} : '-'">
+                           th:text="${iaResults.?[classification != null && classification.documentType != null && !#strings.isEmpty(classification.documentType)].size() > 0 ? iaResults.?[classification != null && classification.documentType != null && !#strings.isEmpty(classification.documentType)][0].classification.documentType : '-'}">
                     </small>
                 </div>
             </div>
@@ -67,11 +67,11 @@
                  class="ia-result-page"
                  th:id="|ia-result-${uid}-${stat.index}|"
                  th:data-index="${stat.index}"
-                 th:data-doc-type="${result.classification.documentType}"
+                 th:data-doc-type="${result.classification != null ? result.classification.documentType : '-'}"
                  th:classappend="${!stat.first} ? 'd-none'">
 
-                <!-- Section Classification -->
-                <div class="mb-3">
+                <!-- Section Classification (s'affiche seulement si classification non nulle) -->
+                <div th:if="${result.classification != null}" class="mb-3">
                     <p class="ia-section-title">Classification</p>
                     <div class="ia-info-box">
                         <div class="d-flex justify-content-between align-items-start mb-1">
@@ -84,8 +84,8 @@
                     </div>
                 </div>
 
-                <!-- Section Extraction -->
-                <div>
+                <!-- Section Extraction (s'affiche seulement si extraction non nulle) -->
+                <div th:if="${result.extraction != null}">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <p class="ia-section-title mb-0">Données extraites</p>
                         <span class="badge bg-secondary-subtle text-secondary" th:text="${result.extraction.type}"></span>
