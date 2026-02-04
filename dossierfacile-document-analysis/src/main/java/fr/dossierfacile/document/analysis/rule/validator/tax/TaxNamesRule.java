@@ -43,7 +43,7 @@ public class TaxNamesRule extends BaseTaxRule {
             var expectedName = new NamesRuleData.Name(
                     nameToMatch.getFirstNamesAsString(),
                     nameToMatch.getLastName(),
-                    nameToMatch.preferredName
+                    nameToMatch.getPreferredName()
             );
 
             namesRuleData = new NamesRuleData(expectedName, List.of());
