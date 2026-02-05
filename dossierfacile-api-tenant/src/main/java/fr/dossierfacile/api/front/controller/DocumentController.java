@@ -15,6 +15,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.springframework.http.ContentDisposition;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 import static org.springframework.http.ResponseEntity.badRequest;
 import static org.springframework.http.ResponseEntity.ok;
@@ -61,7 +63,10 @@ public class DocumentController {
             } else {
                 fileName = ownerName + "_" + document.getDocumentName();
             }
-            response.setHeader("Content-Disposition", "inline; filename=\"" + fileName + "\"");
+            ContentDisposition contentDisposition = ContentDisposition.inline()
+                    .filename(fileName, StandardCharsets.UTF_8)
+                    .build();
+            response.setHeader("Content-Disposition", contentDisposition.toString());
             response.setHeader("X-Robots-Tag", "noindex");
             IOUtils.copy(in, response.getOutputStream());
         } catch (FileNotFoundException e) {
