@@ -15,6 +15,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.access.AccessDeniedException;
 
+import fr.dossierfacile.common.enums.ApplicationType;
+
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -143,19 +146,129 @@ class DocumentServiceImplTest {
         );
     }
 
-    @Test
-    void shouldThrowAccessDeniedExceptionWhenTenantDoesNotOwnDocument() {
-        // Given
-        Tenant otherTenant = Tenant.builder()
-                .id(2L)
-                .apartmentSharing(ApartmentSharing.builder().id(2L).build())
-                .build();
+    // --- Permission tests ---
 
-        when(documentRepository.findById(1L)).thenReturn(Optional.of(document));
+    @Test
+    void shouldAllowAccessToGuarantorDocument() {
+        // Given
+        Guarantor guarantor = Guarantor.builder().id(10L).tenant(tenant).build();
+        Document guarantorDoc = Document.builder().id(2L).guarantor(guarantor).build();
+
+        when(documentRepository.findById(2L)).thenReturn(Optional.of(guarantorDoc));
+        when(documentIAFileAnalysisRepository.countTotalFilesByDocumentId(2L)).thenReturn(0L);
+
+        // When
+        DocumentAnalysisStatusResponse response = documentService.getDocumentAnalysisStatus(2L, tenant);
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(AnalysisStatus.NO_ANALYSIS_SCHEDULED);
+    }
+
+    @Test
+    void shouldAllowAccessToPartnerDocumentInCouple() {
+        // Given
+        Tenant partner = Tenant.builder().id(2L).build();
+        ApartmentSharing coupleSharing = ApartmentSharing.builder()
+                .id(1L)
+                .applicationType(ApplicationType.COUPLE)
+                .tenants(List.of(tenant, partner))
+                .build();
+        tenant.setApartmentSharing(coupleSharing);
+        partner.setApartmentSharing(coupleSharing);
+
+        Document partnerDoc = Document.builder().id(3L).tenant(partner).build();
+
+        when(documentRepository.findById(3L)).thenReturn(Optional.of(partnerDoc));
+        when(documentIAFileAnalysisRepository.countTotalFilesByDocumentId(3L)).thenReturn(0L);
+
+        // When
+        DocumentAnalysisStatusResponse response = documentService.getDocumentAnalysisStatus(3L, tenant);
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(AnalysisStatus.NO_ANALYSIS_SCHEDULED);
+    }
+
+    @Test
+    void shouldAllowAccessToPartnerGuarantorDocumentInCouple() {
+        // Given
+        Tenant partner = Tenant.builder().id(2L).build();
+        ApartmentSharing coupleSharing = ApartmentSharing.builder()
+                .id(1L)
+                .applicationType(ApplicationType.COUPLE)
+                .tenants(List.of(tenant, partner))
+                .build();
+        tenant.setApartmentSharing(coupleSharing);
+        partner.setApartmentSharing(coupleSharing);
+
+        Guarantor partnerGuarantor = Guarantor.builder().id(20L).tenant(partner).build();
+        Document partnerGuarantorDoc = Document.builder().id(4L).guarantor(partnerGuarantor).build();
+
+        when(documentRepository.findById(4L)).thenReturn(Optional.of(partnerGuarantorDoc));
+        when(documentIAFileAnalysisRepository.countTotalFilesByDocumentId(4L)).thenReturn(0L);
+
+        // When
+        DocumentAnalysisStatusResponse response = documentService.getDocumentAnalysisStatus(4L, tenant);
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(AnalysisStatus.NO_ANALYSIS_SCHEDULED);
+    }
+
+    @Test
+    void shouldDenyAccessToCoTenantDocumentInGroup() {
+        // Given
+        Tenant coTenant = Tenant.builder().id(3L).build();
+        ApartmentSharing groupSharing = ApartmentSharing.builder()
+                .id(1L)
+                .applicationType(ApplicationType.GROUP)
+                .tenants(List.of(tenant, coTenant))
+                .build();
+        tenant.setApartmentSharing(groupSharing);
+
+        Document coTenantDoc = Document.builder().id(5L).tenant(coTenant).build();
+
+        when(documentRepository.findById(5L)).thenReturn(Optional.of(coTenantDoc));
 
         // When & Then
-        assertThrows(AccessDeniedException.class, () -> 
-            documentService.getDocumentAnalysisStatus(1L, otherTenant)
+        assertThrows(AccessDeniedException.class, () ->
+            documentService.getDocumentAnalysisStatus(5L, tenant)
+        );
+    }
+
+    @Test
+    void shouldDenyAccessToCoTenantGuarantorDocumentInGroup() {
+        // Given
+        Tenant coTenant = Tenant.builder().id(3L).build();
+        ApartmentSharing groupSharing = ApartmentSharing.builder()
+                .id(1L)
+                .applicationType(ApplicationType.GROUP)
+                .tenants(List.of(tenant, coTenant))
+                .build();
+        tenant.setApartmentSharing(groupSharing);
+
+        Guarantor coTenantGuarantor = Guarantor.builder().id(30L).tenant(coTenant).build();
+        Document coTenantGuarantorDoc = Document.builder().id(6L).guarantor(coTenantGuarantor).build();
+
+        when(documentRepository.findById(6L)).thenReturn(Optional.of(coTenantGuarantorDoc));
+
+        // When & Then
+        assertThrows(AccessDeniedException.class, () ->
+            documentService.getDocumentAnalysisStatus(6L, tenant)
+        );
+    }
+
+    @Test
+    void shouldDenyAccessToUnrelatedTenantDocument() {
+        // Given
+        Tenant unrelatedTenant = Tenant.builder().id(99L)
+                .apartmentSharing(ApartmentSharing.builder().id(99L).build())
+                .build();
+        Document unrelatedDoc = Document.builder().id(7L).tenant(unrelatedTenant).build();
+
+        when(documentRepository.findById(7L)).thenReturn(Optional.of(unrelatedDoc));
+
+        // When & Then
+        assertThrows(AccessDeniedException.class, () ->
+            documentService.getDocumentAnalysisStatus(7L, tenant)
         );
     }
 }
