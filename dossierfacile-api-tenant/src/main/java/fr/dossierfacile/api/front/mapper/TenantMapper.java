@@ -82,6 +82,8 @@ public abstract class TenantMapper {
 
     public abstract List<FileModel> mapFiles(List<File> files);
 
+    public abstract DocumentAnalysisReportModel toDocumentAnalysisReportModel(DocumentAnalysisReport report);
+
     @Mapping(target = "connectedTenantId", source = "id")
     public abstract ConnectedTenantModel toTenantModelDfc(Tenant tenant, @Context UserApi userApi);
 
