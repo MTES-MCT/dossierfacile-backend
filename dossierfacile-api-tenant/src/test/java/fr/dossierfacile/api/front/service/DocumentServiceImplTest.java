@@ -1,7 +1,9 @@
 package fr.dossierfacile.api.front.service;
 
 import fr.dossierfacile.api.front.exception.DocumentNotFoundException;
+import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.tenant.AnalysisStatus;
+import fr.dossierfacile.api.front.model.tenant.DocumentAnalysisReportModel;
 import fr.dossierfacile.api.front.model.tenant.DocumentAnalysisStatusResponse;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.common.entity.*;
@@ -53,6 +55,11 @@ class DocumentServiceImplTest {
     private fr.dossierfacile.api.front.amqp.Producer producer;
 
     private static final String DOCUMENT_NAME = "test-document.pdf";
+    @Mock
+    private TenantMapper tenantMapper;
+
+    @InjectMocks
+    private DocumentServiceImpl documentService;
 
     @Nested
     class GetAuthorizedDocument {
