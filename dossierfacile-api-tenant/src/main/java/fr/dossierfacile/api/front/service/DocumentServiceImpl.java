@@ -2,6 +2,7 @@ package fr.dossierfacile.api.front.service;
 
 import fr.dossierfacile.api.front.amqp.Producer;
 import fr.dossierfacile.api.front.exception.DocumentNotFoundException;
+import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.tenant.AnalysisStatus;
 import fr.dossierfacile.api.front.model.tenant.DocumentAnalysisReportModel;
 import fr.dossierfacile.api.front.model.tenant.DocumentAnalysisStatusResponse;
@@ -54,6 +55,7 @@ public class DocumentServiceImpl implements DocumentService {
     private final LogService logService;
     private final Producer producer;
     private final DocumentIAService documentIAService;
+    private final TenantMapper tenantMapper;
 
     @Override
     @Transactional
@@ -174,7 +176,7 @@ public class DocumentServiceImpl implements DocumentService {
             // All files analyzed - COMPLETED scenario
             Optional<DocumentAnalysisReport> reportOptional = documentAnalysisReportRepository.findByDocumentId(documentId);
             DocumentAnalysisReportModel reportModel = reportOptional
-                    .map(this::toDocumentAnalysisReportModel)
+                    .map(tenantMapper::toDocumentAnalysisReportModel)
                     .orElse(null);
 
             return DocumentAnalysisStatusResponse.builder()
@@ -228,15 +230,5 @@ public class DocumentServiceImpl implements DocumentService {
         return null;
     }
 
-    private DocumentAnalysisReportModel toDocumentAnalysisReportModel(DocumentAnalysisReport report) {
-        return DocumentAnalysisReportModel.builder()
-                .id(report.getId())
-                .analysisStatus(report.getAnalysisStatus())
-                .failedRules(report.getFailedRules())
-                .passedRules(report.getPassedRules())
-                .inconclusiveRules(report.getInconclusiveRules())
-                .createdAt(report.getCreatedAt())
-                .build();
-    }
 
 }
