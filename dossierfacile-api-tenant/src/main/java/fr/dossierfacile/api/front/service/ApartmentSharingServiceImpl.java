@@ -108,7 +108,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
 
         // 5. Save log and return the application model
         // unless the authenticated tenant is a tenant of the apartment sharing
-        if (loggedInTenant == null || !Objects.equals(loggedInTenant.getApartmentSharing().getId(), apartmentSharing.getId())) {
+        if (loggedInTenant == null || loggedInTenant.getApartmentSharing() == null || !Objects.equals(loggedInTenant.getApartmentSharing().getId(), apartmentSharing.getId())) {
             saveLinkLog(apartmentSharing, token, LinkType.FULL_APPLICATION);
         }
         ApplicationModel applicationModel = applicationFullMapper.toApplicationModelWithToken(apartmentSharing, token);

@@ -164,7 +164,7 @@ class ApartmentSharingServiceImplBruteForceTest {
                 .thenReturn(Optional.of(fullDataLink));
         lenient().when(apartmentSharingLinkRepository.findByToken(testToken))
                 .thenReturn(Optional.of(fullDataLink));
-        when(applicationFullMapper.toApplicationModelWithToken(eq(apartmentSharing), eq(testToken)))
+        when(applicationFullMapper.toApplicationModelWithToken(apartmentSharing, testToken))
                 .thenReturn(new ApplicationModel());
 
         // When
@@ -183,7 +183,7 @@ class ApartmentSharingServiceImplBruteForceTest {
                 .thenReturn(Optional.of(fullDataLink));
         lenient().when(apartmentSharingLinkRepository.findByToken(testToken))
                 .thenReturn(Optional.of(fullDataLink));
-        when(applicationFullMapper.toApplicationModelWithToken(eq(apartmentSharing), eq(testToken)))
+        when(applicationFullMapper.toApplicationModelWithToken(apartmentSharing, testToken))
                 .thenReturn(new ApplicationModel());
 
         // When
@@ -201,7 +201,7 @@ class ApartmentSharingServiceImplBruteForceTest {
                 .thenReturn(Optional.of(fullDataLink));
         lenient().when(apartmentSharingLinkRepository.findByToken(testToken))
                 .thenReturn(Optional.of(fullDataLink));
-        when(applicationFullMapper.toApplicationModelWithToken(eq(apartmentSharing), eq(testToken)))
+        when(applicationFullMapper.toApplicationModelWithToken(apartmentSharing, testToken))
                 .thenReturn(new ApplicationModel());
 
         ApartmentSharing otherApartmentSharing = ApartmentSharing.builder().id(999L).build();
@@ -244,7 +244,7 @@ class ApartmentSharingServiceImplBruteForceTest {
                 .thenReturn(Optional.of(fullDataLink));
         lenient().when(apartmentSharingLinkRepository.findByToken(testToken))
                 .thenReturn(Optional.of(fullDataLink));
-        when(applicationFullMapper.toApplicationModelWithToken(eq(apartmentSharing), eq(testToken)))
+        when(applicationFullMapper.toApplicationModelWithToken(apartmentSharing, testToken))
                 .thenReturn(new ApplicationModel());
 
         // When
@@ -281,7 +281,7 @@ class ApartmentSharingServiceImplBruteForceTest {
                 .thenReturn(Optional.of(fullDataLink));
         lenient().when(apartmentSharingLinkRepository.findByToken(testToken))
                 .thenReturn(Optional.of(fullDataLink));
-        when(applicationFullMapper.toApplicationModelWithToken(eq(apartmentSharing), eq(testToken)))
+        when(applicationFullMapper.toApplicationModelWithToken(apartmentSharing, testToken))
                 .thenReturn(new ApplicationModel());
 
         // When
@@ -306,7 +306,7 @@ class ApartmentSharingServiceImplBruteForceTest {
                 .thenReturn(Optional.of(fullDataLink));
         lenient().when(apartmentSharingLinkRepository.findByToken(testToken))
                 .thenReturn(Optional.of(fullDataLink));
-        when(applicationFullMapper.toApplicationModelWithToken(eq(apartmentSharing), eq(testToken)))
+        when(applicationFullMapper.toApplicationModelWithToken(apartmentSharing, testToken))
                 .thenReturn(new ApplicationModel());
 
         // When
@@ -325,7 +325,7 @@ class ApartmentSharingServiceImplBruteForceTest {
         // Given - Light data link (fullData = false)
         when(apartmentSharingLinkRepository.findValidLinkByToken(testToken, false))
                 .thenReturn(Optional.of(lightDataLink));
-        when(applicationLightMapper.toApplicationModel(eq(apartmentSharing)))
+        when(applicationLightMapper.toApplicationModel(apartmentSharing))
                 .thenReturn(new ApplicationModel());
 
         // When

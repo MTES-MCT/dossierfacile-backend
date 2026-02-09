@@ -45,9 +45,12 @@ public class ApplicationController {
         Tenant tenant = null;
         try {
             tenant = authenticationFacade.getLoggedTenant();
-            log.info("Authenticated request to get full application, token: {}, tenantId: {}", token, tenant.getId());
-        } catch (Exception e) {
-            log.info("Anonymous request to get full application, token: {}", token);
+        } finally {
+            if (tenant == null) {
+                log.info("Anonymous request to get full application");
+            } else {
+                log.info("Authenticated request to get full application, tenantId: {}", tenant.getId());
+            }
         }
         return ok(apartmentSharingService.full(token, trigramHeader, tenant));
     }
