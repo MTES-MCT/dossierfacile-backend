@@ -418,4 +418,42 @@ class DocumentServiceImplTest {
         }
 
     }
+
+    @Test
+    void shouldDenyAccessToCoTenantGuarantorDocumentInGroup() {
+        // Given
+        Tenant coTenant = Tenant.builder().id(3L).build();
+        ApartmentSharing groupSharing = ApartmentSharing.builder()
+                .id(1L)
+                .applicationType(ApplicationType.GROUP)
+                .tenants(List.of(tenant, coTenant))
+                .build();
+        tenant.setApartmentSharing(groupSharing);
+
+        Guarantor coTenantGuarantor = Guarantor.builder().id(30L).tenant(coTenant).build();
+        Document coTenantGuarantorDoc = Document.builder().id(6L).guarantor(coTenantGuarantor).build();
+
+        when(documentRepository.findById(6L)).thenReturn(Optional.of(coTenantGuarantorDoc));
+
+        // When & Then
+        assertThrows(AccessDeniedException.class, () ->
+            documentService.getDocumentAnalysisStatus(6L, tenant)
+        );
+    }
+
+    @Test
+    void shouldDenyAccessToUnrelatedTenantDocument() {
+        // Given
+        Tenant unrelatedTenant = Tenant.builder().id(99L)
+                .apartmentSharing(ApartmentSharing.builder().id(99L).build())
+                .build();
+        Document unrelatedDoc = Document.builder().id(7L).tenant(unrelatedTenant).build();
+
+        when(documentRepository.findById(7L)).thenReturn(Optional.of(unrelatedDoc));
+
+        // When & Then
+        assertThrows(AccessDeniedException.class, () ->
+            documentService.getDocumentAnalysisStatus(7L, tenant)
+        );
+    }
 }
