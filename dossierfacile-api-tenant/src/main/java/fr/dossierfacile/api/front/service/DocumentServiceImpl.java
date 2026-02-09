@@ -9,11 +9,13 @@ import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
+import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentAnalysisReport;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Person;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.model.log.EditionType;
@@ -191,13 +193,39 @@ public class DocumentServiceImpl implements DocumentService {
     }
 
     private boolean hasPermissionOnDocument(Document document, Tenant tenant) {
-        // Check if tenant owns the document
-        if (document.getTenant() != null && Objects.equals(document.getTenant().getId(), tenant.getId())) {
+        Tenant documentTenant = resolveDocumentTenant(document);
+        if (documentTenant == null) {
+            return false;
+        }
+
+        // Document belongs to this tenant (directly or through one of their guarantors)
+        if (Objects.equals(documentTenant.getId(), tenant.getId())) {
             return true;
         }
 
-        // TODO : Add other permissions?
+        // In COUPLE mode, partner's documents (and their guarantors') are accessible
+        ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
+        if (apartmentSharing.getApplicationType() == ApplicationType.COUPLE) {
+            return apartmentSharing.getTenants().stream()
+                    .anyMatch(t -> Objects.equals(t.getId(), documentTenant.getId()));
+        }
+
         return false;
+    }
+
+    /**
+     * Resolves the tenant associated with a document:
+     * - if the document belongs to a tenant, returns that tenant
+     * - if the document belongs to a guarantor, returns the guarantor's tenant
+     */
+    private Tenant resolveDocumentTenant(Document document) {
+        if (document.getTenant() != null) {
+            return document.getTenant();
+        }
+        if (document.getGuarantor() != null) {
+            return document.getGuarantor().getTenant();
+        }
+        return null;
     }
 
     private DocumentAnalysisReportModel toDocumentAnalysisReportModel(DocumentAnalysisReport report) {
