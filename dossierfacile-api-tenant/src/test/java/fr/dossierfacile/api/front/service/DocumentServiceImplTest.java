@@ -1,7 +1,9 @@
 package fr.dossierfacile.api.front.service;
 
 import fr.dossierfacile.api.front.exception.DocumentNotFoundException;
+import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.tenant.AnalysisStatus;
+import fr.dossierfacile.api.front.model.tenant.DocumentAnalysisReportModel;
 import fr.dossierfacile.api.front.model.tenant.DocumentAnalysisStatusResponse;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.common.entity.*;
@@ -37,6 +39,9 @@ class DocumentServiceImplTest {
     @Mock
     private DocumentIAFileAnalysisRepository documentIAFileAnalysisRepository;
 
+    @Mock
+    private TenantMapper tenantMapper;
+
     @InjectMocks
     private DocumentServiceImpl documentService;
 
@@ -68,10 +73,16 @@ class DocumentServiceImplTest {
                 .analysisStatus(DocumentAnalysisStatus.CHECKED)
                 .build();
 
+        DocumentAnalysisReportModel reportModel = DocumentAnalysisReportModel.builder()
+                .id(1L)
+                .analysisStatus(DocumentAnalysisStatus.CHECKED)
+                .build();
+
         when(documentRepository.findById(1L)).thenReturn(Optional.of(document));
         when(documentIAFileAnalysisRepository.countTotalFilesByDocumentId(1L)).thenReturn(5L);
         when(documentIAFileAnalysisRepository.countAnalyzedFilesByDocumentId(1L)).thenReturn(5L);
         when(documentAnalysisReportRepository.findByDocumentId(1L)).thenReturn(Optional.of(report));
+        when(tenantMapper.toDocumentAnalysisReportModel(report)).thenReturn(reportModel);
 
         // When
         DocumentAnalysisStatusResponse response = documentService.getDocumentAnalysisStatus(1L, tenant);
