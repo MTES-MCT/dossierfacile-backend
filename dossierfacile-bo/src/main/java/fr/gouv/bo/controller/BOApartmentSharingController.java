@@ -112,13 +112,6 @@ public class BOApartmentSharingController {
         return "bo/apartment-sharing-view";
     }
 
-    @PostMapping("/{id}/tokens/{token}")
-    public String regenerateToken(@PathVariable UUID token, @PathVariable Long id) {
-        apartmentSharingLinkService.regenerateToken(token);
-        return REDIRECT_BO_COLOCATION + id;
-    }
-
-
     @DeleteMapping("/{id}/apartmentSharingLinks/{link_id}")
     public String deleteToken(@PathVariable Long id, @PathVariable("link_id") Long linkId) {
         apartmentSharingLinkService.delete(linkId);
