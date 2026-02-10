@@ -60,10 +60,9 @@ class BOApartmentSharingControllerTest {
         LinkLog fullAppLog = createLinkLog(link.getToken(), LinkType.FULL_APPLICATION);
         LinkLog lightAppLog = createLinkLog(link.getToken(), LinkType.LIGHT_APPLICATION);
         LinkLog enabledLinkLog = createLinkLog(link.getToken(), LinkType.ENABLED_LINK);
-        LinkLog rebuiltTokensLog = createLinkLog(link.getToken(), LinkType.REBUILT_TOKENS);
 
         when(linkLogRepository.findByApartmentSharing(any(ApartmentSharing.class)))
-                .thenReturn(List.of(documentLog1, documentLog2, documentLog3, fullAppLog, lightAppLog, enabledLinkLog, rebuiltTokensLog));
+                .thenReturn(List.of(documentLog1, documentLog2, documentLog3, fullAppLog, lightAppLog, enabledLinkLog));
 
         // When
         List<ApartmentSharingLinkEnrichedDTO> result = invokeEnrichMethod(List.of(link));
