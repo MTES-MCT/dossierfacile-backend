@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class DocumentAnalysisStatusResponse {
+    private Long documentId;
     private AnalysisStatus status;
     private Integer analyzedFiles;      // Only for IN_PROGRESS
     private Integer totalFiles;         // Only for IN_PROGRESS
