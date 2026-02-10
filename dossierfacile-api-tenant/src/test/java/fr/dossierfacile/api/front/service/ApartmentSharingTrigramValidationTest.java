@@ -25,7 +25,7 @@ class ApartmentSharingTrigramValidationTest {
         // Create service with null dependencies (not needed for validateAndNormalizeTrigram)
         service = new ApartmentSharingServiceImpl(
                 null, null, null, null, null, null,
-                null, null, null, null, null, null, null
+                null, null, null, null, null, null, null, null, null
         );
 
         apartmentSharing = ApartmentSharing.builder()

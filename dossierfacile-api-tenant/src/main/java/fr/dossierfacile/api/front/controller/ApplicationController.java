@@ -3,8 +3,11 @@ package fr.dossierfacile.api.front.controller;
 import fr.dossierfacile.api.front.aop.annotation.MethodLogTime;
 import fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException;
 import fr.dossierfacile.api.front.exception.ApartmentSharingUnexpectedException;
+import fr.dossierfacile.api.front.model.tenant.ApplicationAnalysisStatusResponse;
+import fr.dossierfacile.api.front.model.tenant.DocumentAnalysisStatusResponse;
 import fr.dossierfacile.api.front.model.tenant.FullFolderFile;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
+import fr.dossierfacile.api.front.service.DocumentServiceImpl;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
@@ -112,6 +115,13 @@ public class ApplicationController {
             log.error(e.getMessage(), e.getCause());
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
+    }
+
+    @GetMapping("/analysis-status")
+    public ResponseEntity<ApplicationAnalysisStatusResponse> getAnalysisStatus() {
+        var tenant = authenticationFacade.getLoggedTenant();
+        var response = apartmentSharingService.getFullAnalysisStatus(tenant);
+        return ok(response);
     }
 
     private void handlePdfDownload(PdfDownloadSupplier downloadSupplier, HttpServletResponse response) {
