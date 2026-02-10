@@ -4,20 +4,27 @@ import fr.dossierfacile.common.entity.ObjectStorageProvider;
 import fr.dossierfacile.common.repository.StorageFileRepository;
 import fr.dossierfacile.common.service.interfaces.FileStorageProviderService;
 import fr.dossierfacile.scheduler.tasks.AbstractTask;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static fr.dossierfacile.scheduler.tasks.TaskName.GARBAGE_COLLECTION;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 @Slf4j
-@AllArgsConstructor
+@Service
+@ConditionalOnProperty(
+        name = "garbage-collection.enabled",
+        havingValue = "true"
+)
 public class GarbageCollectionTaskOld extends AbstractTask {
 
     private final GarbageCollectionDetailsRepository garbageCollectionDetailsRepository;
@@ -25,6 +32,17 @@ public class GarbageCollectionTaskOld extends AbstractTask {
     private final Map<ObjectStorageProvider, FileStorageProviderService> storageProviderServices;
 
     private final int numberOfObjectsToCheckByIteration;
+
+    public GarbageCollectionTaskOld(GarbageCollectionDetailsRepository garbageCollectionDetailsRepository,
+                                    StorageFileRepository storageFileRepository,
+                                    List<FileStorageProviderService> storageProviderServices,
+                                    @Value("${garbage-collection.objects-by-iteration:100}") int numberOfObjectsToCheckByIteration) {
+        this.garbageCollectionDetailsRepository = garbageCollectionDetailsRepository;
+        this.storageFileRepository = storageFileRepository;
+        this.storageProviderServices = storageProviderServices.stream()
+                .collect(Collectors.toMap(FileStorageProviderService::getProvider, Function.identity()));
+        this.numberOfObjectsToCheckByIteration = numberOfObjectsToCheckByIteration;
+    }
 
     @Scheduled(fixedDelayString = "${garbage-collection.seconds-between-iterations}", timeUnit = SECONDS)
     void cleanGarbage() {
