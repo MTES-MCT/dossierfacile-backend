@@ -26,8 +26,8 @@ import fr.dossierfacile.common.service.interfaces.DocumentHelperService;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import fr.dossierfacile.document.analysis.service.DocumentIAService;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,7 +42,6 @@ import java.util.Optional;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class DocumentServiceImpl implements DocumentService {
 
     private final DocumentRepository documentRepository;
@@ -56,6 +55,31 @@ public class DocumentServiceImpl implements DocumentService {
     private final Producer producer;
     private final DocumentIAService documentIAService;
     private final TenantMapper tenantMapper;
+
+    // There is a dependency cycle between DocumentServiceImpl and TenantStatusService / ApartmentSharingService, so we need to inject them lazily
+    public DocumentServiceImpl(DocumentRepository documentRepository,
+                               DocumentAnalysisReportRepository documentAnalysisReportRepository,
+                               DocumentIAFileAnalysisRepository documentIAFileAnalysisRepository,
+                               FileStorageService fileStorageService,
+                               @Lazy TenantStatusService tenantStatusService,
+                               @Lazy ApartmentSharingService apartmentSharingService,
+                               DocumentHelperService documentHelperService,
+                               LogService logService,
+                               Producer producer,
+                               DocumentIAService documentIAService,
+                               TenantMapper tenantMapper) {
+        this.documentRepository = documentRepository;
+        this.documentAnalysisReportRepository = documentAnalysisReportRepository;
+        this.documentIAFileAnalysisRepository = documentIAFileAnalysisRepository;
+        this.fileStorageService = fileStorageService;
+        this.tenantStatusService = tenantStatusService;
+        this.apartmentSharingService = apartmentSharingService;
+        this.documentHelperService = documentHelperService;
+        this.logService = logService;
+        this.producer = producer;
+        this.documentIAService = documentIAService;
+        this.tenantMapper = tenantMapper;
+    }
 
     @Override
     @Transactional
@@ -166,6 +190,7 @@ public class DocumentServiceImpl implements DocumentService {
         if (totalFiles == 0) {
             // NO_ANALYSIS_SCHEDULED scenario
             return DocumentAnalysisStatusResponse.builder()
+                    .documentId(documentId)
                     .status(AnalysisStatus.NO_ANALYSIS_SCHEDULED)
                     .build();
         }
@@ -180,6 +205,7 @@ public class DocumentServiceImpl implements DocumentService {
                     .orElse(null);
 
             return DocumentAnalysisStatusResponse.builder()
+                    .documentId(documentId)
                     .status(AnalysisStatus.COMPLETED)
                     .analysisReport(reportModel)
                     .build();
@@ -187,6 +213,7 @@ public class DocumentServiceImpl implements DocumentService {
         else {
             // 6. IN_PROGRESS scenario
             return DocumentAnalysisStatusResponse.builder()
+                    .documentId(documentId)
                     .status(AnalysisStatus.IN_PROGRESS)
                     .analyzedFiles(analyzedFiles.intValue())
                     .totalFiles(totalFiles.intValue())
