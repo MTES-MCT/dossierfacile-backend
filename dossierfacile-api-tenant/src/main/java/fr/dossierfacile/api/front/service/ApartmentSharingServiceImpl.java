@@ -4,11 +4,15 @@ import fr.dossierfacile.api.front.amqp.Producer;
 import fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException;
 import fr.dossierfacile.api.front.exception.ApartmentSharingUnexpectedException;
 import fr.dossierfacile.api.front.exception.TrigramNotAuthorizedException;
+import fr.dossierfacile.api.front.model.tenant.ApplicationAnalysisStatusResponse;
 import fr.dossierfacile.api.front.model.tenant.FullFolderFile;
 import fr.dossierfacile.api.front.repository.ApiTenantLogRepository;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.BruteForceProtectionService;
+import fr.dossierfacile.api.front.service.interfaces.DocumentService;
+import fr.dossierfacile.api.front.service.interfaces.TenantPermissionsService;
+import fr.dossierfacile.api.front.util.TrigramUtils;
 import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.*;
 import fr.dossierfacile.common.mapper.ApplicationFullMapper;
@@ -17,7 +21,6 @@ import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
 import fr.dossierfacile.common.repository.ApartmentSharingLinkRepository;
 import fr.dossierfacile.common.repository.ApartmentSharingRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
-import fr.dossierfacile.api.front.util.TrigramUtils;
 import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.common.service.interfaces.LinkLogService;
@@ -27,7 +30,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -54,6 +59,8 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
     private final ApartmentSharingRepository apartmentSharingRepository;
     private final ApartmentSharingLinkRepository apartmentSharingLinkRepository;
     private final TenantCommonRepository tenantRepository;
+    private final TenantPermissionsService tenantPermissionsService;
+    private final DocumentService documentService;
     private final DocumentRepository documentRepository;
     private final ApplicationFullMapper applicationFullMapper;
     private final ApplicationLightMapper applicationLightMapper;
@@ -99,7 +106,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
             bruteForceProtectionService.recordFailedAttempt(link);
             throw e;
         }
-        
+
         // 4. Reset the attempts if the trigram is valid
         bruteForceProtectionService.resetAttempts(link);
 
@@ -164,7 +171,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
     private void saveLinkLog(ApartmentSharing apartmentSharing, UUID token, LinkType linkType) {
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
         String ipAddress = LoggerUtil.getRealIp(request);
-        
+
         linkLogService.save(new LinkLog(
                 apartmentSharing,
                 token,
@@ -224,7 +231,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
         boolean trigramMatches = validTrigrams.stream().anyMatch(candidate -> candidate.equalsIgnoreCase(normalizedTrigram));
 
         if (!trigramMatches) {
-            log.warn("Unauthorized trigram [{}] for apartmentSharing [{}]. Valid trigrams: {}", normalizedTrigram, apartmentSharing.getId(), validTrigrams);    
+            log.warn("Unauthorized trigram [{}] for apartmentSharing [{}]. Valid trigrams: {}", normalizedTrigram, apartmentSharing.getId(), validTrigrams);
             throw new TrigramNotAuthorizedException("Trigram does not match any tenant for this application");
         }
 
@@ -317,6 +324,41 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
                 () -> logService.saveLog(LogType.PDF_DOWNLOAD, tenant.getId()),
                 () -> createFullPdfForTenant(tenant)
         );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ApplicationAnalysisStatusResponse getFullAnalysisStatus(Tenant tenant) {
+        ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
+        if (apartmentSharing == null) {
+            throw new ApartmentSharingNotFoundException("No apartment sharing found for tenant");
+        }
+        var listOfDocumentAnalysis = apartmentSharing.getTenants()
+                .stream()
+                // We filter only the tenant that we can access to avoid sending information about the existence of other tenants in the apartment sharing
+                .filter(it -> tenantPermissionsService.canAccess(tenant.getKeycloakId(), tenant.getId()))
+                // We get all the documents visible by the tenant inside the application sharing (Guarantor + tenants)
+                .flatMap(t -> Stream.concat(
+                        t.getDocuments().stream(),
+                        t.getGuarantors().stream().flatMap(g -> g.getDocuments().stream())
+                ))
+                .map(it -> {
+                    try {
+                        return documentService.getDocumentAnalysisStatus(it.getId(), tenant);
+                    }
+                    // This should not happen
+                    catch (AccessDeniedException e) {
+                        log.warn("Tenant with ID [{}] tried to access analysis status of a document with ID [{}] that he doesn't have access to", tenant.getId(), it.getId());
+                        return null;
+                    }
+                })
+                // We remove the null values that can appear if the tenant doesn't have access to some documents
+                .filter(Objects::nonNull)
+                .toList();
+
+        return ApplicationAnalysisStatusResponse.builder()
+                .listOfDocumentsAnalysisStatus(listOfDocumentAnalysis)
+                .build();
     }
 
     private void addTenantDocumentsToZip(Tenant tenant, ZipOutputStream outputStream) {
