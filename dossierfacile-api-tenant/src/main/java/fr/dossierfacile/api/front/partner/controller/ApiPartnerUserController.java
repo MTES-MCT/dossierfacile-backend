@@ -6,16 +6,13 @@ import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.security.interfaces.ClientAuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.service.interfaces.UserApiService;
-import fr.dossierfacile.api.front.service.interfaces.UserService;
 import fr.dossierfacile.common.deserializer.EmailDeserializer;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -36,7 +33,6 @@ public class ApiPartnerUserController {
     private final TenantService tenantService;
     private final TenantMapper tenantMapperForPartner;
     private final UserApiService userApiService;
-    private final UserService userService;
     private final ClientAuthenticationFacade clientAuthenticationFacade;
 
     @GetMapping(value = "/email/{email}/tenant")
@@ -52,13 +48,5 @@ public class ApiPartnerUserController {
             return status(HttpStatus.FORBIDDEN).build();
         }
         return ok(tenantMapperForPartner.toTenantModel(tenant.get(), clientAuthenticationFacade.getClient()));
-    }
-
-    @PreAuthorize("hasPermissionOnTenant(#tenantId)")
-    @DeleteMapping("/tenant/{tenantId}/user/deleteAccount")
-    public ResponseEntity<Void> deleteAccount(@PathVariable Long tenantId) {
-        Tenant tenant = tenantService.findById(tenantId);
-        userService.deleteAccount(tenant);
-        return ok().build();
     }
 }
