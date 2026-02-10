@@ -6,6 +6,8 @@ import fr.dossierfacile.api.front.exception.TrigramNotAuthorizedException;
 import fr.dossierfacile.api.front.repository.ApiTenantLogRepository;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.service.interfaces.BruteForceProtectionService;
+import fr.dossierfacile.api.front.service.interfaces.DocumentService;
+import fr.dossierfacile.api.front.service.interfaces.TenantPermissionsService;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.ApartmentSharingLink;
 import fr.dossierfacile.common.entity.Tenant;
@@ -92,6 +94,12 @@ class ApartmentSharingServiceImplBruteForceTest {
     @Mock
     private ServletRequestAttributes servletRequestAttributes;
 
+    @Mock
+    private TenantPermissionsService tenantPermissionsService;
+
+    @Mock
+    private DocumentService documentService;
+
     private ApartmentSharingServiceImpl apartmentSharingService;
     private UUID testToken;
     private ApartmentSharing apartmentSharing;
@@ -105,6 +113,8 @@ class ApartmentSharingServiceImplBruteForceTest {
                 apartmentSharingRepository,
                 apartmentSharingLinkRepository,
                 tenantRepository,
+                tenantPermissionsService,
+                documentService,
                 documentRepository,
                 applicationFullMapper,
                 applicationLightMapper,
