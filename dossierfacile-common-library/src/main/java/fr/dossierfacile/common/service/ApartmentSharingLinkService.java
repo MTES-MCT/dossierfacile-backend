@@ -270,15 +270,6 @@ public class ApartmentSharingLinkService {
         }
     }
 
-    public void regenerateToken(UUID token) {
-        var link = apartmentSharingLinkRepository.findByToken(token).orElseThrow(NotFoundException::new);
-        linkLogService.save(LinkLog.builder().creationDate(LocalDateTime.now()).linkType(REBUILT_TOKENS).token(token).apartmentSharing(link.getApartmentSharing()).build());
-        UUID newToken = UUID.randomUUID();
-        log.info("Regenerate token " + token + " to " + newToken);
-        link.setToken(newToken);
-        apartmentSharingLinkRepository.save(link);
-    }
-
     public void updateExpirationDate(Long linkId, LocalDateTime expirationDate, ApartmentSharing apartmentSharing) {
         var link = apartmentSharingLinkRepository.findByIdAndApartmentSharingAndDeletedIsFalse(linkId, apartmentSharing)
                 .orElseThrow(NotFoundException::new);
