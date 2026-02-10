@@ -17,7 +17,7 @@ public interface ApartmentSharingService {
 
     void linkExists(UUID token, boolean fullData);
 
-    ApplicationModel full(UUID token, String trigram);
+    ApplicationModel full(UUID token, String trigram, Tenant loggedInTenant);
 
     ApplicationModel full(Tenant tenant);
 
