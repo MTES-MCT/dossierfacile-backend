@@ -1,6 +1,7 @@
 package fr.dossierfacile.api.front.service.interfaces;
 
 import fr.dossierfacile.api.front.model.MappingFormat;
+import fr.dossierfacile.api.front.model.tenant.ApplicationAnalysisStatusResponse;
 import fr.dossierfacile.api.front.model.tenant.FullFolderFile;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
@@ -47,5 +48,7 @@ public interface ApartmentSharingService {
     void createFullPdfForTenant(Tenant tenant);
 
     FullFolderFile downloadFullPdfForTenant(Tenant tenant) throws IOException;
+
+    ApplicationAnalysisStatusResponse getFullAnalysisStatus(Tenant tenant);
 
 }
