@@ -10,7 +10,7 @@ public abstract class BaseTaxRule extends BaseDocumentIAValidator {
     }
 
     protected boolean isTax(BarcodeModel barcodeModel) {
-        return barcodeModel.getAntsType() != null && barcodeModel.getAntsType().equals("avis_imposition");
+        return barcodeModel.getAntsType() != null && (barcodeModel.getAntsType().equals("avis_imposition") || barcodeModel.getAntsType().equals("avis_imposition_v1"));
     }
 
     protected boolean isDeclarativeSituation(BarcodeModel barcodeModel) {
@@ -19,7 +19,8 @@ public abstract class BaseTaxRule extends BaseDocumentIAValidator {
         }
         if (barcodeModel.getRawData() instanceof java.util.Map) {
             java.util.Map<?, ?> rawData = (java.util.Map<?, ?>) barcodeModel.getRawData();
-            return "27".equals(rawData.get("doc_type"));
+            Object docType = rawData.get("doc_type");
+            return "27".equals(docType) || "24".equals(docType) || "18".equals(docType);
         }
         return false;
     }
