@@ -140,6 +140,29 @@ class DocumentIAServiceImplTest {
     }
 
     @Test
+    void should_save_failed_analysis_when_send_for_analysis_throws() {
+        // Given
+        MultipartFile multipartFile = mock(MultipartFile.class);
+        File file = File.builder().id(123L).build();
+        Document document = Document.builder().id(456L).build();
+
+        when(documentIAConfig.hasToSendFileForAnalysis(document)).thenReturn(true);
+        when(documentIAClient.sendForAnalysis(any(DocumentIARequest.class), any()))
+                .thenThrow(new RuntimeException("Service unavailable"));
+
+        // When
+        documentIAService.sendForAnalysis(multipartFile, file, document);
+
+        // Then
+        verify(documentIAFileAnalysisRepository).save(argThat(analysis ->
+                analysis.getAnalysisStatus() == DocumentIAFileAnalysisStatus.FAILED
+                        && analysis.getFile() == file
+                        && analysis.getDataFileId().equals(123L)
+                        && analysis.getDataDocumentId().equals(456L)
+        ));
+    }
+
+    @Test
     void should_check_and_update_status() {
         // Given
         String executionId = "exec-1";
