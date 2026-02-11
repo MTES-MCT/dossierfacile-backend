@@ -176,4 +176,5 @@
     <include file="db/migration/202501180000-add-brute-force-protection-columns.xml"/>
     <include file="db/migration/202516120000-add-metadata-file-data.xml" />
     <include file="db/migration/202511250000-create-document-ia-file-analysis.xml"/>
+    <include file="db/migration/202602110000-nullable-document-ia-execution-id.xml"/>
 </databaseChangeLog>
