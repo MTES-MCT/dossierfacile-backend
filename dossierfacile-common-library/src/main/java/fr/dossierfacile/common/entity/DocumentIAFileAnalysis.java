@@ -38,7 +38,7 @@ public class DocumentIAFileAnalysis implements Serializable {
     @Column(name = "document_ia_workflow_id", nullable = false)
     private String documentIaWorkflowId;
 
-    @Column(name = "document_ia_execution_id", nullable = false)
+    @Column(name = "document_ia_execution_id")
     private String documentIaExecutionId;
 
     @Enumerated(EnumType.STRING)
