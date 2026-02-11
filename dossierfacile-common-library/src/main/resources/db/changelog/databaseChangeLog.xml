@@ -181,4 +181,5 @@
     <include file="db/migration/202502270000-drop-user-api-partner-urls.xml" />
     <include file="db/migration/202602230000-add-feature-flagging-database.xml" />
     <include file="db/migration/202511250000-create-document-ia-file-analysis.xml"/>
+    <include file="db/migration/202602110000-nullable-document-ia-execution-id.xml"/>
 </databaseChangeLog>
