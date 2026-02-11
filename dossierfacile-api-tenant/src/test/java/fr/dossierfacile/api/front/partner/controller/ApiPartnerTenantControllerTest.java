@@ -18,7 +18,7 @@ class ApiPartnerTenantControllerTest {
 
     @BeforeEach
     public void setUp() {
-        var controller = new ApiPartnerTenantController(mock(ClientAuthenticationFacade.class), mock(TenantService.class), null, null);
+        var controller = new ApiPartnerTenantController(mock(ClientAuthenticationFacade.class), mock(TenantService.class));
         mvc = MockMvcBuilders.standaloneSetup(controller).build();
     }
 
