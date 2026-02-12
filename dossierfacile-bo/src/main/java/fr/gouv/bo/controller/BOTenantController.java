@@ -215,22 +215,10 @@ public class BOTenantController {
             CustomMessage customMessage,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
-        tenantService.processFile(id, customMessage, principal);
-
-        // Si returnToHome est demandé, retourner à l'accueil
+        tenantService.processFile(id, customMessage, principal); 
         if (returnToHome != null && returnToHome.equals("true")) {
             return REDIRECT_BO_HOME;
         }
-
-        // Trouver le prochain tenant du même dossier COUPLE en statut TO_PROCESS
-        // pour router les locataires d'un meme dossier COUPLE vers le même opérateur
-        Optional<Tenant> nextTenantInCouple = tenantService.findNextTenantInCouple(id);
-        if (nextTenantInCouple.isPresent()) {
-            // Rediriger vers le prochain locataire du dossier
-            return tenantService.redirectToApplication(principal, nextTenantInCouple.get().getId());
-        }
-
-        // Sinon, continuer avec le comportement normal (prochain dossier disponible)
         return tenantService.redirectToApplication(principal, null);
     }
 
