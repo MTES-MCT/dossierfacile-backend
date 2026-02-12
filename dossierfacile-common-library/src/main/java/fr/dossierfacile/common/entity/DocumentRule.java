@@ -226,13 +226,6 @@ public enum DocumentRule {
             "Le document est bien un avis d'imposition",
             "Le document n'a pas été analysé"
     ),
-    // Custom message for declarative situation
-    R_TAX_BAD_CLASSIFICATION_DECLARATIVE(
-            DocumentRuleLevel.CRITICAL,
-            "Le document est un avis déclaratif de situation",
-            "",
-            ""
-    ),
     R_TAX_WRONG_YEAR(
             DocumentRuleLevel.CRITICAL,
             "L'avis d'imposition n'est pas de l'année requise",
