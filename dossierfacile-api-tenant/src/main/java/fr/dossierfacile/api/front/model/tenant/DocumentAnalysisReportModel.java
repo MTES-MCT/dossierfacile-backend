@@ -22,5 +22,6 @@ public class DocumentAnalysisReportModel {
     private List<DocumentAnalysisRule> failedRules;
     private List<DocumentAnalysisRule> passedRules;
     private List<DocumentAnalysisRule> inconclusiveRules;
+    private String comment;
     private LocalDateTime createdAt = LocalDateTime.now();
 }
