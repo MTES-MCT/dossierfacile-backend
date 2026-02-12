@@ -11,7 +11,6 @@ import lombok.Getter;
 
 @Getter
 public enum StepRegister {
-    ACCOUNT_PARTNER_API(AccountApiPartner.class),
     NAMES(Names.class),
     APPLICATION(Application.class),
     HONOR_DECLARATION(HonorDeclaration.class),

@@ -41,6 +41,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -81,7 +82,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
     }
 
     @Override
-    public ApplicationModel full(UUID token, String trigram) {
+    public ApplicationModel full(UUID token, String trigram, Tenant loggedInTenant) {
         // 1. Check if the link exists and is valid
         Optional<ApartmentSharingLink> apartmentSharingLink = apartmentSharingLinkRepository.findValidLinkByToken(token, true);
         if (apartmentSharingLink.isEmpty()) {
@@ -106,7 +107,10 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
         bruteForceProtectionService.resetAttempts(link);
 
         // 5. Save log and return the application model
-        saveLinkLog(apartmentSharing, token, LinkType.FULL_APPLICATION);
+        // unless the authenticated tenant is a tenant of the apartment sharing
+        if (loggedInTenant == null || loggedInTenant.getApartmentSharing() == null || !Objects.equals(loggedInTenant.getApartmentSharing().getId(), apartmentSharing.getId())) {
+            saveLinkLog(apartmentSharing, token, LinkType.FULL_APPLICATION);
+        }
         ApplicationModel applicationModel = applicationFullMapper.toApplicationModelWithToken(apartmentSharing, token);
         applicationModel.setLastUpdateDate(getLastUpdateDate(apartmentSharing));
         return applicationModel;

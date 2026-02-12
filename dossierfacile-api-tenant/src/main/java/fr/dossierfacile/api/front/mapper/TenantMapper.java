@@ -89,7 +89,7 @@ public abstract class TenantMapper {
         updateTokens(tenant, apartmentSharingModel, l -> l.getLinkType() == ApartmentSharingLinkType.LINK);
 
         var isDossierUser = SecurityContextHolder.getContext().getAuthentication().getAuthorities().contains(new SimpleGrantedAuthority("SCOPE_dossier"));
-        var filePath = isDossierUser ? "/api/file/resource/" : "/api-partner/tenant/" + tenantModel.getId() + "/file/resource/";
+        var filePath = isDossierUser ? "/api/file/resource/" : null;
 
         // We hide the analysis report broken rules of info level
         hideDocumentAnalysisReportInfoLevel(tenantModel.getDocuments());
@@ -176,7 +176,7 @@ public abstract class TenantMapper {
                     }
                     Optional.ofNullable(documentModel.getFiles())
                             .ifPresent(fileModels -> fileModels.forEach(fileModel -> {
-                                if (previewOnly || isHybrid(userApi)) {
+                                if (filePath == null || previewOnly || isHybrid(userApi)) {
                                     fileModel.setPath("");
                                 } else {
                                     fileModel.setPath(applicationBaseUrl + filePath + fileModel.getId());

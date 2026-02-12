@@ -42,8 +42,17 @@ public class ApplicationController {
     @GetMapping(value = "/full/{token}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ApplicationModel> full(@PathVariable UUID token,
                                                  @RequestHeader(value = "X-Tenant-Trigram", required = true) String trigramHeader) {
-        ApplicationModel applicationModel = apartmentSharingService.full(token, trigramHeader);
-        return ok(applicationModel);
+        Tenant tenant = null;
+        try {
+            tenant = authenticationFacade.getLoggedTenant();
+        } catch (Exception e) {
+            log.info("Anonymous request to get full application");
+        } finally {
+            if (tenant != null) {
+                log.info("Authenticated request to get full application, tenantId: {}", tenant.getId());
+            }
+        }
+        return ok(apartmentSharingService.full(token, trigramHeader, tenant));
     }
 
     @GetMapping(value = "/light/{token}", produces = MediaType.APPLICATION_JSON_VALUE)
