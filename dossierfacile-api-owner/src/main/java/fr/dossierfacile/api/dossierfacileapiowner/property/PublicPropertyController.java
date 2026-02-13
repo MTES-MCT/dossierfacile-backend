@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Optional;
 
+import static org.springframework.http.ResponseEntity.notFound;
 import static org.springframework.http.ResponseEntity.ok;
 
 @RestController
@@ -27,14 +28,14 @@ public class PublicPropertyController {
     private final OwnerPropertyMapper ownerPropertyMapper;
 
     @GetMapping("/{token}")
-    public ResponseEntity<LightPropertyModel> get(@PathVariable String token) throws HttpResponseException {
+    public ResponseEntity<LightPropertyModel> get(@PathVariable String token) {
         Optional<Property> property = propertyService.getPropertyByToken(token);
 
         if (property.isPresent()) {
             propertyService.logAccess(property.get());
             return ok(ownerPropertyMapper.toLightPropertyModel(property.get()));
         }
-        throw new HttpResponseException(404, "No property found");
+        return notFound().build();
     }
 
     @PostMapping("/subscribe/{propertyToken}")
