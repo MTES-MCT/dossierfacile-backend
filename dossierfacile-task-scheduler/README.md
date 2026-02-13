@@ -60,9 +60,6 @@ keycloak.server.client.secret=
 tenant.base.url=localhost:9002
 owner.base.url=localhost:3000
 brevo.apikey=
-brevo.template.id.first.warning.for.deletion.of.documents=
-brevo.template.id.second.warning.for.deletion.of.documents=
-brevo.template.id.deleted.document.with.failed.pdf=
 #Cron :
 #Cron to delete accounts (Tous les lundi a 7h10)
 cron.account-deletion=0 10 7 * * 1

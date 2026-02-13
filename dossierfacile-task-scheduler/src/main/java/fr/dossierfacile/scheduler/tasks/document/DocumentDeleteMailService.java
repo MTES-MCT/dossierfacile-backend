@@ -26,7 +26,7 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 public class DocumentDeleteMailService {
     private final TransactionalEmailsApi apiInstance;
     private final TenantCommonRepository tenantCommonRepository;
-    @Value("${brevo.template.id.deleted.document.with.failed.pdf}")
+    @Value("${brevo.template.id.deleted.document.with.failed.pdf:106}")
     private Long templateDeletedDocumentWithFailedPdf;
 
     @Transactional(readOnly = true)
