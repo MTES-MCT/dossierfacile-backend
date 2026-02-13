@@ -98,6 +98,16 @@ public class DocumentIAServiceImpl implements DocumentIAService {
             );
         } catch (Exception e) {
             log.error("Error sending document for analysis: {}", e.getMessage(), e);
+            documentIAFileAnalysisRepository.save(
+                    DocumentIAFileAnalysis.builder()
+                            .file(file)
+                            .documentIaWorkflowId(documentIAConfig.getWorkflowIdForDocumentSubCategory(document))
+                            .analysisStatus(DocumentIAFileAnalysisStatus.FAILED)
+                            .dataFileId(file.getId())
+                            .dataDocumentId(document.getId())
+                            .build()
+            );
+            analyseDocument(document);
         }
     }
 
