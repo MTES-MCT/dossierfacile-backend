@@ -24,6 +24,7 @@
         <module>dossierfacile-api-watermark</module>
         <module>dossierfacile-pdf-generator</module>
         <module>dossierfacile-task-scheduler</module>
+        <module>dossierfacile-document-analysis</module>
     </modules>
     <packaging>pom</packaging>
 
@@ -66,6 +67,11 @@
             <dependency>
                 <groupId>fr.dossierfacile</groupId>
                 <artifactId>dossierfacile-common-library</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>fr.dossierfacile</groupId>
+                <artifactId>dossierfacile-document-analysis</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>

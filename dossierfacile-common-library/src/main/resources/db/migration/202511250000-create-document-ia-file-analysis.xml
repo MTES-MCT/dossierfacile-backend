@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+
+    <changeSet id="202511250000-01" author="nsagon">
+        <createTable tableName="document_ia_file_analysis">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false" primaryKeyName="pk_document_ia_file_analysis"/>
+            </column>
+
+            <column name="document_ia_workflow_id" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="document_ia_execution_id" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="file_id" type="BIGINT">
+                <constraints nullable="true"/>
+            </column>
+
+            <column name="analysis_status" type="varchar(32)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="result" type="jsonb">
+                <constraints nullable="true"/>
+            </column>
+
+            <column name="data_file_id" type="BIGINT">
+                <constraints nullable="true"/>
+            </column>
+
+            <column name="data_document_id" type="BIGINT">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="document_ia_file_analysis"
+                baseColumnNames="file_id"
+                constraintName="fk_document_ia_file_analysis_file"
+                referencedTableName="file"
+                referencedColumnNames="id"
+                deferrable="false"
+                initiallyDeferred="false"
+                onDelete="SET NULL"/>
+    </changeSet>
+
+    <changeSet id="202511250000-02" author="nsagon">
+        <addColumn tableName="document_ia_file_analysis">
+            <column name="creation_date" type="TIMESTAMP" defaultValueDate="now()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_modified_date" type="TIMESTAMP" defaultValueDate="now()">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>
+

@@ -5,6 +5,7 @@ import fr.dossierfacile.common.entity.DocumentDeniedReasons;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentCategoryStep;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
+import fr.dossierfacile.common.model.document_ia.ResultModel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -38,5 +39,6 @@ public class MessageItem {
     private DocumentDeniedReasons previousDeniedReasons;
     private DocumentAnalysisReport documentAnalysisReport;
     private String analysisReportComment;
+    private List<ResultModel> documentIAResults = new ArrayList<>();
 
 }
