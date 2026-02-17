@@ -150,7 +150,6 @@ public class DocumentServiceImpl implements DocumentService {
                             document.setWatermarkFile(null);
                         }
                         documentRepository.save(document);
-                        documentIAService.analyseDocument(document);
                         if (Boolean.TRUE == document.getNoDocument()) {
                             producer.sendDocumentForPdfGeneration(document);
                         }
