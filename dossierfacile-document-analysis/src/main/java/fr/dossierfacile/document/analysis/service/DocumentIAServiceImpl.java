@@ -86,27 +86,27 @@ public class DocumentIAServiceImpl implements DocumentIAService {
         var request = DocumentIARequest.builder().metadata("{ \"document_id\": " + document.getId() + " }").file(multipartFile).build();
         try {
             var response = documentIAClient.sendForAnalysis(request, documentIAConfig.getWorkflowIdForDocumentSubCategory(document));
-            documentIAFileAnalysisRepository.save(
-                    DocumentIAFileAnalysis.builder()
-                            .file(file)
-                            .documentIaWorkflowId(response.getData().getWorkflowId())
-                            .documentIaExecutionId(response.getData().getExecutionId())
-                            .analysisStatus(DocumentIAFileAnalysisStatus.STARTED)
-                            .dataFileId(file.getId())
-                            .dataDocumentId(document.getId())
-                            .build()
-            );
+            var analysis = DocumentIAFileAnalysis.builder()
+                    .file(file)
+                    .documentIaWorkflowId(response.getData().getWorkflowId())
+                    .documentIaExecutionId(response.getData().getExecutionId())
+                    .analysisStatus(DocumentIAFileAnalysisStatus.STARTED)
+                    .dataFileId(file.getId())
+                    .dataDocumentId(document.getId())
+                    .build();
+            documentIAFileAnalysisRepository.save(analysis);
+            file.setDocumentIAFileAnalysis(analysis);
         } catch (Exception e) {
             log.error("Error sending document for analysis: {}", e.getMessage(), e);
-            documentIAFileAnalysisRepository.save(
-                    DocumentIAFileAnalysis.builder()
-                            .file(file)
-                            .documentIaWorkflowId(documentIAConfig.getWorkflowIdForDocumentSubCategory(document))
-                            .analysisStatus(DocumentIAFileAnalysisStatus.FAILED)
-                            .dataFileId(file.getId())
-                            .dataDocumentId(document.getId())
-                            .build()
-            );
+            var analysis = DocumentIAFileAnalysis.builder()
+                    .file(file)
+                    .documentIaWorkflowId(documentIAConfig.getWorkflowIdForDocumentSubCategory(document))
+                    .analysisStatus(DocumentIAFileAnalysisStatus.FAILED)
+                    .dataFileId(file.getId())
+                    .dataDocumentId(document.getId())
+                    .build();
+            documentIAFileAnalysisRepository.save(analysis);
+            file.setDocumentIAFileAnalysis(analysis);
             analyseDocument(document);
         }
     }
