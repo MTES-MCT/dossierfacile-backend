@@ -50,6 +50,9 @@ public class AnalyzeDocumentService {
             List<AbstractRulesValidationService> rulesValidationServices = documentRulesValidationServiceFactory.getServices(document);
             if (!CollectionUtils.isEmpty(rulesValidationServices)) {
                 Optional.ofNullable(document.getDocumentAnalysisReport()).ifPresent((report) -> {
+                    Long reportId = report.getId();
+                    log.info("About to delete DocumentAnalysisReport (process-file worker before re-analysis): documentId={}, reportId={}, thread={}",
+                            documentId, reportId, Thread.currentThread().getName());
                     document.setDocumentAnalysisReport(null);
                     documentAnalysisReportRepository.delete(report);
                 });
