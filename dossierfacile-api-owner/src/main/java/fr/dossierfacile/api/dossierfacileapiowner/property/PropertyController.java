@@ -9,7 +9,6 @@ import fr.dossierfacile.common.entity.PropertyApartmentSharing;
 import fr.dossierfacile.common.exceptions.NotFoundException;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -30,6 +29,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.springframework.http.ResponseEntity.ok;
+import static org.springframework.http.ResponseEntity.notFound;
+import static org.springframework.http.ResponseEntity.noContent;
 
 @RestController
 @AllArgsConstructor
@@ -43,7 +44,7 @@ public class PropertyController {
     private final PropertyMapper propertyMapper;
 
     @PostMapping
-    public ResponseEntity<PropertyModel> createOrUpdate(@Valid @RequestBody PropertyForm property) throws InterruptedException, HttpResponseException {
+    public ResponseEntity<PropertyModel> createOrUpdate(@Valid @RequestBody PropertyForm property) throws InterruptedException {
         PropertyModel propertyModel;
         propertyModel = propertyService.createOrUpdate(property);
         return ok(propertyModel);
@@ -77,7 +78,7 @@ public class PropertyController {
     }
 
     @GetMapping(value = "/listAddresses/{query}")
-    public ResponseEntity<String> getAddresses(@PathVariable String query) throws HttpResponseException {
+    public ResponseEntity<String> getAddresses(@PathVariable String query) {
         try {
             URI uri = new URIBuilder("https://api-adresse.data.gouv.fr/search/").addParameter("q", query).addParameter("limit", "15").build();
             HttpRequest request = HttpRequest.newBuilder()
@@ -92,20 +93,20 @@ public class PropertyController {
         } catch (URISyntaxException | IOException | InterruptedException e) {
             e.printStackTrace();
         }
-        throw new HttpResponseException(404, "No result");
+        return notFound().build();
     }
 
     @DeleteMapping("/tenant/{id}")
-    public void removeTenant(@PathVariable("id") Long id) throws HttpResponseException {
+    public ResponseEntity<Object> removeTenant(@PathVariable("id") Long id) {
         Owner owner = authenticationFacade.getOwner();
         List<Property> propertyList = owner.getProperties();
         List<PropertyApartmentSharing> propertyApartmentSharings = propertyList.stream().flatMap(property -> property.getPropertiesApartmentSharing().stream()).collect(Collectors.toList());
         PropertyApartmentSharing propertyApartmentSharing = propertyApartmentSharings.stream().filter(pas ->
                 pas.getId().equals(id)).findAny().orElse(null);
 
-        if (propertyApartmentSharing == null) {
-            throw new HttpResponseException(404, "No tenant found");
+        if (propertyApartmentSharing != null) {
+            propertyApartmentSharingService.deletePropertyApartmentSharing(propertyApartmentSharing);
         }
-        propertyApartmentSharingService.deletePropertyApartmentSharing(propertyApartmentSharing);
+        return noContent().build();
     }
 }
