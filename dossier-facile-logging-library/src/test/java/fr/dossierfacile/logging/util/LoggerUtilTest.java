@@ -33,13 +33,15 @@ class LoggerUtilTest {
                 Arguments.of("/email/nicolas@gmail.com.fr.de", "/email/{email}"),
                 Arguments.of("/email/nicolas.sagon@gmail.com/profile", "/email/{email}/profile"),
                 Arguments.of("/email/nicolas.sagon@gmail.com/profile/123/a79b75f3-bd1d-470e-9cd1-569672200d87", "/email/{email}/profile/{id}/{uuid}"),
-                // Property token (20 alphanumeric chars - e.g. RandomStringUtils.randomAlphanumeric(20))
-                Arguments.of("/api/property/public/vJz1UPaeeHakWs90pQVJ", "/api/property/public/{token}"),
-                Arguments.of("/api/property/public/9Plc2orNTumnCjHbmpVY", "/api/property/public/{token}"),
-                Arguments.of("/api/property/public/0RvF2Anw3wrvQyFj2lHi", "/api/property/public/{token}"),
-                Arguments.of("/api/property/public/Abc123XyZ456QrSt7890/subscribe", "/api/property/public/{token}/subscribe"),
+                // Property token (15–40 alphanumeric chars, e.g. /api/property/public/<token> or .../subscribe/<token>)
+                Arguments.of("/api/property/public/A1b2C3d4E5f6G7h8I9j0", "/api/property/public/{token}"),
+                Arguments.of("/api/property/public/X9y8Z7w6V5u4T3s2R1q0", "/api/property/public/{token}"),
+                Arguments.of("/api/property/public/Kp2Lm4Nq6Rs8Tv0Wx1Yz3", "/api/property/public/{token}"),
+                Arguments.of("/api/property/public/Mn5Op7Qr9St1Uv3Wx5Yz7/subscribe", "/api/property/public/{token}/subscribe"),
+                Arguments.of("/api/property/public/subscribe/Ab8Cd0Ef2Gh4Ij6Kl8", "/api/property/public/subscribe/{token}"),
+                Arguments.of("/api/property/public/subscribe/Xy9Za1Bc3De5Fg7Hi9", "/api/property/public/subscribe/{token}"),
                 // Property token + other placeholders
-                Arguments.of("/api/property/public/vJz1UPaeeHakWs90pQVJ/details/42", "/api/property/public/{token}/details/{id}"),
+                Arguments.of("/api/property/public/A1b2C3d4E5f6G7h8I9j0/details/42", "/api/property/public/{token}/details/{id}"),
                 // Edge cases: null and empty
                 Arguments.of(null, null),
                 Arguments.of("", "")
