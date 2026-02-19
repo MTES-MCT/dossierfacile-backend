@@ -46,6 +46,8 @@ public abstract class AbstractConnectionContextFilter extends HttpFilter {
         try {
             chain.doFilter(request, response);
         } finally {
+            // Set normalized URI using the Spring MVC matched route pattern (available after dispatch)
+            LoggerUtil.setNormalizedUri(request);
             if (response.getStatus() != 200) {
                 LoggerUtil.addRequestStatusToMdc(response.getStatus());
                 if ("/error".equals(request.getRequestURI()) && request.getAttribute(JAKARTA_SERVLET_FORWARD_REQUEST_URI) != null) {
