@@ -12,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.text.Normalizer;
 import java.util.Objects;
 
 @Slf4j
@@ -59,5 +60,25 @@ public class FileUtility {
             }
             return images;
         }
+    }
+
+    public static String sanitizeFilename(String input) {
+        if (input == null || input.isBlank()) {
+            return "file";
+        }
+
+        // 1. Normalisation : Sépare les lettres de leurs accents (ex: "é" devient "e" + "´")
+        String normalized = Normalizer.normalize(input, Normalizer.Form.NFD);
+
+        // 2. Suppression des accents via une expression régulière
+        // \p{M} cible toutes les marques diacritiques (les accents flottants)
+        String withoutAccents = normalized.replaceAll("\\p{M}", "");
+
+        // 3. Remplacement des espaces par des underscores (très recommandé pour les headers HTTP)
+        String noSpaces = withoutAccents.replaceAll("\\s+", "_");
+
+        // 4. Suppression de tout ce qui n'est pas alphanumérique, point, tiret ou underscore.
+        // Cela supprime les guillemets, slashs, emojis et caractères spéciaux interdits par Windows/Linux.
+        return noSpaces.replaceAll("[^a-zA-Z0-9._-]", "");
     }
 }

@@ -9,6 +9,7 @@ import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
 
+import fr.dossierfacile.common.utils.FileUtility;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.text.Normalizer;
 import java.util.UUID;
 
 import static org.springframework.http.ResponseEntity.accepted;
@@ -103,7 +105,7 @@ public class ApplicationController {
             if (fullFolderFile.getFileOutputStream().size() > 0) {
                 response.setHeader("Access-Control-Expose-Headers", "Content-Disposition, Content-Type");
                 ContentDisposition contentDisposition = ContentDisposition.attachment()
-                        .filename(fullFolderFile.getFileName(), StandardCharsets.UTF_8)
+                        .filename(FileUtility.sanitizeFilename(fullFolderFile.getFileName()))
                         .build();
                 response.setHeader("Content-Disposition", contentDisposition.toString());
                 response.setHeader("Content-Type", "application/zip");
@@ -125,7 +127,7 @@ public class ApplicationController {
             if (pdfFile.getFileOutputStream().size() > 0) {
                 response.setHeader("Access-Control-Expose-Headers", "Content-Disposition, Content-Type");
                 ContentDisposition contentDisposition = ContentDisposition.attachment()
-                        .filename(pdfFile.getFileName(), StandardCharsets.UTF_8)
+                        .filename(FileUtility.sanitizeFilename(pdfFile.getFileName()))
                         .build();
                 response.setHeader("Content-Disposition", contentDisposition.toString());
                 response.setHeader("Content-Type", MediaType.APPLICATION_PDF_VALUE);
