@@ -8,6 +8,7 @@ import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
+import fr.dossierfacile.common.utils.FileUtility;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -54,7 +55,7 @@ public class FileController {
             response.setContentType(file.getStorageFile().getContentType());
             response.setHeader("Access-Control-Expose-Headers", "Content-Disposition, Content-Type");
             ContentDisposition contentDisposition = ContentDisposition.inline()
-                    .filename(file.getStorageFile().getName(), StandardCharsets.UTF_8)
+                    .filename(FileUtility.sanitizeFilename(file.getStorageFile().getName()))
                     .build();
             response.setHeader("Content-Disposition", contentDisposition.toString());
             response.setHeader("X-Robots-Tag", "noindex");

@@ -11,6 +11,7 @@ import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.enums.TypeGuarantor;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
+import fr.dossierfacile.common.utils.FileUtility;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -64,7 +65,7 @@ public class DocumentController {
                 fileName = ownerName + "_" + document.getDocumentName();
             }
             ContentDisposition contentDisposition = ContentDisposition.inline()
-                    .filename(fileName, StandardCharsets.UTF_8)
+                    .filename(FileUtility.sanitizeFilename(fileName))
                     .build();
             response.setHeader("Content-Disposition", contentDisposition.toString());
             response.setHeader("X-Robots-Tag", "noindex");
