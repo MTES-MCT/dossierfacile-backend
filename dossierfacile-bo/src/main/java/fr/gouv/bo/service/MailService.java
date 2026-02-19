@@ -33,27 +33,27 @@ public class MailService {
     private String tenantBaseUrl;
     @Value("${application.base.url}")
     private String applicationBaseUrl;
-    @Value("${brevo.template.id.message.notification}")
+    @Value("${brevo.template.id.message.notification:110}")
     private Long templateIDMessageNotification;
-    @Value("${brevo.template.id.message.notification.with.details}")
+    @Value("${brevo.template.id.message.notification.with.details:155}")
     private Long templateIDMessageNotificationWithDetails;
-    @Value("${brevo.template.id.account.deleted}")
+    @Value("${brevo.template.id.account.deleted:39}")
     private Long templateIdAccountDeleted;
-    @Value("${brevo.template.id.dossier.tenant.denied}")
+    @Value("${brevo.template.id.dossier.tenant.denied:121}")
     private Long templateIdDossierTenantDenied;
-    @Value("${brevo.template.id.dossier.tenant.denied.with.details}")
+    @Value("${brevo.template.id.dossier.tenant.denied.with.details:158}")
     private Long templateIdDossierTenantDeniedWithDetails;
-    @Value("${brevo.template.id.dossier.amount.changed}")
+    @Value("${brevo.template.id.dossier.amount.changed:165}")
     private Long templateIdDossierAmountChanged;
-    @Value("${brevo.template.id.message.notification.with.partner}")
+    @Value("${brevo.template.id.message.notification.with.partner:126}")
     private Long templateIDMessageNotificationWithPartner;
-    @Value("${brevo.template.id.message.notification.with.partner.and.details}")
+    @Value("${brevo.template.id.message.notification.with.partner.and.details:156}")
     private Long templateIdMessageNotificationWithPartnerAndDetails;
-    @Value("${brevo.template.id.dossier.tenant.denied.with.partner}")
+    @Value("${brevo.template.id.dossier.tenant.denied.with.partner:124}")
     private Long templateIdDossierTenantDeniedWithPartner;
-    @Value("${brevo.template.id.dossier.tenant.denied.with.partner.and.details}")
+    @Value("${brevo.template.id.dossier.tenant.denied.with.partner.and.details:159}")
     private Long templateIdDossierTenantDeniedWithPartnerAndDetails;
-    @Value("${brevo.template.id.admin.partner.client.configuration}")
+    @Value("${brevo.template.id.admin.partner.client.configuration:107}")
     private Long templateIdAdminPartnerConfiguration;
     @Value("${link.after.denied.default}")
     private String defaultDeniedUrl;

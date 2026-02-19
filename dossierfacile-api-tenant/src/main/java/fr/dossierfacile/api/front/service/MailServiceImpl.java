@@ -40,37 +40,36 @@ public class MailServiceImpl implements MailService {
     private String emailSupport;
     @Value("${email.support.owner}")
     private String emailSupportOwner;
-    @Value("${brevo.template.id.welcome}")
+    @Value("${brevo.template.id.welcome:30}")
     private Long templateIDWelcome;
-    @Value("${brevo.template.id.welcome.partner}")
+    @Value("${brevo.template.id.welcome.partner:77}")
     private Long templateIDWelcomePartner;
-    @Value("${brevo.template.id.new.password}")
+    @Value("${brevo.template.id.new.password:38}")
     private Long templateIdNewPassword;
-    @Value("${brevo.template.id.invitation.couple}")
+    @Value("${brevo.template.id.invitation.couple:164}")
     private Long templateIdCoupleApplication;
-    @Value("${brevo.template.id.invitation.group}")
+    @Value("${brevo.template.id.invitation.group:163}")
     private Long templateIdGroupApplication;
-    @Value("${brevo.template.id.account.deleted}")
+    @Value("${brevo.template.id.account.deleted:39}")
     private Long templateIdAccountDeleted;
-    @Value("${brevo.template.id.account.completed}")
+    @Value("${brevo.template.id.account.completed:56}")
     private Long templateIdAccountCompleted;
-    @Value("${brevo.template.id.account.completed.with.partner}")
+    @Value("${brevo.template.id.account.completed.with.partner:82}")
     private Long templateIdAccountCompletedWithPartner;
-    @Value("${brevo.template.id.account.email.validation.reminder}")
+    @Value("${brevo.template.id.account.email.validation.reminder:33}")
     private Long templateEmailWhenEmailAccountNotYetValidated;
-    @Value("${brevo.template.id.account.incomplete.reminder}")
+    @Value("${brevo.template.id.account.incomplete.reminder:162}")
     private Long templateEmailWhenAccountNotYetCompleted;
-    @Value("${brevo.template.id.account.declined.reminder}")
+    @Value("${brevo.template.id.account.declined.reminder:116}")
     private Long templateEmailWhenAccountIsStillDeclined;
-    @Value("${brevo.template.id.account.satisf}")
+    @Value("${brevo.template.id.account.satisf:75}")
     private Long templateIdAccountSatisf;
-    @Value("${brevo.template.id.contact.support}")
+    @Value("${brevo.template.id.contact.support:45}")
     private Long templateIdContactSupport;
-    @Value("${brevo.template.id.token.expiration}")
+    @Value("${brevo.template.id.token.expiration:109}")
     private Long templateIdTokenExpiration;
-    @Value("${brevo.template.id.share.file}")
+    @Value("${brevo.template.id.share.file:89}")
     private Long templateIdShareFile;
-
     @Value("${link.after.completed.default}")
     private String defaultCompletedUrl;
     @Value("${link.after.created.default}")

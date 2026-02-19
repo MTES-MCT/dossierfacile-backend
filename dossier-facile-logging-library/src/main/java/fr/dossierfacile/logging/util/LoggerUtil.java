@@ -20,8 +20,11 @@ public class LoggerUtil {
     public static final String PROCESS_ID = "process_id";
 
     private static final String NUMBER_REGEX = "(?<=/)(\\d+)(?=[/?]|$)";
-    private static final String UUID_REGEX = "(?<=/)([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12})(?=[/?]|$)";
+    /** UUID (8-4-4-4-12 hex) plus any trailing chars until next / or end; whole segment replaced by {uuid} */
+    private static final String UUID_REGEX = "(?<=/)([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}[^/]*)";
     private static final String EMAIL_REGEX = "(?<=/)([a-zA-Z0-9](?:[a-zA-Z0-9._%+-]*[a-zA-Z0-9])?@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})(?=[/?]|$)";
+    /** Property token: alphanumeric chars (e.g. after /api/property/public/ or .../subscribe/) */
+    private static final String PROPERTY_TOKEN_REGEX = "(?<=/)([a-zA-Z0-9]{15,30})(?=[/?]|$)";
 
     private static final String API_URL = "uri";
     private static final String API_NORMALIZED_URI = "normalized_uri";
@@ -92,6 +95,8 @@ public class LoggerUtil {
         url = url.replaceAll(UUID_REGEX, "{uuid}");
         // Replacement of Emails
         url = url.replaceAll(EMAIL_REGEX, "{email}");
+        // Replacement of property tokens (e.g. /api/property/public/xxx)
+        url = url.replaceAll(PROPERTY_TOKEN_REGEX, "{token}");
         return url;
     }
 

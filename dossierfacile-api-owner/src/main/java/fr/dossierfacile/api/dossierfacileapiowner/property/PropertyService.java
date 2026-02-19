@@ -1,14 +1,13 @@
 package fr.dossierfacile.api.dossierfacileapiowner.property;
 
 import fr.dossierfacile.common.entity.Property;
-import org.apache.http.client.HttpResponseException;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface PropertyService {
 
-    PropertyModel createOrUpdate(PropertyForm propertyForm) throws HttpResponseException, InterruptedException;
+    PropertyModel createOrUpdate(PropertyForm propertyForm) throws InterruptedException;
 
     List<PropertyModel> getAllProperties();
 

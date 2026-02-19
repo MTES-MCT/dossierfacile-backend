@@ -4,8 +4,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.dossierfacile.api.dossierfacileapiowner.TestApplication;
 import fr.dossierfacile.api.dossierfacileapiowner.register.AuthenticationFacade;
 import fr.dossierfacile.api.dossierfacileapiowner.user.OwnerMapper;
+import fr.dossierfacile.common.entity.Owner;
+import fr.dossierfacile.common.entity.Property;
+import fr.dossierfacile.common.entity.PropertyApartmentSharing;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Named;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -18,13 +23,17 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -114,5 +123,42 @@ class PropertyControllerTest {
         }
 
         mockMvc.perform(mockMvcConfiguration).andExpect(status().is(expectedStatus));
+    }
+
+    @Nested
+    @DisplayName("DELETE /api/property/tenant/{id}")
+    class RemoveTenant {
+
+        @Test
+        @DisplayName("retourne 204 quand le tenant n'existe pas")
+        void shouldReturn204WhenTenantNotFound() throws Exception {
+            Owner owner = new Owner();
+            owner.setProperties(new ArrayList<>());
+
+            when(authenticationFacade.getOwner()).thenReturn(owner);
+
+            mockMvc.perform(delete("/api/property/tenant/1"))
+                    .andExpect(status().isNoContent());
+        }
+
+        @Test
+        @DisplayName("retourne 204 et supprime le tenant quand il existe")
+        void shouldReturn204AndDeleteWhenTenantExists() throws Exception {
+            PropertyApartmentSharing pas = new PropertyApartmentSharing();
+            pas.setId(1L);
+
+            Property property = new Property();
+            property.setPropertiesApartmentSharing(new ArrayList<>(List.of(pas)));
+
+            Owner owner = new Owner();
+            owner.setProperties(new ArrayList<>(List.of(property)));
+
+            when(authenticationFacade.getOwner()).thenReturn(owner);
+
+            mockMvc.perform(delete("/api/property/tenant/1"))
+                    .andExpect(status().isNoContent());
+
+            verify(propertyApartmentSharingService).deletePropertyApartmentSharing(pas);
+        }
     }
 }

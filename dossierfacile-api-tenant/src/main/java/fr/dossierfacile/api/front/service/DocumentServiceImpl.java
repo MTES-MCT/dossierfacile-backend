@@ -110,7 +110,11 @@ public class DocumentServiceImpl implements DocumentService {
                             document.setWatermarkFile(null);
                         }
                         if (document.getDocumentAnalysisReport() != null) {
-                            documentAnalysisReportRepository.delete(document.getDocumentAnalysisReport());
+                            var report = document.getDocumentAnalysisReport();
+                            Long reportId = report.getId();
+                            log.info("About to delete DocumentAnalysisReport for conflict-prone reset: documentId={}, documentCategory={}, reportId={}, thread={}",
+                                    document.getId(), document.getDocumentCategory(), reportId, Thread.currentThread().getName());
+                            documentAnalysisReportRepository.delete(report);
                             document.setDocumentAnalysisReport(null);
                         }
                         documentRepository.save(document);
@@ -137,7 +141,11 @@ public class DocumentServiceImpl implements DocumentService {
     public void markDocumentAsEdited(Document document) {
         document.setLastModifiedDate(LocalDateTime.now());
         if (document.getDocumentAnalysisReport() != null) {
-            documentAnalysisReportRepository.delete(document.getDocumentAnalysisReport());
+            var report = document.getDocumentAnalysisReport();
+            Long reportId = report.getId();
+            log.info("About to delete DocumentAnalysisReport (markDocumentAsEdited): documentId={}, reportId={}, thread={}",
+                    document.getId(), reportId, Thread.currentThread().getName());
+            documentAnalysisReportRepository.delete(report);
             document.setDocumentAnalysisReport(null);
         }
         if (document.getWatermarkFile() != null) {

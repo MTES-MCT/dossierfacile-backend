@@ -4,6 +4,7 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.User;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.service.interfaces.KeycloakCommonService;
+import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.core.Response;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -56,7 +57,12 @@ public class KeycloakCommonServiceImpl implements KeycloakCommonService {
         }
         String keycloakId = tenant.getKeycloakId();
         UserResource user = realmResource.get().users().get(keycloakId);
-        user.revokeConsent(userApi.getName());
+        try {
+            user.revokeConsent(userApi.getName());
+        } catch (NotFoundException e) {
+            log.warn("Consent for client '{}' not found in Keycloak for tenant {} (keycloakId={}). " +
+                    "May already be revoked or consent never existed.", userApi.getName(), tenant.getId(), keycloakId);
+        }
     }
 
     private static void checkResult(Response response) {

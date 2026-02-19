@@ -58,6 +58,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
     public ResponseEntity<String> handleObjectOptimisticLockingFailureException(ObjectOptimisticLockingFailureException e) {
+        log.warn("Optimistic locking failure (409 Conflict). Message: [{}]. Cause: [{}]. " +
+                        "This usually indicates a concurrent modification (e.g. double submit, or api-tenant vs process-file worker). " +
+                        "Entity identifier from cause may help identify the conflicting row.",
+                e.getMessage(),
+                e.getCause() != null ? e.getCause().getClass().getSimpleName() + ": " + e.getCause().getMessage() : "none");
         return new ResponseEntity<>("Optimistic locking failure", HttpStatus.CONFLICT);
     }
 
