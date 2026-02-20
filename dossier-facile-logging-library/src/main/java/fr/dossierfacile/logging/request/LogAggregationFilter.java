@@ -77,6 +77,8 @@ public class LogAggregationFilter extends OncePerRequestFilter {
         }
         finally
         {
+            // Set normalized URI using the Spring MVC matched route pattern (available after dispatch)
+            LoggerUtil.setNormalizedUri(request);
             LoggerUtil.addRequestStatusToMdc(response.getStatus());
             List<LogModel> logs = customAppender.getLogsForUniqueIdentifier(requestId);
             String logMessages = objectMapper.writeValueAsString(logs);

@@ -16,6 +16,7 @@ public class Oauth2LoggingHandler implements AuthenticationEntryPoint {
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
         LoggerUtil.prepareMDCForHttpRequest(request, Collections.emptyMap());
+        LoggerUtil.setNormalizedUri(request);
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         LoggerUtil.addRequestStatusToMdc(HttpServletResponse.SC_UNAUTHORIZED);
 

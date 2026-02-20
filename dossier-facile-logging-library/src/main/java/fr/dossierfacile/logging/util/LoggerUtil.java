@@ -85,28 +85,36 @@ public class LoggerUtil {
         logger.callAppenders(enrichedEvent);
     }
 
-    public static String normalizeUrl(String url) {
-        if (url == null || url.isEmpty()) {
-            return url;
-        }
-        // Replacement of numeric ids
-        url = url.replaceAll(NUMBER_REGEX, "{id}");
-        // Replacement of UUIDs
-        url = url.replaceAll(UUID_REGEX, "{uuid}");
-        // Replacement of Emails
-        url = url.replaceAll(EMAIL_REGEX, "{email}");
-        // Replacement of property tokens (e.g. /api/property/public/xxx)
-        url = url.replaceAll(PROPERTY_TOKEN_REGEX, "{token}");
-        return url;
-    }
-
     public static void prepareMDCForHttpRequest(HttpServletRequest request, Map<String, String> additionalContextElements) {
         MDC.put(API_URL, request.getRequestURI());
         MDC.put(API_METHOD, request.getMethod());
-        MDC.put(API_NORMALIZED_URI, LoggerUtil.normalizeUrl(request.getRequestURI()));
         MDC.put(REQUEST_ID, UUID.randomUUID().toString());
         MDC.put(API_REAL_IP, request.getHeader("X-Real-Ip")); // specific to Scalingo infra
         additionalContextElements.forEach(MDC::put);
+    }
+
+    /**
+     * Sets the normalized URI in the MDC.
+     * Tries to use the Spring MVC matched route pattern from the request attributes.
+     * Falls back to regex-based normalization if no pattern is available (e.g. 404, static resources).
+     */
+    public static void setNormalizedUri(HttpServletRequest request) {
+        String pattern = getMatchedRoutePattern(request);
+        if (pattern != null && !pattern.isEmpty()) {
+            MDC.put(API_NORMALIZED_URI, pattern);
+        } else {
+            MDC.put(API_NORMALIZED_URI, request.getRequestURI());
+        }
+    }
+
+    /**
+     * Retrieves the Spring MVC matched route pattern from the request attributes.
+     * This is set by the DispatcherServlet after the handler is resolved.
+     * Example: for @GetMapping("/resource/{documentName:.+}"), returns "/resource/{documentName:.+}"
+     */
+    public static String getMatchedRoutePattern(HttpServletRequest request) {
+        Object pattern = request.getAttribute("org.springframework.web.servlet.HandlerMapping.bestMatchingPattern");
+        return pattern != null ? pattern.toString() : null;
     }
 
     public static void prepareMDCForWorker(String actionType, Long startTime, Map<String, String> jobAttributes) {
