@@ -77,18 +77,6 @@ public class UserController {
         return ok().build();
     }
 
-    @DeleteMapping("/franceConnect")
-    @ApiOperation(value = "Unlink account from FranceConnect", notes = "Unlinks the user's account from FranceConnect.")
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Account unlinked successfully"),
-            @ApiResponse(code = 403, message = "Forbidden: User not verified or JWT token missing")
-    })
-    public ResponseEntity<Void> unlinkFranceConnect() {
-        Tenant tenant = authenticationFacade.getLoggedTenant();
-        userService.unlinkFranceConnect(tenant);
-        return ok().build();
-    }
-
     @PostMapping("/logout")
     @ApiOperation(value = "Logout the user", notes = "Logs out the user from the system.")
     @ApiResponses(value = {

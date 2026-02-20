@@ -583,38 +583,4 @@ class UserServiceImplTest {
 
         verify(keycloakService, times(1)).logout("keycloakId");
     }
-
-    @Nested
-    class UnlinkFranceConnectTest {
-
-        @Test
-        void shouldThrowIllegalArgumentExceptionWhenTenantNotFound() {
-            var tenant = Tenant.builder()
-                    .id(1L)
-                    .email("test@test.fr")
-                    .build();
-
-            when(userRepository.findById(tenant.getId())).thenReturn(Optional.empty());
-
-            assertThrows(IllegalArgumentException.class, () ->
-                    userService.unlinkFranceConnect(tenant));
-        }
-
-        @Test
-        void shouldUnlinkFranceConnect() {
-            var tenant = Tenant.builder()
-                    .id(1L)
-                    .email("test@test.fr")
-                    .build();
-
-            when(userRepository.findById(tenant.getId())).thenReturn(Optional.of(tenant));
-
-            userService.unlinkFranceConnect(tenant);
-
-            verify(userRepository, times(1)).save(tenant);
-            verify(keycloakService, times(1)).unlinkFranceConnect(tenant);
-
-        }
-
-    }
 }

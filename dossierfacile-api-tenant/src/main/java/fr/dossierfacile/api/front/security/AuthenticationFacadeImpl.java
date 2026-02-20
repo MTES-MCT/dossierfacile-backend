@@ -18,21 +18,14 @@ import fr.dossierfacile.common.service.interfaces.LogService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.keycloak.common.util.Base64Url;
-import org.keycloak.common.util.KeycloakUriBuilder;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Optional;
-import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -45,12 +38,6 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
     private final TenantService tenantService;
     private final LogService logService;
     private final DocumentService documentService;
-    @Value("${keycloak.server.url}")
-    private String keycloakServerUrl;
-    @Value("${keycloak.franceconnect.provider}")
-    private String provider;
-    @Value("${keycloak.server.realm}")
-    private String realm;
 
     @Override
     public String getKeycloakClientId() {
@@ -195,28 +182,5 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
                 (StringUtils.equalsIgnoreCase(tenant.getUserFirstName(), user.getGivenName()) ||
                         StringUtils.equalsIgnoreCase(tenant.getUserLastName(), user.getFamilyName())
                 ));
-    }
-
-    @Override
-    public String getFranceConnectLink(String redirectUri) {
-        String clientId = ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClaimAsString("azp");
-        String token = ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClaimAsString("session_state");
-        String nonce = UUID.randomUUID().toString();
-        MessageDigest md;
-        try {
-            md = MessageDigest.getInstance("SHA-256");
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
-        String input = nonce + token + clientId + "oidc";
-        byte[] check = md.digest(input.getBytes(StandardCharsets.UTF_8));
-        String hash = Base64Url.encode(check);
-
-        return KeycloakUriBuilder.fromUri(keycloakServerUrl)
-                .path("/realms/{realm}/broker/{provider}/link")
-                .queryParam("nonce", nonce)
-                .queryParam("hash", hash)
-                .queryParam("client_id", clientId)
-                .queryParam("redirect_uri", redirectUri).build(realm, provider).toString();
     }
 }

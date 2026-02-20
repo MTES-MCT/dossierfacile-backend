@@ -161,12 +161,4 @@ public class UserServiceImpl implements UserService {
         keycloakService.logout(keycloakId);
     }
 
-    @Override
-    public void unlinkFranceConnect(Tenant tenant) {
-        User user = userRepository.findById(tenant.getId()).orElseThrow(IllegalArgumentException::new);
-        user.setFranceConnect(false);
-        userRepository.save(tenant);
-        keycloakService.unlinkFranceConnect(tenant);
-    }
-
 }
