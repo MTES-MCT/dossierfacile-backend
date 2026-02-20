@@ -3,7 +3,6 @@ package fr.gouv.bo.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.gouv.bo.dto.UserApiDTO;
-import fr.gouv.bo.service.KeycloakService;
 import fr.gouv.bo.service.UserApiService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +21,6 @@ import java.util.List;
 public class BOUserApiController {
     private static final String REDIRECT_URL = "redirect:/bo/userApi";
     private final UserApiService userApiService;
-    private final KeycloakService keycloakService;
     private final ObjectMapper mapper;
 
     @GetMapping("")
@@ -53,19 +51,7 @@ public class BOUserApiController {
         UserApiDTO userApiDTO = mapper.convertValue(userApi, UserApiDTO.class);
         model.addAttribute("userApiDTO", userApiDTO);
         model.addAttribute("userApi", userApi);
-        model.addAttribute("kcClient", keycloakService.getKeyCloakClient(userApi.getName()));
         return "bo/user-api-edit";
-    }
-
-    @PostMapping("/{id}/send")
-    public String sendEmail(@PathVariable("id") Long id, @RequestParam("partnerEmail") String partnerEmail, Model model) {
-        UserApi userApi = userApiService.findById(id);
-        if (userApi == null) {
-            log.error("BOUserApiController updateForm not found userApi with id : {}", id);
-            return "redirect:/error";
-        }
-        userApiService.sendMailWithConfig(partnerEmail, userApi);
-        return REDIRECT_URL;
     }
 
     @PostMapping("/{id}")

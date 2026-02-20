@@ -65,7 +65,6 @@ public class ResourceServerConfig {
                                 "/api/application/fullPdf/**", "/api/tenant/property/**",
                                 "/api/support/email",
                                 "/api/stats/**",
-                                "/api/onetimesecret/**",
                                 "/error",
                                 "/actuator/health").permitAll()
                         .requestMatchers("/api-partner/**").access(apiPartnerAuthorizationManager())

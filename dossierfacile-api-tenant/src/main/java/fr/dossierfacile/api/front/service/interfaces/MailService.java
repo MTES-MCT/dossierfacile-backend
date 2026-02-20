@@ -31,6 +31,4 @@ public interface MailService {
     void sendEmailWelcomeForPartnerUser(UserDto user, UserApiDto userApi);
 
     void sendFileByMail(String url, String email, String message, String tenantName, String fullName, String tenantEmail);
-
-    void sendDefaultEmailExpiredToken(String email, OperationAccessToken token);
 }
