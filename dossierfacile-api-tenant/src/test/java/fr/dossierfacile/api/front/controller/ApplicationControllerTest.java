@@ -10,8 +10,12 @@ import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.common.config.GlobalExceptionHandler;
 import fr.dossierfacile.common.entity.ApartmentSharing;
+import fr.dossierfacile.common.entity.Document;
+import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
+import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import org.junit.jupiter.api.Test;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.parameterizedtest.ArgumentBuilder;
@@ -34,6 +38,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import javax.annotation.PostConstruct;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -78,6 +83,9 @@ class ApplicationControllerTest {
 
     @MockitoBean
     private JwtDecoder jwtDecoder;
+
+    @MockitoBean
+    private FileStorageService fileStorageService;
 
     // Référence statique à l’instance courante du test
     private static ApplicationControllerTest self;
@@ -415,6 +423,90 @@ class ApplicationControllerTest {
         @MethodSource("providePostFullPdfForLoggedTenantParameters")
         void parameterizedTests(ControllerParameter<PostFullPdfForLoggedTenantTestParameter> parameter) throws Exception {
             var mockMvcRequestBuilder = post("/api/application/current-tenant/fullPdf")
+                    .contentType("application/pdf");
+
+            ParameterizedTestHelper.runControllerTest(
+                    mockMvc,
+                    mockMvcRequestBuilder,
+                    parameter
+            );
+        }
+    }
+
+    @Nested
+    class DownloadDocumentByLinkTests {
+
+        record DownloadDocumentByLinkTestParameter() {
+        }
+
+        static List<Arguments> provideDownloadDocumentByLinkParameters() {
+            UUID token = TEST_TOKEN;
+            String documentName = "abc-123.pdf";
+
+            StorageFile watermarkFile = new StorageFile();
+            watermarkFile.setName("watermark.pdf");
+
+            Document document = Document.builder()
+                    .id(1L)
+                    .name(documentName)
+                    .watermarkFile(watermarkFile)
+                    .documentSubCategory(DocumentSubCategory.MY_NAME)
+                    .build();
+
+            return ArgumentBuilder.buildListOfArguments(
+                    Pair.of("Should respond 200 when valid link and document belongs to sharing",
+                            new ControllerParameter<>(
+                                    new DownloadDocumentByLinkTestParameter(),
+                                    200,
+                                    null, // no JWT required — public endpoint
+                                    (v) -> {
+                                        when(self.apartmentSharingService.findDocumentByLink(eq(token), eq(documentName)))
+                                                .thenReturn(document);
+                                        try {
+                                            when(self.fileStorageService.download(watermarkFile))
+                                                    .thenReturn(new ByteArrayInputStream("PDF content".getBytes()));
+                                        } catch (IOException e) {
+                                            throw new RuntimeException(e);
+                                        }
+                                        return v;
+                                    },
+                                    Collections.emptyList()
+                            )
+                    ),
+                    Pair.of("Should respond 404 when link is invalid",
+                            new ControllerParameter<>(
+                                    new DownloadDocumentByLinkTestParameter(),
+                                    404,
+                                    null,
+                                    (v) -> {
+                                        when(self.apartmentSharingService.findDocumentByLink(eq(token), eq(documentName)))
+                                                .thenThrow(new ApartmentSharingNotFoundException(token.toString()));
+                                        return v;
+                                    },
+                                    Collections.emptyList()
+                            )
+                    ),
+                    Pair.of("Should respond 404 when document not in this link's sharing",
+                            new ControllerParameter<>(
+                                    new DownloadDocumentByLinkTestParameter(),
+                                    404,
+                                    null,
+                                    (v) -> {
+                                        when(self.apartmentSharingService.findDocumentByLink(eq(token), eq(documentName)))
+                                                .thenThrow(new ApartmentSharingNotFoundException(token.toString()));
+                                        return v;
+                                    },
+                                    Collections.emptyList()
+                            )
+                    )
+            );
+        }
+
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("provideDownloadDocumentByLinkParameters")
+        void parameterizedTests(ControllerParameter<DownloadDocumentByLinkTestParameter> parameter) throws Exception {
+            var mockMvcRequestBuilder = get("/api/application/links/{token}/document/{documentName}",
+                    TEST_TOKEN, "abc-123.pdf")
                     .contentType("application/pdf");
 
             ParameterizedTestHelper.runControllerTest(

@@ -23,7 +23,7 @@ import java.util.function.Predicate;
 @Component
 @Mapper(componentModel = "spring")
 public abstract class TenantMapper {
-    private static final String PATH = "api/document/resource";
+    private static final String DOCUMENT_DIRECT_PATH = "api/document/resource";
     private static final String PREVIEW_PATH = "/api/file/preview/";
     private static final String DOSSIER_PDF_PATH = "/api/application/fullPdf/";
     private static final String DOSSIER_PATH = "/file/";
@@ -52,8 +52,8 @@ public abstract class TenantMapper {
         return null;
     }
 
-    @Mapping(target = "name", expression = "java((document.getWatermarkFile() != null )? applicationBaseUrl + \"/" + PATH + "/\" + document.getName() : null)")
-    @Mapping(target = "files", expression = "java((userApi == null) ? mapFiles(document.getFiles()) : null)")
+    @Mapping(target = "name", expression = "java((document.getWatermarkFile() != null )? applicationBaseUrl + \"/" + DOCUMENT_DIRECT_PATH + "/\" + document.getName() : null)")
+    @Mapping(target = "files", expression = "java((userApi == null)? mapFiles(document.getFiles()) : null)")
     @MapDocumentCategories
     public abstract DocumentModel toDocumentModel(Document document, @Context UserApi userApi);
 
@@ -176,10 +176,36 @@ public abstract class TenantMapper {
         ConnectedTenantModel connectedTenantModel = connectedTenantModelBuilder.build();
         fr.dossierfacile.api.front.model.dfc.apartment_sharing.ApartmentSharingModel apartmentSharingModel = connectedTenantModel.getApartmentSharing();
         updateTokens(tenant, apartmentSharingModel, l -> l.getLinkType() == ApartmentSharingLinkType.PARTNER && userApi != null && l.getPartnerId() == userApi.getId());
+
+        // Rewrite document URLs to use link-based path when a partner token exists
+        String token = apartmentSharingModel.getToken();
+        if (token != null) {
+            String oldPrefix = applicationBaseUrl + "/" + DOCUMENT_DIRECT_PATH + "/";
+            String newPrefix = applicationBaseUrl + "/api/application/links/" + token + "/document/";
+            rewriteDocumentUrls(connectedTenantModel, oldPrefix, newPrefix);
+        }
+
         connectedTenantModel.getApartmentSharing().getTenants().forEach(tenantModel -> setDocumentDeniedReasonsAndDocumentAndFilesRoutes(tenantModel.getDocuments(), null, true));
         connectedTenantModel.getApartmentSharing().getTenants().forEach(tenantModel ->
                 Optional.ofNullable(tenantModel.getGuarantors()).ifPresent(guarantorModels ->
                         guarantorModels.forEach(guarantorModel -> setDocumentDeniedReasonsAndDocumentAndFilesRoutes(guarantorModel.getDocuments(), null, true))));
+    }
+
+    private void rewriteDocumentUrls(ConnectedTenantModel model, String oldPrefix, String newPrefix) {
+        model.getApartmentSharing().getTenants().forEach(tenantModel -> {
+            rewriteDocumentNames(tenantModel.getDocuments(), oldPrefix, newPrefix);
+            Optional.ofNullable(tenantModel.getGuarantors()).ifPresent(guarantors ->
+                    guarantors.forEach(g -> rewriteDocumentNames(g.getDocuments(), oldPrefix, newPrefix)));
+        });
+    }
+
+    private void rewriteDocumentNames(List<DocumentModel> documents, String oldPrefix, String newPrefix) {
+        if (documents == null) return;
+        documents.forEach(doc -> {
+            if (doc.getName() != null) {
+                doc.setName(doc.getName().replace(oldPrefix, newPrefix));
+            }
+        });
     }
 
     private void hideDocumentAnalysisReportInfoLevel(List<DocumentModel> documents) {

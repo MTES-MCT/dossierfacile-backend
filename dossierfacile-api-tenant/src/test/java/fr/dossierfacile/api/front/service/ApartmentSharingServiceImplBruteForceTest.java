@@ -4,6 +4,7 @@ import fr.dossierfacile.api.front.amqp.Producer;
 import fr.dossierfacile.api.front.exception.ApplicationLinkBlockedException;
 import fr.dossierfacile.api.front.exception.TrigramNotAuthorizedException;
 import fr.dossierfacile.api.front.repository.ApiTenantLogRepository;
+import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.service.interfaces.BruteForceProtectionService;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.ApartmentSharingLink;
@@ -83,6 +84,9 @@ class ApartmentSharingServiceImplBruteForceTest {
     private BruteForceProtectionService bruteForceProtectionService;
 
     @Mock
+    private DocumentRepository documentRepository;
+
+    @Mock
     private HttpServletRequest httpServletRequest;
 
     @Mock
@@ -101,6 +105,7 @@ class ApartmentSharingServiceImplBruteForceTest {
                 apartmentSharingRepository,
                 apartmentSharingLinkRepository,
                 tenantRepository,
+                documentRepository,
                 applicationFullMapper,
                 applicationLightMapper,
                 applicationBasicMapper,
