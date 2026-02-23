@@ -4,7 +4,10 @@ import fr.dossierfacile.api.front.amqp.Producer;
 import fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException;
 import fr.dossierfacile.api.front.model.tenant.FullFolderFile;
 import fr.dossierfacile.api.front.repository.ApiTenantLogRepository;
+import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.common.entity.ApartmentSharing;
+import fr.dossierfacile.common.entity.ApartmentSharingLink;
+import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.ApplicationType;
@@ -25,17 +28,23 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -48,32 +57,34 @@ class ApartmentSharingServiceImplTest {
     @Autowired
     private ApartmentSharingServiceImpl apartmentSharingService;
 
-    @MockBean
+    @MockitoBean
     private ApartmentSharingRepository apartmentSharingRepository;
-    @MockBean
+    @MockitoBean
     private ApartmentSharingLinkRepository apartmentSharingLinkRepository;
-    @MockBean
+    @MockitoBean
     private TenantCommonRepository tenantRepository;
-    @MockBean
+    @MockitoBean
     private ApplicationFullMapper applicationFullMapper;
-    @MockBean
+    @MockitoBean
     private ApplicationLightMapper applicationLightMapper;
-    @MockBean
+    @MockitoBean
     private ApplicationBasicMapper applicationBasicMapper;
-    @MockBean
+    @MockitoBean
     private FileStorageService fileStorageService;
-    @MockBean
+    @MockitoBean
     private LinkLogService linkLogService;
-    @MockBean
+    @MockitoBean
     private Producer producer;
-    @MockBean
+    @MockitoBean
     private ApartmentSharingCommonService apartmentSharingCommonService;
-    @MockBean
+    @MockitoBean
     private ApiTenantLogRepository tenantLogRepository;
-    @MockBean
+    @MockitoBean
     private LogService logService;
-    @MockBean
+    @MockitoBean
     private fr.dossierfacile.api.front.service.interfaces.BruteForceProtectionService bruteForceProtectionService;
+    @MockitoBean
+    private DocumentRepository documentRepository;
 
     private Tenant tenant;
     private ApartmentSharing apartmentSharing;
@@ -95,6 +106,8 @@ class ApartmentSharingServiceImplTest {
         pdfFile.setPath("/path/to/dossier.pdf");
 
         tenant.setApartmentSharing(apartmentSharing);
+
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(new MockHttpServletRequest()));
     }
 
     @Nested
@@ -282,6 +295,68 @@ class ApartmentSharingServiceImplTest {
                 );
 
                 verify(producer, org.mockito.Mockito.never()).generateFullPdf(anyLong());
+            }
+        }
+    }
+
+    @Nested
+    class FindDocumentByLink {
+
+        private final UUID token = UUID.randomUUID();
+        private final String documentName = "test-doc.pdf";
+
+        @Nested
+        class WhenLinkIsValidAndDocumentExists {
+            @Test
+            void shouldReturnDocument() {
+                ApartmentSharingLink link = new ApartmentSharingLink();
+                link.setApartmentSharing(apartmentSharing);
+
+                Document document = Document.builder()
+                        .id(1L)
+                        .name(documentName)
+                        .build();
+
+                when(apartmentSharingLinkRepository.findValidLinkByToken(token, true))
+                        .thenReturn(Optional.of(link));
+                when(documentRepository.findByNameForApartmentSharing(documentName, apartmentSharing.getId()))
+                        .thenReturn(Optional.of(document));
+
+                Document result = apartmentSharingService.findDocumentByLink(token, documentName);
+
+                assertThat(result).isNotNull();
+                assertThat(result.getName()).isEqualTo(documentName);
+            }
+        }
+
+        @Nested
+        class WhenLinkIsInvalid {
+            @Test
+            void shouldThrowApartmentSharingNotFoundException() {
+                when(apartmentSharingLinkRepository.findValidLinkByToken(token, true))
+                        .thenReturn(Optional.empty());
+
+                assertThrows(ApartmentSharingNotFoundException.class, () ->
+                        apartmentSharingService.findDocumentByLink(token, documentName)
+                );
+            }
+        }
+
+       @Nested
+        class WhenDocumentNotInSharing {
+            @Test
+            void shouldThrowApartmentSharingNotFoundException() {
+                ApartmentSharingLink link = new ApartmentSharingLink();
+                link.setApartmentSharing(apartmentSharing);
+
+                when(apartmentSharingLinkRepository.findValidLinkByToken(token, true))
+                        .thenReturn(Optional.of(link));
+                when(documentRepository.findByNameForApartmentSharing(documentName, apartmentSharing.getId()))
+                        .thenReturn(Optional.empty());
+
+                assertThrows(ApartmentSharingNotFoundException.class, () ->
+                        apartmentSharingService.findDocumentByLink(token, documentName)
+                );
             }
         }
     }

@@ -20,4 +20,6 @@ public interface DocumentService {
     void delete(Document document);
 
     void markDocumentAsEdited(Document document);
+
+    Document getAuthorizedDocument(String documentName, Tenant tenant);
 }

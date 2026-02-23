@@ -6,10 +6,12 @@ import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
+import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Person;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.model.log.EditionType;
@@ -19,6 +21,7 @@ import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -153,6 +156,42 @@ public class DocumentServiceImpl implements DocumentService {
             document.setWatermarkFile(null);
         }
         documentRepository.save(document);
+    }
+
+    @Override
+    public Document getAuthorizedDocument(String documentName, Tenant tenant) {
+        Document document = documentRepository.findFirstByName(documentName)
+                .orElseThrow(() -> new DocumentNotFoundException(documentName));
+        if (!hasPermissionOnDocument(document, tenant)) {
+            throw new AccessDeniedException("Not authorized to access this document");
+        }
+        return document;
+    }
+
+    private boolean hasPermissionOnDocument(Document document, Tenant tenant) {
+        Tenant documentTenant = resolveDocumentTenant(document);
+        if (documentTenant == null) {
+            return false;
+        }
+        if (Objects.equals(documentTenant.getId(), tenant.getId())) {
+            return true;
+        }
+        ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
+        if (apartmentSharing.getApplicationType() == ApplicationType.COUPLE) {
+            return apartmentSharing.getTenants().stream()
+                    .anyMatch(t -> Objects.equals(t.getId(), documentTenant.getId()));
+        }
+        return false;
+    }
+
+    private Tenant resolveDocumentTenant(Document document) {
+        if (document.getTenant() != null) {
+            return document.getTenant();
+        }
+        if (document.getGuarantor() != null) {
+            return document.getGuarantor().getTenant();
+        }
+        return null;
     }
 
 }
