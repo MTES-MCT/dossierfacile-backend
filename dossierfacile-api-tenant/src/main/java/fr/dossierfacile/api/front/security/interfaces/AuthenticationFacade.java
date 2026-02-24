@@ -18,6 +18,4 @@ public interface AuthenticationFacade {
     Tenant getLoggedTenant(AcquisitionData acquisitionData);
 
     Tenant getTenant(Long id);
-
-    String getFranceConnectLink(String redirectUri);
 }

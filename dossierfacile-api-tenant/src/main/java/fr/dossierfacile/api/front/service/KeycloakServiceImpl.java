@@ -1,7 +1,6 @@
 package fr.dossierfacile.api.front.service;
 
 import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
-import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.service.interfaces.KeycloakCommonService;
 import jakarta.ws.rs.NotFoundException;
 import lombok.AllArgsConstructor;
@@ -64,13 +63,6 @@ public class KeycloakServiceImpl implements KeycloakService {
     @Override
     public void logout(String keycloakUserId) {
         realmResource.users().get(keycloakUserId).logout();
-    }
-
-    @Override
-    public void unlinkFranceConnect(Tenant tenant) {
-        var userRepresentation = realmResource.users().get(tenant.getKeycloakId()).toRepresentation();
-        userRepresentation.singleAttribute("france-connect", "false");
-        realmResource.users().get(tenant.getKeycloakId()).update(userRepresentation);
     }
 
     @Override

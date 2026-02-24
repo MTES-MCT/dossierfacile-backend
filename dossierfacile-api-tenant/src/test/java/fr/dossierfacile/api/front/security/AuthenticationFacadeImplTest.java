@@ -43,7 +43,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
-@TestPropertySource(properties = {"keycloak.server.url= http://localhost:8085/auth", "keycloak.franceconnect.provider= oidc", "keycloak.server.realm= test"})
+@TestPropertySource(properties = {"keycloak.server.url= http://localhost:8085/auth", "keycloak.server.realm= test"})
 class AuthenticationFacadeImplTest {
 
     private static final TenantCommonRepository tenantCommonRepository = mock(TenantCommonRepository.class);
@@ -707,41 +707,6 @@ class AuthenticationFacadeImplTest {
 
             assertThat(tenant).isEqualTo(result);
             assertThat(((Tenant) result).getKeycloakId()).isEqualTo(keycloakUser.getKeycloakId());
-        }
-
-    }
-
-    @Nested
-    class GetFranceConnectLinkTest {
-
-        @Test
-        void shouldReturnFranceConnectLink() throws URISyntaxException {
-
-            var claimsMap = new HashMap<String, Object>();
-            claimsMap.put("sub", "keycloakId");
-            claimsMap.put("email", "test@test.fr");
-            claimsMap.put("azp", "testAzp");
-            claimsMap.put("session_state", "testToken");
-
-            var jwt = getDummyJwtWithCustomClaims(claimsMap);
-            List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("SCOPE_dossier"));
-            SecurityContextHolder.setContext(new SecurityContextImpl(new JwtAuthenticationToken(jwt, authorities)));
-
-            var result = authenticationFacade.getFranceConnectLink("redirectUri");
-
-            var uriResult = new URI(result);
-            var actualBaseUrl = uriResult.getScheme() + "://" + uriResult.getHost() + ":" + uriResult.getPort() + uriResult.getPath();
-
-            assertThat(actualBaseUrl).isEqualTo("http://localhost:8085/auth/realms/test/broker/oidc/link");
-
-            var params = UriComponentsBuilder.fromUri(uriResult).build().getQueryParams().toSingleValueMap();
-            assertThat(params)
-                    .hasSize(4)
-                    .containsKey("nonce")
-                    .containsKey("hash")
-                    .containsEntry("client_id", "testAzp")
-                    .containsEntry("redirect_uri", "redirectUri");
-
         }
 
     }

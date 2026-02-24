@@ -19,6 +19,4 @@ public interface UserService {
 
     void logout(String keycloakId);
 
-    void unlinkFranceConnect(Tenant tenant);
-
 }
