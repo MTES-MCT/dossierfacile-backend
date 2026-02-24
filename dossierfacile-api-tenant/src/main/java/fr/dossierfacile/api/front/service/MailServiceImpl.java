@@ -20,7 +20,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static fr.dossierfacile.common.enums.ApplicationType.GROUP;
@@ -66,8 +65,6 @@ public class MailServiceImpl implements MailService {
     private Long templateIdAccountSatisf;
     @Value("${brevo.template.id.contact.support:45}")
     private Long templateIdContactSupport;
-    @Value("${brevo.template.id.token.expiration:109}")
-    private Long templateIdTokenExpiration;
     @Value("${brevo.template.id.share.file:89}")
     private Long templateIdShareFile;
     @Value("${link.after.completed.default}")
@@ -296,28 +293,5 @@ public class MailServiceImpl implements MailService {
             throw new InternalError("Mail cannot be send - try later");
         }
     }
-
-    @Override
-    public void sendDefaultEmailExpiredToken(String email, OperationAccessToken token) {
-        SendSmtpEmailTo sendSmtpEmailTo = new SendSmtpEmailTo();
-        sendSmtpEmailTo.setEmail(email);
-
-        Map<String, String> params = new HashMap<>();
-        params.put("operation", token.getOperationAccessType().name());
-        params.put("createdDate", token.getCreatedDate().format(DateTimeFormatter.ISO_DATE));
-
-        SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
-        sendSmtpEmail.templateId(templateIdTokenExpiration);
-        sendSmtpEmail.params(params);
-        sendSmtpEmail.to(Collections.singletonList(sendSmtpEmailTo));
-
-        try {
-            apiInstance.sendTransacEmail(sendSmtpEmail);
-        } catch (ApiException e) {
-            log.error("Email Api Exception", e);
-        }
-    }
-
-
 
 }

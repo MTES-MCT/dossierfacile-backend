@@ -75,9 +75,6 @@ authorize.bo.access.emails=
 # Time to wait before a selected application can be process by another operator (no default value).
 #time.reprocess.application.minutes=5
 
-# Set the lifespan of the client secret sent to a partner by email
-display.client.secret.expiration.delay=
-
 # Brevo config
 # Leave this empty for dev
 brevo.apikey=

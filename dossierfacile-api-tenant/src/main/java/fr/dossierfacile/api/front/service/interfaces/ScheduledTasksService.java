@@ -9,6 +9,4 @@ public interface ScheduledTasksService {
     void accountDeclinationReminder();
 
     void satisfactionEmails();
-
-    void updateOperationAccessTokenStatus();
 }
