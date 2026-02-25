@@ -21,7 +21,6 @@ public enum StepRegister {
     DOCUMENT_TAX(DocumentTax.class),
     NAME_GUARANTOR_NATURAL_PERSON(NameGuarantorNaturalPerson.class),
     DOCUMENT_IDENTIFICATION_GUARANTOR_NATURAL_PERSON_FILE(DocumentIdentificationGuarantorNaturalPersonFile.class),
-    DOCUMENT_IDENTIFICATION_GUARANTOR_NATURAL_PERSON(DocumentIdentificationGuarantorNaturalPerson.class),
     DOCUMENT_RESIDENCY_GUARANTOR_NATURAL_PERSON(DocumentResidencyGuarantorNaturalPerson.class),
     DOCUMENT_PROFESSIONAL_GUARANTOR_NATURAL_PERSON(DocumentProfessionalGuarantorNaturalPerson.class),
     DOCUMENT_FINANCIAL_GUARANTOR_NATURAL_PERSON(DocumentFinancialGuarantorNaturalPerson.class),
