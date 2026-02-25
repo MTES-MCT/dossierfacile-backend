@@ -11,6 +11,7 @@ import fr.dossierfacile.common.repository.UserAccountRepository;
 import fr.dossierfacile.common.repository.UserFeatureAssignmentHistoryRepository;
 import fr.dossierfacile.common.repository.UserFeatureAssignmentRepository;
 import fr.dossierfacile.common.service.interfaces.FeatureFlagService;
+import fr.dossierfacile.common.service.interfaces.UserFeatureAssignmentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -30,9 +31,25 @@ public class FeatureFlagServiceImpl implements FeatureFlagService {
     private final UserFeatureAssignmentRepository featureAssignmentRepository;
     private final UserFeatureAssignmentHistoryRepository featureAssignmentHistoryRepository;
     private final UserAccountRepository userAccountRepository;
+    private final UserFeatureAssignmentService userFeatureAssignmentService;
+
+    @Transactional
+    public boolean isFeatureEnabledForUser(Long userId, String key) {
+        var featureFlag = featureFlagRepository.findById(key);
+        if (featureFlag.isPresent()) {
+            return checkAndAssign(userId, featureFlag.get());
+        } else {
+            log.warn("Feature flag with key {} not found", key);
+            return false;
+        }
+    }
 
     @Transactional
     public boolean isFeatureEnabledForUser(Long userId, FeatureFlag featureFlag) {
+        return checkAndAssign(userId, featureFlag);
+    }
+
+    private boolean checkAndAssign(Long userId, FeatureFlag featureFlag) {
         if (featureFlag == null || featureFlag.getKey() == null) {
             return false;
         }
@@ -75,10 +92,7 @@ public class FeatureFlagServiceImpl implements FeatureFlagService {
                     .bucket(0)
                     .build();
 
-            featureAssignmentRepository.save(userAssignmentBuilder.build());
-            featureAssignmentHistoryRepository.save(userAssignmentHistoryBuilder.build());
-
-            return false;
+            return userFeatureAssignmentService.saveAssignment(userAssignmentBuilder.build(), userAssignmentHistoryBuilder.build(), false);
         }
 
         // Otherwise, compute the bucket for this user and assign the feature flag based on the rollout percentage
@@ -91,10 +105,7 @@ public class FeatureFlagServiceImpl implements FeatureFlagService {
                 .bucket(bucket)
                 .build();
 
-        featureAssignmentRepository.save(userAssignmentBuilder.build());
-        featureAssignmentHistoryRepository.save(userAssignmentHistoryBuilder.build());
-
-        return enabled;
+        return userFeatureAssignmentService.saveAssignment(userAssignmentBuilder.build(), userAssignmentHistoryBuilder.build(), enabled);
     }
 
     @Transactional
@@ -131,22 +142,29 @@ public class FeatureFlagServiceImpl implements FeatureFlagService {
         return featureFlagRepository.findAll();
     }
 
-    private int computeBucket(Long userId, String featureKey) {
+    // Private package
+    int computeBucket(Long userId, String featureKey) {
         try {
             String input = userId + "/" + featureKey;
             byte[] hash = MessageDigest.getInstance("SHA-256")
                     .digest(input.getBytes(StandardCharsets.UTF_8));
-            int value = Math.abs(
-                    ((hash[0] & 0xFF) << 24) |
-                            ((hash[1] & 0xFF) << 16) |
-                            ((hash[2] & 0xFF) << 8) |
-                            (hash[3] & 0xFF)
-            );
-            return value % 100;
+            return getBucketFromHash(hash);
         } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException("SHA-256unavailable on this JVM", e);
+            throw new IllegalStateException("SHA-256 unavailable on this JVM", e);
         }
-
     }
 
+    // Private package
+    int getBucketFromHash(byte[] hash) {
+        if (hash.length < 4) {
+            return 0;
+        }
+        int value = Math.abs(
+                ((hash[0] & 0x7F) << 24) | // Use 0x7F to ignore sign bit and ensure positive integer
+                        ((hash[1] & 0xFF) << 16) |
+                        ((hash[2] & 0xFF) << 8) |
+                        (hash[3] & 0xFF)
+        );
+        return value % 100;
+    }
 }

@@ -2,7 +2,6 @@ package fr.gouv.bo.controller;
 
 import fr.dossierfacile.common.entity.FeatureFlag;
 import fr.dossierfacile.common.service.interfaces.FeatureFlagService;
-import fr.gouv.bo.service.TenantService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -21,7 +20,7 @@ public class BOFeatureFlagsController {
     private final FeatureFlagService featureFlagService;
 
     @GetMapping("/bo/feature-flags")
-    public String outils(Model model) {
+    public String featureFlags(Model model) {
         model.addAttribute("featureFlags", featureFlagService.getAllFeatureFlags());
         return "bo/feature-flags";
     }

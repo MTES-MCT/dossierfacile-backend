@@ -13,8 +13,6 @@ import fr.dossierfacile.api.front.service.interfaces.UserService;
 import fr.dossierfacile.common.converter.AcquisitionData;
 import fr.dossierfacile.common.entity.Property;
 import fr.dossierfacile.common.entity.Tenant;
-import fr.dossierfacile.common.repository.FeatureFlagRepository;
-import fr.dossierfacile.common.service.interfaces.FeatureFlagService;
 import fr.dossierfacile.common.service.interfaces.ProcessingCapacityService;
 import io.swagger.annotations.*;
 import jakarta.validation.Valid;
@@ -41,8 +39,6 @@ public class TenantController {
     private final TenantService tenantService;
     private final ProcessingCapacityService processingCapacityService;
     private final TenantMapper tenantMapper;
-    private final FeatureFlagRepository featureFlagRepository;
-    private final FeatureFlagService featureFlagService;
     private final PropertyService propertyService;
     private final PropertyOMapper propertyMapper;
     private final UserService userService;
@@ -59,13 +55,6 @@ public class TenantController {
             @RequestParam MultiValueMap<String, String> params
     ) {
         Tenant tenant = authenticationFacade.getLoggedTenant(AcquisitionData.from(params));
-        // Test feature flag !!!
-        var featureFlag = featureFlagRepository.findById("test-feature").orElseThrow();
-        if (featureFlagService.isFeatureEnabledForUser(tenant.getId(), featureFlag)) {
-            log.info("Feature flag 'test_feature_flag' is enabled for tenant with ID: {}", tenant.getId());
-        } else {
-            log.info("Feature flag 'test_feature_flag' is NOT enabled for tenant with ID: {}", tenant.getId());
-        }
         tenantService.updateLastLoginDateAndResetWarnings(tenant);
         return ok(tenantMapper.toTenantModel(tenant, null));
     }
@@ -137,8 +126,7 @@ public class TenantController {
         try {
             LocalDateTime expectedProcessingTime = processingCapacityService.getExpectedProcessingTime(tenantId);
             return ok(expectedProcessingTime);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             log.error("Error retrieving expected processing time for tenant with ID: {}", tenantId, e);
             return status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }

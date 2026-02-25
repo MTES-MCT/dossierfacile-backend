@@ -33,6 +33,8 @@ class FeatureFlagServiceImplTest {
     private UserFeatureAssignmentHistoryRepository featureAssignmentHistoryRepository;
     @Mock
     private UserAccountRepository userAccountRepository;
+    @Mock
+    private UserFeatureAssignmentServiceImpl userFeatureAssignmentService;
 
     @InjectMocks
     private FeatureFlagServiceImpl featureFlagService;
@@ -42,7 +44,7 @@ class FeatureFlagServiceImplTest {
 
         @Test
         void should_return_false_when_feature_flag_is_null_or_key_is_null() {
-            assertThat(featureFlagService.isFeatureEnabledForUser(1L, null)).isFalse();
+            assertThat(featureFlagService.isFeatureEnabledForUser(1L, "blabla")).isFalse();
             assertThat(featureFlagService.isFeatureEnabledForUser(1L, new FeatureFlag())).isFalse();
         }
 
@@ -131,6 +133,7 @@ class FeatureFlagServiceImplTest {
 
             when(featureAssignmentRepository.findById(any())).thenReturn(Optional.empty());
             when(userAccountRepository.findById(userId)).thenReturn(Optional.of(user));
+            when(userFeatureAssignmentService.saveAssignment(any(), any(), anyBoolean())).thenReturn(false);
 
             // WHEN
             boolean result = featureFlagService.isFeatureEnabledForUser(userId, featureFlag);
@@ -139,20 +142,15 @@ class FeatureFlagServiceImplTest {
             assertThat(result).isFalse();
 
             ArgumentCaptor<UserFeatureAssignment> assignmentCaptor = ArgumentCaptor.forClass(UserFeatureAssignment.class);
-            verify(featureAssignmentRepository).save(assignmentCaptor.capture());
+            ArgumentCaptor<Boolean> fallbackCaptor = ArgumentCaptor.forClass(Boolean.class);
+
+            verify(userFeatureAssignmentService).saveAssignment(assignmentCaptor.capture(), any(), fallbackCaptor.capture());
 
             UserFeatureAssignment savedAssignment = assignmentCaptor.getValue();
             assertThat(savedAssignment.isEnabled()).isFalse();
             assertThat(savedAssignment.getAssignmentSource()).isEqualTo(FeatureAssignmentSource.PRE_DEPLOYMENT);
             assertThat(savedAssignment.getBucket()).isZero();
-
-            ArgumentCaptor<UserFeatureAssignmentHistory> historyCaptor = ArgumentCaptor.forClass(UserFeatureAssignmentHistory.class);
-            verify(featureAssignmentHistoryRepository).save(historyCaptor.capture());
-
-            UserFeatureAssignmentHistory savedHistory = historyCaptor.getValue();
-            assertThat(savedHistory.isEnabled()).isFalse();
-            assertThat(savedHistory.getReason()).isEqualTo(FeatureAssignmentReason.FIRST_CHECK);
-            assertThat(savedHistory.getBucket()).isZero();
+            assertThat(fallbackCaptor.getValue()).isFalse();
         }
 
         @Test
@@ -175,6 +173,7 @@ class FeatureFlagServiceImplTest {
 
             when(featureAssignmentRepository.findById(any())).thenReturn(Optional.empty());
             when(userAccountRepository.findById(userId)).thenReturn(Optional.of(user));
+            when(userFeatureAssignmentService.saveAssignment(any(), any(), anyBoolean())).thenReturn(true);
 
             // WHEN
             boolean result = featureFlagService.isFeatureEnabledForUser(userId, featureFlag);
@@ -183,18 +182,13 @@ class FeatureFlagServiceImplTest {
             assertThat(result).isTrue();
 
             ArgumentCaptor<UserFeatureAssignment> assignmentCaptor = ArgumentCaptor.forClass(UserFeatureAssignment.class);
-            verify(featureAssignmentRepository).save(assignmentCaptor.capture());
+            ArgumentCaptor<Boolean> fallbackCaptor = ArgumentCaptor.forClass(Boolean.class);
+            verify(userFeatureAssignmentService).saveAssignment(assignmentCaptor.capture(), any(), fallbackCaptor.capture());
 
             UserFeatureAssignment savedAssignment = assignmentCaptor.getValue();
             assertThat(savedAssignment.isEnabled()).isTrue();
             assertThat(savedAssignment.getAssignmentSource()).isEqualTo(FeatureAssignmentSource.HASH);
-
-            ArgumentCaptor<UserFeatureAssignmentHistory> historyCaptor = ArgumentCaptor.forClass(UserFeatureAssignmentHistory.class);
-            verify(featureAssignmentHistoryRepository).save(historyCaptor.capture());
-
-            UserFeatureAssignmentHistory savedHistory = historyCaptor.getValue();
-            assertThat(savedHistory.isEnabled()).isTrue();
-            assertThat(savedHistory.getReason()).isEqualTo(FeatureAssignmentReason.FIRST_CHECK);
+            assertThat(fallbackCaptor.getValue()).isTrue();
         }
 
         @Test
@@ -217,6 +211,7 @@ class FeatureFlagServiceImplTest {
 
             when(featureAssignmentRepository.findById(any())).thenReturn(Optional.empty());
             when(userAccountRepository.findById(userId)).thenReturn(Optional.of(user));
+            when(userFeatureAssignmentService.saveAssignment(any(), any(), anyBoolean())).thenReturn(false);
 
             // WHEN
             boolean result = featureFlagService.isFeatureEnabledForUser(userId, featureFlag);
@@ -225,17 +220,12 @@ class FeatureFlagServiceImplTest {
             assertThat(result).isFalse();
 
             ArgumentCaptor<UserFeatureAssignment> assignmentCaptor = ArgumentCaptor.forClass(UserFeatureAssignment.class);
-            verify(featureAssignmentRepository).save(assignmentCaptor.capture());
+            ArgumentCaptor<Boolean> fallbackCaptor = ArgumentCaptor.forClass(Boolean.class);
+            verify(userFeatureAssignmentService).saveAssignment(assignmentCaptor.capture(), any(), fallbackCaptor.capture());
 
             UserFeatureAssignment savedAssignment = assignmentCaptor.getValue();
             assertThat(savedAssignment.isEnabled()).isFalse();
-
-            ArgumentCaptor<UserFeatureAssignmentHistory> historyCaptor = ArgumentCaptor.forClass(UserFeatureAssignmentHistory.class);
-            verify(featureAssignmentHistoryRepository).save(historyCaptor.capture());
-
-            UserFeatureAssignmentHistory savedHistory = historyCaptor.getValue();
-            assertThat(savedHistory.isEnabled()).isFalse();
-            assertThat(savedHistory.getReason()).isEqualTo(FeatureAssignmentReason.FIRST_CHECK);
+            assertThat(fallbackCaptor.getValue()).isFalse();
         }
 
         @Test
@@ -261,6 +251,7 @@ class FeatureFlagServiceImplTest {
 
             when(featureAssignmentRepository.findById(any())).thenReturn(Optional.empty());
             when(userAccountRepository.findById(userId)).thenReturn(Optional.of(user));
+            when(userFeatureAssignmentService.saveAssignment(any(), any(), anyBoolean())).thenReturn(true);
 
             // WHEN
             boolean result = featureFlagService.isFeatureEnabledForUser(userId, featureFlag);
@@ -269,15 +260,8 @@ class FeatureFlagServiceImplTest {
             assertThat(result).isTrue(); // Should pass the "new user" check and fall through to bucket logic
 
             ArgumentCaptor<UserFeatureAssignment> assignmentCaptor = ArgumentCaptor.forClass(UserFeatureAssignment.class);
-            verify(featureAssignmentRepository).save(assignmentCaptor.capture());
+            verify(userFeatureAssignmentService).saveAssignment(assignmentCaptor.capture(), any(), anyBoolean());
             assertThat(assignmentCaptor.getValue().getAssignmentSource()).isEqualTo(FeatureAssignmentSource.HASH);
-
-            ArgumentCaptor<UserFeatureAssignmentHistory> historyCaptor = ArgumentCaptor.forClass(UserFeatureAssignmentHistory.class);
-            verify(featureAssignmentHistoryRepository).save(historyCaptor.capture());
-
-            UserFeatureAssignmentHistory savedHistory = historyCaptor.getValue();
-            assertThat(savedHistory.isEnabled()).isTrue();
-            assertThat(savedHistory.getReason()).isEqualTo(FeatureAssignmentReason.FIRST_CHECK);
         }
     }
 

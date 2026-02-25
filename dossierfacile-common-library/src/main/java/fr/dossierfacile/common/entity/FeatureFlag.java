@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.Hibernate;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -54,13 +55,17 @@ public class FeatureFlag implements Serializable {
     private Integer rolloutPct = 0;
 
     @Column(name = "deployment_date")
-    private LocalDateTime deploymentDate;
+    @Builder.Default
+    private LocalDateTime deploymentDate = LocalDateTime.now();
 
     @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    @Builder.Default
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    @Builder.Default
+    @UpdateTimestamp
+    private LocalDateTime updatedAt = LocalDateTime.now();
 
     @Builder.Default
     @OneToMany(mappedBy = "featureFlag", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
