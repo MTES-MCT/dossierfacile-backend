@@ -53,7 +53,7 @@ public abstract class TenantMapper {
     }
 
     @Mapping(target = "name", expression = "java((document.getWatermarkFile() != null )? applicationBaseUrl + \"/" + PATH + "/\" + document.getName() : null)")
-    @Mapping(target = "files", expression = "java((userApi == null || isHybrid(userApi))? mapFiles(document.getFiles()) : null)")
+    @Mapping(target = "files", expression = "java((userApi == null) ? mapFiles(document.getFiles()) : null)")
     @MapDocumentCategories
     public abstract DocumentModel toDocumentModel(Document document, @Context UserApi userApi);
 
@@ -68,10 +68,6 @@ public abstract class TenantMapper {
     @Mapping(target = "originalName", source = "documentFile.storageFile.name")
     @Mapping(target = "md5", source = "documentFile.storageFile.md5")
     public abstract FileModel toFileModel(File documentFile);
-
-    boolean isHybrid(UserApi userApi) {
-        return userApi != null && userApi.getName().startsWith("hybrid-");
-    }
 
     @AfterMapping
     void modificationsAfterMapping(@MappingTarget TenantModel.TenantModelBuilder tenantModelBuilder, @Context UserApi userApi, Tenant tenant) {
@@ -167,7 +163,7 @@ public abstract class TenantMapper {
                     }
                     Optional.ofNullable(documentModel.getFiles())
                             .ifPresent(fileModels -> fileModels.forEach(fileModel -> {
-                                if (filePath == null || previewOnly || isHybrid(userApi)) {
+                                if (filePath == null || previewOnly) {
                                     fileModel.setPath("");
                                 } else {
                                     fileModel.setPath(applicationBaseUrl + filePath + fileModel.getId());
