@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+    <!-- First migration to create the databases -->
+    <changeSet id="202602230001" author="Nicolas">
+        <createTable tableName="feature_flag">
+            <column name="key" type="VARCHAR(100)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="description" type="TEXT"/>
+            <column name="active" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="only_for_new_user" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="rollout_pct" type="INTEGER" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="deployment_date" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="user_feature_assignment">
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="feature_key" type="VARCHAR(100)">
+                <constraints nullable="false" foreignKeyName="fk_assignment_feature_flag"
+                             references="feature_flag(key)"/>
+            </column>
+            <column name="enabled" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="bucket" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="rollout_pct" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="assigned_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="assignment_source" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey tableName="user_feature_assignment" columnNames="user_id, feature_key"
+                       constraintName="pk_user_feature_assignment"/>
+        <addForeignKeyConstraint constraintName="fk_user_feature_assignment_user"
+                                 baseTableName="user_feature_assignment"
+                                 baseColumnNames="user_id" referencedTableName="user_account"
+                                 referencedColumnNames="id"
+                                 onDelete="CASCADE"/>
+
+        <rollback>
+            <dropTable tableName="user_feature_assignment"/>
+            <dropTable tableName="feature_flag"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="202602230002" author="Nicolas">
+        <createTable tableName="user_feature_assignment_history">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="feature_key" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="enabled" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="bucket" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="rollout_pct" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="changed_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="reason" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_assignment_history_user"
+                                 baseTableName="user_feature_assignment_history"
+                                 baseColumnNames="user_id" referencedTableName="user_account"
+                                 referencedColumnNames="id"
+                                 onDelete="CASCADE"/>
+        <addForeignKeyConstraint constraintName="fk_assignment_history_feature"
+                                 baseTableName="user_feature_assignment_history"
+                                 baseColumnNames="feature_key" referencedTableName="feature_flag"
+                                 referencedColumnNames="key"/>
+        <rollback>
+            <dropTable tableName="user_feature_assignment_history"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="202602230003" author="Nicolas">
+        <insert tableName="feature_flag">
+            <column name="key" value="test-feature"/>
+            <column name="description" value="Feature de test pour validation du système de feature flipping"/>
+            <column name="active" valueBoolean="true"/>
+            <column name="only_for_new_user" valueBoolean="true"/>
+            <column name="rollout_pct" valueNumeric="40"/>
+            <column name="deployment_date" valueDate="CURRENT_TIMESTAMP"/>
+        </insert>
+        <rollback>
+            <delete tableName="feature_flag">
+                <where>key='test-feature'</where>
+            </delete>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>
