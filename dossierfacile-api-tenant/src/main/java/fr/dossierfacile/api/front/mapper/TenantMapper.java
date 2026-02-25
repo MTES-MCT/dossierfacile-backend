@@ -7,10 +7,8 @@ import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.ApartmentSharingLinkType;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
-import fr.dossierfacile.common.mapper.CategoriesMapper;
 import fr.dossierfacile.common.mapper.MapDocumentCategories;
 import org.mapstruct.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -38,13 +36,6 @@ public abstract class TenantMapper {
 
     @Value("${tenant.base.url}")
     protected String tenantBaseUrl;
-
-    protected CategoriesMapper categoriesMapper;
-
-    @Autowired
-    public void setCategoriesMapper(CategoriesMapper categoriesMapper) {
-        this.categoriesMapper = categoriesMapper;
-    }
 
     @Mapping(source = "tenant", target = "franceConnectIdentity", qualifiedByName = "franceConnectIdentity")
     public abstract TenantModel toTenantModel(Tenant tenant, @Context UserApi userApi);

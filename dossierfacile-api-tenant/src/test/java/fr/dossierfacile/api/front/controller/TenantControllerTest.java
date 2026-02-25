@@ -18,7 +18,6 @@ import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Property;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.TenantFileStatus;
-import fr.dossierfacile.common.mapper.VersionedCategoriesMapper;
 import fr.dossierfacile.common.service.interfaces.ProcessingCapacityService;
 import fr.dossierfacile.common.utils.LocalDateTimeTypeAdapter;
 import fr.dossierfacile.parameterizedtest.ArgumentBuilder;
@@ -56,7 +55,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(TenantController.class)
 @ActiveProfiles("test")
-@ContextConfiguration(classes = {TestApplication.class, TenantMapperImpl.class, VersionedCategoriesMapper.class, PropertyOMapperImpl.class, GlobalExceptionHandler.class})
+@ContextConfiguration(classes = {TestApplication.class, TenantMapperImpl.class, PropertyOMapperImpl.class, GlobalExceptionHandler.class})
 @TestPropertySource(properties = {"dossierfacile.common.global.exception.handler=true"})
 class TenantControllerTest {
 

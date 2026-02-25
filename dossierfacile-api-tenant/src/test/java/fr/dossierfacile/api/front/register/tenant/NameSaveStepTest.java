@@ -11,7 +11,6 @@ import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.TenantOwnerType;
-import fr.dossierfacile.common.mapper.VersionedCategoriesMapper;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,7 +27,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = {Names.class, TenantMapperImpl.class, VersionedCategoriesMapper.class})
+@ContextConfiguration(classes = {Names.class, TenantMapperImpl.class})
 class NameSaveStepTest {
 
     @Autowired
