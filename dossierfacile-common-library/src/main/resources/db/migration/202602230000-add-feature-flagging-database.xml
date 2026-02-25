@@ -64,6 +64,11 @@
                                  referencedColumnNames="id"
                                  onDelete="CASCADE"/>
 
+        <createIndex tableName="user_feature_assignment" indexName="idx_user_feature_assignment_key_source">
+            <column name="feature_key"/>
+            <column name="assignment_source"/>
+        </createIndex>
+
         <rollback>
             <dropTable tableName="user_feature_assignment"/>
             <dropTable tableName="feature_flag"/>
@@ -108,22 +113,6 @@
                                  referencedColumnNames="key"/>
         <rollback>
             <dropTable tableName="user_feature_assignment_history"/>
-        </rollback>
-    </changeSet>
-
-    <changeSet id="202602230003" author="Nicolas">
-        <insert tableName="feature_flag">
-            <column name="key" value="test-feature"/>
-            <column name="description" value="Feature de test pour validation du système de feature flipping"/>
-            <column name="active" valueBoolean="true"/>
-            <column name="only_for_new_user" valueBoolean="true"/>
-            <column name="rollout_pct" valueNumeric="40"/>
-            <column name="deployment_date" valueDate="CURRENT_TIMESTAMP"/>
-        </insert>
-        <rollback>
-            <delete tableName="feature_flag">
-                <where>key='test-feature'</where>
-            </delete>
         </rollback>
     </changeSet>
 </databaseChangeLog>

@@ -5,6 +5,7 @@ import fr.dossierfacile.common.entity.FeatureFlag;
 import java.util.List;
 
 public interface FeatureFlagService {
+    boolean isFeatureEnabledForUser(Long userId, String key);
     boolean isFeatureEnabledForUser(Long userId, FeatureFlag featureFlag);
 
     List<FeatureFlag> getAllFeatureFlags();
