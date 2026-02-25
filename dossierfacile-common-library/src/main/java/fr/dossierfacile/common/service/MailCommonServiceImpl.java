@@ -5,7 +5,6 @@ import brevoApi.TransactionalEmailsApi;
 import brevoModel.SendSmtpEmail;
 import brevoModel.SendSmtpEmailTo;
 import fr.dossierfacile.common.dto.mail.TenantDto;
-import fr.dossierfacile.common.dto.mail.UserApiDto;
 import fr.dossierfacile.common.dto.mail.UserDto;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
@@ -33,20 +32,12 @@ public class MailCommonServiceImpl implements MailCommonService {
     private String tenantBaseUrl;
     @Value("${brevo.template.id.tenant.validated.dossier.validated:134}")
     private Long templateIdTenantValidatedDossierValidated;
-    @Value("${brevo.template.id.tenant.validated.dossier.validated.w.partner:136}")
-    private Long templateIdTenantValidatedDossierValidatedWithPartner;
     @Value("${brevo.template.id.tenant.validated.dossier.not.valid:122}")
     private Long templateIdTenantValidatedDossierNotValidated;
-    @Value("${brevo.template.id.tenant.validated.dossier.not.valid.w.partner:135}")
-    private Long templateIdTenantValidatedDossierNotValidatedWithPartner;
     @Value("${brevo.template.id.dossier.fully.validated:128}")
     private Long templateIdDossierFullyValidated;
-    @Value("${brevo.template.id.dossier.fully.validated.with.partner:133}")
-    private Long templateIdDossierFullyValidatedWithPartner;
     @Value("${brevo.template.id.partner.access.revoked:104}")
     private Long templateIDPartnerAccessRevoked;
-    @Value("${link.after.validated.default}")
-    private String defaultValidatedUrl;
 
     @Override
     public void sendEmailToTenant(UserDto tenant, Map<String, String> params, Long templateId) {
@@ -79,48 +70,25 @@ public class MailCommonServiceImpl implements MailCommonService {
         return params;
     }
 
-    private void addPartnerParams(Map<String, String> params, UserApiDto userApi) {
-        params.put("partnerName", userApi.getName2());
-        params.put("logoUrl", userApi.getLogoUrl());
-        params.put("callToActionUrl", OptionalString.of(userApi.getValidatedUrl()).orElse(defaultValidatedUrl));
-    }
-
-    private void sendEmailWithPartnerAwareness(TenantDto tenant, Map<String, String> params,
-                                               Long templateWithPartner, Long templateWithoutPartner) {
-        if (tenant.isBelongToPartner()) {
-            UserApiDto userApi = tenant.getUserApis().getFirst();
-            addPartnerParams(params, userApi);
-            sendEmailToTenant(tenant, params, templateWithPartner);
-        } else {
-            sendEmailToTenant(tenant, params, templateWithoutPartner);
-        }
-    }
-
     @Async
     @Override
     public void sendEmailToTenantAfterValidateAllTenantForGroup(TenantDto tenant) {
         Map<String, String> params = createBaseParams(tenant, true);
-        sendEmailWithPartnerAwareness(tenant, params,
-                templateIdTenantValidatedDossierValidatedWithPartner,
-                templateIdTenantValidatedDossierValidated);
+        sendEmailToTenant(tenant, params, templateIdTenantValidatedDossierValidated);
     }
 
     @Async
     @Override
     public void sendEmailToTenantAfterValidatedApartmentSharingNotValidated(TenantDto tenant) {
         Map<String, String> params = createBaseParams(tenant, false);
-        sendEmailWithPartnerAwareness(tenant, params,
-                templateIdTenantValidatedDossierNotValidatedWithPartner,
-                templateIdTenantValidatedDossierNotValidated);
+        sendEmailToTenant(tenant, params, templateIdTenantValidatedDossierNotValidated);
     }
 
     @Async
     @Override
     public void sendEmailToTenantAfterValidateAllDocuments(TenantDto tenant) {
         Map<String, String> params = createBaseParams(tenant, true);
-        sendEmailWithPartnerAwareness(tenant, params,
-                templateIdDossierFullyValidatedWithPartner,
-                templateIdDossierFullyValidated);
+        sendEmailToTenant(tenant, params, templateIdDossierFullyValidated);
     }
 
     @Override

@@ -1,7 +1,6 @@
 package fr.dossierfacile.api.front.service.interfaces;
 
 import fr.dossierfacile.common.dto.mail.TenantDto;
-import fr.dossierfacile.common.dto.mail.UserApiDto;
 import fr.dossierfacile.common.dto.mail.UserDto;
 import fr.dossierfacile.api.front.form.ContactForm;
 import fr.dossierfacile.common.entity.*;
@@ -27,8 +26,6 @@ public interface MailService {
     void sendEmailToTenantValidatedXDaysAgo(User user);
 
     void sendEmailToSupport(ContactForm form);
-
-    void sendEmailWelcomeForPartnerUser(UserDto user, UserApiDto userApi);
 
     void sendFileByMail(String url, String email, String message, String tenantName, String fullName, String tenantEmail);
 }

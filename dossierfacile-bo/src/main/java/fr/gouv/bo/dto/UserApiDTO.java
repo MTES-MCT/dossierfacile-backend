@@ -24,8 +24,4 @@ public class UserApiDTO {
     private String partnerApiKeyCallback;
     private boolean disabled;
     private String logoUrl;
-    private String welcomeUrl;
-    private String completedUrl;
-    private String deniedUrl;
-    private String validatedUrl;
 }

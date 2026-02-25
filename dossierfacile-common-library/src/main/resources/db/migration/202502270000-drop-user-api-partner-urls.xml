@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+    <changeSet id="202502270000-01" author="plan">
+        <dropColumn schemaName="public" tableName="user_api" columnName="welcome_url"/>
+        <dropColumn schemaName="public" tableName="user_api" columnName="completed_url"/>
+        <dropColumn schemaName="public" tableName="user_api" columnName="denied_url"/>
+        <dropColumn schemaName="public" tableName="user_api" columnName="validated_url"/>
+    </changeSet>
+</databaseChangeLog>
