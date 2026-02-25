@@ -57,7 +57,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
         ResourceServerConfig.class
 }
 )
-@TestPropertySource(properties = {"application.api.version = 4", "dossierfacile.common.global.exception.handler=true"})
+@TestPropertySource(properties = {"dossierfacile.common.global.exception.handler=true"})
 class RegisterControllerTest {
 
     @Autowired

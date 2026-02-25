@@ -54,7 +54,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(DfcTenantController.class)
 @ActiveProfiles("test")
-@TestPropertySource(properties = {"application.api.version= 4", "dossierfacile.common.global.exception.handler=true"})
+@TestPropertySource(properties = {"dossierfacile.common.global.exception.handler=true"})
 @ContextConfiguration(classes = {TestApplication.class, TenantMapperImpl.class, VersionedCategoriesMapper.class, ResourceServerConfig.class, MethodSecurityConfig.class, GlobalExceptionHandler.class})
 class DfcTenantControllerTest {
 

@@ -7,7 +7,6 @@ import fr.dossierfacile.api.front.validator.annotation.tenant.residency.CustomTe
 import fr.dossierfacile.api.front.validator.annotation.tenant.residency.NumberOfDocumentResidency;
 import fr.dossierfacile.api.front.validator.group.Dossier;
 import fr.dossierfacile.api.front.validator.group.ResidencyDocumentGroup;
-import fr.dossierfacile.common.config.ApiVersion;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentCategoryStep;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
@@ -41,7 +40,7 @@ public class DocumentResidencyForm extends DocumentForm implements IDocumentResi
                     GUEST_ORGANISM,
                     SHORT_TERM_RENTAL,
                     OTHER_RESIDENCY
-            }, groups = {ApiVersion.V4.class, Dossier.class}
+            }, groups = Dossier.class
     )
     private DocumentSubCategory typeDocumentResidency;
 

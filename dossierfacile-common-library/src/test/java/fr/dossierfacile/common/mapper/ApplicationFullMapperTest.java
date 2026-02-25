@@ -10,7 +10,7 @@ class ApplicationFullMapperTest implements AuthenticityStatusMappingTest {
     public DocumentModel mapDocument(Document document) {
         ApplicationFullMapperImpl mapper = new ApplicationFullMapperImpl();
         mapper.setCategoriesMapper(new VersionedCategoriesMapper());
-        return mapper.toDocumentModel(document, UserApi.builder().version(4).build());
+        return mapper.toDocumentModel(document, UserApi.builder().build());
     }
 
 }

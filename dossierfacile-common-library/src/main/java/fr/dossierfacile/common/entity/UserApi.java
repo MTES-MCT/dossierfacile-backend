@@ -35,8 +35,6 @@ public class UserApi implements Serializable {
     @Column
     private String partnerApiKeyCallback;
     @Column
-    private Integer version;
-    @Column
     private String logoUrl;
     @Column
     private String welcomeUrl;

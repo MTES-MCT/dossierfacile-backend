@@ -127,36 +127,4 @@ class ClientAuthenticationFacadeImplTest {
             assertThat(result).isFalse();
         }
     }
-
-    @Nested
-    class GetApiVersionTest {
-
-        @Test
-        void shouldReturnApiVersion() {
-            var userApi = new UserApi();
-            userApi.setVersion(1);
-            when(userApiService.findByName("clientId")).thenReturn(Optional.of(userApi));
-
-            var claimsMap = Map.of("client_id", "clientId");
-            var jwt = getDummyJwtWithCustomClaims(claimsMap);
-            SecurityContextHolder.setContext(new SecurityContextImpl(new JwtAuthenticationToken(jwt, Collections.emptyList())));
-
-            var result = clientAuthenticationFacade.getApiVersion();
-            assertThat(result)
-                    .isPresent()
-                    .contains(1);
-        }
-
-        @Test
-        void shouldReturnEmptyWhenClientNotFound() {
-            when(userApiService.findByName("clientId")).thenReturn(Optional.empty());
-
-            var claimsMap = Map.of("client_id", "clientId");
-            var jwt = getDummyJwtWithCustomClaims(claimsMap);
-            SecurityContextHolder.setContext(new SecurityContextImpl(new JwtAuthenticationToken(jwt, Collections.emptyList())));
-
-            var result = clientAuthenticationFacade.getApiVersion();
-            assertThat(result).isEmpty();
-        }
-    }
 }

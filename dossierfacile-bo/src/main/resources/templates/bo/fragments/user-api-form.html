@@ -72,18 +72,6 @@
             </div>
             <div class="row">
                 <div class="mb-3 col-md-6">
-                    <input required="required" autocomplete="off" class="form-control form-control-formatted form-control-untouched"
-                           placeholder="version"
-                           th:field="*{version}"
-                           type="text"/>
-                    <span class="help-block color--error" th:errors="*{version}"
-                          th:if="${#fields.hasErrors('version')}"></span>
-                </div>
-                <div class="mb-3 col-md-6">
-                </div>
-            </div>
-            <div class="row">
-                <div class="mb-3 col-md-6">
                     <input autocomplete="off" class="form-control form-control-formatted form-control-untouched"
                            placeholder="welcomeUrl"
                            th:field="*{welcomeUrl}"

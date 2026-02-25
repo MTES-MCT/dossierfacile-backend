@@ -104,7 +104,6 @@ garbage-collection.objects-by-iteration=
 # Number of seconds between two iterations
 garbage-collection.seconds-between-iterations=60
 environment=local
-application.api.version=4
 
 #Ademe api configuration 
 ademe.api.base.url=https://prd-x-ademe-externe-api.de-c1.eu1.cloudhub.io/api/v1

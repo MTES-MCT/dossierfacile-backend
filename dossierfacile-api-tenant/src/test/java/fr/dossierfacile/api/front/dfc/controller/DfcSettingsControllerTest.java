@@ -91,7 +91,6 @@ class DfcSettingsControllerTest {
             UserApi userApi = UserApi.builder()
                     .id(1L)
                     .name("test")
-                    .version(1)
                     .email("test@test.fr")
                     .urlCallback("http://localhost")
                     .partnerApiKeyCallback("test")
@@ -101,7 +100,6 @@ class DfcSettingsControllerTest {
             partnerSettings.setEmail("test@test.fr");
             partnerSettings.setUrlCallback("http://localhost");
             partnerSettings.setPartnerApiKeyCallback("test");
-            partnerSettings.setVersion(1);
             partnerSettings.setName("test");
 
             var expectedJson = mapper.writeValueAsString(partnerSettings);
@@ -175,7 +173,6 @@ class DfcSettingsControllerTest {
             UserApi userApi = UserApi.builder()
                     .id(1L)
                     .name("test")
-                    .version(1)
                     .email("test@test.fr")
                     .urlCallback("http://localhost")
                     .partnerApiKeyCallback("test")
@@ -183,7 +180,6 @@ class DfcSettingsControllerTest {
 
             PartnerSettings partnerSettings = new PartnerSettings();
             partnerSettings.setName("test");
-            partnerSettings.setVersion(2);
             partnerSettings.setEmail("test@test.fr");
             partnerSettings.setUrlCallback("http://localhost");
             partnerSettings.setPartnerApiKeyCallback("test2");
@@ -191,7 +187,6 @@ class DfcSettingsControllerTest {
             var expectedUserApiModified = UserApi.builder()
                     .id(1L)
                     .name("test")
-                    .version(2)
                     .email("test@test.fr")
                     .urlCallback("http://localhost")
                     .partnerApiKeyCallback("test2")

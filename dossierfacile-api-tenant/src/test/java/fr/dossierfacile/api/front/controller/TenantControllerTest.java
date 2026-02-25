@@ -57,7 +57,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(TenantController.class)
 @ActiveProfiles("test")
 @ContextConfiguration(classes = {TestApplication.class, TenantMapperImpl.class, VersionedCategoriesMapper.class, PropertyOMapperImpl.class, GlobalExceptionHandler.class})
-@TestPropertySource(properties = {"application.api.version = 4", "dossierfacile.common.global.exception.handler=true"})
+@TestPropertySource(properties = {"dossierfacile.common.global.exception.handler=true"})
 class TenantControllerTest {
 
     @Autowired

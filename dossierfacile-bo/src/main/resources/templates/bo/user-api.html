@@ -29,7 +29,6 @@
                     <th>logo</th>
                     <th>urlCallback</th>
                     <th>partnerApiKeyCallback</th>
-                    <th>version</th>
                     <th>co-branded URLs</th>
                     <th>Edit</th>
                 </tr>
@@ -48,7 +47,6 @@
                     <td><img height="20px" alt="" th:src="${userApi.logoUrl}"/></td>
                     <td th:text="${userApi.urlCallback}?: '-'"></td>
                     <td th:text="${userApi.partnerApiKeyCallback}?: '-'"></td>
-                    <td th:text="${userApi.version}?: '-'"></td>
                     <td>
                         <span th:text="${userApi.welcomeUrl}?: '-'"></span>
                         <span th:text="${userApi.completedUrl}?: '-'"></span>
