@@ -1,7 +1,6 @@
 package fr.dossierfacile.api.front.service;
 
 import fr.dossierfacile.api.front.exception.PasswordRecoveryTokenNotFoundException;
-import fr.dossierfacile.api.front.exception.UserNotFoundException;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.repository.PasswordRecoveryTokenRepository;
@@ -39,7 +38,6 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordRecoveryTokenRepository passwordRecoveryTokenRepository;
     private final MailService mailService;
-    private final PasswordRecoveryTokenService passwordRecoveryTokenService;
     private final TenantMapper tenantMapper;
     private final TenantCommonRepository tenantRepository;
     private final LogService logService;
@@ -49,12 +47,6 @@ public class UserServiceImpl implements UserService {
     private final ApartmentSharingService apartmentSharingService;
     private final TenantCommonService tenantCommonService;
     private final TenantMapperForMail tenantMapperForMail;
-
-    @Override
-    public TenantModel createPassword(User user, String password) {
-        keycloakService.createKeyCloakPassword(user.getKeycloakId(), password);
-        return tenantMapper.toTenantModel(tenantRepository.getReferenceById(user.getId()), null);
-    }
 
     @Override
     public TenantModel createPassword(String token, String password) {
@@ -70,18 +62,11 @@ public class UserServiceImpl implements UserService {
             userRepository.save(user);
         }
 
-        TenantModel tenantModel = createPassword(passwordRecoveryToken.getUser(), password);
+        keycloakService.createKeyCloakPassword(user.getKeycloakId(), password);
+        TenantModel tenantModel = tenantMapper.toTenantModel(tenantRepository.getReferenceById(user.getId()), null);
 
         passwordRecoveryTokenRepository.delete(passwordRecoveryToken);
         return tenantModel;
-    }
-
-    @Override
-    public void forgotPassword(String email) {
-        Tenant tenant = tenantRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(email));
-
-        PasswordRecoveryToken passwordRecoveryToken = passwordRecoveryTokenService.create(tenant);
-        mailService.sendEmailNewPassword(tenant, passwordRecoveryToken);
     }
 
     private List<TenantUserApi> groupingAllTenantUserApisInTheApartment(ApartmentSharing as) {

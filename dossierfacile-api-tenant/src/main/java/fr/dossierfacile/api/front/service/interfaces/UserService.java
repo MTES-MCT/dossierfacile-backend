@@ -2,14 +2,9 @@ package fr.dossierfacile.api.front.service.interfaces;
 
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.common.entity.Tenant;
-import fr.dossierfacile.common.entity.User;
 
 public interface UserService {
-    TenantModel createPassword(User user, String password);
-
     TenantModel createPassword(String token, String password);
-
-    void forgotPassword(String email);
 
     void deleteAccount(Tenant tenant);
 
