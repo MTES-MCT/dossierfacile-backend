@@ -228,13 +228,6 @@ public class Tenant extends User implements Person, Serializable {
         return guarantors.stream().map(Guarantor::getTotalSalary).reduce(0, Integer::sum);
     }
 
-    /**
-     * Tenant has been created by partner and has never been loggued in DF Website
-     */
-    public boolean isBelongToPartner() {
-        return this.getKeycloakId() == null && this.getTenantsUserApi().size() == 1;
-    }
-
     public String getUserFirstName() {
         return super.getFirstName();
     }

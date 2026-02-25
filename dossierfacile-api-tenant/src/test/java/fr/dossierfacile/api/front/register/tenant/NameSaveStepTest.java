@@ -11,14 +11,12 @@ import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.TenantOwnerType;
-import fr.dossierfacile.common.mapper.VersionedCategoriesMapper;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -29,8 +27,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = {Names.class, TenantMapperImpl.class, VersionedCategoriesMapper.class})
-@TestPropertySource(properties = {"application.api.version = 4"})
+@ContextConfiguration(classes = {Names.class, TenantMapperImpl.class})
 class NameSaveStepTest {
 
     @Autowired

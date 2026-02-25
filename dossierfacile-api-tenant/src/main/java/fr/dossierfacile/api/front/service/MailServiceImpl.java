@@ -9,11 +9,9 @@ import com.google.common.base.Strings;
 import fr.dossierfacile.api.front.form.ContactForm;
 import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.common.dto.mail.TenantDto;
-import fr.dossierfacile.common.dto.mail.UserApiDto;
 import fr.dossierfacile.common.dto.mail.UserDto;
 import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.ApplicationType;
-import fr.dossierfacile.common.utils.OptionalString;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,8 +39,6 @@ public class MailServiceImpl implements MailService {
     private String emailSupportOwner;
     @Value("${brevo.template.id.welcome:30}")
     private Long templateIDWelcome;
-    @Value("${brevo.template.id.welcome.partner:77}")
-    private Long templateIDWelcomePartner;
     @Value("${brevo.template.id.new.password:38}")
     private Long templateIdNewPassword;
     @Value("${brevo.template.id.invitation.couple:164}")
@@ -53,8 +49,6 @@ public class MailServiceImpl implements MailService {
     private Long templateIdAccountDeleted;
     @Value("${brevo.template.id.account.completed:56}")
     private Long templateIdAccountCompleted;
-    @Value("${brevo.template.id.account.completed.with.partner:82}")
-    private Long templateIdAccountCompletedWithPartner;
     @Value("${brevo.template.id.account.email.validation.reminder:33}")
     private Long templateEmailWhenEmailAccountNotYetValidated;
     @Value("${brevo.template.id.account.incomplete.reminder:162}")
@@ -67,10 +61,6 @@ public class MailServiceImpl implements MailService {
     private Long templateIdContactSupport;
     @Value("${brevo.template.id.share.file:89}")
     private Long templateIdShareFile;
-    @Value("${link.after.completed.default}")
-    private String defaultCompletedUrl;
-    @Value("${link.after.created.default}")
-    private String defaultCreatedUrl;
     @Value("${brevo.domains.blacklist:example.com}")
     private List<String> blackListedDomains;
 
@@ -161,18 +151,8 @@ public class MailServiceImpl implements MailService {
         Map<String, String> variables = new HashMap<>();
         variables.put(PRENOM_KEY, tenant.getFirstName());
         variables.put("NOM", Strings.isNullOrEmpty(tenant.getPreferredName()) ? tenant.getLastName() : tenant.getPreferredName());
-
-        if (tenant.isBelongToPartner()) {
-            UserApiDto userApi = tenant.getUserApis().getFirst();
-            variables.put("partnerName", userApi.getName2());
-            variables.put("logoUrl", userApi.getLogoUrl());
-            variables.put("callToActionUrl", OptionalString.of(userApi.getCompletedUrl()).orElse(defaultCompletedUrl));
-
-            sendEmailToTenant(tenant, variables, templateIdAccountCompletedWithPartner);
-        } else {
-            variables.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
-            sendEmailToTenant(tenant, variables, templateIdAccountCompleted);
-        }
+        variables.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
+        sendEmailToTenant(tenant, variables, templateIdAccountCompleted);
     }
 
     @Override
@@ -248,17 +228,6 @@ public class MailServiceImpl implements MailService {
         } catch (ApiException e) {
             log.error("Email api exception", e);
         }
-    }
-
-    @Async
-    @Override
-    public void sendEmailWelcomeForPartnerUser(UserDto user, UserApiDto userApi) {
-        Map<String, String> variables = new HashMap<>();
-        variables.put("partnerName", userApi.getName2());
-        variables.put("logoUrl", userApi.getLogoUrl());
-        variables.put("callToActionUrl", OptionalString.of(userApi.getWelcomeUrl()).orElse(defaultCreatedUrl));
-
-        sendEmailToTenant(user, variables, templateIDWelcomePartner);
     }
 
     @Override

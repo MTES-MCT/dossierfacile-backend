@@ -12,8 +12,4 @@ import lombok.Setter;
 public class UserApiDto {
     private String name2;
     private String logoUrl;
-    private String completedUrl;
-    private String welcomeUrl;
-    private String validatedUrl;
-    private String deniedUrl;
 }

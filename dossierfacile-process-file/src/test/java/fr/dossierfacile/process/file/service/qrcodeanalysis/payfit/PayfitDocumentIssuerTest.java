@@ -1,6 +1,5 @@
 package fr.dossierfacile.process.file.service.qrcodeanalysis.payfit;
 
-import fr.dossierfacile.common.repository.ApplicationLogRepository;
 import fr.dossierfacile.process.file.IntegrationTest;
 import fr.dossierfacile.process.file.TestFilesUtil;
 import fr.dossierfacile.process.file.barcode.InMemoryPdfFile;
@@ -35,9 +34,6 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 @Disabled
 @IntegrationTest
 class PayfitDocumentIssuerTest {
-    @MockitoBean
-    ApplicationLogRepository applicationLogRepository;
-
     @Autowired
     private PayfitDocumentIssuer payfit;
 

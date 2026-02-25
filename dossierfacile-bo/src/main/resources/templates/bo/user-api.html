@@ -22,15 +22,13 @@
                 <tr>
                     <th>id</th>
                     <th>disabled</th>
-                    <th>name</th>
-                    <th>name2</th>
-                    <th>site</th>
+                    <th>clientId</th>
+                    <th>clientName</th>
+                    <th>websiteUrl</th>
                     <th>email</th>
-                    <th>logo</th>
+                    <th>logoUrl</th>
                     <th>urlCallback</th>
                     <th>partnerApiKeyCallback</th>
-                    <th>version</th>
-                    <th>co-branded URLs</th>
                     <th>Edit</th>
                 </tr>
                 </thead>
@@ -48,14 +46,6 @@
                     <td><img height="20px" alt="" th:src="${userApi.logoUrl}"/></td>
                     <td th:text="${userApi.urlCallback}?: '-'"></td>
                     <td th:text="${userApi.partnerApiKeyCallback}?: '-'"></td>
-                    <td th:text="${userApi.version}?: '-'"></td>
-                    <td>
-                        <span th:text="${userApi.welcomeUrl}?: '-'"></span>
-                        <span th:text="${userApi.completedUrl}?: '-'"></span>
-                        <span th:text="${userApi.deniedUrl}?: '-'"></span>
-                        <span th:text="${userApi.validatedUrl}?: '-'"></span>
-                    </td>
-
                     <td><a class="fa fa-pencil nounderline" th:href="@{/bo/userApi/} + ${userApi.id}"></a></td>
                 </tr>
                 </tbody>

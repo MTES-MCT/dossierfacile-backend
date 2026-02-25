@@ -25,8 +25,6 @@ Create a file `application-dev.properties` in `dossierfacile-api-tenant/src/main
 mock.storage.path=../mock-storage
 # List of the providers to use for the storage
 storage.provider.list=LOCAL
-# Api version
-api.version=3
 # Url of the tenant front
 tenant.base.url=localhost:9002
 # Port of the API
@@ -72,8 +70,6 @@ logging.path=logs
 brevo.apikey=
 # Use to blacklist domains default value is : example.com
 brevo.domains.blacklist=
-link.after.denied.default=
-link.after.validated.default=
 link.shared.property=
 ```
 

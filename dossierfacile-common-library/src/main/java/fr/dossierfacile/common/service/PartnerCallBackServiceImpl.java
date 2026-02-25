@@ -98,7 +98,7 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
     }
 
     private void sendCallbackIfEligible(Tenant tenant, UserApi userApi) {
-        if (userApi.getVersion() != null && userApi.getUrlCallback() != null && (
+        if (userApi.getUrlCallback() != null && (
                 tenant.getStatus() == TenantFileStatus.VALIDATED
                         || tenant.getStatus() == TenantFileStatus.TO_PROCESS)) {
             PartnerCallBackType partnerCallBackType = tenant.getStatus() == TenantFileStatus.VALIDATED ?

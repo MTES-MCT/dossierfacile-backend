@@ -8,19 +8,11 @@ import fr.dossierfacile.common.model.apartment_sharing.DocumentModel;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 @Mapper(componentModel = "spring")
 public abstract class ApplicationLightMapper implements ApartmentSharingMapper {
-
-    protected CategoriesMapper categoriesMapper;
-
-    @Autowired
-    public void setCategoriesMapper(CategoriesMapper categoriesMapper) {
-        this.categoriesMapper = categoriesMapper;
-    }
 
     public abstract ApplicationModel toApplicationModel(ApartmentSharing apartmentSharing);
 

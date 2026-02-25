@@ -13,7 +13,6 @@ import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.validator.NumberOfPagesValidator;
 import fr.dossierfacile.common.config.GlobalExceptionHandler;
-import fr.dossierfacile.common.mapper.VersionedCategoriesMapper;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import fr.dossierfacile.parameterizedtest.ArgumentBuilder;
 import fr.dossierfacile.parameterizedtest.ControllerParameter;
@@ -51,13 +50,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         TestApplication.class,
         TenantMapperImpl.class,
         PropertyOMapperImpl.class,
-        VersionedCategoriesMapper.class,
         GlobalExceptionHandler.class,
         NumberOfPagesValidator.class,
         ResourceServerConfig.class
 }
 )
-@TestPropertySource(properties = {"application.api.version = 4", "dossierfacile.common.global.exception.handler=true"})
+@TestPropertySource(properties = {"dossierfacile.common.global.exception.handler=true"})
 class RegisterGuarantorNaturalPersonControllerTest {
 
     @Autowired

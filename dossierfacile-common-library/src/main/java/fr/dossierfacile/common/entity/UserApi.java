@@ -35,17 +35,7 @@ public class UserApi implements Serializable {
     @Column
     private String partnerApiKeyCallback;
     @Column
-    private Integer version;
-    @Column
     private String logoUrl;
-    @Column
-    private String welcomeUrl;
-    @Column
-    private String completedUrl;
-    @Column
-    private String deniedUrl;
-    @Column
-    private String validatedUrl;
 
     @JsonIgnore
     @Builder.Default

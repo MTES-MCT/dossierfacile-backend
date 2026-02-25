@@ -3,7 +3,6 @@ package fr.dossierfacile.api.front.service;
 import fr.dossierfacile.api.front.exception.UserApiNotFoundException;
 import fr.dossierfacile.api.front.model.dfc.PartnerSettings;
 import fr.dossierfacile.api.front.service.interfaces.UserApiService;
-import fr.dossierfacile.common.config.ApiVersion;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.TenantUserApi;
 import fr.dossierfacile.common.entity.UserApi;
@@ -46,12 +45,6 @@ public class UserApiServiceImpl implements UserApiService {
     public UserApi update(UserApi userApiParam, PartnerSettings settings) {
         UserApi userApi = userApiRepository.findById(userApiParam.getId()).get();
 
-        if (settings.getVersion() != null) {
-            // Check version
-            ApiVersion.getVersionClass(settings.getVersion());
-
-            userApi.setVersion(settings.getVersion());
-        }
         if (StringUtils.isNotBlank(settings.getEmail())) {
             // Email cannot be vacuumed - force to provide a new one
             userApi.setEmail(settings.getEmail());
