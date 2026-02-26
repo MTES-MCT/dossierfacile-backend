@@ -81,8 +81,6 @@ public class DocumentIAResultSanitizer {
 
     public ResultModel sanitize(ResultModel resultModel, Document document) {
         if (resultModel == null
-                || resultModel.getExtraction() == null
-                || resultModel.getExtraction().getProperties() == null
                 || document == null
                 || document.getDocumentCategory() == null) {
             return resultModel;
@@ -94,13 +92,21 @@ public class DocumentIAResultSanitizer {
         }
 
         AllowedNames allowedNames = collectAllowedNames(matchingClasses);
-        if (allowedNames.extractionNames().isEmpty()) {
+        boolean hasExtractionProperties = resultModel.getExtraction() != null
+                && resultModel.getExtraction().getProperties() != null;
+        boolean hasWorkToDo = (hasExtractionProperties && !allowedNames.extractionNames().isEmpty())
+                || (resultModel.getBarcodes() != null && !allowedNames.twoDDocNames().isEmpty());
+        if (!hasWorkToDo) {
             return resultModel;
         }
 
-        filterExtractionProperties(resultModel, allowedNames.extractionNames());
-        sanitizeBarcodes(resultModel, allowedNames.twoDDocNames());
-        return resultModel;
+        var clonedResultModel = resultModel.toBuilder().build();
+
+        if (hasExtractionProperties && !allowedNames.extractionNames().isEmpty()) {
+            filterExtractionProperties(clonedResultModel, allowedNames.extractionNames());
+        }
+        sanitizeBarcodes(clonedResultModel, allowedNames.twoDDocNames());
+        return clonedResultModel;
     }
 
     private AllowedNames collectAllowedNames(List<Class<?>> matchingClasses) {
