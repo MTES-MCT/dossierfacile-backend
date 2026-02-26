@@ -80,14 +80,18 @@ public class TenantWarningService {
     }
 
     private void handleWarning1(Tenant t) {
-        mailSender.sendEmailSecondWarningForDeletionOfDocuments(t, confirmationTokenService.createToken(t));
+        var confirmationToken = confirmationTokenRepository.findByUser(t).orElse(new ConfirmationToken(t));
+
+        mailSender.sendEmailSecondWarningForDeletionOfDocuments(t, confirmationToken);
         t.setWarnings(2);
         tenantRepository.save(t);
         logService.saveLog(LogType.SECOND_ACCOUNT_WARNING_FOR_DOCUMENT_DELETION, t.getId());
     }
 
     private void handleWarning0(Tenant t) {
-        mailSender.sendEmailFirstWarningForDeletionOfDocuments(t, confirmationTokenService.createToken(t));
+        var confirmationToken = confirmationTokenRepository.findByUser(t).orElse(new ConfirmationToken(t));
+
+        mailSender.sendEmailFirstWarningForDeletionOfDocuments(t, confirmationToken);
         t.setWarnings(1);
         tenantRepository.save(t);
         logService.saveLog(LogType.FIRST_ACCOUNT_WARNING_FOR_DOCUMENT_DELETION, t.getId());
