@@ -46,10 +46,10 @@ public class DocumentIAServiceImpl implements DocumentIAService {
                 var result = payload.getData().getResult();
                 var sanitizedResult = documentIAResultSanitizer.sanitize(result, analysis.getFile().getDocument());
                 analysis.setResult(sanitizedResult);
-                documentIAFileAnalysisRepository.save(analysis);
+                documentIAFileAnalysisRepository.saveAndFlush(analysis);
             } else if (payload.getStatus() == DocumentIAFileAnalysisStatus.FAILED) {
                 analysis.setAnalysisStatus(DocumentIAFileAnalysisStatus.FAILED);
-                documentIAFileAnalysisRepository.save(analysis);
+                documentIAFileAnalysisRepository.saveAndFlush(analysis);
             } else {
                 log.info("Document IA status is STARTED skip updating");
                 return;
