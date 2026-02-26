@@ -94,8 +94,6 @@ public class DocumentIAServiceImpl implements DocumentIAService {
                     .documentIaWorkflowId(response.getData().getWorkflowId())
                     .documentIaExecutionId(response.getData().getExecutionId())
                     .analysisStatus(DocumentIAFileAnalysisStatus.STARTED)
-                    .dataFileId(file.getId())
-                    .dataDocumentId(document.getId())
                     .build();
             documentIAFileAnalysisRepository.save(analysis);
             file.setDocumentIAFileAnalysis(analysis);
@@ -105,8 +103,6 @@ public class DocumentIAServiceImpl implements DocumentIAService {
                     .file(file)
                     .documentIaWorkflowId(documentIAConfig.getWorkflowIdForDocumentSubCategory(document))
                     .analysisStatus(DocumentIAFileAnalysisStatus.FAILED)
-                    .dataFileId(file.getId())
-                    .dataDocumentId(document.getId())
                     .build();
             documentIAFileAnalysisRepository.save(analysis);
             file.setDocumentIAFileAnalysis(analysis);

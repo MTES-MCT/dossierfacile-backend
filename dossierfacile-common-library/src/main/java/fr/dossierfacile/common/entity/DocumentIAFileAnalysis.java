@@ -1,5 +1,6 @@
 package fr.dossierfacile.common.entity;
 
+import fr.dossierfacile.common.converter.EncryptedResultModelConverter;
 import fr.dossierfacile.common.enums.DocumentIAFileAnalysisStatus;
 import fr.dossierfacile.common.model.document_ia.ResultModel;
 import jakarta.persistence.*;
@@ -44,15 +45,9 @@ public class DocumentIAFileAnalysis implements Serializable {
     @Enumerated(EnumType.STRING)
     private DocumentIAFileAnalysisStatus analysisStatus;
 
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "result", columnDefinition = "jsonb")
+    @Convert(converter = EncryptedResultModelConverter.class)
+    @Column(name = "result", columnDefinition = "text")
     private ResultModel result;
-
-    @Column(name = "data_file_id")
-    private Long dataFileId;
-
-    @Column(name = "data_document_id")
-    private Long dataDocumentId;
 
     @CreationTimestamp
     @Column(name = "creation_date", nullable = false, updatable = false)

@@ -98,9 +98,11 @@ public class DocumentIAResultSanitizer {
             return resultModel;
         }
 
-        filterExtractionProperties(resultModel, allowedNames.extractionNames());
-        sanitizeBarcodes(resultModel, allowedNames.twoDDocNames());
-        return resultModel;
+        var clonedResultModel = resultModel.toBuilder().build();
+
+        filterExtractionProperties(clonedResultModel, allowedNames.extractionNames());
+        sanitizeBarcodes(clonedResultModel, allowedNames.twoDDocNames());
+        return clonedResultModel;
     }
 
     private AllowedNames collectAllowedNames(List<Class<?>> matchingClasses) {

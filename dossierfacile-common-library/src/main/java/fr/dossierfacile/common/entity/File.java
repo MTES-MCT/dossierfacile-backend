@@ -69,7 +69,7 @@ public class File implements Serializable {
     private BlurryFileAnalysis blurryFileAnalysis;
 
     @Nullable
-    @OneToOne(mappedBy = "file", fetch = FetchType.LAZY)
+    @OneToOne(cascade = {CascadeType.REMOVE}, mappedBy= "file", fetch = FetchType.LAZY)
     private DocumentIAFileAnalysis documentIAFileAnalysis;
 
     @Nullable
@@ -84,9 +84,6 @@ public class File implements Serializable {
             preview.setStatus(FileStorageStatus.TO_DELETE);
         if (blurryFileAnalysis != null) {
             blurryFileAnalysis.setFile(null);
-        }
-        if (documentIAFileAnalysis != null) {
-            documentIAFileAnalysis.setFile(null);
         }
     }
 
