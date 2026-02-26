@@ -126,24 +126,24 @@ s3.secret.access.key=your-secret-key
 - Project: [dossierfacile-process-file](dossierfacile-process-file/README.md)
 - Project: [dossierfacile-task-scheduler](dossierfacile-task-scheduler/README.md)
 
-## Feature flags (création obligatoire par migration DB)
+## Feature flags (must be created through DB migration)
 
-La gestion des feature flags repose sur les tables `feature_flag`, `user_feature_assignment` et `user_feature_assignment_history`.
+Feature flags are backed by the `feature_flag`, `user_feature_assignment`, and `user_feature_assignment_history` tables.
 
-### 1) Créer la feature flag en base (obligatoire)
+### 1) Create the feature flag in the database (mandatory)
 
-Ne pas créer une feature flag "à la main" en production: la création doit passer par une migration Liquibase versionnée.
+Do not create feature flags manually in production: creation must go through a versioned Liquibase migration.
 
-1. Créer un fichier de migration dans:
+1. Create a migration file in:
    `dossierfacile-common-library/src/main/resources/db/migration/`
-   avec la convention de nommage habituelle (timestamp + description), par exemple:
+   following the usual naming convention (timestamp + description), for example:
    `202603010000-add-my-feature-flag.xml`.
-2. Ajouter un `changeSet` qui insère la ligne dans `feature_flag`.
-3. Ajouter un rollback explicite pour supprimer cette ligne.
-4. Déclarer la migration dans
+2. Add a `changeSet` that inserts the row into `feature_flag`.
+3. Add an explicit rollback that removes this row.
+4. Register the migration in
    `dossierfacile-common-library/src/main/resources/db/changelog/databaseChangeLog.xml`.
 
-Exemple minimal:
+Minimal example:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -155,7 +155,7 @@ Exemple minimal:
     <changeSet id="202603010001" author="team">
         <insert tableName="feature_flag">
             <column name="key" value="my_feature_key"/>
-            <column name="description" value="Description métier de la feature"/>
+            <column name="description" value="Business description of the feature"/>
             <column name="active" valueBoolean="false"/>
             <column name="only_for_new_user" valueBoolean="false"/>
             <column name="rollout_pct" valueNumeric="0"/>
@@ -172,50 +172,50 @@ Exemple minimal:
 </databaseChangeLog>
 ```
 
-Puis ajouter l'include dans `databaseChangeLog.xml`:
+Then add the include in `databaseChangeLog.xml`:
 
 ```xml
 <include file="db/migration/202603010000-add-my-feature-flag.xml" />
 ```
 
-### 2) Intégrer la feature flag dans le code
+### 2) Integrate the feature flag in code
 
-Utiliser `FeatureFlagService` (module `dossierfacile-common-library`) depuis le service/controller métier concerné.
+Use `FeatureFlagService` (from module `dossierfacile-common-library`) in the relevant business service/controller.
 
 ```java
 private final FeatureFlagService featureFlagService;
 
 if (featureFlagService.isFeatureEnabledForUser(userId, "my_feature_key")) {
-    // Nouveau comportement
+    // New behavior
 } else {
-    // Comportement existant
+    // Existing behavior
 }
 ```
 
-Bonnes pratiques:
-- Garder la clé stable (`my_feature_key`) et explicite.
-- Appeler la feature flag au plus près de la décision métier.
-- Conserver un fallback (comportement existant) côté `else`.
-- Ajouter/adapter les tests unitaires autour des 2 chemins (`enabled` / `disabled`).
+Best practices:
+- Keep the key stable (`my_feature_key`) and explicit.
+- Check the feature flag close to the business decision point.
+- Keep a fallback (`existing behavior`) in the `else` branch.
+- Add/adapt unit tests for both paths (`enabled` / `disabled`).
 
-### 3) Activer progressivement depuis le BO
+### 3) Roll out progressively from BO
 
-Dans le BO, menu **"Paramétrer les features flags"**:
-- Activer/désactiver globalement via `active`.
-- Monter le rollout (`rollout_pct`) progressivement (ex: `0 -> 5 -> 25 -> 50 -> 100`).
-- Utiliser `only_for_new_user` quand la feature doit être réservée aux utilisateurs créés après `deployment_date`.
+In BO, go to **"Paramétrer les features flags"**:
+- Enable/disable globally with `active`.
+- Increase rollout (`rollout_pct`) progressively (e.g. `0 -> 5 -> 25 -> 50 -> 100`).
+- Use `only_for_new_user` when the feature must be limited to users created after `deployment_date`.
 
 ![BO feature flags](https://github.com/user-attachments/assets/47013b3a-b84e-4178-a760-1d21925ad211)
 
-### 4) Checklist recommandée pour une nouvelle feature flag
+### 4) Recommended checklist for a new feature flag
 
-- [ ] Migration Liquibase créée avec `insert` + `rollback`
-- [ ] Migration incluse dans `databaseChangeLog.xml`
-- [ ] Clé utilisée dans le code via `FeatureFlagService`
-- [ ] Fallback métier conservé
-- [ ] Tests unitaires mis à jour
-- [ ] Activation progressive planifiée côté BO
-- [ ] Suppression de la feature flag (code + DB) planifiée une fois le rollout à 100%
+- [ ] Liquibase migration created with `insert` + `rollback`
+- [ ] Migration included in `databaseChangeLog.xml`
+- [ ] Key used in code via `FeatureFlagService`
+- [ ] Business fallback preserved
+- [ ] Unit tests updated
+- [ ] Progressive activation plan defined in BO
+- [ ] Feature flag removal (code + DB) planned once rollout reaches 100%
 
 ## Build
 
