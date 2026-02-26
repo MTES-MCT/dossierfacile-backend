@@ -26,6 +26,7 @@ public class DocumentIAServiceImpl implements DocumentIAService {
     private final DocumentIAFileAnalysisRepository documentIAFileAnalysisRepository;
     private final DocumentIAConfig documentIAConfig;
     private final DocumentAnalysisServiceImpl documentAnalysisService;
+    private final DocumentIAResultSanitizer documentIAResultSanitizer;
 
 
     @Override
@@ -42,7 +43,9 @@ public class DocumentIAServiceImpl implements DocumentIAService {
 
             if (payload.getStatus() == DocumentIAFileAnalysisStatus.SUCCESS) {
                 analysis.setAnalysisStatus(DocumentIAFileAnalysisStatus.SUCCESS);
-                analysis.setResult(payload.getData().getResult());
+                var result = payload.getData().getResult();
+                var sanitizedResult = documentIAResultSanitizer.sanitize(result, analysis.getFile().getDocument());
+                analysis.setResult(sanitizedResult);
                 documentIAFileAnalysisRepository.save(analysis);
             } else if (payload.getStatus() == DocumentIAFileAnalysisStatus.FAILED) {
                 analysis.setAnalysisStatus(DocumentIAFileAnalysisStatus.FAILED);
