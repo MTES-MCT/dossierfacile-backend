@@ -1,14 +1,18 @@
 package fr.dossierfacile.document.analysis.rule.validator.french_identity_card.document_ia_model;
 
+import fr.dossierfacile.common.enums.DocumentCategory;
+import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.utils.IDocumentIdentity;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.DocumentIAPropertyType;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.mapper.DocumentIAField;
+import fr.dossierfacile.document.analysis.rule.validator.document_ia.mapper.DocumentIAModel;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.mapper.PropertyTransformer;
 import lombok.Setter;
 
 import java.util.List;
 
 @Setter
+@DocumentIAModel(documentCategory = DocumentCategory.IDENTIFICATION, documentSubCategory = DocumentSubCategory.FRENCH_IDENTITY_CARD)
 public class DocumentIdentity implements IDocumentIdentity {
 
     public static class NameNormalizerTransformer implements PropertyTransformer<String, List<String>> {
