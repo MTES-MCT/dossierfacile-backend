@@ -34,6 +34,8 @@ class DocumentIAServiceImplTest {
     DocumentIAConfig documentIAConfig;
     @Mock
     DocumentAnalysisServiceImpl documentAnalysisService;
+    @Mock
+    DocumentIAResultSanitizer documentIAResultSanitizer;
 
     @InjectMocks
     DocumentIAServiceImpl documentIAService;
@@ -157,8 +159,6 @@ class DocumentIAServiceImplTest {
         verify(documentIAFileAnalysisRepository).save(argThat(analysis ->
                 analysis.getAnalysisStatus() == DocumentIAFileAnalysisStatus.FAILED
                         && analysis.getFile() == file
-                        && analysis.getDataFileId().equals(123L)
-                        && analysis.getDataDocumentId().equals(456L)
         ));
     }
 

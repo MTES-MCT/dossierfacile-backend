@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+
+    <changeSet id="202602260000-01" author="SAGON NICOLAS">
+        <delete tableName="document_ia_file_analysis"/>
+
+        <dropColumn tableName="document_ia_file_analysis" columnName="data_file_id"/>
+        <dropColumn tableName="document_ia_file_analysis" columnName="data_document_id"/>
+
+        <dropForeignKeyConstraint
+                baseTableName="document_ia_file_analysis"
+                constraintName="fk_document_ia_file_analysis_file"/>
+        <addNotNullConstraint tableName="document_ia_file_analysis" columnName="file_id"/>
+        <addForeignKeyConstraint
+                baseTableName="document_ia_file_analysis"
+                baseColumnNames="file_id"
+                referencedTableName="file"
+                referencedColumnNames="id"
+                constraintName="fk_document_ia_file_analysis_file"
+                onDelete="CASCADE"/>
+
+        <modifyDataType
+                tableName="document_ia_file_analysis"
+                columnName="result"
+                newDataType="text"/>
+
+    </changeSet>
+
+</databaseChangeLog>
