@@ -218,5 +218,39 @@ class DocumentIAResultSanitizerTest {
             assertThat(outputUnknown.getRawData()).isNull();
             assertThat(outputQrcode.getRawData()).isNull();
         }
+
+        @Test
+        void should_sanitize_barcodes_even_when_extraction_is_null() {
+            DocumentIAResultSanitizer sanitizer = new DocumentIAResultSanitizer();
+            sanitizer.setDocumentIaModelClassesOverride(List.of(TestIdentityTwoDDocModel.class));
+            sanitizer.init();
+
+            Document document = new Document();
+            document.setDocumentCategory(DocumentCategory.IDENTIFICATION);
+            document.setDocumentSubCategory(DocumentSubCategory.FRENCH_IDENTITY_CARD);
+
+            BarcodeModel barcode = BarcodeModel.builder()
+                    .type("2D_DOC")
+                    .antsType("avis_imposition")
+                    .rawData(java.util.Map.of("raw_key", "remove"))
+                    .typedData(List.of(
+                            GenericProperty.builder().name("doc_type").type(GenericProperty.TYPE_STRING).value("28").build(),
+                            GenericProperty.builder().name("noise").type(GenericProperty.TYPE_STRING).value("remove").build()
+                    ))
+                    .build();
+
+            ResultModel input = ResultModel.builder()
+                    .extraction(null)
+                    .barcodes(List.of(barcode))
+                    .build();
+
+            ResultModel output = sanitizer.sanitize(input, document);
+
+            assertThat(output.getBarcodes()).hasSize(1);
+            assertThat(output.getBarcodes().getFirst().getRawData()).isNull();
+            assertThat(output.getBarcodes().getFirst().getTypedData())
+                    .extracting(GenericProperty::getName)
+                    .containsExactly("doc_type");
+        }
     }
 }
