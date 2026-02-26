@@ -10,7 +10,6 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.FileStatus;
 import fr.dossierfacile.common.enums.LogType;
-import fr.dossierfacile.common.mapper.ApplicationBasicMapper;
 import fr.dossierfacile.common.mapper.ApplicationFullMapper;
 import fr.dossierfacile.common.mapper.ApplicationLightMapper;
 import fr.dossierfacile.common.repository.ApartmentSharingLinkRepository;
@@ -58,8 +57,6 @@ class ApartmentSharingServiceImplTest {
     private ApplicationFullMapper applicationFullMapper;
     @MockBean
     private ApplicationLightMapper applicationLightMapper;
-    @MockBean
-    private ApplicationBasicMapper applicationBasicMapper;
     @MockBean
     private FileStorageService fileStorageService;
     @MockBean
