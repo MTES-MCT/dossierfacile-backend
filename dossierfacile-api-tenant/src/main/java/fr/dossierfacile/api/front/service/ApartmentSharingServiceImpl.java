@@ -4,15 +4,12 @@ import fr.dossierfacile.api.front.amqp.Producer;
 import fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException;
 import fr.dossierfacile.api.front.exception.ApartmentSharingUnexpectedException;
 import fr.dossierfacile.api.front.exception.TrigramNotAuthorizedException;
-import fr.dossierfacile.api.front.model.MappingFormat;
 import fr.dossierfacile.api.front.model.tenant.FullFolderFile;
 import fr.dossierfacile.api.front.repository.ApiTenantLogRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.BruteForceProtectionService;
 import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.*;
-import fr.dossierfacile.common.mapper.ApartmentSharingMapper;
-import fr.dossierfacile.common.mapper.ApplicationBasicMapper;
 import fr.dossierfacile.common.mapper.ApplicationFullMapper;
 import fr.dossierfacile.common.mapper.ApplicationLightMapper;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
@@ -28,7 +25,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -44,7 +40,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -59,7 +54,6 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
     private final TenantCommonRepository tenantRepository;
     private final ApplicationFullMapper applicationFullMapper;
     private final ApplicationLightMapper applicationLightMapper;
-    private final ApplicationBasicMapper applicationBasicMapper;
     private final FileStorageService fileStorageService;
     private final LinkLogService linkLogService;
     private final Producer producer;
@@ -361,14 +355,6 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
             zos.write(bytes, 0, length);
         }
         zos.closeEntry();
-    }
-
-    @Override
-    public List<ApplicationModel> findApartmentSharingByLastUpdateDateAndPartner(LocalDateTime lastUpdateDate, UserApi userApi, int limit, MappingFormat format) {
-        ApartmentSharingMapper mapper = (format == MappingFormat.EXTENDED) ? applicationFullMapper : applicationBasicMapper;
-
-        return apartmentSharingRepository.findByLastUpdateDateAndPartner(lastUpdateDate, userApi, PageRequest.of(0, limit)).stream().map(a ->
-                mapper.toApplicationModel(a, userApi)).collect(Collectors.toList());
     }
 
     private void checkingAllTenantsInTheApartmentAreValidatedAndAllDocumentsAreNotNull(long apartmentSharingId, String token) {
