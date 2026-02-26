@@ -51,7 +51,9 @@ public enum DocumentCategoryStep {
     TAX_FRENCH_NOTICE("document_category_step.TAX_FRENCH_NOTICE"),
     TAX_FOREIGN_NOTICE("document_category_step.TAX_FOREIGN_NOTICE"),
     TAX_NO_DECLARATION("document_category_step.TAX_NO_DECLARATION"),
-    TAX_NOT_RECEIVED("document_category_step.TAX_NOT_RECEIVED");
+    TAX_NOT_RECEIVED("document_category_step.TAX_NOT_RECEIVED"),
+
+    UNDEFINED("document_category_step.UNDEFINED");
 
     final String label;
 
