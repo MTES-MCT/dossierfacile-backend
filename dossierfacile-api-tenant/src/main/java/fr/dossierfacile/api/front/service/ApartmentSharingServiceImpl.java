@@ -411,7 +411,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
         ApartmentSharing apartmentSharing = findValidApartmentSharing(token, true);
         Document document = documentRepository.findByNameForApartmentSharing(documentName, apartmentSharing.getId())
                 .orElseThrow(() -> new ApartmentSharingNotFoundException(token.toString()));
-        saveLinkLog(apartmentSharing, token, LinkType.DOCUMENT);
+        saveLinkLog(apartmentSharing, token, LinkType.SINGLE_DOCUMENT_DOWNLOAD);
         return document;
     }
 

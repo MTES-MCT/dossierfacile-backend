@@ -41,9 +41,9 @@ public class ApplicationController {
     private static final String DOCUMENT_NOT_EXIST = "The document does not exist";
     private static final String EXPOSE_HEADERS = "Access-Control-Expose-Headers";
     private static final String EXPOSE_HEADERS_VALUE = "Content-Disposition, Content-Type";
+    private static final String X_ROBOTS_TAG = "X-Robots-Tag";
     private static final String X_ROBOTS_TAG_VALUE = "noindex";
     private static final String CONTENT_DISPOSITION = "Content-Disposition";
-    private static final String X_ROBOTS_TAG = "X-Robots-Tag";
     public static final String CONTENT_TYPE = "Content-Type";
     public static final String CONTENT_TYPE_ZIP = "application/zip";
     private final ApartmentSharingService apartmentSharingService;
@@ -89,7 +89,7 @@ public class ApplicationController {
         return handlePdfCreation(() -> apartmentSharingService.createFullPdf(token));
     }
 
-    @GetMapping(value = "/links/{token}/document/{documentName:.+}", produces = MediaType.APPLICATION_PDF_VALUE)
+    @GetMapping(value = "/links/{token}/documents/{documentName:.+}", produces = MediaType.APPLICATION_PDF_VALUE)
     public void downloadDocumentByLink(@PathVariable UUID token,
                                        @PathVariable String documentName,
                                        HttpServletResponse response) {
