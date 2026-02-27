@@ -42,8 +42,6 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -132,7 +130,7 @@ class DocumentControllerTest {
                                     jwtTokenWithDossier,
                                     (v) -> {
                                         when(self.authenticationFacade.getLoggedTenant()).thenReturn(tenant);
-                                        when(self.documentService.getAuthorizedDocument(eq(DOCUMENT_NAME), eq(tenant)))
+                                        when(self.documentService.getAuthorizedDocument(DOCUMENT_NAME, tenant))
                                                 .thenReturn(document);
                                         try {
                                             when(self.fileStorageService.download(watermarkFile))
@@ -152,7 +150,7 @@ class DocumentControllerTest {
                                     jwtTokenWithDossier,
                                     (v) -> {
                                         when(self.authenticationFacade.getLoggedTenant()).thenReturn(tenant);
-                                        when(self.documentService.getAuthorizedDocument(eq(DOCUMENT_NAME), eq(tenant)))
+                                        when(self.documentService.getAuthorizedDocument(DOCUMENT_NAME, tenant))
                                                 .thenThrow(new AccessDeniedException("Not authorized"));
                                         return v;
                                     },
@@ -175,7 +173,7 @@ class DocumentControllerTest {
                                     jwtTokenWithDossier,
                                     (v) -> {
                                         when(self.authenticationFacade.getLoggedTenant()).thenReturn(tenant);
-                                        when(self.documentService.getAuthorizedDocument(eq(DOCUMENT_NAME), eq(tenant)))
+                                        when(self.documentService.getAuthorizedDocument(DOCUMENT_NAME, tenant))
                                                 .thenThrow(new DocumentNotFoundException(DOCUMENT_NAME));
                                         return v;
                                     },

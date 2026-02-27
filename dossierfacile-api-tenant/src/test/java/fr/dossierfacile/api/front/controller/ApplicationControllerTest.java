@@ -46,7 +46,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -124,7 +123,7 @@ class ApplicationControllerTest {
         UUID nonExistentToken = UUID.randomUUID();
         doThrow(new fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException(
                 nonExistentToken.toString()))
-                .when(apartmentSharingService).linkExists(eq(nonExistentToken), eq(true));
+                .when(apartmentSharingService).linkExists(nonExistentToken, true);
 
         // When & Then
         mockMvc.perform(head("/api/application/full/{token}", nonExistentToken))
@@ -135,7 +134,7 @@ class ApplicationControllerTest {
     void shouldReturn200WhenValidTrigramProvided() throws Exception {
         // Given
         ApplicationModel applicationModel = new ApplicationModel();
-        when(apartmentSharingService.full(eq(TEST_TOKEN), eq(VALID_TRIGRAM), eq(null)))
+        when(apartmentSharingService.full(TEST_TOKEN, VALID_TRIGRAM, null))
                 .thenReturn(applicationModel);
 
         // When & Then
@@ -158,7 +157,7 @@ class ApplicationControllerTest {
                 .build();
         apartmentSharing.setTenants(Collections.singletonList(tenant));
 
-        when(apartmentSharingService.full(eq(TEST_TOKEN), eq(INVALID_TRIGRAM), eq(null)))
+        when(apartmentSharingService.full(TEST_TOKEN, INVALID_TRIGRAM, null))
                 .thenThrow(new fr.dossierfacile.api.front.exception.TrigramNotAuthorizedException(
                         "Trigram does not match any tenant for this application"));
 
@@ -173,7 +172,7 @@ class ApplicationControllerTest {
         // Given
         UUID nonExistentToken = UUID.fromString("11111111-1111-1111-1111-111111111111");
 
-        when(apartmentSharingService.full(eq(nonExistentToken), eq(VALID_TRIGRAM), eq(null)))
+        when(apartmentSharingService.full(nonExistentToken, VALID_TRIGRAM, null))
                 .thenThrow(new fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException(
                         nonExistentToken.toString()));
 
@@ -187,7 +186,7 @@ class ApplicationControllerTest {
     void shouldReturn429WhenLinkIsBlockedByBruteForceProtection() throws Exception {
         // Given
         // Simulates scenario where brute-force.max-attempts has been exceeded
-        when(apartmentSharingService.full(eq(TEST_TOKEN), eq(INVALID_TRIGRAM), eq(null)))
+        when(apartmentSharingService.full(TEST_TOKEN, INVALID_TRIGRAM, null))
                 .thenThrow(new fr.dossierfacile.api.front.exception.ApplicationLinkBlockedException(
                         "Too many failed attempts. Link is temporarily blocked."));
 
@@ -460,7 +459,7 @@ class ApplicationControllerTest {
                                     200,
                                     null, // no JWT required — public endpoint
                                     (v) -> {
-                                        when(self.apartmentSharingService.findDocumentByLink(eq(token), eq(documentName)))
+                                        when(self.apartmentSharingService.findDocumentByLink(token, documentName))
                                                 .thenReturn(document);
                                         try {
                                             when(self.fileStorageService.download(watermarkFile))
@@ -479,7 +478,7 @@ class ApplicationControllerTest {
                                     404,
                                     null,
                                     (v) -> {
-                                        when(self.apartmentSharingService.findDocumentByLink(eq(token), eq(documentName)))
+                                        when(self.apartmentSharingService.findDocumentByLink(token, documentName))
                                                 .thenThrow(new ApartmentSharingNotFoundException(token.toString()));
                                         return v;
                                     },
@@ -492,7 +491,7 @@ class ApplicationControllerTest {
                                     404,
                                     null,
                                     (v) -> {
-                                        when(self.apartmentSharingService.findDocumentByLink(eq(token), eq(documentName)))
+                                        when(self.apartmentSharingService.findDocumentByLink(token, documentName))
                                                 .thenThrow(new ApartmentSharingNotFoundException(token.toString()));
                                         return v;
                                     },
@@ -505,7 +504,7 @@ class ApplicationControllerTest {
         @ParameterizedTest(name = "{0}")
         @MethodSource("provideDownloadDocumentByLinkParameters")
         void parameterizedTests(ControllerParameter<DownloadDocumentByLinkTestParameter> parameter) throws Exception {
-            var mockMvcRequestBuilder = get("/api/application/links/{token}/document/{documentName}",
+            var mockMvcRequestBuilder = get("/api/application/links/{token}/documents/{documentName}",
                     TEST_TOKEN, "abc-123.pdf")
                     .contentType("application/pdf");
 

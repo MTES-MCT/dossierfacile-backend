@@ -34,7 +34,6 @@ class ApplicationFullMapperTest implements AuthenticityStatusMappingTest {
         @Test
         void shouldRewriteDocumentUrlsToLinkPath() {
             ApplicationFullMapperImpl mapper = new ApplicationFullMapperImpl();
-            mapper.setCategoriesMapper(new VersionedCategoriesMapper());
             mapper.applicationBaseUrl = "https://api.example.com";
             mapper.tenantBaseUrl = "https://example.com";
 
@@ -65,10 +64,10 @@ class ApplicationFullMapperTest implements AuthenticityStatusMappingTest {
             ApplicationModel model = mapper.toApplicationModelWithToken(apartmentSharing, token);
 
             assertThat(model.getTenants()).hasSize(1);
-            assertThat(model.getTenants().get(0).getDocuments()).hasSize(1);
+            assertThat(model.getTenants().getFirst().getDocuments()).hasSize(1);
 
-            String docUrl = model.getTenants().get(0).getDocuments().get(0).getName();
-            assertThat(docUrl).isEqualTo("https://api.example.com/api/application/links/" + token + "/document/doc-123.pdf");
+            String docUrl = model.getTenants().getFirst().getDocuments().getFirst().getName();
+            assertThat(docUrl).isEqualTo("https://api.example.com/api/application/links/" + token + "/documents/doc-123.pdf");
             assertThat(model.getDossierPdfUrl()).isEqualTo("https://api.example.com/api/application/fullPdf/" + token);
             assertThat(model.getDossierUrl()).isEqualTo("https://example.com/file/" + token);
         }
@@ -76,7 +75,6 @@ class ApplicationFullMapperTest implements AuthenticityStatusMappingTest {
         @Test
         void shouldSetNullUrlWhenNoWatermarkFile() {
             ApplicationFullMapperImpl mapper = new ApplicationFullMapperImpl();
-            mapper.setCategoriesMapper(new VersionedCategoriesMapper());
             mapper.applicationBaseUrl = "https://api.example.com";
             mapper.tenantBaseUrl = "https://example.com";
 
@@ -103,7 +101,7 @@ class ApplicationFullMapperTest implements AuthenticityStatusMappingTest {
 
             ApplicationModel model = mapper.toApplicationModelWithToken(apartmentSharing, token);
 
-            assertThat(model.getTenants().get(0).getDocuments().get(0).getName()).isNull();
+            assertThat(model.getTenants().getFirst().getDocuments().getFirst().getName()).isNull();
         }
     }
 
@@ -113,7 +111,6 @@ class ApplicationFullMapperTest implements AuthenticityStatusMappingTest {
         @Test
         void shouldUseLinkPathWhenPartnerTokenExists() {
             ApplicationFullMapperImpl mapper = new ApplicationFullMapperImpl();
-            mapper.setCategoriesMapper(new VersionedCategoriesMapper());
             mapper.applicationBaseUrl = "https://api.example.com";
             mapper.tenantBaseUrl = "https://example.com";
 
@@ -136,7 +133,7 @@ class ApplicationFullMapperTest implements AuthenticityStatusMappingTest {
             document.setTenant(tenant);
 
             UUID partnerToken = UUID.randomUUID();
-            UserApi userApi = UserApi.builder().id(42L).version(4).build();
+            UserApi userApi = UserApi.builder().id(42L).build();
 
             ApartmentSharing apartmentSharing = new ApartmentSharing();
             apartmentSharing.setTenants(List.of(tenant));
@@ -153,8 +150,8 @@ class ApplicationFullMapperTest implements AuthenticityStatusMappingTest {
             ApplicationModel model = mapper.toApplicationModel(apartmentSharing, userApi);
 
             assertThat(model.getTenants()).hasSize(1);
-            String docUrl = model.getTenants().get(0).getDocuments().get(0).getName();
-            assertThat(docUrl).isEqualTo("https://api.example.com/api/application/links/" + partnerToken + "/document/doc-123.pdf");
+            String docUrl = model.getTenants().getFirst().getDocuments().getFirst().getName();
+            assertThat(docUrl).isEqualTo("https://api.example.com/api/application/links/" + partnerToken + "/documents/doc-123.pdf");
             assertThat(model.getDossierPdfUrl()).isEqualTo("https://api.example.com/api/application/fullPdf/" + partnerToken);
             assertThat(model.getDossierUrl()).isEqualTo("https://example.com/file/" + partnerToken);
         }
@@ -162,7 +159,6 @@ class ApplicationFullMapperTest implements AuthenticityStatusMappingTest {
         @Test
         void shouldUseResourcePathWhenNotValidated() {
             ApplicationFullMapperImpl mapper = new ApplicationFullMapperImpl();
-            mapper.setCategoriesMapper(new VersionedCategoriesMapper());
             mapper.applicationBaseUrl = "https://api.example.com";
             mapper.tenantBaseUrl = "https://example.com";
 
@@ -185,7 +181,7 @@ class ApplicationFullMapperTest implements AuthenticityStatusMappingTest {
                     .build();
             document.setTenant(tenant);
 
-            UserApi userApi = UserApi.builder().id(42L).version(4).build();
+            UserApi userApi = UserApi.builder().id(42L).build();
 
             ApartmentSharing apartmentSharing = new ApartmentSharing();
             apartmentSharing.setTenants(List.of(tenant));
@@ -194,7 +190,7 @@ class ApplicationFullMapperTest implements AuthenticityStatusMappingTest {
 
             ApplicationModel model = mapper.toApplicationModel(apartmentSharing, userApi);
 
-            String docUrl = model.getTenants().get(0).getDocuments().get(0).getName();
+            String docUrl = model.getTenants().getFirst().getDocuments().getFirst().getName();
             assertThat(docUrl).isEqualTo("https://api.example.com/api/document/resource/doc-123.pdf");
             assertThat(model.getDossierPdfUrl()).isNull();
         }
@@ -202,7 +198,6 @@ class ApplicationFullMapperTest implements AuthenticityStatusMappingTest {
         @Test
         void shouldUseResourcePathWhenNoUserApi() {
             ApplicationFullMapperImpl mapper = new ApplicationFullMapperImpl();
-            mapper.setCategoriesMapper(new VersionedCategoriesMapper());
             mapper.applicationBaseUrl = "https://api.example.com";
             mapper.tenantBaseUrl = "https://example.com";
 
@@ -231,7 +226,7 @@ class ApplicationFullMapperTest implements AuthenticityStatusMappingTest {
 
             ApplicationModel model = mapper.toApplicationModel(apartmentSharing, null);
 
-            String docUrl = model.getTenants().get(0).getDocuments().get(0).getName();
+            String docUrl = model.getTenants().getFirst().getDocuments().getFirst().getName();
             assertThat(docUrl).isEqualTo("https://api.example.com/api/document/resource/doc-123.pdf");
             assertThat(model.getDossierPdfUrl()).isNull();
         }
@@ -243,7 +238,6 @@ class ApplicationFullMapperTest implements AuthenticityStatusMappingTest {
         @Test
         void shouldUseResourcePath() {
             ApplicationFullMapperImpl mapper = new ApplicationFullMapperImpl();
-            mapper.setCategoriesMapper(new VersionedCategoriesMapper());
             mapper.applicationBaseUrl = "https://api.example.com";
             mapper.tenantBaseUrl = "https://example.com";
 
@@ -272,7 +266,7 @@ class ApplicationFullMapperTest implements AuthenticityStatusMappingTest {
             ApplicationModel model = mapper.toApplicationModel(apartmentSharing);
 
             assertThat(model.getTenants()).hasSize(1);
-            String docUrl = model.getTenants().get(0).getDocuments().get(0).getName();
+            String docUrl = model.getTenants().getFirst().getDocuments().getFirst().getName();
             assertThat(docUrl).isEqualTo("https://api.example.com/api/document/resource/doc-123.pdf");
         }
     }

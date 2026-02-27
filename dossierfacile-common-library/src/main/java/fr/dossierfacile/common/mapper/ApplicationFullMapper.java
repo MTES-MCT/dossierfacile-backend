@@ -19,30 +19,22 @@ import java.util.UUID;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 @Mapper(componentModel = "spring")
 public abstract class ApplicationFullMapper implements ApartmentSharingMapper {
-    protected static final String DIRECT_DOCUMENT_PATH = "api/document/resource";
-    protected static final String LINK_DOCUMENT_PATH = "/api/application/links/";
-    protected static final String DOSSIER_PDF_PATH = "/api/application/fullPdf/";
-    protected static final String DOSSIER_PATH = "/file/";
+    protected static final String DOCUMENT_DIRECT_PATH = "api/document/resource";
+    protected static final String DOCUMENT_LINK_PATH = "api/application/links";
+    protected static final String DOSSIER_PDF_PATH = "api/application/fullPdf";
+    protected static final String DOSSIER_PATH = "file";
 
     @Value("${application.base.url:default}")
     protected String applicationBaseUrl;
 
     @Value("${tenant.base.url:default}")
     protected String tenantBaseUrl;
-
-    protected CategoriesMapper categoriesMapper;
-
-    @Autowired
-    public void setCategoriesMapper(CategoriesMapper categoriesMapper) {
-        this.categoriesMapper = categoriesMapper;
-    }
 
     abstract ApplicationModel mapApplicationModel(ApartmentSharing apartmentSharing, @Context UserApi userApi);
 
@@ -51,11 +43,11 @@ public abstract class ApplicationFullMapper implements ApartmentSharingMapper {
         ApplicationModel model = mapApplicationModel(apartmentSharing, userApi);
         resolvePartnerToken(apartmentSharing, userApi).ifPresentOrElse(
             token -> {
-                model.setDossierPdfUrl(applicationBaseUrl + DOSSIER_PDF_PATH + token);
-                model.setDossierUrl(tenantBaseUrl + DOSSIER_PATH + token);
-                buildDocumentUrls(model, applicationBaseUrl + LINK_DOCUMENT_PATH + token + "/document/");
+                model.setDossierPdfUrl(applicationBaseUrl + "/" + DOSSIER_PDF_PATH + "/" + token);
+                model.setDossierUrl(tenantBaseUrl + "/" + DOSSIER_PATH + "/" + token);
+                buildDocumentUrls(model, applicationBaseUrl + "/" + DOCUMENT_LINK_PATH + "/" + token + "/documents/");
             },
-            () -> buildDocumentUrls(model, applicationBaseUrl + "/" + DIRECT_DOCUMENT_PATH + "/")
+            () -> buildDocumentUrls(model, applicationBaseUrl + "/" + DOCUMENT_DIRECT_PATH + "/")
         );
         return model;
     }
@@ -66,9 +58,9 @@ public abstract class ApplicationFullMapper implements ApartmentSharingMapper {
 
     public ApplicationModel toApplicationModelWithToken(ApartmentSharing apartmentSharing, UUID token) {
         ApplicationModel model = mapApplicationModel(apartmentSharing, null);
-        model.setDossierPdfUrl(applicationBaseUrl + DOSSIER_PDF_PATH + token);
-        model.setDossierUrl(tenantBaseUrl + DOSSIER_PATH + token);
-        buildDocumentUrls(model, applicationBaseUrl + LINK_DOCUMENT_PATH + token + "/document/");
+        model.setDossierPdfUrl(applicationBaseUrl + "/" + DOSSIER_PDF_PATH + "/" + token);
+        model.setDossierUrl(tenantBaseUrl + "/" + DOSSIER_PATH + "/" + token);
+        buildDocumentUrls(model, applicationBaseUrl + "/" + DOCUMENT_LINK_PATH + "/" + token + "/documents/");
         return model;
     }
 

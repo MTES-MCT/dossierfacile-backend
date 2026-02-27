@@ -22,32 +22,34 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
 
     Optional<Document> findByDocumentCategoryAndGuarantorAndId(DocumentCategory documentCategory, Guarantor guarantor, Long documentId);
 
-    @Query(value = "select d1.*\n" +
-            "from document d1\n" +
-            "  join tenant t on t.id = d1.tenant_id\n" +
-            "where t.apartment_sharing_id = :apartId\n" +
-            "  and d1.id = :documentId\n" +
-            "union\n" +
-            "select d2.*\n" +
-            "from document d2\n" +
-            "  join guarantor g on d2.guarantor_id = g.id\n" +
-            "  join tenant t on t.id = g.tenant_id\n" +
-            "where t.apartment_sharing_id = :apartId\n" +
-            "  and d2.id = :documentId", nativeQuery = true)
+    @Query(value = """
+            select d1.*
+            from document d1
+              join tenant t on t.id = d1.tenant_id
+            where t.apartment_sharing_id = :apartId
+              and d1.id = :documentId
+            union
+            select d2.*
+            from document d2
+              join guarantor g on d2.guarantor_id = g.id
+              join tenant t on t.id = g.tenant_id
+            where t.apartment_sharing_id = :apartId
+              and d2.id = :documentId""", nativeQuery = true)
     Optional<Document> findByIdForApartmentSharing(@Param("documentId") Long documentId, @Param("apartId") Long apartmentSharing);
 
-    @Query(value = "select d1.*\n" +
-            "from document d1\n" +
-            "  join tenant t on t.id = d1.tenant_id\n" +
-            "where t.apartment_sharing_id = :apartId\n" +
-            "  and d1.name = :documentName\n" +
-            "union\n" +
-            "select d2.*\n" +
-            "from document d2\n" +
-            "  join guarantor g on d2.guarantor_id = g.id\n" +
-            "  join tenant t on t.id = g.tenant_id\n" +
-            "where t.apartment_sharing_id = :apartId\n" +
-            "  and d2.name = :documentName", nativeQuery = true)
+    @Query(value = """
+            select d1.*
+            from document d1
+              join tenant t on t.id = d1.tenant_id
+            where t.apartment_sharing_id = :apartId
+              and d1.name = :documentName
+            union
+            select d2.*
+            from document d2
+              join guarantor g on d2.guarantor_id = g.id
+              join tenant t on t.id = g.tenant_id
+            where t.apartment_sharing_id = :apartId
+              and d2.name = :documentName""", nativeQuery = true)
     Optional<Document> findByNameForApartmentSharing(@Param("documentName") String documentName, @Param("apartId") Long apartmentSharing);
 
     Optional<Document> findFirstByName(String name);
