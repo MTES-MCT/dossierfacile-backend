@@ -53,22 +53,40 @@ public abstract class TenantMapper {
         return null;
     }
 
-    @Mapping(target = "name", expression = "java((document.getWatermarkFile() != null )? applicationBaseUrl + \"/" + DOCUMENT_DIRECT_PATH + "/\" + document.getName() : null)")
+    @Mapping(target = "name", expression = "java(buildDocumentUrl(document, userApi))")
     @Mapping(target = "files", expression = "java((userApi == null)? mapFiles(document.getFiles()) : null)")
     @MapDocumentCategories
     public abstract DocumentModel toDocumentModel(Document document, @Context UserApi userApi);
+
+    protected String buildDocumentUrl(Document document, UserApi userApi) {
+        if (document.getWatermarkFile() == null) {
+            return null;
+        }
+        String token = resolvePartnerToken(document, userApi);
+        if (token != null) {
+            return applicationBaseUrl + "/" + DOCUMENT_LINK_PATH + "/" + token + "/documents/" + document.getName();
+        }
+        return applicationBaseUrl + "/" + DOCUMENT_DIRECT_PATH + "/" + document.getName();
+    }
 
     public abstract List<FileModel> mapFiles(List<File> files);
 
     @Mapping(target = "connectedTenantId", source = "id")
     public abstract ConnectedTenantModel toTenantModelDfc(Tenant tenant, @Context UserApi userApi);
 
-    @Mapping(target = "preview", expression = "java((documentFile.getPreview() != null )? applicationBaseUrl + \"/\" + \"" + PREVIEW_PATH + "\" + \"/\" + documentFile.getId() : null)")
+    @Mapping(target = "preview", expression = "java(buildPreviewUrl(documentFile))")
     @Mapping(target = "size", source = "documentFile.storageFile.size")
     @Mapping(target = "contentType", source = "documentFile.storageFile.contentType")
     @Mapping(target = "originalName", source = "documentFile.storageFile.name")
     @Mapping(target = "md5", source = "documentFile.storageFile.md5")
     public abstract FileModel toFileModel(File documentFile);
+
+    protected String buildPreviewUrl(File documentFile) {
+        if (documentFile.getPreview() != null) {
+            return applicationBaseUrl + "/" + PREVIEW_PATH + "/" + documentFile.getId();
+        }
+        return null;
+    }
 
     @AfterMapping
     void modificationsAfterMapping(@MappingTarget TenantModel.TenantModelBuilder tenantModelBuilder, @Context UserApi userApi, Tenant tenant) {
@@ -78,12 +96,6 @@ public abstract class TenantMapper {
             updateTokens(tenant, apartmentSharingModel,
                     l -> l.getLinkType() == ApartmentSharingLinkType.PARTNER
                             && Objects.equals(l.getPartnerId(), userApi.getId()));
-            String token = apartmentSharingModel.getToken();
-            if (token != null) {
-                String oldPrefix = applicationBaseUrl + "/" + DOCUMENT_DIRECT_PATH + "/";
-                String newPrefix = applicationBaseUrl + "/" + DOCUMENT_LINK_PATH + "/" + token + "/documents/";
-                rewriteDocumentUrls(tenantModel, oldPrefix, newPrefix);
-            }
         } else {
             updateTokens(tenant, apartmentSharingModel, l -> l.getLinkType() == ApartmentSharingLinkType.LINK);
         }
@@ -190,47 +202,41 @@ public abstract class TenantMapper {
         fr.dossierfacile.api.front.model.dfc.apartment_sharing.ApartmentSharingModel apartmentSharingModel = connectedTenantModel.getApartmentSharing();
         updateTokens(tenant, apartmentSharingModel, l -> l.getLinkType() == ApartmentSharingLinkType.PARTNER && userApi != null && Objects.equals(l.getPartnerId(), userApi.getId()));
 
-        // Rewrite document URLs to use link-based path when a partner token exists
-        String token = apartmentSharingModel.getToken();
-        if (token != null) {
-            String oldPrefix = applicationBaseUrl + "/" + DOCUMENT_DIRECT_PATH + "/";
-            String newPrefix = applicationBaseUrl + "/" + DOCUMENT_LINK_PATH + "/" + token + "/documents/";
-            rewriteDocumentUrls(connectedTenantModel, oldPrefix, newPrefix);
-        }
-
         connectedTenantModel.getApartmentSharing().getTenants().forEach(tenantModel -> setDocumentDeniedReasonsAndDocumentAndFilesRoutes(tenantModel.getDocuments(), null, true));
         connectedTenantModel.getApartmentSharing().getTenants().forEach(tenantModel ->
                 Optional.ofNullable(tenantModel.getGuarantors()).ifPresent(guarantorModels ->
                         guarantorModels.forEach(guarantorModel -> setDocumentDeniedReasonsAndDocumentAndFilesRoutes(guarantorModel.getDocuments(), null, true))));
     }
 
-    private void rewriteDocumentUrls(TenantModel model, String oldPrefix, String newPrefix) {
-        rewriteDocumentNames(model.getDocuments(), oldPrefix, newPrefix);
-        Optional.ofNullable(model.getGuarantors()).ifPresent(guarantors ->
-                guarantors.forEach(g -> rewriteDocumentNames(g.getDocuments(), oldPrefix, newPrefix)));
-        Optional.ofNullable(model.getApartmentSharing().getTenants()).ifPresent(tenants ->
-                tenants.forEach(coTenant -> {
-                    rewriteDocumentNames(coTenant.getDocuments(), oldPrefix, newPrefix);
-                    Optional.ofNullable(coTenant.getGuarantors()).ifPresent(guarantors ->
-                            guarantors.forEach(g -> rewriteDocumentNames(g.getDocuments(), oldPrefix, newPrefix)));
-                }));
+    private String resolvePartnerToken(Document document, UserApi userApi) {
+        if (userApi == null) {
+            return null;
+        }
+        ApartmentSharing apartmentSharing = getApartmentSharing(document);
+        if (apartmentSharing == null || apartmentSharing.getStatus() != TenantFileStatus.VALIDATED) {
+            return null;
+        }
+        List<ApartmentSharingLink> links = apartmentSharing.getApartmentSharingLinks();
+        if (links == null) {
+            return null;
+        }
+        return links.stream()
+                .filter(l -> l.getLinkType() == ApartmentSharingLinkType.PARTNER
+                        && Objects.equals(l.getPartnerId(), userApi.getId())
+                        && l.isFullData())
+                .findFirst()
+                .map(l -> l.getToken().toString())
+                .orElse(null);
     }
 
-    private void rewriteDocumentUrls(ConnectedTenantModel model, String oldPrefix, String newPrefix) {
-        model.getApartmentSharing().getTenants().forEach(tenantModel -> {
-            rewriteDocumentNames(tenantModel.getDocuments(), oldPrefix, newPrefix);
-            Optional.ofNullable(tenantModel.getGuarantors()).ifPresent(guarantors ->
-                    guarantors.forEach(g -> rewriteDocumentNames(g.getDocuments(), oldPrefix, newPrefix)));
-        });
-    }
-
-    private void rewriteDocumentNames(List<DocumentModel> documents, String oldPrefix, String newPrefix) {
-        if (documents == null) return;
-        documents.forEach(doc -> {
-            if (doc.getName() != null) {
-                doc.setName(doc.getName().replace(oldPrefix, newPrefix));
-            }
-        });
+    private ApartmentSharing getApartmentSharing(Document document) {
+        if (document.getTenant() != null) {
+            return document.getTenant().getApartmentSharing();
+        }
+        if (document.getGuarantor() != null && document.getGuarantor().getTenant() != null) {
+            return document.getGuarantor().getTenant().getApartmentSharing();
+        }
+        return null;
     }
 
     private void hideDocumentAnalysisReportInfoLevel(List<DocumentModel> documents) {
