@@ -68,7 +68,6 @@ public class TenantWarningTask extends AbstractTask {
                     t -> tryArchiveTenant(t),
                     tenantIds);
 
-            archiveOrphanedCoTenants(tenantIds);
             addTenantIdListForLogging(tenantIds);
         } catch (Exception e) {
             log.error("Error during tenant archiving task: {}", e.getMessage(), e);
@@ -117,19 +116,6 @@ public class TenantWarningTask extends AbstractTask {
         } finally {
             super.endTask();
         }
-    }
-
-    /**
-     * Archives co-tenants (JOIN) who have no email address and whose main tenant (CREATE)
-     * is already archived. Uses the same archiving path as inactive tenant archiving.
-     */
-    private void archiveOrphanedCoTenants(List<Long> tenantIds) {
-        Page<Tenant> tenantPage = tenantRepository.findCotenantsWithNoEmailAndArchivedMainTenant(pageRequest());
-
-        processTenantsWithEmail(tenantPage,
-                pageable -> tenantRepository.findCotenantsWithNoEmailAndArchivedMainTenant(pageable),
-                t -> tryArchiveTenant(t),
-                tenantIds);
     }
 
     /**
