@@ -53,7 +53,7 @@ public class TenantDeletionTask extends AbstractTask {
             toDelete = tenantRepository.findByLastUpdateDate(limitDate, toDelete.nextPageable());
             deleteAllTenants(toDelete, listOfTenantIds);
         }
-        addTenantIdsToDeleteForLogging(listOfTenantIds);
+        addTenantIdListForLogging(listOfTenantIds);
     }
 
     private void deleteAllTenants(Page<Long> tenantIds, List<Long> listOfTenantIds) {

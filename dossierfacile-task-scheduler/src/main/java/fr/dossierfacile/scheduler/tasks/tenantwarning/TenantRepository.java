@@ -24,20 +24,4 @@ interface TenantRepository extends JpaRepository<Tenant, Long> {
             """)
     Page<Tenant> findInactiveTenantsWithDocuments(Pageable pageable, @Param("localDateTime") LocalDateTime localDateTime, @Param("warnings") Integer warnings);
 
-    @Query(value = """
-           SELECT *
-           FROM tenant t, user_account u
-           WHERE t.id = u.id
-             AND t.tenant_type = 'JOIN'
-             AND t.status != 'ARCHIVED'
-             AND u.email is null
-             AND EXISTS (
-               SELECT 1 FROM tenant t2
-               WHERE t2.apartment_sharing_id = t.apartment_sharing_id
-                 AND t2.tenant_type = 'CREATE'
-                 AND t2.status = 'ARCHIVED'
-           )
-           """, nativeQuery = true)
-    Page<Tenant> findCotenantsWithNoEmailAndArchivedMainTenant(Pageable pageable);
-
 }

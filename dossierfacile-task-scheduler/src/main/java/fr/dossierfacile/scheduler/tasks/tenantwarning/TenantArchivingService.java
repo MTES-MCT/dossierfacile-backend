@@ -16,19 +16,29 @@ import fr.dossierfacile.common.service.interfaces.KeycloakCommonService;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.dossierfacile.common.service.interfaces.TenantCommonService;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
 @Slf4j
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class TenantArchivingService {
+
+    // Self-reference to go through the Spring proxy for @Transactional(REQUIRES_NEW)
+    @Lazy
+    @Autowired
+    private TenantArchivingService self;
 
     private final LogService logService;
     private final ConfirmationTokenRepository confirmationTokenRepository;
@@ -42,8 +52,10 @@ public class TenantArchivingService {
     /**
      * Archives a tenant: deletes all documents and resets the tenant entity to an archived state.
      * Notifies partners and cleans up any pending confirmation token.
+     * If the tenant is the main tenant (CREATE), also cascades archiving to co-tenants without email.
+     * Each call runs in its own transaction so that a failure on one tenant does not affect others.
      */
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void archiveTenant(Tenant t) {
         Tenant tenant = tenantRepository.findById(t.getId()).orElse(null);
         if (tenant == null) {
@@ -61,6 +73,11 @@ public class TenantArchivingService {
 
         Optional<ConfirmationToken> confirmationToken = confirmationTokenRepository.findByUser(tenant);
         confirmationToken.ifPresent(confirmationTokenRepository::delete);
+
+        // Cascade: archive co-tenants without email when archiving a main tenant
+        if (tenant.getTenantType() == TenantType.CREATE) {
+            archiveOrphanedCoTenants(tenant);
+        }
     }
 
     /**
@@ -93,6 +110,28 @@ public class TenantArchivingService {
             tenantRepository.delete(tenant);
             apartmentSharingCommonService.removeTenant(apartmentSharing, tenant);
         }
+    }
+
+    /**
+     * Archives co-tenants (JOIN) without email from the same apartment sharing as the main tenant.
+     * Each co-tenant is archived in its own transaction via the self-reference proxy.
+     */
+    private void archiveOrphanedCoTenants(Tenant mainTenant) {
+        apartmentSharingRepository.findByTenant(mainTenant.getId())
+                .ifPresent(apartmentSharing ->
+                        apartmentSharing.getTenants().stream()
+                                .filter(t -> t.getTenantType() == TenantType.JOIN)
+                                .filter(t -> isBlank(t.getEmail()))
+                                .filter(t -> t.getStatus() != TenantFileStatus.ARCHIVED)
+                                .forEach(coTenant -> {
+                                    try {
+                                        // Goes through proxy → own REQUIRES_NEW transaction per co-tenant
+                                        self.archiveTenant(coTenant);
+                                    } catch (Exception e) {
+                                        log.error("Failed to cascade archive co-tenant [{}]: {}", coTenant.getId(), e.getMessage(), e);
+                                    }
+                                })
+                );
     }
 
     /**

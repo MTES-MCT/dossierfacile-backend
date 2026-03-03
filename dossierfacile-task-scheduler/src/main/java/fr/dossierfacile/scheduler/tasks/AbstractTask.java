@@ -30,7 +30,7 @@ public class AbstractTask {
         logAggregator().sendLogs();
     }
 
-    protected void addTenantIdsToDeleteForLogging(List<Long> tenantIds) {
+    protected void addTenantIdListForLogging(List<Long> tenantIds) {
         if (!CollectionUtils.isEmpty(tenantIds)) {
             var ids = tenantIds.stream().map(String::valueOf).collect(Collectors.joining(" , "));
             LoggerUtil.addTaskTenantList("[" + ids + "]");
