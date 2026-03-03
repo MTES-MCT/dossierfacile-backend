@@ -24,4 +24,12 @@ interface TenantRepository extends JpaRepository<Tenant, Long> {
             """)
     Page<Tenant> findInactiveTenantsWithDocuments(Pageable pageable, @Param("localDateTime") LocalDateTime localDateTime, @Param("warnings") Integer warnings);
 
+    @Query(value = """
+            select t from Tenant t
+            where t.lastLoginDate < :localDateTime
+            and t.status != 'ARCHIVED'
+            and t.id not in (select d.tenant.id from Document d where d.tenant.id is not null)
+            """)
+    Page<Tenant> findInactiveTenantsWithoutDocuments(Pageable pageable, @Param("localDateTime") LocalDateTime localDateTime);
+
 }

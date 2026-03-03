@@ -68,7 +68,6 @@ public class TenantArchivingService {
         resetToArchivedStatus(tenant);
 
         tenant = tenantRepository.save(tenant);
-        logService.saveLog(LogType.DOCUMENT_DELETION_AFTER_2_ACCOUNT_WARNINGS, tenant.getId());
         partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.ARCHIVED_ACCOUNT);
 
         Optional<ConfirmationToken> confirmationToken = confirmationTokenRepository.findByUser(tenant);

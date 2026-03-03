@@ -21,7 +21,6 @@ import java.util.function.Function;
 import static fr.dossierfacile.scheduler.tasks.TaskName.TENANT_ARCHIVING;
 import static fr.dossierfacile.scheduler.tasks.TaskName.TENANT_WARNINGS_1;
 import static fr.dossierfacile.scheduler.tasks.TaskName.TENANT_WARNINGS_2;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 @Slf4j
 @Service
@@ -59,13 +58,23 @@ public class TenantWarningTask extends AbstractTask {
         super.startTask(TENANT_ARCHIVING);
         try {
             List<Long> tenantIds = new ArrayList<>();
+
+            // Path 1: tenants with documents who went through both warnings
             Page<Tenant> firstPage = tenantRepository.findInactiveTenantsWithDocuments(
                     pageRequest(), limitDate, 2);
-            log.info("Found {} tenants whose documents will be deleted", firstPage.getTotalElements());
-
-            processTenantsWithEmail(firstPage,
+            log.info("Found {} tenants with documents to archive", firstPage.getTotalElements());
+            processTenants(firstPage,
                     pageable -> tenantRepository.findInactiveTenantsWithDocuments(pageable, limitDate, 2),
-                    t -> tryArchiveTenant(t),
+                    this::tryArchiveTenant,
+                    tenantIds);
+
+            // Path 2: tenants without documents — archived directly without prior warnings
+            Page<Tenant> firstPageNoDocs = tenantRepository.findInactiveTenantsWithoutDocuments(
+                    pageRequest(), limitDate);
+            log.info("Found {} tenants without documents to archive silently", firstPageNoDocs.getTotalElements());
+            processTenants(firstPageNoDocs,
+                    pageable -> tenantRepository.findInactiveTenantsWithoutDocuments(pageable, limitDate),
+                    this::tryArchiveTenant,
                     tenantIds);
 
             addTenantIdListForLogging(tenantIds);
@@ -84,7 +93,7 @@ public class TenantWarningTask extends AbstractTask {
                     pageRequest(), limitDate, 1);
             log.info("Found {} tenants who will be warned for the SECOND time by email", firstPage.getTotalElements());
 
-            processTenantsWithEmail(firstPage,
+            processTenants(firstPage,
                     pageable -> tenantRepository.findInactiveTenantsWithDocuments(pageable, limitDate, 1),
                     t -> tryHandleWarning(t, tenantWarningService::sendSecondWarning),
                     tenantIds);
@@ -105,7 +114,7 @@ public class TenantWarningTask extends AbstractTask {
                     pageRequest(), limitDate, 0);
             log.info("Found {} tenants who will be warned for the FIRST time by email", firstPage.getTotalElements());
 
-            processTenantsWithEmail(firstPage,
+            processTenants(firstPage,
                     pageable -> tenantRepository.findInactiveTenantsWithDocuments(pageable, limitDate, 0),
                     t -> tryHandleWarning(t, tenantWarningService::sendFirstWarning),
                     tenantIds);
@@ -122,14 +131,13 @@ public class TenantWarningTask extends AbstractTask {
      * Iterates over all pages of tenants, filters those with a non-blank email,
      * collects their IDs and applies the given action to each one.
      */
-    private void processTenantsWithEmail(Page<Tenant> firstPage,
+    private void processTenants(Page<Tenant> firstPage,
                                           Function<Pageable, Page<Tenant>> nextPageFn,
                                           Consumer<Tenant> action,
                                           List<Long> ids) {
         Page<Tenant> currentPage = firstPage;
         while (true) {
             currentPage.stream()
-                    .filter(tenant -> isNotBlank(tenant.getEmail()))
                     .forEach(tenant -> {
                         ids.add(tenant.getId());
                         action.accept(tenant);

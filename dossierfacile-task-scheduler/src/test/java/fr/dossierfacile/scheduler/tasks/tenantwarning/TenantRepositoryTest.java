@@ -10,6 +10,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.context.jdbc.Sql;
 
+import java.time.LocalDateTime;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
@@ -21,11 +23,12 @@ public class TenantRepositoryTest {
 
     @Test
     @Sql("/data-two-tenant-same-apart.sql")
-    public void testFindCotenantsWithNoEmailAndArchivedMainTenant() {
+    void testFindInactiveTenantsWithoutDocuments() {
         Pageable pageable = PageRequest.of(0, 10, Sort.Direction.DESC, "id");
-        Page<Tenant> tenantPage = tenantRepository.findCotenantsWithNoEmailAndArchivedMainTenant(pageable);
+        LocalDateTime limitDate = LocalDateTime.now().minusDays(45);
+        Page<Tenant> tenantPage = tenantRepository.findInactiveTenantsWithoutDocuments(pageable, limitDate);
 
+        // Tenant 2 (INCOMPLETE, no documents, warnings=0) qualifies; tenant 1 is ARCHIVED
         assertEquals(1L, tenantPage.getTotalElements());
-
     }
 }
