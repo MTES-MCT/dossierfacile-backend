@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import static fr.dossierfacile.scheduler.tasks.TaskName.TENANT_ARCHIVING;
 import static fr.dossierfacile.scheduler.tasks.TaskName.TENANT_WARNINGS_1;
@@ -36,27 +38,38 @@ public class TenantWarningTask extends AbstractTask {
     private Integer daysForSecondWarningDeletion;
     private final TenantRepository tenantRepository;
     private final TenantWarningService tenantWarningService;
+    private final TenantArchivingService tenantArchivingService;
 
     @Scheduled(cron = "${cron.process.warnings}")
     public void accountWarningsForDocumentDeletion() {
-        // Delete documents after 45 days of inactivity (tenants with warnings=2)
-        LocalDateTime limitDateForDeletion = LocalDateTime.now().minusDays(daysForDeletionOfDocuments);
-        archiveAccounts(limitDateForDeletion);
+        // Archive accounts after 45 days of inactivity (tenants with warnings=2)
+        LocalDateTime limitDateForArchiving = LocalDateTime.now().minusDays(daysForDeletionOfDocuments);
+        archiveInactiveTenants(limitDateForArchiving);
 
         // Send second warning after 37 days of inactivity (tenants with warnings=1)
         LocalDateTime limitDateForSecondWarning = LocalDateTime.now().minusDays(daysForSecondWarningDeletion);
-        sendSecondWarningMails(limitDateForSecondWarning);
+        processSecondWarnings(limitDateForSecondWarning);
 
         // Send first warning after 30 days of inactivity (tenants with warnings=0)
         LocalDateTime limitDateForFirstWarning = LocalDateTime.now().minusDays(daysForFirstWarningDeletion);
-        sendFirstWarningMails(limitDateForFirstWarning);
+        processFirstWarnings(limitDateForFirstWarning);
     }
 
-    private void archiveAccounts(LocalDateTime limitDate) {
+    private void archiveInactiveTenants(LocalDateTime limitDate) {
         super.startTask(TENANT_ARCHIVING);
         try {
-            processAllWarnings(limitDate, 2);
-            archiveCotenantAccounts();
+            List<Long> tenantIds = new ArrayList<>();
+            Page<Tenant> firstPage = tenantRepository.findInactiveTenantsWithDocuments(
+                    pageRequest(), limitDate, 2);
+            log.info("Found {} tenants whose documents will be deleted", firstPage.getTotalElements());
+
+            processTenantsWithEmail(firstPage,
+                    pageable -> tenantRepository.findInactiveTenantsWithDocuments(pageable, limitDate, 2),
+                    t -> tryArchiveTenant(t),
+                    tenantIds);
+
+            archiveOrphanedCoTenants(tenantIds);
+            addTenantIdListForLogging(tenantIds);
         } catch (Exception e) {
             log.error("Error during tenant archiving task: {}", e.getMessage(), e);
         } finally {
@@ -64,10 +77,20 @@ public class TenantWarningTask extends AbstractTask {
         }
     }
 
-    private void sendSecondWarningMails(LocalDateTime limitDate) {
+    private void processSecondWarnings(LocalDateTime limitDate) {
         super.startTask(TENANT_WARNINGS_2);
         try {
-            processAllWarnings(limitDate, 1);
+            List<Long> tenantIds = new ArrayList<>();
+            Page<Tenant> firstPage = tenantRepository.findInactiveTenantsWithDocuments(
+                    pageRequest(), limitDate, 1);
+            log.info("Found {} tenants who will be warned for the SECOND time by email", firstPage.getTotalElements());
+
+            processTenantsWithEmail(firstPage,
+                    pageable -> tenantRepository.findInactiveTenantsWithDocuments(pageable, limitDate, 1),
+                    t -> tryHandleWarning(t, tenantWarningService::sendSecondWarning),
+                    tenantIds);
+
+            addTenantIdListForLogging(tenantIds);
         } catch (Exception e) {
             log.error("Error during tenant second warning task: {}", e.getMessage(), e);
         } finally {
@@ -75,10 +98,20 @@ public class TenantWarningTask extends AbstractTask {
         }
     }
 
-    private void sendFirstWarningMails(LocalDateTime limitDate) {
+    private void processFirstWarnings(LocalDateTime limitDate) {
         super.startTask(TENANT_WARNINGS_1);
         try {
-            processAllWarnings(limitDate, 0);
+            List<Long> tenantIds = new ArrayList<>();
+            Page<Tenant> firstPage = tenantRepository.findInactiveTenantsWithDocuments(
+                    pageRequest(), limitDate, 0);
+            log.info("Found {} tenants who will be warned for the FIRST time by email", firstPage.getTotalElements());
+
+            processTenantsWithEmail(firstPage,
+                    pageable -> tenantRepository.findInactiveTenantsWithDocuments(pageable, limitDate, 0),
+                    t -> tryHandleWarning(t, tenantWarningService::sendFirstWarning),
+                    tenantIds);
+
+            addTenantIdListForLogging(tenantIds);
         } catch (Exception e) {
             log.error("Error during tenant first warning task: {}", e.getMessage(), e);
         } finally {
@@ -86,55 +119,59 @@ public class TenantWarningTask extends AbstractTask {
         }
     }
 
-    private void processAllWarnings(LocalDateTime localDateTime, int warnings) {
-        List<Long> tenantIds = new ArrayList<>();
-        Pageable pageable = PageRequest.of(0, PAGE_SIZE, Sort.Direction.DESC, "id");
-        Page<Tenant> tenantPage = tenantRepository.findByLastLoginDateIsBeforeAndHasDocuments(pageable, localDateTime, warnings);
-        switch (warnings) {
-            case 0 ->
-                    log.info("Found {} tenants who will be warned for FIRST time by email", tenantPage.getTotalElements());
-            case 1 ->
-                    log.info("Found {} tenants who will be warned for SECOND time by email", tenantPage.getTotalElements());
-            case 2 -> log.info("Found {} tenants whose documents will be deleted", tenantPage.getTotalElements());
-        }
+    /**
+     * Archives co-tenants (JOIN) who have no email address and whose main tenant (CREATE)
+     * is already archived. Uses the same archiving path as inactive tenant archiving.
+     */
+    private void archiveOrphanedCoTenants(List<Long> tenantIds) {
+        Page<Tenant> tenantPage = tenantRepository.findCotenantsWithNoEmailAndArchivedMainTenant(pageRequest());
 
-        processWarningsForPage(warnings, tenantPage, tenantIds);
-
-        while (tenantPage.hasNext()) {
-            tenantPage = tenantRepository.findByLastLoginDateIsBeforeAndHasDocuments(tenantPage.nextPageable(), localDateTime, warnings);
-            processWarningsForPage(warnings, tenantPage, tenantIds);
-        }
-
-        addTenantIdsToDeleteForLogging(tenantIds);
+        processTenantsWithEmail(tenantPage,
+                pageable -> tenantRepository.findCotenantsWithNoEmailAndArchivedMainTenant(pageable),
+                t -> tryArchiveTenant(t),
+                tenantIds);
     }
 
-    private void processWarningsForPage(int warnings, Page<Tenant> tenantPage, List<Long> tenantIds) {
-        tenantPage.stream()
-                .filter(tenant -> isNotBlank(tenant.getEmail()))
-                .forEach(t -> {
-                    tenantIds.add(t.getId());
-                    tryHandlingTenantWarning(warnings, t);
-                });
-    }
-
-    private void archiveCotenantAccounts() {
-        Pageable pageable = PageRequest.of(0, PAGE_SIZE, Sort.Direction.DESC, "id");
-        Page<Tenant> tenantPage = tenantRepository.findCotenantsWithNoEmailAndArchivedMainTenant(pageable);
-
-        tenantPage.stream().forEach(t -> tryHandlingTenantWarning(2, t));
-
-        while (tenantPage.hasNext()) {
-            tenantPage = tenantRepository.findCotenantsWithNoEmailAndArchivedMainTenant(tenantPage.nextPageable());
-            tenantPage.stream().forEach(t -> tryHandlingTenantWarning(2, t));
+    /**
+     * Iterates over all pages of tenants, filters those with a non-blank email,
+     * collects their IDs and applies the given action to each one.
+     */
+    private void processTenantsWithEmail(Page<Tenant> firstPage,
+                                          Function<Pageable, Page<Tenant>> nextPageFn,
+                                          Consumer<Tenant> action,
+                                          List<Long> ids) {
+        Page<Tenant> currentPage = firstPage;
+        while (true) {
+            currentPage.stream()
+                    .filter(tenant -> isNotBlank(tenant.getEmail()))
+                    .forEach(tenant -> {
+                        ids.add(tenant.getId());
+                        action.accept(tenant);
+                    });
+            if (!currentPage.hasNext()) {
+                break;
+            }
+            currentPage = nextPageFn.apply(currentPage.nextPageable());
         }
     }
 
-    private void tryHandlingTenantWarning(int warnings, Tenant t) {
+    private void tryArchiveTenant(Tenant tenant) {
         try {
-            tenantWarningService.handleTenantWarning(t, warnings);
+            tenantArchivingService.archiveTenant(tenant);
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            log.error("Error while archiving tenant [{}]: {}", tenant.getId(), e.getMessage(), e);
         }
     }
 
+    private void tryHandleWarning(Tenant tenant, Consumer<Tenant> warningAction) {
+        try {
+            warningAction.accept(tenant);
+        } catch (Exception e) {
+            log.error("Error while processing warning for tenant [{}]: {}", tenant.getId(), e.getMessage(), e);
+        }
+    }
+
+    private Pageable pageRequest() {
+        return PageRequest.of(0, PAGE_SIZE, Sort.Direction.DESC, "id");
+    }
 }

@@ -22,7 +22,7 @@ interface TenantRepository extends JpaRepository<Tenant, Long> {
             and t.warnings = :warnings
             and t.id in (select d.tenant.id from Document d where d.tenant.id is not null)
             """)
-    Page<Tenant> findByLastLoginDateIsBeforeAndHasDocuments(Pageable pageable, @Param("localDateTime") LocalDateTime localDateTime, @Param("warnings") Integer warnings);
+    Page<Tenant> findInactiveTenantsWithDocuments(Pageable pageable, @Param("localDateTime") LocalDateTime localDateTime, @Param("warnings") Integer warnings);
 
     @Query(value = """
            SELECT *
