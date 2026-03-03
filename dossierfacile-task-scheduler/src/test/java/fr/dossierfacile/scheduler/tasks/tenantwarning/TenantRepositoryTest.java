@@ -25,10 +25,15 @@ public class TenantRepositoryTest {
     @Sql("/data-two-tenant-same-apart.sql")
     void testFindInactiveTenantsWithoutDocuments() {
         Pageable pageable = PageRequest.of(0, 10, Sort.Direction.DESC, "id");
-        LocalDateTime limitDate = LocalDateTime.now().minusDays(45);
-        Page<Tenant> tenantPage = tenantRepository.findInactiveTenantsWithoutDocuments(pageable, limitDate);
+        LocalDateTime limitDate = LocalDateTime.now().plusDays(45);
+        Page<Tenant> tenantPage1 = tenantRepository.findInactiveTenantsWithoutDocuments(pageable, limitDate);
 
-        // Tenant 2 (INCOMPLETE, no documents, warnings=0) qualifies; tenant 1 is ARCHIVED
-        assertEquals(1L, tenantPage.getTotalElements());
+        // Tenant 2 (INCOMPLETE, no documents, warnings=0); tenant 1 is ARCHIVED
+        assertEquals(1L, tenantPage1.getTotalElements());
+
+        Page<Tenant> tenantPage2 = tenantRepository.findInactiveTenantsWithDocuments(pageable, limitDate, 0);
+
+        // Tenant 3 (INCOMPLETE, with documents, warnings=0); tenant 1 is ARCHIVED
+        assertEquals(1L, tenantPage2.getTotalElements());
     }
 }
