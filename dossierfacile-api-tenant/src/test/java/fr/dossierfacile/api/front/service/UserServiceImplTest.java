@@ -1,7 +1,6 @@
 package fr.dossierfacile.api.front.service;
 
 import fr.dossierfacile.api.front.exception.PasswordRecoveryTokenNotFoundException;
-import fr.dossierfacile.api.front.exception.UserNotFoundException;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.repository.PasswordRecoveryTokenRepository;
 import fr.dossierfacile.api.front.repository.UserRepository;
@@ -44,7 +43,6 @@ class UserServiceImplTest {
     private static final UserRepository userRepository = mock(UserRepository.class);
     private static final PasswordRecoveryTokenRepository passwordRecoveryTokenRepository = mock(PasswordRecoveryTokenRepository.class);
     private static final MailService mailService = mock(MailService.class);
-    private static final PasswordRecoveryTokenService passwordRecoveryTokenService = mock(PasswordRecoveryTokenService.class);
     // We have to mock this mapper there is too much logic inside
     private static final TenantMapper tenantMapper = mock(TenantMapper.class);
     private static final TenantCommonRepository tenantRepository = mock(TenantCommonRepository.class);
@@ -73,29 +71,17 @@ class UserServiceImplTest {
 
         @Bean
         public UserService userService(TenantMapperForMailImpl tenantMapperForMail) {
-            return new UserServiceImpl(userRepository, passwordRecoveryTokenRepository, mailService, passwordRecoveryTokenService, tenantMapper, tenantRepository, logService, keycloakService, userApiService, partnerCallBackService, apartmentSharingService, tenantCommonService, tenantMapperForMail);
+            return new UserServiceImpl(userRepository, passwordRecoveryTokenRepository, mailService, tenantMapper, tenantRepository, logService, keycloakService, userApiService, partnerCallBackService, apartmentSharingService, tenantCommonService, tenantMapperForMail);
         }
     }
 
     @BeforeEach
     void before() {
-        reset(userRepository, passwordRecoveryTokenRepository, mailService, passwordRecoveryTokenService, tenantMapper, tenantRepository, logService, keycloakService, userApiService, partnerCallBackService, apartmentSharingService, tenantCommonService);
+        reset(userRepository, passwordRecoveryTokenRepository, mailService, tenantMapper, tenantRepository, logService, keycloakService, userApiService, partnerCallBackService, apartmentSharingService, tenantCommonService);
     }
 
     @Nested
     class CreatePasswordTest {
-
-        @Test
-        void shouldCreatePasswordForUser() {
-            var tenant = Tenant.builder()
-                    .id(1L)
-                    .email("test@test.fr")
-                    .build();
-            userService.createPassword(tenant, "password");
-
-            verify(keycloakService, times(1)).createKeyCloakPassword(tenant.getKeycloakId(), "password");
-            verify(tenantMapper, times(1)).toTenantModel(tenantRepository.getReferenceById(tenant.getId()), null);
-        }
 
         @Test
         void shouldThrowPasswordRecoveryTokenNotFoundExceptionWhenCreatePasswordForToken() {
@@ -161,44 +147,6 @@ class UserServiceImplTest {
         }
 
     }
-
-    @Nested
-    class ForgotPasswordTest {
-
-        @Test
-        void shouldSendResetPasswordEmail() {
-
-            var tenant = Tenant.builder()
-                    .id(1L)
-                    .email("test@test.fr")
-                    .build();
-
-            var passwordRecoveryToken = PasswordRecoveryToken.builder()
-                    .id(1L)
-                    .token("token")
-                    .user(tenant)
-                    .build();
-
-            when(tenantRepository.findByEmail("test@test.fr")).thenReturn(Optional.of(tenant));
-            when(passwordRecoveryTokenService.create(tenant)).thenReturn(passwordRecoveryToken);
-            userService.forgotPassword("test@test.fr");
-
-            verify(passwordRecoveryTokenService, times(1)).create(tenant);
-            verify(mailService, times(1)).sendEmailNewPassword(tenant, passwordRecoveryToken);
-
-        }
-
-        @Test
-        void shouldThrowUserNotFoundWhenResetPasswordEmail() {
-            var email = "test@test.fr";
-            doThrow(new UserNotFoundException(email)).when(tenantRepository).findByEmail(email);
-
-            var exception = assertThrows(UserNotFoundException.class, () -> userService.forgotPassword(email));
-
-            assertEquals(exception.getMessage(), "Could not find user with email " + email);
-        }
-    }
-
 
     @Nested
     class DeleteAccountTest {
@@ -575,46 +523,5 @@ class UserServiceImplTest {
             verify(partnerCallBackService).registerTenant(tenant, userApi);
             verify(partnerCallBackService).registerTenant(tenant2, userApi);
         }
-    }
-
-    @Test
-    void logoutTest() {
-        userService.logout("keycloakId");
-
-        verify(keycloakService, times(1)).logout("keycloakId");
-    }
-
-    @Nested
-    class UnlinkFranceConnectTest {
-
-        @Test
-        void shouldThrowIllegalArgumentExceptionWhenTenantNotFound() {
-            var tenant = Tenant.builder()
-                    .id(1L)
-                    .email("test@test.fr")
-                    .build();
-
-            when(userRepository.findById(tenant.getId())).thenReturn(Optional.empty());
-
-            assertThrows(IllegalArgumentException.class, () ->
-                    userService.unlinkFranceConnect(tenant));
-        }
-
-        @Test
-        void shouldUnlinkFranceConnect() {
-            var tenant = Tenant.builder()
-                    .id(1L)
-                    .email("test@test.fr")
-                    .build();
-
-            when(userRepository.findById(tenant.getId())).thenReturn(Optional.of(tenant));
-
-            userService.unlinkFranceConnect(tenant);
-
-            verify(userRepository, times(1)).save(tenant);
-            verify(keycloakService, times(1)).unlinkFranceConnect(tenant);
-
-        }
-
     }
 }

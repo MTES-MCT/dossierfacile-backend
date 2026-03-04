@@ -9,10 +9,10 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.CLASS)
-@Mapping(target = "documentCategory", expression = "java(categoriesMapper.mapCategory(document.getDocumentCategory(), userApi))")
-@Mapping(target = "documentSubCategory", expression = "java(categoriesMapper.mapSubCategory(document.getDocumentSubCategory(), userApi))")
+@Mapping(target = "documentCategory", source = "documentCategory")
+@Mapping(target = "documentSubCategory", source = "documentSubCategory")
 // TODO Deprecated v5
-@Mapping(target = "subCategory", expression = "java(categoriesMapper.mapSubCategory(document.getDocumentSubCategory(), userApi))")
+@Mapping(target = "subCategory", source = "documentSubCategory")
 @Mapping(target = "documentCategoryStep", source = "documentCategoryStep")
 public @interface MapDocumentCategories {
 }

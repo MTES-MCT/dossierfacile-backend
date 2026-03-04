@@ -21,7 +21,7 @@
                     <input required="required" type="text" id="name"
                            th:field="*{name}"
                            class="form-control form-control-formatted form-control-untouched"
-                           placeholder="name"/>
+                           placeholder="clientId (dfconnect-*)"/>
                     <span class="help-block color--error" th:errors="*{name}"
                           th:if="${#fields.hasErrors('name')}"></span>
                 </div>
@@ -29,7 +29,7 @@
                     <input type="text" id="name2"
                            th:field="*{name2}"
                            class="form-control form-control-formatted form-control-untouched"
-                           placeholder="name2"/>
+                           placeholder="clientName"/>
                     <span class="help-block color--error" th:errors="*{name2}"
                           th:if="${#fields.hasErrors('name2')}"></span>
                 </div>
@@ -39,7 +39,7 @@
                     <input type="url" autocomplete="off"
                            th:field="*{site}"
                            class="form-control form-control-formatted form-control-untouched"
-                           placeholder="site"/>
+                           placeholder="websiteUrl"/>
                     <span class="help-block color--error" th:errors="*{site}"
                           th:if="${#fields.hasErrors('site')}"></span>
                 </div>
@@ -68,54 +68,6 @@
                            type="text"/>
                     <span class="help-block color--error" th:errors="*{partnerApiKeyCallback}"
                           th:if="${#fields.hasErrors('partnerApiKeyCallback')}"></span>
-                </div>
-            </div>
-            <div class="row">
-                <div class="mb-3 col-md-6">
-                    <input required="required" autocomplete="off" class="form-control form-control-formatted form-control-untouched"
-                           placeholder="version"
-                           th:field="*{version}"
-                           type="text"/>
-                    <span class="help-block color--error" th:errors="*{version}"
-                          th:if="${#fields.hasErrors('version')}"></span>
-                </div>
-                <div class="mb-3 col-md-6">
-                </div>
-            </div>
-            <div class="row">
-                <div class="mb-3 col-md-6">
-                    <input autocomplete="off" class="form-control form-control-formatted form-control-untouched"
-                           placeholder="welcomeUrl"
-                           th:field="*{welcomeUrl}"
-                           type="text"/>
-                    <span class="help-block color--error" th:errors="*{welcomeUrl}"
-                          th:if="${#fields.hasErrors('welcomeUrl')}"></span>
-                </div>
-                <div class="mb-3 col-md-6">
-                    <input autocomplete="off" class="form-control form-control-formatted form-control-untouched"
-                           placeholder="completedUrl"
-                           th:field="*{completedUrl}"
-                           type="text"/>
-                    <span class="help-block color--error" th:errors="*{completedUrl}"
-                          th:if="${#fields.hasErrors('completedUrl')}"></span>
-                </div>
-            </div>
-            <div class="row">
-                <div class="mb-3 col-md-6">
-                    <input autocomplete="off" class="form-control form-control-formatted form-control-untouched"
-                           placeholder="validatedUrl"
-                           th:field="*{validatedUrl}"
-                           type="text"/>
-                    <span class="help-block color--error" th:errors="*{validatedUrl}"
-                          th:if="${#fields.hasErrors('validatedUrl')}"></span>
-                </div>
-                <div class="mb-3 col-md-6">
-                    <input autocomplete="off" class="form-control form-control-formatted form-control-untouched"
-                           placeholder="deniedUrl"
-                           th:field="*{deniedUrl}"
-                           type="text"/>
-                    <span class="help-block color--error" th:errors="*{deniedUrl}"
-                          th:if="${#fields.hasErrors('deniedUrl')}"></span>
                 </div>
             </div>
             <div class="row">

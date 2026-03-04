@@ -18,7 +18,6 @@ import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Property;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.TenantFileStatus;
-import fr.dossierfacile.common.mapper.VersionedCategoriesMapper;
 import fr.dossierfacile.common.service.interfaces.ProcessingCapacityService;
 import fr.dossierfacile.common.utils.LocalDateTimeTypeAdapter;
 import fr.dossierfacile.parameterizedtest.ArgumentBuilder;
@@ -56,8 +55,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(TenantController.class)
 @ActiveProfiles("test")
-@ContextConfiguration(classes = {TestApplication.class, TenantMapperImpl.class, VersionedCategoriesMapper.class, PropertyOMapperImpl.class, GlobalExceptionHandler.class})
-@TestPropertySource(properties = {"application.api.version = 4", "dossierfacile.common.global.exception.handler=true"})
+@ContextConfiguration(classes = {TestApplication.class, TenantMapperImpl.class, PropertyOMapperImpl.class, GlobalExceptionHandler.class})
+@TestPropertySource(properties = {"dossierfacile.common.global.exception.handler=true"})
 class TenantControllerTest {
 
     @Autowired
@@ -363,71 +362,6 @@ class TenantControllerTest {
 
             var mockMvcRequestBuilder = delete(urlTemplate)
                     .contentType("application/json");
-
-            ParameterizedTestHelper.runControllerTest(
-                    mockMvc,
-                    mockMvcRequestBuilder,
-                    parameter
-            );
-        }
-
-    }
-
-    @Nested
-    class linkFranceConnectTest {
-
-        record LinkFranceConnectParam(String url) {
-        }
-
-        static List<Arguments> provideFranceConnectParameters() {
-            SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwtTokenWithDossier = jwt().authorities(new SimpleGrantedAuthority("SCOPE_dossier"));
-
-            return ArgumentBuilder.buildListOfArguments(
-                    Pair.of("Should respond 403 when not jwt is passed",
-                            new ControllerParameter<>(
-                                    new LinkFranceConnectParam("test.com"),
-                                    403,
-                                    null,
-                                    null,
-                                    Collections.emptyList()
-                            )
-                    ),
-                    Pair.of("Should respond 400 bad request when no url is passed",
-                            new ControllerParameter<>(
-                                    new LinkFranceConnectParam(null),
-                                    400,
-                                    jwtTokenWithDossier,
-                                    null,
-                                    Collections.emptyList()
-                            )
-                    ),
-                    Pair.of("Should return france connect link url",
-                            new ControllerParameter<LinkFranceConnectParam>(
-                                    new LinkFranceConnectParam("test.com"),
-                                    200,
-                                    jwtTokenWithDossier,
-                                    (v) -> {
-                                        when(self.authenticationFacade.getFranceConnectLink("test.com")).thenReturn("test.com");
-                                        return v;
-                                    },
-                                    List.of(
-                                            jsonPath("$").value("test.com")
-                                    )
-                            )
-                    )
-            );
-        }
-
-        @ParameterizedTest(name = "{0}")
-        @MethodSource("provideFranceConnectParameters")
-        void parameterizedTests(ControllerParameter<LinkFranceConnectParam> parameter) throws Exception {
-
-            var mockMvcRequestBuilder = post("/api/tenant/linkFranceConnect")
-                    .contentType("application/json");
-
-            if (parameter.getParameterData().url != null) {
-                mockMvcRequestBuilder.content("{\"url\":\"" + parameter.getParameterData().url + "\"}");
-            }
 
             ParameterizedTestHelper.runControllerTest(
                     mockMvc,

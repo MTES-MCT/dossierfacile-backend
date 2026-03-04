@@ -6,7 +6,6 @@ import fr.dossierfacile.api.front.mapper.PropertyOMapper;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.property.PropertyOModel;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
-import fr.dossierfacile.api.front.register.form.tenant.UrlForm;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.PropertyService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
@@ -85,23 +84,6 @@ public class TenantController {
         return (userService.deleteCoTenant(tenant, id) ? ok() : status(HttpStatus.FORBIDDEN)).build();
     }
 
-    @PostMapping(value = "/linkFranceConnect", produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(value = "Link FranceConnect", notes = "Generates a link to FranceConnect based on the provided URL.")
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "FranceConnect link generated successfully"),
-            @ApiResponse(code = 400, message = "Bad request: URL is missing or invalid"),
-            @ApiResponse(code = 403, message = "Forbidden: JWT token missing or invalid")
-    })
-    public ResponseEntity<String> linkFranceConnect(@RequestBody UrlForm urlDTO) {
-        // Todo : Could be replaced with @Valid annotation
-        String currentUrl = urlDTO.getUrl();
-        if (currentUrl == null) {
-            return badRequest().build();
-        }
-        String link = authenticationFacade.getFranceConnectLink(currentUrl);
-        return ok(link);
-    }
-
     @PostMapping(value = "/sendFileByMail", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "Send File By Mail", notes = "Sends a file by email based on the provided email and share type.")
     @ApiResponses(value = {
@@ -144,8 +126,7 @@ public class TenantController {
         try {
             LocalDateTime expectedProcessingTime = processingCapacityService.getExpectedProcessingTime(tenantId);
             return ok(expectedProcessingTime);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             log.error("Error retrieving expected processing time for tenant with ID: {}", tenantId, e);
             return status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{bo/layout-bo}">
+<head>
+    <title>DossierFacile</title>
+</head>
+<body>
+<div layout:fragment="content" th:remove="tag">
+    <div class="container-lg">
+        <h1 class="margin-bottom">Liste des features flags</h1>
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered table-hover">
+                <thead>
+                <tr>
+                    <th>Clé</th>
+                    <th>Description</th>
+                    <th>Date de déploiement</th>
+                    <th style="width: 10%;">Nouveaux users</th>
+                    <th style="width: 10%;">Actif</th>
+                    <th style="width: 10%;">Rollout</th>
+                    <th style="width: 15%;">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="feature : ${featureFlags}">
+                    <td th:text="${feature.key}" class="align-middle"></td>
+                    <td th:text="${feature.description}" class="align-middle"></td>
+                    <td th:text="${#temporals.format(feature.deploymentDate, 'dd/MM/yyyy HH:mm')}" class="align-middle"></td>
+                    <td class="text-center align-middle">
+                        <span th:if="${feature.onlyForNewUser}" class="badge bg-info text-dark">Oui</span>
+                        <span th:unless="${feature.onlyForNewUser}" class="badge bg-secondary">Non</span>
+                    </td>
+                    <td class="text-center align-middle">
+                        <span th:if="${feature.active}" class="badge bg-success">Oui</span>
+                        <span th:unless="${feature.active}" class="badge bg-danger">Non</span>
+                    </td>
+                    <td class="text-center align-middle">
+                        <span th:text="${feature.rolloutPct} + '%'" class="fw-bold"></span>
+                    </td>
+                    <td class="align-middle">
+                        <div class="d-flex gap-2 justify-content-center">
+                            <!-- Toggle Activation -->
+                            <form th:action="@{/bo/feature-flags/toggle}" method="post">
+                                <input type="hidden" name="key" th:value="${feature.key}"/>
+                                <button th:if="${feature.active}" type="submit" class="btn btn-sm btn-danger text-nowrap" title="Désactiver">
+                                    <span class="fa fa-toggle-on"></span> Stop
+                                </button>
+                                <button th:unless="${feature.active}" type="submit" class="btn btn-sm btn-success text-nowrap" title="Activer">
+                                    <span class="fa fa-toggle-off"></span> Start
+                                </button>
+                            </form>
+
+                            <!-- Edit Rollout Button (Triggers Modal) -->
+                            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" th:data-bs-target="'#rolloutModal-' + ${feature.key}">
+                                <span class="fa fa-edit"></span> %
+                            </button>
+
+                            <!-- Modal for Editing Rollout -->
+                            <div class="modal fade" th:id="'rolloutModal-' + ${feature.key}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <form th:action="@{/bo/feature-flags/rollout}" method="post">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" th:text="'Modifier Rollout - ' + ${feature.key}">Modifier Rollout</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body text-start">
+                                                <div class="alert alert-warning" role="alert">
+                                                    <i class="fa fa-exclamation-triangle"></i>
+                                                    <strong>Attention :</strong> La modification du pourcentage de déploiement va provoquer un recalcul immédiat pour tous les utilisateurs concernés.
+                                                    Cela peut avoir un impact significatif sur les performances de la base de données.
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label th:for="'rolloutValue-' + ${feature.key}" class="form-label">Nouveau pourcentage de déploiement (0-100)</label>
+                                                    <input type="number" class="form-control" th:id="'rolloutValue-' + ${feature.key}" name="value"
+                                                           min="0" max="100" th:value="${feature.rolloutPct}" required>
+                                                </div>
+                                                <input type="hidden" name="key" th:value="${feature.key}"/>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                                <button type="submit" class="btn btn-primary">Valider</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<div layout:fragment="javascripts" th:remove="tag">
+    <script src="/js/bo/index.js"></script>
+</div>
+</body>
+</html>

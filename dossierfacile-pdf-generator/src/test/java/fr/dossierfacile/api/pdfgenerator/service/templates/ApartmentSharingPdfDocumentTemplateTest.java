@@ -3,7 +3,6 @@ package fr.dossierfacile.api.pdfgenerator.service.templates;
 import fr.dossierfacile.api.pdfgenerator.service.DownloadServiceImpl;
 import fr.dossierfacile.api.pdfgenerator.util.parameterresolvers.ApartmentSharingResolver;
 import fr.dossierfacile.common.entity.ApartmentSharing;
-import fr.dossierfacile.common.repository.ApplicationLogRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.MailCommonService;
 import fr.dossierfacile.logging.job.LogAggregator;
@@ -30,8 +29,6 @@ public class ApartmentSharingPdfDocumentTemplateTest {
 
     @MockitoBean
     private TenantCommonRepository tenantRepository;
-    @MockitoBean
-    private ApplicationLogRepository applicationLogRepository;
     @MockitoBean
     private DownloadServiceImpl downloadService;
     @MockitoBean

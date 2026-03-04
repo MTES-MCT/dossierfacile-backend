@@ -33,16 +33,6 @@ public class RegisterGuarantorNaturalPersonController {
     private final AuthenticationFacade authenticationFacade;
     private final LogService logService;
 
-    @PreAuthorize("hasPermissionOnTenant(#documentIdentificationGuarantorNaturalPersonForm.tenantId)")
-    @PostMapping("/documentIdentification")
-    @Transactional
-    public ResponseEntity<TenantModel> documentIdentification(@Validated(Dossier.class) DocumentIdentificationGuarantorNaturalPersonForm documentIdentificationGuarantorNaturalPersonForm) {
-        var tenant = authenticationFacade.getTenant(documentIdentificationGuarantorNaturalPersonForm.getTenantId());
-        tenantService.saveStepRegister(tenant, documentIdentificationGuarantorNaturalPersonForm, StepRegister.DOCUMENT_IDENTIFICATION_GUARANTOR_NATURAL_PERSON);
-        Tenant loggedTenant = (documentIdentificationGuarantorNaturalPersonForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
-        return ok(tenantMapper.toTenantModel(loggedTenant, null));
-    }
-
     @PreAuthorize("hasPermissionOnTenant(#documentIdentificationGuarantorNaturalPersonFileForm.tenantId)")
     @PostMapping("/documentIdentification/v2")
     @Transactional

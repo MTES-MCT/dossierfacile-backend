@@ -9,7 +9,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.parser.ParseContext;
-import org.apache.tika.sax.BodyContentHandler;
+import org.apache.tika.parser.pdf.PDFParserConfig;
+import org.xml.sax.ContentHandler;
+import org.xml.sax.helpers.DefaultHandler;
+
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -77,9 +80,17 @@ public class MetadataFileProcessor implements Processor {
         var finalMetadataMap = new LinkedHashMap<String, String>(); // LinkedHashMap pour garder l'ordre d'insertion
 
         AutoDetectParser parser = new AutoDetectParser();
-        BodyContentHandler handler = new BodyContentHandler();
+        // Handler qui ignore le contenu extrait
+        ContentHandler handler = new DefaultHandler();
         Metadata metadata = new Metadata();
         ParseContext context = new ParseContext();
+
+        PDFParserConfig pdfConfig = new PDFParserConfig();
+        pdfConfig.setExtractInlineImages(false);
+        pdfConfig.setExtractUniqueInlineImagesOnly(false);
+        pdfConfig.setOcrStrategy(PDFParserConfig.OCR_STRATEGY.NO_OCR);
+
+        context.set(PDFParserConfig.class, pdfConfig);
 
         try (java.io.InputStream is = new java.io.FileInputStream(file)) {
             parser.parse(is, handler, metadata, context);

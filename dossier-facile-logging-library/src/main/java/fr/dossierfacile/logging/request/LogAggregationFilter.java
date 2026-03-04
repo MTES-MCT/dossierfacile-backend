@@ -117,11 +117,14 @@ public class LogAggregationFilter extends OncePerRequestFilter {
 
             }
             String enrichedLogs = String.format(
-                    "Request completed: URI:%s, Method:%s, Status:%d, response time: %s",
+                    "Request completed: URI:%s, Method:%s, Status:%d, response time: %s, Ip: %s, User-Agent: %s, Referer: %s",
                     request.getRequestURI(),
                     request.getMethod(),
                     finalStatus,
-                    responseTime
+                    responseTime,
+                    request.getHeader("X-Real-Ip"),
+                    request.getHeader("User-Agent"),
+                    request.getHeader("Referer")
             );
 
             LoggerUtil.addLogs(logMessages);

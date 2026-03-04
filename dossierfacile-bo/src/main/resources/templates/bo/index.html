@@ -38,6 +38,11 @@
                         API Partners
                     </a>
                 </div>
+                <div class="mt-2" sec:authorize="hasRole('ADMIN')">
+                    <a href="/bo/feature-flags" class="btn btn-danger" id="feature-flags">
+                        Paramétrer les features flags
+                    </a>
+                </div>
                 <div class="mt-2" sec:authorize="hasRole('MANAGER')">
                     <a href="/bo/log" class="btn btn-danger" id="displayLogs">
                         Afficher les logs

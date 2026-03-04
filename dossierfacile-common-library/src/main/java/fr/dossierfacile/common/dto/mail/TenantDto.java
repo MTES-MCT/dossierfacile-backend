@@ -16,11 +16,4 @@ public class TenantDto extends UserDto {
     private Long id;
     private List<UserApiDto> userApis;
     private TenantFileStatus status;
-
-    /**
-     * Tenant has been created by partner and has never been loggued in DF Website
-     */
-    public boolean isBelongToPartner() {
-        return this.getKeycloakId() == null && this.getUserApis().size() == 1;
-    }
 }

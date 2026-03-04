@@ -7,7 +7,6 @@ import fr.dossierfacile.api.front.validator.annotation.guarantor.natural_person.
 import fr.dossierfacile.api.front.validator.annotation.guarantor.natural_person.residency.NumberOfDocumentResidencyGuarantorNaturalPerson;
 import fr.dossierfacile.api.front.validator.group.Dossier;
 import fr.dossierfacile.api.front.validator.group.ResidencyDocumentGroup;
-import fr.dossierfacile.common.config.ApiVersion;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentCategoryStep;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
@@ -43,7 +42,7 @@ public class DocumentResidencyGuarantorNaturalPersonForm extends DocumentGuarant
                     GUEST_ORGANISM,
                     SHORT_TERM_RENTAL,
                     OTHER_RESIDENCY
-            }, groups = {ApiVersion.V4.class, Dossier.class}
+            }, groups = Dossier.class
     )
     private DocumentSubCategory typeDocumentResidency;
 

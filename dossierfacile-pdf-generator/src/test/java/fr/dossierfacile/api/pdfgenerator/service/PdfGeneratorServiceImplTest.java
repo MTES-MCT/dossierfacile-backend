@@ -4,7 +4,6 @@ import fr.dossierfacile.api.pdfgenerator.service.interfaces.PdfGeneratorService;
 import fr.dossierfacile.api.pdfgenerator.util.parameterresolvers.ApartmentSharingResolver;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.enums.FileStatus;
-import fr.dossierfacile.common.repository.ApplicationLogRepository;
 import fr.dossierfacile.common.repository.StorageFileRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
@@ -44,9 +43,6 @@ class PdfGeneratorServiceImplTest {
 
     @MockitoBean
     StorageFileRepository storageFileRepository;
-
-    @MockitoBean
-    ApplicationLogRepository applicationLogRepository;
 
     @MockitoBean
     MailCommonService mailCommonService;
