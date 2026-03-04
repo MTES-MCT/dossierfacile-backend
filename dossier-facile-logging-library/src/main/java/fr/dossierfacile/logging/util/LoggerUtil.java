@@ -19,13 +19,6 @@ public class LoggerUtil {
     public static final String REQUEST_ID = "request_id";
     public static final String PROCESS_ID = "process_id";
 
-    private static final String NUMBER_REGEX = "(?<=/)(\\d+)(?=[/?]|$)";
-    /** UUID (8-4-4-4-12 hex) plus any trailing chars until next / or end; whole segment replaced by {uuid} */
-    private static final String UUID_REGEX = "(?<=/)([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}[^/]*)";
-    private static final String EMAIL_REGEX = "(?<=/)([a-zA-Z0-9](?:[a-zA-Z0-9._%+-]*[a-zA-Z0-9])?@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})(?=[/?]|$)";
-    /** Property token: alphanumeric chars (e.g. after /api/property/public/ or .../subscribe/) */
-    private static final String PROPERTY_TOKEN_REGEX = "(?<=/)([a-zA-Z0-9]{15,30})(?=[/?]|$)";
-
     private static final String API_URL = "uri";
     private static final String API_NORMALIZED_URI = "normalized_uri";
     private static final String API_RESPONSE_STATUS = "response_status";
