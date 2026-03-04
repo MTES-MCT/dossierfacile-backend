@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,9 +65,19 @@ public abstract class TenantMapper {
         }
         String token = resolvePartnerToken(document, userApi);
         if (token != null) {
-            return applicationBaseUrl + "/" + DOCUMENT_LINK_PATH + "/" + token + "/documents/" + document.getName();
+            return UriComponentsBuilder
+                    .fromUriString(applicationBaseUrl)
+                    .path(DOCUMENT_LINK_PATH)
+                    .path("/{token}/documents/{name}")
+                    .buildAndExpand(token, document.getName())
+                    .toUriString();
         }
-        return applicationBaseUrl + "/" + DOCUMENT_DIRECT_PATH + "/" + document.getName();
+        return UriComponentsBuilder
+                .fromUriString(applicationBaseUrl)
+                .path(DOCUMENT_DIRECT_PATH)
+                .path("/{name}")
+                .buildAndExpand(document.getName())
+                .toUriString();
     }
 
     public abstract List<FileModel> mapFiles(List<File> files);
@@ -82,10 +93,15 @@ public abstract class TenantMapper {
     public abstract FileModel toFileModel(File documentFile);
 
     protected String buildPreviewUrl(File documentFile) {
-        if (documentFile.getPreview() != null) {
-            return applicationBaseUrl + "/" + PREVIEW_PATH + "/" + documentFile.getId();
+        if( documentFile.getPreview() == null) {
+            return null;
         }
-        return null;
+        return UriComponentsBuilder
+                .fromUriString(applicationBaseUrl)
+                .path(PREVIEW_PATH)
+                .path(documentFile.getId().toString())
+                .build()
+                .toUriString();
     }
 
     @AfterMapping

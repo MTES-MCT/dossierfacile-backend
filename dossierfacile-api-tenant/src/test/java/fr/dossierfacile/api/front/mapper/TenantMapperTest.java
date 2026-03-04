@@ -214,7 +214,9 @@ class TenantMapperTest {
     @Nested
     class FilePathRouting {
 
-        // Users with the "dossier" OAuth scope can download individual files via /api/file/resource/{id}
+        /**
+         * Users with the "dossier" OAuth scope can download individual files via /api/file/resource/{id}
+         */
         @Test
         void shouldSetFilePathForDossierScopeUser() {
             setupDossierUser();
@@ -232,7 +234,9 @@ class TenantMapperTest {
                     .isEqualTo("https://api.example.com/api/file/resource/10");
         }
 
-        // Regular users (no "dossier" scope) must not get direct download links to individual files
+        /**
+         * Regular users (no "dossier" scope) must not get direct download links to individual files
+         */
         @Test
         void shouldClearFilePathForNonDossierUser() {
             Tenant tenant = aTenant()
@@ -248,7 +252,9 @@ class TenantMapperTest {
                     .isEmpty();
         }
 
-        // In a COUPLE application, both partners share full access to each other's documents
+        /**
+         * In a COUPLE application, both partners share full access to each other's documents
+         */
         @Test
         void shouldAllowFullAccessForCoupleDocs() {
             setupDossierUser();
@@ -271,7 +277,9 @@ class TenantMapperTest {
                     .isEqualTo("https://api.example.com/api/file/resource/20");
         }
 
-        // In a GROUP (roommates) application, co-tenants can only see previews, not download each other's files
+        /**
+         * In a GROUP (roommates) application, co-tenants can only see previews, not download each other's files
+         */
         @Test
         void shouldPreviewOnlyForGroupDocs() {
             setupDossierUser();
@@ -294,7 +302,9 @@ class TenantMapperTest {
                     .isEmpty();
         }
 
-        // Guarantor documents of a co-tenant are never directly downloadable, even in a COUPLE application
+        /**
+         * Guarantor documents of a co-tenant are never directly downloadable, even in a COUPLE application
+         */
         @Test
         void shouldPreviewOnlyForCoTenantGuarantorDocs() {
             setupDossierUser();
@@ -323,8 +333,10 @@ class TenantMapperTest {
     @Nested
     class CoTenantHandling {
 
-        // The connected tenant appears both at the root model and inside apartmentSharing.tenants[];
-        // to avoid data duplication, their docs/guarantors are stripped from the co-tenant list entry
+        /**
+         * The connected tenant appears both at the root model and inside apartmentSharing.tenants[].
+         * To avoid data duplication, their docs/guarantors are stripped from the co-tenant list entry.
+         */
         @Test
         void shouldNullifyCurrentTenantInCoTenantList() {
             Tenant tenant = aTenant()
@@ -346,7 +358,9 @@ class TenantMapperTest {
             assertThat(selfInList.getGuarantors()).isNull();
         }
 
-        // Other co-tenants in the list must keep their full data (docs + guarantors) intact
+        /**
+         * Other co-tenants in the list must keep their full data (docs + guarantors) intact
+         */
         @Test
         void shouldPreserveOtherCoTenantData() {
             Tenant tenant = aTenant()
@@ -372,7 +386,9 @@ class TenantMapperTest {
     @Nested
     class AnalysisReportFiltering {
 
-        // INFO-level analysis rules are internal and must not be exposed to tenants via the API
+        /**
+         * INFO-level analysis rules are internal and must not be exposed to tenants via the API
+         */
         @Test
         void shouldFilterInfoLevelRules() {
             Tenant tenant = aTenant()
@@ -393,7 +409,9 @@ class TenantMapperTest {
                     .containsExactly(DocumentRuleLevel.WARN, DocumentRuleLevel.CRITICAL);
         }
 
-        // WARN and CRITICAL rules are actionable by tenants and must always be visible
+        /**
+         * WARN and CRITICAL rules are actionable by tenants and must always be visible
+         */
         @Test
         void shouldKeepWarnAndCriticalRules() {
             Tenant tenant = aTenant()
@@ -413,7 +431,9 @@ class TenantMapperTest {
                     .containsExactly(DocumentRuleLevel.WARN, DocumentRuleLevel.CRITICAL);
         }
 
-        // Documents not yet analyzed must not cause NPE when the report is absent
+        /**
+         * Documents not yet analyzed must not cause NPE when the report is absent
+         */
         @Test
         void shouldHandleNullAnalysisReport() {
             Tenant tenant = aTenant()
@@ -431,8 +451,10 @@ class TenantMapperTest {
     @Nested
     class DeniedReasonsTransformation {
 
-        // When an operator declines a document with structured reasons (messageData=true),
-        // the raw parallel lists (checkedOptions + checkedOptionsId) are merged into SelectedOption objects
+        /**
+         * When an operator declines a document with structured reasons (messageData=true),
+         * the raw parallel lists (checkedOptions + checkedOptionsId) are merged into SelectedOption objects
+         */
         @Test
         void shouldBuildSelectedOptionsWithIdsWhenMessageData() {
             Tenant tenant = aTenant()
@@ -455,7 +477,9 @@ class TenantMapperTest {
             assertThat(deniedReasons.getCheckedOptionsId()).isNull();
         }
 
-        // Legacy denial reasons (messageData=false) have labels but no IDs — options are built with null IDs
+        /**
+         * Legacy denial reasons (messageData=false) have labels but no IDs — options are built with null IDs
+         */
         @Test
         void shouldBuildSelectedOptionsWithoutIdsWhenNotMessageData() {
             Tenant tenant = aTenant()
@@ -476,7 +500,9 @@ class TenantMapperTest {
             assertThat(deniedReasons.getSelectedOptions().get(1).getLabel()).isEqualTo("B");
         }
 
-        // Documents that were never declined must not cause NPE when denied reasons are absent
+        /**
+         * Documents that were never declined must not cause NPE when denied reasons are absent
+         */
         @Test
         void shouldHandleNullDeniedReasons() {
             Tenant tenant = aTenant()
@@ -494,8 +520,10 @@ class TenantMapperTest {
     @Nested
     class FranceConnectIdentityMapping {
 
-        // Tenants authenticated via FranceConnect have a verified identity that is exposed separately
-        // from the editable firstName/lastName fields, so the front-end can display it with a trust badge
+        /**
+         * Tenants authenticated via FranceConnect have a verified identity that is exposed separately
+         * from the editable firstName/lastName fields, so the front-end can display it with a trust badge
+         */
         @Test
         void shouldMapIdentityWhenFranceConnect() {
             Tenant tenant = aTenant()
@@ -512,7 +540,9 @@ class TenantMapperTest {
             assertThat(model.getFranceConnectIdentity().getPreferredName()).isEqualTo("Dudu");
         }
 
-        // Tenants who did not use FranceConnect must not have a franceConnectIdentity block in the API response
+        /**
+         * Tenants who did not use FranceConnect must not have a franceConnectIdentity block in the API response
+         */
         @Test
         void shouldReturnNullWhenNotFranceConnect() {
             Tenant tenant = aTenant()
