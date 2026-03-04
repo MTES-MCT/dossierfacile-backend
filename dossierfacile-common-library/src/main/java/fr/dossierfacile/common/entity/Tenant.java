@@ -274,9 +274,11 @@ public class Tenant extends User implements Person, Serializable {
     public String getPreferredName() {
         if (ownerType == TenantOwnerType.SELF) {
             return super.getPreferredName();
-        } else {
-            return tenantPreferredName != null ? tenantPreferredName : super.getPreferredName();
         }
+        if (ownerType == TenantOwnerType.THIRD_PARTY) {
+            return tenantPreferredName;
+        }
+        return super.getPreferredName();
     }
 
     @Override
