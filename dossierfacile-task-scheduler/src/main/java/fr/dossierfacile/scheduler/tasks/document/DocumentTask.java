@@ -41,7 +41,7 @@ public class DocumentTask extends AbstractTask {
             LocalDateTime now = LocalDateTime.now();
             LocalDateTime toDateTime = now.minusMinutes(30);
             List<Document> documents = documentRepository.findWithoutPDFToDate(toDateTime);
-            addDocumentIdListForLogging(documents);
+            countDocumentIdForLogging(documents);
             log.info("Relaunch {} failed documents to {}", documents.size(), toDateTime);
             documents.forEach(this::sendForPDFGeneration);
         } catch (Exception e) {
@@ -63,7 +63,7 @@ public class DocumentTask extends AbstractTask {
             if (CollectionUtils.isEmpty(documents)) {
                 log.info("There is no file with empty pdf");
             } else {
-                addDocumentIdListForLogging(documents);
+                countDocumentIdForLogging(documents);
                 Map<Tenant, List<Document>> tenantDocuments = documents.stream()
                         .collect(Collectors.groupingBy(d ->
                                 Optional.ofNullable(d.getTenant())

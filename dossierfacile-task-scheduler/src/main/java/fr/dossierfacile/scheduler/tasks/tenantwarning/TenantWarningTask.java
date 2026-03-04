@@ -77,7 +77,7 @@ public class TenantWarningTask extends AbstractTask {
                     this::tryArchiveTenant,
                     tenantIds);
 
-            addTenantIdListForLogging(tenantIds);
+            countTenantIdForLogging(tenantIds);
         } catch (Exception e) {
             log.error("Error during tenant archiving task: {}", e.getMessage(), e);
         } finally {
@@ -98,7 +98,7 @@ public class TenantWarningTask extends AbstractTask {
                     t -> tryHandleWarning(t, tenantWarningService::sendSecondWarning),
                     tenantIds);
 
-            addTenantIdListForLogging(tenantIds);
+            countTenantIdForLogging(tenantIds);
         } catch (Exception e) {
             log.error("Error during tenant second warning task: {}", e.getMessage(), e);
         } finally {
@@ -119,7 +119,7 @@ public class TenantWarningTask extends AbstractTask {
                     t -> tryHandleWarning(t, tenantWarningService::sendFirstWarning),
                     tenantIds);
 
-            addTenantIdListForLogging(tenantIds);
+            countTenantIdForLogging(tenantIds);
         } catch (Exception e) {
             log.error("Error during tenant first warning task: {}", e.getMessage(), e);
         } finally {

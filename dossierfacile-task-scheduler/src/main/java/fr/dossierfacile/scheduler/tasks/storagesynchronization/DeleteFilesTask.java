@@ -69,7 +69,7 @@ public class DeleteFilesTask extends AbstractTask {
                 return;
             }
 
-            addFileIdListForLogging(storageFileToDeleteList);
+            countFileIdForLogging(storageFileToDeleteList);
 
             // Use batch deletion service for bulk operations
             BatchDeletionResult result = fileBatchDeletionService.deleteBatch(storageFileToDeleteList);
@@ -142,7 +142,7 @@ public class DeleteFilesTask extends AbstractTask {
                 return;
             }
 
-            addFileIdListForLogging(storageFileToDeleteList);
+            countFileIdForLogging(storageFileToDeleteList);
             log.info("Retrying deletion of {} previously failed files", storageFileToDeleteList.size());
 
             // For retries, we can still use batch deletion
