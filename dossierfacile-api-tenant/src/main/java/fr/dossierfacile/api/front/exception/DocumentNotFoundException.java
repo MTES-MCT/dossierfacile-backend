@@ -11,10 +11,4 @@ public class DocumentNotFoundException extends RuntimeException {
     public DocumentNotFoundException(String name) {
         super("Could not find document with name " + name);
     }
-    public DocumentNotFoundException(String categoryName, Long id) {
-        super("Document [" + categoryName + "] with ID [" + id + "] found in database but not found in the storage provider");
-    }
-    public DocumentNotFoundException(String categoryName, Long id, Long tenantId) {
-        super("Could not find document with ID [" + id + "], category [" + categoryName + "] and associated to tenant with ID [" + tenantId + "]");
-    }
 }

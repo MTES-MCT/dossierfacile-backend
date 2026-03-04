@@ -1,7 +1,6 @@
 package fr.dossierfacile.api.front.config;
 
 import fr.dossierfacile.api.front.security.CustomMethodSecurityExpressionHandler;
-import fr.dossierfacile.api.front.security.CustomPermissionEvaluator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Configuration;
@@ -18,7 +17,6 @@ public class MethodSecurityConfig extends GlobalMethodSecurityConfiguration {
     protected MethodSecurityExpressionHandler createExpressionHandler() {
         CustomMethodSecurityExpressionHandler handler =
           new CustomMethodSecurityExpressionHandler();
-        handler.setPermissionEvaluator(new CustomPermissionEvaluator());
         handler.setApplicationContext(applicationContext);
         return handler;
     }
