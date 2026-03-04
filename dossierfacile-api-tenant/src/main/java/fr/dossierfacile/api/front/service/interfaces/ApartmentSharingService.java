@@ -7,6 +7,8 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
 
+import fr.dossierfacile.common.entity.Document;
+
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -47,5 +49,7 @@ public interface ApartmentSharingService {
     void createFullPdfForTenant(Tenant tenant);
 
     FullFolderFile downloadFullPdfForTenant(Tenant tenant) throws IOException;
+
+    Document findDocumentByLink(UUID token, String documentName);
 
 }

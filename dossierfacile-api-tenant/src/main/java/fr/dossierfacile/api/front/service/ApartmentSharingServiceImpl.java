@@ -3,10 +3,12 @@ package fr.dossierfacile.api.front.service;
 import fr.dossierfacile.api.front.amqp.Producer;
 import fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException;
 import fr.dossierfacile.api.front.exception.ApartmentSharingUnexpectedException;
+import fr.dossierfacile.api.front.exception.DocumentNotFoundException;
 import fr.dossierfacile.api.front.exception.TrigramNotAuthorizedException;
 import fr.dossierfacile.api.front.model.MappingFormat;
 import fr.dossierfacile.api.front.model.tenant.FullFolderFile;
 import fr.dossierfacile.api.front.repository.ApiTenantLogRepository;
+import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.BruteForceProtectionService;
 import fr.dossierfacile.common.entity.*;
@@ -57,6 +59,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
     private final ApartmentSharingRepository apartmentSharingRepository;
     private final ApartmentSharingLinkRepository apartmentSharingLinkRepository;
     private final TenantCommonRepository tenantRepository;
+    private final DocumentRepository documentRepository;
     private final ApplicationFullMapper applicationFullMapper;
     private final ApplicationLightMapper applicationLightMapper;
     private final ApplicationBasicMapper applicationBasicMapper;
@@ -401,6 +404,15 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
         }
 
         return fileName;
+    }
+
+    @Override
+    public Document findDocumentByLink(UUID token, String documentName) {
+        ApartmentSharing apartmentSharing = findValidApartmentSharing(token, true);
+        Document document = documentRepository.findByNameForApartmentSharing(documentName, apartmentSharing.getId())
+                .orElseThrow(() -> new ApartmentSharingNotFoundException(token.toString()));
+        saveLinkLog(apartmentSharing, token, LinkType.SINGLE_DOCUMENT_DOWNLOAD);
+        return document;
     }
 
     private FullFolderFile handlePdfDownloadByStatus(

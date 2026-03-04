@@ -9,6 +9,7 @@ import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.common.entity.Document;
+import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.TypeGuarantor;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.common.utils.FileUtility;
@@ -50,9 +51,10 @@ public class DocumentController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping(value = "/resource/{documentName:.+}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/resource/{documentName:.+}", produces = MediaType.APPLICATION_PDF_VALUE)
     public void getPdfWatermarkedAsByteArray(HttpServletResponse response, @PathVariable String documentName) {
-        Document document = documentRepository.findFirstByName(documentName).orElseThrow(() -> new DocumentNotFoundException(documentName));
+        Tenant tenant = authenticationFacade.getLoggedTenant();
+        Document document = documentService.getAuthorizedDocument(documentName, tenant);
 
         try (InputStream in = fileStorageService.download(document.getWatermarkFile())) {
             response.setContentType(MediaType.APPLICATION_PDF_VALUE);

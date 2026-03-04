@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,10 +24,11 @@ import java.util.function.Predicate;
 @Component
 @Mapper(componentModel = "spring")
 public abstract class TenantMapper {
-    private static final String PATH = "api/document/resource";
-    private static final String PREVIEW_PATH = "/api/file/preview/";
-    private static final String DOSSIER_PDF_PATH = "/api/application/fullPdf/";
-    private static final String DOSSIER_PATH = "/file/";
+    private static final String DOCUMENT_DIRECT_PATH = "api/document/resource";
+    protected static final String DOCUMENT_LINK_PATH = "api/application/links";
+    private static final String PREVIEW_PATH = "api/file/preview";
+    private static final String DOSSIER_PDF_PATH = "api/application/fullPdf";
+    private static final String DOSSIER_PATH = "file";
 
     @Value("${application.base.url}")
     protected String applicationBaseUrl;
@@ -52,28 +54,67 @@ public abstract class TenantMapper {
         return null;
     }
 
-    @Mapping(target = "name", expression = "java((document.getWatermarkFile() != null )? applicationBaseUrl + \"/" + PATH + "/\" + document.getName() : null)")
-    @Mapping(target = "files", expression = "java((userApi == null) ? mapFiles(document.getFiles()) : null)")
+    @Mapping(target = "name", expression = "java(buildDocumentUrl(document, userApi))")
+    @Mapping(target = "files", expression = "java((userApi == null)? mapFiles(document.getFiles()) : null)")
     @MapDocumentCategories
     public abstract DocumentModel toDocumentModel(Document document, @Context UserApi userApi);
+
+    protected String buildDocumentUrl(Document document, UserApi userApi) {
+        if (document.getWatermarkFile() == null) {
+            return null;
+        }
+        String token = resolvePartnerToken(document, userApi);
+        if (token != null) {
+            return UriComponentsBuilder
+                    .fromUriString(applicationBaseUrl)
+                    .path(DOCUMENT_LINK_PATH)
+                    .path("/{token}/documents/{name}")
+                    .buildAndExpand(token, document.getName())
+                    .toUriString();
+        }
+        return UriComponentsBuilder
+                .fromUriString(applicationBaseUrl)
+                .path(DOCUMENT_DIRECT_PATH)
+                .path("/{name}")
+                .buildAndExpand(document.getName())
+                .toUriString();
+    }
 
     public abstract List<FileModel> mapFiles(List<File> files);
 
     @Mapping(target = "connectedTenantId", source = "id")
     public abstract ConnectedTenantModel toTenantModelDfc(Tenant tenant, @Context UserApi userApi);
 
-    @Mapping(target = "preview", expression = "java((documentFile.getPreview() != null )? applicationBaseUrl + \"" + PREVIEW_PATH + "\" + documentFile.getId() : null)")
+    @Mapping(target = "preview", expression = "java(buildPreviewUrl(documentFile))")
     @Mapping(target = "size", source = "documentFile.storageFile.size")
     @Mapping(target = "contentType", source = "documentFile.storageFile.contentType")
     @Mapping(target = "originalName", source = "documentFile.storageFile.name")
     @Mapping(target = "md5", source = "documentFile.storageFile.md5")
     public abstract FileModel toFileModel(File documentFile);
 
+    protected String buildPreviewUrl(File documentFile) {
+        if( documentFile.getPreview() == null) {
+            return null;
+        }
+        return UriComponentsBuilder
+                .fromUriString(applicationBaseUrl)
+                .path(PREVIEW_PATH)
+                .path(documentFile.getId().toString())
+                .build()
+                .toUriString();
+    }
+
     @AfterMapping
     void modificationsAfterMapping(@MappingTarget TenantModel.TenantModelBuilder tenantModelBuilder, @Context UserApi userApi, Tenant tenant) {
         TenantModel tenantModel = tenantModelBuilder.build();
         ApartmentSharingModel apartmentSharingModel = tenantModel.getApartmentSharing();
-        updateTokens(tenant, apartmentSharingModel, l -> l.getLinkType() == ApartmentSharingLinkType.LINK);
+        if (userApi != null) {
+            updateTokens(tenant, apartmentSharingModel,
+                    l -> l.getLinkType() == ApartmentSharingLinkType.PARTNER
+                            && Objects.equals(l.getPartnerId(), userApi.getId()));
+        } else {
+            updateTokens(tenant, apartmentSharingModel, l -> l.getLinkType() == ApartmentSharingLinkType.LINK);
+        }
 
         var isDossierUser = SecurityContextHolder.getContext().getAuthentication().getAuthorities().contains(new SimpleGrantedAuthority("SCOPE_dossier"));
         var filePath = isDossierUser ? "/api/file/resource/" : null;
@@ -123,8 +164,8 @@ public abstract class TenantMapper {
                     .findFirst();
                 if (fullLink.isPresent()) {
                     token = fullLink.get().getToken().toString();
-                    apartmentSharingModel.setDossierPdfUrl(applicationBaseUrl + DOSSIER_PDF_PATH + token);
-                    apartmentSharingModel.setDossierUrl(tenantBaseUrl + DOSSIER_PATH + token);
+                    apartmentSharingModel.setDossierPdfUrl(applicationBaseUrl + "/" + DOSSIER_PDF_PATH + "/" + token);
+                    apartmentSharingModel.setDossierUrl(tenantBaseUrl + "/" + DOSSIER_PATH + "/" + token);
                 }
                 if (link.isPresent()) {
                     tokenPublic = link.get().getToken().toString();
@@ -175,11 +216,43 @@ public abstract class TenantMapper {
     void modificationsAfterMapping(@MappingTarget ConnectedTenantModel.ConnectedTenantModelBuilder connectedTenantModelBuilder, @Context UserApi userApi, Tenant tenant) {
         ConnectedTenantModel connectedTenantModel = connectedTenantModelBuilder.build();
         fr.dossierfacile.api.front.model.dfc.apartment_sharing.ApartmentSharingModel apartmentSharingModel = connectedTenantModel.getApartmentSharing();
-        updateTokens(tenant, apartmentSharingModel, l -> l.getLinkType() == ApartmentSharingLinkType.PARTNER && userApi != null && l.getPartnerId() == userApi.getId());
+        updateTokens(tenant, apartmentSharingModel, l -> l.getLinkType() == ApartmentSharingLinkType.PARTNER && userApi != null && Objects.equals(l.getPartnerId(), userApi.getId()));
+
         connectedTenantModel.getApartmentSharing().getTenants().forEach(tenantModel -> setDocumentDeniedReasonsAndDocumentAndFilesRoutes(tenantModel.getDocuments(), null, true));
         connectedTenantModel.getApartmentSharing().getTenants().forEach(tenantModel ->
                 Optional.ofNullable(tenantModel.getGuarantors()).ifPresent(guarantorModels ->
                         guarantorModels.forEach(guarantorModel -> setDocumentDeniedReasonsAndDocumentAndFilesRoutes(guarantorModel.getDocuments(), null, true))));
+    }
+
+    private String resolvePartnerToken(Document document, UserApi userApi) {
+        if (userApi == null) {
+            return null;
+        }
+        ApartmentSharing apartmentSharing = getApartmentSharing(document);
+        if (apartmentSharing == null || apartmentSharing.getStatus() != TenantFileStatus.VALIDATED) {
+            return null;
+        }
+        List<ApartmentSharingLink> links = apartmentSharing.getApartmentSharingLinks();
+        if (links == null) {
+            return null;
+        }
+        return links.stream()
+                .filter(l -> l.getLinkType() == ApartmentSharingLinkType.PARTNER
+                        && Objects.equals(l.getPartnerId(), userApi.getId())
+                        && l.isFullData())
+                .findFirst()
+                .map(l -> l.getToken().toString())
+                .orElse(null);
+    }
+
+    private ApartmentSharing getApartmentSharing(Document document) {
+        if (document.getTenant() != null) {
+            return document.getTenant().getApartmentSharing();
+        }
+        if (document.getGuarantor() != null && document.getGuarantor().getTenant() != null) {
+            return document.getGuarantor().getTenant().getApartmentSharing();
+        }
+        return null;
     }
 
     private void hideDocumentAnalysisReportInfoLevel(List<DocumentModel> documents) {
