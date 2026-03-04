@@ -2,12 +2,14 @@ package fr.dossierfacile.api.front.mapper;
 
 import fr.dossierfacile.api.front.model.dfc.tenant.ConnectedTenantModel;
 import fr.dossierfacile.api.front.model.tenant.CoTenantModel;
+import fr.dossierfacile.api.front.model.tenant.FileModel;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.ApartmentSharingLink;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentAnalysisRule;
 import fr.dossierfacile.common.entity.DocumentRuleLevel;
+import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Guarantor;
 import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.entity.Tenant;
@@ -553,6 +555,33 @@ class TenantMapperTest {
             TenantModel model = mapper.toTenantModel(tenant, null);
 
             assertThat(model.getFranceConnectIdentity()).isNull();
+        }
+    }
+
+    @Nested
+    class PreviewUrlMapping {
+
+        @Test
+        void shouldBuildPreviewUrlWithSlashBeforeFileId() {
+            mapper.applicationBaseUrl = "http://test.com";
+
+            StorageFile storageFile = new StorageFile();
+            storageFile.setName("document.pdf");
+            storageFile.setContentType("application/pdf");
+            storageFile.setSize(42L);
+            storageFile.setMd5("abc123");
+
+            StorageFile preview = new StorageFile();
+            File documentFile = File.builder()
+                    .id(123L)
+                    .storageFile(storageFile)
+                    .preview(preview)
+                    .build();
+
+            FileModel model = mapper.toFileModel(documentFile);
+
+            assertThat(model.getPreview()).isEqualTo("http://test.com/api/file/preview/123");
+            assertThat(model.getPreview()).doesNotContain("preview123");
         }
     }
 }

@@ -98,8 +98,7 @@ public abstract class TenantMapper {
         }
         return UriComponentsBuilder
                 .fromUriString(applicationBaseUrl)
-                .path(PREVIEW_PATH)
-                .path(documentFile.getId().toString())
+                .pathSegment(PREVIEW_PATH, documentFile.getId().toString())
                 .build()
                 .toUriString();
     }
