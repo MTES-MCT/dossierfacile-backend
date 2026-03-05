@@ -5,6 +5,8 @@ import fr.dossierfacile.document.analysis.rule.validator.document_ia.DocumentIAP
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,7 +25,7 @@ public abstract class BaseDocumentIAMapper {
                 GenericProperty genericProperty = findProperty(annotation, twoDDocProperties, extractionProperties);
 
                 if (genericProperty != null) {
-                    Object convertedValue = convertValue(genericProperty, annotation.type());
+                    Object convertedValue = convertValue(field, genericProperty, annotation.type());
                     convertedValue = applyTransformerIfNeeded(annotation, convertedValue);
 
                     if (convertedValue != null) {
@@ -68,12 +70,56 @@ public abstract class BaseDocumentIAMapper {
         field.set(instance, value);
     }
 
-    private Object convertValue(GenericProperty property, DocumentIAPropertyType type) {
+    private Object convertValue(Field targetField, GenericProperty property, DocumentIAPropertyType type) {
         return switch (type) {
             case STRING -> property.getStringValue();
             case DATE -> property.getDateValue();
-            default -> property.getValue();
+            case LIST_STRING -> property.getStringListValue();
+            case OBJECT -> mapNestedObject(targetField, property);
+            case LIST_OBJECT -> mapNestedObjectList(targetField, property);
         };
+    }
+
+    private Object mapNestedObject(Field targetField, GenericProperty property) {
+        List<GenericProperty> nestedProperties = property.getObjectValue();
+        if (nestedProperties == null || nestedProperties.isEmpty()) {
+            return null;
+        }
+
+        // Reuse the same mapper pipeline to support nested models with @DocumentIAField.
+        return instantiate(List.of(), nestedProperties, targetField.getType()).orElse(null);
+    }
+
+    private Object mapNestedObjectList(Field targetField, GenericProperty property) {
+        List<List<GenericProperty>> listOfNestedProperties = property.getObjectListValue();
+        if (listOfNestedProperties == null || listOfNestedProperties.isEmpty()) {
+            return List.of();
+        }
+
+        Class<?> nestedClass = resolveListElementType(targetField);
+
+        return listOfNestedProperties.stream()
+                .map(nestedProperties -> instantiate(List.of(), nestedProperties, nestedClass).orElse(null))
+                .filter(java.util.Objects::nonNull)
+                .toList();
+    }
+
+    private Class<?> resolveListElementType(Field targetField) {
+        Type genericType = targetField.getGenericType();
+        if (!(genericType instanceof ParameterizedType parameterizedType)) {
+            throw new IllegalStateException("Field '" + targetField.getName() + "' must be parameterized to use LIST_OBJECT");
+        }
+
+        Type elementType = parameterizedType.getActualTypeArguments()[0];
+        if (elementType instanceof Class<?> elementClass) {
+            return elementClass;
+        }
+
+        if (elementType instanceof ParameterizedType nestedParameterized && nestedParameterized.getRawType() instanceof Class<?> rawClass) {
+            return rawClass;
+        }
+
+        throw new IllegalStateException("Unable to resolve list element type for field '" + targetField.getName() + "'");
     }
 
     private Object applyTransformerIfNeeded(DocumentIAField annotation, Object value) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
