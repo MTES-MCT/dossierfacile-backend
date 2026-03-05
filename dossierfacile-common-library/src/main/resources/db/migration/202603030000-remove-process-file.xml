@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+    <changeSet id="202603030000-001" author="Nicolas">
+        <dropTable tableName="barcode_file_analysis" ifExists="true"/>
+        <dropTable tableName="blurry_file_analysis" ifExists="true"/>
+        <dropTable tableName="parsed_file_analysis" ifExists="true"/>
+        <rollback>
+            <createTable tableName="barcode_file_analysis">
+                <column name="id" type="BIGINT">
+                    <constraints primaryKey="true" nullable="false"/>
+                </column>
+                <column name="file_id" type="BIGINT">
+                    <constraints nullable="false"/>
+                </column>
+                <column name="bar_code_content" type="TEXT">
+                    <constraints nullable="false"/>
+                </column>
+                <column name="verified_data" type="JSONB"/>
+                <column name="authentication_status" type="VARCHAR(255)"/>
+                <column name="document_type" type="VARCHAR(255)">
+                    <constraints nullable="false"/>
+                </column>
+                <column name="allowed_in_document_category" type="BOOLEAN">
+                    <constraints nullable="false"/>
+                </column>
+                <column name="bar_code_type" type="VARCHAR(255)">
+                    <constraints nullable="false"/>
+                </column>
+            </createTable>
+            <addForeignKeyConstraint baseTableName="barcode_file_analysis"
+                                     baseColumnNames="file_id"
+                                     constraintName="monfranceconnect_validation_result_fkey"
+                                     referencedTableName="file"
+                                     referencedColumnNames="id"
+                                     onDelete="CASCADE"/>
+            <createIndex tableName="barcode_file_analysis" indexName="barcode_file_analysis_file_id_index">
+                <column name="file_id"/>
+            </createIndex>
+
+            <createTable tableName="blurry_file_analysis">
+                <column name="id" type="BIGINT" autoIncrement="true">
+                    <constraints primaryKey="true" nullable="false"/>
+                </column>
+                <column name="file_id" type="BIGINT">
+                    <constraints nullable="true"/>
+                </column>
+                <column name="analysis_status" type="VARCHAR(32)"/>
+                <column name="blurry_results" type="JSONB"/>
+                <column name="data_file_id" type="BIGINT"/>
+                <column name="data_document_id" type="BIGINT"/>
+            </createTable>
+            <addUniqueConstraint tableName="blurry_file_analysis"
+                                 columnNames="file_id"
+                                 constraintName="uc_blurry_file_analysis_file_id"/>
+            <addForeignKeyConstraint baseTableName="blurry_file_analysis"
+                                     baseColumnNames="file_id"
+                                     constraintName="fk_file_blurry_file_analysis"
+                                     referencedTableName="file"
+                                     referencedColumnNames="id"
+                                     onDelete="SET NULL"/>
+
+            <createTable tableName="parsed_file_analysis">
+                <column name="id" type="BIGINT" autoIncrement="true">
+                    <constraints primaryKey="true" nullable="false"/>
+                </column>
+                <column name="file_id" type="BIGINT">
+                    <constraints nullable="false"/>
+                </column>
+                <column name="analysis_status" type="VARCHAR(32)"/>
+                <column name="classification" type="VARCHAR(64)"/>
+                <column name="parsed_file" type="JSONB"/>
+            </createTable>
+            <addUniqueConstraint tableName="parsed_file_analysis"
+                                 columnNames="file_id"
+                                 constraintName="uc_parsed_file_analysis_file_id"/>
+            <addForeignKeyConstraint baseTableName="parsed_file_analysis"
+                                     baseColumnNames="file_id"
+                                     constraintName="fk_file_parsed_file_analysis"
+                                     referencedTableName="file"
+                                     referencedColumnNames="id"
+                                     onDelete="CASCADE"/>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

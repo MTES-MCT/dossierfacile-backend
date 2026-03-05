@@ -51,7 +51,6 @@ public abstract class AbstractDocumentSaveStep<T extends DocumentForm> implement
         Document document = saveDocument(tenant, documentForm);
         logService.saveDocumentEditedLog(document, tenant, EditionType.ADD);
         documentService.markDocumentAsEdited(document);
-        producer.sendDocumentForAnalysis(document);
         producer.sendDocumentForPdfGeneration(document);
 
         return tenantMapper.toTenantModel(document.getTenant() != null ? document.getTenant() : document.getGuarantor().getTenant(),

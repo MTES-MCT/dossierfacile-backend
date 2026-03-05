@@ -282,7 +282,6 @@ public class BOTenantController {
                         .documentId(document.getId())
                         .documentName(document.getName())
                         .metadataOfFiles(getFilesMetadata(document))
-                        .analyzedFiles(DisplayableFile.onlyAnalyzedFilesOf(document))
                         .previousDeniedReasons(documentDeniedReasonsService.getLastDeniedReason(document, tenant).orElse(null))
                         .documentAnalysisReport(document.getDocumentAnalysisReport())
                         .analysisReportComment(document.getDocumentAnalysisReport() != null && (DocumentAnalysisStatus.DENIED == document.getDocumentAnalysisReport().getAnalysisStatus()) ? document.getDocumentAnalysisReport().getComment() : null);
