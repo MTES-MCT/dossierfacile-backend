@@ -84,7 +84,7 @@ class ApplicationControllerIntegrationTest {
     @MockitoBean
     private ApartmentSharingCommonService apartmentSharingCommonService;
     @MockitoBean
-    private TenantPermissionsService TenantPermissionsService;
+    private TenantPermissionsService tenantPermissionsService;
     @MockitoBean
     private DocumentService documentService;
     @MockitoBean

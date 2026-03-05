@@ -4,7 +4,6 @@ import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentAnalysisRule;
 import fr.dossierfacile.common.entity.DocumentRule;
 import fr.dossierfacile.common.entity.rule.PayslipContinuityRuleData;
-import fr.dossierfacile.common.model.document_ia.GenericProperty;
 import fr.dossierfacile.document.analysis.rule.validator.RuleValidatorOutput;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.BaseDocumentIAValidator;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.mapper.DocumentIAMultiMapper;
