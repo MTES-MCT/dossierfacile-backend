@@ -5,6 +5,7 @@ import fr.dossierfacile.common.enums.DocumentCategoryStep;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.model.document_ia.GenericProperty;
 import fr.dossierfacile.common.model.document_ia.ResultModel;
+import fr.dossierfacile.document.analysis.rule.validator.document_ia.DocumentIAPropertyType;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.mapper.DocumentIAField;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.mapper.DocumentIAModel;
 import jakarta.annotation.PostConstruct;
@@ -16,6 +17,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ClassUtils;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.*;
 
 @Service
@@ -91,51 +94,200 @@ public class DocumentIAResultSanitizer {
             return resultModel;
         }
 
-        AllowedNames allowedNames = collectAllowedNames(matchingClasses);
+        AllowedSchema allowedSchema = collectAllowedSchema(matchingClasses);
         boolean hasExtractionProperties = resultModel.getExtraction() != null
                 && resultModel.getExtraction().getProperties() != null;
-        boolean hasWorkToDo = (hasExtractionProperties && !allowedNames.extractionNames().isEmpty())
-                || (resultModel.getBarcodes() != null && !allowedNames.twoDDocNames().isEmpty());
+        boolean hasWorkToDo = (hasExtractionProperties && !allowedSchema.extractionSchema().isEmpty())
+                || (resultModel.getBarcodes() != null && !allowedSchema.twoDDocNames().isEmpty());
         if (!hasWorkToDo) {
             return resultModel;
         }
 
         var clonedResultModel = resultModel.toBuilder().build();
 
-        if (hasExtractionProperties && !allowedNames.extractionNames().isEmpty()) {
-            filterExtractionProperties(clonedResultModel, allowedNames.extractionNames());
+        if (hasExtractionProperties && !allowedSchema.extractionSchema().isEmpty()) {
+            filterExtractionProperties(clonedResultModel, allowedSchema.extractionSchema());
         }
-        sanitizeBarcodes(clonedResultModel, allowedNames.twoDDocNames());
+        sanitizeBarcodes(clonedResultModel, allowedSchema.twoDDocNames());
         return clonedResultModel;
     }
 
-    private AllowedNames collectAllowedNames(List<Class<?>> matchingClasses) {
-        Set<String> allowedExtractionNames = new HashSet<>();
+    private AllowedSchema collectAllowedSchema(List<Class<?>> matchingClasses) {
+        Map<String, ExtractionNode> extractionSchema = new HashMap<>();
         Set<String> allowedTwoDDocNames = new HashSet<>();
         for (Class<?> modelClass : matchingClasses) {
-            for (Field field : modelClass.getDeclaredFields()) {
-                DocumentIAField fieldAnnotation = field.getAnnotation(DocumentIAField.class);
-                if (fieldAnnotation == null) {
-                    continue;
-                }
-                String extractionName = fieldAnnotation.extractionName();
-                if (extractionName != null && !extractionName.isBlank()) {
-                    allowedExtractionNames.add(extractionName);
-                }
-                String twoDDocName = fieldAnnotation.twoDDocName();
-                if (twoDDocName != null && !twoDDocName.isBlank()) {
-                    allowedTwoDDocNames.add(twoDDocName);
-                }
-            }
+            mergeExtractionSchema(extractionSchema, buildExtractionSchema(modelClass));
+            collectTwoDDocNames(allowedTwoDDocNames, modelClass);
         }
-        return new AllowedNames(allowedExtractionNames, allowedTwoDDocNames);
+        return new AllowedSchema(extractionSchema, allowedTwoDDocNames);
     }
 
-    private void filterExtractionProperties(ResultModel resultModel, Set<String> allowedExtractionNames) {
-        List<GenericProperty> filteredProperties = resultModel.getExtraction().getProperties().stream()
-                .filter(property -> property != null && allowedExtractionNames.contains(property.getName()))
-                .toList();
+    private void collectTwoDDocNames(Set<String> allowedTwoDDocNames, Class<?> modelClass) {
+        for (Field field : modelClass.getDeclaredFields()) {
+            DocumentIAField fieldAnnotation = field.getAnnotation(DocumentIAField.class);
+            if (fieldAnnotation == null) {
+                continue;
+            }
+            String twoDDocName = fieldAnnotation.twoDDocName();
+            if (twoDDocName != null && !twoDDocName.isBlank()) {
+                allowedTwoDDocNames.add(twoDDocName);
+            }
+        }
+    }
+
+    private Map<String, ExtractionNode> buildExtractionSchema(Class<?> modelClass) {
+        Map<String, ExtractionNode> schema = new HashMap<>();
+        for (Field field : modelClass.getDeclaredFields()) {
+            DocumentIAField fieldAnnotation = field.getAnnotation(DocumentIAField.class);
+            if (fieldAnnotation == null) {
+                continue;
+            }
+
+            String extractionName = fieldAnnotation.extractionName();
+            if (extractionName == null || extractionName.isBlank()) {
+                continue;
+            }
+
+            ExtractionNode node = buildFieldNode(field, fieldAnnotation.type());
+            schema.merge(extractionName, node, this::mergeNodes);
+        }
+        return schema;
+    }
+
+    private ExtractionNode buildFieldNode(Field field, DocumentIAPropertyType type) {
+        return switch (type) {
+            case OBJECT -> {
+                Class<?> nestedType = resolveObjectType(field);
+                if (nestedType == null) {
+                    yield ExtractionNode.leaf();
+                }
+                yield new ExtractionNode(buildExtractionSchema(nestedType));
+            }
+            case LIST_OBJECT -> {
+                Class<?> nestedType = resolveListElementType(field);
+                if (nestedType == null) {
+                    yield ExtractionNode.leaf();
+                }
+                yield new ExtractionNode(buildExtractionSchema(nestedType));
+            }
+            default -> ExtractionNode.leaf();
+        };
+    }
+
+    private Class<?> resolveObjectType(Field field) {
+        Class<?> type = field.getType();
+        if (type == Object.class) {
+            return null;
+        }
+        return type;
+    }
+
+    private Class<?> resolveListElementType(Field field) {
+        Type genericType = field.getGenericType();
+        if (!(genericType instanceof ParameterizedType parameterizedType)) {
+            return null;
+        }
+
+        Type elementType = parameterizedType.getActualTypeArguments()[0];
+        if (elementType instanceof Class<?> elementClass) {
+            return elementClass;
+        }
+
+        if (elementType instanceof ParameterizedType nestedParameterized
+                && nestedParameterized.getRawType() instanceof Class<?> rawClass) {
+            return rawClass;
+        }
+
+        return null;
+    }
+
+    private ExtractionNode mergeNodes(ExtractionNode first, ExtractionNode second) {
+        if (first.isLeaf()) {
+            return second;
+        }
+        if (second.isLeaf()) {
+            return first;
+        }
+
+        Map<String, ExtractionNode> merged = new HashMap<>(first.children());
+        mergeExtractionSchema(merged, second.children());
+        return new ExtractionNode(merged);
+    }
+
+    private void mergeExtractionSchema(Map<String, ExtractionNode> target, Map<String, ExtractionNode> source) {
+        source.forEach((name, node) -> target.merge(name, node, this::mergeNodes));
+    }
+
+    private void filterExtractionProperties(ResultModel resultModel, Map<String, ExtractionNode> extractionSchema) {
+        List<GenericProperty> filteredProperties = sanitizePropertyList(resultModel.getExtraction().getProperties(), extractionSchema);
         resultModel.getExtraction().setProperties(filteredProperties);
+    }
+
+    private List<GenericProperty> sanitizePropertyList(List<GenericProperty> properties, Map<String, ExtractionNode> schema) {
+        if (properties == null || properties.isEmpty()) {
+            return List.of();
+        }
+
+        List<GenericProperty> sanitized = new ArrayList<>();
+        for (GenericProperty property : properties) {
+            if (property == null) {
+                continue;
+            }
+
+            ExtractionNode node = schema.get(property.getName());
+            if (node == null) {
+                continue;
+            }
+
+            sanitizeNestedValue(property, node);
+            sanitized.add(property);
+        }
+        return sanitized;
+    }
+
+    private void sanitizeNestedValue(GenericProperty property, ExtractionNode node) {
+        if (node.isLeaf()) {
+            return;
+        }
+
+        Object rawValue = property.getValue();
+        if (!(rawValue instanceof List<?> rawList)) {
+            return;
+        }
+
+        if (GenericProperty.TYPE_OBJECT.equals(property.getType())) {
+            List<GenericProperty> nested = toGenericPropertyList(rawList);
+            property.setValue(sanitizePropertyList(nested, node.children()));
+            return;
+        }
+
+        if (!GenericProperty.TYPE_LIST.equals(property.getType())) {
+            return;
+        }
+
+        List<GenericProperty> listItems = toGenericPropertyList(rawList);
+        for (GenericProperty item : listItems) {
+            if (!GenericProperty.TYPE_OBJECT.equals(item.getType())) {
+                continue;
+            }
+            Object itemValue = item.getValue();
+            if (!(itemValue instanceof List<?> itemList)) {
+                continue;
+            }
+            List<GenericProperty> nested = toGenericPropertyList(itemList);
+            item.setValue(sanitizePropertyList(nested, node.children()));
+        }
+        property.setValue(listItems);
+    }
+
+    private List<GenericProperty> toGenericPropertyList(List<?> rawValues) {
+        List<GenericProperty> properties = new ArrayList<>();
+        for (Object value : rawValues) {
+            if (value instanceof GenericProperty genericProperty) {
+                properties.add(genericProperty);
+            }
+        }
+        return properties;
     }
 
     private void sanitizeBarcodes(ResultModel resultModel, Set<String> allowedTwoDDocNames) {
@@ -156,7 +308,16 @@ public class DocumentIAResultSanitizer {
         }
     }
 
-    private record AllowedNames(Set<String> extractionNames, Set<String> twoDDocNames) {
+    private record AllowedSchema(Map<String, ExtractionNode> extractionSchema, Set<String> twoDDocNames) {
     }
 
+    private record ExtractionNode(Map<String, ExtractionNode> children) {
+        static ExtractionNode leaf() {
+            return new ExtractionNode(Map.of());
+        }
+
+        boolean isLeaf() {
+            return children == null || children.isEmpty();
+        }
+    }
 }
