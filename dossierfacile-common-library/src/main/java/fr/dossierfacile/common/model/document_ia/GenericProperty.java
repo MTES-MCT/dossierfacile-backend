@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -18,9 +20,12 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class GenericProperty {
+public class GenericProperty implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     public static final String TYPE_STRING = "string";
+    public static final String TYPE_DATE = "date";
 
     private String name;
 
@@ -30,7 +35,7 @@ public class GenericProperty {
 
     @JsonIgnore
     public String getStringValue() {
-        if (!"string".equals(type)) {
+        if (!TYPE_STRING.equals(type)) {
             throw new IllegalStateException("Property type is not string");
         }
         return (String) value;
@@ -38,7 +43,7 @@ public class GenericProperty {
 
     @JsonIgnore
     public LocalDate getDateValue() {
-        if (!"date".equals(type)) {
+        if (!TYPE_DATE.equals(type)) {
             throw new IllegalStateException("Property type is not date");
         }
 

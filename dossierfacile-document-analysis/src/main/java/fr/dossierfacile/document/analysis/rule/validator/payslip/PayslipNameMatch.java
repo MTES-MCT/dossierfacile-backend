@@ -63,7 +63,6 @@ public class PayslipNameMatch extends BaseDocumentIAValidator {
         var extractedIdentities = new DocumentIAMultiMapper().map(documentIAAnalyses, PayslipNames.class);
 
         var listOfExtractedNames = new ArrayList<NamesRuleData.Name>();
-        var i = 1;
         for (PayslipNames name : extractedIdentities) {
             if (!NameUtil.isNameMatching(nameToMatch, name)) {
                 isNameMatch = false;
@@ -75,7 +74,6 @@ public class PayslipNameMatch extends BaseDocumentIAValidator {
                             null
                     )
             );
-            i++;
         }
 
         namesRuleData = new NamesRuleData(

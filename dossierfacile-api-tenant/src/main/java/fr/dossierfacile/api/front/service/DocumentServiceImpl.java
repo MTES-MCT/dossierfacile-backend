@@ -254,15 +254,4 @@ public class DocumentServiceImpl implements DocumentService {
         }
     }
 
-    private DocumentAnalysisReportModel toDocumentAnalysisReportModel(DocumentAnalysisReport report) {
-        return DocumentAnalysisReportModel.builder()
-                .id(report.getId())
-                .analysisStatus(report.getAnalysisStatus())
-                .failedRules(report.getFailedRules())
-                .passedRules(report.getPassedRules())
-                .inconclusiveRules(report.getInconclusiveRules())
-                .createdAt(report.getCreatedAt())
-                .build();
-    }
-
 }

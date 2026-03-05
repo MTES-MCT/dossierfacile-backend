@@ -39,24 +39,7 @@ public class ProcessFileServiceImpl implements ProcessFileService {
         try (InputStream inputStream = fileStorageService.download(safeFile.getStorageFile())) {
             tempFile = Files.createTempFile("df-file-", ".bin");
             Files.copy(inputStream, tempFile, StandardCopyOption.REPLACE_EXISTING);
-
-            // We have to create 2 streams because when an input stream is read, the buffer is empty
-            try (
-                    InputStream minifyStream = Files.newInputStream(tempFile);
-                    InputStream metadataStream = Files.newInputStream(tempFile)
-            ) {
-                try {
-                    minifyFileService.process(minifyStream, safeFile);
-                } catch (Exception exception) {
-                    log.error("Minify processing failed for fileId={}", fileId, exception);
-                }
-
-                try {
-                    metadataFileProcessor.process(metadataStream, safeFile);
-                } catch (Exception exception) {
-                    log.error("Metadata processing failed for fileId={}", fileId, exception);
-                }
-            }
+            processMinifyAndMetadata(tempFile, safeFile, fileId);
         } catch (Exception e) {
             throw new RuntimeException("Unable to download file", e);
         } finally {
@@ -68,6 +51,26 @@ public class ProcessFileServiceImpl implements ProcessFileService {
                     // The file will be deleted automatically when scalingo container restarts
                     log.error("Unable to delete temp file", exception);
                 }
+            }
+        }
+    }
+
+    private void processMinifyAndMetadata(Path tempFile, fr.dossierfacile.common.entity.File safeFile, Long fileId) throws java.io.IOException {
+        // Two independent streams are required because each processor consumes its stream.
+        try (
+                InputStream minifyStream = Files.newInputStream(tempFile);
+                InputStream metadataStream = Files.newInputStream(tempFile)
+        ) {
+            try {
+                minifyFileService.process(minifyStream, safeFile);
+            } catch (Exception exception) {
+                log.error("Minify processing failed for fileId={}", fileId, exception);
+            }
+
+            try {
+                metadataFileProcessor.process(metadataStream, safeFile);
+            } catch (Exception exception) {
+                log.error("Metadata processing failed for fileId={}", fileId, exception);
             }
         }
     }

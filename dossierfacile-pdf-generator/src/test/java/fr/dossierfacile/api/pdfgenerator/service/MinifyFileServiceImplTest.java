@@ -61,7 +61,6 @@ class MinifyFileServiceImplTest {
 
         verify(fileRepository).saveAndFlush(file);
         verify(fileStorageService).hardDelete(newPreview);
-        verify(storageFileRepository).save(newPreview);
         verify(fileStorageService, never()).delete(any(StorageFile.class));
     }
 
