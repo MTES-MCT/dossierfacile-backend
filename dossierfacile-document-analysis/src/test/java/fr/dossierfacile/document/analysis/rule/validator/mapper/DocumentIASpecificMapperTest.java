@@ -19,11 +19,15 @@ public class DocumentIASpecificMapperTest {
     @Nested
     class TestModelMapperTest {
 
-        private List<GenericProperty> makeInnerModel() {
+        private GenericProperty getListItem(String testSuffix) {
+            return GenericProperty.builder().name("item").value(makeInnerModel(testSuffix)).type("object").build();
+        }
+
+        private List<GenericProperty> makeInnerModel(String testSuffix) {
             return List.of(
-                    GenericProperty.builder().name("inner_string").value("inner_value").type("string").build(),
+                    GenericProperty.builder().name("inner_string").value(testSuffix + "inner_value").type("string").build(),
                     GenericProperty.builder().name("inner_date").value("2026-06-04").type("date").build(),
-                    GenericProperty.builder().name("inner_list").value(List.of("value4", "value5", "value6")).type("list").build()
+                    GenericProperty.builder().name("inner_list").value(List.of(testSuffix + "value4", testSuffix + "value5", testSuffix +"value6")).type("list").build()
             );
         }
 
@@ -33,7 +37,14 @@ public class DocumentIASpecificMapperTest {
                     GenericProperty.builder().name("string_value").value("1111111111").type("string").build(),
                     GenericProperty.builder().name("date_value").value("2026-03-02").type("date").build(),
                     GenericProperty.builder().name("list").value(List.of("value1", "value2", "value3")).type("list").build(),
-                    GenericProperty.builder().name("inner_model").value(makeInnerModel()).type("object").build()
+                    GenericProperty.builder().name("inner_model").value(makeInnerModel("inner_model_")).type("object").build(),
+                    GenericProperty.builder().name("list_inner_model").value(
+                            List.of(
+                                getListItem("1_"),
+                                getListItem("2_"),
+                                getListItem("3_")
+                            )
+                    ).type("list").build()
             );
 
             return ExtractionModel.builder()
@@ -62,17 +73,22 @@ public class DocumentIASpecificMapperTest {
             var testModel = mapper.map(analysis, TestModel.class);
 
             assertThat(testModel).isNotNull();
-            assertThat(testModel.isPresent()).isTrue();
+            assertThat(testModel).isPresent();
             assertThat(testModel.get().getStringValue()).isEqualTo("1111111111");
             assertThat(testModel.get().getDateValue()).isEqualTo(LocalDate.of(2026, 3, 2));
             assertThat(testModel.get().getList()).hasSize(3).containsExactly("value1", "value2", "value3");
 
             assertThat(testModel.get().getTestInnerModel()).isNotNull();
-            assertThat(testModel.get().getTestInnerModel().getInnerString()).isEqualTo("inner_value");
+            assertThat(testModel.get().getTestInnerModel().getInnerString()).isEqualTo("inner_model_inner_value");
             assertThat(testModel.get().getTestInnerModel().getInnerDate()).isEqualTo(LocalDate.of(2026, 6, 4));
             assertThat(testModel.get().getTestInnerModel().getInnerList())
                     .hasSize(3)
-                    .containsExactly("value4", "value5", "value6");
+                    .containsExactly("inner_model_value4", "inner_model_value5", "inner_model_value6");
+
+            assertThat(testModel.get().getListTestInnerModels()).hasSize(3);
+            assertThat(testModel.get().getListTestInnerModels().get(0).getInnerString()).isEqualTo("1_inner_value");
+            assertThat(testModel.get().getListTestInnerModels().get(1).getInnerString()).isEqualTo("2_inner_value");
+            assertThat(testModel.get().getListTestInnerModels().get(2).getInnerString()).isEqualTo("3_inner_value");
         }
 
 
