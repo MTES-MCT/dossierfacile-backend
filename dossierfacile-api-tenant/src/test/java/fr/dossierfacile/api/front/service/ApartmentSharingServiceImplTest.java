@@ -7,16 +7,11 @@ import fr.dossierfacile.api.front.model.tenant.AnalysisStatus;
 import fr.dossierfacile.api.front.model.tenant.DocumentAnalysisStatusResponse;
 import fr.dossierfacile.api.front.model.tenant.FullFolderFile;
 import fr.dossierfacile.api.front.repository.ApiTenantLogRepository;
+import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.service.interfaces.BruteForceProtectionService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.TenantPermissionsService;
 import fr.dossierfacile.common.entity.*;
-import fr.dossierfacile.api.front.repository.DocumentRepository;
-import fr.dossierfacile.common.entity.ApartmentSharing;
-import fr.dossierfacile.common.entity.ApartmentSharingLink;
-import fr.dossierfacile.common.entity.Document;
-import fr.dossierfacile.common.entity.StorageFile;
-import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.FileStatus;
 import fr.dossierfacile.common.enums.LogType;
@@ -36,11 +31,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -49,13 +43,12 @@ import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -93,11 +86,10 @@ class ApartmentSharingServiceImplTest {
     @MockitoBean
     private LogService logService;
     @MockitoBean
-    private fr.dossierfacile.api.front.service.interfaces.BruteForceProtectionService bruteForceProtectionService;
+    private BruteForceProtectionService bruteForceProtectionService;
     @MockitoBean
     private DocumentRepository documentRepository;
-    @MockitoBean
-    private BruteForceProtectionService bruteForceProtectionService;
+
     @MockitoBean
     private TenantPermissionsService tenantPermissionsService;
     @MockitoBean
@@ -486,7 +478,7 @@ class ApartmentSharingServiceImplTest {
             }
         }
 
-       @Nested
+        @Nested
         class WhenDocumentNotInSharing {
             @Test
             void shouldThrowApartmentSharingNotFoundException() {
