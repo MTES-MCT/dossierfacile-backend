@@ -82,7 +82,7 @@ public class LoggerUtil {
         MDC.put(API_URL, request.getRequestURI());
         MDC.put(API_METHOD, request.getMethod());
         MDC.put(REQUEST_ID, UUID.randomUUID().toString());
-        MDC.put(API_REAL_IP, request.getHeader("X-Real-Ip")); // specific to Scalingo infra
+        MDC.put(API_REAL_IP, request.getHeader("X-Forwarded-For"));
         MDC.put("user_agent", request.getHeader("User-Agent"));
         MDC.put("referer", request.getHeader("Referer"));
         additionalContextElements.forEach(MDC::put);

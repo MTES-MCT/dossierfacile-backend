@@ -122,7 +122,7 @@ public class LogAggregationFilter extends OncePerRequestFilter {
                     request.getMethod(),
                     finalStatus,
                     responseTime,
-                    request.getHeader("X-Real-Ip"),
+                    request.getHeader("X-Forwarded-For"),
                     request.getHeader("User-Agent"),
                     request.getHeader("Referer")
             );
