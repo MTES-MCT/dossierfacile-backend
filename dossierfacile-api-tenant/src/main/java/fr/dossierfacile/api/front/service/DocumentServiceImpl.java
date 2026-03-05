@@ -159,9 +159,7 @@ public class DocumentServiceImpl implements DocumentService {
     public void addFile(MultipartFile multipartFile, Document document) throws IOException {
         File file = documentHelperService.addFile(multipartFile, document);
         markDocumentAsEdited(document);
-        producer.minifyFile(document.getId(), file.getId());
-        producer.analyzeFile(document.getId(), file.getId());
-        producer.amqpAnalyseFile(file.getId());
+        producer.processFile(document.getId(), file.getId());
         documentIAService.sendForAnalysis(multipartFile, file, document);
     }
 
