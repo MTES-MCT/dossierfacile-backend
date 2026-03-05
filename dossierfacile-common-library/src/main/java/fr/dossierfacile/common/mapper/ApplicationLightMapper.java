@@ -18,7 +18,6 @@ public abstract class ApplicationLightMapper implements ApartmentSharingMapper {
 
     @Mapping(target = "name", ignore = true)
     @MapDocumentCategories
-    @Mapping(target = "authenticityStatus", expression = "java(fr.dossierfacile.common.entity.AuthenticityStatus.isAuthentic(document))")
     public abstract DocumentModel documentToDocumentModel(Document document, @Context UserApi userApi);
 
 

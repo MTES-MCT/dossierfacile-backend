@@ -3,17 +3,13 @@ package fr.dossierfacile.api.front.controller;
 import fr.dossierfacile.api.front.aop.annotation.MethodLogTime;
 import fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException;
 import fr.dossierfacile.api.front.exception.ApartmentSharingUnexpectedException;
-import fr.dossierfacile.api.front.exception.ApplicationLinkBlockedException;
 import fr.dossierfacile.api.front.model.tenant.ApplicationAnalysisStatusResponse;
-import fr.dossierfacile.api.front.model.tenant.DocumentAnalysisStatusResponse;
 import fr.dossierfacile.api.front.model.tenant.FullFolderFile;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
-import fr.dossierfacile.api.front.service.DocumentServiceImpl;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
-
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.common.utils.FileUtility;
 import jakarta.servlet.http.HttpServletResponse;
@@ -29,8 +25,6 @@ import org.springframework.web.bind.annotation.*;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.text.Normalizer;
 import java.util.UUID;
 
 import static org.springframework.http.ResponseEntity.accepted;
