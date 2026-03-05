@@ -5,6 +5,7 @@ import fr.dossierfacile.document.analysis.rule.validator.document_ia.mapper.Docu
 import lombok.Getter;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
 public class TestModel {
@@ -20,4 +21,7 @@ public class TestModel {
 
     @DocumentIAField(extractionName = "inner_model", type = DocumentIAPropertyType.OBJECT)
     private TestInnerModel testInnerModel;
+
+    @DocumentIAField(extractionName = "list_inner_model", type = DocumentIAPropertyType.LIST_OBJECT)
+    private List<TestInnerModel> listTestInnerModels;
 }
