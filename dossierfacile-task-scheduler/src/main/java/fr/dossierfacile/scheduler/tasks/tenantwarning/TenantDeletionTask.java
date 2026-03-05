@@ -26,7 +26,7 @@ public class TenantDeletionTask extends AbstractTask {
     @Value("${months_for_deletion_of_archived_tenants:12}")
     private Integer monthsForDeletionOfTenants;
     private final TenantRepository tenantRepository;
-    private final TenantWarningService tenantWarningService;
+    private final TenantArchivingService tenantArchivingService;
 
     @Scheduled(cron = "${cron.account-deletion}")
     private void deleteOldAccounts() {
@@ -53,7 +53,7 @@ public class TenantDeletionTask extends AbstractTask {
             toDelete = tenantRepository.findByLastUpdateDate(limitDate, toDelete.nextPageable());
             deleteAllTenants(toDelete, listOfTenantIds);
         }
-        addTenantIdsToDeleteForLogging(listOfTenantIds);
+        countTenantIdForLogging(listOfTenantIds);
     }
 
     private void deleteAllTenants(Page<Long> tenantIds, List<Long> listOfTenantIds) {
@@ -63,7 +63,7 @@ public class TenantDeletionTask extends AbstractTask {
 
     private void deleteTenant(Long tenantId) {
         try {
-            tenantWarningService.deleteOldArchivedWarning(tenantId);
+            tenantArchivingService.deletePermanently(tenantId);
         } catch (Exception e) {
             log.error("Error while deleting tenant {}", tenantId, e);
         }

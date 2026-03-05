@@ -92,7 +92,7 @@ public class OwnerWarningTask extends AbstractTask {
             ownerPage = ownerRepository.findByLastLoginDate(ownerPage.nextPageable(), localDateTime, warnings);
             processWarningsForPage(warnings, ownerPage, listOfOwnerIds);
         }
-        addOwnerIdsToForLogging(listOfOwnerIds);
+        countOwnerIdForLogging(listOfOwnerIds);
     }
 
     private void processWarningsForPage(int warnings, Page<Owner> ownerPage, List<Long> listOfOwnerIds) {
@@ -108,10 +108,9 @@ public class OwnerWarningTask extends AbstractTask {
                 });
     }
 
-    private void addOwnerIdsToForLogging(List<Long> ownerIds) {
+    private void countOwnerIdForLogging(List<Long> ownerIds) {
         if (!CollectionUtils.isEmpty(ownerIds)) {
-            var ids = ownerIds.stream().map(String::valueOf).collect(Collectors.joining(" , "));
-            LoggerUtil.addTaskOwnerList("[" + ids + "]");
+            LoggerUtil.addTaskOwnerCount(ownerIds.size());
         }
     }
 }

@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Lookup;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 public class AbstractTask {
@@ -30,24 +29,21 @@ public class AbstractTask {
         logAggregator().sendLogs();
     }
 
-    protected void addTenantIdsToDeleteForLogging(List<Long> tenantIds) {
+    protected void countTenantIdForLogging(List<Long> tenantIds) {
         if (!CollectionUtils.isEmpty(tenantIds)) {
-            var ids = tenantIds.stream().map(String::valueOf).collect(Collectors.joining(" , "));
-            LoggerUtil.addTaskTenantList("[" + ids + "]");
+            LoggerUtil.addTaskTenantCount(tenantIds.size());
         }
     }
 
-    protected void addFileIdListForLogging(List<StorageFile> files) {
+    protected void countFileIdForLogging(List<StorageFile> files) {
         if (!CollectionUtils.isEmpty(files)) {
-            var ids = files.stream().map(StorageFile::getId).map(String::valueOf).collect(Collectors.joining(" , "));
-            LoggerUtil.addTaskStorageFileList("[" + ids + "]");
+            LoggerUtil.addTaskStorageFileCount(files.size());
         }
     }
 
-    protected void addDocumentIdListForLogging(List<Document> documents) {
+    protected void countDocumentIdForLogging(List<Document> documents) {
         if (!CollectionUtils.isEmpty(documents)) {
-            var ids = documents.stream().map(Document::getId).map(String::valueOf).collect(Collectors.joining(" , "));
-            LoggerUtil.addTaskDocumentList("[" + ids + "]");
+            LoggerUtil.addTaskDocumentCount(documents.size());
         }
     }
 

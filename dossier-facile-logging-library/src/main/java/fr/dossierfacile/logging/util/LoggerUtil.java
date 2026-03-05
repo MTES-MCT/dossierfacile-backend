@@ -19,13 +19,6 @@ public class LoggerUtil {
     public static final String REQUEST_ID = "request_id";
     public static final String PROCESS_ID = "process_id";
 
-    private static final String NUMBER_REGEX = "(?<=/)(\\d+)(?=[/?]|$)";
-    /** UUID (8-4-4-4-12 hex) plus any trailing chars until next / or end; whole segment replaced by {uuid} */
-    private static final String UUID_REGEX = "(?<=/)([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}[^/]*)";
-    private static final String EMAIL_REGEX = "(?<=/)([a-zA-Z0-9](?:[a-zA-Z0-9._%+-]*[a-zA-Z0-9])?@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})(?=[/?]|$)";
-    /** Property token: alphanumeric chars (e.g. after /api/property/public/ or .../subscribe/) */
-    private static final String PROPERTY_TOKEN_REGEX = "(?<=/)([a-zA-Z0-9]{15,30})(?=[/?]|$)";
-
     private static final String API_URL = "uri";
     private static final String API_NORMALIZED_URI = "normalized_uri";
     private static final String API_RESPONSE_STATUS = "response_status";
@@ -46,10 +39,10 @@ public class LoggerUtil {
 
     private static final String TASK_NAME = "task_name";
     private static final String TASK_STATUS = "task_status";
-    private static final String TASK_DOCUMENT_LIST = "task_document_list";
-    private static final String TASK_STORAGE_FILE_LIST = "task_storage_file_list";
-    private static final String TASK_TENANT_LIST = "task_tenant_list";
-    private static final String TASK_OWNER_LIST = "task_owner_list";
+    private static final String TASK_DOCUMENT_COUNT = "task_document_count";
+    private static final String TASK_STORAGE_FILE_COUNT = "task_storage_file_count";
+    private static final String TASK_TENANT_COUNT = "task_tenant_count";
+    private static final String TASK_OWNER_COUNT = "task_owner_count";
 
     private static final String LOGS = "logs";
     private static final String EXECUTION_TIME = "execution_time";
@@ -210,20 +203,20 @@ public class LoggerUtil {
         return MDC.get(TASK_NAME);
     }
 
-    public static void addTaskDocumentList(String documentList) {
-        MDC.put(TASK_DOCUMENT_LIST, documentList);
+    public static void addTaskDocumentCount(int documentCount) {
+        MDC.put(TASK_DOCUMENT_COUNT, String.valueOf(documentCount));
     }
 
-    public static void addTaskTenantList(String tenantList) {
-        MDC.put(TASK_TENANT_LIST, tenantList);
+    public static void addTaskTenantCount(int tenantCount) {
+        MDC.put(TASK_TENANT_COUNT, String.valueOf(tenantCount));
     }
 
-    public static void addTaskOwnerList(String ownerList) {
-        MDC.put(TASK_OWNER_LIST, ownerList);
+    public static void addTaskOwnerCount(int ownerCount) {
+        MDC.put(TASK_OWNER_COUNT, String.valueOf(ownerCount));
     }
 
-    public static void addTaskStorageFileList(String storageFileList) {
-        MDC.put(TASK_STORAGE_FILE_LIST, storageFileList);
+    public static void addTaskStorageFileCount(int storageFileCount) {
+        MDC.put(TASK_STORAGE_FILE_COUNT, String.valueOf(storageFileCount));
     }
 
     public static void addApartmentSharing(String apartmentSharing) {
