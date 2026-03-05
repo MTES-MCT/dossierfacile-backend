@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -78,7 +79,7 @@ public class GenericProperty implements Serializable {
         }
 
         if (value == null) {
-            return null;
+            return new String[0];
         }
 
         if (!(value instanceof List<?> values)) {
@@ -97,7 +98,7 @@ public class GenericProperty implements Serializable {
         }
 
         if (value == null) {
-            return null;
+            return List.of();
         }
 
         if (!(value instanceof List<?> values)) {
@@ -110,6 +111,34 @@ public class GenericProperty implements Serializable {
                         throw new IllegalArgumentException("Unsupported nested item type for object property '" + name + "': " + item.getClass());
                     }
                     return gp;
+                })
+                .toList();
+    }
+
+    @JsonIgnore
+    public List<List<GenericProperty>> getObjectListValue() {
+        if (!TYPE_LIST.equals(type)) {
+            throw new IllegalStateException("Property type is not list");
+        }
+
+        if (value == null) {
+            return List.of();
+        }
+
+        if (!(value instanceof List<?> values)) {
+            throw new IllegalArgumentException("Unsupported value type for list property '" + name + "': " + value.getClass());
+        }
+
+        return values.stream()
+                .map(item -> {
+                    if (!(item instanceof GenericProperty listItem)) {
+                        throw new IllegalArgumentException("Unsupported list item type for list property '" + name + "': " + item.getClass());
+                    }
+                    if (!TYPE_OBJECT.equals(listItem.getType())) {
+                        throw new IllegalArgumentException("Unsupported list item property type for '" + name + "': " + listItem.getType());
+                    }
+                    List<GenericProperty> objectValue = listItem.getObjectValue();
+                    return objectValue == null ? List.<GenericProperty>of() : objectValue;
                 })
                 .toList();
     }
