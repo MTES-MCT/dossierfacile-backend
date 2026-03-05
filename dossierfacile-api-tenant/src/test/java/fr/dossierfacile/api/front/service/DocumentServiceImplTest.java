@@ -3,16 +3,15 @@ package fr.dossierfacile.api.front.service;
 import fr.dossierfacile.api.front.exception.DocumentNotFoundException;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.tenant.AnalysisStatus;
-import fr.dossierfacile.api.front.model.tenant.DocumentAnalysisReportModel;
 import fr.dossierfacile.api.front.model.tenant.DocumentAnalysisStatusResponse;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.repository.DocumentIAFileAnalysisRepository;
+import org.junit.jupiter.api.BeforeEach;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -60,9 +59,6 @@ class DocumentServiceImplTest {
     private static final String DOCUMENT_NAME = "test-document.pdf";
     @Mock
     private TenantMapper tenantMapper;
-
-    @InjectMocks
-    private DocumentServiceImpl documentService;
 
     @Nested
     class GetAuthorizedDocument {
@@ -424,43 +420,43 @@ class DocumentServiceImplTest {
             );
         }
 
-    }
+        @Test
+        void shouldDenyAccessToCoTenantGuarantorDocumentInGroup() {
+            // Given
+            Tenant coTenant = Tenant.builder().id(3L).build();
+            ApartmentSharing groupSharing = ApartmentSharing.builder()
+                    .id(1L)
+                    .applicationType(ApplicationType.GROUP)
+                    .tenants(List.of(tenant, coTenant))
+                    .build();
+            tenant.setApartmentSharing(groupSharing);
 
-    @Test
-    void shouldDenyAccessToCoTenantGuarantorDocumentInGroup() {
-        // Given
-        Tenant coTenant = Tenant.builder().id(3L).build();
-        ApartmentSharing groupSharing = ApartmentSharing.builder()
-                .id(1L)
-                .applicationType(ApplicationType.GROUP)
-                .tenants(List.of(tenant, coTenant))
-                .build();
-        tenant.setApartmentSharing(groupSharing);
+            Guarantor coTenantGuarantor = Guarantor.builder().id(30L).tenant(coTenant).build();
+            Document coTenantGuarantorDoc = Document.builder().id(6L).guarantor(coTenantGuarantor).build();
 
-        Guarantor coTenantGuarantor = Guarantor.builder().id(30L).tenant(coTenant).build();
-        Document coTenantGuarantorDoc = Document.builder().id(6L).guarantor(coTenantGuarantor).build();
+            when(documentRepository.findById(6L)).thenReturn(Optional.of(coTenantGuarantorDoc));
 
-        when(documentRepository.findById(6L)).thenReturn(Optional.of(coTenantGuarantorDoc));
+            // When & Then
+            assertThrows(AccessDeniedException.class, () ->
+                    documentService.getDocumentAnalysisStatus(6L, tenant)
+            );
+        }
 
-        // When & Then
-        assertThrows(AccessDeniedException.class, () ->
-            documentService.getDocumentAnalysisStatus(6L, tenant)
-        );
-    }
+        @Test
+        void shouldDenyAccessToUnrelatedTenantDocument() {
+            // Given
+            Tenant unrelatedTenant = Tenant.builder().id(99L)
+                    .apartmentSharing(ApartmentSharing.builder().id(99L).build())
+                    .build();
+            Document unrelatedDoc = Document.builder().id(7L).tenant(unrelatedTenant).build();
 
-    @Test
-    void shouldDenyAccessToUnrelatedTenantDocument() {
-        // Given
-        Tenant unrelatedTenant = Tenant.builder().id(99L)
-                .apartmentSharing(ApartmentSharing.builder().id(99L).build())
-                .build();
-        Document unrelatedDoc = Document.builder().id(7L).tenant(unrelatedTenant).build();
+            when(documentRepository.findById(7L)).thenReturn(Optional.of(unrelatedDoc));
 
-        when(documentRepository.findById(7L)).thenReturn(Optional.of(unrelatedDoc));
+            // When & Then
+            assertThrows(AccessDeniedException.class, () ->
+                    documentService.getDocumentAnalysisStatus(7L, tenant)
+            );
+        }
 
-        // When & Then
-        assertThrows(AccessDeniedException.class, () ->
-            documentService.getDocumentAnalysisStatus(7L, tenant)
-        );
     }
 }

@@ -24,8 +24,8 @@ class ApartmentSharingTrigramValidationTest {
     void setUp() {
         // Create service with null dependencies (not needed for validateAndNormalizeTrigram)
         service = new ApartmentSharingServiceImpl(
-                null, null, null, null, null, null,
-                null, null, null, null, null, null, null
+                null, null, null, null, null, null, null,
+                null, null, null, null, null, null, null, null
         );
 
         apartmentSharing = ApartmentSharing.builder()
@@ -240,7 +240,7 @@ class ApartmentSharingTrigramValidationTest {
     }
 
     private Tenant createThirdPartyTenant(String ownerLastName, String ownerPreferredName,
-                                           String tenantLastName, String tenantPreferredName) {
+                                          String tenantLastName, String tenantPreferredName) {
         Tenant tenant = Tenant.builder()
                 .id(1L)
                 .ownerType(TenantOwnerType.THIRD_PARTY)
