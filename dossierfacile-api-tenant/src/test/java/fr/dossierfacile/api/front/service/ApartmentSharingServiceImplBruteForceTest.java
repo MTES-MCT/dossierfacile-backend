@@ -158,7 +158,7 @@ class ApartmentSharingServiceImplBruteForceTest {
         // Setup request context mock
         RequestContextHolder.setRequestAttributes(servletRequestAttributes);
         lenient().when(servletRequestAttributes.getRequest()).thenReturn(httpServletRequest);
-        lenient().when(httpServletRequest.getHeader("X-Real-Ip")).thenReturn(null);
+        lenient().when(httpServletRequest.getHeader("X-Forwarded-For")).thenReturn(null);
         lenient().when(httpServletRequest.getRemoteAddr()).thenReturn("127.0.0.1");
     }
 

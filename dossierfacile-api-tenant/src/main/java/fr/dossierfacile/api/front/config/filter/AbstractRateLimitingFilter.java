@@ -43,14 +43,13 @@ public abstract class AbstractRateLimitingFilter implements Filter {
             log.warn("ipBuckets list has been reset");
             ipBuckets.clear();
         }
-        // specific to scalingo infra
-        Bucket bucket = ipBuckets.computeIfAbsent(((HttpServletRequest) request).getHeader("X-Real-Ip"), this::createNewBucket);
+        Bucket bucket = ipBuckets.computeIfAbsent(((HttpServletRequest) request).getHeader("X-Forwarded-For"), this::createNewBucket);
 
         ConsumptionProbe probe = bucket.tryConsumeAndReturnRemaining(1);
         if (probe.isConsumed()) {
             chain.doFilter(request, response);
         } else {
-            log.error("Too Many request has been detected from " + ((HttpServletRequest) request).getHeader("X-Real-Ip"));
+            log.error("Too Many request has been detected from " + ((HttpServletRequest) request).getHeader("X-Forwarded-For"));
             HttpServletResponse httpServletResponse = (HttpServletResponse) response;
             httpServletResponse.setContentType("text/plain");
             httpServletResponse.setStatus(429);

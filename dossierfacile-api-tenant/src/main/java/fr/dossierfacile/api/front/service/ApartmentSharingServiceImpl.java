@@ -169,7 +169,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
 
     private void saveLinkLog(ApartmentSharing apartmentSharing, UUID token, LinkType linkType) {
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
-        String ipAddress = request.getHeader("X-Real-Ip");
+        String ipAddress = request.getHeader("X-Forwarded-For");
         if (ipAddress == null) {
             ipAddress = request.getRemoteAddr();
         }

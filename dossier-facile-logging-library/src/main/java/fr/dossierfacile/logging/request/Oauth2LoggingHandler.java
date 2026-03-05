@@ -25,7 +25,7 @@ public class Oauth2LoggingHandler implements AuthenticationEntryPoint {
                 request.getRequestURI(),
                 request.getMethod(),
                 HttpServletResponse.SC_UNAUTHORIZED,
-                request.getHeader("X-Real-Ip"),
+                request.getHeader("X-Forwarded-For"),
                 request.getHeader("User-Agent"),
                 request.getHeader("Referer")
         );
