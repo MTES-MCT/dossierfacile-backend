@@ -231,6 +231,18 @@ public enum DocumentRule {
             "L'avis d'imposition n'est pas de l'année requise",
             "L'avis d'imposition est de l'année requise",
             "Impossible de vérifier l'année de l'avis d'imposition"
+    ),
+    R_VISALE_CERTIFICATE_NAME_MATCH(
+            DocumentRuleLevel.CRITICAL,
+            "Le nom sur le certificat Visale ne correspond pas au nom du locataire ou du co-locataire",
+            "Le nom sur le certificat Visale correspond au nom du locataire ou du co-locataire",
+            "Impossible de vérifier le nom sur le certificat Visale"
+    ),
+    R_VISALE_CERTIFICATE_EXPIRATION(
+            DocumentRuleLevel.CRITICAL,
+            "Le certificat Visale a expiré",
+            "Le certificat Visale est encore valide",
+            "Impossible de vérifier la date de validité du certificat Visale"
     );
 
     private final DocumentRuleLevel level;
