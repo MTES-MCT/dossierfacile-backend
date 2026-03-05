@@ -23,7 +23,7 @@ public abstract class BaseDocumentIAMapper {
                 GenericProperty genericProperty = findProperty(annotation, twoDDocProperties, extractionProperties);
 
                 if (genericProperty != null) {
-                    Object convertedValue = convertValue(genericProperty, annotation.type());
+                    Object convertedValue = convertValue(field, genericProperty, annotation.type());
                     convertedValue = applyTransformerIfNeeded(annotation, convertedValue);
 
                     if (convertedValue != null) {
@@ -68,12 +68,23 @@ public abstract class BaseDocumentIAMapper {
         field.set(instance, value);
     }
 
-    private Object convertValue(GenericProperty property, DocumentIAPropertyType type) {
+    private Object convertValue(Field targetField, GenericProperty property, DocumentIAPropertyType type) {
         return switch (type) {
             case STRING -> property.getStringValue();
             case DATE -> property.getDateValue();
-            default -> property.getValue();
+            case LIST_STRING -> property.getStringListValue();
+            case OBJECT -> mapNestedObject(targetField, property);
         };
+    }
+
+    private Object mapNestedObject(Field targetField, GenericProperty property) {
+        List<GenericProperty> nestedProperties = property.getObjectValue();
+        if (nestedProperties == null || nestedProperties.isEmpty()) {
+            return null;
+        }
+
+        // Reuse the same mapper pipeline to support nested models with @DocumentIAField.
+        return instantiate(List.of(), nestedProperties, targetField.getType()).orElse(null);
     }
 
     private Object applyTransformerIfNeeded(DocumentIAField annotation, Object value) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
