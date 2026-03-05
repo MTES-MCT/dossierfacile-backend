@@ -26,7 +26,7 @@ public class BOLogController {
     @Autowired
     private TenantLogService logService;
 
-    @PreAuthorize("hasRole('ROLE_MANAGER')")
+    @PreAuthorize("hasRole('MANAGER')")
     @GetMapping("")
     public String index(Model model,
                         @RequestParam(value = "pageSize", defaultValue = INITIAL_PAGE_SIZE) int pageSize,

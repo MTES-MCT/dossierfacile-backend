@@ -961,7 +961,8 @@
                                             th:each="file : ${filesByDocument.get(document.getId())}">
                                             <a target="_blank" rel="noopener"
                                                th:href="${'/files/' + file.getId()}"
-                                               th:text="${file.summary}"></a>
+                                               th:text="${file.summary}" sec:authorize="hasRole('ROLE_ADMIN')"></a>
+                                            <p th:text="${file.summary}" sec:authorize="!hasRole('ROLE_ADMIN')"></p>
                                             <span th:if="${file.hasBeenAnalyzed()}" th:with="analysis=${file.analysis}">
                                                 <span class="fa"
                                                       th:classappend="${analysis.authenticationStatusCssClass}"
@@ -1185,7 +1186,8 @@
                                             th:each="file : ${filesByDocument.get(document.getId())}">
                                             <a target="_blank" rel="noopener"
                                                th:href="${'/files/' + file.getId()}"
-                                               th:text="${file.summary}"></a>
+                                               th:text="${file.summary}" sec:authorize="hasRole('ROLE_ADMIN')"></a>
+                                            <p th:text="${file.summary}" sec:authorize="!hasRole('ROLE_ADMIN')"></p>
                                             <span th:if="${file.hasBeenAnalyzed()}" th:with="analysis=${file.analysis}">
                                                 <span class="fa"
                                                       th:classappend="${analysis.authenticationStatusCssClass}"
