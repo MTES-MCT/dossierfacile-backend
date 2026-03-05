@@ -1,16 +1,10 @@
 package fr.dossierfacile.common.mapper;
 
-import fr.dossierfacile.common.entity.ApartmentSharing;
-import fr.dossierfacile.common.entity.ApartmentSharingLink;
-import fr.dossierfacile.common.entity.Document;
-import fr.dossierfacile.common.entity.StorageFile;
-import fr.dossierfacile.common.entity.Tenant;
-import fr.dossierfacile.common.entity.UserApi;
+import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.ApartmentSharingLinkType;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
-import fr.dossierfacile.common.model.apartment_sharing.DocumentModel;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -20,13 +14,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class ApplicationFullMapperTest implements AuthenticityStatusMappingTest {
-
-    @Override
-    public DocumentModel mapDocument(Document document) {
-        ApplicationFullMapperImpl mapper = new ApplicationFullMapperImpl();
-        return mapper.toDocumentModel(document, UserApi.builder().build());
-    }
+class ApplicationFullMapperTest {
 
     @Nested
     class ToApplicationModelWithToken {
@@ -138,12 +126,12 @@ class ApplicationFullMapperTest implements AuthenticityStatusMappingTest {
             ApartmentSharing apartmentSharing = new ApartmentSharing();
             apartmentSharing.setTenants(List.of(tenant));
             apartmentSharing.setApartmentSharingLinks(List.of(
-                ApartmentSharingLink.builder()
-                    .linkType(ApartmentSharingLinkType.PARTNER)
-                    .partnerId(42L)
-                    .fullData(true)
-                    .token(partnerToken)
-                    .build()
+                    ApartmentSharingLink.builder()
+                            .linkType(ApartmentSharingLinkType.PARTNER)
+                            .partnerId(42L)
+                            .fullData(true)
+                            .token(partnerToken)
+                            .build()
             ));
             tenant.setApartmentSharing(apartmentSharing);
 
