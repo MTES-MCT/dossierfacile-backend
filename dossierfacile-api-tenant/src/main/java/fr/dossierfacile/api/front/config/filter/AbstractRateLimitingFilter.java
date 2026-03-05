@@ -14,6 +14,7 @@ import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import fr.dossierfacile.logging.util.LoggerUtil;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -43,13 +44,13 @@ public abstract class AbstractRateLimitingFilter implements Filter {
             log.warn("ipBuckets list has been reset");
             ipBuckets.clear();
         }
-        Bucket bucket = ipBuckets.computeIfAbsent(((HttpServletRequest) request).getHeader("X-Forwarded-For"), this::createNewBucket);
+        Bucket bucket = ipBuckets.computeIfAbsent(LoggerUtil.getRealIp((HttpServletRequest) request), this::createNewBucket);
 
         ConsumptionProbe probe = bucket.tryConsumeAndReturnRemaining(1);
         if (probe.isConsumed()) {
             chain.doFilter(request, response);
         } else {
-            log.error("Too Many request has been detected from " + ((HttpServletRequest) request).getHeader("X-Forwarded-For"));
+            log.error("Too Many request has been detected from X-Forwarded-For: " + LoggerUtil.getRealIp((HttpServletRequest) request));
             HttpServletResponse httpServletResponse = (HttpServletResponse) response;
             httpServletResponse.setContentType("text/plain");
             httpServletResponse.setStatus(429);

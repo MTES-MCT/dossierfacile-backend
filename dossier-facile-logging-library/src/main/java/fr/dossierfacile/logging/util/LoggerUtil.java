@@ -82,7 +82,7 @@ public class LoggerUtil {
         MDC.put(API_URL, request.getRequestURI());
         MDC.put(API_METHOD, request.getMethod());
         MDC.put(REQUEST_ID, UUID.randomUUID().toString());
-        MDC.put(API_REAL_IP, request.getHeader("X-Forwarded-For"));
+        MDC.put(API_REAL_IP, getRealIp(request));
         MDC.put("user_agent", request.getHeader("User-Agent"));
         MDC.put("referer", request.getHeader("Referer"));
         additionalContextElements.forEach(MDC::put);
@@ -100,6 +100,15 @@ public class LoggerUtil {
         } else {
             MDC.put(API_NORMALIZED_URI, request.getRequestURI());
         }
+    }
+
+    public static String getRealIp(HttpServletRequest request) {
+        String ipAddress = request.getHeader("X-Forwarded-For");
+        if (ipAddress == null) {
+            return request.getRemoteAddr();
+        }
+        // If the ipAddress is a comma separated list, return the first one (the client's ip)
+        return ipAddress.split(",")[0];
     }
 
     /**
