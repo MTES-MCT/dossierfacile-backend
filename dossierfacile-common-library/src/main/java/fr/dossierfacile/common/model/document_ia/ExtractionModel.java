@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.List;
 
 @Data
@@ -13,7 +15,10 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ExtractionModel {
+public class ExtractionModel implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     private String type;
     private List<GenericProperty> properties;
 }

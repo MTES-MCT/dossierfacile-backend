@@ -8,6 +8,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.annotation.Nullable;
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.List;
 
 @Data
@@ -15,7 +17,10 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class BarcodeModel {
+public class BarcodeModel implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     private BarcodePosition position;
     @JsonProperty("page_number")
     private int pageNumber;
