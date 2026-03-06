@@ -98,4 +98,8 @@ public class ApartmentSharingLink implements Serializable {
     @Column(name = "first_failed_attempt_at")
     private LocalDateTime firstFailedAttemptAt;
 
+    public boolean isActive() {
+        return !deleted && (expirationDate == null || LocalDateTime.now().isBefore(expirationDate));
+    }
+
 }

@@ -239,7 +239,7 @@ public class ApartmentSharingLinkService {
     }
 
     private boolean isValidLink(ApartmentSharingLink link) {
-        return !link.isDeleted() && (link.getExpirationDate() == null || LocalDateTime.now().isBefore(link.getExpirationDate()));
+        return link.isActive();
     }
 
     public void deleteLinks(List<Long> linkIds, Tenant tenant) {

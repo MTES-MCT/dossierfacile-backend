@@ -29,7 +29,10 @@ public abstract class PropertyMapper {
 
     String getToken(ApartmentSharing apartmentSharing, Property property) {
         List<ApartmentSharingLink> links = property.getApartmentSharingLinks();
-        Optional<ApartmentSharingLink> link = links.stream().filter(l -> l.getApartmentSharing().equals(apartmentSharing)).findFirst();
+        Optional<ApartmentSharingLink> link = links.stream()
+                .filter(l -> l.getApartmentSharing().equals(apartmentSharing))
+                .filter(ApartmentSharingLink::isActive)
+                .findFirst();
         return link.isPresent() ? link.get().getToken().toString() : null;
     }
 }
