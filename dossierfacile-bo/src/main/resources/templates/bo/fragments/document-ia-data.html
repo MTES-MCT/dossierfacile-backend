@@ -1,0 +1,214 @@
+<!-- templates/fragments/document-ia-data.html -->
+<div th:fragment="documentIA(iaResults, uid)">
+
+    <!-- Conteneur principal style "Carte" -->
+    <div class="ia-analysis-card" th:id="|ia-card-${uid}|">
+
+        <!-- En-tête -->
+        <div class="ia-header d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-2">
+                <!-- Icône SVG Robot/IA -->
+                <div class="ia-icon-box">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+                </div>
+                <div>
+                    <h6 class="m-0 fw-bold text-primary-emphasis">Analyse IA</h6>
+                    <!-- Le sous-titre (Type) est maintenant dynamique -->
+                    <small class="text-muted ia-current-type"
+                           th:text="${iaResults.?[classification != null && classification.documentType != null && !#strings.isEmpty(classification.documentType)].size() > 0 ? iaResults.?[classification != null && classification.documentType != null && !#strings.isEmpty(classification.documentType)][0].classification.documentType : '-'}">
+                    </small>
+                </div>
+            </div>
+
+            <div class="d-flex align-items-center gap-2">
+                <!-- Pagination (visible seulement si > 1 résultat) -->
+                <div class="ia-pagination d-flex align-items-center bg-light rounded-pill px-1" th:if="${iaResults.size() > 1}">
+
+                    <button type="button" class="btn btn-sm btn-link text-decoration-none text-secondary p-0 px-1"
+                            th:data-uid="${uid}"
+                            onclick="changePage(this.getAttribute('data-uid'), -1)"
+                            aria-label="Précédent">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                    </button>
+
+                    <span class="small fw-semibold text-muted mx-1" style="font-size: 0.75rem; user-select: none;">
+                        <span class="ia-page-current">1</span>/<span th:text="${iaResults.size()}"></span>
+                    </span>
+
+                    <button type="button" class="btn btn-sm btn-link text-decoration-none text-secondary p-0 px-1"
+                            th:data-uid="${uid}"
+                            onclick="changePage(this.getAttribute('data-uid'), 1)"
+                            aria-label="Suivant">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                    </button>
+                </div>
+
+                <!-- Bouton Toggle -->
+                <button class="btn btn-sm btn-light ia-toggle-btn"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        th:data-bs-target="|#${uid}-rules-more|"
+                        th:aria-controls="|${uid}-rules-more|"
+                        aria-expanded="false">
+                    <span class="label-collapsed">Détails</span>
+                    <span class="label-expanded">Fermer</span>
+                    <svg class="chevron ms-1" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Contenu dépliable -->
+        <div class="collapse ia-body" th:id="|${uid}-rules-more|">
+
+            <hr class="ia-divider">
+
+            <!-- Boucle sur les résultats (Pages) -->
+            <div th:each="result, stat : ${iaResults}"
+                 class="ia-result-page"
+                 th:id="|ia-result-${uid}-${stat.index}|"
+                 th:data-index="${stat.index}"
+                 th:data-doc-type="${result.classification != null ? result.classification.documentType : '-'}"
+                 th:classappend="${!stat.first} ? 'd-none'">
+
+                <!-- Section Classification (s'affiche seulement si classification non nulle) -->
+                <div th:if="${result.classification != null}" class="mb-3">
+                    <p class="ia-section-title">Classification</p>
+                    <div class="ia-info-box">
+                        <div class="d-flex justify-content-between align-items-start mb-1">
+                            <span class="fw-semibold text-dark">Type détecté</span>
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle" th:text="${result.classification.documentType}"></span>
+                        </div>
+                        <div class="small text-muted m-0 lh-sm">
+                            <span th:text="${result.classification.explanation}"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section Extraction (s'affiche seulement si extraction non nulle) -->
+                <div th:if="${result.extraction != null}">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <p class="ia-section-title mb-0">Données extraites</p>
+                        <span class="badge bg-secondary-subtle text-secondary" th:text="${result.extraction.type}"></span>
+                    </div>
+
+                    <div class="ia-data-grid">
+                        <!-- Boucle sur les propriétés -->
+                        <div class="ia-data-row" th:each="property : ${result.extraction.properties}">
+                            <div class="ia-data-label">
+                                <span th:text="${property.name}"></span>
+                            </div>
+                            <div class="ia-data-value">
+                                <span class="text-dark" th:text="${property.value}"></span>
+                                <span class="ia-data-type" th:text="${property.type}"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div th:if="${result.barcodes != null && !result.barcodes.isEmpty()}" class="mt-3">
+                    <p class="ia-section-title">Codes détectés</p>
+
+                    <div class="d-flex flex-column gap-2">
+                        <div th:each="barcode : ${result.barcodes}" class="ia-barcode-box">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <!-- Type de code (QRCODE, DATAMATRIX...) -->
+                                    <span class="badge bg-light text-dark border" th:text="${barcode.type}"></span>
+
+                                    <!-- NOUVEAU: antsType si disponible (bleu ciel) -->
+                                    <span th:if="${barcode.antsType != null}"
+                                          class="badge bg-info-subtle text-info-emphasis border border-info-subtle"
+                                          th:text="${barcode.antsType}"></span>
+
+                                    <!-- Statut de validité (si non null) -->
+                                    <span th:if="${barcode.isValid != null}"
+                                          class="badge d-flex align-items-center gap-1"
+                                          th:classappend="${barcode.isValid} ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'">
+                                           <svg th:if="${barcode.isValid}" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                           <svg th:unless="${barcode.isValid}" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                           <span th:text="${barcode.isValid} ? 'Valide' : 'Invalide'"></span>
+                                     </span>
+                                </div>
+                                <small class="text-muted" th:text="'Page ' + ${barcode.pageNumber}"></small>
+                            </div>
+
+                            <!-- CAS 1: 2D-Doc Connu (antsType présent) -> Affichage structuré -->
+                            <div th:if="${barcode.antsType != null}" class="ia-parsed-2ddoc">
+                                <div class="ia-data-grid">
+                                    <!-- On itère sur la liste typedData -->
+                                    <th:block th:each="item : ${barcode.typedData}">
+
+                                        <!-- Cas simple : type != object et value non null -->
+                                        <div class="ia-data-row" th:if="${item.type != 'object' && item.value != null}">
+                                            <div class="ia-data-label"><span th:text="${item.name}"></span></div>
+                                            <div class="ia-data-value"><span class="text-dark" th:text="${item.value}"></span></div>
+                                        </div>
+
+                                        <!-- Cas imbriqué : type == object (ex: Adresse) -->
+                                        <!-- AJOUT FILTRE: on vérifie que la liste n'est pas vide ET qu'elle contient au moins une sous-valeur non nulle -->
+                                        <div th:if="${item.type == 'object' && item.value != null && !item.value.isEmpty() && !item.value.?[value != null].isEmpty()}"
+                                             class="mt-1 mb-1">
+                                            <div class="ia-data-label fw-bold mb-1" th:text="${item.name}"></div>
+                                            <div class="ps-3 border-start">
+                                                <div th:each="subItem : ${item.value}" class="ia-data-row border-0 py-0 mb-1" th:if="${subItem.value != null}">
+                                                    <div class="ia-data-label" style="font-size: 0.8rem;"><span th:text="${subItem.name}"></span></div>
+                                                    <div class="ia-data-value"><span class="text-dark" th:text="${subItem.value}"></span></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </th:block>
+                                </div>
+                            </div>
+
+                            <!-- CAS 2: Code brut (antsType absent) -->
+                            <div th:if="${barcode.antsType == null}" class="ia-code-block">
+                                <code th:text="${barcode.rawData}"></code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        if (typeof window.changePage !== 'function') {
+            window.changePage = function(uid, direction) {
+                const card = document.getElementById('ia-card-' + uid);
+                if (!card) return;
+
+                const pages = card.querySelectorAll('.ia-result-page');
+                const total = pages.length;
+                if (total <= 1) return;
+
+                // Trouver la page active actuelle
+                let currentIndex = 0;
+                pages.forEach((page, index) => {
+                    if (!page.classList.contains('d-none')) {
+                        currentIndex = index;
+                    }
+                });
+
+                // Calculer la nouvelle index
+                let newIndex = currentIndex + direction;
+                if (newIndex < 0) newIndex = total - 1; // Boucle vers la fin
+                if (newIndex >= total) newIndex = 0;    // Boucle vers le début
+
+                // Masquer l'actuelle, afficher la nouvelle
+                pages[currentIndex].classList.add('d-none');
+                const newPage = pages[newIndex];
+                newPage.classList.remove('d-none');
+
+                // Mettre à jour le compteur (header)
+                const counter = card.querySelector('.ia-page-current');
+                if (counter) counter.innerText = (newIndex + 1);
+
+                // Mettre à jour le sous-titre "Type" dans le header
+                const typeLabel = card.querySelector('.ia-current-type');
+                if (typeLabel) {
+                    typeLabel.innerText = newPage.getAttribute('data-doc-type');
+                }
+            };
+        }
+    </script>
+</div>

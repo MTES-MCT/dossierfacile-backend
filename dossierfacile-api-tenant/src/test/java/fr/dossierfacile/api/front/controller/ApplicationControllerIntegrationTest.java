@@ -5,6 +5,8 @@ import fr.dossierfacile.api.front.repository.JpaTestApplication;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.ApartmentSharingServiceImpl;
 import fr.dossierfacile.api.front.service.interfaces.BruteForceProtectionService;
+import fr.dossierfacile.api.front.service.interfaces.DocumentService;
+import fr.dossierfacile.api.front.service.interfaces.TenantPermissionsService;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.ApartmentSharingLink;
 import fr.dossierfacile.common.entity.Document;
@@ -84,6 +86,10 @@ class ApplicationControllerIntegrationTest {
     private ApplicationBasicMapper applicationBasicMapper;
     @MockitoBean
     private ApartmentSharingCommonService apartmentSharingCommonService;
+    @MockitoBean
+    private TenantPermissionsService tenantPermissionsService;
+    @MockitoBean
+    private DocumentService documentService;
     @MockitoBean
     private LogService logService;
     @MockitoBean
