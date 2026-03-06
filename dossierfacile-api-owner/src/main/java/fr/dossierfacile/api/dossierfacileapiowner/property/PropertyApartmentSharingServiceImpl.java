@@ -48,38 +48,49 @@ public class PropertyApartmentSharingServiceImpl implements PropertyApartmentSha
 
     @Override
     public void subscribeTenantApartmentSharingToProperty(Tenant tenant, Property property, boolean hasAccess) {
-        if (tenant.getTenantType() == TenantType.CREATE) {
-            ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
-            Optional<PropertyApartmentSharing> existingPropertyApartmentSharing = propertyApartmentSharingRepository
-                    .findByPropertyAndApartmentSharing(property, apartmentSharing);
-            if (existingPropertyApartmentSharing.isEmpty()) {
-                PropertyApartmentSharing propertyApartmentSharing = PropertyApartmentSharing.builder()
-                                .accessFull(hasAccess)
-                                .property(property)
-                                .apartmentSharing(apartmentSharing)
-                                .build();
-                propertyApartmentSharingRepository.save(propertyApartmentSharing);
-                logRepository.save(applicationReceived(property, apartmentSharing));
-                ApartmentSharingLink apartmentSharingLink = ApartmentSharingLink.builder()
-                    .apartmentSharing(apartmentSharing)
-                    .property(property)
-                    .token(UUID.randomUUID())
-                    .creationDate(LocalDateTime.now())
-                    .expirationDate(LocalDateTime.now().plusMonths(1))
-                    .fullData(hasAccess)
-                    .linkType(ApartmentSharingLinkType.OWNER)
-                    .title(property.getAddress())
-                    .createdBy(tenant.getId())
-                    .build();
-                apartmentSharingLinkRepository.save(apartmentSharingLink);
-                if (apartmentSharing.getStatus() == TenantFileStatus.VALIDATED) {
-                    mailService.sendEmailNewApplicantValidated(tenant, property.getOwner(), property);
-                } else {
-                    mailService.sendEmailNewApplicantNotValidated(tenant, property.getOwner(), property);
-                }
-            }
-        } else {
+        if (tenant.getTenantType() != TenantType.CREATE) {
             throw new IllegalStateException("Tenant is not the main tenant");
+        }
+        ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
+        Optional<PropertyApartmentSharing> existingPropertyApartmentSharing = propertyApartmentSharingRepository
+                .findByPropertyAndApartmentSharing(property, apartmentSharing);
+        if (existingPropertyApartmentSharing.isEmpty()) {
+            PropertyApartmentSharing propertyApartmentSharing = PropertyApartmentSharing.builder()
+                            .accessFull(hasAccess)
+                            .property(property)
+                            .apartmentSharing(apartmentSharing)
+                            .build();
+            propertyApartmentSharingRepository.save(propertyApartmentSharing);
+            createOwnerLinkAndNotify(apartmentSharing, property, tenant, hasAccess);
+        } else {
+            boolean hasActiveOwnerLink = apartmentSharing.getApartmentSharingLinks().stream()
+                    .filter(l -> ApartmentSharingLinkType.OWNER.equals(l.getLinkType()))
+                    .filter(l -> property.getId().equals(l.getPropertyId()))
+                    .anyMatch(ApartmentSharingLink::isActive);
+            if (!hasActiveOwnerLink) {
+                createOwnerLinkAndNotify(apartmentSharing, property, tenant, hasAccess);
+            }
+        }
+    }
+
+    private void createOwnerLinkAndNotify(ApartmentSharing apartmentSharing, Property property, Tenant tenant, boolean hasAccess) {
+        ApartmentSharingLink apartmentSharingLink = ApartmentSharingLink.builder()
+                .apartmentSharing(apartmentSharing)
+                .property(property)
+                .token(UUID.randomUUID())
+                .creationDate(LocalDateTime.now())
+                .expirationDate(LocalDateTime.now().plusMonths(1))
+                .fullData(hasAccess)
+                .linkType(ApartmentSharingLinkType.OWNER)
+                .title(property.getAddress())
+                .createdBy(tenant.getId())
+                .build();
+        apartmentSharingLinkRepository.save(apartmentSharingLink);
+        logRepository.save(applicationReceived(property, apartmentSharing));
+        if (apartmentSharing.getStatus() == TenantFileStatus.VALIDATED) {
+            mailService.sendEmailNewApplicantValidated(tenant, property.getOwner(), property);
+        } else {
+            mailService.sendEmailNewApplicantNotValidated(tenant, property.getOwner(), property);
         }
     }
 
