@@ -3,7 +3,6 @@ package fr.dossierfacile.api.front.service;
 import fr.dossierfacile.api.front.amqp.Producer;
 import fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException;
 import fr.dossierfacile.api.front.exception.ApartmentSharingUnexpectedException;
-import fr.dossierfacile.api.front.exception.DocumentNotFoundException;
 import fr.dossierfacile.api.front.exception.TrigramNotAuthorizedException;
 import fr.dossierfacile.api.front.model.MappingFormat;
 import fr.dossierfacile.api.front.model.tenant.FullFolderFile;
@@ -26,6 +25,7 @@ import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.common.service.interfaces.LinkLogService;
 import fr.dossierfacile.common.service.interfaces.LogService;
+import fr.dossierfacile.logging.util.LoggerUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -169,10 +169,8 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
 
     private void saveLinkLog(ApartmentSharing apartmentSharing, UUID token, LinkType linkType) {
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
-        String ipAddress = request.getHeader("X-Real-Ip");
-        if (ipAddress == null) {
-            ipAddress = request.getRemoteAddr();
-        }
+        String ipAddress = LoggerUtil.getRealIp(request);
+        
         linkLogService.save(new LinkLog(
                 apartmentSharing,
                 token,

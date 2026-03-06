@@ -29,7 +29,7 @@ public class FileController {
     private final FileStorageService fileStorageService;
     private final SharedFileService fileService;
 
-    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/files/{id}")
     public void getOriginalFileAsByteArray(HttpServletResponse response, @PathVariable Long id) {
         fileService.findById(id).ifPresentOrElse(

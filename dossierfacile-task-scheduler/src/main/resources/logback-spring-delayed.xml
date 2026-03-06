@@ -53,10 +53,10 @@
                 <includeMdcKeyName>process_id</includeMdcKeyName>
                 <includeMdcKeyName>task_name</includeMdcKeyName>
                 <includeMdcKeyName>task_status</includeMdcKeyName>
-                <includeMdcKeyName>task_document_list</includeMdcKeyName>
-                <includeMdcKeyName>task_storage_file_list</includeMdcKeyName>
-                <includeMdcKeyName>task_tenant_list</includeMdcKeyName>
-                <includeMdcKeyName>task_owner_list</includeMdcKeyName>
+                <includeMdcKeyName>task_document_count</includeMdcKeyName>
+                <includeMdcKeyName>task_storage_file_count</includeMdcKeyName>
+                <includeMdcKeyName>task_tenant_count</includeMdcKeyName>
+                <includeMdcKeyName>task_owner_count</includeMdcKeyName>
                 <includeMdcKeyName>logs</includeMdcKeyName>
             </encoder>
         </appender>

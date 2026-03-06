@@ -21,11 +21,11 @@ public class Oauth2LoggingHandler implements AuthenticationEntryPoint {
         LoggerUtil.addRequestStatusToMdc(HttpServletResponse.SC_UNAUTHORIZED);
 
         var logMessage = String.format(
-                "Request completed: URI:%s, Method:%s, Status:%d, Ip: %s, User-Agent: %s, Referer: %s",
+                "Request completed: URI:%s, Method:%s, Status:%d, X-Forwarded-For: %s, User-Agent: %s, Referer: %s",
                 request.getRequestURI(),
                 request.getMethod(),
                 HttpServletResponse.SC_UNAUTHORIZED,
-                request.getHeader("X-Real-Ip"),
+                request.getHeader("X-Forwarded-For"),
                 request.getHeader("User-Agent"),
                 request.getHeader("Referer")
         );

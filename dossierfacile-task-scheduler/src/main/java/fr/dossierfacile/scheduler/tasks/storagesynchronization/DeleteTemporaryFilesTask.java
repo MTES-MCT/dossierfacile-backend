@@ -50,7 +50,7 @@ public class DeleteTemporaryFilesTask extends AbstractTask {
             if (storageFileToDeleteList.isEmpty()) {
                 log.info("No temporary files to delete for provider {}", provider.name());
             } else {
-                addFileIdListForLogging(storageFileToDeleteList);
+                countFileIdForLogging(storageFileToDeleteList);
                 log.info("Found {} temporary files to delete for provider {}", storageFileToDeleteList.size(), provider.name());
                 for (StorageFile storageFileToDelete : storageFileToDeleteList) {
                     fileStorageService.hardDelete(storageFileToDelete);
