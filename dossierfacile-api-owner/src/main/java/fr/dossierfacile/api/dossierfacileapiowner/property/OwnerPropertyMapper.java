@@ -38,7 +38,8 @@ public abstract class OwnerPropertyMapper {
                 .findFirst();
             if (aptSharing.isPresent()) {
                 Optional<ApartmentSharingLink> aptLink = aptSharing.get().getApartmentSharing().getApartmentSharingLinks().stream()
-                    .filter(link -> ApartmentSharingLinkType.OWNER.equals(link.getLinkType()) && link.getPropertyId() == property.getId())
+                        .filter(link -> ApartmentSharingLinkType.OWNER.equals(link.getLinkType()) && link.getPropertyId().equals(property.getId()))
+                        .filter(ApartmentSharingLink::isActive)
                     .findFirst();
                 String token = aptLink.isPresent() ? aptLink.get().getToken().toString() : "";
                 propertyApartmentSharing.getApartmentSharing().setToken(token);
