@@ -3,6 +3,7 @@ package fr.dossierfacile.document.analysis.rule.validator.visale_certificate;
 import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.DocumentIAFileAnalysisStatus;
+import fr.dossierfacile.common.enums.TypeGuarantor;
 import fr.dossierfacile.common.model.document_ia.ExtractionModel;
 import fr.dossierfacile.common.model.document_ia.GenericProperty;
 import fr.dossierfacile.common.model.document_ia.ResultModel;
@@ -102,6 +103,12 @@ class VisaleCertificateNameMatchTest {
                 .preferredName(preferredName)
                 .build();
 
+        Guarantor guarantor = Guarantor.builder()
+                .id(10L)
+                .typeGuarantor(TypeGuarantor.NATURAL_PERSON)
+                .tenant(tenant)
+                .build();
+
         List<File> files = Stream.of(analyses)
                 .map(analysis -> {
                     File file = File.builder()
@@ -114,7 +121,8 @@ class VisaleCertificateNameMatchTest {
 
         Document doc = Document.builder()
                 .files(files)
-                .tenant(tenant)
+                .guarantor(guarantor)
+                .tenant(null)
                 .build();
 
         files.forEach(file -> file.setDocument(doc));
@@ -145,6 +153,12 @@ class VisaleCertificateNameMatchTest {
         tenant1.setApartmentSharing(apartmentSharing);
         tenant2.setApartmentSharing(apartmentSharing);
 
+        Guarantor guarantor = Guarantor.builder()
+                .id(10L)
+                .typeGuarantor(TypeGuarantor.NATURAL_PERSON)
+                .tenant(tenant1)
+                .build();
+
         List<File> files = Stream.of(analyses)
                 .map(analysis -> {
                     File file = File.builder()
@@ -157,7 +171,8 @@ class VisaleCertificateNameMatchTest {
 
         Document doc = Document.builder()
                 .files(files)
-                .tenant(tenant1)
+                .guarantor(guarantor)
+                .tenant(null)
                 .build();
 
         files.forEach(file -> file.setDocument(doc));
@@ -181,9 +196,15 @@ class VisaleCertificateNameMatchTest {
                 .lastName("Dupont")
                 .build();
 
+        Guarantor guarantor = Guarantor.builder()
+                .typeGuarantor(TypeGuarantor.NATURAL_PERSON)
+                .tenant(tenant)
+                .build();
+
         Document doc = Document.builder()
                 .files(List.of())
-                .tenant(tenant)
+                .guarantor(guarantor)
+                .tenant(null)
                 .build();
 
         RuleValidatorOutput out = validate(doc);
@@ -200,12 +221,18 @@ class VisaleCertificateNameMatchTest {
                 buildBeneficiaire("Dupont", "Jean")
         ));
 
+        Guarantor guarantor = Guarantor.builder()
+                .typeGuarantor(TypeGuarantor.NATURAL_PERSON)
+                .tenant(null)
+                .build();
+
         List<File> files = List.of(File.builder()
                 .documentIAFileAnalysis(analysis)
                 .build());
 
         Document doc = Document.builder()
                 .files(files)
+                .guarantor(guarantor)
                 .tenant(null)
                 .build();
 

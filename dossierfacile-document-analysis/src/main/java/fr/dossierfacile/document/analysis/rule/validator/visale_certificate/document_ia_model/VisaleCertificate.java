@@ -2,7 +2,6 @@ package fr.dossierfacile.document.analysis.rule.validator.visale_certificate.doc
 
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
-import fr.dossierfacile.document.analysis.rule.validator.document_ia.DocumentIAPropertyType;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.mapper.DocumentIAField;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.mapper.DocumentIAModel;
 import lombok.Setter;
@@ -15,26 +14,17 @@ import java.util.List;
 public class VisaleCertificate {
 
     @DocumentIAField(
-            extractionName = "numero_visa",
-            type = DocumentIAPropertyType.STRING
-    )
-    public String numeroVisa;
-
-    @DocumentIAField(
-            extractionName = "date_delivrance",
-            type = DocumentIAPropertyType.DATE
+            extractionName = "date_delivrance"
     )
     public LocalDate dateDelivrance;
 
     @DocumentIAField(
-            extractionName = "date_fin_validite",
-            type = DocumentIAPropertyType.DATE
+            extractionName = "date_fin_validite"
     )
     public LocalDate dateFinValidite;
 
     @DocumentIAField(
-            extractionName = "beneficiaires",
-            type = DocumentIAPropertyType.LIST_OBJECT
+            extractionName = "beneficiaires"
     )
     public List<VisaleBeneficiaire> beneficiaires;
 

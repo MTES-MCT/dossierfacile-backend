@@ -1,7 +1,7 @@
 package fr.dossierfacile.document.analysis.rule.validator.visale_certificate.document_ia_model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import fr.dossierfacile.common.utils.IDocumentIdentity;
-import fr.dossierfacile.document.analysis.rule.validator.document_ia.DocumentIAPropertyType;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.mapper.DocumentIAField;
 import lombok.Setter;
 
@@ -11,14 +11,12 @@ import java.util.List;
 public class VisaleBeneficiaire implements IDocumentIdentity {
 
     @DocumentIAField(
-            extractionName = "nom",
-            type = DocumentIAPropertyType.STRING
+            extractionName = "nom"
     )
     public String lastName;
 
     @DocumentIAField(
-            extractionName = "prenoms",
-            type = DocumentIAPropertyType.STRING
+            extractionName = "prenoms"
     )
     public String firstName;
 
@@ -32,6 +30,7 @@ public class VisaleBeneficiaire implements IDocumentIdentity {
     }
 
     @Override
+    @JsonIgnore
     public List<String> getFirstNames() {
         if (firstName != null && !firstName.isBlank()) {
             return List.of(firstName.split("\\s+"));
@@ -45,10 +44,12 @@ public class VisaleBeneficiaire implements IDocumentIdentity {
     }
 
     @Override
+    @JsonIgnore
     public String getPreferredName() {
         return null;
     }
 
+    @JsonIgnore
     public boolean isValid() {
         return lastName != null && !lastName.isBlank() && firstName != null && !firstName.isBlank();
     }

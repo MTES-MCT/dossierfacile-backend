@@ -120,7 +120,7 @@ public class VisaleCertificateNameMatch extends BaseDocumentIAValidator {
     private List<DocumentIdentity> getNamesToMatchFromDocument(Document document) {
         List<DocumentIdentity> names = new ArrayList<>();
 
-        Tenant tenant = document.getTenant();
+        Tenant tenant = document.getGuarantor().getTenant();
         if (tenant != null) {
             names.add(new DocumentIdentity(
                     List.of(tenant.getFirstName()),
