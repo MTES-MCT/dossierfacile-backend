@@ -1,7 +1,6 @@
 package fr.dossierfacile.api.front.controller;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import fr.dossierfacile.api.front.TestApplication;
 import fr.dossierfacile.api.front.config.MethodSecurityConfig;
 import fr.dossierfacile.api.front.config.ResourceServerConfig;
@@ -22,7 +21,6 @@ import fr.dossierfacile.common.entity.Property;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.service.interfaces.ProcessingCapacityService;
-import fr.dossierfacile.common.utils.LocalDateTimeTypeAdapter;
 import fr.dossierfacile.parameterizedtest.ArgumentBuilder;
 import fr.dossierfacile.parameterizedtest.ControllerParameter;
 import fr.dossierfacile.parameterizedtest.ParameterizedTestHelper;
@@ -304,7 +302,7 @@ class TenantControllerTest {
         record DeleteTestParam(Long id) {
         }
 
-        static List<Arguments> provideDeleteCoTentParameters() {
+        static List<Arguments> provideDeleteCoTenantParameters() {
             SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwtTokenWithDossier = jwt().authorities(new SimpleGrantedAuthority("SCOPE_dossier"));
 
             var tenant = Tenant.builder().id(1L).build();
@@ -363,7 +361,7 @@ class TenantControllerTest {
         }
 
         @ParameterizedTest(name = "{0}")
-        @MethodSource("provideDeleteCoTentParameters")
+        @MethodSource("provideDeleteCoTenantParameters")
         void parameterizedTests(ControllerParameter<DeleteTestParam> parameter) throws Exception {
 
             var urlTemplate = "/api/tenant/deleteCoTenant/";
@@ -477,8 +475,6 @@ class TenantControllerTest {
 
             var tenantId = 1L;
             var expectedProcessingTime = LocalDateTime.now();
-
-            Gson gson = new GsonBuilder().registerTypeAdapter(LocalDateTime.class, new LocalDateTimeTypeAdapter()).create();
 
             return ArgumentBuilder.buildListOfArguments(
                     // Todo : investigate why 401

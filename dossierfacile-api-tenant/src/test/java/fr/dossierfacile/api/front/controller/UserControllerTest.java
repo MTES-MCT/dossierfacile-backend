@@ -1,6 +1,7 @@
 package fr.dossierfacile.api.front.controller;
 
 import fr.dossierfacile.api.front.TestApplication;
+import fr.dossierfacile.api.front.config.ResourceServerConfig;
 import fr.dossierfacile.api.front.exception.PasswordRecoveryTokenNotFoundException;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
@@ -24,6 +25,7 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -40,8 +42,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(UserController.class)
 @ActiveProfiles("test")
-@ContextConfiguration(classes = {TestApplication.class, GlobalExceptionHandler.class})
-@TestPropertySource(properties = {"dossierfacile.common.global.exception.handler=true"})
+@ContextConfiguration(classes = {TestApplication.class, ResourceServerConfig.class, GlobalExceptionHandler.class})
+@TestPropertySource(properties = {
+        "dossierfacile.common.global.exception.handler=true",
+        "resource.server.config.csp=default-src 'self'"
+})
 class UserControllerTest {
 
     @Autowired
@@ -52,6 +57,9 @@ class UserControllerTest {
 
     @MockitoBean
     private AuthenticationFacade authenticationFacade;
+
+    @MockitoBean
+    private JwtDecoder jwtDecoder;
 
     // Référence statique à l’instance courante du test
     private static UserControllerTest self;

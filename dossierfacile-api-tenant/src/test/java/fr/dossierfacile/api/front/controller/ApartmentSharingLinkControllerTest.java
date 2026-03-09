@@ -1,6 +1,7 @@
 package fr.dossierfacile.api.front.controller;
 
 import fr.dossierfacile.api.front.TestApplication;
+import fr.dossierfacile.api.front.config.ResourceServerConfig;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.common.config.GlobalExceptionHandler;
@@ -25,6 +26,7 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -42,8 +44,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(ApartmentSharingLinkController.class)
 @ActiveProfiles("test")
-@ContextConfiguration(classes = {TestApplication.class, GlobalExceptionHandler.class})
-@TestPropertySource(properties = {"dossierfacile.common.global.exception.handler=true"})
+@ContextConfiguration(classes = {TestApplication.class, ResourceServerConfig.class, GlobalExceptionHandler.class})
+@TestPropertySource(properties = {
+        "dossierfacile.common.global.exception.handler=true",
+        "resource.server.config.csp=default-src 'self'"
+})
 public class ApartmentSharingLinkControllerTest {
 
     @Autowired
@@ -51,6 +56,9 @@ public class ApartmentSharingLinkControllerTest {
 
     @MockitoBean
     private AuthenticationFacade authenticationFacade;
+
+    @MockitoBean
+    private JwtDecoder jwtDecoder;
 
     @MockitoBean
     private ApartmentSharingLinkService apartmentSharingLinkService;
