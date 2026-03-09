@@ -98,5 +98,13 @@ public class Helper {
         return documentFinancialForm;
     }
 
-
+    public static DocumentFinancialForm documentFinancialFormWithUnauthorizedTenantId() {
+        DocumentFinancialForm documentFinancialForm = new DocumentFinancialForm();
+        documentFinancialForm.setMonthlySum(1000);
+        documentFinancialForm.setNoDocument(true);
+        documentFinancialForm.setTenantId(99L);
+        documentFinancialForm.setCustomText("test");
+        documentFinancialForm.setTypeDocumentFinancial(DocumentSubCategory.SALARY);
+        return documentFinancialForm;
+    }
 }

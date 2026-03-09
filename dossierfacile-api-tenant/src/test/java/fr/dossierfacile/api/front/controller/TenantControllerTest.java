@@ -3,6 +3,8 @@ package fr.dossierfacile.api.front.controller;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import fr.dossierfacile.api.front.TestApplication;
+import fr.dossierfacile.api.front.config.MethodSecurityConfig;
+import fr.dossierfacile.api.front.config.ResourceServerConfig;
 import fr.dossierfacile.api.front.exception.MailSentLimitException;
 import fr.dossierfacile.api.front.exception.PropertyNotFoundException;
 import fr.dossierfacile.api.front.form.ShareFileByMailForm;
@@ -10,6 +12,7 @@ import fr.dossierfacile.api.front.mapper.PropertyOMapperImpl;
 import fr.dossierfacile.api.front.mapper.TenantMapperImpl;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.PropertyService;
+import fr.dossierfacile.api.front.service.interfaces.TenantPermissionsService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.service.interfaces.UserService;
 import fr.dossierfacile.common.config.GlobalExceptionHandler;
@@ -47,6 +50,8 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -55,7 +60,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(TenantController.class)
 @ActiveProfiles("test")
-@ContextConfiguration(classes = {TestApplication.class, TenantMapperImpl.class, PropertyOMapperImpl.class, GlobalExceptionHandler.class})
+@ContextConfiguration(classes = {TestApplication.class, TenantMapperImpl.class, PropertyOMapperImpl.class, ResourceServerConfig.class, MethodSecurityConfig.class, GlobalExceptionHandler.class})
 @TestPropertySource(properties = {"dossierfacile.common.global.exception.handler=true"})
 class TenantControllerTest {
 
@@ -76,6 +81,12 @@ class TenantControllerTest {
 
     @MockitoBean
     private UserService userService;
+
+    @MockitoBean
+    private TenantPermissionsService tenantPermissionsService;
+
+    @MockitoBean
+    private org.springframework.security.oauth2.jwt.JwtDecoder jwtDecoder;
 
     // Référence statique à l’instance courante du test
     private static TenantControllerTest self;
@@ -486,6 +497,7 @@ class TenantControllerTest {
                                     200,
                                     jwtTokenWithDossier,
                                     (v) -> {
+                                        when(self.tenantPermissionsService.canAccess(any(), eq(tenantId))).thenReturn(true);
                                         when(self.processingCapacityService.getExpectedProcessingTime(tenantId)).thenReturn(expectedProcessingTime);
                                         return v;
                                     },
@@ -501,12 +513,25 @@ class TenantControllerTest {
                                     200,
                                     jwtTokenWithDossier,
                                     (v) -> {
+                                        when(self.tenantPermissionsService.canAccess(any(), eq(tenantId))).thenReturn(true);
                                         when(self.processingCapacityService.getExpectedProcessingTime(tenantId)).thenReturn(null);
                                         return v;
                                     },
                                     List.of(
                                             content().bytes(new byte[0])
                                     )
+                            )
+                    ),
+                    Pair.of("Should respond 403 when tenant has no permission on requested tenant",
+                            new ControllerParameter<>(
+                                    new ExpectedProcessingTimeParam(2L),
+                                    403,
+                                    jwt().jwt(jwt -> jwt.subject("keycloak-user-id")).authorities(new SimpleGrantedAuthority("SCOPE_dossier")),
+                                    (v) -> {
+                                        when(self.tenantPermissionsService.canAccess("keycloak-user-id", 2L)).thenReturn(false);
+                                        return v;
+                                    },
+                                    Collections.emptyList()
                             )
                     )
             );

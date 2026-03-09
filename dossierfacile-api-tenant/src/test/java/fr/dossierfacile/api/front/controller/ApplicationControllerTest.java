@@ -28,6 +28,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
@@ -179,6 +180,30 @@ class ApplicationControllerTest {
         // When & Then
         mockMvc.perform(get("/api/application/full/{token}", nonExistentToken)
                         .header("X-Tenant-Trigram", VALID_TRIGRAM))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldReturn200WhenFullPdfRequestedWithValidTokenWithoutAuth() throws Exception {
+        // Public route: fullPdf requires only token, no trigram or JWT
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        outputStream.write("PDF content".getBytes(), 0, "PDF content".getBytes().length);
+        FullFolderFile validPdfFile = new FullFolderFile(outputStream, "test.pdf");
+
+        when(apartmentSharingService.downloadFullPdf(TEST_TOKEN)).thenReturn(validPdfFile);
+
+        mockMvc.perform(get("/api/application/fullPdf/{token}", TEST_TOKEN))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_PDF_VALUE));
+    }
+
+    @Test
+    void shouldReturn404WhenFullPdfRequestedWithInvalidToken() throws Exception {
+        UUID invalidToken = UUID.fromString("11111111-1111-1111-1111-111111111111");
+        when(apartmentSharingService.downloadFullPdf(invalidToken))
+                .thenThrow(new ApartmentSharingNotFoundException(invalidToken.toString()));
+
+        mockMvc.perform(get("/api/application/fullPdf/{token}", invalidToken))
                 .andExpect(status().isNotFound());
     }
 
