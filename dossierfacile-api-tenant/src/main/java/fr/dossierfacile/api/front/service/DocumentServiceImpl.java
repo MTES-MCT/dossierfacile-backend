@@ -160,7 +160,8 @@ public class DocumentServiceImpl implements DocumentService {
         File file = documentHelperService.addFile(multipartFile, document);
         markDocumentAsEdited(document);
         producer.processFile(document.getId(), file.getId());
-        documentIAService.sendForAnalysis(multipartFile, file, document);
+        var tenantId = document.getTenant() != null ? document.getTenant().getId() : document.getGuarantor().getTenant().getId();
+        documentIAService.sendForAnalysis(multipartFile, file, document, tenantId);
     }
 
     @Override

@@ -82,8 +82,8 @@ public class DocumentIAServiceImpl implements DocumentIAService {
 
 
     @Override
-    public void sendForAnalysis(MultipartFile multipartFile, File file, Document document) {
-        if (!documentIAConfig.hasToSendFileForAnalysis(document)) {
+    public void sendForAnalysis(MultipartFile multipartFile, File file, Document document, long tenantId) {
+        if (!documentIAConfig.hasToSendFileForAnalysis(document, tenantId)) {
             return;
         }
         var request = DocumentIARequest.builder().metadata("{ \"document_id\": " + document.getId() + " }").file(multipartFile).build();
