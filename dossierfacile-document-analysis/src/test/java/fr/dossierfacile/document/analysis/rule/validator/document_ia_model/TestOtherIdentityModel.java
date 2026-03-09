@@ -2,7 +2,6 @@ package fr.dossierfacile.document.analysis.rule.validator.document_ia_model;
 
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
-import fr.dossierfacile.document.analysis.rule.validator.document_ia.DocumentIAPropertyType;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.mapper.DocumentIAField;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.mapper.DocumentIAModel;
 
@@ -12,7 +11,6 @@ import fr.dossierfacile.document.analysis.rule.validator.document_ia.mapper.Docu
 )
 public class TestOtherIdentityModel {
 
-    @DocumentIAField(extractionName = "expiration", type = DocumentIAPropertyType.STRING)
+    @DocumentIAField(extractionName = "expiration")
     private String expiration;
 }
-

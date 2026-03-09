@@ -33,8 +33,10 @@ public class DocumentIAMergerMapper extends BaseDocumentIAMapper {
                 .stream()
                 .map(DocumentIAFileAnalysis::getResult)
                 .map(ResultModel::getBarcodes)
+                .filter(Objects::nonNull)
                 .flatMap(Collection::stream)
                 .map(BarcodeModel::getTypedData)
+                .filter(Objects::nonNull)
                 .flatMap(Collection::stream)
                 .toList()
                 .reversed(); // We reverse the list to prioritize the last analysis results
