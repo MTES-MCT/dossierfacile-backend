@@ -4,7 +4,6 @@ import fr.dossierfacile.api.front.TestApplication;
 import fr.dossierfacile.api.front.config.MethodSecurityConfig;
 import fr.dossierfacile.api.front.config.ResourceServerConfig;
 import fr.dossierfacile.api.front.controller.RegisterController;
-import fr.dossierfacile.api.front.mapper.PropertyOMapperImpl;
 import fr.dossierfacile.api.front.mapper.TenantMapperImpl;
 import fr.dossierfacile.api.front.register.form.tenant.DocumentFinancialForm;
 import fr.dossierfacile.api.front.register.form.tenant.DocumentResidencyForm;
@@ -53,7 +52,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ContextConfiguration(classes = {
         TestApplication.class,
         TenantMapperImpl.class,
-        PropertyOMapperImpl.class,
         GlobalExceptionHandler.class,
         NumberOfPagesValidator.class,
         ResourceServerConfig.class,

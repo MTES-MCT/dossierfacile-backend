@@ -59,11 +59,10 @@ public class ResourceServerConfig {
                 .cors(withDefaults())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**",
-                                "/api/register/account", "/api/tenant/doNotArchive/**",
-                                "/api/auth/**", "/api/user/createPassword/**",
+                                "/api/tenant/doNotArchive/**",
+                                "/api/user/createPassword/**",
                                 "/api/application/full/**", "/api/application/light/**",
                                 "/api/application/fullPdf/**", "/api/application/links/**",
-                                "/api/tenant/property/**",
                                 "/api/support/email",
                                 "/api/stats/**",
                                 "/error",

@@ -5,19 +5,15 @@ import fr.dossierfacile.api.front.TestApplication;
 import fr.dossierfacile.api.front.config.MethodSecurityConfig;
 import fr.dossierfacile.api.front.config.ResourceServerConfig;
 import fr.dossierfacile.api.front.exception.MailSentLimitException;
-import fr.dossierfacile.api.front.exception.PropertyNotFoundException;
 import fr.dossierfacile.api.front.form.ShareFileByMailForm;
-import fr.dossierfacile.api.front.mapper.PropertyOMapperImpl;
 import fr.dossierfacile.api.front.mapper.TenantMapperImpl;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
-import fr.dossierfacile.api.front.service.interfaces.PropertyService;
 import fr.dossierfacile.api.front.service.interfaces.TenantPermissionsService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.service.interfaces.UserService;
 import fr.dossierfacile.common.config.GlobalExceptionHandler;
 import fr.dossierfacile.common.converter.AcquisitionData;
 import fr.dossierfacile.common.entity.ApartmentSharing;
-import fr.dossierfacile.common.entity.Property;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.service.interfaces.ProcessingCapacityService;
@@ -58,7 +54,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(TenantController.class)
 @ActiveProfiles("test")
-@ContextConfiguration(classes = {TestApplication.class, TenantMapperImpl.class, PropertyOMapperImpl.class, ResourceServerConfig.class, MethodSecurityConfig.class, GlobalExceptionHandler.class})
+@ContextConfiguration(classes = {TestApplication.class, TenantMapperImpl.class, ResourceServerConfig.class, MethodSecurityConfig.class, GlobalExceptionHandler.class})
 @TestPropertySource(properties = {"dossierfacile.common.global.exception.handler=true"})
 class TenantControllerTest {
 
@@ -70,9 +66,6 @@ class TenantControllerTest {
 
     @MockitoBean
     private ProcessingCapacityService processingCapacityService;
-
-    @MockitoBean
-    private PropertyService propertyService;
 
     @MockitoBean
     private AuthenticationFacade authenticationFacade;
@@ -207,93 +200,6 @@ class TenantControllerTest {
         }
 
 
-    }
-
-    @Nested
-    class getInfoOfPropertyAndOwnerTest {
-
-        record GetInfoOfPropertyAndOwnerParameter(String token) {
-        }
-
-        static List<Arguments> provideParameters() {
-
-            SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwtTokenWithDossier = jwt().authorities(new SimpleGrantedAuthority("SCOPE_dossier"));
-
-            var property = Property.builder()
-                    .id(1L)
-                    .address("test")
-                    .name("test")
-                    .build();
-
-            return ArgumentBuilder.buildListOfArguments(
-                    Pair.of("Should respond 401 when not jwt is passed",
-                            // Todo : investigate why this request return a 401 instead of a 403
-                            new ControllerParameter<>(
-                                    null,
-                                    401,
-                                    null,
-                                    null,
-                                    Collections.emptyList()
-                            )
-                    ),
-                    Pair.of("Should respond 404 when no token is passed",
-                            new ControllerParameter<>(
-                                    null,
-                                    404,
-                                    jwtTokenWithDossier,
-                                    null,
-                                    Collections.emptyList()
-                            )
-                    ),
-                    Pair.of("Should respond 404 when property is not found",
-                            new ControllerParameter<>(
-                                    new GetInfoOfPropertyAndOwnerParameter("token"),
-                                    404,
-                                    jwtTokenWithDossier,
-                                    (v) -> {
-                                        doThrow(new PropertyNotFoundException("token")).when(self.propertyService).getPropertyByToken("token");
-                                        return v;
-                                    },
-                                    Collections.emptyList()
-                            )
-                    ),
-                    Pair.of("Should respond 200 with propertyInformations",
-                            new ControllerParameter<>(
-                                    new GetInfoOfPropertyAndOwnerParameter("token"),
-                                    200,
-                                    jwtTokenWithDossier,
-                                    (v) -> {
-                                        when(self.propertyService.getPropertyByToken("token")).thenReturn(property);
-                                        return v;
-                                    },
-                                    List.of(
-                                            jsonPath("$.id").value(1),
-                                            jsonPath("$.address").value("test"),
-                                            jsonPath("$.name").value("test")
-                                    )
-                            )
-                    )
-            );
-        }
-
-        @ParameterizedTest(name = "{0}")
-        @MethodSource("provideParameters")
-        void parameterizedTests(ControllerParameter<GetInfoOfPropertyAndOwnerParameter> parameter) throws Exception {
-
-            var urlTemplate = "/api/tenant/property/";
-            if (parameter.getParameterData() != null) {
-                urlTemplate += parameter.getParameterData().token;
-            }
-
-            var mockMvcRequestBuilder = get(urlTemplate)
-                    .contentType("application/json");
-
-            ParameterizedTestHelper.runControllerTest(
-                    mockMvc,
-                    mockMvcRequestBuilder,
-                    parameter
-            );
-        }
     }
 
     @Nested
