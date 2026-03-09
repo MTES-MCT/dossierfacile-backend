@@ -5,8 +5,8 @@ Ton objectif est d'ajouter des regles metier pour un type de document en respect
 
 ## Contexte projet (a respecter)
 
-- Le mapping Document IA s'appuie sur `@DocumentIAField`, `DocumentIAPropertyType`, `DocumentIAMergerMapper`, `DocumentIAMultiMapper`.
-- Les types supportes incluent notamment: `STRING`, `DATE`, `LIST_STRING`, `OBJECT`, `LIST_OBJECT`.
+- Le mapping Document IA s'appuie sur `@DocumentIAField`, `DocumentIAMergerMapper`, `DocumentIAMultiMapper`.
+- Le mapping est base sur les types Java des DTO (ex: `String`, `LocalDate`, `List<String>`, objets imbriques, `List<Objets>`).
 - Le flux de validation passe par les services/regles de `dossierfacile-document-analysis` puis le statut final de document.
 - Les categories metier sont portees par `DocumentSubCategory` / `DocumentCategoryStep`.
 - Pour chaque nouveau type de document, creer un `*RulesValidationService` dedie (ex: `CarteNationalIdentiteRulesValidationService`) dans `fr.dossierfacile.document.analysis.rule`.
@@ -16,8 +16,12 @@ Ton objectif est d'ajouter des regles metier pour un type de document en respect
   2. `ClassificationValidatorB`
   3. puis les regles specifiques du nouveau type de document.
 - Avant toute implementation, definir si le document est **single-file** ou **multi-file**.
+- **Contexte single-file**: un seul document est attendu dans le funnel (ex: avis d'imposition).
+- **Contexte multi-file**: plusieurs documents sont attendus dans le funnel (ex: bulletins de salaire).
 - Si **single-file**: utiliser `DocumentIAMergerMapper` pour fusionner les analyses (plusieurs pages potentielles) en un objet unique avant application des regles.
 - Si **multi-file**: utiliser `DocumentIAMultiMapper` pour produire une liste d'objets avant application des regles sur le lot de documents.
+- **Regle blocking**: en cas d'erreur, la regle bloque le process et les regles suivantes ne sont plus executees (ex: `HasBeenDocumentIAAnalysedBI`).
+- **Regle inconclusive**: a utiliser quand les donnees extraites/presentes ne permettent pas de conclure `valid` ou `invalid`; on retourne alors un resultat `inconclusive`.
 
 ## Regles de fonctionnement de la conversation
 
@@ -42,6 +46,12 @@ Ton objectif est d'ajouter des regles metier pour un type de document en respect
   1. `HasBeenDocumentIAAnalysedBI`
   2. `ClassificationValidatorB`
   3. puis les rules specifiques du type de document.
+- Mettre a jour **obligatoirement** `DocumentAnalysisServiceConfiguration`:
+  - ajouter le nouveau `*RulesValidationService` dans la signature du bean `documentSubCategoryValidatorMap`
+  - enregistrer le mapping `validators.put(DocumentSubCategory.<NOUVEAU_TYPE>, <service>)`
+- Mettre a jour **obligatoirement** `DocumentIAConfig`:
+  - inclure le `DocumentSubCategory` dans `hasToSendFileForAnalysis(...)` si le document doit etre analyse par Document IA
+  - adapter `getWorkflowIdForDocumentSubCategory(...)` si un workflow specifique est requis (sinon conserver le workflow par defaut en decision explicite)
 - Si l'utilisateur demande une regle de correspondance de nom, l'implementer en s'alignant sur les patterns `FrenchIdentityCardNameMatch` et `PayslipNameMatch`.
 - Si l'utilisateur demande une regle d'expiration, l'implementer en s'alignant sur le pattern `FrenchIdentityCardExpirationRule`.
 - Si la validite de la regle ne peut pas etre determinee (donnees manquantes, ambiguite, extraction insuffisante), retourner un resultat `inconclusive` avec un message explicite.
@@ -59,6 +69,7 @@ Quand tu proposes la solution, structure strictement la reponse comme suit:
 3. **Plan de fichiers impactes**
    - chemin fichier
    - role de la modification
+   - inclure explicitement `DocumentAnalysisServiceConfiguration` et `DocumentIAConfig` (meme si aucun changement, justifier pourquoi)
 4. **Definition du RulesValidationService**
    - nom de la classe creee/modifiee
    - ordre exact des rules avec `HasBeenDocumentIAAnalysedBI` puis `ClassificationValidatorB`
@@ -81,11 +92,15 @@ Quand tu proposes la solution, structure strictement la reponse comme suit:
   - 1 cas erreur/invalid
   - 1 cas limite
 - Ajouter des tests explicites pour les cas `inconclusive` quand la decision est impossible.
+- Ajouter une verification de configuration pour eviter les oublis de wiring:
+  - presence du nouveau `DocumentSubCategory` dans `DocumentAnalysisServiceConfiguration`
+  - presence/decision explicite dans `DocumentIAConfig`.
 
 ## Commandes de verification (a adapter)
 
 ```zsh
 mvn -pl dossierfacile-document-analysis -Dtest=DocumentIASpecificMapperTest test
+mvn -pl dossierfacile-document-analysis -Dtest=DocumentAnalysisServiceConfigurationTest test
 mvn -pl dossierfacile-document-analysis test
 ```
 

@@ -15,7 +15,8 @@ public class DocumentIAConfig {
         return
                 document.getDocumentSubCategory() == DocumentSubCategory.FRENCH_IDENTITY_CARD ||
                         document.getDocumentSubCategory() == DocumentSubCategory.SALARY ||
-                        document.getDocumentSubCategory() == DocumentSubCategory.MY_NAME;
+                        document.getDocumentSubCategory() == DocumentSubCategory.MY_NAME ||
+                        document.getDocumentSubCategory() == DocumentSubCategory.VISALE;
 
     }
 
