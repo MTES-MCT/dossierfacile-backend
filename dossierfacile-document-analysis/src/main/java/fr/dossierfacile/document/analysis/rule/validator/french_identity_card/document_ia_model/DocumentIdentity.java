@@ -3,7 +3,6 @@ package fr.dossierfacile.document.analysis.rule.validator.french_identity_card.d
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.utils.IDocumentIdentity;
-import fr.dossierfacile.document.analysis.rule.validator.document_ia.DocumentIAPropertyType;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.mapper.DocumentIAField;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.mapper.DocumentIAModel;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.mapper.PropertyTransformer;
@@ -33,7 +32,6 @@ public class DocumentIdentity implements IDocumentIdentity {
 
     @DocumentIAField(
             twoDDocName = "liste_prenoms",
-            type = DocumentIAPropertyType.STRING,
             transformer = NameNormalizerTransformer.class
     )
     public List<String> firstNames;

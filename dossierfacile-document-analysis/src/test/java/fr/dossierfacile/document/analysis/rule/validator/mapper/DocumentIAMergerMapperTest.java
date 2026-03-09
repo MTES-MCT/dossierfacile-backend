@@ -6,7 +6,6 @@ import fr.dossierfacile.common.model.document_ia.BarcodeModel;
 import fr.dossierfacile.common.model.document_ia.ExtractionModel;
 import fr.dossierfacile.common.model.document_ia.GenericProperty;
 import fr.dossierfacile.common.model.document_ia.ResultModel;
-import fr.dossierfacile.document.analysis.rule.validator.document_ia.DocumentIAPropertyType;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.mapper.DocumentIAField;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.mapper.DocumentIAMergerMapper;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.mapper.PropertyTransformer;
@@ -42,13 +41,13 @@ class DocumentIAMergerMapperTest {
         @DocumentIAField(twoDDocName = "prenoms", extractionName = "prenom")
         String firstNames;
 
-        @DocumentIAField(twoDDocName = "date_naissance", extractionName = "date_naissance", type = DocumentIAPropertyType.DATE)
+        @DocumentIAField(twoDDocName = "date_naissance", extractionName = "date_naissance")
         LocalDate birthDate;
 
         @DocumentIAField(twoDDocName = "numero_document", extractionName = "numero_document")
         String documentNumber;
 
-        @DocumentIAField(twoDDocName = "test_transformer", extractionName = "test_transformer", type = DocumentIAPropertyType.STRING, transformer = TestTransformer.class)
+        @DocumentIAField(twoDDocName = "test_transformer", extractionName = "test_transformer", transformer = TestTransformer.class)
         String transformedField;
     }
 

@@ -5,7 +5,6 @@ import fr.dossierfacile.common.enums.DocumentCategoryStep;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.model.document_ia.GenericProperty;
 import fr.dossierfacile.common.model.document_ia.ResultModel;
-import fr.dossierfacile.document.analysis.rule.validator.document_ia.DocumentIAPropertyType;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.mapper.DocumentIAField;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.mapper.DocumentIAModel;
 import jakarta.annotation.PostConstruct;
@@ -44,13 +43,12 @@ public class DocumentIAResultSanitizer {
         List<Class<?>> classes = new ArrayList<>(candidates.size());
         for (BeanDefinition candidate : candidates) {
             String className = candidate.getBeanClassName();
-            if (className == null) {
-                continue;
-            }
-            try {
-                classes.add(ClassUtils.forName(className, getClass().getClassLoader()));
-            } catch (ClassNotFoundException ex) {
-                throw new IllegalStateException("Impossible de charger la classe " + className, ex);
+            if (className != null) {
+                try {
+                    classes.add(ClassUtils.forName(className, getClass().getClassLoader()));
+                } catch (ClassNotFoundException ex) {
+                    throw new IllegalStateException("Impossible de charger la classe " + className, ex);
+                }
             }
         }
 
@@ -58,6 +56,8 @@ public class DocumentIAResultSanitizer {
     }
 
     // Private package for test
+    // Selectionne les modeles DocumentIA applicables au document courant
+    // selon la priorite step -> subCategory -> category.
     List<Class<?>> getFilteredListOfClass(Document document) {
         return documentIaModelClasses.stream()
                 .filter(modelClass -> {
@@ -112,6 +112,8 @@ public class DocumentIAResultSanitizer {
         return clonedResultModel;
     }
 
+    // Construit la vue des champs autorises en fusionnant les schemas de
+    // tous les modeles applicables (extraction + 2D doc).
     private AllowedSchema collectAllowedSchema(List<Class<?>> matchingClasses) {
         Map<String, ExtractionNode> extractionSchema = new HashMap<>();
         Set<String> allowedTwoDDocNames = new HashSet<>();
@@ -122,58 +124,90 @@ public class DocumentIAResultSanitizer {
         return new AllowedSchema(extractionSchema, allowedTwoDDocNames);
     }
 
+    // Recupere les noms 2D doc declares dans un modele pour filtrer les barcodes.
     private void collectTwoDDocNames(Set<String> allowedTwoDDocNames, Class<?> modelClass) {
         for (Field field : modelClass.getDeclaredFields()) {
             DocumentIAField fieldAnnotation = field.getAnnotation(DocumentIAField.class);
-            if (fieldAnnotation == null) {
-                continue;
-            }
-            String twoDDocName = fieldAnnotation.twoDDocName();
-            if (twoDDocName != null && !twoDDocName.isBlank()) {
-                allowedTwoDDocNames.add(twoDDocName);
+            if (fieldAnnotation != null) {
+                String twoDDocName = fieldAnnotation.twoDDocName();
+                if (twoDDocName != null && !twoDDocName.isBlank()) {
+                    allowedTwoDDocNames.add(twoDDocName);
+                }
             }
         }
     }
 
+    // Produit le schema d'extraction autorise pour un modele, en tenant compte
+    // des champs simples et de la structure imbriquee.
     private Map<String, ExtractionNode> buildExtractionSchema(Class<?> modelClass) {
         Map<String, ExtractionNode> schema = new HashMap<>();
         for (Field field : modelClass.getDeclaredFields()) {
             DocumentIAField fieldAnnotation = field.getAnnotation(DocumentIAField.class);
-            if (fieldAnnotation == null) {
-                continue;
+            if (fieldAnnotation != null) {
+                String extractionName = fieldAnnotation.extractionName();
+                if (extractionName != null && !extractionName.isBlank()) {
+                    ExtractionNode node = buildFieldNode(field);
+                    schema.merge(extractionName, node, this::mergeNodes);
+                }
             }
-
-            String extractionName = fieldAnnotation.extractionName();
-            if (extractionName == null || extractionName.isBlank()) {
-                continue;
-            }
-
-            ExtractionNode node = buildFieldNode(field, fieldAnnotation.type());
-            schema.merge(extractionName, node, this::mergeNodes);
         }
         return schema;
     }
 
-    private ExtractionNode buildFieldNode(Field field, DocumentIAPropertyType type) {
-        return switch (type) {
-            case OBJECT -> {
-                Class<?> nestedType = resolveObjectType(field);
-                if (nestedType == null) {
-                    yield ExtractionNode.leaf();
-                }
-                yield new ExtractionNode(buildExtractionSchema(nestedType));
+    // Determine la forme de schema a creer pour un champ: feuille pour un type simple,
+    // schema imbrique pour un objet, ou schema d'element pour une liste d'objets.
+    private ExtractionNode buildFieldNode(Field field) {
+        if (isObjectLikeField(field)) {
+            Class<?> nestedType = resolveObjectType(field);
+            if (nestedType == null) {
+                return ExtractionNode.leaf();
             }
-            case LIST_OBJECT -> {
-                Class<?> nestedType = resolveListElementType(field);
-                if (nestedType == null) {
-                    yield ExtractionNode.leaf();
-                }
-                yield new ExtractionNode(buildExtractionSchema(nestedType));
+            return new ExtractionNode(buildExtractionSchema(nestedType));
+        }
+
+        if (isListObjectLikeField(field)) {
+            Class<?> nestedType = resolveListElementType(field);
+            if (nestedType == null) {
+                return ExtractionNode.leaf();
             }
-            default -> ExtractionNode.leaf();
-        };
+            return new ExtractionNode(buildExtractionSchema(nestedType));
+        }
+
+        return ExtractionNode.leaf();
     }
 
+    // Detecte si un champ represente un objet metier imbrique qui doit etre nettoye recursivement.
+    private boolean isObjectLikeField(Field field) {
+        Class<?> fieldType = field.getType();
+        return !fieldType.isPrimitive()
+                && !fieldType.isArray()
+                && !List.class.isAssignableFrom(fieldType)
+                && fieldType != String.class
+                && fieldType != java.time.LocalDate.class
+                && !Number.class.isAssignableFrom(fieldType)
+                && fieldType != Boolean.class
+                && fieldType != Character.class;
+    }
+
+    // Detecte si un champ represente une liste d'objets metier a nettoyer element par element.
+    private boolean isListObjectLikeField(Field field) {
+        if (!List.class.isAssignableFrom(field.getType())) {
+            return false;
+        }
+
+        Class<?> elementType = resolveListElementType(field);
+        if (elementType == null) {
+            return false;
+        }
+
+        return elementType != String.class
+                && elementType != java.time.LocalDate.class
+                && !Number.class.isAssignableFrom(elementType)
+                && elementType != Boolean.class
+                && elementType != Character.class;
+    }
+
+    // Resolve la classe concrete d'un objet imbrique pour explorer son schema.
     private Class<?> resolveObjectType(Field field) {
         Class<?> type = field.getType();
         if (type == Object.class) {
@@ -182,6 +216,8 @@ public class DocumentIAResultSanitizer {
         return type;
     }
 
+    // Resolve le type d'element d'une liste afin de savoir si la liste porte
+    // des objets imbriques et quels sous-champs sont autorises.
     private Class<?> resolveListElementType(Field field) {
         Type genericType = field.getGenericType();
         if (!(genericType instanceof ParameterizedType parameterizedType)) {
@@ -201,6 +237,7 @@ public class DocumentIAResultSanitizer {
         return null;
     }
 
+    // Fusionne deux noeuds de schema afin de conserver l'union des champs autorises.
     private ExtractionNode mergeNodes(ExtractionNode first, ExtractionNode second) {
         if (first.isLeaf()) {
             return second;
@@ -214,15 +251,19 @@ public class DocumentIAResultSanitizer {
         return new ExtractionNode(merged);
     }
 
+    // Applique la fusion de schema pour tous les champs d'un niveau donne.
     private void mergeExtractionSchema(Map<String, ExtractionNode> target, Map<String, ExtractionNode> source) {
         source.forEach((name, node) -> target.merge(name, node, this::mergeNodes));
     }
 
+    // Lance le filtrage des proprietes d'extraction avec le schema autorise.
     private void filterExtractionProperties(ResultModel resultModel, Map<String, ExtractionNode> extractionSchema) {
         List<GenericProperty> filteredProperties = sanitizePropertyList(resultModel.getExtraction().getProperties(), extractionSchema);
         resultModel.getExtraction().setProperties(filteredProperties);
     }
 
+    // Filtre une liste de proprietes en supprimant celles non autorisees,
+    // puis declenche le nettoyage recursif pour les proprietes imbriquees.
     private List<GenericProperty> sanitizePropertyList(List<GenericProperty> properties, Map<String, ExtractionNode> schema) {
         if (properties == null || properties.isEmpty()) {
             return List.of();
@@ -230,21 +271,19 @@ public class DocumentIAResultSanitizer {
 
         List<GenericProperty> sanitized = new ArrayList<>();
         for (GenericProperty property : properties) {
-            if (property == null) {
-                continue;
+            if (property != null) {
+                ExtractionNode node = schema.get(property.getName());
+                if (node != null) {
+                    sanitizeNestedValue(property, node);
+                    sanitized.add(property);
+                }
             }
-
-            ExtractionNode node = schema.get(property.getName());
-            if (node == null) {
-                continue;
-            }
-
-            sanitizeNestedValue(property, node);
-            sanitized.add(property);
         }
         return sanitized;
     }
 
+    // Nettoie le contenu interne des proprietes objet et liste d'objets
+    // en ne conservant que les sous-champs autorises par le schema.
     private void sanitizeNestedValue(GenericProperty property, ExtractionNode node) {
         if (node.isLeaf()) {
             return;
@@ -267,19 +306,19 @@ public class DocumentIAResultSanitizer {
 
         List<GenericProperty> listItems = toGenericPropertyList(rawList);
         for (GenericProperty item : listItems) {
-            if (!GenericProperty.TYPE_OBJECT.equals(item.getType())) {
-                continue;
+            if (GenericProperty.TYPE_OBJECT.equals(item.getType())) {
+                Object itemValue = item.getValue();
+                if (itemValue instanceof List<?> itemList) {
+                    List<GenericProperty> nested = toGenericPropertyList(itemList);
+                    item.setValue(sanitizePropertyList(nested, node.children()));
+                }
             }
-            Object itemValue = item.getValue();
-            if (!(itemValue instanceof List<?> itemList)) {
-                continue;
-            }
-            List<GenericProperty> nested = toGenericPropertyList(itemList);
-            item.setValue(sanitizePropertyList(nested, node.children()));
         }
         property.setValue(listItems);
     }
 
+    // Convertit defensivement une liste brute en liste de GenericProperty
+    // pour uniformiser le traitement des structures imbriquees.
     private List<GenericProperty> toGenericPropertyList(List<?> rawValues) {
         List<GenericProperty> properties = new ArrayList<>();
         for (Object value : rawValues) {
@@ -290,20 +329,21 @@ public class DocumentIAResultSanitizer {
         return properties;
     }
 
+    // Nettoie les donnees barcode: suppression du rawData et filtrage strict
+    // des typedData selon les champs 2D doc autorises.
     private void sanitizeBarcodes(ResultModel resultModel, Set<String> allowedTwoDDocNames) {
         if (allowedTwoDDocNames.isEmpty() || resultModel.getBarcodes() == null) {
             return;
         }
         for (var barcode : resultModel.getBarcodes()) {
-            if (barcode == null) {
-                continue;
-            }
-            barcode.setRawData(null);
-            if (barcode.getTypedData() != null) {
-                List<GenericProperty> filteredTypedData = barcode.getTypedData().stream()
-                        .filter(property -> property != null && allowedTwoDDocNames.contains(property.getName()))
-                        .toList();
-                barcode.setTypedData(filteredTypedData);
+            if (barcode != null) {
+                barcode.setRawData(null);
+                if (barcode.getTypedData() != null) {
+                    List<GenericProperty> filteredTypedData = barcode.getTypedData().stream()
+                            .filter(property -> property != null && allowedTwoDDocNames.contains(property.getName()))
+                            .toList();
+                    barcode.setTypedData(filteredTypedData);
+                }
             }
         }
     }
