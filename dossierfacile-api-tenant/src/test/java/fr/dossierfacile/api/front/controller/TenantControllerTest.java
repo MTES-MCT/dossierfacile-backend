@@ -125,7 +125,6 @@ class TenantControllerTest {
 
             return ArgumentBuilder.buildListOfArguments(
                     Pair.of("Should respond 401 when not jwt is passed",
-                            // Todo : investigate why this request return a 401 instead of a 403
                             new ControllerParameter<>(
                                     new ProfileTestParameter(emptyParams),
                                     401,
@@ -214,10 +213,10 @@ class TenantControllerTest {
             var tenant = Tenant.builder().id(1L).build();
 
             return ArgumentBuilder.buildListOfArguments(
-                    Pair.of("Should respond 403 when not jwt is passed",
+                    Pair.of("Should respond 401 when not jwt is passed",
                             new ControllerParameter<>(
                                     new DeleteTestParam(1L),
-                                    403,
+                                    401,
                                     null,
                                     null,
                                     Collections.emptyList()
@@ -299,10 +298,10 @@ class TenantControllerTest {
             var tenant = Tenant.builder().id(1L).build();
 
             return ArgumentBuilder.buildListOfArguments(
-                    Pair.of("Should respond 403 when not jwt is passed",
+                    Pair.of("Should respond 401 when not jwt is passed",
                             new ControllerParameter<>(
                                     new SendFileByMailParam("test@test.com", "SHARE_TYPE", "Test Title", "Test Message"),
-                                    403,
+                                    401,
                                     null,
                                     null,
                                     Collections.emptyList()
@@ -383,7 +382,6 @@ class TenantControllerTest {
             var expectedProcessingTime = LocalDateTime.now();
 
             return ArgumentBuilder.buildListOfArguments(
-                    // Todo : investigate why 401
                     Pair.of("Should respond 401 when not jwt is passed",
                             new ControllerParameter<>(
                                     new ExpectedProcessingTimeParam(tenantId),
@@ -463,23 +461,12 @@ class TenantControllerTest {
         }
 
         static List<Arguments> provideDoNotArchiveParameters() {
-            SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwtTokenWithDossier = jwt().authorities(new SimpleGrantedAuthority("SCOPE_dossier"));
-
             return ArgumentBuilder.buildListOfArguments(
-                    Pair.of("Should respond 401 when not jwt is passed",
-                            new ControllerParameter<>(
-                                    new DoNotArchiveParam("token"),
-                                    401,
-                                    null,
-                                    null,
-                                    Collections.emptyList()
-                            )
-                    ),
                     Pair.of("Should respond 404 when token is invalid",
                             new ControllerParameter<>(
                                     new DoNotArchiveParam(null),
                                     404,
-                                    jwtTokenWithDossier,
+                                    null,
                                     null,
                                     Collections.emptyList()
                             )
@@ -488,7 +475,7 @@ class TenantControllerTest {
                             new ControllerParameter<>(
                                     new DoNotArchiveParam("token"),
                                     200,
-                                    jwtTokenWithDossier,
+                                    null,
                                     (v) -> {
                                         doNothing().when(self.tenantService).doNotArchive("token");
                                         return v;

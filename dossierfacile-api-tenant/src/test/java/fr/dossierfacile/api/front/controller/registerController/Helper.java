@@ -105,6 +105,7 @@ public class Helper {
         documentFinancialForm.setTenantId(99L);
         documentFinancialForm.setCustomText("test");
         documentFinancialForm.setTypeDocumentFinancial(DocumentSubCategory.SALARY);
+        documentFinancialForm.setCategoryStep(DocumentCategoryStep.SALARY_EMPLOYED_MORE_3_MONTHS);
         return documentFinancialForm;
     }
 }

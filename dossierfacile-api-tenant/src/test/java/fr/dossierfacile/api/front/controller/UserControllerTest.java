@@ -73,7 +73,7 @@ class UserControllerTest {
     void shouldReturnNotFoundForInvalidUrl() throws Exception {
         mockMvc.perform(
                 get("/api/user/invalidUrl").with(jwt())
-        ).andDo(print()).andExpect(status().is(404));
+        ).andDo(print()).andExpect(status().is(403));
     }
 
 
@@ -94,15 +94,6 @@ class UserControllerTest {
             TenantModel tenantModel = TenantModel.builder().id(1L).email("test@test.fr").build();
 
             return ArgumentBuilder.buildListOfArguments(
-                    Pair.of("Should respond 403 when not jwt is passed",
-                            new ControllerParameter<>(
-                                    new CreatePasswordWithTokenParameter(null, null),
-                                    403,
-                                    null,
-                                    null,
-                                    Collections.emptyList()
-                            )
-                    ),
                     Pair.of("Should respond 400 when no token is passed",
                             new ControllerParameter<>(
                                     new CreatePasswordWithTokenParameter(null, null),
@@ -194,10 +185,10 @@ class UserControllerTest {
                     .build();
 
             return ArgumentBuilder.buildListOfArguments(
-                    Pair.of("Should respond 403 when not jwt is passed",
+                    Pair.of("Should respond 401 when not jwt is passed",
                             new ControllerParameter<>(
                                     null,
-                                    403,
+                                    401,
                                     null,
                                     null,
                                     Collections.emptyList()

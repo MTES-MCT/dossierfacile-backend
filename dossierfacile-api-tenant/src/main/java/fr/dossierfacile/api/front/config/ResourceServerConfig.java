@@ -62,7 +62,7 @@ public class ResourceServerConfig {
                                 "/api/tenant/doNotArchive/**",
                                 "/api/user/createPassword/**",
                                 "/api/application/full/**", "/api/application/light/**",
-                                "/api/application/fullPdf/**", "/api/application/links/**",
+                                "/api/application/fullPdf/**", "/api/application/links/*/documents/**",
                                 "/api/support/email",
                                 "/api/stats/**",
                                 "/error",
