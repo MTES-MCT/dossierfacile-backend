@@ -3,7 +3,6 @@ package fr.dossierfacile.document.analysis.rule.validator.document_ia_model;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentCategoryStep;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
-import fr.dossierfacile.document.analysis.rule.validator.document_ia.DocumentIAPropertyType;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.mapper.DocumentIAField;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.mapper.DocumentIAModel;
 
@@ -13,6 +12,6 @@ import fr.dossierfacile.document.analysis.rule.validator.document_ia.mapper.Docu
         documentSubCategory = DocumentSubCategory.CDI
 )
 public class TestFullDiscriminatorModel {
-    @DocumentIAField(extractionName = "test", type = DocumentIAPropertyType.STRING)
+    @DocumentIAField(extractionName = "test")
     private String test;
 }

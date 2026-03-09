@@ -95,8 +95,8 @@ public class MetadataFileProcessor {
         ocrConfig.setSkipOcr(true);
         context.set(TesseractOCRConfig.class, ocrConfig);
 
-        try (java.io.InputStream is = new java.io.FileInputStream(file)) {
-            parser.parse(is, handler, metadata, context);
+        try {
+            parser.parse(inputStream, handler, metadata, context);
 
             for (Map.Entry<String, String> entry : keysOfInterest.entrySet()) {
                 String tikaKey = entry.getKey();

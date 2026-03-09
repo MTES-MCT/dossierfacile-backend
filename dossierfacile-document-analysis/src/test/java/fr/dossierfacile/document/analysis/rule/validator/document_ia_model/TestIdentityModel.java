@@ -2,7 +2,6 @@ package fr.dossierfacile.document.analysis.rule.validator.document_ia_model;
 
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
-import fr.dossierfacile.document.analysis.rule.validator.document_ia.DocumentIAPropertyType;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.mapper.DocumentIAField;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.mapper.DocumentIAModel;
 
@@ -12,10 +11,9 @@ import fr.dossierfacile.document.analysis.rule.validator.document_ia.mapper.Docu
 )
 public class TestIdentityModel {
 
-    @DocumentIAField(extractionName = "nom_test", type = DocumentIAPropertyType.STRING)
+    @DocumentIAField(extractionName = "nom_test")
     private String lastName;
 
-    @DocumentIAField(extractionName = "prenom_test", type = DocumentIAPropertyType.STRING)
+    @DocumentIAField(extractionName = "prenom_test")
     private String firstName;
 }
-

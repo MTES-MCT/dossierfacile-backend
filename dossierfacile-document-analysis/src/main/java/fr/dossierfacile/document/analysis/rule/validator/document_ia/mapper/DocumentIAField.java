@@ -1,7 +1,5 @@
 package fr.dossierfacile.document.analysis.rule.validator.document_ia.mapper;
 
-import fr.dossierfacile.document.analysis.rule.validator.document_ia.DocumentIAPropertyType;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -19,8 +17,6 @@ public @interface DocumentIAField {
      * Nom du champ dans l'extraction. Optionnel, vide par défaut.
      */
     String extractionName() default "";
-
-    DocumentIAPropertyType type() default DocumentIAPropertyType.STRING;
 
     /**
      * Classe de transformation optionnelle pour convertir la valeur extraite.

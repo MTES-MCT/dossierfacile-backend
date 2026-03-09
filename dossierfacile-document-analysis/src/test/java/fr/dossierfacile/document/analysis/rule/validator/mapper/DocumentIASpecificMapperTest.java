@@ -72,8 +72,7 @@ public class DocumentIASpecificMapperTest {
             var analysis = List.of(getTestModelDocumentIaAnalysis(getTestModelResultModel(makeSimpleTestModel())));
             var testModel = mapper.map(analysis, TestModel.class);
 
-            assertThat(testModel).isNotNull();
-            assertThat(testModel).isPresent();
+            assertThat(testModel).isNotNull().isPresent();
             assertThat(testModel.get().getStringValue()).isEqualTo("1111111111");
             assertThat(testModel.get().getDateValue()).isEqualTo(LocalDate.of(2026, 3, 2));
             assertThat(testModel.get().getList()).hasSize(3).containsExactly("value1", "value2", "value3");
