@@ -4,7 +4,7 @@ import fr.dossierfacile.common.config.filter.AbstractDownloadRateLimitingFilter;
 import jakarta.servlet.annotation.WebFilter;
 import org.springframework.beans.factory.annotation.Value;
 
-@WebFilter(urlPatterns = {"/api/application/fullPdf/*",  "api/application/light/*", "api/application/full/*", "/api/application/links/*/documents/*"})
+@WebFilter(urlPatterns = {"/api/application/fullPdf/*",  "/api/application/light/*", "/api/application/full/*", "/api/application/links/*/documents/*"})
 public class RateLimitingPublicDownloadFilter extends AbstractDownloadRateLimitingFilter {
     @Value("${ratelimit.public.download.per.minute}")
     private int perMinuteCapacity;
