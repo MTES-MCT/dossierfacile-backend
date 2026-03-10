@@ -13,6 +13,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -26,6 +28,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
+@Order(Ordered.HIGHEST_PRECEDENCE)
 @ConditionalOnProperty(name = "dossierfacile.logging.request.aggregator", havingValue = "true")
 public class LogAggregationFilter extends OncePerRequestFilter {
     private Logger rootLogger;
@@ -79,7 +82,7 @@ public class LogAggregationFilter extends OncePerRequestFilter {
         {
             // Set normalized URI using the Spring MVC matched route pattern (available after dispatch)
             LoggerUtil.setNormalizedUri(request);
-            LoggerUtil.addRequestStatusToMdc(response.getStatus());
+            LoggerUtil.addRequestStatusToMdc(responseWrapped.getStatus());
             List<LogModel> logs = customAppender.getLogsForUniqueIdentifier(requestId);
             String logMessages = objectMapper.writeValueAsString(logs);
 
@@ -110,7 +113,7 @@ public class LogAggregationFilter extends OncePerRequestFilter {
             }
 
             long responseTime = System.currentTimeMillis() - startTime;
-            var finalStatus = response.getStatus();
+            var finalStatus = responseWrapped.getStatus();
             if (requestFinishedInError && finalStatus == HttpServletResponse.SC_OK) {
                 finalStatus = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
                 LoggerUtil.addRequestStatusToMdc(finalStatus);
