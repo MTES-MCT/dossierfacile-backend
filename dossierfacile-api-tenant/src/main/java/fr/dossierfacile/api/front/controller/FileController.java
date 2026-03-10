@@ -40,7 +40,10 @@ public class FileController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         var tenant = authenticationFacade.getLoggedTenant();
-        fileService.delete(id, tenant);
+
+        var file = getFileForTenantOrCouple(id, tenant);
+        fileService.delete(file.getId());
+        
         return ResponseEntity.ok().build();
     }
 

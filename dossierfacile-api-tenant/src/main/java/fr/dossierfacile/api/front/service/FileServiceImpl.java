@@ -8,7 +8,6 @@ import fr.dossierfacile.api.front.service.interfaces.FileService;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Tenant;
-import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.model.log.EditionType;
 import fr.dossierfacile.common.service.interfaces.LogService;
@@ -28,10 +27,12 @@ public class FileServiceImpl implements FileService {
 
     @Override
     @Transactional
-    public Document delete(Long id, Tenant tenant) {
-        File file = getFileForTenantOrCouple(id, tenant);
+    public Document delete(Long id) {
+        File file = fileRepository.findById(id)
+                .orElseThrow(() -> new FileNotFoundException(id));
 
         Document document = file.getDocument();
+        Tenant tenant = document.getTenant();
 
         document.getFiles().remove(file);
         file.setDocument(null);
@@ -49,14 +50,5 @@ public class FileServiceImpl implements FileService {
         producer.sendDocumentForAnalysis(document);
         producer.sendDocumentForPdfGeneration(document);
         return document;
-    }
-
-    private File getFileForTenantOrCouple(Long fileId, Tenant tenant) {
-        if (tenant.getApartmentSharing().getApplicationType() == ApplicationType.COUPLE) {
-            return fileRepository.findByIdForAppartmentSharing(fileId, tenant.getApartmentSharing().getId())
-                    .orElseThrow(() -> new FileNotFoundException(fileId, tenant));
-        }
-        return fileRepository.findByIdForTenant(fileId, tenant.getId())
-                .orElseThrow(() -> new FileNotFoundException(fileId, tenant));
     }
 }

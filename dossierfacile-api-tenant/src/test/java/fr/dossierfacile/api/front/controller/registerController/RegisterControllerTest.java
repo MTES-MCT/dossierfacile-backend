@@ -35,6 +35,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import javax.annotation.PostConstruct;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -85,7 +86,7 @@ class RegisterControllerTest {
     // Référence statique pour les paramètres de test
     private static RegisterControllerTest self;
 
-    @javax.annotation.PostConstruct
+    @PostConstruct
     void setSelf() {
         self = this;
     }

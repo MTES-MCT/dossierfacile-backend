@@ -60,7 +60,7 @@ class FileServiceImplTest {
 
                 when(fileRepository.findByIdForTenant(1L, 1L)).thenReturn(Optional.empty());
 
-                assertThatThrownBy(() -> fileService.delete(1L, tenant1))
+                assertThatThrownBy(() -> fileService.delete(1L))
                         .isInstanceOf(FileNotFoundException.class);
             }
         }
@@ -92,7 +92,7 @@ class FileServiceImplTest {
 
                 when(fileRepository.findByIdForTenant(1L, 1L)).thenReturn(Optional.of(file));
 
-                assertThatCode(() -> fileService.delete(1L, tenant1)).doesNotThrowAnyException();
+                assertThatCode(() -> fileService.delete(1L)).doesNotThrowAnyException();
                 verify(fileRepository).delete(file);
             }
         }
@@ -124,7 +124,7 @@ class FileServiceImplTest {
 
                 when(fileRepository.findByIdForAppartmentSharing(1L, 1L)).thenReturn(Optional.of(file));
 
-                assertThatCode(() -> fileService.delete(1L, tenant1)).doesNotThrowAnyException();
+                assertThatCode(() -> fileService.delete(1L)).doesNotThrowAnyException();
                 verify(fileRepository).delete(file);
             }
         }
