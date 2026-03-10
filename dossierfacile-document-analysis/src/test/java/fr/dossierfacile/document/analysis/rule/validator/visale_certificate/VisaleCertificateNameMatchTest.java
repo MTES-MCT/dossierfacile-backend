@@ -27,7 +27,7 @@ class VisaleCertificateNameMatchTest {
     // Helpers / Fixtures
     // ==========================
 
-    private GenericProperty beneficiaireItem(String nom, String prenoms) {
+    private GenericProperty beneficiaireItem(String prenoms, String nom) {
         List<GenericProperty> beneficiaireProperties = new ArrayList<>();
         if (nom != null) {
             beneficiaireProperties.add(GenericProperty.builder()
@@ -222,7 +222,7 @@ class VisaleCertificateNameMatchTest {
     @DisplayName("INCONCLUSIVE si le document n'a pas de tenant")
     void inconclusive_when_no_tenant() {
         DocumentIAFileAnalysis analysis = iaAnalysisWithExtraction(List.of(
-                beneficiaireItem("Dupont", "Jean")
+                beneficiaireItem("Jean", "Dupont")
         ));
 
         Guarantor guarantor = Guarantor.builder()
@@ -263,7 +263,7 @@ class VisaleCertificateNameMatchTest {
     @DisplayName("PASSED quand le nom du tenant correspond exactement à un bénéficiaire")
     void passed_when_exact_match() {
         DocumentIAFileAnalysis analysis = iaAnalysisWithExtraction(List.of(
-                beneficiaireItem("Dupont", "Jean")
+                beneficiaireItem("Jean", "Dupont")
         ));
 
         Document doc = documentWithIaAnalysesAndTenant("Jean", "Dupont", null, analysis);
@@ -277,7 +277,7 @@ class VisaleCertificateNameMatchTest {
     @DisplayName("PASSED quand le nom du tenant correspond avec normalisation (accents)")
     void passed_when_match_with_accents() {
         DocumentIAFileAnalysis analysis = iaAnalysisWithExtraction(List.of(
-                beneficiaireItem("Müller", "François")
+                beneficiaireItem("François", "Müller")
         ));
 
         Document doc = documentWithIaAnalysesAndTenant("Francois", "Muller", null, analysis);
@@ -291,8 +291,8 @@ class VisaleCertificateNameMatchTest {
     @DisplayName("PASSED quand le nom correspond parmi plusieurs bénéficiaires")
     void passed_when_match_among_multiple_beneficiaires() {
         DocumentIAFileAnalysis analysis = iaAnalysisWithExtraction(List.of(
-                beneficiaireItem("Martin", "Sophie"),
-                beneficiaireItem("Dupont", "Jean")
+                beneficiaireItem("Sophie", "Martin"),
+                beneficiaireItem("Jean", "Dupont")
         ));
 
         Document doc = documentWithIaAnalysesAndTenant("Jean", "Dupont", null, analysis);
@@ -306,8 +306,8 @@ class VisaleCertificateNameMatchTest {
     @DisplayName("PASSED quand le co-tenant d'un couple correspond à un bénéficiaire")
     void passed_when_co_tenant_matches() {
         DocumentIAFileAnalysis analysis = iaAnalysisWithExtraction(List.of(
-                beneficiaireItem("Dupont", "Jean"),
-                beneficiaireItem("Martin", "Sophie")
+                beneficiaireItem("Jean", "Dupont"),
+                beneficiaireItem("Sophie", "Martin")
         ));
 
         Document doc = documentWithIaAnalysesAndCouple("Jean", "Dupont", "Sophie", "Martin", analysis);
@@ -321,7 +321,7 @@ class VisaleCertificateNameMatchTest {
     @DisplayName("PASSED quand seulement le co-tenant correspond (pas le tenant principal)")
     void passed_when_only_co_tenant_matches() {
         DocumentIAFileAnalysis analysis = iaAnalysisWithExtraction(List.of(
-                beneficiaireItem("Martin", "Sophie")
+                beneficiaireItem("Sophie", "Martin")
         ));
 
         Document doc = documentWithIaAnalysesAndCouple("Jean", "Dupont", "Sophie", "Martin", analysis);
@@ -340,7 +340,7 @@ class VisaleCertificateNameMatchTest {
             String description
     ) {
         DocumentIAFileAnalysis analysis = iaAnalysisWithExtraction(List.of(
-                beneficiaireItem("Dupont", "Jean")
+                beneficiaireItem("Jean", "Dupont")
         ));
 
         Document doc = documentWithIaAnalysesAndTenant(tenantFirstName, tenantLastName, null, analysis);
@@ -362,7 +362,7 @@ class VisaleCertificateNameMatchTest {
     @DisplayName("FAILED quand ni le tenant ni le co-tenant ne correspondent")
     void failed_when_no_match_in_couple() {
         DocumentIAFileAnalysis analysis = iaAnalysisWithExtraction(List.of(
-                beneficiaireItem("Durand", "Pierre")
+                beneficiaireItem("Pierre", "Durand")
         ));
 
         Document doc = documentWithIaAnalysesAndCouple("Jean", "Dupont", "Sophie", "Martin", analysis);
@@ -376,7 +376,7 @@ class VisaleCertificateNameMatchTest {
     @DisplayName("PASSED avec casse différente")
     void passed_with_different_case() {
         DocumentIAFileAnalysis analysis = iaAnalysisWithExtraction(List.of(
-                beneficiaireItem("DUPONT", "JEAN")
+                beneficiaireItem("JEAN", "DUPONT")
         ));
 
         Document doc = documentWithIaAnalysesAndTenant("jean", "dupont", null, analysis);
@@ -390,7 +390,7 @@ class VisaleCertificateNameMatchTest {
     @DisplayName("PASSED avec noms composés et tirets")
     void passed_with_composite_names_and_hyphens() {
         DocumentIAFileAnalysis analysis = iaAnalysisWithExtraction(List.of(
-                beneficiaireItem("De La Cruz", "Jean-Pierre")
+                beneficiaireItem("Jean-Pierre", "De La Cruz")
         ));
 
         Document doc = documentWithIaAnalysesAndTenant("JeanPierre", "DeLaCruz", null, analysis);
@@ -404,7 +404,7 @@ class VisaleCertificateNameMatchTest {
     @DisplayName("INCONCLUSIVE quand les bénéficiaires sont invalides (sans nom)")
     void inconclusive_when_beneficiaires_invalid() {
         DocumentIAFileAnalysis analysis = iaAnalysisWithExtraction(List.of(
-                beneficiaireItem(null, "Jean")
+                beneficiaireItem("Jean", null)
         ));
 
         Document doc = documentWithIaAnalysesAndTenant("Jean", "Dupont", null, analysis);
