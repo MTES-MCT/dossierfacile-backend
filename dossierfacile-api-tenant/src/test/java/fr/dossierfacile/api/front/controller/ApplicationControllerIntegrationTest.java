@@ -16,7 +16,6 @@ import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.enums.TypeGuarantor;
-import fr.dossierfacile.common.mapper.ApplicationBasicMapper;
 import fr.dossierfacile.common.mapper.ApplicationFullMapper;
 import fr.dossierfacile.common.mapper.ApplicationLightMapper;
 import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
@@ -80,8 +79,6 @@ class ApplicationControllerIntegrationTest {
     private ApplicationFullMapper applicationFullMapper;
     @MockitoBean
     private ApplicationLightMapper applicationLightMapper;
-    @MockitoBean
-    private ApplicationBasicMapper applicationBasicMapper;
     @MockitoBean
     private ApartmentSharingCommonService apartmentSharingCommonService;
     @MockitoBean

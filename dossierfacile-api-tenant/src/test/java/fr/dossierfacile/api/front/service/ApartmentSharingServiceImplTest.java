@@ -13,7 +13,6 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.FileStatus;
 import fr.dossierfacile.common.enums.LogType;
-import fr.dossierfacile.common.mapper.ApplicationBasicMapper;
 import fr.dossierfacile.common.mapper.ApplicationFullMapper;
 import fr.dossierfacile.common.mapper.ApplicationLightMapper;
 import fr.dossierfacile.common.repository.ApartmentSharingLinkRepository;
@@ -44,7 +43,6 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -67,8 +65,6 @@ class ApartmentSharingServiceImplTest {
     private ApplicationFullMapper applicationFullMapper;
     @MockitoBean
     private ApplicationLightMapper applicationLightMapper;
-    @MockitoBean
-    private ApplicationBasicMapper applicationBasicMapper;
     @MockitoBean
     private FileStorageService fileStorageService;
     @MockitoBean

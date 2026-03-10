@@ -12,7 +12,6 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.ApartmentSharingLinkType;
 import fr.dossierfacile.common.mapper.ApplicationFullMapper;
 import fr.dossierfacile.common.mapper.ApplicationLightMapper;
-import fr.dossierfacile.common.mapper.ApplicationBasicMapper;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
 import fr.dossierfacile.common.repository.ApartmentSharingLinkRepository;
 import fr.dossierfacile.common.repository.ApartmentSharingRepository;
@@ -60,9 +59,6 @@ class ApartmentSharingServiceImplBruteForceTest {
     private ApplicationLightMapper applicationLightMapper;
 
     @Mock
-    private ApplicationBasicMapper applicationBasicMapper;
-
-    @Mock
     private FileStorageService fileStorageService;
 
     @Mock
@@ -108,7 +104,6 @@ class ApartmentSharingServiceImplBruteForceTest {
                 documentRepository,
                 applicationFullMapper,
                 applicationLightMapper,
-                applicationBasicMapper,
                 fileStorageService,
                 linkLogService,
                 producer,
