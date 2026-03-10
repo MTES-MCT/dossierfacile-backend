@@ -158,7 +158,8 @@
                         <div class="display-flex flex-grow-1 margin-top-25px overflow-auto padding-right-0px"
                              style="align-self: flex-start;">
                             <div class="padding-right-5px">
-                                <div class="card file1-border-color">
+                                <div class="card file1-border-color"
+                                     th:classappend="${messageItem.documentCategoryStep != null && messageItem.documentCategoryStep.name() == 'TAX_FRENCH_NOTICE'} ? 'tax-fr-card' : ''">
                                     <div class="card-header file1-border-color bold"
                                          th:classappend="${'category-' + messageItem.getDocumentCategory()}">
                                         <div class="letter" style="color: #0a0808">
@@ -217,37 +218,52 @@
                                             </li>
                                         </ul>
                                     </div>
-                                    <div th:if="${messageItem.documentAnalysisReport != null}"
-                                         th:class="${'prevalidation-background-' + messageItem.documentAnalysisReport.analysisStatus + ' verification-block'}"
-                                    >
-                                        <div th:replace="~{bo/fragments/document-analysis :: analysis(
+                                    <!-- French tax: dedicated analysis encart -->
+                                    <th:block th:if="${messageItem.documentCategoryStep != null
+                                        && messageItem.documentCategoryStep.name() == 'TAX_FRENCH_NOTICE'}">
+                                        <div th:replace="~{bo/fragments/tax-french-analysis :: taxFrenchAnalysis(
                                             report=${messageItem.documentAnalysisReport},
-                                            documentRuleLevel=${documentRuleLevel},
-                                            uid=${(messageItem.getDocumentId() != null) ? 'doc-' + messageItem.getDocumentId() : 'doc-' + iter.index}
-                                          )}">
-                                        </div>
-                                    </div>
-                                    <div th:if="${messageItem.documentIAResults.size() != 0}">
-                                        <div th:replace="~{bo/fragments/document-ia-data :: documentIA(
                                             iaResults=${messageItem.documentIAResults},
-                                            uid=${(messageItem.getDocumentId() != null) ? 'document-ia-' + messageItem.getDocumentId() : 'document-ia' + iter.index}
+                                            analysisReportComment=${messageItem.getAnalysisReportComment()},
+                                            uid=${(messageItem.getDocumentId() != null) ? 'tax-' + messageItem.getDocumentId() : 'tax-' + iter.index}
                                           )}">
                                         </div>
-                                    </div>
-                                    <!-- contenu si le rapport n'existe pas (else) -->
-                                    <div th:unless="${messageItem.documentAnalysisReport != null}"
-                                         th:class="${'prevalidation-background-UNDEFINED'}">
-                                        <div class="mb-1 ms-1">
-                                            <span class="fw-semibold">Aucune analyse disponible</span>
+                                    </th:block>
+                                    <!-- Other documents: existing analysis encarts -->
+                                    <th:block th:if="${messageItem.documentCategoryStep == null
+                                        || messageItem.documentCategoryStep.name() != 'TAX_FRENCH_NOTICE'}">
+                                        <div th:if="${messageItem.documentAnalysisReport != null}"
+                                             th:class="${'prevalidation-background-' + messageItem.documentAnalysisReport.analysisStatus + ' verification-block'}"
+                                        >
+                                            <div th:replace="~{bo/fragments/document-analysis :: analysis(
+                                                report=${messageItem.documentAnalysisReport},
+                                                documentRuleLevel=${documentRuleLevel},
+                                                uid=${(messageItem.getDocumentId() != null) ? 'doc-' + messageItem.getDocumentId() : 'doc-' + iter.index}
+                                              )}">
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div th:if="${messageItem.getAnalysisReportComment()} != null"
-                                         class="card-header file2-background-color letter">
-                                        <div style="font-size: 12px; line-height: 20px">
-                                            Document forcé par l'utilisateur avec motif :
+                                        <div th:if="${messageItem.documentIAResults.size() != 0}">
+                                            <div th:replace="~{bo/fragments/document-ia-data :: documentIA(
+                                                iaResults=${messageItem.documentIAResults},
+                                                uid=${(messageItem.getDocumentId() != null) ? 'document-ia-' + messageItem.getDocumentId() : 'document-ia' + iter.index}
+                                              )}">
+                                            </div>
                                         </div>
-                                        <p th:text="${messageItem.getAnalysisReportComment()}"></p>
-                                    </div>
+                                        <!-- contenu si le rapport n'existe pas (else) -->
+                                        <div th:unless="${messageItem.documentAnalysisReport != null}"
+                                             th:class="${'prevalidation-background-UNDEFINED'}">
+                                            <div class="mb-1 ms-1">
+                                                <span class="fw-semibold">Aucune analyse disponible</span>
+                                            </div>
+                                        </div>
+                                        <div th:if="${messageItem.getAnalysisReportComment()} != null"
+                                             class="card-header file2-background-color letter">
+                                            <div style="font-size: 12px; line-height: 20px">
+                                                Document forcé par l'utilisateur avec motif :
+                                            </div>
+                                            <p th:text="${messageItem.getAnalysisReportComment()}"></p>
+                                        </div>
+                                    </th:block>
                                     <div class="letter" style="padding: 7px"
                                          th:if="${messageItem.avisDetected}!=null and ${messageItem.avisDetected}==true">
                                     <span class="fa fa-times text-danger">
@@ -416,7 +432,8 @@
                             <div class="display-flex flex-grow-1 margin-top-25px overflow-auto padding-right-0px"
                                  style="align-self: flex-start;">
                                 <div class="padding-right-5px">
-                                    <div class="card file1-border-color">
+                                    <div class="card file1-border-color"
+                                         th:classappend="${messageItem.documentCategoryStep != null && messageItem.documentCategoryStep.name() == 'TAX_FRENCH_NOTICE'} ? 'tax-fr-card' : ''">
                                         <div class="card-header file1-border-color bold"
                                              th:classappend="${'category-' + messageItem.getDocumentCategory()}">
                                             <div class="letter" style="color: #0a0808">
@@ -498,30 +515,45 @@
                                                 </li>
                                             </ul>
                                         </div>
-                                        <div th:if="${messageItem.documentAnalysisReport != null}"
-                                             th:class="${'prevalidation-background-' + messageItem.documentAnalysisReport.analysisStatus + ' verification-block'}"
-                                        >
-                                            <div th:replace="~{bo/fragments/document-analysis :: analysis(
-                                            report=${messageItem.documentAnalysisReport},
-                                            documentRuleLevel=${documentRuleLevel},
-                                            uid=${(messageItem.getDocumentId() != null) ? 'doc-' + messageItem.getDocumentId() : 'doc-' + iter.index}
-                                          )}">
+                                        <!-- French tax: dedicated analysis encart -->
+                                        <th:block th:if="${messageItem.documentCategoryStep != null
+                                            && messageItem.documentCategoryStep.name() == 'TAX_FRENCH_NOTICE'}">
+                                            <div th:replace="~{bo/fragments/tax-french-analysis :: taxFrenchAnalysis(
+                                                report=${messageItem.documentAnalysisReport},
+                                                iaResults=${messageItem.documentIAResults},
+                                                analysisReportComment=${messageItem.getAnalysisReportComment()},
+                                                uid=${(messageItem.getDocumentId() != null) ? 'tax-' + messageItem.getDocumentId() : 'tax-' + iter.index}
+                                              )}">
                                             </div>
-                                        </div>
-                                        <!-- contenu si le rapport n'existe pas (else) -->
-                                        <div th:unless="${messageItem.documentAnalysisReport != null}"
-                                             th:class="${'prevalidation-background-UNDEFINED'}">
-                                            <div class="mb-1 ms-1">
-                                                <span class="fw-semibold">Aucune analyse disponible</span>
+                                        </th:block>
+                                        <!-- Other documents: existing analysis encarts -->
+                                        <th:block th:if="${messageItem.documentCategoryStep == null
+                                            || messageItem.documentCategoryStep.name() != 'TAX_FRENCH_NOTICE'}">
+                                            <div th:if="${messageItem.documentAnalysisReport != null}"
+                                                 th:class="${'prevalidation-background-' + messageItem.documentAnalysisReport.analysisStatus + ' verification-block'}"
+                                            >
+                                                <div th:replace="~{bo/fragments/document-analysis :: analysis(
+                                                    report=${messageItem.documentAnalysisReport},
+                                                    documentRuleLevel=${documentRuleLevel},
+                                                    uid=${(messageItem.getDocumentId() != null) ? 'doc-' + messageItem.getDocumentId() : 'doc-' + iter.index}
+                                                  )}">
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div th:if="${messageItem.getAnalysisReportComment()} != null"
-                                             class="card-header file2-background-color letter">
-                                            <div style="font-size: 12px; line-height: 20px">
-                                                Document forcé par l'utilisateur avec motif :
+                                            <!-- contenu si le rapport n'existe pas (else) -->
+                                            <div th:unless="${messageItem.documentAnalysisReport != null}"
+                                                 th:class="${'prevalidation-background-UNDEFINED'}">
+                                                <div class="mb-1 ms-1">
+                                                    <span class="fw-semibold">Aucune analyse disponible</span>
+                                                </div>
                                             </div>
-                                            <p th:text="${messageItem.getAnalysisReportComment()}"></p>
-                                        </div>
+                                            <div th:if="${messageItem.getAnalysisReportComment()} != null"
+                                                 class="card-header file2-background-color letter">
+                                                <div style="font-size: 12px; line-height: 20px">
+                                                    Document forcé par l'utilisateur avec motif :
+                                                </div>
+                                                <p th:text="${messageItem.getAnalysisReportComment()}"></p>
+                                            </div>
+                                        </th:block>
                                         <div th:if="${!messageItem.analyzedFiles.isEmpty()}" style="padding-left: 15px">
                                             <h4>Lecture automatiques :</h4>
                                             <ul>
