@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.parser.ParseContext;
+import org.apache.tika.parser.ocr.TesseractOCRConfig;
 import org.apache.tika.parser.pdf.PDFParserConfig;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.helpers.DefaultHandler;
@@ -88,9 +89,16 @@ public class MetadataFileProcessor implements Processor {
         PDFParserConfig pdfConfig = new PDFParserConfig();
         pdfConfig.setExtractInlineImages(false);
         pdfConfig.setExtractUniqueInlineImagesOnly(false);
+        // This is applied only for PDF
         pdfConfig.setOcrStrategy(PDFParserConfig.OCR_STRATEGY.NO_OCR);
 
         context.set(PDFParserConfig.class, pdfConfig);
+
+        // This will also apply the ocr skip for all other mime types.
+        // jpg / png / ...
+        TesseractOCRConfig ocrConfig = new TesseractOCRConfig();
+        ocrConfig.setSkipOcr(true);
+        context.set(TesseractOCRConfig.class, ocrConfig);
 
         try (java.io.InputStream is = new java.io.FileInputStream(file)) {
             parser.parse(is, handler, metadata, context);
