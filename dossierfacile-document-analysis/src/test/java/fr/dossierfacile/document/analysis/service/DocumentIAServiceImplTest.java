@@ -123,8 +123,9 @@ class DocumentIAServiceImplTest {
         MultipartFile multipartFile = mock(MultipartFile.class);
         File file = File.builder().id(123L).build();
         Document document = Document.builder().id(456L).build();
+        long tenantId = 42L;
 
-        when(documentIAConfig.hasToSendFileForAnalysis(document)).thenReturn(true);
+        when(documentIAConfig.hasToSendFileForAnalysis(document, tenantId)).thenReturn(true);
         when(documentIAClient.sendForAnalysis(any(DocumentIARequest.class), any()))
                 .thenReturn(DocumentIAResponse.builder()
                         .data(DocumentIAResponseData.builder()
@@ -134,7 +135,7 @@ class DocumentIAServiceImplTest {
                         .build());
 
         // When
-        documentIAService.sendForAnalysis(multipartFile, file, document);
+        documentIAService.sendForAnalysis(multipartFile, file, document, tenantId);
 
         // Then
         verify(documentIAClient).sendForAnalysis(any(DocumentIARequest.class), any());
@@ -147,13 +148,14 @@ class DocumentIAServiceImplTest {
         MultipartFile multipartFile = mock(MultipartFile.class);
         File file = File.builder().id(123L).build();
         Document document = Document.builder().id(456L).build();
+        long tenantId = 42L;
 
-        when(documentIAConfig.hasToSendFileForAnalysis(document)).thenReturn(true);
+        when(documentIAConfig.hasToSendFileForAnalysis(document, tenantId)).thenReturn(true);
         when(documentIAClient.sendForAnalysis(any(DocumentIARequest.class), any()))
                 .thenThrow(new RuntimeException("Service unavailable"));
 
         // When
-        documentIAService.sendForAnalysis(multipartFile, file, document);
+        documentIAService.sendForAnalysis(multipartFile, file, document, tenantId);
 
         // Then
         verify(documentIAFileAnalysisRepository).save(argThat(analysis ->
@@ -166,14 +168,20 @@ class DocumentIAServiceImplTest {
     void should_check_and_update_status() {
         // Given
         String executionId = "exec-1";
+        Document document = new Document();
+        document.setId(1L);
+        File file = File.builder().id(1L).document(document).build();
+
         DocumentIAFileAnalysis analysis = DocumentIAFileAnalysis.builder()
                 .documentIaExecutionId(executionId)
+                .analysisStatus(DocumentIAFileAnalysisStatus.STARTED)
+                .file(file)
                 .build();
 
         DocumentIAResultModel resultModel = DocumentIAResultModel.builder()
                 .id(executionId)
                 .status(DocumentIAFileAnalysisStatus.SUCCESS)
-                 .data(DocumentIaResultDataModel.builder()
+                .data(DocumentIaResultDataModel.builder()
                         .result(new ResultModel())
                         .build())
                 .build();
@@ -186,7 +194,7 @@ class DocumentIAServiceImplTest {
 
         // Then
         verify(documentIAClient).checkAnalysisStatus(executionId);
-        // saveFileAnalysis will be called internaly, which calls save
+        // saveFileAnalysis is called internally, which updates and saves analysis
         verify(documentIAFileAnalysisRepository).save(analysis);
     }
 }

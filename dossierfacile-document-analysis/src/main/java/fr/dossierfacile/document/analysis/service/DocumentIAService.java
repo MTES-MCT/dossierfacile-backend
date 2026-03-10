@@ -9,7 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 public interface DocumentIAService {
     void saveFileAnalysis(DocumentIAResultModel payload);
 
-    void sendForAnalysis(MultipartFile multipartFile, File file, Document document);
+    void sendForAnalysis(MultipartFile multipartFile, File file, Document document, long tenantId);
 
     void analyseDocument(Document document);
 

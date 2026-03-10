@@ -184,4 +184,5 @@
     <include file="db/migration/202602110000-nullable-document-ia-execution-id.xml"/>
     <include file="db/migration/202602260000-security-fix-document-ia-file-analysis.xml"/>
     <include file="db/migration/202603030000-remove-process-file.xml"/>
+    <include file="db/migration/202603090000-insert-document-ia-feature-flagging.xml" />
 </databaseChangeLog>
