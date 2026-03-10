@@ -3,12 +3,7 @@ package fr.dossierfacile.common.entity;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import fr.dossierfacile.common.entity.rule.FrenchIdentityCardExpirationRuleData;
-import fr.dossierfacile.common.entity.rule.NamesRuleData;
-import fr.dossierfacile.common.entity.rule.PayslipContinuityRuleData;
-import fr.dossierfacile.common.entity.rule.RuleData;
-import fr.dossierfacile.common.entity.rule.TaxClassificationRuleData;
-import fr.dossierfacile.common.entity.rule.TaxYearsRuleData;
+import fr.dossierfacile.common.entity.rule.*;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
@@ -25,7 +20,7 @@ class DocumentAnalysisRuleTest {
 
     @Test
     void should_serialize_and_deserialize_FrenchIdentityCardExpirationRuleData() throws Exception {
-        RuleData ruleData = new FrenchIdentityCardExpirationRuleData(LocalDate.of(2025, 12, 31));
+        RuleData ruleData = new ExpirationRuleData(LocalDate.of(2025, 12, 31));
         DocumentAnalysisRule rule = DocumentAnalysisRule.builder()
                 .rule(DocumentRule.R_FRENCH_IDENTITY_CARD_EXPIRATION)
                 .ruleData(ruleData)
@@ -35,9 +30,9 @@ class DocumentAnalysisRuleTest {
         DocumentAnalysisRule deserializedRule = objectMapper.readValue(json, DocumentAnalysisRule.class);
 
         assertThat(deserializedRule.getRule()).isEqualTo(DocumentRule.R_FRENCH_IDENTITY_CARD_EXPIRATION);
-        assertThat(deserializedRule.getRuleData()).isInstanceOf(FrenchIdentityCardExpirationRuleData.class);
-        assertThat(((FrenchIdentityCardExpirationRuleData) deserializedRule.getRuleData()).extractedDate()).isEqualTo(LocalDate.of(2025, 12, 31));
-        assertThat(deserializedRule.getRuleData().getType()).isEqualTo(RuleData.R_FRENCH_IDENTITY_CARD_EXPIRATION);
+        assertThat(deserializedRule.getRuleData()).isInstanceOf(ExpirationRuleData.class);
+        assertThat(((ExpirationRuleData) deserializedRule.getRuleData()).extractedDate()).isEqualTo(LocalDate.of(2025, 12, 31));
+        assertThat(deserializedRule.getRuleData().getType()).isEqualTo(RuleData.R_EXPIRATION);
     }
 
     @Test
