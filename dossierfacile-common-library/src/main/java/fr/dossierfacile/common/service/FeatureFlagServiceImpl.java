@@ -89,8 +89,7 @@ public class FeatureFlagServiceImpl implements FeatureFlagService {
                     .assignmentSource(FeatureAssignmentSource.PRE_DEPLOYMENT);
 
             userAssignmentHistoryBuilder.enabled(false)
-                    .bucket(0)
-                    .build();
+                    .bucket(0);
 
             return userFeatureAssignmentService.saveAssignment(userAssignmentBuilder.build(), userAssignmentHistoryBuilder.build(), false);
         }
@@ -102,8 +101,7 @@ public class FeatureFlagServiceImpl implements FeatureFlagService {
                 .bucket(bucket)
                 .assignmentSource(FeatureAssignmentSource.HASH);
         userAssignmentHistoryBuilder.enabled(enabled)
-                .bucket(bucket)
-                .build();
+                .bucket(bucket);
 
         return userFeatureAssignmentService.saveAssignment(userAssignmentBuilder.build(), userAssignmentHistoryBuilder.build(), enabled);
     }
