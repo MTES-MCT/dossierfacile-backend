@@ -92,6 +92,9 @@ public class DocumentServiceImpl implements DocumentService {
     public void delete(Long documentId, Tenant referenceTenant) {
         Document document = documentRepository.findByIdForApartmentSharing(documentId, referenceTenant.getApartmentSharing().getId())
                 .orElseThrow(() -> new DocumentNotFoundException(documentId));
+        if (!hasPermissionOnDocument(document, referenceTenant)) {
+            throw new AccessDeniedException("Not authorized to delete this document");
+        }
         delete(document);
         logService.saveDocumentEditedLog(document, referenceTenant, EditionType.DELETE);
     }

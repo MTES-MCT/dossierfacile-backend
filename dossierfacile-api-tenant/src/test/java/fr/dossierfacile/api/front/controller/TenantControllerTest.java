@@ -1,25 +1,22 @@
 package fr.dossierfacile.api.front.controller;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import fr.dossierfacile.api.front.TestApplication;
+import fr.dossierfacile.api.front.config.MethodSecurityConfig;
+import fr.dossierfacile.api.front.config.ResourceServerConfig;
 import fr.dossierfacile.api.front.exception.MailSentLimitException;
-import fr.dossierfacile.api.front.exception.PropertyNotFoundException;
 import fr.dossierfacile.api.front.form.ShareFileByMailForm;
-import fr.dossierfacile.api.front.mapper.PropertyOMapperImpl;
 import fr.dossierfacile.api.front.mapper.TenantMapperImpl;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
-import fr.dossierfacile.api.front.service.interfaces.PropertyService;
+import fr.dossierfacile.api.front.service.interfaces.TenantPermissionsService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.service.interfaces.UserService;
 import fr.dossierfacile.common.config.GlobalExceptionHandler;
 import fr.dossierfacile.common.converter.AcquisitionData;
 import fr.dossierfacile.common.entity.ApartmentSharing;
-import fr.dossierfacile.common.entity.Property;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.service.interfaces.ProcessingCapacityService;
-import fr.dossierfacile.common.utils.LocalDateTimeTypeAdapter;
 import fr.dossierfacile.parameterizedtest.ArgumentBuilder;
 import fr.dossierfacile.parameterizedtest.ControllerParameter;
 import fr.dossierfacile.parameterizedtest.ParameterizedTestHelper;
@@ -47,6 +44,8 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -55,7 +54,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(TenantController.class)
 @ActiveProfiles("test")
-@ContextConfiguration(classes = {TestApplication.class, TenantMapperImpl.class, PropertyOMapperImpl.class, GlobalExceptionHandler.class})
+@ContextConfiguration(classes = {TestApplication.class, TenantMapperImpl.class, ResourceServerConfig.class, MethodSecurityConfig.class, GlobalExceptionHandler.class})
 @TestPropertySource(properties = {"dossierfacile.common.global.exception.handler=true"})
 class TenantControllerTest {
 
@@ -69,13 +68,16 @@ class TenantControllerTest {
     private ProcessingCapacityService processingCapacityService;
 
     @MockitoBean
-    private PropertyService propertyService;
-
-    @MockitoBean
     private AuthenticationFacade authenticationFacade;
 
     @MockitoBean
     private UserService userService;
+
+    @MockitoBean
+    private TenantPermissionsService tenantPermissionsService;
+
+    @MockitoBean
+    private org.springframework.security.oauth2.jwt.JwtDecoder jwtDecoder;
 
     // Référence statique à l’instance courante du test
     private static TenantControllerTest self;
@@ -123,7 +125,6 @@ class TenantControllerTest {
 
             return ArgumentBuilder.buildListOfArguments(
                     Pair.of("Should respond 401 when not jwt is passed",
-                            // Todo : investigate why this request return a 401 instead of a 403
                             new ControllerParameter<>(
                                     new ProfileTestParameter(emptyParams),
                                     401,
@@ -201,108 +202,21 @@ class TenantControllerTest {
     }
 
     @Nested
-    class getInfoOfPropertyAndOwnerTest {
-
-        record GetInfoOfPropertyAndOwnerParameter(String token) {
-        }
-
-        static List<Arguments> provideParameters() {
-
-            SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwtTokenWithDossier = jwt().authorities(new SimpleGrantedAuthority("SCOPE_dossier"));
-
-            var property = Property.builder()
-                    .id(1L)
-                    .address("test")
-                    .name("test")
-                    .build();
-
-            return ArgumentBuilder.buildListOfArguments(
-                    Pair.of("Should respond 401 when not jwt is passed",
-                            // Todo : investigate why this request return a 401 instead of a 403
-                            new ControllerParameter<>(
-                                    null,
-                                    401,
-                                    null,
-                                    null,
-                                    Collections.emptyList()
-                            )
-                    ),
-                    Pair.of("Should respond 404 when no token is passed",
-                            new ControllerParameter<>(
-                                    null,
-                                    404,
-                                    jwtTokenWithDossier,
-                                    null,
-                                    Collections.emptyList()
-                            )
-                    ),
-                    Pair.of("Should respond 404 when property is not found",
-                            new ControllerParameter<>(
-                                    new GetInfoOfPropertyAndOwnerParameter("token"),
-                                    404,
-                                    jwtTokenWithDossier,
-                                    (v) -> {
-                                        doThrow(new PropertyNotFoundException("token")).when(self.propertyService).getPropertyByToken("token");
-                                        return v;
-                                    },
-                                    Collections.emptyList()
-                            )
-                    ),
-                    Pair.of("Should respond 200 with propertyInformations",
-                            new ControllerParameter<>(
-                                    new GetInfoOfPropertyAndOwnerParameter("token"),
-                                    200,
-                                    jwtTokenWithDossier,
-                                    (v) -> {
-                                        when(self.propertyService.getPropertyByToken("token")).thenReturn(property);
-                                        return v;
-                                    },
-                                    List.of(
-                                            jsonPath("$.id").value(1),
-                                            jsonPath("$.address").value("test"),
-                                            jsonPath("$.name").value("test")
-                                    )
-                            )
-                    )
-            );
-        }
-
-        @ParameterizedTest(name = "{0}")
-        @MethodSource("provideParameters")
-        void parameterizedTests(ControllerParameter<GetInfoOfPropertyAndOwnerParameter> parameter) throws Exception {
-
-            var urlTemplate = "/api/tenant/property/";
-            if (parameter.getParameterData() != null) {
-                urlTemplate += parameter.getParameterData().token;
-            }
-
-            var mockMvcRequestBuilder = get(urlTemplate)
-                    .contentType("application/json");
-
-            ParameterizedTestHelper.runControllerTest(
-                    mockMvc,
-                    mockMvcRequestBuilder,
-                    parameter
-            );
-        }
-    }
-
-    @Nested
     class deleteCoTenantTest {
 
         record DeleteTestParam(Long id) {
         }
 
-        static List<Arguments> provideDeleteCoTentParameters() {
+        static List<Arguments> provideDeleteCoTenantParameters() {
             SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwtTokenWithDossier = jwt().authorities(new SimpleGrantedAuthority("SCOPE_dossier"));
 
             var tenant = Tenant.builder().id(1L).build();
 
             return ArgumentBuilder.buildListOfArguments(
-                    Pair.of("Should respond 403 when not jwt is passed",
+                    Pair.of("Should respond 401 when not jwt is passed",
                             new ControllerParameter<>(
                                     new DeleteTestParam(1L),
-                                    403,
+                                    401,
                                     null,
                                     null,
                                     Collections.emptyList()
@@ -352,7 +266,7 @@ class TenantControllerTest {
         }
 
         @ParameterizedTest(name = "{0}")
-        @MethodSource("provideDeleteCoTentParameters")
+        @MethodSource("provideDeleteCoTenantParameters")
         void parameterizedTests(ControllerParameter<DeleteTestParam> parameter) throws Exception {
 
             var urlTemplate = "/api/tenant/deleteCoTenant/";
@@ -384,10 +298,10 @@ class TenantControllerTest {
             var tenant = Tenant.builder().id(1L).build();
 
             return ArgumentBuilder.buildListOfArguments(
-                    Pair.of("Should respond 403 when not jwt is passed",
+                    Pair.of("Should respond 401 when not jwt is passed",
                             new ControllerParameter<>(
                                     new SendFileByMailParam("test@test.com", "SHARE_TYPE", "Test Title", "Test Message"),
-                                    403,
+                                    401,
                                     null,
                                     null,
                                     Collections.emptyList()
@@ -467,10 +381,7 @@ class TenantControllerTest {
             var tenantId = 1L;
             var expectedProcessingTime = LocalDateTime.now();
 
-            Gson gson = new GsonBuilder().registerTypeAdapter(LocalDateTime.class, new LocalDateTimeTypeAdapter()).create();
-
             return ArgumentBuilder.buildListOfArguments(
-                    // Todo : investigate why 401
                     Pair.of("Should respond 401 when not jwt is passed",
                             new ControllerParameter<>(
                                     new ExpectedProcessingTimeParam(tenantId),
@@ -486,6 +397,7 @@ class TenantControllerTest {
                                     200,
                                     jwtTokenWithDossier,
                                     (v) -> {
+                                        when(self.tenantPermissionsService.canAccess(any(), eq(tenantId))).thenReturn(true);
                                         when(self.processingCapacityService.getExpectedProcessingTime(tenantId)).thenReturn(expectedProcessingTime);
                                         return v;
                                     },
@@ -501,12 +413,25 @@ class TenantControllerTest {
                                     200,
                                     jwtTokenWithDossier,
                                     (v) -> {
+                                        when(self.tenantPermissionsService.canAccess(any(), eq(tenantId))).thenReturn(true);
                                         when(self.processingCapacityService.getExpectedProcessingTime(tenantId)).thenReturn(null);
                                         return v;
                                     },
                                     List.of(
                                             content().bytes(new byte[0])
                                     )
+                            )
+                    ),
+                    Pair.of("Should respond 403 when tenant has no permission on requested tenant",
+                            new ControllerParameter<>(
+                                    new ExpectedProcessingTimeParam(2L),
+                                    403,
+                                    jwt().jwt(jwt -> jwt.subject("keycloak-user-id")).authorities(new SimpleGrantedAuthority("SCOPE_dossier")),
+                                    (v) -> {
+                                        when(self.tenantPermissionsService.canAccess("keycloak-user-id", 2L)).thenReturn(false);
+                                        return v;
+                                    },
+                                    Collections.emptyList()
                             )
                     )
             );
@@ -536,23 +461,12 @@ class TenantControllerTest {
         }
 
         static List<Arguments> provideDoNotArchiveParameters() {
-            SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwtTokenWithDossier = jwt().authorities(new SimpleGrantedAuthority("SCOPE_dossier"));
-
             return ArgumentBuilder.buildListOfArguments(
-                    Pair.of("Should respond 401 when not jwt is passed",
-                            new ControllerParameter<>(
-                                    new DoNotArchiveParam("token"),
-                                    401,
-                                    null,
-                                    null,
-                                    Collections.emptyList()
-                            )
-                    ),
                     Pair.of("Should respond 404 when token is invalid",
                             new ControllerParameter<>(
                                     new DoNotArchiveParam(null),
                                     404,
-                                    jwtTokenWithDossier,
+                                    null,
                                     null,
                                     Collections.emptyList()
                             )
@@ -561,7 +475,7 @@ class TenantControllerTest {
                             new ControllerParameter<>(
                                     new DoNotArchiveParam("token"),
                                     200,
-                                    jwtTokenWithDossier,
+                                    null,
                                     (v) -> {
                                         doNothing().when(self.tenantService).doNotArchive("token");
                                         return v;

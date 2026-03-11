@@ -3,7 +3,6 @@ package fr.dossierfacile.api.front.controller;
 import fr.dossierfacile.api.front.aop.annotation.MethodLogTime;
 import fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException;
 import fr.dossierfacile.api.front.exception.ApartmentSharingUnexpectedException;
-import fr.dossierfacile.api.front.exception.ApplicationLinkBlockedException;
 import fr.dossierfacile.api.front.model.tenant.FullFolderFile;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
@@ -16,18 +15,15 @@ import fr.dossierfacile.common.utils.FileUtility;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
-import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.text.Normalizer;
 import java.util.UUID;
 
 import static org.springframework.http.ResponseEntity.accepted;
@@ -39,13 +35,7 @@ import static org.springframework.http.ResponseEntity.ok;
 @Slf4j
 public class ApplicationController {
     private static final String DOCUMENT_NOT_EXIST = "The document does not exist";
-    private static final String EXPOSE_HEADERS = "Access-Control-Expose-Headers";
-    private static final String EXPOSE_HEADERS_VALUE = "Content-Disposition, Content-Type";
-    private static final String X_ROBOTS_TAG = "X-Robots-Tag";
-    private static final String X_ROBOTS_TAG_VALUE = "noindex";
-    private static final String CONTENT_DISPOSITION = "Content-Disposition";
-    public static final String CONTENT_TYPE = "Content-Type";
-    public static final String CONTENT_TYPE_ZIP = "application/zip";
+    private static final String CONTENT_TYPE_ZIP = "application/zip";
     private final ApartmentSharingService apartmentSharingService;
     private final AuthenticationFacade authenticationFacade;
     private final FileStorageService fileStorageService;
@@ -102,14 +92,7 @@ public class ApplicationController {
             return;
         }
         try (InputStream in = fileStorageService.download(document.getWatermarkFile())) {
-            response.setContentType(MediaType.APPLICATION_PDF_VALUE);
-            response.setHeader(EXPOSE_HEADERS, EXPOSE_HEADERS_VALUE);
-            ContentDisposition contentDisposition = ContentDisposition.inline()
-                    .filename(FileUtility.sanitizeFilename(document.getDocumentName()))
-                    .build();
-            response.setHeader(CONTENT_DISPOSITION, contentDisposition.toString());
-            response.setHeader(X_ROBOTS_TAG, X_ROBOTS_TAG_VALUE);
-            IOUtils.copy(in, response.getOutputStream());
+            FileUtility.streamFileToResponse(in, MediaType.APPLICATION_PDF_VALUE, document.getDocumentName(), true, response);
         } catch (FileNotFoundException e) {
             log.error(DOCUMENT_NOT_EXIST);
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -146,14 +129,9 @@ public class ApplicationController {
             Tenant tenant = authenticationFacade.getLoggedTenant();
             FullFolderFile fullFolderFile = apartmentSharingService.zipDocuments(tenant);
             if (fullFolderFile.getFileOutputStream().size() > 0) {
-                response.setHeader(EXPOSE_HEADERS, EXPOSE_HEADERS_VALUE);
-                ContentDisposition contentDisposition = ContentDisposition.attachment()
-                        .filename(FileUtility.sanitizeFilename(fullFolderFile.getFileName()))
-                        .build();
-                response.setHeader(CONTENT_DISPOSITION, contentDisposition.toString());
-                response.setHeader(CONTENT_TYPE, CONTENT_TYPE_ZIP);
-                response.setHeader(X_ROBOTS_TAG, X_ROBOTS_TAG_VALUE);
-                response.getOutputStream().write(fullFolderFile.getFileOutputStream().toByteArray());
+                try (InputStream in = new ByteArrayInputStream(fullFolderFile.getFileOutputStream().toByteArray())) {
+                    FileUtility.streamFileToResponse(in, CONTENT_TYPE_ZIP, fullFolderFile.getFileName(), false, response);
+                }
             } else {
                 log.error(DOCUMENT_NOT_EXIST);
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -168,14 +146,9 @@ public class ApplicationController {
         try {
             FullFolderFile pdfFile = downloadSupplier.get();
             if (pdfFile.getFileOutputStream().size() > 0) {
-                response.setHeader(EXPOSE_HEADERS, EXPOSE_HEADERS_VALUE);
-                ContentDisposition contentDisposition = ContentDisposition.attachment()
-                        .filename(FileUtility.sanitizeFilename(pdfFile.getFileName()))
-                        .build();
-                response.setHeader(CONTENT_DISPOSITION, contentDisposition.toString());
-                response.setHeader(CONTENT_TYPE, MediaType.APPLICATION_PDF_VALUE);
-                response.setHeader(X_ROBOTS_TAG, X_ROBOTS_TAG_VALUE);
-                response.getOutputStream().write(pdfFile.getFileOutputStream().toByteArray());
+                try (InputStream in = new ByteArrayInputStream(pdfFile.getFileOutputStream().toByteArray())) {
+                    FileUtility.streamFileToResponse(in, MediaType.APPLICATION_PDF_VALUE, pdfFile.getFileName(), false, response);
+                }
             } else {
                 log.error(DOCUMENT_NOT_EXIST);
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);

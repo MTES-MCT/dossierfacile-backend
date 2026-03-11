@@ -1,10 +1,8 @@
 package fr.dossierfacile.api.front.controller;
 
-import fr.dossierfacile.api.front.exception.DocumentNotFoundException;
 import fr.dossierfacile.api.front.form.CommentAnalysisForm;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
-import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
@@ -16,8 +14,6 @@ import fr.dossierfacile.common.utils.FileUtility;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
-import org.springframework.http.ContentDisposition;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,7 +22,6 @@ import org.springframework.web.bind.annotation.*;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 
 import static org.springframework.http.ResponseEntity.badRequest;
 import static org.springframework.http.ResponseEntity.ok;
@@ -39,7 +34,6 @@ public class DocumentController {
     private static final String FILE_NO_EXIST = "The file does not exist";
     private final DocumentService documentService;
     private final AuthenticationFacade authenticationFacade;
-    private final DocumentRepository documentRepository;
     private final FileStorageService fileStorageService;
     private final TenantMapper tenantMapper;
     private final TenantService tenantService;
@@ -57,21 +51,9 @@ public class DocumentController {
         Document document = documentService.getAuthorizedDocument(documentName, tenant);
 
         try (InputStream in = fileStorageService.download(document.getWatermarkFile())) {
-            response.setContentType(MediaType.APPLICATION_PDF_VALUE);
-            response.setHeader("Access-Control-Expose-Headers", "Content-Disposition, Content-Type");
             var ownerName = getDocumentOwnerNormalizeName(document);
-            String fileName;
-            if (ownerName.isEmpty()) {
-                fileName = document.getDocumentName();
-            } else {
-                fileName = ownerName + "_" + document.getDocumentName();
-            }
-            ContentDisposition contentDisposition = ContentDisposition.inline()
-                    .filename(FileUtility.sanitizeFilename(fileName))
-                    .build();
-            response.setHeader("Content-Disposition", contentDisposition.toString());
-            response.setHeader("X-Robots-Tag", "noindex");
-            IOUtils.copy(in, response.getOutputStream());
+            String fileName = ownerName.isEmpty() ? document.getDocumentName() : ownerName + "_" + document.getDocumentName();
+            FileUtility.streamFileToResponse(in, MediaType.APPLICATION_PDF_VALUE, fileName, true, response);
         } catch (FileNotFoundException e) {
             log.error(FILE_NO_EXIST);
             response.setStatus(404);

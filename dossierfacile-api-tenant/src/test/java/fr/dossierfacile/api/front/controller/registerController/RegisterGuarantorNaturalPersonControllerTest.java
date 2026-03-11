@@ -1,15 +1,16 @@
 package fr.dossierfacile.api.front.controller.registerController;
 
 import fr.dossierfacile.api.front.TestApplication;
+import fr.dossierfacile.api.front.config.MethodSecurityConfig;
 import fr.dossierfacile.api.front.config.ResourceServerConfig;
 import fr.dossierfacile.api.front.controller.RegisterGuarantorNaturalPersonController;
-import fr.dossierfacile.api.front.mapper.PropertyOMapperImpl;
 import fr.dossierfacile.api.front.mapper.TenantMapperImpl;
 import fr.dossierfacile.api.front.register.form.tenant.DocumentFinancialForm;
 import fr.dossierfacile.api.front.register.form.tenant.DocumentResidencyForm;
 import fr.dossierfacile.api.front.repository.FileRepository;
 import fr.dossierfacile.api.front.repository.GuarantorRepository;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
+import fr.dossierfacile.api.front.service.interfaces.TenantPermissionsService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.validator.NumberOfPagesValidator;
 import fr.dossierfacile.common.config.GlobalExceptionHandler;
@@ -49,13 +50,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ContextConfiguration(classes = {
         TestApplication.class,
         TenantMapperImpl.class,
-        PropertyOMapperImpl.class,
         GlobalExceptionHandler.class,
         NumberOfPagesValidator.class,
-        ResourceServerConfig.class
+        ResourceServerConfig.class,
+        MethodSecurityConfig.class
 }
 )
-@TestPropertySource(properties = {"dossierfacile.common.global.exception.handler=true"})
+@TestPropertySource(properties = {
+        "dossierfacile.common.global.exception.handler=true",
+        "resource.server.config.csp=default-src 'self'"
+})
 class RegisterGuarantorNaturalPersonControllerTest {
 
     @Autowired
@@ -78,6 +82,9 @@ class RegisterGuarantorNaturalPersonControllerTest {
 
     @MockitoBean
     private JwtDecoder jwtDecoder;
+
+    @MockitoBean
+    private TenantPermissionsService tenantPermissionsService;
 
     @Nested
     class DocumentFinancialTest {
