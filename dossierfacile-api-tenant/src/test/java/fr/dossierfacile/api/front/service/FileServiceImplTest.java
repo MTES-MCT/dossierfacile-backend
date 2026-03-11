@@ -58,9 +58,22 @@ class FileServiceImplTest {
                 Tenant tenant2 = Tenant.builder().id(2L).apartmentSharing(sharing).build();
                 sharing.setTenants(List.of(tenant1, tenant2));
 
+                Document document = Document.builder()
+                        .id(1L)
+                        .tenant(tenant2)
+                        .build();
+                document.getFiles().clear();
+
+                File file = File.builder()
+                        .id(1L)
+                        .document(document)
+                        .storageFile(StorageFile.builder().build())
+                        .build();
+                document.getFiles().add(file);
+
                 when(fileRepository.findByIdForTenant(1L, 1L)).thenReturn(Optional.empty());
 
-                assertThatThrownBy(() -> fileService.delete(1L))
+                assertThatThrownBy(() -> fileService.delete(1L, tenant1))
                         .isInstanceOf(FileNotFoundException.class);
             }
         }
@@ -90,9 +103,9 @@ class FileServiceImplTest {
                         .build();
                 document.getFiles().add(file);
 
-                when(fileRepository.findByIdForTenant(1L, 1L)).thenReturn(Optional.of(file));
+                when(fileRepository.findByIdForTenant(1L,  1L)).thenReturn(Optional.of(file));
 
-                assertThatCode(() -> fileService.delete(1L)).doesNotThrowAnyException();
+                assertThatCode(() -> fileService.delete(1L, tenant1)).doesNotThrowAnyException();
                 verify(fileRepository).delete(file);
             }
         }
@@ -124,7 +137,7 @@ class FileServiceImplTest {
 
                 when(fileRepository.findByIdForAppartmentSharing(1L, 1L)).thenReturn(Optional.of(file));
 
-                assertThatCode(() -> fileService.delete(1L)).doesNotThrowAnyException();
+                assertThatCode(() -> fileService.delete(1L, tenant1)).doesNotThrowAnyException();
                 verify(fileRepository).delete(file);
             }
         }
