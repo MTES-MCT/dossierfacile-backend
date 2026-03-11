@@ -12,8 +12,6 @@ import fr.dossierfacile.common.utils.FileUtility;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
-import org.springframework.http.ContentDisposition;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -54,20 +52,14 @@ public class FileController {
         var file = getFileForTenantOrCouple(id, tenant);
 
         try (InputStream in = fileStorageService.download(file.getStorageFile())) {
-            response.setContentType(file.getStorageFile().getContentType());
-            response.setHeader("Access-Control-Expose-Headers", "Content-Disposition, Content-Type");
-            ContentDisposition contentDisposition = ContentDisposition.inline()
-                    .filename(FileUtility.sanitizeFilename(file.getStorageFile().getName()))
-                    .build();
-            response.setHeader("Content-Disposition", contentDisposition.toString());
-            response.setHeader("X-Robots-Tag", "noindex");
-            IOUtils.copy(in, response.getOutputStream());
+            FileUtility.streamFileToResponse(in, file.getStorageFile().getContentType(),
+                    file.getStorageFile().getName(), true, response);
         } catch (final java.io.FileNotFoundException e) {
             log.error(FILE_NO_EXIST, e);
             response.setStatus(404);
         } catch (IOException e) {
             log.error("File cannot be downloaded - 408 - Too long?", e);
-            response.setStatus(404);
+            response.setStatus(408);
         }
     }
 
@@ -78,8 +70,8 @@ public class FileController {
         var file = getFileForTenantOrCouple(fileId, tenant);
 
         try (InputStream in = fileStorageService.download(file.getPreview())) {
-            response.setContentType(file.getPreview().getContentType());
-            IOUtils.copy(in, response.getOutputStream());
+            FileUtility.streamFileToResponse(in, file.getPreview().getContentType(),
+                    file.getPreview().getName(), true, response);
         } catch (final java.io.FileNotFoundException e) {
             log.error(FILE_NO_EXIST, e);
             response.setStatus(404);
