@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
-@Order(Ordered.HIGHEST_PRECEDENCE)
 @ConditionalOnProperty(name = "dossierfacile.logging.request.aggregator", havingValue = "true")
 public class LogAggregationFilter extends OncePerRequestFilter {
     private Logger rootLogger;
