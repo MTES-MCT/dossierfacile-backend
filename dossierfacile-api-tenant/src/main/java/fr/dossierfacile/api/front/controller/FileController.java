@@ -1,12 +1,8 @@
 package fr.dossierfacile.api.front.controller;
 
-import fr.dossierfacile.api.front.exception.FileNotFoundException;
-import fr.dossierfacile.api.front.repository.FileRepository;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.FileService;
-import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Tenant;
-import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.common.utils.FileUtility;
 import jakarta.servlet.http.HttpServletResponse;
@@ -22,7 +18,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -32,15 +27,13 @@ public class FileController {
     private static final String FILE_NO_EXIST = "The file does not exist";
     private final FileService fileService;
     private final AuthenticationFacade authenticationFacade;
-    private final FileRepository fileRepository;
     private final FileStorageService fileStorageService;
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         var tenant = authenticationFacade.getLoggedTenant();
 
-        var file = getFileForTenantOrCouple(id, tenant);
-        fileService.delete(file.getId());
+        fileService.delete(id, tenant);
         
         return ResponseEntity.ok().build();
     }
@@ -49,7 +42,7 @@ public class FileController {
     public void getPrivateFileAsByteArray(HttpServletResponse response, @PathVariable Long id) {
         Tenant tenant = authenticationFacade.getLoggedTenant();
 
-        var file = getFileForTenantOrCouple(id, tenant);
+        var file = fileService.getFileForTenantOrCouple(id, tenant);
 
         try (InputStream in = fileStorageService.download(file.getStorageFile())) {
             FileUtility.streamFileToResponse(in, file.getStorageFile().getContentType(),
@@ -67,7 +60,7 @@ public class FileController {
     public void getPreviewFromFileIdAsByteArray(HttpServletResponse response, @PathVariable Long fileId) {
         Tenant tenant = authenticationFacade.getLoggedTenant();
 
-        var file = getFileForTenantOrCouple(fileId, tenant);
+        var file = fileService.getFileForTenantOrCouple(fileId, tenant);
 
         try (InputStream in = fileStorageService.download(file.getPreview())) {
             FileUtility.streamFileToResponse(in, file.getPreview().getContentType(),
@@ -79,18 +72,5 @@ public class FileController {
             log.error("File cannot be downloaded - 408 - Too long?", e);
             response.setStatus(408);
         }
-    }
-
-    // We use this method to allow the tenant to show and download the files uploaded by the other tenant in the couple
-    private File getFileForTenantOrCouple(Long fileId, Tenant tenant) throws FileNotFoundException {
-        Optional<File> optionalFile;
-
-        if (tenant.getApartmentSharing().getApplicationType() == ApplicationType.COUPLE) {
-            optionalFile = fileRepository.findByIdForAppartmentSharing(fileId, tenant.getApartmentSharing().getId());
-        } else {
-            optionalFile = fileRepository.findByIdForTenant(fileId, tenant.getId());
-        }
-
-        return optionalFile.orElseThrow(() -> new FileNotFoundException(fileId));
     }
 }
