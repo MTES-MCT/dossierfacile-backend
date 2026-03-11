@@ -17,6 +17,7 @@ import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
+import fr.dossierfacile.document.analysis.service.DocumentIAService;
 import fr.dossierfacile.parameterizedtest.ArgumentBuilder;
 import fr.dossierfacile.parameterizedtest.ControllerParameter;
 import fr.dossierfacile.parameterizedtest.ParameterizedTestHelper;
@@ -76,6 +77,9 @@ class FileControllerTest {
 
     @MockitoBean
     private Producer producer;
+
+    @MockitoBean
+    private DocumentIAService documentIAService;
 
     @MockitoBean
     private AuthenticationFacade authenticationFacade;
