@@ -404,3 +404,11 @@ div.scrollmenu a:hover {
     background-color: #cbd5e1;
     border-radius: 4px;
 }
+
+/* ── Tax French Analysis: page-specific overrides ── */
+.tax-fr-card {
+    max-width: 426px;
+}
+.tax-fr-analysis {
+    background: #fff;
+}
