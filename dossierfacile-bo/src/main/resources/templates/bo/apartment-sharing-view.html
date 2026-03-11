@@ -7,6 +7,7 @@
 >
 <head>
     <title>DossierFacile</title>
+    <link rel="stylesheet" href="/css/tax-french-analysis.css"/>
     <link rel="stylesheet" href="/css/apartment-sharing-view.css"/>
     <script src="/js/partages-dossier.js" defer></script>
 </head>
@@ -956,6 +957,16 @@
                                     <div th:if="${document.getCustomText()!=null}">
                                         <span th:text="${'Custom text: '+document.getCustomText()}"></span>
                                     </div>
+                                    <!-- French tax: dedicated analysis encart (above file list) -->
+                                    <th:block th:if="${document.documentCategoryStep != null
+                                        && document.documentCategoryStep.name() == 'TAX_FRENCH_NOTICE'}">
+                                        <div th:replace="~{bo/fragments/tax-french-analysis :: taxFrenchAnalysis(
+                                            report=${document.documentAnalysisReport},
+                                            iaResults=${iaResultsByDocument.get(document.id)},
+                                            analysisReportComment=${analysisCommentByDocument.get(document.id)},
+                                            uid=${(document.id != null) ? 'tax-' + document.id : 'tax-' + iter.index}
+                                          )}"></div>
+                                    </th:block>
                                     <ul>
                                         <li style="margin-top: 5px"
                                             th:each="file : ${filesByDocument.get(document.getId())}">
@@ -965,23 +976,25 @@
                                             <p th:text="${file.summary}" sec:authorize="!hasRole('ROLE_ADMIN')"></p>
                                         </li>
                                     </ul>
-                                    <div th:if="${document.documentAnalysisReport != null}"
-                                         th:class="${'prevalidation-background-' + document.documentAnalysisReport.analysisStatus}"
-                                    >
-                                        <div th:replace="~{bo/fragments/document-analysis :: analysis(
-                                            report=${document.documentAnalysisReport},
-                                            documentRuleLevel=${documentRuleLevel},
-                                            uid=${(document.id != null) ? 'doc-' + document.id : 'doc-' + iter.index}
-                                          )}">
+                                    <!-- Other documents: existing analysis (below file list) -->
+                                    <th:block th:if="${document.documentCategoryStep == null
+                                        || document.documentCategoryStep.name() != 'TAX_FRENCH_NOTICE'}">
+                                        <div th:if="${document.documentAnalysisReport != null}"
+                                             th:class="${'prevalidation-background-' + document.documentAnalysisReport.analysisStatus}">
+                                            <div th:replace="~{bo/fragments/document-analysis :: analysis(
+                                                report=${document.documentAnalysisReport},
+                                                documentRuleLevel=${documentRuleLevel},
+                                                uid=${(document.id != null) ? 'doc-' + document.id : 'doc-' + iter.index}
+                                              )}"></div>
                                         </div>
-                                    </div>
-                                    <!-- contenu si le rapport n'existe pas (else) -->
-                                    <div th:unless="${document.documentAnalysisReport != null}"
-                                         th:class="${'prevalidation-background-UNDEFINED'}">
-                                        <div class="mb-1">
-                                            <span class="fw-semibold">Aucune analyse disponible</span>
+                                        <!-- contenu si le rapport n'existe pas (else) -->
+                                        <div th:unless="${document.documentAnalysisReport != null}"
+                                             th:class="${'prevalidation-background-UNDEFINED'}">
+                                            <div class="mb-1">
+                                                <span class="fw-semibold">Aucune analyse disponible</span>
+                                            </div>
                                         </div>
-                                    </div>
+                                    </th:block>
                                     <div th:if="${document.avisDetected}">
                                         - Attention, un avis de situation a été détecté !
                                     </div>
@@ -1168,6 +1181,16 @@
                                     <div th:if="${document.getCustomText()!=null}">
                                         <span th:text="${'Custom text: '+document.getCustomText()}"></span>
                                     </div>
+                                    <!-- French tax: dedicated analysis encart (above file list) -->
+                                    <th:block th:if="${document.documentCategoryStep != null
+                                        && document.documentCategoryStep.name() == 'TAX_FRENCH_NOTICE'}">
+                                        <div th:replace="~{bo/fragments/tax-french-analysis :: taxFrenchAnalysis(
+                                            report=${document.documentAnalysisReport},
+                                            iaResults=${iaResultsByDocument.get(document.id)},
+                                            analysisReportComment=${analysisCommentByDocument.get(document.id)},
+                                            uid=${(document.id != null) ? 'tax-' + document.id : 'tax-' + iter.index}
+                                          )}"></div>
+                                    </th:block>
                                     <ul>
                                         <li style="margin-top: 5px"
                                             th:each="file : ${filesByDocument.get(document.getId())}">
@@ -1177,23 +1200,25 @@
                                             <p th:text="${file.summary}" sec:authorize="!hasRole('ROLE_ADMIN')"></p>
                                         </li>
                                     </ul>
-                                    <div th:if="${document.documentAnalysisReport != null}"
-                                         th:class="${'prevalidation-background-' + document.documentAnalysisReport.analysisStatus}"
-                                    >
-                                        <div th:replace="~{bo/fragments/document-analysis :: analysis(
-                                            report=${document.documentAnalysisReport},
-                                            documentRuleLevel=${documentRuleLevel},
-                                            uid=${(document.id != null) ? 'doc-' + document.id : 'doc-' + iter.index}
-                                          )}">
+                                    <!-- Other documents: existing analysis (below file list) -->
+                                    <th:block th:if="${document.documentCategoryStep == null
+                                        || document.documentCategoryStep.name() != 'TAX_FRENCH_NOTICE'}">
+                                        <div th:if="${document.documentAnalysisReport != null}"
+                                             th:class="${'prevalidation-background-' + document.documentAnalysisReport.analysisStatus}">
+                                            <div th:replace="~{bo/fragments/document-analysis :: analysis(
+                                                report=${document.documentAnalysisReport},
+                                                documentRuleLevel=${documentRuleLevel},
+                                                uid=${(document.id != null) ? 'doc-' + document.id : 'doc-' + iter.index}
+                                              )}"></div>
                                         </div>
-                                    </div>
-                                    <!-- contenu si le rapport n'existe pas (else) -->
-                                    <div th:unless="${document.documentAnalysisReport != null}"
-                                         th:class="${'prevalidation-background-UNDEFINED'}">
-                                        <div class="mb-1">
-                                            <span class="fw-semibold">Aucune analyse disponible</span>
+                                        <!-- contenu si le rapport n'existe pas (else) -->
+                                        <div th:unless="${document.documentAnalysisReport != null}"
+                                             th:class="${'prevalidation-background-UNDEFINED'}">
+                                            <div class="mb-1">
+                                                <span class="fw-semibold">Aucune analyse disponible</span>
+                                            </div>
                                         </div>
-                                    </div>
+                                    </th:block>
                                     <div th:if="${document.avisDetected}">
                                         - Attention, un avis de situation a été détecté !
                                     </div>
