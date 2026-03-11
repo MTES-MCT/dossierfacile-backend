@@ -1,14 +1,15 @@
 package fr.dossierfacile.api.front.controller.registerController;
 
 import fr.dossierfacile.api.front.TestApplication;
+import fr.dossierfacile.api.front.config.MethodSecurityConfig;
 import fr.dossierfacile.api.front.config.ResourceServerConfig;
 import fr.dossierfacile.api.front.controller.RegisterController;
-import fr.dossierfacile.api.front.mapper.PropertyOMapperImpl;
 import fr.dossierfacile.api.front.mapper.TenantMapperImpl;
 import fr.dossierfacile.api.front.register.form.tenant.DocumentFinancialForm;
 import fr.dossierfacile.api.front.register.form.tenant.DocumentResidencyForm;
 import fr.dossierfacile.api.front.repository.FileRepository;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
+import fr.dossierfacile.api.front.service.interfaces.TenantPermissionsService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.validator.NumberOfPagesValidator;
 import fr.dossierfacile.common.config.GlobalExceptionHandler;
@@ -34,11 +35,15 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import javax.annotation.PostConstruct;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static org.hamcrest.Matchers.hasItem;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -48,10 +53,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ContextConfiguration(classes = {
         TestApplication.class,
         TenantMapperImpl.class,
-        PropertyOMapperImpl.class,
         GlobalExceptionHandler.class,
         NumberOfPagesValidator.class,
-        ResourceServerConfig.class
+        ResourceServerConfig.class,
+        MethodSecurityConfig.class
 }
 )
 @TestPropertySource(properties = {"dossierfacile.common.global.exception.handler=true"})
@@ -74,6 +79,17 @@ class RegisterControllerTest {
 
     @MockitoBean
     private JwtDecoder jwtDecoder;
+
+    @MockitoBean
+    private TenantPermissionsService tenantPermissionsService;
+
+    // Référence statique pour les paramètres de test
+    private static RegisterControllerTest self;
+
+    @PostConstruct
+    void setSelf() {
+        self = this;
+    }
 
     @Nested
     class DocumentFinancialTest {
@@ -140,6 +156,18 @@ class RegisterControllerTest {
                                             jsonPath("$.errors").isArray(),
                                             jsonPath("$.errors").value(hasItem("categoryStep: For document sub category SCHOLARSHIP category step has to be null"))
                                     )
+                            )
+                    ),
+                    Pair.of("Should respond 403 when tenant has no permission on requested tenantId",
+                            new ControllerParameter<>(
+                                    new DocumentFinancialParameter(Helper.documentFinancialFormWithUnauthorizedTenantId()),
+                                    403,
+                                    jwtTokenWithDossier,
+                                    (v) -> {
+                                        when(self.tenantPermissionsService.canAccess(any(), eq(99L))).thenReturn(false);
+                                        return v;
+                                    },
+                                    Collections.emptyList()
                             )
                     )
             );

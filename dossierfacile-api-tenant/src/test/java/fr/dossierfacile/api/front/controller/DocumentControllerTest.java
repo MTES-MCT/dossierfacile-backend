@@ -1,6 +1,7 @@
 package fr.dossierfacile.api.front.controller;
 
 import fr.dossierfacile.api.front.TestApplication;
+import fr.dossierfacile.api.front.config.MethodSecurityConfig;
 import fr.dossierfacile.api.front.config.ResourceServerConfig;
 import fr.dossierfacile.api.front.exception.DocumentNotFoundException;
 import fr.dossierfacile.api.front.exception.controller.CustomRestExceptionHandler;
@@ -8,6 +9,7 @@ import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
+import fr.dossierfacile.api.front.service.interfaces.TenantPermissionsService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.common.config.GlobalExceptionHandler;
 import fr.dossierfacile.common.entity.ApartmentSharing;
@@ -36,21 +38,28 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.google.gson.Gson;
+import fr.dossierfacile.api.front.form.CommentAnalysisForm;
+
 import javax.annotation.PostConstruct;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 @WebMvcTest(DocumentController.class)
 @ActiveProfiles("test")
 @ContextConfiguration(classes = {
         TestApplication.class,
         ResourceServerConfig.class,
+        MethodSecurityConfig.class,
         CustomRestExceptionHandler.class,
         GlobalExceptionHandler.class
 })
@@ -80,6 +89,9 @@ class DocumentControllerTest {
 
     @MockitoBean
     private TenantService tenantService;
+
+    @MockitoBean
+    private TenantPermissionsService tenantPermissionsService;
 
     @MockitoBean
     private JwtDecoder jwtDecoder;
@@ -188,6 +200,48 @@ class DocumentControllerTest {
         void parameterizedTests(ControllerParameter<GetDocumentResourceTestParameter> parameter) throws Exception {
             var mockMvcRequestBuilder = get("/api/document/resource/{documentName}", DOCUMENT_NAME)
                     .contentType("application/pdf");
+
+            ParameterizedTestHelper.runControllerTest(
+                    mockMvc,
+                    mockMvcRequestBuilder,
+                    parameter
+            );
+        }
+    }
+
+    @Nested
+    class CommentAnalysisTest {
+
+        record CommentAnalysisParam(CommentAnalysisForm form) {}
+
+        static List<Arguments> provideCommentAnalysisParameters() {
+            var jwtTokenWithDossier = jwt().jwt(jwt -> jwt.subject("keycloak-user-id"))
+                    .authorities(new SimpleGrantedAuthority("SCOPE_dossier"));
+
+            CommentAnalysisForm formWithUnauthorizedTenant = new CommentAnalysisForm(1L, 99L, "comment");
+
+            return ArgumentBuilder.buildListOfArguments(
+                    Pair.of("Should respond 403 when tenant has no permission on requested tenantId",
+                            new ControllerParameter<>(
+                                    new CommentAnalysisParam(formWithUnauthorizedTenant),
+                                    403,
+                                    jwtTokenWithDossier,
+                                    (v) -> {
+                                        when(self.tenantPermissionsService.canAccess("keycloak-user-id", 99L)).thenReturn(false);
+                                        return v;
+                                    },
+                                    Collections.emptyList()
+                            )
+                    )
+            );
+        }
+
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("provideCommentAnalysisParameters")
+        void parameterizedTests(ControllerParameter<CommentAnalysisParam> parameter) throws Exception {
+            var mockMvcRequestBuilder = post("/api/document/commentAnalysis")
+                    .contentType("application/json")
+                    .content(new Gson().toJson(parameter.getParameterData().form()));
 
             ParameterizedTestHelper.runControllerTest(
                     mockMvc,

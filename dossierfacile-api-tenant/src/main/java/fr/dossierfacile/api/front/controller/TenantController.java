@@ -2,16 +2,12 @@ package fr.dossierfacile.api.front.controller;
 
 import fr.dossierfacile.api.front.form.ShareFileByLinkForm;
 import fr.dossierfacile.api.front.form.ShareFileByMailForm;
-import fr.dossierfacile.api.front.mapper.PropertyOMapper;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
-import fr.dossierfacile.api.front.model.property.PropertyOModel;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
-import fr.dossierfacile.api.front.service.interfaces.PropertyService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.service.interfaces.UserService;
 import fr.dossierfacile.common.converter.AcquisitionData;
-import fr.dossierfacile.common.entity.Property;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.service.interfaces.ProcessingCapacityService;
 import io.swagger.annotations.*;
@@ -39,8 +35,6 @@ public class TenantController {
     private final TenantService tenantService;
     private final ProcessingCapacityService processingCapacityService;
     private final TenantMapper tenantMapper;
-    private final PropertyService propertyService;
-    private final PropertyOMapper propertyMapper;
     private final UserService userService;
 
     @GetMapping(value = "/profile", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -57,19 +51,6 @@ public class TenantController {
         Tenant tenant = authenticationFacade.getLoggedTenant(AcquisitionData.from(params));
         tenantService.updateLastLoginDateAndResetWarnings(tenant);
         return ok(tenantMapper.toTenantModel(tenant, null));
-    }
-
-
-    @GetMapping(value = "/property/{token}", produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(value = "Get property and owner information", notes = "Retrieves information about a property and its owner based on the provided token.")
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Property information retrieved successfully", response = PropertyOModel.class),
-            @ApiResponse(code = 401, message = "Unauthorized: JWT token missing or invalid"),
-            @ApiResponse(code = 404, message = "Property not found")
-    })
-    public ResponseEntity<PropertyOModel> getInfoOfPropertyAndOwner(@PathVariable("token") String propertyToken) {
-        Property property = propertyService.getPropertyByToken(propertyToken);
-        return ok(propertyMapper.toPropertyModel(property));
     }
 
     @DeleteMapping("/deleteCoTenant/{id}")

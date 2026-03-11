@@ -1,6 +1,7 @@
 package fr.dossierfacile.api.front.controller;
 
 import fr.dossierfacile.api.front.TestApplication;
+import fr.dossierfacile.api.front.config.ResourceServerConfig;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.common.config.GlobalExceptionHandler;
@@ -25,6 +26,7 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -42,8 +44,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(ApartmentSharingLinkController.class)
 @ActiveProfiles("test")
-@ContextConfiguration(classes = {TestApplication.class, GlobalExceptionHandler.class})
-@TestPropertySource(properties = {"dossierfacile.common.global.exception.handler=true"})
+@ContextConfiguration(classes = {TestApplication.class, ResourceServerConfig.class, GlobalExceptionHandler.class})
+@TestPropertySource(properties = {
+        "dossierfacile.common.global.exception.handler=true",
+        "resource.server.config.csp=default-src 'self'"
+})
 public class ApartmentSharingLinkControllerTest {
 
     @Autowired
@@ -51,6 +56,9 @@ public class ApartmentSharingLinkControllerTest {
 
     @MockitoBean
     private AuthenticationFacade authenticationFacade;
+
+    @MockitoBean
+    private JwtDecoder jwtDecoder;
 
     @MockitoBean
     private ApartmentSharingLinkService apartmentSharingLinkService;
@@ -167,10 +175,10 @@ public class ApartmentSharingLinkControllerTest {
             ApartmentSharing apartmentSharing = new ApartmentSharing();
 
             return ArgumentBuilder.buildListOfArguments(
-                    Pair.of("Should respond 403 when no jwt is passed",
+                    Pair.of("Should respond 401 when no jwt is passed",
                             new ControllerParameter<>(
                                     new UpdateApartmentSharingLinksStatusTestParameter(1L, true),
-                                    403,
+                                    401,
                                     null,
                                     null,
                                     Collections.emptyList()
@@ -263,10 +271,10 @@ public class ApartmentSharingLinkControllerTest {
             Tenant tenant = new Tenant();
 
             return ArgumentBuilder.buildListOfArguments(
-                    Pair.of("Should respond 403 when no jwt is passed",
+                    Pair.of("Should respond 401 when no jwt is passed",
                             new ControllerParameter<>(
                                     new ResendApartmentSharingLinkTestParameter(),
-                                    403,
+                                    401,
                                     null,
                                     null,
                                     Collections.emptyList()
@@ -381,10 +389,10 @@ public class ApartmentSharingLinkControllerTest {
             Tenant tenant = new Tenant();
 
             return ArgumentBuilder.buildListOfArguments(
-                    Pair.of("Should respond 403 when no jwt is passed",
+                    Pair.of("Should respond 401 when no jwt is passed",
                             new ControllerParameter<>(
                                     new DeleteApartmentSharingLinkTestParameter(),
-                                    403,
+                                    401,
                                     null,
                                     null,
                                     Collections.emptyList()
@@ -448,10 +456,10 @@ public class ApartmentSharingLinkControllerTest {
             String futureDate = LocalDate.now().plusDays(30).toString();
 
             return ArgumentBuilder.buildListOfArguments(
-                    Pair.of("Should respond 403 when no jwt is passed",
+                    Pair.of("Should respond 401 when no jwt is passed",
                             new ControllerParameter<>(
                                     new UpdateExpirationDateTestParameter(1L, futureDate),
-                                    403,
+                                    401,
                                     null,
                                     null,
                                     Collections.emptyList()
@@ -538,10 +546,10 @@ public class ApartmentSharingLinkControllerTest {
             ApartmentSharing apartmentSharing = new ApartmentSharing();
 
             return ArgumentBuilder.buildListOfArguments(
-                    Pair.of("Should respond 403 when no jwt is passed",
+                    Pair.of("Should respond 401 when no jwt is passed",
                             new ControllerParameter<>(
                                     new UpdateTitleTestParameter(1L, "test"),
-                                    403,
+                                    401,
                                     null,
                                     null,
                                     Collections.emptyList()

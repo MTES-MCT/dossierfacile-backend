@@ -1,23 +1,22 @@
-package fr.dossierfacile.api.front.dfc.controller;
+package fr.dossierfacile.api.front.partner.controller;
 
 import fr.dossierfacile.api.front.TestApplication;
 import fr.dossierfacile.api.front.config.ResourceServerConfig;
-import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.security.interfaces.ClientAuthenticationFacade;
-import fr.dossierfacile.api.front.service.interfaces.TenantPermissionsService;
-import fr.dossierfacile.api.front.service.interfaces.TenantService;
+import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
+import fr.dossierfacile.api.front.service.interfaces.UserApiService;
 import fr.dossierfacile.common.config.GlobalExceptionHandler;
-import fr.dossierfacile.api.front.model.dfc.apartment_sharing.ApartmentSharingModel;
-import fr.dossierfacile.api.front.model.dfc.tenant.ConnectedTenantModel;
+import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
+import fr.dossierfacile.common.mapper.ApplicationFullMapper;
+import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
 import fr.dossierfacile.parameterizedtest.ArgumentBuilder;
 import fr.dossierfacile.parameterizedtest.ControllerParameter;
 import fr.dossierfacile.parameterizedtest.ParameterizedTestHelper;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -36,43 +35,43 @@ import javax.annotation.PostConstruct;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 
 import static fr.dossierfacile.authentification.JwtFactoryKt.getDummyJwtWithCustomClaims;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(DfcTenantsController.class)
+@WebMvcTest(ApiPartnerApartmentSharingController.class)
 @ActiveProfiles("test")
 @ContextConfiguration(classes = {TestApplication.class, ResourceServerConfig.class, GlobalExceptionHandler.class})
 @TestPropertySource(properties = {"dossierfacile.common.global.exception.handler=true"})
-class DfcTenantsControllerTest {
+class ApiPartnerApartmentSharingControllerTest {
 
-    private static final Long TENANT_ID = 1L;
+    private static final Long APARTMENT_SHARING_ID = 1L;
 
     @Autowired
     private MockMvc mockMvc;
 
     @MockitoBean
+    private ApartmentSharingService apartmentSharingService;
+
+    @MockitoBean
+    private UserApiService userApiService;
+
+    @MockitoBean
     private ClientAuthenticationFacade clientAuthenticationFacade;
 
     @MockitoBean
-    private TenantService tenantService;
-
-    @MockitoBean
-    private TenantPermissionsService tenantPermissionsService;
-
-    @MockitoBean
-    private TenantMapper tenantMapper;
+    private ApplicationFullMapper applicationFullMapper;
 
     @MockitoBean
     private JwtDecoder jwtDecoder;
 
-    private static DfcTenantsControllerTest self;
+    private static ApiPartnerApartmentSharingControllerTest self;
 
     @PostConstruct
     void setSelf() {
@@ -81,57 +80,34 @@ class DfcTenantsControllerTest {
 
     @BeforeEach
     void beforeEach() {
-        reset(clientAuthenticationFacade, tenantService, tenantPermissionsService, tenantMapper);
+        reset(apartmentSharingService, userApiService, clientAuthenticationFacade, applicationFullMapper);
     }
 
     @Nested
-    class ListTenantsTests {
+    class GetApartmentSharingTests {
 
-        @Test
-        void should_add_response_metadata() throws Exception {
-            UserApi userApi = UserApi.builder().id(1L).name("partner").build();
-            when(self.clientAuthenticationFacade.getClient()).thenReturn(userApi);
-            when(self.tenantService.findTenantUpdateByLastUpdateAndPartner(any(), eq(userApi), anyLong(), anyBoolean(), anyBoolean()))
-                    .thenReturn(Collections.emptyList());
-
-            var claimsMap = new HashMap<String, Object>();
-            claimsMap.put("client_id", "partner");
-            var request = get("/dfc/api/v1/tenants")
-                    .with(jwt().authorities(new SimpleGrantedAuthority("SCOPE_dfc"))
-                            .jwt(getDummyJwtWithCustomClaims(claimsMap)))
-                    .queryParam("after", "2020-01-31T10:30:00.000-05:00")
-                    .queryParam("limit", "10")
-                    .queryParam("includeDeleted", "true");
-
-            String contentAsString = mockMvc.perform(request)
-                    .andExpect(status().isOk())
-                    .andReturn()
-                    .getResponse().getContentAsString();
-
-            assertThat(contentAsString).isEqualToIgnoringNewLines("""
-                    {"data":[],"metadata":{"limit":10,"resultCount":0,"nextLink":"/dfc/api/v1/tenants?limit=10&after=2020-01-31T10:30&includeDeleted=true&includeRevoked=false"}}""");
-        }
-    }
-
-    @Nested
-    class GetTenantByIdTests {
-
-        static List<Arguments> provideGetTenantByIdParameters() {
+        static List<Arguments> provideGetApartmentSharingParameters() {
             var claimsMap = new HashMap<String, Object>();
             claimsMap.put("client_id", "partner-client");
             var jwt = getDummyJwtWithCustomClaims(claimsMap);
 
-            var jwtTokenWithDfc = jwt().authorities(new SimpleGrantedAuthority("SCOPE_dfc")).jwt(jwt);
+            var jwtTokenWithApiPartner = jwt().authorities(new SimpleGrantedAuthority("SCOPE_api-partner")).jwt(jwt);
             var jwtWithWrongScope = jwt().authorities(new SimpleGrantedAuthority("SCOPE_dossier")).jwt(jwt);
 
-            Tenant tenant = Tenant.builder()
-                    .id(TENANT_ID)
-                    .email("tenant@example.com")
+            Tenant tenant = Tenant.builder().id(100L).build();
+            ApartmentSharing apartmentSharing = ApartmentSharing.builder()
+                    .id(APARTMENT_SHARING_ID)
+                    .tenants(List.of(tenant))
                     .build();
 
             UserApi userApi = UserApi.builder()
                     .id(1L)
                     .name("partner-client")
+                    .build();
+
+            ApplicationModel applicationModel = ApplicationModel.builder()
+                    .id(APARTMENT_SHARING_ID)
+                    .tenants(Collections.emptyList())
                     .build();
 
             return ArgumentBuilder.buildListOfArguments(
@@ -153,49 +129,43 @@ class DfcTenantsControllerTest {
                                     Collections.emptyList()
                             )
                     ),
-                    Pair.of("Should respond 404 when tenant is not found",
+                    Pair.of("Should respond 404 when apartment sharing is not found",
                             new ControllerParameter<>(
                                     null,
                                     404,
-                                    jwtTokenWithDfc,
+                                    jwtTokenWithApiPartner,
                                     (v) -> {
-                                        when(self.tenantService.findById(TENANT_ID)).thenReturn(null);
+                                        when(self.apartmentSharingService.findById(APARTMENT_SHARING_ID)).thenReturn(Optional.empty());
                                         when(self.clientAuthenticationFacade.getClient()).thenReturn(userApi);
                                         return v;
                                     },
                                     Collections.emptyList()
                             )
                     ),
-                    Pair.of("Should respond 403 when partner is not linked to tenant",
+                    Pair.of("Should respond 403 when partner is not linked to any tenant of apartment sharing",
                             new ControllerParameter<>(
                                     null,
                                     403,
-                                    jwtTokenWithDfc,
+                                    jwtTokenWithApiPartner,
                                     (v) -> {
-                                        when(self.tenantService.findById(TENANT_ID)).thenReturn(tenant);
-                                        when(self.clientAuthenticationFacade.getKeycloakClientId()).thenReturn("partner-client");
+                                        when(self.apartmentSharingService.findById(APARTMENT_SHARING_ID)).thenReturn(Optional.of(apartmentSharing));
                                         when(self.clientAuthenticationFacade.getClient()).thenReturn(userApi);
-                                        when(self.tenantPermissionsService.clientCanAccess("partner-client", TENANT_ID)).thenReturn(false);
+                                        when(self.userApiService.anyTenantIsLinked(eq(userApi), any())).thenReturn(false);
                                         return v;
                                     },
                                     Collections.emptyList()
                             )
                     ),
-                    Pair.of("Should respond 200 when partner is linked to tenant",
+                    Pair.of("Should respond 200 when partner is linked to at least one tenant",
                             new ControllerParameter<>(
                                     null,
                                     200,
-                                    jwtTokenWithDfc,
+                                    jwtTokenWithApiPartner,
                                     (v) -> {
-                                        when(self.tenantService.findById(TENANT_ID)).thenReturn(tenant);
-                                        when(self.clientAuthenticationFacade.getKeycloakClientId()).thenReturn("partner-client");
+                                        when(self.apartmentSharingService.findById(APARTMENT_SHARING_ID)).thenReturn(Optional.of(apartmentSharing));
                                         when(self.clientAuthenticationFacade.getClient()).thenReturn(userApi);
-                                        when(self.tenantPermissionsService.clientCanAccess("partner-client", TENANT_ID)).thenReturn(true);
-                                        when(self.tenantMapper.toTenantModelDfc(eq(tenant), eq(userApi)))
-                                                .thenReturn(ConnectedTenantModel.builder()
-                                                        .connectedTenantId(TENANT_ID)
-                                                        .apartmentSharing(ApartmentSharingModel.builder().build())
-                                                        .build());
+                                        when(self.userApiService.anyTenantIsLinked(eq(userApi), any())).thenReturn(true);
+                                        when(self.applicationFullMapper.toApplicationModel(any(), eq(userApi))).thenReturn(applicationModel);
                                         return v;
                                     },
                                     Collections.emptyList()
@@ -205,9 +175,9 @@ class DfcTenantsControllerTest {
         }
 
         @ParameterizedTest(name = "{0}")
-        @MethodSource("provideGetTenantByIdParameters")
+        @MethodSource("provideGetApartmentSharingParameters")
         void parameterizedTests(ControllerParameter<Void> parameter) throws Exception {
-            var mockMvcRequestBuilder = get("/dfc/api/v1/tenants/{tenantId}", TENANT_ID);
+            var mockMvcRequestBuilder = get("/api-partner/apartmentSharing/{id}", APARTMENT_SHARING_ID);
             ParameterizedTestHelper.runControllerTest(mockMvc, mockMvcRequestBuilder, parameter);
         }
     }

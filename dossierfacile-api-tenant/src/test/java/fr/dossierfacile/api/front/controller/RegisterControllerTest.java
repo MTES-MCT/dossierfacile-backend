@@ -3,7 +3,6 @@ package fr.dossierfacile.api.front.controller;
 import com.google.gson.Gson;
 import fr.dossierfacile.api.front.TestApplication;
 import fr.dossierfacile.api.front.config.ResourceServerConfig;
-import fr.dossierfacile.api.front.mapper.PropertyOMapperImpl;
 import fr.dossierfacile.api.front.mapper.TenantMapperImpl;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.form.tenant.NamesForm;
@@ -49,7 +48,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 @ContextConfiguration(classes = {
         TestApplication.class,
         TenantMapperImpl.class,
-        PropertyOMapperImpl.class,
         GlobalExceptionHandler.class,
         NumberOfPagesValidator.class,
         ResourceServerConfig.class

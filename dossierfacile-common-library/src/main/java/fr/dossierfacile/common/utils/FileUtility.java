@@ -2,16 +2,21 @@ package fr.dossierfacile.common.utils;
 
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
+import jakarta.annotation.Nullable;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.PDFRenderer;
+import org.springframework.http.ContentDisposition;
 import org.springframework.http.MediaType;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.Normalizer;
 import java.util.Objects;
 
@@ -80,5 +85,28 @@ public class FileUtility {
         // 4. Suppression de tout ce qui n'est pas alphanumérique, point, tiret ou underscore.
         // Cela supprime les guillemets, slashs, emojis et caractères spéciaux interdits par Windows/Linux.
         return noSpaces.replaceAll("[^a-zA-Z0-9._-]", "");
+    }
+
+    /**
+     * Streams file content to HTTP response with standard headers.
+     *
+     * @param inputStream the file content stream (caller is responsible for closing)
+     * @param contentType the MIME type
+     * @param filename    optional filename for Content-Disposition (null uses "file")
+     * @param inline      true for inline display, false for attachment (download)
+     * @param response    the HTTP response
+     * @throws IOException if streaming fails
+     */
+    public static void streamFileToResponse(InputStream inputStream, String contentType,
+                                            @Nullable String filename, boolean inline,
+                                            HttpServletResponse response) throws IOException {
+        response.setContentType(contentType);
+        response.setHeader("Access-Control-Expose-Headers", "Content-Disposition, Content-Type");
+        ContentDisposition contentDisposition = (inline ? ContentDisposition.inline() : ContentDisposition.attachment())
+                .filename(sanitizeFilename(filename != null ? filename : "file"))
+                .build();
+        response.setHeader("Content-Disposition", contentDisposition.toString());
+        response.setHeader("X-Robots-Tag", "noindex");
+        IOUtils.copy(inputStream, response.getOutputStream());
     }
 }
