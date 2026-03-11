@@ -75,6 +75,10 @@ authorize.bo.access.emails=
 # Time to wait before a selected application can be process by another operator (no default value).
 #time.reprocess.application.minutes=5
 
+# DocumentIA encryption key (AES, base64-encoded)
+# Clé AES (base64) utilisée pour chiffrer/déchiffrer document_ia.result. `openssl rand -base64 32`
+dossierfacile.document.ia.result.encryption.key=
+
 # Brevo config
 # Leave this empty for dev
 brevo.apikey=

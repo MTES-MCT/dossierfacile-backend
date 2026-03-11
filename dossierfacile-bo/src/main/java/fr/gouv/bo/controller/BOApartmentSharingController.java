@@ -8,7 +8,10 @@ import fr.dossierfacile.common.entity.DocumentRuleLevel;
 import fr.dossierfacile.common.entity.LinkLog;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
+import fr.dossierfacile.common.entity.DocumentAnalysisStatus;
+import fr.dossierfacile.common.enums.DocumentIAFileAnalysisStatus;
 import fr.dossierfacile.common.enums.LinkType;
+import fr.dossierfacile.common.model.document_ia.ResultModel;
 import fr.dossierfacile.common.repository.LinkLogRepository;
 import fr.dossierfacile.common.service.ApartmentSharingLinkService;
 import fr.gouv.bo.dto.ApartmentSharingLinkEnrichedDTO;
@@ -61,6 +64,8 @@ public class BOApartmentSharingController {
     private static final String TENANT_BASE_URL = "tenantBaseUrl";
     private static final String ACTIVE_LINKS = "activeLinks";
     private static final String INACTIVE_LINKS = "inactiveSharingLinks";
+    public static final String IA_RESULTS_BY_DOCUMENT = "iaResultsByDocument";
+    public static final String ANALYSIS_COMMENT_BY_DOCUMENT = "analysisCommentByDocument";
 
     private final TenantService tenantService;
     private final ApartmentSharingLinkService apartmentSharingLinkService;
@@ -105,6 +110,8 @@ public class BOApartmentSharingController {
         model.addAttribute(APARTMENT_SHARING, tenants.getFirst().getApartmentSharing());
         model.addAttribute(NOW, LocalDateTime.now());
         model.addAttribute(FILES_BY_DOCUMENT, getFilesByDocument(tenants));
+        model.addAttribute(IA_RESULTS_BY_DOCUMENT, getIaResultsByDocument(tenants));
+        model.addAttribute(ANALYSIS_COMMENT_BY_DOCUMENT, getAnalysisCommentByDocument(tenants));
         model.addAttribute(TENANT_BASE_URL, tenantBaseUrl);
         model.addAttribute(INACTIVE_LINKS, inactiveLinks);
         model.addAttribute(ACTIVE_LINKS, activeLinks);
@@ -129,6 +136,29 @@ public class BOApartmentSharingController {
         return tenants.stream()
                 .flatMap(BOApartmentSharingController::getAllDocuments)
                 .collect(Collectors.toMap(Document::getId, DisplayableFile::allOf));
+    }
+
+    private Map<Long, List<ResultModel>> getIaResultsByDocument(List<Tenant> tenants) {
+        return tenants.stream()
+                .flatMap(BOApartmentSharingController::getAllDocuments)
+                .filter(doc -> doc.getId() != null)
+                .collect(Collectors.toMap(Document::getId, doc ->
+                        doc.getFiles().stream()
+                                .filter(f -> f.getDocumentIAFileAnalysis() != null
+                                        && f.getDocumentIAFileAnalysis().getAnalysisStatus() == DocumentIAFileAnalysisStatus.SUCCESS)
+                                .map(f -> f.getDocumentIAFileAnalysis().getResult())
+                                .toList()
+                ));
+    }
+
+    private Map<Long, String> getAnalysisCommentByDocument(List<Tenant> tenants) {
+        return tenants.stream()
+                .flatMap(BOApartmentSharingController::getAllDocuments)
+                .filter(doc -> doc.getId() != null
+                        && doc.getDocumentAnalysisReport() != null
+                        && DocumentAnalysisStatus.DENIED == doc.getDocumentAnalysisReport().getAnalysisStatus()
+                        && doc.getDocumentAnalysisReport().getComment() != null)
+                .collect(Collectors.toMap(Document::getId, doc -> doc.getDocumentAnalysisReport().getComment()));
     }
 
     private static Stream<Document> getAllDocuments(Tenant tenant) {
