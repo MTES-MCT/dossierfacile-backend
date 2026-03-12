@@ -187,7 +187,7 @@ public class DocumentServiceImpl implements DocumentService {
         return false;
     }
 
-    private Tenant resolveDocumentTenant(Document document) {
+    public Tenant resolveDocumentTenant(Document document) {
         if (document.getTenant() != null) {
             return document.getTenant();
         }
