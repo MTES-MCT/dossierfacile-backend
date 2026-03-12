@@ -21,6 +21,8 @@ public interface DocumentService {
 
     void delete(Document document);
 
+    Tenant resolveDocumentTenant(Document document);
+
     void markDocumentAsEdited(Document document);
 
     Document getAuthorizedDocument(String documentName, Tenant tenant);
