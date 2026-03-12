@@ -163,8 +163,9 @@ public class DocumentServiceImpl implements DocumentService {
         File file = documentHelperService.addFile(multipartFile, document);
         markDocumentAsEdited(document);
         producer.processFile(document.getId(), file.getId());
-        var tenantId = document.getTenant() != null ? document.getTenant().getId() : document.getGuarantor().getTenant().getId();
-        documentIAService.sendForAnalysis(multipartFile, file, document, tenantId);
+        
+        Tenant tenant = resolveDocumentTenant(document);
+        documentIAService.sendForAnalysis(multipartFile, file, document, tenant.getId());
     }
 
     @Override
@@ -203,7 +204,7 @@ public class DocumentServiceImpl implements DocumentService {
         return false;
     }
 
-    private Tenant resolveDocumentTenant(Document document) {
+    public Tenant resolveDocumentTenant(Document document) {
         if (document.getTenant() != null) {
             return document.getTenant();
         }

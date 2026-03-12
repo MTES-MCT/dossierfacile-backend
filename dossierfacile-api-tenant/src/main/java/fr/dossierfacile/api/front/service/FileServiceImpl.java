@@ -35,7 +35,8 @@ public class FileServiceImpl implements FileService {
         File file = getFileForTenantOrCouple(id, tenant);
 
         Document document = file.getDocument();
-        Tenant tenantFileOwner = document.getTenant();
+
+        Tenant tenantFileOwner = documentService.resolveDocumentTenant(document);
 
         document.getFiles().remove(file);
         file.setDocument(null);
