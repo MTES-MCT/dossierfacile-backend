@@ -11,6 +11,7 @@ import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.validator.NumberOfPagesValidator;
 import fr.dossierfacile.common.config.GlobalExceptionHandler;
+import fr.dossierfacile.common.service.FileUploadPreprocessor;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.TenantOwnerType;
@@ -73,6 +74,9 @@ class RegisterControllerTest {
 
     @MockitoBean
     private JwtDecoder jwtDecoder;
+
+    @MockitoBean
+    private FileUploadPreprocessor fileUploadPreprocessor;
 
     // Référence statique à l’instance courante du test
     private static RegisterControllerTest self;

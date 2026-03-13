@@ -39,7 +39,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -211,7 +210,7 @@ public class DocumentServiceImpl implements DocumentService {
                         log.error("Error on file save", e);
                         throw new RuntimeException(e);
                     }
-                }).collect(Collectors.toList());
+                }).toList();
 
         return watermarkDocumentRepository.save(WatermarkDocument.builder()
                 .token(UUID.randomUUID().toString())
