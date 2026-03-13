@@ -9,6 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Converts a raw list of uploaded files into {@link ValidatedFile} instances by detecting
@@ -20,6 +21,14 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class FileUploadPreprocessor {
+
+    /**
+     * OWASP File Upload — "List allowed extensions" / "Validate the file type, don't trust the Content-Type header".
+     * Shared whitelist used by all upload entry points.
+     */
+    public static final Set<String> ALLOWED_MIME_TYPES = Set.of(
+            "application/pdf", "image/jpeg", "image/png", "image/heif"
+    );
 
     private final MimeTypeDetectionService mimeTypeDetectionService;
 
