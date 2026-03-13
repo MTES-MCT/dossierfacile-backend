@@ -1,24 +1,24 @@
 package fr.dossierfacile.common.utils;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class FileUtilityTest {
 
-    @Test
-    void sanitizeFilename_should_return_file_for_null() {
-        assertThat(FileUtility.sanitizeFilename(null)).isEqualTo("file");
+    @ParameterizedTest
+    @MethodSource("invalidInputsThatReturnFile")
+    void sanitizeFilename_should_return_file_for_invalid_inputs(String input) {
+        assertThat(FileUtility.sanitizeFilename(input)).isEqualTo("file");
     }
 
-    @Test
-    void sanitizeFilename_should_return_file_for_blank() {
-        assertThat(FileUtility.sanitizeFilename("   ")).isEqualTo("file");
-    }
-
-    @Test
-    void sanitizeFilename_should_return_file_when_result_empty() {
-        assertThat(FileUtility.sanitizeFilename("@@@")).isEqualTo("file");
+    static Stream<String> invalidInputsThatReturnFile() {
+        return Stream.of(null, "   ", "@@@");
     }
 
     @Test
@@ -28,19 +28,14 @@ class FileUtilityTest {
                 .isEqualTo("......etcpasswd");
     }
 
-    @Test
-    void sanitizeFilename_should_preserve_safe_chars() {
-        assertThat(FileUtility.sanitizeFilename("document_123.pdf")).isEqualTo("document_123.pdf");
-    }
-
-    @Test
-    void sanitizeFilename_should_remove_accents() {
-        assertThat(FileUtility.sanitizeFilename("éàùç")).isEqualTo("eauc");
-    }
-
-    @Test
-    void sanitizeFilename_should_replace_spaces_with_underscores() {
-        assertThat(FileUtility.sanitizeFilename("my file.pdf")).isEqualTo("my_file.pdf");
+    @ParameterizedTest
+    @CsvSource({
+            "document_123.pdf, document_123.pdf",
+            "éàùç, eauc",
+            "my file.pdf, my_file.pdf"
+    })
+    void sanitizeFilename_should_transform_input_correctly(String input, String expected) {
+        assertThat(FileUtility.sanitizeFilename(input)).isEqualTo(expected);
     }
 
     // --- OWASP: Limite longueur / caractères du nom ---
