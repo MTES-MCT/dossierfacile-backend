@@ -56,7 +56,7 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
      */
     @Transactional
     @Override
-    public File addFile(MultipartFile multipartFile, Document document) throws IOException {
+    public File addFile(MultipartFile multipartFile, String detectedMimeType, Document document) throws IOException {
         StorageFile storageFile = StorageFile.builder()
                 .size(multipartFile.getSize())
                 .encryptionKey(encryptionKeyService.getCurrentKey())
@@ -70,7 +70,7 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
         // OWASP: sanitize display filename, truncate if too long
         String displayName = FileUtility.sanitizeAndTruncateFilename(originalFilename);
         storageFile.setPath(document.getDocumentS3PrefixPath() + "/" + UUID.randomUUID());
-        if ("image/heif".equals(multipartFile.getContentType())) {
+        if ("image/heif".equals(detectedMimeType)) {
             storageFile.setName(displayName.replaceAll("(?i)\\.heic$", "") + ".jpg");
             storageFile.setContentType("image/jpeg");
 
@@ -82,10 +82,10 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
             }
         } else {
             storageFile.setName(displayName);
-            storageFile.setContentType(multipartFile.getContentType());
+            storageFile.setContentType(detectedMimeType);
             InputStream uploadStream = multipartFile.getInputStream();
             // OWASP: CDR for PDF — remove JavaScript, AcroForm
-            if ("application/pdf".equals(multipartFile.getContentType())) {
+            if ("application/pdf".equals(detectedMimeType)) {
                 uploadStream = pdfSanitizerService.sanitize(uploadStream);
             }
             storageFile = fileStorageService.upload(uploadStream, storageFile);

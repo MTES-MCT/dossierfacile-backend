@@ -159,8 +159,8 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Transactional
     @Override
-    public void addFile(MultipartFile multipartFile, Document document) throws IOException {
-        File file = documentHelperService.addFile(multipartFile, document);
+    public void addFile(MultipartFile multipartFile, String detectedMimeType, Document document) throws IOException {
+        File file = documentHelperService.addFile(multipartFile, detectedMimeType, document);
         markDocumentAsEdited(document);
         producer.processFile(document.getId(), file.getId());
         

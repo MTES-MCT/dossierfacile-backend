@@ -14,11 +14,13 @@ import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.model.log.EditionType;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.LogService;
+import fr.dossierfacile.common.service.interfaces.MimeTypeDetectionService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -37,6 +39,8 @@ public abstract class AbstractDocumentSaveStep<T extends DocumentForm> implement
     private Producer producer;
     @Autowired
     private ClientAuthenticationFacade clientAuthenticationFacade;
+    @Autowired
+    private MimeTypeDetectionService mimeTypeDetectionService;
 
     @Override
     @Transactional
@@ -60,16 +64,17 @@ public abstract class AbstractDocumentSaveStep<T extends DocumentForm> implement
     protected abstract Document saveDocument(Tenant tenant, T documentForm);
 
     protected final void saveFiles(DocumentForm documentForm, Document document) {
-        documentForm.getDocuments().stream()
-                .filter(file -> !file.isEmpty())
-                .forEach(file -> {
-                    try {
-                        // TODO -> We must find a way to inform user there is a failure
-                        documentService.addFile(file, document);
-                    } catch (Exception ioe) {
-                        log.error("Unable to add File to document {}", document.getId(), ioe);
-                    }
-                });
+        for (MultipartFile file : documentForm.getDocuments()) {
+            if (!file.isEmpty()) {
+                try {
+                    String detectedMimeType = mimeTypeDetectionService.detect(file);
+                    // TODO -> We must find a way to inform user there is a failure
+                    documentService.addFile(file, detectedMimeType, document);
+                } catch (Exception e) {
+                    log.error("Unable to add File to document {}", document.getId(), e);
+                }
+            }
+        }
     }
 
 }
