@@ -67,6 +67,12 @@ public class FileUtility {
         }
     }
 
+    /**
+     * OWASP File Upload — "Set a filename length limit. Restrict the allowed characters if possible".
+     * <p>
+     * Sanitizes the given filename for safe use in HTTP headers and file systems.
+     * Returns "file" if input is null, blank, or results in an empty string after sanitization.
+     */
     public static String sanitizeFilename(String input) {
         if (input == null || input.isBlank()) {
             return "file";
@@ -84,7 +90,10 @@ public class FileUtility {
 
         // 4. Suppression de tout ce qui n'est pas alphanumérique, point, tiret ou underscore.
         // Cela supprime les guillemets, slashs, emojis et caractères spéciaux interdits par Windows/Linux.
-        return noSpaces.replaceAll("[^a-zA-Z0-9._-]", "");
+        String result = noSpaces.replaceAll("[^a-zA-Z0-9._-]", "");
+
+        // OWASP: Si le résultat est vide (ex: input "@@@"), retourner "file"
+        return result.isBlank() ? "file" : result;
     }
 
     /**
