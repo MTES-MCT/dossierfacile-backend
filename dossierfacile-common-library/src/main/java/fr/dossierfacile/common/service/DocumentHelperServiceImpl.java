@@ -38,11 +38,14 @@ import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @AllArgsConstructor
 @Slf4j
 public class DocumentHelperServiceImpl implements DocumentHelperService {
+
+    private static final long MAX_OUTPUT_JPG_SIZE_BYTES = 50L * 1024 * 1024;
 
     private final FileStorageService fileStorageService;
     private final SharedFileRepository fileRepository;
@@ -123,18 +126,44 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
 
         java.io.File jpgFile = java.nio.file.Files.createTempFile(tmpImageName, ".jpg", attr).toFile();
 
-        // Use ImageMagick to convert .heic to .jpg
-        ProcessBuilder processBuilder = new ProcessBuilder(imageMagickConfig.getImageMagickCli(), heicFile.getAbsolutePath(), jpgFile.getAbsolutePath());
+        // Use ImageMagick to convert .heic to .jpg with resource limits
+        ProcessBuilder processBuilder = new ProcessBuilder(
+                imageMagickConfig.getImageMagickCli(),
+                "-limit", "memory", "256MB",
+                "-limit", "map", "512MB",
+                "-limit", "disk", "1GB",
+                "-limit", "thread", "1",
+                heicFile.getAbsolutePath(),
+                jpgFile.getAbsolutePath()
+        );
         Process process = processBuilder.start();
         try {
-            int exitCode = process.waitFor();
+            boolean finished = process.waitFor(30, TimeUnit.SECONDS);
+            if (!finished) {
+                process.destroyForcibly();
+                log.error("Timeout lors de la conversion HEIC (30s)");
+                throw new IOException("Timeout lors de la conversion HEIC (30s) avec ImageMagick.");
+            }
+            int exitCode = process.exitValue();
             if (exitCode != 0) {
+                log.error("Erreur lors de la conversion HEIC en JPG avec ImageMagick.");
                 throw new IOException("Erreur lors de la conversion HEIC en JPG avec ImageMagick.");
             }
         } catch (InterruptedException e) {
-            log.error("Interrupted exception", e);
+            process.destroyForcibly();
+            log.error("Interrupted exception lors de la conversion HEIC en JPG avec ImageMagick.", e);
             Thread.currentThread().interrupt();
             throw new IOException(e);
+        }
+
+        if (!jpgFile.exists() || jpgFile.length() == 0) {
+            log.error("Erreur lors de la conversion HEIC en JPG avec ImageMagick. Fichier JPG non généré ou vide.");
+            throw new IOException("Fichier JPG non généré ou vide.");
+        }
+        if (jpgFile.length() > MAX_OUTPUT_JPG_SIZE_BYTES) {
+            jpgFile.delete();
+            log.error("Erreur lors de la conversion HEIC en JPG avec ImageMagick. Fichier JPG généré trop volumineux.");
+            throw new IOException("Fichier JPG généré trop volumineux.");
         }
 
         InputStream jpgInputStream = new FileInputStream(jpgFile);

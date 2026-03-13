@@ -1,0 +1,33 @@
+<policymap>
+  <!-- Resource limits to prevent DoS via malicious images (pixel-flood, decompression bomb) -->
+  <policy domain="resource" name="memory" value="256MiB"/>
+  <policy domain="resource" name="map"    value="512MiB"/>
+  <policy domain="resource" name="width"  value="10KP"/>
+  <policy domain="resource" name="height" value="10KP"/>
+  <policy domain="resource" name="area"   value="100MB"/>
+  <policy domain="resource" name="disk"   value="1GiB"/>
+  <policy domain="resource" name="time"   value="60"/>
+
+  <!-- Block dangerous coders (SSRF via URL/HTTP, RCE via MSL/MVG) -->
+  <policy domain="coder" rights="none" pattern="EPHEMERAL" />
+  <policy domain="coder" rights="none" pattern="URL" />
+  <policy domain="coder" rights="none" pattern="HTTP" />
+  <policy domain="coder" rights="none" pattern="HTTPS" />
+  <policy domain="coder" rights="none" pattern="MVG" />
+  <policy domain="coder" rights="none" pattern="MSL" />
+  <policy domain="coder" rights="none" pattern="TEXT" />
+  <policy domain="coder" rights="none" pattern="SHOW" />
+  <policy domain="coder" rights="none" pattern="WIN" />
+  <policy domain="coder" rights="none" pattern="PLT" />
+
+  <!-- Allow only what the app needs: HEIC (read) converted to JPEG/JPG (write) -->
+  <policy domain="coder" rights="read"  pattern="HEIC" />
+  <policy domain="coder" rights="write" pattern="JPEG" />
+  <policy domain="coder" rights="write" pattern="JPG" />
+
+  <!-- Block file:// injection via @filename syntax -->
+  <policy domain="path"     rights="none" pattern="@*"/>
+  <!-- Block external filters and delegates (pipes, subprocesses) -->
+  <policy domain="filter"   rights="none" pattern="*"/>
+  <policy domain="delegate" rights="none" pattern="*"/>
+</policymap>
