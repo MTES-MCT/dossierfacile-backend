@@ -97,6 +97,30 @@ public class FileUtility {
     }
 
     /**
+     * OWASP File Upload — "Set a filename length limit".
+     * Sanitizes the filename and truncates it if longer than maxLength, preserving the extension.
+     */
+    public static String sanitizeAndTruncateFilename(String input) {
+        return sanitizeAndTruncateFilename(input, 200);
+    }
+
+    /**
+     * OWASP File Upload — "Set a filename length limit".
+     * Sanitizes the filename and truncates it if longer than maxLength, preserving the extension.
+     */
+    public static String sanitizeAndTruncateFilename(String input, int maxLength) {
+        String displayName = sanitizeFilename(input);
+        if (displayName.length() <= maxLength) {
+            return displayName;
+        }
+        String ext = FilenameUtils.getExtension(displayName);
+        String base = FilenameUtils.getBaseName(displayName);
+        int maxBase = maxLength - (ext.isEmpty() ? 0 : ext.length() + 1);
+        return base.substring(0, Math.min(base.length(), maxBase))
+                + (ext.isEmpty() ? "" : "." + ext);
+    }
+
+    /**
      * Streams file content to HTTP response with standard headers.
      *
      * @param inputStream the file content stream (caller is responsible for closing)

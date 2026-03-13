@@ -44,8 +44,6 @@ import java.util.UUID;
 @Slf4j
 public class DocumentHelperServiceImpl implements DocumentHelperService {
 
-    private static final int MAX_FILENAME_LENGTH = 200;
-
     private final FileStorageService fileStorageService;
     private final SharedFileRepository fileRepository;
     private final EncryptionKeyService encryptionKeyService;
@@ -70,7 +68,7 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
             originalFilename = UUID.randomUUID().toString();
         }
         // OWASP: sanitize display filename, truncate if too long
-        String displayName = sanitizeAndTruncateFilename(originalFilename);
+        String displayName = FileUtility.sanitizeAndTruncateFilename(originalFilename);
         storageFile.setPath(document.getDocumentS3PrefixPath() + "/" + UUID.randomUUID());
         if ("image/heif".equals(multipartFile.getContentType())) {
             storageFile.setName(displayName.replaceAll("(?i)\\.heic$", "") + ".jpg");
@@ -218,18 +216,6 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
         long duration = (endTime - startTime);
         log.info("resize image duration : {}", duration);
         return resizedImage;
-    }
-
-    private String sanitizeAndTruncateFilename(String input) {
-        String displayName = FileUtility.sanitizeFilename(input);
-        if (displayName.length() <= MAX_FILENAME_LENGTH) {
-            return displayName;
-        }
-        String ext = FilenameUtils.getExtension(displayName);
-        String base = FilenameUtils.getBaseName(displayName);
-        int maxBase = MAX_FILENAME_LENGTH - (ext.isEmpty() ? 0 : ext.length() + 1);
-        return base.substring(0, Math.min(base.length(), maxBase))
-                + (ext.isEmpty() ? "" : "." + ext);
     }
 
     private String getFileMd5Hash(MultipartFile file) throws IOException {
