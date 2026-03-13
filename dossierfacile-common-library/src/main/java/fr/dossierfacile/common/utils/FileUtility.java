@@ -18,7 +18,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.Normalizer;
-import java.util.Objects;
 
 @Slf4j
 @UtilityClass
@@ -38,11 +37,15 @@ public class FileUtility {
         return MediaType.IMAGE_PNG_VALUE;
     }
 
-    public static int countNumberOfPagesOfPdfDocument(MultipartFile multipartFile) {
+    /**
+     * Counts PDF pages or returns 1 for non-PDF. Uses detectedMimeType (Tika) instead of
+     * client-supplied Content-Type.
+     */
+    public static int countNumberOfPagesOfPdfDocument(MultipartFile multipartFile, String detectedMimeType) {
         if (multipartFile.isEmpty()) {
             return 0;
         }
-        if (!Objects.equals(multipartFile.getContentType(), "application/pdf")) {
+        if (!"application/pdf".equals(detectedMimeType)) {
             return 1;
         }
 
@@ -67,6 +70,12 @@ public class FileUtility {
         }
     }
 
+    /**
+     * OWASP File Upload — "Set a filename length limit. Restrict the allowed characters if possible".
+     * <p>
+     * Sanitizes the given filename for safe use in HTTP headers and file systems.
+     * Returns "file" if input is null, blank, or results in an empty string after sanitization.
+     */
     public static String sanitizeFilename(String input) {
         if (input == null || input.isBlank()) {
             return "file";
@@ -84,7 +93,34 @@ public class FileUtility {
 
         // 4. Suppression de tout ce qui n'est pas alphanumérique, point, tiret ou underscore.
         // Cela supprime les guillemets, slashs, emojis et caractères spéciaux interdits par Windows/Linux.
-        return noSpaces.replaceAll("[^a-zA-Z0-9._-]", "");
+        String result = noSpaces.replaceAll("[^a-zA-Z0-9._-]", "");
+
+        // OWASP: Si le résultat est vide (ex: input "@@@"), retourner "file"
+        return result.isBlank() ? "file" : result;
+    }
+
+    /**
+     * OWASP File Upload — "Set a filename length limit".
+     * Sanitizes the filename and truncates it if longer than maxLength, preserving the extension.
+     */
+    public static String sanitizeAndTruncateFilename(String input) {
+        return sanitizeAndTruncateFilename(input, 200);
+    }
+
+    /**
+     * OWASP File Upload — "Set a filename length limit".
+     * Sanitizes the filename and truncates it if longer than maxLength, preserving the extension.
+     */
+    public static String sanitizeAndTruncateFilename(String input, int maxLength) {
+        String displayName = sanitizeFilename(input);
+        if (displayName.length() <= maxLength) {
+            return displayName;
+        }
+        String ext = FilenameUtils.getExtension(displayName);
+        String base = FilenameUtils.getBaseName(displayName);
+        int maxBase = maxLength - (ext.isEmpty() ? 0 : ext.length() + 1);
+        return base.substring(0, Math.min(base.length(), maxBase))
+                + (ext.isEmpty() ? "" : "." + ext);
     }
 
     /**

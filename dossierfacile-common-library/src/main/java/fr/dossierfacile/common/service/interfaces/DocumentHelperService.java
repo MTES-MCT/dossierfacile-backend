@@ -12,8 +12,10 @@ public interface DocumentHelperService {
     /**
      * Build, upload and add the file inside the document.
      * Document list is updated.
+     *
+     * @param detectedMimeType MIME type as determined by Tika (magic bytes), not the client-supplied Content-Type
      */
-    File addFile(MultipartFile multipartFile, Document document) throws IOException;
+    File addFile(MultipartFile multipartFile, String detectedMimeType, Document document) throws IOException;
 
     InputStream convertHeicToJpg(InputStream heicInputStream) throws IOException;
 
