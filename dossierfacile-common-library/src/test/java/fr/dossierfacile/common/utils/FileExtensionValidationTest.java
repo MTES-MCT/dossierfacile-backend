@@ -41,8 +41,7 @@ class FileExtensionValidationTest {
     })
     void should_extract_allowed_extension(String filename, String expectedExt) {
         String ext = extractExtension(filename.trim());
-        assertThat(ext).isEqualTo(expectedExt.trim());
-        assertThat(ext).isIn(ALLOWED_EXTENSIONS);
+        assertThat(ext).isEqualTo(expectedExt.trim()).isIn(ALLOWED_EXTENSIONS);
     }
 
     // --- Whitelist des extensions : rejected types ---
@@ -54,8 +53,7 @@ class FileExtensionValidationTest {
     })
     void should_reject_disallowed_extension(String filename, String expectedExt) {
         String ext = extractExtension(filename.trim());
-        assertThat(ext).isEqualTo(expectedExt.trim());
-        assertThat(ext).isNotIn(ALLOWED_EXTENSIONS);
+        assertThat(ext).isEqualTo(expectedExt.trim()).isNotIn(ALLOWED_EXTENSIONS);
     }
 
     // --- Validation des entrées avant extensions ---
@@ -68,12 +66,8 @@ class FileExtensionValidationTest {
     })
     void should_extract_extension_after_input_sanitization(String filename, String expectedExt, boolean expectedAllowed) {
         String ext = extractExtension(filename.trim());
-        assertThat(ext).isEqualTo(expectedExt.trim());
-        if (expectedAllowed) {
-            assertThat(ext).isIn(ALLOWED_EXTENSIONS);
-        } else {
-            assertThat(ext).isNotIn(ALLOWED_EXTENSIONS);
-        }
+        assertThat(ext).isEqualTo(expectedExt.trim())
+                .satisfies(e -> assertThat(ALLOWED_EXTENSIONS.contains(e)).isEqualTo(expectedAllowed));
     }
 
     // --- Edge cases: no extension ---
