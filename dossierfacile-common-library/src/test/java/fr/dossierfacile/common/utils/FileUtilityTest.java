@@ -23,9 +23,9 @@ class FileUtilityTest {
 
     @Test
     void sanitizeFilename_should_neutralize_path_traversal() {
-        String result = FileUtility.sanitizeFilename("../../../etc/passwd");
-        assertThat(result).doesNotContain("/");
-        assertThat(result).isEqualTo("......etcpasswd");
+        assertThat(FileUtility.sanitizeFilename("../../../etc/passwd"))
+                .doesNotContain("/")
+                .isEqualTo("......etcpasswd");
     }
 
     @Test
@@ -53,32 +53,29 @@ class FileUtilityTest {
 
     @Test
     void sanitizeAndTruncateFilename_should_truncate_base_and_preserve_extension() {
-        String longBase = "a".repeat(250);
-        String result = FileUtility.sanitizeAndTruncateFilename(longBase + ".pdf", 200);
-        assertThat(result).endsWith(".pdf");
-        assertThat(result.length()).isLessThanOrEqualTo(205);
+        assertThat(FileUtility.sanitizeAndTruncateFilename("a".repeat(250) + ".pdf", 200))
+                .endsWith(".pdf")
+                .hasSizeLessThanOrEqualTo(205);
     }
 
     @Test
     void sanitizeAndTruncateFilename_should_use_default_max_200() {
-        String longName = "x".repeat(300) + ".pdf";
-        String result = FileUtility.sanitizeAndTruncateFilename(longName);
-        assertThat(result).endsWith(".pdf");
-        assertThat(result.length()).isLessThanOrEqualTo(205);
+        assertThat(FileUtility.sanitizeAndTruncateFilename("x".repeat(300) + ".pdf"))
+                .endsWith(".pdf")
+                .hasSizeLessThanOrEqualTo(205);
     }
 
     @Test
     void sanitizeAndTruncateFilename_should_handle_empty_extension() {
-        String longName = "a".repeat(300);
-        String result = FileUtility.sanitizeAndTruncateFilename(longName, 50);
-        assertThat(result.length()).isLessThanOrEqualTo(50);
+        assertThat(FileUtility.sanitizeAndTruncateFilename("a".repeat(300), 50))
+                .hasSizeLessThanOrEqualTo(50);
     }
 
     @Test
     void sanitizeAndTruncateFilename_should_sanitize_before_truncating() {
-        String result = FileUtility.sanitizeAndTruncateFilename("../../file.pdf", 200);
-        assertThat(result).doesNotContain("/");
-        assertThat(result).endsWith(".pdf");
+        assertThat(FileUtility.sanitizeAndTruncateFilename("../../file.pdf", 200))
+                .doesNotContain("/")
+                .endsWith(".pdf");
     }
 
     @Test

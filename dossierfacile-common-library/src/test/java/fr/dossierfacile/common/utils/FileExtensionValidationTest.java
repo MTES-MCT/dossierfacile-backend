@@ -1,7 +1,10 @@
 package fr.dossierfacile.common.utils;
 
 import org.apache.commons.io.FilenameUtils;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.util.StringUtils;
 
 import java.util.Objects;
@@ -27,91 +30,58 @@ class FileExtensionValidationTest {
         return FilenameUtils.getExtension(safePath).toLowerCase();
     }
 
-    private static boolean isExtensionAllowed(String ext) {
-        return ALLOWED_EXTENSIONS.contains(ext);
+    // --- Whitelist des extensions : allowed types ---
+
+    @ParameterizedTest(name = "{0} → extension \"{1}\" allowed")
+    @CsvSource({
+            "document.pdf,   pdf",
+            "photo.jpg,      jpg",
+            "image.jpeg,     jpeg",
+            "screenshot.png, png",
+    })
+    void should_extract_allowed_extension(String filename, String expectedExt) {
+        String ext = extractExtension(filename.trim());
+        assertThat(ext).isEqualTo(expectedExt.trim());
+        assertThat(ext).isIn(ALLOWED_EXTENSIONS);
     }
 
-    // --- Whitelist des extensions ---
+    // --- Whitelist des extensions : rejected types ---
 
-    @Test
-    void should_extract_pdf_extension() {
-        String ext = extractExtension("document.pdf");
-        assertThat(ext).isEqualTo("pdf");
-        assertThat(isExtensionAllowed(ext)).isTrue();
+    @ParameterizedTest(name = "{0} → extension \"{1}\" rejected")
+    @CsvSource({
+            "script.php,  php",
+            "malware.exe, exe",
+    })
+    void should_reject_disallowed_extension(String filename, String expectedExt) {
+        String ext = extractExtension(filename.trim());
+        assertThat(ext).isEqualTo(expectedExt.trim());
+        assertThat(ext).isNotIn(ALLOWED_EXTENSIONS);
     }
 
-    @Test
-    void should_extract_jpg_extension() {
-        String ext = extractExtension("photo.jpg");
-        assertThat(ext).isEqualTo("jpg");
-        assertThat(isExtensionAllowed(ext)).isTrue();
+    // --- Validation des entrées avant extensions ---
+
+    @ParameterizedTest(name = "{0} → last extension \"{1}\", allowed={2}")
+    @CsvSource({
+            "../../../etc/passwd.pdf, pdf,  true",
+            "malware.jpg.php,         php,  false",
+            "file.php.pdf,            pdf,  true",
+    })
+    void should_extract_extension_after_input_sanitization(String filename, String expectedExt, boolean expectedAllowed) {
+        String ext = extractExtension(filename.trim());
+        assertThat(ext).isEqualTo(expectedExt.trim());
+        if (expectedAllowed) {
+            assertThat(ext).isIn(ALLOWED_EXTENSIONS);
+        } else {
+            assertThat(ext).isNotIn(ALLOWED_EXTENSIONS);
+        }
     }
 
-    @Test
-    void should_extract_jpeg_extension() {
-        String ext = extractExtension("image.jpeg");
-        assertThat(ext).isEqualTo("jpeg");
-        assertThat(isExtensionAllowed(ext)).isTrue();
-    }
+    // --- Edge cases: no extension ---
 
-    @Test
-    void should_extract_png_extension() {
-        String ext = extractExtension("screenshot.png");
-        assertThat(ext).isEqualTo("png");
-        assertThat(isExtensionAllowed(ext)).isTrue();
-    }
-
-    @Test
-    void should_reject_php_extension() {
-        String ext = extractExtension("script.php");
-        assertThat(ext).isEqualTo("php");
-        assertThat(isExtensionAllowed(ext)).isFalse();
-    }
-
-    @Test
-    void should_reject_exe_extension() {
-        String ext = extractExtension("malware.exe");
-        assertThat(ext).isEqualTo("exe");
-        assertThat(isExtensionAllowed(ext)).isFalse();
-    }
-
-    // --- Validation des entrées avant extensions (cleanPath avant getExtension) ---
-
-    @Test
-    void should_neutralize_path_traversal_and_extract_extension() {
-        String ext = extractExtension("../../../etc/passwd.pdf");
-        assertThat(ext).isEqualTo("pdf");
-    }
-
-    @Test
-    void should_handle_double_extension_returning_last() {
-        String ext = extractExtension("malware.jpg.php");
-        assertThat(ext).isEqualTo("php");
-        assertThat(isExtensionAllowed(ext)).isFalse();
-    }
-
-    @Test
-    void should_handle_double_extension_when_last_is_allowed() {
-        String ext = extractExtension("file.php.pdf");
-        assertThat(ext).isEqualTo("pdf");
-        assertThat(isExtensionAllowed(ext)).isTrue();
-    }
-
-    @Test
-    void should_return_empty_extension_for_null() {
-        String ext = extractExtension(null);
-        assertThat(ext).isEmpty();
-    }
-
-    @Test
-    void should_return_empty_extension_for_blank() {
-        String ext = extractExtension("   ");
-        assertThat(ext).isEmpty();
-    }
-
-    @Test
-    void should_return_empty_extension_for_no_extension() {
-        String ext = extractExtension("noextension");
-        assertThat(ext).isEmpty();
+    @ParameterizedTest(name = "blank or empty filename → empty extension")
+    @NullAndEmptySource
+    @ValueSource(strings = {"   ", "noextension"})
+    void should_return_empty_extension_for_no_extension(String filename) {
+        assertThat(extractExtension(filename)).isEmpty();
     }
 }
