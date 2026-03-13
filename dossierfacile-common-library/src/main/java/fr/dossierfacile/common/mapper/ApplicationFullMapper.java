@@ -72,7 +72,7 @@ public abstract class ApplicationFullMapper implements ApartmentSharingMapper {
     public abstract TenantModel toTenantModel(Tenant tenant, @Context UserApi userApi);
 
     private Optional<String> resolvePartnerToken(ApartmentSharing apartmentSharing, UserApi userApi) {
-        if (apartmentSharing.getStatus() != TenantFileStatus.VALIDATED || userApi == null) {
+        if (apartmentSharing == null || userApi == null) {
             return Optional.empty();
         }
         return apartmentSharing.getApartmentSharingLinks().stream()

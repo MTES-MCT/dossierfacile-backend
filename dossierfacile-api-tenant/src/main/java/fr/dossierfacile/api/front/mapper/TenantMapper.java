@@ -230,7 +230,7 @@ public abstract class TenantMapper {
             return null;
         }
         ApartmentSharing apartmentSharing = getApartmentSharing(document);
-        if (apartmentSharing == null || apartmentSharing.getStatus() != TenantFileStatus.VALIDATED) {
+        if (apartmentSharing == null) {
             return null;
         }
         List<ApartmentSharingLink> links = apartmentSharing.getApartmentSharingLinks();
