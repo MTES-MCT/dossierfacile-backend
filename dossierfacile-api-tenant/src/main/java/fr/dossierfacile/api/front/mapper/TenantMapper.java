@@ -63,6 +63,18 @@ public abstract class TenantMapper {
         if (document.getWatermarkFile() == null) {
             return null;
         }
+
+        // For non-partner consumers, always expose the direct document URL
+        if (userApi == null) {
+            return UriComponentsBuilder
+                    .fromUriString(applicationBaseUrl)
+                    .path(DOCUMENT_DIRECT_PATH)
+                    .path("/{name}")
+                    .buildAndExpand(document.getName())
+                    .toUriString();
+        }
+
+        // For partners, only expose URLs when a dedicated partner link exists
         String token = resolvePartnerToken(document, userApi);
         if (token != null) {
             return UriComponentsBuilder
@@ -72,12 +84,9 @@ public abstract class TenantMapper {
                     .buildAndExpand(token, document.getName())
                     .toUriString();
         }
-        return UriComponentsBuilder
-                .fromUriString(applicationBaseUrl)
-                .path(DOCUMENT_DIRECT_PATH)
-                .path("/{name}")
-                .buildAndExpand(document.getName())
-                .toUriString();
+
+        // No partner link -> hide document URL
+        return null;
     }
 
     public abstract List<FileModel> mapFiles(List<File> files);
@@ -230,7 +239,7 @@ public abstract class TenantMapper {
             return null;
         }
         ApartmentSharing apartmentSharing = getApartmentSharing(document);
-        if (apartmentSharing == null || apartmentSharing.getStatus() != TenantFileStatus.VALIDATED) {
+        if (apartmentSharing == null) {
             return null;
         }
         List<ApartmentSharingLink> links = apartmentSharing.getApartmentSharingLinks();
@@ -240,7 +249,9 @@ public abstract class TenantMapper {
         return links.stream()
                 .filter(l -> l.getLinkType() == ApartmentSharingLinkType.PARTNER
                         && Objects.equals(l.getPartnerId(), userApi.getId())
-                        && l.isFullData())
+                        && l.isFullData()
+                        && !l.isDeleted()
+                        && !l.isDisabled())
                 .findFirst()
                 .map(l -> l.getToken().toString())
                 .orElse(null);
