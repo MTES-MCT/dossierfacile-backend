@@ -46,6 +46,33 @@ class DocumentFormValidationTest {
         assertThat(allowedMimeValidator.isValid(List.of(file), null)).isFalse();
     }
 
+    @Test
+    void should_reject_forged_content_type_executable_claims_to_be_jpeg() {
+        byte[] exeContent = "MZ executable content".getBytes();
+        MultipartFile file = new MockMultipartFile("file", "malware.jpg", "image/jpeg", exeContent);
+        assertThat(allowedMimeValidator.isValid(List.of(file), null)).isFalse();
+    }
+
+    @Test
+    void should_reject_forged_content_type_html_claims_to_be_pdf() {
+        byte[] htmlContent = "<!DOCTYPE html><html><body>evil</body></html>".getBytes();
+        MultipartFile file = new MockMultipartFile("file", "doc.pdf", "application/pdf", htmlContent);
+        assertThat(allowedMimeValidator.isValid(List.of(file), null)).isFalse();
+    }
+
+    @Test
+    void should_accept_file_when_content_matches_declared_type() {
+        byte[] jpegBytes = new byte[]{(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, 0x00};
+        MultipartFile file = new MockMultipartFile("file", "photo.jpg", "image/jpeg", jpegBytes);
+        assertThat(allowedMimeValidator.isValid(List.of(file), null)).isTrue();
+    }
+
+    @Test
+    void should_accept_empty_file_list() {
+        assertThat(allowedMimeValidator.isValid(List.of(), null)).isTrue();
+        assertThat(sizeFileValidator.isValid(List.of(), null)).isTrue();
+    }
+
     static class TestForm {
         @AllowedMimeTypes({"application/pdf", "image/jpeg", "image/png", "image/heif"})
         @SizeFile(max = 20)
