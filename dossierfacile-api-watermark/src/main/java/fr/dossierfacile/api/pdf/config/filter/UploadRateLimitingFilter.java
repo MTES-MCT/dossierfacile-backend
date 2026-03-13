@@ -18,7 +18,7 @@ public class UploadRateLimitingFilter extends AbstractDownloadRateLimitingFilter
     @Value("${ratelimit.upload.per.minute:10}")
     private int perMinuteCapacity;
 
-    @Value("${ratelimit.upload.per.day:100}")
+    @Value("${ratelimit.upload.per.day:200}")
     private int perDayCapacity;
 
     @Override
