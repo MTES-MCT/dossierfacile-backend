@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.front.util;
 
+import fr.dossierfacile.common.model.ValidatedFile;
 import lombok.AllArgsConstructor;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.io.MemoryUsageSetting;
@@ -17,18 +18,18 @@ import java.util.Optional;
 @AllArgsConstructor
 public class FilePageCounter {
 
-    private final List<MultipartFile> files;
+    private final List<ValidatedFile> validatedFiles;
 
     public int getTotalNumberOfPages() throws IOException {
         int nonPdfFilesCount = 0;
         List<MultipartFile> pdfFiles = new ArrayList<>();
 
-        for (MultipartFile file : files) {
-            if (file.isEmpty()) {
+        for (ValidatedFile v : validatedFiles) {
+            if (v.file().isEmpty()) {
                 continue;
             }
-            if ("application/pdf".equals(file.getContentType())) {
-                pdfFiles.add(file);
+            if ("application/pdf".equals(v.detectedMimeType())) {
+                pdfFiles.add(v.file());
             } else {
                 nonPdfFilesCount++;
             }

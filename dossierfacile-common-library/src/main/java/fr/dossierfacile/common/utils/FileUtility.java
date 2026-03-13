@@ -18,7 +18,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.Normalizer;
-import java.util.Objects;
 
 @Slf4j
 @UtilityClass
@@ -38,11 +37,15 @@ public class FileUtility {
         return MediaType.IMAGE_PNG_VALUE;
     }
 
-    public static int countNumberOfPagesOfPdfDocument(MultipartFile multipartFile) {
+    /**
+     * Counts PDF pages or returns 1 for non-PDF. Uses detectedMimeType (Tika) instead of
+     * client-supplied Content-Type.
+     */
+    public static int countNumberOfPagesOfPdfDocument(MultipartFile multipartFile, String detectedMimeType) {
         if (multipartFile.isEmpty()) {
             return 0;
         }
-        if (!Objects.equals(multipartFile.getContentType(), "application/pdf")) {
+        if (!"application/pdf".equals(detectedMimeType)) {
             return 1;
         }
 

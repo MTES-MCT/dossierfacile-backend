@@ -94,7 +94,7 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
         File file = File.builder()
                 .storageFile(storageFile)
                 .document(document)
-                .numberOfPages(FileUtility.countNumberOfPagesOfPdfDocument(multipartFile))
+                .numberOfPages(FileUtility.countNumberOfPagesOfPdfDocument(multipartFile, detectedMimeType))
                 .build();
 
         // Initialize the collection before adding the new file.
