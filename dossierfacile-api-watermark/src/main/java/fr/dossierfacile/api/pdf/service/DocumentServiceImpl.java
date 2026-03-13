@@ -58,16 +58,20 @@ public class DocumentServiceImpl implements DocumentService {
     @Override
     @Transactional
     public ResponseEntity<UploadFilesResponse> uploadFiles(DocumentForm documentForm) {
-        if (documentForm.getFiles().stream().allMatch(MultipartFile::isEmpty)) {
-            throw new DocumentBadRequestException("you must add some file");
-        }
-
         List<ValidatedFile> validatedFiles;
         try {
             validatedFiles = fileUploadPreprocessor.prepareValidatedFiles(documentForm.getFiles());
-        } catch (java.io.IOException e) {
+        } catch (IOException e) {
             log.error("Could not detect MIME type", e);
             throw new DocumentBadRequestException("Impossible de lire le fichier");
+        }
+        if (validatedFiles.isEmpty()) {
+            throw new DocumentBadRequestException("you must add some file");
+        }
+        boolean allAllowed = validatedFiles.stream()
+                .allMatch(v -> FileUploadPreprocessor.ALLOWED_MIME_TYPES.contains(v.detectedMimeType().toLowerCase()));
+        if (!allAllowed) {
+            throw new DocumentBadRequestException("invalid file type");
         }
 
         WatermarkDocument document = createDocument(validatedFiles, documentForm.getWatermark());
