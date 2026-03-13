@@ -23,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.tika.Tika;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -44,6 +45,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class DocumentServiceImpl implements DocumentService {
     private static final String DOCUMENT_NOT_EXIST = "The document does not exist";
+    private static final Tika TIKA = new Tika();
+
     private final Producer producer;
     private final FileStorageService fileStorageService;
     private final EncryptionKeyService encryptionKeyService;
@@ -161,10 +164,22 @@ public class DocumentServiceImpl implements DocumentService {
                     ).toLowerCase();
                     String generatedName = UUID.randomUUID() + (safeExt.isBlank() ? "" : "." + safeExt);
 
+                    String detectedMimeType;
+                    try {
+                        String safePath = StringUtils.cleanPath(Objects.requireNonNullElse(multipartFile.getOriginalFilename(), ""));
+                        detectedMimeType = TIKA.detect(multipartFile.getInputStream(), safePath);
+                        if (detectedMimeType == null) {
+                            detectedMimeType = "application/octet-stream";
+                        }
+                    } catch (IOException e) {
+                        log.error("Could not detect MIME type", e);
+                        throw new DocumentBadRequestException("Impossible de lire le fichier");
+                    }
+
                     StorageFile file = StorageFile.builder()
                             .name(generatedName)
                             .path(StorageFile.getWatermarkRawPath())
-                            .contentType(multipartFile.getContentType())
+                            .contentType(detectedMimeType)
                             .size(multipartFile.getSize())
                             .bucket(S3Bucket.FILIGRANE)
                             .provider(ObjectStorageProvider.S3)
@@ -173,7 +188,7 @@ public class DocumentServiceImpl implements DocumentService {
                             .build();
 
                     try {
-                        if ("image/heif".equals(multipartFile.getContentType())) {
+                        if ("image/heif".equals(detectedMimeType)) {
                             file.setName(UUID.randomUUID() + ".jpg");
                             file.setContentType("image/jpeg");
 
@@ -185,7 +200,7 @@ public class DocumentServiceImpl implements DocumentService {
                             }
                         } else {
                             InputStream uploadStream = multipartFile.getInputStream();
-                            if ("application/pdf".equals(multipartFile.getContentType())) {
+                            if ("application/pdf".equals(detectedMimeType)) {
                                 uploadStream = pdfSanitizerService.sanitize(uploadStream);
                             }
                             return fileStorageService.upload(uploadStream, file);
