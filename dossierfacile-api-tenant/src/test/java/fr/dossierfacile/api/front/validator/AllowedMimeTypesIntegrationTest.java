@@ -5,10 +5,14 @@ import fr.dossierfacile.common.validator.AllowedMimeTypesValidator;
 import fr.dossierfacile.common.validator.annotation.AllowedMimeTypes;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -27,23 +31,18 @@ class AllowedMimeTypesIntegrationTest {
         validator.initialize(annotation);
     }
 
-    @Test
-    void should_accept_pdf() {
-        MultipartFile file = new MockMultipartFile("doc", "doc.pdf", "application/pdf", "%PDF-1.4".getBytes());
-        assertThat(validator.isValid(List.of(file), null)).isTrue();
+    static Stream<Arguments> allowedFiles() {
+        return Stream.of(
+                Arguments.of("doc.pdf",  "%PDF-1.4".getBytes()),
+                Arguments.of("img.jpg",  new byte[]{(byte) 0xFF, (byte) 0xD8, (byte) 0xFF}),
+                Arguments.of("img.png",  new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47})
+        );
     }
 
-    @Test
-    void should_accept_jpeg() {
-        byte[] jpegBytes = new byte[]{(byte) 0xFF, (byte) 0xD8, (byte) 0xFF};
-        MultipartFile file = new MockMultipartFile("doc", "img.jpg", "image/jpeg", jpegBytes);
-        assertThat(validator.isValid(List.of(file), null)).isTrue();
-    }
-
-    @Test
-    void should_accept_png() {
-        byte[] pngBytes = new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47};
-        MultipartFile file = new MockMultipartFile("doc", "img.png", "image/png", pngBytes);
+    @ParameterizedTest(name = "{0} should be accepted")
+    @MethodSource("allowedFiles")
+    void should_accept_allowed_file_type(String filename, byte[] content) {
+        MultipartFile file = new MockMultipartFile("doc", filename, null, content);
         assertThat(validator.isValid(List.of(file), null)).isTrue();
     }
 
