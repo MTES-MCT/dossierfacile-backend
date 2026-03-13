@@ -12,6 +12,8 @@ import fr.dossierfacile.api.front.repository.FileRepository;
 import fr.dossierfacile.api.front.util.FilePageCounter;
 import fr.dossierfacile.api.front.validator.annotation.NumberOfPages;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.model.ValidatedFile;
+import fr.dossierfacile.common.service.FileUploadPreprocessor;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import jakarta.validation.ConstraintValidatorContext;
@@ -38,6 +40,7 @@ public class NumberOfPagesValidator extends TenantConstraintValidator<NumberOfPa
     private static final String RESPONSE = "The number of new pages must be greater than 0";
 
     private final FileRepository fileRepository;
+    private final FileUploadPreprocessor fileUploadPreprocessor;
     private DocumentCategory documentCategory;
     private int max;
 
@@ -89,8 +92,15 @@ public class NumberOfPagesValidator extends TenantConstraintValidator<NumberOfPa
 
         //region Counting total new pages
         int numberOfNewPages = 0;
+        List<ValidatedFile> validatedFiles;
         try {
-            numberOfNewPages = new FilePageCounter(files).getTotalNumberOfPages();
+            validatedFiles = fileUploadPreprocessor.prepareValidatedFiles(files);
+        } catch (IOException e) {
+            log.error("Can't detect MIME or count pages", e);
+            validatedFiles = List.of();
+        }
+        try {
+            numberOfNewPages = validatedFiles.isEmpty() ? 0 : new FilePageCounter(validatedFiles).getTotalNumberOfPages();
         } catch (IOException e) {
             log.error("Can't count files total number of pages", e);
         }
