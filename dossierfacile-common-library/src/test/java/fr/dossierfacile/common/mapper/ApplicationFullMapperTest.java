@@ -203,7 +203,7 @@ class ApplicationFullMapperTest {
             document url must follow direct path format, but token, dossierPdfUrl and dossierUrl must be null.
         */
         @Test
-        void shouldUseResourcePathWhenPartneIsNullAndTenantIsNotValidated() {
+        void shouldUseResourcePathWhenPartnerIsNullAndTenantIsNotValidated() {
             ApplicationFullMapperImpl mapper = new ApplicationFullMapperImpl();
             mapper.applicationBaseUrl = "https://api.example.com";
             mapper.tenantBaseUrl = "https://example.com";
