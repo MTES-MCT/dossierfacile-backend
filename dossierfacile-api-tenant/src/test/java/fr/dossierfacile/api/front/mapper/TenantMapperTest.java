@@ -151,7 +151,7 @@ class TenantMapperTest {
         }
 
         /* 
-            This test is to ensure that when a partner link does not exist, the path is null.
+            This test is to ensure that when a partner exists (userApi is not null)  but a partner link does not exist, the path is null.
             This case should not happen, but we need to ensure that the path is null.
         */
         @Test

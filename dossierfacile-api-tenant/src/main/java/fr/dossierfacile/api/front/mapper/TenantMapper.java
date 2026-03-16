@@ -128,7 +128,7 @@ public abstract class TenantMapper {
             updateTokens(tenant, apartmentSharingModel, l -> l.getLinkType() == ApartmentSharingLinkType.LINK);
         }
 
-        // Only users with the "dossier" scope (BO / internal tools) get direct file download URLs
+        // Only users with the "dossier" scope (tenant account) get direct file download URLs
         var isDossierUser = SecurityContextHolder.getContext().getAuthentication().getAuthorities().contains(new SimpleGrantedAuthority("SCOPE_dossier"));
         var filePath = isDossierUser ? "/api/file/resource/" : null;
 
@@ -183,7 +183,7 @@ public abstract class TenantMapper {
                     .filter(l -> isRightLink.test(l) && l.isFullData())
                     .findFirst();
                 // link: PARTNER or LINK entry with fullData = false (restricted/public view)
-                Optional<ApartmentSharingLink> link = links.stream()
+                Optional<ApartmentSharingLink> restrictedLink = links.stream()
                     .filter(l -> isRightLink.test(l) && !l.isFullData())
                     .findFirst();
                 // When a full link exists, also populate the dossierPdfUrl and dossierUrl helpers
@@ -193,8 +193,8 @@ public abstract class TenantMapper {
                     apartmentSharingModel.setDossierUrl(tenantBaseUrl + "/" + DOSSIER_PATH + "/" + token);
                 }
                 // Public / light link token, used for non-full views
-                if (link.isPresent()) {
-                    tokenPublic = link.get().getToken().toString();
+                if (restrictedLink.isPresent()) {
+                    tokenPublic = restrictedLink.get().getToken().toString();
                 }
             }
         }
