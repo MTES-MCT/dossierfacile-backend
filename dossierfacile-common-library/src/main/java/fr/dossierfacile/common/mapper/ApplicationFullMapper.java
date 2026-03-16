@@ -41,14 +41,41 @@ public abstract class ApplicationFullMapper implements ApartmentSharingMapper {
     @Override
     public ApplicationModel toApplicationModel(ApartmentSharing apartmentSharing, UserApi userApi) {
         ApplicationModel model = mapApplicationModel(apartmentSharing, userApi);
-        resolvePartnerToken(apartmentSharing, userApi).ifPresentOrElse(
-            token -> {
+
+        // Case 1: no partner context → always use direct document URLs, no dossier links
+        if (userApi == null) {
+            buildDocumentUrls(model, applicationBaseUrl + "/" + DOCUMENT_DIRECT_PATH + "/");
+            return model;
+        }
+
+        // Case 2: partner context → try to resolve a dedicated PARTNER link
+        var tokenOpt = resolvePartnerToken(apartmentSharing, userApi);
+        if (tokenOpt.isPresent()) {
+            String token = tokenOpt.get();
+            // Only expose dossierPdfUrl / dossierUrl when the global application is validated
+            if (apartmentSharing.getStatus() == TenantFileStatus.VALIDATED) {
                 model.setDossierPdfUrl(applicationBaseUrl + "/" + DOSSIER_PDF_PATH + "/" + token);
                 model.setDossierUrl(tenantBaseUrl + "/" + DOSSIER_PATH + "/" + token);
-                buildDocumentUrls(model, applicationBaseUrl + "/" + DOCUMENT_LINK_PATH + "/" + token + "/documents/");
-            },
-            () -> buildDocumentUrls(model, applicationBaseUrl + "/" + DOCUMENT_DIRECT_PATH + "/")
-        );
+            }
+            // In all partner-link cases, documents use the application link path
+            buildDocumentUrls(model, applicationBaseUrl + "/" + DOCUMENT_LINK_PATH + "/" + token + "/documents/");
+        } else {
+            // Partner is known but has no active PARTNER link → hide document URLs and keep dossier links null
+            if (model.getTenants() != null) {
+                for (TenantModel tenantModel : model.getTenants()) {
+                    if (tenantModel.getDocuments() != null) {
+                        tenantModel.getDocuments().forEach(doc -> doc.setName(null));
+                    }
+                    if (tenantModel.getGuarantors() != null) {
+                        for (GuarantorModel guarantorModel : tenantModel.getGuarantors()) {
+                            if (guarantorModel.getDocuments() != null) {
+                                guarantorModel.getDocuments().forEach(doc -> doc.setName(null));
+                            }
+                        }
+                    }
+                }
+            }
+        }
         return model;
     }
 
