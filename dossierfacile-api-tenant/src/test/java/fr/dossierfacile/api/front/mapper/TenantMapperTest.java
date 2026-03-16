@@ -106,6 +106,10 @@ class TenantMapperTest {
                 .build();
     }
 
+    /**
+     * This method is used for all tenant account facing endpoints
+     * plus the deprecated partner endpoint (/api-partner/email/{email}/tenant)
+     */
     @Nested
     class ToTenantModel {
 
