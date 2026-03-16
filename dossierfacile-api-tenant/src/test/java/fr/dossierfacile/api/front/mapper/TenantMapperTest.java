@@ -98,9 +98,24 @@ class TenantMapperTest {
                 .build();
     }
 
+    private ApartmentSharingLink buildFullLink(UUID token) {
+        return ApartmentSharingLink.builder()
+                .linkType(ApartmentSharingLinkType.LINK)
+                .fullData(true)
+                .token(token)
+                .build();
+    }
+
+    /**
+     * This method is used for all tenant account facing endpoints
+     * plus the deprecated partner endpoint (/api-partner/email/{email}/tenant)
+     */
     @Nested
     class ToTenantModel {
 
+        /* When the tenant is validated and userApi is not null,
+            document url must follow link path format, and token, dossierPdfUrl and dossierUrl must be set.
+        */
         @Test
         void shouldUseLinkPathWhenPartnerTokenExists() {
             UUID partnerToken = UUID.randomUUID();
@@ -118,8 +133,12 @@ class TenantMapperTest {
             assertThat(model.getApartmentSharing().getDossierUrl()).isEqualTo("https://example.com/file/" + partnerToken);
         }
 
+        /* 
+            When the tenant is not validated and userApi is not null,
+            document url must follow link path format, but token, dossierPdfUrl and dossierUrl must be null.
+        */
         @Test
-        void shouldUseDirectPathWhenNotValidated() {
+        void shouldUseLinkPathWhenPartnerTokenExistsEvenIfTenantIsNotValidated() {
             UUID partnerToken = UUID.randomUUID();
             UserApi userApi = UserApi.builder().id(42L).name("partner-test").build();
 
@@ -129,24 +148,68 @@ class TenantMapperTest {
             TenantModel model = mapper.toTenantModel(tenant, userApi);
 
             String docUrl = model.getDocuments().getFirst().getName();
-            assertThat(docUrl).isEqualTo("https://api.example.com/api/document/resource/doc-123.pdf");
+            assertThat(docUrl).isEqualTo("https://api.example.com/api/application/links/" + partnerToken + "/documents/doc-123.pdf");
             assertThat(model.getApartmentSharing().getToken()).isNull();
             assertThat(model.getApartmentSharing().getDossierPdfUrl()).isNull();
+            assertThat(model.getApartmentSharing().getDossierUrl()).isNull();
         }
 
+        /* 
+            This test is to ensure that when a partner exists (userApi is not null)  but a partner link does not exist, the path is null.
+            This case should not happen, but we need to ensure that the path is null.
+        */
+        @Test
+        void shouldUseNullPathWhenPartnerLinkDoesNotExist() {
+            UserApi userApi = UserApi.builder().id(42L).name("partner-test").build();
+
+            Tenant tenant = buildTenantWithDocument(TenantFileStatus.INCOMPLETE);
+            setupApartmentSharing(tenant, new ArrayList<>());
+
+            TenantModel model = mapper.toTenantModel(tenant, userApi);
+
+            String docUrl = model.getDocuments().getFirst().getName();
+            assertThat(docUrl).isNull();
+            assertThat(model.getApartmentSharing().getToken()).isNull();
+        }
+
+        /* When the tenant is validated and userApi is null,
+            document url must follow direct path format, and token, dossierPdfUrl and dossierUrl must be set.
+        */
         @Test
         void shouldUseDirectPathWhenNoUserApi() {
+            UUID fullLinkToken = UUID.randomUUID();
             Tenant tenant = buildTenantWithDocument(TenantFileStatus.VALIDATED);
+            setupApartmentSharing(tenant, List.of(buildFullLink(fullLinkToken)));
+
+            TenantModel model = mapper.toTenantModel(tenant, null);
+
+            String docUrl = model.getDocuments().getFirst().getName();
+            assertThat(docUrl).isEqualTo("https://api.example.com/api/document/resource/doc-123.pdf");
+            assertThat(model.getApartmentSharing().getToken()).isEqualTo(fullLinkToken.toString());
+            assertThat(model.getApartmentSharing().getDossierPdfUrl()).isEqualTo("https://api.example.com/api/application/fullPdf/" + fullLinkToken);
+            assertThat(model.getApartmentSharing().getDossierUrl()).isEqualTo("https://example.com/file/" + fullLinkToken);
+        }
+
+        /* 
+            When the tenant is not validated and userApi is null,
+            document url must follow direct path format, and token, dossierPdfUrl and dossierUrl must be null.
+        */
+        @Test
+        void shouldUseDirectPathWhenNoUserApiAndTenantIsNotValidated() {
+            Tenant tenant = buildTenantWithDocument(TenantFileStatus.INCOMPLETE);
             setupApartmentSharing(tenant, new ArrayList<>());
 
             TenantModel model = mapper.toTenantModel(tenant, null);
 
             String docUrl = model.getDocuments().getFirst().getName();
             assertThat(docUrl).isEqualTo("https://api.example.com/api/document/resource/doc-123.pdf");
+            assertThat(model.getApartmentSharing().getToken()).isNull();
+            assertThat(model.getApartmentSharing().getDossierPdfUrl()).isNull();
+            assertThat(model.getApartmentSharing().getDossierUrl()).isNull();
         }
 
         @Test
-        void shouldRewriteGuarantorDocumentUrls() {
+        void shouldUseLinkPathForGuarantorDocumentsWhenPartnerTokenExists() {
             UUID partnerToken = UUID.randomUUID();
             UserApi userApi = UserApi.builder().id(42L).name("partner-test").build();
 
@@ -172,11 +235,41 @@ class TenantMapperTest {
             String guarantorDocUrl = model.getGuarantors().getFirst().getDocuments().getFirst().getName();
             assertThat(guarantorDocUrl).isEqualTo("https://api.example.com/api/application/links/" + partnerToken + "/documents/guarantor-doc.pdf");
         }
+
+        @Test
+        void shouldUseDirectPathForGuarantorDocumentsWhenNoPartnerToken() {
+            Document guarantorDoc = buildDocument("guarantor-doc.pdf");
+            Guarantor guarantor = Guarantor.builder()
+                    .id(10L)
+                    .documents(List.of(guarantorDoc))
+                    .build();
+            guarantorDoc.setGuarantor(guarantor);
+
+            Tenant tenant = Tenant.builder()
+                    .id(1L)
+                    .status(TenantFileStatus.VALIDATED)
+                    .franceConnect(false)
+                    .documents(new ArrayList<>())
+                    .guarantors(List.of(guarantor))
+                    .build();
+            
+            guarantor.setTenant(tenant);
+
+            setupApartmentSharing(tenant, new ArrayList<>());
+
+            TenantModel model = mapper.toTenantModel(tenant, null);
+
+            String guarantorDocUrl = model.getGuarantors().getFirst().getDocuments().getFirst().getName();
+            assertThat(guarantorDocUrl).isEqualTo("https://api.example.com/api/document/resource/guarantor-doc.pdf");
+        }
     }
 
     @Nested
     class ToTenantModelDfc {
 
+        /* When the tenant is validated and userApi is not null,
+            document url must follow link path format, and token, dossierPdfUrl and dossierUrl must be set.
+        */
         @Test
         void shouldUseLinkPathWhenPartnerTokenExists() {
             UUID partnerToken = UUID.randomUUID();
@@ -190,17 +283,46 @@ class TenantMapperTest {
             String docUrl = model.getApartmentSharing().getTenants().getFirst().getDocuments().getFirst().getName();
             assertThat(docUrl).isEqualTo("https://api.example.com/api/application/links/" + partnerToken + "/documents/doc-123.pdf");
             assertThat(model.getApartmentSharing().getToken()).isEqualTo(partnerToken.toString());
+            assertThat(model.getApartmentSharing().getDossierPdfUrl()).isEqualTo("https://api.example.com/api/application/fullPdf/" + partnerToken);
+            assertThat(model.getApartmentSharing().getDossierUrl()).isEqualTo("https://example.com/file/" + partnerToken);
         }
 
+        /* 
+            When the tenant is not validated and userApi is not null, 
+            document url must follow link path format, but token, dossierPdfUrl and dossierUrl must be null.
+        */
         @Test
-        void shouldUseDirectPathWhenNoPartnerToken() {
+        void shouldUseLinkPathWhenPartnerTokenExistsEvenIfTenantIsNotValidated() {
+            UUID partnerToken = UUID.randomUUID();
+            UserApi userApi = UserApi.builder().id(42L).name("partner-test").build();
+
+            Tenant tenant = buildTenantWithDocument(TenantFileStatus.INCOMPLETE);
+            setupApartmentSharing(tenant, List.of(buildPartnerLink(partnerToken)));
+
+            ConnectedTenantModel model = mapper.toTenantModelDfc(tenant, userApi);
+
+            String docUrl = model.getApartmentSharing().getTenants().getFirst().getDocuments().getFirst().getName();
+            assertThat(docUrl).isEqualTo("https://api.example.com/api/application/links/" + partnerToken + "/documents/doc-123.pdf");
+            assertThat(model.getApartmentSharing().getToken()).isNull();
+            assertThat(model.getApartmentSharing().getDossierPdfUrl()).isNull();
+            assertThat(model.getApartmentSharing().getDossierUrl()).isNull();
+        }
+
+        /* 
+            This test is to ensure that when a partner exists (userApi not null) but a partner link does not exist, the path is null.
+            This case should not happen, but we need to ensure that the path is null.
+        */
+        @Test
+        void shouldUseNullPathWhenPartnerLinkDoesNotExist() {
+            UserApi userApi = UserApi.builder().id(42L).name("partner-test").build();
+
             Tenant tenant = buildTenantWithDocument(TenantFileStatus.INCOMPLETE);
             setupApartmentSharing(tenant, new ArrayList<>());
 
-            ConnectedTenantModel model = mapper.toTenantModelDfc(tenant, null);
+            ConnectedTenantModel model = mapper.toTenantModelDfc(tenant, userApi);
 
             String docUrl = model.getApartmentSharing().getTenants().getFirst().getDocuments().getFirst().getName();
-            assertThat(docUrl).isEqualTo("https://api.example.com/api/document/resource/doc-123.pdf");
+            assertThat(docUrl).isNull();
             assertThat(model.getApartmentSharing().getToken()).isNull();
         }
     }

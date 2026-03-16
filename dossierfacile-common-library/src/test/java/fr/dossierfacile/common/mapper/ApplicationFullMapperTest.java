@@ -96,6 +96,9 @@ class ApplicationFullMapperTest {
     @Nested
     class ToApplicationModelWithUserApi {
 
+        /* When the tenant is validated and userApi is not null,
+            document url must follow link path format, and token, dossierPdfUrl and dossierUrl must be set.
+        */
         @Test
         void shouldUseLinkPathWhenPartnerTokenExists() {
             ApplicationFullMapperImpl mapper = new ApplicationFullMapperImpl();
@@ -144,8 +147,63 @@ class ApplicationFullMapperTest {
             assertThat(model.getDossierUrl()).isEqualTo("https://example.com/file/" + partnerToken);
         }
 
+        /* 
+            When the tenant is not validated and userApi is not null,
+            document url must follow link path format, but token, dossierPdfUrl and dossierUrl must be null.
+        */
         @Test
-        void shouldUseResourcePathWhenNotValidated() {
+        void shouldUseLinkPathWhenPartnerTokenExistsEvenIfTenantIsNotValidated() {
+            ApplicationFullMapperImpl mapper = new ApplicationFullMapperImpl();
+            mapper.applicationBaseUrl = "https://api.example.com";
+            mapper.tenantBaseUrl = "https://example.com";
+
+            StorageFile watermarkFile = new StorageFile();
+            watermarkFile.setName("watermark.pdf");
+
+            Document document = Document.builder()
+                    .name("doc-123.pdf")
+                    .watermarkFile(watermarkFile)
+                    .documentSubCategory(DocumentSubCategory.MY_NAME)
+                    .files(new ArrayList<>())
+                    .build();
+
+            Tenant tenant = Tenant.builder()
+                    .id(1L)
+                    .status(TenantFileStatus.INCOMPLETE)
+                    .documents(List.of(document))
+                    .guarantors(new ArrayList<>())
+                    .build();
+            document.setTenant(tenant);
+
+            UUID partnerToken = UUID.randomUUID();
+            UserApi userApi = UserApi.builder().id(42L).build();
+
+            ApartmentSharing apartmentSharing = new ApartmentSharing();
+            apartmentSharing.setTenants(List.of(tenant));
+            apartmentSharing.setApartmentSharingLinks(List.of(
+                    ApartmentSharingLink.builder()
+                            .linkType(ApartmentSharingLinkType.PARTNER)
+                            .partnerId(42L)
+                            .fullData(true)
+                            .token(partnerToken)
+                            .build()
+            ));
+            tenant.setApartmentSharing(apartmentSharing);
+
+            ApplicationModel model = mapper.toApplicationModel(apartmentSharing, userApi);
+
+            String docUrl = model.getTenants().getFirst().getDocuments().getFirst().getName();
+            assertThat(docUrl).isEqualTo("https://api.example.com/api/application/links/" + partnerToken + "/documents/doc-123.pdf");
+            assertThat(model.getDossierPdfUrl()).isNull();
+            assertThat(model.getDossierUrl()).isNull();
+        }
+
+        /* 
+            When the tenant is not validated and userApi is null,
+            document url must follow direct path format, but token, dossierPdfUrl and dossierUrl must be null.
+        */
+        @Test
+        void shouldUseResourcePathWhenPartnerIsNullAndTenantIsNotValidated() {
             ApplicationFullMapperImpl mapper = new ApplicationFullMapperImpl();
             mapper.applicationBaseUrl = "https://api.example.com";
             mapper.tenantBaseUrl = "https://example.com";
@@ -169,17 +227,53 @@ class ApplicationFullMapperTest {
                     .build();
             document.setTenant(tenant);
 
-            UserApi userApi = UserApi.builder().id(42L).build();
+            ApartmentSharing apartmentSharing = new ApartmentSharing();
+            apartmentSharing.setTenants(List.of(tenant));
+            apartmentSharing.setApartmentSharingLinks(new ArrayList<>());
+            tenant.setApartmentSharing(apartmentSharing);
+
+            ApplicationModel model = mapper.toApplicationModel(apartmentSharing, null);
+
+            String docUrl = model.getTenants().getFirst().getDocuments().getFirst().getName();
+            assertThat(docUrl).isEqualTo("https://api.example.com/api/document/resource/doc-123.pdf");
+            assertThat(model.getDossierPdfUrl()).isNull();
+        }
+
+        @Test
+        void shouldUseNullPathWhenPartnerLinkDoesNotExist() {
+            ApplicationFullMapperImpl mapper = new ApplicationFullMapperImpl();
+            mapper.applicationBaseUrl = "https://api.example.com";
+            mapper.tenantBaseUrl = "https://example.com";
+
+            StorageFile watermarkFile = new StorageFile();
+            watermarkFile.setName("watermark.pdf");
+
+            Document document = Document.builder()
+                    .name("doc-123.pdf")
+                    .watermarkFile(watermarkFile)
+                    .documentSubCategory(DocumentSubCategory.MY_NAME)
+                    .files(new ArrayList<>())
+                    .build();
+
+            Tenant tenant = Tenant.builder()
+                    .id(1L)
+                    .status(TenantFileStatus.VALIDATED)
+                    .documents(List.of(document))
+                    .guarantors(new ArrayList<>())
+                    .build();
+            document.setTenant(tenant);
 
             ApartmentSharing apartmentSharing = new ApartmentSharing();
             apartmentSharing.setTenants(List.of(tenant));
             apartmentSharing.setApartmentSharingLinks(new ArrayList<>());
             tenant.setApartmentSharing(apartmentSharing);
 
+            UserApi userApi = UserApi.builder().id(42L).build();
+
             ApplicationModel model = mapper.toApplicationModel(apartmentSharing, userApi);
 
             String docUrl = model.getTenants().getFirst().getDocuments().getFirst().getName();
-            assertThat(docUrl).isEqualTo("https://api.example.com/api/document/resource/doc-123.pdf");
+            assertThat(docUrl).isNull();
             assertThat(model.getDossierPdfUrl()).isNull();
         }
 
