@@ -63,6 +63,18 @@ public abstract class TenantMapper {
         if (document.getWatermarkFile() == null) {
             return null;
         }
+
+        // For non-partner consumers, always expose the direct document URL
+        if (userApi == null) {
+            return UriComponentsBuilder
+                    .fromUriString(applicationBaseUrl)
+                    .path(DOCUMENT_DIRECT_PATH)
+                    .path("/{name}")
+                    .buildAndExpand(document.getName())
+                    .toUriString();
+        }
+
+        // For partners, only expose URLs when a dedicated partner link exists
         String token = resolvePartnerToken(document, userApi);
         if (token != null) {
             return UriComponentsBuilder
@@ -72,12 +84,9 @@ public abstract class TenantMapper {
                     .buildAndExpand(token, document.getName())
                     .toUriString();
         }
-        return UriComponentsBuilder
-                .fromUriString(applicationBaseUrl)
-                .path(DOCUMENT_DIRECT_PATH)
-                .path("/{name}")
-                .buildAndExpand(document.getName())
-                .toUriString();
+
+        // No partner link -> hide document URL
+        return null;
     }
 
     public abstract List<FileModel> mapFiles(List<File> files);
@@ -107,28 +116,36 @@ public abstract class TenantMapper {
     void modificationsAfterMapping(@MappingTarget TenantModel.TenantModelBuilder tenantModelBuilder, @Context UserApi userApi, Tenant tenant) {
         TenantModel tenantModel = tenantModelBuilder.build();
         ApartmentSharingModel apartmentSharingModel = tenantModel.getApartmentSharing();
+        // For partners, resolve PARTNER links to expose partner-specific tokens and dossier URLs
         if (userApi != null) {
             updateTokens(tenant, apartmentSharingModel,
                     l -> l.getLinkType() == ApartmentSharingLinkType.PARTNER
                             && Objects.equals(l.getPartnerId(), userApi.getId()));
+        // For regular tenants, resolve generic LINK links (public/full application links)
         } else {
             updateTokens(tenant, apartmentSharingModel, l -> l.getLinkType() == ApartmentSharingLinkType.LINK);
         }
 
+        // Only users with the "dossier" scope (tenant account) get direct file download URLs
         var isDossierUser = SecurityContextHolder.getContext().getAuthentication().getAuthorities().contains(new SimpleGrantedAuthority("SCOPE_dossier"));
         var filePath = isDossierUser ? "/api/file/resource/" : null;
 
         // We hide the analysis report broken rules of info level
         hideDocumentAnalysisReportInfoLevel(tenantModel.getDocuments());
 
+        // For the main tenant, enrich documents with denied reasons and, if allowed, file download paths
         setDocumentDeniedReasonsAndDocumentAndFilesRoutes(tenantModel.getDocuments(), filePath, false);
 
+        // Remove documents and guarantors from the current tenant entry in the co-tenant list to avoid duplication
         tenantModel.getApartmentSharing().getTenants().stream().filter(t -> Objects.equals(t.getId(), tenantModel.getId())).forEach(
                 t -> {
                     t.setDocuments(null);
                     t.setGuarantors(null);
                 }
         );
+        // For each co-tenant:
+        // - In a COUPLE, expose documents with full access (file download paths when allowed)
+        // - In other application types, only expose previews (no direct file paths)
         Optional.ofNullable(tenantModel.getApartmentSharing().getTenants())
                 .ifPresent(coTenantModels -> coTenantModels.forEach(coTenantModel -> {
                     // If the tenant is a couple, we want to show the documents of the other tenant
@@ -140,10 +157,12 @@ public abstract class TenantMapper {
                     );
                     // We hide the analysis report broken rules of info level
                     hideDocumentAnalysisReportInfoLevel(coTenantModel.getDocuments());
+                    // Apply the same routing rules (preview vs file path) to each co-tenant guarantor
                     Optional.ofNullable(coTenantModel.getGuarantors())
                             .ifPresent(guarantorModels -> guarantorModels.forEach(guarantorModel -> setDocumentDeniedReasonsAndDocumentAndFilesRoutes(guarantorModel.getDocuments(), filePath, true)));
                 }));
 
+        // Finally, apply routing rules to the current tenant's own guarantor documents
         Optional.ofNullable(tenantModel.getGuarantors())
                 .ifPresent(guarantorModels -> guarantorModels.forEach(guarantorModel -> setDocumentDeniedReasonsAndDocumentAndFilesRoutes(guarantorModel.getDocuments(), filePath, false)));
 
@@ -152,22 +171,28 @@ public abstract class TenantMapper {
     private void updateTokens(Tenant tenant, BaseApartmentSharingModel apartmentSharingModel, Predicate<ApartmentSharingLink> isRightLink) {
         String token = null;
         String tokenPublic = null;
+
+        // Only expose sharing tokens once the apartment dossier is fully validated
         if (apartmentSharingModel.getStatus() == TenantFileStatus.VALIDATED) {
             List<ApartmentSharingLink> links = tenant.getApartmentSharing().getApartmentSharingLinks();
             if (links != null) {
+                // fullLink: PARTNER or LINK entry with fullData = true (full application)
                 Optional<ApartmentSharingLink> fullLink = links.stream()
                     .filter(l -> isRightLink.test(l) && l.isFullData())
                     .findFirst();
-                Optional<ApartmentSharingLink> link = links.stream()
+                // link: PARTNER or LINK entry with fullData = false (restricted/public view)
+                Optional<ApartmentSharingLink> restrictedLink = links.stream()
                     .filter(l -> isRightLink.test(l) && !l.isFullData())
                     .findFirst();
+                // When a full link exists, also populate the dossierPdfUrl and dossierUrl helpers
                 if (fullLink.isPresent()) {
                     token = fullLink.get().getToken().toString();
                     apartmentSharingModel.setDossierPdfUrl(applicationBaseUrl + "/" + DOSSIER_PDF_PATH + "/" + token);
                     apartmentSharingModel.setDossierUrl(tenantBaseUrl + "/" + DOSSIER_PATH + "/" + token);
                 }
-                if (link.isPresent()) {
-                    tokenPublic = link.get().getToken().toString();
+                // Public / light link token, used for non-full views
+                if (restrictedLink.isPresent()) {
+                    tokenPublic = restrictedLink.get().getToken().toString();
                 }
             }
         }
@@ -213,11 +238,16 @@ public abstract class TenantMapper {
 
     @AfterMapping
     void modificationsAfterMapping(@MappingTarget ConnectedTenantModel.ConnectedTenantModelBuilder connectedTenantModelBuilder, @Context UserApi userApi, Tenant tenant) {
+        // Build the immutable ConnectedTenantModel instance from the builder
         ConnectedTenantModel connectedTenantModel = connectedTenantModelBuilder.build();
+        // Retrieve the DFC-specific apartment sharing model attached to the connected tenant
         fr.dossierfacile.api.front.model.dfc.apartment_sharing.ApartmentSharingModel apartmentSharingModel = connectedTenantModel.getApartmentSharing();
+        // Populate partner tokens (full and public) for this apartment sharing when a matching PARTNER link exists
         updateTokens(tenant, apartmentSharingModel, l -> l.getLinkType() == ApartmentSharingLinkType.PARTNER && userApi != null && Objects.equals(l.getPartnerId(), userApi.getId()));
 
+        // For DFC consumers, always expose only preview routes (no direct file download links) for tenant documents
         connectedTenantModel.getApartmentSharing().getTenants().forEach(tenantModel -> setDocumentDeniedReasonsAndDocumentAndFilesRoutes(tenantModel.getDocuments(), null, true));
+        // Apply the same preview-only logic to all guarantor documents of each tenant
         connectedTenantModel.getApartmentSharing().getTenants().forEach(tenantModel ->
                 Optional.ofNullable(tenantModel.getGuarantors()).ifPresent(guarantorModels ->
                         guarantorModels.forEach(guarantorModel -> setDocumentDeniedReasonsAndDocumentAndFilesRoutes(guarantorModel.getDocuments(), null, true))));
@@ -228,7 +258,7 @@ public abstract class TenantMapper {
             return null;
         }
         ApartmentSharing apartmentSharing = getApartmentSharing(document);
-        if (apartmentSharing == null || apartmentSharing.getStatus() != TenantFileStatus.VALIDATED) {
+        if (apartmentSharing == null) {
             return null;
         }
         List<ApartmentSharingLink> links = apartmentSharing.getApartmentSharingLinks();
@@ -238,7 +268,9 @@ public abstract class TenantMapper {
         return links.stream()
                 .filter(l -> l.getLinkType() == ApartmentSharingLinkType.PARTNER
                         && Objects.equals(l.getPartnerId(), userApi.getId())
-                        && l.isFullData())
+                        && l.isFullData()
+                        && !l.isDeleted()
+                        && !l.isDisabled())
                 .findFirst()
                 .map(l -> l.getToken().toString())
                 .orElse(null);
