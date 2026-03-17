@@ -8,10 +8,12 @@ import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
 import fr.dossierfacile.common.entity.ApartmentSharing;
+import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.TenantOwnerType;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
+import fr.dossierfacile.document.analysis.service.DocumentIAService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +22,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -43,12 +46,15 @@ class NameSaveStepTest {
     TenantStatusService tenantStatusService;
     @MockitoBean
     ClientAuthenticationFacade clientAuthenticationFacade;
+    @MockitoBean
+    DocumentIAService documentIAService;
 
     @Test
     @WithMockUser(username = "test", authorities = "SCOPE_dossier")
     void shouldReturnTenantWhenNoNamesChangeWhenOwnerTypeSelf() {
         var apartmentSharing = ApartmentSharing.builder().id(1L).applicationType(ApplicationType.ALONE).build();
-        var tenant = Tenant.builder().id(1L).firstName("firstName").lastName("lastName").ownerType(TenantOwnerType.SELF).apartmentSharing(apartmentSharing).build();
+        var document = Document.builder().id(100L).build();
+        var tenant = Tenant.builder().id(1L).firstName("firstName").lastName("lastName").ownerType(TenantOwnerType.SELF).apartmentSharing(apartmentSharing).documents(new ArrayList<>(List.of(document))).build();
 
         apartmentSharing.setTenants(List.of(tenant));
         var namesForm = new NamesForm();
@@ -63,13 +69,15 @@ class NameSaveStepTest {
         assertThat(result.getLastName()).isEqualTo("lastName");
 
         verify(documentService, times(0)).resetValidatedOrInProgressDocumentsAccordingCategories(any(), any());
+        verify(documentIAService, times(0)).analyseDocument(any());
     }
 
     @Test
     @WithMockUser(username = "test", authorities = "SCOPE_dossier")
     void shouldReturnTenantWithNewNamesChange() {
         var apartmentSharing = ApartmentSharing.builder().id(1L).applicationType(ApplicationType.ALONE).build();
-        var tenant = Tenant.builder().id(1L).firstName("firstName").lastName("lastName").ownerType(TenantOwnerType.SELF).apartmentSharing(apartmentSharing).build();
+        var document = Document.builder().id(200L).build();
+        var tenant = Tenant.builder().id(1L).firstName("firstName").lastName("lastName").ownerType(TenantOwnerType.SELF).apartmentSharing(apartmentSharing).documents(new ArrayList<>(List.of(document))).build();
 
         apartmentSharing.setTenants(List.of(tenant));
         var namesForm = new NamesForm();
@@ -84,6 +92,7 @@ class NameSaveStepTest {
         assertThat(result.getLastName()).isEqualTo("test");
 
         verify(documentService, times(1)).resetValidatedOrInProgressDocumentsAccordingCategories(any(), any());
+        verify(documentIAService, times(1)).analyseDocument(document);
     }
 
 }

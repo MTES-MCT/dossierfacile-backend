@@ -16,6 +16,7 @@ import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.enums.TypeGuarantor;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
+import fr.dossierfacile.document.analysis.service.DocumentIAService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +34,7 @@ public class NameGuarantorNaturalPerson implements SaveStep<NameGuarantorNatural
     private final TenantStatusService tenantStatusService;
     private final ApartmentSharingService apartmentSharingService;
     private final ClientAuthenticationFacade clientAuthenticationFacade;
+    private final DocumentIAService documentIAService;
 
     @Override
     @Transactional
@@ -45,7 +47,10 @@ public class NameGuarantorNaturalPerson implements SaveStep<NameGuarantorNatural
         guarantor.setTenant(tenant);
         guarantorRepository.save(guarantor);
         tenant.lastUpdateDateProfile(LocalDateTime.now(), DocumentCategory.IDENTIFICATION);
-        documentService.resetValidatedOrInProgressDocumentsAccordingCategories(guarantor.getDocuments(), Arrays.asList(DocumentCategory.values()));
+
+        var documents = guarantor.getDocuments();
+        documentService.resetValidatedOrInProgressDocumentsAccordingCategories(documents, Arrays.asList(DocumentCategory.values()));
+        documents.forEach(documentIAService::analyseDocument);
 
         tenantStatusService.updateTenantStatus(tenant);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
