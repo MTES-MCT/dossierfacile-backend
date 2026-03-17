@@ -224,30 +224,15 @@ div.scrollmenu a:hover {
     padding-right: 5px;
 }
 
-.card-header.category-IDENTIFICATION {
-    background-color: #FDE39C;
-}
-.card-header.category-RESIDENCY{
-    background-color: #FBB8F6;
-}
-.card-header.category-PROFESSIONAL{
-    background-color: #FF8A65;
-}
-.card-header.category-FINANCIAL{
-    background-color: #B3E5F1;
-}
-.card-header.category-TAX{
+.card-header.category-IDENTIFICATION,
+.card-header.category-RESIDENCY,
+.card-header.category-PROFESSIONAL,
+.card-header.category-FINANCIAL,
+.card-header.category-TAX,
+.card-header.category-IDENTIFICATION_LEGAL_PERSON,
+.card-header.category-GUARANTEE_PROVIDER_CERTIFICATE,
+.card-header.category-NULL {
     background-color: #B2B2D8;
-}
-
-.card-header.category-IDENTIFICATION_LEGAL_PERSON{
-    background-color: #FDE39C;
-}
-.card-header.category-GUARANTEE_PROVIDER_CERTIFICATE{
-    background-color: rgb(179, 179, 179);
-}
-.card-header.category-NULL{
-    background-color: rgb(179, 179, 179);
 }
 
 .document-ia-block{
@@ -403,9 +388,4 @@ div.scrollmenu a:hover {
 .ia-code-block::-webkit-scrollbar-thumb {
     background-color: #cbd5e1;
     border-radius: 4px;
-}
-
-/* ── Tax French Analysis: page-specific overrides ── */
-.tax-fr-analysis {
-    background: #fff;
 }

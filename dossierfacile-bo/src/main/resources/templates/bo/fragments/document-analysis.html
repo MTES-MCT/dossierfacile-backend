@@ -1,77 +1,134 @@
 <!-- templates/fragments/document-analysis.html -->
-<div th:fragment="analysis(report, uid, documentRuleLevel)">
-    <div th:if="${report != null}"
-         th:with="
-         status=${report.analysisStatus},
-         passed=${report.getFilteredPassedRules(documentRuleLevel)},
-         failed=${report.getFilteredFailedRules(documentRuleLevel)},
-         inconclusive=${report.inconclusiveRules}
-       "
-         th:class="${'prevalidation-background-' + status}">
+<div th:fragment="analysis(report, iaResults, analysisReportComment, uid, documentRuleLevel, isTaxFrench)"
+     class="doc-analysis">
 
-        <div class="mb-1">
-            <span class="fw-semibold" th:text="${T(fr.gouv.bo.utils.DocumentLabelUtils).getDocumentAnalysStatusLabel(status)}"></span>
-            <span th:text="${T(fr.gouv.bo.utils.DocumentLabelUtils).getDocumentAnalysStatusSubLabel(status)}"></span>
+    <th:block th:if="${report != null}"
+              th:with="status=${report.analysisStatus}">
+
+        <!-- Badge -->
+        <div th:if="${status.name() == 'CHECKED'}" class="doc-analysis-badge doc-analysis-badge--success">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-.997-6l7.07-7.071-1.414-1.414-5.656 5.657-2.829-2.829-1.414 1.414L11.003 16z"/></svg>
+            <span>Document valide</span>
+        </div>
+        <div th:if="${status.name() == 'DENIED'}" class="doc-analysis-badge doc-analysis-badge--error">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.5,2.5h-11L1,12l5.5,9.5h11L23,12L17.5,2.5z M16.2,14.8l-1.4,1.4L12,13.4l-2.8,2.8l-1.4-1.4l2.8-2.8L7.8,9.2l1.4-1.4l2.8,2.8l2.8-2.8l1.4,1.4L13.4,12L16.2,14.8z"/></svg>
+            <span>Document non valide</span>
+        </div>
+        <div th:if="${status.name() == 'UNDEFINED'}" class="doc-analysis-badge doc-analysis-badge--warning">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.866 3 9.526 16.5a1 1 0 0 1-.866 1.5H2.474a1 1 0 0 1-.866-1.5L11.134 3a1 1 0 0 1 1.732 0ZM11 16v2h2v-2h-2Zm0-7v5h2V9h-2Z"/></svg>
+            <span>Analyse indisponible</span>
         </div>
 
-        <!-- Visibles selon le statut courant -->
-        <div th:if="${status.name == 'DENIED'}" class="mb-2">
-            <div class="fw-bold text-rule-danger mb-1">Liste des règles en erreur</div>
-            <ul class="small ps-3 mb-0" th:if="${!#lists.isEmpty(failed)}">
-                <li th:each="r : ${failed}" th:text="${r.message}">Rule failed</li>
+        <!-- Info line -->
+        <div class="doc-analysis-info">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="#000091"><path d="M19.5,2.5h-15c-1.1,0-2,0.9-2,2v15c0,1.1,0.9,2,2,2h15c1.1,0,2-0.9,2-2v-15C21.5,3.4,20.6,2.5,19.5,2.5z M13,17h-2v-6h2V17z M13,9h-2V7h2V9z"/></svg>
+            <span th:if="${status.name() == 'CHECKED'}">Ce document est vérifié et validé par l'analyse automatique.</span>
+            <span th:if="${status.name() == 'DENIED'}">Ce document est vérifié et une erreur a été détectée.</span>
+            <span th:if="${status.name() == 'UNDEFINED'}">Ce document n'a pas pu être analysé. Il est à traiter manuellement.</span>
+        </div>
+
+        <!-- Reasons (DENIED only) -->
+        <div th:if="${status.name() == 'DENIED' && report.failedRules != null && !report.failedRules.isEmpty()}"
+             class="doc-analysis-reasons">
+            <div class="doc-analysis-reasons__title">Raisons :</div>
+            <ul class="doc-analysis-reasons__list">
+                <li th:each="r : ${report.failedRules}" th:utext="${r.message}"></li>
             </ul>
-            <div class="small text-muted" th:if="${#lists.isEmpty(failed)}">Aucune</div>
         </div>
 
-        <div th:if="${status == 'INCONCLUSIVE'}" class="mb-2">
-            <div class="fw-bold text-rule-warning mb-1">Liste des règles non vérifiables</div>
-            <ul class="small ps-3 mb-0" th:if="${inconclusive != null and !#lists.isEmpty(inconclusive)}">
-                <li th:each="r : ${inconclusive}" th:text="${r.message}">Rule inconclusive</li>
-            </ul>
-            <div class="small text-muted" th:if="${inconclusive == null or #lists.isEmpty(inconclusive)}">Aucune</div>
-        </div>
-
-        <!-- PASSED : rien par défaut -->
-
-        <!-- Bouton Voir plus / Voir moins -->
-        <button class="btn btn-sm btn-outline-secondary mt-1"
-                type="button"
-                data-bs-toggle="collapse"
-                th:attr="data-bs-target=|#${uid}-rules-more|"
-                th:aria-controls="|${uid}-rules-more|"
-                th:if="${
-                    (status.name == 'DENIED' and (!#lists.isEmpty(passed) or !#lists.isEmpty(inconclusive)))
-                    or (status.name == 'UNDEFINED' and (!#lists.isEmpty(passed) or !#lists.isEmpty(failed) or !#lists.isEmpty(inconclusive)))
-                    or (status.name == 'CHECKED' and (!#lists.isEmpty(passed) or !#lists.isEmpty(failed) or !#lists.isEmpty(inconclusive)))
-                }"
-                aria-expanded="false">
-            <span class="label-collapsed">Voir plus</span>
-            <span class="label-expanded">Voir moins</span>
-        </button>
-        <!-- Détail -->
-        <div class="collapse mt-2 rules-more" th:id="|${uid}-rules-more|">
-
-            <div th:if="${!#lists.isEmpty(passed)}">
-                <div class="fw-bold text-rule-success mb-1">Liste des règles validées</div>
-                <ul class="small ps-3 mb-0">
-                    <li th:each="r : ${passed}" th:text="${r.message}">Rule passed</li>
-                </ul>
-            </div>
-
-            <div th:if="${status.name != 'DENIED' && !#lists.isEmpty(failed)}">
-                <div class="fw-bold text-rule-danger mb-1">Liste des règles en erreur</div>
-                <ul class="small ps-3 mb-0">
-                    <li th:each="r : ${failed}" th:text="${r.message}">Rule failed</li>
-                </ul>
-            </div>
-
-            <div class="mt-3" th:if="${inconclusive != null && !#lists.isEmpty(inconclusive)}">
-                <div class="fw-bold text-rule-warning mb-1">Liste des règles non vérifiables</div>
-                <ul class="small ps-3 mb-0">
-                    <li th:each="r : ${inconclusive}" th:text="${r.message}">Rule inconclusive</li>
-                </ul>
+        <!-- User explanation -->
+        <div th:if="${analysisReportComment != null && !analysisReportComment.isBlank()}"
+             class="doc-analysis-explanation">
+            <div class="doc-analysis-explanation__title">Explication de l'utilisateur</div>
+            <div class="doc-analysis-explanation__text">
+                "<span th:text="${analysisReportComment}"></span>"
             </div>
         </div>
-    </div>
+
+        <!-- Extracted data table: 2D-Doc barcode data (tax french only) -->
+        <th:block th:if="${isTaxFrench && report.analysisStatus.name() != 'UNDEFINED'
+                           && iaResults != null && !iaResults.isEmpty()}">
+            <div th:each="result : ${iaResults}">
+                <th:block th:if="${result.barcodes != null && !result.barcodes.isEmpty()}">
+                    <div class="doc-analysis-data">
+                        <div class="doc-analysis-data__title">Données extraites</div>
+                        <table class="doc-analysis-data__table">
+                            <thead class="visually-hidden">
+                                <tr><th>Champ</th><th>Valeur</th></tr>
+                            </thead>
+                            <th:block th:each="barcode : ${result.barcodes}">
+                                <th:block th:if="${barcode.typedData != null}">
+                                    <th:block th:each="prop : ${barcode.typedData}">
+                                        <tr th:if="${(prop.name == 'declarant_1' || prop.name == 'declarant_2') && prop.value != null && !prop.value.toString().isBlank()}"
+                                            th:with="label=${prop.name == 'declarant_1' ? 'Déclarant 1' : 'Déclarant 2'}">
+                                            <td class="doc-analysis-data__label" th:text="${label}"></td>
+                                            <td class="doc-analysis-data__value" th:text="${prop.value}"></td>
+                                        </tr>
+                                    </th:block>
+                                </th:block>
+                            </th:block>
+                            <tr>
+                                <td class="doc-analysis-data__label">Type de document</td>
+                                <td class="doc-analysis-data__value">Avis d'imposition</td>
+                            </tr>
+                            <th:block th:each="barcode : ${result.barcodes}">
+                                <th:block th:if="${barcode.typedData != null}">
+                                    <th:block th:each="prop : ${barcode.typedData}">
+                                        <tr th:if="${prop.name == 'annee_des_revenus' && prop.value != null && !prop.value.toString().isBlank()}">
+                                            <td class="doc-analysis-data__label">Année des revenus</td>
+                                            <td class="doc-analysis-data__value" th:text="${prop.value}"></td>
+                                        </tr>
+                                    </th:block>
+                                </th:block>
+                            </th:block>
+                        </table>
+                    </div>
+                </th:block>
+            </div>
+        </th:block>
+
+        <!-- Rules table (non-tax documents only) -->
+        <th:block th:if="${!isTaxFrench}"
+                  th:with="
+                    passed=${report.getFilteredPassedRules(documentRuleLevel)},
+                    failed=${report.getFilteredFailedRules(documentRuleLevel)},
+                    inconclusive=${report.inconclusiveRules}
+                  ">
+            <div th:if="${(!#lists.isEmpty(passed)) || (!#lists.isEmpty(failed)) || (inconclusive != null && !#lists.isEmpty(inconclusive))}"
+                 class="doc-analysis-rules">
+                <div class="doc-analysis-rules__title">Détail des règles</div>
+                <table class="doc-analysis-rules__table">
+                    <thead class="visually-hidden">
+                        <tr><th>Règle</th><th>Statut</th></tr>
+                    </thead>
+                    <tr th:each="r : ${failed}">
+                        <td th:text="${r.message}"></td>
+                        <td class="doc-analysis-rules__status doc-analysis-rules__status--failed">❌ Échouée</td>
+                    </tr>
+                    <tr th:if="${inconclusive != null}" th:each="r : ${inconclusive}">
+                        <td th:text="${r.message}"></td>
+                        <td class="doc-analysis-rules__status doc-analysis-rules__status--inconclusive">⚠️ Non vérifiable</td>
+                    </tr>
+                    <tr th:each="r : ${passed}">
+                        <td th:text="${r.message}"></td>
+                        <td class="doc-analysis-rules__status doc-analysis-rules__status--passed">✅ Validée</td>
+                    </tr>
+                </table>
+            </div>
+        </th:block>
+
+    </th:block>
+
+    <!-- No report at all -->
+    <th:block th:if="${report == null}">
+        <div class="doc-analysis-badge doc-analysis-badge--warning">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.866 3 9.526 16.5a1 1 0 0 1-.866 1.5H2.474a1 1 0 0 1-.866-1.5L11.134 3a1 1 0 0 1 1.732 0ZM11 16v2h2v-2h-2Zm0-7v5h2V9h-2Z"/></svg>
+            <span>Aucune analyse disponible</span>
+        </div>
+        <div class="doc-analysis-info">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="#000091"><path d="M19.5,2.5h-15c-1.1,0-2,0.9-2,2v15c0,1.1,0.9,2,2,2h15c1.1,0,2-0.9,2-2v-15C21.5,3.4,20.6,2.5,19.5,2.5z M13,17h-2v-6h2V17z M13,9h-2V7h2V9z"/></svg>
+            <span>Ce document n'a pas pu être analysé. Il est à traiter manuellement.</span>
+        </div>
+    </th:block>
+
 </div>
-
