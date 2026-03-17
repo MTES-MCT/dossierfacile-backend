@@ -156,8 +156,9 @@
                     </div>
                     <div class="align-items-center col-md-4 display-flex height-100pct flex-direction-column">
                         <div class="display-flex flex-grow-1 margin-top-25px overflow-auto padding-right-0px"
-                             style="align-self: flex-start;">
-                            <div class="padding-right-5px">
+                             th:style="${messageItem.documentCategoryStep != null && messageItem.documentCategoryStep.name() == 'TAX_FRENCH_NOTICE'} ? 'align-self: stretch; width: 100%;' : 'align-self: flex-start;'">
+                            <div class="padding-right-5px"
+                                 th:style="${messageItem.documentCategoryStep != null && messageItem.documentCategoryStep.name() == 'TAX_FRENCH_NOTICE'} ? 'width: 100%;' : ''">
                                 <div class="card file1-border-color"
                                      th:classappend="${messageItem.documentCategoryStep != null && messageItem.documentCategoryStep.name() == 'TAX_FRENCH_NOTICE'} ? 'tax-fr-card' : ''">
                                     <div class="card-header file1-border-color bold"
@@ -430,8 +431,9 @@
                         </div>
                         <div class="align-items-center col-md-4 display-flex height-100pct flex-direction-column">
                             <div class="display-flex flex-grow-1 margin-top-25px overflow-auto padding-right-0px"
-                                 style="align-self: flex-start;">
-                                <div class="padding-right-5px">
+                                 th:style="${messageItem.documentCategoryStep != null && messageItem.documentCategoryStep.name() == 'TAX_FRENCH_NOTICE'} ? 'align-self: stretch; width: 100%;' : 'align-self: flex-start;'">
+                                <div class="padding-right-5px"
+                                     th:style="${messageItem.documentCategoryStep != null && messageItem.documentCategoryStep.name() == 'TAX_FRENCH_NOTICE'} ? 'width: 100%;' : ''">
                                     <div class="card file1-border-color"
                                          th:classappend="${messageItem.documentCategoryStep != null && messageItem.documentCategoryStep.name() == 'TAX_FRENCH_NOTICE'} ? 'tax-fr-card' : ''">
                                         <div class="card-header file1-border-color bold"
