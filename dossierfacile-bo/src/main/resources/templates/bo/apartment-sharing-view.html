@@ -878,7 +878,6 @@
                                                     PDF</a>
                                             </div>
                                         </div>
-                                    </div>
 
                                     <th:block th:replace="~{bo/fragments/document-section :: documentSection(
                                         document=${document},
@@ -893,7 +892,7 @@
                                         confirmYes='Oui',
                                         confirmCancel='Annuler'
                                       )}"></th:block>
-                            </div>
+                                </div><!-- /card-header -->
                         </div>
 
                         <h3 th:unless="${tenant.getGuarantors().isEmpty()}">Garants</h3>
@@ -967,7 +966,6 @@
                                                 PDF</a>
 
                                         </div>
-                                    </div>
 
                                     <th:block th:replace="~{bo/fragments/document-section :: documentSection(
                                         document=${document},
@@ -982,6 +980,7 @@
                                         confirmYes='Delete',
                                         confirmCancel='Close'
                                       )}"></th:block>
+                                </div><!-- /card-header -->
                                 <div class="modal" role="dialog" tabindex="-1"
                                      th:id="'modalDeleteGuarantor-'+${guarantor.getId()}">
                                     <div class="modal-dialog" role="guarantor">
