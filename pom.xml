@@ -40,7 +40,7 @@
         <keycloak.version>26.0.3</keycloak.version>
         <log4j-api.version>2.17.1</log4j-api.version>
         <logback-encoder.version>7.4</logback-encoder.version>
-        <commons-io.version>2.17.0</commons-io.version>
+        <commons-io.version>2.21.0</commons-io.version>
         <okio.version>3.9.1</okio.version>
         <pdfbox.version>3.0.6</pdfbox.version>
         <jbig2-imageio.version>3.0.4</jbig2-imageio.version>
