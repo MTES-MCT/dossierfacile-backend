@@ -406,9 +406,6 @@ div.scrollmenu a:hover {
 }
 
 /* ── Tax French Analysis: page-specific overrides ── */
-.tax-fr-card {
-    max-width: 426px;
-}
 .tax-fr-analysis {
     background: #fff;
 }
