@@ -67,10 +67,13 @@
                                     </th:block>
                                 </th:block>
                             </th:block>
-                            <tr>
-                                <td class="doc-analysis-data__label">Type de document</td>
-                                <td class="doc-analysis-data__value">Avis d'imposition</td>
-                            </tr>
+                            <th:block th:each="barcode : ${result.barcodes}">
+                                <tr th:if="${barcode.antsType != null && !barcode.antsType.isBlank()}"
+                                    th:with="label=${barcode.antsType == 'avis_imposition' ? 'Avis d''imposition' : barcode.antsType}">
+                                    <td class="doc-analysis-data__label">Type de document</td>
+                                    <td class="doc-analysis-data__value" th:text="${label}"></td>
+                                </tr>
+                            </th:block>
                             <th:block th:each="barcode : ${result.barcodes}">
                                 <th:block th:if="${barcode.typedData != null}">
                                     <th:block th:each="prop : ${barcode.typedData}">
