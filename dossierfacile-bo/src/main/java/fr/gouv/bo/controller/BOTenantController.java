@@ -264,7 +264,7 @@ public class BOTenantController {
         return itemDetails;
     }
 
-    private List<MessageItem> getMessageItemsForDocuments(List<Document> documents, Tenant tenant) {
+    private List<MessageItem> getMessageItemsForDocuments(List<Document> documents, Tenant tenant, boolean isForGuarantor) {
         List<MessageItem> messageItems = new ArrayList<>();
 
         for (Document document : documents) {
@@ -278,7 +278,7 @@ public class BOTenantController {
                         .documentCategory(document.getDocumentCategory())
                         .documentSubCategory(document.getDocumentSubCategory())
                         .documentCategoryStep(document.getDocumentCategoryStep())
-                        .itemDetailList(getItemDetailForSubcategoryOfDocument(document.getDocumentCategory(), document.getDocumentSubCategory(), TENANT))
+                        .itemDetailList(getItemDetailForSubcategoryOfDocument(document.getDocumentCategory(), document.getDocumentSubCategory(), isForGuarantor ? GUARANTOR : TENANT))
                         .documentId(document.getId())
                         .documentName(document.getName())
                         .metadataOfFiles(getFilesMetadata(document))
@@ -306,7 +306,7 @@ public class BOTenantController {
         List<Document> documents = tenant.getDocuments();
         documents.sort(Comparator.comparing(Document::getDocumentCategory));
 
-        customMessage.setMessageItems(getMessageItemsForDocuments(documents, tenant));
+        customMessage.setMessageItems(getMessageItemsForDocuments(documents, tenant, false));
 
         for (Guarantor guarantor : tenant.getGuarantors()) {
             GuarantorItem guarantorItem = GuarantorItem.builder()
@@ -319,7 +319,7 @@ public class BOTenantController {
 
             documents = guarantor.getDocuments();
             documents.sort(Comparator.comparing(Document::getDocumentCategory));
-            guarantorItem.setMessageItems(getMessageItemsForDocuments(documents, tenant));
+            guarantorItem.setMessageItems(getMessageItemsForDocuments(documents, tenant, true));
             customMessage.getGuarantorItems().add(guarantorItem);
         }
 
