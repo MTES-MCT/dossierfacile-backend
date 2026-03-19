@@ -12,6 +12,7 @@ import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.model.log.EditionType;
 import fr.dossierfacile.common.service.interfaces.LogService;
+import fr.dossierfacile.document.analysis.service.DocumentIAService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -26,6 +27,7 @@ public class FileServiceImpl implements FileService {
     private final DocumentService documentService;
     private final LogService logService;
     private final Producer producer;
+    private final DocumentIAService documentIAService;
 
     @Override
     @Transactional
@@ -49,7 +51,8 @@ public class FileServiceImpl implements FileService {
         }
 
         documentService.changeDocumentStatus(document, DocumentStatus.TO_PROCESS);
-        producer.sendDocumentForAnalysis(document);
+
+        documentIAService.analyseDocument(document);
         producer.sendDocumentForPdfGeneration(document);
         return document;
     }

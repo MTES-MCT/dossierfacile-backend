@@ -18,12 +18,12 @@
         <module>dossier-facile-logging-library</module>
         <module>dossierfacile-common-test-library</module>
         <module>dossierfacile-bo</module>
-        <module>dossierfacile-process-file</module>
         <module>dossierfacile-api-tenant</module>
         <module>dossierfacile-api-owner</module>
         <module>dossierfacile-api-watermark</module>
         <module>dossierfacile-pdf-generator</module>
         <module>dossierfacile-task-scheduler</module>
+        <module>dossierfacile-document-analysis</module>
     </modules>
     <packaging>pom</packaging>
 
@@ -31,7 +31,7 @@
     <description>DossierFacile</description>
 
     <properties>
-        <revision>3.4.16</revision>
+        <revision>3.5.0</revision>
         <java.version>21</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
@@ -66,6 +66,11 @@
             <dependency>
                 <groupId>fr.dossierfacile</groupId>
                 <artifactId>dossierfacile-common-library</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>fr.dossierfacile</groupId>
+                <artifactId>dossierfacile-document-analysis</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>

@@ -65,6 +65,11 @@
       "name": "s3.bucket.filigrane.name",
       "type": "java.lang.String",
       "description": "Le nom du bucket S3 pour les fichiers avec filigrane."
+    },
+    {
+      "name": "dossierfacile.document.ia.result.encryption.key",
+      "type": "java.lang.String",
+      "description": "Clé AES (base64) utilisée pour chiffrer/déchiffrer document_ia.result. `openssl rand -base64 32`"
     }
   ]
 }

@@ -13,6 +13,7 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.TypeGuarantor;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
+import fr.dossierfacile.document.analysis.service.DocumentIAService;
 import lombok.AllArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -34,6 +35,7 @@ public class Names implements SaveStep<NamesForm> {
     private final DocumentService documentService;
     private final TenantStatusService tenantStatusService;
     private final ClientAuthenticationFacade clientAuthenticationFacade;
+    private final DocumentIAService documentIAService;
 
     @Override
     @Transactional
@@ -41,6 +43,8 @@ public class Names implements SaveStep<NamesForm> {
         // When preferred is not set, the front send an empty string that will cause trouble when comparing
         var preferredName = StringUtils.trimToNull(namesForm.getPreferredName());
         var tenantPreferredName = StringUtils.trimToNull(tenant.getPreferredName());
+
+        var hasBeenEdited = false;
         // any change of first, last and preferred names triggers a document status update from validated -> to_process
         if (!StringUtils.equals(tenant.getFirstName(), namesForm.getFirstName())
                 || !StringUtils.equals(tenant.getLastName(), namesForm.getLastName())
@@ -52,6 +56,8 @@ public class Names implements SaveStep<NamesForm> {
                 documentsToCheck.addAll(tenant.getGuarantors().getFirst().getDocuments());
             }
             documentService.resetValidatedOrInProgressDocumentsAccordingCategories(documentsToCheck, Arrays.asList(DocumentCategory.values()));
+            // If the identity of the user changes, we need to re analyze all the documents associated to this tenant
+            hasBeenEdited = true;
         }
 
         tenant.setOwnerType(namesForm.getOwnerType());
@@ -64,6 +70,14 @@ public class Names implements SaveStep<NamesForm> {
         tenant.lastUpdateDateProfile(LocalDateTime.now(), null);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         tenant = tenantStatusService.updateTenantStatus(tenant);
-        return tenantMapper.toTenantModel(tenantRepository.save(tenant), (!clientAuthenticationFacade.isClient()) ? null : clientAuthenticationFacade.getClient());
+        tenant = tenantRepository.save(tenant);
+
+        if (hasBeenEdited) {
+            for (Document document : tenant.getDocuments()) {
+                documentIAService.analyseDocument(document);
+            }
+        }
+
+        return tenantMapper.toTenantModel(tenant, (!clientAuthenticationFacade.isClient()) ? null : clientAuthenticationFacade.getClient());
     }
 }

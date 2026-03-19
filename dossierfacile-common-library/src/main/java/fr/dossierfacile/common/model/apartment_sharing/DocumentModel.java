@@ -1,7 +1,6 @@
 package fr.dossierfacile.common.model.apartment_sharing;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import fr.dossierfacile.common.entity.AuthenticityStatus;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentCategoryStep;
 import fr.dossierfacile.common.enums.DocumentStatus;
@@ -26,5 +25,4 @@ public class DocumentModel {
     private Integer monthlySum;
     private DocumentStatus documentStatus;
     private String name;
-    private AuthenticityStatus authenticityStatus;
 }

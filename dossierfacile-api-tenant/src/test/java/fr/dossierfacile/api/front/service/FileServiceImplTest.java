@@ -15,6 +15,7 @@ import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.model.log.EditionType;
 import fr.dossierfacile.common.repository.DocumentAnalysisReportRepository;
+import fr.dossierfacile.common.repository.DocumentIAFileAnalysisRepository;
 import fr.dossierfacile.common.service.interfaces.DocumentHelperService;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,6 +30,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -51,7 +53,12 @@ class FileServiceImplTest {
     private fr.dossierfacile.api.front.amqp.Producer producer;
 
     @Mock
+    private fr.dossierfacile.document.analysis.service.DocumentIAService documentIAService;
+
+    @Mock
     private DocumentAnalysisReportRepository documentAnalysisReportRepository;
+    @Mock
+    private DocumentIAFileAnalysisRepository documentIAFileAnalysisRepository;
     @Mock
     private FileStorageService fileStorageService;
     @Mock
@@ -60,20 +67,25 @@ class FileServiceImplTest {
     private ApartmentSharingService apartmentSharingService;
     @Mock
     private DocumentHelperService documentHelperService;
+    @Mock
+    private fr.dossierfacile.api.front.mapper.TenantMapper tenantMapper;
 
     @BeforeEach
     void setUp() {
         documentService = new DocumentServiceImpl(
                 documentRepository,
                 documentAnalysisReportRepository,
+                documentIAFileAnalysisRepository,
                 fileStorageService,
                 tenantStatusService,
                 apartmentSharingService,
                 documentHelperService,
                 logService,
-                producer
+                producer,
+                documentIAService,
+                tenantMapper
         );
-        fileService = new FileServiceImpl(fileRepository, documentService, logService, producer);
+        fileService = new FileServiceImpl(fileRepository, documentService, logService, producer, documentIAService);
     }
 
     @Nested

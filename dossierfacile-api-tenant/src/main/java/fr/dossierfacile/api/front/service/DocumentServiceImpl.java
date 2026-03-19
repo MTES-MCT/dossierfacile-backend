@@ -2,12 +2,17 @@ package fr.dossierfacile.api.front.service;
 
 import fr.dossierfacile.api.front.amqp.Producer;
 import fr.dossierfacile.api.front.exception.DocumentNotFoundException;
+import fr.dossierfacile.api.front.mapper.TenantMapper;
+import fr.dossierfacile.api.front.model.tenant.AnalysisStatus;
+import fr.dossierfacile.api.front.model.tenant.DocumentAnalysisReportModel;
+import fr.dossierfacile.api.front.model.tenant.DocumentAnalysisStatusResponse;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Document;
+import fr.dossierfacile.common.entity.DocumentAnalysisReport;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Person;
 import fr.dossierfacile.common.entity.Tenant;
@@ -16,11 +21,13 @@ import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.model.log.EditionType;
 import fr.dossierfacile.common.repository.DocumentAnalysisReportRepository;
+import fr.dossierfacile.common.repository.DocumentIAFileAnalysisRepository;
 import fr.dossierfacile.common.service.interfaces.DocumentHelperService;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.common.service.interfaces.LogService;
-import lombok.RequiredArgsConstructor;
+import fr.dossierfacile.document.analysis.service.DocumentIAService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,17 +42,44 @@ import java.util.Optional;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class DocumentServiceImpl implements DocumentService {
 
     private final DocumentRepository documentRepository;
     private final DocumentAnalysisReportRepository documentAnalysisReportRepository;
+    private final DocumentIAFileAnalysisRepository documentIAFileAnalysisRepository;
     private final FileStorageService fileStorageService;
     private final TenantStatusService tenantStatusService;
     private final ApartmentSharingService apartmentSharingService;
     private final DocumentHelperService documentHelperService;
     private final LogService logService;
     private final Producer producer;
+    private final DocumentIAService documentIAService;
+    private final TenantMapper tenantMapper;
+
+    // There is a dependency cycle between DocumentServiceImpl and TenantStatusService / ApartmentSharingService, so we need to inject them lazily
+    public DocumentServiceImpl(DocumentRepository documentRepository,
+                               DocumentAnalysisReportRepository documentAnalysisReportRepository,
+                               DocumentIAFileAnalysisRepository documentIAFileAnalysisRepository,
+                               FileStorageService fileStorageService,
+                               @Lazy TenantStatusService tenantStatusService,
+                               @Lazy ApartmentSharingService apartmentSharingService,
+                               DocumentHelperService documentHelperService,
+                               LogService logService,
+                               Producer producer,
+                               DocumentIAService documentIAService,
+                               TenantMapper tenantMapper) {
+        this.documentRepository = documentRepository;
+        this.documentAnalysisReportRepository = documentAnalysisReportRepository;
+        this.documentIAFileAnalysisRepository = documentIAFileAnalysisRepository;
+        this.fileStorageService = fileStorageService;
+        this.tenantStatusService = tenantStatusService;
+        this.apartmentSharingService = apartmentSharingService;
+        this.documentHelperService = documentHelperService;
+        this.logService = logService;
+        this.producer = producer;
+        this.documentIAService = documentIAService;
+        this.tenantMapper = tenantMapper;
+    }
 
     @Override
     @Transactional
@@ -115,17 +149,7 @@ public class DocumentServiceImpl implements DocumentService {
                             fileStorageService.delete(document.getWatermarkFile());
                             document.setWatermarkFile(null);
                         }
-                        if (document.getDocumentAnalysisReport() != null) {
-                            var report = document.getDocumentAnalysisReport();
-                            Long reportId = report.getId();
-                            log.info("About to delete DocumentAnalysisReport for conflict-prone reset: documentId={}, documentCategory={}, reportId={}, thread={}",
-                                    document.getId(), document.getDocumentCategory(), reportId, Thread.currentThread().getName());
-                            documentAnalysisReportRepository.delete(report);
-                            document.setDocumentAnalysisReport(null);
-                        }
                         documentRepository.save(document);
-
-                        producer.sendDocumentForAnalysis(document);// analysis should be relaunched for update rules
                         if (Boolean.TRUE == document.getNoDocument()) {
                             producer.sendDocumentForPdfGeneration(document);
                         }
@@ -138,22 +162,15 @@ public class DocumentServiceImpl implements DocumentService {
     public void addFile(MultipartFile multipartFile, Document document) throws IOException {
         File file = documentHelperService.addFile(multipartFile, document);
         markDocumentAsEdited(document);
-        producer.minifyFile(document.getId(), file.getId());
-        producer.analyzeFile(document.getId(), file.getId());
-        producer.amqpAnalyseFile(file.getId());
+        producer.processFile(document.getId(), file.getId());
+        
+        Tenant tenant = resolveDocumentTenant(document);
+        documentIAService.sendForAnalysis(multipartFile, file, document, tenant.getId());
     }
 
     @Override
     public void markDocumentAsEdited(Document document) {
         document.setLastModifiedDate(LocalDateTime.now());
-        if (document.getDocumentAnalysisReport() != null) {
-            var report = document.getDocumentAnalysisReport();
-            Long reportId = report.getId();
-            log.info("About to delete DocumentAnalysisReport (markDocumentAsEdited): documentId={}, reportId={}, thread={}",
-                    document.getId(), reportId, Thread.currentThread().getName());
-            documentAnalysisReportRepository.delete(report);
-            document.setDocumentAnalysisReport(null);
-        }
         if (document.getWatermarkFile() != null) {
             fileStorageService.delete(document.getWatermarkFile());
             document.setWatermarkFile(null);
@@ -195,6 +212,51 @@ public class DocumentServiceImpl implements DocumentService {
             return document.getGuarantor().getTenant();
         }
         return null;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public DocumentAnalysisStatusResponse getDocumentAnalysisStatus(Long documentId, Tenant tenant) {
+        Document document = documentRepository.findById(documentId)
+                .orElseThrow(() -> new DocumentNotFoundException(documentId));
+
+        if (!hasPermissionOnDocument(document, tenant)) {
+            throw new AccessDeniedException("Access Denied");
+        }
+
+        Long totalFiles = documentIAFileAnalysisRepository.countTotalFilesByDocumentId(documentId);
+        if (totalFiles == 0) {
+            // NO_ANALYSIS_SCHEDULED scenario
+            return DocumentAnalysisStatusResponse.builder()
+                    .documentId(documentId)
+                    .status(AnalysisStatus.NO_ANALYSIS_SCHEDULED)
+                    .build();
+        }
+
+        Long analyzedFiles = documentIAFileAnalysisRepository.countAnalyzedFilesByDocumentId(documentId);
+
+        if (analyzedFiles.equals(totalFiles)) {
+            // All files analyzed - COMPLETED scenario
+            Optional<DocumentAnalysisReport> reportOptional = documentAnalysisReportRepository.findByDocumentId(documentId);
+            DocumentAnalysisReportModel reportModel = reportOptional
+                    .map(tenantMapper::toDocumentAnalysisReportModel)
+                    .orElse(null);
+
+            return DocumentAnalysisStatusResponse.builder()
+                    .documentId(documentId)
+                    .status(AnalysisStatus.COMPLETED)
+                    .analysisReport(reportModel)
+                    .build();
+        }
+        else {
+            // 6. IN_PROGRESS scenario
+            return DocumentAnalysisStatusResponse.builder()
+                    .documentId(documentId)
+                    .status(AnalysisStatus.IN_PROGRESS)
+                    .analyzedFiles(analyzedFiles.intValue())
+                    .totalFiles(totalFiles.intValue())
+                    .build();
+        }
     }
 
 }

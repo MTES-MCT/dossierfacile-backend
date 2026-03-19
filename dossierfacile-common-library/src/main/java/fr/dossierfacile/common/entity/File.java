@@ -51,22 +51,15 @@ public class File implements Serializable {
     @Column(name = "creation_date")
     private Date creationDateTime = new Date();
 
-    @Nullable
-    @OneToOne(cascade = {CascadeType.REMOVE}, mappedBy = "file", fetch = FetchType.LAZY)
-    private BarCodeFileAnalysis fileAnalysis;
-
-    @Nullable
-    @OneToOne(cascade = {CascadeType.REMOVE}, mappedBy= "file", fetch = FetchType.LAZY)
-    private ParsedFileAnalysis parsedFileAnalysis;
-
     // We need to implement a cascade set null on delete !
     // Since Spring boot 3.5.8 and Hibernate 6.2.11, when a foreign key doesn't have a cascade on delete, but a sql set null action.
     // We need to manually set the relation to null before deleting the parent entity.
     // So we use a @PreRemove method to set the blurryFileAnalysis to null before deleting the document.
     // Otherwise, we get an exception transient object error.
+
     @Nullable
-    @OneToOne(mappedBy = "file", fetch = FetchType.LAZY)
-    private BlurryFileAnalysis blurryFileAnalysis;
+    @OneToOne(cascade = {CascadeType.REMOVE}, mappedBy= "file", fetch = FetchType.LAZY)
+    private DocumentIAFileAnalysis documentIAFileAnalysis;
 
     @Nullable
     @OneToOne(cascade = {CascadeType.REMOVE}, mappedBy = "file", fetch = FetchType.LAZY)
@@ -78,9 +71,6 @@ public class File implements Serializable {
             storageFile.setStatus(FileStorageStatus.TO_DELETE);
         if (preview != null)
             preview.setStatus(FileStorageStatus.TO_DELETE);
-        if (blurryFileAnalysis != null) {
-            blurryFileAnalysis.setFile(null);
-        }
     }
 
     @Override

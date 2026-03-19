@@ -16,6 +16,8 @@ hs_err_pid*.log
 tmp
 **/certs/*
 elastalert/dist
+seed/
+docker-compose.overwrite.yml
 
 zxing-cpp/data/build_lib
 zxing-cpp/data/zxing-cpp

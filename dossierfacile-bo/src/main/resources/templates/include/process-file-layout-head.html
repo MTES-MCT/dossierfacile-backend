@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
 <head th:fragment="head" th:remove="tag">
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -9,14 +9,15 @@
     <link rel="stylesheet" href="/css/main.css"/>
     <link rel="stylesheet" href="/css/fix.css"/>
     <link rel="stylesheet" href="/css/process-file.css"/>
+    <link rel="stylesheet" href="/css/document-analysis.css"/>
     <link href="/webjars/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"/>
     <title>DossierFacile</title>
     <link rel="icon" type="image/png" href="/assets/images/favicons/android-chrome-192x192.png"/>
     <meta content="4OOE91l6UNYCAnvnxQfNEnybmxX1QGAh05KkgvChMxw" name="google-site-verification"/>
     <script>
         const storedTheme = localStorage.getItem('fr-theme') || 'light';
-        document.documentElement.setAttribute('data-fr-theme', storedTheme);
-        document.documentElement.setAttribute('data-bs-theme', storedTheme);
+        document.documentElement.dataset.frTheme = storedTheme;
+        document.documentElement.dataset.bsTheme = storedTheme;
     </script>
 </head>
 <body>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+    <!-- First migration to create the databases -->
+    <changeSet id="202603090001" author="Nicolas">
+        <insert tableName="feature_flag">
+            <column name="key" value="document-ia-tax-analysis"/>
+            <column name="description" value="Enable Document IA analysis for tax documents"/>
+            <column name="active" valueBoolean="false"/>
+            <column name="only_for_new_user" valueBoolean="false"/>
+            <column name="rollout_pct" valueNumeric="0"/>
+        </insert>
+
+        <insert tableName="feature_flag">
+            <column name="key" value="document-ia-visale-analysis"/>
+            <column name="description" value="Enable Document IA analysis for visale documents"/>
+            <column name="active" valueBoolean="false"/>
+            <column name="only_for_new_user" valueBoolean="false"/>
+            <column name="rollout_pct" valueNumeric="0"/>
+        </insert>
+
+        <rollback>
+            <delete tableName="feature_flag">
+                <where>key IN ('document-ia-tax-analysis', 'document-ia-visale-analysis')</where>
+            </delete>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>
