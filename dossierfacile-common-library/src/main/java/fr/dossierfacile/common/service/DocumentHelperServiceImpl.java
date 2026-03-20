@@ -172,7 +172,6 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
                     .encryptionKey(encryptionKeyService.getCurrentKey())
                     .path(document.getDocumentS3PrefixPath() + "/" + UUID.randomUUID())
                     .contentType(MediaType.IMAGE_JPEG_VALUE)
-                    .encryptionKey(null)
                     .build();
 
             try (InputStream is = new ByteArrayInputStream(baos.toByteArray())) {
