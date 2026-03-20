@@ -336,7 +336,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
         var listOfDocumentAnalysis = apartmentSharing.getTenants()
                 .stream()
                 // We filter only the tenant that we can access to avoid sending information about the existence of other tenants in the apartment sharing
-                .filter(it -> tenantPermissionsService.canAccess(tenant.getKeycloakId(), tenant.getId()))
+                .filter(it -> tenantPermissionsService.canAccess(tenant.getKeycloakId(), it.getId()))
                 // We get all the documents visible by the tenant inside the application sharing (Guarantor + tenants)
                 .flatMap(t -> Stream.concat(
                         t.getDocuments().stream(),
