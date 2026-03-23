@@ -23,17 +23,16 @@ class HasBeenDocumentIAAnalysedBITest {
     private final HasBeenDocumentIAAnalysedBI validator = new HasBeenDocumentIAAnalysedBI();
 
     @Test
-    void should_be_valid_when_no_files() {
+    void should_be_inconclusive_when_no_files() {
         Document document = mock(Document.class);
         when(document.getFiles()).thenReturn(Collections.emptyList());
 
         RuleValidatorOutput output = validator.validate(document);
-        assertTrue(output.isValid());
-        assertEquals(RuleValidatorOutput.RuleLevel.PASSED, output.ruleLevel());
+        assertEquals(RuleValidatorOutput.RuleLevel.INCONCLUSIVE, output.ruleLevel());
     }
 
     @Test
-    void should_be_valid_when_files_have_no_analysis() {
+    void should_be_inconclusive_when_files_have_no_analysis() {
         Document document = mock(Document.class);
         File file = mock(File.class);
         when(file.getDocumentIAFileAnalysis()).thenReturn(null);
@@ -41,8 +40,8 @@ class HasBeenDocumentIAAnalysedBITest {
         when(document.getFiles()).thenReturn(Collections.singletonList(file));
 
         RuleValidatorOutput output = validator.validate(document);
-        assertTrue(output.isValid());
-        assertEquals(RuleValidatorOutput.RuleLevel.PASSED, output.ruleLevel());
+        assertFalse(output.isValid());
+        assertEquals(RuleValidatorOutput.RuleLevel.INCONCLUSIVE, output.ruleLevel());
     }
 
     @Test
@@ -106,4 +105,3 @@ class HasBeenDocumentIAAnalysedBITest {
         assertEquals(RuleValidatorOutput.RuleLevel.INCONCLUSIVE, output.ruleLevel());
     }
 }
-
