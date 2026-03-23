@@ -1,6 +1,7 @@
 package fr.dossierfacile.document.analysis;
 
 import fr.dossierfacile.common.entity.Document;
+import fr.dossierfacile.common.enums.DocumentCategoryStep;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.service.interfaces.FeatureFlagService;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +26,8 @@ public class DocumentIAConfig {
         if (List.of(DocumentSubCategory.MY_NAME, DocumentSubCategory.VISALE).contains(document.getDocumentSubCategory())) {
             if (
                     featureFlagService.isFeatureEnabledForUser(tenantId, FEATURE_FLAG_TAX_ANALYSIS_KEY) &&
-                            document.getDocumentSubCategory() == DocumentSubCategory.MY_NAME
+                            document.getDocumentSubCategory() == DocumentSubCategory.MY_NAME &&
+                            document.getDocumentCategoryStep() == DocumentCategoryStep.TAX_FRENCH_NOTICE
             ) {
                 return true;
             }
