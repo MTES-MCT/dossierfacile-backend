@@ -18,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -55,12 +56,15 @@ class DocumentIAServiceImplTest {
         Document document = new Document();
         document.setId(1L);
         File file = File.builder().id(1L).document(document).build();
+        document.setFiles(List.of(file));
         DocumentIAFileAnalysis analysis = DocumentIAFileAnalysis.builder()
                 .id(1L)
                 .documentIaExecutionId(executionId)
                 .analysisStatus(DocumentIAFileAnalysisStatus.STARTED)
                 .file(file)
                 .build();
+
+        file.setDocumentIAFileAnalysis(analysis);
 
         when(documentIAFileAnalysisRepository.findByDocumentIaExecutionId(executionId))
                 .thenReturn(Optional.of(analysis));
@@ -196,5 +200,59 @@ class DocumentIAServiceImplTest {
         verify(documentIAClient).checkAnalysisStatus(executionId);
         // saveFileAnalysis is called internally, which updates and saves analysis
         verify(documentIAFileAnalysisRepository).save(analysis);
+    }
+
+    @Test
+    void should_not_analyse_document_when_there_is_no_document_ia_analysis() {
+        Document document = mock(Document.class);
+        File file = mock(File.class);
+        when(file.getDocumentIAFileAnalysis()).thenReturn(null);
+        when(document.getFiles()).thenReturn(List.of(file));
+
+        documentIAService.analyseDocument(document);
+
+        verify(documentAnalysisService, never()).analyseDocument(any(Document.class));
+    }
+
+    @Test
+    void should_not_analyse_document_when_at_least_one_analysis_is_started() {
+        Document document = mock(Document.class);
+
+        File startedFile = mock(File.class);
+        DocumentIAFileAnalysis startedAnalysis = mock(DocumentIAFileAnalysis.class);
+        when(startedAnalysis.getAnalysisStatus()).thenReturn(DocumentIAFileAnalysisStatus.STARTED);
+        when(startedFile.getDocumentIAFileAnalysis()).thenReturn(startedAnalysis);
+
+        File successFile = mock(File.class);
+        DocumentIAFileAnalysis successAnalysis = mock(DocumentIAFileAnalysis.class);
+        when(successAnalysis.getAnalysisStatus()).thenReturn(DocumentIAFileAnalysisStatus.SUCCESS);
+        when(successFile.getDocumentIAFileAnalysis()).thenReturn(successAnalysis);
+
+        when(document.getFiles()).thenReturn(List.of(startedFile, successFile));
+
+        documentIAService.analyseDocument(document);
+
+        verify(documentAnalysisService, never()).analyseDocument(any(Document.class));
+    }
+
+    @Test
+    void should_analyse_document_when_all_analyses_are_not_started() {
+        Document document = mock(Document.class);
+
+        File successFile = mock(File.class);
+        DocumentIAFileAnalysis successAnalysis = mock(DocumentIAFileAnalysis.class);
+        when(successAnalysis.getAnalysisStatus()).thenReturn(DocumentIAFileAnalysisStatus.SUCCESS);
+        when(successFile.getDocumentIAFileAnalysis()).thenReturn(successAnalysis);
+
+        File failedFile = mock(File.class);
+        DocumentIAFileAnalysis failedAnalysis = mock(DocumentIAFileAnalysis.class);
+        when(failedAnalysis.getAnalysisStatus()).thenReturn(DocumentIAFileAnalysisStatus.FAILED);
+        when(failedFile.getDocumentIAFileAnalysis()).thenReturn(failedAnalysis);
+
+        when(document.getFiles()).thenReturn(List.of(successFile, failedFile));
+
+        documentIAService.analyseDocument(document);
+
+        verify(documentAnalysisService, times(1)).analyseDocument(document);
     }
 }
