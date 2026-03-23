@@ -101,6 +101,36 @@ class RateLimitingPublicDownloadFilterTest {
     }
 
     @Test
+    void linksDocumentsPathIsRateLimited() throws Exception {
+        RateLimitingPublicDownloadFilter filter = filterWith(1, 100);
+        MockHttpServletRequest request = requestFromIp("10.0.3.1");
+        request.setRequestURI("/api/application/links/some-token/documents/file.pdf");
+
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        filter.doFilter(request, response, mockChain);
+        assertThat(response.getStatus()).isEqualTo(200);
+
+        MockHttpServletResponse blockedResponse = new MockHttpServletResponse();
+        filter.doFilter(request, blockedResponse, mockChain);
+        assertThat(blockedResponse.getStatus()).isEqualTo(429);
+    }
+
+    @Test
+    void linksManagementPathIsNotRateLimited() throws Exception {
+        RateLimitingPublicDownloadFilter filter = filterWith(1, 100);
+        MockHttpServletRequest request = requestFromIp("10.0.3.2");
+        request.setRequestURI("/api/application/links/42");
+
+        // Should always pass through without rate limiting
+        for (int i = 0; i < 5; i++) {
+            MockHttpServletResponse response = new MockHttpServletResponse();
+            filter.doFilter(request, response, mockChain);
+            assertThat(response.getStatus()).isEqualTo(200);
+        }
+        verify(mockChain, times(5)).doFilter(any(), any());
+    }
+
+    @Test
     void requestWithoutForwardedForHeaderUsesRemoteAddr() throws Exception {
         RateLimitingPublicDownloadFilter filter = filterWith(1, 100);
         MockHttpServletRequest request = new MockHttpServletRequest();
