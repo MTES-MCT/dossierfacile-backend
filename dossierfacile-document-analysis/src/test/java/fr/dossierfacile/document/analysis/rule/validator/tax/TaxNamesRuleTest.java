@@ -10,7 +10,6 @@ import fr.dossierfacile.document.analysis.rule.validator.RuleValidatorOutput;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,6 +36,17 @@ class TaxNamesRuleTest {
                 .containsExactly(
                         org.assertj.core.groups.Tuple.tuple("DOE", "MIKEAL JOHN")
                 );
+    }
+
+    @Test
+    @DisplayName("Should validate with composed names")
+    void should_validate_with_composed_names() {
+        Tenant tenant = Tenant.builder().lastName("SMITH").firstName("Amélie Sarah Emeline").build();
+        Document document = documentWithAnalysis(List.of(fakeAvisImposition("JOHN SMITH AMELIE")), tenant);
+
+        RuleValidatorOutput result = rule.validate(document);
+        assertThat(result.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.PASSED);
+        assertThat(result.rule().getRule()).isEqualTo(DocumentRule.R_TAX_NAMES);
     }
 
     @Test
@@ -130,6 +140,39 @@ class TaxNamesRuleTest {
 
         RuleValidatorOutput result = rule.validate(document);
         assertThat(result.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
+    }
+
+    @Test
+    @DisplayName("Should validate with fuzzy first name matching")
+    void should_validate_with_fuzzy_first_name_matching() {
+        Tenant tenant = Tenant.builder().lastName("DUPONT").firstName("Alezandro").build();
+        Document document = documentWithAnalysis(List.of(fakeAvisImposition("DUPONT Alessandro")), tenant);
+
+        RuleValidatorOutput result = rule.validate(document);
+        assertThat(result.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.PASSED);
+    }
+
+    @Test
+    @DisplayName("Should not valide with fuzzy first name matching Levenshtein > 3 ")
+    void should_not_validate_with_fuzzy_first_name_matching() {
+        Tenant tenant = Tenant.builder().lastName("DUPONT").firstName("Alezandro").build();
+        Document document = documentWithAnalysis(List.of(fakeAvisImposition("DUPONT Alesssandro")), tenant);
+
+        RuleValidatorOutput result = rule.validate(document);
+        assertThat(result.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.FAILED);
+    }
+
+    @Test
+    @DisplayName("Should validate with joint declaration and marital name")
+    void should_validate_with_joint_declaration_and_marital_name() {
+        Tenant tenant = Tenant.builder().lastName("DUPONT").firstName("Alice").build();
+        Document document = documentWithAnalysis(
+                List.of(fakeAvisImposition("DOE ALICE", "DUPONT GAEL")),
+                tenant
+        );
+
+        RuleValidatorOutput result = rule.validate(document);
+        assertThat(result.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.PASSED);
     }
 
     // ==========================================

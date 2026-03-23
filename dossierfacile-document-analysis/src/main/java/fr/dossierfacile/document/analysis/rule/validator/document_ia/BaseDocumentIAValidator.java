@@ -8,6 +8,7 @@ import fr.dossierfacile.common.enums.DocumentIAFileAnalysisStatus;
 import fr.dossierfacile.document.analysis.rule.validator.AbstractDocumentRuleValidator;
 import fr.dossierfacile.document.analysis.rule.validator.french_identity_card.document_ia_model.DocumentIdentity;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -30,11 +31,11 @@ public abstract class BaseDocumentIAValidator extends AbstractDocumentRuleValida
 
     protected DocumentIdentity getNamesFromDocument(Document document) {
         if (document.getGuarantor() != null) {
-            return new DocumentIdentity(List.of(document.getGuarantor().getFirstName()), document.getGuarantor().getLastName());
+            return new DocumentIdentity(Arrays.stream(document.getGuarantor().getFirstName().split(" ")).toList(), document.getGuarantor().getLastName());
         }
 
         if (document.getTenant() != null) {
-            return new DocumentIdentity(List.of(document.getTenant().getFirstName()), document.getTenant().getLastName(), document.getTenant().getPreferredName());
+            return new DocumentIdentity(Arrays.stream(document.getTenant().getFirstName().split(" ")).toList(), document.getTenant().getLastName(), document.getTenant().getPreferredName());
         }
         return null;
     }
