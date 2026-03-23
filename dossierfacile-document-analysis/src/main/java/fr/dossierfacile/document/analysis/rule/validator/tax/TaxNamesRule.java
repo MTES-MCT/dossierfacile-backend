@@ -11,8 +11,10 @@ import fr.dossierfacile.document.analysis.rule.validator.RuleValidatorOutput;
 import fr.dossierfacile.document.analysis.rule.validator.french_identity_card.document_ia_model.DocumentIdentity;
 import org.apache.commons.text.similarity.LevenshteinDistance;
 
+import java.text.Normalizer;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
@@ -59,7 +61,7 @@ import java.util.stream.Stream;
 public class TaxNamesRule extends BaseTaxRule {
 
     private static final int LAST_NAME_MAX_DISTANCE = 2;
-    private static final Pattern TOKEN_SEPARATOR = Pattern.compile("\\s+");
+    private static final int MIN_LENGTH_FOR_LEVENSHTEIN = 4;
 
     @Override
     protected boolean isBlocking() {
@@ -124,7 +126,7 @@ public class TaxNamesRule extends BaseTaxRule {
     }
 
     private RuleValidatorOutput reject(NamesRuleData ruleData) {
-        return new RuleValidatorOutput(true, isBlocking(), DocumentAnalysisRule.documentFailedRuleFromWithData(getRule(), ruleData), RuleValidatorOutput.RuleLevel.FAILED);
+        return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentFailedRuleFromWithData(getRule(), ruleData), RuleValidatorOutput.RuleLevel.FAILED);
     }
 
     @Override
@@ -216,10 +218,13 @@ public class TaxNamesRule extends BaseTaxRule {
         LevenshteinDistance levenshtein = LevenshteinDistance.getDefaultInstance();
         return normalizedIdentities.stream()
                 .flatMap(this::splitTokens)
-                .anyMatch(token -> expectedTokens.stream().anyMatch(expectedToken -> {
-                    Integer distance = levenshtein.apply(token, expectedToken);
-                    return distance != null && distance <= LAST_NAME_MAX_DISTANCE;
-                }));
+                .anyMatch(token -> expectedTokens.stream()
+                        .filter(expectedToken -> token.length() >= MIN_LENGTH_FOR_LEVENSHTEIN
+                                && expectedToken.length() >= MIN_LENGTH_FOR_LEVENSHTEIN)
+                        .anyMatch(expectedToken -> {
+                            Integer distance = levenshtein.apply(token, expectedToken);
+                            return distance != null && distance <= LAST_NAME_MAX_DISTANCE;
+                        }));
     }
 
     private Stream<String> splitTokens(String identity) {
@@ -232,6 +237,10 @@ public class TaxNamesRule extends BaseTaxRule {
         if (value == null) {
             return "";
         }
-        return value.trim().toUpperCase();
+
+        String noAccent = Normalizer.normalize(value, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}+", "");
+
+        return noAccent.trim().toUpperCase(Locale.ROOT);
     }
 }
