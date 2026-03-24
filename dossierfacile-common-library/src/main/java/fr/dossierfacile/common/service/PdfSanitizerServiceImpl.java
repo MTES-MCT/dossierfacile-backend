@@ -3,6 +3,7 @@ package fr.dossierfacile.common.service;
 import fr.dossierfacile.common.service.interfaces.PdfSanitizerService;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDDocumentNameDictionary;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
@@ -30,8 +31,11 @@ public class PdfSanitizerServiceImpl implements PdfSanitizerService {
             catalog.setOpenAction(null);
 
             // Remove AcroForm (may contain XFA, JavaScript, submit actions)
-            if (catalog.getAcroForm() != null) {
-                catalog.setAcroForm(null);
+            catalog.setAcroForm(null);
+            
+            PDDocumentNameDictionary names = catalog.getNames();
+            if (names != null && names.getJavaScript() != null) {
+                names.setJavascript(null);
             }
 
             ByteArrayOutputStream out = new ByteArrayOutputStream();
