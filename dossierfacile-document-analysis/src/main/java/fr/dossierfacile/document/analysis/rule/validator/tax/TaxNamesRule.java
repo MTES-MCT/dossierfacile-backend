@@ -4,7 +4,7 @@ import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentAnalysisRule;
 import fr.dossierfacile.common.entity.DocumentIAFileAnalysis;
 import fr.dossierfacile.common.entity.DocumentRule;
-import fr.dossierfacile.common.entity.rule.NamesRuleData;
+import fr.dossierfacile.common.entity.rule.TaxNamesRuleData;
 import fr.dossierfacile.common.model.document_ia.BarcodeModel;
 import fr.dossierfacile.common.model.document_ia.GenericProperty;
 import fr.dossierfacile.document.analysis.rule.validator.RuleValidatorOutput;
@@ -12,12 +12,10 @@ import fr.dossierfacile.document.analysis.rule.validator.french_identity_card.do
 import org.apache.commons.text.similarity.LevenshteinDistance;
 
 import java.text.Normalizer;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 /*
@@ -84,15 +82,15 @@ public class TaxNamesRule extends BaseTaxRule {
 
         var nameToMatch = getNamesFromDocument(document);
 
-        NamesRuleData namesRuleData = null;
+        TaxNamesRuleData namesRuleData = null;
         if (nameToMatch != null) {
-            var expectedName = new NamesRuleData.Name(
+            var expectedName = new TaxNamesRuleData.Name(
                     nameToMatch.getFirstNamesAsString(),
                     nameToMatch.getLastName(),
                     nameToMatch.getPreferredName()
             );
 
-            namesRuleData = new NamesRuleData(expectedName, List.of());
+            namesRuleData = new TaxNamesRuleData(expectedName, List.of());
         }
 
         var tax = documentIAAnalyses.stream()
@@ -107,8 +105,7 @@ public class TaxNamesRule extends BaseTaxRule {
 
         var listOfBarcodeIdentities = tax.stream().flatMap(it -> convertBarcodeModelToTaxIdentity(it).stream()).toList();
 
-        var listOfExtractedNames = convertBarcodeIdentityToNames(listOfBarcodeIdentities);
-        namesRuleData = new NamesRuleData(namesRuleData, listOfExtractedNames);
+        namesRuleData = new TaxNamesRuleData(namesRuleData, listOfBarcodeIdentities);
 
         var hasLastNameMatch = hasLastNameMatch(listOfBarcodeIdentities, nameToMatch);
 
@@ -125,7 +122,7 @@ public class TaxNamesRule extends BaseTaxRule {
         return new RuleValidatorOutput(true, isBlocking(), DocumentAnalysisRule.documentPassedRuleFromWithData(getRule(), namesRuleData), RuleValidatorOutput.RuleLevel.PASSED);
     }
 
-    private RuleValidatorOutput reject(NamesRuleData ruleData) {
+    private RuleValidatorOutput reject(TaxNamesRuleData ruleData) {
         return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentFailedRuleFromWithData(getRule(), ruleData), RuleValidatorOutput.RuleLevel.FAILED);
     }
 
@@ -148,16 +145,6 @@ public class TaxNamesRule extends BaseTaxRule {
                 .map(GenericProperty::getStringValue)
                 .filter(Objects::nonNull)
                 .toList();
-    }
-
-    private List<NamesRuleData.Name> convertBarcodeIdentityToNames(List<String> barcodeIdentities) {
-        return barcodeIdentities.stream()
-                .map(identity -> {
-                    var tokens = TOKEN_SEPARATOR.split(identity);
-                    var lastName = tokens[0];
-                    var firstName = Arrays.copyOfRange(tokens, 1, tokens.length);
-                    return new NamesRuleData.Name(String.join(" ", firstName), lastName, null);
-                }).toList();
     }
 
     private boolean hasFirstNameMatch(List<String> barcodeIdentities, DocumentIdentity documentIdentity) {

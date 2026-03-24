@@ -1,7 +1,7 @@
 package fr.dossierfacile.document.analysis.rule.validator.tax;
 
 import fr.dossierfacile.common.entity.*;
-import fr.dossierfacile.common.entity.rule.NamesRuleData;
+import fr.dossierfacile.common.entity.rule.TaxNamesRuleData;
 import fr.dossierfacile.common.enums.DocumentIAFileAnalysisStatus;
 import fr.dossierfacile.common.model.document_ia.BarcodeModel;
 import fr.dossierfacile.common.model.document_ia.GenericProperty;
@@ -36,9 +36,9 @@ class TaxNamesRuleTest {
 
         assertThat(result.ruleLevel()).isEqualTo(expectedLevel);
         assertThat(result.rule().getRule()).isEqualTo(DocumentRule.R_TAX_NAMES);
-        assertThat(result.rule().getRuleData()).isInstanceOf(NamesRuleData.class);
-        NamesRuleData data = (NamesRuleData) result.rule().getRuleData();
-        assertThat(data.extractedNames()).isNotEmpty();
+        assertThat(result.rule().getRuleData()).isInstanceOf(TaxNamesRuleData.class);
+        TaxNamesRuleData data = (TaxNamesRuleData) result.rule().getRuleData();
+        assertThat(data.extractedIdentities()).isNotEmpty();
     }
 
     @Test
