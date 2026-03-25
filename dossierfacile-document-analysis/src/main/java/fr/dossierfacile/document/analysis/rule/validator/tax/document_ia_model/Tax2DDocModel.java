@@ -17,4 +17,7 @@ public class Tax2DDocModel {
 
     @DocumentIAField(twoDDocName = "annee_des_revenus")
     public String anneeDesRevenus;
+
+    @DocumentIAField(twoDDocName = "revenu_fiscal_de_reference")
+    public double revenuFiscalDeReference;
 }
