@@ -155,6 +155,7 @@ public class TaxNamesRule extends BaseTaxRule {
         List<String> firstNamesToMatch = documentIdentity.getFirstNames().stream()
                 .map(this::normalize)
                 .filter(name -> !name.isBlank())
+                .distinct()
                 .toList();
 
         return hasIdentityMatch(barcodeIdentities, firstNamesToMatch, false);
@@ -168,6 +169,7 @@ public class TaxNamesRule extends BaseTaxRule {
         List<String> lastNamesToMatch = Stream.of(documentIdentity.getLastName(), documentIdentity.getPreferredName())
                 .map(this::normalize)
                 .filter(name -> !name.isBlank())
+                .flatMap(name -> Stream.of(name, name.replaceAll("[-'_]", " ")))
                 .distinct()
                 .toList();
 

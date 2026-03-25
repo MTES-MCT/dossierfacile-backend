@@ -168,10 +168,10 @@ class TaxNamesRuleTest {
                         RuleValidatorOutput.RuleLevel.PASSED
                 ),
                 Arguments.of(
-                        "Should failed composed names with - from tenant",
+                        "Should pass composed names with - from tenant (hyphen as space in 2DDoc)",
                         tenant("SMITH-DOE", "jean"),
                         List.of(fakeAvisImposition("Smith Doe jean")),
-                        RuleValidatorOutput.RuleLevel.FAILED
+                        RuleValidatorOutput.RuleLevel.PASSED
                 ),
                 Arguments.of(
                         "Should passed composed names with - from tenant",
