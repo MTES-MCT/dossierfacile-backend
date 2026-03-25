@@ -14,6 +14,7 @@ import fr.dossierfacile.api.front.service.interfaces.TenantPermissionsService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.validator.NumberOfPagesValidator;
 import fr.dossierfacile.common.config.GlobalExceptionHandler;
+import fr.dossierfacile.common.service.FileUploadPreprocessor;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import fr.dossierfacile.parameterizedtest.ArgumentBuilder;
 import fr.dossierfacile.parameterizedtest.ControllerParameter;
@@ -85,6 +86,9 @@ class RegisterGuarantorNaturalPersonControllerTest {
 
     @MockitoBean
     private TenantPermissionsService tenantPermissionsService;
+
+    @MockitoBean
+    private FileUploadPreprocessor fileUploadPreprocessor;
 
     @Nested
     class DocumentFinancialTest {
