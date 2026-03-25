@@ -31,6 +31,7 @@ public class MessageItem {
     private List<ItemDetail> itemDetailList = new ArrayList<>();
     private Long documentId;
     private String documentName;
+    private Boolean noDocument;
     @Builder.Default
     private List<MetadataItem> metadataOfFiles = new ArrayList<>();
     @Builder.Default
