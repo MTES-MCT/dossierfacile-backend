@@ -281,6 +281,7 @@ public class BOTenantController {
                         .itemDetailList(getItemDetailForSubcategoryOfDocument(document.getDocumentCategory(), document.getDocumentSubCategory(), isForGuarantor ? GUARANTOR : TENANT))
                         .documentId(document.getId())
                         .documentName(document.getName())
+                        .noDocument(document.getNoDocument())
                         .metadataOfFiles(getFilesMetadata(document))
                         .previousDeniedReasons(documentDeniedReasonsService.getLastDeniedReason(document, tenant).orElse(null))
                         .documentAnalysisReport(document.getDocumentAnalysisReport())
