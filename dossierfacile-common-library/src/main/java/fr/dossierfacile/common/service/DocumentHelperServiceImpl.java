@@ -161,7 +161,10 @@ public class DocumentHelperServiceImpl implements DocumentHelperService {
             throw new IOException("Fichier JPG non généré ou vide.");
         }
         if (jpgFile.length() > MAX_OUTPUT_JPG_SIZE_BYTES) {
-            jpgFile.delete();
+            boolean jpgDelete = jpgFile.delete();
+            if (!jpgDelete) {
+                log.error("Could not delete temporary file");
+            }
             log.error("Erreur lors de la conversion HEIC en JPG avec ImageMagick. Fichier JPG généré trop volumineux.");
             throw new IOException("Fichier JPG généré trop volumineux.");
         }
