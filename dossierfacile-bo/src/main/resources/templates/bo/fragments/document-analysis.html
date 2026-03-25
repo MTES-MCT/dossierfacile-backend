@@ -84,6 +84,16 @@
                                     </th:block>
                                 </th:block>
                             </th:block>
+                            <th:block th:each="barcode : ${result.barcodes}">
+                                <th:block th:if="${barcode.typedData != null}">
+                                    <th:block th:each="prop : ${barcode.typedData}">
+                                        <tr th:if="${prop.name == 'revenu_fiscal_de_reference' && prop.value != null && !prop.value.toString().isBlank()}">
+                                            <td class="doc-analysis-data__label">Revenu fiscal de référence</td>
+                                            <td class="doc-analysis-data__value" th:text="${prop.value}"></td>
+                                        </tr>
+                                    </th:block>
+                                </th:block>
+                            </th:block>
                         </table>
                     </div>
                 </th:block>
