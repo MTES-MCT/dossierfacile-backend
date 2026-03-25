@@ -43,6 +43,7 @@
         <commons-io.version>2.17.0</commons-io.version>
         <okio.version>3.9.1</okio.version>
         <pdfbox.version>3.0.6</pdfbox.version>
+        <tika.version>3.2.3</tika.version>
         <jbig2-imageio.version>3.0.4</jbig2-imageio.version>
         <jai-imageio-core.version>1.4.0</jai-imageio-core.version>
         <jai-imageio-jpeg2000.version>1.4.0</jai-imageio-jpeg2000.version>
