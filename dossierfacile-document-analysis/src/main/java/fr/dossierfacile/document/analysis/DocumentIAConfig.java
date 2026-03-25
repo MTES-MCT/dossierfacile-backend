@@ -40,7 +40,7 @@ public class DocumentIAConfig {
     public String getWorkflowIdForDocumentSubCategory(Document document) {
         //noinspection SwitchStatementWithTooFewBranches because we will add more workflows later
         return switch (document.getDocumentSubCategory()) {
-            case MY_NAME -> "document-barcode-extraction";
+            case MY_NAME -> "document-2ddoc-extraction";
             default -> defaultWorkflowId;
         };
     }
