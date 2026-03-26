@@ -126,16 +126,6 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
     }
 
-    /**
-     * OWASP File Upload — "Set a file size limit" (error handling).
-     */
-    @ExceptionHandler(MaxUploadSizeExceededException.class)
-    public ResponseEntity<Object> handleMaxUploadSizeExceededException(final MaxUploadSizeExceededException ex) {
-        logger.error(ex.getMessage(), ex);
-        final ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST, "File size exceeds the maximum allowed");
-        return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
-    }
-
     @ExceptionHandler({DocumentBadRequestException.class})
     public ResponseEntity<Object> handleDocumentBadRequestException(final DocumentBadRequestException ex) {
         logger.error(ex.getMessage(), ex);
