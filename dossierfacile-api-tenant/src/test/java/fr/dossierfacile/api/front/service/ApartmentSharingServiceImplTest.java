@@ -357,6 +357,16 @@ class ApartmentSharingServiceImplTest {
             assertThat(response.getListOfDocumentsAnalysisStatus())
                     .hasSize(2)
                     .containsExactlyInAnyOrder(status1, status3); // Should contain doc1 and doc3, but NOT doc2
+
+            // Then (behavioral assertions)
+            // We should check permissions for each tenant of the apartment sharing.
+            verify(tenantPermissionsService, Mockito.atLeastOnce()).canAccess("k-1", 1L);
+            verify(tenantPermissionsService, Mockito.atLeastOnce()).canAccess("k-1", 2L);
+
+            // The other tenant's document must not be queried at all.
+            verify(documentService, Mockito.never()).getDocumentAnalysisStatus(11L, tenant);
+            verify(documentService).getDocumentAnalysisStatus(10L, tenant);
+            verify(documentService).getDocumentAnalysisStatus(12L, tenant);
         }
 
         @Test
@@ -429,6 +439,17 @@ class ApartmentSharingServiceImplTest {
                     .extracting(DocumentAnalysisStatusResponse::getDocumentId)
                     .containsExactlyInAnyOrder(10L, 11L)
                     .doesNotContain(20L, 21L);
+
+            // Then (behavioral assertions)
+            verify(tenantPermissionsService, Mockito.atLeastOnce()).canAccess("k-1", 1L);
+            verify(tenantPermissionsService, Mockito.atLeastOnce()).canAccess("k-1", 2L);
+
+            // The other tenant's (and their guarantor's) documents must not be queried.
+            verify(documentService, Mockito.never()).getDocumentAnalysisStatus(20L, tenant1);
+            verify(documentService, Mockito.never()).getDocumentAnalysisStatus(21L, tenant1);
+
+            verify(documentService).getDocumentAnalysisStatus(10L, tenant1);
+            verify(documentService).getDocumentAnalysisStatus(11L, tenant1);
         }
     }
 

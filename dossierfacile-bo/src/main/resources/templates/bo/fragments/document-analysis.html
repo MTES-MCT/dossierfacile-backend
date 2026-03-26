@@ -84,6 +84,16 @@
                                     </th:block>
                                 </th:block>
                             </th:block>
+                            <th:block th:each="barcode : ${result.barcodes}">
+                                <th:block th:if="${barcode.typedData != null}">
+                                    <th:block th:each="prop : ${barcode.typedData}">
+                                        <tr th:if="${prop.name == 'revenu_fiscal_de_reference' && prop.value != null && !prop.value.toString().isBlank()}">
+                                            <td class="doc-analysis-data__label">Revenu fiscal de référence</td>
+                                            <td class="doc-analysis-data__value" th:text="${prop.value}"></td>
+                                        </tr>
+                                    </th:block>
+                                </th:block>
+                            </th:block>
                         </table>
                     </div>
                 </th:block>
@@ -132,6 +142,7 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="#000091"><path d="M19.5,2.5h-15c-1.1,0-2,0.9-2,2v15c0,1.1,0.9,2,2,2h15c1.1,0,2-0.9,2-2v-15C21.5,3.4,20.6,2.5,19.5,2.5z M13,17h-2v-6h2V17z M13,9h-2V7h2V9z"/></svg>
             <span>Ce document n'a pas pu être analysé. Il est à traiter manuellement.</span>
         </div>
+        <!-- User custom message -->
     </th:block>
 
 </div>

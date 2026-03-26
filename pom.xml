@@ -31,7 +31,7 @@
     <description>DossierFacile</description>
 
     <properties>
-        <revision>3.5.1</revision>
+        <revision>3.5.2</revision>
         <java.version>21</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
@@ -43,6 +43,7 @@
         <commons-io.version>2.17.0</commons-io.version>
         <okio.version>3.9.1</okio.version>
         <pdfbox.version>3.0.6</pdfbox.version>
+        <tika.version>3.2.3</tika.version>
         <jbig2-imageio.version>3.0.4</jbig2-imageio.version>
         <jai-imageio-core.version>1.4.0</jai-imageio-core.version>
         <jai-imageio-jpeg2000.version>1.4.0</jai-imageio-jpeg2000.version>

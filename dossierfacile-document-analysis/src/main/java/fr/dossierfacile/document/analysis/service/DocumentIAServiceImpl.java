@@ -1,12 +1,12 @@
 package fr.dossierfacile.document.analysis.service;
 
-import fr.dossierfacile.document.analysis.DocumentIAConfig;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentIAFileAnalysis;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.enums.DocumentIAFileAnalysisStatus;
 import fr.dossierfacile.common.model.document_ia.DocumentIAResultModel;
 import fr.dossierfacile.common.repository.DocumentIAFileAnalysisRepository;
+import fr.dossierfacile.document.analysis.DocumentIAConfig;
 import fr.dossierfacile.document.analysis.external.documentia.DocumentIAClient;
 import fr.dossierfacile.document.analysis.external.documentia.DocumentIARequest;
 import lombok.RequiredArgsConstructor;
@@ -67,14 +67,18 @@ public class DocumentIAServiceImpl implements DocumentIAService {
 
     public void analyseDocument(Document document) {
         // We try to retrieve all the pending analyses for the document. If there is none, we can start processing the document. Otherwise we wait the next webhook callback!
-        var notFinishedAnalyses = document.getFiles()
+        var analysis = document.getFiles()
                 .stream()
                 .map(File::getDocumentIAFileAnalysis)
                 .filter(Objects::nonNull)
-                .filter(analysis -> analysis.getAnalysisStatus() == DocumentIAFileAnalysisStatus.STARTED)
+                .toList();
+
+        var startedAnalysis = analysis.stream()
+                .filter(it -> it.getAnalysisStatus() == DocumentIAFileAnalysisStatus.STARTED)
                 .count();
 
-        if (notFinishedAnalyses == 0) {
+        // If we have some analysis and anyone is in STARTED status we can analyze the document.
+        if (!analysis.isEmpty() && startedAnalysis == 0) {
             log.warn("Start document analysis for document id: {}", document.getId());
             documentAnalysisService.analyseDocument(document);
         }

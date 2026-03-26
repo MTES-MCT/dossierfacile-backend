@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.List;
@@ -54,6 +55,15 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<String> handleNoResourceFoundException(NoResourceFoundException e) {
         return new ResponseEntity<>("Resource not found", HttpStatus.NOT_FOUND);
+    }
+
+    /**
+     * OWASP File Upload — "Set a file size limit" (error handling).
+     * Returns 400 instead of 500 when the upload exceeds configured limits.
+     */
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiError> handleMaxUploadSizeExceededException(MaxUploadSizeExceededException e) {
+        return new ResponseEntity<>(new ApiError(List.of("File size exceeds the maximum allowed")), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(ObjectOptimisticLockingFailureException.class)

@@ -954,8 +954,8 @@
                                     <div th:if="${document.getMonthlySum()!=null}">
                                         <span th:text="${'Montly sum: '+document.getMonthlySum()}"></span>
                                     </div>
-                                    <div th:if="${document.getCustomText()!=null}">
-                                        <span th:text="${'Custom text: '+document.getCustomText()}"></span>
+                                    <div th:if="${document.getNoDocument() == true}">
+                                        <span>Pas de document</span>
                                     </div>
                                     <ul>
                                         <li style="margin-top: 5px"
@@ -974,6 +974,13 @@
                                         documentRuleLevel=${documentRuleLevel},
                                         isTaxFrench=${document.documentCategoryStep != null && document.documentCategoryStep.name() == 'TAX_FRENCH_NOTICE'}
                                       )}"></div>
+                                    <div th:if="${document.getCustomText() != null && !document.getCustomText().isBlank()}"
+                                         class="doc-analysis-explanation">
+                                        <div class="doc-analysis-explanation__title">Explication de l'utilisateur</div>
+                                        <div class="doc-analysis-explanation__text">
+                                            "<span th:text="${document.getCustomText()}"></span>"
+                                        </div>
+                                    </div>
                                     <div th:if="${document.avisDetected}">
                                         - Attention, un avis de situation a été détecté !
                                     </div>
@@ -1157,8 +1164,8 @@
                                     <div th:if="${document.getMonthlySum()!=null}">
                                         <span th:text="${'Montly sum: '+document.getMonthlySum()}"></span>
                                     </div>
-                                    <div th:if="${document.getCustomText()!=null}">
-                                        <span th:text="${'Custom text: '+document.getCustomText()}"></span>
+                                    <div th:if="${document.getNoDocument() == true}">
+                                        <span>Pas de document</span>
                                     </div>
                                     <ul>
                                         <li style="margin-top: 5px"
@@ -1177,6 +1184,13 @@
                                         documentRuleLevel=${documentRuleLevel},
                                         isTaxFrench=${document.documentCategoryStep != null && document.documentCategoryStep.name() == 'TAX_FRENCH_NOTICE'}
                                       )}"></div>
+                                    <div th:if="${document.getCustomText() != null && !document.getCustomText().isBlank()}"
+                                         class="doc-analysis-explanation">
+                                        <div class="doc-analysis-explanation__title">Explication de l'utilisateur</div>
+                                        <div class="doc-analysis-explanation__text">
+                                            "<span th:text="${document.getCustomText()}"></span>"
+                                        </div>
+                                    </div>
                                     <div th:if="${document.avisDetected}">
                                         - Attention, un avis de situation a été détecté !
                                     </div>

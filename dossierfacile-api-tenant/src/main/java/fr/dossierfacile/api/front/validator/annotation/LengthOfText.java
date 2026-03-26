@@ -15,7 +15,7 @@ import java.lang.annotation.Target;
         validatedBy = {LengthOfTextValidator.class}
 )
 public @interface LengthOfText {
-    String message() default "the number of words must be less than or equal to {max}";
+    String message() default "the number of chars must be less than or equal to {max}";
 
     Class<?>[] groups() default {};
 

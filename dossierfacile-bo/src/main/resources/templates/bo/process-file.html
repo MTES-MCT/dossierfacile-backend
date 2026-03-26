@@ -76,8 +76,18 @@
                     </div>
                 </div>
                 <div class="row mt-4">
+                    <div class="col-md-8" style="min-height: 700px; max-height: 1050px"
+                         th:if="${messageItem.getNoDocument() == true}">
+                        <div class="full-size-div">
+                            <div class="card-div">
+                                <div class="card" style="background-color: rgb(232, 237, 241)">
+                                    <h3 class="h3-style" style="color: #333;">Pas de document</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="col-md-8 d-flex flex-column" style="min-height: 700px; max-height: 1050px"
-                         th:if="${messageItem.getCustomTex()}==null">
+                         th:if="${messageItem.getNoDocument() != true}">
 
                         <div class="d-flex justify-content-end mb-2">
                             <button type="button" class="btn btn-outline-info btn-sm"
@@ -95,18 +105,6 @@
                         <embed class="document-embed flex-grow-1"
                                th:src="'/pdf-viewer/pdfjs-dist/web/viewer.html?file=/documents/'+${messageItem.getDocumentName()}"
                                width="100%"/>
-                    </div>
-                    <div class="col-md-8" style="min-height: 700px; max-height: 1050px"
-                         th:if="${messageItem.getCustomTex()}!=null">
-                        <div class="full-size-div">
-                            <div class="card-div">
-                                <div class="card" style="background-color: rgb(232, 237, 241)">
-                                    <h3 class="h3-style">Texte du document :</h3>
-                                </div>
-                                <p class="bold p-style">
-                                    <span class="span-style" th:text="${messageItem.getCustomTex()}"></span></p>
-                            </div>
-                        </div>
                     </div>
                     <div class="align-items-center col-md-4 display-flex height-100pct flex-direction-column">
                         <div class="display-flex flex-grow-1 margin-top-25px overflow-auto padding-right-0px"
@@ -179,6 +177,13 @@
                                         documentRuleLevel=${documentRuleLevel},
                                         isTaxFrench=${messageItem.documentCategoryStep != null && messageItem.documentCategoryStep.name() == 'TAX_FRENCH_NOTICE'}
                                       )}">
+                                    </div>
+                                    <div th:if="${messageItem.getCustomTex() != null && !messageItem.getCustomTex().isBlank()}"
+                                         class="doc-analysis-explanation">
+                                        <div class="doc-analysis-explanation__title">Explication de l'utilisateur</div>
+                                        <div class="doc-analysis-explanation__text">
+                                            "<span th:text="${messageItem.getCustomTex()}"></span>"
+                                        </div>
                                     </div>
                                     <div class="letter" style="padding: 7px"
                                          th:if="${messageItem.avisDetected}!=null and ${messageItem.avisDetected}==true">
@@ -263,8 +268,18 @@
                     </div>
                     <div class="row mt-4">
 
+                        <div class="col-md-8" style="min-height: 700px; max-height: 1050px"
+                             th:if="${messageItem.getNoDocument() == true}">
+                            <div class="full-size-div">
+                                <div class="card-div">
+                                    <div class="card" style="background-color: rgb(232, 237, 241)">
+                                        <h3 class="h3-style" style="color: #333;">Pas de document</h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <div class="col-md-8 d-flex flex-column" style="min-height: 700px; max-height: 1050px"
-                             th:if="${messageItem.getCustomTex()}==null">
+                             th:if="${messageItem.getNoDocument() != true}">
 
                             <div class="d-flex justify-content-end mb-2">
                                 <button type="button" class="btn btn-outline-info btn-sm"
@@ -282,19 +297,6 @@
                             <embed class="document-embed flex-grow-1"
                                    th:src="'/pdf-viewer/pdfjs-dist/web/viewer.html?file=/documents/'+${messageItem.getDocumentName()}"
                                    width="100%"/>
-                        </div>
-                        <div class="col-md-8" style="min-height: 700px; max-height: 1050px"
-                             th:if="${messageItem.getCustomTex()}!=null">
-                            <div class="full-size-div">
-                                <div class="card-div">
-                                    <div class="card" style="background-color: rgb(232, 237, 241)">
-                                        <h3 class="h3-style">Texte du document :</h3>
-                                    </div>
-                                    <p class="bold p-style">
-                                        <span class="span-style" th:text="${messageItem.getCustomTex()}"></span></p>
-                                </div>
-
-                            </div>
                         </div>
                         <div class="align-items-center col-md-4 display-flex height-100pct flex-direction-column">
                             <div class="display-flex flex-grow-1 margin-top-25px overflow-auto padding-right-0px"
@@ -390,6 +392,13 @@
                                             documentRuleLevel=${documentRuleLevel},
                                             isTaxFrench=${messageItem.documentCategoryStep != null && messageItem.documentCategoryStep.name() == 'TAX_FRENCH_NOTICE'}
                                           )}">
+                                        </div>
+                                        <div th:if="${messageItem.getCustomTex() != null && !messageItem.getCustomTex().isBlank()}"
+                                             class="doc-analysis-explanation">
+                                            <div class="doc-analysis-explanation__title">Explication de l'utilisateur</div>
+                                            <div class="doc-analysis-explanation__text">
+                                                "<span th:text="${messageItem.getCustomTex()}"></span>"
+                                            </div>
                                         </div>
                                         <div th:if="${!messageItem.analyzedFiles.isEmpty()}" style="padding-left: 15px">
                                             <h4>Lecture automatiques :</h4>

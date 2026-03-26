@@ -47,12 +47,11 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 @WebMvcTest(DocumentController.class)
 @ActiveProfiles("test")
@@ -219,6 +218,7 @@ class DocumentControllerTest {
                     .authorities(new SimpleGrantedAuthority("SCOPE_dossier"));
 
             CommentAnalysisForm formWithUnauthorizedTenant = new CommentAnalysisForm(1L, 99L, "comment");
+            CommentAnalysisForm formWithTooLongComment = new CommentAnalysisForm(1L, 1L, "a".repeat(2001));
 
             return ArgumentBuilder.buildListOfArguments(
                     Pair.of("Should respond 403 when tenant has no permission on requested tenantId",
@@ -231,6 +231,21 @@ class DocumentControllerTest {
                                         return v;
                                     },
                                     Collections.emptyList()
+                            )
+                    ),
+                    Pair.of("Should respond 400 when comment exceeds 2000 characters",
+                            new ControllerParameter<>(
+                                    new CommentAnalysisParam(formWithTooLongComment),
+                                    400,
+                                    jwtTokenWithDossier,
+                                    (v) -> {
+                                        when(self.tenantPermissionsService.canAccess("keycloak-user-id", 1L)).thenReturn(true);
+                                        return v;
+                                    },
+                                    List.of(
+                                            jsonPath("$.errors").isArray(),
+                                            jsonPath("$.errors[0]").value("comment: the number of chars must be less than or equal to 2000")
+                                    )
                             )
                     )
             );

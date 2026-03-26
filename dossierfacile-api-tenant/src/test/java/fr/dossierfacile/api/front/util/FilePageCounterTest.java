@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.front.util;
 
+import fr.dossierfacile.common.model.ValidatedFile;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -24,17 +25,17 @@ class FilePageCounterTest {
     void should_count_pdf_pages(String fileName, int expectedPageCount) throws IOException {
         var file = multipartFile(MediaType.APPLICATION_PDF, getFileBytes(fileName));
 
-        int pageCount = pageCounter(file).getTotalNumberOfPages();
+        int pageCount = pageCounter(file, "application/pdf").getTotalNumberOfPages();
 
         assertThat(pageCount).isEqualTo(expectedPageCount);
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"TEXT_PLAIN", "IMAGE_PNG", "IMAGE_JPG"})
-    void should_count_other_files_as_one_page(MediaType mediaType) throws IOException {
-        var file = multipartFile(mediaType, "Test".getBytes());
+    @ValueSource(strings = {"text/plain", "image/png", "image/jpeg"})
+    void should_count_other_files_as_one_page(String mimeType) throws IOException {
+        var file = multipartFile(MediaType.APPLICATION_OCTET_STREAM, "Test".getBytes());
 
-        int pageCount = pageCounter(file).getTotalNumberOfPages();
+        int pageCount = pageCounter(file, mimeType).getTotalNumberOfPages();
 
         assertThat(pageCount).isEqualTo(1);
     }
@@ -43,28 +44,32 @@ class FilePageCounterTest {
     void should_ignore_empty_files() throws IOException {
         var file = multipartFile(MediaType.APPLICATION_PDF, new byte[]{});
 
-        int pageCount = pageCounter(file).getTotalNumberOfPages();
+        int pageCount = pageCounter(file, "application/pdf").getTotalNumberOfPages();
 
         assertThat(pageCount).isEqualTo(0);
     }
 
     @Test
     void should_count_total_number_of_pages() throws IOException {
-        List<MultipartFile> files = List.of(
-                multipartFile(MediaType.TEXT_PLAIN, "Test".getBytes()),
-                multipartFile(MediaType.IMAGE_JPEG, "Test".getBytes()),
-                multipartFile(MediaType.APPLICATION_PDF, getFileBytes("one-page.pdf")),
-                multipartFile(MediaType.APPLICATION_PDF, getFileBytes("two-pages.pdf")),
-                multipartFile(MediaType.APPLICATION_PDF, new byte[]{})
+        List<ValidatedFile> validatedFiles = List.of(
+                validated(multipartFile(MediaType.TEXT_PLAIN, "Test".getBytes()), "text/plain"),
+                validated(multipartFile(MediaType.IMAGE_JPEG, "Test".getBytes()), "image/jpeg"),
+                validated(multipartFile(MediaType.APPLICATION_PDF, getFileBytes("one-page.pdf")), "application/pdf"),
+                validated(multipartFile(MediaType.APPLICATION_PDF, getFileBytes("two-pages.pdf")), "application/pdf"),
+                validated(multipartFile(MediaType.APPLICATION_PDF, new byte[]{}), "application/pdf")
         );
 
-        int pageCount = new FilePageCounter(files).getTotalNumberOfPages();
+        int pageCount = new FilePageCounter(validatedFiles).getTotalNumberOfPages();
 
         assertThat(pageCount).isEqualTo(5);
     }
 
-    private FilePageCounter pageCounter(MultipartFile file) {
-        return new FilePageCounter(List.of(file));
+    private FilePageCounter pageCounter(MultipartFile file, String mimeType) {
+        return new FilePageCounter(List.of(validated(file, mimeType)));
+    }
+
+    private ValidatedFile validated(MultipartFile file, String mimeType) {
+        return new ValidatedFile(file, mimeType);
     }
 
     private MockMultipartFile multipartFile(MediaType mediaType, byte[] bytes) {

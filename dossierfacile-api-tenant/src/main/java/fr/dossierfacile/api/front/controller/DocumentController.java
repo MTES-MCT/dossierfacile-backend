@@ -15,6 +15,7 @@ import fr.dossierfacile.common.utils.FileUtility;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -66,7 +67,7 @@ public class DocumentController {
 
     @PreAuthorize("hasPermissionOnTenant(#commentAnalysisForm.tenantId)")
     @PostMapping(value = "/commentAnalysis", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<TenantModel> commentAnalysis(@RequestBody CommentAnalysisForm commentAnalysisForm) {
+    public ResponseEntity<TenantModel> commentAnalysis(@Validated @RequestBody CommentAnalysisForm commentAnalysisForm) {
         var tenant = authenticationFacade.getTenant(commentAnalysisForm.getTenantId());
         try {
             tenantService.addCommentAnalysis(tenant, commentAnalysisForm.getDocumentId(), commentAnalysisForm.getComment());
