@@ -150,15 +150,27 @@ class TaxNamesRuleTest {
                         RuleValidatorOutput.RuleLevel.PASSED
                 ),
                 Arguments.of(
-                        "Should failed when short last names",
-                        tenant("XU", "jean"),
-                        List.of(fakeAvisImposition("de jean")),
+                        "Should failed when only first name is present",
+                        tenant("XU", "De Jean"),
+                        List.of(fakeAvisImposition("De Jean")),
                         RuleValidatorOutput.RuleLevel.FAILED
                 ),
                 Arguments.of(
-                        "Should failed composed names from tenant",
-                        tenant("SMITH DOE", "jean"),
-                        List.of(fakeAvisImposition("Smith jean")),
+                        "Should passed with exact short last names",
+                        tenant("XU YI", "Jean"),
+                        List.of(fakeAvisImposition("XU YI Jean")),
+                        RuleValidatorOutput.RuleLevel.PASSED
+                ),
+                Arguments.of(
+                        "Should failed when short last names, otherwise rule is too permissive",
+                        tenant("XU YI", "Jean"),
+                        List.of(fakeAvisImposition("YI Jean")),
+                        RuleValidatorOutput.RuleLevel.FAILED
+                ),
+                Arguments.of(
+                        "Should failed short composed names, otherwise rule is too permissive",
+                        tenant("SMITH DOE", "Jean"),
+                        List.of(fakeAvisImposition("DOE Jean")),
                         RuleValidatorOutput.RuleLevel.FAILED
                 ),
                 Arguments.of(
@@ -183,6 +195,42 @@ class TaxNamesRuleTest {
                         "Should passed",
                         tenant("SMITH-DOE", "A"),
                         List.of(fakeAvisImposition("SMITH-DOE A")),
+                        RuleValidatorOutput.RuleLevel.PASSED
+                ),
+                Arguments.of(
+                        "Should pass with hyphenated first names and second declarant mismatch",
+                        tenant("Dubois", "Pierre-Paul"),
+                        List.of(fakeAvisImposition("DUBOIS PIERRE PAUL", "DUBOIS MARIE CLAIRE")),
+                        RuleValidatorOutput.RuleLevel.PASSED
+                ),
+                Arguments.of(
+                        "Should pass with multiple first names and hyphen",
+                        tenant("DIAKITE", "Amadou-Oumar Diallo"),
+                        List.of(fakeAvisImposition("DIAKITE AMADOU OUMAR")),
+                        RuleValidatorOutput.RuleLevel.PASSED
+                ),
+                Arguments.of(
+                        "Should pass with composed tenant last name and partial barcode last name",
+                        tenant("GONZALEZ RODRIGUEZ", "Carlos Manuel"),
+                        List.of(fakeAvisImposition("GONZALEZ CARLOS")),
+                        RuleValidatorOutput.RuleLevel.PASSED
+                ),
+                Arguments.of(
+                        "Should pass with accent normalization in first name",
+                        tenant("Fontaine", "Marie-Cécile"),
+                        List.of(fakeAvisImposition("FONTAINE LUCAS", "FONTAINE MARIE CECILE")),
+                        RuleValidatorOutput.RuleLevel.PASSED
+                ),
+                Arguments.of(
+                        "Should pass with hyphenated tenant identity normalized as spaces",
+                        tenant("Dubois-Rivière", "Thomas-Antoine"),
+                        List.of(fakeAvisImposition("DUBOIS RIVIERE THOMAS ANTOINE", "LEFEVRE CAMILLE")),
+                        RuleValidatorOutput.RuleLevel.PASSED
+                ),
+                Arguments.of(
+                        "Should pass with apostrophe and multiple composed last names",
+                        tenant("OMAR D'SOU KONATE", "Aïcha"),
+                        List.of(fakeAvisImposition("DSOU AICHA")),
                         RuleValidatorOutput.RuleLevel.PASSED
                 )
         );
