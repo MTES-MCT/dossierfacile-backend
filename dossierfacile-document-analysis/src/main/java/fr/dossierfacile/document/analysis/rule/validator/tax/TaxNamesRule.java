@@ -191,7 +191,7 @@ public class TaxNamesRule extends BaseTaxRule {
             // filter out short last names otherwise rule is too permissive
             composedVariant = tokens.stream()
                 .filter(token -> token.length() >= MIN_LENGTH_FOR_LEVENSHTEIN)
-                .map(token -> token.replaceAll("[-'_]", ""));
+                .map(token -> token.replaceAll("[-'_]", " "));
         }
 
         return Stream.concat(baseVariants, composedVariant);

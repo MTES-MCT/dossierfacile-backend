@@ -150,9 +150,9 @@ class TaxNamesRuleTest {
                         RuleValidatorOutput.RuleLevel.PASSED
                 ),
                 Arguments.of(
-                        "Should failed when short last names",
-                        tenant("XU", "de jean"),
-                        List.of(fakeAvisImposition("de jean")),
+                        "Should failed when only first name is present",
+                        tenant("XU", "De Jean"),
+                        List.of(fakeAvisImposition("De Jean")),
                         RuleValidatorOutput.RuleLevel.FAILED
                 ),
                 Arguments.of(
