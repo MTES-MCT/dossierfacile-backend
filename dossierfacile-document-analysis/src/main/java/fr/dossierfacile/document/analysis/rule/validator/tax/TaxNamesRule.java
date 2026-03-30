@@ -8,12 +8,9 @@ import fr.dossierfacile.common.entity.rule.TaxNamesRuleData;
 import fr.dossierfacile.common.model.document_ia.BarcodeModel;
 import fr.dossierfacile.common.model.document_ia.GenericProperty;
 import fr.dossierfacile.document.analysis.rule.validator.RuleValidatorOutput;
-import fr.dossierfacile.document.analysis.rule.validator.french_identity_card.document_ia_model.DocumentIdentity;
-import org.apache.commons.text.similarity.LevenshteinDistance;
+import fr.dossierfacile.document.analysis.rule.validator.util.IdentityMatchUtil;
 
-import java.text.Normalizer;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -57,9 +54,6 @@ import java.util.stream.Stream;
  *   sans perdre la sécurité apportée par une vérification explicite nom + prénom.
  */
 public class TaxNamesRule extends BaseTaxRule {
-
-    private static final int LAST_NAME_MAX_DISTANCE = 2;
-    private static final int MIN_LENGTH_FOR_LEVENSHTEIN = 4;
 
     @Override
     protected boolean isBlocking() {
@@ -107,13 +101,13 @@ public class TaxNamesRule extends BaseTaxRule {
 
         namesRuleData = new TaxNamesRuleData(namesRuleData, listOfBarcodeIdentities);
 
-        var hasLastNameMatch = hasLastNameMatch(listOfBarcodeIdentities, nameToMatch);
+        var hasLastNameMatch = IdentityMatchUtil.hasLastNameMatch(listOfBarcodeIdentities, nameToMatch);
 
         if (!hasLastNameMatch) {
             return reject(namesRuleData);
         }
 
-        var hasFirstNameMatch = hasFirstNameMatch(listOfBarcodeIdentities, nameToMatch);
+        var hasFirstNameMatch = IdentityMatchUtil.hasFirstNameMatch(listOfBarcodeIdentities, nameToMatch);
 
         if (!hasFirstNameMatch) {
             return reject(namesRuleData);
@@ -145,112 +139,5 @@ public class TaxNamesRule extends BaseTaxRule {
                 .map(GenericProperty::getStringValue)
                 .filter(Objects::nonNull)
                 .toList();
-    }
-
-    private boolean hasFirstNameMatch(List<String> barcodeIdentities, DocumentIdentity documentIdentity) {
-        if (documentIdentity == null) {
-            return false;
-        }
-
-        List<String> firstNamesToMatch = documentIdentity.getFirstNames().stream()
-                .map(this::normalize)
-                .filter(name -> !name.isBlank())
-                .flatMap(name -> Stream.of(name, name.replaceAll("[-'_]", " ")))
-                .flatMap(this::splitTokens)
-                .distinct()
-                .toList();
-
-        return hasIdentityMatch(barcodeIdentities, firstNamesToMatch, false);
-    }
-
-    private boolean hasLastNameMatch(List<String> barcodeIdentities, DocumentIdentity documentIdentity) {
-        if (documentIdentity == null) {
-            return false;
-        }
-
-        List<String> lastNamesToMatch = Stream.of(documentIdentity.getLastName(), documentIdentity.getPreferredName())
-                .map(this::normalize)
-                .filter(name -> !name.isBlank())
-                .flatMap(this::lastNameVariants)
-                .distinct()
-                .toList();
-
-        return hasIdentityMatch(barcodeIdentities, lastNamesToMatch, true);
-    }
-
-    private Stream<String> lastNameVariants(String normalizedName) {
-        Stream<String> baseVariants = Stream.of(
-                normalizedName,
-                normalizedName.replaceAll("[-'_]", " ")
-        );
-
-        Stream<String> composedVariant = Stream.empty();
-        List<String> tokens = splitTokens(normalizedName).toList();
-        
-        if (tokens.size() >= 2 ) { // normalizedName is composed
-            // filter out short last names otherwise rule is too permissive
-            composedVariant = tokens.stream()
-                .filter(token -> token.length() >= MIN_LENGTH_FOR_LEVENSHTEIN)
-                .map(token -> token.replaceAll("[-'_]", " "));
-        }
-
-        return Stream.concat(baseVariants, composedVariant);
-    }
-
-    private boolean hasIdentityMatch(List<String> barcodeIdentities, List<String> expectedTokens, boolean strictOnWholeIdentity) {
-        if (barcodeIdentities == null || barcodeIdentities.isEmpty() || expectedTokens.isEmpty()) {
-            return false;
-        }
-
-        List<String> normalizedIdentities = barcodeIdentities.stream()
-                .map(this::normalize)
-                .filter(identity -> !identity.isBlank())
-                .toList();
-
-        if (normalizedIdentities.isEmpty()) {
-            return false;
-        }
-
-        boolean strictMatch;
-        if (strictOnWholeIdentity) {
-            strictMatch = normalizedIdentities.stream()
-                    .anyMatch(identity -> expectedTokens.stream().anyMatch(identity::contains));
-        } else {
-            strictMatch = normalizedIdentities.stream()
-                    .flatMap(this::splitTokens)
-                    .anyMatch(token -> expectedTokens.stream().anyMatch(token::contains));
-        }
-
-        if (strictMatch) {
-            return true;
-        }
-
-        LevenshteinDistance levenshtein = LevenshteinDistance.getDefaultInstance();
-        return normalizedIdentities.stream()
-                .flatMap(this::splitTokens)
-                .anyMatch(token -> expectedTokens.stream()
-                        .filter(expectedToken -> token.length() >= MIN_LENGTH_FOR_LEVENSHTEIN
-                                && expectedToken.length() >= MIN_LENGTH_FOR_LEVENSHTEIN)
-                        .anyMatch(expectedToken -> {
-                            Integer distance = levenshtein.apply(token, expectedToken);
-                            return distance != null && distance <= LAST_NAME_MAX_DISTANCE;
-                        }));
-    }
-
-    private Stream<String> splitTokens(String identity) {
-        return TOKEN_SEPARATOR.splitAsStream(identity)
-                .filter(Objects::nonNull)
-                .filter(token -> !token.isBlank());
-    }
-
-    private String normalize(String value) {
-        if (value == null) {
-            return "";
-        }
-
-        String noAccent = Normalizer.normalize(value, Normalizer.Form.NFD)
-                .replaceAll("\\p{M}+", "");
-
-        return noAccent.trim().toUpperCase(Locale.ROOT);
     }
 }

@@ -8,7 +8,7 @@ import fr.dossierfacile.document.analysis.rule.validator.RuleValidatorOutput;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.BaseDocumentIAValidator;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.mapper.DocumentIAMultiMapper;
 import fr.dossierfacile.document.analysis.rule.validator.payslip.document_ia_model.PayslipNames;
-import fr.dossierfacile.document.analysis.util.NameUtil;
+import fr.dossierfacile.document.analysis.rule.validator.util.IdentityMatchUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -46,7 +46,6 @@ public class PayslipNameMatch extends BaseDocumentIAValidator {
                     nameToMatch.getLastName(),
                     nameToMatch.getPreferredName()
             );
-
             namesRuleData = new NamesRuleData(expectedName, List.of());
         }
 
@@ -58,28 +57,34 @@ public class PayslipNameMatch extends BaseDocumentIAValidator {
             return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFromWithData(getRule(), namesRuleData), RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
         }
 
-        var isNameMatch = true;
+        var extractedPayslips = new DocumentIAMultiMapper().map(documentIAAnalyses, PayslipNames.class);
 
-        var extractedIdentities = new DocumentIAMultiMapper().map(documentIAAnalyses, PayslipNames.class);
-
-        var listOfExtractedNames = new ArrayList<NamesRuleData.Name>();
-        for (PayslipNames name : extractedIdentities) {
-            if (!NameUtil.isNameMatching(nameToMatch, name)) {
-                isNameMatch = false;
-            }
-            listOfExtractedNames.add(
-                    new NamesRuleData.Name(
-                            String.join(" ", name.getFirstNames()),
-                            name.getLastName(),
-                            null
-                    )
-            );
+        if (extractedPayslips.isEmpty()) {
+            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFromWithData(getRule(), namesRuleData), RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
         }
 
-        namesRuleData = new NamesRuleData(
-                namesRuleData,
-                listOfExtractedNames
-        );
+        var listOfExtractedNames = new ArrayList<NamesRuleData.Name>();
+        var isNameMatch = true;
+
+        for (PayslipNames payslip : extractedPayslips) {
+            String identityString = payslip.getIdentityString();
+            listOfExtractedNames.add(new NamesRuleData.Name(null, identityString, null));
+
+            if (identityString == null) {
+                isNameMatch = false;
+                continue;
+            }
+
+            List<String> identities = List.of(identityString);
+            boolean lastNameMatches = IdentityMatchUtil.hasLastNameMatch(identities, nameToMatch);
+            boolean firstNameMatches = IdentityMatchUtil.hasFirstNameMatch(identities, nameToMatch);
+
+            if (!lastNameMatches || !firstNameMatches) {
+                isNameMatch = false;
+            }
+        }
+
+        namesRuleData = new NamesRuleData(namesRuleData, listOfExtractedNames);
 
         if (isNameMatch) {
             return new RuleValidatorOutput(true, isBlocking(), DocumentAnalysisRule.documentPassedRuleFromWithData(getRule(), namesRuleData), RuleValidatorOutput.RuleLevel.PASSED);

@@ -2,42 +2,25 @@ package fr.dossierfacile.document.analysis.rule.validator.payslip.document_ia_mo
 
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
-import fr.dossierfacile.common.utils.IDocumentIdentity;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.mapper.DocumentIAField;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.mapper.DocumentIAModel;
 import lombok.Setter;
 
-import java.util.List;
-
 @Setter
 @DocumentIAModel(documentCategory = DocumentCategory.FINANCIAL, documentSubCategory = DocumentSubCategory.SALARY)
-public class PayslipNames implements IDocumentIdentity {
+public class PayslipNames {
 
-    @DocumentIAField(
-            extractionName = "nom_salarie"
-    )
-    public String lastName;
+    @DocumentIAField(twoDDocName = "beneficiaire")
+    public BeneficiaireModel beneficiaire;
 
-    @DocumentIAField(
-            extractionName = "prenom_salarie"
-    )
-    public String firstName;
+    @DocumentIAField(extractionName = "identite_salarie")
+    public String identiteString;
 
-    @Override
-    public List<String> getFirstNames() {
-        if (firstName != null) {
-            return List.of(firstName);
+    public String getIdentityString() {
+        if (beneficiaire != null) {
+            String fromBeneficiaire = beneficiaire.resolveIdentityString();
+            if (fromBeneficiaire != null) return fromBeneficiaire;
         }
-        return List.of();
-    }
-
-    @Override
-    public String getLastName() {
-        return lastName;
-    }
-
-    @Override
-    public String getPreferredName() {
-        return null;
+        return identiteString;
     }
 }
