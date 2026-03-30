@@ -40,11 +40,9 @@ import static org.mockito.Mockito.when;
 
 /**
  *
- * This test demonstrates inconsistency between tenant and guarantor handling of customText
- * for OTHER_TAX documents when noDocument=false (i.e. files are provided).
- * How to reproduce in frontend: "Pas d'avis d'imposition" > "Autre Situation"
- * Tenant: saves customText regardless of noDocument flag.
- * Guarantor: only saves customText when noDocument=true — loses it when files are present.
+ * Ensures tenant and guarantor both persist customText for OTHER_TAX documents
+ * when noDocument=false (i.e. files are provided).
+ * How to reproduce in frontend: "Pas d'avis d'imposition" > "Autre Situation".
  */
 @ExtendWith(MockitoExtension.class)
 class DocumentTaxCustomTextTest {
@@ -165,8 +163,7 @@ class DocumentTaxCustomTextTest {
             invokeSaveDocument(documentTaxGuarantor, tenant, form);
 
             Document saved = captor.getValue();
-            // guarantor loses customText when noDocument=false, unlike tenant
-            assertThat(saved.getCustomText()).isNull();
+            assertThat(saved.getCustomText()).isEqualTo(EXPLANATION);
             assertThat(saved.getNoDocument()).isFalse();
         }
     }

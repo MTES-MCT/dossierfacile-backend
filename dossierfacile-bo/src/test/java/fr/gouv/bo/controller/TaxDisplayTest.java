@@ -147,6 +147,13 @@ class TaxDisplayTest {
 
     private void addGuarantorDocument(Guarantor guarantor, DocumentCategory category,
                                       DocumentSubCategory subCategory, Boolean noDocument, String customText) {
+        addGuarantorDocument(guarantor, category, subCategory, noDocument, customText,
+                "gdoc-" + guarantor.getDocuments().size());
+    }
+
+    private void addGuarantorDocument(Guarantor guarantor, DocumentCategory category,
+                                      DocumentSubCategory subCategory, Boolean noDocument, String customText,
+                                      String documentName) {
         var doc = fr.dossierfacile.common.entity.Document.builder()
                 .id((long) (guarantor.getDocuments().size() + 200))
                 .documentCategory(category)
@@ -155,7 +162,7 @@ class TaxDisplayTest {
                 .noDocument(noDocument)
                 .customText(customText)
                 .guarantor(guarantor)
-                .name("gdoc-" + guarantor.getDocuments().size())
+                .name(documentName)
                 .files(new ArrayList<>())
                 .build();
         guarantor.getDocuments().add(doc);
@@ -163,6 +170,11 @@ class TaxDisplayTest {
 
     private void addTenantDocument(DocumentCategory category, DocumentSubCategory subCategory,
                                    Boolean noDocument, String customText) {
+        addTenantDocument(category, subCategory, noDocument, customText, "doc-" + tenant.getDocuments().size());
+    }
+
+    private void addTenantDocument(DocumentCategory category, DocumentSubCategory subCategory,
+                                   Boolean noDocument, String customText, String documentName) {
         var doc = fr.dossierfacile.common.entity.Document.builder()
                 .id((long) (tenant.getDocuments().size() + 100))
                 .documentCategory(category)
@@ -171,7 +183,7 @@ class TaxDisplayTest {
                 .noDocument(noDocument)
                 .customText(customText)
                 .tenant(tenant)
-                .name("doc-" + tenant.getDocuments().size())
+                .name(documentName)
                 .files(new ArrayList<>())
                 .build();
         tenant.getDocuments().add(doc);
@@ -201,11 +213,11 @@ class TaxDisplayTest {
         }
 
         @Test
-        void processFile_shouldShowNoDocumentCardAndCustomText() throws Exception {
+        void processFile_shouldShowPdfViewerAndCustomText() throws Exception {
             Document doc = renderProcessFile();
 
-            assertThat(doc.selectFirst("h3:containsOwn(Pas de document)")).isNotNull();
-            assertThat(doc.selectFirst("embed.document-embed")).isNull();
+            assertThat(doc.selectFirst("h3:containsOwn(Pas de document)")).isNull();
+            assertThat(doc.selectFirst("embed.document-embed")).isNotNull();
             assertThat(doc.selectFirst(".doc-analysis-explanation__text"))
                     .isNotNull()
                     .extracting(Element::text)
@@ -213,7 +225,7 @@ class TaxDisplayTest {
         }
 
         @Test
-        void colocation_shouldShowNoDocumentCardAndCustomText() throws Exception {
+        void colocation_shouldShowCustomTextAndNoDocumentWhenGeneratedDocumentIsMissing() throws Exception {
             Document doc = renderColocation();
 
             assertThat(doc.selectFirst(":containsOwn(Pas de document)")).isNotNull();
@@ -301,10 +313,11 @@ class TaxDisplayTest {
         }
 
         @Test
-        void processFile_shouldShowNoDocumentCardAndCustomText() throws Exception {
+        void processFile_shouldShowPdfViewerAndCustomText() throws Exception {
             Document doc = renderProcessFile();
 
-            assertThat(doc.selectFirst("h3:containsOwn(Pas de document)")).isNotNull();
+            assertThat(doc.selectFirst("h3:containsOwn(Pas de document)")).isNull();
+            assertThat(doc.selectFirst("embed.document-embed")).isNotNull();
             assertThat(doc.selectFirst(".doc-analysis-explanation__text"))
                     .isNotNull()
                     .extracting(Element::text)
@@ -312,7 +325,7 @@ class TaxDisplayTest {
         }
 
         @Test
-        void colocation_shouldShowNoDocumentCardAndCustomText() throws Exception {
+        void colocation_shouldShowCustomTextAndNoDocumentWhenGeneratedDocumentIsMissing() throws Exception {
             Document doc = renderColocation();
 
             assertThat(doc.selectFirst(":containsOwn(Pas de document)")).isNotNull();
@@ -381,6 +394,31 @@ class TaxDisplayTest {
 
             assertThat(doc.selectFirst(":containsOwn(Pas de document)")).isNull();
             assertThat(doc.selectFirst(".doc-analysis-explanation")).isNull();
+        }
+    }
+
+    @Nested
+    class MissingGeneratedDocument {
+
+        @BeforeEach
+        void setUp() {
+            addTenantDocument(DocumentCategory.TAX, DocumentSubCategory.OTHER_TAX,
+                    true, "Pas de PDF généré", null);
+        }
+
+        @Test
+        void processFile_shouldShowNoDocumentCardWhenGeneratedDocumentIsMissing() throws Exception {
+            Document doc = renderProcessFile();
+
+            assertThat(doc.selectFirst("h3:containsOwn(Pas de document)")).isNotNull();
+            assertThat(doc.selectFirst("embed.document-embed")).isNull();
+        }
+
+        @Test
+        void colocation_shouldShowNoDocumentLabelWhenGeneratedDocumentIsMissing() throws Exception {
+            Document doc = renderColocation();
+
+            assertThat(doc.selectFirst(":containsOwn(Pas de document)")).isNotNull();
         }
     }
 }
