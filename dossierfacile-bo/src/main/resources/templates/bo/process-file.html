@@ -77,7 +77,7 @@
                 </div>
                 <div class="row mt-4">
                     <div class="col-md-8" style="min-height: 700px; max-height: 1050px"
-                         th:if="${messageItem.getNoDocument() == true && messageItem.getDocumentSubCategory().name() == 'OTHER_TAX'}">
+                         th:if="${messageItem.getDocumentName() == null || messageItem.getDocumentName().isBlank()}">
                         <div class="full-size-div">
                             <div class="card-div">
                                 <div class="card" style="background-color: rgb(232, 237, 241)">
@@ -87,7 +87,7 @@
                         </div>
                     </div>
                     <div class="col-md-8 d-flex flex-column" style="min-height: 700px; max-height: 1050px"
-                         th:if="${!(messageItem.getNoDocument() == true && messageItem.getDocumentSubCategory().name() == 'OTHER_TAX')}">
+                         th:if="${!(messageItem.getDocumentName() == null || messageItem.getDocumentName().isBlank())}">
                         <div class="d-flex justify-content-end mb-2">
                             <button type="button" class="btn btn-outline-info btn-sm"
                                     data-bs-toggle="modal"
@@ -268,7 +268,7 @@
                     <div class="row mt-4">
 
                         <div class="col-md-8" style="min-height: 700px; max-height: 1050px"
-                             th:if="${messageItem.getNoDocument() == true && messageItem.getDocumentSubCategory().name() == 'OTHER_TAX'}">
+                             th:if="${messageItem.getDocumentName() == null || messageItem.getDocumentName().isBlank()}">
                             <div class="full-size-div">
                                 <div class="card-div">
                                     <div class="card" style="background-color: rgb(232, 237, 241)">
@@ -278,8 +278,7 @@
                             </div>
                         </div>
                         <div class="col-md-8 d-flex flex-column" style="min-height: 700px; max-height: 1050px"
-                             th:if="${!(messageItem.getNoDocument() == true && messageItem.getDocumentSubCategory().name() == 'OTHER_TAX')}">
-
+                             th:if="${!(messageItem.getDocumentName() == null || messageItem.getDocumentName().isBlank())}">
                             <div class="d-flex justify-content-end mb-2">
                                 <button type="button" class="btn btn-outline-info btn-sm"
                                         data-bs-toggle="modal"
