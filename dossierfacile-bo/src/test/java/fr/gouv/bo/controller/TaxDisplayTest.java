@@ -296,12 +296,6 @@ class TaxDisplayTest {
         }
     }
 
-    // ===== Guarantor tests =====
-    // Same scenarios as tenant, applied to a guarantor's tax documents.
-    // Note: there is a known backend bug where DocumentTaxGuarantorNaturalPerson
-    // loses customText when noDocument=false (unlike tenant), see DocumentTaxCustomTextTest.
-    // These tests verify the BO **display** behavior given the data as stored in DB.
-
     @Nested
     class GuarantorOtherTaxWithCustomTextAndNoFile {
 
@@ -337,7 +331,6 @@ class TaxDisplayTest {
     }
 
     @Nested
-    @org.junit.jupiter.api.Disabled("Bug: DocumentTaxGuarantorNaturalPerson loses customText when noDocument=false — see DocumentTaxCustomTextTest")
     class GuarantorOtherTaxWithCustomTextAndFile {
 
         @BeforeEach
