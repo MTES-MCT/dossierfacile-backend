@@ -9,7 +9,7 @@
             <column name="key" value="document-ia-salary-more-3-months-analysis"/>
             <column name="description" value="Enable Document IA analysis for salary documents employed more than 3 months"/>
             <column name="active" valueBoolean="false"/>
-            <column name="only_for_new_user" valueBoolean="false"/>
+            <column name="only_for_new_user" valueBoolean="true"/>
             <column name="rollout_pct" valueNumeric="0"/>
         </insert>
 
