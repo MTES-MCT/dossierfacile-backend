@@ -954,7 +954,7 @@
                                     <div th:if="${document.getMonthlySum()!=null}">
                                         <span th:text="${'Montly sum: '+document.getMonthlySum()}"></span>
                                     </div>
-                                    <div th:if="${document.getNoDocument() == true}">
+                                    <div th:if="${document.getNoDocument() == true && document.getDocumentSubCategory().name() == 'OTHER_TAX'}">
                                         <span>Pas de document</span>
                                     </div>
                                     <ul>
@@ -1164,7 +1164,7 @@
                                     <div th:if="${document.getMonthlySum()!=null}">
                                         <span th:text="${'Montly sum: '+document.getMonthlySum()}"></span>
                                     </div>
-                                    <div th:if="${document.getNoDocument() == true}">
+                                    <div th:if="${document.getNoDocument() == true && document.getDocumentSubCategory().name() == 'OTHER_TAX'}">
                                         <span>Pas de document</span>
                                     </div>
                                     <ul>
