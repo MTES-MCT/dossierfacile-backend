@@ -8,8 +8,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 @Component
 @RequiredArgsConstructor
 public class DocumentIAConfig {
@@ -21,19 +19,23 @@ public class DocumentIAConfig {
 
     private static final String FEATURE_FLAG_TAX_ANALYSIS_KEY = "document-ia-tax-analysis";
     private static final String FEATURE_FLAG_VISALE_ANALYSIS_KEY = "document-ia-visale-analysis";
+    private static final String FEATURE_FLAG_SALARY_MORE_3_MONTHS_ANALYSIS_KEY = "document-ia-salary-more-3-months-analysis";
 
     public boolean hasToSendFileForAnalysis(Document document, long tenantId) {
-        if (List.of(DocumentSubCategory.MY_NAME, DocumentSubCategory.VISALE).contains(document.getDocumentSubCategory())) {
-            if (
-                    featureFlagService.isFeatureEnabledForUser(tenantId, FEATURE_FLAG_TAX_ANALYSIS_KEY) &&
-                            document.getDocumentSubCategory() == DocumentSubCategory.MY_NAME &&
-                            document.getDocumentCategoryStep() == DocumentCategoryStep.TAX_FRENCH_NOTICE
-            ) {
-                return true;
-            }
-            return featureFlagService.isFeatureEnabledForUser(tenantId, FEATURE_FLAG_VISALE_ANALYSIS_KEY) &&
-                    document.getDocumentSubCategory() == DocumentSubCategory.VISALE;
+        if (document.getDocumentSubCategory() == DocumentSubCategory.MY_NAME) {
+            return featureFlagService.isFeatureEnabledForUser(tenantId, FEATURE_FLAG_TAX_ANALYSIS_KEY) &&
+                    document.getDocumentCategoryStep() == DocumentCategoryStep.TAX_FRENCH_NOTICE;
         }
+
+        if (document.getDocumentSubCategory() == DocumentSubCategory.VISALE) {
+            return featureFlagService.isFeatureEnabledForUser(tenantId, FEATURE_FLAG_VISALE_ANALYSIS_KEY);
+        }
+
+        if (document.getDocumentSubCategory() == DocumentSubCategory.SALARY) {
+            return featureFlagService.isFeatureEnabledForUser(tenantId, FEATURE_FLAG_SALARY_MORE_3_MONTHS_ANALYSIS_KEY) &&
+                    document.getDocumentCategoryStep() == DocumentCategoryStep.SALARY_EMPLOYED_MORE_3_MONTHS;
+        }
+
         return false;
     }
 
