@@ -888,6 +888,9 @@ public class TenantService {
         tenantRepository.save(tenant);
 
         apartmentSharingRepository.delete(apartmentToDelete);
+
+        // invalidates the full pdf to make sure a new version can be lazy generated with both tenants
+        apartmentSharingService.resetDossierPdfGenerated(apartmentSharing);
     }
 
     public Optional<Tenant> getOldestToProcessApplication() {
