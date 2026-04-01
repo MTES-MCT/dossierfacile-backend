@@ -7,9 +7,9 @@ import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
 import fr.dossierfacile.common.entity.ApartmentSharing;
-import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
+import fr.dossierfacile.document.analysis.service.DocumentIAService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -17,7 +17,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -41,6 +40,8 @@ class NamesTest {
     private TenantStatusService tenantStatusService;
     @Mock
     private ClientAuthenticationFacade clientAuthenticationFacade;
+    @Mock
+    private DocumentIAService documentIAService;
 
     @InjectMocks
     private Names names;
