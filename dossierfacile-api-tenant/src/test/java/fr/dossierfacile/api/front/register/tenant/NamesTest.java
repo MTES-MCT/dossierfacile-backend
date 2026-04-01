@@ -15,9 +15,10 @@ import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.document.analysis.service.DocumentIAService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,25 +30,26 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = {Names.class})
 class NamesTest {
 
-    @Mock
+    @MockitoBean
     private TenantCommonRepository tenantRepository;
-    @Mock
+    @MockitoBean
     private TenantMapper tenantMapper;
-    @Mock
+    @MockitoBean
     private ApartmentSharingService apartmentSharingService;
-    @Mock
+    @MockitoBean
     private DocumentService documentService;
-    @Mock
+    @MockitoBean
     private TenantStatusService tenantStatusService;
-    @Mock
+    @MockitoBean
     private ClientAuthenticationFacade clientAuthenticationFacade;
-    @Mock
+    @MockitoBean
     private DocumentIAService documentIAService;
 
-    @InjectMocks
+    @Autowired
     private Names names;
 
     @Test
