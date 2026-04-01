@@ -4,7 +4,7 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
-    <changeSet id="202603300001" author="Cursor">
+    <changeSet id="202603300001" author="Romaric">
         <insert tableName="feature_flag">
             <column name="key" value="document-ia-salary-more-3-months-analysis"/>
             <column name="description" value="Enable Document IA analysis for salary documents employed more than 3 months"/>
