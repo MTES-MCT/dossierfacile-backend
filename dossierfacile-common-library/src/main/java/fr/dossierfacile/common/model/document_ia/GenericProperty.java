@@ -15,6 +15,8 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Data
 @Builder
@@ -105,12 +107,7 @@ public class GenericProperty implements Serializable {
         }
 
         return values.stream()
-                .map(item -> {
-                    if (!(item instanceof GenericProperty gp)) {
-                        throw new IllegalArgumentException("Unsupported nested item type for object property '" + name + "': " + item.getClass());
-                    }
-                    return gp;
-                })
+                .map(item -> toGenericProperty(item, name, "object"))
                 .toList();
     }
 
@@ -130,9 +127,7 @@ public class GenericProperty implements Serializable {
 
         return values.stream()
                 .map(item -> {
-                    if (!(item instanceof GenericProperty listItem)) {
-                        throw new IllegalArgumentException("Unsupported list item type for list property '" + name + "': " + item.getClass());
-                    }
+                    GenericProperty listItem = toGenericProperty(item, name, "list");
                     if (!TYPE_OBJECT.equals(listItem.getType())) {
                         throw new IllegalArgumentException("Unsupported list item property type for '" + name + "': " + listItem.getType());
                     }
@@ -140,5 +135,35 @@ public class GenericProperty implements Serializable {
                     return objectValue == null ? List.<GenericProperty>of() : objectValue;
                 })
                 .toList();
+    }
+
+    private GenericProperty toGenericProperty(Object item, String propertyName, String context) {
+        if (item instanceof GenericProperty gp) {
+            return gp;
+        }
+
+        if (item instanceof Map<?, ?> mapItem) {
+            validateStrictGenericPropertyMap(mapItem, propertyName);
+            return GenericProperty.builder()
+                    .name((String) mapItem.get("name"))
+                    .value(mapItem.get("value"))
+                    .type((String) mapItem.get("type"))
+                    .build();
+        }
+
+        throw new IllegalArgumentException("Unsupported " + context + " item type for property '" + propertyName + "': "
+                + (item == null ? "null" : item.getClass()));
+    }
+
+    private void validateStrictGenericPropertyMap(Map<?, ?> mapItem, String propertyName) {
+        Set<?> keys = mapItem.keySet();
+        if (!keys.equals(Set.of("name", "value", "type"))) {
+            throw new IllegalArgumentException("Unsupported object schema for property '" + propertyName
+                    + "'. Expected keys: [name, value, type], found: " + keys);
+        }
+        if (!(mapItem.get("name") instanceof String) || !(mapItem.get("type") instanceof String)) {
+            throw new IllegalArgumentException("Unsupported object schema for property '" + propertyName
+                    + "'. 'name' and 'type' must be strings");
+        }
     }
 }
