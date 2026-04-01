@@ -155,6 +155,8 @@ public class TaxNamesRule extends BaseTaxRule {
         List<String> firstNamesToMatch = documentIdentity.getFirstNames().stream()
                 .map(this::normalize)
                 .filter(name -> !name.isBlank())
+                .flatMap(name -> Stream.of(name, name.replaceAll("[-'_]", " ")))
+                .flatMap(this::splitTokens)
                 .distinct()
                 .toList();
 
@@ -169,11 +171,30 @@ public class TaxNamesRule extends BaseTaxRule {
         List<String> lastNamesToMatch = Stream.of(documentIdentity.getLastName(), documentIdentity.getPreferredName())
                 .map(this::normalize)
                 .filter(name -> !name.isBlank())
-                .flatMap(name -> Stream.of(name, name.replaceAll("[-'_]", " ")))
+                .flatMap(this::lastNameVariants)
                 .distinct()
                 .toList();
 
         return hasIdentityMatch(barcodeIdentities, lastNamesToMatch, true);
+    }
+
+    private Stream<String> lastNameVariants(String normalizedName) {
+        Stream<String> baseVariants = Stream.of(
+                normalizedName,
+                normalizedName.replaceAll("[-'_]", " ")
+        );
+
+        Stream<String> composedVariant = Stream.empty();
+        List<String> tokens = splitTokens(normalizedName).toList();
+        
+        if (tokens.size() >= 2 ) { // normalizedName is composed
+            // filter out short last names otherwise rule is too permissive
+            composedVariant = tokens.stream()
+                .filter(token -> token.length() >= MIN_LENGTH_FOR_LEVENSHTEIN)
+                .map(token -> token.replaceAll("[-'_]", " "));
+        }
+
+        return Stream.concat(baseVariants, composedVariant);
     }
 
     private boolean hasIdentityMatch(List<String> barcodeIdentities, List<String> expectedTokens, boolean strictOnWholeIdentity) {

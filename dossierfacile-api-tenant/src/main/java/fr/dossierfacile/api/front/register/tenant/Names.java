@@ -44,20 +44,22 @@ public class Names implements SaveStep<NamesForm> {
         var preferredName = StringUtils.trimToNull(namesForm.getPreferredName());
         var tenantPreferredName = StringUtils.trimToNull(tenant.getPreferredName());
 
-        var hasBeenEdited = false;
-        // any change of first, last and preferred names triggers a document status update from validated -> to_process
-        if (!StringUtils.equals(tenant.getFirstName(), namesForm.getFirstName())
-                || !StringUtils.equals(tenant.getLastName(), namesForm.getLastName())
-                || !StringUtils.equals(tenantPreferredName, preferredName)) {
-            List<Document> documentsToCheck = new ArrayList<>(tenant.getDocuments());
+        boolean tenantIdentityHasChanged = !StringUtils.equals(tenant.getFirstName(), namesForm.getFirstName())
+            || !StringUtils.equals(tenant.getLastName(), namesForm.getLastName())
+            || !StringUtils.equals(tenantPreferredName, preferredName);
+
+        // any change of first, last and preferred names triggers a document status reset and re-analysis
+        List<Document> documentsToProcess = List.of();
+        
+        if (tenantIdentityHasChanged) {
+            documentsToProcess = new ArrayList<>(CollectionUtils.emptyIfNull(tenant.getDocuments()));
             if (CollectionUtils.isNotEmpty(tenant.getGuarantors())
                     && (tenant.getGuarantors().getFirst().getTypeGuarantor() == TypeGuarantor.LEGAL_PERSON
                     || tenant.getGuarantors().getFirst().getTypeGuarantor() == TypeGuarantor.ORGANISM)) {
-                documentsToCheck.addAll(tenant.getGuarantors().getFirst().getDocuments());
+                documentsToProcess.addAll(tenant.getGuarantors().getFirst().getDocuments());
             }
-            documentService.resetValidatedOrInProgressDocumentsAccordingCategories(documentsToCheck, Arrays.asList(DocumentCategory.values()));
-            // If the identity of the user changes, we need to re analyze all the documents associated to this tenant
-            hasBeenEdited = true;
+            documentService.resetValidatedOrInProgressDocumentsAccordingCategories(documentsToProcess, Arrays.asList(DocumentCategory.values()));
+            documentsToProcess.forEach(documentIAService::analyseDocument);
         }
 
         tenant.setOwnerType(namesForm.getOwnerType());
@@ -71,12 +73,6 @@ public class Names implements SaveStep<NamesForm> {
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         tenant = tenantStatusService.updateTenantStatus(tenant);
         tenant = tenantRepository.save(tenant);
-
-        if (hasBeenEdited) {
-            for (Document document : tenant.getDocuments()) {
-                documentIAService.analyseDocument(document);
-            }
-        }
 
         return tenantMapper.toTenantModel(tenant, (!clientAuthenticationFacade.isClient()) ? null : clientAuthenticationFacade.getClient());
     }

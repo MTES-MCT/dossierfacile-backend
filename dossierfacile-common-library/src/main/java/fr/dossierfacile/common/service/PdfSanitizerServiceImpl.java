@@ -68,6 +68,8 @@ public class PdfSanitizerServiceImpl implements PdfSanitizerService {
                     names.setJavascript(null);
                 }
 
+                // Ensure encrypted PDFs can be safely rewritten after sanitization.
+                doc.setAllSecurityToBeRemoved(true);
                 try (OutputStream fos = Files.newOutputStream(tempOutput)) {
                     doc.save(fos);
                 }
