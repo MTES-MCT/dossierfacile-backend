@@ -401,6 +401,76 @@ class VisaleCertificateNameMatchTest {
     }
 
     @Test
+    @DisplayName("PASSED avec fallback fuzzy sur prénom")
+    void passed_with_fuzzy_first_name_match() {
+        DocumentIAFileAnalysis analysis = iaAnalysisWithExtraction(List.of(
+                beneficiaireItem("Alandro", "Dupont")
+        ));
+
+        Document doc = documentWithIaAnalysesAndTenant("Aleandro", "Dupont", null, analysis);
+        RuleValidatorOutput out = validate(doc);
+
+        Assertions.assertThat(out.isValid()).isTrue();
+        Assertions.assertThat(out.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.PASSED);
+    }
+
+    @Test
+    @DisplayName("PASSED avec fallback fuzzy sur nom")
+    void passed_with_fuzzy_last_name_match() {
+        DocumentIAFileAnalysis analysis = iaAnalysisWithExtraction(List.of(
+                beneficiaireItem("Jean", "Duppont")
+        ));
+
+        Document doc = documentWithIaAnalysesAndTenant("Jean", "Dupont", null, analysis);
+        RuleValidatorOutput out = validate(doc);
+
+        Assertions.assertThat(out.isValid()).isTrue();
+        Assertions.assertThat(out.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.PASSED);
+    }
+
+    @Test
+    @DisplayName("FAILED quand fallback fuzzy dépasse la distance max")
+    void failed_when_fuzzy_distance_too_high() {
+        DocumentIAFileAnalysis analysis = iaAnalysisWithExtraction(List.of(
+                beneficiaireItem("Alesxxndro", "Duxxont")
+        ));
+
+        Document doc = documentWithIaAnalysesAndTenant("Aleandro", "Dupont", null, analysis);
+        RuleValidatorOutput out = validate(doc);
+
+        Assertions.assertThat(out.isValid()).isFalse();
+        Assertions.assertThat(out.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.FAILED);
+    }
+
+    @Test
+    @DisplayName("FAILED avec noms courts quand le strict échoue (pas de fallback fuzzy)")
+    void failed_when_short_names_and_strict_fails() {
+        DocumentIAFileAnalysis analysis = iaAnalysisWithExtraction(List.of(
+                beneficiaireItem("Li", "Xu")
+        ));
+
+        Document doc = documentWithIaAnalysesAndTenant("Lu", "Xi", null, analysis);
+        RuleValidatorOutput out = validate(doc);
+
+        Assertions.assertThat(out.isValid()).isFalse();
+        Assertions.assertThat(out.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.FAILED);
+    }
+
+    @Test
+    @DisplayName("PASSED avec fallback fuzzy sur co-tenant")
+    void passed_with_fuzzy_match_on_co_tenant() {
+        DocumentIAFileAnalysis analysis = iaAnalysisWithExtraction(List.of(
+                beneficiaireItem("Sofie", "Martan")
+        ));
+
+        Document doc = documentWithIaAnalysesAndCouple("Jean", "Dupont", "Sophie", "Martin", analysis);
+        RuleValidatorOutput out = validate(doc);
+
+        Assertions.assertThat(out.isValid()).isTrue();
+        Assertions.assertThat(out.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.PASSED);
+    }
+
+    @Test
     @DisplayName("INCONCLUSIVE quand les bénéficiaires sont invalides (sans nom)")
     void inconclusive_when_beneficiaires_invalid() {
         DocumentIAFileAnalysis analysis = iaAnalysisWithExtraction(List.of(
