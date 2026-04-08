@@ -43,11 +43,6 @@
                         Paramétrer les features flags
                     </a>
                 </div>
-                <div class="mt-2" sec:authorize="hasRole('MANAGER')">
-                    <a href="/bo/log" class="btn btn-danger" id="displayLogs">
-                        Afficher les logs
-                    </a>
-                </div>
                 <div class="mt-2" sec:authorize="hasRole('SUPPORT')">
                     <a href="/bo/owners" class="btn btn-info" id="displayOwner">
                         Liste des comptes propriétaires
