@@ -25,6 +25,7 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -145,8 +146,10 @@ class NamesTest {
         names.saveStep(tenant, namesForm);
 
         verify(documentService, times(1)).resetValidatedOrInProgressDocumentsAccordingCategories(anyList(), anyList());
-        verify(documentIAService, times(1)).analyseDocument(document);
-        verify(tenantRepository, times(1)).save(tenant);
+
+        var inOrder = inOrder(tenantRepository, documentIAService);
+        inOrder.verify(tenantRepository, times(1)).save(tenant);
+        inOrder.verify(documentIAService, times(1)).analyseDocument(document);
     }
 
     @Test
@@ -225,7 +228,9 @@ class NamesTest {
         names.saveStep(tenant, namesForm);
 
         verify(documentService, times(1)).resetValidatedOrInProgressDocumentsAccordingCategories(anyList(), anyList());
-        verify(documentIAService, times(1)).analyseDocument(guarantorDocument);
-        verify(tenantRepository, times(1)).save(tenant);
+        
+        var inOrder = inOrder(tenantRepository, documentIAService);
+        inOrder.verify(tenantRepository, times(1)).save(tenant);
+        inOrder.verify(documentIAService, times(1)).analyseDocument(guarantorDocument);
     }
 }

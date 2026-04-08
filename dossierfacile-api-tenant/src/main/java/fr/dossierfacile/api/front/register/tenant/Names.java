@@ -59,7 +59,6 @@ public class Names implements SaveStep<NamesForm> {
                 documentsToProcess.addAll(tenant.getGuarantors().getFirst().getDocuments());
             }
             documentService.resetValidatedOrInProgressDocumentsAccordingCategories(documentsToProcess, Arrays.asList(DocumentCategory.values()));
-            documentsToProcess.forEach(documentIAService::analyseDocument);
         }
 
         tenant.setOwnerType(namesForm.getOwnerType());
@@ -73,6 +72,9 @@ public class Names implements SaveStep<NamesForm> {
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         tenant = tenantStatusService.updateTenantStatus(tenant);
         tenant = tenantRepository.save(tenant);
+        if (tenantIdentityHasChanged) {
+            documentsToProcess.forEach(documentIAService::analyseDocument);
+        }
 
         return tenantMapper.toTenantModel(tenant, (!clientAuthenticationFacade.isClient()) ? null : clientAuthenticationFacade.getClient());
     }
