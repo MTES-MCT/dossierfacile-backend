@@ -4,4 +4,5 @@ public enum ActionOperatorType {
     START_PROCESS,
     STOP_PROCESS,
     VIEW_APPLICATION,
+    SEARCH_TENANT,
 }

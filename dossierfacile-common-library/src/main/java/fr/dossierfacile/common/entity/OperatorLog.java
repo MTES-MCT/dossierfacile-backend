@@ -1,5 +1,6 @@
 package fr.dossierfacile.common.entity;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.dossierfacile.common.enums.ActionOperatorType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import jakarta.persistence.Column;
@@ -17,6 +18,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 
@@ -58,6 +61,10 @@ public class OperatorLog {
     @Column(name = "time_spent")
     private Integer timeSpent;
 
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "jsonb")
+    private ObjectNode metadata;
+
     public OperatorLog(Tenant tenant, User operator, TenantFileStatus tenantFileStatus, ActionOperatorType actionOperatorType, Integer processedDocuments, Integer timeSpent) {
         this.tenant = tenant;
         this.operator = operator;
@@ -70,6 +77,11 @@ public class OperatorLog {
 
     public OperatorLog(Tenant tenant, User operator, TenantFileStatus tenantFileStatus, ActionOperatorType actionOperatorType) {
         this(tenant, operator, tenantFileStatus, actionOperatorType, null, null);
+    }
+
+    public OperatorLog(Tenant tenant, User operator, TenantFileStatus tenantFileStatus, ActionOperatorType actionOperatorType, ObjectNode metadata) {
+        this(tenant, operator, tenantFileStatus, actionOperatorType, null, null);
+        this.metadata = metadata;
     }
 
 }

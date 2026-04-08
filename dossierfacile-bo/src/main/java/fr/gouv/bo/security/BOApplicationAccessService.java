@@ -18,4 +18,9 @@ public interface BOApplicationAccessService {
      * Throws AccessDeniedException if an OPERATOR is not assigned.
      */
     void checkAndLogApartmentSharingAccess(UserPrincipal principal, Long apartmentSharingId);
+
+    /**
+     * Logs a tenant search action performed from BO search endpoints.
+     */
+    void logSearchTenant(UserPrincipal principal, String query, long resultCount);
 }

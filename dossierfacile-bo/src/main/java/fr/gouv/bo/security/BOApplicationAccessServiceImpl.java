@@ -1,5 +1,7 @@
 package fr.gouv.bo.security;
 
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.dossierfacile.common.entity.OperatorLog;
 import fr.dossierfacile.common.entity.User;
 import fr.dossierfacile.common.enums.ActionOperatorType;
@@ -9,6 +11,7 @@ import fr.gouv.bo.repository.OperatorLogRepository;
 import fr.gouv.bo.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
@@ -60,6 +63,25 @@ public class BOApplicationAccessServiceImpl implements BOApplicationAccessServic
         logViewApplicationForApartmentSharing(principal, apartmentSharingId);
     }
 
+    @Override
+    public void logSearchTenant(UserPrincipal principal, String query, long resultCount) {
+        User operator = userService.findUserByEmail(principal.getEmail());
+
+        ObjectNode metadata = JsonNodeFactory.instance.objectNode();
+        String normalizedQuery = StringUtils.trimToEmpty(query);
+        metadata.put("searchType", detectSearchType(normalizedQuery));
+        metadata.put("query", normalizedQuery);
+        metadata.put("resultCount", resultCount);
+
+        operatorLogRepository.save(new OperatorLog(
+                null,
+                operator,
+                null,
+                ActionOperatorType.SEARCH_TENANT,
+                metadata
+        ));
+    }
+
     /**
      * Returns true when the authenticated user holds ROLE_OPERATOR but none of
      * ROLE_SUPPORT / ROLE_MANAGER / ROLE_ADMIN.
@@ -86,5 +108,15 @@ public class BOApplicationAccessServiceImpl implements BOApplicationAccessServic
                     operatorLogRepository.save(
                             new OperatorLog(tenant, operator, tenant.getStatus(), ActionOperatorType.VIEW_APPLICATION));
                 });
+    }
+
+    private String detectSearchType(String query) {
+        if (StringUtils.contains(query, "@")) {
+            return "EMAIL";
+        }
+        if (StringUtils.isNumeric(query)) {
+            return "TENANT_ID";
+        }
+        return "TEXT";
     }
 }
