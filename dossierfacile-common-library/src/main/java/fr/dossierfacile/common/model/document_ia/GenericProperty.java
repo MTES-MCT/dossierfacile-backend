@@ -107,7 +107,7 @@ public class GenericProperty implements Serializable {
         }
 
         return values.stream()
-                .map(item -> toGenericProperty(item, name, "object"))
+                .map(item -> toGenericProperty(item, name, TYPE_OBJECT))
                 .toList();
     }
 
@@ -127,7 +127,7 @@ public class GenericProperty implements Serializable {
 
         return values.stream()
                 .map(item -> {
-                    GenericProperty listItem = toGenericProperty(item, name, "list");
+                    GenericProperty listItem = toGenericProperty(item, name, TYPE_LIST);
                     if (!TYPE_OBJECT.equals(listItem.getType())) {
                         throw new IllegalArgumentException("Unsupported list item property type for '" + name + "': " + listItem.getType());
                     }

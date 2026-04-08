@@ -14,6 +14,40 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.ArrayList;
 import java.util.List;
 
+/*
+ * Rule R_PAYSLIP_NAME_MATCH:
+ *
+ * Cette regle verifie que l'identite extraite d'un bulletin de salaire correspond
+ * a l'identite du locataire (ou garant selon le document porteur).
+ *
+ * Pourquoi cette logique est specifique:
+ * - L'identite du bulletin est extraite par Document-IA sous forme de chaine libre
+ *   (identityString).
+ * - On ne dispose pas toujours d'un decoupage fiable nom/prenom directement exploitable.
+ * - Les variantes usuelles doivent rester acceptees: accents, espaces, nom d'usage
+ *   (preferredName), etc.
+ *
+ * Strategie de matching appliquee :
+ * 1) Recuperation des analyses IA exploitables
+ *    - On ne retient que les analyses IA en succes.
+ *    - Si une analyse est absente ou non aboutie, la regle devient INCONCLUSIVE.
+ * 2) Construction des donnees d'audit
+ *    - On construit le nom attendu (prenom(s), nom, preferredName) depuis le dossier.
+ *    - On trace egalement toutes les identites extraites du bulletin pour expliciter
+ *      ce qui a ete compare dans la RuleData.
+ * 3) Verification nom + prenom pour chaque bulletin extrait
+ *    - Pour chaque identityString, on applique le moteur commun IdentityMatchUtil.
+ *    - Le nom (lastName/preferredName) et le prenom doivent tous deux matcher.
+ * 4) Decision finale
+ *    - PASSED uniquement si toutes les identites extraites exploitables matchent.
+ *    - FAILED des qu'une identite est manquante ou non correspondante.
+ *    - INCONCLUSIVE si aucune extraction exploitable n'est disponible ou si l'identite
+ *      attendue est absente.
+ *
+ * Intention metier :
+ * - Maintenir une verification robuste de l'appartenance du bulletin au candidat,
+ *   tout en limitant les faux negatifs lies aux variations d'ecriture des noms.
+ */
 @Slf4j
 public class PayslipNamesRule extends BaseDocumentIAValidator {
 

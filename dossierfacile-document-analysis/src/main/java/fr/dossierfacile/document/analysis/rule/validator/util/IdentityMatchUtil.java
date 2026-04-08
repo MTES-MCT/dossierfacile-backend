@@ -14,6 +14,7 @@ public final class IdentityMatchUtil {
 
     private static final int LAST_NAME_MAX_DISTANCE = 2;
     private static final int MIN_LENGTH_FOR_LEVENSHTEIN = 4;
+    private static final String NAME_SEPARATOR_REGEX = "[-'_]";
 
     private IdentityMatchUtil() {
     }
@@ -26,7 +27,7 @@ public final class IdentityMatchUtil {
         List<String> firstNamesToMatch = documentIdentity.getFirstNames().stream()
                 .map(IdentityMatchUtil::normalize)
                 .filter(name -> !name.isBlank())
-                .flatMap(name -> Stream.of(name, name.replaceAll("[-'_]", " ")))
+                .flatMap(name -> Stream.of(name, name.replaceAll(NAME_SEPARATOR_REGEX, " ")))
                 .flatMap(IdentityMatchUtil::splitTokens)
                 .distinct()
                 .toList();
@@ -109,7 +110,7 @@ public final class IdentityMatchUtil {
     private static Stream<String> lastNameVariants(String normalizedName) {
         Stream<String> baseVariants = Stream.of(
                 normalizedName,
-                normalizedName.replaceAll("[-'_]", " ")
+                normalizedName.replaceAll(NAME_SEPARATOR_REGEX, " ")
         );
 
         Stream<String> composedVariant = Stream.empty();
@@ -118,7 +119,7 @@ public final class IdentityMatchUtil {
         if (tokens.size() >= 2) {
             composedVariant = tokens.stream()
                     .filter(token -> token.length() >= MIN_LENGTH_FOR_LEVENSHTEIN)
-                    .map(token -> token.replaceAll("[-'_]", " "));
+                    .map(token -> token.replaceAll(NAME_SEPARATOR_REGEX, " "));
         }
 
         return Stream.concat(baseVariants, composedVariant);
