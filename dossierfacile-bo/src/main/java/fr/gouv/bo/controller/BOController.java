@@ -37,9 +37,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
 
 @Slf4j
 @Controller
@@ -120,11 +117,7 @@ public class BOController {
     @GetMapping("/bo")
     public String bo(@ModelAttribute("numberOfDocumentsToProcess") ResultDTO numberOfDocumentsToProcess,
                      Model model,
-                     @RequestParam(value = "pageSize", defaultValue = INITIAL_PAGE_SIZE) int pageSize,
-                     @RequestParam(value = "page", defaultValue = "1") int page,
                      @AuthenticationPrincipal UserPrincipal principal) {
-
-        Page<Tenant> tenants = tenantService.listTenantsToProcess(PageRequest.of(page - 1, pageSize));
 
         User loginUser = userService.findUserByEmail(principal.getEmail());
         boolean isAdmin = loginUser.getUserRoles().stream().anyMatch(userRole -> userRole.getRole().name().equals(Role.ROLE_ADMIN.name()));
@@ -135,9 +128,6 @@ public class BOController {
         }
         model.addAttribute("TenantsWithFailedGeneratedPdf", result);
         model.addAttribute("isUserAdmin", isAdmin);
-        model.addAttribute("tenants", tenants);
-        model.addAttribute("pageSize", pageSize);
-        model.addAttribute("pageSizes", PAGE_SIZES);
 
         model.addAttribute(OLDEST_APPLICATION, tenantService.getOldestToProcessApplication());
         return "bo/index";

@@ -25,13 +25,6 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
     @Query("select distinct t FROM Tenant t where concat(LOWER(coalesce(t.firstName, '')),' ',LOWER(coalesce(t.lastName, ''))) like CONCAT('%', :nameUser, '%')")
     Page<Tenant> findTenantByFirstNameOrLastNameOrFullName(@Param("nameUser") String nameUser, Pageable pageable);
 
-    @Query("select t from Tenant t " +
-            " where (t.operatorDateTime is null or t.operatorDateTime < :localDateTime)" +
-            " and t.status = 'TO_PROCESS' and t.honorDeclaration = true " +
-            " order by t.lastUpdateDate")
-    Page<Tenant> findTenantsToProcess(@Param("localDateTime") LocalDateTime localDateTime, Pageable pageable);
-
-
     // rank condition is set to avoid to treat too fast a returning tenant
     // status and honorDeclaration are redundancy but that okay
     @Query(value = """

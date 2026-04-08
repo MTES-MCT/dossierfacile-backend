@@ -105,11 +105,6 @@ public class TenantService {
         return tenantRepository.findOneById(id);
     }
 
-    public Page<Tenant> listTenantsToProcess(Pageable pageable) {
-        LocalDateTime localDateTime = LocalDateTime.now().minusMinutes(timeReprocessApplicationMinutes);
-        return tenantRepository.findTenantsToProcess(localDateTime, pageable);
-    }
-
     public Tenant find(Long id) {
         return tenantRepository.findOneById(id);
     }
