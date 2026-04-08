@@ -8,18 +8,16 @@ import fr.dossierfacile.common.enums.ActionOperatorType;
 import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.gouv.bo.repository.OperatorLogRepository;
+import fr.gouv.bo.service.QuotaService;
 import fr.gouv.bo.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +30,7 @@ public class BOApplicationAccessServiceImpl implements BOApplicationAccessServic
     private final OperatorLogRepository operatorLogRepository;
     private final TenantCommonRepository tenantRepository;
     private final UserService userService;
+    private final QuotaService quotaService;
 
     @Override
     public void checkTenantAccess(UserPrincipal principal, Long tenantId) {
@@ -60,11 +59,13 @@ public class BOApplicationAccessServiceImpl implements BOApplicationAccessServic
                         "OPERATOR " + principal.getId() + " is not assigned to apartment sharing " + apartmentSharingId);
             }
         }
+        quotaService.checkQuota(principal, ActionOperatorType.VIEW_APPLICATION);
         logViewApplicationForApartmentSharing(principal, apartmentSharingId);
     }
 
     @Override
-    public void logSearchTenant(UserPrincipal principal, String query, long resultCount) {
+    public void checkAndLogSearchTenant(UserPrincipal principal, String query, long resultCount) {
+        quotaService.checkQuota(principal, ActionOperatorType.SEARCH_TENANT);
         User operator = userService.findUserByEmail(principal.getEmail());
 
         ObjectNode metadata = JsonNodeFactory.instance.objectNode();
@@ -90,13 +91,8 @@ public class BOApplicationAccessServiceImpl implements BOApplicationAccessServic
      * ROLE_ADMIN user never has ROLE_OPERATOR in their authority set.
      */
     private boolean isOperatorOnly(UserPrincipal principal) {
-        Set<String> authorities = principal.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.toSet());
-        return authorities.contains("ROLE_OPERATOR")
-                && !authorities.contains("ROLE_SUPPORT")
-                && !authorities.contains("ROLE_MANAGER")
-                && !authorities.contains("ROLE_ADMIN");
+        return principal.hasAllRoles("ROLE_OPERATOR")
+                && principal.hasNoneOfRoles("ROLE_SUPPORT", "ROLE_MANAGER", "ROLE_ADMIN");
     }
 
     private void logViewApplicationForApartmentSharing(UserPrincipal principal, Long apartmentSharingId) {

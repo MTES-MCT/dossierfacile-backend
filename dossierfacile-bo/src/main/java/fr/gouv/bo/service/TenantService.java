@@ -63,16 +63,10 @@ public class TenantService {
     private final ApartmentSharingMapperForMail apartmentSharingMapperForMail;
     private final TenantCommonService tenantCommonService;
     private final TenantLogCommonService tenantLogCommonService;
+    private final QuotaService quotaService;
 
     @Value("${time.reprocess.application.minutes}")
     private int timeReprocessApplicationMinutes;
-
-    @Value("${process.max.dossier.time.interval:10}")
-    private Long timeInterval;
-    @Value("${process.max.dossier.by.interval:20}")
-    private Long maxDossiersByInterval;
-    @Value("${process.max.dossier.by.day:600}")
-    private Long maxDossiersByDay;
 
     public Page<Tenant> getTenantByIdOrEmail(String email, Pageable pageable) {
         if (isNumeric(email)) {
@@ -129,13 +123,6 @@ public class TenantService {
         Long operatorId = operator.getId();
 
         if (tenantId == null) {
-            // check less than x process are currently starting during the n lastMinutes
-            if (operatorLogRepository.countByOperatorIdAndActionOperatorTypeAndCreationDateGreaterThanEqual(operatorId, ActionOperatorType.START_PROCESS, LocalDateTime.now().minusMinutes(timeInterval)) > maxDossiersByInterval) {
-                throw new IllegalStateException("Vous ne pouvez pas ouvrir plus de " + maxDossiersByInterval + " dossiers pour traitement toutes les " + timeInterval + " minutes");
-            }
-            if (operatorLogRepository.countByOperatorIdAndActionOperatorTypeAndCreationDateGreaterThanEqual(operatorId, ActionOperatorType.START_PROCESS, LocalDateTime.now().toLocalDate().atStartOfDay()) > maxDossiersByDay) {
-                throw new IllegalStateException("Vous ne pouvez pas ouvrir plus de " + maxDossiersByDay + " dossiers par jour");
-            }
             tenant = tenantRepository.findMyNextApplication(localDateTime, operatorId);
         } else {
             tenant = find(tenantId);
@@ -147,7 +134,9 @@ public class TenantService {
         }
 
         if (tenant != null) {
-
+            // Quota checked here (outside the if/else above) so it applies to all roles:
+            // OPERATOR auto-assigned via tenantId == null, and SUPPORT/MANAGER/ADMIN targeting an explicit tenantId.
+            quotaService.checkQuota(operator, ActionOperatorType.START_PROCESS);
             User user = userService.findUserByEmail(operator.getEmail());
             operatorLogRepository.save(new OperatorLog(
                     tenant, user, tenant.getStatus(), ActionOperatorType.START_PROCESS
