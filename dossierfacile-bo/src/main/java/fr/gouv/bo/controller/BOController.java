@@ -23,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.ResolvableType;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -48,8 +49,9 @@ public class BOController {
     private static final String OLDEST_APPLICATION = "oldestApplication";
     private static final String REDIRECT_BO_COLOCATION = "redirect:/bo/colocation/";
     private static final String SHOW_ALERT = "showAlert";
-    private static final String INITIAL_PAGE_SIZE = "50";
-    private static final int[] PAGE_SIZES = {50, 100, 200};
+    private static final String INITIAL_PAGE_SIZE = "20";
+    private static final int[] PAGE_SIZES = {20};
+    private static final int MAX_RESULTS = 100;
     private static final String REDIRECT_BO = "redirect:/bo";
     private final TenantService tenantService;
     private final UserService userService;
@@ -176,7 +178,7 @@ public class BOController {
     @GetMapping("/bo/searchTenant")
     public String searchTenant(Model model,
                                @RequestParam(value = EMAIL) String email,
-                               @RequestParam(value = "pageSize", defaultValue = "100") int pageSize,
+                               @RequestParam(value = "pageSize", defaultValue = INITIAL_PAGE_SIZE) int pageSize,
                                @RequestParam(value = "page", defaultValue = "1") int page) {
 
         PageRequest pageable = PageRequest.of(page - 1, pageSize, Sort.by("id").descending());
@@ -186,7 +188,9 @@ public class BOController {
             return REDIRECT_BO_COLOCATION + tenants.getContent().getFirst().getApartmentSharing().getId();
         }
 
-        model.addAttribute("tenants", tenants);
+        long cappedTotal = Math.min(tenants.getTotalElements(), (long) MAX_RESULTS);
+        Page<Tenant> cappedTenants = new PageImpl<>(tenants.getContent(), pageable, cappedTotal);
+        model.addAttribute("tenants", cappedTenants);
         model.addAttribute("pageSize", pageable.getPageSize());
         model.addAttribute("pageSizes", PAGE_SIZES);
         model.addAttribute(EMAIL, email);
