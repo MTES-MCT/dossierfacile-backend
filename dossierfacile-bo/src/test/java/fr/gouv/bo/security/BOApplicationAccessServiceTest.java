@@ -258,6 +258,46 @@ class BOApplicationAccessServiceTest {
         }
     }
 
+    @Nested
+    class LogSearchTenant {
+
+        @Test
+        void logSearchTenant_logsExpectedMetadata() {
+            UserPrincipal principal = supportPrincipal();
+
+            service.logSearchTenant(principal, "john.doe@example.com", 2L);
+
+            ArgumentCaptor<OperatorLog> captor = ArgumentCaptor.forClass(OperatorLog.class);
+            verify(operatorLogRepository).save(captor.capture());
+            OperatorLog log = captor.getValue();
+
+            assertThat(log.getActionOperatorType()).isEqualTo(ActionOperatorType.SEARCH_TENANT);
+            assertThat(log.getTenant()).isNull();
+            assertThat(log.getTenantFileStatus()).isNull();
+            assertThat(log.getMetadata().get("searchType").asText()).isEqualTo("EMAIL");
+            assertThat(log.getMetadata().get("query").asText()).isEqualTo("john.doe@example.com");
+            assertThat(log.getMetadata().get("resultCount").asLong()).isEqualTo(2L);
+        }
+
+        @Test
+        void logSearchTenant_withoutAnchorTenant_logsWithNullTenant() {
+            UserPrincipal principal = supportPrincipal();
+
+            service.logSearchTenant(principal, "unknown@example.com", 0L);
+
+            ArgumentCaptor<OperatorLog> captor = ArgumentCaptor.forClass(OperatorLog.class);
+            verify(operatorLogRepository).save(captor.capture());
+            OperatorLog log = captor.getValue();
+
+            assertThat(log.getActionOperatorType()).isEqualTo(ActionOperatorType.SEARCH_TENANT);
+            assertThat(log.getTenant()).isNull();
+            assertThat(log.getTenantFileStatus()).isNull();
+            assertThat(log.getMetadata().get("searchType").asText()).isEqualTo("EMAIL");
+            assertThat(log.getMetadata().get("query").asText()).isEqualTo("unknown@example.com");
+            assertThat(log.getMetadata().get("resultCount").asLong()).isEqualTo(0L);
+        }
+    }
+
     // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
