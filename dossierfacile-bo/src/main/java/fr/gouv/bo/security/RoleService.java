@@ -39,7 +39,7 @@ public class RoleService {
                     dto(Role.ROLE_SUPPORT)
             );
         }
-        // OPERATOR, SUPPORT et autres (TENANT, OWNER, PARTNER): rien
+        // OPERATOR, SUPPORT: aucun
         return List.of();
     }
 

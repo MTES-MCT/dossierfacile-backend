@@ -21,8 +21,6 @@ import java.io.Serializable;
 @SuperBuilder(builderMethodName = "lombokBuilder")
 public class BOUser extends User implements Serializable {
 
-    Long exclusivePartnerId;
-
     public static BOUser.BOUserBuilder<?, ?> builder() {
         BOUser.BOUserBuilder<?, ?> builder = BOUser.lombokBuilder();
         builder.userType(UserType.BO);
