@@ -6,6 +6,7 @@ import fr.dossierfacile.common.exceptions.NotFoundException;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.gouv.bo.dto.*;
+import fr.gouv.bo.security.BOApplicationAccessService;
 import fr.gouv.bo.security.UserPrincipal;
 import fr.gouv.bo.service.*;
 import lombok.RequiredArgsConstructor;
@@ -50,6 +51,7 @@ public class BOTenantController {
     private final UserService userService;
     private final TenantLogService logService;
     private final DocumentDeniedReasonsService documentDeniedReasonsService;
+    private final BOApplicationAccessService applicationAccessService;
 
     @GetMapping("/{id}")
     public String getTenant(@PathVariable Long id) {
@@ -162,7 +164,9 @@ public class BOTenantController {
     }
 
     @GetMapping("/{id}/processFile")
-    public String processFileForm(Model model, @PathVariable("id") Long id) {
+    public String processFileForm(Model model, @PathVariable("id") Long id,
+                                  @AuthenticationPrincipal UserPrincipal principal) {
+        applicationAccessService.checkTenantAccess(principal, id);
         Tenant tenant = tenantService.find(id);
 
         if (tenant == null) {

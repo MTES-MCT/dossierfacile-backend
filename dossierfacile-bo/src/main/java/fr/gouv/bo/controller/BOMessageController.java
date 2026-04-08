@@ -6,6 +6,7 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.User;
 import fr.gouv.bo.dto.BrevoMailHistoryViewDTO;
 import fr.gouv.bo.dto.MessageDTO;
+import fr.gouv.bo.security.BOApplicationAccessService;
 import fr.gouv.bo.security.UserPrincipal;
 import fr.gouv.bo.service.BrevoMailHistoryService;
 import fr.gouv.bo.service.MessageService;
@@ -36,6 +37,7 @@ public class BOMessageController {
     private final TenantService tenantService;
     private final MessageService messageService;
     private final UserService userService;
+    private final BOApplicationAccessService applicationAccessService;
     private final BrevoMailHistoryService brevoMailHistoryService;
 
     @GetMapping("/tenant/{id}")
@@ -44,7 +46,7 @@ public class BOMessageController {
             @PathVariable("id") Long id,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
-
+        applicationAccessService.checkTenantAccess(principal, id);
         User tenant = tenantService.getUserById(id);
         Tenant tenant1 = tenantService.getTenantById(tenant.getId());
         ApartmentSharing apartmentSharing = tenant1.getApartmentSharing();
