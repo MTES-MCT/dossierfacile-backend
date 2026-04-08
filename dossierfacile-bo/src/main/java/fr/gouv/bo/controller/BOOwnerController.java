@@ -7,6 +7,7 @@ import fr.gouv.bo.model.owner.OwnerModel;
 import fr.gouv.bo.service.OwnerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
@@ -20,8 +21,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RequestMapping(value = "/bo/owners")
 public class BOOwnerController {
     private static final String INITIAL_PAGE = "1";
-    private static final String INITIAL_PAGE_SIZE = "50";
-    private static final int[] PAGE_SIZES = {50, 100};
+    private static final String INITIAL_PAGE_SIZE = "20";
+    private static final int[] PAGE_SIZES = {20};
+    private static final int MAX_RESULTS = 100;
     @Autowired
     private OwnerService ownerService;
     @Autowired
@@ -39,10 +41,13 @@ public class BOOwnerController {
 
         Page<Owner> owners = ownerService.searchOwners(email, firstName, lastName, pageable);
 
+        long cappedTotal = Math.min(owners.getTotalElements(), (long) MAX_RESULTS);
+        Page<Owner> cappedOwners = new PageImpl<>(owners.getContent(), pageable, cappedTotal);
+
         model.addAttribute("ownerEmail", email);
         model.addAttribute("ownerFirstname", firstName);
         model.addAttribute("ownerLastname", lastName);
-        model.addAttribute("owners", owners);
+        model.addAttribute("owners", cappedOwners);
         model.addAttribute("pageSize", pageable.getPageSize());
         model.addAttribute("pageSizes", PAGE_SIZES);
 
