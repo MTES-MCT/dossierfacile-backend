@@ -3,7 +3,7 @@ package fr.dossierfacile.document.analysis.rule.validator.payslip;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentAnalysisRule;
 import fr.dossierfacile.common.entity.DocumentRule;
-import fr.dossierfacile.common.entity.rule.NamesRuleData;
+import fr.dossierfacile.common.entity.rule.PayslipNamesRuleData;
 import fr.dossierfacile.document.analysis.rule.validator.RuleValidatorOutput;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.BaseDocumentIAValidator;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.mapper.DocumentIAMultiMapper;
@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
-public class PayslipNameMatch extends BaseDocumentIAValidator {
+public class PayslipNamesRule extends BaseDocumentIAValidator {
 
     @Override
     protected boolean isBlocking() {
@@ -38,15 +38,15 @@ public class PayslipNameMatch extends BaseDocumentIAValidator {
 
         var nameToMatch = getNamesFromDocument(document);
 
-        NamesRuleData namesRuleData = null;
+        PayslipNamesRuleData namesRuleData = null;
 
         if (nameToMatch != null) {
-            var expectedName = new NamesRuleData.Name(
+            var expectedName = new PayslipNamesRuleData.Name(
                     nameToMatch.getFirstNamesAsString(),
                     nameToMatch.getLastName(),
                     nameToMatch.getPreferredName()
             );
-            namesRuleData = new NamesRuleData(expectedName, List.of());
+            namesRuleData = new PayslipNamesRuleData(expectedName, List.of());
         }
 
         if (documentIAAnalyses.isEmpty() || hasAnyNonSuccessfulDocumentIAAnalyses(document)) {
@@ -63,12 +63,12 @@ public class PayslipNameMatch extends BaseDocumentIAValidator {
             return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFromWithData(getRule(), namesRuleData), RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
         }
 
-        var listOfExtractedNames = new ArrayList<NamesRuleData.Name>();
+        var listOfExtractedIdentities = new ArrayList<String>();
         var isNameMatch = true;
 
         for (PayslipNames payslip : extractedPayslips) {
             String identityString = payslip.getIdentityString();
-            listOfExtractedNames.add(new NamesRuleData.Name(null, identityString, null));
+            listOfExtractedIdentities.add(identityString);
 
             if (identityString == null) {
                 isNameMatch = false;
@@ -84,7 +84,7 @@ public class PayslipNameMatch extends BaseDocumentIAValidator {
             }
         }
 
-        namesRuleData = new NamesRuleData(namesRuleData, listOfExtractedNames);
+        namesRuleData = new PayslipNamesRuleData(namesRuleData, listOfExtractedIdentities);
 
         if (isNameMatch) {
             return new RuleValidatorOutput(true, isBlocking(), DocumentAnalysisRule.documentPassedRuleFromWithData(getRule(), namesRuleData), RuleValidatorOutput.RuleLevel.PASSED);

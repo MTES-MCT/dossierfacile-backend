@@ -22,9 +22,9 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class PayslipNameMatchTest {
+class PayslipNamesRuleTest {
 
-    private final PayslipNameMatch rule = new PayslipNameMatch();
+    private final PayslipNamesRule rule = new PayslipNamesRule();
 
     // ==========================
     // Helpers / Fixtures
