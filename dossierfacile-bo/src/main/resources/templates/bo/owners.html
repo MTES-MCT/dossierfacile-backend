@@ -12,7 +12,7 @@
   <div class="container-lg actions-section">
     <div class="row">
       <form method="get"
-            th:action="@{/bo/owners(pageSize=${selectedPageSize}, page=1, ownerEmail=${ownerEmail},ownerFirstname=${ownerFirstname},ownerLastname=${ownerLastname})}"
+            th:action="@{/bo/owners(page=1, ownerEmail=${ownerEmail},ownerFirstname=${ownerFirstname},ownerLastname=${ownerLastname})}"
             class="filter">
                 <span>
                     <label for="ownerEmail">E-mail:</label>

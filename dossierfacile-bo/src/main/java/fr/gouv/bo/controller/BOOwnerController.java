@@ -7,7 +7,6 @@ import fr.gouv.bo.model.owner.OwnerModel;
 import fr.gouv.bo.service.OwnerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
@@ -21,9 +20,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RequestMapping(value = "/bo/owners")
 public class BOOwnerController {
     private static final String INITIAL_PAGE = "1";
-    private static final String INITIAL_PAGE_SIZE = "20";
+    private static final String MAX_PAGE_SIZE = "20";
     private static final int[] PAGE_SIZES = {20};
-    private static final int MAX_RESULTS = 100;
+    private static final int MAX_PAGE_NUMBER = 5;
     @Autowired
     private OwnerService ownerService;
     @Autowired
@@ -31,23 +30,21 @@ public class BOOwnerController {
 
     @GetMapping("")
     public String index(Model model,
-                        @RequestParam(value = "pageSize", defaultValue = INITIAL_PAGE_SIZE) int pageSize,
                         @RequestParam(value = "page", defaultValue = INITIAL_PAGE) int page,
                         @RequestParam(value = "ownerEmail", defaultValue = "") String email,
                         @RequestParam(value = "ownerFirstname", defaultValue = "") String firstName,
                         @RequestParam(value = "ownerLastname", defaultValue = "") String lastName) {
 
-        PageRequest pageable = PageRequest.of(page - 1, pageSize, Sort.by("creationDateTime").descending());
+        int pageSize = Integer.parseInt(MAX_PAGE_SIZE);
+        int boundedPage = Math.max(1, Math.min(page, MAX_PAGE_NUMBER));
+        PageRequest pageable = PageRequest.of(boundedPage - 1, pageSize, Sort.by("creationDateTime").descending());
 
         Page<Owner> owners = ownerService.searchOwners(email, firstName, lastName, pageable);
-
-        long cappedTotal = Math.min(owners.getTotalElements(), (long) MAX_RESULTS);
-        Page<Owner> cappedOwners = new PageImpl<>(owners.getContent(), pageable, cappedTotal);
 
         model.addAttribute("ownerEmail", email);
         model.addAttribute("ownerFirstname", firstName);
         model.addAttribute("ownerLastname", lastName);
-        model.addAttribute("owners", cappedOwners);
+        model.addAttribute("owners", owners);
         model.addAttribute("pageSize", pageable.getPageSize());
         model.addAttribute("pageSizes", PAGE_SIZES);
 
