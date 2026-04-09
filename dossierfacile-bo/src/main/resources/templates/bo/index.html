@@ -52,28 +52,6 @@
                     <a href="/bo/regroup" class="btn btn-info" id="nextApplication3">Regrouper deux locataires</a>
                 </div>
             </div>
-
-            <div>
-                <div sec:authorize="hasRole('MANAGER')">
-                    <div class="bg-warning-subtle" style="padding: 10px; font-size: 16px; margin-top: 15px;">
-                        <a th:href="@{/bo/documentFailedList}" style="text-decoration: none;">
-                        <span>
-                            <span style="color: red; font-weight: bold;">Locataires avec erreur PDF :</span>
-                            <span th:text="${TenantsWithFailedGeneratedPdf}"></span>
-                        </span>
-                        </a>
-                    </div>
-                    <div th:if="${TenantsWithFailedGeneratedPdf != 0}">
-                        <form th:action="@{/bo/regeneratePdfDocument}" th:method="post">
-                            <button style="border-radius: 5px; width: 100%" class="btn btn-danger bo-btn" name="action"
-                                    type="submit">
-                                Regénération PDF en echec
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
         </div>
     </div>
 

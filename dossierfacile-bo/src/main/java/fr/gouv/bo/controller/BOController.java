@@ -11,7 +11,6 @@ import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.gouv.bo.amqp.Producer;
 import fr.gouv.bo.dto.BooleanDTO;
 import fr.gouv.bo.dto.ReGroupDTO;
-import fr.gouv.bo.dto.ResultDTO;
 import fr.gouv.bo.security.UserPrincipal;
 import fr.gouv.bo.service.DocumentService;
 import fr.gouv.bo.service.TenantService;
@@ -101,33 +100,13 @@ public class BOController {
         return "redirect:/error";
     }
 
-    @PreAuthorize("hasRole('MANAGER')")
-    @GetMapping("/bo/documentFailedList")
-    public String documentFailedList(Model model,
-                                     @RequestParam(value = "pageSize", defaultValue = INITIAL_PAGE_SIZE) int pageSize,
-                                     @RequestParam(value = "page", defaultValue = "1") int page) {
-
-        Page<Tenant> tenants = tenantService.getAllTenantsToProcessWithFailedGeneratedPdfDocument(PageRequest.of(page - 1, pageSize));
-
-        model.addAttribute("pageSizes", PAGE_SIZES);
-        model.addAttribute("pageSize", pageSize);
-        model.addAttribute("tenantList", tenants);
-        return "bo/failed-pdf-tenant";
-    }
-
     @GetMapping("/bo")
-    public String bo(@ModelAttribute("numberOfDocumentsToProcess") ResultDTO numberOfDocumentsToProcess,
-                     Model model,
+    public String bo(Model model,
                      @AuthenticationPrincipal UserPrincipal principal) {
 
         User loginUser = userService.findUserByEmail(principal.getEmail());
         boolean isAdmin = loginUser.getUserRoles().stream().anyMatch(userRole -> userRole.getRole().name().equals(Role.ROLE_ADMIN.name()));
         model.addAttribute("numberOfTenantsToProcess", tenantService.countTenantsWithStatusInToProcess());
-        long result = 0;
-        if (numberOfDocumentsToProcess.getId() == null) {
-            result = tenantService.getCountOfTenantsWithFailedGeneratedPdfDocument();
-        }
-        model.addAttribute("TenantsWithFailedGeneratedPdf", result);
         model.addAttribute("isUserAdmin", isAdmin);
 
         return "bo/index";
@@ -211,14 +190,6 @@ public class BOController {
         Tenant tenant = document.getTenant() != null ? document.getTenant() : document.getGuarantor().getTenant();
         long apartmentSharingId = tenant.getApartmentSharing().getId();
         return REDIRECT_BO_COLOCATION + apartmentSharingId + "#tenant" + tenant.getId();
-    }
-
-    @PostMapping("/bo/regeneratePdfDocument")
-    public String regeneratePdfDocument(RedirectAttributes redirectAttributes, @ModelAttribute("mapping1Form") ResultDTO numberOfDocumentsToProcess) {
-        documentService.regenerateFailedPdfDocumentsUsingButtonRequest();
-        numberOfDocumentsToProcess.setId(0L);
-        redirectAttributes.addFlashAttribute("numberOfDocumentsToProcess", numberOfDocumentsToProcess);
-        return REDIRECT_BO;
     }
 
     @AllArgsConstructor
