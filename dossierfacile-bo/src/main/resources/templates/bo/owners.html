@@ -29,11 +29,18 @@
       </form>
     </div>
     <div class="row table-nav mt-4" th:with="parameters=${ 'ownerEmail=' + ownerEmail + '&ownerFirstname=' + ownerFirstname + '&ownerLastname=' + ownerLastname}">
-      <div th:replace="~{bo/fragments/pagination-with-parameters :: pagination (items=${owners}, parameters=${parameters}, pageSizes=${pageSizes}, endpoint='/bo/owners')}"></div>
+      <div th:if="${hasSearchCriteria}"
+           th:replace="~{bo/fragments/pagination-with-parameters :: pagination (items=${owners}, parameters=${parameters}, pageSizes=${pageSizes}, endpoint='/bo/owners')}"></div>
     </div>
   </div>
   <div class="container-lg">
-    <div class="table-responsive">
+    <div class="alert alert-info" th:if="${!hasSearchCriteria}">
+      Saisissez au moins un critère de recherche pour afficher les comptes proprietaires.
+    </div>
+    <div class="alert alert-warning" th:if="${hasSearchCriteria and owners.isEmpty()}">
+      Aucun compte proprietaire ne correspond a votre recherche.
+    </div>
+    <div class="table-responsive" th:if="${hasSearchCriteria}">
       <table class="table table-striped table-bordered table-hover">
         <thead>
         <tr>
@@ -61,7 +68,7 @@
         </tbody>
       </table>
     </div>
-    <div class="row table-nav">
+    <div class="row table-nav" th:if="${hasSearchCriteria}">
       <div class="row table-nav mt-4" th:with="parameters=${ 'ownerEmail=' + ownerEmail + '&ownerFirstname=' + ownerFirstname + '&ownerLastname=' + ownerLastname}">
         <div th:replace="~{bo/fragments/pagination-with-parameters :: pagination (items=${owners}, parameters=${parameters}, pageSizes=${pageSizes}, endpoint='/bo/owners')}"></div>
       </div>

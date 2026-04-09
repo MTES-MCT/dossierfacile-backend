@@ -39,12 +39,16 @@ public class BOOwnerController {
         int boundedPage = Math.max(1, Math.min(page, MAX_PAGE_NUMBER));
         PageRequest pageable = PageRequest.of(boundedPage - 1, pageSize, Sort.by("creationDateTime").descending());
 
-        Page<Owner> owners = ownerService.searchOwners(email, firstName, lastName, pageable);
+        boolean hasSearchCriteria = !email.isBlank() || !firstName.isBlank() || !lastName.isBlank();
+        Page<Owner> owners = hasSearchCriteria
+                ? ownerService.searchOwners(email, firstName, lastName, pageable)
+                : Page.empty(pageable);
 
         model.addAttribute("ownerEmail", email);
         model.addAttribute("ownerFirstname", firstName);
         model.addAttribute("ownerLastname", lastName);
         model.addAttribute("owners", owners);
+        model.addAttribute("hasSearchCriteria", hasSearchCriteria);
         model.addAttribute("pageSize", pageable.getPageSize());
         model.addAttribute("pageSizes", PAGE_SIZES);
 
