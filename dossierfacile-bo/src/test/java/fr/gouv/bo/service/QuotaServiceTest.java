@@ -50,24 +50,27 @@ class QuotaServiceTest {
         @Test
         void underLimit_doesNotThrow() {
             stubCount(ActionOperatorType.START_PROCESS, 1999L);
+            var principal = operatorPrincipal();
 
-            assertThatCode(() -> quotaService.checkQuota(operatorPrincipal(), ActionOperatorType.START_PROCESS))
+            assertThatCode(() -> quotaService.checkQuota(principal, ActionOperatorType.START_PROCESS))
                     .doesNotThrowAnyException();
         }
 
         @Test
         void atLimit_throwsAccessDeniedException() {
             stubCount(ActionOperatorType.START_PROCESS, 2000L);
+            var principal = operatorPrincipal();
 
-            assertThatThrownBy(() -> quotaService.checkQuota(operatorPrincipal(), ActionOperatorType.START_PROCESS))
+            assertThatThrownBy(() -> quotaService.checkQuota(principal, ActionOperatorType.START_PROCESS))
                     .isInstanceOf(AccessDeniedException.class);
         }
 
         @Test
         void atLimit_alsoAppliesForSupportRole() {
             stubCount(ActionOperatorType.START_PROCESS, 2000L);
+            var principal = supportPrincipal();
 
-            assertThatThrownBy(() -> quotaService.checkQuota(supportPrincipal(), ActionOperatorType.START_PROCESS))
+            assertThatThrownBy(() -> quotaService.checkQuota(principal, ActionOperatorType.START_PROCESS))
                     .isInstanceOf(AccessDeniedException.class);
         }
     }
@@ -82,24 +85,27 @@ class QuotaServiceTest {
         @Test
         void underLimit_doesNotThrow() {
             stubCount(ActionOperatorType.VIEW_APPLICATION, 499L);
+            var principal = operatorPrincipal();
 
-            assertThatCode(() -> quotaService.checkQuota(operatorPrincipal(), ActionOperatorType.VIEW_APPLICATION))
+            assertThatCode(() -> quotaService.checkQuota(principal, ActionOperatorType.VIEW_APPLICATION))
                     .doesNotThrowAnyException();
         }
 
         @Test
         void atLimit_throwsAccessDeniedException() {
             stubCount(ActionOperatorType.VIEW_APPLICATION, 500L);
+            var principal = operatorPrincipal();
 
-            assertThatThrownBy(() -> quotaService.checkQuota(operatorPrincipal(), ActionOperatorType.VIEW_APPLICATION))
+            assertThatThrownBy(() -> quotaService.checkQuota(principal, ActionOperatorType.VIEW_APPLICATION))
                     .isInstanceOf(AccessDeniedException.class);
         }
 
         @Test
         void atLimit_alsoAppliesForAdminRole() {
             stubCount(ActionOperatorType.VIEW_APPLICATION, 500L);
+            var principal = adminPrincipal();
 
-            assertThatThrownBy(() -> quotaService.checkQuota(adminPrincipal(), ActionOperatorType.VIEW_APPLICATION))
+            assertThatThrownBy(() -> quotaService.checkQuota(principal, ActionOperatorType.VIEW_APPLICATION))
                     .isInstanceOf(AccessDeniedException.class);
         }
     }
@@ -114,24 +120,27 @@ class QuotaServiceTest {
         @Test
         void support_underLimit_doesNotThrow() {
             stubCount(ActionOperatorType.SEARCH_TENANT, 99L);
+            var principal = supportPrincipal();
 
-            assertThatCode(() -> quotaService.checkQuota(supportPrincipal(), ActionOperatorType.SEARCH_TENANT))
+            assertThatCode(() -> quotaService.checkQuota(principal, ActionOperatorType.SEARCH_TENANT))
                     .doesNotThrowAnyException();
         }
 
         @Test
         void support_atLimit_throwsAccessDeniedException() {
             stubCount(ActionOperatorType.SEARCH_TENANT, 100L);
+            var principal = supportPrincipal();
 
-            assertThatThrownBy(() -> quotaService.checkQuota(supportPrincipal(), ActionOperatorType.SEARCH_TENANT))
+            assertThatThrownBy(() -> quotaService.checkQuota(principal, ActionOperatorType.SEARCH_TENANT))
                     .isInstanceOf(AccessDeniedException.class);
         }
 
         @Test
         void admin_atLimit_throwsAccessDeniedException() {
             stubCount(ActionOperatorType.SEARCH_TENANT, 100L);
+            var principal = adminPrincipal();
 
-            assertThatThrownBy(() -> quotaService.checkQuota(adminPrincipal(), ActionOperatorType.SEARCH_TENANT))
+            assertThatThrownBy(() -> quotaService.checkQuota(principal, ActionOperatorType.SEARCH_TENANT))
                     .isInstanceOf(AccessDeniedException.class);
         }
     }

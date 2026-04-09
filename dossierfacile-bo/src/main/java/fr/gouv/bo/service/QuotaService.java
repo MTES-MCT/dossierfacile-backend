@@ -15,13 +15,13 @@ import java.time.LocalDateTime;
 @Slf4j
 public class QuotaService {
 
-    @Value("${quota.bo.start-process.daily:2000}")
+    @Value("${quota.bo.start-process.daily:350}")
     private int limitStartProcess;
 
-    @Value("${quota.bo.view-application.daily:500}")
+    @Value("${quota.bo.view-application.daily:200}")
     private int limitViewApplication;
 
-    @Value("${quota.bo.search-tenant.daily:100}")
+    @Value("${quota.bo.search-tenant.daily:50}")
     private int limitSearchTenant;
 
     private final OperatorLogRepository operatorLogRepository;
