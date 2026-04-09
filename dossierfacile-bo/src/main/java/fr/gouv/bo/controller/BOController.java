@@ -157,7 +157,7 @@ public class BOController {
                                @RequestParam(value = "page", defaultValue = "1") int page) {
 
         int pageSize = Integer.parseInt(MAX_PAGE_SIZE);
-        int boundedPage = Math.max(1, Math.min(page, MAX_PAGE_NUMBER));
+        int boundedPage = Math.clamp(page, 1, MAX_PAGE_NUMBER);
         
         PageRequest pageable = PageRequest.of(boundedPage - 1, pageSize, Sort.by("id").descending());
         Page<Tenant> tenants = tenantService.getTenantByIdOrEmail(email, pageable);
