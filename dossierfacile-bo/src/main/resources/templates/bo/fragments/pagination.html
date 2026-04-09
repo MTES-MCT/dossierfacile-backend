@@ -1,7 +1,5 @@
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
-<body>
-<div th:fragment="pagination (items, paramKey, paramValue, pageSizes, endpoint)">
+<div th:fragment="pagination (items, paramKey, paramValue, pageSizes, endpoint)"
+     xmlns:th="http://www.thymeleaf.org">
     <div class="row table-nav">
         <div class="mb-3 col-md-1">
             <select class="form-select form-control pagination" onchange="location.href=this.value">
@@ -35,5 +33,3 @@
         </div>
     </div>
 </div>
-</body>
-</html>

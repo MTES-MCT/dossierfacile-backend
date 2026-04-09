@@ -188,7 +188,7 @@ public class BOController {
             return REDIRECT_BO_COLOCATION + tenants.getContent().getFirst().getApartmentSharing().getId();
         }
 
-        long cappedTotal = Math.min(tenants.getTotalElements(), (long) MAX_RESULTS);
+        long cappedTotal = Math.min(tenants.getTotalElements(), MAX_RESULTS);
         Page<Tenant> cappedTenants = new PageImpl<>(tenants.getContent(), pageable, cappedTotal);
         model.addAttribute("tenants", cappedTenants);
         model.addAttribute("pageSize", pageable.getPageSize());
