@@ -113,7 +113,7 @@ public class BrevoMailHistoryService {
         }
 
         return byMessageId.entrySet().stream()
-                .map(entry -> toStatus(entry.getKey(), entry.getValue()))
+                .map(entry -> toStatus(entry.getValue()))
                 .sorted((left, right) -> {
                     LocalDateTime leftDate = left.getSentAt();
                     LocalDateTime rightDate = right.getSentAt();
@@ -132,7 +132,7 @@ public class BrevoMailHistoryService {
                 .toList();
     }
 
-    private BrevoMailStatusDTO toStatus(String messageId, List<GetEmailEventReportEvents> events) {
+    private BrevoMailStatusDTO toStatus(List<GetEmailEventReportEvents> events) {
         GetEmailEventReportEvents latest = events.stream()
                 .max(Comparator.comparing(this::safeEventDate, Comparator.nullsFirst(Comparator.naturalOrder())))
                 .orElse(null);
