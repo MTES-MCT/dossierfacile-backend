@@ -33,7 +33,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static fr.gouv.bo.controller.BOController.REDIRECT_BO_HOME;
 import static org.apache.commons.lang3.StringUtils.*;
@@ -748,27 +747,6 @@ public class TenantService {
             }
 
         });
-    }
-
-    @Transactional
-    public void updateStatusOfSomeTenants(String tenantList) {
-        List<String> tenantList2 = Arrays.asList(tenantList.split(","));
-        List<Long> idList = tenantList2.stream().map(Long::parseLong).collect(Collectors.toList());
-        log.info("Found [" + idList.size() + "] tenants to recalculate their status");
-
-        List<Tenant> tenantsById = tenantRepository.findAllById(idList);
-        List<Tenant> tenantsToUpdate = new ArrayList<>();
-        for (Tenant tenant : tenantsById) {
-            TenantFileStatus newStatus = tenant.computeStatus();
-            if (tenant.getStatus().ordinal() != newStatus.ordinal()) {
-                log.info("Updating status of tenant with ID [" + tenant.getId() + "] from [" + tenant.getStatus() + "] to [" + newStatus.name() + "]");
-                tenant.setStatus(newStatus);
-                tenantsToUpdate.add(tenant);
-            }
-        }
-
-        log.info("Tenants needed to update [" + tenantsToUpdate.size() + "]");
-        tenantRepository.saveAll(tenantsToUpdate);
     }
 
     public List<Document> getAllDocumentCategories(Tenant tenant) {
