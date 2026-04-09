@@ -4,6 +4,7 @@ import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentIAFileAnalysis;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.enums.DocumentIAFileAnalysisStatus;
+import fr.dossierfacile.common.model.document_ia.BarcodeModel;
 import fr.dossierfacile.common.model.document_ia.ExtractionModel;
 import fr.dossierfacile.common.model.document_ia.GenericProperty;
 import fr.dossierfacile.common.model.document_ia.ResultModel;
@@ -73,6 +74,34 @@ class PayslipContinuityRuleTest {
         ResultModel result = ResultModel.builder()
                 .extraction(extraction)
                 .barcodes(Collections.emptyList())
+                .build();
+
+        return DocumentIAFileAnalysis.builder()
+                .analysisStatus(DocumentIAFileAnalysisStatus.SUCCESS)
+                .result(result)
+                .build();
+    }
+
+    private DocumentIAFileAnalysis analysisWithDateFrom2DDoc(LocalDate startDate, LocalDate endDate) {
+        BarcodeModel barcode = BarcodeModel.builder()
+                .type("DATA_MATRIX")
+                .typedData(List.of(
+                        GenericProperty.builder()
+                                .name("debut_periode")
+                                .type("date")
+                                .value(startDate.toString())
+                                .build(),
+                        GenericProperty.builder()
+                                .name("fin_periode")
+                                .type("date")
+                                .value(endDate.toString())
+                                .build()
+                ))
+                .build();
+
+        ResultModel result = ResultModel.builder()
+                .extraction(null)
+                .barcodes(List.of(barcode))
                 .build();
 
         return DocumentIAFileAnalysis.builder()
@@ -183,6 +212,62 @@ class PayslipContinuityRuleTest {
         RuleValidatorOutput result = validator.validate(document);
 
         assertThat(result.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
+    }
+
+    @Test
+    @DisplayName("Devrait être PASSED si 3 mois consécutifs proviennent des champs 2DDOC (debut_periode / fin_periode)")
+    void should_pass_when_dates_come_from_2d_doc() {
+        PayslipContinuityRule validator = createValidator(LocalDate.of(2023, 4, 10));
+
+        DocumentIAFileAnalysis[] analyses = new DocumentIAFileAnalysis[]{
+                analysisWithDateFrom2DDoc(LocalDate.of(2023, 3, 1), LocalDate.of(2023, 3, 31)),
+                analysisWithDateFrom2DDoc(LocalDate.of(2023, 2, 1), LocalDate.of(2023, 2, 28)),
+                analysisWithDateFrom2DDoc(LocalDate.of(2023, 1, 1), LocalDate.of(2023, 1, 31))
+        };
+
+        Document document = createDocumentWithAnalyses(analyses);
+        RuleValidatorOutput result = validator.validate(document);
+
+        assertThat(result.isValid()).isTrue();
+        assertThat(result.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.PASSED);
+    }
+
+    @Test
+    @DisplayName("2DDOC (debut_periode) a priorité sur extraction (periode_debut) quand les deux sont présents")
+    void should_use_2d_doc_date_over_extraction_when_both_present() {
+        PayslipContinuityRule validator = createValidator(LocalDate.of(2023, 4, 10));
+
+        // 2DDOC dit Mars, extraction dit Juillet (hors fenêtre) → seul Mars doit être retenu
+        BarcodeModel barcode = BarcodeModel.builder()
+                .type("DATA_MATRIX")
+                .typedData(List.of(
+                        GenericProperty.builder().name("debut_periode").type("date").value("2023-03-01").build(),
+                        GenericProperty.builder().name("fin_periode").type("date").value("2023-03-31").build()
+                ))
+                .build();
+        ExtractionModel extraction = ExtractionModel.builder()
+                .properties(List.of(
+                        GenericProperty.builder().name("periode_debut").type("date").value("2023-07-01").build(),
+                        GenericProperty.builder().name("periode_fin").type("date").value("2023-07-31").build()
+                ))
+                .build();
+        ResultModel result = ResultModel.builder().extraction(extraction).barcodes(List.of(barcode)).build();
+        DocumentIAFileAnalysis combinedAnalysis = DocumentIAFileAnalysis.builder()
+                .analysisStatus(DocumentIAFileAnalysisStatus.SUCCESS)
+                .result(result)
+                .build();
+
+        // Avec seulement 1 bulletin = mois de Mars → pas 3 consécutifs → FAILED (pas INCONCLUSIVE)
+        // Ce test vérifie que c'est le mois de Mars (2DDOC) et non Juillet (extraction) qui est pris
+        DocumentIAFileAnalysis m2 = analysisWithDateFrom2DDoc(LocalDate.of(2023, 2, 1), LocalDate.of(2023, 2, 28));
+        DocumentIAFileAnalysis m1 = analysisWithDateFrom2DDoc(LocalDate.of(2023, 1, 1), LocalDate.of(2023, 1, 31));
+
+        Document document = createDocumentWithAnalyses(combinedAnalysis, m2, m1);
+        RuleValidatorOutput output = validator.validate(document);
+
+        // Mars + Fev + Jan = 3 consécutifs dans la fenêtre → PASSED
+        assertThat(output.isValid()).isTrue();
+        assertThat(output.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.PASSED);
     }
 
     @Test

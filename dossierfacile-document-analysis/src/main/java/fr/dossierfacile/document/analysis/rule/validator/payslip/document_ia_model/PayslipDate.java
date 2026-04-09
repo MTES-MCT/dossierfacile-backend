@@ -12,19 +12,13 @@ import java.time.LocalDate;
 @DocumentIAModel(documentCategory = DocumentCategory.FINANCIAL, documentSubCategory = DocumentSubCategory.SALARY)
 public class PayslipDate {
 
-    @DocumentIAField(
-            extractionName = "periode_debut"
-    )
+    @DocumentIAField(twoDDocName = "debut_periode", extractionName = "periode_debut")
     public LocalDate startDate;
 
-    @DocumentIAField(
-            extractionName = "periode_fin"
-    )
+    @DocumentIAField(twoDDocName = "fin_periode", extractionName = "periode_fin")
     public LocalDate endDate;
 
-    @DocumentIAField(
-            extractionName = "date_paiement"
-    )
+    @DocumentIAField(extractionName = "date_paiement")
     public LocalDate paymentDate;
 
 }

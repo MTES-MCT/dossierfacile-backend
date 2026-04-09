@@ -6,7 +6,7 @@ import fr.dossierfacile.document.analysis.rule.validator.AbstractDocumentRuleVal
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.ClassificationValidatorB;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.HasBeenDocumentIAAnalysedBI;
 import fr.dossierfacile.document.analysis.rule.validator.payslip.PayslipContinuityRule;
-import fr.dossierfacile.document.analysis.rule.validator.payslip.PayslipNameMatch;
+import fr.dossierfacile.document.analysis.rule.validator.payslip.PayslipNamesRule;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -29,7 +29,7 @@ public class BulletinSalaireRulesValidationService extends AbstractRulesValidati
         return List.of(
                 new HasBeenDocumentIAAnalysedBI(),
                 new ClassificationValidatorB(DOCUMENT_IA_DOCUMENT_TYPE),
-                new PayslipNameMatch(),
+                new PayslipNamesRule(),
                 new PayslipContinuityRule()
         );
     }
