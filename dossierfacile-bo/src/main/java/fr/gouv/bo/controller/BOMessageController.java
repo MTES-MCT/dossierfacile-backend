@@ -4,8 +4,10 @@ import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Message;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.User;
+import fr.gouv.bo.dto.BrevoMailHistoryViewDTO;
 import fr.gouv.bo.dto.MessageDTO;
 import fr.gouv.bo.security.UserPrincipal;
+import fr.gouv.bo.service.BrevoMailHistoryService;
 import fr.gouv.bo.service.MessageService;
 import fr.gouv.bo.service.TenantService;
 import fr.gouv.bo.service.UserService;
@@ -29,10 +31,12 @@ public class BOMessageController {
     private static final String MESSAGES = "messages";
     private static final String TENANT = "tenant";
     private static final String OPNAME = "operatorName";
+    private static final String BREVO_HISTORY = "brevoHistory";
 
     private final TenantService tenantService;
     private final MessageService messageService;
     private final UserService userService;
+    private final BrevoMailHistoryService brevoMailHistoryService;
 
     @GetMapping("/tenant/{id}")
     public String tenantMessages(
@@ -46,6 +50,7 @@ public class BOMessageController {
         ApartmentSharing apartmentSharing = tenant1.getApartmentSharing();
         User loggedUser = userService.findUserByEmail(principal.getEmail());
         List<Message> messages = messageService.findTenantMessages(tenant);
+        BrevoMailHistoryViewDTO brevoHistory = brevoMailHistoryService.getLast90DaysHistory(tenant.getEmail());
 
         model.addAttribute("message", MessageDTO.builder().message("Bonjour,\n\n" +
                 "Merci pour votre message.\n\n\n" +
@@ -55,6 +60,7 @@ public class BOMessageController {
         model.addAttribute(MESSAGES, messages);
         model.addAttribute(TENANT, tenant);
         model.addAttribute(OPNAME, loggedUser.getEmail());
+        model.addAttribute(BREVO_HISTORY, brevoHistory);
         return "bo/message";
     }
 
