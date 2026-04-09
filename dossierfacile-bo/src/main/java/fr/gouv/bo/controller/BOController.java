@@ -46,7 +46,6 @@ public class BOController {
     public static final String REDIRECT_BO_HOME = "redirect:/bo";
 
     private static final String EMAIL = "email";
-    private static final String OLDEST_APPLICATION = "oldestApplication";
     private static final String REDIRECT_BO_COLOCATION = "redirect:/bo/colocation/";
     private static final String SHOW_ALERT = "showAlert";
     private static final String INITIAL_PAGE_SIZE = "20";
@@ -131,7 +130,6 @@ public class BOController {
         model.addAttribute("TenantsWithFailedGeneratedPdf", result);
         model.addAttribute("isUserAdmin", isAdmin);
 
-        model.addAttribute(OLDEST_APPLICATION, tenantService.getOldestToProcessApplication());
         return "bo/index";
     }
 

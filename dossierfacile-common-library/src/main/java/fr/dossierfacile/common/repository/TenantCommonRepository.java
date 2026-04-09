@@ -52,15 +52,6 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
         refreshMaterializedView("ranked_tenant");
     }
 
-    @Query("""
-            SELECT t
-            FROM Tenant t
-            WHERE t.status = 'TO_PROCESS'
-              AND t.honorDeclaration = true
-            ORDER BY t.lastUpdateDate ASC
-            """)
-    Page<Tenant> findToProcessApplicationsByOldestUpdateDate(Pageable pageable);
-
     List<Tenant> findAllByApartmentSharingId(Long ap);
 
     Tenant findOneById(Long id);

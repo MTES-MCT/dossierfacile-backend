@@ -54,29 +54,6 @@
             </div>
 
             <div>
-                <div
-                        sec:authorize="hasRole('MANAGER')"
-                        th:if="${oldestApplication.isPresent()}"
-                        th:with="tenant=${oldestApplication.get()}">
-                    <div class="bg-warning-subtle" style="padding: 10px; font-size: 16px">
-                        <p style="color: red; font-weight: bold;">
-                            Dossier à traiter le plus ancien :
-                        </p>
-                        <span
-                                th:with="date=${tenant.getLastUpdateDate()},
-                                   formattedDate=${T(fr.gouv.bo.utils.DateFormatUtil).formatPreciselyRelativeToNow(date)}"
-                                th:text="'Modifié ' + ${formattedDate}"
-                        ></span>
-                    </div>
-                    <div>
-                        <a th:href="@{/bo/colocation/} + ${tenant.getApartmentSharing().getId()} + '#tenant' + ${tenant.getId()}">
-                            <button style="border-radius: 5px; width: 100%" class="btn btn-danger bo-btn" name="action"
-                                    type="submit">
-                                Voir le dossier
-                            </button>
-                        </a>
-                    </div>
-                </div>
                 <div sec:authorize="hasRole('MANAGER')">
                     <div class="bg-warning-subtle" style="padding: 10px; font-size: 16px; margin-top: 15px;">
                         <a th:href="@{/bo/documentFailedList}" style="text-decoration: none;">

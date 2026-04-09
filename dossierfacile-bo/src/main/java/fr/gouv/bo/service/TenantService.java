@@ -27,7 +27,6 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -886,14 +885,6 @@ public class TenantService {
 
         // invalidates the full pdf to make sure a new version can be lazy generated with both tenants
         apartmentSharingService.resetDossierPdfGenerated(apartmentSharing);
-    }
-
-    public Optional<Tenant> getOldestToProcessApplication() {
-        Page<Tenant> page = tenantRepository.findToProcessApplicationsByOldestUpdateDate(PageRequest.of(0, 1));
-        if (!page.isEmpty()) {
-            return page.get().findFirst();
-        }
-        return Optional.empty();
     }
 
     @Transactional
