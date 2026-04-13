@@ -1,38 +1,30 @@
-<div th:fragment="pagination (items, parameters, pageSizes, endpoint)"
-     xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="pagination (items, parameters, endpoint, maxPages)"
+     xmlns:th="http://www.thymeleaf.org"
+     th:with="effectiveTotalPages=${T(java.lang.Math).min(maxPages, items.totalPages)}">
     <div class="row table-nav">
-        <div class="mb-3 col-md-1" th:if="${pageSizes != null and #arrays.length(pageSizes) > 1}">
-            <select class="form-select form-control pagination" onchange="location.href=safeRedirect(this.value)">
-                <option th:each="localPageSize : ${pageSizes}"
-                        th:value="${endpoint} + '?' + ${parameters} + '&pageSize=' + ${localPageSize} + '&page=1'"
-                        th:text="${localPageSize}"
-                        th:selected="${localPageSize} == ${pageSize}">
-                </option>
-            </select>
-        </div>
-        <div th:if="${items.totalPages > 1}" class="mb-3 col-md-11 pagination-centered">
+        <div th:if="${effectiveTotalPages > 1}" class="mb-3 col-md-12 pagination-centered">
             <ul class="pagination">
                 <li th:class="${items.number == 0} ? disabled">
                     <a class="page-link"
-                       th:href="${endpoint} + '?' + ${parameters} + '&page=1' + '&pageSize=' + ${pageSize}">&laquo;</a>
+                       th:href="${endpoint} + '?' + ${parameters} + '&page=1'">&laquo;</a>
                 </li>
                 <li th:class="${items.number == 0} ? disabled">
                     <a class="page-link"
-                       th:href="${endpoint} + '?' + ${parameters} + '&page=' + ${items.number} + '&pageSize=' + ${pageSize}">&larr;</a>
+                       th:href="${endpoint} + '?' + ${parameters} + '&page=' + ${items.number}">&larr;</a>
                 </li>
-                <li th:each="page : ${#numbers.sequence(1, items.totalPages)}"
+                <li th:each="page : ${#numbers.sequence(1, effectiveTotalPages)}"
                     th:class="${items.number == (page - 1)} ? 'active pointer-disabled'">
                     <a class="page-link"
-                       th:href="${endpoint} + '?' + ${parameters} + '&page=' + ${page} + '&pageSize=' + ${pageSize}"
+                       th:href="${endpoint} + '?' + ${parameters} + '&page=' + ${page}"
                        th:text="${page}"></a>
                 </li>
-                <li th:class="${items.number + 1 == items.totalPages} ? disabled">
+                <li th:class="${items.number + 1 == effectiveTotalPages} ? disabled">
                     <a class="page-link"
-                       th:href="${endpoint} + '?' + ${parameters} + '&page=' + ${items.number + 2 } + '&pageSize=' + ${pageSize}">&rarr;</a>
+                       th:href="${endpoint} + '?' + ${parameters} + '&page=' + ${items.number + 2 }">&rarr;</a>
                 </li>
-                <li th:class="${items.number + 1 == items.totalPages} ? disabled">
+                <li th:class="${items.number + 1 == effectiveTotalPages} ? disabled">
                     <a class="page-link"
-                       th:href="${endpoint} + '?' + ${parameters} + '&page=' + ${items.totalPages} + '&pageSize=' + ${pageSize}">&raquo;</a>
+                       th:href="${endpoint} + '?' + ${parameters} + '&page=' + ${effectiveTotalPages}">&raquo;</a>
                 </li>
             </ul>
         </div>

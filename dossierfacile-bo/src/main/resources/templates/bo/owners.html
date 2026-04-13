@@ -30,7 +30,7 @@
     </div>
     <div class="row table-nav mt-4" th:with="parameters=${ 'ownerEmail=' + ownerEmail + '&ownerFirstname=' + ownerFirstname + '&ownerLastname=' + ownerLastname}">
       <div th:if="${hasSearchCriteria}"
-           th:replace="~{bo/fragments/pagination-with-parameters :: pagination (items=${owners}, parameters=${parameters}, pageSizes=${pageSizes}, endpoint='/bo/owners')}"></div>
+           th:replace="~{bo/fragments/pagination-with-parameters :: pagination (items=${owners}, parameters=${parameters}, endpoint='/bo/owners', maxPages=${paginationMaxPages})}"></div>
     </div>
   </div>
   <div class="container-lg">
@@ -70,7 +70,7 @@
     </div>
     <div class="row table-nav" th:if="${hasSearchCriteria}">
       <div class="row table-nav mt-4" th:with="parameters=${ 'ownerEmail=' + ownerEmail + '&ownerFirstname=' + ownerFirstname + '&ownerLastname=' + ownerLastname}">
-        <div th:replace="~{bo/fragments/pagination-with-parameters :: pagination (items=${owners}, parameters=${parameters}, pageSizes=${pageSizes}, endpoint='/bo/owners')}"></div>
+        <div th:replace="~{bo/fragments/pagination-with-parameters :: pagination (items=${owners}, parameters=${parameters}, endpoint='/bo/owners', maxPages=${paginationMaxPages})}"></div>
       </div>
     </div>
   </div>

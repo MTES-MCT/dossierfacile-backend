@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class BOOwnerController {
     private static final String INITIAL_PAGE = "1";
     private static final String MAX_PAGE_SIZE = "20";
-    private static final int[] PAGE_SIZES = {20};
     private static final int MAX_PAGE_NUMBER = 5;
     @Autowired
     private OwnerService ownerService;
@@ -49,8 +48,7 @@ public class BOOwnerController {
         model.addAttribute("ownerLastname", lastName);
         model.addAttribute("owners", owners);
         model.addAttribute("hasSearchCriteria", hasSearchCriteria);
-        model.addAttribute("pageSize", pageable.getPageSize());
-        model.addAttribute("pageSizes", PAGE_SIZES);
+        model.addAttribute("paginationMaxPages", MAX_PAGE_NUMBER);
 
         return "bo/owners";
     }
