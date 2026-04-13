@@ -1,0 +1,55 @@
+<div th:fragment="brevo-history" xmlns:th="http://www.thymeleaf.org">
+    <h4>Historique d'envoi des emails</h4>
+    <div class="text-muted" style="margin-bottom: 10px;">
+        Adresse email du locataire :
+        <strong th:text="${tenant.email != null && !tenant.email.isBlank() ? tenant.email : 'Non renseignée'}">
+            Non renseignée
+        </strong>
+    </div>
+    <div class="text-muted" style="margin-bottom: 10px;">
+        Résultats limités aux <strong>90 derniers jours</strong> et aux <strong>25 derniers emails</strong>.
+    </div>
+
+    <div class="alert alert-warning" th:if="${brevoHistory != null && brevoHistory.error}">
+        <span th:text="${brevoHistory.errorMessage}">Historique d'envoi des emails indisponible pour le moment.</span>
+    </div>
+
+    <div class="alert alert-info" th:if="${brevoHistory != null && !brevoHistory.error && brevoHistory.empty}">
+        Aucun envoi Brevo trouvé sur les 90 derniers jours.
+    </div>
+
+    <div class="table-responsive" th:if="${brevoHistory != null && !brevoHistory.error && !brevoHistory.empty}">
+        <table class="table table-striped table-bordered table-hover">
+            <thead>
+            <tr>
+                <th>Date d'envoi</th>
+                <th>Expéditeur</th>
+                <th>Objet</th>
+                <th>Dernier statut</th>
+                <th>Date dernier event</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="mail : ${brevoHistory.items}">
+                <td th:text="${mail.sentAt != null ? #temporals.format(mail.sentAt, 'dd/MM/yyyy HH:mm') : '-'}">-</td>
+                <td th:text="${mail.fromEmail}">sender@example.com</td>
+                <td th:text="${mail.subject}">Objet</td>
+                <td>
+                    <span class="badge rounded-pill"
+                          th:classappend="${
+                          #strings.equalsIgnoreCase(mail.lastEventType, 'délivré') ? ' text-bg-success' :
+                          (#strings.equalsIgnoreCase(mail.lastEventType, 'ouvert') || #strings.equalsIgnoreCase(mail.lastEventType, 'cliqué')) ? ' text-bg-info' :
+                          (#strings.equalsIgnoreCase(mail.lastEventType, 'différé')) ? ' text-bg-warning' :
+                          (#strings.equalsIgnoreCase(mail.lastEventType, 'rebond dur') || #strings.equalsIgnoreCase(mail.lastEventType, 'rebond léger') || #strings.equalsIgnoreCase(mail.lastEventType, 'invalide') || #strings.equalsIgnoreCase(mail.lastEventType, 'bloqué') || #strings.equalsIgnoreCase(mail.lastEventType, 'spam') || #strings.equalsIgnoreCase(mail.lastEventType, 'erreur')) ? ' text-bg-danger' :
+                          ' text-bg-secondary'
+                          }"
+                          th:text="${mail.lastEventType}">
+                        delivered
+                    </span>
+                </td>
+                <td th:text="${mail.lastEventAt != null ? #temporals.format(mail.lastEventAt, 'dd/MM/yyyy HH:mm') : '-'}">-</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
