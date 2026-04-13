@@ -11,6 +11,8 @@ import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.gouv.bo.amqp.Producer;
 import fr.gouv.bo.dto.BooleanDTO;
 import fr.gouv.bo.dto.ReGroupDTO;
+import fr.gouv.bo.dto.ResultDTO;
+import fr.gouv.bo.security.BOApplicationAccessService;
 import fr.gouv.bo.security.UserPrincipal;
 import fr.gouv.bo.service.DocumentService;
 import fr.gouv.bo.service.TenantService;
@@ -56,6 +58,7 @@ public class BOController {
     private final Producer producer;
     private final PartnerCallBackService partnerCallBackService;
     private final ClientRegistrationRepository clientRegistrationRepository;
+    private final BOApplicationAccessService applicationAccessService;
 
     @GetMapping("/")
     public String index(@AuthenticationPrincipal UserPrincipal principal) {
@@ -153,6 +156,7 @@ public class BOController {
     @PreAuthorize("hasRole('SUPPORT')")
     @GetMapping("/bo/searchTenant")
     public String searchTenant(Model model,
+                               @AuthenticationPrincipal UserPrincipal principal,
                                @RequestParam(value = EMAIL) String email,
                                @RequestParam(value = "page", defaultValue = "1") int page) {
 
@@ -161,6 +165,7 @@ public class BOController {
         
         PageRequest pageable = PageRequest.of(boundedPage - 1, pageSize, Sort.by("id").descending());
         Page<Tenant> tenants = tenantService.getTenantByIdOrEmail(email, pageable);
+        applicationAccessService.logSearchTenant(principal, email, tenants.getTotalElements());
 
         if (tenants.getTotalElements() == 1 && (email.contains("@") || StringUtils.isNumeric(email))) {
             return REDIRECT_BO_COLOCATION + tenants.getContent().getFirst().getApartmentSharing().getId();

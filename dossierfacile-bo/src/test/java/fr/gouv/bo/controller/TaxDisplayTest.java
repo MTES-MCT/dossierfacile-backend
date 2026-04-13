@@ -7,6 +7,7 @@ import fr.dossierfacile.common.repository.LinkLogRepository;
 import fr.dossierfacile.common.service.ApartmentSharingLinkService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.gouv.bo.TestBOApplication;
+import fr.gouv.bo.security.BOApplicationAccessService;
 import fr.gouv.bo.service.*;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -83,6 +84,8 @@ class TaxDisplayTest {
     private TenantLogService logService;
     @MockitoBean
     private DocumentDeniedReasonsService documentDeniedReasonsService;
+    @MockitoBean
+    private BOApplicationAccessService applicationAccessService;
 
     // BOApartmentSharingController dependencies
     @MockitoBean
