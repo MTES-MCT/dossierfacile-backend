@@ -27,14 +27,12 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static fr.gouv.bo.controller.BOController.REDIRECT_BO_HOME;
 import static org.apache.commons.lang3.StringUtils.*;
@@ -103,11 +101,6 @@ public class TenantService {
 
     public Tenant getTenantById(Long id) {
         return tenantRepository.findOneById(id);
-    }
-
-    public Page<Tenant> listTenantsToProcess(Pageable pageable) {
-        LocalDateTime localDateTime = LocalDateTime.now().minusMinutes(timeReprocessApplicationMinutes);
-        return tenantRepository.findTenantsToProcess(localDateTime, pageable);
     }
 
     public Tenant find(Long id) {
@@ -756,27 +749,6 @@ public class TenantService {
         });
     }
 
-    @Transactional
-    public void updateStatusOfSomeTenants(String tenantList) {
-        List<String> tenantList2 = Arrays.asList(tenantList.split(","));
-        List<Long> idList = tenantList2.stream().map(Long::parseLong).collect(Collectors.toList());
-        log.info("Found [" + idList.size() + "] tenants to recalculate their status");
-
-        List<Tenant> tenantsById = tenantRepository.findAllById(idList);
-        List<Tenant> tenantsToUpdate = new ArrayList<>();
-        for (Tenant tenant : tenantsById) {
-            TenantFileStatus newStatus = tenant.computeStatus();
-            if (tenant.getStatus().ordinal() != newStatus.ordinal()) {
-                log.info("Updating status of tenant with ID [" + tenant.getId() + "] from [" + tenant.getStatus() + "] to [" + newStatus.name() + "]");
-                tenant.setStatus(newStatus);
-                tenantsToUpdate.add(tenant);
-            }
-        }
-
-        log.info("Tenants needed to update [" + tenantsToUpdate.size() + "]");
-        tenantRepository.saveAll(tenantsToUpdate);
-    }
-
     public List<Document> getAllDocumentCategories(Tenant tenant) {
 
         List<Document> documentList = tenant.getDocuments();
@@ -854,14 +826,6 @@ public class TenantService {
         return documentList;
     }
 
-    public long getCountOfTenantsWithFailedGeneratedPdfDocument() {
-        return tenantRepository.countAllTenantsWithoutPdfDocument();
-    }
-
-    public Page<Tenant> getAllTenantsToProcessWithFailedGeneratedPdfDocument(Pageable pageable) {
-        return tenantRepository.findAllTenantsToProcessWithoutPdfDocument(pageable);
-    }
-
     public long countTenantsWithStatusInToProcess() {
         return tenantRepository.countAllByStatus(TenantFileStatus.TO_PROCESS);
     }
@@ -891,14 +855,6 @@ public class TenantService {
 
         // invalidates the full pdf to make sure a new version can be lazy generated with both tenants
         apartmentSharingService.resetDossierPdfGenerated(apartmentSharing);
-    }
-
-    public Optional<Tenant> getOldestToProcessApplication() {
-        Page<Tenant> page = tenantRepository.findToProcessApplicationsByOldestUpdateDate(PageRequest.of(0, 1));
-        if (!page.isEmpty()) {
-            return page.get().findFirst();
-        }
-        return Optional.empty();
     }
 
     @Transactional

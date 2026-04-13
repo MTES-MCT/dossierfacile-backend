@@ -25,13 +25,6 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
     @Query("select distinct t FROM Tenant t where concat(LOWER(coalesce(t.firstName, '')),' ',LOWER(coalesce(t.lastName, ''))) like CONCAT('%', :nameUser, '%')")
     Page<Tenant> findTenantByFirstNameOrLastNameOrFullName(@Param("nameUser") String nameUser, Pageable pageable);
 
-    @Query("select t from Tenant t " +
-            " where (t.operatorDateTime is null or t.operatorDateTime < :localDateTime)" +
-            " and t.status = 'TO_PROCESS' and t.honorDeclaration = true " +
-            " order by t.lastUpdateDate")
-    Page<Tenant> findTenantsToProcess(@Param("localDateTime") LocalDateTime localDateTime, Pageable pageable);
-
-
     // rank condition is set to avoid to treat too fast a returning tenant
     // status and honorDeclaration are redundancy but that okay
     @Query(value = """
@@ -59,15 +52,6 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
         refreshMaterializedView("ranked_tenant");
     }
 
-    @Query("""
-            SELECT t
-            FROM Tenant t
-            WHERE t.status = 'TO_PROCESS'
-              AND t.honorDeclaration = true
-            ORDER BY t.lastUpdateDate ASC
-            """)
-    Page<Tenant> findToProcessApplicationsByOldestUpdateDate(Pageable pageable);
-
     List<Tenant> findAllByApartmentSharingId(Long ap);
 
     Tenant findOneById(Long id);
@@ -80,40 +64,6 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
             nativeQuery = true
     )
     List<Long> listIdTenantsAccountCompletedPendingToSendCallBack(@Param("id") Long userApiId, @Param("since") LocalDateTime lastUpdateSince);
-
-    @Query(value = """
-            SELECT COUNT(DISTINCT t.id)
-            FROM tenant t
-            LEFT JOIN document d ON d.tenant_id = t.id OR d.guarantor_id = t.id
-            WHERE d.watermark_file_id IS NULL
-              AND d.document_status IS NOT NULL
-              AND ( d.last_modified_date IS NULL OR d.last_modified_date < NOW() - INTERVAL '1' HOUR)
-            """, nativeQuery = true)
-    long countAllTenantsWithoutPdfDocument();
-
-    @Query(value = """
-            SELECT *
-            FROM tenant t
-            JOIN user_account u ON t.id = u.id
-            WHERE t.id IN (
-              SELECT t2.id
-              FROM tenant t2
-              JOIN document d ON d.tenant_id = t2.id
-              WHERE d.watermark_file_id IS NULL
-                AND d.document_status IS NOT NULL
-                AND ( d.last_modified_date IS NULL OR d.last_modified_date < NOW() - INTERVAL '1' HOUR)
-              UNION DISTINCT
-              SELECT t3.id
-              FROM tenant t3
-              JOIN guarantor g ON g.tenant_id = t3.id
-              JOIN document d ON d.guarantor_id = g.id
-              WHERE d.watermark_file_id IS NULL
-                AND d.document_status IS NOT NULL
-                AND ( d.last_modified_date IS NULL OR d.last_modified_date < NOW() - INTERVAL '1' HOUR)
-            )
-            ORDER BY t.last_update_date DESC
-            """, nativeQuery = true)
-    Page<Tenant> findAllTenantsToProcessWithoutPdfDocument(Pageable pageable);
 
     long countAllByStatus(TenantFileStatus tenantFileStatus);
     //endregion
