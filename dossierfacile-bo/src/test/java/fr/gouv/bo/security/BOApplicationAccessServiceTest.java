@@ -28,6 +28,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -72,7 +73,9 @@ class BOApplicationAccessServiceTest {
             UserPrincipal principal = operatorPrincipal();
             when(operatorLogRepository
                     .existsByOperatorIdAndTenantIdAndActionOperatorTypeInAndCreationDateGreaterThanEqual(
-                            eq(OPERATOR_ID), eq(TENANT_ID), anyList(), any(LocalDateTime.class)))
+                        eq(OPERATOR_ID), eq(TENANT_ID),
+                        argThat(types -> types.contains(START_PROCESS)),
+                        any(LocalDateTime.class)))
                     .thenReturn(true);
 
             service.checkTenantAccess(principal, TENANT_ID);
@@ -84,7 +87,9 @@ class BOApplicationAccessServiceTest {
             UserPrincipal principal = operatorPrincipal();
             when(operatorLogRepository
                     .existsByOperatorIdAndTenantIdAndActionOperatorTypeInAndCreationDateGreaterThanEqual(
-                            eq(OPERATOR_ID), eq(TENANT_ID), anyList(), any(LocalDateTime.class)))
+                            eq(OPERATOR_ID), eq(TENANT_ID),
+                            argThat(types -> types.contains(STOP_PROCESS)),
+                            any(LocalDateTime.class)))
                     .thenReturn(true);
 
             service.checkTenantAccess(principal, TENANT_ID);
@@ -294,7 +299,7 @@ class BOApplicationAccessServiceTest {
             assertThat(log.getTenantFileStatus()).isNull();
             assertThat(log.getMetadata().get("searchType").asText()).isEqualTo("EMAIL");
             assertThat(log.getMetadata().get("query").asText()).isEqualTo("unknown@example.com");
-            assertThat(log.getMetadata().get("resultCount").asLong()).isEqualTo(0L);
+            assertThat(log.getMetadata().get("resultCount").asLong()).isZero();
         }
     }
 
