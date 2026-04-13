@@ -20,6 +20,8 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class BOMessageControllerTest {
@@ -45,7 +47,7 @@ class BOMessageControllerTest {
     }
 
     @Test
-    void tenantMessages_populatesBrevoHistoryInModel() {
+    void tenantMessages_doesNotCallBrevoAndReturnsMessageView() {
         UserPrincipal principal = supportPrincipal();
         Tenant tenantUser = new Tenant();
         tenantUser.setId(10L);
@@ -56,19 +58,36 @@ class BOMessageControllerTest {
         tenant.setApartmentSharing(apartmentSharing);
         BOUser operator = new BOUser();
         operator.setEmail("support@test.com");
-        BrevoMailHistoryViewDTO history = BrevoMailHistoryViewDTO.builder().items(List.of()).build();
 
         when(tenantService.getUserById(10L)).thenReturn(tenantUser);
         when(tenantService.getTenantById(10L)).thenReturn(tenant);
         when(userService.findUserByEmail("support@test.com")).thenReturn(operator);
         when(messageService.findTenantMessages(tenantUser)).thenReturn(List.of(new Message()));
-        when(brevoMailHistoryService.getLast90DaysHistory("tenant@example.com")).thenReturn(history);
 
         ExtendedModelMap model = new ExtendedModelMap();
         String view = controller.tenantMessages(model, 10L, principal);
 
         assertThat(view).isEqualTo("bo/message");
+        assertThat(model.containsAttribute("brevoHistory")).isFalse();
+        verify(brevoMailHistoryService, never()).getLast90DaysHistory(org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    void tenantBrevoHistory_populatesBrevoHistoryInModelAndReturnsFragment() {
+        Tenant tenantUser = new Tenant();
+        tenantUser.setId(10L);
+        tenantUser.setEmail("tenant@example.com");
+        BrevoMailHistoryViewDTO history = BrevoMailHistoryViewDTO.builder().items(List.of()).build();
+
+        when(tenantService.getUserById(10L)).thenReturn(tenantUser);
+        when(brevoMailHistoryService.getLast90DaysHistory("tenant@example.com")).thenReturn(history);
+
+        ExtendedModelMap model = new ExtendedModelMap();
+        String view = controller.tenantBrevoHistory(model, 10L);
+
+        assertThat(view).isEqualTo("bo/fragments/brevo-mail-history :: brevo-history");
         assertThat(model.getAttribute("brevoHistory")).isEqualTo(history);
+        assertThat(model.getAttribute("tenant")).isEqualTo(tenantUser);
     }
 
     private UserPrincipal supportPrincipal() {

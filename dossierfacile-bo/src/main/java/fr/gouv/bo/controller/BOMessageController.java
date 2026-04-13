@@ -50,18 +50,28 @@ public class BOMessageController {
         ApartmentSharing apartmentSharing = tenant1.getApartmentSharing();
         User loggedUser = userService.findUserByEmail(principal.getEmail());
         List<Message> messages = messageService.findTenantMessages(tenant);
-        BrevoMailHistoryViewDTO brevoHistory = brevoMailHistoryService.getLast90DaysHistory(tenant.getEmail());
 
         model.addAttribute("message", MessageDTO.builder().message("Bonjour,\n\n" +
                 "Merci pour votre message.\n\n\n" +
                 "En vous souhaitant une très bonne journée,\n" +
-                "Marie pour l’équipe DossierFacile").build());
+                "Marie pour l'équipe DossierFacile").build());
         model.addAttribute(APARTMENT_SHARING_ID, apartmentSharing.getId());
         model.addAttribute(MESSAGES, messages);
         model.addAttribute(TENANT, tenant);
         model.addAttribute(OPNAME, loggedUser.getEmail());
-        model.addAttribute(BREVO_HISTORY, brevoHistory);
         return "bo/message";
+    }
+
+    @GetMapping("/tenant/{id}/brevo-history")
+    public String tenantBrevoHistory(
+            Model model,
+            @PathVariable("id") Long id
+    ) {
+        User tenant = tenantService.getUserById(id);
+        BrevoMailHistoryViewDTO brevoHistory = brevoMailHistoryService.getLast90DaysHistory(tenant.getEmail());
+        model.addAttribute(TENANT, tenant);
+        model.addAttribute(BREVO_HISTORY, brevoHistory);
+        return "bo/fragments/brevo-mail-history :: brevo-history";
     }
 
     @PostMapping("/new/{id}")
@@ -74,4 +84,3 @@ public class BOMessageController {
     }
 
 }
-

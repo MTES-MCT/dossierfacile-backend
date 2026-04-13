@@ -165,8 +165,8 @@ public class BrevoMailHistoryService {
             case "clicks" -> "cliqué";
             case "delivered" -> "délivré";
             case "deferred" -> "différé";
-            case "hardBounces" -> "rebond dur";
-            case "softBounces" -> "rebond léger";
+            case "hardbounces" -> "rebond dur";
+            case "softbounces" -> "rebond léger";
             case "invalid" -> "invalide";
             case "blocked" -> "bloqué";
             case "spam" -> "spam";
@@ -174,7 +174,7 @@ public class BrevoMailHistoryService {
             case "requests" -> "envoyé";
             case "unsubscribed" -> "désabonné";
             case "bounces" -> "rebond";
-            case "loadedByProxy" -> "chargé par proxy";
+            case "loadedbyproxy" -> "chargé par proxy";
             default -> status;
         };
     }

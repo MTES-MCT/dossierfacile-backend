@@ -1,6 +1,5 @@
 /dossierfacile-bo/tokens/
 /front/tokens/
-!.mvn/wrapper/maven-wrapper.jar
 application-*.properties
 !application-test.properties
 document_analysis.properties
@@ -52,3 +51,7 @@ zxing-cpp/data/zxing-cpp
 
 # Used in test
 7fdad8b1*
+
+# Maven wrapper - generated files not tracked
+.mvn/wrapper/maven-wrapper.jar
+.mvn/wrapper/maven-wrapper.properties
