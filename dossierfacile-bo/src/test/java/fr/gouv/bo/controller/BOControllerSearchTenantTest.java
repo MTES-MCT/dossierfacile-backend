@@ -52,7 +52,7 @@ class BOControllerSearchTenantTest {
         Page<Tenant> page = new PageImpl<>(List.of(tenant), PageRequest.of(0, 20), 1);
         when(tenantService.getTenantByIdOrEmail(eq("john.doe@example.com"), any(PageRequest.class))).thenReturn(page);
 
-        String view = controller.searchTenant(new ExtendedModelMap(), principal, "john.doe@example.com", 20, 1);
+        String view = controller.searchTenant(new ExtendedModelMap(), principal, "john.doe@example.com", 1);
 
         assertThat(view).isEqualTo("redirect:/bo/colocation/99");
         verify(applicationAccessService).logSearchTenant(principal, "john.doe@example.com", 1L);
@@ -64,7 +64,7 @@ class BOControllerSearchTenantTest {
         Page<Tenant> page = new PageImpl<>(List.of(), PageRequest.of(0, 20), 0);
         when(tenantService.getTenantByIdOrEmail(eq("nobody@example.com"), any(PageRequest.class))).thenReturn(page);
 
-        String view = controller.searchTenant(new ExtendedModelMap(), principal, "nobody@example.com", 20, 1);
+        String view = controller.searchTenant(new ExtendedModelMap(), principal, "nobody@example.com", 1);
 
         assertThat(view).isEqualTo("bo/search");
         verify(applicationAccessService).logSearchTenant(principal, "nobody@example.com", 0L);
