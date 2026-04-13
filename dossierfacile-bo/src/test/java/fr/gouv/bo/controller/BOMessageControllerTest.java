@@ -5,6 +5,7 @@ import fr.dossierfacile.common.entity.BOUser;
 import fr.dossierfacile.common.entity.Message;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.gouv.bo.dto.BrevoMailHistoryViewDTO;
+import fr.gouv.bo.security.BOApplicationAccessService;
 import fr.gouv.bo.security.UserPrincipal;
 import fr.gouv.bo.service.BrevoMailHistoryService;
 import fr.gouv.bo.service.MessageService;
@@ -29,6 +30,7 @@ class BOMessageControllerTest {
     private TenantService tenantService;
     private MessageService messageService;
     private UserService userService;
+    private BOApplicationAccessService applicationAccessService;
     private BrevoMailHistoryService brevoMailHistoryService;
     private BOMessageController controller;
 
@@ -37,11 +39,13 @@ class BOMessageControllerTest {
         tenantService = mock(TenantService.class);
         messageService = mock(MessageService.class);
         userService = mock(UserService.class);
+        applicationAccessService = mock(BOApplicationAccessService.class);
         brevoMailHistoryService = mock(BrevoMailHistoryService.class);
         controller = new BOMessageController(
                 tenantService,
                 messageService,
                 userService,
+                applicationAccessService,
                 brevoMailHistoryService
         );
     }
