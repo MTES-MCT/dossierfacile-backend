@@ -12,11 +12,19 @@ public class MailConfiguration {
     @Value("${brevo.apikey}")
     private String sendinblueApiKey;
 
+    @Value("${brevo.connect-timeout-ms:3000}")
+    private int connectTimeoutMs;
+
+    @Value("${brevo.read-timeout-ms:5000}")
+    private int readTimeoutMs;
+
     @Bean
     public TransactionalEmailsApi transactionalEmailsApi() {
         ApiClient defaultClient = brevo.Configuration.getDefaultApiClient();
         ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
         apiKey.setApiKey(sendinblueApiKey);
+        defaultClient.setConnectTimeout(connectTimeoutMs);
+        defaultClient.setReadTimeout(readTimeoutMs);
         return new TransactionalEmailsApi();
     }
 

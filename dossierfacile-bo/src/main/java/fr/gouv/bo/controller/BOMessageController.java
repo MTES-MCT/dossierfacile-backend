@@ -4,8 +4,10 @@ import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Message;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.User;
+import fr.gouv.bo.dto.BrevoMailHistoryViewDTO;
 import fr.gouv.bo.dto.MessageDTO;
 import fr.gouv.bo.security.UserPrincipal;
+import fr.gouv.bo.service.BrevoMailHistoryService;
 import fr.gouv.bo.service.MessageService;
 import fr.gouv.bo.service.TenantService;
 import fr.gouv.bo.service.UserService;
@@ -29,10 +31,12 @@ public class BOMessageController {
     private static final String MESSAGES = "messages";
     private static final String TENANT = "tenant";
     private static final String OPNAME = "operatorName";
+    private static final String BREVO_HISTORY = "brevoHistory";
 
     private final TenantService tenantService;
     private final MessageService messageService;
     private final UserService userService;
+    private final BrevoMailHistoryService brevoMailHistoryService;
 
     @GetMapping("/tenant/{id}")
     public String tenantMessages(
@@ -50,12 +54,24 @@ public class BOMessageController {
         model.addAttribute("message", MessageDTO.builder().message("Bonjour,\n\n" +
                 "Merci pour votre message.\n\n\n" +
                 "En vous souhaitant une très bonne journée,\n" +
-                "Marie pour l’équipe DossierFacile").build());
+                "Marie pour l'équipe DossierFacile").build());
         model.addAttribute(APARTMENT_SHARING_ID, apartmentSharing.getId());
         model.addAttribute(MESSAGES, messages);
         model.addAttribute(TENANT, tenant);
         model.addAttribute(OPNAME, loggedUser.getEmail());
         return "bo/message";
+    }
+
+    @GetMapping("/tenant/{id}/brevo-history")
+    public String tenantBrevoHistory(
+            Model model,
+            @PathVariable("id") Long id
+    ) {
+        User tenant = tenantService.getUserById(id);
+        BrevoMailHistoryViewDTO brevoHistory = brevoMailHistoryService.getLast90DaysHistory(tenant.getEmail());
+        model.addAttribute(TENANT, tenant);
+        model.addAttribute(BREVO_HISTORY, brevoHistory);
+        return "bo/fragments/brevo-mail-history :: brevo-history";
     }
 
     @PostMapping("/new/{id}")
@@ -68,4 +84,3 @@ public class BOMessageController {
     }
 
 }
-

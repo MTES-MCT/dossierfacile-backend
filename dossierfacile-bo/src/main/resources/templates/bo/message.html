@@ -9,6 +9,9 @@
         <div id="chat-page">
             <div class="chat-container bg-primary-subtle">
                 <div class="row hidden-xs">
+                    <div class="col-md-12" style="margin-top: 15px">
+                        <h4>Historique messagerie interne</h4>
+                    </div>
                     <div class="col-md-12">
                         <ul th:id="'messageArea' + ${tenant.getId()}" class="message-area bg-light-subtle">
                             <li class="chat-message"
@@ -54,6 +57,9 @@
                     </div>
                 </div>
                 <div class="row hidden-xs" style="margin-top: 15px">
+                    <div class="col-md-12">
+                        <h4>Envoyer nouveau message interne</h4>
+                    </div>
                     <form th:object="${message}" th:action="@{/message/new/} + ${tenant.id}"
                           th:id="'messageForm'+${tenant.id}" th:method="post"
                           th:attr="data-id=${aptSharingId}"
@@ -72,6 +78,29 @@
                             </button>
                         </div>
                     </form>
+                </div>
+
+                <div class="row hidden-xs" style="margin-top: 15px">
+                    <div class="col-md-12"
+                         th:id="'brevo-history-container-' + ${tenant.getId()}"
+                         th:data-brevo-url="@{/bo/message/tenant/{id}/brevo-history(id=${tenant.getId()})}">
+                        <p class="text-muted"><em>Chargement de l'historique d'envoi des emails…</em></p>
+                    </div>
+                    <script th:inline="javascript">
+                        (function () {
+                            var tenantId = /*[[${tenant.getId()}]]*/ 0;
+                            var container = document.getElementById('brevo-history-container-' + tenantId);
+                            if (!container) return;
+                            var url = container.dataset.brevoUrl;
+                            fetch(url)
+                                .then(function (r) { return r.text(); })
+                                .then(function (html) { container.innerHTML = html; })
+                                .catch(function (err) {
+                                    console.error('Brevo history load failed', err);
+                                    container.innerHTML = "<div class=\"alert alert-warning\">Historique d'envoi des emails indisponible pour le moment.</div>";
+                                });
+                        })();
+                    </script>
                 </div>
             </div>
         </div>
