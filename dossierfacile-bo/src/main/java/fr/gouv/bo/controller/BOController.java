@@ -11,7 +11,6 @@ import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.gouv.bo.amqp.Producer;
 import fr.gouv.bo.dto.BooleanDTO;
 import fr.gouv.bo.dto.ReGroupDTO;
-import fr.gouv.bo.dto.ResultDTO;
 import fr.gouv.bo.security.UserPrincipal;
 import fr.gouv.bo.service.DocumentService;
 import fr.gouv.bo.service.TenantService;
@@ -37,9 +36,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
 
 @Slf4j
 @Controller
@@ -48,11 +44,11 @@ public class BOController {
     public static final String REDIRECT_BO_HOME = "redirect:/bo";
 
     private static final String EMAIL = "email";
-    private static final String OLDEST_APPLICATION = "oldestApplication";
     private static final String REDIRECT_BO_COLOCATION = "redirect:/bo/colocation/";
     private static final String SHOW_ALERT = "showAlert";
-    private static final String INITIAL_PAGE_SIZE = "50";
-    private static final int[] PAGE_SIZES = {50, 100, 200};
+    private static final String MAX_PAGE_SIZE = "20";
+    private static final int[] PAGE_SIZES = {20};
+    private static final int MAX_PAGE_NUMBER = 5;
     private static final String REDIRECT_BO = "redirect:/bo";
     private final TenantService tenantService;
     private final UserService userService;
@@ -103,43 +99,15 @@ public class BOController {
         return "redirect:/error";
     }
 
-    @PreAuthorize("hasRole('MANAGER')")
-    @GetMapping("/bo/documentFailedList")
-    public String documentFailedList(Model model,
-                                     @RequestParam(value = "pageSize", defaultValue = INITIAL_PAGE_SIZE) int pageSize,
-                                     @RequestParam(value = "page", defaultValue = "1") int page) {
-
-        Page<Tenant> tenants = tenantService.getAllTenantsToProcessWithFailedGeneratedPdfDocument(PageRequest.of(page - 1, pageSize));
-
-        model.addAttribute("pageSizes", PAGE_SIZES);
-        model.addAttribute("pageSize", pageSize);
-        model.addAttribute("tenantList", tenants);
-        return "bo/failed-pdf-tenant";
-    }
-
     @GetMapping("/bo")
-    public String bo(@ModelAttribute("numberOfDocumentsToProcess") ResultDTO numberOfDocumentsToProcess,
-                     Model model,
-                     @RequestParam(value = "pageSize", defaultValue = INITIAL_PAGE_SIZE) int pageSize,
-                     @RequestParam(value = "page", defaultValue = "1") int page,
+    public String bo(Model model,
                      @AuthenticationPrincipal UserPrincipal principal) {
-
-        Page<Tenant> tenants = tenantService.listTenantsToProcess(PageRequest.of(page - 1, pageSize));
 
         User loginUser = userService.findUserByEmail(principal.getEmail());
         boolean isAdmin = loginUser.getUserRoles().stream().anyMatch(userRole -> userRole.getRole().name().equals(Role.ROLE_ADMIN.name()));
         model.addAttribute("numberOfTenantsToProcess", tenantService.countTenantsWithStatusInToProcess());
-        long result = 0;
-        if (numberOfDocumentsToProcess.getId() == null) {
-            result = tenantService.getCountOfTenantsWithFailedGeneratedPdfDocument();
-        }
-        model.addAttribute("TenantsWithFailedGeneratedPdf", result);
         model.addAttribute("isUserAdmin", isAdmin);
-        model.addAttribute("tenants", tenants);
-        model.addAttribute("pageSize", pageSize);
-        model.addAttribute("pageSizes", PAGE_SIZES);
 
-        model.addAttribute(OLDEST_APPLICATION, tenantService.getOldestToProcessApplication());
         return "bo/index";
     }
 
@@ -186,10 +154,12 @@ public class BOController {
     @GetMapping("/bo/searchTenant")
     public String searchTenant(Model model,
                                @RequestParam(value = EMAIL) String email,
-                               @RequestParam(value = "pageSize", defaultValue = "100") int pageSize,
                                @RequestParam(value = "page", defaultValue = "1") int page) {
 
-        PageRequest pageable = PageRequest.of(page - 1, pageSize, Sort.by("id").descending());
+        int pageSize = Integer.parseInt(MAX_PAGE_SIZE);
+        int boundedPage = Math.clamp(page, 1, MAX_PAGE_NUMBER);
+        
+        PageRequest pageable = PageRequest.of(boundedPage - 1, pageSize, Sort.by("id").descending());
         Page<Tenant> tenants = tenantService.getTenantByIdOrEmail(email, pageable);
 
         if (tenants.getTotalElements() == 1 && (email.contains("@") || StringUtils.isNumeric(email))) {
@@ -219,14 +189,6 @@ public class BOController {
         Tenant tenant = document.getTenant() != null ? document.getTenant() : document.getGuarantor().getTenant();
         long apartmentSharingId = tenant.getApartmentSharing().getId();
         return REDIRECT_BO_COLOCATION + apartmentSharingId + "#tenant" + tenant.getId();
-    }
-
-    @PostMapping("/bo/regeneratePdfDocument")
-    public String regeneratePdfDocument(RedirectAttributes redirectAttributes, @ModelAttribute("mapping1Form") ResultDTO numberOfDocumentsToProcess) {
-        documentService.regenerateFailedPdfDocumentsUsingButtonRequest();
-        numberOfDocumentsToProcess.setId(0L);
-        redirectAttributes.addFlashAttribute("numberOfDocumentsToProcess", numberOfDocumentsToProcess);
-        return REDIRECT_BO;
     }
 
     @AllArgsConstructor

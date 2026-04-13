@@ -73,7 +73,7 @@ public class WebSecurityConfig {
                         .requestMatchers("/bo/users", "/bo/users/**")
                         .hasRole("MANAGER")
                         .requestMatchers("/bo/tenant/{tenantId}/processFile")
-                        .hasAnyRole("ADMIN", "OPERATOR", "PARTNER")
+                        .hasRole("OPERATOR")
                         .requestMatchers("/bo/owners", "/bo/owners/**")
                         .hasRole("SUPPORT")
                         .requestMatchers("/bo/properties/**")
