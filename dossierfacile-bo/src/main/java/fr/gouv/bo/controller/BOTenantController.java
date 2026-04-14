@@ -219,6 +219,7 @@ public class BOTenantController {
             CustomMessage customMessage,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
+        applicationAccessService.checkTenantAccess(principal, id);
         tenantService.processFile(id, customMessage, principal);
 
         // Si returnToHome est demandé, retourner à l'accueil

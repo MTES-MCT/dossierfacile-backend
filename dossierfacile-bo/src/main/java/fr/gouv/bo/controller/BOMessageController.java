@@ -67,8 +67,10 @@ public class BOMessageController {
     @GetMapping("/tenant/{id}/brevo-history")
     public String tenantBrevoHistory(
             Model model,
-            @PathVariable("id") Long id
+            @PathVariable("id") Long id,
+            @AuthenticationPrincipal UserPrincipal principal
     ) {
+        applicationAccessService.checkTenantAccess(principal, id);
         User tenant = tenantService.getUserById(id);
         BrevoMailHistoryViewDTO brevoHistory = brevoMailHistoryService.getLast90DaysHistory(tenant.getEmail());
         model.addAttribute(TENANT, tenant);
