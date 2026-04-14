@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+
+    <changeSet id="202604100000-01" author="Alix Deschamps">
+        <sql>
+            <![CDATA[
+                CREATE INDEX IF NOT EXISTS idx_document_ia_file_analysis_file_id ON document_ia_file_analysis (file_id);
+            ]]>
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
