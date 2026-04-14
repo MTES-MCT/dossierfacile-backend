@@ -215,6 +215,23 @@ class PayslipContinuityRuleTest {
     }
 
     @Test
+    @DisplayName("Devrait être INCONCLUSIVE si le document contient moins de 3 fichiers")
+    void should_be_inconclusive_when_less_than_three_files() {
+        PayslipContinuityRule validator = createValidator(LocalDate.of(2023, 4, 10));
+
+        DocumentIAFileAnalysis[] analyses = new DocumentIAFileAnalysis[]{
+                analysisWithDate(LocalDate.of(2023, 3, 1), LocalDate.of(2023, 3, 31)),
+                analysisWithDate(LocalDate.of(2023, 2, 1), LocalDate.of(2023, 2, 28))
+        };
+        Document document = createDocumentWithAnalyses(analyses);
+
+        RuleValidatorOutput result = validator.validate(document);
+
+        assertThat(result.isValid()).isFalse();
+        assertThat(result.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
+    }
+
+    @Test
     @DisplayName("Devrait être PASSED si 3 mois consécutifs proviennent des champs 2DDOC (debut_periode / fin_periode)")
     void should_pass_when_dates_come_from_2d_doc() {
         PayslipContinuityRule validator = createValidator(LocalDate.of(2023, 4, 10));
