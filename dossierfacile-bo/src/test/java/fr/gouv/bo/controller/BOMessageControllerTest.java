@@ -12,7 +12,9 @@ import fr.gouv.bo.service.MessageService;
 import fr.gouv.bo.service.TenantService;
 import fr.gouv.bo.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.ui.ExtendedModelMap;
 
@@ -20,6 +22,10 @@ import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -76,22 +82,66 @@ class BOMessageControllerTest {
         verify(brevoMailHistoryService, never()).getLast90DaysHistory(org.mockito.ArgumentMatchers.any());
     }
 
-    @Test
-    void tenantBrevoHistory_populatesBrevoHistoryInModelAndReturnsFragment() {
-        Tenant tenantUser = new Tenant();
-        tenantUser.setId(10L);
-        tenantUser.setEmail("tenant@example.com");
-        BrevoMailHistoryViewDTO history = BrevoMailHistoryViewDTO.builder().items(List.of()).build();
+    @Nested
+    class TenantBrevoHistory {
 
-        when(tenantService.getUserById(10L)).thenReturn(tenantUser);
-        when(brevoMailHistoryService.getLast90DaysHistory("tenant@example.com")).thenReturn(history);
+        private static final Long TENANT_ID = 10L;
 
-        ExtendedModelMap model = new ExtendedModelMap();
-        String view = controller.tenantBrevoHistory(model, 10L);
+        @Test
+        void tenantBrevoHistory_populatesBrevoHistoryInModelAndReturnsFragment() {
+            Tenant tenantUser = new Tenant();
+            tenantUser.setId(TENANT_ID);
+            tenantUser.setEmail("tenant@example.com");
+            BrevoMailHistoryViewDTO history = BrevoMailHistoryViewDTO.builder().items(List.of()).build();
 
-        assertThat(view).isEqualTo("bo/fragments/brevo-mail-history :: brevo-history");
-        assertThat(model.getAttribute("brevoHistory")).isEqualTo(history);
-        assertThat(model.getAttribute("tenant")).isEqualTo(tenantUser);
+            when(tenantService.getUserById(TENANT_ID)).thenReturn(tenantUser);
+            when(brevoMailHistoryService.getLast90DaysHistory("tenant@example.com")).thenReturn(history);
+
+            ExtendedModelMap model = new ExtendedModelMap();
+            String view = controller.tenantBrevoHistory(model, TENANT_ID, supportPrincipal());
+
+            assertThat(view).isEqualTo("bo/fragments/brevo-mail-history :: brevo-history");
+            assertThat(model.getAttribute("brevoHistory")).isEqualTo(history);
+            assertThat(model.getAttribute("tenant")).isEqualTo(tenantUser);
+        }
+
+        @Test
+        void tenantBrevoHistory_whenAccessServiceThrowsAccessDenied_propagatesException() {
+            UserPrincipal principal = operatorPrincipal();
+            doThrow(new AccessDeniedException("forbidden"))
+                    .when(applicationAccessService)
+                    .checkTenantAccess(any(), eq(TENANT_ID));
+
+            assertThatThrownBy(() -> controller.tenantBrevoHistory(new ExtendedModelMap(), TENANT_ID, principal))
+                    .isInstanceOf(AccessDeniedException.class)
+                    .hasMessage("forbidden");
+
+            verify(brevoMailHistoryService, never()).getLast90DaysHistory(any());
+        }
+
+        @Test
+        void tenantBrevoHistory_callsAccessCheckWithCorrectArguments() {
+            UserPrincipal principal = supportPrincipal();
+            Tenant tenantUser = new Tenant();
+            tenantUser.setId(TENANT_ID);
+            tenantUser.setEmail("tenant@example.com");
+            when(tenantService.getUserById(TENANT_ID)).thenReturn(tenantUser);
+            when(brevoMailHistoryService.getLast90DaysHistory(any())).thenReturn(
+                    BrevoMailHistoryViewDTO.builder().items(List.of()).build());
+
+            controller.tenantBrevoHistory(new ExtendedModelMap(), TENANT_ID, principal);
+
+            verify(applicationAccessService).checkTenantAccess(principal, TENANT_ID);
+        }
+    }
+
+    private UserPrincipal operatorPrincipal() {
+        return new UserPrincipal(
+                10L,
+                "operator",
+                "operator@test.com",
+                Set.of(new SimpleGrantedAuthority("ROLE_OPERATOR"))
+        );
     }
 
     private UserPrincipal supportPrincipal() {
