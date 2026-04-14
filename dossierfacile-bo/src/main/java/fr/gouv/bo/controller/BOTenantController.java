@@ -63,7 +63,7 @@ public class BOTenantController {
     }
 
     @PreAuthorize("hasRole('SUPPORT')")
-    @GetMapping("/setAsTenantCreate/{id}")
+    @PostMapping("/setAsTenantCreate/{id}")
     public String setAsTenantCreate(@PathVariable Long id) {
         Tenant tenant = userService.setAsTenantCreate(tenantService.findTenantById(id));
         return redirectToTenantPage(tenant);
@@ -141,7 +141,7 @@ public class BOTenantController {
     }
 
     @PreAuthorize("hasRole('OPERATOR')")
-    @GetMapping("/delete/document/{id}")
+    @DeleteMapping("/delete/document/{id}")
     public String deleteDocument(
             @PathVariable("id") Long id,
             @AuthenticationPrincipal UserPrincipal principal
@@ -151,7 +151,7 @@ public class BOTenantController {
         return redirectToTenantPage(tenant);
     }
 
-    @GetMapping("/status/{id}")
+    @PostMapping("/status/{id}")
     public String changeStatusOfDocument(
             @PathVariable("id") Long id,
             MessageDTO messageDTO,
@@ -191,7 +191,7 @@ public class BOTenantController {
     }
 
     @PreAuthorize("hasRole('OPERATOR')")
-    @GetMapping("/delete/guarantor/{guarantorId}")
+    @DeleteMapping("/delete/guarantor/{guarantorId}")
     public String deleteGuarantor(
             @PathVariable("guarantorId") Long guarantorId,
             @AuthenticationPrincipal UserPrincipal principal

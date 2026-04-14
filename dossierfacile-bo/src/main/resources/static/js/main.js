@@ -29,10 +29,8 @@ $(document).ready(function () {
     $('.deleteButton').on('click', function (e) {
         e.preventDefault();
 
-        var href = $(this).attr('href');
         var id = $(this).attr('data-id');
 
-        $('#deleteRef' + id).attr('href', href);
         $('#deleteModal' + id).modal('show');
 
     })
