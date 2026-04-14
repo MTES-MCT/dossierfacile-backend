@@ -190,4 +190,5 @@
     <include file="db/migration/202604080000-add-search-tenant-metadata-operator-log.xml" />
     <include file="db/migration/202604080001-drop-quota-table.xml" />
     <include file="db/migration/202604140000-add-index-operator-log-operator-action-creation-date.xml" />
+    <include file="db/migration/202604100000-add-indexes-document-ia-file-analysis.xml" />
 </databaseChangeLog>
