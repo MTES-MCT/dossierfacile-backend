@@ -151,12 +151,16 @@ public class BOTenantController {
         return redirectToTenantPage(tenant);
     }
 
+    @PreAuthorize("hasRole('OPERATOR')")
     @PostMapping("/status/{id}")
     public String changeStatusOfDocument(
             @PathVariable("id") Long id,
             MessageDTO messageDTO,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
+        Document document = documentService.findDocumentById(id);
+        Tenant accessTenant = document.getGuarantor() == null ? document.getTenant() : document.getGuarantor().getTenant();
+        applicationAccessService.checkTenantAccess(principal, accessTenant.getId());
         User operator = userService.findUserByEmail(principal.getEmail());
         Tenant tenant = tenantService.changeDocumentStatus(id, messageDTO, operator);
 
