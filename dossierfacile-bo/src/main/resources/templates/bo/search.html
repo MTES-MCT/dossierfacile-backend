@@ -54,7 +54,7 @@
                 </tr>
             </table>
         </div>
-        <div th:replace="~{bo/fragments/pagination :: pagination (items=${tenants}, paramKey='email', paramValue=${email}, pageSizes=${pageSizes}, endpoint='/bo/searchTenant')}"></div>
+        <div th:replace="~{bo/fragments/pagination :: pagination (items=${tenants}, paramKey='email', paramValue=${email}, endpoint='/bo/searchTenant', maxPages=${paginationMaxPages})}"></div>
 
     </div>
 </div>
