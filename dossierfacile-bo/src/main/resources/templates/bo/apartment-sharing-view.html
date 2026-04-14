@@ -572,12 +572,14 @@
                                         Traiter les documents
                                     </a>
                                     <div th:if="${ tenant.getTenantType().toString() == 'JOIN' }">
-                                        <a class="btn btn-warning bo-btn"
-                                           style="margin-right: 10px;float: right"
-                                           th:attrappend="data-id=${tenant.getId()}"
-                                           th:href="@{/bo/tenant/setAsTenantCreate/} + ${tenant.getId()}"
-                                           th:text="'Fixer comme locataire principal'"
-                                        ></a>
+                                        <form method="post"
+                                              th:action="@{/bo/tenant/setAsTenantCreate/{id}(id=${tenant.getId()})}"
+                                              style="display:inline">
+                                            <button type="submit" class="btn btn-warning bo-btn"
+                                                    style="margin-right: 10px;float: right">
+                                                Fixer comme locataire principal
+                                            </button>
+                                        </form>
                                     </div>
                                     <div th:if="${ tenant.getTenantType().toString() != 'CREATE'}">
                                         <a class="btn btn-danger bo-btn btn-deleteCotenant"
@@ -842,8 +844,7 @@
                                         </span>
 
                                         <a class="btn btn-sm btn-warning btn-right-pull pull-right deleteButton badge bg-warning text-dark"
-                                           th:attrappend="data-id=${document.id}"
-                                           th:href="@{/bo/tenant/delete/document/} + ${document.getId()}">
+                                           th:attrappend="data-id=${document.id}">
                                             DELETE
                                         </a>
 
@@ -895,8 +896,6 @@
 
                                         <a class="btn btn-sm btn-warning btn-right-pull pull-right deleteButton badge bg-warning text-dark"
                                            th:attrappend="data-id=${document.id}"
-
-                                           th:href="@{/bo/tenant/delete/document/} + ${document.getId()}"
                                         >DELETE
                                         </a>
 
@@ -915,8 +914,8 @@
                                         </span>
 
                                         <div class="container" style="display: flex; margin-top: 5px">
-                                            <form method="get" style="margin-top: 8px;"
-                                                  th:action="@{/bo/tenant/status/} + ${document.getId()}"
+                                            <form method="post" style="margin-top: 8px;"
+                                                  th:action="@{/bo/tenant/status/{id}(id=${document.getId()})}"
                                                   th:id="'form-change-document-status' + ${document.getId()}"
                                                   th:object="${messageDTO}">
                                                 <label for="action"
@@ -1001,12 +1000,14 @@
                                                 <p>Êtes-vous sûr de vouloir supprimer ce document ?</p>
                                             </div>
                                             <div class="modal-footer bg-body-tertiary" style="padding: 5px;">
-                                                <a class="btn btn-primary"
-                                                   style="border-radius: 50px;font-size: 15px;line-height: 1;padding: 5px 8px 7px;"
-                                                   th:href="@{/bo/tenant/delete/document/} + ${document.getId()}"
-                                                   th:id="'deleteRef' + ${document.getId()}">
-                                                    Oui
-                                                </a>
+                                                <form th:method="delete"
+                                                      th:action="@{/bo/tenant/delete/document/{id}(id=${document.getId()})}"
+                                                      style="display:inline;margin:0">
+                                                    <button type="submit" class="btn btn-primary"
+                                                            style="border-radius: 50px;font-size: 15px;line-height: 1;padding: 5px 8px 7px;">
+                                                        Oui
+                                                    </button>
+                                                </form>
                                                 <button class="btn btn-secondary" data-bs-dismiss="modal"
                                                         style="border-radius: 50px;font-size: 15px;line-height: 1;padding: 5px 8px 7px;"
                                                         type="button">
@@ -1055,8 +1056,6 @@
 
                                         <a class="btn btn-sm btn-warning btn-right-pull pull-right deleteButton badge bg-warning text-dark"
                                            th:attrappend="data-id=${document.id}"
-
-                                           th:href="@{/bo/tenant/delete/document/} + ${document.getId()}"
                                         >DELETE
                                         </a>
 
@@ -1107,8 +1106,6 @@
 
                                         <a class="btn btn-sm btn-warning btn-right-pull pull-right deleteButton badge bg-warning text-dark"
                                            th:attrappend="data-id=${document.id}"
-
-                                           th:href="@{/bo/tenant/delete/document/} + ${document.getId()}"
                                         >DELETE
                                         </a>
 
@@ -1127,8 +1124,8 @@
                                         </span>
 
                                         <div class="container" style="display: flex; margin-top: 5px">
-                                            <form method="get" style="margin-top: 8px;"
-                                                  th:action="@{/bo/tenant/status/} + ${document.getId()}"
+                                            <form method="post" style="margin-top: 8px;"
+                                                  th:action="@{/bo/tenant/status/{id}(id=${document.getId()})}"
                                                   th:id="'form-change-document-status' + ${document.getId()}"
                                                   th:object="${messageDTO}">
                                                 <label for="action1"
@@ -1210,10 +1207,12 @@
                                                 <p>Are you sure you want delete this document ?</p>
                                             </div>
                                             <div class="modal-footer bg-body-tertiary" style="padding: 5px;">
-                                                <a class="btn btn-primary"
-                                                   style="border-radius: 50px;font-size: 15px;line-height: 1;padding: 5px 8px 7px;"
-                                                   th:href="@{/bo/tenant/delete/document/} + ${document.getId()}"
-                                                   th:id="'deleteRef' + ${document.getId()}">Delete</a>
+                                                <form th:method="delete"
+                                                      th:action="@{/bo/tenant/delete/document/{id}(id=${document.getId()})}"
+                                                      style="display:inline;margin:0">
+                                                    <button type="submit" class="btn btn-primary"
+                                                            style="border-radius: 50px;font-size: 15px;line-height: 1;padding: 5px 8px 7px;">Delete</button>
+                                                </form>
                                                 <button class="btn btn-secondary" data-bs-dismiss="modal"
                                                         style="border-radius: 50px;font-size: 15px;line-height: 1;padding: 5px 8px 7px;"
                                                         type="button">
@@ -1238,9 +1237,12 @@
                                                 <p>Are you sure you want delete this guarantor ?</p>
                                             </div>
                                             <div class="modal-footer bg-body-tertiary" style="padding: 5px;">
-                                                <a class="btn btn-primary"
-                                                   style="border-radius: 50px;font-size: 15px;line-height: 1;padding: 5px 8px 7px;"
-                                                   th:href="@{/bo/tenant/delete/guarantor/} + ${guarantor.getId()}">Delete</a>
+                                                <form th:method="delete"
+                                                      th:action="@{/bo/tenant/delete/guarantor/{id}(id=${guarantor.getId()})}"
+                                                      style="display:inline;margin:0">
+                                                    <button type="submit" class="btn btn-primary"
+                                                            style="border-radius: 50px;font-size: 15px;line-height: 1;padding: 5px 8px 7px;">Delete</button>
+                                                </form>
                                                 <button class="btn btn-secondary" data-bs-dismiss="modal"
                                                         style="border-radius: 50px;font-size: 15px;line-height: 1;padding: 5px 8px 7px;"
                                                         type="button">

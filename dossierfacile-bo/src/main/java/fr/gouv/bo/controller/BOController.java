@@ -49,7 +49,6 @@ public class BOController {
     private static final String REDIRECT_BO_COLOCATION = "redirect:/bo/colocation/";
     private static final String SHOW_ALERT = "showAlert";
     private static final String MAX_PAGE_SIZE = "20";
-    private static final int[] PAGE_SIZES = {20};
     private static final int MAX_PAGE_NUMBER = 5;
     private static final String REDIRECT_BO = "redirect:/bo";
     private final TenantService tenantService;
@@ -172,8 +171,7 @@ public class BOController {
         }
 
         model.addAttribute("tenants", tenants);
-        model.addAttribute("pageSize", pageable.getPageSize());
-        model.addAttribute("pageSizes", PAGE_SIZES);
+        model.addAttribute("paginationMaxPages", MAX_PAGE_NUMBER);
         model.addAttribute(EMAIL, email);
         return "bo/search";
     }
