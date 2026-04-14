@@ -3,7 +3,6 @@ package fr.gouv.bo.configuration;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import fr.dossierfacile.common.utils.LocalDateTimeTypeAdapter;
-import fr.gouv.bo.security.BOQuotaAuthorizationManager;
 import fr.gouv.bo.security.oidc.CustomOidcUserService;
 import lombok.RequiredArgsConstructor;
 import nz.net.ultraq.thymeleaf.layoutdialect.LayoutDialect;
@@ -30,8 +29,6 @@ import org.springframework.web.client.RestTemplate;
 import java.time.LocalDateTime;
 import java.util.concurrent.Executor;
 
-import static org.springframework.security.authorization.AuthorityAuthorizationManager.hasAnyRole;
-import static org.springframework.security.authorization.AuthorizationManagers.allOf;
 import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
@@ -41,7 +38,6 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @RequiredArgsConstructor
 public class WebSecurityConfig {
 
-    private final BOQuotaAuthorizationManager quotaAuthorizationManager;
     private final CustomOidcUserService customOidcUserService;
 
     @Value("${security.csp.content}")
@@ -81,7 +77,7 @@ public class WebSecurityConfig {
                         .requestMatchers("/bo/**", "/bo", "/bo/dashboard")
                         .hasRole("OPERATOR")
                         .requestMatchers("/documents/**")
-                        .access(allOf(hasAnyRole("ADMIN", "SUPPORT", "MANAGER", "OPERATOR"), quotaAuthorizationManager))
+                        .hasRole("OPERATOR")
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex.accessDeniedHandler(new BOAccessDeniedHandler()))

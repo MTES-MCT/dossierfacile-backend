@@ -55,7 +55,7 @@ class BOControllerSearchTenantTest {
         String view = controller.searchTenant(new ExtendedModelMap(), principal, "john.doe@example.com", 1);
 
         assertThat(view).isEqualTo("redirect:/bo/colocation/99");
-        verify(applicationAccessService).logSearchTenant(principal, "john.doe@example.com", 1L);
+        verify(applicationAccessService).checkAndLogSearchTenant(principal, "john.doe@example.com", 1L);
     }
 
     @Test
@@ -67,7 +67,7 @@ class BOControllerSearchTenantTest {
         String view = controller.searchTenant(new ExtendedModelMap(), principal, "nobody@example.com", 1);
 
         assertThat(view).isEqualTo("bo/search");
-        verify(applicationAccessService).logSearchTenant(principal, "nobody@example.com", 0L);
+        verify(applicationAccessService).checkAndLogSearchTenant(principal, "nobody@example.com", 0L);
     }
 
     private Tenant tenant(Long tenantId, Long apartmentSharingId) {

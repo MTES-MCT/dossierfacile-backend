@@ -165,7 +165,7 @@ public class BOController {
         
         PageRequest pageable = PageRequest.of(boundedPage - 1, pageSize, Sort.by("id").descending());
         Page<Tenant> tenants = tenantService.getTenantByIdOrEmail(email, pageable);
-        applicationAccessService.logSearchTenant(principal, email, tenants.getTotalElements());
+        applicationAccessService.checkAndLogSearchTenant(principal, email, tenants.getTotalElements());
 
         if (tenants.getTotalElements() == 1 && (email.contains("@") || StringUtils.isNumeric(email))) {
             return REDIRECT_BO_COLOCATION + tenants.getContent().getFirst().getApartmentSharing().getId();

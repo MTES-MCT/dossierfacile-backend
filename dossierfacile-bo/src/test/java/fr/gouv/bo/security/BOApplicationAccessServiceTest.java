@@ -9,6 +9,7 @@ import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.gouv.bo.repository.OperatorLogRepository;
+import fr.gouv.bo.service.QuotaService;
 import fr.gouv.bo.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -44,6 +45,7 @@ class BOApplicationAccessServiceTest {
     private OperatorLogRepository operatorLogRepository;
     private TenantCommonRepository tenantRepository;
     private UserService userService;
+    private QuotaService quotaService;
 
     private BOApplicationAccessServiceImpl service;
 
@@ -52,7 +54,8 @@ class BOApplicationAccessServiceTest {
         operatorLogRepository = mock(OperatorLogRepository.class);
         tenantRepository = mock(TenantCommonRepository.class);
         userService = mock(UserService.class);
-        service = new BOApplicationAccessServiceImpl(operatorLogRepository, tenantRepository, userService);
+        quotaService = mock(QuotaService.class);
+        service = new BOApplicationAccessServiceImpl(operatorLogRepository, tenantRepository, userService, quotaService);
 
         // Default: tenant and operator exist
         Tenant tenant = buildTenant(TENANT_ID, TenantType.CREATE, APARTMENT_SHARING_ID);
@@ -264,13 +267,13 @@ class BOApplicationAccessServiceTest {
     }
 
     @Nested
-    class LogSearchTenant {
+    class CheckAndLogSearchTenant {
 
         @Test
-        void logSearchTenant_logsExpectedMetadata() {
+        void checkAndLogSearchTenant_logsExpectedMetadata() {
             UserPrincipal principal = supportPrincipal();
 
-            service.logSearchTenant(principal, "john.doe@example.com", 2L);
+            service.checkAndLogSearchTenant(principal, "john.doe@example.com", 2L);
 
             ArgumentCaptor<OperatorLog> captor = ArgumentCaptor.forClass(OperatorLog.class);
             verify(operatorLogRepository).save(captor.capture());
@@ -285,10 +288,10 @@ class BOApplicationAccessServiceTest {
         }
 
         @Test
-        void logSearchTenant_withoutAnchorTenant_logsWithNullTenant() {
+        void checkAndLogSearchTenant_withoutAnchorTenant_logsWithNullTenant() {
             UserPrincipal principal = supportPrincipal();
 
-            service.logSearchTenant(principal, "unknown@example.com", 0L);
+            service.checkAndLogSearchTenant(principal, "unknown@example.com", 0L);
 
             ArgumentCaptor<OperatorLog> captor = ArgumentCaptor.forClass(OperatorLog.class);
             verify(operatorLogRepository).save(captor.capture());

@@ -122,4 +122,33 @@ public class UserPrincipal implements UserDetails, OidcUser {
     public String getName() {
         return firstName;
     }
+
+    /** Returns true if the principal holds ALL of the given roles. */
+    public boolean hasAllRoles(String... roles) {
+        Set<String> granted = getGrantedAuthorityNames();
+        for (String role : roles) {
+            if (!granted.contains(role)) return false;
+        }
+        return true;
+    }
+
+    /** Returns true if the principal holds AT LEAST ONE of the given roles. */
+    public boolean hasAnyRole(String... roles) {
+        Set<String> granted = getGrantedAuthorityNames();
+        for (String role : roles) {
+            if (granted.contains(role)) return true;
+        }
+        return false;
+    }
+
+    /** Returns true if the principal holds NONE of the given roles. */
+    public boolean hasNoneOfRoles(String... roles) {
+        return !hasAnyRole(roles);
+    }
+
+    private Set<String> getGrantedAuthorityNames() {
+        return authorities.stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(java.util.stream.Collectors.toSet());
+    }
 }
