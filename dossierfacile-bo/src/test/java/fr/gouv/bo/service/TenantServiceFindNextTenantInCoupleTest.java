@@ -48,7 +48,8 @@ class TenantServiceFindNextTenantInCoupleTest {
                 null, // tenantMapperForMail
                 null, // apartmentSharingMapperForMail
                 null, // tenantCommonService
-                null  // tenantLogCommonService
+                null, // tenantLogCommonService
+                null  // quotaService
         );
     }
 

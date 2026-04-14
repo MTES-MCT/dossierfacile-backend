@@ -1,55 +1,70 @@
 package fr.gouv.bo.service;
 
-import fr.dossierfacile.common.entity.Quota;
-import fr.gouv.bo.repository.QuotaRepository;
-import lombok.RequiredArgsConstructor;
+import fr.dossierfacile.common.enums.ActionOperatorType;
+import fr.gouv.bo.repository.OperatorLogRepository;
+import fr.gouv.bo.security.UserPrincipal;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
-import org.springframework.util.AntPathMatcher;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class QuotaService {
 
-    final private QuotaRepository quotaRepository;
+    @Value("${quota.bo.start-process.daily:350}")
+    private int limitStartProcess;
 
-    private Quota getMatchingQuota(String email, String endpointPath) {
+    @Value("${quota.bo.view-application.daily:200}")
+    private int limitViewApplication;
 
-        AntPathMatcher matcher = new AntPathMatcher();
-        return quotaRepository
-                .findAllByEmail(email)
-                .stream().filter(
-                        q -> matcher.match(q.getEndpointPath(), endpointPath)
-                ).findFirst().orElse(null);
+    @Value("${quota.bo.search-tenant.daily:50}")
+    private int limitSearchTenant;
+
+    private final OperatorLogRepository operatorLogRepository;
+
+    public QuotaService(OperatorLogRepository operatorLogRepository) {
+        this.operatorLogRepository = operatorLogRepository;
     }
 
-    public boolean checkQuota(String email, String endpointPath) {
-
-        Quota quota = getMatchingQuota(email, endpointPath);
-        if (quota == null) {
-            quota = getMatchingQuota("default", endpointPath);
-            if (quota != null) {
-                quota.setId(null);
-                quota.setEmail(email);
-            } else {
-                return true;
-            }
+    /**
+     * Checks the daily quota for the given action and principal.
+     * Throws AccessDeniedException if the day's limit is reached.
+     * SEARCH_TENANT is silently skipped for roles that cannot search (OPERATOR).
+     */
+    public void checkQuota(UserPrincipal principal, ActionOperatorType action) {
+        if (action == ActionOperatorType.SEARCH_TENANT && !hasSupportOrAbove(principal)) {
+            return;
         }
 
-        LocalDateTime now = LocalDateTime.now();
-        if (!quota.getCurrentDay().isEqual(now.toLocalDate())) {
-            quota.setCurrentDay(now.toLocalDate());
-            quota.setUsedDailyRequests(0);
-            quotaRepository.save(quota);
+        int limit = limitFor(action);
+        LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
+        long count = operatorLogRepository
+                .countByOperatorIdAndActionOperatorTypeAndCreationDateGreaterThanEqual(
+                        principal.getId(), action, startOfDay);
+
+        if (count >= limit) {
+            log.warn("Quota exceeded: userId={} action={} count={} limit={}",
+                    principal.getId(), action, count, limit);
+            throw new AccessDeniedException(
+                    "Quota journalier atteint pour l'action " + action + " (limite : " + limit + ")");
         }
-        if (quota.getUsedDailyRequests() < quota.getMaxDailyRequests()) {
-            quota.setUsedDailyRequests(quota.getUsedDailyRequests() + 1);
-            quotaRepository.save(quota);
-            return true;
-        }
-        return false;
+    }
+
+    private int limitFor(ActionOperatorType action) {
+        return switch (action) {
+            case START_PROCESS    -> limitStartProcess;
+            case VIEW_APPLICATION -> limitViewApplication;
+            case SEARCH_TENANT    -> limitSearchTenant;
+            case STOP_PROCESS     -> throw new IllegalArgumentException(
+                    "No quota is defined for action " + action);
+        };
+    }
+
+    private boolean hasSupportOrAbove(UserPrincipal principal) {
+        return principal.hasAnyRole("ROLE_SUPPORT", "ROLE_MANAGER", "ROLE_ADMIN");
     }
 }
