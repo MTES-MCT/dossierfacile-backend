@@ -175,18 +175,18 @@ class BOApplicationAccessServiceTest {
         }
 
         @Test
-        // Vérifie que la fenêtre temporelle transmise au repository est bien "maintenant - 24h".
-        void assignmentCheck_sinceLast24Hours() {
+        // Vérifie que la fenêtre temporelle transmise au repository est bien "maintenant - 7 jours".
+        void assignmentCheck_sinceLast7Days() {
             UserPrincipal principal = operatorPrincipal();
             ArgumentCaptor<LocalDateTime> sinceCaptor = ArgumentCaptor.forClass(LocalDateTime.class);
-            LocalDateTime beforeCall = LocalDateTime.now().minusHours(24);
+            LocalDateTime beforeCall = LocalDateTime.now().minusDays(7);
             when(operatorLogRepository
                     .existsByOperatorIdAndTenantIdAndActionOperatorTypeInAndCreationDateGreaterThanEqual(
                             anyLong(), anyLong(), anyList(), sinceCaptor.capture()))
                     .thenReturn(true);
 
             service.checkTenantAccess(principal, TENANT_ID);
-            LocalDateTime afterCall = LocalDateTime.now().minusHours(24);
+            LocalDateTime afterCall = LocalDateTime.now().minusDays(7);
 
             LocalDateTime since = sinceCaptor.getValue();
             assertThat(since).isBetween(beforeCall.minusSeconds(1), afterCall.plusSeconds(1));

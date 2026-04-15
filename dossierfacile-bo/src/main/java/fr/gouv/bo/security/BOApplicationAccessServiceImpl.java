@@ -13,6 +13,7 @@ import fr.gouv.bo.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
@@ -31,11 +32,13 @@ public class BOApplicationAccessServiceImpl implements BOApplicationAccessServic
     private final TenantCommonRepository tenantRepository;
     private final UserService userService;
     private final QuotaService quotaService;
+    @Value("${bo.assignment.access.window.days:7}")
+    private int assignmentAccessWindowDays = 7;
 
     @Override
     public void checkTenantAccess(UserPrincipal principal, Long tenantId) {
         if (isOperatorOnly(principal)) {
-            LocalDateTime since = LocalDateTime.now().minusHours(24);
+            LocalDateTime since = LocalDateTime.now().minusDays(assignmentAccessWindowDays);
             boolean assigned = operatorLogRepository
                     .existsByOperatorIdAndTenantIdAndActionOperatorTypeInAndCreationDateGreaterThanEqual(
                             principal.getId(), tenantId, ASSIGNMENT_TYPES, since);
@@ -50,7 +53,7 @@ public class BOApplicationAccessServiceImpl implements BOApplicationAccessServic
     @Override
     public void checkAndLogApartmentSharingAccess(UserPrincipal principal, Long apartmentSharingId) {
         if (isOperatorOnly(principal)) {
-            LocalDateTime since = LocalDateTime.now().minusHours(24);
+            LocalDateTime since = LocalDateTime.now().minusDays(assignmentAccessWindowDays);
             boolean assigned = operatorLogRepository.existsAssignmentForApartmentSharing(
                     principal.getId(), apartmentSharingId, ASSIGNMENT_TYPES, since);
             if (!assigned) {
