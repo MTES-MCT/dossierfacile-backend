@@ -62,6 +62,14 @@
         <div class="text-center margin-bottom">
             <a th:href="@{/bo/nextApplication}" class="btn btn-primary" id="nextApplication">Traiter un dossier</a>
         </div>
+        <div class="text-center margin-bottom text-muted small"
+             th:if="${oldestFullyWatermarkedLastUpdate.isPresent()}">
+            <span
+                    th:with="date=${oldestFullyWatermarkedLastUpdate.get()},
+                           formattedDate=${T(fr.gouv.bo.utils.DateFormatUtil).formatPreciselyRelativeToNow(date)}"
+                    th:text="'Dossier à traiter le plus ancien : modifié ' + ${formattedDate}"
+            ></span>
+        </div>
         <div class="clearfix"></div>
 
     </div>

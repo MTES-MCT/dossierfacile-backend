@@ -11,7 +11,6 @@ import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.gouv.bo.amqp.Producer;
 import fr.gouv.bo.dto.BooleanDTO;
 import fr.gouv.bo.dto.ReGroupDTO;
-import fr.gouv.bo.dto.ResultDTO;
 import fr.gouv.bo.security.BOApplicationAccessService;
 import fr.gouv.bo.security.UserPrincipal;
 import fr.gouv.bo.service.DocumentService;
@@ -37,6 +36,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.time.LocalDateTime;
+import java.util.Optional;
 
 
 @Slf4j
@@ -108,6 +110,9 @@ public class BOController {
         User loginUser = userService.findUserByEmail(principal.getEmail());
         boolean isAdmin = loginUser.getUserRoles().stream().anyMatch(userRole -> userRole.getRole().name().equals(Role.ROLE_ADMIN.name()));
         model.addAttribute("numberOfTenantsToProcess", tenantService.countTenantsWithStatusInToProcess());
+        Optional<LocalDateTime> oldestFullyWatermarkedLastUpdate =
+                tenantService.getOldestLastUpdateDateAmongTenantsToProcessFullyWatermarked();
+        model.addAttribute("oldestFullyWatermarkedLastUpdate", oldestFullyWatermarkedLastUpdate);
         model.addAttribute("isUserAdmin", isAdmin);
 
         return "bo/index";

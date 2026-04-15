@@ -819,6 +819,10 @@ public class TenantService {
         return tenantRepository.countAllByStatus(TenantFileStatus.TO_PROCESS);
     }
 
+    public Optional<LocalDateTime> getOldestLastUpdateDateAmongTenantsToProcessFullyWatermarked() {
+        return tenantRepository.findOldestLastUpdateDateAmongTenantsToProcessFullyWatermarked();
+    }
+
     public Tenant getTenantByEmail(String email) {
         return tenantRepository.findByEmail(email).get();
     }

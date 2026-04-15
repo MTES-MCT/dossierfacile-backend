@@ -44,6 +44,28 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
     Tenant findMyNextApplication(@Param("toLocalDateTime") LocalDateTime toLocalDateTime,
                                  @Param("operatorId") Long operatorId);
 
+    /**
+     * Oldest {@code last_update_date} among tenants in {@code TO_PROCESS} with honor declaration,
+     * such that every document (tenant or guarantors) has a watermark file.
+     */
+    @Query(value = """
+            SELECT t.last_update_date
+            FROM tenant t
+            WHERE t.status = 'TO_PROCESS'
+              AND t.honor_declaration = true
+              AND NOT EXISTS (
+                SELECT id FROM document d WHERE d.tenant_id = t.id AND d.watermark_file_id IS NULL
+              )
+              AND NOT EXISTS (
+                SELECT id FROM document d
+                INNER JOIN guarantor g ON d.guarantor_id = g.id
+                WHERE g.tenant_id = t.id AND d.watermark_file_id IS NULL
+              )
+            ORDER BY t.last_update_date ASC
+            LIMIT 1
+            """, nativeQuery = true)
+    Optional<LocalDateTime> findOldestLastUpdateDateAmongTenantsToProcessFullyWatermarked();
+
     @Procedure(procedureName = "refresh_mv")
     void refreshMaterializedView(@Param("view_name") String viewName);
 
