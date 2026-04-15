@@ -3,11 +3,14 @@ package fr.dossierfacile.common.entity.rule;
 import java.util.ArrayList;
 import java.util.List;
 
-public record PayslipNamesRuleData(Name expectedName, List<PayslipNamesEntry> payslipNamesEntryList) implements RuleData {
+public record PayslipNamesRuleData(
+        Name expectedName,
+        List<PayslipNamesEntry> payslipEntriesInError
+) implements RuleData {
 
-    public PayslipNamesRuleData addItem(PayslipNamesEntry payslipNamesEntry) {
-        List<PayslipNamesEntry> newList = new ArrayList<>(this.payslipNamesEntryList);
-        newList.add(payslipNamesEntry);
+    public PayslipNamesRuleData addItem(PayslipNamesEntry errorEntry) {
+        List<PayslipNamesEntry> newList = new ArrayList<>(this.payslipEntriesInError);
+        newList.add(errorEntry);
         return new PayslipNamesRuleData(this.expectedName, newList);
     }
 
@@ -21,7 +24,7 @@ public record PayslipNamesRuleData(Name expectedName, List<PayslipNamesEntry> pa
     public record PayslipNamesEntry(
             Long fileId,
             String fileName,
-            String ExtractedName
+            String extractedName
     ) {
     }
 }

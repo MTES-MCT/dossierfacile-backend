@@ -319,10 +319,10 @@ class PayslipContinuityRuleTest {
         assertThat(result.rule().getRuleData()).isInstanceOf(PayslipContinuityRuleData.class);
 
         PayslipContinuityRuleData data = (PayslipContinuityRuleData) result.rule().getRuleData();
-        assertThat(data.payslipContinuityEntries()).hasSize(1);
-        assertThat(data.payslipContinuityEntries().get(0).fileId()).isEqualTo(3L);
-        assertThat(data.payslipContinuityEntries().get(0).fileName()).isEqualTo("file-3.pdf");
-        assertThat(data.payslipContinuityEntries().get(0).extractedMonth()).isEqualTo(YearMonth.of(2022, 12));
+        assertThat(data.payslipEntriesInError()).hasSize(1);
+        assertThat(data.payslipEntriesInError().get(0).fileId()).isEqualTo(3L);
+        assertThat(data.payslipEntriesInError().get(0).fileName()).isEqualTo("file-3.pdf");
+        assertThat(data.payslipEntriesInError().get(0).extractedMonth()).isEqualTo(YearMonth.of(2022, 12));
     }
 
     @Test
@@ -343,7 +343,7 @@ class PayslipContinuityRuleTest {
         assertThat(result.rule().getRuleData()).isInstanceOf(PayslipContinuityRuleData.class);
 
         PayslipContinuityRuleData data = (PayslipContinuityRuleData) result.rule().getRuleData();
-        assertThat(data.payslipContinuityEntries()).isEmpty();
+        assertThat(data.payslipEntriesInError()).isEmpty();
         assertThat(data.missingMonthList()).contains(YearMonth.of(2023, 3));
     }
 

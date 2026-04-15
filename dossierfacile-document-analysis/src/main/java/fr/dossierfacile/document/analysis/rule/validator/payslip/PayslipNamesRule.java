@@ -120,7 +120,7 @@ public class PayslipNamesRule extends BaseDocumentIAValidator {
             }
         }
 
-        if (namesRuleData.payslipNamesEntryList().isEmpty()) {
+        if (namesRuleData.payslipEntriesInError().isEmpty()) {
             return new RuleValidatorOutput(true, isBlocking(), DocumentAnalysisRule.documentPassedRuleFromWithData(getRule(), namesRuleData), RuleValidatorOutput.RuleLevel.PASSED);
         } else {
             return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentFailedRuleFromWithData(getRule(), namesRuleData), RuleValidatorOutput.RuleLevel.FAILED);

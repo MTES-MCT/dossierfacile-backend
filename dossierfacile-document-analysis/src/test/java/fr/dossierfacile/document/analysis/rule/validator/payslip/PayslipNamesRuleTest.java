@@ -163,10 +163,10 @@ class PayslipNamesRuleTest {
         assertThat(output.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.FAILED);
         assertThat(output.rule().getRuleData()).isInstanceOf(PayslipNamesRuleData.class);
         PayslipNamesRuleData data = (PayslipNamesRuleData) output.rule().getRuleData();
-        assertThat(data.payslipNamesEntryList()).hasSize(1);
-        assertThat(data.payslipNamesEntryList().get(0).fileId()).isEqualTo(1L);
-        assertThat(data.payslipNamesEntryList().get(0).fileName()).isEqualTo("file-1.pdf");
-        assertThat(data.payslipNamesEntryList().get(0).ExtractedName()).isNull();
+        assertThat(data.payslipEntriesInError()).hasSize(1);
+        assertThat(data.payslipEntriesInError().get(0).fileId()).isEqualTo(1L);
+        assertThat(data.payslipEntriesInError().get(0).fileName()).isEqualTo("file-1.pdf");
+        assertThat(data.payslipEntriesInError().get(0).extractedName()).isNull();
     }
 
     @Test
@@ -180,7 +180,7 @@ class PayslipNamesRuleTest {
         assertThat(out.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.PASSED);
         assertThat(out.rule().getRuleData()).isInstanceOf(PayslipNamesRuleData.class);
         PayslipNamesRuleData data = (PayslipNamesRuleData) out.rule().getRuleData();
-        assertThat(data.payslipNamesEntryList()).isEmpty();
+        assertThat(data.payslipEntriesInError()).isEmpty();
     }
 
     // ==========================
@@ -318,10 +318,10 @@ class PayslipNamesRuleTest {
         assertThat(output.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.FAILED);
         assertThat(output.rule().getRuleData()).isInstanceOf(PayslipNamesRuleData.class);
         PayslipNamesRuleData data = (PayslipNamesRuleData) output.rule().getRuleData();
-        assertThat(data.payslipNamesEntryList()).hasSize(1);
-        assertThat(data.payslipNamesEntryList().get(0).fileId()).isEqualTo(1L);
-        assertThat(data.payslipNamesEntryList().get(0).fileName()).isEqualTo("file-1.pdf");
-        assertThat(data.payslipNamesEntryList().get(0).ExtractedName()).isEqualTo("MR MARTIN JEAN");
+        assertThat(data.payslipEntriesInError()).hasSize(1);
+        assertThat(data.payslipEntriesInError().get(0).fileId()).isEqualTo(1L);
+        assertThat(data.payslipEntriesInError().get(0).fileName()).isEqualTo("file-1.pdf");
+        assertThat(data.payslipEntriesInError().get(0).extractedName()).isEqualTo("MR MARTIN JEAN");
 
         PayslipNamesRuleData.Name expected = data.expectedName();
         assertThat(expected.firstNames()).isEqualTo("Jean");
@@ -366,10 +366,10 @@ class PayslipNamesRuleTest {
         assertThat(output.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.FAILED);
         assertThat(output.rule().getRuleData()).isInstanceOf(PayslipNamesRuleData.class);
         PayslipNamesRuleData data = (PayslipNamesRuleData) output.rule().getRuleData();
-        assertThat(data.payslipNamesEntryList()).hasSize(1);
-        assertThat(data.payslipNamesEntryList().get(0).fileId()).isEqualTo(2L);
-        assertThat(data.payslipNamesEntryList().get(0).fileName()).isEqualTo("file-2.pdf");
-        assertThat(data.payslipNamesEntryList().get(0).ExtractedName()).isEqualTo("MR MARTIN PIERRE");
+        assertThat(data.payslipEntriesInError()).hasSize(1);
+        assertThat(data.payslipEntriesInError().get(0).fileId()).isEqualTo(2L);
+        assertThat(data.payslipEntriesInError().get(0).fileName()).isEqualTo("file-2.pdf");
+        assertThat(data.payslipEntriesInError().get(0).extractedName()).isEqualTo("MR MARTIN PIERRE");
 
     }
 }

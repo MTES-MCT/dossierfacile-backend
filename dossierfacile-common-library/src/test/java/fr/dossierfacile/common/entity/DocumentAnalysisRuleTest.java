@@ -114,7 +114,7 @@ class DocumentAnalysisRuleTest {
         assertThat(deserializedRule.getRuleData()).isInstanceOf(PayslipContinuityRuleData.class);
         PayslipContinuityRuleData deserializedData = (PayslipContinuityRuleData) deserializedRule.getRuleData();
         assertThat(deserializedData.expectedMonthList()).containsExactly(ym1, ym2, ym3);
-        assertThat(deserializedData.payslipContinuityEntries()).containsExactly(invalidEntry);
+        assertThat(deserializedData.payslipEntriesInError()).containsExactly(invalidEntry);
         assertThat(deserializedData.missingMonthList()).containsExactly(ym2);
         assertThat(deserializedRule.getRuleData().getType()).isEqualTo(RuleData.R_PAYSLIP_CONTINUITY);
     }

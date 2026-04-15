@@ -6,18 +6,18 @@ import java.util.List;
 
 public record PayslipContinuityRuleData(
         List<YearMonth> expectedMonthList,
-        List<PayslipContinuityEntry> payslipContinuityEntries,
+        List<PayslipContinuityEntry> payslipEntriesInError,
         List<YearMonth> missingMonthList
 ) implements RuleData {
 
-    public PayslipContinuityRuleData addItem(PayslipContinuityEntry payslipContinuityEntry) {
-        List<PayslipContinuityEntry> newList = new ArrayList<>(this.payslipContinuityEntries);
-        newList.add(payslipContinuityEntry);
+    public PayslipContinuityRuleData addItem(PayslipContinuityEntry errorEntry) {
+        List<PayslipContinuityEntry> newList = new ArrayList<>(this.payslipEntriesInError);
+        newList.add(errorEntry);
         return new PayslipContinuityRuleData(this.expectedMonthList, newList, this.missingMonthList);
     }
 
     public PayslipContinuityRuleData withMissingMonthList(List<YearMonth> missingMonthList) {
-        return new PayslipContinuityRuleData(this.expectedMonthList, this.payslipContinuityEntries, missingMonthList);
+        return new PayslipContinuityRuleData(this.expectedMonthList, this.payslipEntriesInError, missingMonthList);
     }
 
     @Override
