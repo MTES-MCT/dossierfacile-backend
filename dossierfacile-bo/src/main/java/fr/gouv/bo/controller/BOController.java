@@ -113,6 +113,8 @@ public class BOController {
         Optional<LocalDateTime> oldestFullyWatermarkedLastUpdate =
                 tenantService.getOldestLastUpdateDateAmongTenantsToProcessFullyWatermarked();
         model.addAttribute("oldestFullyWatermarkedLastUpdate", oldestFullyWatermarkedLastUpdate);
+        model.addAttribute("numberOfTenantsWithWatermarkPdfFailure",
+                tenantService.countTenantsToProcessWithWatermarkPdfGenerationFailed());
         model.addAttribute("isUserAdmin", isAdmin);
 
         return "bo/index";

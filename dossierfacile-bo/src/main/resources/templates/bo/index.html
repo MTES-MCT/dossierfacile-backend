@@ -70,6 +70,12 @@
                     th:text="'Dossier à traiter le plus ancien : modifié ' + ${formattedDate}"
             ></span>
         </div>
+        <div class="text-center margin-bottom text-muted small"
+             th:if="${numberOfTenantsWithWatermarkPdfFailure > 0}">
+            <span
+                    th:text="'Dossier(s) avec au moins un PDF en erreur : ' + ${numberOfTenantsWithWatermarkPdfFailure}"
+            ></span>
+        </div>
         <div class="clearfix"></div>
 
     </div>

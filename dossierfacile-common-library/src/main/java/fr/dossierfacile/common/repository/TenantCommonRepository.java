@@ -54,10 +54,10 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
             WHERE t.status = 'TO_PROCESS'
               AND t.honor_declaration = true
               AND NOT EXISTS (
-                SELECT id FROM document d WHERE d.tenant_id = t.id AND d.watermark_file_id IS NULL
+                SELECT d.id FROM document d WHERE d.tenant_id = t.id AND d.watermark_file_id IS NULL
               )
               AND NOT EXISTS (
-                SELECT id FROM document d
+                SELECT d.id FROM document d
                 INNER JOIN guarantor g ON d.guarantor_id = g.id
                 WHERE g.tenant_id = t.id AND d.watermark_file_id IS NULL
               )
@@ -65,6 +65,33 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
             LIMIT 1
             """, nativeQuery = true)
     Optional<LocalDateTime> findOldestLastUpdateDateAmongTenantsToProcessFullyWatermarked();
+
+    /**
+     * Tenants in {@code TO_PROCESS} with honor declaration having at least one document (tenant or guarantors)
+     * without watermark, in "failed" state per BO UI: no watermark and (no last_modified or older than {@code threshold}).
+     */
+    @Query(value = """
+            SELECT COUNT(DISTINCT t.id)
+            FROM tenant t
+            WHERE t.status = 'TO_PROCESS'
+              AND t.honor_declaration = true
+              AND (
+                EXISTS (
+                  SELECT d.id FROM document d
+                  WHERE d.tenant_id = t.id
+                    AND d.watermark_file_id IS NULL
+                    AND (d.last_modified_date IS NULL OR d.last_modified_date < :threshold)
+                )
+                OR EXISTS (
+                  SELECT d.id FROM document d
+                  INNER JOIN guarantor g ON d.guarantor_id = g.id
+                  WHERE g.tenant_id = t.id
+                    AND d.watermark_file_id IS NULL
+                    AND (d.last_modified_date IS NULL OR d.last_modified_date < :threshold)
+                )
+              )
+            """, nativeQuery = true)
+    long countTenantsToProcessWithWatermarkPdfGenerationFailed(@Param("threshold") LocalDateTime threshold);
 
     @Procedure(procedureName = "refresh_mv")
     void refreshMaterializedView(@Param("view_name") String viewName);
