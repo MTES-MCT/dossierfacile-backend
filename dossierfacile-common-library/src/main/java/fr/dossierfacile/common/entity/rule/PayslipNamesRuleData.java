@@ -1,16 +1,27 @@
 package fr.dossierfacile.common.entity.rule;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public record PayslipNamesRuleData(Name expectedName, List<String> extractedIdentities) implements RuleData {
-   public PayslipNamesRuleData(PayslipNamesRuleData other, List<String> extractedIdentities) {
-      this(other.expectedName, List.copyOf(extractedIdentities));
-   }
+public record PayslipNamesRuleData(Name expectedName, List<PayslipNamesEntry> payslipNamesEntryList) implements RuleData {
 
-   public String getType() {
-      return R_PAYSLIP_NAMES;
-   }
+    public PayslipNamesRuleData addItem(PayslipNamesEntry payslipNamesEntry) {
+        List<PayslipNamesEntry> newList = new ArrayList<>(this.payslipNamesEntryList);
+        newList.add(payslipNamesEntry);
+        return new PayslipNamesRuleData(this.expectedName, newList);
+    }
 
-   public static record Name(String firstNames, String lastName, String preferredName) {
-   }
+    public String getType() {
+        return R_PAYSLIP_NAMES;
+    }
+
+    public record Name(String firstNames, String lastName, String preferredName) {
+    }
+
+    public record PayslipNamesEntry(
+            Long fileId,
+            String fileName,
+            String ExtractedName
+    ) {
+    }
 }

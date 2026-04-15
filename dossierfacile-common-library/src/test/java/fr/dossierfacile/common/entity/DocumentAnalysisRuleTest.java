@@ -97,7 +97,10 @@ class DocumentAnalysisRuleTest {
     void should_serialize_and_deserialize_PayslipContinuityRuleData() throws Exception {
         YearMonth ym1 = YearMonth.of(2023, 1);
         YearMonth ym2 = YearMonth.of(2023, 2);
-        RuleData ruleData = new PayslipContinuityRuleData(List.of(ym1, ym2), List.of(ym1));
+        YearMonth ym3 = YearMonth.of(2023, 3);
+        PayslipContinuityRuleData.PayslipContinuityEntry invalidEntry =
+                new PayslipContinuityRuleData.PayslipContinuityEntry(42L, "file-42.pdf", ym1);
+        RuleData ruleData = new PayslipContinuityRuleData(List.of(ym1, ym2, ym3), List.of(invalidEntry), List.of(ym2));
 
         DocumentAnalysisRule rule = DocumentAnalysisRule.builder()
                 .rule(DocumentRule.R_PAYSLIP_CONTINUITY)
@@ -110,8 +113,9 @@ class DocumentAnalysisRuleTest {
         assertThat(deserializedRule.getRule()).isEqualTo(DocumentRule.R_PAYSLIP_CONTINUITY);
         assertThat(deserializedRule.getRuleData()).isInstanceOf(PayslipContinuityRuleData.class);
         PayslipContinuityRuleData deserializedData = (PayslipContinuityRuleData) deserializedRule.getRuleData();
-        assertThat(deserializedData.expectedMonthList()).containsExactly(ym1, ym2);
-        assertThat(deserializedData.extractedMonthList()).containsExactly(ym1);
+        assertThat(deserializedData.expectedMonthList()).containsExactly(ym1, ym2, ym3);
+        assertThat(deserializedData.payslipContinuityEntries()).containsExactly(invalidEntry);
+        assertThat(deserializedData.missingMonthList()).containsExactly(ym2);
         assertThat(deserializedRule.getRuleData().getType()).isEqualTo(RuleData.R_PAYSLIP_CONTINUITY);
     }
 }

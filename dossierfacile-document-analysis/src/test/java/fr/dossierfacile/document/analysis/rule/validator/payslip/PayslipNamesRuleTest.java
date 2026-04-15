@@ -5,7 +5,9 @@ import fr.dossierfacile.common.entity.DocumentIAFileAnalysis;
 import fr.dossierfacile.common.entity.DocumentRule;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Guarantor;
+import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.entity.rule.PayslipNamesRuleData;
 import fr.dossierfacile.common.enums.DocumentIAFileAnalysisStatus;
 import fr.dossierfacile.common.model.document_ia.BarcodeModel;
 import fr.dossierfacile.common.model.document_ia.ExtractionModel;
@@ -94,11 +96,19 @@ class PayslipNamesRuleTest {
     }
 
     private Document buildDocument(Tenant tenant, Guarantor guarantor, DocumentIAFileAnalysis... analyses) {
-        List<File> files = Stream.of(analyses).map(analysis -> {
-            File file = File.builder().documentIAFileAnalysis(analysis).build();
-            if (analysis != null) analysis.setFile(file);
-            return file;
-        }).toList();
+        List<File> files = new ArrayList<>();
+        for (int i = 0; i < analyses.length; i++) {
+            DocumentIAFileAnalysis analysis = analyses[i];
+            File file = File.builder()
+                    .id((long) (i + 1))
+                    .documentIAFileAnalysis(analysis)
+                    .storageFile(StorageFile.builder().name("file-" + (i + 1) + ".pdf").build())
+                    .build();
+            if (analysis != null) {
+                analysis.setFile(file);
+            }
+            files.add(file);
+        }
 
         Document doc = Document.builder().files(files).tenant(tenant).guarantor(guarantor).build();
         files.forEach(f -> f.setDocument(doc));
@@ -143,12 +153,34 @@ class PayslipNamesRuleTest {
     }
 
     @Test
-    @DisplayName("INCONCLUSIVE si identite_salarie est absent de l'extraction et pas de 2DDoc")
-    void inconclusive_when_identity_null_in_extraction_and_no_2ddoc() {
+    @DisplayName("FAILED si identite_salarie est absent de l'extraction et pas de 2DDoc")
+    void failed_when_identity_null_in_extraction_and_no_2ddoc() {
         DocumentIAFileAnalysis analysis = analysisWithExtraction(null);
         Document doc = documentWithTenant("Jean", "Dupont", analysis);
 
-        assertThat(rule.validate(doc).ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
+        RuleValidatorOutput output = rule.validate(doc);
+
+        assertThat(output.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.FAILED);
+        assertThat(output.rule().getRuleData()).isInstanceOf(PayslipNamesRuleData.class);
+        PayslipNamesRuleData data = (PayslipNamesRuleData) output.rule().getRuleData();
+        assertThat(data.payslipNamesEntryList()).hasSize(1);
+        assertThat(data.payslipNamesEntryList().get(0).fileId()).isEqualTo(1L);
+        assertThat(data.payslipNamesEntryList().get(0).fileName()).isEqualTo("file-1.pdf");
+        assertThat(data.payslipNamesEntryList().get(0).ExtractedName()).isNull();
+    }
+
+    @Test
+    @DisplayName("PASSED et RuleData vide quand tous les bulletins matchent")
+    void passed_with_empty_rule_data_when_all_names_match() {
+        DocumentIAFileAnalysis analysis = analysisWithExtraction("MR DUPONT JEAN");
+        Document doc = documentWithTenant("Jean", "Dupont", analysis);
+
+        RuleValidatorOutput out = rule.validate(doc);
+
+        assertThat(out.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.PASSED);
+        assertThat(out.rule().getRuleData()).isInstanceOf(PayslipNamesRuleData.class);
+        PayslipNamesRuleData data = (PayslipNamesRuleData) out.rule().getRuleData();
+        assertThat(data.payslipNamesEntryList()).isEmpty();
     }
 
     // ==========================
@@ -281,7 +313,19 @@ class PayslipNamesRuleTest {
         DocumentIAFileAnalysis analysis = analysisWithExtraction("MR MARTIN JEAN");
         Document doc = documentWithTenant("Jean", "Dupont", analysis);
 
-        assertThat(rule.validate(doc).ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.FAILED);
+        RuleValidatorOutput output = rule.validate(doc);
+
+        assertThat(output.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.FAILED);
+        assertThat(output.rule().getRuleData()).isInstanceOf(PayslipNamesRuleData.class);
+        PayslipNamesRuleData data = (PayslipNamesRuleData) output.rule().getRuleData();
+        assertThat(data.payslipNamesEntryList()).hasSize(1);
+        assertThat(data.payslipNamesEntryList().get(0).fileId()).isEqualTo(1L);
+        assertThat(data.payslipNamesEntryList().get(0).fileName()).isEqualTo("file-1.pdf");
+        assertThat(data.payslipNamesEntryList().get(0).ExtractedName()).isEqualTo("MR MARTIN JEAN");
+
+        PayslipNamesRuleData.Name expected = data.expectedName();
+        assertThat(expected.firstNames()).isEqualTo("Jean");
+        assertThat(expected.lastName()).isEqualTo("Dupont");
     }
 
     @Test
@@ -317,6 +361,15 @@ class PayslipNamesRuleTest {
 
         Document doc = documentWithTenant("Jean", "Dupont", match, mismatch);
 
-        assertThat(rule.validate(doc).ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.FAILED);
+        RuleValidatorOutput output = rule.validate(doc);
+
+        assertThat(output.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.FAILED);
+        assertThat(output.rule().getRuleData()).isInstanceOf(PayslipNamesRuleData.class);
+        PayslipNamesRuleData data = (PayslipNamesRuleData) output.rule().getRuleData();
+        assertThat(data.payslipNamesEntryList()).hasSize(1);
+        assertThat(data.payslipNamesEntryList().get(0).fileId()).isEqualTo(2L);
+        assertThat(data.payslipNamesEntryList().get(0).fileName()).isEqualTo("file-2.pdf");
+        assertThat(data.payslipNamesEntryList().get(0).ExtractedName()).isEqualTo("MR MARTIN PIERRE");
+
     }
 }
