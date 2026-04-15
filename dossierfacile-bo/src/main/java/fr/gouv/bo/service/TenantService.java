@@ -68,6 +68,9 @@ public class TenantService {
     @Value("${time.reprocess.application.minutes}")
     private int timeReprocessApplicationMinutes;
 
+    @Value("${bo.watermark-pdf.failure-after-minutes:30}")
+    private int watermarkPdfFailureAfterMinutes;
+
     public Page<Tenant> getTenantByIdOrEmail(String email, Pageable pageable) {
         if (isNumeric(email)) {
             List<Tenant> result = Optional.ofNullable(tenantRepository.findOneById(Long.parseLong(email)))
@@ -817,6 +820,15 @@ public class TenantService {
 
     public long countTenantsWithStatusInToProcess() {
         return tenantRepository.countAllByStatus(TenantFileStatus.TO_PROCESS);
+    }
+
+    public Optional<LocalDateTime> getOldestLastUpdateDateAmongTenantsToProcessFullyWatermarked() {
+        return tenantRepository.findOldestLastUpdateDateAmongTenantsToProcessFullyWatermarked();
+    }
+
+    public long countTenantsToProcessWithWatermarkPdfGenerationFailed() {
+        LocalDateTime threshold = LocalDateTime.now().minusMinutes(watermarkPdfFailureAfterMinutes);
+        return tenantRepository.countTenantsToProcessWithWatermarkPdfGenerationFailed(threshold);
     }
 
     public Tenant getTenantByEmail(String email) {
