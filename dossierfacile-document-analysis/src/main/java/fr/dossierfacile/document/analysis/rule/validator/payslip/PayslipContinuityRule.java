@@ -6,28 +6,24 @@ import fr.dossierfacile.common.entity.DocumentIAFileAnalysis;
 import fr.dossierfacile.common.entity.DocumentRule;
 import fr.dossierfacile.common.entity.rule.PayslipContinuityRuleData;
 import fr.dossierfacile.document.analysis.rule.validator.RuleValidatorOutput;
-import fr.dossierfacile.document.analysis.rule.validator.document_ia.BaseDocumentIAValidator;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.mapper.DocumentIAMultiMapper;
 import fr.dossierfacile.document.analysis.rule.validator.payslip.document_ia_model.PayslipDate;
 
 import java.time.Clock;
-import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class PayslipContinuityRule extends BaseDocumentIAValidator {
-
-    private final Clock clock;
+public class PayslipContinuityRule extends BasePayslipRuleValidator {
 
     public PayslipContinuityRule() {
-        this(Clock.systemDefaultZone());
+        super(Clock.systemDefaultZone());
     }
 
     public PayslipContinuityRule(Clock clock) {
-        this.clock = clock;
+        super(clock);
     }
 
     @Override
@@ -147,16 +143,6 @@ public class PayslipContinuityRule extends BaseDocumentIAValidator {
         return expectedMonths.stream()
                 .filter(expectedMonth -> !extractedSet.contains(expectedMonth))
                 .toList();
-    }
-
-    private List<YearMonth> getExpectedMonthsLists() {
-        LocalDate localDate = LocalDate.now(clock);
-        YearMonth yearMonth = YearMonth.now(clock);
-        // If before the 15th, we expect M - 2, M - 3, M - 4
-        // Else we expect M - 1, M - 2, M -3
-        return (localDate.getDayOfMonth() <= 15) ?
-                List.of(yearMonth.minusMonths(1), yearMonth.minusMonths(2), yearMonth.minusMonths(3), yearMonth.minusMonths(4)) :
-                List.of(yearMonth, yearMonth.minusMonths(1), yearMonth.minusMonths(2), yearMonth.minusMonths(3));
     }
 
     private String getFileName(DocumentIAFileAnalysis analysis) {
