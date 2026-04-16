@@ -66,20 +66,6 @@ public class PayslipClassificationValidatorB extends BasePayslipRuleValidator {
 		return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentFailedRuleFromWithData(getRule(), ruleData), RuleValidatorOutput.RuleLevel.FAILED);
 	}
 
-	private String getFileName(DocumentIAFileAnalysis analysis) {
-		if (analysis.getFile() == null || analysis.getFile().getStorageFile() == null) {
-			return null;
-		}
-		return analysis.getFile().getStorageFile().getName();
-	}
-
-	private Long getFileId(DocumentIAFileAnalysis analysis) {
-		if (analysis.getFile() == null) {
-			return null;
-		}
-		return analysis.getFile().getId();
-	}
-
 	@Override
 	protected boolean isValid(Document document) {
 		return false;

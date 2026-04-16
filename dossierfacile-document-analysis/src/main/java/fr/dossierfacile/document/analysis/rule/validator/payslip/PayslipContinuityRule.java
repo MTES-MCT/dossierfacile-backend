@@ -144,18 +144,4 @@ public class PayslipContinuityRule extends BasePayslipRuleValidator {
                 .filter(expectedMonth -> !extractedSet.contains(expectedMonth))
                 .toList();
     }
-
-    private String getFileName(DocumentIAFileAnalysis analysis) {
-        if (analysis.getFile() == null || analysis.getFile().getStorageFile() == null) {
-            return null;
-        }
-        return analysis.getFile().getStorageFile().getName();
-    }
-
-    private Long getFileId(DocumentIAFileAnalysis analysis) {
-        if (analysis.getFile() == null) {
-            return null;
-        }
-        return analysis.getFile().getId();
-    }
 }
