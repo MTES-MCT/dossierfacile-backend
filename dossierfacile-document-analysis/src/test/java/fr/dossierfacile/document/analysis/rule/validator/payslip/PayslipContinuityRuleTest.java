@@ -3,6 +3,8 @@ package fr.dossierfacile.document.analysis.rule.validator.payslip;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentIAFileAnalysis;
 import fr.dossierfacile.common.entity.File;
+import fr.dossierfacile.common.entity.StorageFile;
+import fr.dossierfacile.common.entity.rule.PayslipContinuityRuleData;
 import fr.dossierfacile.common.enums.DocumentIAFileAnalysisStatus;
 import fr.dossierfacile.common.model.document_ia.BarcodeModel;
 import fr.dossierfacile.common.model.document_ia.ExtractionModel;
@@ -17,6 +19,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.time.Clock;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -42,8 +45,12 @@ class PayslipContinuityRuleTest {
 
     private Document createDocumentWithAnalyses(DocumentIAFileAnalysis... analyses) {
         List<File> files = new ArrayList<>();
-        for (DocumentIAFileAnalysis analysis : analyses) {
-            File file = File.builder().build();
+        for (int i = 0; i < analyses.length; i++) {
+            DocumentIAFileAnalysis analysis = analyses[i];
+            File file = File.builder()
+                    .id((long) (i + 1))
+                    .storageFile(StorageFile.builder().name("file-" + (i + 1) + ".pdf").build())
+                    .build();
             file.setDocumentIAFileAnalysis(analysis);
             if (analysis != null) {
                 analysis.setFile(file);
@@ -182,6 +189,13 @@ class PayslipContinuityRuleTest {
                         LocalDate.of(2023, 4, 20),
                         List.of(LocalDate.of(2023, 2, 1), LocalDate.of(2023, 1, 1), LocalDate.of(2022, 12, 1)),
                         false
+                ),
+                // Cas 10 : 10 Avril (<=15).
+                // Scénario : Mars, Fev, Jan, Dec, Novembre -> OK (5 présents, donc 3 consécutifs ok)
+                Arguments.of(
+                        LocalDate.of(2023, 4, 10),
+                        List.of(LocalDate.of(2023, 3, 1), LocalDate.of(2023, 2, 1), LocalDate.of(2023, 1, 1), LocalDate.of(2022, 12, 1), LocalDate.of(2022, 11, 1)),
+                        true
                 )
         );
     }
@@ -285,6 +299,52 @@ class PayslipContinuityRuleTest {
         // Mars + Fev + Jan = 3 consécutifs dans la fenêtre → PASSED
         assertThat(output.isValid()).isTrue();
         assertThat(output.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.PASSED);
+    }
+
+    @Test
+    @DisplayName("FAILED et RuleData renseignée quand au moins un fichier est hors expectedMonths")
+    void should_fail_with_rule_data_when_one_file_is_outside_expected_months() {
+        PayslipContinuityRule validator = createValidator(LocalDate.of(2023, 4, 20));
+
+        DocumentIAFileAnalysis[] analyses = new DocumentIAFileAnalysis[]{
+                analysisWithDate(LocalDate.of(2023, 4, 1), LocalDate.of(2023, 4, 30)),
+                analysisWithDate(LocalDate.of(2023, 2, 1), LocalDate.of(2023, 2, 28)),
+                analysisWithDate(LocalDate.of(2022, 12, 1), LocalDate.of(2022, 12, 31))
+        };
+
+        Document document = createDocumentWithAnalyses(analyses);
+        RuleValidatorOutput result = validator.validate(document);
+
+        assertThat(result.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.FAILED);
+        assertThat(result.rule().getRuleData()).isInstanceOf(PayslipContinuityRuleData.class);
+
+        PayslipContinuityRuleData data = (PayslipContinuityRuleData) result.rule().getRuleData();
+        assertThat(data.payslipEntriesInError()).hasSize(1);
+        assertThat(data.payslipEntriesInError().get(0).fileId()).isEqualTo(3L);
+        assertThat(data.payslipEntriesInError().get(0).fileName()).isEqualTo("file-3.pdf");
+        assertThat(data.payslipEntriesInError().get(0).extractedMonth()).isEqualTo(YearMonth.of(2022, 12));
+    }
+
+    @Test
+    @DisplayName("FAILED et missingMonthList contient Mars quand Avril/Fev/Jan sont fournis")
+    void should_include_march_in_missing_month_list_for_case_5() {
+        PayslipContinuityRule validator = createValidator(LocalDate.of(2023, 5, 10));
+
+        DocumentIAFileAnalysis[] analyses = new DocumentIAFileAnalysis[]{
+                analysisWithDate(LocalDate.of(2023, 4, 1), LocalDate.of(2023, 4, 30)),
+                analysisWithDate(LocalDate.of(2023, 2, 1), LocalDate.of(2023, 2, 28)),
+                analysisWithDate(LocalDate.of(2023, 1, 1), LocalDate.of(2023, 1, 31))
+        };
+
+        Document document = createDocumentWithAnalyses(analyses);
+        RuleValidatorOutput result = validator.validate(document);
+
+        assertThat(result.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.FAILED);
+        assertThat(result.rule().getRuleData()).isInstanceOf(PayslipContinuityRuleData.class);
+
+        PayslipContinuityRuleData data = (PayslipContinuityRuleData) result.rule().getRuleData();
+        assertThat(data.payslipEntriesInError()).isEmpty();
+        assertThat(data.missingMonthList()).contains(YearMonth.of(2023, 3));
     }
 
     @Test
