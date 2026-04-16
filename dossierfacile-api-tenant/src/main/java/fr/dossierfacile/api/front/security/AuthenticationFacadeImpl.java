@@ -11,7 +11,6 @@ import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.LogType;
-import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.enums.TenantOwnerType;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.LogService;
@@ -24,6 +23,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -165,6 +165,7 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
                 tenant.setUserLastName(user.getFamilyName());
                 tenant.setUserPreferredName(user.getPreferredUsername() == null ? tenant.getUserPreferredName() : user.getPreferredUsername());
             }
+            tenant.lastUpdateDateProfile(LocalDateTime.now(), null);
             tenantStatusService.updateTenantStatus(tenant);
 
             return tenantRepository.saveAndFlush(tenant);
