@@ -14,6 +14,7 @@ import fr.dossierfacile.common.enums.DocumentCategory;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -23,6 +24,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -54,6 +56,8 @@ class DocumentServiceImplTest {
     private fr.dossierfacile.common.service.interfaces.DocumentHelperService documentHelperService;
     @Mock
     private fr.dossierfacile.common.service.interfaces.LogService logService;
+    @Mock
+    private fr.dossierfacile.common.repository.TenantCommonRepository tenantRepository;
     @Mock
     private fr.dossierfacile.api.front.amqp.Producer producer;
 
@@ -244,7 +248,7 @@ class DocumentServiceImplTest {
         @Nested
         class WhenGroupTenantDeletesOwnDocument {
             @Test
-            void shouldSucceed() {
+            void shouldSucceedAndRefreshActorLastUpdateDate() {
                 ApartmentSharing sharing = new ApartmentSharing();
                 sharing.setId(1L);
                 sharing.setApplicationType(ApplicationType.GROUP);
@@ -262,9 +266,14 @@ class DocumentServiceImplTest {
                 tenant1.getDocuments().add(document);
 
                 when(documentRepository.findByIdForApartmentSharing(1L, 1L)).thenReturn(Optional.of(document));
+                when(tenantRepository.save(any(Tenant.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
                 assertDoesNotThrow(() -> documentService.delete(1L, tenant1));
                 verify(documentRepository).delete(document);
+                ArgumentCaptor<Tenant> tenantCaptor = ArgumentCaptor.forClass(Tenant.class);
+                verify(tenantRepository).save(tenantCaptor.capture());
+                assertThat(tenantCaptor.getValue().getId()).isEqualTo(tenant1.getId());
+                assertThat(tenantCaptor.getValue().getLastUpdateDate()).isNotNull();
             }
         }
 

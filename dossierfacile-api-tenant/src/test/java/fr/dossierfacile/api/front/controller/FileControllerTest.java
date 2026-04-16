@@ -16,6 +16,7 @@ import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.ApplicationType;
+import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.document.analysis.service.DocumentIAService;
 import fr.dossierfacile.parameterizedtest.ArgumentBuilder;
@@ -86,6 +87,9 @@ class FileControllerTest {
 
     @MockitoBean
     private FileStorageService fileStorageService;
+
+    @MockitoBean
+    private TenantCommonRepository tenantRepository;
 
     @MockitoBean
     private JwtDecoder jwtDecoder;

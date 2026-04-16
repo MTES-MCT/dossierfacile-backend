@@ -17,6 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -34,6 +35,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.LocalDateTime;
 import java.util.*;
 
 import static fr.dossierfacile.authentification.JwtFactoryKt.getDummyJwt;
@@ -639,6 +641,66 @@ class AuthenticationFacadeImplTest {
 
             assertThat(tenant).isEqualTo(result);
             assertThat(((Tenant) result).getKeycloakId()).isEqualTo(keycloakUser.getKeycloakId());
+        }
+
+        @Test
+        void shouldRefreshLastUpdateDateAndLogWhenLinkingToFranceConnect() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+            var initialDate = LocalDateTime.of(2020, 1, 1, 0, 0);
+            var tenant = Tenant.builder()
+                    .id(1L)
+                    .keycloakId("keycloakId")
+                    .email("test@test.fr")
+                    .franceConnect(false)
+                    .lastUpdateDate(initialDate)
+                    .build();
+
+            var keycloakUser = KeycloakUser.builder()
+                    .keycloakId("keycloakId2")
+                    .email("test@test.fr")
+                    .franceConnect(true)
+                    .build();
+
+            when(tenantCommonRepository.saveAndFlush(any())).thenAnswer((Answer<Tenant>) invocation -> invocation.getArgument(0));
+
+            var methodToTest = authenticationFacade.getClass().getDeclaredMethod("synchronizeTenant", Tenant.class, KeycloakUser.class);
+            methodToTest.setAccessible(true);
+            var result = (Tenant) methodToTest.invoke(authenticationFacade, tenant, keycloakUser);
+
+            verify(logService).saveLog(fr.dossierfacile.common.enums.LogType.FC_ACCOUNT_LINK, tenant.getId());
+            ArgumentCaptor<Tenant> tenantCaptor = ArgumentCaptor.forClass(Tenant.class);
+            verify(tenantCommonRepository).saveAndFlush(tenantCaptor.capture());
+            assertThat(tenantCaptor.getValue().getLastUpdateDate()).isAfter(initialDate);
+            assertThat(result.getLastUpdateDate()).isAfter(initialDate);
+        }
+
+        @Test
+        void shouldRefreshLastUpdateDateAndLogWhenFirstLinkingAccount() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+            var initialDate = LocalDateTime.of(2020, 1, 1, 0, 0);
+            var tenant = Tenant.builder()
+                    .id(1L)
+                    .keycloakId(null)
+                    .email("test@test.fr")
+                    .franceConnect(false)
+                    .lastUpdateDate(initialDate)
+                    .build();
+
+            var keycloakUser = KeycloakUser.builder()
+                    .keycloakId("keycloakId2")
+                    .email("test@test.fr")
+                    .franceConnect(false)
+                    .build();
+
+            when(tenantCommonRepository.saveAndFlush(any())).thenAnswer((Answer<Tenant>) invocation -> invocation.getArgument(0));
+
+            var methodToTest = authenticationFacade.getClass().getDeclaredMethod("synchronizeTenant", Tenant.class, KeycloakUser.class);
+            methodToTest.setAccessible(true);
+            var result = (Tenant) methodToTest.invoke(authenticationFacade, tenant, keycloakUser);
+
+            verify(logService).saveLog(fr.dossierfacile.common.enums.LogType.ACCOUNT_LINK, tenant.getId());
+            ArgumentCaptor<Tenant> tenantCaptor = ArgumentCaptor.forClass(Tenant.class);
+            verify(tenantCommonRepository).saveAndFlush(tenantCaptor.capture());
+            assertThat(tenantCaptor.getValue().getLastUpdateDate()).isAfter(initialDate);
+            assertThat(result.getLastUpdateDate()).isAfter(initialDate);
         }
 
         @Disabled("This test should pass but the matches method is not working as expected")
