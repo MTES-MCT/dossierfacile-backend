@@ -6,6 +6,7 @@ import fr.dossierfacile.common.exceptions.NotFoundException;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.gouv.bo.dto.*;
+import fr.gouv.bo.security.BOApplicationAccessService;
 import fr.gouv.bo.security.UserPrincipal;
 import fr.gouv.bo.service.*;
 import lombok.RequiredArgsConstructor;
@@ -50,6 +51,7 @@ public class BOTenantController {
     private final UserService userService;
     private final TenantLogService logService;
     private final DocumentDeniedReasonsService documentDeniedReasonsService;
+    private final BOApplicationAccessService applicationAccessService;
 
     @GetMapping("/{id}")
     public String getTenant(@PathVariable Long id) {
@@ -61,7 +63,7 @@ public class BOTenantController {
     }
 
     @PreAuthorize("hasRole('SUPPORT')")
-    @GetMapping("/setAsTenantCreate/{id}")
+    @PostMapping("/setAsTenantCreate/{id}")
     public String setAsTenantCreate(@PathVariable Long id) {
         Tenant tenant = userService.setAsTenantCreate(tenantService.findTenantById(id));
         return redirectToTenantPage(tenant);
@@ -139,7 +141,7 @@ public class BOTenantController {
     }
 
     @PreAuthorize("hasRole('OPERATOR')")
-    @GetMapping("/delete/document/{id}")
+    @DeleteMapping("/delete/document/{id}")
     public String deleteDocument(
             @PathVariable("id") Long id,
             @AuthenticationPrincipal UserPrincipal principal
@@ -149,12 +151,16 @@ public class BOTenantController {
         return redirectToTenantPage(tenant);
     }
 
-    @GetMapping("/status/{id}")
+    @PreAuthorize("hasRole('OPERATOR')")
+    @PostMapping("/status/{id}")
     public String changeStatusOfDocument(
             @PathVariable("id") Long id,
             MessageDTO messageDTO,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
+        Document document = documentService.findDocumentById(id);
+        Tenant accessTenant = document.getGuarantor() == null ? document.getTenant() : document.getGuarantor().getTenant();
+        applicationAccessService.checkTenantAccess(principal, accessTenant.getId());
         User operator = userService.findUserByEmail(principal.getEmail());
         Tenant tenant = tenantService.changeDocumentStatus(id, messageDTO, operator);
 
@@ -162,7 +168,9 @@ public class BOTenantController {
     }
 
     @GetMapping("/{id}/processFile")
-    public String processFileForm(Model model, @PathVariable("id") Long id) {
+    public String processFileForm(Model model, @PathVariable("id") Long id,
+                                  @AuthenticationPrincipal UserPrincipal principal) {
+        applicationAccessService.checkTenantAccess(principal, id);
         Tenant tenant = tenantService.find(id);
 
         if (tenant == null) {
@@ -187,7 +195,7 @@ public class BOTenantController {
     }
 
     @PreAuthorize("hasRole('OPERATOR')")
-    @GetMapping("/delete/guarantor/{guarantorId}")
+    @DeleteMapping("/delete/guarantor/{guarantorId}")
     public String deleteGuarantor(
             @PathVariable("guarantorId") Long guarantorId,
             @AuthenticationPrincipal UserPrincipal principal
@@ -215,6 +223,7 @@ public class BOTenantController {
             CustomMessage customMessage,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
+        applicationAccessService.checkTenantAccess(principal, id);
         tenantService.processFile(id, customMessage, principal);
 
         // Si returnToHome est demandé, retourner à l'accueil

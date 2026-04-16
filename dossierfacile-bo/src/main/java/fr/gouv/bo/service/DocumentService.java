@@ -9,7 +9,6 @@ import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
-import fr.gouv.bo.amqp.Producer;
 import fr.gouv.bo.dto.MessageDTO;
 import fr.gouv.bo.exception.DocumentNotFoundException;
 import fr.gouv.bo.repository.DocumentDeniedOptionsRepository;
@@ -20,7 +19,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
@@ -30,7 +28,6 @@ public class DocumentService {
 
     private final DocumentRepository documentRepository;
     private final FileStorageService fileStorageService;
-    private final Producer producer;
     private final DocumentDeniedOptionsRepository documentDeniedOptionsRepository;
 
     public Document findDocumentById(Long documentId) {
@@ -83,25 +80,6 @@ public class DocumentService {
         document.setWatermarkFile(null);
         documentRepository.save(document);
         fileStorageService.delete(watermarkFile);
-    }
-
-    @Transactional
-    public void regenerateFailedPdfDocumentsUsingButtonRequest() {
-        synchronized (this) {
-            LocalDateTime oneHourAgo = LocalDateTime.now().minusHours(1);
-            List<Long> documents = documentRepository.findWithoutPDFToDate(oneHourAgo);
-            log.info("Regenerate [{}] Failed PDF in all status", documents.size());
-
-            documents.forEach(documentId -> {
-                try {
-                    producer.generatePdf(documentId);
-                    Thread.sleep(10);
-                } catch (InterruptedException e) {
-                    log.error("Something wrong on sleep !!! ");
-                    Thread.currentThread().interrupt();
-                }
-            });
-        }
     }
 
     @Transactional

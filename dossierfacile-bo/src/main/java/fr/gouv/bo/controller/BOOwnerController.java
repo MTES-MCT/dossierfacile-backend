@@ -20,8 +20,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RequestMapping(value = "/bo/owners")
 public class BOOwnerController {
     private static final String INITIAL_PAGE = "1";
-    private static final String INITIAL_PAGE_SIZE = "50";
-    private static final int[] PAGE_SIZES = {50, 100};
+    private static final String MAX_PAGE_SIZE = "20";
+    private static final int MAX_PAGE_NUMBER = 5;
     @Autowired
     private OwnerService ownerService;
     @Autowired
@@ -29,22 +29,26 @@ public class BOOwnerController {
 
     @GetMapping("")
     public String index(Model model,
-                        @RequestParam(value = "pageSize", defaultValue = INITIAL_PAGE_SIZE) int pageSize,
                         @RequestParam(value = "page", defaultValue = INITIAL_PAGE) int page,
                         @RequestParam(value = "ownerEmail", defaultValue = "") String email,
                         @RequestParam(value = "ownerFirstname", defaultValue = "") String firstName,
                         @RequestParam(value = "ownerLastname", defaultValue = "") String lastName) {
 
-        PageRequest pageable = PageRequest.of(page - 1, pageSize, Sort.by("creationDateTime").descending());
+        int pageSize = Integer.parseInt(MAX_PAGE_SIZE);
+        int boundedPage = Math.clamp(page, 1, MAX_PAGE_NUMBER);
+        PageRequest pageable = PageRequest.of(boundedPage - 1, pageSize, Sort.by("creationDateTime").descending());
 
-        Page<Owner> owners = ownerService.searchOwners(email, firstName, lastName, pageable);
+        boolean hasSearchCriteria = !email.isBlank() || !firstName.isBlank() || !lastName.isBlank();
+        Page<Owner> owners = hasSearchCriteria
+                ? ownerService.searchOwners(email, firstName, lastName, pageable)
+                : Page.empty(pageable);
 
         model.addAttribute("ownerEmail", email);
         model.addAttribute("ownerFirstname", firstName);
         model.addAttribute("ownerLastname", lastName);
         model.addAttribute("owners", owners);
-        model.addAttribute("pageSize", pageable.getPageSize());
-        model.addAttribute("pageSizes", PAGE_SIZES);
+        model.addAttribute("hasSearchCriteria", hasSearchCriteria);
+        model.addAttribute("paginationMaxPages", MAX_PAGE_NUMBER);
 
         return "bo/owners";
     }

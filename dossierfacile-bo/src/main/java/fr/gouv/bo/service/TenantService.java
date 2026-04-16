@@ -27,14 +27,12 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static fr.gouv.bo.controller.BOController.REDIRECT_BO_HOME;
 import static org.apache.commons.lang3.StringUtils.*;
@@ -65,16 +63,13 @@ public class TenantService {
     private final ApartmentSharingMapperForMail apartmentSharingMapperForMail;
     private final TenantCommonService tenantCommonService;
     private final TenantLogCommonService tenantLogCommonService;
+    private final QuotaService quotaService;
 
     @Value("${time.reprocess.application.minutes}")
     private int timeReprocessApplicationMinutes;
 
-    @Value("${process.max.dossier.time.interval:10}")
-    private Long timeInterval;
-    @Value("${process.max.dossier.by.interval:20}")
-    private Long maxDossiersByInterval;
-    @Value("${process.max.dossier.by.day:600}")
-    private Long maxDossiersByDay;
+    @Value("${bo.watermark-pdf.failure-after-minutes:30}")
+    private int watermarkPdfFailureAfterMinutes;
 
     public Page<Tenant> getTenantByIdOrEmail(String email, Pageable pageable) {
         if (isNumeric(email)) {
@@ -105,11 +100,6 @@ public class TenantService {
         return tenantRepository.findOneById(id);
     }
 
-    public Page<Tenant> listTenantsToProcess(Pageable pageable) {
-        LocalDateTime localDateTime = LocalDateTime.now().minusMinutes(timeReprocessApplicationMinutes);
-        return tenantRepository.findTenantsToProcess(localDateTime, pageable);
-    }
-
     public Tenant find(Long id) {
         return tenantRepository.findOneById(id);
     }
@@ -136,13 +126,6 @@ public class TenantService {
         Long operatorId = operator.getId();
 
         if (tenantId == null) {
-            // check less than x process are currently starting during the n lastMinutes
-            if (operatorLogRepository.countByOperatorIdAndActionOperatorTypeAndCreationDateGreaterThanEqual(operatorId, ActionOperatorType.START_PROCESS, LocalDateTime.now().minusMinutes(timeInterval)) > maxDossiersByInterval) {
-                throw new IllegalStateException("Vous ne pouvez pas ouvrir plus de " + maxDossiersByInterval + " dossiers pour traitement toutes les " + timeInterval + " minutes");
-            }
-            if (operatorLogRepository.countByOperatorIdAndActionOperatorTypeAndCreationDateGreaterThanEqual(operatorId, ActionOperatorType.START_PROCESS, LocalDateTime.now().toLocalDate().atStartOfDay()) > maxDossiersByDay) {
-                throw new IllegalStateException("Vous ne pouvez pas ouvrir plus de " + maxDossiersByDay + " dossiers par jour");
-            }
             tenant = tenantRepository.findMyNextApplication(localDateTime, operatorId);
         } else {
             tenant = find(tenantId);
@@ -154,7 +137,9 @@ public class TenantService {
         }
 
         if (tenant != null) {
-
+            // Quota checked here (outside the if/else above) so it applies to all roles:
+            // OPERATOR auto-assigned via tenantId == null, and SUPPORT/MANAGER/ADMIN targeting an explicit tenantId.
+            quotaService.checkQuota(operator, ActionOperatorType.START_PROCESS);
             User user = userService.findUserByEmail(operator.getEmail());
             operatorLogRepository.save(new OperatorLog(
                     tenant, user, tenant.getStatus(), ActionOperatorType.START_PROCESS
@@ -756,27 +741,6 @@ public class TenantService {
         });
     }
 
-    @Transactional
-    public void updateStatusOfSomeTenants(String tenantList) {
-        List<String> tenantList2 = Arrays.asList(tenantList.split(","));
-        List<Long> idList = tenantList2.stream().map(Long::parseLong).collect(Collectors.toList());
-        log.info("Found [" + idList.size() + "] tenants to recalculate their status");
-
-        List<Tenant> tenantsById = tenantRepository.findAllById(idList);
-        List<Tenant> tenantsToUpdate = new ArrayList<>();
-        for (Tenant tenant : tenantsById) {
-            TenantFileStatus newStatus = tenant.computeStatus();
-            if (tenant.getStatus().ordinal() != newStatus.ordinal()) {
-                log.info("Updating status of tenant with ID [" + tenant.getId() + "] from [" + tenant.getStatus() + "] to [" + newStatus.name() + "]");
-                tenant.setStatus(newStatus);
-                tenantsToUpdate.add(tenant);
-            }
-        }
-
-        log.info("Tenants needed to update [" + tenantsToUpdate.size() + "]");
-        tenantRepository.saveAll(tenantsToUpdate);
-    }
-
     public List<Document> getAllDocumentCategories(Tenant tenant) {
 
         List<Document> documentList = tenant.getDocuments();
@@ -854,16 +818,17 @@ public class TenantService {
         return documentList;
     }
 
-    public long getCountOfTenantsWithFailedGeneratedPdfDocument() {
-        return tenantRepository.countAllTenantsWithoutPdfDocument();
-    }
-
-    public Page<Tenant> getAllTenantsToProcessWithFailedGeneratedPdfDocument(Pageable pageable) {
-        return tenantRepository.findAllTenantsToProcessWithoutPdfDocument(pageable);
-    }
-
     public long countTenantsWithStatusInToProcess() {
         return tenantRepository.countAllByStatus(TenantFileStatus.TO_PROCESS);
+    }
+
+    public Optional<LocalDateTime> getOldestLastUpdateDateAmongTenantsToProcessFullyWatermarked() {
+        return tenantRepository.findOldestLastUpdateDateAmongTenantsToProcessFullyWatermarked();
+    }
+
+    public long countTenantsToProcessWithWatermarkPdfGenerationFailed() {
+        LocalDateTime threshold = LocalDateTime.now().minusMinutes(watermarkPdfFailureAfterMinutes);
+        return tenantRepository.countTenantsToProcessWithWatermarkPdfGenerationFailed(threshold);
     }
 
     public Tenant getTenantByEmail(String email) {
@@ -891,14 +856,6 @@ public class TenantService {
 
         // invalidates the full pdf to make sure a new version can be lazy generated with both tenants
         apartmentSharingService.resetDossierPdfGenerated(apartmentSharing);
-    }
-
-    public Optional<Tenant> getOldestToProcessApplication() {
-        Page<Tenant> page = tenantRepository.findToProcessApplicationsByOldestUpdateDate(PageRequest.of(0, 1));
-        if (!page.isEmpty()) {
-            return page.get().findFirst();
-        }
-        return Optional.empty();
     }
 
     @Transactional

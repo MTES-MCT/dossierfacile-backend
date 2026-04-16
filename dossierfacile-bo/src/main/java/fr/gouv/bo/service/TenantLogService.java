@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.dossierfacile.common.entity.Document;
-import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.TenantLog;
 import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.model.log.EditedDocument;
@@ -14,8 +13,6 @@ import fr.dossierfacile.common.service.interfaces.TenantLogCommonService;
 import fr.gouv.bo.repository.BoTenantLogRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -37,15 +34,6 @@ public class TenantLogService {
         logList.sort(Comparator.comparing(TenantLog::getCreationDateTime).reversed());
         return logList;
     }
-
-    public Page<TenantLog> findAllPageable(PageRequest page) {
-        return logRepository.findAll(page);
-    }
-
-    public Page<TenantLog> findAllByTenantIdPageable(Long tenantId, PageRequest page) {
-        return logRepository.findAllByTenantId(tenantId, page);
-    }
-
 
     public List<Object[]> listLastTreatedFilesByOperator(Long operatorId, int minusDays) {
         return logRepository.countTreatedFromXDaysGroupByDate(operatorId, minusDays);

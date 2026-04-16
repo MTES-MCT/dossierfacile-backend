@@ -1,0 +1,32 @@
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+    <changeSet id="202604080000" author="Romaric">
+        <addColumn tableName="operator_log">
+            <column name="metadata" type="jsonb"/>
+        </addColumn>
+
+        <dropNotNullConstraint
+                tableName="operator_log"
+                columnName="tenant_id"
+                columnDataType="bigint"/>
+
+        <dropNotNullConstraint
+                tableName="operator_log"
+                columnName="tenant_status"
+                columnDataType="varchar"/>
+
+        <rollback>
+            <addNotNullConstraint
+                    tableName="operator_log"
+                    columnName="tenant_status"
+                    columnDataType="varchar"/>
+            <addNotNullConstraint
+                    tableName="operator_log"
+                    columnName="tenant_id"
+                    columnDataType="bigint"/>
+            <dropColumn tableName="operator_log" columnName="metadata"/>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd">
+
+    <changeSet id="202604140000" author="Romaric">
+        <createIndex tableName="operator_log"
+                     indexName="idx_operator_log_operator_id_action_type_creation_date">
+            <column name="operator_id"/>
+            <column name="action_type"/>
+            <column name="creation_date"/>
+        </createIndex>
+
+        <rollback>
+            <dropIndex tableName="operator_log"
+                       indexName="idx_operator_log_operator_id_action_type_creation_date"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

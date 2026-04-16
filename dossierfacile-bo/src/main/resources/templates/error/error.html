@@ -23,6 +23,10 @@
         <h2>On est désolé, rien à trouver par ici</h2>
         <p th:text="${statusMessage}"></p>
         <p th:text="${errorMessage}"></p>
+        <form th:action="@{/logout}" method="post" class="mt-3">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <button type="submit" class="btn btn-primary">Se déconnecter et retourner à l'accueil</button>
+        </form>
     </div>
 </div>
 

@@ -19,6 +19,8 @@ import fr.gouv.bo.dto.DisplayableFile;
 import fr.gouv.bo.dto.LinkLogDTO;
 import fr.gouv.bo.dto.MessageDTO;
 import fr.gouv.bo.dto.PartnerDTO;
+import fr.gouv.bo.security.BOApplicationAccessService;
+import fr.gouv.bo.security.UserPrincipal;
 import fr.gouv.bo.service.TenantLogService;
 import fr.gouv.bo.service.TenantService;
 import fr.gouv.bo.service.UserApiService;
@@ -27,6 +29,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -73,12 +76,15 @@ public class BOApartmentSharingController {
     private final TenantLogService logService;
     private final LinkLogRepository linkLogRepository;
     private final UserService userService;
+    private final BOApplicationAccessService applicationAccessService;
 
     @Value("${tenant.base.url}")
     private String tenantBaseUrl;
 
     @GetMapping("/{id}")
-    public String view(Model model, @PathVariable("id") Long id) {
+    public String view(Model model, @PathVariable("id") Long id,
+                       @AuthenticationPrincipal UserPrincipal principal) {
+        applicationAccessService.checkAndLogApartmentSharingAccess(principal, id);
 
         MessageDTO messageDTO = new MessageDTO();
         PartnerDTO partnerDTO = new PartnerDTO();

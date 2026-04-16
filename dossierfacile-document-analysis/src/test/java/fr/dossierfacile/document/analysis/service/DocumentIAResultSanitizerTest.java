@@ -4,12 +4,14 @@ import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentCategoryStep;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
+import fr.dossierfacile.common.model.document_ia.BarcodeModel;
 import fr.dossierfacile.common.model.document_ia.ExtractionModel;
 import fr.dossierfacile.common.model.document_ia.GenericProperty;
 import fr.dossierfacile.common.model.document_ia.ResultModel;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia_model.TestFullDiscriminatorModel;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia_model.TestIdentityModel;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia_model.TestIdentityNestedCollectionsModel;
+import fr.dossierfacile.document.analysis.rule.validator.document_ia_model.TestIdentityTwoDDocModel;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia_model.TestOtherIdentityModel;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia_model.TestSubCategoryDiscriminatorModel;
 import org.junit.jupiter.api.Nested;
@@ -20,6 +22,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -164,6 +167,89 @@ class DocumentIAResultSanitizerTest {
                     .orElseThrow()
                     .getStringListValue())
                     .containsExactly("c", "d");
+        }
+    }
+
+    @Nested
+    class testSanitizeBarcodes {
+
+        @Test
+        void should_remove_fields_from_raw_data_and_keep_only_allowed_typed_data() {
+            DocumentIAResultSanitizer sanitizer = newSanitizer(List.of(TestIdentityTwoDDocModel.class));
+
+            ResultModel input = ResultModel.builder()
+                    .barcodes(List.of(
+                            BarcodeModel.builder()
+                                    .rawData(buildSampleRawData("91239123ZSHFD", "JEAN DOE"))
+                                    .typedData(List.of(
+                                            GenericProperty.builder().name("doc_type").type(GenericProperty.TYPE_STRING).value("CNI").build(),
+                                            GenericProperty.builder().name("reference_avis").type(GenericProperty.TYPE_STRING).value("ABCD").build(),
+                                            GenericProperty.builder().name("noise").type(GenericProperty.TYPE_STRING).value("remove").build()
+                                    ))
+                                    .build()
+                    ))
+                    .build();
+
+            ResultModel output = sanitizer.sanitize(input, identityDocument());
+
+            assertThat(output.getBarcodes()).hasSize(1);
+            assertThat(output.getBarcodes().get(0).getRawData()).isInstanceOf(Map.class);
+            @SuppressWarnings("unchecked")
+            Map<String, Object> sanitizedRawData = (Map<String, Object>) output.getBarcodes().get(0).getRawData();
+            assertThat(sanitizedRawData)
+                    .doesNotContainKey("fields")
+                    .containsEntry("country", "FR")
+                    .containsEntry("doc_type", "27")
+                    .containsEntry("perimeter", "01")
+            ;
+            assertThat(output.getBarcodes().get(0).getTypedData())
+                    .extracting(GenericProperty::getName)
+                    .containsExactlyInAnyOrder("doc_type", "reference_avis");
+        }
+
+        @Test
+        void should_remove_fields_from_raw_data_for_all_barcodes_even_when_typed_data_is_null_or_empty() {
+            DocumentIAResultSanitizer sanitizer = newSanitizer(List.of(TestIdentityTwoDDocModel.class));
+
+            ResultModel input = ResultModel.builder()
+                    .barcodes(List.of(
+                            BarcodeModel.builder().rawData(buildSampleRawData("1293129DSJFS", "JOHN DOE")).typedData(null).build(),
+                            BarcodeModel.builder().rawData(buildSampleRawData("1293129DSJFS231", "DURAND DURANT")).typedData(List.of()).build()
+                    ))
+                    .build();
+
+            ResultModel output = sanitizer.sanitize(input, identityDocument());
+
+            assertThat(output.getBarcodes()).hasSize(2);
+            assertThat(output.getBarcodes())
+                    .allSatisfy(barcode -> {
+                        assertThat(barcode.getRawData()).isInstanceOf(Map.class);
+                        @SuppressWarnings("unchecked")
+                        Map<String, Object> rawData = (Map<String, Object>) barcode.getRawData();
+                        assertThat(rawData).doesNotContainKey("fields");
+                        assertThat(rawData).containsKeys("country", "doc_type", "perimeter");
+                    });
+            assertThat(output.getBarcodes().get(0).getTypedData()).isNull();
+            assertThat(output.getBarcodes().get(1).getTypedData()).isEmpty();
+        }
+
+        private Map<String, Object> buildSampleRawData(String referenceAvis, String holder) {
+            return Map.of(
+                    "fields", Map.of(
+                            "41", "1148283",
+                            "43", "1",
+                            "44", referenceAvis,
+                            "45", "2025",
+                            "46", holder,
+                            "47", "238123812832183",
+                            "4B", "12389213",
+                            "4V", "0",
+                            "4Y", "8 RUE DE LA PAIX/75000 PARIS"
+                    ),
+                    "country", "FR",
+                    "doc_type", "27",
+                    "perimeter", "01"
+            );
         }
     }
 
