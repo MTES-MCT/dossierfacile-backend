@@ -62,15 +62,39 @@
         <div class="text-center margin-bottom">
             <a th:href="@{/bo/nextApplication}" class="btn btn-primary" id="nextApplication">Traiter un dossier</a>
         </div>
-        <div class="text-center margin-bottom text-muted small"
-             th:if="${oldestFullyWatermarkedLastUpdate.isPresent()}">
-            <span
-                    th:with="date=${oldestFullyWatermarkedLastUpdate.get()},
-                           formattedDate=${T(fr.gouv.bo.utils.DateFormatUtil).formatPreciselyRelativeToNow(date)}"
-                    th:text="'Dossier à traiter le plus ancien : modifié ' + ${formattedDate}"
-            ></span>
+        <div class="margin-bottom text-muted small"
+             sec:authorize="hasRole('MANAGER')"
+             th:if="${!#lists.isEmpty(toProcessFullyWatermarkedTenantWaitingTimeBuckets)}">
+            <div class="mb-2 text-center">
+                Répartition des dossiers en attente de traitement
+            </div>
+            <table class="table table-sm table-striped table-bordered" style="max-width: 800px; margin: 0 auto;">
+                <thead>
+                <tr>
+                    <th>Bucket</th>
+                    <th>Nombre de dossiers</th>
+                    <th>Attente min</th>
+                    <th>Attente max</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="bucket : ${toProcessFullyWatermarkedTenantWaitingTimeBuckets}">
+                    <td th:text="${bucket.bucketNo}"></td>
+                    <td th:text="${bucket.tenantCount}"></td>
+                    <td
+                        th:with="date=${bucket.bucketMaxLastUpdateDate},
+                                 formattedDate=${T(fr.gouv.bo.utils.DateFormatUtil).formatPreciselyRelativeToNow(date)}"
+                        th:text="${formattedDate}"></td>
+                    <td
+                        th:with="date=${bucket.bucketMinLastUpdateDate},
+                                 formattedDate=${T(fr.gouv.bo.utils.DateFormatUtil).formatPreciselyRelativeToNow(date)}"
+                        th:text="${formattedDate}"></td>
+                </tr>
+                </tbody>
+            </table>
         </div>
         <div class="text-center margin-bottom text-muted small"
+             sec:authorize="hasRole('MANAGER')"
              th:if="${numberOfTenantsWithWatermarkPdfFailure > 0}">
             <span
                     th:text="'Dossier(s) avec au moins un PDF en erreur : ' + ${numberOfTenantsWithWatermarkPdfFailure}"
