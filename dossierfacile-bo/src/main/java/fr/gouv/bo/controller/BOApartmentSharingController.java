@@ -18,9 +18,11 @@ import fr.gouv.bo.dto.ApartmentSharingLinkEnrichedDTO;
 import fr.gouv.bo.dto.DisplayableFile;
 import fr.gouv.bo.dto.LinkLogDTO;
 import fr.gouv.bo.dto.MessageDTO;
+import fr.gouv.bo.dto.MetadataItem;
 import fr.gouv.bo.dto.PartnerDTO;
 import fr.gouv.bo.security.BOApplicationAccessService;
 import fr.gouv.bo.security.UserPrincipal;
+import fr.gouv.bo.service.DocumentService;
 import fr.gouv.bo.service.TenantLogService;
 import fr.gouv.bo.service.TenantService;
 import fr.gouv.bo.service.UserApiService;
@@ -69,10 +71,12 @@ public class BOApartmentSharingController {
     private static final String INACTIVE_LINKS = "inactiveSharingLinks";
     public static final String IA_RESULTS_BY_DOCUMENT = "iaResultsByDocument";
     public static final String ANALYSIS_COMMENT_BY_DOCUMENT = "analysisCommentByDocument";
+    public static final String METADATA_BY_DOCUMENT = "metadataByDocument";
 
     private final TenantService tenantService;
     private final ApartmentSharingLinkService apartmentSharingLinkService;
     private final UserApiService userApiService;
+    private final DocumentService documentService;
     private final TenantLogService logService;
     private final LinkLogRepository linkLogRepository;
     private final UserService userService;
@@ -118,6 +122,7 @@ public class BOApartmentSharingController {
         model.addAttribute(FILES_BY_DOCUMENT, getFilesByDocument(tenants));
         model.addAttribute(IA_RESULTS_BY_DOCUMENT, getIaResultsByDocument(tenants));
         model.addAttribute(ANALYSIS_COMMENT_BY_DOCUMENT, getAnalysisCommentByDocument(tenants));
+        model.addAttribute(METADATA_BY_DOCUMENT, getMetadataByDocument(tenants));
         model.addAttribute(TENANT_BASE_URL, tenantBaseUrl);
         model.addAttribute(INACTIVE_LINKS, inactiveLinks);
         model.addAttribute(ACTIVE_LINKS, activeLinks);
@@ -165,6 +170,13 @@ public class BOApartmentSharingController {
                         && DocumentAnalysisStatus.DENIED == doc.getDocumentAnalysisReport().getAnalysisStatus()
                         && doc.getDocumentAnalysisReport().getComment() != null)
                 .collect(Collectors.toMap(Document::getId, doc -> doc.getDocumentAnalysisReport().getComment()));
+    }
+
+    private Map<Long, List<MetadataItem>> getMetadataByDocument(List<Tenant> tenants) {
+        return tenants.stream()
+                .flatMap(BOApartmentSharingController::getAllDocuments)
+                .filter(doc -> doc.getId() != null)
+                .collect(Collectors.toMap(Document::getId, documentService::getFilesMetadata));
     }
 
     private static Stream<Document> getAllDocuments(Tenant tenant) {

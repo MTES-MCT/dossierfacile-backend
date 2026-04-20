@@ -10,6 +10,7 @@ import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.gouv.bo.dto.MessageDTO;
+import fr.gouv.bo.dto.MetadataItem;
 import fr.gouv.bo.exception.DocumentNotFoundException;
 import fr.gouv.bo.repository.DocumentDeniedOptionsRepository;
 import fr.gouv.bo.repository.DocumentRepository;
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -89,5 +91,21 @@ public class DocumentService {
 
     public List<DocumentDeniedOptions> findDocumentDeniedOptionsByDocumentSubCategoryAndDocumentUserTypeIncludeGeneric(DocumentCategory documentCategory, DocumentSubCategory documentSubCategory, String documentUserType) {
         return documentDeniedOptionsRepository.findAllByDocumentCategoryAndDocumentSubCategoryAndDocumentUserTypeIncludeGeneric(documentCategory.name(), documentSubCategory.name(), documentUserType);
+    }
+
+    public List<MetadataItem> getFilesMetadata(Document document) {
+        return document.getFiles()
+                .stream()
+                .map(file -> {
+                    if (file == null || file.getFileMetadata() == null || file.getStorageFile() == null) {
+                        return null;
+                    }
+                    return new MetadataItem(
+                            file.getStorageFile().getName(),
+                            file.getFileMetadata().getMetadata()
+                    );
+                })
+                .filter(Objects::nonNull)
+                .toList();
     }
 }
