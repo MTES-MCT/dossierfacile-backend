@@ -67,9 +67,11 @@
                         <div class="medium-space-separator">
                             <div class="row">
                                 <div class="">
-                                    <button class="btn btn-success bo-btn deleteApartmentSharing"
+                                    <button class="btn btn-success bo-btn"
                                             style="color: white;background-color: #f0ad4e;float: right;margin-right: 10px;margin-bottom: 10px;background-color: #d9534f;border-color: #d43f3a;"
-                                            th:href="@{/bo/tenant/deleteApartmentSharing/} + ${tenantPrincipal.getId()}"
+                                            type="button"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#deleteApartmentSharing"
                                     >Supprimer la colocation
                                     </button>
                                     <a class="btn btn-success bo-btn btnPartner"
@@ -124,66 +126,11 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="modal" id="deleteTenant" role="dialog"
-                                 tabindex="-1">
-                                <div class="modal-dialog" role="document">
-                                    <div class="modal-content">
-                                        <div class="modal-header" style="background: #f18686;padding: 10px;">
-                                            <h5 class="modal-title bold" style="width: 80%;float: left;">Confirm
-                                                delete</h5>
-                                            <button aria-label="Close" class="btn-close" data-bs-dismiss="modal"
-                                                    type="button"></button>
-                                        </div>
-                                        <div class="modal-body bg-body-tertiary"
-                                             style="text-shadow: 0 0 black;">
-                                            <p>Are you sure you want delete this tenant ?</p>
-                                        </div>
-                                        <div class="modal-footer bg-body-tertiary" style="padding: 5px;">
-                                            <a class="btn btn-primary"
-                                               id="idRef"
-                                               style="border-radius: 50px;font-size: 15px;line-height: 1;padding: 5px 8px 7px;"
-                                               th:href="@{/bo/tenant/delete/tenant/} + ${tenantPrincipal.getId()}">Delete</a>
-                                            <button class="btn btn-secondary" data-bs-dismiss="modal"
-                                                    style="border-radius: 50px;font-size: 15px;line-height: 1;padding: 5px 8px 7px;"
-                                                    type="button">
-                                                Close
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="modal" id="deleteApartmentSharing" role="dialog"
-                                 tabindex="-1">
-                                <div class="modal-dialog" role="document">
-                                    <div class="modal-content">
-                                        <div class="modal-header" style="background: #f18686;padding: 10px;">
-                                            <h5 class="modal-title bold" style="width: 80%;float: left;">
-                                                Confirmation
-                                            </h5>
-                                            <button aria-label="Close" class="btn-close" data-bs-dismiss="modal"
-                                                    type="button"></button>
-                                        </div>
-                                        <div class="modal-body bg-body-tertiary"
-                                             style="text-shadow: 0 0 black;">
-                                            <p>Êtes-vous sûr de vouloir supprimer ce dossier ainsi que tous ses
-                                                candidats ?</p>
-                                        </div>
-                                        <div class="modal-footer bg-body-tertiary" style="padding: 5px;">
-                                            <a class="btn btn-primary"
-                                               id="idRefApt"
-                                               style="border-radius: 50px;font-size: 15px;line-height: 1;padding: 5px 8px 7px;"
-                                               th:href="@{/bo/tenant/deleteApartmentSharing/} + ${tenantPrincipal.getId()}">
-                                                Oui
-                                            </a>
-                                            <button class="btn btn-secondary" data-bs-dismiss="modal"
-                                                    style="border-radius: 50px;font-size: 15px;line-height: 1;padding: 5px 8px 7px;"
-                                                    type="button">
-                                                Annuler
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            <div th:replace="~{bo/fragments/confirm-delete-modal :: confirmDeleteModalForm(
+                                modalId='deleteApartmentSharing',
+                                message='Êtes-vous sûr de vouloir supprimer ce dossier ainsi que tous ses candidats ?',
+                                actionUrl=@{/bo/tenant/deleteApartmentSharing/{id}(id=${tenantPrincipal.getId()})}
+                            )}"></div>
                             <table class="table table-striped table-bordered table-hover">
                                 <tr>
                                     <td>Statut</td>
@@ -582,12 +529,12 @@
                                         </form>
                                     </div>
                                     <div th:if="${ tenant.getTenantType().toString() != 'CREATE'}">
-                                        <a class="btn btn-danger bo-btn btn-deleteCotenant"
-                                           style="margin-right: 10px;float: right"
-                                           th:attrappend="data-id=${tenant.getId()}"
-                                           th:href="@{/bo/tenant/deleteCoTenant/} + ${tenant.getId()}"
-                                           th:text="'Supprimer le colocataire'"
-                                        ></a>
+                                        <button class="btn btn-danger bo-btn"
+                                                style="margin-right: 10px;float: right"
+                                                type="button"
+                                                data-bs-toggle="modal"
+                                                th:data-bs-target="'#deleteCotenant' + ${tenant.getId()}"
+                                        >Supprimer le colocataire</button>
                                     </div>
                                 </div>
 
@@ -627,40 +574,11 @@
                                     </div>
                                 </div>
 
-                                <div class="modal" role="dialog" tabindex="-1"
-                                     th:id="'deleteCotenant'+${tenant.getId()}">
-                                    <div class="modal-dialog" role="document">
-                                        <div class="modal-content bg-info-subtle">
-                                            <div class="modal-header" style="padding: 10px;">
-                                                <h5 class="modal-title bold" style="width: 80%;float: left;">
-                                                    Confirmation
-                                                </h5>
-                                                <button aria-label="Close" class="btn-close" data-bs-dismiss="modal"
-                                                        type="button"></button>
-                                            </div>
-                                            <div class="modal-body bg-body-tertiary"
-                                                 style="text-shadow: 0 0 black;">
-                                                <p>
-                                                    Êtes-vous sûr de vouloir supprimer le dossier de
-                                                    <span th:text="${tenant.getFullName()}"></span> ?
-                                                </p>
-                                            </div>
-                                            <div class="modal-footer bg-body-tertiary" style="padding: 5px;">
-                                                <a class="btn btn-primary"
-                                                   style="border-radius: 50px;font-size: 15px;line-height: 1;padding: 5px 8px 7px;"
-                                                   th:href="@{/bo/tenant/deleteCoTenant/} + ${tenant.getId()}"
-                                                   th:id="'deleteRefCo' + ${tenant.getId()}">
-                                                    Oui
-                                                </a>
-                                                <button class="btn btn-secondary" data-bs-dismiss="modal"
-                                                        style="border-radius: 50px;font-size: 15px;line-height: 1;padding: 5px 8px 7px;"
-                                                        type="button">
-                                                    Annuler
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                <div th:replace="~{bo/fragments/confirm-delete-modal :: confirmDeleteModalForm(
+                                    modalId=${'deleteCotenant' + tenant.getId()},
+                                    message=${'Êtes-vous sûr de vouloir supprimer le dossier de ' + tenant.getFullName() + ' ?'},
+                                    actionUrl=@{/bo/tenant/deleteCoTenant/{id}(id=${tenant.getId()})}
+                                )}"></div>
                             </div>
                             <div class="row" style="margin-top: 0.5em">
                                 <div class="col-md-10">
@@ -817,225 +735,17 @@
                         </div>
 
                         <div class="medium-space-separator" id="update-status">
-                            <div class="card panel-primary mb-3"
-                                 th:each="document,iter : ${tenantService.getAllDocumentCategories(tenant)}">
-
-                                <div class="card-header">
-
-                                    <div class="card-title" th:if="${document.getId() == null}">
-                                        <span>Category:
-                                            <span
-                                                    th:text="${document.getDocumentCategory().name()}">
-                                            </span>
-                                        </span>
-                                    </div>
-
-                                    <div class="card-title"
-                                         th:if="${document.getId() != null} and ${document.getWatermarkFile() == null}">
-                                        <span>Category:
-                                            <span
-                                                    th:text="${document.getDocumentCategory().name()}">
-                                            </span>
-                                        </span>
-                                        <span> Subcategory:
-                                            <span
-                                                    th:text="${document.getDocumentSubCategory().name()}">
-                                            </span>
-                                        </span>
-
-                                        <a class="btn btn-sm btn-warning btn-right-pull pull-right deleteButton badge bg-warning text-dark"
-                                           th:attrappend="data-id=${document.id}">
-                                            DELETE
-                                        </a>
-
-                                        <span class="btn-right-pull badge bg-success pull-right"
-                                              style="color: black;"
-                                              th:if="${document.getDocumentStatus().name()=='VALIDATED'}"
-                                              th:text="${document.getDocumentStatus()}">
-                                        </span>
-                                        <span class="btn-right-pull badge bg-danger pull-right" style="color: black;"
-                                              th:if="${document.getDocumentStatus().name()=='DECLINED'}"
-                                              th:text="${document.getDocumentStatus()}">
-                                        </span>
-                                        <span class="btn-right-pull badge bg-info pull-right" style="color: black;"
-                                              th:if="${document.getDocumentStatus().name()=='TO_PROCESS'}"
-                                              th:text="${document.getDocumentStatus()}">
-                                        </span>
-
-                                        <div class="container" style="margin-top: 5px; padding-left: 0">
-                                            <div class="container" style="margin-top: 5px; padding-left: 0">
-                                                PDF status:
-                                                <span th:if="${document.getLastModifiedDate() == null || document.getLastModifiedDate().plusMinutes(30).isBefore(now)}"
-                                                      style="color:white; background-color: red; font-weight: bolder">
-                                                        FAILED
-                                                </span>
-                                                <span th:unless="${document.getLastModifiedDate() == null || document.getLastModifiedDate().plusMinutes(30).isBefore(now)}"
-                                                      style="color:white; background-color: orange; font-weight: bolder">
-                                                        IN_PROGRESS
-                                                </span>
-
-                                                <a class="btn btn-light btn-sm ms-2"
-                                                   th:href="@{/bo/regeneratePdfDocument/} + ${document.getId()}">Update
-                                                    PDF</a>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="card-title"
-                                         th:if="${document.getId() != null} and ${document.getWatermarkFile() != null}">
-                                        <span>Category:
-                                            <span
-                                                    th:text="${document.getDocumentCategory().name()}">
-                                            </span>
-                                        </span>
-                                        <span> Subcategory:
-                                            <span
-                                                    th:text="${document.getDocumentSubCategory().name()}">
-                                            </span>
-                                        </span>
-
-                                        <a class="btn btn-sm btn-warning btn-right-pull pull-right deleteButton badge bg-warning text-dark"
-                                           th:attrappend="data-id=${document.id}"
-                                        >DELETE
-                                        </a>
-
-                                        <span class="btn-right-pull badge bg-success pull-right"
-                                              style="color: black;"
-                                              th:if="${document.getDocumentStatus().name()=='VALIDATED'}"
-                                              th:text="${document.getDocumentStatus()}">
-                                        </span>
-                                        <span class="btn-right-pull badge bg-danger pull-right" style="color: black;"
-                                              th:if="${document.getDocumentStatus().name()=='DECLINED'}"
-                                              th:text="${document.getDocumentStatus()}">
-                                        </span>
-                                        <span class="btn-right-pull badge bg-info pull-right" style="color: black;"
-                                              th:if="${document.getDocumentStatus().name()=='TO_PROCESS'}"
-                                              th:text="${document.getDocumentStatus()}">
-                                        </span>
-
-                                        <div class="container" style="display: flex; margin-top: 5px">
-                                            <form method="post" style="margin-top: 8px;"
-                                                  th:action="@{/bo/tenant/status/{id}(id=${document.getId()})}"
-                                                  th:id="'form-change-document-status' + ${document.getId()}"
-                                                  th:object="${messageDTO}">
-                                                <label for="action"
-                                                       style="FONT-SIZE:revert;color: white;">Change status:</label>
-                                                <select id="action" name="action"
-                                                        style="font-size: smaller;"
-                                                        th:attr="document-id=${document.getId()}"
-                                                        th:class="'select-change-document-status'"
-                                                        th:field="*{message}">
-                                                    <option value="">-- SELECT --</option>
-                                                    <option th:value="DECLINED">DECLINED</option>
-                                                    <option th:value="TO_PROCESS">TO_PROCESS</option>
-                                                    <option th:value="VALIDATED">VALIDATED</option>
-                                                </select>
-                                            </form>
-
-                                            <a class="btn btn-light btn-sm ms-2"
-                                               th:href="@{/bo/regeneratePdfDocument/} + ${document.getId()}">Update
-                                                Document PDF</a>
-
-                                            <a class="btn btn-light btn-sm ms-2"
-                                               th:href="${'/documents/'+ document.getName()}" target="_blank">See
-                                                Document PDF</a>
-                                            <button type="button" class="btn btn-light btn-sm ms-2"
-                                                    data-bs-toggle="modal"
-                                                    th:data-bs-target="'#metadata-tenant-doc-' + ${document.getId()}">
-                                                See File Metadata
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                </div>
-                                <div th:replace="~{bo/fragments/metadata-modal :: metadataModal(
-                                    modalId=${'metadata-tenant-doc-' + document.getId()},
-                                    title=${'Technical metadata (Tenant) - ' + document.getDocumentCategory().name()},
-                                    metadataOfFiles=${metadataByDocument.get(document.getId())}
-                                  )}"></div>
-
-                                <div class="card-body" style="text-align: -webkit-center;background: #f0be4e"
-                                     th:if="${document.getId() == null}">
-                                    <div style="font-weight: bold;">ABSENT</div>
-                                </div>
-
-                                <div class="card-body" th:if="${document.getId() != null}">
-                                    <div th:if="${document.getMonthlySum()!=null}">
-                                        <span th:text="${'Montly sum: '+document.getMonthlySum()}"></span>
-                                    </div>
-                                    <div th:if="${document.getNoDocument() == true}">
-                                        <span>Pas de document</span>
-                                    </div>
-                                    <ul>
-                                        <li style="margin-top: 5px"
-                                            th:each="file : ${filesByDocument.get(document.getId())}">
-                                            <a target="_blank" rel="noopener"
-                                               th:href="${'/files/' + file.getId()}"
-                                               th:text="${file.name != null ? file.name : file.summary}" sec:authorize="hasRole('ROLE_ADMIN')"></a>
-                                            <p th:text="${file.name != null ? file.name : file.summary}" sec:authorize="!hasRole('ROLE_ADMIN')"></p>
-                                            <button class="btn btn-sm btn-outline-danger"
-                                                    data-bs-toggle="modal"
-                                                    th:attr="data-bs-target='#deleteFileModal-' + ${file.getId()}"
-                                                    style="margin-left: 10px;"
-                                                    type="button">
-                                                Supprimer
-                                            </button>
-                                            <div th:replace="~{bo/fragments/file-delete-modal :: deleteFileModal(fileId=${file.getId()})}"></div>
-                                        </li>
-                                    </ul>
-                                    <div th:replace="~{bo/fragments/document-analysis :: analysis(
-                                        report=${document.documentAnalysisReport},
-                                        iaResults=${iaResultsByDocument.get(document.id)},
-                                        analysisReportComment=${analysisCommentByDocument.get(document.id)},
-                                        uid=${(document.id != null) ? 'doc-' + document.id : 'doc-' + iter.index},
-                                        documentRuleLevel=${documentRuleLevel},
-                                        isTaxFrench=${document.documentCategoryStep != null && document.documentCategoryStep.name() == 'TAX_FRENCH_NOTICE'}
-                                      )}"></div>
-                                    <div th:if="${document.getCustomText() != null && !document.getCustomText().isBlank()}"
-                                         class="doc-analysis-explanation">
-                                        <div class="doc-analysis-explanation__title">Explication de l'utilisateur</div>
-                                        <div class="doc-analysis-explanation__text">
-                                            "<span th:text="${document.getCustomText()}"></span>"
-                                        </div>
-                                    </div>
-                                    <div th:if="${document.avisDetected}">
-                                        - Attention, un avis de situation a été détecté !
-                                    </div>
-                                </div>
-                                <div class="modal" role="dialog" tabindex="-1"
-                                     th:id="'deleteModal'+${document.getId()}">
-                                    <div class="modal-dialog" role="document">
-                                        <div class="modal-content bg-info-subtle">
-                                            <div class="modal-header" style="padding: 10px;">
-                                                <h5 class="modal-title bold" style="width: 80%;float: left;">
-                                                    Confirmation
-                                                </h5>
-                                                <button aria-label="Close" class="btn-close" data-bs-dismiss="modal"
-                                                        type="button"></button>
-                                            </div>
-                                            <div class="modal-body bg-body-tertiary"
-                                                 style="text-shadow: 0 0 black;">
-                                                <p>Êtes-vous sûr de vouloir supprimer ce document ?</p>
-                                            </div>
-                                            <div class="modal-footer bg-body-tertiary" style="padding: 5px;">
-                                                <form th:method="delete"
-                                                      th:action="@{/bo/tenant/delete/document/{id}(id=${document.getId()})}"
-                                                      style="display:inline;margin:0">
-                                                    <button type="submit" class="btn btn-primary"
-                                                            style="border-radius: 50px;font-size: 15px;line-height: 1;padding: 5px 8px 7px;">
-                                                        Oui
-                                                    </button>
-                                                </form>
-                                                <button class="btn btn-secondary" data-bs-dismiss="modal"
-                                                        style="border-radius: 50px;font-size: 15px;line-height: 1;padding: 5px 8px 7px;"
-                                                        type="button">
-                                                    Annuler
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            <th:block th:each="document,iter : ${tenantService.getAllDocumentCategories(tenant)}">
+                                <div th:replace="~{bo/fragments/document-card :: documentCard(
+                                    document=${document},
+                                    iter=${iter},
+                                    filesByDocument=${filesByDocument},
+                                    iaResultsByDocument=${iaResultsByDocument},
+                                    analysisCommentByDocument=${analysisCommentByDocument},
+                                    documentRuleLevel=${documentRuleLevel},
+                                    messageDTO=${messageDTO}
+                                )}"></div>
+                            </th:block>
                         </div>
 
                         <h3 th:unless="${tenant.getGuarantors().isEmpty()}">Garants</h3>
@@ -1048,247 +758,22 @@
                                    th:text="'Supprimer le garant'"
                                 ></a>
                             </div>
-                            <div class="card panel-primary mb-3"
-                                 th:each="document,iter : ${tenantService.getAllDocumentCategoriesGuarantor(guarantor)}">
-                                <div class="card-header">
-                                    <div class="card-title" th:if="${ document.getId() == null }">
-                                        <span>Category:
-                                            <span
-                                                    th:text="${document.getDocumentCategory().name()}">
-                                            </span>
-                                        </span>
-                                    </div>
-
-                                    <div class="card-title"
-                                         th:if="${document.getId() != null} and ${document.getWatermarkFile() == null}">
-                                        <span>Category:
-                                            <span
-                                                    th:text="${document.getDocumentCategory().name()}">
-                                            </span>
-                                        </span>
-                                        <span> Subcategory:
-                                            <span
-                                                    th:text="${document.getDocumentSubCategory().name()}">
-                                            </span>
-                                        </span>
-
-                                        <a class="btn btn-sm btn-warning btn-right-pull pull-right deleteButton badge bg-warning text-dark"
-                                           th:attrappend="data-id=${document.id}"
-                                        >DELETE
-                                        </a>
-
-                                        <span class="btn-right-pull badge bg-success pull-right"
-                                              style="color: black;"
-                                              th:if="${document.getDocumentStatus().name()=='VALIDATED'}"
-                                              th:text="${document.getDocumentStatus()}">
-                                        </span>
-                                        <span class="btn-right-pull badge bg-danger pull-right" style="color: black;"
-                                              th:if="${document.getDocumentStatus().name()=='DECLINED'}"
-                                              th:text="${document.getDocumentStatus()}">
-                                        </span>
-                                        <span class="btn-right-pull badge bg-info pull-right" style="color: black;"
-                                              th:if="${document.getDocumentStatus().name()=='TO_PROCESS'}"
-                                              th:text="${document.getDocumentStatus()}">
-                                        </span>
-
-                                        <div class="container" style="margin-top: 5px; padding-left: 0">
-                                            PDF status:
-                                            <span th:if="${document.getLastModifiedDate() == null || document.getLastModifiedDate().plusMinutes(30).isBefore(now)}"
-                                                  style="color:white; background-color: red; font-weight: bolder">
-                                                    FAILED
-                                            </span>
-                                            <span th:unless="${document.getLastModifiedDate() == null || document.getLastModifiedDate().plusMinutes(30).isBefore(now)}"
-                                                  style="color:white; background-color: orange; font-weight: bolder">
-                                                    IN_PROGRESS
-                                            </span>
-
-                                            <a class="btn btn-secondary btn-sm ms-2"
-                                               th:href="@{/bo/regeneratePdfDocument/} + ${document.getId()}">Update
-                                                PDF</a>
-
-                                        </div>
-                                    </div>
-
-                                    <div class="card-title"
-                                         th:if="${ document.getId() != null} and ${document.getWatermarkFile() != null}">
-                                        <span>Category:
-                                            <span
-                                                    th:text="${document.getDocumentCategory().name()}">
-                                            </span>
-                                        </span>
-                                        <span> Subcategory:
-                                            <span
-                                                    th:text="${document.getDocumentSubCategory().name()}">
-                                            </span>
-                                        </span>
-
-                                        <a class="btn btn-sm btn-warning btn-right-pull pull-right deleteButton badge bg-warning text-dark"
-                                           th:attrappend="data-id=${document.id}"
-                                        >DELETE
-                                        </a>
-
-                                        <span class="btn-right-pull badge bg-success pull-right"
-                                              style="color: black;"
-                                              th:if="${document.getDocumentStatus().name()=='VALIDATED'}"
-                                              th:text="${document.getDocumentStatus()}">
-                                        </span>
-                                        <span class="btn-right-pull badge bg-danger pull-right" style="color: black;"
-                                              th:if="${document.getDocumentStatus().name()=='DECLINED'}"
-                                              th:text="${document.getDocumentStatus()}">
-                                        </span>
-                                        <span class="btn-right-pull badge bg-info pull-right" style="color: black;"
-                                              th:if="${document.getDocumentStatus().name()=='TO_PROCESS'}"
-                                              th:text="${document.getDocumentStatus()}">
-                                        </span>
-
-                                        <div class="container" style="display: flex; margin-top: 5px">
-                                            <form method="post" style="margin-top: 8px;"
-                                                  th:action="@{/bo/tenant/status/{id}(id=${document.getId()})}"
-                                                  th:id="'form-change-document-status' + ${document.getId()}"
-                                                  th:object="${messageDTO}">
-                                                <label for="action1"
-                                                       style="FONT-SIZE:revert;color: white;">Change status:</label>
-                                                <select id="action1" name="action"
-                                                        style="font-size: smaller;"
-                                                        th:attr="document-id=${document.getId()}"
-                                                        th:class="'select-change-document-status'"
-                                                        th:field="*{message}">
-                                                    <option value="">-- SELECT --</option>
-                                                    <option th:value="DECLINED">DECLINED</option>
-                                                    <option th:value="TO_PROCESS">TO_PROCESS</option>
-                                                    <option th:value="VALIDATED">VALIDATED</option>
-                                                </select>
-                                            </form>
-
-                                            <a class="btn btn-light btn-sm ms-2"
-                                               th:href="@{/bo/regeneratePdfDocument/} + ${document.getId()}">Update
-                                                Document PDF</a>
-
-                                            <a class="btn btn-light btn-sm ms-2"
-                                               th:href="${'/documents/'+ document.getName()}" target="_blank">See
-                                                Document PDF</a>
-                                            <button type="button" class="btn btn-light btn-sm ms-2"
-                                                    data-bs-toggle="modal"
-                                                    th:data-bs-target="'#metadata-guarantor-doc-' + ${document.getId()}">
-                                                <i class="fa fa-info-circle"></i> See File Metadata
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                </div>
-                                <div th:replace="~{bo/fragments/metadata-modal :: metadataModal(
-                                    modalId=${'metadata-guarantor-doc-' + document.getId()},
-                                    title=${'Technical metadata (Guarantor) - ' + document.getDocumentCategory().name()},
-                                    metadataOfFiles=${metadataByDocument.get(document.getId())}
-                                  )}"></div>
-                                <div class="card-body" style="text-align: -webkit-center;background: #f0be4e"
-                                     th:if="${document.getId() == null}">
-                                    <div style="font-weight: bold;">ABSENT</div>
-                                </div>
-                                <div class="card-body" th:if="${document.getId() != null}">
-                                    <div th:if="${document.getMonthlySum()!=null}">
-                                        <span th:text="${'Montly sum: '+document.getMonthlySum()}"></span>
-                                    </div>
-                                    <div th:if="${document.getNoDocument() == true}">
-                                        <span>Pas de document</span>
-                                    </div>
-                                    <ul>
-                                        <li style="margin-top: 5px"
-                                            th:each="file : ${filesByDocument.get(document.getId())}">
-                                            <a target="_blank" rel="noopener"
-                                               th:href="${'/files/' + file.getId()}"
-                                               th:text="${file.name != null ? file.name : file.summary}" sec:authorize="hasRole('ROLE_ADMIN')"></a>
-                                            <p th:text="${file.name != null ? file.name : file.summary}" sec:authorize="!hasRole('ROLE_ADMIN')"></p>
-                                            <button class="btn btn-sm btn-outline-danger"
-                                                    data-bs-toggle="modal"
-                                                    th:attr="data-bs-target='#deleteFileModal-' + ${file.getId()}"
-                                                    style="margin-left: 10px;"
-                                                    type="button">
-                                                Supprimer
-                                            </button>
-                                            <div th:replace="~{bo/fragments/file-delete-modal :: deleteFileModal(fileId=${file.getId()})}"></div>
-                                        </li>
-                                    </ul>
-                                    <div th:replace="~{bo/fragments/document-analysis :: analysis(
-                                        report=${document.documentAnalysisReport},
-                                        iaResults=${iaResultsByDocument.get(document.id)},
-                                        analysisReportComment=${analysisCommentByDocument.get(document.id)},
-                                        uid=${(document.id != null) ? 'doc-' + document.id : 'doc-' + iter.index},
-                                        documentRuleLevel=${documentRuleLevel},
-                                        isTaxFrench=${document.documentCategoryStep != null && document.documentCategoryStep.name() == 'TAX_FRENCH_NOTICE'}
-                                      )}"></div>
-                                    <div th:if="${document.getCustomText() != null && !document.getCustomText().isBlank()}"
-                                         class="doc-analysis-explanation">
-                                        <div class="doc-analysis-explanation__title">Explication de l'utilisateur</div>
-                                        <div class="doc-analysis-explanation__text">
-                                            "<span th:text="${document.getCustomText()}"></span>"
-                                        </div>
-                                    </div>
-                                    <div th:if="${document.avisDetected}">
-                                        - Attention, un avis de situation a été détecté !
-                                    </div>
-                                </div>
-                                <div class="modal" role="dialog" tabindex="-1"
-                                     th:id="'deleteModal'+${document.getId()}">
-                                    <div class="modal-dialog" role="document">
-                                        <div class="modal-content bg-info-subtle">
-                                            <div class="modal-header" style="padding: 10px;">
-                                                <h5 class="modal-title bold" style="width: 80%;float: left;">Confirm
-                                                    delete</h5>
-                                                <button aria-label="Close" class="btn-close" data-bs-dismiss="modal"
-                                                        type="button"></button>
-                                            </div>
-                                            <div class="modal-body bg-body-tertiary"
-                                                 style="text-shadow: 0 0 black;">
-                                                <p>Are you sure you want delete this document ?</p>
-                                            </div>
-                                            <div class="modal-footer bg-body-tertiary" style="padding: 5px;">
-                                                <form th:method="delete"
-                                                      th:action="@{/bo/tenant/delete/document/{id}(id=${document.getId()})}"
-                                                      style="display:inline;margin:0">
-                                                    <button type="submit" class="btn btn-primary"
-                                                            style="border-radius: 50px;font-size: 15px;line-height: 1;padding: 5px 8px 7px;">Delete</button>
-                                                </form>
-                                                <button class="btn btn-secondary" data-bs-dismiss="modal"
-                                                        style="border-radius: 50px;font-size: 15px;line-height: 1;padding: 5px 8px 7px;"
-                                                        type="button">
-                                                    Close
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="modal" role="dialog" tabindex="-1"
-                                     th:id="'modalDeleteGuarantor-'+${guarantor.getId()}">
-                                    <div class="modal-dialog" role="guarantor">
-                                        <div class="modal-content bg-info-subtle">
-                                            <div class="modal-header" style="padding: 10px;">
-                                                <h5 class="modal-title bold" style="width: 80%;float: left;">Confirm
-                                                    delete</h5>
-                                                <button aria-label="Close" class="btn-close" data-bs-dismiss="modal"
-                                                        type="button"></button>
-                                            </div>
-                                            <div class="modal-body bg-body-tertiary"
-                                                 style="text-shadow: 0 0 black;">
-                                                <p>Are you sure you want delete this guarantor ?</p>
-                                            </div>
-                                            <div class="modal-footer bg-body-tertiary" style="padding: 5px;">
-                                                <form th:method="delete"
-                                                      th:action="@{/bo/tenant/delete/guarantor/{id}(id=${guarantor.getId()})}"
-                                                      style="display:inline;margin:0">
-                                                    <button type="submit" class="btn btn-primary"
-                                                            style="border-radius: 50px;font-size: 15px;line-height: 1;padding: 5px 8px 7px;">Delete</button>
-                                                </form>
-                                                <button class="btn btn-secondary" data-bs-dismiss="modal"
-                                                        style="border-radius: 50px;font-size: 15px;line-height: 1;padding: 5px 8px 7px;"
-                                                        type="button">
-                                                    Close
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            <th:block th:each="document,iter : ${tenantService.getAllDocumentCategoriesGuarantor(guarantor)}">
+                                <div th:replace="~{bo/fragments/document-card :: documentCard(
+                                    document=${document},
+                                    iter=${iter},
+                                    filesByDocument=${filesByDocument},
+                                    iaResultsByDocument=${iaResultsByDocument},
+                                    analysisCommentByDocument=${analysisCommentByDocument},
+                                    documentRuleLevel=${documentRuleLevel},
+                                    messageDTO=${messageDTO}
+                                )}"></div>
+                            </th:block>
+                            <div th:replace="~{bo/fragments/confirm-delete-modal :: confirmDeleteModalForm(
+                                modalId=${'modalDeleteGuarantor-' + guarantor.getId()},
+                                message='Êtes-vous sûr de vouloir supprimer ce garant ?',
+                                actionUrl=@{/bo/tenant/delete/guarantor/{id}(id=${guarantor.getId()})}
+                            )}"></div>
                         </div>
                     </div>
                 </div>

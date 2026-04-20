@@ -69,7 +69,7 @@ public class BOTenantController {
     }
 
     @PreAuthorize("hasRole('SUPPORT')")
-    @GetMapping("/deleteCoTenant/{id}")
+    @DeleteMapping("/deleteCoTenant/{id}")
     public String deleteCoTenant(
             @PathVariable Long id,
             @AuthenticationPrincipal UserPrincipal principal
@@ -84,7 +84,7 @@ public class BOTenantController {
     }
 
     @PreAuthorize("hasRole('SUPPORT')")
-    @GetMapping("/deleteApartmentSharing/{id}")
+    @DeleteMapping("/deleteApartmentSharing/{id}")
     public String deleteApartmentSharing(
             @PathVariable("id") Long id,
             @AuthenticationPrincipal UserPrincipal principal

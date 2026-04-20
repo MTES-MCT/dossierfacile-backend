@@ -1,0 +1,24 @@
+<div th:fragment="confirmDeleteModalForm(modalId, message, actionUrl)"
+     class="modal" role="dialog" tabindex="-1"
+     th:id="${modalId}">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content bg-info-subtle">
+            <div class="modal-header" style="padding: 10px;">
+                <h5 class="modal-title bold" style="width: 80%;float: left;">Confirmation</h5>
+                <button aria-label="Close" class="btn-close" data-bs-dismiss="modal" type="button"></button>
+            </div>
+            <div class="modal-body bg-body-tertiary" style="text-shadow: 0 0 black;">
+                <p th:text="${message}"></p>
+            </div>
+            <div class="modal-footer bg-body-tertiary" style="padding: 5px;">
+                <button class="btn btn-secondary" data-bs-dismiss="modal"
+                    type="button">Annuler</button>
+                <form th:method="delete"
+                    th:action="${actionUrl}"
+                    style="display:inline;margin:0">
+                    <button type="submit" class="btn btn-primary">Supprimer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,157 @@
+<div th:fragment="documentCard(document, iter, filesByDocument, iaResultsByDocument, analysisCommentByDocument, documentRuleLevel, messageDTO)"
+     class="card panel-primary mb-3">
+
+    <div class="card-header">
+
+        <!-- Case 1: Document absent (not started) -->
+        <div class="card-title" th:if="${document.getId() == null}">
+            <span>Category:
+                <span th:text="${document.getDocumentCategory().name()}"></span>
+            </span>
+        </div>
+
+        <!-- Cases 2 & 3: Document present (with or without watermark file) -->
+        <div class="card-title" th:if="${document.getId() != null}">
+            <span>Category:
+                <span th:text="${document.getDocumentCategory().name()}"></span>
+            </span>
+            <span> Subcategory:
+                <span th:text="${document.getDocumentSubCategory().name()}"></span>
+            </span>
+
+            <a class="btn btn-sm btn-warning btn-right-pull pull-right deleteButton badge bg-warning text-dark"
+               th:attrappend="data-id=${document.id}">
+                DELETE
+            </a>
+
+            <span class="btn-right-pull badge bg-success pull-right"
+                  style="color: black;"
+                  th:if="${document.getDocumentStatus().name()=='VALIDATED'}"
+                  th:text="${document.getDocumentStatus()}">
+            </span>
+            <span class="btn-right-pull badge bg-danger pull-right" style="color: black;"
+                  th:if="${document.getDocumentStatus().name()=='DECLINED'}"
+                  th:text="${document.getDocumentStatus()}">
+            </span>
+            <span class="btn-right-pull badge bg-info pull-right" style="color: black;"
+                  th:if="${document.getDocumentStatus().name()=='TO_PROCESS'}"
+                  th:text="${document.getDocumentStatus()}">
+            </span>
+
+            <!-- PDF not yet generated -->
+            <div class="container" style="margin-top: 5px; padding-left: 0"
+                 th:if="${document.getWatermarkFile() == null}">
+                PDF status:
+                <span th:if="${document.getLastModifiedDate() == null || document.getLastModifiedDate().plusMinutes(30).isBefore(now)}"
+                      style="color:white; background-color: red; font-weight: bolder">
+                    FAILED
+                </span>
+                <span th:unless="${document.getLastModifiedDate() == null || document.getLastModifiedDate().plusMinutes(30).isBefore(now)}"
+                      style="color:white; background-color: orange; font-weight: bolder">
+                    IN_PROGRESS
+                </span>
+                <a class="btn btn-light btn-sm ms-2"
+                   th:href="@{/bo/regeneratePdfDocument/} + ${document.getId()}">Update PDF</a>
+            </div>
+
+            <!-- PDF generated -->
+            <div class="container" style="display: flex; margin-top: 5px"
+                 th:if="${document.getWatermarkFile() != null}">
+                <form method="post" style="margin-top: 8px;"
+                      th:action="@{/bo/tenant/status/{id}(id=${document.getId()})}"
+                      th:id="'form-change-document-status' + ${document.getId()}"
+                      th:if="${messageDTO != null}"
+                      th:object="${messageDTO}">
+                    <label th:attr="for='action-doc-' + ${document.getId()}"
+                           style="FONT-SIZE:revert;color: white;">Change status:</label>
+                    <select th:id="'action-doc-' + ${document.getId()}"
+                            name="action"
+                            style="font-size: smaller;"
+                            th:attr="document-id=${document.getId()}"
+                            th:class="'select-change-document-status'"
+                            th:field="*{message}">
+                        <option value="">-- SELECT --</option>
+                        <option th:value="DECLINED">DECLINED</option>
+                        <option th:value="TO_PROCESS">TO_PROCESS</option>
+                        <option th:value="VALIDATED">VALIDATED</option>
+                    </select>
+                </form>
+                <a class="btn btn-light btn-sm ms-2"
+                   th:href="@{/bo/regeneratePdfDocument/} + ${document.getId()}">Regenerate Document</a>
+                <a class="btn btn-light btn-sm ms-2"
+                   th:href="${'/documents/' + document.getName()}" target="_blank">See Document</a>
+                <button type="button" class="btn btn-light btn-sm ms-2"
+                        data-bs-toggle="modal"
+                        th:data-bs-target="'#metadata-doc-' + ${document.getId()}">
+                    See Metadata
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <div th:replace="~{bo/fragments/metadata-modal :: metadataModal(
+        modalId=${'metadata-doc-' + document.getId()},
+        title=${'Technical metadata - ' + document.getDocumentCategory().name()},
+        metadataOfFiles=${metadataByDocument.get(document.getId())}
+      )}">
+    </div>
+
+    <!-- Card body: absent -->
+    <div class="card-body" style="text-align: -webkit-center;background: #f0be4e"
+         th:if="${document.getId() == null}">
+        <div style="font-weight: bold;">ABSENT</div>
+    </div>
+
+    <!-- Card body: present -->
+    <div class="card-body" th:if="${document.getId() != null}">
+        <div th:if="${document.getMonthlySum() != null}">
+            <span th:text="${'Montly sum: ' + document.getMonthlySum()}"></span>
+        </div>
+        <div th:if="${document.getNoDocument() == true}">
+            <span>Pas de document</span>
+        </div>
+        <ul>
+            <li style="margin-top: 5px"
+                th:each="file : ${filesByDocument.get(document.getId())}">
+                <a target="_blank" rel="noopener"
+                   th:href="${'/files/' + file.getId()}"
+                   th:text="${file.name != null ? file.name : file.summary}"
+                   sec:authorize="hasRole('ROLE_ADMIN')"></a>
+                <p th:text="${file.name != null ? file.name : file.summary}"
+                   sec:authorize="!hasRole('ROLE_ADMIN')"></p>
+                <button class="btn btn-sm btn-outline-danger"
+                        data-bs-toggle="modal"
+                        th:attr="data-bs-target='#deleteFileModal-' + ${file.getId()}"
+                        style="margin-left: 10px;"
+                        type="button">
+                    Supprimer
+                </button>
+                <div th:replace="~{bo/fragments/file-delete-modal :: deleteFileModal(fileId=${file.getId()})}"></div>
+            </li>
+        </ul>
+        <div th:replace="~{bo/fragments/document-analysis :: analysis(
+            report=${document.documentAnalysisReport},
+            iaResults=${iaResultsByDocument.get(document.id)},
+            analysisReportComment=${analysisCommentByDocument.get(document.id)},
+            uid=${(document.id != null) ? 'doc-' + document.id : 'doc-' + iter.index},
+            documentRuleLevel=${documentRuleLevel},
+            isTaxFrench=${document.documentCategoryStep != null && document.documentCategoryStep.name() == 'TAX_FRENCH_NOTICE'}
+          )}"></div>
+        <div th:if="${document.getCustomText() != null && !document.getCustomText().isBlank()}"
+             class="doc-analysis-explanation">
+            <div class="doc-analysis-explanation__title">Explication de l'utilisateur</div>
+            <div class="doc-analysis-explanation__text">
+                "<span th:text="${document.getCustomText()}"></span>"
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal suppression document -->
+    <div th:replace="~{bo/fragments/confirm-delete-modal :: confirmDeleteModalForm(
+        modalId=${'deleteModal' + document.getId()},
+        message='Êtes-vous sûr de vouloir supprimer ce document ?',
+        actionUrl=@{/bo/tenant/delete/document/{id}(id=${document.getId()})}
+    )}"></div>
+
+</div>

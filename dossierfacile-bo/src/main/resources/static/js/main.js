@@ -35,39 +35,10 @@ $(document).ready(function () {
 
     })
 
-    $('.deleteTenant').on('click', function (e) {
-        e.preventDefault();
-
-        var href = $(this).attr('href');
-
-        $('#idRef').attr('href', href);
-        $('#deleteTenant').modal('show');
-
-    })
-
-    $('.btn-deleteCotenant').on('click', function (e) {
-        e.preventDefault();
-
-        var href = $(this).attr('href');
-        var id = $(this).attr('data-id');
-
-        $('#deleteRefCo' + id).attr('href', href);
-        $('#deleteCotenant' + id).modal('show');
-
-    })
-
     $('.btn-deleteGuarantor').on('click', function (e) {
         e.preventDefault();
         const guarantorId = $(this).attr('guarantor-id');
         $('#modalDeleteGuarantor-' + guarantorId).modal('show');
-    })
-
-    $('.deleteApartmentSharing').on('click', function (e) {
-        e.preventDefault();
-        var href = $(this).attr('href');
-        $('#idRefApt').attr('href', href);
-        $('#deleteApartmentSharing').modal('show');
-
     })
 
 
