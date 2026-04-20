@@ -1,9 +1,8 @@
 package fr.gouv.bo.controller;
 
-import fr.dossierfacile.common.entity.Document;
+import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.common.service.interfaces.SharedFileService;
-import fr.gouv.bo.exception.DocumentNotFoundException;
 import fr.gouv.bo.repository.DocumentRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -33,19 +32,9 @@ public class FileController {
     @GetMapping("/files/{id}")
     public void getOriginalFileAsByteArray(HttpServletResponse response, @PathVariable Long id) {
         fileService.findById(id).ifPresentOrElse(
-                file -> {
-                    try (InputStream in = fileStorageService.download(file.getStorageFile())) {
-                        response.setContentType(file.getStorageFile().getContentType());
-                        IOUtils.copy(in, response.getOutputStream());
-                    } catch (final FileNotFoundException e) {
-                        log.error(FILE_NO_EXIST, e);
-                        response.setStatus(404);
-                    } catch (final IOException e) {
-                        log.error("Unable to download file", e);
-                        response.setStatus(408);
-                    }
-                }, () -> {
-                    log.error("File not found in Database");
+                file -> streamStorageFile(file.getStorageFile(), response),
+                () -> {
+                    log.error(FILE_NO_EXIST);
                     response.setStatus(404);
                 }
         );
@@ -55,37 +44,35 @@ public class FileController {
     @GetMapping("/files/{id}/preview")
     public void getPreviewFileAsByteArray(HttpServletResponse response, @PathVariable Long id) {
         fileService.findById(id).ifPresentOrElse(
-            file -> {
-                if (file.getPreview() == null) {
+                file -> {
+                    if (file.getPreview() == null) {
+                        response.setStatus(404);
+                        return;
+                    }
+                    streamStorageFile(file.getPreview(), response);
+                },
+                () -> {
+                    log.error(FILE_NO_EXIST);
                     response.setStatus(404);
-                    return;
                 }
-                try (InputStream in = fileStorageService.download(file.getPreview())) {
-                    response.setContentType(file.getPreview().getContentType());
-                    IOUtils.copy(in, response.getOutputStream());
-                } catch (final FileNotFoundException e) {
-                    log.error(FILE_NO_EXIST, e);
-                    response.setStatus(404);
-                } catch (final IOException e) {
-                    log.error("Unable to download preview", e);
-                    response.setStatus(408);
-                }
-            }, () -> {
-                log.error("File not found in Database");
-                response.setStatus(404);
-            }
-    );
+        );
     }
 
-    /**
-     * This endpoint does not allow decrypting protected file
-     */
+    @PreAuthorize("hasRole('OPERATOR')")
     @GetMapping("/documents/{name:.+}")
-    public void getFileAsByteArray(HttpServletResponse response, @PathVariable String name) {
-        Document document = documentRepository.findByName(name).orElseThrow(() -> new DocumentNotFoundException(name));
+    public void getDocumentAsByteArray(HttpServletResponse response, @PathVariable String name) {
+        documentRepository.findByName(name).ifPresentOrElse(
+                document -> streamStorageFile(document.getWatermarkFile(), response),
+                () -> {
+                    log.error(FILE_NO_EXIST);
+                    response.setStatus(404);
+                }
+        );
+    }
 
-        try (InputStream in = fileStorageService.download(document.getWatermarkFile())) {
-            response.setContentType(document.getWatermarkFile().getContentType());
+    private void streamStorageFile(StorageFile storageFile, HttpServletResponse response) {
+        try (InputStream in = fileStorageService.download(storageFile)) {
+            response.setContentType(storageFile.getContentType());
             IOUtils.copy(in, response.getOutputStream());
         } catch (final FileNotFoundException e) {
             log.error(FILE_NO_EXIST, e);
