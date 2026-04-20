@@ -1,0 +1,57 @@
+<!-- Fragment: sharedLinks(apartmentSharing, activeLinks, inactiveSharingLinks) -->
+<div th:fragment="sharedLinks(apartmentSharing, activeLinks, inactiveSharingLinks)"
+     xmlns:th="http://www.thymeleaf.org">
+
+    <!-- Active links -->
+    <div class="partages-dossier-section" th:if="${not #lists.isEmpty(activeLinks)}">
+        <h2 class="partages-title">Partages du dossier</h2>
+        <p class="partages-count">
+            <strong>Nombre de partages</strong> : <span th:text="${#lists.size(activeLinks)}">0</span>
+        </p>
+
+        <div class="partages-cards">
+            <div th:each="link : ${activeLinks}"
+                 th:replace="~{bo/fragments/active-link-card :: activeLinkCard(link=${link}, apartmentSharing=${apartmentSharing})}">
+            </div>
+        </div>
+    </div>
+
+    <!-- Deleted links -->
+    <div class="deleted-shares-section"
+         th:with="
+           inactiveLinks=${inactiveSharingLinks.?[linkType.toString() == 'LINK']},
+           inactiveMails=${inactiveSharingLinks.?[linkType.toString() == 'MAIL']},
+           inactiveOwners=${inactiveSharingLinks.?[linkType.toString() == 'OWNER']},
+           inactivePartners=${inactiveSharingLinks.?[linkType.toString() == 'PARTNER']}">
+
+        <h2 class="deleted-shares-title">Partages supprimés</h2>
+
+        <div class="deleted-shares-categories">
+            <div th:replace="~{bo/fragments/deleted-links-category :: deletedLinksCategory(
+                title='Partages par lien',
+                collapseId='deleted-links',
+                links=${inactiveLinks},
+                usePartnerName=false
+            )}"></div>
+            <div th:replace="~{bo/fragments/deleted-links-category :: deletedLinksCategory(
+                title='Partages par email',
+                collapseId='deleted-mails',
+                links=${inactiveMails},
+                usePartnerName=false
+            )}"></div>
+            <div th:replace="~{bo/fragments/deleted-links-category :: deletedLinksCategory(
+                title='Propriétaires DossierFacile',
+                collapseId='deleted-owners',
+                links=${inactiveOwners},
+                usePartnerName=false
+            )}"></div>
+            <div th:replace="~{bo/fragments/deleted-links-category :: deletedLinksCategory(
+                title='Partenaires',
+                collapseId='deleted-partners',
+                links=${inactivePartners},
+                usePartnerName=true
+            )}"></div>
+        </div>
+    </div>
+
+</div>
