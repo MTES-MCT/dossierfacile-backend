@@ -9,7 +9,6 @@ import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.Role;
 import fr.dossierfacile.common.repository.projection.TenantWaitingTimeBucketProjection;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
-import fr.gouv.bo.amqp.Producer;
 import fr.gouv.bo.dto.BooleanDTO;
 import fr.gouv.bo.dto.ReGroupDTO;
 import fr.gouv.bo.security.BOApplicationAccessService;
@@ -56,7 +55,6 @@ public class BOController {
     private final TenantService tenantService;
     private final UserService userService;
     private final DocumentService documentService;
-    private final Producer producer;
     private final PartnerCallBackService partnerCallBackService;
     private final ClientRegistrationRepository clientRegistrationRepository;
     private final BOApplicationAccessService applicationAccessService;
@@ -194,8 +192,7 @@ public class BOController {
     @GetMapping("/bo/regeneratePdfDocument/{id}")
     public String regeneratePdfDocument(@PathVariable Long id) {
         Document document = documentService.findDocumentById(id);
-        documentService.initializeFieldsToProcessPdfGeneration(document);
-        producer.generatePdf(id);
+        documentService.regeneratePdf(document);
         Tenant tenant = document.getTenant() != null ? document.getTenant() : document.getGuarantor().getTenant();
         long apartmentSharingId = tenant.getApartmentSharing().getId();
         return REDIRECT_BO_COLOCATION + apartmentSharingId + "#tenant" + tenant.getId();

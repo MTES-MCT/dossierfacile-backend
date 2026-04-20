@@ -971,8 +971,16 @@
                                             th:each="file : ${filesByDocument.get(document.getId())}">
                                             <a target="_blank" rel="noopener"
                                                th:href="${'/files/' + file.getId()}"
-                                               th:text="${file.summary}" sec:authorize="hasRole('ROLE_ADMIN')"></a>
-                                            <p th:text="${file.summary}" sec:authorize="!hasRole('ROLE_ADMIN')"></p>
+                                               th:text="${file.name != null ? file.name : file.summary}" sec:authorize="hasRole('ROLE_ADMIN')"></a>
+                                            <p th:text="${file.name != null ? file.name : file.summary}" sec:authorize="!hasRole('ROLE_ADMIN')"></p>
+                                            <button class="btn btn-sm btn-outline-danger"
+                                                    data-bs-toggle="modal"
+                                                    th:attr="data-bs-target='#deleteFileModal-' + ${file.getId()}"
+                                                    style="margin-left: 10px;"
+                                                    type="button">
+                                                Supprimer
+                                            </button>
+                                            <div th:replace="~{bo/fragments/file-delete-modal :: deleteFileModal(fileId=${file.getId()})}"></div>
                                         </li>
                                     </ul>
                                     <div th:replace="~{bo/fragments/document-analysis :: analysis(
@@ -1189,8 +1197,16 @@
                                             th:each="file : ${filesByDocument.get(document.getId())}">
                                             <a target="_blank" rel="noopener"
                                                th:href="${'/files/' + file.getId()}"
-                                               th:text="${file.summary}" sec:authorize="hasRole('ROLE_ADMIN')"></a>
-                                            <p th:text="${file.summary}" sec:authorize="!hasRole('ROLE_ADMIN')"></p>
+                                               th:text="${file.name != null ? file.name : file.summary}" sec:authorize="hasRole('ROLE_ADMIN')"></a>
+                                            <p th:text="${file.name != null ? file.name : file.summary}" sec:authorize="!hasRole('ROLE_ADMIN')"></p>
+                                            <button class="btn btn-sm btn-outline-danger"
+                                                    data-bs-toggle="modal"
+                                                    th:attr="data-bs-target='#deleteFileModal-' + ${file.getId()}"
+                                                    style="margin-left: 10px;"
+                                                    type="button">
+                                                Supprimer
+                                            </button>
+                                            <div th:replace="~{bo/fragments/file-delete-modal :: deleteFileModal(fileId=${file.getId()})}"></div>
                                         </li>
                                     </ul>
                                     <div th:replace="~{bo/fragments/document-analysis :: analysis(

@@ -51,6 +51,32 @@ public class FileController {
         );
     }
 
+    @PreAuthorize("hasRole('OPERATOR')")
+    @GetMapping("/files/{id}/preview")
+    public void getPreviewFileAsByteArray(HttpServletResponse response, @PathVariable Long id) {
+        fileService.findById(id).ifPresentOrElse(
+            file -> {
+                if (file.getPreview() == null) {
+                    response.setStatus(404);
+                    return;
+                }
+                try (InputStream in = fileStorageService.download(file.getPreview())) {
+                    response.setContentType(file.getPreview().getContentType());
+                    IOUtils.copy(in, response.getOutputStream());
+                } catch (final FileNotFoundException e) {
+                    log.error(FILE_NO_EXIST, e);
+                    response.setStatus(404);
+                } catch (final IOException e) {
+                    log.error("Unable to download preview", e);
+                    response.setStatus(408);
+                }
+            }, () -> {
+                log.error("File not found in Database");
+                response.setStatus(404);
+            }
+    );
+    }
+
     /**
      * This endpoint does not allow decrypting protected file
      */

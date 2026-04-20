@@ -151,6 +151,17 @@ public class BOTenantController {
     }
 
     @PreAuthorize("hasRole('OPERATOR')")
+    @DeleteMapping("/delete/file/{id}")
+    public String deleteFile(
+            @PathVariable("id") Long fileId,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        User operator = userService.findUserByEmail(principal.getEmail());
+        Tenant tenant = tenantService.deleteFile(fileId, operator);
+        return redirectToTenantPage(tenant);
+    }
+
+    @PreAuthorize("hasRole('OPERATOR')")
     @PostMapping("/status/{id}")
     public String changeStatusOfDocument(
             @PathVariable("id") Long id,
