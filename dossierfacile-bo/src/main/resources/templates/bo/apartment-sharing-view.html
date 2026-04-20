@@ -939,10 +939,20 @@
                                             <a class="btn btn-light btn-sm ms-2"
                                                th:href="${'/documents/'+ document.getName()}" target="_blank">See
                                                 Document PDF</a>
+                                            <button type="button" class="btn btn-light btn-sm ms-2"
+                                                    data-bs-toggle="modal"
+                                                    th:data-bs-target="'#metadata-tenant-doc-' + ${document.getId()}">
+                                                See File Metadata
+                                            </button>
                                         </div>
                                     </div>
 
                                 </div>
+                                <div th:replace="~{bo/fragments/metadata-modal :: metadataModal(
+                                    modalId=${'metadata-tenant-doc-' + document.getId()},
+                                    title=${'Technical metadata (Tenant) - ' + document.getDocumentCategory().name()},
+                                    metadataOfFiles=${metadataByDocument.get(document.getId())}
+                                  )}"></div>
 
                                 <div class="card-body" style="text-align: -webkit-center;background: #f0be4e"
                                      th:if="${document.getId() == null}">
@@ -1149,10 +1159,20 @@
                                             <a class="btn btn-light btn-sm ms-2"
                                                th:href="${'/documents/'+ document.getName()}" target="_blank">See
                                                 Document PDF</a>
+                                            <button type="button" class="btn btn-light btn-sm ms-2"
+                                                    data-bs-toggle="modal"
+                                                    th:data-bs-target="'#metadata-guarantor-doc-' + ${document.getId()}">
+                                                <i class="fa fa-info-circle"></i> See File Metadata
+                                            </button>
                                         </div>
                                     </div>
 
                                 </div>
+                                <div th:replace="~{bo/fragments/metadata-modal :: metadataModal(
+                                    modalId=${'metadata-guarantor-doc-' + document.getId()},
+                                    title=${'Technical metadata (Guarantor) - ' + document.getDocumentCategory().name()},
+                                    metadataOfFiles=${metadataByDocument.get(document.getId())}
+                                  )}"></div>
                                 <div class="card-body" style="text-align: -webkit-center;background: #f0be4e"
                                      th:if="${document.getId() == null}">
                                     <div style="font-weight: bold;">ABSENT</div>

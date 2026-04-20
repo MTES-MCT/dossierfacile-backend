@@ -19,7 +19,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static fr.gouv.bo.controller.BOController.REDIRECT_BO_HOME;
 import static org.springframework.http.ResponseEntity.ok;
@@ -291,7 +290,7 @@ public class BOTenantController {
                         .documentId(document.getId())
                         .documentName(document.getName())
                         .noDocument(document.getNoDocument())
-                        .metadataOfFiles(getFilesMetadata(document))
+                        .metadataOfFiles(documentService.getFilesMetadata(document))
                         .previousDeniedReasons(documentDeniedReasonsService.getLastDeniedReason(document, tenant).orElse(null))
                         .documentAnalysisReport(document.getDocumentAnalysisReport())
                         .analysisReportComment(document.getDocumentAnalysisReport() != null && (DocumentAnalysisStatus.DENIED == document.getDocumentAnalysisReport().getAnalysisStatus()) ? document.getDocumentAnalysisReport().getComment() : null);
@@ -343,23 +342,6 @@ public class BOTenantController {
         return Arrays.stream(string.split("\n"))
                 .filter(paragraph -> !paragraph.isBlank())
                 .toList();
-    }
-
-    private List<MetadataItem> getFilesMetadata(Document document) {
-
-        return document.getFiles()
-                .stream()
-                .map(file -> {
-                    if (file == null || file.getFileMetadata() == null) {
-                        return null;
-                    }
-                    var metadataMap = file.getFileMetadata().getMetadata();
-                    return new MetadataItem(
-                            file.getStorageFile().getName(),
-                            metadataMap
-                    );
-                })
-                .filter(Objects::nonNull).collect(Collectors.toList());
     }
 
 }
