@@ -119,9 +119,74 @@
         right: 0;
     }
     width: 100%;
-    min-width: fit-content;
+    min-width: 0;
     z-index: 1;
     background-color: rgba(170, 170, 170, 0.65);
+}
+
+.header-tenant-info-content {
+    padding: 10px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.header-tenant-info-elements {
+    display: flex;
+    justify-content: flex-start;
+    align-items: stretch;
+    gap: 8px;
+    flex-wrap: wrap;
+    flex: 1 1 560px;
+    min-width: 0;
+}
+
+.header-tenant-info-elements .card-header {
+    margin: 0 !important;
+}
+
+.header-tenant-actions {
+    display: flex;
+    align-self: center;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    flex: 1 1 280px;
+    min-width: 260px;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 899px) {
+    .header-tenant-info-content {
+        padding: 10px;
+    }
+
+    .header-tenant-actions {
+        justify-content: flex-start;
+        min-width: 0;
+    }
+
+    .header-tenant-actions .bo-btn {
+        width: 100%;
+        max-width: 320px;
+    }
+}
+
+.operator-comment-box {
+    padding: 10px 16px;
+    line-height: 22px;
+    background-color: #c0392b;
+    color: #fff;
+    border-bottom: 3px solid #922b21;
+}
+
+.operator-comment-label {
+    font-size: 12px;
+    font-weight: 600;
+    opacity: 0.9;
+    letter-spacing: 0.02em;
 }
 
 .letter{
