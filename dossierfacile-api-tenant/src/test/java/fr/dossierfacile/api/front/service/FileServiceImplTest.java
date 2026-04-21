@@ -22,6 +22,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -30,7 +31,8 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -48,6 +50,8 @@ class FileServiceImplTest {
 
     @Mock
     private fr.dossierfacile.common.service.interfaces.LogService logService;
+    @Mock
+    private fr.dossierfacile.common.repository.TenantCommonRepository tenantRepository;
 
     @Mock
     private fr.dossierfacile.api.front.amqp.Producer producer;
@@ -81,11 +85,12 @@ class FileServiceImplTest {
                 apartmentSharingService,
                 documentHelperService,
                 logService,
+                tenantRepository,
                 producer,
                 documentIAService,
                 tenantMapper
         );
-        fileService = new FileServiceImpl(fileRepository, documentService, logService, producer, documentIAService);
+        fileService = new FileServiceImpl(fileRepository, documentService, logService, tenantRepository, producer, documentIAService);
     }
 
     @Nested
@@ -126,7 +131,7 @@ class FileServiceImplTest {
         @Nested
         class WhenGroupTenantDeletesOwnFile {
             @Test
-            void shouldSucceed() {
+            void shouldSucceedAndRefreshActorLastUpdateDate() {
                 ApartmentSharing sharing = new ApartmentSharing();
                 sharing.setId(1L);
                 sharing.setApplicationType(ApplicationType.GROUP);
@@ -150,9 +155,14 @@ class FileServiceImplTest {
                 document.getFiles().add(file);
 
                 when(fileRepository.findByIdForTenant(1L,  1L)).thenReturn(Optional.of(file));
+                when(tenantRepository.save(any(Tenant.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
                 assertThatCode(() -> fileService.delete(1L, tenant1)).doesNotThrowAnyException();
                 verify(fileRepository).delete(file);
+                ArgumentCaptor<Tenant> tenantCaptor = ArgumentCaptor.forClass(Tenant.class);
+                verify(tenantRepository).save(tenantCaptor.capture());
+                assertThat(tenantCaptor.getValue().getId()).isEqualTo(tenant1.getId());
+                org.assertj.core.api.Assertions.assertThat(tenantCaptor.getValue().getLastUpdateDate()).isNotNull();
             }
         }
 

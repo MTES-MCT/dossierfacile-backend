@@ -1,6 +1,7 @@
 package fr.dossierfacile.api.front.register.tenant;
 
 import fr.dossierfacile.api.front.mapper.TenantMapper;
+import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.form.tenant.ApplicationFormV2;
 import fr.dossierfacile.api.front.register.form.tenant.CoTenantForm;
 import fr.dossierfacile.api.front.security.interfaces.ClientAuthenticationFacade;
@@ -18,6 +19,7 @@ import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -29,6 +31,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -138,5 +144,23 @@ public class ApplicationTest {
 
         Mockito.verify(application).saveStep(dbMainTenant, form.getApplicationType(),
                 Collections.singletonList(dbCoTenant), Collections.singletonList(newCoTenantForm));
+    }
+
+    @Test
+    void saveStep_shouldRefreshLastUpdateDateForAllRetainedTenantsOnApplicationTypeChange() {
+        ApartmentSharing apartmentSharing = ApartmentSharing.builder().applicationType(ApplicationType.ALONE).build();
+        Tenant mainTenant = Tenant.builder().id(1L).apartmentSharing(apartmentSharing).build();
+        Tenant retainedCoTenant = Tenant.builder().id(2L).apartmentSharing(apartmentSharing).build();
+        apartmentSharing.setTenants(new ArrayList<>(List.of(mainTenant, retainedCoTenant)));
+
+        when(tenantCommonRepository.saveAll(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(tenantMapper.toTenantModel(mainTenant, null)).thenReturn(TenantModel.builder().id(mainTenant.getId()).build());
+
+        application.saveStep(mainTenant, ApplicationType.COUPLE, Collections.emptyList(), Collections.emptyList());
+
+        verify(logService).saveApplicationTypeChangedLog(apartmentSharing.getTenants(), ApplicationType.ALONE, ApplicationType.COUPLE);
+        verify(tenantCommonRepository).saveAll(apartmentSharing.getTenants());
+        Assertions.assertThat(mainTenant.getLastUpdateDate()).isNotNull();
+        Assertions.assertThat(retainedCoTenant.getLastUpdateDate()).isNotNull();
     }
 }

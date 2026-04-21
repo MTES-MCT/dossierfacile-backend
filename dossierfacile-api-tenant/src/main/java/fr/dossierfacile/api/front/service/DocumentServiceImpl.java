@@ -20,6 +20,7 @@ import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.model.log.EditionType;
+import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.repository.DocumentAnalysisReportRepository;
 import fr.dossierfacile.common.repository.DocumentIAFileAnalysisRepository;
 import fr.dossierfacile.common.service.interfaces.DocumentHelperService;
@@ -52,6 +53,7 @@ public class DocumentServiceImpl implements DocumentService {
     private final ApartmentSharingService apartmentSharingService;
     private final DocumentHelperService documentHelperService;
     private final LogService logService;
+    private final TenantCommonRepository tenantRepository;
     private final Producer producer;
     private final DocumentIAService documentIAService;
     private final TenantMapper tenantMapper;
@@ -65,6 +67,7 @@ public class DocumentServiceImpl implements DocumentService {
                                @Lazy ApartmentSharingService apartmentSharingService,
                                DocumentHelperService documentHelperService,
                                LogService logService,
+                               TenantCommonRepository tenantRepository,
                                Producer producer,
                                DocumentIAService documentIAService,
                                TenantMapper tenantMapper) {
@@ -76,6 +79,7 @@ public class DocumentServiceImpl implements DocumentService {
         this.apartmentSharingService = apartmentSharingService;
         this.documentHelperService = documentHelperService;
         this.logService = logService;
+        this.tenantRepository = tenantRepository;
         this.producer = producer;
         this.documentIAService = documentIAService;
         this.tenantMapper = tenantMapper;
@@ -130,6 +134,8 @@ public class DocumentServiceImpl implements DocumentService {
             throw new AccessDeniedException("Not authorized to delete this document");
         }
         delete(document);
+        referenceTenant.lastUpdateDateProfile(LocalDateTime.now(), null);
+        tenantRepository.save(referenceTenant);
         logService.saveDocumentEditedLog(document, referenceTenant, EditionType.DELETE);
     }
 

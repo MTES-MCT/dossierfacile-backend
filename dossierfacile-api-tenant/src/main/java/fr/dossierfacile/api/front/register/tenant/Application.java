@@ -154,12 +154,12 @@ public class Application implements SaveStep<ApplicationFormV2> {
         apartmentSharingService.resetDossierPdfGenerated(apartmentSharing);
 
         deleteCoTenants(tenantToDelete);
+        LocalDateTime now = LocalDateTime.now();
+        apartmentSharing.getTenants().forEach(retainedTenant -> retainedTenant.lastUpdateDateProfile(now, null));
+        tenantRepository.saveAll(apartmentSharing.getTenants());
         logService.saveApplicationTypeChangedLog(apartmentSharing.getTenants(), currentApplicationType, newApplicationType);
         createCoTenants(tenant, tenantToCreate, apartmentSharing);
 
-        LocalDateTime now = LocalDateTime.now();
-        tenant.lastUpdateDateProfile(now, null);
-        tenantRepository.save(tenant);
         return tenantMapper.toTenantModel(tenant, (!clientAuthenticationFacade.isClient()) ? null : clientAuthenticationFacade.getClient());
     }
 

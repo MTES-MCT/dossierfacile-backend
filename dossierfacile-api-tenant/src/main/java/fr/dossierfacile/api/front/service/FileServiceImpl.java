@@ -11,6 +11,7 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.model.log.EditionType;
+import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import fr.dossierfacile.document.analysis.service.DocumentIAService;
 import lombok.AllArgsConstructor;
@@ -19,6 +20,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
 @Service
 @AllArgsConstructor
 @Slf4j
@@ -26,6 +29,7 @@ public class FileServiceImpl implements FileService {
     private final FileRepository fileRepository;
     private final DocumentService documentService;
     private final LogService logService;
+    private final TenantCommonRepository tenantRepository;
     private final Producer producer;
     private final DocumentIAService documentIAService;
 
@@ -42,6 +46,8 @@ public class FileServiceImpl implements FileService {
         file.setDocument(null);
         fileRepository.delete(file);
 
+        tenant.lastUpdateDateProfile(LocalDateTime.now(), null);
+        tenantRepository.save(tenant);
         logService.saveDocumentEditedLog(document, tenantFileOwner, EditionType.DELETE);
         documentService.markDocumentAsEdited(document);
 
