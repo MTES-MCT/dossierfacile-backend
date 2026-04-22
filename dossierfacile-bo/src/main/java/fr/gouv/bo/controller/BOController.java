@@ -7,6 +7,7 @@ import fr.dossierfacile.common.entity.User;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.Role;
+import fr.dossierfacile.common.repository.projection.TenantWaitingTimeBucketProjection;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.gouv.bo.amqp.Producer;
 import fr.gouv.bo.dto.BooleanDTO;
@@ -37,8 +38,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.time.LocalDateTime;
-import java.util.Optional;
+import java.util.List;
 
 
 @Slf4j
@@ -110,9 +110,9 @@ public class BOController {
         User loginUser = userService.findUserByEmail(principal.getEmail());
         boolean isAdmin = loginUser.getUserRoles().stream().anyMatch(userRole -> userRole.getRole().name().equals(Role.ROLE_ADMIN.name()));
         model.addAttribute("numberOfTenantsToProcess", tenantService.countTenantsWithStatusInToProcess());
-        Optional<LocalDateTime> oldestFullyWatermarkedLastUpdate =
-                tenantService.getOldestLastUpdateDateAmongTenantsToProcessFullyWatermarked();
-        model.addAttribute("oldestFullyWatermarkedLastUpdate", oldestFullyWatermarkedLastUpdate);
+        List<TenantWaitingTimeBucketProjection> waitingTimeBuckets =
+                tenantService.getToProcessFullyWatermarkedTenantWaitingTimeBuckets();
+        model.addAttribute("toProcessFullyWatermarkedTenantWaitingTimeBuckets", waitingTimeBuckets);
         model.addAttribute("numberOfTenantsWithWatermarkPdfFailure",
                 tenantService.countTenantsToProcessWithWatermarkPdfGenerationFailed());
         model.addAttribute("isUserAdmin", isAdmin);
