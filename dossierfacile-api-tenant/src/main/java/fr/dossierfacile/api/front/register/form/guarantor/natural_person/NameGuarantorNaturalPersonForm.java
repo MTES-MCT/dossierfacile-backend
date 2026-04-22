@@ -20,5 +20,7 @@ public class NameGuarantorNaturalPersonForm extends DocumentGuarantorFormAbstrac
     @NotBlank
     private String lastName;
 
+    private String preferredName;
+
     private TypeGuarantor typeGuarantor = TypeGuarantor.NATURAL_PERSON;
 }
