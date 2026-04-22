@@ -334,6 +334,7 @@ public class BOTenantController {
                     .typeGuarantor(guarantor.getTypeGuarantor())
                     .firstName(guarantor.getFirstName())
                     .lastName(guarantor.getLastName())
+                    .preferredName(guarantor.getPreferredName())
                     .legalPersonName(guarantor.getLegalPersonName())
                     .build();
 
