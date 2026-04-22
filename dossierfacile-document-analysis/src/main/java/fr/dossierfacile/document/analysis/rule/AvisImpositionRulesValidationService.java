@@ -4,6 +4,7 @@ import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.document.analysis.rule.validator.AbstractDocumentRuleValidator;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.HasBeenDocumentIAAnalysedBI;
 import fr.dossierfacile.document.analysis.rule.validator.tax.TaxClassificationRuleB;
+import fr.dossierfacile.document.analysis.rule.validator.tax.TaxLeafRuleB;
 import fr.dossierfacile.document.analysis.rule.validator.tax.TaxNamesRule;
 import fr.dossierfacile.document.analysis.rule.validator.tax.TaxYearRule;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ public class AvisImpositionRulesValidationService extends AbstractRulesValidatio
         return List.of(
                 new HasBeenDocumentIAAnalysedBI(),
                 new TaxClassificationRuleB(),
+                new TaxLeafRuleB(),
                 new TaxYearRule(),
                 new TaxNamesRule()
         );

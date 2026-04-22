@@ -137,7 +137,7 @@ public class FeatureFlagServiceImpl implements FeatureFlagService {
 
     @Transactional(readOnly = true)
     public List<FeatureFlag> getAllFeatureFlags() {
-        return featureFlagRepository.findAll();
+        return featureFlagRepository.findAllByOrderByCreatedAtDesc();
     }
 
     // Private package

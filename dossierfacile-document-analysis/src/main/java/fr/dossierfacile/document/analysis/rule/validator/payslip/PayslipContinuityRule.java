@@ -2,28 +2,28 @@ package fr.dossierfacile.document.analysis.rule.validator.payslip;
 
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentAnalysisRule;
+import fr.dossierfacile.common.entity.DocumentIAFileAnalysis;
 import fr.dossierfacile.common.entity.DocumentRule;
 import fr.dossierfacile.common.entity.rule.PayslipContinuityRuleData;
 import fr.dossierfacile.document.analysis.rule.validator.RuleValidatorOutput;
-import fr.dossierfacile.document.analysis.rule.validator.document_ia.BaseDocumentIAValidator;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.mapper.DocumentIAMultiMapper;
 import fr.dossierfacile.document.analysis.rule.validator.payslip.document_ia_model.PayslipDate;
 
 import java.time.Clock;
-import java.time.LocalDate;
 import java.time.YearMonth;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
-public class PayslipContinuityRule extends BaseDocumentIAValidator {
-
-    private final Clock clock;
+public class PayslipContinuityRule extends BasePayslipRuleValidator {
 
     public PayslipContinuityRule() {
-        this(Clock.systemDefaultZone());
+        super(Clock.systemDefaultZone());
     }
 
     public PayslipContinuityRule(Clock clock) {
-        this.clock = clock;
+        super(clock);
     }
 
     @Override
@@ -45,27 +45,51 @@ public class PayslipContinuityRule extends BaseDocumentIAValidator {
     public RuleValidatorOutput validate(Document document) {
         var documentIAAnalyses = this.getSuccessfulDocumentIAAnalyses(document);
 
+        if (document.getFiles().size() < 3) {
+            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFrom(getRule()), RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
+        }
+
         if (documentIAAnalyses.isEmpty() || hasAnyNonSuccessfulDocumentIAAnalyses(document)) {
             return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFrom(getRule()), RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
         }
 
-        var extractedDates = new DocumentIAMultiMapper().map(documentIAAnalyses, PayslipDate.class);
+        var expectedMonths = getExpectedMonthsLists();
+        var continuityRuleData = new PayslipContinuityRuleData(expectedMonths, new ArrayList<>(), List.of());
+        DocumentIAMultiMapper mapper = new DocumentIAMultiMapper();
+        List<YearMonth> validExtractedMonths = new ArrayList<>();
+        for (DocumentIAFileAnalysis analysis : documentIAAnalyses) {
+            PayslipDate payslipDate = mapper.map(List.of(analysis), PayslipDate.class)
+                    .stream()
+                    .findFirst()
+                    .orElse(null);
 
-        if (extractedDates.stream().anyMatch(it -> it.startDate == null)) {
-            return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFrom(getRule()), RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
+            YearMonth extractedMonth = null;
+            if (payslipDate != null && payslipDate.startDate != null) {
+                extractedMonth = YearMonth.from(payslipDate.startDate);
+            }
+
+            if (extractedMonth == null || !expectedMonths.contains(extractedMonth)) {
+                continuityRuleData = continuityRuleData.addItem(
+                        new PayslipContinuityRuleData.PayslipContinuityEntry(
+                                getFileId(analysis),
+                                getFileName(analysis),
+                                extractedMonth
+                        )
+                );
+                continue;
+            }
+
+            validExtractedMonths.add(extractedMonth);
         }
 
-        var expectedMonths = getExpectedMonthsLists();
-        var extractedMonths = getExtractedMonths(extractedDates);
+        List<YearMonth> distinctValidMonths = validExtractedMonths.stream().distinct().toList();
+        List<YearMonth> missingMonthList = computeMissingMonths(expectedMonths, distinctValidMonths);
+        continuityRuleData = continuityRuleData.withMissingMonthList(missingMonthList);
 
-        List<YearMonth> validMonths = extractedMonths.stream()
-                .filter(expectedMonths::contains)
-                .sorted()
-                .toList();
-
-        var continuityRuleData = new PayslipContinuityRuleData(expectedMonths, extractedMonths);
-
-        var isValid = hasThreeConsecutiveMonths(validMonths);
+        // Règle métier: il faut au moins 3 mois attendus consécutifs.
+        var isValid = hasThreeConsecutiveMonths(
+                distinctValidMonths.stream().sorted().toList()
+        );
 
         if (isValid) {
             return new RuleValidatorOutput(
@@ -90,10 +114,16 @@ public class PayslipContinuityRule extends BaseDocumentIAValidator {
         }
     }
 
+    @Override
+    protected boolean isValid(Document document) {
+        return false;
+    }
+
     private boolean hasThreeConsecutiveMonths(List<YearMonth> months) {
         if (months.size() < 3) {
             return false;
         }
+
         int consecutiveCount = 1;
         for (int i = 0; i < months.size() - 1; i++) {
             if (months.get(i).plusMonths(1).equals(months.get(i + 1))) {
@@ -108,29 +138,10 @@ public class PayslipContinuityRule extends BaseDocumentIAValidator {
         return false;
     }
 
-    @Override
-    protected boolean isValid(Document document) {
-        return false;
-    }
-
-    private List<YearMonth> getExpectedMonthsLists() {
-        LocalDate localDate = LocalDate.now(clock);
-        YearMonth yearMonth = YearMonth.now(clock);
-        // If before the 15th, we expect M - 2, M - 3, M - 4
-        // Else we expect M - 1, M - 2, M -3
-        return (localDate.getDayOfMonth() <= 15) ?
-                List.of(yearMonth.minusMonths(1), yearMonth.minusMonths(2), yearMonth.minusMonths(3), yearMonth.minusMonths(4)) :
-                List.of(yearMonth, yearMonth.minusMonths(1), yearMonth.minusMonths(2), yearMonth.minusMonths(3));
-    }
-
-    // We need to extract YearMonth from DocumentDate based on startDate and endDate
-    private List<YearMonth> getExtractedMonths(List<PayslipDate> extractedDates) {
-        return extractedDates.stream()
-                .map(date -> {
-                    LocalDate startDate = date.startDate;
-                    return YearMonth.from(startDate);
-                })
-                .distinct()
+    private List<YearMonth> computeMissingMonths(List<YearMonth> expectedMonths, List<YearMonth> validExtractedMonths) {
+        Set<YearMonth> extractedSet = new HashSet<>(validExtractedMonths);
+        return expectedMonths.stream()
+                .filter(expectedMonth -> !extractedSet.contains(expectedMonth))
                 .toList();
     }
 }

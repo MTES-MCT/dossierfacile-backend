@@ -4,6 +4,7 @@ import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.model.TenantUpdate;
+import fr.dossierfacile.common.repository.projection.TenantWaitingTimeBucketProjection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -45,26 +46,60 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
                                  @Param("operatorId") Long operatorId);
 
     /**
-     * Oldest {@code last_update_date} among tenants in {@code TO_PROCESS} with honor declaration,
+     * Waiting-time buckets for tenants in {@code TO_PROCESS} with honor declaration,
      * such that every document (tenant or guarantors) has a watermark file.
      */
     @Query(value = """
-            SELECT t.last_update_date
-            FROM tenant t
-            WHERE t.status = 'TO_PROCESS'
-              AND t.honor_declaration = true
-              AND NOT EXISTS (
-                SELECT d.id FROM document d WHERE d.tenant_id = t.id AND d.watermark_file_id IS NULL
-              )
-              AND NOT EXISTS (
-                SELECT d.id FROM document d
-                INNER JOIN guarantor g ON d.guarantor_id = g.id
-                WHERE g.tenant_id = t.id AND d.watermark_file_id IS NULL
-              )
-            ORDER BY t.last_update_date ASC
-            LIMIT 1
+            WITH eligible_tenants AS (
+              SELECT t.id, t.last_update_date
+              FROM tenant t
+              WHERE t.status = 'TO_PROCESS'
+                AND t.honor_declaration = true
+                AND NOT EXISTS (
+                  SELECT 1
+                  FROM document d
+                  WHERE d.tenant_id = t.id
+                    AND d.watermark_file_id IS NULL
+                )
+                AND NOT EXISTS (
+                  SELECT 1
+                  FROM document d
+                  JOIN guarantor g ON d.guarantor_id = g.id
+                  WHERE g.tenant_id = t.id
+                    AND d.watermark_file_id IS NULL
+                )
+            ),
+            bounds AS (
+              SELECT
+                min(last_update_date) AS min_dt,
+                max(last_update_date) AS max_dt
+              FROM eligible_tenants
+            ),
+            bucketed AS (
+              SELECT
+                et.last_update_date,
+                CASE
+                  WHEN b.min_dt = b.max_dt THEN 1
+                  ELSE width_bucket(
+                    extract(epoch FROM et.last_update_date),
+                    extract(epoch FROM b.min_dt),
+                    extract(epoch FROM b.max_dt),
+                    5
+                  )
+                END AS bucket_no
+              FROM eligible_tenants et
+              CROSS JOIN bounds b
+            )
+            SELECT
+              bucket_no,
+              count(*) AS tenant_count,
+              min(last_update_date) AS bucket_min_last_update_date,
+              max(last_update_date) AS bucket_max_last_update_date
+            FROM bucketed
+            GROUP BY bucket_no
+            ORDER BY bucket_no;
             """, nativeQuery = true)
-    Optional<LocalDateTime> findOldestLastUpdateDateAmongTenantsToProcessFullyWatermarked();
+    List<TenantWaitingTimeBucketProjection> findToProcessFullyWatermarkedTenantWaitingTimeBuckets();
 
     /**
      * Tenants in {@code TO_PROCESS} with honor declaration having at least one document (tenant or guarantors)

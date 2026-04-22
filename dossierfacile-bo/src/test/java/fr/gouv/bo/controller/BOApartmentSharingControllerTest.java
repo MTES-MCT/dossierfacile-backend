@@ -10,6 +10,7 @@ import fr.gouv.bo.dto.ApartmentSharingLinkEnrichedDTO;
 import fr.gouv.bo.dto.LinkLogDTO;
 import fr.gouv.bo.security.BOApplicationAccessService;
 import fr.gouv.bo.security.UserPrincipal;
+import fr.gouv.bo.service.DocumentService;
 import fr.gouv.bo.service.UserApiService;
 import fr.gouv.bo.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,6 +51,9 @@ class BOApartmentSharingControllerTest {
     private UserApiService userApiService;
 
     @Mock
+    private DocumentService documentService;
+
+    @Mock
     private BOApplicationAccessService applicationAccessService;
 
     private BOApartmentSharingController controller;
@@ -57,7 +61,7 @@ class BOApartmentSharingControllerTest {
     @BeforeEach
     void setUp() {
         controller = new BOApartmentSharingController(
-                null, null, userApiService, null, linkLogRepository, userService, applicationAccessService
+                null, null, userApiService, documentService, null, linkLogRepository, userService, applicationAccessService
         );
         ReflectionTestUtils.setField(controller, "tenantBaseUrl", "https://example.com");
     }

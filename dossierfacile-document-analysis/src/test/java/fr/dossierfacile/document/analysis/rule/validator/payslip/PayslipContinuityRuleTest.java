@@ -3,7 +3,10 @@ package fr.dossierfacile.document.analysis.rule.validator.payslip;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.DocumentIAFileAnalysis;
 import fr.dossierfacile.common.entity.File;
+import fr.dossierfacile.common.entity.StorageFile;
+import fr.dossierfacile.common.entity.rule.PayslipContinuityRuleData;
 import fr.dossierfacile.common.enums.DocumentIAFileAnalysisStatus;
+import fr.dossierfacile.common.model.document_ia.BarcodeModel;
 import fr.dossierfacile.common.model.document_ia.ExtractionModel;
 import fr.dossierfacile.common.model.document_ia.GenericProperty;
 import fr.dossierfacile.common.model.document_ia.ResultModel;
@@ -16,6 +19,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.time.Clock;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,8 +45,12 @@ class PayslipContinuityRuleTest {
 
     private Document createDocumentWithAnalyses(DocumentIAFileAnalysis... analyses) {
         List<File> files = new ArrayList<>();
-        for (DocumentIAFileAnalysis analysis : analyses) {
-            File file = File.builder().build();
+        for (int i = 0; i < analyses.length; i++) {
+            DocumentIAFileAnalysis analysis = analyses[i];
+            File file = File.builder()
+                    .id((long) (i + 1))
+                    .storageFile(StorageFile.builder().name("file-" + (i + 1) + ".pdf").build())
+                    .build();
             file.setDocumentIAFileAnalysis(analysis);
             if (analysis != null) {
                 analysis.setFile(file);
@@ -73,6 +81,34 @@ class PayslipContinuityRuleTest {
         ResultModel result = ResultModel.builder()
                 .extraction(extraction)
                 .barcodes(Collections.emptyList())
+                .build();
+
+        return DocumentIAFileAnalysis.builder()
+                .analysisStatus(DocumentIAFileAnalysisStatus.SUCCESS)
+                .result(result)
+                .build();
+    }
+
+    private DocumentIAFileAnalysis analysisWithDateFrom2DDoc(LocalDate startDate, LocalDate endDate) {
+        BarcodeModel barcode = BarcodeModel.builder()
+                .type("DATA_MATRIX")
+                .typedData(List.of(
+                        GenericProperty.builder()
+                                .name("debut_periode")
+                                .type("date")
+                                .value(startDate.toString())
+                                .build(),
+                        GenericProperty.builder()
+                                .name("fin_periode")
+                                .type("date")
+                                .value(endDate.toString())
+                                .build()
+                ))
+                .build();
+
+        ResultModel result = ResultModel.builder()
+                .extraction(null)
+                .barcodes(List.of(barcode))
                 .build();
 
         return DocumentIAFileAnalysis.builder()
@@ -153,6 +189,13 @@ class PayslipContinuityRuleTest {
                         LocalDate.of(2023, 4, 20),
                         List.of(LocalDate.of(2023, 2, 1), LocalDate.of(2023, 1, 1), LocalDate.of(2022, 12, 1)),
                         false
+                ),
+                // Cas 10 : 10 Avril (<=15).
+                // Scénario : Mars, Fev, Jan, Dec, Novembre -> OK (5 présents, donc 3 consécutifs ok)
+                Arguments.of(
+                        LocalDate.of(2023, 4, 10),
+                        List.of(LocalDate.of(2023, 3, 1), LocalDate.of(2023, 2, 1), LocalDate.of(2023, 1, 1), LocalDate.of(2022, 12, 1), LocalDate.of(2022, 11, 1)),
+                        true
                 )
         );
     }
@@ -183,6 +226,125 @@ class PayslipContinuityRuleTest {
         RuleValidatorOutput result = validator.validate(document);
 
         assertThat(result.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
+    }
+
+    @Test
+    @DisplayName("Devrait être INCONCLUSIVE si le document contient moins de 3 fichiers")
+    void should_be_inconclusive_when_less_than_three_files() {
+        PayslipContinuityRule validator = createValidator(LocalDate.of(2023, 4, 10));
+
+        DocumentIAFileAnalysis[] analyses = new DocumentIAFileAnalysis[]{
+                analysisWithDate(LocalDate.of(2023, 3, 1), LocalDate.of(2023, 3, 31)),
+                analysisWithDate(LocalDate.of(2023, 2, 1), LocalDate.of(2023, 2, 28))
+        };
+        Document document = createDocumentWithAnalyses(analyses);
+
+        RuleValidatorOutput result = validator.validate(document);
+
+        assertThat(result.isValid()).isFalse();
+        assertThat(result.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
+    }
+
+    @Test
+    @DisplayName("Devrait être PASSED si 3 mois consécutifs proviennent des champs 2DDOC (debut_periode / fin_periode)")
+    void should_pass_when_dates_come_from_2d_doc() {
+        PayslipContinuityRule validator = createValidator(LocalDate.of(2023, 4, 10));
+
+        DocumentIAFileAnalysis[] analyses = new DocumentIAFileAnalysis[]{
+                analysisWithDateFrom2DDoc(LocalDate.of(2023, 3, 1), LocalDate.of(2023, 3, 31)),
+                analysisWithDateFrom2DDoc(LocalDate.of(2023, 2, 1), LocalDate.of(2023, 2, 28)),
+                analysisWithDateFrom2DDoc(LocalDate.of(2023, 1, 1), LocalDate.of(2023, 1, 31))
+        };
+
+        Document document = createDocumentWithAnalyses(analyses);
+        RuleValidatorOutput result = validator.validate(document);
+
+        assertThat(result.isValid()).isTrue();
+        assertThat(result.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.PASSED);
+    }
+
+    @Test
+    @DisplayName("2DDOC (debut_periode) a priorité sur extraction (periode_debut) quand les deux sont présents")
+    void should_use_2d_doc_date_over_extraction_when_both_present() {
+        PayslipContinuityRule validator = createValidator(LocalDate.of(2023, 4, 10));
+
+        // 2DDOC dit Mars, extraction dit Juillet (hors fenêtre) → seul Mars doit être retenu
+        BarcodeModel barcode = BarcodeModel.builder()
+                .type("DATA_MATRIX")
+                .typedData(List.of(
+                        GenericProperty.builder().name("debut_periode").type("date").value("2023-03-01").build(),
+                        GenericProperty.builder().name("fin_periode").type("date").value("2023-03-31").build()
+                ))
+                .build();
+        ExtractionModel extraction = ExtractionModel.builder()
+                .properties(List.of(
+                        GenericProperty.builder().name("periode_debut").type("date").value("2023-07-01").build(),
+                        GenericProperty.builder().name("periode_fin").type("date").value("2023-07-31").build()
+                ))
+                .build();
+        ResultModel result = ResultModel.builder().extraction(extraction).barcodes(List.of(barcode)).build();
+        DocumentIAFileAnalysis combinedAnalysis = DocumentIAFileAnalysis.builder()
+                .analysisStatus(DocumentIAFileAnalysisStatus.SUCCESS)
+                .result(result)
+                .build();
+
+        // Avec seulement 1 bulletin = mois de Mars → pas 3 consécutifs → FAILED (pas INCONCLUSIVE)
+        // Ce test vérifie que c'est le mois de Mars (2DDOC) et non Juillet (extraction) qui est pris
+        DocumentIAFileAnalysis m2 = analysisWithDateFrom2DDoc(LocalDate.of(2023, 2, 1), LocalDate.of(2023, 2, 28));
+        DocumentIAFileAnalysis m1 = analysisWithDateFrom2DDoc(LocalDate.of(2023, 1, 1), LocalDate.of(2023, 1, 31));
+
+        Document document = createDocumentWithAnalyses(combinedAnalysis, m2, m1);
+        RuleValidatorOutput output = validator.validate(document);
+
+        // Mars + Fev + Jan = 3 consécutifs dans la fenêtre → PASSED
+        assertThat(output.isValid()).isTrue();
+        assertThat(output.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.PASSED);
+    }
+
+    @Test
+    @DisplayName("FAILED et RuleData renseignée quand au moins un fichier est hors expectedMonths")
+    void should_fail_with_rule_data_when_one_file_is_outside_expected_months() {
+        PayslipContinuityRule validator = createValidator(LocalDate.of(2023, 4, 20));
+
+        DocumentIAFileAnalysis[] analyses = new DocumentIAFileAnalysis[]{
+                analysisWithDate(LocalDate.of(2023, 4, 1), LocalDate.of(2023, 4, 30)),
+                analysisWithDate(LocalDate.of(2023, 2, 1), LocalDate.of(2023, 2, 28)),
+                analysisWithDate(LocalDate.of(2022, 12, 1), LocalDate.of(2022, 12, 31))
+        };
+
+        Document document = createDocumentWithAnalyses(analyses);
+        RuleValidatorOutput result = validator.validate(document);
+
+        assertThat(result.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.FAILED);
+        assertThat(result.rule().getRuleData()).isInstanceOf(PayslipContinuityRuleData.class);
+
+        PayslipContinuityRuleData data = (PayslipContinuityRuleData) result.rule().getRuleData();
+        assertThat(data.payslipEntriesInError()).hasSize(1);
+        assertThat(data.payslipEntriesInError().get(0).fileId()).isEqualTo(3L);
+        assertThat(data.payslipEntriesInError().get(0).fileName()).isEqualTo("file-3.pdf");
+        assertThat(data.payslipEntriesInError().get(0).extractedMonth()).isEqualTo(YearMonth.of(2022, 12));
+    }
+
+    @Test
+    @DisplayName("FAILED et missingMonthList contient Mars quand Avril/Fev/Jan sont fournis")
+    void should_include_march_in_missing_month_list_for_case_5() {
+        PayslipContinuityRule validator = createValidator(LocalDate.of(2023, 5, 10));
+
+        DocumentIAFileAnalysis[] analyses = new DocumentIAFileAnalysis[]{
+                analysisWithDate(LocalDate.of(2023, 4, 1), LocalDate.of(2023, 4, 30)),
+                analysisWithDate(LocalDate.of(2023, 2, 1), LocalDate.of(2023, 2, 28)),
+                analysisWithDate(LocalDate.of(2023, 1, 1), LocalDate.of(2023, 1, 31))
+        };
+
+        Document document = createDocumentWithAnalyses(analyses);
+        RuleValidatorOutput result = validator.validate(document);
+
+        assertThat(result.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.FAILED);
+        assertThat(result.rule().getRuleData()).isInstanceOf(PayslipContinuityRuleData.class);
+
+        PayslipContinuityRuleData data = (PayslipContinuityRuleData) result.rule().getRuleData();
+        assertThat(data.payslipEntriesInError()).isEmpty();
+        assertThat(data.missingMonthList()).contains(YearMonth.of(2023, 3));
     }
 
     @Test

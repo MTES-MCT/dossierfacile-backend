@@ -8,6 +8,7 @@ import fr.dossierfacile.common.exceptions.NotFoundException;
 import fr.dossierfacile.common.mapper.mail.ApartmentSharingMapperForMail;
 import fr.dossierfacile.common.mapper.mail.TenantMapperForMail;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
+import fr.dossierfacile.common.repository.projection.TenantWaitingTimeBucketProjection;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.dossierfacile.common.service.interfaces.TenantCommonService;
 import fr.dossierfacile.common.service.interfaces.TenantLogCommonService;
@@ -822,8 +823,8 @@ public class TenantService {
         return tenantRepository.countAllByStatus(TenantFileStatus.TO_PROCESS);
     }
 
-    public Optional<LocalDateTime> getOldestLastUpdateDateAmongTenantsToProcessFullyWatermarked() {
-        return tenantRepository.findOldestLastUpdateDateAmongTenantsToProcessFullyWatermarked();
+    public List<TenantWaitingTimeBucketProjection> getToProcessFullyWatermarkedTenantWaitingTimeBuckets() {
+        return tenantRepository.findToProcessFullyWatermarkedTenantWaitingTimeBuckets();
     }
 
     public long countTenantsToProcessWithWatermarkPdfGenerationFailed() {
