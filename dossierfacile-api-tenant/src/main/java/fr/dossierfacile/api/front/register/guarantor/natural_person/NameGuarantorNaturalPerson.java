@@ -13,11 +13,11 @@ import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
 import fr.dossierfacile.common.entity.Guarantor;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
-import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.enums.TypeGuarantor;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.document.analysis.service.DocumentIAService;
 import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,15 +42,27 @@ public class NameGuarantorNaturalPerson implements SaveStep<NameGuarantorNatural
         tenant = tenantRepository.findOneById(tenant.getId());
         Guarantor guarantor = guarantorRepository.findByTenantAndTypeGuarantorAndId(tenant, TypeGuarantor.NATURAL_PERSON, nameGuarantorNaturalPersonForm.getGuarantorId())
                 .orElseThrow(() -> new GuarantorNotFoundException(nameGuarantorNaturalPersonForm.getGuarantorId()));
+
+        // special case : When optional preferred name is not set, the front send an empty string
+        var newPreferredName = StringUtils.trimToNull(nameGuarantorNaturalPersonForm.getPreferredName());
+        var currentPreferredName = StringUtils.trimToNull(guarantor.getPreferredName());
+
+        boolean guarantorIdentityHasChanged = !StringUtils.equals(guarantor.getFirstName(), nameGuarantorNaturalPersonForm.getFirstName())
+                || !StringUtils.equals(guarantor.getLastName(), nameGuarantorNaturalPersonForm.getLastName())
+                || !StringUtils.equals(currentPreferredName, newPreferredName);
+
         guarantor.setFirstName(nameGuarantorNaturalPersonForm.getFirstName());
         guarantor.setLastName(nameGuarantorNaturalPersonForm.getLastName());
+        guarantor.setPreferredName(nameGuarantorNaturalPersonForm.getPreferredName());
         guarantor.setTenant(tenant);
         guarantorRepository.save(guarantor);
         tenant.lastUpdateDateProfile(LocalDateTime.now(), DocumentCategory.IDENTIFICATION);
 
-        var documents = guarantor.getDocuments();
-        documentService.resetValidatedOrInProgressDocumentsAccordingCategories(documents, Arrays.asList(DocumentCategory.values()));
-        documents.forEach(documentIAService::analyseDocument);
+        if (guarantorIdentityHasChanged) {
+            var documents = guarantor.getDocuments();
+            documentService.resetValidatedOrInProgressDocumentsAccordingCategories(documents, Arrays.asList(DocumentCategory.values()));
+            documents.forEach(documentIAService::analyseDocument);
+        }
 
         tenantStatusService.updateTenantStatus(tenant);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
