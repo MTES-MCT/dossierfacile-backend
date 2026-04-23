@@ -49,6 +49,9 @@ public class Guarantor implements Person, Serializable {
     private String lastName;
 
     @Column
+    private String preferredName;
+
+    @Column
     @Enumerated(EnumType.STRING)
     private TypeGuarantor typeGuarantor;
 
@@ -70,6 +73,10 @@ public class Guarantor implements Person, Serializable {
         this.lastName = StringUtils.trimToNull(lastName);
     }
 
+    public void setPreferredName(String preferredName) {
+        this.preferredName = StringUtils.trimToNull(preferredName);
+    }
+
     public void setLegalPersonName(String legalPersonName) {
         this.legalPersonName = StringUtils.trimToNull(legalPersonName);
     }
@@ -83,10 +90,8 @@ public class Guarantor implements Person, Serializable {
             if (StringUtils.isNotBlank(lastName)){
                 fullName.append(" ").append(lastName);
             }
-        } else if (typeGuarantor == TypeGuarantor.LEGAL_PERSON) {
-            if (StringUtils.isNotBlank(legalPersonName)){
-                fullName.append(legalPersonName);
-            }
+        } else if (typeGuarantor == TypeGuarantor.LEGAL_PERSON && StringUtils.isNotBlank(legalPersonName)) {
+            fullName.append(legalPersonName);
         }
         return fullName.toString();
     }
