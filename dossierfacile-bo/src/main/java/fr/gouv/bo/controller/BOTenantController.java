@@ -69,7 +69,7 @@ public class BOTenantController {
     }
 
     @PreAuthorize("hasRole('SUPPORT')")
-    @GetMapping("/deleteCoTenant/{id}")
+    @DeleteMapping("/deleteCoTenant/{id}")
     public String deleteCoTenant(
             @PathVariable Long id,
             @AuthenticationPrincipal UserPrincipal principal
@@ -84,7 +84,7 @@ public class BOTenantController {
     }
 
     @PreAuthorize("hasRole('SUPPORT')")
-    @GetMapping("/deleteApartmentSharing/{id}")
+    @DeleteMapping("/deleteApartmentSharing/{id}")
     public String deleteApartmentSharing(
             @PathVariable("id") Long id,
             @AuthenticationPrincipal UserPrincipal principal
@@ -147,6 +147,17 @@ public class BOTenantController {
     ) {
         User operator = userService.findUserByEmail(principal.getEmail());
         Tenant tenant = tenantService.deleteDocument(id, operator);
+        return redirectToTenantPage(tenant);
+    }
+
+    @PreAuthorize("hasRole('OPERATOR')")
+    @DeleteMapping("/delete/file/{id}")
+    public String deleteFile(
+            @PathVariable("id") Long fileId,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        User operator = userService.findUserByEmail(principal.getEmail());
+        Tenant tenant = tenantService.deleteFile(fileId, operator);
         return redirectToTenantPage(tenant);
     }
 

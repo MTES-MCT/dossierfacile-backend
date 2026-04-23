@@ -14,13 +14,15 @@ public class DisplayableFile {
 
     private final Long id;
     private final int order;
+    private final String name;
 
     public static List<DisplayableFile> allOf(Document document) {
         List<File> files = document.getFiles();
         List<DisplayableFile> results = new ArrayList<>();
         for (int i = 0; i < files.size(); i++) {
             File file = files.get(i);
-            results.add(new DisplayableFile(file.getId(), i + 1));
+            String fileName = file.getStorageFile() != null ? file.getStorageFile().getName() : null;
+            results.add(new DisplayableFile(file.getId(), i + 1, fileName));
         }
         return results;
     }

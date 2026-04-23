@@ -1,0 +1,37 @@
+<!-- Fragment: deletedLinksCategory(title, collapseId, links, usePartnerName)
+     usePartnerName=true  → affiche link.partnerName (type PARTNER)
+     usePartnerName=false → affiche link.title       (types LINK, MAIL, OWNER) -->
+<div th:fragment="deletedLinksCategory(title, collapseId, links, usePartnerName)"
+     class="deleted-category"
+     xmlns:th="http://www.thymeleaf.org">
+
+    <div class="deleted-category-header">
+        <p class="deleted-category-title">
+            <span th:text="${title}">Catégorie</span>
+            (<span th:text="${#lists.size(links)}">0</span>)
+        </p>
+        <button class="btn btn-voir-plus"
+                type="button"
+                data-bs-toggle="collapse"
+                th:attr="data-bs-target='#' + ${collapseId}"
+                aria-expanded="false"
+                th:if="${!#lists.isEmpty(links)}">
+            <span class="label-collapsed">Voir plus</span>
+            <span class="label-expanded">Voir moins</span>
+        </button>
+    </div>
+
+    <div class="collapse deleted-category-content"
+         th:id="${collapseId}"
+         th:if="${!#lists.isEmpty(links)}">
+        <ul class="deleted-links-list">
+            <li th:each="link : ${links}">
+                <span th:if="${usePartnerName}"  th:text="${link.partnerName ?: 'Sans nom'}">Partenaire</span>
+                <span th:unless="${usePartnerName}" th:text="${link.title ?: 'Sans titre'}">Titre</span>
+                - <strong>Supprimé le : </strong>
+                <span th:text="${#temporals.format(link.expirationDate, 'dd MMMM yyyy - HH:mm', new java.util.Locale('fr'))}">Date</span>
+            </li>
+        </ul>
+    </div>
+
+</div>

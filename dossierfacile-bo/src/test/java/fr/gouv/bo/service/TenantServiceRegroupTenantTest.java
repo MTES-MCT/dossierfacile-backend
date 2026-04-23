@@ -48,7 +48,8 @@ class TenantServiceRegroupTenantTest {
                 null,   // apartmentSharingMapperForMail
                 null,   // tenantCommonService
                 null,   // tenantLogCommonService
-                null    // quotaService
+                null,   // quotaService
+                null    // sharedFileRepository
         );
     }
 
