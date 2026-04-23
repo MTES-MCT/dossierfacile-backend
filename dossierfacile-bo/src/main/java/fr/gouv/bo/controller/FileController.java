@@ -33,10 +33,7 @@ public class FileController {
     public void getOriginalFileAsByteArray(HttpServletResponse response, @PathVariable Long id) {
         fileService.findById(id).ifPresentOrElse(
                 file -> streamStorageFile(file.getStorageFile(), response),
-                () -> {
-                    log.error(FILE_NO_EXIST);
-                    response.setStatus(404);
-                }
+                () -> handleFileNotFound(response)
         );
     }
 
@@ -51,10 +48,7 @@ public class FileController {
                     }
                     streamStorageFile(file.getPreview(), response);
                 },
-                () -> {
-                    log.error(FILE_NO_EXIST);
-                    response.setStatus(404);
-                }
+                () -> handleFileNotFound(response)
         );
     }
 
@@ -63,10 +57,7 @@ public class FileController {
     public void getDocumentAsByteArray(HttpServletResponse response, @PathVariable String name) {
         documentRepository.findByName(name).ifPresentOrElse(
                 document -> streamStorageFile(document.getWatermarkFile(), response),
-                () -> {
-                    log.error(FILE_NO_EXIST);
-                    response.setStatus(404);
-                }
+                () -> handleFileNotFound(response)
         );
     }
 
@@ -81,5 +72,10 @@ public class FileController {
             log.error("Unable to download file", e);
             response.setStatus(408);
         }
+    }
+
+    private void handleFileNotFound(HttpServletResponse response) {
+        log.error(FILE_NO_EXIST);
+        response.setStatus(404);
     }
 }
