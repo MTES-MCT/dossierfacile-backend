@@ -10,9 +10,10 @@
         </p>
 
         <div class="partages-cards">
-            <div th:each="link : ${activeLinks}"
-                 th:replace="~{bo/fragments/active-link-card :: activeLinkCard(link=${link}, apartmentSharing=${apartmentSharing})}">
-            </div>
+            <th:block th:each="link : ${activeLinks}">
+                <div th:replace="~{bo/fragments/active-link-card :: activeLinkCard(link=${link}, apartmentSharing=${apartmentSharing})}">
+                </div>
+            </th:block>
         </div>
     </div>
 
