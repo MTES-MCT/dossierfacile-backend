@@ -35,7 +35,7 @@ public abstract class BaseDocumentIAValidator extends AbstractDocumentRuleValida
 
     protected DocumentIdentity getNamesFromDocument(Document document) {
         if (document.getGuarantor() != null) {
-            return new DocumentIdentity(Arrays.stream(TOKEN_SEPARATOR.split(document.getGuarantor().getFirstName())).toList(), document.getGuarantor().getLastName());
+            return new DocumentIdentity(Arrays.stream(TOKEN_SEPARATOR.split(document.getGuarantor().getFirstName())).toList(), document.getGuarantor().getLastName(), document.getGuarantor().getPreferredName());
         }
 
         if (document.getTenant() != null) {
