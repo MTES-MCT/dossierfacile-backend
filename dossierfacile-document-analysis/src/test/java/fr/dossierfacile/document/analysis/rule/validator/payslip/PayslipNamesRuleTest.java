@@ -90,8 +90,8 @@ class PayslipNamesRuleTest {
         return buildDocument(tenant, null, analyses);
     }
 
-    private Document documentWithGuarantor(String firstName, String lastName, DocumentIAFileAnalysis... analyses) {
-        Guarantor guarantor = Guarantor.builder().firstName(firstName).lastName(lastName).build();
+    private Document documentWithGuarantor(String firstName, String lastName, String preferredName, DocumentIAFileAnalysis... analyses) {
+        Guarantor guarantor = Guarantor.builder().firstName(firstName).lastName(lastName).preferredName(preferredName).build();
         return buildDocument(null, guarantor, analyses);
     }
 
@@ -202,7 +202,27 @@ class PayslipNamesRuleTest {
     @DisplayName("PASSED avec extraction et tenant garant")
     void passed_with_extraction_and_guarantor() {
         DocumentIAFileAnalysis analysis = analysisWithExtraction("MR MARTIN PAUL");
-        Document doc = documentWithGuarantor("Paul", "Martin", analysis);
+        Document doc = documentWithGuarantor("Paul", "Martin", null, analysis);
+
+        assertThat(rule.validate(doc).ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.PASSED);
+    }
+
+    @Test
+    @DisplayName("PASSED quand le bulletin matche le nom d'usage du garant")
+    void passed_when_guarantor_preferred_name_matches() {
+        // Guarantor's marital name appears on the payslip instead of the birth name
+        DocumentIAFileAnalysis analysis = analysisWithExtraction("MRS MARTIN MARIE");
+        Document doc = documentWithGuarantor("Marie", "Dupont", "Martin", analysis);
+
+        assertThat(rule.validate(doc).ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.PASSED);
+    }
+
+    @Test
+    @DisplayName("PASSED quand le bulletin matche le nom de naissance du garant alors qu'un nom d'usage est defini")
+    void passed_when_guarantor_birth_name_matches_with_preferred_set() {
+        // Birth name on payslip while a preferred (marital) name is also stored: still a match
+        DocumentIAFileAnalysis analysis = analysisWithExtraction("MRS DUPONT MARIE");
+        Document doc = documentWithGuarantor("Marie", "Dupont", "Martin", analysis);
 
         assertThat(rule.validate(doc).ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.PASSED);
     }
