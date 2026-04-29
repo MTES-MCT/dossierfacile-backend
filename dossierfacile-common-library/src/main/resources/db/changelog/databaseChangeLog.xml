@@ -192,4 +192,5 @@
     <include file="db/migration/202604140000-add-index-operator-log-operator-action-creation-date.xml" />
     <include file="db/migration/202604100000-add-indexes-document-ia-file-analysis.xml" />
     <include file="db/migration/202604220000-add-preferred-name-to-guarantor.xml" />
+    <include file="db/migration/202604290000-set-deployment_date_nullable.xml" />
 </databaseChangeLog>

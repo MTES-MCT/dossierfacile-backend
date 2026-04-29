@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+
+    <changeSet id="202604290000-01" author="Nicolas">
+        <dropDefaultValue tableName="feature_flag" columnName="deployment_date" columnDataType="TIMESTAMP"/>
+        <dropNotNullConstraint tableName="feature_flag" columnName="deployment_date" columnDataType="TIMESTAMP"/>
+
+        <rollback>
+            <update tableName="feature_flag">
+                <column name="deployment_date" valueComputed="CURRENT_TIMESTAMP"/>
+                <where>deployment_date IS NULL</where>
+            </update>
+            <addNotNullConstraint tableName="feature_flag" columnName="deployment_date" columnDataType="TIMESTAMP"/>
+            <addDefaultValue tableName="feature_flag" columnName="deployment_date" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>
+

@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -83,15 +84,23 @@ public class FeatureFlagServiceImpl implements FeatureFlagService {
                 .reason(FeatureAssignmentReason.FIRST_CHECK);
 
         // Check if the user has been created after the feature flag creation date or not
-        if (featureFlag.isOnlyForNewUser() && user.get().getCreationDateTime().isBefore(featureFlag.getDeploymentDate())) {
-            userAssignmentBuilder.enabled(false)
-                    .bucket(0)
-                    .assignmentSource(FeatureAssignmentSource.PRE_DEPLOYMENT);
+        // We also test if the deployment date is not null at this moment.
+        if (featureFlag.isOnlyForNewUser() && featureFlag.getDeploymentDate() != null) {
+            // If the user is created before the deployment date we disable the feature
+            if (user.get().getCreationDateTime().isBefore(featureFlag.getDeploymentDate())) {
+                userAssignmentBuilder.enabled(false)
+                        .bucket(0)
+                        .assignmentSource(FeatureAssignmentSource.PRE_DEPLOYMENT);
 
-            userAssignmentHistoryBuilder.enabled(false)
-                    .bucket(0);
+                userAssignmentHistoryBuilder.enabled(false)
+                        .bucket(0);
 
-            return userFeatureAssignmentService.saveAssignment(userAssignmentBuilder.build(), userAssignmentHistoryBuilder.build(), false);
+                return userFeatureAssignmentService.saveAssignment(userAssignmentBuilder.build(), userAssignmentHistoryBuilder.build(), false);
+            }
+        // The feature flag is active but for an incertain reason the deployment date is undefined
+        } else if (featureFlag.isOnlyForNewUser()) {
+            log.warn("Feature flag {} is only for new users, but no deployment date is set. User {} will not have the feature enabled.", featureFlag.getKey(), userId);
+            return false;
         }
 
         // Otherwise, compute the bucket for this user and assign the feature flag based on the rollout percentage
@@ -127,6 +136,13 @@ public class FeatureFlagServiceImpl implements FeatureFlagService {
             return;
         }
         featureFlag.setActive(enabled);
+        // When we activate the feature flag we set the deployment date to now.
+        if (enabled) {
+            featureFlag.setDeploymentDate(LocalDateTime.now());
+        }
+        else {
+            featureFlag.setDeploymentDate(null);
+        }
         featureFlagRepository.save(featureFlag);
     }
 
