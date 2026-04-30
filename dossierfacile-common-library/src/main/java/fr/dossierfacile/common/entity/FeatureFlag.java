@@ -55,8 +55,7 @@ public class FeatureFlag implements Serializable {
     private Integer rolloutPct = 0;
 
     @Column(name = "deployment_date")
-    @Builder.Default
-    private LocalDateTime deploymentDate = LocalDateTime.now();
+    private LocalDateTime deploymentDate;
 
     @Column(name = "created_at")
     @Builder.Default
