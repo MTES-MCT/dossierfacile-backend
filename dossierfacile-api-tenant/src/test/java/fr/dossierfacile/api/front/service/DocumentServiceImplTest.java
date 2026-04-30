@@ -11,6 +11,7 @@ import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.repository.DocumentIAFileAnalysisRepository;
 import org.junit.jupiter.api.BeforeEach;
 import fr.dossierfacile.common.enums.DocumentCategory;
+import fr.dossierfacile.common.model.log.EditionType;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -301,6 +302,7 @@ class DocumentServiceImplTest {
 
                 assertDoesNotThrow(() -> documentService.delete(1L, tenant1));
                 verify(documentRepository).delete(document);
+                verify(logService).saveDocumentEditedLog(document, tenant2, EditionType.DELETE);
             }
         }
     }
