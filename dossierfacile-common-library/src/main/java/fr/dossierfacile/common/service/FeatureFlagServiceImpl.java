@@ -83,11 +83,17 @@ public class FeatureFlagServiceImpl implements FeatureFlagService {
                 .rolloutPct(featureFlag.getRolloutPct())
                 .reason(FeatureAssignmentReason.FIRST_CHECK);
 
-        // Check if the user has been created after the feature flag creation date or not
-        // We also test if the deployment date is not null at this moment.
-        if (featureFlag.isOnlyForNewUser() && featureFlag.getDeploymentDate() != null) {
-            // If the user is created before the deployment date we disable the feature
+        // Special test if feature flag is onlyForNewUSer.
+        if (featureFlag.isOnlyForNewUser()) {
+            // We need to have a safe check for the deployment date.
+            if (featureFlag.getDeploymentDate() == null) {
+                log.warn("Feature flag {} is only for new users, but no deployment date is set. User {} will not have the feature enabled.", featureFlag.getKey(), userId);
+                return false;
+            }
+            // If the user is created before the deployment date, we disable the feature.
+            // otherwise we continue with the normal rollout.
             if (user.get().getCreationDateTime().isBefore(featureFlag.getDeploymentDate())) {
+
                 userAssignmentBuilder.enabled(false)
                         .bucket(0)
                         .assignmentSource(FeatureAssignmentSource.PRE_DEPLOYMENT);
@@ -97,10 +103,6 @@ public class FeatureFlagServiceImpl implements FeatureFlagService {
 
                 return userFeatureAssignmentService.saveAssignment(userAssignmentBuilder.build(), userAssignmentHistoryBuilder.build(), false);
             }
-        // The feature flag is active but for an incertain reason the deployment date is undefined
-        } else if (featureFlag.isOnlyForNewUser()) {
-            log.warn("Feature flag {} is only for new users, but no deployment date is set. User {} will not have the feature enabled.", featureFlag.getKey(), userId);
-            return false;
         }
 
         // Otherwise, compute the bucket for this user and assign the feature flag based on the rollout percentage
