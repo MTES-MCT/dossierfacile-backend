@@ -47,11 +47,6 @@
             <optional>true</optional>
         </dependency>
         <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>${org-apache-commons-lang3.version}</version>
-        </dependency>
-        <dependency>
             <groupId>com.brevo</groupId>
             <artifactId>brevo</artifactId>
         </dependency>

@@ -110,17 +110,6 @@ public class DeleteFilesTask extends AbstractTask {
         deleteFilesForProvider(ObjectStorageProvider.OVH, batchSize);
     }
 
-    /**
-     * 3DS Outscale Provider Task - runs every N seconds (configurable).
-     *
-     * @deprecated THREEDS_OUTSCALE provider is deprecated - remove this task once all Outscale files have been migrated and deleted
-     */
-    @Deprecated
-    @Scheduled(fixedDelayString = "${scheduled.process.storage.delete.delay.ms}",
-            initialDelayString = "${scheduled.process.storage.delete.delay.ms}")
-    public void deleteFilesOutscaleTask() {
-        deleteFilesForProvider(ObjectStorageProvider.THREEDS_OUTSCALE, batchSize);
-    }
 
     /**
      * Generic retry task for all providers.

@@ -14,10 +14,6 @@
     <name>dossierfacile-api-tenant</name>
     <description>Front api for dossier facile</description>
 
-    <properties>
-        <springdoc.version>2.8.15</springdoc.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
