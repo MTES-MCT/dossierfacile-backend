@@ -39,8 +39,16 @@ public abstract class TenantMapper {
     @Value("${tenant.base.url}")
     protected String tenantBaseUrl;
 
+    @Mapping(target = "honorDeclaration", expression = "java(mapHonorDeclaration(tenant))")
     @Mapping(source = "tenant", target = "franceConnectIdentity", qualifiedByName = "franceConnectIdentity")
     public abstract TenantModel toTenantModel(Tenant tenant, @Context UserApi userApi);
+
+    protected boolean mapHonorDeclaration(Tenant tenant) {
+        if (tenant.getApartmentSharing().getApplicationType() == ApplicationType.COUPLE) {
+            return tenant.getApartmentSharing().getTenants().stream().allMatch(t -> Boolean.TRUE.equals(t.getHonorDeclaration()));
+        }
+        return Boolean.TRUE.equals(tenant.getHonorDeclaration());
+    }
 
     @Named("franceConnectIdentity")
     FranceConnectIdentity franceConnectIdentity(Tenant item) {

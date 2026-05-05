@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="deleteFileModal(fileId)"
+     class="modal fade" role="dialog" tabindex="-1"
+     th:id="'deleteFileModal-' + ${fileId}">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content bg-info-subtle">
+            <div class="modal-header" style="padding: 10px;">
+                <h5 class="modal-title bold" style="width: 80%;float: left;">
+                    Confirmation suppression fichier
+                </h5>
+                <button aria-label="Close" class="btn-close" data-bs-dismiss="modal"
+                        type="button"></button>
+            </div>
+            <div class="modal-body bg-body-tertiary" style="text-shadow: 0 0 black;">
+                <p>Confirmez-vous la suppression de ce fichier ?</p>
+                <div style="text-align:center">
+                    <img alt="Aperçu fichier"
+                         style="max-width: 100%; max-height: 260px; border: 1px solid #ddd; border-radius: 4px;"
+                         th:src="${'/files/' + fileId + '/preview'}"
+                         onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"/>
+                    <p style="display:none; margin-top: 10px;">Aucune miniature disponible pour ce fichier.</p>
+                </div>
+            </div>
+            <div class="modal-footer bg-body-tertiary" style="padding: 5px;">
+                <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">
+                    Annuler
+                </button>
+                <form th:method="delete"
+                      th:action="@{/bo/tenant/delete/file/{id}(id=${fileId})}"
+                      style="display:inline;margin:0">
+                    <button type="submit" class="btn btn-primary">
+                        Supprimer
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

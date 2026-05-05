@@ -263,6 +263,38 @@ class FeatureFlagServiceImplTest {
             verify(userFeatureAssignmentService).saveAssignment(assignmentCaptor.capture(), any(), anyBoolean());
             assertThat(assignmentCaptor.getValue().getAssignmentSource()).isEqualTo(FeatureAssignmentSource.HASH);
         }
+
+        @Test
+        void should_return_false_when_feature_is_active_only_for_new_users_but_deployment_date_is_null() {
+            // GIVEN
+            Long userId = 1L;
+            String featureKey = "new-feature-without-date";
+
+            FeatureFlag featureFlag = FeatureFlag.builder()
+                    .key(featureKey)
+                    .active(true)
+                    .onlyForNewUser(true)
+                    .deploymentDate(null)
+                    .rolloutPct(100)
+                    .build();
+
+            User user = new User() {
+            };
+            user.setId(userId);
+            user.setCreationDateTime(LocalDateTime.now().minusDays(1));
+
+            when(featureAssignmentRepository.findById(any())).thenReturn(Optional.empty());
+            when(userAccountRepository.findById(userId)).thenReturn(Optional.of(user));
+
+            // WHEN
+            boolean result = featureFlagService.isFeatureEnabledForUser(userId, featureFlag);
+
+            // THEN
+            assertThat(result).isFalse();
+            verify(userFeatureAssignmentService, never()).saveAssignment(any(), any(), anyBoolean());
+            verify(featureAssignmentHistoryRepository, never()).save(any());
+            verify(featureAssignmentRepository, never()).save(any());
+        }
     }
 
     @Nested
@@ -317,12 +349,24 @@ class FeatureFlagServiceImplTest {
         }
 
         @Test
-        void should_update_status() {
+        void should_update_status_and_remove_deployment_date_when_disabling() {
             FeatureFlag featureFlag = FeatureFlag.builder().active(true).build();
 
             featureFlagService.toggleFeatureFlag(featureFlag, false);
 
             assertThat(featureFlag.isActive()).isFalse();
+            assertThat(featureFlag.getDeploymentDate()).isNull();
+            verify(featureFlagRepository).save(featureFlag);
+        }
+
+        @Test
+        void should_update_status_and_set_deployment_date_when_enabling() {
+            FeatureFlag featureFlag = FeatureFlag.builder().active(false).build();
+
+            featureFlagService.toggleFeatureFlag(featureFlag, true);
+
+            assertThat(featureFlag.isActive()).isTrue();
+            assertThat(featureFlag.getDeploymentDate()).isNotNull();
             verify(featureFlagRepository).save(featureFlag);
         }
     }

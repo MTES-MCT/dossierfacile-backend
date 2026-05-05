@@ -51,6 +51,29 @@ class TaxNamesRuleTest {
         assertThat(result.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
     }
 
+    @Test
+    @DisplayName("Should pass when guarantor preferred name matches tax declarant")
+    void should_pass_when_guarantor_preferred_name_matches_tax_declarant() {
+        // Mirror of the tenant-side parameterized case "Should validated with prefered name"
+        Guarantor g = guarantor("Smith", "Agent", "DUPONT");
+        Document document = documentWithAnalysisAndGuarantor(List.of(fakeAvisImposition("Dupont Agent")), g);
+
+        RuleValidatorOutput result = rule.validate(document);
+
+        assertThat(result.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.PASSED);
+    }
+
+    @Test
+    @DisplayName("Should fail when neither guarantor last name nor preferred name matches")
+    void should_fail_when_neither_guarantor_last_name_nor_preferred_name_matches() {
+        Guarantor g = guarantor("Smith", "Agent", "DUPONT");
+        Document document = documentWithAnalysisAndGuarantor(List.of(fakeAvisImposition("MICHEL Agent")), g);
+
+        RuleValidatorOutput result = rule.validate(document);
+
+        assertThat(result.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.FAILED);
+    }
+
     private static Stream<Arguments> passedOrFailedCases() {
         return Stream.of(
                 Arguments.of(
@@ -248,6 +271,10 @@ class TaxNamesRuleTest {
         return Tenant.builder().lastName(lastName).firstName(firstName).preferredName(preferredName).build();
     }
 
+    private static Guarantor guarantor(String lastName, String firstName, String preferredName) {
+        return Guarantor.builder().lastName(lastName).firstName(firstName).preferredName(preferredName).build();
+    }
+
     private static Document documentWithAnalysis(List<DocumentIAFileAnalysis> analysiss, Tenant tenant) {
         List<File> files = analysiss.stream()
                 .map(analysis -> File.builder()
@@ -256,6 +283,18 @@ class TaxNamesRuleTest {
                 .toList();
         return Document.builder()
                 .tenant(tenant)
+                .files(files)
+                .build();
+    }
+
+    private static Document documentWithAnalysisAndGuarantor(List<DocumentIAFileAnalysis> analysiss, Guarantor guarantor) {
+        List<File> files = analysiss.stream()
+                .map(analysis -> File.builder()
+                        .documentIAFileAnalysis(analysis)
+                        .build())
+                .toList();
+        return Document.builder()
+                .guarantor(guarantor)
                 .files(files)
                 .build();
     }

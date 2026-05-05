@@ -40,7 +40,6 @@ class BOControllerSearchTenantTest {
                 null,
                 null,
                 null,
-                null,
                 applicationAccessService
         );
     }

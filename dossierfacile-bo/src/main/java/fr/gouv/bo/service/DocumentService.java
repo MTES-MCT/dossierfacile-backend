@@ -9,6 +9,7 @@ import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
+import fr.gouv.bo.amqp.Producer;
 import fr.gouv.bo.dto.MessageDTO;
 import fr.gouv.bo.dto.MetadataItem;
 import fr.gouv.bo.exception.DocumentNotFoundException;
@@ -31,6 +32,7 @@ public class DocumentService {
     private final DocumentRepository documentRepository;
     private final FileStorageService fileStorageService;
     private final DocumentDeniedOptionsRepository documentDeniedOptionsRepository;
+    private final Producer producer;
 
     public Document findDocumentById(Long documentId) {
         return documentRepository.findById(documentId).orElseThrow(() -> new DocumentNotFoundException(documentId));
@@ -82,6 +84,11 @@ public class DocumentService {
         document.setWatermarkFile(null);
         documentRepository.save(document);
         fileStorageService.delete(watermarkFile);
+    }
+
+    public void regeneratePdf(Document document) {
+        initializeFieldsToProcessPdfGeneration(document);
+        producer.generatePdf(document.getId());
     }
 
     @Transactional

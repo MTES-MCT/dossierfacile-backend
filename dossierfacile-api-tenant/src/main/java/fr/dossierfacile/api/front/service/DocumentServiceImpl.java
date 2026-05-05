@@ -133,10 +133,11 @@ public class DocumentServiceImpl implements DocumentService {
         if (!hasPermissionOnDocument(document, referenceTenant)) {
             throw new AccessDeniedException("Not authorized to delete this document");
         }
+        Tenant tenantOfDocument = resolveDocumentTenant(document);
         delete(document);
-        referenceTenant.lastUpdateDateProfile(LocalDateTime.now(), null);
-        tenantRepository.save(referenceTenant);
-        logService.saveDocumentEditedLog(document, referenceTenant, EditionType.DELETE);
+        tenantOfDocument.lastUpdateDateProfile(LocalDateTime.now(), null);
+        tenantRepository.save(tenantOfDocument);
+        logService.saveDocumentEditedLog(document, tenantOfDocument, EditionType.DELETE);
     }
 
     @Override

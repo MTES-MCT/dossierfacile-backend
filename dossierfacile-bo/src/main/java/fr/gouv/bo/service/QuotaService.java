@@ -21,7 +21,7 @@ public class QuotaService {
     @Value("${quota.bo.view-application.daily:200}")
     private int limitViewApplication;
 
-    @Value("${quota.bo.search-tenant.daily:50}")
+    @Value("${quota.bo.search-tenant.daily:100}")
     private int limitSearchTenant;
 
     private final OperatorLogRepository operatorLogRepository;

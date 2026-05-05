@@ -328,6 +328,11 @@
                                                 <span th:text="${guarantorItem.getLastName()}"></span>
                                             </div>
                                             <div class="letter" style="padding-top: 7px"
+                                                 th:if="${guarantorItem.getPreferredName()}!=null">
+                                                <span>Nom d'usage : </span>
+                                                <span th:text="${guarantorItem.getPreferredName()}"></span>
+                                            </div>
+                                            <div class="letter" style="padding-top: 7px"
                                                  th:if="${messageItem.getMonthlySum()}!=null">
                                                 <span class="text-amount"
                                                       th:text="'Montant mensuel : ' + ${messageItem.getMonthlySum()}"></span>

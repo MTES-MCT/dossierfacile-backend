@@ -128,10 +128,11 @@ class FrenchIdentityCardNameMatchTest {
         return doc;
     }
 
-    private Document documentWithIaAnalysesAndGuarantor(String guarantorFirstName, String guarantorLastName, DocumentIAFileAnalysis... analyses) {
+    private Document documentWithIaAnalysesAndGuarantor(String guarantorFirstName, String guarantorLastName, String preferredName, DocumentIAFileAnalysis... analyses) {
         Guarantor guarantor = Guarantor.builder()
                 .firstName(guarantorFirstName)
                 .lastName(guarantorLastName)
+                .preferredName(preferredName)
                 .build();
 
         List<File> files = Stream.of(analyses)
@@ -296,7 +297,26 @@ class FrenchIdentityCardNameMatchTest {
                 null
         );
 
-        Document doc = documentWithIaAnalysesAndGuarantor("Sophie", "Martin", analysis);
+        Document doc = documentWithIaAnalysesAndGuarantor("Sophie", "Martin", null, analysis);
+        RuleValidatorOutput out = validate(doc);
+
+        Assertions.assertThat(out.isValid()).isTrue();
+        Assertions.assertThat(out.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.PASSED);
+    }
+
+    @Test
+    @DisplayName("PASSED quand le nom d'usage du garant matche")
+    void passed_when_guarantor_preferred_name_matches_card_patronymic() {
+        // Discriminant test: lastName ("Durand") does NOT match the card's nom_patronymique ("Dupont").
+        // The match must come from the guarantor's preferredName ("Dupont").
+        DocumentIAFileAnalysis analysis = iaAnalysisWith2DDoc(
+                "Dupont",  // nom_patronymique
+                null,      // nom_usage absent on the card
+                "Marie",
+                null
+        );
+
+        Document doc = documentWithIaAnalysesAndGuarantor("Marie", "Durand", "Dupont", analysis);
         RuleValidatorOutput out = validate(doc);
 
         Assertions.assertThat(out.isValid()).isTrue();

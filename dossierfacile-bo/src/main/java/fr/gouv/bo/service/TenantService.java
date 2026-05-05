@@ -7,6 +7,7 @@ import fr.dossierfacile.common.enums.*;
 import fr.dossierfacile.common.exceptions.NotFoundException;
 import fr.dossierfacile.common.mapper.mail.ApartmentSharingMapperForMail;
 import fr.dossierfacile.common.mapper.mail.TenantMapperForMail;
+import fr.dossierfacile.common.repository.SharedFileRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.repository.projection.TenantWaitingTimeBucketProjection;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
@@ -65,6 +66,7 @@ public class TenantService {
     private final TenantCommonService tenantCommonService;
     private final TenantLogCommonService tenantLogCommonService;
     private final QuotaService quotaService;
+    private final SharedFileRepository sharedFileRepository;
 
     @Value("${time.reprocess.application.minutes}")
     private int timeReprocessApplicationMinutes;
@@ -864,6 +866,34 @@ public class TenantService {
         Document document = documentService.findDocumentById(id);
         Tenant tenant = documentService.deleteDocument(id);
         tenantLogService.addDeleteDocumentLog(tenant.getId(), operator.getId(), document);
+        apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
+        updateTenantStatus(tenant, operator);
+        return tenant;
+    }
+
+    @Transactional
+    public Tenant deleteFile(Long fileId, User operator) {
+        File file = sharedFileRepository.findById(fileId)
+                .orElseThrow(() -> new NotFoundException("File " + fileId + " not found"));
+        Document document = file.getDocument();
+        if (document == null) {
+            throw new NotFoundException("Document for file " + fileId + " not found");
+        }
+        Tenant tenant = document.getGuarantor() == null ? document.getTenant() : document.getGuarantor().getTenant();
+
+        document.getFiles().remove(file);
+        file.setDocument(null);
+        sharedFileRepository.delete(file);
+
+        if (document.getFiles().isEmpty()) {
+            documentService.deleteDocument(document.getId());
+            tenantLogService.addDeleteDocumentLog(tenant.getId(), operator.getId(), document);
+        } else {
+            document.setDocumentStatus(DocumentStatus.TO_PROCESS);
+            documentRepository.save(document);
+            documentService.regeneratePdf(document);
+        }
+
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         updateTenantStatus(tenant, operator);
         return tenant;

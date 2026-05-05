@@ -1,0 +1,36 @@
+<!-- Fragment: tenantLogsModal(tenant, logser) -->
+<div th:fragment="tenantLogsModal(tenant, logser)"
+     aria-hidden="true"
+     class="modal fade"
+     role="dialog"
+     tabindex="-1"
+     th:id="'target' + ${tenant.getId()}"
+     xmlns:th="http://www.thymeleaf.org">
+    <div class="modal-dialog modal-dialog-scrollable" role="document" style="--bs-modal-width: 600px">
+        <div class="modal-content">
+            <div class="modal-header" style="background: cadetblue;">
+                <h3 class="modal-title" style="text-align: -webkit-center;"
+                    th:text="'Logs : ' + ${tenant.getFullName()}"></h3>
+                <button aria-label="Close" class="btn-close" data-bs-dismiss="modal" type="button"></button>
+            </div>
+            <div class="modal-body bg-body-tertiary" style="max-height: 80vh; overflow-y: auto; height: auto">
+                <div class="bg-warning-subtle"
+                     style="display: grid; padding: 7px; margin-bottom: 10px;"
+                     th:each="log : ${logser.getLogByTenantId(tenant.getId())}">
+                    <div style="font-weight: bold;" th:text="${log.getTitle()}"></div>
+                    <span class="bold" style="font-size: 14px;"
+                          th:if="${!log.getSubtitle().isEmpty()}"
+                          th:text="${log.getSubtitle()}"></span>
+                    <span th:text="${#temporals.format(log.getCreationDateTime(), 'dd/MM/yyyy HH:mm:ss')}"></span>
+                </div>
+            </div>
+            <div class="modal-footer bg-body-tertiary">
+                <button class="btn btn-secondary" data-bs-dismiss="modal"
+                        style="font-size: initial; color: white; background-color: #0069d9;"
+                        type="button">
+                    Fermer
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
