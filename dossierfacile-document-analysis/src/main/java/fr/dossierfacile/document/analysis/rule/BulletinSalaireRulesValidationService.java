@@ -20,7 +20,7 @@ public class BulletinSalaireRulesValidationService extends AbstractRulesValidati
 
     @Override
     List<AbstractDocumentRuleValidator> getDocumentRuleValidators(Document document) {
-        if (document.getDocumentCategoryStep() == DocumentCategoryStep.SALARY_EMPLOYED_NOT_YET) {
+        if (document.getDocumentCategoryStep() != DocumentCategoryStep.SALARY_EMPLOYED_MORE_3_MONTHS) {
             return List.of();
         }
 
