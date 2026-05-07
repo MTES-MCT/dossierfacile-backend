@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.8</version>
+        <version>3.5.14</version>
         <relativePath/>
     </parent>
 
@@ -31,11 +31,13 @@
     <description>DossierFacile</description>
 
     <properties>
-        <revision>3.5.6</revision>
+        <revision>3.5.7</revision>
         <java.version>21</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <org.mapstruct.version>1.6.2</org.mapstruct.version>
+        <org.postgresql.version>42.7.11</org.postgresql.version>
+        <springdoc.version>2.8.17</springdoc.version>
         <lombok.version>1.18.34</lombok.version>
         <keycloak.version>26.0.3</keycloak.version>
         <log4j-api.version>2.17.1</log4j-api.version>
@@ -43,17 +45,27 @@
         <commons-io.version>2.17.0</commons-io.version>
         <okio.version>3.9.1</okio.version>
         <pdfbox.version>3.0.6</pdfbox.version>
-        <tika.version>3.2.3</tika.version>
+        <tika.version>3.3.0</tika.version>
         <jbig2-imageio.version>3.0.4</jbig2-imageio.version>
         <jai-imageio-core.version>1.4.0</jai-imageio-core.version>
         <jai-imageio-jpeg2000.version>1.4.0</jai-imageio-jpeg2000.version>
-        <bcprov-jdk18on.version>1.81</bcprov-jdk18on.version>
-        <bcpkix-jdk18on.version>1.81</bcpkix-jdk18on.version>
+        <bcprov-jdk18on.version>1.84</bcprov-jdk18on.version>
+        <bcpkix-jdk18on.version>1.84</bcpkix-jdk18on.version>
         <org-apache-commons-lang3.version>3.18.0</org-apache-commons-lang3.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>org.yaml</groupId>
+                <artifactId>snakeyaml</artifactId>
+                <version>2.4</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${org-apache-commons-lang3.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.mapstruct</groupId>
                 <artifactId>mapstruct</artifactId>
@@ -75,6 +87,16 @@
                 <version>${revision}</version>
             </dependency>
             <dependency>
+                <groupId>org.postgresql</groupId>
+                <artifactId>postgresql</artifactId>
+                <version>${org.postgresql.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.junrar</groupId>
+                <artifactId>junrar</artifactId>
+                <version>7.5.10</version>
+            </dependency>
+            <dependency>
                 <groupId>fr.dossierfacile</groupId>
                 <artifactId>dossier-facile-logging-library</artifactId>
                 <version>${revision}</version>
@@ -94,15 +116,21 @@
                 <artifactId>okio</artifactId>
                 <version>${okio.version}</version>
             </dependency>
+            <!-- Forçage de la version d'OkHttp pour corriger la CVE remontée via openstack4j -->
+            <dependency>
+                <groupId>com.squareup.okhttp3</groupId>
+                <artifactId>okhttp</artifactId>
+                <version>4.12.0</version>
+            </dependency>
             <dependency>
                 <groupId>com.brevo</groupId>
                 <artifactId>brevo</artifactId>
-                <version>1.1.0</version>
+                <version>1.1.6</version>
                 <exclusions>
-                    <exclusion>
-                        <groupId>org.apache.commons</groupId>
-                        <artifactId>commons-lang3</artifactId>
-                    </exclusion>
+                     <exclusion>
+                         <groupId>org.apache.maven.plugins</groupId>
+                         <artifactId>maven-gpg-plugin</artifactId>
+                     </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
