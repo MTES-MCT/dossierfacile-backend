@@ -14,15 +14,10 @@ public abstract class BaseTaxRule extends BaseDocumentIAValidator {
     }
 
     protected boolean isDeclarativeSituation(BarcodeModel barcodeModel) {
-        if (barcodeModel.getAntsType() != null) {
+        if (barcodeModel.getDocType() == null)  {
             return false;
         }
-        if (barcodeModel.getRawData() instanceof java.util.Map) {
-            java.util.Map<?, ?> rawData = (java.util.Map<?, ?>) barcodeModel.getRawData();
-            Object docType = rawData.get("doc_type");
-            return "27".equals(docType) || "24".equals(docType) || "18".equals(docType);
-        }
-        return false;
+        return barcodeModel.getDocType().equals("27") || barcodeModel.getDocType().equals("24") || barcodeModel.getDocType().equals("18");
     }
 
 }

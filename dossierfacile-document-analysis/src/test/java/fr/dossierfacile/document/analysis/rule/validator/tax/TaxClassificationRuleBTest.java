@@ -137,6 +137,7 @@ class TaxClassificationRuleBTest {
                 .isValid(true)
                 .rawData(rawData)
                 .antsType(null)
+                .docType("27")
                 .typedData(Collections.emptyList())
                 .build();
 
@@ -145,7 +146,6 @@ class TaxClassificationRuleBTest {
 
     private DocumentIAFileAnalysis fakeAvisImposition() {
         List<GenericProperty> typedData = List.of(
-                GenericProperty.builder().name("doc_type").value("28").type("string").build(),
                 GenericProperty.builder().name("nombre_de_parts").value(1.0).type("number").build(),
                 GenericProperty.builder().name("reference_avis").value("1234567890123").type("string").build(),
                 GenericProperty.builder().name("annee_des_revenus").value(2024).type("number").build(),
@@ -162,6 +162,7 @@ class TaxClassificationRuleBTest {
                 .type("2D_DOC")
                 .isValid(true)
                 .rawData(null)
+                .docType("28")
                 .typedData(typedData)
                 .antsType("avis_imposition")
                 .build();

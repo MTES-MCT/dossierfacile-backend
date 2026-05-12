@@ -34,4 +34,6 @@ public class BarcodeModel implements Serializable {
     private List<GenericProperty> typedData;
     @JsonProperty("ants_type")
     private String antsType;
+    @JsonProperty("doc_type")
+    private String docType;
 }
