@@ -163,6 +163,15 @@ $(document).ready(function () {
         })
     })
 
+    $('.btn-reprocess-form').click(function (e) {
+        var id = $(this).attr('data-id');
+        $('#form-reprocess' + id).submit(function (e) {
+            sendNewMessage2(e, "/bo/tenant/" + id + "/reprocess", $(this), function () {
+                window.location.reload(true);
+            })
+        })
+    })
+
     $('.select-change-document-status').on('change', function () {
         const documentId = $(this).attr('document-id');
         $('#form-change-document-status' + documentId).submit();

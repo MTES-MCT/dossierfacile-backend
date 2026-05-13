@@ -130,6 +130,16 @@ public class BOTenantController {
         return ok().build();
     }
 
+    @PreAuthorize("hasRole('SUPPORT')")
+    @PostMapping("/{id}/reprocess")
+    public ResponseEntity<Void> reprocessTenantFile(
+            @PathVariable("id") Long tenantId,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        tenantService.reprocessTenant(principal, tenantId);
+        return ok().build();
+    }
+
     @PostMapping("/{id}/customMessage")
     public String customEmail(
             @PathVariable("id") Long tenantId,

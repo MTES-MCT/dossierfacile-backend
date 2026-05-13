@@ -176,6 +176,19 @@
                                     </form>
                                     <form
                                             sec:authorize="hasRole('ROLE_SUPPORT')"
+                                            class="form-inline btn-reprocess-form"
+                                            style="float: left; margin-right: 10px;"
+                                            th:action="@{/bo/tenant/} + ${tenant.getId()} + '/reprocess'"
+                                            th:attr="data-id=${tenant.getId()},data-idApt=${tenant.getApartmentSharing().getId()}"
+                                            th:id="'form-reprocess' + ${tenant.getId()}"
+                                            th:method="post">
+                                        <button class="btn bo-btn" name="action" type="submit"
+                                                style="background-color: #0dcaf0; color: #000;">
+                                            Traiter le dossier
+                                        </button>
+                                    </form>
+                                    <form
+                                            sec:authorize="hasRole('ROLE_SUPPORT')"
                                             class="form-inline btn-denied-form"
                                             style="float: left; margin-right: 10px;"
                                             th:action="@{/bo/tenant/} + ${tenant.getId()} + '/decline'"
