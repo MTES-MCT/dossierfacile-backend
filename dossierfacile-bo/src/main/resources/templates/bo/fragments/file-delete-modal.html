@@ -18,7 +18,7 @@
                 <div style="text-align:center">
                     <img alt="Aperçu fichier"
                          style="max-width: 100%; max-height: 260px; border: 1px solid #ddd; border-radius: 4px;"
-                         th:src="${'/files/' + fileId + '/preview'}"
+                         th:data-preview-url="${'/files/' + fileId + '/preview'}"
                          onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"/>
                     <p style="display:none; margin-top: 10px;">Aucune miniature disponible pour ce fichier.</p>
                 </div>

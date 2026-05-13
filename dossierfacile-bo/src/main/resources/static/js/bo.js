@@ -75,3 +75,16 @@ $(document).ready(function () {
 
 });
 
+document.addEventListener('shown.bs.modal', function (event) {
+    const modal = event.target;
+    if (!modal.id?.startsWith('deleteFileModal-')) {
+        return;
+    }
+    const img = modal.querySelector('img[data-preview-url]');
+    if (!img || img.dataset.previewLoaded === 'true') {
+        return;
+    }
+    img.src = img.dataset.previewUrl;
+    img.dataset.previewLoaded = 'true';
+});
+

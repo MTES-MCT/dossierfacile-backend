@@ -371,7 +371,7 @@ public class DocumentIAResultSanitizer {
         }
         for (var barcode : resultModel.getBarcodes()) {
             if (barcode != null) {
-                barcode.setRawData(sanitizeBarcodeRawData(barcode.getRawData()));
+                barcode.setRawData(null);
                 if (barcode.getTypedData() != null) {
                     List<GenericProperty> filteredTypedData = barcode.getTypedData().stream()
                             .filter(property -> property != null && allowedTwoDDocNames.contains(property.getName()))
@@ -380,18 +380,6 @@ public class DocumentIAResultSanitizer {
                 }
             }
         }
-    }
-
-    // Supprime uniquement la partie sensible "fields" du rawData barcode
-    // et conserve les metadonnees (country/doc_type/perimeter, etc.).
-    private Object sanitizeBarcodeRawData(Object rawData) {
-        if (!(rawData instanceof Map<?, ?> rawDataMap)) {
-            return rawData;
-        }
-
-        Map<Object, Object> sanitizedRawData = new HashMap<>(rawDataMap);
-        sanitizedRawData.remove("fields");
-        return sanitizedRawData;
     }
 
     private record AllowedSchema(Map<String, ExtractionNode> extractionSchema, Set<String> twoDDocNames) {
