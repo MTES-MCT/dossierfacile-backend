@@ -4,9 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.dossierfacile.common.entity.Document;
+import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.TenantLog;
 import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.model.log.EditedDocument;
+import fr.dossierfacile.common.model.log.EditedFile;
 import fr.dossierfacile.common.model.log.EditionType;
 import fr.dossierfacile.common.model.log.UpdateMonthlySum;
 import fr.dossierfacile.common.service.interfaces.TenantLogCommonService;
@@ -78,6 +80,17 @@ public class TenantLogService {
             .operatorId(operatorId)
             .creationDateTime(LocalDateTime.now())
             .logDetails(writeAsObjectNode(Map.of("documentCount", documentCount)))
+            .build();
+        tenantLogCommonService.saveTenantLog(log);
+    }
+
+    public void addDeleteFileLog(Long tenantId, Long operatorId, File file) {
+        TenantLog log = TenantLog.builder()
+            .logType(LogType.ACCOUNT_EDITED)
+            .tenantId(tenantId)
+            .operatorId(operatorId)
+            .creationDateTime(LocalDateTime.now())
+            .logDetails(writeAsObjectNode(EditedFile.from(file, EditionType.DELETE)))
             .build();
         tenantLogCommonService.saveTenantLog(log);
     }
