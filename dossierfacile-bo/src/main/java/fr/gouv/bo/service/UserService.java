@@ -1,14 +1,11 @@
 package fr.gouv.bo.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.*;
 import fr.dossierfacile.common.mapper.mail.TenantMapperForMail;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.dossierfacile.common.service.interfaces.TenantLogCommonService;
-import fr.gouv.bo.mapper.TenantMapper;
 import fr.gouv.bo.repository.BOApartmentSharingRepository;
 import fr.gouv.bo.repository.BOUserRepository;
 import fr.gouv.bo.repository.PropertyApartmentSharingRepository;
@@ -35,14 +32,12 @@ public class UserService {
     private final UserRoleRepository userRoleRepository;
     private final TenantCommonRepository tenantRepository;
     private final MailService mailService;
-    private final TenantMapper tenantMapper;
     private final KeycloakService keycloakService;
     private final BOApartmentSharingRepository apartmentSharingRepository;
     private final PropertyApartmentSharingRepository propertyApartmentSharingRepository;
     private final ApartmentSharingService apartmentSharingService;
     private final PartnerCallBackService partnerCallBackService;
     private final TenantLogCommonService tenantLogCommonService;
-    private final ObjectMapper objectMapper;
     private final TenantMapperForMail tenantMapperForMail;
 
     public List<BOUser> findAll() {
@@ -88,7 +83,6 @@ public class UserService {
                         .logType(LogType.ACCOUNT_DELETE)
                         .tenantId(tenant.getId())
                         .operatorId(operator.getId())
-                        .jsonProfile(writeAsObjectNode(tenantMapper.toTenantModel(tenant)))
                         .creationDateTime(LocalDateTime.now())
                         .build());
     }
@@ -155,7 +149,7 @@ public class UserService {
 
     @Transactional
     public void deleteRoles(BOUser user, List<Role> roles) {
-        roles.stream().forEach(r -> {
+        roles.forEach(r -> {
             Optional<UserRole> role = user.getUserRoles().stream()
                     .filter(userRole -> userRole.getRole() == r)
                     .findFirst();
@@ -169,7 +163,7 @@ public class UserService {
 
     @Transactional
     public void addRoles(BOUser user, List<Role> roles) {
-        roles.stream().forEach(r -> {
+        roles.forEach(r -> {
             if (user.getUserRoles().stream().noneMatch(userRole -> userRole.getRole() == r)) {
                 user.getUserRoles().add(userRoleRepository.save(new UserRole(user, r)));
             }
@@ -181,15 +175,6 @@ public class UserService {
     public void createUserByEmail(String email, Role role) {
         BOUser user = BOUser.builder().email(email).build();
         addRoles(userRepository.save(user), Collections.singletonList(role));
-    }
-
-    private ObjectNode writeAsObjectNode(Object object) {
-        try {
-            return objectMapper.valueToTree(object);
-        } catch (IllegalArgumentException e) {
-            log.error("FATAL: cannot write jsonProfile as object node", e);
-        }
-        return null;
     }
 }
 
