@@ -86,7 +86,8 @@ public class TenantLog implements Serializable {
         }
         if (this.getLogDetails() != null) {
             if (this.getLogDetails().get("editionType") != null) {
-                builder.append(" : DOCUMENT ");
+                String subject = this.getLogDetails().get("fileId") != null ? " : FILE " : " : DOCUMENT ";
+                builder.append(subject);
                 String editionType = this.getLogDetails().get("editionType").asText().equals("ADD") ? "ADDED" : "DELETED";
                 builder.append(editionType);
             }
@@ -104,6 +105,10 @@ public class TenantLog implements Serializable {
             builder.append(details.get("documentCategory").asText());
             builder.append(" - ");
             builder.append(details.get(DOCUMENT_SUB_CATEGORY).asText());
+            if (details.get("fileName") != null) {
+                builder.append(" - ");
+                builder.append(details.get("fileName").asText());
+            }
         }
         if (details != null && details.get(OLD_SUM) != null && details.get(NEW_SUM) != null) {
             builder.append(" - OLD AMOUNT: ");
