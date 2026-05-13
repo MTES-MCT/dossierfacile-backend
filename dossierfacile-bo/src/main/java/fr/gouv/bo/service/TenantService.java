@@ -881,6 +881,8 @@ public class TenantService {
         }
         Tenant tenant = document.getGuarantor() == null ? document.getTenant() : document.getGuarantor().getTenant();
 
+        tenantLogService.addDeleteFileLog(tenant.getId(), operator.getId(), file);
+
         document.getFiles().remove(file);
         file.setDocument(null);
         sharedFileRepository.delete(file);
