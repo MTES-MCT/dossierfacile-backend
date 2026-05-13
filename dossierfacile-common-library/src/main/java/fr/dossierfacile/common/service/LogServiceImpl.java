@@ -13,7 +13,6 @@ import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.enums.OwnerLogType;
 import fr.dossierfacile.common.mapper.log.DeletedOwnerMapper;
-import fr.dossierfacile.common.mapper.log.DeletedTenantMapper;
 import fr.dossierfacile.common.model.log.ApplicationTypeChange;
 import fr.dossierfacile.common.model.log.EditedDocument;
 import fr.dossierfacile.common.model.log.EditedStep;
@@ -35,7 +34,6 @@ public class LogServiceImpl implements LogService {
 
     private final TenantLogRepository repository;
     private final OwnerLogCommonRepository ownerLogRepository;
-    private final DeletedTenantMapper deletedTenantMapper;
     private final DeletedOwnerMapper deletedOwnerMapper;
     private final ObjectMapper objectMapper;
 
@@ -80,7 +78,6 @@ public class LogServiceImpl implements LogService {
                         .creationDateTime(LocalDateTime.now())
                         .userApis(tenant.getTenantsUserApi().stream()
                                 .mapToLong(tenantUserApi -> tenantUserApi.getUserApi().getId()).toArray())
-                        .jsonProfile(writeAsObjectNode(deletedTenantMapper.toDeletedTenantModel(tenant)))
                         .build()
         );
     }

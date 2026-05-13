@@ -22,6 +22,10 @@ public class TenantLog implements Serializable {
 
     private static final long serialVersionUID = 605418597255420002L;
 
+    private static final String DOCUMENT_SUB_CATEGORY = "documentSubCategory";
+    private static final String OLD_SUM = "oldSum";
+    private static final String NEW_SUM = "newSum";
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -41,10 +45,6 @@ public class TenantLog implements Serializable {
 
     @Column(columnDefinition = "bigint[]")
     private long[] userApis;
-
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "jsonb")
-    private ObjectNode jsonProfile;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
@@ -74,7 +74,7 @@ public class TenantLog implements Serializable {
     public String getTitle() {
         StringBuilder builder = new StringBuilder();
         if (this.getOperatorId() != null) {
-            if (this.getLogDetails() != null && this.getLogDetails().get("newSum") != null) {
+            if (this.getLogDetails() != null && this.getLogDetails().get(NEW_SUM) != null) {
                 builder.append("OPERATOR_EDITED_FINANCIAL");
             } else {
                 builder.append(this.getLogType().equals(LogType.ACCOUNT_EDITED) ? "OPERATOR_EDITED" : this.getLogType());
@@ -97,19 +97,19 @@ public class TenantLog implements Serializable {
     public String getSubtitle() {
         StringBuilder builder = new StringBuilder();
         ObjectNode details = this.getLogDetails();
-        if (details != null && details.get("documentCategory") != null && details.get("documentSubCategory") != null) {
+        if (details != null && details.get("documentCategory") != null && details.get(DOCUMENT_SUB_CATEGORY) != null) {
             if (details.get("guarantorId") != null) {
                 builder.append("GUARANTOR - ");
             }
             builder.append(details.get("documentCategory").asText());
             builder.append(" - ");
-            builder.append(details.get("documentSubCategory").asText());
+            builder.append(details.get(DOCUMENT_SUB_CATEGORY).asText());
         }
-        if (details != null && details.get("oldSum") != null && details.get("newSum") != null) {
+        if (details != null && details.get(OLD_SUM) != null && details.get(NEW_SUM) != null) {
             builder.append(" - OLD AMOUNT: ");
-            builder.append(details.get("oldSum").asInt());
+            builder.append(details.get(OLD_SUM).asInt());
             builder.append(" - NEW AMOUNT: ");
-            builder.append(details.get("newSum").asInt());
+            builder.append(details.get(NEW_SUM).asInt());
         }
         return builder.toString();
     }
@@ -118,16 +118,16 @@ public class TenantLog implements Serializable {
         StringBuilder builder = new StringBuilder();
         ObjectNode details = this.getLogDetails();
         if (details != null
-          && details.get("documentSubCategory") != null
-          && details.get("oldSum") != null
-          && details.get("newSum") != null) {
-            builder.append(details.get("documentSubCategory").asText());
+          && details.get(DOCUMENT_SUB_CATEGORY) != null
+          && details.get(OLD_SUM) != null
+          && details.get(NEW_SUM) != null) {
+            builder.append(details.get(DOCUMENT_SUB_CATEGORY).asText());
             builder.append(" - Modification du ");
             builder.append(this.getCreationDateTime().format(DateTimeFormatter.ofPattern("dd.MM.yy")));
             builder.append(" - Ancien montant ");
-            builder.append(details.get("oldSum").asInt());
+            builder.append(details.get(OLD_SUM).asInt());
             builder.append(" - Nouveau montant ");
-            builder.append(details.get("newSum").asInt());
+            builder.append(details.get(NEW_SUM).asInt());
         }
         return builder.toString();
     }
