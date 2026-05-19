@@ -1,9 +1,9 @@
 $(document).ready(function () {
 
     $('.btn-theme-change').on('click', function (e) {
-        var htmlElement = document.documentElement;
-        var currentTheme = htmlElement.getAttribute('data-fr-theme');
-        var newTheme = (currentTheme == 'light') ? 'dark' : 'light';
+        const htmlElement = document.documentElement;
+        const currentTheme = htmlElement.getAttribute('data-fr-theme');
+        const newTheme = (currentTheme == 'light') ? 'dark' : 'light';
         htmlElement.setAttribute('data-fr-theme', newTheme);
         htmlElement.setAttribute('data-bs-theme', newTheme);
         localStorage.setItem('fr-theme', newTheme);
@@ -11,15 +11,15 @@ $(document).ready(function () {
 
     $('.btn-modal-confirm-before-submit').on('click', function (e) {
         e.preventDefault();
-        var form = $(this).closest('form');
-        var modal = form.find('.modal');
+        const form = $(this).closest('form');
+        const modal = form.find('.modal');
         $(modal).modal('show');
     });
 
     $('.btnPartner').on('click', function (e) {
         e.preventDefault();
 
-        var href = $(this).attr('href');
+        const href = $(this).attr('href');
 
         $('#hrefPartner').attr('href', href);
         $('#triggerPart').modal('show');
@@ -29,7 +29,7 @@ $(document).ready(function () {
     $('.deleteButton').on('click', function (e) {
         e.preventDefault();
 
-        var id = $(this).attr('data-id');
+        const id = $(this).attr('data-id');
 
         $('#deleteModal' + id).modal('show');
 
@@ -43,15 +43,15 @@ $(document).ready(function () {
 
 
     $('#editProperty').on('show.bs.modal', function (event) {
-        var button = $(event.relatedTarget); // Button that triggered the modal
-        var name = button.data('name');
-        var agentEmail = button.data('agent-email');
-        var propertyId = button.data('property-id');
-        var rentCost = button.data('rent-cost');
-        var id = button.data('id');
+        const button = $(event.relatedTarget); // Button that triggered the modal
+        const name = button.data('name');
+        const agentEmail = button.data('agent-email');
+        const propertyId = button.data('property-id');
+        const rentCost = button.data('rent-cost');
+        const id = button.data('id');
         // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
         // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
-        var modal = $(this);
+        const modal = $(this);
         modal.find('#name').val(name);
         modal.find('#propertyId').val(propertyId);
         modal.find('#rentCost').val(rentCost);
@@ -63,15 +63,15 @@ $(document).ready(function () {
     });
 
     $('#deleteProperty').on('show.bs.modal', function (event) {
-        var button = $(event.relatedTarget);
-        var id = button.data('id');
-        var modal = $(this);
+        const button = $(event.relatedTarget);
+        const id = button.data('id');
+        const modal = $(this);
         modal.find('#deletePropertyForm').attr('action', '/bo/properties-pro/' + id + '/delete')
     });
 
     $("#mergeProperty").on('show.bs.modal', function (event) {
-        var button = $(event.relatedTarget);
-        var id = button.data('id');
+        const button = $(event.relatedTarget);
+        const id = button.data('id');
         $.ajax({
             url: "/bo/properties-agent/" + id,
             type: "GET",
@@ -79,7 +79,7 @@ $(document).ready(function () {
             contentType: false,
             cache: false,
             success: function (data) {
-                var array = JSON.parse(data);
+                const array = JSON.parse(data);
                 $.each(array, function () {
                     $("#propertyIdDestiny").append(new Option(this.propertyId, this.id));
                 });
@@ -101,9 +101,9 @@ $(document).ready(function () {
     });
 
     function modifyHref() {
-        var date = $("#date-statistic").val();
-        var days = $("#days-statistic").val();
-        var href = "/bo/statistic/admin?date=" + date + "&days=" + days;
+        const date = $("#date-statistic").val();
+        const days = $("#days-statistic").val();
+        let href = "/bo/statistic/admin?date=" + date + "&days=" + days;
         $("#admins option:selected").each(function (e) {
             href += "&user=" + $(this).val();
         });
@@ -112,7 +112,7 @@ $(document).ready(function () {
     }
 
     // Javascript to enable link to tab
-    var url = document.location.toString();
+    const url = document.location.toString();
     if (url.match('#')) {
         $('.nav-tabs a[href="#' + url.split('#')[1] + '"]').tab('show');
     }
@@ -128,7 +128,7 @@ $(document).ready(function () {
 
     $(".file-process-result-link").click(function (e) {
         e.preventDefault();
-        var id = $(this).attr('data-id');
+        const id = $(this).attr('data-id');
         $("#file-process-result-div" + id).load("/bo/tenant/" + id + "/showResult").fadeOut('fast', function () {
             $("#file-process-result-div" + id).fadeIn('fast');
             $(".ing").click(function (e) {
@@ -143,22 +143,31 @@ $(document).ready(function () {
         });
     */
     $('.btn-denied-form').click(function (e) {
-        var id = $(this).attr('data-id');
-        var idApt = $(this).attr('data-idApt');
+        const id = $(this).attr('data-id');
+        const idApt = $(this).attr('data-idApt');
         $('#form-denied' + id).submit(function (e) {
             sendNewMessage2(e, "/bo/tenant/" + id + "/decline", $(this), function () {
-                window.location.reload(true);
+                globalThis.location.reload(true);
             })
         })
     })
 
     $('.btn-validate-form').click(function (e) {
-        var id = $(this).attr('data-id');
-        var idApt = $(this).attr('data-idApt');
+        const id = $(this).attr('data-id');
+        const idApt = $(this).attr('data-idApt');
 
         $('#form-validated' + id).submit(function (e) {
             sendNewMessage3(e, "/bo/tenant/" + id + "/validate", $(this), function () {
-                window.location.reload(true);
+                globalThis.location.reload(true);
+            })
+        })
+    })
+
+    $('.btn-reprocess-form').click(function (e) {
+        const id = $(this).attr('data-id');
+        $('#form-reprocess' + id).submit(function (e) {
+            sendNewMessage2(e, "/bo/tenant/" + id + "/reprocess", $(this), function () {
+                globalThis.location.reload(true);
             })
         })
     })
@@ -169,11 +178,11 @@ $(document).ready(function () {
     })
 
     function updateMessageForm(target) {
-        var id = target.attr('data-tenant-id');
-        var nameAdmin = target.attr('data-nameAdmin');
+        const id = target.attr('data-tenant-id');
+        const nameAdmin = target.attr('data-nameAdmin');
         $('#tenant-message' + id).load("/bo/message/tenant/" + id, function () {
             $("#messageForm" + id).submit(function (e) {
-                    var id1 = $(this).attr('data-tenant-id');
+                    const id1 = $(this).attr('data-tenant-id');
                     sendNewMessage(e, "/bo/message/new/" + id, $(this), nameAdmin, id, function () {
                         location.reload();
                     })
@@ -192,7 +201,7 @@ $(document).ready(function () {
     })
 
     $(document).keydown(function (event) {
-        var flag = true;
+        let flag = true;
         if (event.ctrlKey && event.shiftKey && event.keyCode === 13) {
             event.preventDefault();
             flag = false;
@@ -205,7 +214,7 @@ $(document).ready(function () {
         }
     });
 
-    var currentTab = $("#current-tab");
+    const currentTab = $("#current-tab");
     if (currentTab.val() != '') {
         if ($('.nav-tabs a[href="#' + currentTab.val() + '"]').length > 0) {
             $('.nav-tabs a[href="#' + currentTab.val() + '"]').tab('show');
@@ -258,18 +267,18 @@ $(document).ready(function () {
         $(".file5").addClass('no-validate');
     });
 
-    var initValueFile4Generated = $("#file4Generated").is(":checked");
-    var initSalary = $("#salary").val();
-    var initValueFile5Generated = $("#file5GeneratedM").is(":checked");
+    const initValueFile4Generated = $("#file4Generated").is(":checked");
+    const initSalary = $("#salary").val();
+    const initValueFile5Generated = $("#file5GeneratedM").is(":checked");
 
     $(".modify").click(function (e) {
 
-        var valueFile4Generated = $("#file4Generated").is(":checked");
-        var valueFile5Generated = $("#file5GeneratedM").is(":checked");
-        var salary = $("#salary").val();
+        const valueFile4Generated = $("#file4Generated").is(":checked");
+        const valueFile5Generated = $("#file5GeneratedM").is(":checked");
+        const salary = $("#salary").val();
         //var valueFile4Cause =  $("#causeFile4Generated input:checked[type='radio']").val();
-        var file4 = false;
-        var file5 = false;
+        let file4 = false;
+        let file5 = false;
         if (!initValueFile4Generated && valueFile4Generated) {
             file4 = true;
             $("#textGeneratedFile4").show();
@@ -303,7 +312,7 @@ $(document).ready(function () {
 
     if ($(".dropdown-menu").length) {
         $(".dropdown-menu").on("show.bs.dropdown", function (event) {
-            var src = $(event.relatedTarget)[0];
+            const src = $(event.relatedTarget)[0];
             src.dataset.toggle = "tab";
             src.dataset.target = "#properties,#no-title";
             src.tab("show");
@@ -406,9 +415,9 @@ $(document).ready(function () {
 
     function addFileReaderInput() {
         $(".input-file-container").each(function () {
-            var input = $(this).find(".input-file");
-            var id = input.attr("id");
-            var fileReader = $(this).find(".file-reader");
+            const input = $(this).find(".input-file");
+            const id = input.attr("id");
+            const fileReader = $(this).find(".file-reader");
 
             $(this).find(".img,img").click(function () {
                 fileReader.click()
@@ -418,17 +427,17 @@ $(document).ready(function () {
             });
 
             fileReader.change(function () {
-                var value = $(this).val();
-                var latestValue = "";
-                for (var i = value.length; i > 0; i--) {
+                const value = $(this).val();
+                let latestValue = "";
+                for (let i = value.length; i > 0; i--) {
                     if (!/\\/.test(value[i])) {
                         if (value[i]) {
                             latestValue = latestValue + value[i];
                         }
                     } else i = 0;
                 }
-                var result = "";
-                for (var i = latestValue.length; i >= 0; i--) {
+                let result = "";
+                for (let i = latestValue.length; i >= 0; i--) {
                     if (latestValue[i] !== undefined) {
                         result = result + latestValue[i];
                     }
@@ -453,12 +462,12 @@ $(document).ready(function () {
         $(".info-guarantor").toggle()
     }
 
-    var modal = GetURLParameter('modal');
+    const modal = GetURLParameter('modal');
     if (modal) {
         mr.modals.showModal('#info-modal');
     }
 
-    var pathname = window.location.pathname;
+    const pathname = globalThis.location.pathname;
     if (pathname.includes("processFile") || pathname.includes("show-file-with-error")) {
         $('.label-check').addClass("hidden");
     }
@@ -466,10 +475,10 @@ $(document).ready(function () {
 
 
 function GetURLParameter(sParam) {
-    var sPageURL = window.location.search.substring(1);
-    var sURLVariables = sPageURL.split('&');
-    for (var i = 0; i < sURLVariables.length; i++) {
-        var sParameterName = sURLVariables[i].split('=');
+    const sPageURL = globalThis.location.search.substring(1);
+    const sURLVariables = sPageURL.split('&');
+    for (let i = 0; i < sURLVariables.length; i++) {
+        const sParameterName = sURLVariables[i].split('=');
         if (sParameterName[0] == sParam) {
             return sParameterName[1];
         }
@@ -488,7 +497,7 @@ function validate_form() {
 
     $("#create-tenant").attr('data-loading-text', "<i class='fa fa-circle-o-notch fa-spin'></i> Création en cours...");
     $("#create-tenant").button('loading');
-    var fileNames = [
+    const fileNames = [
         "Pièce d'identité en cours de validité",
         "Justificatif de domicile",
         "Justificatif de situation professionnelle",
@@ -496,7 +505,7 @@ function validate_form() {
         "Justificatif de ressources"
     ];
 
-    var isValid = true;
+    let isValid = true;
     $('input[type="text"]').each(function () {
         if ($(this).parent().parent().is(":visible") && $(this).is(":visible")
             && !$(this).hasClass('no-validate') && !$(this).hasClass('special-validation')) {
@@ -543,8 +552,8 @@ function validate_form() {
     });
 
     $('input[type="checkbox"].checked-required').each(function () {
-        var id = $(this)[0].id;
-        var label = $('label[for="' + id + '"]');
+        const id = $(this)[0].id;
+        const label = $('label[for="' + id + '"]');
         if ($(this).parent().parent().is(":visible") && !$(this).hasClass('no-validate')) {
             if (!$(this).is(":checked")) {
                 isValid = false;
@@ -573,7 +582,7 @@ function validate_form() {
             $(this).removeClass("invalid")
         }
     });
-    var filter = /^([\w-\.\+]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([\w-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)$/;
+    const filter = /^([\w-\.\+]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([\w-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)$/;
 
     $('input[type="email"]').each(function () {
         if ($(this).parent().parent().is(":visible")
@@ -593,13 +602,12 @@ function validate_form() {
         } else {
             $(this).removeClass("invalid")
         }
-        // if ($('input.checkbox_check').is(':checked')) {
     });
 
-    var allowedExtensions = ['jpg', 'jpeg', 'gif', 'png', 'pdf'];
+    const allowedExtensions = ['jpg', 'jpeg', 'gif', 'png', 'pdf'];
     $('input[type="file"]').each(function () {
         if ($(this).parent().parent().is(":visible") && !$(this).hasClass('no-validate') && !$(this).hasClass('special-validation')) {
-            var value = $(this).val();
+            const value = $(this).val();
 
             if (value == '') {
                 $(this).addClass("invalid");
@@ -643,10 +651,10 @@ function validate_form() {
 
 function changePageAndSize() {
     $('.pageSizeSelect').change(function (evt) {
-        var url = $(this).attr("data-url");
-        var encodedUrl = encodeURI(url);
-        var pageSize = encodeURIComponent(this.value);
-        window.location.replace(encodedUrl + "?pageSize=" + pageSize + "&page=0");
+        const url = $(this).attr("data-url");
+        const encodedUrl = encodeURI(url);
+        const pageSize = encodeURIComponent(this.value);
+        globalThis.location.replace(encodedUrl + "?pageSize=" + pageSize + "&page=0");
     });
 }
 
@@ -675,6 +683,7 @@ function updateMessagesAdmin2(id) {
     })
 
 }
+
 
 
 

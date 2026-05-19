@@ -71,6 +71,17 @@ public class TenantLogService {
         tenantLogCommonService.saveTenantLog(log);
     }
 
+    public void addReprocessTenantLog(Long tenantId, Long operatorId, int documentCount) {
+        TenantLog log = TenantLog.builder()
+            .logType(LogType.ACCOUNT_REPROCESSED)
+            .tenantId(tenantId)
+            .operatorId(operatorId)
+            .creationDateTime(LocalDateTime.now())
+            .logDetails(writeAsObjectNode(Map.of("documentCount", documentCount)))
+            .build();
+        tenantLogCommonService.saveTenantLog(log);
+    }
+
     public void addUpdateAmountLog(Long tenantId, Long operatorId, Document document, Integer newSum) {
         TenantLog log = TenantLog.builder()
             .logType(LogType.ACCOUNT_EDITED)
