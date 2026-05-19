@@ -45,6 +45,16 @@ services:
     networks:
       - dossierfacile_network
 
+  redis:
+    image: redis:7-alpine
+    container_name: dossierfacile_redis
+    command: redis-server --requirepass your_redis_password
+    ports:
+      - "6380:6379"
+    restart: unless-stopped
+    networks:
+      - dossierfacile_network
+
 volumes:
   postgres_data:
     driver: local
