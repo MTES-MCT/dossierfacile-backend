@@ -525,6 +525,42 @@ public class TenantService {
         changeTenantStatusToDeclined(tenant, operator, null, ProcessedDocuments.NONE);
     }
 
+    @Transactional
+    public void reprocessTenant(UserPrincipal principal, Long tenantId) {
+        Tenant tenant = find(tenantId);
+        User operator = userService.findUserByEmail(principal.getEmail());
+
+        // reprocess declined documents for all guarantors of tenant
+        int reprocessed = reprocessDeclinedDocuments(tenant.getDocuments());
+        reprocessed += Optional.ofNullable(tenant.getGuarantors()).orElse(new ArrayList<>())
+                .stream()
+                .mapToInt(g -> reprocessDeclinedDocuments(g.getDocuments()))
+                .sum();
+
+        if (reprocessed == 0) {
+            log.info("Reprocess requested but no DECLINED documents for tenant {} by op {}",
+                    tenantId, operator.getId());
+            return;
+        }
+
+        tenant.setStatus(tenant.computeStatus());
+        tenantRepository.save(tenant);
+        tenantLogService.addReprocessTenantLog(tenant.getId(), operator.getId(), reprocessed);
+    }
+
+    private int reprocessDeclinedDocuments(List<Document> documents) {
+        int count = 0;
+        for (Document d : Optional.ofNullable(documents).orElse(new ArrayList<>())) {
+            if (d.getDocumentStatus() == DocumentStatus.DECLINED) {
+                d.setDocumentStatus(DocumentStatus.TO_PROCESS);
+                d.setDocumentDeniedReasons(null);
+                documentRepository.save(d);
+                count++;
+            }
+        }
+        return count;
+    }
+
     private boolean isDenied(MessageItem messageItem) {
         boolean messageItemCheck = messageItem.getItemDetailList().stream().anyMatch(ItemDetail::isCheck);
         return messageItemCheck || isNotEmpty(messageItem.getCommentDoc());
