@@ -81,6 +81,20 @@ public class Utility {
         }).mapToDouble(Number::doubleValue).sum();
     }
 
+    public static int countLines(String text, float width, PDType0Font font,
+                                 float fontSize, PDType0Font alternativeFont) {
+        text = StringUtils.trim(text);
+        if (text.isEmpty()) {
+            return 0;
+        }
+        String[] paragraphs = text.split("[\\r\\n]+");
+        int total = 0;
+        for (String paragraph : paragraphs) {
+            total += sentanceToLines(paragraph, width, font, fontSize, alternativeFont).size();
+        }
+        return total;
+    }
+
     public static List<String> sentanceToLines(String text, float width, PDType0Font font, float fontSize, PDType0Font alternativeFont) {
         List<String> lines = new ArrayList<>();
         int lastSpace = -1;
