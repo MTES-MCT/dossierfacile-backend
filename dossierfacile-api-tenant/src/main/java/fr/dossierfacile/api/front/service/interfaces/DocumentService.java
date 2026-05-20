@@ -25,6 +25,8 @@ public interface DocumentService {
 
     void markDocumentAsEdited(Document document);
 
+    boolean hasPermissionOnDocument(Document document, Tenant tenant);
+
     Document getAuthorizedDocument(String documentName, Tenant tenant);
 
     DocumentAnalysisStatusResponse getDocumentAnalysisStatus(Long documentId, Tenant tenant);
