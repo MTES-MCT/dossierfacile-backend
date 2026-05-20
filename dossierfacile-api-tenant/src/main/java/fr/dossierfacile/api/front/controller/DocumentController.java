@@ -72,7 +72,8 @@ public class DocumentController {
         try {
             tenantService.addCommentAnalysis(tenant, commentAnalysisForm.getDocumentId(), commentAnalysisForm.getComment());
         } catch (Exception e) {
-            return badRequest().build();
+            log.error("Error while adding comment analysis for tenant id: {}, document id: {}", commentAnalysisForm.getTenantId(), commentAnalysisForm.getDocumentId(), e);
+            throw e;
         }
         if (commentAnalysisForm.getTenantId() != null) {
             return ok(tenantMapper.toTenantModel(authenticationFacade.getTenant(null), null));
