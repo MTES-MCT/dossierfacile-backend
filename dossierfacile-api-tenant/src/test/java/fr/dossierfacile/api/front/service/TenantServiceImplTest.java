@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -111,6 +112,43 @@ class TenantServiceImplTest {
         reportOnJoin = new DocumentAnalysisReport();
         documentOnJoin.setDocumentAnalysisReport(reportOnJoin);
         tenantJoin.getDocuments().add(documentOnJoin);
+    }
+
+    @Test
+    void addCommentAnalysis_throwsDocumentNotFoundException() {
+        when(documentRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThrows(fr.dossierfacile.api.front.exception.DocumentNotFoundException.class, () ->
+                tenantService.addCommentAnalysis(tenantCreate, 999L, "Comment")
+        );
+
+        verify(documentAnalysisReportRepository, never()).save(any());
+    }
+
+    @Test
+    void addCommentAnalysis_throwsAccessDeniedException() {
+        when(documentRepository.findById(100L)).thenReturn(Optional.of(documentOnCreate));
+        when(documentService.hasPermissionOnDocument(documentOnCreate, tenantJoin)).thenReturn(false);
+
+        assertThrows(org.springframework.security.access.AccessDeniedException.class, () ->
+                tenantService.addCommentAnalysis(tenantJoin, 100L, "Sneaky comment")
+        );
+
+        verify(documentAnalysisReportRepository, never()).save(any());
+    }
+
+    @Test
+    void addCommentAnalysis_throwsNotFoundException_whenNoReport() {
+        Document noReportDoc = new Document();
+        noReportDoc.setId(102L);
+        when(documentRepository.findById(102L)).thenReturn(Optional.of(noReportDoc));
+        when(documentService.hasPermissionOnDocument(noReportDoc, tenantCreate)).thenReturn(true);
+
+        assertThrows(fr.dossierfacile.common.exceptions.NotFoundException.class, () ->
+                tenantService.addCommentAnalysis(tenantCreate, 102L, "Where is the report?")
+        );
+
+        verify(documentAnalysisReportRepository, never()).save(any());
     }
 
     @Test

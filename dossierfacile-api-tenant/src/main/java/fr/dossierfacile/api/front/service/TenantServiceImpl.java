@@ -249,27 +249,6 @@ public class TenantServiceImpl implements TenantService {
         apartmentSharingLinkRepository.save(link);
     }
 
-    private Document getDocumentManagedByTenant(Tenant tenant, Long documentId) {
-        Document tenantSelectedDocument = tenant.getDocuments().stream().filter(document -> document.getId().equals(documentId)).findAny().orElse(null);
-        if (tenantSelectedDocument != null) {
-            return tenantSelectedDocument;
-        }
-        for (Guarantor guarantor : tenant.getGuarantors()) {
-            Document guarantorSelectedDocument = guarantor.getDocuments().stream().filter(document -> document.getId().equals(documentId)).findAny().orElse(null);
-            if (guarantorSelectedDocument != null) {
-                return guarantorSelectedDocument;
-            }
-        }
-        if (tenant.getApartmentSharing().getApplicationType().equals(ApplicationType.COUPLE) && tenant.getTenantType().equals(TenantType.CREATE)) {
-            var couple = tenant.getApartmentSharing().getTenants().stream().filter(t -> !t.getId().equals(tenant.getId())).findAny();
-            if (couple.isPresent()) {
-                return getDocumentManagedByTenant(couple.get(), documentId);
-            }
-        }
-
-        return null;
-    }
-
     @Override
     public void addCommentAnalysis(Tenant tenant, Long documentId, String comment) {
         Document selectedDocument = documentRepository.findById(documentId)
