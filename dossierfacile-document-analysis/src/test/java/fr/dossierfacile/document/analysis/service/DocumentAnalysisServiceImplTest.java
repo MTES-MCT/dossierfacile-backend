@@ -157,6 +157,33 @@ class DocumentAnalysisServiceImplTest {
     }
 
     @Test
+    void should_analyse_residency_document() {
+        Document document = Document.builder()
+                .documentSubCategory(DocumentSubCategory.TENANT)
+                .build();
+        AbstractRulesValidationService validator = mock(AbstractRulesValidationService.class);
+
+        when(mapOfValidators.get(DocumentSubCategory.TENANT)).thenReturn(validator);
+        when(validator.process(eq(document), any(DocumentAnalysisReport.class)))
+                .thenAnswer(invocation -> {
+                    DocumentAnalysisReport report = invocation.getArgument(1);
+                    report.setPassedRules(List.of(DocumentAnalysisRule.builder().rule(DocumentRule.R_DOCUMENT_IA_CLASSIFICATION).build()));
+                    return report;
+                });
+
+        documentAnalysisService.analyseDocument(document);
+
+        ArgumentCaptor<DocumentAnalysisReport> reportCaptor = ArgumentCaptor.forClass(DocumentAnalysisReport.class);
+        verify(documentAnalysisReportRepository).save(reportCaptor.capture());
+        DocumentAnalysisReport report = reportCaptor.getValue();
+
+        Assertions.assertEquals(DocumentAnalysisStatus.CHECKED, report.getAnalysisStatus());
+        verify(mapOfValidators).get(DocumentSubCategory.TENANT);
+        verify(validator).process(eq(document), any(DocumentAnalysisReport.class));
+        verify(documentRepository).save(document);
+    }
+
+    @Test
     void should_reset_previous_report() {
         DocumentAnalysisReport existingReport = DocumentAnalysisReport.builder()
                 .failedRules(List.of(DocumentAnalysisRule.builder().rule(DocumentRule.R_TAX_PARSE).build()))

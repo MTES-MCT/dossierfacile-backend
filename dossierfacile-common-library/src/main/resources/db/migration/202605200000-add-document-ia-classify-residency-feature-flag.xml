@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+    <changeSet id="202605200001" author="SAGON NICOLAS">
+        <insert tableName="feature_flag">
+            <column name="key" value="document-ia-residency-classification"/>
+            <column name="description" value="Enable Document IA analysis for residency classification documents"/>
+            <column name="active" valueBoolean="false"/>
+            <column name="only_for_new_user" valueBoolean="false"/>
+            <column name="rollout_pct" valueNumeric="0"/>
+        </insert>
+
+        <rollback>
+            <delete tableName="feature_flag">
+                <where>key = 'document-ia-residency-classification'</where>
+            </delete>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>
