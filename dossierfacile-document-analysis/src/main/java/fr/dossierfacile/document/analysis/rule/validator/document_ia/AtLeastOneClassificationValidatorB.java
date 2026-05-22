@@ -5,11 +5,28 @@ import fr.dossierfacile.common.entity.DocumentRule;
 
 import java.util.List;
 
-public class OneOffClassificationValidatorB extends BaseDocumentIAValidator {
+/*
+ * Rule R_DOCUMENT_IA_CLASSIFICATION (variant B - at least one):
+ *
+ * Cette variante valide le document si au moins une analyse Document-IA
+ * réussie contient une classification dont le documentType appartient à la
+ * liste autorisée passée au constructeur.
+ *
+ * Comportement:
+ * - FAILED si aucune analyse IA SUCCESS n'est disponible.
+ * - PASSED dès qu'une classification autorisée est trouvée.
+ * - FAILED sinon (analyses présentes mais aucune classification attendue).
+ *
+ * Différence avec ClassificationValidatorB:
+ * - ClassificationValidatorB attend que toutes les classifications exploitables
+ *   soient conformes.
+ * - AtLeastOneClassificationValidatorB n'exige qu'une seule correspondance.
+ */
+public class AtLeastOneClassificationValidatorB extends BaseDocumentIAValidator {
 
     private final List<String> documentTypes;
 
-    public OneOffClassificationValidatorB(List<String> documentTypes) {
+    public AtLeastOneClassificationValidatorB(List<String> documentTypes) {
         this.documentTypes = documentTypes;
     }
 
