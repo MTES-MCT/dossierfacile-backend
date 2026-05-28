@@ -17,8 +17,8 @@ class ExpectedMonthsTest {
         ExpectedMonths expectedMonths = ExpectedMonths.forPayslips(today);
 
         assertThat(expectedMonths).isEqualTo(new ExpectedMonths(
-                List.of(Month.MAY, Month.JUNE, Month.JULY),
-                Month.AUGUST
+                List.of(Month.APRIL, Month.MAY, Month.JUNE, Month.JULY, Month.AUGUST),
+                Month.SEPTEMBER
         ));
     }
 
@@ -28,7 +28,7 @@ class ExpectedMonthsTest {
         ExpectedMonths expectedMonths = ExpectedMonths.forPayslips(today);
 
         assertThat(expectedMonths).isEqualTo(new ExpectedMonths(
-                List.of(Month.JUNE, Month.JULY, Month.AUGUST),
+                List.of(Month.MAY, Month.JUNE, Month.JULY, Month.AUGUST, Month.SEPTEMBER),
                 null
         ));
     }
@@ -61,7 +61,7 @@ class ExpectedMonthsTest {
         ExpectedMonths expectedMonths = ExpectedMonths.forPayslips(today);
 
         assertThat(expectedMonths.format(Locale.FRANCE))
-                .isEqualTo("mai, juin, juillet (août si possible)");
+                .isEqualTo("avril, mai, juin, juillet, août (septembre si possible)");
     }
 
 }
