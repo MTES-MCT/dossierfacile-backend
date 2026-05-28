@@ -195,7 +195,8 @@ public class DocumentServiceImpl implements DocumentService {
         return document;
     }
 
-    private boolean hasPermissionOnDocument(Document document, Tenant tenant) {
+    @Override
+    public boolean hasPermissionOnDocument(Document document, Tenant tenant) {
         Tenant documentTenant = resolveDocumentTenant(document);
         if (documentTenant == null) {
             return false;

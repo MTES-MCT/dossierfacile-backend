@@ -5,10 +5,7 @@ import fr.dossierfacile.api.front.register.RegisterFactory;
 import fr.dossierfacile.api.front.repository.JpaTestApplication;
 import fr.dossierfacile.api.front.security.interfaces.ClientAuthenticationFacade;
 import fr.dossierfacile.api.front.service.TenantServiceImpl;
-import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
-import fr.dossierfacile.api.front.service.interfaces.MailService;
-import fr.dossierfacile.api.front.service.interfaces.TenantPermissionsService;
-import fr.dossierfacile.api.front.service.interfaces.UserApiService;
+import fr.dossierfacile.api.front.service.interfaces.*;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.ApartmentSharingLink;
 import fr.dossierfacile.common.entity.Document;
@@ -90,6 +87,8 @@ class DfcTenantsControllerIntegrationTest {
     private UserApiService userApiService;
     @MockitoBean
     private TenantMapperForMail tenantMapperForMail;
+    @MockitoBean
+    private DocumentService documentService;
 
     private Long tenantId;
     private String expectedDocumentUrl;

@@ -161,36 +161,47 @@
                         <div class="medium-space-separator">
                             <div class="row">
                                 <div class="col-md-5">
-                                    <form
-                                            sec:authorize="hasRole('ROLE_SUPPORT')"
-                                            class="form-inline btn-validate-form"
-                                            style="float: left; margin-right: 10px;"
-                                            th:action="@{/bo/tenant/} + ${tenant.getId()} + '/validate'"
-                                            th:attr="data-id=${tenant.getId()},data-idApt=${tenant.getApartmentSharing().getId()}"
-                                            th:id="'form-validated' + ${tenant.getId()}"
-                                            th:method="post">
-                                        <button class="btn btn-success bo-btn" name="action" type="submit"
-                                                value="delete">
-                                            Valider le dossier
-                                        </button>
-                                    </form>
-                                    <form
-                                            sec:authorize="hasRole('ROLE_SUPPORT')"
-                                            class="form-inline btn-denied-form"
-                                            style="float: left; margin-right: 10px;"
-                                            th:action="@{/bo/tenant/} + ${tenant.getId()} + '/decline'"
-                                            th:attr="data-id=${tenant.getId()},data-idApt=${tenant.getApartmentSharing().getId()}"
-                                            th:id="'form-denied' + ${tenant.getId()}"
-                                            th:method="post">
-                                        <button class="btn btn-danger bo-btn" name="action" type="submit">
-                                            Refuser le dossier
-                                        </button>
-                                    </form>
+                                    <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                                        <form
+                                                sec:authorize="hasRole('ROLE_SUPPORT')"
+                                                class="form-inline btn-validate-form"
+                                                th:action="@{/bo/tenant/} + ${tenant.getId()} + '/validate'"
+                                                th:attr="data-id=${tenant.getId()},data-idApt=${tenant.getApartmentSharing().getId()}"
+                                                th:id="'form-validated' + ${tenant.getId()}"
+                                                th:method="post">
+                                            <button class="btn btn-success bo-btn" name="action" type="submit"
+                                                    value="delete">
+                                                Valider le dossier
+                                            </button>
+                                        </form>
+                                        <form
+                                                sec:authorize="hasRole('ROLE_SUPPORT')"
+                                                class="form-inline btn-reprocess-form"
+                                                th:action="@{/bo/tenant/} + ${tenant.getId()} + '/reprocess'"
+                                                th:attr="data-id=${tenant.getId()},data-idApt=${tenant.getApartmentSharing().getId()}"
+                                                th:id="'form-reprocess' + ${tenant.getId()}"
+                                                th:method="post">
+                                            <button class="btn bo-btn" name="action" type="submit"
+                                                    style="background-color: #0dcaf0; color: #000;">
+                                                Remettre en traitement
+                                            </button>
+                                        </form>
+                                        <form
+                                                sec:authorize="hasRole('ROLE_SUPPORT')"
+                                                class="form-inline btn-denied-form"
+                                                th:action="@{/bo/tenant/} + ${tenant.getId()} + '/decline'"
+                                                th:attr="data-id=${tenant.getId()},data-idApt=${tenant.getApartmentSharing().getId()}"
+                                                th:id="'form-denied' + ${tenant.getId()}"
+                                                th:method="post">
+                                            <button class="btn btn-danger bo-btn" name="action" type="submit">
+                                                Refuser le dossier
+                                            </button>
+                                        </form>
 
-                                    <a class="btn btn-success bo-btn" data-bs-toggle="modal"
-                                       style="background-color: darkcyan;"
-                                       th:data-bs-target="'#target'+${tenant.getId()}">Logs</a>
-
+                                        <a class="btn btn-success bo-btn" data-bs-toggle="modal"
+                                           style="background-color: darkcyan;"
+                                           th:data-bs-target="'#target'+${tenant.getId()}">Logs</a>
+                                    </div>
                                 </div>
                                 <div class="col-md-7">
 

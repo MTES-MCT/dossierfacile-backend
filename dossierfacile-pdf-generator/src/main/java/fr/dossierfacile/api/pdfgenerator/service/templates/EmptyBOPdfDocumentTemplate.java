@@ -106,10 +106,25 @@ public class EmptyBOPdfDocumentTemplate implements PdfTemplate<Document> {
                 String today = LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
                 String header = messageSource.getMessage("tenant.document.tax.justification.certify", new String[]{name}, locale);
                 Utility.addText(contentStream, width, startX, startY, header, font, fontSize, alternativeFont);
-                Utility.addText(contentStream, width, startX, startY - 36, textElements.explanation, font, fontSize, alternativeFont);
-                Utility.addText(contentStream, width, startX, startY - 120, String.format("Fait le %s", today), font, fontSize, alternativeFont);
-                Utility.addText(contentStream, width, startX, startY - 156, "Signature", font, fontSize, alternativeFont);
-                Utility.addText(contentStream, width, startX, startY - 180, name, font, fontSize, alternativeFont);
+
+                float headerToExplanation = leading + 12;
+                float explanationToDate = leading + 12;
+                float dateToSignature = leading + 12;
+                float signatureToName = leading;
+
+                float explanationY = startY - headerToExplanation;
+                Utility.addText(contentStream, width, startX, explanationY, textElements.explanation, font, fontSize, alternativeFont);
+
+                int explanationLines = Utility.countLines(textElements.explanation, width, font, fontSize, alternativeFont);
+                float explanationBottomY = explanationY - explanationLines * leading;
+
+                float dateY = explanationBottomY - explanationToDate;
+                float signatureY = dateY - dateToSignature;
+                float nameY = signatureY - signatureToName;
+
+                Utility.addText(contentStream, width, startX, dateY, String.format("Fait le %s", today), font, fontSize, alternativeFont);
+                Utility.addText(contentStream, width, startX, signatureY, "Signature", font, fontSize, alternativeFont);
+                Utility.addText(contentStream, width, startX, nameY, name, font, fontSize, alternativeFont);
             } else {
                 Utility.addText(contentStream, width, startX, startY, textElements.header, font, fontSize, alternativeFont);
                 Utility.addText(contentStream, width, startX, startY - 36, textElements.explanation, font, fontSize, alternativeFont);

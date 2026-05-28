@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.front.service;
 
+import fr.dossierfacile.api.front.exception.DocumentNotFoundException;
 import fr.dossierfacile.api.front.exception.MailSentLimitException;
 import fr.dossierfacile.api.front.exception.ResendLinkTooShortException;
 import fr.dossierfacile.api.front.exception.TenantNotFoundException;
@@ -9,10 +10,8 @@ import fr.dossierfacile.api.front.model.KeycloakUser;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.RegisterFactory;
 import fr.dossierfacile.api.front.register.enums.StepRegister;
-import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
-import fr.dossierfacile.api.front.service.interfaces.MailService;
-import fr.dossierfacile.api.front.service.interfaces.TenantService;
-import fr.dossierfacile.api.front.service.interfaces.UserApiService;
+import fr.dossierfacile.api.front.repository.DocumentRepository;
+import fr.dossierfacile.api.front.service.interfaces.*;
 import fr.dossierfacile.api.front.util.Obfuscator;
 import fr.dossierfacile.common.converter.AcquisitionData;
 import fr.dossierfacile.common.entity.*;
@@ -60,6 +59,8 @@ public class TenantServiceImpl implements TenantService {
     private final KeycloakService keycloakService;
     private final UserApiService userApiService;
     private final DocumentAnalysisReportRepository documentAnalysisReportRepository;
+    private final DocumentService documentService;
+    private final DocumentRepository documentRepository;
     private final TenantMapperForMail tenantMapperForMail;
 
     @Override
@@ -248,33 +249,15 @@ public class TenantServiceImpl implements TenantService {
         apartmentSharingLinkRepository.save(link);
     }
 
-    private Document getDocumentManagedByTenant(Tenant tenant, Long documentId) {
-        Document tenantSelectedDocument = tenant.getDocuments().stream().filter(document -> document.getId().equals(documentId)).findAny().orElse(null);
-        if (tenantSelectedDocument != null) {
-            return tenantSelectedDocument;
-        }
-        for (Guarantor guarantor : tenant.getGuarantors()) {
-            Document guarantorSelectedDocument = guarantor.getDocuments().stream().filter(document -> document.getId().equals(documentId)).findAny().orElse(null);
-            if (guarantorSelectedDocument != null) {
-                return guarantorSelectedDocument;
-            }
-        }
-        if (tenant.getApartmentSharing().getApplicationType().equals(ApplicationType.COUPLE) && tenant.getTenantType().equals(TenantType.CREATE)) {
-            var couple = tenant.getApartmentSharing().getTenants().stream().filter(t -> !t.getId().equals(tenant.getId())).findAny();
-            if (couple.isPresent()) {
-                return getDocumentManagedByTenant(couple.get(), documentId);
-            }
-        }
-
-        return null;
-    }
-
     @Override
     public void addCommentAnalysis(Tenant tenant, Long documentId, String comment) {
-        Document selectedDocument = getDocumentManagedByTenant(tenant, documentId);
-        if (selectedDocument == null) {
-            throw new NotFoundException();
+        Document selectedDocument = documentRepository.findById(documentId)
+                .orElseThrow(() -> new DocumentNotFoundException(documentId));
+
+        if (!documentService.hasPermissionOnDocument(selectedDocument, tenant)) {
+            throw new AccessDeniedException("Not authorized to access this document");
         }
+
         DocumentAnalysisReport documentAnalysisReport = selectedDocument.getDocumentAnalysisReport();
         if (documentAnalysisReport == null) {
             throw new NotFoundException();
