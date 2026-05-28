@@ -14,6 +14,8 @@
 <body>
 <div layout:fragment="content" th:remove="tag">
 
+    <div th:if="${errorMessage}" class="alert alert-danger mx-3 mt-3" role="alert" th:text="${errorMessage}"></div>
+
     <div class="row class-message-link">
         <div class="col-md-12 col-lg-12">
 
@@ -210,16 +212,6 @@
                                        th:href="@{/bo/tenant/} + ${tenant.getId()} + '/processFile'">
                                         Traiter les documents
                                     </a>
-                                    <div th:if="${ tenant.getTenantType().toString() == 'JOIN' }">
-                                        <form method="post"
-                                              th:action="@{/bo/tenant/setAsTenantCreate/{id}(id=${tenant.getId()})}"
-                                              style="display:inline">
-                                            <button type="submit" class="btn btn-warning bo-btn"
-                                                    style="margin-right: 10px;float: right">
-                                                Fixer comme locataire principal
-                                            </button>
-                                        </form>
-                                    </div>
                                     <div th:if="${ tenant.getTenantType().toString() != 'CREATE'}">
                                         <button class="btn btn-danger bo-btn"
                                                 style="margin-right: 10px;float: right"
@@ -227,6 +219,16 @@
                                                 data-bs-toggle="modal"
                                                 th:data-bs-target="'#deleteCotenant' + ${tenant.getId()}"
                                         >Supprimer le colocataire</button>
+                                    </div>
+                                    <div sec:authorize="hasRole('ROLE_SUPPORT')"
+                                         th:if="${tenant.getTenantType().toString() == 'JOIN' and tenant.getApartmentSharing().getApplicationType().toString() != 'ALONE'}">
+                                        <button class="btn btn-warning bo-btn"
+                                                style="margin-right: 10px; float: right"
+                                                type="button"
+                                                data-bs-toggle="modal"
+                                                th:data-bs-target="'#dissociateCotenant' + ${tenant.getId()}">
+                                            Dissocier le dossier
+                                        </button>
                                     </div>
                                 </div>
 
@@ -240,6 +242,39 @@
                                     message=${'Êtes-vous sûr de vouloir supprimer le dossier de ' + tenant.getFullName() + ' ?'},
                                     actionUrl=@{/bo/tenant/deleteCoTenant/{id}(id=${tenant.getId()})}
                                 )}"></div>
+
+                                <div class="modal fade"
+                                     th:id="'dissociateCotenant' + ${tenant.getId()}"
+                                     role="dialog"
+                                     tabindex="-1">
+                                    <div class="modal-dialog" role="document">
+                                        <div class="modal-content bg-info-subtle">
+                                            <div class="modal-header" style="padding: 10px;">
+                                                <h5 class="modal-title bold" style="width: 80%;float: left;">Confirmer la dissociation</h5>
+                                                <button aria-label="Close" class="btn-close" data-bs-dismiss="modal" type="button"></button>
+                                            </div>
+                                            <div class="modal-body bg-body-tertiary" style="text-shadow: 0 0 black;">
+                                                <p>
+                                                    Ce locataire sera rendu indépendant dans un nouveau dossier ALONE.
+                                                </p>
+                                                <ul>
+                                                    <li>Le PDF du dossier d'origine sera invalidé.</li>
+                                                    <li>Les accès partenaires DFC de ce locataire seront révoqués.</li>
+                                                    <li>Un webhook partenaire DISSOCIATED_ACCOUNT sera envoyé.</li>
+                                                    <li>Un email d'information sera envoyé au locataire dissocié.</li>
+                                                </ul>
+                                            </div>
+                                            <div class="modal-footer bg-body-tertiary" style="padding: 5px;">
+                                                <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Annuler</button>
+                                                <form method="post"
+                                                      style="display:inline;margin:0"
+                                                      th:action="@{/bo/tenant/dissociate/{id}(id=${tenant.getId()})}">
+                                                    <button type="submit" class="btn btn-warning">Dissocier</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                             <div class="row" style="margin-top: 0.5em">
                                 <div class="col-md-10">

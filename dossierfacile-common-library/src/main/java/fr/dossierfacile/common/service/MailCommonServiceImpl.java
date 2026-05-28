@@ -38,6 +38,8 @@ public class MailCommonServiceImpl implements MailCommonService {
     private Long templateIdDossierFullyValidated;
     @Value("${brevo.template.id.partner.access.revoked:104}")
     private Long templateIDPartnerAccessRevoked;
+    @Value("${brevo.template.id.tenant.dissociated:0}")
+    private Long templateIdTenantDissociated;
 
     @Override
     public void sendEmailToTenant(UserDto tenant, Map<String, String> params, Long templateId) {
@@ -107,6 +109,17 @@ public class MailCommonServiceImpl implements MailCommonService {
                 receiver.getKeycloakId()
         );
         sendEmailToTenant(receiverDto, params, templateIDPartnerAccessRevoked);
+    }
+
+    @Async
+    @Override
+    public void sendEmailTenantDissociated(TenantDto tenant) {
+        if (templateIdTenantDissociated <= 0) {
+            log.warn("Brevo template id for tenant dissociation email is not configured, skipping email for tenant {}", tenant.getId());
+            return;
+        }
+        Map<String, String> params = createBaseParams(tenant, true);
+        sendEmailToTenant(tenant, params, templateIdTenantDissociated);
     }
 
     private record RevocationRequest(Tenant requester, Tenant emailReceiver) {
