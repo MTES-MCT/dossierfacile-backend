@@ -7,7 +7,6 @@ import fr.dossierfacile.api.front.register.form.DocumentForm;
 import fr.dossierfacile.api.front.security.interfaces.ClientAuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.common.entity.Document;
-import fr.dossierfacile.common.entity.Guarantor;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.enums.PartnerCallBackType;
@@ -25,11 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -61,9 +56,10 @@ public abstract class AbstractDocumentSaveStep<T extends DocumentForm> implement
             partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.RETURNED_ACCOUNT);
         }
 
-        Set<Long> existingDocumentIds = collectExistingDocumentIds(tenant);
-        Document document = saveDocument(tenant, documentForm);
-        if (!existingDocumentIds.contains(document.getId())) {
+
+        DocumentSaveResult result = saveDocument(tenant, documentForm);
+        Document document = result.document();
+        if (result.created()) {
             logService.saveDocumentAddedLog(document, tenant);
         }
         documentService.markDocumentAsEdited(document);
@@ -73,27 +69,7 @@ public abstract class AbstractDocumentSaveStep<T extends DocumentForm> implement
                 (!clientAuthenticationFacade.isClient()) ? null : clientAuthenticationFacade.getClient());
     }
 
-    // Snapshot of existing document ids taken
-    // this avoids overriding each saveDocument just to log document addition
-    private Set<Long> collectExistingDocumentIds(Tenant tenant) {
-        Set<Long> ids = new HashSet<>();
-        Optional.ofNullable(tenant.getDocuments())
-                .ifPresent(documents -> documents.stream()
-                        .map(Document::getId)
-                        .filter(Objects::nonNull)
-                        .forEach(ids::add));
-        Optional.ofNullable(tenant.getGuarantors())
-                .ifPresent(guarantors -> guarantors.stream()
-                        .map(Guarantor::getDocuments)
-                        .filter(Objects::nonNull)
-                        .flatMap(List::stream)
-                        .map(Document::getId)
-                        .filter(Objects::nonNull)
-                        .forEach(ids::add));
-        return ids;
-    }
-
-    protected abstract Document saveDocument(Tenant tenant, T documentForm);
+    protected abstract DocumentSaveResult saveDocument(Tenant tenant, T documentForm);
 
     protected final void saveFiles(DocumentForm documentForm, Document document) {
         List<ValidatedFile> validatedFiles;

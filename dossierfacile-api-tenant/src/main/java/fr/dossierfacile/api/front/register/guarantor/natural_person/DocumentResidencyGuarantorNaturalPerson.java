@@ -2,6 +2,7 @@ package fr.dossierfacile.api.front.register.guarantor.natural_person;
 
 import fr.dossierfacile.api.front.exception.GuarantorNotFoundException;
 import fr.dossierfacile.api.front.register.AbstractDocumentSaveStep;
+import fr.dossierfacile.api.front.register.DocumentSaveResult;
 import fr.dossierfacile.api.front.register.SaveStep;
 import fr.dossierfacile.api.front.register.form.guarantor.natural_person.DocumentResidencyGuarantorNaturalPersonForm;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
@@ -35,7 +36,7 @@ public class DocumentResidencyGuarantorNaturalPerson
     private final ApartmentSharingService apartmentSharingService;
 
     @Override
-    protected Document saveDocument(Tenant tenant, DocumentResidencyGuarantorNaturalPersonForm documentResidencyGuarantorNaturalPersonForm) {
+    protected DocumentSaveResult saveDocument(Tenant tenant, DocumentResidencyGuarantorNaturalPersonForm documentResidencyGuarantorNaturalPersonForm) {
         Guarantor guarantor = guarantorRepository.findByTenantAndTypeGuarantorAndId(tenant, TypeGuarantor.NATURAL_PERSON, documentResidencyGuarantorNaturalPersonForm.getGuarantorId())
                 .orElseThrow(() -> new GuarantorNotFoundException(documentResidencyGuarantorNaturalPersonForm.getGuarantorId()));
 
@@ -45,6 +46,7 @@ public class DocumentResidencyGuarantorNaturalPerson
                         .documentCategory(DocumentCategory.RESIDENCY)
                         .guarantor(guarantor)
                         .build());
+        boolean created = document.getId() == null;
         document.setDocumentStatus(DocumentStatus.TO_PROCESS);
         document.setDocumentDeniedReasons(null);
         document.setDocumentSubCategory(documentSubCategory);
@@ -65,6 +67,6 @@ public class DocumentResidencyGuarantorNaturalPerson
         tenantStatusService.updateTenantStatus(tenant);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         tenantRepository.save(tenant);
-        return document;
+        return new DocumentSaveResult(document, created);
     }
 }

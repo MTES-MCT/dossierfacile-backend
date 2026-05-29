@@ -2,6 +2,7 @@ package fr.dossierfacile.api.front.register.guarantor.natural_person;
 
 import fr.dossierfacile.api.front.exception.GuarantorNotFoundException;
 import fr.dossierfacile.api.front.register.AbstractDocumentSaveStep;
+import fr.dossierfacile.api.front.register.DocumentSaveResult;
 import fr.dossierfacile.api.front.register.SaveStep;
 import fr.dossierfacile.api.front.register.form.guarantor.natural_person.DocumentProfessionalGuarantorNaturalPersonForm;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
@@ -36,7 +37,7 @@ public class DocumentProfessionalGuarantorNaturalPerson extends AbstractDocument
     private final ApartmentSharingService apartmentSharingService;
 
     @Override
-    protected Document saveDocument(Tenant tenant, DocumentProfessionalGuarantorNaturalPersonForm documentProfessionalGuarantorNaturalPersonForm) {
+    protected DocumentSaveResult saveDocument(Tenant tenant, DocumentProfessionalGuarantorNaturalPersonForm documentProfessionalGuarantorNaturalPersonForm) {
         Guarantor guarantor = guarantorRepository.findByTenantAndTypeGuarantorAndId(tenant, TypeGuarantor.NATURAL_PERSON, documentProfessionalGuarantorNaturalPersonForm.getGuarantorId()).orElseThrow(() -> new GuarantorNotFoundException(documentProfessionalGuarantorNaturalPersonForm.getGuarantorId()));
 
         DocumentSubCategory documentSubCategory = documentProfessionalGuarantorNaturalPersonForm.getTypeDocumentProfessional();
@@ -44,6 +45,7 @@ public class DocumentProfessionalGuarantorNaturalPerson extends AbstractDocument
                 .orElse(
                     Document.builder().documentCategory(DocumentCategory.PROFESSIONAL).guarantor(guarantor).build()
                 );
+        boolean created = document.getId() == null;
 
         document.setDocumentStatus(DocumentStatus.TO_PROCESS);
         document.setDocumentDeniedReasons(null);
@@ -58,6 +60,6 @@ public class DocumentProfessionalGuarantorNaturalPerson extends AbstractDocument
         tenantStatusService.updateTenantStatus(tenant);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         tenantRepository.save(tenant);
-        return document;
+        return new DocumentSaveResult(document, created);
     }
 }

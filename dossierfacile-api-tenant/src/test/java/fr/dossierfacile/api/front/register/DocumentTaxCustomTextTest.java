@@ -52,7 +52,7 @@ class DocumentTaxCustomTextTest {
     private static Document invokeSaveDocument(Object service, Tenant tenant, Object form) throws Exception {
         Method method = service.getClass().getDeclaredMethod("saveDocument", Tenant.class, form.getClass());
         method.setAccessible(true);
-        return (Document) method.invoke(service, tenant, form);
+        return ((DocumentSaveResult) method.invoke(service, tenant, form)).document();
     }
 
     @Nested

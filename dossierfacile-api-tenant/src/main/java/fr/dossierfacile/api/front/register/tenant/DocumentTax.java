@@ -1,6 +1,7 @@
 package fr.dossierfacile.api.front.register.tenant;
 
 import fr.dossierfacile.api.front.register.AbstractDocumentSaveStep;
+import fr.dossierfacile.api.front.register.DocumentSaveResult;
 import fr.dossierfacile.api.front.register.form.tenant.DocumentTaxForm;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
@@ -37,13 +38,14 @@ public class DocumentTax extends AbstractDocumentSaveStep<DocumentTaxForm> {
     private final ApartmentSharingService apartmentSharingService;
 
     @Override
-    protected Document saveDocument(Tenant tenant, DocumentTaxForm documentTaxForm) {
+    protected DocumentSaveResult saveDocument(Tenant tenant, DocumentTaxForm documentTaxForm) {
         DocumentSubCategory documentSubCategory = documentTaxForm.getTypeDocumentTax();
         Document document = documentRepository.findFirstByDocumentCategoryAndTenant(DocumentCategory.TAX, tenant)
                 .orElse(Document.builder()
                         .documentCategory(DocumentCategory.TAX)
                         .tenant(tenant)
                         .build());
+        boolean created = document.getId() == null;
         document.setDocumentStatus(DocumentStatus.TO_PROCESS);
         document.setDocumentDeniedReasons(null);
         document.setDocumentSubCategory(documentSubCategory);
@@ -75,7 +77,7 @@ public class DocumentTax extends AbstractDocumentSaveStep<DocumentTaxForm> {
         tenantStatusService.updateTenantStatus(tenant);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         tenantRepository.save(tenant);
-        return document;
+        return new DocumentSaveResult(document, created);
     }
 
     private void deleteFilesIfExistedBefore(Document document) {
