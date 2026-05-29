@@ -7,9 +7,8 @@ import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.TenantLog;
 import fr.dossierfacile.common.enums.LogType;
-import fr.dossierfacile.common.model.log.EditedDocument;
-import fr.dossierfacile.common.model.log.EditedFile;
-import fr.dossierfacile.common.model.log.EditionType;
+import fr.dossierfacile.common.model.log.DocumentLogDetails;
+import fr.dossierfacile.common.model.log.FileLogDetails;
 import fr.dossierfacile.common.model.log.UpdateMonthlySum;
 import fr.dossierfacile.common.service.interfaces.TenantLogCommonService;
 import fr.gouv.bo.repository.BoTenantLogRepository;
@@ -64,11 +63,11 @@ public class TenantLogService {
 
     public void addDeleteDocumentLog(Long tenantId, Long operatorId, Document document) {
         TenantLog log = TenantLog.builder()
-            .logType(LogType.ACCOUNT_EDITED)
+            .logType(LogType.DOCUMENT_DELETED)
             .tenantId(tenantId)
             .operatorId(operatorId)
             .creationDateTime(LocalDateTime.now())
-            .logDetails(writeAsObjectNode(EditedDocument.from(document, EditionType.DELETE)))
+            .logDetails(writeAsObjectNode(DocumentLogDetails.from(document)))
             .build();
         tenantLogCommonService.saveTenantLog(log);
     }
@@ -86,11 +85,11 @@ public class TenantLogService {
 
     public void addDeleteFileLog(Long tenantId, Long operatorId, File file) {
         TenantLog log = TenantLog.builder()
-            .logType(LogType.ACCOUNT_EDITED)
+            .logType(LogType.FILE_DELETED)
             .tenantId(tenantId)
             .operatorId(operatorId)
             .creationDateTime(LocalDateTime.now())
-            .logDetails(writeAsObjectNode(EditedFile.from(file, EditionType.DELETE)))
+            .logDetails(writeAsObjectNode(FileLogDetails.from(file)))
             .build();
         tenantLogCommonService.saveTenantLog(log);
     }

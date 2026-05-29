@@ -10,7 +10,6 @@ import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.DocumentStatus;
-import fr.dossierfacile.common.model.log.EditionType;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import fr.dossierfacile.document.analysis.service.DocumentIAService;
@@ -42,16 +41,18 @@ public class FileServiceImpl implements FileService {
 
         Tenant tenantFileOwner = documentService.resolveDocumentTenant(document);
 
+        logService.saveFileDeletedLog(file, tenantFileOwner);
+
         document.getFiles().remove(file);
         file.setDocument(null);
         fileRepository.delete(file);
 
         tenant.lastUpdateDateProfile(LocalDateTime.now(), null);
         tenantRepository.save(tenant);
-        logService.saveDocumentEditedLog(document, tenantFileOwner, EditionType.DELETE);
         documentService.markDocumentAsEdited(document);
 
         if (document.getFiles().isEmpty()) {
+            logService.saveDocumentDeletedLog(document, tenantFileOwner);
             documentService.delete(document);
             return null;
         }

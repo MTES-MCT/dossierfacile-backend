@@ -20,7 +20,7 @@ import java.util.Optional;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class EditedFile {
+public class FileLogDetails {
 
     private DocumentCategory documentCategory;
     private DocumentSubCategory documentSubCategory;
@@ -29,11 +29,10 @@ public class EditedFile {
     private Long documentId;
     private Long fileId;
     private String fileName;
-    private EditionType editionType;
 
-    public static EditedFile from(File file, EditionType editionType) {
+    public static FileLogDetails from(File file) {
         Document document = file.getDocument();
-        return EditedFile.builder()
+        return FileLogDetails.builder()
                 .documentCategory(Optional.ofNullable(document)
                         .map(Document::getDocumentCategory).orElse(null))
                 .documentSubCategory(Optional.ofNullable(document)
@@ -49,7 +48,6 @@ public class EditedFile {
                 .fileId(file.getId())
                 .fileName(Optional.ofNullable(file.getStorageFile())
                         .map(StorageFile::getName).orElse(null))
-                .editionType(editionType)
                 .build();
     }
 

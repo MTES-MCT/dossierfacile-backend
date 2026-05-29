@@ -18,17 +18,16 @@ import java.util.Optional;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class EditedDocument {
+public class DocumentLogDetails {
 
     private DocumentCategory documentCategory;
     private DocumentSubCategory documentSubCategory;
     private Long tenantId;
     private Long guarantorId;
     private Long documentId;
-    private EditionType editionType;
 
-    public static EditedDocument from(Document document, EditionType editionType) {
-        return EditedDocument.builder()
+    public static DocumentLogDetails from(Document document) {
+        return DocumentLogDetails.builder()
                 .documentCategory(document.getDocumentCategory())
                 .documentSubCategory(document.getDocumentSubCategory())
                 .documentId(document.getId())
@@ -36,7 +35,6 @@ public class EditedDocument {
                         .map(Tenant::getId).orElse(null))
                 .guarantorId(Optional.ofNullable(document.getGuarantor())
                         .map(Guarantor::getId).orElse(null))
-                .editionType(editionType)
                 .build();
     }
 
