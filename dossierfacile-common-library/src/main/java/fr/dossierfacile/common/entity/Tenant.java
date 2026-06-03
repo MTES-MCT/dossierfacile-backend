@@ -89,6 +89,9 @@ public class Tenant extends User implements Person, Serializable {
     @Enumerated(EnumType.STRING)
     private TenantOwnerType ownerType;
 
+    @Column(name="search_text")
+    private String searchText;
+
     private transient String warningMessage;
 
     public static TenantBuilder<?, ?> builder() {
@@ -102,6 +105,37 @@ public class Tenant extends User implements Person, Serializable {
             status = computeStatus();
         }
         return status;
+    }
+
+
+    @PrePersist
+    @PreUpdate
+    public void updateSearchName() {
+        List<String> parts = new ArrayList<>();
+
+        // On vérifie si c'est un THIRD_PARTY (en gérant le cas où ownerType est null)
+        boolean isThirdParty = this.ownerType == TenantOwnerType.THIRD_PARTY;
+
+        if (isThirdParty) {
+            // Logique THIRD_PARTY : On prend tenantFirstName et tenantLastName
+            if (this.tenantFirstName != null && !this.tenantFirstName.isBlank()) {
+                parts.add(this.tenantFirstName.toLowerCase().trim());
+            }
+            if (this.tenantLastName != null && !this.tenantLastName.isBlank()) {
+                parts.add(this.tenantLastName.toLowerCase().trim());
+            }
+        } else {
+            // Logique par défaut (SELF ou NULL) : On prend firstName et lastName
+            if (super.getFirstName() != null && !super.getFirstName().isBlank()) {
+                parts.add(super.getFirstName().toLowerCase().trim());
+            }
+            if (super.getLastName() != null && !super.getLastName().isBlank()) {
+                parts.add(super.getLastName().toLowerCase().trim());
+            }
+        }
+
+        // On assemble avec un seul espace
+        this.searchText = String.join(" ", parts);
     }
 
     public TenantFileStatus computeStatus() {

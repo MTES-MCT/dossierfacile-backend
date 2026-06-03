@@ -18,19 +18,61 @@
     </changeSet>
     <changeSet id="20260602000000-03" author="nicolas" runInTransaction="false">
         <sql>
-            CREATE UNIQUE INDEX idx_ranked_tenant_tid ON ranked_tenant (tid);
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_ranked_tenant_tid ON ranked_tenant (tid);
         </sql>
     </changeSet>
     <changeSet id="20260602000000-04" author="nicolas">
         <sql splitStatements="false">
-            CREATE OR REPLACE PROCEDURE refresh_mv(view_name text)
+            CREATE
+            OR REPLACE PROCEDURE refresh_mv(view_name text)
             LANGUAGE plpgsql
             SECURITY DEFINER
             AS $$
             BEGIN
-                EXECUTE 'REFRESH MATERIALIZED VIEW CONCURRENTLY ' || quote_ident(view_name);
+            EXECUTE 'REFRESH MATERIALIZED VIEW CONCURRENTLY ' || quote_ident(view_name);
             END;
             $$;
+        </sql>
+    </changeSet>
+    <changeSet id="20260602000000-05" author="nicolas">
+        <sql>
+            CREATE
+            EXTENSION IF NOT EXISTS pg_trgm;
+        </sql>
+    </changeSet>
+    <changeSet id="20260602000000-06" author="nicolas">
+        <sql>
+            ALTER TABLE tenant
+                ADD COLUMN IF NOT EXISTS search_text VARCHAR (255);
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260602000000-07" author="nicolas">
+        <sql>
+            UPDATE tenant t
+            SET search_text = lower(
+                    CASE
+                        WHEN t.owner_type = 'THIRD_PARTY' THEN
+                            concat_ws(' ',
+                                      nullif(trim(t.tenant_first_name), ''),
+                                      nullif(trim(t.tenant_last_name), '')
+                            )
+                        ELSE
+                            concat_ws(' ',
+                                      nullif(trim(ua.first_name), ''),
+                                      nullif(trim(ua.last_name), '')
+                            )
+                        END
+                              )
+                FROM user_account ua
+            WHERE t.id = ua.id;
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260602000000-08" author="nicolas" runInTransaction="false">
+        <sql>
+            CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_tenant_search_text_trgm
+                ON tenant USING gin (search_text gin_trgm_ops);
         </sql>
     </changeSet>
 </databaseChangeLog>

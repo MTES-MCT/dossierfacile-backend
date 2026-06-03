@@ -23,9 +23,12 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
 
     boolean existsByEmail(String email);
 
-    @Query("select distinct t FROM Tenant t where concat(LOWER(coalesce(t.firstName, '')),' ',LOWER(coalesce(t.lastName, ''))) like CONCAT('%', :nameUser, '%')")
-    Page<Tenant> findTenantByFirstNameOrLastNameOrFullName(@Param("nameUser") String nameUser, Pageable pageable);
-
+    @Query(value = "SELECT t.*, ua.* " +
+            "FROM tenant t " +
+            "JOIN user_account ua ON t.id = ua.id " +
+            "WHERE t.search_text LIKE ALL(:words)",
+            nativeQuery = true)
+    Page<Tenant> findTenantByWordsAnywhere(@Param("words") String[] words, Pageable pageable);
     // rank condition is set to avoid to treat too fast a returning tenant
     // status and honorDeclaration are redundancy but that okay
     @Query(value = """
