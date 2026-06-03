@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+    <changeSet id="20260602000000-01" author="nicolas" runInTransaction="false">
+        <sql>
+            CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_tenant_log_opt_type_date
+                ON tenant_log (operator_id, log_type, creation_date);
+        </sql>
+    </changeSet>
+    <changeSet id="20260602000000-02" author="nicolas" runInTransaction="false">
+        <sql>
+            CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_latest_operator_tenant_id
+                ON latest_operator (tenant_id);
+        </sql>
+    </changeSet>
+    <changeSet id="20260602000000-03" author="nicolas" runInTransaction="false">
+        <sql>
+            CREATE UNIQUE INDEX idx_ranked_tenant_tid ON ranked_tenant (tid);
+        </sql>
+    </changeSet>
+    <changeSet id="20260602000000-04" author="nicolas">
+        <sql splitStatements="false">
+            CREATE OR REPLACE PROCEDURE refresh_mv(view_name text)
+            LANGUAGE plpgsql
+            SECURITY DEFINER
+            AS $$
+            BEGIN
+                EXECUTE 'REFRESH MATERIALIZED VIEW CONCURRENTLY ' || quote_ident(view_name);
+            END;
+            $$;
+        </sql>
+    </changeSet>
+</databaseChangeLog>
