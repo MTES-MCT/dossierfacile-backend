@@ -17,6 +17,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.*;
 
@@ -62,13 +63,6 @@ public class BOTenantController {
     }
 
     @PreAuthorize("hasRole('SUPPORT')")
-    @PostMapping("/setAsTenantCreate/{id}")
-    public String setAsTenantCreate(@PathVariable Long id) {
-        Tenant tenant = userService.setAsTenantCreate(tenantService.findTenantById(id));
-        return redirectToTenantPage(tenant);
-    }
-
-    @PreAuthorize("hasRole('SUPPORT')")
     @DeleteMapping("/deleteCoTenant/{id}")
     public String deleteCoTenant(
             @PathVariable Long id,
@@ -81,6 +75,25 @@ public class BOTenantController {
         BOUser operator = userService.findUserByEmail(principal.getEmail());
         userService.deleteCoTenant(tenant, operator);
         return REDIRECT_BO_COLOCATION + tenant.getApartmentSharing().getId();
+    }
+
+    @PreAuthorize("hasRole('SUPPORT')")
+    @PostMapping("/dissociate/{id}")
+    public String dissociateTenant(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserPrincipal principal,
+            RedirectAttributes redirectAttributes
+    ) {
+        Tenant tenant = tenantService.findTenantById(id);
+        BOUser operator = userService.findUserByEmail(principal.getEmail());
+        Long apartmentSharingId = tenant.getApartmentSharing().getId();
+        try {
+            Long newApartmentSharingId = tenantService.dissociateTenant(tenant, operator);
+            return REDIRECT_BO_COLOCATION + newApartmentSharingId + "#tenant" + tenant.getId();
+        } catch (IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return REDIRECT_BO_COLOCATION + apartmentSharingId + "#tenant" + tenant.getId();
+        }
     }
 
     @PreAuthorize("hasRole('SUPPORT')")

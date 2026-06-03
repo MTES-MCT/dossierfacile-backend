@@ -10,6 +10,7 @@ import fr.dossierfacile.common.mapper.mail.TenantMapperForMail;
 import fr.dossierfacile.common.repository.SharedFileRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.repository.projection.TenantWaitingTimeBucketProjection;
+import fr.dossierfacile.common.service.ApartmentSharingLinkService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.dossierfacile.common.service.interfaces.TenantCommonService;
 import fr.dossierfacile.common.service.interfaces.TenantLogCommonService;
@@ -22,6 +23,7 @@ import fr.gouv.bo.repository.*;
 import fr.gouv.bo.security.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,6 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static fr.gouv.bo.controller.BOController.REDIRECT_BO_HOME;
 import static org.apache.commons.lang3.StringUtils.*;
@@ -60,6 +63,7 @@ public class TenantService {
     private final TenantLogService tenantLogService;
     private final KeycloakService keycloakService;
     private final ApartmentSharingService apartmentSharingService;
+    private final ApartmentSharingLinkService apartmentSharingLinkService;
     private final GuarantorRepository guarantorRepository;
     private final TenantMapperForMail tenantMapperForMail;
     private final ApartmentSharingMapperForMail apartmentSharingMapperForMail;
@@ -872,6 +876,49 @@ public class TenantService {
 
     public Tenant getTenantByEmail(String email) {
         return tenantRepository.findByEmail(email).get();
+    }
+
+    @Transactional
+    public Long dissociateTenant(Tenant tenant, BOUser operator) {
+        ApartmentSharing oldApartmentSharing = tenant.getApartmentSharing();
+        if (oldApartmentSharing.getApplicationType() == ApplicationType.ALONE) {
+            throw new IllegalStateException("Cannot dissociate tenant from an ALONE apartment sharing");
+        }
+        if (tenant.getTenantType() != TenantType.JOIN) {
+            throw new IllegalStateException("Only JOIN tenants can be dissociated");
+        }
+        if (StringUtils.isBlank(tenant.getEmail())) {
+            throw new IllegalStateException("The tenant must have an email to be dissociated");
+        }
+
+        List<Tenant> remainingTenantsSnapshot = oldApartmentSharing.getTenants().stream()
+                .filter(t -> !t.getId().equals(tenant.getId()))
+                .collect(Collectors.toCollection(ArrayList::new));
+
+        ApartmentSharing newApartmentSharing = apartmentSharingService.createApartmentSharingFor(tenant);
+        tenant.setTenantType(TenantType.CREATE);
+        tenantRepository.save(tenant);
+
+        apartmentSharingService.removeTenant(oldApartmentSharing, tenant);
+        apartmentSharingLinkService.revokeAllPartnerAccessForTenant(tenant);
+
+        tenantLogCommonService.saveTenantLog(
+                TenantLog.builder()
+                        .logType(LogType.ACCOUNT_DISSOCIATED)
+                        .tenantId(tenant.getId())
+                        .operatorId(operator.getId())
+                        .creationDateTime(LocalDateTime.now())
+                        .build()
+        );
+
+        var dissociatedTenantDto = tenantMapperForMail.toDto(tenant);
+        TransactionalUtil.afterCommit(() -> {
+            partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.DISSOCIATED_ACCOUNT);
+            partnerCallBackService.sendCallBack(remainingTenantsSnapshot, PartnerCallBackType.DISSOCIATED_ACCOUNT);
+            mailService.sendEmailTenantDissociated(dissociatedTenantDto);
+        });
+
+        return newApartmentSharing.getId();
     }
 
     @Transactional

@@ -223,6 +223,10 @@ public class ApartmentSharingLinkService {
         }
     }
 
+    public void revokeAllPartnerAccessForTenant(Tenant tenant) {
+        tenantUserApiRepository.findAllByTenant(tenant).forEach(this::revokeAccess);
+    }
+
     private void revokeAccess(TenantUserApi tenantUserApi) {
         UserApi userApi = tenantUserApi.getUserApi();
         Tenant tenant = tenantUserApi.getTenant();
