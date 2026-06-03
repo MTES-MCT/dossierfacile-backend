@@ -23,12 +23,18 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
 
     boolean existsByEmail(String email);
 
-    @Query(value = "SELECT t.*, ua.* " +
-            "FROM tenant t " +
-            "JOIN user_account ua ON t.id = ua.id " +
-            "WHERE t.search_text LIKE ALL(:words)",
+    @Query(
+            value = "SELECT t.*, ua.* " +
+                    "FROM tenant t " +
+                    "JOIN user_account ua ON t.id = ua.id " +
+                    "WHERE t.search_text LIKE ALL(:words)",
+            countQuery = "SELECT COUNT(t.id) " +
+                    "FROM tenant t " +
+                    "JOIN user_account ua ON t.id = ua.id " +
+                    "WHERE t.search_text LIKE ALL(:words)",
             nativeQuery = true)
     Page<Tenant> findTenantByWordsAnywhere(@Param("words") String[] words, Pageable pageable);
+
     // rank condition is set to avoid to treat too fast a returning tenant
     // status and honorDeclaration are redundancy but that okay
     @Query(value = """

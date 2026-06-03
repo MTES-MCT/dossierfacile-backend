@@ -27,6 +27,7 @@
             OR REPLACE PROCEDURE refresh_mv(view_name text)
             LANGUAGE plpgsql
             SECURITY DEFINER
+            SET search_path = public, pg_temp
             AS $$
             BEGIN
             EXECUTE 'REFRESH MATERIALIZED VIEW CONCURRENTLY ' || quote_ident(view_name);
