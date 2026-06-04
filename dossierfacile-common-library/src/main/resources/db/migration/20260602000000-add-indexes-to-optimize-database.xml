@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+    <changeSet id="20260602000000-01" author="nicolas" runInTransaction="false">
+        <sql>
+            CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_tenant_log_opt_type_date
+                ON tenant_log (operator_id, log_type, creation_date);
+        </sql>
+    </changeSet>
+    <changeSet id="20260602000000-02" author="nicolas" runInTransaction="false">
+        <sql>
+
+            CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS idx_latest_operator_tenant_id
+                ON latest_operator (tenant_id);
+        </sql>
+    </changeSet>
+    <changeSet id="20260602000000-03" author="nicolas" runInTransaction="false">
+        <sql>
+            CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS idx_ranked_tenant_tid ON ranked_tenant (tid);
+        </sql>
+    </changeSet>
+    <changeSet id="20260602000000-04" author="nicolas">
+        <sql splitStatements="false">
+            CREATE
+            OR REPLACE PROCEDURE refresh_mv(view_name text)
+            LANGUAGE plpgsql
+            SECURITY DEFINER
+            SET search_path = public, pg_temp
+            AS $$
+            BEGIN
+            EXECUTE 'REFRESH MATERIALIZED VIEW CONCURRENTLY ' || quote_ident(view_name);
+            END;
+            $$;
+        </sql>
+    </changeSet>
+    <changeSet id="20260602000000-05" author="nicolas">
+        <sql>
+            CREATE
+            EXTENSION IF NOT EXISTS pg_trgm;
+        </sql>
+    </changeSet>
+    <changeSet id="20260602000000-06" author="nicolas">
+        <sql>
+            ALTER TABLE tenant
+                ADD COLUMN IF NOT EXISTS search_text VARCHAR (255);
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260602000000-07" author="nicolas">
+        <sql>
+            UPDATE tenant t
+            SET search_text = lower(
+                    CASE
+                        WHEN t.owner_type = 'THIRD_PARTY' THEN
+                            concat_ws(' ',
+                                      nullif(trim(t.tenant_first_name), ''),
+                                      nullif(trim(t.tenant_last_name), '')
+                            )
+                        ELSE
+                            concat_ws(' ',
+                                      nullif(trim(ua.first_name), ''),
+                                      nullif(trim(ua.last_name), '')
+                            )
+                        END
+                              ) FROM user_account ua
+            WHERE t.id = ua.id
+              AND t.search_text IS NULL;
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260602000000-08" author="nicolas" runInTransaction="false">
+        <sql>
+            CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_tenant_search_text_trgm
+                ON tenant USING gin (search_text gin_trgm_ops);
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260602000000-09" author="nicolas" runInTransaction="false">
+        <sql>
+            CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_account_email_lower
+                ON user_account (lower(email));
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260602000000-10" author="nicolas" runInTransaction="false">
+        <sql>
+            CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_link_log_apt_sharing_id
+                ON link_log (apartment_sharing_id);
+        </sql>
+    </changeSet>
+
+
+</databaseChangeLog>

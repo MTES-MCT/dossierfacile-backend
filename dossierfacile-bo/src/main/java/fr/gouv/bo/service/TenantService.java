@@ -87,7 +87,10 @@ public class TenantService {
                     .orElse(Collections.emptyList());
             return new PageImpl<>(result, pageable, result.size());
         }
-        return tenantRepository.findTenantByFirstNameOrLastNameOrFullName(email.toLowerCase(Locale.ROOT), pageable);
+        String[] searchWords = Arrays.stream(email.trim().toLowerCase().split("\\s+"))
+                .map(word -> "%" + word + "%")
+                .toArray(String[]::new);
+        return tenantRepository.findTenantByWordsAnywhere(searchWords, pageable);
     }
 
 
