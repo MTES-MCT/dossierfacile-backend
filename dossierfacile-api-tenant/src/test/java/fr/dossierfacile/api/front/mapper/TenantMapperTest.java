@@ -327,6 +327,51 @@ class TenantMapperTest {
         }
     }
 
+    @Nested
+    class UuidMapping {
+
+        @Test
+        void shouldExposeUuidWhenDocumentUrlPresent() {
+            UUID partnerToken = UUID.randomUUID();
+            UserApi userApi = UserApi.builder().id(42L).name("partner-test").build();
+
+            Tenant tenant = buildTenantWithDocument(TenantFileStatus.VALIDATED);
+            setupApartmentSharing(tenant, List.of(buildPartnerLink(partnerToken)));
+
+            TenantModel model = mapper.toTenantModel(tenant, userApi);
+
+            var document = model.getDocuments().getFirst();
+            assertThat(document.getName()).isNotNull(); 
+            assertThat(document.getUuid()).isEqualTo("doc-123.pdf");
+        }
+
+        @Test
+        void shouldHideUuidWhenDocumentUrlAbsent() {
+            UserApi userApi = UserApi.builder().id(42L).name("partner-test").build();
+
+            Document document = Document.builder()
+                    .name("doc-no-watermark.pdf")
+                    .documentSubCategory(DocumentSubCategory.MY_NAME)
+                    .files(new ArrayList<>())
+                    .build();
+            Tenant tenant = Tenant.builder()
+                    .id(1L)
+                    .status(TenantFileStatus.VALIDATED)
+                    .franceConnect(false)
+                    .documents(List.of(document))
+                    .guarantors(new ArrayList<>())
+                    .build();
+            document.setTenant(tenant);
+            setupApartmentSharing(tenant, List.of(buildPartnerLink(UUID.randomUUID())));
+
+            TenantModel model = mapper.toTenantModel(tenant, userApi);
+
+            var mappedDocument = model.getDocuments().getFirst();
+            assertThat(mappedDocument.getName()).isNull();
+            assertThat(mappedDocument.getUuid()).isNull();
+        }
+    }
+
     private void setupDossierUser() {
         var securityContext = SecurityContextHolder.createEmptyContext();
         securityContext.setAuthentication(
