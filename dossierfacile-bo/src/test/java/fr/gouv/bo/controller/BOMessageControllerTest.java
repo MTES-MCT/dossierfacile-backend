@@ -5,6 +5,7 @@ import fr.dossierfacile.common.entity.BOUser;
 import fr.dossierfacile.common.entity.Message;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.gouv.bo.dto.BrevoMailHistoryViewDTO;
+import fr.gouv.bo.dto.MessageDTO;
 import fr.gouv.bo.security.BOApplicationAccessService;
 import fr.gouv.bo.security.UserPrincipal;
 import fr.gouv.bo.service.BrevoMailHistoryService;
@@ -132,6 +133,41 @@ class BOMessageControllerTest {
             controller.tenantBrevoHistory(new ExtendedModelMap(), TENANT_ID, principal);
 
             verify(applicationAccessService).checkTenantAccess(principal, TENANT_ID);
+        }
+    }
+
+    @Nested
+    class NewMessage {
+
+        private static final Long TENANT_ID = 10L;
+
+        @Test
+        void newMessage_whenAuthorized_checksAccessAndDelegatesToTenantService() {
+            UserPrincipal principal = operatorPrincipal();
+            MessageDTO messageDTO = MessageDTO.builder().message("Hello").build();
+            when(tenantService.updateStatusOfTenantFromAdmin(principal, messageDTO, TENANT_ID))
+                    .thenReturn("redirect:/bo/colocation/33#tenant10");
+
+            String result = controller.newMessage(messageDTO, TENANT_ID, principal);
+
+            assertThat(result).isEqualTo("redirect:/bo/colocation/33#tenant10");
+            verify(applicationAccessService).checkTenantAccess(principal, TENANT_ID);
+            verify(tenantService).updateStatusOfTenantFromAdmin(principal, messageDTO, TENANT_ID);
+        }
+
+        @Test
+        void newMessage_whenAccessServiceThrowsAccessDenied_propagatesException() {
+            UserPrincipal principal = operatorPrincipal();
+            MessageDTO messageDTO = MessageDTO.builder().message("Hello").build();
+            doThrow(new AccessDeniedException("forbidden"))
+                    .when(applicationAccessService)
+                    .checkTenantAccess(any(), eq(TENANT_ID));
+
+            assertThatThrownBy(() -> controller.newMessage(messageDTO, TENANT_ID, principal))
+                    .isInstanceOf(AccessDeniedException.class)
+                    .hasMessage("forbidden");
+
+            verify(tenantService, never()).updateStatusOfTenantFromAdmin(any(), any(), any());
         }
     }
 
