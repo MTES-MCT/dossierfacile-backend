@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.front.dfc.controller;
 
+import fr.dossierfacile.api.front.dfc.service.DfcDocumentService;
 import fr.dossierfacile.api.front.mapper.TenantMapperImpl;
 import fr.dossierfacile.api.front.register.RegisterFactory;
 import fr.dossierfacile.api.front.repository.JpaTestApplication;
@@ -20,6 +21,7 @@ import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.mapper.mail.TenantMapperForMail;
 import fr.dossierfacile.common.service.interfaces.ConfirmationTokenService;
+import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import jakarta.persistence.EntityManager;
@@ -89,6 +91,10 @@ class DfcTenantsControllerIntegrationTest {
     private TenantMapperForMail tenantMapperForMail;
     @MockitoBean
     private DocumentService documentService;
+    @MockitoBean
+    private FileStorageService fileStorageService;
+    @MockitoBean
+    private DfcDocumentService dfcDocumentService;
 
     private Long tenantId;
     private String expectedDocumentUrl;

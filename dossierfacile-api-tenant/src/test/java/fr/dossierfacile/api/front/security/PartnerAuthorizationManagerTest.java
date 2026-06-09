@@ -12,6 +12,7 @@ import org.springframework.security.web.access.intercept.RequestAuthorizationCon
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -89,6 +90,40 @@ class PartnerAuthorizationManagerTest {
         RequestAuthorizationContext context = new RequestAuthorizationContext(httpServletRequest, Map.of());
 
         AuthorizationDecision decision = partnerAuthorizationManager.check(authSupplier, context);
+
+        assertThat(decision).isNotNull();
+        assertThat(decision.isGranted()).isFalse();
+    }
+
+    @Test
+    void shouldGrantWhenAllRequiredScopesPresent() {
+        PartnerAuthorizationManager manager = new PartnerAuthorizationManager("dfc", "dfc-documents");
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("client_id", "partner-client");
+        Jwt jwt = getDummyJwtWithCustomClaims(claims);
+        Authentication authentication = new JwtAuthenticationToken(jwt, List.of(
+                new SimpleGrantedAuthority("SCOPE_dfc"),
+                new SimpleGrantedAuthority("SCOPE_dfc-documents")));
+        RequestAuthorizationContext context = new RequestAuthorizationContext(httpServletRequest, Map.of());
+
+        AuthorizationDecision decision = manager.check(() -> authentication, context);
+
+        assertThat(decision).isNotNull();
+        assertThat(decision.isGranted()).isTrue();
+    }
+
+    @Test
+    void shouldDenyWhenOneRequiredScopeMissing() {
+        PartnerAuthorizationManager manager = new PartnerAuthorizationManager("dfc", "dfc-documents");
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("client_id", "partner-client");
+        Jwt jwt = getDummyJwtWithCustomClaims(claims);
+        // Has SCOPE_dfc but is missing SCOPE_dfc-documents
+        Authentication authentication = new JwtAuthenticationToken(jwt, Collections.singletonList(
+                new SimpleGrantedAuthority("SCOPE_dfc")));
+        RequestAuthorizationContext context = new RequestAuthorizationContext(httpServletRequest, Map.of());
+
+        AuthorizationDecision decision = manager.check(() -> authentication, context);
 
         assertThat(decision).isNotNull();
         assertThat(decision.isGranted()).isFalse();

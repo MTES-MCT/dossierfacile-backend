@@ -74,6 +74,7 @@ public class ResourceServerConfig {
                                 "/actuator/health",
                                 "/api/webhook/**").permitAll()
                         .requestMatchers("/api-partner/**").access(apiPartnerAuthorizationManager())
+                        .requestMatchers("/dfc/api/v1/tenants/*/documents/**").access(dfcDocumentsAuthorizationManager())
                         .requestMatchers("/dfc/api/**").access(dfcPartnerServiceAuthorizationManager())
                         .requestMatchers("/dfc/**").hasAuthority("SCOPE_dfc")
                         .anyRequest().hasAuthority("SCOPE_dossier")
@@ -98,6 +99,11 @@ public class ResourceServerConfig {
     @Bean
     AuthorizationManager<RequestAuthorizationContext> dfcPartnerServiceAuthorizationManager() {
         return new PartnerAuthorizationManager("dfc");
+    }
+
+    @Bean
+    AuthorizationManager<RequestAuthorizationContext> dfcDocumentsAuthorizationManager() {
+        return new PartnerAuthorizationManager("dfc", "dfc-documents");
     }
 
     @Bean

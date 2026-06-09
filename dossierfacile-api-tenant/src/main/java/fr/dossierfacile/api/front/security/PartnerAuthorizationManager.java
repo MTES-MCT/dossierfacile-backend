@@ -6,17 +6,20 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.function.Supplier;
 
 public class PartnerAuthorizationManager implements AuthorizationManager<RequestAuthorizationContext> {
-    private final String authScope;
+    private final List<String> requiredAuthorities;
 
-    public PartnerAuthorizationManager(String scope) {
-        this.authScope = "SCOPE_" + scope;
+    public PartnerAuthorizationManager(String... scopes) {
+        this.requiredAuthorities = Arrays.stream(scopes).map(scope -> "SCOPE_" + scope).toList();
     }
 
     private boolean hasScope(Authentication authentication) {
-        return authentication.getAuthorities().stream().anyMatch(a -> authScope.equals(a.getAuthority()));
+        return requiredAuthorities.stream().allMatch(required ->
+                authentication.getAuthorities().stream().anyMatch(a -> required.equals(a.getAuthority())));
     }
 
     private boolean isClient(Authentication authentication) {

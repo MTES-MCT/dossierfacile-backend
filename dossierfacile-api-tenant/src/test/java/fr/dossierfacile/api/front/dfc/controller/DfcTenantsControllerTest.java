@@ -3,14 +3,20 @@ package fr.dossierfacile.api.front.dfc.controller;
 import fr.dossierfacile.api.front.TestApplication;
 import fr.dossierfacile.api.front.config.ResourceServerConfig;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
+import fr.dossierfacile.api.front.dfc.service.DfcDocumentService;
+import fr.dossierfacile.api.front.exception.DocumentNotFoundException;
 import fr.dossierfacile.api.front.security.interfaces.ClientAuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.TenantPermissionsService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.common.config.GlobalExceptionHandler;
 import fr.dossierfacile.api.front.model.dfc.apartment_sharing.ApartmentSharingModel;
 import fr.dossierfacile.api.front.model.dfc.tenant.ConnectedTenantModel;
+import fr.dossierfacile.common.entity.Document;
+import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.UserApi;
+import fr.dossierfacile.common.enums.DocumentSubCategory;
+import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.parameterizedtest.ArgumentBuilder;
 import fr.dossierfacile.parameterizedtest.ControllerParameter;
 import fr.dossierfacile.parameterizedtest.ParameterizedTestHelper;
@@ -23,9 +29,9 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
@@ -33,6 +39,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import javax.annotation.PostConstruct;
+import java.io.ByteArrayInputStream;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -44,6 +51,7 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(DfcTenantsController.class)
@@ -68,6 +76,12 @@ class DfcTenantsControllerTest {
 
     @MockitoBean
     private TenantMapper tenantMapper;
+
+    @MockitoBean
+    private DfcDocumentService dfcDocumentService;
+
+    @MockitoBean
+    private FileStorageService fileStorageService;
 
     @MockitoBean
     private JwtDecoder jwtDecoder;
@@ -158,7 +172,7 @@ class DfcTenantsControllerTest {
                                     null,
                                     404,
                                     jwtTokenWithDfc,
-                                    (v) -> {
+                                    v -> {
                                         when(self.tenantService.findById(TENANT_ID)).thenReturn(null);
                                         when(self.clientAuthenticationFacade.getClient()).thenReturn(userApi);
                                         return v;
@@ -171,7 +185,7 @@ class DfcTenantsControllerTest {
                                     null,
                                     403,
                                     jwtTokenWithDfc,
-                                    (v) -> {
+                                    v -> {
                                         when(self.tenantService.findById(TENANT_ID)).thenReturn(tenant);
                                         when(self.clientAuthenticationFacade.getKeycloakClientId()).thenReturn("partner-client");
                                         when(self.clientAuthenticationFacade.getClient()).thenReturn(userApi);
@@ -186,12 +200,12 @@ class DfcTenantsControllerTest {
                                     null,
                                     200,
                                     jwtTokenWithDfc,
-                                    (v) -> {
+                                    v -> {
                                         when(self.tenantService.findById(TENANT_ID)).thenReturn(tenant);
                                         when(self.clientAuthenticationFacade.getKeycloakClientId()).thenReturn("partner-client");
                                         when(self.clientAuthenticationFacade.getClient()).thenReturn(userApi);
                                         when(self.tenantPermissionsService.clientCanAccess("partner-client", TENANT_ID)).thenReturn(true);
-                                        when(self.tenantMapper.toTenantModelDfc(eq(tenant), eq(userApi)))
+                                        when(self.tenantMapper.toTenantModelDfc(tenant, userApi))
                                                 .thenReturn(ConnectedTenantModel.builder()
                                                         .connectedTenantId(TENANT_ID)
                                                         .apartmentSharing(ApartmentSharingModel.builder().build())
@@ -209,6 +223,64 @@ class DfcTenantsControllerTest {
         void parameterizedTests(ControllerParameter<Void> parameter) throws Exception {
             var mockMvcRequestBuilder = get("/dfc/api/v1/tenants/{tenantId}", TENANT_ID);
             ParameterizedTestHelper.runControllerTest(mockMvc, mockMvcRequestBuilder, parameter);
+        }
+    }
+
+    @Nested
+    class DownloadDocumentTests {
+
+        private static final String DOC_TOKEN = "doc-token-123";
+        private static final String URL = "/dfc/api/v1/tenants/{tenantId}/documents/{token}";
+
+        private org.springframework.test.web.servlet.request.RequestPostProcessor jwtWithBothScopes() {
+            var claims = new HashMap<String, Object>();
+            claims.put("client_id", "partner-client");
+            return jwt().authorities(
+                            new SimpleGrantedAuthority("SCOPE_dfc"),
+                            new SimpleGrantedAuthority("SCOPE_dfc-documents"))
+                    .jwt(getDummyJwtWithCustomClaims(claims));
+        }
+
+        private Document downloadableDocument() {
+            return Document.builder()
+                    .id(10L)
+                    .name(DOC_TOKEN)
+                    .documentSubCategory(DocumentSubCategory.OTHER_IDENTIFICATION)
+                    .watermarkFile(new StorageFile())
+                    .build();
+        }
+
+        @Test
+        void should_respond_403_when_dfc_documents_scope_missing() throws Exception {
+            var claims = new HashMap<String, Object>();
+            claims.put("client_id", "partner-client");
+            var jwtDfcOnly = jwt().authorities(new SimpleGrantedAuthority("SCOPE_dfc"))
+                    .jwt(getDummyJwtWithCustomClaims(claims));
+
+            mockMvc.perform(get(URL, TENANT_ID, DOC_TOKEN).with(jwtDfcOnly))
+                    .andExpect(status().isForbidden());
+        }
+
+        @Test
+        void should_respond_404_when_service_throws_document_not_found() throws Exception {
+            when(self.dfcDocumentService.getAuthorizedDocument(eq(DOC_TOKEN), eq(TENANT_ID), any()))
+                    .thenThrow(new DocumentNotFoundException(DOC_TOKEN));
+
+            mockMvc.perform(get(URL, TENANT_ID, DOC_TOKEN).with(jwtWithBothScopes()))
+                    .andExpect(status().isNotFound());
+        }
+
+        @Test
+        void should_respond_200_and_pdf_when_authorized() throws Exception {
+            Document document = downloadableDocument();
+            when(self.dfcDocumentService.getAuthorizedDocument(eq(DOC_TOKEN), eq(TENANT_ID), any()))
+                    .thenReturn(document);
+            when(self.fileStorageService.download(document.getWatermarkFile()))
+                    .thenReturn(new ByteArrayInputStream("%PDF-1.4 fake".getBytes()));
+
+            mockMvc.perform(get(URL, TENANT_ID, DOC_TOKEN).with(jwtWithBothScopes()))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_PDF));
         }
     }
 }
