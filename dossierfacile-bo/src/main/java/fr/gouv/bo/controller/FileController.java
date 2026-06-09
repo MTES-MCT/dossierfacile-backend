@@ -4,11 +4,14 @@ import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.common.service.interfaces.SharedFileService;
 import fr.gouv.bo.repository.DocumentRepository;
+import fr.gouv.bo.security.BOApplicationAccessService;
+import fr.gouv.bo.security.UserPrincipal;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,6 +30,7 @@ public class FileController {
     private final DocumentRepository documentRepository;
     private final FileStorageService fileStorageService;
     private final SharedFileService fileService;
+    private final BOApplicationAccessService applicationAccessService;
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/files/{id}")
@@ -39,9 +43,14 @@ public class FileController {
 
     @PreAuthorize("hasRole('OPERATOR')")
     @GetMapping("/files/{id}/preview")
-    public void getPreviewFileAsByteArray(HttpServletResponse response, @PathVariable Long id) {
+    public void getPreviewFileAsByteArray(
+            HttpServletResponse response,
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
         fileService.findById(id).ifPresentOrElse(
                 file -> {
+                    applicationAccessService.checkFileAccess(principal, file);
                     if (file.getPreview() == null) {
                         response.setStatus(404);
                         return;
