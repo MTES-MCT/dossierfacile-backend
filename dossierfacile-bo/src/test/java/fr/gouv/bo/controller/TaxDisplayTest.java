@@ -5,6 +5,7 @@ import fr.dossierfacile.common.enums.*;
 import fr.dossierfacile.common.enums.TypeGuarantor;
 import fr.dossierfacile.common.repository.LinkLogRepository;
 import fr.dossierfacile.common.service.ApartmentSharingLinkService;
+import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.gouv.bo.TestBOApplication;
 import fr.gouv.bo.security.BOApplicationAccessService;
@@ -31,6 +32,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -86,12 +88,16 @@ class TaxDisplayTest {
     private DocumentDeniedReasonsService documentDeniedReasonsService;
     @MockitoBean
     private BOApplicationAccessService applicationAccessService;
+    @MockitoBean
+    private BOTenantResolver tenantResolver;
 
     // BOApartmentSharingController dependencies
     @MockitoBean
     private ApartmentSharingLinkService apartmentSharingLinkService;
     @MockitoBean
     private LinkLogRepository linkLogRepository;
+    @MockitoBean
+    private ApartmentSharingCommonService applicationSharingService;
 
     private Tenant tenant;
 
@@ -114,6 +120,7 @@ class TaxDisplayTest {
 
         // processFile mocks
         when(tenantService.find(1L)).thenReturn(tenant);
+        when(tenantService.findTenantById(1L)).thenReturn(tenant);
         when(logService.getLogByTenantId(anyLong())).thenReturn(Collections.emptyList());
         when(userApiService.findPartnersLinkedToTenant(anyLong())).thenReturn(Collections.emptyList());
         when(messageService.findTenantMessages(any())).thenReturn(Collections.emptyList());
@@ -133,6 +140,7 @@ class TaxDisplayTest {
         when(tenantService.hasVerifiedEmailIfExistsInKeycloak(any())).thenReturn(false);
         when(apartmentSharingLinkService.getFilteredLinks(any())).thenReturn(Collections.emptyList());
         when(userApiService.getAllPartners()).thenReturn(Collections.emptyList());
+        when(applicationSharingService.findById(1L)).thenReturn(Optional.of(tenant.getApartmentSharing()));
     }
 
     private Guarantor addGuarantor() {
