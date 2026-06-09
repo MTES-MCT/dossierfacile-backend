@@ -11,16 +11,16 @@ public record ExpectedMonths(List<Month> requiredMonths, Month optionalMonth) {
 
     public static ExpectedMonths forPayslips(LocalDate date) {
         Month currentMonth = date.getMonth();
-        if (date.getDayOfMonth() < 15) {
-            return threeMonthsPrecedingAndIncluding(currentMonth.minus(2), true);
+        if (date.getDayOfMonth() < 16) {
+            return fiveMonthsPrecedingAndIncluding(currentMonth.minus(1), true);
         } else {
-            return threeMonthsPrecedingAndIncluding(currentMonth.minus(1), false);
+            return fiveMonthsPrecedingAndIncluding(currentMonth.minus(0), false);
         }
     }
 
     public static ExpectedMonths forRentReceipt(LocalDate date) {
         Month currentMonth = date.getMonth();
-        if (date.getDayOfMonth() < 15) {
+        if (date.getDayOfMonth() < 16) {
             return threeMonthsPrecedingAndIncluding(currentMonth.minus(3), true);
         } else {
             return threeMonthsPrecedingAndIncluding(currentMonth.minus(2), true);
@@ -29,6 +29,11 @@ public record ExpectedMonths(List<Month> requiredMonths, Month optionalMonth) {
 
     private static ExpectedMonths threeMonthsPrecedingAndIncluding(Month month, boolean addOptionalNextMonth) {
         List<Month> requiredMonths = List.of(month.minus(2), month.minus(1), month);
+        return new ExpectedMonths(requiredMonths, addOptionalNextMonth ? month.plus(1) : null);
+    }
+
+    private static ExpectedMonths fiveMonthsPrecedingAndIncluding(Month month, boolean addOptionalNextMonth) {
+        List<Month> requiredMonths = List.of(month.minus(4), month.minus(3), month.minus(2), month.minus(1), month);
         return new ExpectedMonths(requiredMonths, addOptionalNextMonth ? month.plus(1) : null);
     }
 
