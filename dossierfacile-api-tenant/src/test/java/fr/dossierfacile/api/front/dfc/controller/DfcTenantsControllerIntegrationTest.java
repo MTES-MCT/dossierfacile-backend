@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.front.dfc.controller;
 
+import fr.dossierfacile.api.front.dfc.service.DfcDocumentService;
 import fr.dossierfacile.api.front.mapper.TenantMapperImpl;
 import fr.dossierfacile.api.front.register.RegisterFactory;
 import fr.dossierfacile.api.front.repository.JpaTestApplication;
@@ -92,6 +93,8 @@ class DfcTenantsControllerIntegrationTest {
     private DocumentService documentService;
     @MockitoBean
     private FileStorageService fileStorageService;
+    @MockitoBean
+    private DfcDocumentService dfcDocumentService;
 
     private Long tenantId;
     private String expectedDocumentUrl;

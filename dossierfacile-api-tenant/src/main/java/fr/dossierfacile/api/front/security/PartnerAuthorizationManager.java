@@ -9,13 +9,12 @@ import org.springframework.security.web.access.intercept.RequestAuthorizationCon
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 public class PartnerAuthorizationManager implements AuthorizationManager<RequestAuthorizationContext> {
     private final List<String> requiredAuthorities;
 
     public PartnerAuthorizationManager(String... scopes) {
-        this.requiredAuthorities = Arrays.stream(scopes).map(scope -> "SCOPE_" + scope).collect(Collectors.toList());
+        this.requiredAuthorities = Arrays.stream(scopes).map(scope -> "SCOPE_" + scope).toList();
     }
 
     private boolean hasScope(Authentication authentication) {

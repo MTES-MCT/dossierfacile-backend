@@ -328,10 +328,10 @@ class TenantMapperTest {
     }
 
     @Nested
-    class UuidMapping {
+    class TokenMapping {
 
         @Test
-        void shouldExposeUuidWhenDocumentUrlPresent() {
+        void shouldExposeTokenWhenDocumentUrlPresent() {
             UUID partnerToken = UUID.randomUUID();
             UserApi userApi = UserApi.builder().id(42L).name("partner-test").build();
 
@@ -341,12 +341,12 @@ class TenantMapperTest {
             TenantModel model = mapper.toTenantModel(tenant, userApi);
 
             var document = model.getDocuments().getFirst();
-            assertThat(document.getName()).isNotNull(); 
-            assertThat(document.getUuid()).isEqualTo("doc-123.pdf");
+            assertThat(document.getName()).isNotNull();
+            assertThat(document.getToken()).isEqualTo("doc-123.pdf");
         }
 
         @Test
-        void shouldHideUuidWhenDocumentUrlAbsent() {
+        void shouldHideTokenWhenDocumentUrlAbsent() {
             UserApi userApi = UserApi.builder().id(42L).name("partner-test").build();
 
             Document document = Document.builder()
@@ -368,7 +368,7 @@ class TenantMapperTest {
 
             var mappedDocument = model.getDocuments().getFirst();
             assertThat(mappedDocument.getName()).isNull();
-            assertThat(mappedDocument.getUuid()).isNull();
+            assertThat(mappedDocument.getToken()).isNull();
         }
     }
 
