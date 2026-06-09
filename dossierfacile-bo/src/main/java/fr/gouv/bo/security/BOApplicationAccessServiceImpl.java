@@ -2,7 +2,9 @@ package fr.gouv.bo.security;
 
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.OperatorLog;
+import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.entity.User;
 import fr.dossierfacile.common.enums.ActionOperatorType;
 import fr.dossierfacile.common.enums.TenantType;
@@ -10,11 +12,11 @@ import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.gouv.bo.repository.OperatorLogRepository;
 import fr.gouv.bo.service.QuotaService;
 import fr.gouv.bo.service.UserService;
+import fr.gouv.bo.service.BOTenantResolver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -32,38 +34,58 @@ public class BOApplicationAccessServiceImpl implements BOApplicationAccessServic
     private final TenantCommonRepository tenantRepository;
     private final UserService userService;
     private final QuotaService quotaService;
+    private final BOTenantResolver tenantResolver;
+
     @Value("${bo.assignment.access.window.days:7}")
     private int assignmentAccessWindowDays = 7;
 
     @Override
     public void checkTenantAccess(UserPrincipal principal, Long tenantId) {
         if (isOperatorOnly(principal)) {
-            LocalDateTime since = LocalDateTime.now().minusDays(assignmentAccessWindowDays);
-            boolean assigned = operatorLogRepository
-                    .existsByOperatorIdAndTenantIdAndActionOperatorTypeInAndCreationDateGreaterThanEqual(
-                            principal.getId(), tenantId, ASSIGNMENT_TYPES, since);
-            if (!assigned) {
-                log.warn("OPERATOR id={} attempted to access unassigned tenant id={}", principal.getId(), tenantId);
-                throw new AccessDeniedException(
-                        "OPERATOR " + principal.getId() + " is not assigned to tenant " + tenantId);
-            }
+            ensureOperatorAssignedToTenant(principal, tenantId);
+        }
+    }
+
+    @Override
+    public void checkApartmentSharingAccess(UserPrincipal principal, Long apartmentSharingId) {
+        if (isOperatorOnly(principal)) {
+            ensureOperatorAssignedToApartmentSharing(principal, apartmentSharingId);
         }
     }
 
     @Override
     public void checkAndLogApartmentSharingAccess(UserPrincipal principal, Long apartmentSharingId) {
-        if (isOperatorOnly(principal)) {
-            LocalDateTime since = LocalDateTime.now().minusDays(assignmentAccessWindowDays);
-            boolean assigned = operatorLogRepository.existsAssignmentForApartmentSharing(
-                    principal.getId(), apartmentSharingId, ASSIGNMENT_TYPES, since);
-            if (!assigned) {
-                log.warn("OPERATOR id={} attempted to access unassigned apartment sharing id={}", principal.getId(), apartmentSharingId);
-                throw new AccessDeniedException(
-                        "OPERATOR " + principal.getId() + " is not assigned to apartment sharing " + apartmentSharingId);
-            }
-        }
+        checkApartmentSharingAccess(principal, apartmentSharingId);
         quotaService.checkQuota(principal, ActionOperatorType.VIEW_APPLICATION);
         logViewApplicationForApartmentSharing(principal, apartmentSharingId);
+    }
+
+    @Override
+    public void checkFileAccess(UserPrincipal principal, File file) {
+        Tenant tenant = tenantResolver.resolveTenantFromFile(file);
+        checkTenantAccess(principal, tenant.getId());
+    }
+
+    private void ensureOperatorAssignedToTenant(UserPrincipal principal, Long tenantId) {
+        LocalDateTime since = LocalDateTime.now().minusDays(assignmentAccessWindowDays);
+        boolean assigned = operatorLogRepository
+                .existsByOperatorIdAndTenantIdAndActionOperatorTypeInAndCreationDateGreaterThanEqual(
+                        principal.getId(), tenantId, ASSIGNMENT_TYPES, since);
+        if (!assigned) {
+            log.warn("OPERATOR id={} attempted to access unassigned tenant id={}", principal.getId(), tenantId);
+            throw BOAccessDenied.generic();
+        }
+    }
+
+    private void ensureOperatorAssignedToApartmentSharing(UserPrincipal principal, Long apartmentSharingId) {
+        LocalDateTime since = LocalDateTime.now().minusDays(assignmentAccessWindowDays);
+        boolean assigned = operatorLogRepository.existsAssignmentForApartmentSharing(
+                principal.getId(), apartmentSharingId, ASSIGNMENT_TYPES, since);
+        if (!assigned) {
+            log.warn("OPERATOR id={} attempted to access unassigned apartment sharing id={}",
+                    principal.getId(), apartmentSharingId);
+            throw BOAccessDenied.generic();
+        }
     }
 
     @Override

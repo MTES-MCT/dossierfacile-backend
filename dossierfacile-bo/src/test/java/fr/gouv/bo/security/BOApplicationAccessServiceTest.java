@@ -2,6 +2,9 @@ package fr.gouv.bo.security;
 
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.BOUser;
+import fr.dossierfacile.common.entity.Document;
+import fr.dossierfacile.common.entity.File;
+import fr.dossierfacile.common.entity.Guarantor;
 import fr.dossierfacile.common.entity.OperatorLog;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.ActionOperatorType;
@@ -9,6 +12,8 @@ import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.gouv.bo.repository.OperatorLogRepository;
+import fr.gouv.bo.security.BOAccessDenied;
+import fr.gouv.bo.service.BOTenantResolver;
 import fr.gouv.bo.service.QuotaService;
 import fr.gouv.bo.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,6 +51,7 @@ class BOApplicationAccessServiceTest {
     private TenantCommonRepository tenantRepository;
     private UserService userService;
     private QuotaService quotaService;
+    private BOTenantResolver tenantResolver;
 
     private BOApplicationAccessServiceImpl service;
 
@@ -55,7 +61,9 @@ class BOApplicationAccessServiceTest {
         tenantRepository = mock(TenantCommonRepository.class);
         userService = mock(UserService.class);
         quotaService = mock(QuotaService.class);
-        service = new BOApplicationAccessServiceImpl(operatorLogRepository, tenantRepository, userService, quotaService);
+        tenantResolver = mock(BOTenantResolver.class);
+        service = new BOApplicationAccessServiceImpl(
+                operatorLogRepository, tenantRepository, userService, quotaService, tenantResolver);
 
         // Default: tenant and operator exist
         Tenant tenant = buildTenant(TENANT_ID, TenantType.CREATE, APARTMENT_SHARING_ID);
@@ -108,22 +116,8 @@ class BOApplicationAccessServiceTest {
                     .thenReturn(false);
 
             assertThatThrownBy(() -> service.checkTenantAccess(principal, TENANT_ID))
-                    .isInstanceOf(AccessDeniedException.class);
-
-            verify(operatorLogRepository, never()).save(any());
-        }
-
-        @Test
-        void operator_withAssignmentYesterday_throwsAccessDenied() {
-            UserPrincipal principal = operatorPrincipal();
-            // existsByOperatorId... returns false regardless of the date passed
-            when(operatorLogRepository
-                    .existsByOperatorIdAndTenantIdAndActionOperatorTypeInAndCreationDateGreaterThanEqual(
-                            anyLong(), anyLong(), anyList(), any(LocalDateTime.class)))
-                    .thenReturn(false);
-
-            assertThatThrownBy(() -> service.checkTenantAccess(principal, TENANT_ID))
-                    .isInstanceOf(AccessDeniedException.class);
+                    .isInstanceOf(AccessDeniedException.class)
+                    .hasMessage(BOAccessDenied.GENERIC_MESSAGE);
 
             verify(operatorLogRepository, never()).save(any());
         }
@@ -194,8 +188,127 @@ class BOApplicationAccessServiceTest {
     }
 
     // -------------------------------------------------------------------------
+    // checkFileAccess
+    // -------------------------------------------------------------------------
+
+    @Nested
+    class CheckFileAccess {
+
+        @Test
+        void operator_withAssignmentToTenantFile_isAuthorized() {
+            UserPrincipal principal = operatorPrincipal();
+            File file = fileForTenant(TENANT_ID);
+            when(tenantResolver.resolveTenantFromFile(file)).thenReturn(buildTenant(TENANT_ID, TenantType.CREATE, APARTMENT_SHARING_ID));
+            when(operatorLogRepository
+                    .existsByOperatorIdAndTenantIdAndActionOperatorTypeInAndCreationDateGreaterThanEqual(
+                            eq(OPERATOR_ID), eq(TENANT_ID), anyList(), any(LocalDateTime.class)))
+                    .thenReturn(true);
+
+            service.checkFileAccess(principal, file);
+        }
+
+        @Test
+        void operator_withAssignmentToGuarantorTenantFile_isAuthorized() {
+            UserPrincipal principal = operatorPrincipal();
+            File file = fileForGuarantor(TENANT_ID);
+            when(tenantResolver.resolveTenantFromFile(file)).thenReturn(buildTenant(TENANT_ID, TenantType.CREATE, APARTMENT_SHARING_ID));
+            when(operatorLogRepository
+                    .existsByOperatorIdAndTenantIdAndActionOperatorTypeInAndCreationDateGreaterThanEqual(
+                            eq(OPERATOR_ID), eq(TENANT_ID), anyList(), any(LocalDateTime.class)))
+                    .thenReturn(true);
+
+            service.checkFileAccess(principal, file);
+        }
+
+        @Test
+        void operator_withNoAssignment_throwsAccessDenied() {
+            UserPrincipal principal = operatorPrincipal();
+            File file = fileForTenant(TENANT_ID);
+            when(tenantResolver.resolveTenantFromFile(file)).thenReturn(buildTenant(TENANT_ID, TenantType.CREATE, APARTMENT_SHARING_ID));
+            when(operatorLogRepository
+                    .existsByOperatorIdAndTenantIdAndActionOperatorTypeInAndCreationDateGreaterThanEqual(
+                            anyLong(), anyLong(), anyList(), any(LocalDateTime.class)))
+                    .thenReturn(false);
+
+            assertThatThrownBy(() -> service.checkFileAccess(principal, file))
+                    .isInstanceOf(AccessDeniedException.class)
+                    .hasMessage(BOAccessDenied.GENERIC_MESSAGE);
+        }
+
+        @Test
+        void support_isAlwaysAuthorized() {
+            File file = fileForTenant(TENANT_ID);
+            when(tenantResolver.resolveTenantFromFile(file)).thenReturn(buildTenant(TENANT_ID, TenantType.CREATE, APARTMENT_SHARING_ID));
+
+            service.checkFileAccess(supportPrincipal(), file);
+
+            verify(operatorLogRepository, never())
+                    .existsByOperatorIdAndTenantIdAndActionOperatorTypeInAndCreationDateGreaterThanEqual(
+                            anyLong(), anyLong(), anyList(), any());
+        }
+
+        @Test
+        void fileWithoutDocument_throwsAccessDenied() {
+            File file = File.builder().id(1L).build();
+            when(tenantResolver.resolveTenantFromFile(file)).thenThrow(BOAccessDenied.generic());
+
+            assertThatThrownBy(() -> service.checkFileAccess(operatorPrincipal(), file))
+                    .isInstanceOf(AccessDeniedException.class)
+                    .hasMessage(BOAccessDenied.GENERIC_MESSAGE);
+        }
+    }
+
+    // -------------------------------------------------------------------------
     // checkAndLogApartmentSharingAccess
     // -------------------------------------------------------------------------
+
+    @Nested
+    class CheckApartmentSharingAccess {
+
+        @Test
+        void operator_withAssignmentForTenantInSharing_isAuthorized() {
+            UserPrincipal principal = operatorPrincipal();
+            when(operatorLogRepository.existsAssignmentForApartmentSharing(
+                    eq(OPERATOR_ID), eq(APARTMENT_SHARING_ID), anyList(), any(LocalDateTime.class)))
+                    .thenReturn(true);
+
+            service.checkApartmentSharingAccess(principal, APARTMENT_SHARING_ID);
+
+            verify(operatorLogRepository, never()).save(any());
+        }
+
+        @Test
+        void operator_withNoAssignmentInSharing_throwsAccessDeniedAndNothingLogged() {
+            UserPrincipal principal = operatorPrincipal();
+            when(operatorLogRepository.existsAssignmentForApartmentSharing(
+                    anyLong(), anyLong(), anyList(), any(LocalDateTime.class)))
+                    .thenReturn(false);
+
+            assertThatThrownBy(() -> service.checkApartmentSharingAccess(principal, APARTMENT_SHARING_ID))
+                    .isInstanceOf(AccessDeniedException.class)
+                    .hasMessage(BOAccessDenied.GENERIC_MESSAGE);
+
+            verify(operatorLogRepository, never()).save(any());
+        }
+
+        @Test
+        void support_isAlwaysAuthorized() {
+            service.checkApartmentSharingAccess(supportPrincipal(), APARTMENT_SHARING_ID);
+
+            verify(operatorLogRepository, never())
+                    .existsAssignmentForApartmentSharing(anyLong(), anyLong(), anyList(), any());
+            verify(operatorLogRepository, never()).save(any());
+        }
+
+        @Test
+        void admin_isAlwaysAuthorized() {
+            service.checkApartmentSharingAccess(adminPrincipal(), APARTMENT_SHARING_ID);
+
+            verify(operatorLogRepository, never())
+                    .existsAssignmentForApartmentSharing(anyLong(), anyLong(), anyList(), any());
+            verify(operatorLogRepository, never()).save(any());
+        }
+    }
 
     @Nested
     class CheckAndLogApartmentSharingAccess {
@@ -220,7 +333,8 @@ class BOApplicationAccessServiceTest {
                     .thenReturn(false);
 
             assertThatThrownBy(() -> service.checkAndLogApartmentSharingAccess(principal, APARTMENT_SHARING_ID))
-                    .isInstanceOf(AccessDeniedException.class);
+                    .isInstanceOf(AccessDeniedException.class)
+                    .hasMessage(BOAccessDenied.GENERIC_MESSAGE);
 
             verify(operatorLogRepository, never()).save(any());
         }
@@ -349,5 +463,18 @@ class BOApplicationAccessServiceTest {
         apartmentSharing.setId(apartmentSharingId);
         tenant.setApartmentSharing(apartmentSharing);
         return tenant;
+    }
+
+    private File fileForTenant(Long tenantId) {
+        Tenant tenant = buildTenant(tenantId, TenantType.CREATE, APARTMENT_SHARING_ID);
+        Document document = Document.builder().id(1L).tenant(tenant).build();
+        return File.builder().id(7L).document(document).build();
+    }
+
+    private File fileForGuarantor(Long tenantId) {
+        Tenant tenant = buildTenant(tenantId, TenantType.CREATE, APARTMENT_SHARING_ID);
+        Guarantor guarantor = Guarantor.builder().id(3L).tenant(tenant).build();
+        Document document = Document.builder().id(2L).guarantor(guarantor).build();
+        return File.builder().id(8L).document(document).build();
     }
 }

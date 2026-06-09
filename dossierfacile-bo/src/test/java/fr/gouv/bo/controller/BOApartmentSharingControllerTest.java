@@ -3,14 +3,20 @@ package fr.gouv.bo.controller;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.ApartmentSharingLink;
 import fr.dossierfacile.common.entity.LinkLog;
+import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.ApartmentSharingLinkType;
 import fr.dossierfacile.common.enums.LinkType;
 import fr.dossierfacile.common.repository.LinkLogRepository;
+import fr.dossierfacile.common.service.ApartmentSharingLinkService;
+import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
 import fr.gouv.bo.dto.ApartmentSharingLinkEnrichedDTO;
 import fr.gouv.bo.dto.LinkLogDTO;
+import fr.gouv.bo.security.BOAccessDenied;
 import fr.gouv.bo.security.BOApplicationAccessService;
 import fr.gouv.bo.security.UserPrincipal;
 import fr.gouv.bo.service.DocumentService;
+import fr.gouv.bo.service.TenantLogService;
+import fr.gouv.bo.service.TenantService;
 import fr.gouv.bo.service.UserApiService;
 import fr.gouv.bo.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,6 +33,7 @@ import org.springframework.ui.ExtendedModelMap;
 import java.lang.reflect.Method;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -35,6 +42,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -42,10 +50,10 @@ import static org.mockito.Mockito.when;
 class BOApartmentSharingControllerTest {
 
     @Mock
-    private LinkLogRepository linkLogRepository;
+    private TenantService tenantService;
 
     @Mock
-    private UserService userService;
+    private ApartmentSharingLinkService apartmentSharingLinkService;
 
     @Mock
     private UserApiService userApiService;
@@ -54,14 +62,34 @@ class BOApartmentSharingControllerTest {
     private DocumentService documentService;
 
     @Mock
+    private TenantLogService logService;
+
+    @Mock
+    private LinkLogRepository linkLogRepository;
+
+    @Mock
+    private UserService userService;
+
+    @Mock
     private BOApplicationAccessService applicationAccessService;
+
+    @Mock
+    private ApartmentSharingCommonService applicationSharingService;
 
     private BOApartmentSharingController controller;
 
     @BeforeEach
     void setUp() {
         controller = new BOApartmentSharingController(
-                null, null, userApiService, documentService, null, linkLogRepository, userService, applicationAccessService
+                tenantService,
+                apartmentSharingLinkService,
+                userApiService,
+                documentService,
+                logService,
+                linkLogRepository,
+                userService,
+                applicationAccessService,
+                applicationSharingService
         );
         ReflectionTestUtils.setField(controller, "tenantBaseUrl", "https://example.com");
     }
@@ -145,29 +173,102 @@ class BOApartmentSharingControllerTest {
         @Test
         void view_whenAccessServiceThrowsAccessDenied_propagatesException() {
             UserPrincipal principal = operatorPrincipal();
-            doThrow(new AccessDeniedException("forbidden"))
+            ApartmentSharing apartmentSharing = apartmentSharing(APARTMENT_SHARING_ID);
+            when(applicationSharingService.findById(APARTMENT_SHARING_ID)).thenReturn(Optional.of(apartmentSharing));
+            doThrow(BOAccessDenied.generic())
                     .when(applicationAccessService)
                     .checkAndLogApartmentSharingAccess(any(), eq(APARTMENT_SHARING_ID));
 
             assertThatThrownBy(() -> controller.view(new ExtendedModelMap(), APARTMENT_SHARING_ID, principal))
                     .isInstanceOf(AccessDeniedException.class)
-                    .hasMessage("forbidden");
+                    .hasMessage(BOAccessDenied.GENERIC_MESSAGE);
+        }
+
+        @Test
+        void view_whenApartmentSharingDoesNotExist_throwsGenericAccessDenied() {
+            UserPrincipal principal = supportPrincipal();
+            when(applicationSharingService.findById(APARTMENT_SHARING_ID)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> controller.view(new ExtendedModelMap(), APARTMENT_SHARING_ID, principal))
+                    .isInstanceOf(AccessDeniedException.class)
+                    .hasMessage(BOAccessDenied.GENERIC_MESSAGE);
+
+            verify(applicationAccessService, never()).checkAndLogApartmentSharingAccess(any(), any());
         }
 
         @Test
         void view_callsAccessServiceWithCorrectArguments() {
             UserPrincipal principal = supportPrincipal();
-            // Access service does nothing (no exception) — let the controller proceed;
-            // it will NPE on tenantService (null) after the access check, which is acceptable
-            // here since the goal is only to assert the access check is invoked first.
-            try {
-                controller.view(new ExtendedModelMap(), APARTMENT_SHARING_ID, principal);
-            } catch (Exception ignored) {
-                // Expected: method continues past the access check but fails on null tenantService
-            }
+            ApartmentSharing apartmentSharing = apartmentSharing(APARTMENT_SHARING_ID);
+            Tenant tenant = new Tenant();
+            tenant.setApartmentSharing(apartmentSharing);
+            tenant.setDocuments(List.of());
+            tenant.setGuarantors(List.of());
+            when(applicationSharingService.findById(APARTMENT_SHARING_ID)).thenReturn(Optional.of(apartmentSharing));
+            when(apartmentSharingLinkService.getFilteredLinks(apartmentSharing)).thenReturn(List.of());
+            when(tenantService.findAllTenantsByApartmentSharingAndReorderDocumentsByCategory(APARTMENT_SHARING_ID))
+                    .thenReturn(List.of(tenant));
+            when(userApiService.getAllPartners()).thenReturn(List.of());
 
+            String view = controller.view(new ExtendedModelMap(), APARTMENT_SHARING_ID, principal);
+
+            assertThat(view).isEqualTo("bo/apartment-sharing-view");
             verify(applicationAccessService).checkAndLogApartmentSharingAccess(principal, APARTMENT_SHARING_ID);
         }
+    }
+
+    @Nested
+    class ApartmentSharingLinkEndpoints {
+
+        private static final Long APARTMENT_SHARING_ID = 99L;
+        private static final Long LINK_ID = 7L;
+
+        @Test
+        void deleteToken_whenOperatorNotAssigned_throwsGenericAccessDenied() {
+            UserPrincipal principal = operatorPrincipal();
+            ApartmentSharing apartmentSharing = apartmentSharing(APARTMENT_SHARING_ID);
+            when(applicationSharingService.findById(APARTMENT_SHARING_ID)).thenReturn(Optional.of(apartmentSharing));
+            doThrow(BOAccessDenied.generic())
+                    .when(applicationAccessService)
+                    .checkApartmentSharingAccess(principal, APARTMENT_SHARING_ID);
+
+            assertThatThrownBy(() -> controller.deleteToken(APARTMENT_SHARING_ID, LINK_ID, principal))
+                    .isInstanceOf(AccessDeniedException.class)
+                    .hasMessage(BOAccessDenied.GENERIC_MESSAGE);
+
+            verify(apartmentSharingLinkService, never()).delete(any());
+        }
+
+        @Test
+        void deleteToken_whenAuthorized_deletesLinkAndRedirects() {
+            UserPrincipal principal = operatorPrincipal();
+            ApartmentSharing apartmentSharing = apartmentSharing(APARTMENT_SHARING_ID);
+            when(applicationSharingService.findById(APARTMENT_SHARING_ID)).thenReturn(Optional.of(apartmentSharing));
+
+            String result = controller.deleteToken(APARTMENT_SHARING_ID, LINK_ID, principal);
+
+            assertThat(result).isEqualTo("redirect:/bo/colocation/99");
+            verify(applicationAccessService).checkApartmentSharingAccess(principal, APARTMENT_SHARING_ID);
+            verify(apartmentSharingLinkService).delete(LINK_ID);
+        }
+
+        @Test
+        void updateTokenStatus_whenApartmentSharingDoesNotExist_throwsGenericAccessDenied() {
+            UserPrincipal principal = supportPrincipal();
+            when(applicationSharingService.findById(APARTMENT_SHARING_ID)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> controller.updateTokenStatus(LINK_ID, APARTMENT_SHARING_ID, true, principal))
+                    .isInstanceOf(AccessDeniedException.class)
+                    .hasMessage(BOAccessDenied.GENERIC_MESSAGE);
+
+            verify(applicationAccessService, never()).checkApartmentSharingAccess(any(), any());
+        }
+    }
+
+    private ApartmentSharing apartmentSharing(Long id) {
+        ApartmentSharing apartmentSharing = new ApartmentSharing();
+        apartmentSharing.setId(id);
+        return apartmentSharing;
     }
 
     private UserPrincipal operatorPrincipal() {

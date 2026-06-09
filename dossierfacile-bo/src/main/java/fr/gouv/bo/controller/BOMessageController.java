@@ -84,6 +84,7 @@ public class BOMessageController {
             @PathVariable("id") Long tenantId,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
+        applicationAccessService.checkTenantAccess(principal, tenantId);
         return tenantService.updateStatusOfTenantFromAdmin(principal, messageDTO, tenantId);
     }
 
