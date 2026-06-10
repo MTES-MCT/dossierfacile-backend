@@ -90,7 +90,7 @@ public class WebSecurityConfig {
                 )
                 .logout(logout -> logout
                         .invalidateHttpSession(true)
-                        .deleteCookies("JSESSIONID", "JWT", "_csrf")
+                        .deleteCookies("SESSION", "JSESSIONID", "JWT", "_csrf")
                         .clearAuthentication(true)
                         .logoutSuccessHandler(oidcLogoutSuccessHandler(clientRegistrationRepository))
                 );
