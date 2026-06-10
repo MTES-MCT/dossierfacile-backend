@@ -16,6 +16,7 @@ import fr.dossierfacile.common.service.interfaces.KeycloakCommonService;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.dossierfacile.common.service.interfaces.TenantCommonService;
+import fr.dossierfacile.common.utils.TransactionalUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,15 +69,27 @@ public class TenantArchivingService {
         resetToArchivedStatus(tenant);
 
         tenant = tenantRepository.save(tenant);
-        partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.ARCHIVED_ACCOUNT);
+        Tenant archivedTenant = tenant;
 
         Optional<ConfirmationToken> confirmationToken = confirmationTokenRepository.findByUser(tenant);
         confirmationToken.ifPresent(confirmationTokenRepository::delete);
 
-        // Cascade: archive co-tenants without email when archiving a main tenant
-        if (tenant.getTenantType() == TenantType.CREATE) {
-            archiveOrphanedCoTenants(tenant);
-        }
+        TransactionalUtil.afterCommit(() -> {
+            try {
+                partnerCallBackService.sendCallBack(archivedTenant, PartnerCallBackType.ARCHIVED_ACCOUNT);
+            } catch (Exception e) {
+                log.error("CAUTION Unable to send archived callback for tenant [{}]", archivedTenant.getId(), e);
+            }
+
+            try {
+                // Cascade: archive co-tenants without email when archiving a main tenant
+                if (archivedTenant.getTenantType() == TenantType.CREATE) {
+                    archiveOrphanedCoTenants(archivedTenant);
+                }
+            } catch (Exception e) {
+                log.error("CAUTION Unable to cascade archived co-tenants for tenant [{}]", archivedTenant.getId(), e);
+            }
+        });
     }
 
     /**
