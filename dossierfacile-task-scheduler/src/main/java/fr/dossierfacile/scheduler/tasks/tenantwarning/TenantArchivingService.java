@@ -74,12 +74,13 @@ public class TenantArchivingService {
         Optional<ConfirmationToken> confirmationToken = confirmationTokenRepository.findByUser(tenant);
         confirmationToken.ifPresent(confirmationTokenRepository::delete);
 
+        try {
+            partnerCallBackService.sendCallBack(archivedTenant, PartnerCallBackType.ARCHIVED_ACCOUNT);
+        } catch (Exception e) {
+            log.error("CAUTION Unable to send archived callback for tenant [{}]", archivedTenant.getId(), e);
+        }
+
         TransactionalUtil.afterCommit(() -> {
-            try {
-                partnerCallBackService.sendCallBack(archivedTenant, PartnerCallBackType.ARCHIVED_ACCOUNT);
-            } catch (Exception e) {
-                log.error("CAUTION Unable to send archived callback for tenant [{}]", archivedTenant.getId(), e);
-            }
 
             try {
                 // Cascade: archive co-tenants without email when archiving a main tenant
