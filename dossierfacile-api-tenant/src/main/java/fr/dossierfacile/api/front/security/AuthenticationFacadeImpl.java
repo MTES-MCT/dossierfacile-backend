@@ -17,6 +17,8 @@ import fr.dossierfacile.common.service.interfaces.LogService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -24,6 +26,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -119,13 +122,24 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
             return tenantByEmail.get();
         }
         log.info("Creating tenant account associated with keycloakId {}", keycloakId);
-        return tenantService.registerFromKeycloakUser(kcUser, null, acquisitionData);
+        try {
+            return tenantService.registerFromKeycloakUser(kcUser, null, acquisitionData);
+        } catch (DataIntegrityViolationException e) {
+            // Parallel requests holding the same token race here: each one sees no
+            // existing tenant and tries to create it, and losers hit the unique
+            // constraint on (email, user_type). Reuse the winner's tenant instead
+            // of failing the request with a 500.
+            log.info("Tenant account creation raced with a concurrent request, reusing existing account (keycloakId {})", keycloakId);
+            return Optional.ofNullable(tenantRepository.findByKeycloakId(keycloakId))
+                    .or(() -> tenantRepository.findByEmail(kcUser.getEmail()))
+                    .orElseThrow(() -> e);
+        }
     }
 
     private Tenant synchronizeTenant(Tenant tenant, KeycloakUser user) {
         // check if some data should be updated
         if (!matches(tenant, user)) {
-            if (!StringUtils.equalsIgnoreCase(tenant.getEmail(), user.getEmail())) {
+            if (!Strings.CI.equals(tenant.getEmail(), user.getEmail())) {
                 //Don't automatically merge
                 log.error("Tenant email and current logged email mismatch FC? '%s' vs '%s' - tenant won't be synchronized".formatted(tenant.getEmail(), user.getEmail()));
                 tenant.setWarningMessage("Attention, l'email de compte est '%s' et l'email de connexion est '%s'".formatted(tenant.getEmail(), user.getEmail()));
@@ -153,9 +167,9 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
             // We have a special case to handle when the user linked his account to FranceConnect
             // We update the userAccount informations only if the user is FranceConnected and his ownerType is SELF.
             if (userHasBeenLinkedToFranceConnect || (user.isFranceConnect() && tenant.getOwnerType() == TenantOwnerType.SELF)) {
-                if (!StringUtils.equals(tenant.getFirstName(), user.getGivenName())
-                        || !StringUtils.equals(tenant.getLastName(), user.getFamilyName())
-                        || (user.getPreferredUsername() != null && !StringUtils.equals(tenant.getPreferredName(), user.getPreferredUsername()))) {
+                if (!Strings.CS.equals(tenant.getFirstName(), user.getGivenName())
+                        || !Strings.CS.equals(tenant.getLastName(), user.getFamilyName())
+                        || (user.getPreferredUsername() != null && !Strings.CS.equals(tenant.getPreferredName(), user.getPreferredUsername()))) {
                     documentService.resetValidatedOrInProgressDocumentsAccordingCategories(tenant.getDocuments(),
                             Arrays.asList(DocumentCategory.values()));
                 }
@@ -165,7 +179,7 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
                 tenant.setUserLastName(user.getFamilyName());
                 tenant.setUserPreferredName(user.getPreferredUsername() == null ? tenant.getUserPreferredName() : user.getPreferredUsername());
             }
-            tenant.lastUpdateDateProfile(LocalDateTime.now(), null);
+            tenant.lastUpdateDateProfile(LocalDateTime.now(ZoneId.systemDefault()), null);
             tenantStatusService.updateTenantStatus(tenant);
 
             return tenantRepository.saveAndFlush(tenant);
@@ -175,13 +189,13 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
 
     // Todo : This method should maybe return false if user is france connected and names are different (for the moment the first name and the lastname need to be different)
     private boolean matches(Tenant tenant, KeycloakUser user) {
-        return StringUtils.equals(tenant.getKeycloakId(), user.getKeycloakId())
-                && StringUtils.equals(tenant.getEmail(), user.getEmail())
+        return Strings.CS.equals(tenant.getKeycloakId(), user.getKeycloakId())
+                && Strings.CS.equals(tenant.getEmail(), user.getEmail())
                 && tenant.getFranceConnect() == user.isFranceConnect()
                 && (!user.isFranceConnect() ||
                 // TODO : The || should be a &&
-                (StringUtils.equalsIgnoreCase(tenant.getUserFirstName(), user.getGivenName()) ||
-                        StringUtils.equalsIgnoreCase(tenant.getUserLastName(), user.getFamilyName())
+                (Strings.CI.equals(tenant.getUserFirstName(), user.getGivenName()) ||
+                        Strings.CI.equals(tenant.getUserLastName(), user.getFamilyName())
                 ));
     }
 }

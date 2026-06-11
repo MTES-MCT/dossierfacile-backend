@@ -22,6 +22,7 @@ import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -30,12 +31,10 @@ import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import java.lang.reflect.InvocationTargetException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.*;
 
 import static fr.dossierfacile.authentification.JwtFactoryKt.getDummyJwt;
@@ -445,6 +444,79 @@ class AuthenticationFacadeImplTest {
             assertThat(((Tenant) result).getId()).isEqualTo(1L);
 
         }
+
+        @Test
+        void shouldReuseAccountByKeycloakIdWhenCreationRacesWithConcurrentRequest() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+            var keycloakUser = KeycloakUser.builder()
+                    .keycloakId("keycloakId")
+                    .email("test@test.fr")
+                    .emailVerified(true)
+                    .build();
+
+            var tenant = Tenant.builder().id(1L).build();
+
+            // First lookup misses, creation fails because a concurrent request
+            // inserted the account in between, second lookup finds it
+            when(tenantCommonRepository.findByKeycloakId("keycloakId")).thenReturn(null, tenant);
+            when(tenantCommonRepository.findByEmail("test@test.fr")).thenReturn(Optional.empty());
+            when(tenantService.registerFromKeycloakUser(keycloakUser, null, null))
+                    .thenThrow(new DataIntegrityViolationException("email_type_uniq"));
+
+            var methodToTest = authenticationFacade.getClass().getDeclaredMethod("findOrCreateTenant", KeycloakUser.class, AcquisitionData.class);
+            methodToTest.setAccessible(true);
+            var result = methodToTest.invoke(authenticationFacade, keycloakUser, null);
+
+            verify(tenantService, times(1)).registerFromKeycloakUser(keycloakUser, null, null);
+            assertThat(result).isInstanceOf(Tenant.class);
+            assertThat(((Tenant) result).getId()).isEqualTo(1L);
+        }
+
+        @Test
+        void shouldReuseAccountByEmailWhenCreationRacesWithConcurrentRequest() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+            var keycloakUser = KeycloakUser.builder()
+                    .keycloakId("keycloakId")
+                    .email("test@test.fr")
+                    .emailVerified(true)
+                    .build();
+
+            var tenant = Tenant.builder().id(1L).build();
+
+            // The concurrent request created the account under another keycloakId
+            // (e.g. an outdated token): it is only found back by email
+            when(tenantCommonRepository.findByKeycloakId("keycloakId")).thenReturn(null);
+            when(tenantCommonRepository.findByEmail("test@test.fr")).thenReturn(Optional.empty(), Optional.of(tenant));
+            when(tenantService.registerFromKeycloakUser(keycloakUser, null, null))
+                    .thenThrow(new DataIntegrityViolationException("email_type_uniq"));
+
+            var methodToTest = authenticationFacade.getClass().getDeclaredMethod("findOrCreateTenant", KeycloakUser.class, AcquisitionData.class);
+            methodToTest.setAccessible(true);
+            var result = methodToTest.invoke(authenticationFacade, keycloakUser, null);
+
+            verify(tenantService, times(1)).registerFromKeycloakUser(keycloakUser, null, null);
+            assertThat(result).isInstanceOf(Tenant.class);
+            assertThat(((Tenant) result).getId()).isEqualTo(1L);
+        }
+
+        @Test
+        void shouldRethrowWhenCreationFailsAndNoAccountCanBeFound() throws NoSuchMethodException {
+            var keycloakUser = KeycloakUser.builder()
+                    .keycloakId("keycloakId")
+                    .email("test@test.fr")
+                    .emailVerified(true)
+                    .build();
+
+            when(tenantCommonRepository.findByKeycloakId("keycloakId")).thenReturn(null);
+            when(tenantCommonRepository.findByEmail("test@test.fr")).thenReturn(Optional.empty());
+            when(tenantService.registerFromKeycloakUser(keycloakUser, null, null))
+                    .thenThrow(new DataIntegrityViolationException("email_type_uniq"));
+
+            var methodToTest = authenticationFacade.getClass().getDeclaredMethod("findOrCreateTenant", KeycloakUser.class, AcquisitionData.class);
+            methodToTest.setAccessible(true);
+
+            var exception = assertThrows(InvocationTargetException.class,
+                    () -> methodToTest.invoke(authenticationFacade, keycloakUser, null));
+            assertThat(exception.getCause()).isInstanceOf(DataIntegrityViolationException.class);
+        }
     }
 
     @Nested
@@ -645,7 +717,7 @@ class AuthenticationFacadeImplTest {
 
         @Test
         void shouldRefreshLastUpdateDateAndLogWhenLinkingToFranceConnect() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-            var initialDate = LocalDateTime.of(2020, 1, 1, 0, 0);
+            var initialDate = LocalDateTime.of(2020, Month.JANUARY, 1, 0, 0);
             var tenant = Tenant.builder()
                     .id(1L)
                     .keycloakId("keycloakId")
@@ -675,7 +747,7 @@ class AuthenticationFacadeImplTest {
 
         @Test
         void shouldRefreshLastUpdateDateAndLogWhenFirstLinkingAccount() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-            var initialDate = LocalDateTime.of(2020, 1, 1, 0, 0);
+            var initialDate = LocalDateTime.of(2020, Month.JANUARY, 1, 0, 0);
             var tenant = Tenant.builder()
                     .id(1L)
                     .keycloakId(null)
