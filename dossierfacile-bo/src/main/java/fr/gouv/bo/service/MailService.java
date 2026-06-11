@@ -83,4 +83,9 @@ public class MailService {
         params.put(TENANT_ID_KEY, tenant.getId().toString());
         sendMailWithHtmlDetails(message, tenant, params, templateIdDossierTenantDeniedWithDetails, templateIdDossierTenantDenied);
     }
+
+    @Async
+    public void sendEmailTenantDissociated(TenantDto tenant) {
+        mailCommonService.sendEmailTenantDissociated(tenant);
+    }
 }

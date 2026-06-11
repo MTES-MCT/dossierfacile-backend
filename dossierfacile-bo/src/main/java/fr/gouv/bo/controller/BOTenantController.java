@@ -2,10 +2,10 @@ package fr.gouv.bo.controller;
 
 import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.*;
-import fr.dossierfacile.common.exceptions.NotFoundException;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.gouv.bo.dto.*;
+import fr.gouv.bo.security.BOAccessDenied;
 import fr.gouv.bo.security.BOApplicationAccessService;
 import fr.gouv.bo.security.UserPrincipal;
 import fr.gouv.bo.service.*;
@@ -17,6 +17,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.*;
 
@@ -40,7 +41,6 @@ public class BOTenantController {
     private static final String CUSTOM_MESSAGE = "customMessage";
     private static final String CLARIFICATION = "clarification";
     private static final String OPERATOR_COMMENT = "operatorComment";
-    private static final String REDIRECT_ERROR = "redirect:/error";
 
     private final TenantService tenantService;
     private final MessageService messageService;
@@ -51,20 +51,15 @@ public class BOTenantController {
     private final TenantLogService logService;
     private final DocumentDeniedReasonsService documentDeniedReasonsService;
     private final BOApplicationAccessService applicationAccessService;
+    private final BOTenantResolver tenantResolver;
 
     @GetMapping("/{id}")
-    public String getTenant(@PathVariable Long id) {
-        Tenant tenant = tenantService.findTenantById(id);
-        if (tenant != null) {
-            return redirectToTenantPage(tenant);
-        }
-        throw new NotFoundException("Tenant is not found. Still exists?");
-    }
-
-    @PreAuthorize("hasRole('SUPPORT')")
-    @PostMapping("/setAsTenantCreate/{id}")
-    public String setAsTenantCreate(@PathVariable Long id) {
-        Tenant tenant = userService.setAsTenantCreate(tenantService.findTenantById(id));
+    public String getTenant(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        Tenant tenant = requireTenant(id);
+        applicationAccessService.checkTenantAccess(principal, tenant.getId());
         return redirectToTenantPage(tenant);
     }
 
@@ -74,7 +69,7 @@ public class BOTenantController {
             @PathVariable Long id,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
-        Tenant tenant = tenantService.findTenantById(id);
+        Tenant tenant = requireTenant(id);
         if (tenant.getTenantType() == TenantType.CREATE) {
             throw new IllegalArgumentException("Delete main tenant is not allowed - set another user as main tenant before OR delete the entire apartmentSharing");
         }
@@ -84,12 +79,31 @@ public class BOTenantController {
     }
 
     @PreAuthorize("hasRole('SUPPORT')")
+    @PostMapping("/dissociate/{id}")
+    public String dissociateTenant(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserPrincipal principal,
+            RedirectAttributes redirectAttributes
+    ) {
+        Tenant tenant = requireTenant(id);
+        BOUser operator = userService.findUserByEmail(principal.getEmail());
+        Long apartmentSharingId = tenant.getApartmentSharing().getId();
+        try {
+            Long newApartmentSharingId = tenantService.dissociateTenant(tenant, operator);
+            return REDIRECT_BO_COLOCATION + newApartmentSharingId + "#tenant" + tenant.getId();
+        } catch (IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return REDIRECT_BO_COLOCATION + apartmentSharingId + "#tenant" + tenant.getId();
+        }
+    }
+
+    @PreAuthorize("hasRole('SUPPORT')")
     @DeleteMapping("/deleteApartmentSharing/{id}")
     public String deleteApartmentSharing(
             @PathVariable("id") Long id,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
-        Tenant create = tenantService.findTenantById(id);
+        Tenant create = requireTenant(id);
         BOUser operator = userService.findUserByEmail(principal.getEmail());
         userService.deleteApartmentSharing(create, operator);
         return REDIRECT_BO_HOME;
@@ -98,7 +112,7 @@ public class BOTenantController {
     @PreAuthorize("hasRole('SUPPORT')")
     @PostMapping("/partner/{id}")
     public String sendCallbackToPartner(@PathVariable("id") Long id, PartnerDTO partnerDTO) {
-        Tenant tenant = tenantService.find(id);
+        Tenant tenant = requireTenant(id);
 
         UserApi userApi = userApiService.findById(partnerDTO.getPartner());
         PartnerCallBackType partnerCallBackType = tenant.getStatus() == TenantFileStatus.VALIDATED ?
@@ -116,6 +130,7 @@ public class BOTenantController {
             @PathVariable("id") Long tenantId,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
+        requireTenant(tenantId);
         tenantService.validateTenantFile(principal, tenantId);
         return ok().build();
     }
@@ -126,6 +141,7 @@ public class BOTenantController {
             @PathVariable("id") Long tenantId,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
+        requireTenant(tenantId);
         tenantService.declineTenant(principal, tenantId);
         return ok().build();
     }
@@ -136,6 +152,7 @@ public class BOTenantController {
             @PathVariable("id") Long tenantId,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
+        requireTenant(tenantId);
         tenantService.reprocessTenant(principal, tenantId);
         return ok().build();
     }
@@ -146,6 +163,8 @@ public class BOTenantController {
             CustomMessage customMessage,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
+        Tenant tenant = requireTenant(tenantId);
+        applicationAccessService.checkTenantAccess(principal, tenant.getId());
         return tenantService.customMessage(principal, tenantId, customMessage);
     }
 
@@ -155,6 +174,8 @@ public class BOTenantController {
             @PathVariable("id") Long id,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
+        Tenant accessTenant = tenantResolver.resolveTenantFromDocument(id);
+        applicationAccessService.checkTenantAccess(principal, accessTenant.getId());
         User operator = userService.findUserByEmail(principal.getEmail());
         Tenant tenant = tenantService.deleteDocument(id, operator);
         return redirectToTenantPage(tenant);
@@ -166,6 +187,8 @@ public class BOTenantController {
             @PathVariable("id") Long fileId,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
+        Tenant accessTenant = tenantResolver.resolveTenantFromFile(fileId);
+        applicationAccessService.checkTenantAccess(principal, accessTenant.getId());
         User operator = userService.findUserByEmail(principal.getEmail());
         Tenant tenant = tenantService.deleteFile(fileId, operator);
         return redirectToTenantPage(tenant);
@@ -178,8 +201,7 @@ public class BOTenantController {
             MessageDTO messageDTO,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
-        Document document = documentService.findDocumentById(id);
-        Tenant accessTenant = document.getGuarantor() == null ? document.getTenant() : document.getGuarantor().getTenant();
+        Tenant accessTenant = tenantResolver.resolveTenantFromDocument(id);
         applicationAccessService.checkTenantAccess(principal, accessTenant.getId());
         User operator = userService.findUserByEmail(principal.getEmail());
         Tenant tenant = tenantService.changeDocumentStatus(id, messageDTO, operator);
@@ -190,13 +212,10 @@ public class BOTenantController {
     @GetMapping("/{id}/processFile")
     public String processFileForm(Model model, @PathVariable("id") Long id,
                                   @AuthenticationPrincipal UserPrincipal principal) {
-        applicationAccessService.checkTenantAccess(principal, id);
-        Tenant tenant = tenantService.find(id);
-
-        if (tenant == null) {
-            log.error("BOTenantController processFile not found tenant with id : {}", id);
-            return REDIRECT_ERROR;
-        }
+        
+        Tenant tenant = requireTenant(id);                            
+        applicationAccessService.checkTenantAccess(principal, tenant.getId());
+        
         List<TenantLog> logs = logService.getLogByTenantId(id);
         TenantInfoHeader header = TenantInfoHeader.build(tenant, userApiService.findPartnersLinkedToTenant(id), logs);
         List<TenantLog> modificationLogs = logs.stream()
@@ -220,6 +239,8 @@ public class BOTenantController {
             @PathVariable("guarantorId") Long guarantorId,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
+        Tenant accessTenant = tenantResolver.resolveTenantFromGuarantor(guarantorId);
+        applicationAccessService.checkTenantAccess(principal, accessTenant.getId());
         User operator = userService.findUserByEmail(principal.getEmail());
         Tenant tenant = tenantService.deleteGuarantor(guarantorId, operator);
         return redirectToTenantPage(tenant);
@@ -243,7 +264,9 @@ public class BOTenantController {
             CustomMessage customMessage,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
-        applicationAccessService.checkTenantAccess(principal, id);
+        Tenant tenant = requireTenant(id);
+        applicationAccessService.checkTenantAccess(principal, tenant.getId());
+        
         tenantService.processFile(id, customMessage, principal);
 
         // Si returnToHome est demandé, retourner à l'accueil
@@ -268,11 +291,24 @@ public class BOTenantController {
                                      @RequestParam String comment,
                                      @RequestParam(value = "returnTo", required = false) String returnTo,
                                      @AuthenticationPrincipal UserPrincipal principal) {
-        Tenant tenant = tenantService.addOperatorComment(principal, tenantId, comment);
+        
+        Tenant tenant = requireTenant(tenantId);
+        applicationAccessService.checkTenantAccess(principal, tenant.getId());
+        
+        tenantService.addOperatorComment(principal, tenant.getId(), comment);
         if ("processFile".equals(returnTo)) {
-            return REDIRECT_BO_HOME + "/tenant/" + tenantId + "/processFile";
+            return REDIRECT_BO_HOME + "/tenant/" + tenant.getId() + "/processFile";
         }
         return redirectToTenantPage(tenant);
+    }
+
+    private Tenant requireTenant(Long tenantId) {
+        Tenant tenant = tenantService.findTenantById(tenantId);
+        if (tenant == null) {
+            log.warn("BO access denied: tenant not found id={}", tenantId);
+            throw BOAccessDenied.generic();
+        }
+        return tenant;
     }
 
     private static String redirectToTenantPage(Tenant tenant) {

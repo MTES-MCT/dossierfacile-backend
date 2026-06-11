@@ -63,9 +63,15 @@ public abstract class TenantMapper {
     }
 
     @Mapping(target = "name", expression = "java(buildDocumentUrl(document, userApi))")
+    @Mapping(target = "token", expression = "java(buildDocumentToken(document, userApi))")
     @Mapping(target = "files", expression = "java((userApi == null)? mapFiles(document.getFiles()) : null)")
     @MapDocumentCategories
     public abstract DocumentModel toDocumentModel(Document document, @Context UserApi userApi);
+
+    // The document token (its UUID) is exposed only when the document URL is present
+    protected String buildDocumentToken(Document document, UserApi userApi) {
+        return buildDocumentUrl(document, userApi) != null ? document.getName() : null;
+    }
 
     protected String buildDocumentUrl(Document document, UserApi userApi) {
         if (document.getWatermarkFile() == null) {

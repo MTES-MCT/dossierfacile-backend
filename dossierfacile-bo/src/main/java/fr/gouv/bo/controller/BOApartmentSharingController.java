@@ -14,12 +14,14 @@ import fr.dossierfacile.common.enums.LinkType;
 import fr.dossierfacile.common.model.document_ia.ResultModel;
 import fr.dossierfacile.common.repository.LinkLogRepository;
 import fr.dossierfacile.common.service.ApartmentSharingLinkService;
+import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
 import fr.gouv.bo.dto.ApartmentSharingLinkEnrichedDTO;
 import fr.gouv.bo.dto.DisplayableFile;
 import fr.gouv.bo.dto.LinkLogDTO;
 import fr.gouv.bo.dto.MessageDTO;
 import fr.gouv.bo.dto.MetadataItem;
 import fr.gouv.bo.dto.PartnerDTO;
+import fr.gouv.bo.security.BOAccessDenied;
 import fr.gouv.bo.security.BOApplicationAccessService;
 import fr.gouv.bo.security.UserPrincipal;
 import fr.gouv.bo.service.DocumentService;
@@ -81,6 +83,7 @@ public class BOApartmentSharingController {
     private final LinkLogRepository linkLogRepository;
     private final UserService userService;
     private final BOApplicationAccessService applicationAccessService;
+    private final ApartmentSharingCommonService applicationSharingService;
 
     @Value("${tenant.base.url}")
     private String tenantBaseUrl;
@@ -88,15 +91,17 @@ public class BOApartmentSharingController {
     @GetMapping("/{id}")
     public String view(Model model, @PathVariable("id") Long id,
                        @AuthenticationPrincipal UserPrincipal principal) {
-        applicationAccessService.checkAndLogApartmentSharingAccess(principal, id);
+        ApartmentSharing apartmentSharing = applicationSharingService.findById(id).orElseThrow(BOAccessDenied::generic);
+
+        applicationAccessService.checkAndLogApartmentSharingAccess(principal, apartmentSharing.getId());
 
         MessageDTO messageDTO = new MessageDTO();
         PartnerDTO partnerDTO = new PartnerDTO();
 
-        List<Tenant> tenants = tenantService.findAllTenantsByApartmentSharingAndReorderDocumentsByCategory(id);
+        
 
         // Enrich apartment sharing links with visit data and creator info
-        List<ApartmentSharingLink> filteredLinks = apartmentSharingLinkService.getFilteredLinks(tenants.getFirst().getApartmentSharing());
+        List<ApartmentSharingLink> filteredLinks = apartmentSharingLinkService.getFilteredLinks(apartmentSharing);
 
         List<ApartmentSharingLinkEnrichedDTO> enrichedLinks = enrichApartmentSharingLinks(filteredLinks);
 
@@ -107,6 +112,8 @@ public class BOApartmentSharingController {
         List<ApartmentSharingLinkEnrichedDTO> inactiveLinks = enrichedLinks.stream()
                 .filter(link -> !link.isActive())
                 .toList();
+
+        List<Tenant> tenants = tenantService.findAllTenantsByApartmentSharingAndReorderDocumentsByCategory(id);
 
         model.addAttribute(TENANTS, tenants);
         model.addAttribute(LOG_SER, logService);
@@ -131,15 +138,31 @@ public class BOApartmentSharingController {
     }
 
     @DeleteMapping("/{id}/apartmentSharingLinks/{link_id}")
-    public String deleteToken(@PathVariable Long id, @PathVariable("link_id") Long linkId) {
+    public String deleteToken(
+            @PathVariable Long id,
+            @PathVariable("link_id") Long linkId,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        ApartmentSharing apartmentSharing = applicationSharingService.findById(id).orElseThrow(BOAccessDenied::generic);
+
+        applicationAccessService.checkApartmentSharingAccess(principal, apartmentSharing.getId());
+        
         apartmentSharingLinkService.delete(linkId);
         return REDIRECT_BO_COLOCATION + id;
     }
 
     @PutMapping("/{id}/apartmentSharingLinks/{link_id}")
-    public String updateTokenStatus(@PathVariable("link_id") Long linkId, @PathVariable Long id, @RequestParam boolean enabled) {
-        List<Tenant> tenants = tenantService.findAllTenantsByApartmentSharingAndReorderDocumentsByCategory(id);
-        apartmentSharingLinkService.updateStatus(linkId, enabled, tenants.getFirst().getApartmentSharing());
+    public String updateTokenStatus(
+            @PathVariable("link_id") Long linkId,
+            @PathVariable Long id,
+            @RequestParam boolean enabled,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        ApartmentSharing apartmentSharing = applicationSharingService.findById(id).orElseThrow(BOAccessDenied::generic);
+
+        applicationAccessService.checkApartmentSharingAccess(principal, apartmentSharing.getId());
+        
+        apartmentSharingLinkService.updateStatus(linkId, enabled, apartmentSharing);
         return REDIRECT_BO_COLOCATION + id;
     }
 

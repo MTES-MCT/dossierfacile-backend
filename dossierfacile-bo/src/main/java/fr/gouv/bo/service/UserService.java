@@ -12,7 +12,6 @@ import fr.gouv.bo.repository.PropertyApartmentSharingRepository;
 import fr.gouv.bo.repository.UserRoleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -85,27 +84,6 @@ public class UserService {
                         .operatorId(operator.getId())
                         .creationDateTime(LocalDateTime.now())
                         .build());
-    }
-
-    public Tenant setAsTenantCreate(Tenant tenant) {
-        ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
-        UserRepresentation keycloakUser = keycloakService.getKeyCloakUser(
-                tenant.getKeycloakId() == null ? null : tenant.getKeycloakId());
-
-        if (keycloakUser == null || !keycloakUser.isEnabled()) { // cannot be a create tenant
-            throw new IllegalStateException("This tenant cannot be a tenant - missing keycloak user or is not enabled");
-        }
-        Tenant mainTenant = apartmentSharing.getTenants().stream()
-                .filter(t -> t.getTenantType().equals(TenantType.CREATE))
-                .findFirst()
-                .orElseThrow(IllegalStateException::new);
-
-        mainTenant.setTenantType(TenantType.JOIN);
-        tenant.setTenantType(TenantType.CREATE);
-        tenantRepository.save(mainTenant);
-        tenantRepository.save(tenant);
-
-        return tenant;
     }
 
     public void deleteApartmentSharing(Tenant tenant, BOUser operator) {

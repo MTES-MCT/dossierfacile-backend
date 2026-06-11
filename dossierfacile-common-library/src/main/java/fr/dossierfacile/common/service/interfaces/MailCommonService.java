@@ -19,5 +19,7 @@ public interface MailCommonService {
 
     void sendEmailPartnerAccessRevoked(Tenant receiver, UserApi userApi, Tenant revocationRequester);
 
+    void sendEmailTenantDissociated(TenantDto tenant);
+
 }
 

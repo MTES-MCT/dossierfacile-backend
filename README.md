@@ -123,7 +123,6 @@ s3.secret.access.key=your-secret-key
 - Project: [dossierfacile-api-watermark](dossierfacile-api-watermark/README.md)
 - Project: [dossierfacile-bo](dossierfacile-bo/README.md)
 - Project: [dossierfacile-pdf-generator](dossierfacile-pdf-generator/README.md)
-- Project: [dossierfacile-process-file](dossierfacile-process-file/README.md)
 - Project: [dossierfacile-task-scheduler](dossierfacile-task-scheduler/README.md)
 
 ## Feature flags (must be created through DB migration)
@@ -228,6 +227,19 @@ In each application folder, run
 ```shell
 mvn spring-boot:run -D spring-boot.run.profiles=dev,mockOvh
 ```
+
+## Coding agent context (`AGENTS.md`)
+
+The team chose an agent-agnostic approach: [`AGENTS.md`](AGENTS.md) files, following the [open `AGENTS.md` standard](https://agents.md). It describes the domain model, modules, and cross-cutting concerns (sharing, permissions, partners, etc.) and is read by most AI coding assistants without tool-specific configuration.
+
+### Special cases
+
+| Tool | Behavior | What to do in this repo |
+| --- | --- | --- |
+| **Claude Code** (Anthropic) | Uses `CLAUDE.md` by default, not `AGENTS.md` | Create a symlink to reuse the same content: `ln -s AGENTS.md CLAUDE.md` (at the repo root). Alternative: reference the file from `CLAUDE.md` with `@AGENTS.md`. |
+| **Gemini CLI** (Google) | Native format is `GEMINI.md` | Configure reading `AGENTS.md` in `.gemini/settings.json`: `{"contextFileName": "AGENTS.md"}`. |
+
+To avoid maintaining diverging copies, keep **`AGENTS.md` as the single source of truth** and add `CLAUDE.md` / `GEMINI.md` only via symlink or import, depending on the tool your team uses.
 
 ## Contributing
 

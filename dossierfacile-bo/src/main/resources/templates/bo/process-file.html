@@ -138,7 +138,7 @@
                                         </div>
                                         <div class="letter" style="padding-top: 7px"
                                              th:if="${T(fr.dossierfacile.common.enums.DocumentSubCategory).SALARY == messageItem.getDocumentSubCategory()}">
-                                            <span th:text="'Bulletins attendus : ' + ${T(fr.gouv.bo.utils.DateFormatUtil).getExpectedPayslipMonths()}"></span>
+                                            <span th:text="'3 bulletins attendues : ' + ${T(fr.gouv.bo.utils.DateFormatUtil).getExpectedPayslipMonths()}"></span>
                                         </div>
                                         <div class="letter" style="padding-top: 7px"
                                              th:if="${T(fr.dossierfacile.common.enums.DocumentSubCategory).TENANT == messageItem.getDocumentSubCategory()}">
@@ -354,7 +354,7 @@
                                             </div>
                                             <div class="letter" style="padding-top: 7px"
                                                  th:if="${T(fr.dossierfacile.common.enums.DocumentSubCategory).SALARY == messageItem.getDocumentSubCategory()}">
-                                                <span th:text="'Bulletins attendus : ' + ${T(fr.gouv.bo.utils.DateFormatUtil).getExpectedPayslipMonths()}"></span>
+                                                <span th:text="'3 bulletins attendus : ' + ${T(fr.gouv.bo.utils.DateFormatUtil).getExpectedPayslipMonths()}"></span>
                                             </div>
                                             <div class="letter" style="padding-top: 6px"
                                                  th:if="${guarantorItem.getLegalPersonName()}!=null">

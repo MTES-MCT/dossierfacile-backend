@@ -30,5 +30,6 @@ public class DocumentModel {
     private DocumentDeniedReasonsModel documentDeniedReasons;
     private DocumentAnalysisReportModel documentAnalysisReport;
     private String name;
+    private String token;
     private List<FileModel> files;
 }

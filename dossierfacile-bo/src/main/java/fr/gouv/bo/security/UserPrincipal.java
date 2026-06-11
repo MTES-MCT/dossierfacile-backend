@@ -9,11 +9,16 @@ import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
-public class UserPrincipal implements UserDetails, OidcUser {
+public class UserPrincipal implements UserDetails, OidcUser, Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     @Getter
     private final Long id;
     @Getter
@@ -25,7 +30,8 @@ public class UserPrincipal implements UserDetails, OidcUser {
     @Setter
     private transient Map<String, Object> attributes;
     // OIDC fields
-    private transient OidcIdToken oidcIdToken;
+    // Keep id token serializable in Redis-backed session so OIDC logout can call Keycloak end_session_endpoint.
+    private OidcIdToken oidcIdToken;
     private transient OidcUserInfo oidcUserInfo; // nullable
     private transient Map<String, Object> oidcClaims; // nullable
 

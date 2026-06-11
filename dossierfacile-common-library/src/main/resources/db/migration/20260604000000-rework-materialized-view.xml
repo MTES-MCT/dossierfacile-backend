@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+
+    <changeSet id="20260604000000-01" author="nicolas" runInTransaction="false">
+        <sql>
+            CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_operator_log_tenant_date_id
+                ON public.operator_log (tenant_id, creation_date DESC, id DESC);
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260604000000-02" author="nicolas">
+        <sql>
+            DROP MATERIALIZED VIEW IF EXISTS public.latest_operator CASCADE;
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260604000000-03" author="nicolas">
+        <sql>
+            -- Cette vue materialisée garde une seule ligne par tenant : le dernier operator_id
+            -- selon creation_date (et id en tie-break). WITH NO DATA evite le calcul immediat,
+            -- la vue est ensuite remplie via REFRESH MATERIALIZED VIEW.
+            CREATE MATERIALIZED VIEW public.latest_operator AS
+            SELECT DISTINCT ON (tenant_id)
+                tenant_id,
+                operator_id
+            FROM public.operator_log
+            ORDER BY tenant_id, creation_date DESC, id DESC
+            WITH NO DATA;
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260604000000-04" author="nicolas" runInTransaction="false">
+        <sql>
+            CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS idx_latest_operator_tenant_id
+                ON public.latest_operator (tenant_id);
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260604000000-05" author="nicolas">
+        <sql>
+            CREATE MATERIALIZED VIEW public.ranked_tenant AS
+            SELECT t.id                                            AS tid,
+                   t.last_update_date,
+                   lo.operator_id,
+                   row_number() OVER (ORDER BY t.last_update_date) AS rank
+            FROM tenant t
+                     LEFT JOIN latest_operator lo ON t.id = lo.tenant_id
+            WHERE t.status::text = 'TO_PROCESS'::text
+              AND t.honor_declaration = true
+              AND NOT (EXISTS (SELECT 1
+                               FROM document d
+                               WHERE d.tenant_id = t.id
+                                 AND d.watermark_file_id IS NULL))
+              AND NOT (EXISTS (SELECT 1
+                               FROM guarantor g
+                                        JOIN document d2 ON g.id = d2.guarantor_id
+                               WHERE g.tenant_id = t.id
+                                 AND d2.watermark_file_id IS NULL))
+            WITH NO DATA;
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260604000000-06" author="nicolas" runInTransaction="false">
+        <sql>
+            CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS idx_ranked_tenant_tid
+                ON public.ranked_tenant (tid);
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

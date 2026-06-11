@@ -43,6 +43,7 @@ class TenantServiceRegroupTenantTest {
                 null,   // tenantLogService
                 null,   // keycloakService
                 apartmentSharingService,
+                null,   // apartmentSharingLinkService
                 null,   // guarantorRepository
                 null,   // tenantMapperForMail
                 null,   // apartmentSharingMapperForMail

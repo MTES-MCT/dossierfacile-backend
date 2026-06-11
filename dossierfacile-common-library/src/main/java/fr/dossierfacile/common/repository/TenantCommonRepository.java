@@ -141,6 +141,8 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
     void refreshMaterializedView(@Param("view_name") String viewName);
 
     default void refreshRank() {
+        // Pour le detail du fonctionnement de latest_operator, voir :
+        // dossierfacile-common-library/src/main/resources/db/migration/20260604000000-rework-materialized-view.xml
         refreshMaterializedView("latest_operator");
         refreshMaterializedView("ranked_tenant");
     }

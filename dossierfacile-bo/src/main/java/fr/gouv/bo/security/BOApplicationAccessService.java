@@ -1,5 +1,7 @@
 package fr.gouv.bo.security;
 
+import fr.dossierfacile.common.entity.File;
+
 public interface BOApplicationAccessService {
 
     /**
@@ -10,6 +12,15 @@ public interface BOApplicationAccessService {
      * No quota is enforced by this method (quota is checked at START_PROCESS time).
      */
     void checkTenantAccess(UserPrincipal principal, Long tenantId);
+
+    /**
+     * Checks that the principal is authorised to access a dossier identified by apartmentSharingId.
+     * For OPERATOR: requires a START_PROCESS or STOP_PROCESS log for any tenant of that apartment sharing
+     * in the configured assignment window.
+     * For SUPPORT / MANAGER / ADMIN: always authorised.
+     * Throws AccessDeniedException with a generic message if an OPERATOR is not assigned.
+     */
+    void checkApartmentSharingAccess(UserPrincipal principal, Long apartmentSharingId);
 
     /**
      * Checks that the principal is authorised to view a dossier identified by apartmentSharingId.
@@ -27,4 +38,12 @@ public interface BOApplicationAccessService {
      * Throws AccessDeniedException if the daily quota is reached.
      */
     void checkAndLogSearchTenant(UserPrincipal principal, String query, long resultCount);
+
+    /**
+     * Checks that the principal is authorised to access the dossier owning the given file.
+     * For OPERATOR: requires assignment to the resolved tenant in the configured window.
+     * For SUPPORT / MANAGER / ADMIN: always authorised.
+     * Throws AccessDeniedException if the file/document/tenant chain is broken or operator is not assigned.
+     */
+    void checkFileAccess(UserPrincipal principal, File file);
 }
