@@ -20,7 +20,9 @@ interface TenantRepository extends JpaRepository<Tenant, Long> {
             select t from Tenant t
             where t.lastLoginDate < :localDateTime
             and t.warnings = :warnings
-            and t.id in (select d.tenant.id from Document d where d.tenant.id is not null)
+            and exists (
+                select 1 from Document d where d.tenant.id = t.id
+            )
             """)
     Page<Tenant> findInactiveTenantsWithDocuments(Pageable pageable, @Param("localDateTime") LocalDateTime localDateTime, @Param("warnings") Integer warnings);
 
@@ -28,7 +30,9 @@ interface TenantRepository extends JpaRepository<Tenant, Long> {
             select t from Tenant t
             where t.lastLoginDate < :localDateTime
             and t.status != 'ARCHIVED'
-            and t.id not in (select d.tenant.id from Document d where d.tenant.id is not null)
+            and not exists (
+                        select 1 from Document d where d.tenant.id = t.id
+            )
             """)
     Page<Tenant> findInactiveTenantsWithoutDocuments(Pageable pageable, @Param("localDateTime") LocalDateTime localDateTime);
 
