@@ -52,6 +52,10 @@
             <groupId>fr.dossierfacile</groupId>
             <artifactId>dossierfacile-common-library</artifactId>
         </dependency>
+        <dependency>
+            <groupId>fr.dossierfacile</groupId>
+            <artifactId>dossier-facile-logging-library</artifactId>
+        </dependency>
 
         <!--Dependencies for Tests-->
         <dependency>

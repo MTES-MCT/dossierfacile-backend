@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.front;
 
+import fr.dossierfacile.logging.async.EnableMdcAwareAsync;
 import jakarta.servlet.annotation.WebFilter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
@@ -25,6 +26,7 @@ import java.lang.management.MemoryMXBean;
 @ComponentScan(nameGenerator = FullyQualifiedAnnotationBeanNameGenerator.class, basePackages = "fr.dossierfacile", excludeFilters = @ComponentScan.Filter(type = FilterType.ANNOTATION, classes = {WebFilter.class}))
 @EnableScheduling
 @EnableCaching
+@EnableMdcAwareAsync
 @Slf4j
 public class FrontApplication {
 
