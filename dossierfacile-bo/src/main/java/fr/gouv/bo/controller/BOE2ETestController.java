@@ -1,6 +1,7 @@
 package fr.gouv.bo.controller;
 
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.exceptions.NotFoundException;
 import fr.gouv.bo.service.TenantService;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * REST controller for E2E testing endpoints.
@@ -55,4 +58,35 @@ public class BOE2ETestController {
             return ResponseEntity.internalServerError().build();
         }
     }
+
+    @PostMapping("/tenant/{tenantEmail}/decline")
+    public ResponseEntity<Void> declineTenant(@PathVariable String tenantEmail,
+                                              @RequestBody DeclineRequest body) {
+        if (Arrays.asList(environment.getActiveProfiles()).contains("prod")) {
+            log.error("E2E testing endpoint called in PRODUCTION environment");
+            return ResponseEntity.status(403).build();
+        }
+
+        if (!tenantEmail.equals(allowedTenantEmail)) {
+            log.warn("Attempted to decline non-test tenant: {}", tenantEmail);
+            return ResponseEntity.badRequest().build();
+        }
+
+        try {
+            Tenant tenant = tenantService.findTenantByEmail(tenantEmail);
+            List<DocumentCategory> categories = body.documentCategories() == null
+                    ? Collections.emptyList()
+                    : body.documentCategories().stream().map(DocumentCategory::valueOf).toList();
+            tenantService.declineTenantForTesting(tenant.getId(), body.messageBody(), categories);
+            return ResponseEntity.ok().build();
+        } catch (NotFoundException e) {
+            log.error("Tenant not found: {}", tenantEmail);
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            log.error("Error declining tenant: {}", tenantEmail, e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    public record DeclineRequest(String messageBody, List<String> documentCategories) {}
 }

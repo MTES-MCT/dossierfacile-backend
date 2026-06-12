@@ -200,6 +200,48 @@ public class TenantService {
         changeTenantStatusToValidatedForTesting(tenant);
     }
 
+    @Transactional
+    public void declineTenantForTesting(Long tenantId, String messageBody, List<DocumentCategory> categories) {
+        Tenant tenant = find(tenantId);
+
+        declineTenantDocuments(tenant, categories);
+        declineTenantGuarantorsDocuments(tenant, categories);
+        messageService.create(
+                MessageDTO.builder().message(messageBody).emailHtml(messageBody).build(),
+                tenant, false, true);
+        changeTenantStatusToDeclinedForTesting(tenant);
+    }
+
+    // categories empty means decline all documents
+    private void declineTenantDocuments(Tenant tenant, List<DocumentCategory> categories) {
+        Optional.ofNullable(tenant.getDocuments())
+                .orElse(new ArrayList<>())
+                .stream()
+                .filter(document -> categories.isEmpty() || categories.contains(document.getDocumentCategory()))
+                .forEach(document -> {
+                    document.setDocumentStatus(DocumentStatus.DECLINED);
+                    documentRepository.save(document);
+                });
+    }
+
+    private void declineTenantGuarantorsDocuments(Tenant tenant, List<DocumentCategory> categories) {
+        Optional.ofNullable(tenant.getGuarantors())
+                .orElse(new ArrayList<>())
+                .forEach(guarantor -> Optional.ofNullable(guarantor.getDocuments())
+                        .orElse(new ArrayList<>())
+                        .stream()
+                        .filter(document -> categories.isEmpty() || categories.contains(document.getDocumentCategory()))
+                        .forEach(document -> {
+                            document.setDocumentStatus(DocumentStatus.DECLINED);
+                            documentRepository.save(document);
+                        }));
+    }
+
+    private void changeTenantStatusToDeclinedForTesting(Tenant tenant) {
+        tenant.setStatus(TenantFileStatus.DECLINED);
+        tenantRepository.save(tenant);
+    }
+
     private void validateTenantDocuments(Tenant tenant) {
         Optional.ofNullable(tenant.getDocuments())
                 .orElse(new ArrayList<>())
