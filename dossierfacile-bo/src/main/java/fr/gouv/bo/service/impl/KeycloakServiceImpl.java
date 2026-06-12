@@ -40,6 +40,35 @@ public class KeycloakServiceImpl implements KeycloakService {
     }
 
     @Override
+    public Optional<UserRepresentation> findUserByEmail(String email) {
+        return realmResource.users().searchByEmail(email, true).stream().findFirst();
+    }
+
+    @Override
+    public boolean markEmailAsVerified(String email) {
+        return findUserByEmail(email)
+                .map(user -> {
+                    user.setEmailVerified(true);
+                    if (user.getRequiredActions() != null) {
+                        user.getRequiredActions().remove("VERIFY_EMAIL");
+                    }
+                    realmResource.users().get(user.getId()).update(user);
+                    return true;
+                })
+                .orElse(false);
+    }
+
+    @Override
+    public boolean deleteKeycloakUserByEmail(String email) {
+        return findUserByEmail(email)
+                .map(user -> {
+                    realmResource.users().delete(user.getId());
+                    return true;
+                })
+                .orElse(false);
+    }
+
+    @Override
     public void deleteKeycloakSingleUser(User tenant) {
         if (tenant.getKeycloakId() != null) {
             realmResource.users().delete(tenant.getKeycloakId());

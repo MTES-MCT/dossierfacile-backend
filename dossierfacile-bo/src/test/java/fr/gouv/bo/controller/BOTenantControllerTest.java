@@ -391,7 +391,7 @@ class BOTenantControllerTest {
                     .isInstanceOf(AccessDeniedException.class)
                     .hasMessage(BOAccessDenied.GENERIC_MESSAGE);
 
-            verify(tenantService, never()).validateTenantFile(any(), any());
+            verify(tenantService, never()).validateTenantFile(any(UserPrincipal.class), any(Long.class));
         }
 
         @Test

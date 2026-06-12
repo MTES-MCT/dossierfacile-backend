@@ -51,6 +51,13 @@ public class UserService {
         return userRepository.findById(id).orElse(null);
     }
 
+    // Used to attribute automated (e2e testing) operations to a deterministic,
+    // dedicated operator instead of a real human one
+    public BOUser findOrCreateOperatorByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseGet(() -> userRepository.save(BOUser.builder().email(email).build()));
+    }
+
     public void delete(Long id) {
         userRepository.deleteById(id);
     }
