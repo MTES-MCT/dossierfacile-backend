@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+
+    <changeSet id="20260616170500-01" author="nsagon">
+        <sql>
+            DELETE FROM public.document
+            WHERE tenant_id IS NOT NULL
+              AND document_category IN ('TAX', 'RESIDENCY', 'IDENTIFICATION', 'PROFESSIONAL')
+              AND id != (
+                  SELECT max(d2.id)
+                  FROM public.document d2
+                  WHERE d2.tenant_id = document.tenant_id
+                    AND d2.document_category = document.document_category
+              );
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260616170500-02" author="nsagon">
+        <sql>
+            DELETE FROM public.document
+            WHERE guarantor_id IS NOT NULL
+              AND document_category IN ('TAX', 'RESIDENCY', 'IDENTIFICATION', 'PROFESSIONAL')
+              AND id != (
+                  SELECT max(d2.id)
+                  FROM public.document d2
+                  WHERE d2.guarantor_id = document.guarantor_id
+                    AND d2.document_category = document.document_category
+              );
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260616170500-03" author="nsagon" runInTransaction="false">
+        <sql>
+            -- Create unique index concurrently for tenants
+            CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS uq_tenant_single_document_category
+            ON public.document (tenant_id, document_category)
+            WHERE tenant_id IS NOT NULL
+              AND document_category IN ('TAX', 'RESIDENCY', 'IDENTIFICATION', 'PROFESSIONAL');
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260616170500-04" author="nsagon" runInTransaction="false">
+        <sql>
+            -- Create unique index concurrently for guarantors
+            CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS uq_guarantor_single_document_category
+            ON public.document (guarantor_id, document_category)
+            WHERE guarantor_id IS NOT NULL
+              AND document_category IN ('TAX', 'RESIDENCY', 'IDENTIFICATION', 'PROFESSIONAL');
+        </sql>
+    </changeSet>
+</databaseChangeLog>
