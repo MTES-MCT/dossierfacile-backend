@@ -5,30 +5,112 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
 
+    <!--
+      Deduplicate documents so that a tenant/guarantor keeps a single document per category
+      for the four categories that must be unique (TAX, RESIDENCY, IDENTIFICATION, PROFESSIONAL).
+
+      Survivor selection: we keep the document with the most severe status first
+      (DECLINED > TO_PROCESS > VALIDATED), then the highest id. Keeping the most severe status
+      guarantees the tenant's global status (Tenant.computeStatus) is unchanged by the cleanup:
+      a previously declined dossier stays declined, nothing is silently re-opened or auto-validated.
+
+      Storage cleanup: the raw SQL DELETE bypasses the JPA @PreRemove hooks (Document and File),
+      so the underlying StorageFile objects would never be flagged for deletion and would leak in
+      object storage. We therefore mark them TO_DELETE in the SAME transaction as the DELETE
+      (watermark file of the document + storage_file and preview of each file), reproducing the
+      @PreRemove behaviour. DeleteFilesTask then purges them from object storage.
+    -->
+
     <changeSet id="20260616170500-01" author="nsagon">
         <sql>
+            -- Flag storage files of the soon-to-be-deleted tenant documents for deletion
+            WITH to_delete AS (
+                SELECT id
+                FROM public.document
+                WHERE tenant_id IS NOT NULL
+                  AND document_category IN ('TAX', 'RESIDENCY', 'IDENTIFICATION', 'PROFESSIONAL')
+                  AND id NOT IN (
+                      SELECT DISTINCT ON (d2.tenant_id, d2.document_category) d2.id
+                      FROM public.document d2
+                      WHERE d2.tenant_id IS NOT NULL
+                        AND d2.document_category IN ('TAX', 'RESIDENCY', 'IDENTIFICATION', 'PROFESSIONAL')
+                      ORDER BY d2.tenant_id, d2.document_category,
+                               CASE d2.document_status WHEN 'DECLINED' THEN 3 WHEN 'TO_PROCESS' THEN 2 ELSE 1 END DESC,
+                               d2.id DESC
+                  )
+            )
+            UPDATE public.storage_file
+            SET status = 'TO_DELETE'
+            WHERE id IN (
+                SELECT watermark_file_id FROM public.document
+                    WHERE id IN (SELECT id FROM to_delete) AND watermark_file_id IS NOT NULL
+                UNION
+                SELECT storage_file_id FROM public.file
+                    WHERE document_id IN (SELECT id FROM to_delete) AND storage_file_id IS NOT NULL
+                UNION
+                SELECT preview_file_id FROM public.file
+                    WHERE document_id IN (SELECT id FROM to_delete) AND preview_file_id IS NOT NULL
+            );
+
+            -- Delete duplicate tenant documents, keeping the most severe status then the highest id
             DELETE FROM public.document
             WHERE tenant_id IS NOT NULL
               AND document_category IN ('TAX', 'RESIDENCY', 'IDENTIFICATION', 'PROFESSIONAL')
-              AND id != (
-                  SELECT max(d2.id)
+              AND id NOT IN (
+                  SELECT DISTINCT ON (d2.tenant_id, d2.document_category) d2.id
                   FROM public.document d2
-                  WHERE d2.tenant_id = document.tenant_id
-                    AND d2.document_category = document.document_category
+                  WHERE d2.tenant_id IS NOT NULL
+                    AND d2.document_category IN ('TAX', 'RESIDENCY', 'IDENTIFICATION', 'PROFESSIONAL')
+                  ORDER BY d2.tenant_id, d2.document_category,
+                           CASE d2.document_status WHEN 'DECLINED' THEN 3 WHEN 'TO_PROCESS' THEN 2 ELSE 1 END DESC,
+                           d2.id DESC
               );
         </sql>
     </changeSet>
 
     <changeSet id="20260616170500-02" author="nsagon">
         <sql>
+            -- Flag storage files of the soon-to-be-deleted guarantor documents for deletion
+            WITH to_delete AS (
+                SELECT id
+                FROM public.document
+                WHERE guarantor_id IS NOT NULL
+                  AND document_category IN ('TAX', 'RESIDENCY', 'IDENTIFICATION', 'PROFESSIONAL')
+                  AND id NOT IN (
+                      SELECT DISTINCT ON (d2.guarantor_id, d2.document_category) d2.id
+                      FROM public.document d2
+                      WHERE d2.guarantor_id IS NOT NULL
+                        AND d2.document_category IN ('TAX', 'RESIDENCY', 'IDENTIFICATION', 'PROFESSIONAL')
+                      ORDER BY d2.guarantor_id, d2.document_category,
+                               CASE d2.document_status WHEN 'DECLINED' THEN 3 WHEN 'TO_PROCESS' THEN 2 ELSE 1 END DESC,
+                               d2.id DESC
+                  )
+            )
+            UPDATE public.storage_file
+            SET status = 'TO_DELETE'
+            WHERE id IN (
+                SELECT watermark_file_id FROM public.document
+                    WHERE id IN (SELECT id FROM to_delete) AND watermark_file_id IS NOT NULL
+                UNION
+                SELECT storage_file_id FROM public.file
+                    WHERE document_id IN (SELECT id FROM to_delete) AND storage_file_id IS NOT NULL
+                UNION
+                SELECT preview_file_id FROM public.file
+                    WHERE document_id IN (SELECT id FROM to_delete) AND preview_file_id IS NOT NULL
+            );
+
+            -- Delete duplicate guarantor documents, keeping the most severe status then the highest id
             DELETE FROM public.document
             WHERE guarantor_id IS NOT NULL
               AND document_category IN ('TAX', 'RESIDENCY', 'IDENTIFICATION', 'PROFESSIONAL')
-              AND id != (
-                  SELECT max(d2.id)
+              AND id NOT IN (
+                  SELECT DISTINCT ON (d2.guarantor_id, d2.document_category) d2.id
                   FROM public.document d2
-                  WHERE d2.guarantor_id = document.guarantor_id
-                    AND d2.document_category = document.document_category
+                  WHERE d2.guarantor_id IS NOT NULL
+                    AND d2.document_category IN ('TAX', 'RESIDENCY', 'IDENTIFICATION', 'PROFESSIONAL')
+                  ORDER BY d2.guarantor_id, d2.document_category,
+                           CASE d2.document_status WHEN 'DECLINED' THEN 3 WHEN 'TO_PROCESS' THEN 2 ELSE 1 END DESC,
+                           d2.id DESC
               );
         </sql>
     </changeSet>
