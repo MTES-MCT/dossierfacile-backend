@@ -12,6 +12,7 @@ import fr.dossierfacile.common.mapper.AdemeApiResultModelToAdemeResultModelMappe
 import fr.dossierfacile.common.model.AdemeResultModel;
 import fr.dossierfacile.common.model.ademe.AdemeApiResultModel;
 import fr.dossierfacile.common.service.interfaces.AdemeApiService;
+import fr.dossierfacile.common.utils.AdemeApiErrorMessageParser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -91,7 +92,8 @@ public class AdemeApiServiceImpl implements AdemeApiService {
 
         if (response.statusCode() == 400) {
             log.error("ADEME API Bad Request Error: status code {}, message {}", response.statusCode(), response.body());
-            throw new AdemeApiBadRequestException(response.body());
+            String userMessage = AdemeApiErrorMessageParser.extractUserMessage(response.body(), objectMapper);
+            throw new AdemeApiBadRequestException(userMessage);
         }
 
         if (response.statusCode() == 500) {

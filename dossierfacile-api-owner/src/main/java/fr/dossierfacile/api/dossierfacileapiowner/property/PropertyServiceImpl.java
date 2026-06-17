@@ -1,6 +1,8 @@
 package fr.dossierfacile.api.dossierfacileapiowner.property;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.dossierfacile.api.dossierfacileapiowner.exception.OwnerApiErrorCode;
+import fr.dossierfacile.api.dossierfacileapiowner.exception.OwnerApiException;
 import fr.dossierfacile.api.dossierfacileapiowner.log.OwnerLogService;
 import fr.dossierfacile.api.dossierfacileapiowner.mail.MailService;
 import fr.dossierfacile.api.dossierfacileapiowner.register.AuthenticationFacade;
@@ -29,6 +31,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -83,9 +86,9 @@ public class PropertyServiceImpl implements PropertyService {
         if (propertyForm.getLivingSpace() != null && propertyForm.getLivingSpace() >= 0) {
             property.setLivingSpace(propertyForm.getLivingSpace());
         }
-        if (propertyForm.getAdemeNumber() != null && !propertyForm.getAdemeNumber().isBlank()) {
+        if (shouldRefreshAdemeData(propertyForm, property)) {
             setAdemeResult(propertyForm, property);
-        } else {
+        } else if (propertyForm.getAdemeNumber() == null || propertyForm.getAdemeNumber().isBlank()) {
             if (propertyForm.getCo2Emission() != null && propertyForm.getCo2Emission() >= 0) {
                 property.setCo2Emission(propertyForm.getCo2Emission());
             }
@@ -97,7 +100,7 @@ public class PropertyServiceImpl implements PropertyService {
                 try {
                     property.setDpeDate(format.parse(propertyForm.getDpeDate()));
                 } catch (ParseException e) {
-                    throw new RuntimeException(e);
+                    throw new OwnerApiException(OwnerApiErrorCode.VALIDATION_ERROR, "Invalid DPE date format");
                 }
             }
         }
@@ -114,6 +117,21 @@ public class PropertyServiceImpl implements PropertyService {
         return propertyMapper.toPropertyModel(propertyRepository.save(property));
     }
 
+    private boolean shouldRefreshAdemeData(PropertyForm propertyForm, Property property) {
+        if (propertyForm.getAdemeNumber() == null || propertyForm.getAdemeNumber().isBlank()) {
+            return false;
+        }
+        String existingAdemeNumber = property.getAdemeNumber();
+        if (existingAdemeNumber == null || existingAdemeNumber.isBlank()) {
+            return true;
+        }
+        return !normalizeAdemeNumber(propertyForm.getAdemeNumber()).equals(normalizeAdemeNumber(existingAdemeNumber));
+    }
+
+    private static String normalizeAdemeNumber(String ademeNumber) {
+        return ademeNumber.replaceAll("[\\s-]", "").toUpperCase();
+    }
+
     private void setAdemeResult(PropertyForm propertyForm, Property property) throws InterruptedException {
         try {
             AdemeResultModel ademeResultModel = ademeApiService.getDpeDetails(propertyForm.getAdemeNumber());
@@ -126,12 +144,20 @@ public class PropertyServiceImpl implements PropertyService {
             Date dateRealisation = Date.from(instant);
             property.setDpeDate(dateRealisation);
         } catch (AdemeApiNotFoundException e) {
-            throw new NotFoundException(e.getMessage());
+            throw dpeNotFoundException(propertyForm.getAdemeNumber(), e.getMessage());
         } catch (AdemeApiBadRequestException e) {
-            throw new HttpBadRequestException(e.getMessage());
+            throw dpeNotFoundException(propertyForm.getAdemeNumber(), e.getMessage());
         } catch (AdemeApiUnauthorizedException | AdemeApiInternalServerErrorException e) {
-            throw new HttpBadGatewayException("Service Unavailable");
+            throw new OwnerApiException(OwnerApiErrorCode.ADEME_UNAVAILABLE, "ADEME service unavailable");
         }
+    }
+
+    private static OwnerApiException dpeNotFoundException(String dpeNumber, String message) {
+        return new OwnerApiException(
+                OwnerApiErrorCode.DPE_NOT_FOUND,
+                message,
+                Map.of("dpeNumber", dpeNumber != null ? dpeNumber : "")
+        );
     }
 
     @Override
