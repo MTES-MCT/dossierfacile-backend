@@ -23,6 +23,7 @@ public class DocumentIAConfig {
     private static final String FEATURE_FLAG_VISALE_ANALYSIS_KEY = "document-ia-visale-analysis";
     private static final String FEATURE_FLAG_SALARY_MORE_3_MONTHS_ANALYSIS_KEY = "document-ia-salary-more-3-months-analysis";
     private static final String FEATURE_FLAG_RESIDENCY_ANALYSIS_KEY = "document-ia-residency-classification";
+    private static final String FEATURE_FLAG_PROPERTY_TAX_ANALYSIS_KEY = "document-ia-property-tax-analysis";
 
     public boolean hasToSendFileForAnalysis(Document document, long tenantId) {
         if (document.getDocumentSubCategory() == DocumentSubCategory.MY_NAME) {
@@ -39,7 +40,11 @@ public class DocumentIAConfig {
                     document.getDocumentCategoryStep() == DocumentCategoryStep.SALARY_EMPLOYED_MORE_3_MONTHS;
         }
 
-        if (List.of(DocumentSubCategory.TENANT, DocumentSubCategory.OWNER, DocumentSubCategory.GUEST).contains(document.getDocumentSubCategory())) {
+        if (document.getDocumentSubCategory() == DocumentSubCategory.OWNER) {
+            return featureFlagService.isFeatureEnabledForUser(tenantId, FEATURE_FLAG_PROPERTY_TAX_ANALYSIS_KEY);
+        }
+
+        if (List.of(DocumentSubCategory.TENANT, DocumentSubCategory.GUEST).contains(document.getDocumentSubCategory())) {
             return featureFlagService.isFeatureEnabledForUser(tenantId, FEATURE_FLAG_RESIDENCY_ANALYSIS_KEY);
         }
 
@@ -47,10 +52,9 @@ public class DocumentIAConfig {
     }
 
     public String getWorkflowIdForDocumentSubCategory(Document document) {
-        //noinspection SwitchStatementWithTooFewBranches because we will add more workflows later
         return switch (document.getDocumentSubCategory()) {
             case MY_NAME -> "document-2ddoc-extraction";
-            case TENANT, OWNER, GUEST -> "document-classification-v1";
+            case TENANT, GUEST -> "document-classification-v1";
             default -> defaultWorkflowId;
         };
     }
