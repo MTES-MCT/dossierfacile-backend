@@ -16,7 +16,6 @@ import org.springframework.util.CollectionUtils;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -41,10 +40,9 @@ public class ApplicationRegistrationValidator {
         }
 
         ApplicationType applicationType = applicationForm.getApplicationType();
-        if (applicationType == ApplicationType.GROUP || applicationType == ApplicationType.COUPLE) {
-            if (applicationForm.getAcceptAccess() == null || !applicationForm.getAcceptAccess()) {
-                return Optional.of(ApplicationErrorCode.ACCEPT_ACCESS_REQUIRED);
-            }
+        if ((applicationType == ApplicationType.GROUP || applicationType == ApplicationType.COUPLE)
+                && (applicationForm.getAcceptAccess() == null || !applicationForm.getAcceptAccess())) {
+            return Optional.of(ApplicationErrorCode.ACCEPT_ACCESS_REQUIRED);
         }
 
         if ((applicationType == ApplicationType.GROUP || applicationType == ApplicationType.COUPLE)
@@ -95,7 +93,7 @@ public class ApplicationRegistrationValidator {
     private static boolean hasDistinctEmails(List<CoTenantForm> coTenantForms) {
         var emails = coTenantForms.stream()
                 .filter(t -> StringUtils.isNotBlank(t.getEmail()))
-                .collect(Collectors.toList());
+                .toList();
         return emails.stream().map(CoTenantForm::getEmail).distinct().count() == emails.size();
     }
 }
