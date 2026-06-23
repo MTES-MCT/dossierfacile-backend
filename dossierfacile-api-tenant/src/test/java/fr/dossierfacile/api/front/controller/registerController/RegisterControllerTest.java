@@ -12,6 +12,7 @@ import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.TenantPermissionsService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.validator.NumberOfPagesValidator;
+import fr.dossierfacile.api.front.validator.tenant.application.ApplicationRegistrationValidator;
 import fr.dossierfacile.common.config.GlobalExceptionHandler;
 import fr.dossierfacile.common.service.FileUploadPreprocessor;
 import fr.dossierfacile.common.service.interfaces.LogService;
@@ -86,6 +87,9 @@ class RegisterControllerTest {
 
     @MockitoBean
     private FileUploadPreprocessor fileUploadPreprocessor;
+
+    @MockitoBean
+    private ApplicationRegistrationValidator applicationRegistrationValidator;
 
     // Référence statique pour les paramètres de test
     private static RegisterControllerTest self;

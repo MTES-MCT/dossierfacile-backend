@@ -2,7 +2,6 @@ package fr.dossierfacile.api.front.register.form.tenant;
 
 
 import fr.dossierfacile.api.front.form.interfaces.FormWithTenantId;
-import fr.dossierfacile.api.front.validator.annotation.tenant.application.v2.*;
 import fr.dossierfacile.api.front.validator.group.ApiPartner;
 import fr.dossierfacile.api.front.validator.group.Dossier;
 import fr.dossierfacile.common.enums.ApplicationType;
@@ -20,10 +19,6 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@CheckCoTenantCount
-@CheckTenantTypeAcceptAccess
-@DeniedJoinTenant
-@CoTenantsEmailRequiredForGroup
 @Builder
 public class ApplicationFormV2 implements FormWithTenantId {
 
@@ -34,7 +29,6 @@ public class ApplicationFormV2 implements FormWithTenantId {
     @NotNull
     private ApplicationType applicationType;
 
-    @DistinctCoTenantEmailList
     @Valid
     private List<CoTenantForm> coTenants = new ArrayList<>();
 
