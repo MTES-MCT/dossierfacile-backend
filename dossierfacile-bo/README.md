@@ -28,7 +28,8 @@ mock.storage.path=../mock-storage
 storage.provider.list=LOCAL
 
 # e2e tests
-testing.api.allowed-tenant-email=ywiwyne-1268@yopmail.com
+testing.api.allowed-email-pattern=(ywiwyne-1268@yopmail\\.com|[a-z0-9]+\\.[a-z0-9_-]+@inbox\\.testmail\\.app)
+testing.api.operator-email=e2e-tests@dossierfacile.fr
 
 # TODO: replace with your database credentials if changed in root docker-compose-dev.yml
 # URL of the database

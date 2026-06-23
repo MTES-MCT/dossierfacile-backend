@@ -183,8 +183,12 @@ public class TenantService {
 
     @Transactional
     public void validateTenantFile(UserPrincipal principal, Long tenantId) {
+        validateTenantFile(tenantId, userService.findUserByEmail(principal.getEmail()));
+    }
+
+    @Transactional
+    public void validateTenantFile(Long tenantId, BOUser operator) {
         Tenant tenant = find(tenantId);
-        BOUser operator = userService.findUserByEmail(principal.getEmail());
 
         validateTenantDocuments(tenant);
         validateTenantGuarantors(tenant);
@@ -192,24 +196,15 @@ public class TenantService {
     }
 
     @Transactional
-    public void validateTenantForTesting(Long tenantId) {
-        Tenant tenant = find(tenantId);
-
-        validateTenantDocuments(tenant);
-        validateTenantGuarantors(tenant);
-        changeTenantStatusToValidatedForTesting(tenant);
-    }
-
-    @Transactional
-    public void declineTenantForTesting(Long tenantId, String messageBody, List<DocumentCategory> categories) {
+    public void declineTenantForTesting(Long tenantId, BOUser operator, String messageBody, List<DocumentCategory> categories) {
         Tenant tenant = find(tenantId);
 
         declineTenantDocuments(tenant, categories);
         declineTenantGuarantorsDocuments(tenant, categories);
-        messageService.create(
+        Message message = messageService.create(
                 MessageDTO.builder().message(messageBody).emailHtml(messageBody).build(),
                 tenant, false, true);
-        changeTenantStatusToDeclinedForTesting(tenant);
+        changeTenantStatusToDeclined(tenant, operator, message, ProcessedDocuments.NONE);
     }
 
     // categories empty means decline all documents
@@ -237,11 +232,6 @@ public class TenantService {
                         }));
     }
 
-    private void changeTenantStatusToDeclinedForTesting(Tenant tenant) {
-        tenant.setStatus(TenantFileStatus.DECLINED);
-        tenantRepository.save(tenant);
-    }
-
     private void validateTenantDocuments(Tenant tenant) {
         Optional.ofNullable(tenant.getDocuments())
                 .orElse(new ArrayList<>())
@@ -267,6 +257,10 @@ public class TenantService {
     public Tenant findTenantByEmail(String email) {
         return tenantRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new NotFoundException("Tenant not found with email: " + email));
+    }
+
+    public Optional<Tenant> findTenantByEmailOptional(String email) {
+        return tenantRepository.findByEmailIgnoreCase(email);
     }
 
     private boolean updateFileStatus(CustomMessage customMessage) {
@@ -792,13 +786,6 @@ public class TenantService {
         tenantLogCommonService.saveTenantLog(new TenantLog(LogType.ACCOUNT_VALIDATED, tenant.getId(), operator.getId()));
         operatorLogRepository.save(new OperatorLog(tenant, operator, tenant.getStatus(), ActionOperatorType.STOP_PROCESS, processedDocuments.count(), processedDocuments.timeSpent()));
     }
-
-    private void changeTenantStatusToValidatedForTesting(Tenant tenant) {
-        tenant.setStatus(TenantFileStatus.VALIDATED);
-        tenantRepository.save(tenant);
-        messageService.markReadAdmin(tenant);
-    }
-
 
     private void changeTenantStatusToDeclined(Tenant tenant, User operator, Message message, ProcessedDocuments processedDocuments) {
         tenant.setStatus(TenantFileStatus.DECLINED);
