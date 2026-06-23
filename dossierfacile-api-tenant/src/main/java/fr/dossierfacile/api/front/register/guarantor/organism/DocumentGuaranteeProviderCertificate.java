@@ -2,6 +2,7 @@ package fr.dossierfacile.api.front.register.guarantor.organism;
 
 import fr.dossierfacile.api.front.exception.GuarantorNotFoundException;
 import fr.dossierfacile.api.front.register.AbstractDocumentSaveStep;
+import fr.dossierfacile.api.front.register.DocumentSaveResult;
 import fr.dossierfacile.api.front.register.SaveStep;
 import fr.dossierfacile.api.front.register.form.guarantor.organism.DocumentGuaranteeProviderCertificateForm;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
@@ -34,7 +35,7 @@ public class DocumentGuaranteeProviderCertificate
     private final ApartmentSharingService apartmentSharingService;
 
     @Override
-    protected Document saveDocument(Tenant tenant, DocumentGuaranteeProviderCertificateForm form) {
+    protected DocumentSaveResult saveDocument(Tenant tenant, DocumentGuaranteeProviderCertificateForm form) {
         Guarantor guarantor = guarantorRepository.findByTenantAndTypeGuarantorAndId(tenant, TypeGuarantor.ORGANISM, form.getGuarantorId())
                 .orElseThrow(() -> new GuarantorNotFoundException(form.getGuarantorId()));
 
@@ -43,6 +44,7 @@ public class DocumentGuaranteeProviderCertificate
                         .documentCategory(GUARANTEE_PROVIDER_CERTIFICATE)
                         .guarantor(guarantor)
                         .build());
+        boolean created = document.getId() == null;
         document.setDocumentStatus(DocumentStatus.TO_PROCESS);
         document.setDocumentDeniedReasons(null);
         document.setDocumentSubCategory(form.getTypeDocumentCertificate());
@@ -54,6 +56,6 @@ public class DocumentGuaranteeProviderCertificate
         tenantStatusService.updateTenantStatus(tenant);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         tenantRepository.save(tenant);
-        return document;
+        return new DocumentSaveResult(document, created);
     }
 }

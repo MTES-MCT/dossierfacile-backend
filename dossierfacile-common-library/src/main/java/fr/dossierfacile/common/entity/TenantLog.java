@@ -73,23 +73,28 @@ public class TenantLog implements Serializable {
 
     public String getTitle() {
         StringBuilder builder = new StringBuilder();
+        boolean isLegacyEdit = this.getLogType() == LogType.ACCOUNT_EDITED
+                && this.getLogDetails() != null
+                && this.getLogDetails().get("editionType") != null;
+
         if (this.getOperatorId() != null) {
             if (this.getLogDetails() != null && this.getLogDetails().get(NEW_SUM) != null) {
                 builder.append("OPERATOR_EDITED_FINANCIAL");
+            } else if (this.getLogType() == LogType.ACCOUNT_EDITED) {
+                builder.append("OPERATOR_EDITED");
             } else {
-                builder.append(this.getLogType().equals(LogType.ACCOUNT_EDITED) ? "OPERATOR_EDITED" : this.getLogType());
+                builder.append(this.getLogType());
             }
             builder.append(" by opId: ");
             builder.append(this.getOperatorId());
         } else {
             builder.append(this.getLogType());
         }
-        if (this.getLogDetails() != null) {
-            if (this.getLogDetails().get("editionType") != null) {
-                builder.append(" : DOCUMENT ");
-                String editionType = this.getLogDetails().get("editionType").asText().equals("ADD") ? "ADDED" : "DELETED";
-                builder.append(editionType);
-            }
+        if (isLegacyEdit) {
+            String subject = this.getLogDetails().get("fileId") != null ? " : FILE " : " : DOCUMENT ";
+            builder.append(subject);
+            String editionType = this.getLogDetails().get("editionType").asText().equals("ADD") ? "ADDED" : "DELETED";
+            builder.append(editionType);
         }
         return builder.toString();
     }
@@ -104,6 +109,10 @@ public class TenantLog implements Serializable {
             builder.append(details.get("documentCategory").asText());
             builder.append(" - ");
             builder.append(details.get(DOCUMENT_SUB_CATEGORY).asText());
+            if (details.get("fileName") != null) {
+                builder.append(" - ");
+                builder.append(details.get("fileName").asText());
+            }
         }
         if (details != null && details.get(OLD_SUM) != null && details.get(NEW_SUM) != null) {
             builder.append(" - OLD AMOUNT: ");

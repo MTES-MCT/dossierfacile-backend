@@ -1,6 +1,7 @@
 package fr.dossierfacile.api.front.register.tenant;
 
 import fr.dossierfacile.api.front.register.AbstractDocumentSaveStep;
+import fr.dossierfacile.api.front.register.DocumentSaveResult;
 import fr.dossierfacile.api.front.register.SaveStep;
 import fr.dossierfacile.api.front.register.form.tenant.DocumentFinancialForm;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
@@ -35,7 +36,7 @@ public class DocumentFinancial extends AbstractDocumentSaveStep<DocumentFinancia
     private final ApartmentSharingService apartmentSharingService;
 
     @Override
-    protected Document saveDocument(Tenant tenant, DocumentFinancialForm documentFinancialForm) {
+    protected DocumentSaveResult saveDocument(Tenant tenant, DocumentFinancialForm documentFinancialForm) {
         DocumentSubCategory documentSubCategory = documentFinancialForm.getTypeDocumentFinancial();
         Document document = documentRepository.findByDocumentCategoryAndTenantAndId(DocumentCategory.FINANCIAL, tenant, documentFinancialForm.getId())
                 .orElse(Document.builder()
@@ -43,6 +44,7 @@ public class DocumentFinancial extends AbstractDocumentSaveStep<DocumentFinancia
                         .documentCategoryStep(documentFinancialForm.getCategoryStep())
                         .tenant(tenant)
                         .build());
+        boolean created = document.getId() == null;
         document.setDocumentStatus(DocumentStatus.TO_PROCESS);
         document.setDocumentDeniedReasons(null);
         document.setDocumentSubCategory(documentSubCategory);
@@ -76,7 +78,7 @@ public class DocumentFinancial extends AbstractDocumentSaveStep<DocumentFinancia
         tenantStatusService.updateTenantStatus(tenant);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         tenantRepository.save(tenant);
-        return document;
+        return new DocumentSaveResult(document, created);
     }
 
     private void deleteFilesIfExistedBefore(Document document) {

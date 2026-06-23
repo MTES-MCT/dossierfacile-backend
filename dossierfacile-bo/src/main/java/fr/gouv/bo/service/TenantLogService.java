@@ -4,10 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.dossierfacile.common.entity.Document;
+import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.TenantLog;
 import fr.dossierfacile.common.enums.LogType;
-import fr.dossierfacile.common.model.log.EditedDocument;
-import fr.dossierfacile.common.model.log.EditionType;
+import fr.dossierfacile.common.model.log.DocumentLogDetails;
+import fr.dossierfacile.common.model.log.FileLogDetails;
 import fr.dossierfacile.common.model.log.UpdateMonthlySum;
 import fr.dossierfacile.common.service.interfaces.TenantLogCommonService;
 import fr.gouv.bo.repository.BoTenantLogRepository;
@@ -62,11 +63,11 @@ public class TenantLogService {
 
     public void addDeleteDocumentLog(Long tenantId, Long operatorId, Document document) {
         TenantLog log = TenantLog.builder()
-            .logType(LogType.ACCOUNT_EDITED)
+            .logType(LogType.DOCUMENT_DELETED)
             .tenantId(tenantId)
             .operatorId(operatorId)
             .creationDateTime(LocalDateTime.now())
-            .logDetails(writeAsObjectNode(EditedDocument.from(document, EditionType.DELETE)))
+            .logDetails(writeAsObjectNode(DocumentLogDetails.from(document)))
             .build();
         tenantLogCommonService.saveTenantLog(log);
     }
@@ -78,6 +79,17 @@ public class TenantLogService {
             .operatorId(operatorId)
             .creationDateTime(LocalDateTime.now())
             .logDetails(writeAsObjectNode(Map.of("documentCount", documentCount)))
+            .build();
+        tenantLogCommonService.saveTenantLog(log);
+    }
+
+    public void addDeleteFileLog(Long tenantId, Long operatorId, File file) {
+        TenantLog log = TenantLog.builder()
+            .logType(LogType.FILE_DELETED)
+            .tenantId(tenantId)
+            .operatorId(operatorId)
+            .creationDateTime(LocalDateTime.now())
+            .logDetails(writeAsObjectNode(FileLogDetails.from(file)))
             .build();
         tenantLogCommonService.saveTenantLog(log);
     }

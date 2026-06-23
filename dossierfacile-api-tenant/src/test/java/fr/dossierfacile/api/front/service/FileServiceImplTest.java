@@ -13,7 +13,6 @@ import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.DocumentCategory;
-import fr.dossierfacile.common.model.log.EditionType;
 import fr.dossierfacile.common.repository.DocumentAnalysisReportRepository;
 import fr.dossierfacile.common.repository.DocumentIAFileAnalysisRepository;
 import fr.dossierfacile.common.service.interfaces.DocumentHelperService;
@@ -231,7 +230,7 @@ class FileServiceImplTest {
                 assertThatCode(() -> fileService.delete(1L, tenant)).doesNotThrowAnyException();
 
                 verify(fileRepository).delete(file);
-                verify(logService).saveDocumentEditedLog(document, tenant, EditionType.DELETE);
+                verify(logService).saveFileDeletedLog(file, tenant);
             }
         }
 
@@ -270,7 +269,7 @@ class FileServiceImplTest {
                 assertThatCode(() -> fileService.delete(1L, tenant2)).doesNotThrowAnyException();
 
                 verify(fileRepository).delete(file);
-                verify(logService).saveDocumentEditedLog(document, tenant1, EditionType.DELETE);
+                verify(logService).saveFileDeletedLog(file, tenant1);
             }
         }
     }

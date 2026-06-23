@@ -6,7 +6,6 @@ import fr.dossierfacile.common.entity.TenantLog;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.LogType;
-import fr.dossierfacile.common.model.log.EditionType;
 import fr.dossierfacile.common.repository.TenantLogRepository;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import org.junit.jupiter.api.Test;
@@ -27,37 +26,83 @@ class LogServiceImplTest {
     private final LogService logService = new LogServiceImpl(logRepository, null, null, new ObjectMapper());
 
     @Test
-    void should_save_edition_log_for_tenant_document() {
+    void should_save_added_log_for_tenant_document() {
         Document document = Document.builder()
                 .documentCategory(DocumentCategory.IDENTIFICATION)
                 .documentSubCategory(DocumentSubCategory.FRENCH_IDENTITY_CARD)
                 .tenant(tenantWithId(2L))
                 .build();
 
-        logService.saveDocumentEditedLog(document, tenantWithId(1L), EditionType.ADD);
+        logService.saveDocumentAddedLog(document, tenantWithId(1L));
 
         TenantLog savedLog = getSavedLog();
-        assertThat(savedLog.getLogType()).isEqualTo(LogType.ACCOUNT_EDITED);
+        assertThat(savedLog.getLogType()).isEqualTo(LogType.DOCUMENT_ADDED);
         assertThat(savedLog.getTenantId()).isEqualTo(1L);
         assertThat(savedLog.getLogDetails()).hasToString("""
-                {"documentCategory":"IDENTIFICATION","documentSubCategory":"FRENCH_IDENTITY_CARD","tenantId":2,"editionType":"ADD"}""");
+                {"documentCategory":"IDENTIFICATION","documentSubCategory":"FRENCH_IDENTITY_CARD","tenantId":2}""");
     }
 
     @Test
-    void should_save_edition_log_for_guarantor_document() {
+    void should_save_deleted_log_for_guarantor_document() {
         Document document = Document.builder()
                 .documentCategory(DocumentCategory.FINANCIAL)
                 .documentSubCategory(DocumentSubCategory.SALARY)
                 .guarantor(Guarantor.builder().id(3L).build())
                 .build();
 
-        logService.saveDocumentEditedLog(document, tenantWithId(2L), EditionType.DELETE);
+        logService.saveDocumentDeletedLog(document, tenantWithId(2L));
 
         TenantLog savedLog = getSavedLog();
-        assertThat(savedLog.getLogType()).isEqualTo(LogType.ACCOUNT_EDITED);
+        assertThat(savedLog.getLogType()).isEqualTo(LogType.DOCUMENT_DELETED);
         assertThat(savedLog.getTenantId()).isEqualTo(2L);
         assertThat(savedLog.getLogDetails()).hasToString("""
-                {"documentCategory":"FINANCIAL","documentSubCategory":"SALARY","guarantorId":3,"editionType":"DELETE"}""");
+                {"documentCategory":"FINANCIAL","documentSubCategory":"SALARY","guarantorId":3}""");
+    }
+
+    @Test
+    void should_save_added_log_for_tenant_file() {
+        Document document = Document.builder()
+                .id(5L)
+                .documentCategory(DocumentCategory.FINANCIAL)
+                .documentSubCategory(DocumentSubCategory.SALARY)
+                .tenant(tenantWithId(2L))
+                .build();
+        File file = File.builder()
+                .id(7L)
+                .document(document)
+                .storageFile(StorageFile.builder().name("payslip.pdf").build())
+                .build();
+
+        logService.saveFileAddedLog(file, tenantWithId(1L));
+
+        TenantLog savedLog = getSavedLog();
+        assertThat(savedLog.getLogType()).isEqualTo(LogType.FILE_ADDED);
+        assertThat(savedLog.getTenantId()).isEqualTo(1L);
+        assertThat(savedLog.getLogDetails()).hasToString("""
+                {"documentCategory":"FINANCIAL","documentSubCategory":"SALARY","tenantId":2,"documentId":5,"fileId":7,"fileName":"payslip.pdf"}""");
+    }
+
+    @Test
+    void should_save_deleted_log_for_tenant_file() {
+        Document document = Document.builder()
+                .id(5L)
+                .documentCategory(DocumentCategory.FINANCIAL)
+                .documentSubCategory(DocumentSubCategory.SALARY)
+                .tenant(tenantWithId(2L))
+                .build();
+        File file = File.builder()
+                .id(7L)
+                .document(document)
+                .storageFile(StorageFile.builder().name("payslip.pdf").build())
+                .build();
+
+        logService.saveFileDeletedLog(file, tenantWithId(1L));
+
+        TenantLog savedLog = getSavedLog();
+        assertThat(savedLog.getLogType()).isEqualTo(LogType.FILE_DELETED);
+        assertThat(savedLog.getTenantId()).isEqualTo(1L);
+        assertThat(savedLog.getLogDetails()).hasToString("""
+                {"documentCategory":"FINANCIAL","documentSubCategory":"SALARY","tenantId":2,"documentId":5,"fileId":7,"fileName":"payslip.pdf"}""");
     }
 
     @Test
