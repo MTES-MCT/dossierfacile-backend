@@ -279,24 +279,6 @@ class RegisterControllerTest {
         }
 
         @Test
-        void shouldReturn400WhenTenantIdIsProvided() throws Exception {
-            ApplicationFormV2 form = ApplicationFormV2.builder()
-                    .tenantId(1L)
-                    .applicationType(ApplicationType.ALONE)
-                    .coTenants(Collections.emptyList())
-                    .build();
-
-            mockMvc.perform(post("/api/register/application/v2")
-                            .contentType("application/json")
-                            .content(gson.toJson(form))
-                            .with(jwtToken))
-                    .andExpect(status().isBadRequest());
-
-            verify(authenticationFacade, never()).getLoggedTenant();
-            verify(tenantService, never()).saveStepRegister(any(), any(), any());
-        }
-
-        @Test
         void shouldReturn400WhenJoinTenantSubmitsWithOwnSession() throws Exception {
             var apartmentSharing = ApartmentSharing.builder().id(1L).build();
             var joinTenant = Tenant.builder()

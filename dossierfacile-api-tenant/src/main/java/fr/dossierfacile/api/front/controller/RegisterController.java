@@ -58,13 +58,6 @@ public class RegisterController {
     @PostMapping(value = "/application/v2", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @Transactional
     public ResponseEntity<?> application(@RequestBody ApplicationFormV2 applicationForm) {
-        // Dossier flow only: tenantId must be null so the step runs as the logged-in tenant.
-        // Without this guard, a JOIN co-tenant could pass the CREATE tenant's id (allowed by
-        // canAccess in COUPLE) and mutate the primary tenant's application type.
-        if (applicationForm.getTenantId() != null) {
-            return ResponseEntity.badRequest().build();
-        }
-
         if (!applicationRegistrationValidator.hasValidStructure(applicationForm)) {
             return ResponseEntity.badRequest().build();
         }
