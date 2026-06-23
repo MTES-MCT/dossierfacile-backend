@@ -19,6 +19,7 @@ import fr.dossierfacile.common.service.FileUploadPreprocessor;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.ApplicationType;
+import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.enums.TenantOwnerType;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import fr.dossierfacile.parameterizedtest.ArgumentBuilder;
@@ -47,6 +48,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -215,7 +218,6 @@ class RegisterControllerTest {
                     .coTenants(List.of(new CoTenantForm("Louise", "Martin", null, "spouse@example.com")))
                     .build();
 
-            when(authenticationFacade.getTenant(null)).thenReturn(tenant);
             when(authenticationFacade.getLoggedTenant()).thenReturn(tenant);
             when(applicationRegistrationValidator.hasValidStructure(form)).thenReturn(true);
             when(applicationRegistrationValidator.validate(tenant, form)).thenReturn(Optional.empty());
@@ -239,7 +241,7 @@ class RegisterControllerTest {
                     .coTenants(List.of(new CoTenantForm("Louise", "Martin", null, null)))
                     .build();
 
-            when(authenticationFacade.getTenant(null)).thenReturn(tenant);
+            when(authenticationFacade.getLoggedTenant()).thenReturn(tenant);
             when(applicationRegistrationValidator.hasValidStructure(form)).thenReturn(true);
             when(applicationRegistrationValidator.validate(tenant, form))
                     .thenReturn(Optional.of(ApplicationErrorCode.CO_TENANT_EMAIL_REQUIRED));
@@ -263,7 +265,7 @@ class RegisterControllerTest {
                     .coTenants(List.of(new CoTenantForm("Louise", "Martin", null, "taken@example.com")))
                     .build();
 
-            when(authenticationFacade.getTenant(null)).thenReturn(tenant);
+            when(authenticationFacade.getLoggedTenant()).thenReturn(tenant);
             when(applicationRegistrationValidator.hasValidStructure(form)).thenReturn(true);
             when(applicationRegistrationValidator.validate(tenant, form))
                     .thenReturn(Optional.of(ApplicationErrorCode.CO_TENANT_EMAIL_ALREADY_EXISTS));
@@ -274,6 +276,53 @@ class RegisterControllerTest {
                             .with(jwtToken))
                     .andExpect(status().isConflict())
                     .andExpect(jsonPath("$.code").value("CO_TENANT_EMAIL_ALREADY_EXISTS"));
+        }
+
+        @Test
+        void shouldReturn400WhenTenantIdIsProvided() throws Exception {
+            ApplicationFormV2 form = ApplicationFormV2.builder()
+                    .tenantId(1L)
+                    .applicationType(ApplicationType.ALONE)
+                    .coTenants(Collections.emptyList())
+                    .build();
+
+            mockMvc.perform(post("/api/register/application/v2")
+                            .contentType("application/json")
+                            .content(gson.toJson(form))
+                            .with(jwtToken))
+                    .andExpect(status().isBadRequest());
+
+            verify(authenticationFacade, never()).getLoggedTenant();
+            verify(tenantService, never()).saveStepRegister(any(), any(), any());
+        }
+
+        @Test
+        void shouldReturn400WhenJoinTenantSubmitsWithOwnSession() throws Exception {
+            var apartmentSharing = ApartmentSharing.builder().id(1L).build();
+            var joinTenant = Tenant.builder()
+                    .id(2L)
+                    .tenantType(TenantType.JOIN)
+                    .apartmentSharing(apartmentSharing)
+                    .build();
+
+            ApplicationFormV2 form = ApplicationFormV2.builder()
+                    .applicationType(ApplicationType.ALONE)
+                    .coTenants(Collections.emptyList())
+                    .build();
+
+            when(authenticationFacade.getLoggedTenant()).thenReturn(joinTenant);
+            when(applicationRegistrationValidator.hasValidStructure(form)).thenReturn(true);
+            when(applicationRegistrationValidator.validate(joinTenant, form))
+                    .thenReturn(Optional.of(ApplicationErrorCode.APPLICATION_TYPE_DENIED_FOR_JOIN));
+
+            mockMvc.perform(post("/api/register/application/v2")
+                            .contentType("application/json")
+                            .content(gson.toJson(form))
+                            .with(jwtToken))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.code").value("APPLICATION_TYPE_DENIED_FOR_JOIN"));
+
+            verify(tenantService, never()).saveStepRegister(any(), any(), any());
         }
     }
 

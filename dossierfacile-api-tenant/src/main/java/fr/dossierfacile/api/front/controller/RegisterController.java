@@ -58,11 +58,18 @@ public class RegisterController {
     @PostMapping(value = "/application/v2", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @Transactional
     public ResponseEntity<?> application(@RequestBody ApplicationFormV2 applicationForm) {
+        // Dossier flow only: tenantId must be null so the step runs as the logged-in tenant.
+        // Without this guard, a JOIN co-tenant could pass the CREATE tenant's id (allowed by
+        // canAccess in COUPLE) and mutate the primary tenant's application type.
+        if (applicationForm.getTenantId() != null) {
+            return ResponseEntity.badRequest().build();
+        }
+
         if (!applicationRegistrationValidator.hasValidStructure(applicationForm)) {
             return ResponseEntity.badRequest().build();
         }
 
-        Tenant tenant = authenticationFacade.getTenant(applicationForm.getTenantId());
+        Tenant tenant = authenticationFacade.getLoggedTenant();
 
         Optional<ApplicationErrorCode> validationError = applicationRegistrationValidator.validate(tenant, applicationForm);
         if (validationError.isPresent()) {
@@ -72,8 +79,7 @@ public class RegisterController {
 
         TenantModel tenantModel = tenantService.saveStepRegister(tenant, applicationForm, StepRegister.APPLICATION);
         logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
-        Tenant loggedTenant = (applicationForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
-        return ok(tenantMapper.toTenantModel(loggedTenant, null));
+        return ok(tenantMapper.toTenantModel(authenticationFacade.getLoggedTenant(), null));
     }
 
     @PreAuthorize("hasPermissionOnTenant(#honorDeclarationForm.tenantId)")
