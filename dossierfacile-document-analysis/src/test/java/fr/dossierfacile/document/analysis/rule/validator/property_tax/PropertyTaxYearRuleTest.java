@@ -105,7 +105,7 @@ class PropertyTaxYearRuleTest {
 
     private DocumentIAFileAnalysis fakeTaxeFonciere(String anneeImposition) {
         List<GenericProperty> properties = new ArrayList<>();
-        properties.add(GenericProperty.builder().name("proprietaire_identite").value("DUPONT Camille").type("string").build());
+        properties.add(GenericProperty.builder().name("identites_proprietaires").value(List.of("DUPONT Camille")).type("list").build());
         if (anneeImposition != null) {
             properties.add(GenericProperty.builder().name("annee_imposition").value(anneeImposition).type("string").build());
         }
