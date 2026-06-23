@@ -130,6 +130,7 @@ class DocumentIAServiceImplTest {
         long tenantId = 42L;
 
         when(documentIAConfig.hasToSendFileForAnalysis(document, tenantId)).thenReturn(true);
+        when(documentIAConfig.getWorkflowConfig(document)).thenReturn(new DocumentIAConfig.WorkflowConfig("wf-1"));
         when(documentIAClient.sendForAnalysis(any(DocumentIARequest.class), any()))
                 .thenReturn(DocumentIAResponse.builder()
                         .data(DocumentIAResponseData.builder()
@@ -155,6 +156,7 @@ class DocumentIAServiceImplTest {
         long tenantId = 42L;
 
         when(documentIAConfig.hasToSendFileForAnalysis(document, tenantId)).thenReturn(true);
+        when(documentIAConfig.getWorkflowConfig(document)).thenReturn(new DocumentIAConfig.WorkflowConfig("wf-1"));
         when(documentIAClient.sendForAnalysis(any(DocumentIARequest.class), any()))
                 .thenThrow(new RuntimeException("Service unavailable"));
 

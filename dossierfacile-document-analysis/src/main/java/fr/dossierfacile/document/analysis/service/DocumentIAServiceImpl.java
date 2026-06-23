@@ -90,9 +90,14 @@ public class DocumentIAServiceImpl implements DocumentIAService {
         if (!documentIAConfig.hasToSendFileForAnalysis(document, tenantId)) {
             return;
         }
-        var request = DocumentIARequest.builder().metadata("{ \"document_id\": " + document.getId() + " }").file(multipartFile).build();
+        var configuration = documentIAConfig.getWorkflowConfig(document);
+        var request = DocumentIARequest.builder()
+                .metadata("{ \"document_id\": " + document.getId() + " }")
+                .file(multipartFile)
+                .overrides(configuration.getOverrides())
+                .build();
         try {
-            var response = documentIAClient.sendForAnalysis(request, documentIAConfig.getWorkflowIdForDocumentSubCategory(document));
+            var response = documentIAClient.sendForAnalysis(request, configuration.getWorkflowId());
             var analysis = DocumentIAFileAnalysis.builder()
                     .file(file)
                     .documentIaWorkflowId(response.getData().getWorkflowId())
@@ -105,7 +110,7 @@ public class DocumentIAServiceImpl implements DocumentIAService {
             log.error("Error sending document for analysis: {}", e.getMessage(), e);
             var analysis = DocumentIAFileAnalysis.builder()
                     .file(file)
-                    .documentIaWorkflowId(documentIAConfig.getWorkflowIdForDocumentSubCategory(document))
+                    .documentIaWorkflowId(configuration.getWorkflowId())
                     .analysisStatus(DocumentIAFileAnalysisStatus.FAILED)
                     .build();
             documentIAFileAnalysisRepository.save(analysis);
