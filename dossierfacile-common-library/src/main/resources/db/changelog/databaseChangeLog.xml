@@ -198,4 +198,5 @@
     <include file="db/migration/202605200000-add-document-ia-classify-residency-feature-flag.xml"/>
     <include file="db/migration/20260602000000-add-indexes-to-optimize-database.xml"/>
     <include file="db/migration/20260604000000-rework-materialized-view.xml"/>
+    <include file="db/migration/202606180000-add-document-ia-property-tax-analysis-flag.xml"/>
 </databaseChangeLog>

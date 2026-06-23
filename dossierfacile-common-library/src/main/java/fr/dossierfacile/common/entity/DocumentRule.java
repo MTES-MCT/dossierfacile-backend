@@ -243,6 +243,24 @@ public enum DocumentRule {
             "Le certificat Visale a expiré",
             "Le certificat Visale est encore valide",
             "Impossible de vérifier la date de validité du certificat Visale"
+    ),
+    R_PROPERTY_TAX_LEAF(
+            DocumentRuleLevel.CRITICAL,
+            "La taxe foncière doit comporter au moins 2 pages",
+            "La taxe foncière comporte le nombre de pages requis",
+            ""
+    ),
+    R_PROPERTY_TAX_NAMES(
+            DocumentRuleLevel.CRITICAL,
+            "Les noms et prénoms ne correspondent pas",
+            "Les noms et prénoms correspondent",
+            "Impossible de vérifier les noms et prénoms"
+    ),
+    R_PROPERTY_TAX_WRONG_YEAR(
+            DocumentRuleLevel.CRITICAL,
+            "La taxe foncière n'est pas de l'année requise",
+            "La taxe foncière est de l'année requise",
+            "Impossible de vérifier l'année de la taxe foncière"
     );
 
     private final DocumentRuleLevel level;

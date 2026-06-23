@@ -25,12 +25,13 @@ public class DocumentAnalysisServiceConfiguration {
         validators.put(DocumentSubCategory.MY_NAME, avisImpositionRulesValidationService);
         validators.put(DocumentSubCategory.VISALE, visaleCertificateRulesValidationService);
 
-        // Residency documents:
-        // For the moment we bind the same Validation Service to all the subCategories but in a futur we will specify some rules for some subCategories
+        // Property tax notice (taxe foncière, document category RESIDENCY/OWNER). has its own dedicated rules with strict classification.
+        validators.put(DocumentSubCategory.OWNER, new PropertyTaxRulesValidationService());
+
+        // Other residency documents (TENANT, GUEST) keep the common, lenient classification service.
         var residencyAnalysisService = new ResidencyCommonRulesValidationService();
-        List.of(DocumentSubCategory.TENANT, DocumentSubCategory.OWNER, DocumentSubCategory.GUEST).forEach(it -> {
-            validators.put(it, residencyAnalysisService);
-        });
+        List.of(DocumentSubCategory.TENANT, DocumentSubCategory.GUEST)
+                .forEach(it -> validators.put(it, residencyAnalysisService));
 
         return validators;
     }
