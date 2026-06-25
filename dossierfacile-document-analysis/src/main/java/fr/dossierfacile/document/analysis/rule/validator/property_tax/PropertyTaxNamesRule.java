@@ -64,21 +64,21 @@ public class PropertyTaxNamesRule extends BaseDocumentIAValidator {
             return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFromWithData(getRule(), namesRuleData), RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
         }
 
+        // Merge the two identity sources (owners + recipients) and drop redundant entries.
         var extractedOwners = new DocumentIAMergerMapper()
                 .map(documentIAAnalyses, PropertyTaxModel.class)
-                .map(model -> model.identitesProprietaires)
-                .map(owners -> owners.stream().filter(owner -> owner != null && !owner.isBlank()).toList())
+                .map(model -> IdentityMatchUtil.mergeAndDeduplicateIdentities(model.identitesProprietaires, model.identiteDestinataire))
                 .filter(owners -> !owners.isEmpty())
                 .orElse(null);
 
-        // The owner identities were not extracted: refused (decision "missing data -> refusal").
+        // No identity was extracted: refused (decision "missing data -> refusal").
         if (extractedOwners == null) {
             return reject(namesRuleData);
         }
 
         namesRuleData = new TaxNamesRuleData(namesRuleData, extractedOwners);
 
-        // The candidate must match at least one owner of the list.
+        // The candidate must match at least one of the extracted identities.
         var hasLastNameMatch = IdentityMatchUtil.hasLastNameMatch(extractedOwners, nameToMatch);
         if (!hasLastNameMatch) {
             return reject(namesRuleData);

@@ -14,6 +14,11 @@ public class PropertyTaxModel {
     @DocumentIAField(extractionName = "annee_imposition")
     public String anneeImposition;
 
+    // Owners of the property
     @DocumentIAField(extractionName = "identites_proprietaires")
     public List<String> identitesProprietaires;
+
+    // Recipients of the notice
+    @DocumentIAField(extractionName = "identite_destinataire")
+    public List<String> identiteDestinataire;
 }

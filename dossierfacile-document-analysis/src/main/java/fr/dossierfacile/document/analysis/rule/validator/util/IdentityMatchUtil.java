@@ -5,6 +5,8 @@ import fr.dossierfacile.document.analysis.rule.validator.french_identity_card.do
 import org.apache.commons.text.similarity.LevenshteinDistance;
 
 import java.text.Normalizer;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -88,6 +90,41 @@ public final class IdentityMatchUtil {
                             Integer distance = levenshtein.apply(token, expectedToken);
                             return distance != null && distance <= LAST_NAME_MAX_DISTANCE;
                         }));
+    }
+
+
+    @SafeVarargs
+    public static List<String> mergeAndDeduplicateIdentities(List<String>... sources) {
+        List<String> all = Arrays.stream(sources)
+                .filter(Objects::nonNull)
+                .flatMap(List::stream)
+                .filter(value -> value != null && !value.isBlank())
+                .map(String::trim)
+                .toList();
+
+        List<String> result = new ArrayList<>();
+        for (String candidate : all) {
+            String normalizedCandidate = normalize(candidate);
+            if (normalizedCandidate.isBlank()) {
+                continue;
+            }
+            // Skip values already kept under the same normalized form
+            boolean alreadyKept = result.stream()
+                    .anyMatch(kept -> normalize(kept).equals(normalizedCandidate));
+            if (alreadyKept) {
+                continue;
+            }
+            // Skip values strictly contained in a more complete entry
+            boolean subsumed = all.stream().anyMatch(other -> {
+                String normalizedOther = normalize(other);
+                return normalizedOther.length() > normalizedCandidate.length()
+                        && normalizedOther.contains(normalizedCandidate);
+            });
+            if (!subsumed) {
+                result.add(candidate);
+            }
+        }
+        return result;
     }
 
     public static Stream<String> splitTokens(String identity) {
