@@ -57,7 +57,7 @@ public class RegisterController {
 
     @PostMapping(value = "/application/v2", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @Transactional
-    public ResponseEntity<?> application(@RequestBody ApplicationFormV2 applicationForm) {
+    public ResponseEntity<?> application(@Validated(Dossier.class) @RequestBody ApplicationFormV2 applicationForm) {
         if (!applicationRegistrationValidator.hasValidStructure(applicationForm)) {
             return ResponseEntity.badRequest().build();
         }
