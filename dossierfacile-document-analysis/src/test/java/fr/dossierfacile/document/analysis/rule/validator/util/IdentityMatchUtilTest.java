@@ -38,6 +38,28 @@ class IdentityMatchUtilTest {
     }
 
     @Test
+    @DisplayName("Should treat hyphen and space as equal for dedup, keeping the hyphen for display")
+    void should_deduplicate_hyphenated_names() {
+        List<String> result = IdentityMatchUtil.mergeAndDeduplicateIdentities(
+                List.of("LAPLANCHE JEAN-LUC ANDRE"),
+                List.of("LAPLANCHE JEAN LUC")
+        );
+
+        assertThat(result).containsExactly("LAPLANCHE JEAN-LUC ANDRE");
+    }
+
+    @Test
+    @DisplayName("Should ignore special separators (typographic apostrophe, non-breaking space)")
+    void should_ignore_special_separators() {
+        List<String> result = IdentityMatchUtil.mergeAndDeduplicateIdentities(
+                List.of("D’SOUZA AICHA MARIE"),
+                List.of("D'SOUZA AICHA")
+        );
+
+        assertThat(result).containsExactly("D’SOUZA AICHA MARIE");
+    }
+
+    @Test
     @DisplayName("Should keep a single entry for normalized duplicates (case/accents)")
     void should_deduplicate_normalized_duplicates() {
         List<String> result = IdentityMatchUtil.mergeAndDeduplicateIdentities(
