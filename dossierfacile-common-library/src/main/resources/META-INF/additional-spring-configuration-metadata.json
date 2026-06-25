@@ -70,6 +70,16 @@
       "name": "dossierfacile.document.ia.result.encryption.key",
       "type": "java.lang.String",
       "description": "Clé AES (base64) utilisée pour chiffrer/déchiffrer document_ia.result. `openssl rand -base64 32`"
+    },
+    {
+      "name": "rabbitmq.exchange.pdf.generator",
+      "type": "java.lang.String",
+      "description": "L'exchange RabbitMQ pour le générateur de PDF."
+    },
+    {
+      "name": "rabbitmq.routing.key.pdf.generator.apartment-sharing",
+      "type": "java.lang.String",
+      "description": "La clé de routage RabbitMQ pour la génération de PDF par dossier."
     }
   ]
 }

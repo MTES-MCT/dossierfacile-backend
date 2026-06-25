@@ -1,6 +1,6 @@
 package fr.dossierfacile.api.front.register;
 
-import fr.dossierfacile.api.front.amqp.Producer;
+import fr.dossierfacile.common.domain.service.MessagePublisher;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.register.form.tenant.DocumentTaxForm;
 import fr.dossierfacile.api.front.register.tenant.DocumentTax;
@@ -69,7 +69,7 @@ class DocumentAddedLogTest {
     @MockitoBean
     LogService logService;
     @MockitoBean
-    Producer producer;
+    MessagePublisher producer;
     @MockitoBean
     ClientAuthenticationFacade clientAuthenticationFacade;
     @MockitoBean

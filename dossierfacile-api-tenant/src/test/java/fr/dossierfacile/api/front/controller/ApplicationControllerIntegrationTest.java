@@ -1,6 +1,6 @@
 package fr.dossierfacile.api.front.controller;
 
-import fr.dossierfacile.api.front.amqp.Producer;
+import fr.dossierfacile.common.domain.service.MessagePublisher;
 import fr.dossierfacile.api.front.repository.JpaTestApplication;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.ApartmentSharingServiceImpl;
@@ -76,7 +76,7 @@ class ApplicationControllerIntegrationTest {
     @MockitoBean
     private AuthenticationFacade authenticationFacade;
     @MockitoBean
-    private Producer producer;
+    private MessagePublisher producer;
     @MockitoBean
     private ApplicationFullMapper applicationFullMapper;
     @MockitoBean

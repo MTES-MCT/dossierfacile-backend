@@ -51,4 +51,23 @@ public class FileLogDetails {
                 .build();
     }
 
+    public static FileLogDetails from(fr.dossierfacile.common.infrastructure.entity.FileEntity file) {
+        fr.dossierfacile.common.infrastructure.entity.DocumentEntity document = file.getDocument();
+        return FileLogDetails.builder()
+                .documentCategory(Optional.ofNullable(document)
+                        .map(fr.dossierfacile.common.infrastructure.entity.DocumentEntity::getDocumentCategory).orElse(null))
+                .documentSubCategory(Optional.ofNullable(document)
+                        .map(fr.dossierfacile.common.infrastructure.entity.DocumentEntity::getDocumentSubCategory).orElse(null))
+                .documentId(Optional.ofNullable(document)
+                        .map(fr.dossierfacile.common.infrastructure.entity.DocumentEntity::getId).orElse(null))
+                .tenantId(Optional.ofNullable(document)
+                        .map(fr.dossierfacile.common.infrastructure.entity.DocumentEntity::getTenantId).orElse(null))
+                .guarantorId(Optional.ofNullable(document)
+                        .map(fr.dossierfacile.common.infrastructure.entity.DocumentEntity::getGuarantorId).orElse(null))
+                .fileId(file.getId())
+                .fileName(Optional.ofNullable(file.getStorageFile())
+                        .map(StorageFile::getName).orElse(null))
+                .build();
+    }
+
 }

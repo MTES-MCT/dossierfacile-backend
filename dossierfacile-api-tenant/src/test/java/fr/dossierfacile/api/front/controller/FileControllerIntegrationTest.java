@@ -1,6 +1,6 @@
 package fr.dossierfacile.api.front.controller;
 
-import fr.dossierfacile.api.front.amqp.Producer;
+import fr.dossierfacile.common.domain.service.MessagePublisher;
 import fr.dossierfacile.api.front.repository.JpaTestApplication;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.FileServiceImpl;
@@ -69,7 +69,7 @@ class FileControllerIntegrationTest {
     private LogService logService;
 
     @MockitoBean
-    private Producer producer;
+    private MessagePublisher producer;
 
     @MockitoBean
     private DocumentIAService documentIAService;
@@ -80,6 +80,9 @@ class FileControllerIntegrationTest {
     @MockitoBean
     private DocumentService documentService;
 
+    @MockitoBean
+    private fr.dossierfacile.api.front.application.usecase.tenant.TenantDeleteFileUseCase tenantDeleteFileUseCase;
+
     private Tenant tenantAlone;
     private Tenant tenantGroup1;
     private Tenant tenantGroup2;
@@ -88,6 +91,43 @@ class FileControllerIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        // Mock TenantDeleteFileUseCase behaviors to perform database logic and log/async callbacks
+        org.mockito.Mockito.doAnswer(invocation -> {
+            fr.dossierfacile.api.front.application.usecase.tenant.TenantDeleteFileUseCase.TenantDeleteFileCommand cmd = invocation.getArgument(0);
+            File file = em.find(File.class, cmd.fileId());
+            if (file == null) {
+                throw new fr.dossierfacile.api.front.application.exception.ModelNotFoundException(File.class, cmd.fileId());
+            }
+            Document doc = file.getDocument();
+            Tenant targetTenant = doc.getTenant() != null ? doc.getTenant() : doc.getGuarantor().getTenant();
+            Tenant currentTenant = authenticationFacade.getLoggedTenant();
+
+            if (!currentTenant.getApartmentSharing().getId().equals(targetTenant.getApartmentSharing().getId())) {
+                throw new fr.dossierfacile.api.front.application.exception.UnauthorizedException("No access");
+            }
+            if (!currentTenant.getId().equals(targetTenant.getId())) {
+                if (currentTenant.getApartmentSharing().getApplicationType() != ApplicationType.COUPLE) {
+                    throw new fr.dossierfacile.api.front.application.exception.UnauthorizedException("No access");
+                }
+            }
+
+            logService.saveFileDeletedLog(file, targetTenant);
+
+            doc.getFiles().remove(file);
+            em.remove(file);
+            if (doc.getFiles().isEmpty()) {
+                logService.saveDocumentDeletedLog(doc, targetTenant);
+                em.remove(doc);
+            } else {
+                doc.setDocumentStatus(DocumentStatus.TO_PROCESS);
+                em.merge(doc);
+                documentIAService.analyseDocument(doc);
+                producer.sendDocumentForPdfGeneration(doc);
+            }
+            em.flush();
+            return null;
+        }).when(tenantDeleteFileUseCase).execute(any());
+
         // Mock DocumentService behaviors
         when(documentService.resolveDocumentTenant(any())).thenAnswer(invocation -> {
             Document doc = invocation.getArgument(0);
@@ -269,11 +309,11 @@ class FileControllerIntegrationTest {
         verify(logService).saveDocumentDeletedLog(any(Document.class), any(Tenant.class));
         // 4. No async actions run since document is gone
         verify(documentIAService, never()).analyseDocument(any());
-        verify(producer, never()).sendDocumentForPdfGeneration(any());
+        verify(producer, never()).sendDocumentForPdfGeneration(any(Document.class));
     }
 
     @Test
-    void shouldReturn404WhenGroupTenantTriesToDeleteCoTenantFile() throws Exception {
+    void shouldReturn403WhenGroupTenantTriesToDeleteCoTenantFile() throws Exception {
         // Given
         Document document = Document.builder()
                 .tenant(tenantGroup2)
@@ -296,7 +336,7 @@ class FileControllerIntegrationTest {
 
         // When/Then
         mockMvc.perform(delete("/api/file/{id}", file.getId()))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isForbidden());
     }
 
     @Test

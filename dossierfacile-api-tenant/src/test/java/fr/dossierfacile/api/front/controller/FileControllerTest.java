@@ -8,7 +8,7 @@ import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.FileServiceImpl;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.common.service.interfaces.LogService;
-import fr.dossierfacile.api.front.amqp.Producer;
+import fr.dossierfacile.common.domain.service.MessagePublisher;
 import fr.dossierfacile.common.config.GlobalExceptionHandler;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Document;
@@ -22,8 +22,12 @@ import fr.dossierfacile.document.analysis.service.DocumentIAService;
 import fr.dossierfacile.parameterizedtest.ArgumentBuilder;
 import fr.dossierfacile.parameterizedtest.ControllerParameter;
 import fr.dossierfacile.parameterizedtest.ParameterizedTestHelper;
+import fr.dossierfacile.api.front.application.exception.ModelNotFoundException;
+import fr.dossierfacile.api.front.application.exception.UnauthorizedException;
+import fr.dossierfacile.api.front.application.usecase.tenant.TenantDeleteFileUseCase;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -44,10 +48,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(FileController.class)
 @ActiveProfiles("test")
@@ -77,7 +84,7 @@ class FileControllerTest {
     private LogService logService;
 
     @MockitoBean
-    private Producer producer;
+    private MessagePublisher producer;
 
     @MockitoBean
     private DocumentIAService documentIAService;
@@ -93,6 +100,9 @@ class FileControllerTest {
 
     @MockitoBean
     private JwtDecoder jwtDecoder;
+
+    @MockitoBean
+    private TenantDeleteFileUseCase tenantDeleteFileUseCase;
 
     private static FileControllerTest self;
 
@@ -256,91 +266,48 @@ class FileControllerTest {
     @Nested
     class DeleteFileTest {
 
-        record DeleteFileParam() {}
+        @Test
+        void should_delete_file_successfully() throws Exception {
+            var jwtTokenWithDossier = jwt()
+                    .jwt(jwt -> jwt.subject("user-keycloak-id"))
+                    .authorities(new SimpleGrantedAuthority("SCOPE_dossier"));
 
-        static List<Arguments> provideDeleteFileParameters() {
-            var jwtTokenWithDossier = jwt().authorities(new SimpleGrantedAuthority("SCOPE_dossier"));
-            var f = buildTestFixture();
+            mockMvc.perform(delete("/api/file/{id}", FILE_ID).with(jwtTokenWithDossier))
+                    .andExpect(status().isOk());
 
-            return ArgumentBuilder.buildListOfArguments(
-                    Pair.of("Should respond 200 when tenant deletes own file",
-                            new ControllerParameter<>(
-                                    new DeleteFileParam(),
-                                    200,
-                                    jwtTokenWithDossier,
-                                    (v) -> {
-                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(f.tenantAlone());
-                                        when(self.fileRepository.findByIdForTenant(FILE_ID, f.tenantAlone().getId())).thenReturn(Optional.of(f.fileAlone()));
-                                        return v;
-                                    },
-                                    Collections.emptyList()
-                            )
-                    ),
-                    Pair.of("Should respond 404 when group tenant tries to delete coTenant file",
-                            new ControllerParameter<>(
-                                    new DeleteFileParam(),
-                                    404,
-                                    jwtTokenWithDossier,
-                                    (v) -> {
-                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(f.tenant1());
-                                        when(self.fileRepository.findByIdForTenant(FILE_ID, f.tenant1().getId())).thenReturn(Optional.empty());
-                                        return v;
-                                    },
-                                    Collections.emptyList()
-                            )
-                    ),
-                    Pair.of("Should respond 200 when group tenant deletes own file",
-                            new ControllerParameter<>(
-                                    new DeleteFileParam(),
-                                    200,
-                                    jwtTokenWithDossier,
-                                    (v) -> {
-                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(f.tenant1());
-                                        when(self.fileRepository.findByIdForTenant(FILE_ID, f.tenant1().getId())).thenReturn(Optional.of(f.file()));
-                                        return v;
-                                    },
-                                    Collections.emptyList()
-                            )
-                    ),
-                    Pair.of("Should respond 200 when couple tenant deletes coTenant file",
-                            new ControllerParameter<>(
-                                    new DeleteFileParam(),
-                                    200,
-                                    jwtTokenWithDossier,
-                                    (v) -> {
-                                        when(self.authenticationFacade.getLoggedTenant()).thenReturn(f.tenantCouple1());
-                                        when(self.fileRepository.findByIdForAppartmentSharing(FILE_ID, f.tenantCouple1().getApartmentSharing().getId()))
-                                                .thenReturn(Optional.of(f.fileForCouple()));
-                                        return v;
-                                    },
-                                    Collections.emptyList()
-                            )
-                    ),
-                    Pair.of("Should respond 401 when no JWT is provided",
-                            new ControllerParameter<>(
-                                    new DeleteFileParam(),
-                                    401,
-                                    null,
-                                    null,
-                                    Collections.emptyList()
-                            )
-                    )
-            );
+            verify(tenantDeleteFileUseCase).execute(new TenantDeleteFileUseCase.TenantDeleteFileCommand(FILE_ID, "user-keycloak-id"));
         }
 
-        @ParameterizedTest(name = "{0}")
-        @MethodSource("provideDeleteFileParameters")
-        void parameterizedTests(ControllerParameter<DeleteFileParam> parameter) throws Exception {
-            if (parameter.getRequestPostProcessor() == null) {
-                mockMvc.perform(delete("/api/file/{id}", FILE_ID))
-                        .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().is(parameter.getStatus()));
-            } else {
-                ParameterizedTestHelper.runControllerTest(
-                        mockMvc,
-                        delete("/api/file/{id}", FILE_ID).with(parameter.getRequestPostProcessor()),
-                        parameter
-                );
-            }
+        @Test
+        void should_return_404_when_file_not_found() throws Exception {
+            var jwtTokenWithDossier = jwt()
+                    .jwt(jwt -> jwt.subject("user-keycloak-id"))
+                    .authorities(new SimpleGrantedAuthority("SCOPE_dossier"));
+
+            doThrow(new ModelNotFoundException(File.class, FILE_ID))
+                    .when(tenantDeleteFileUseCase).execute(new TenantDeleteFileUseCase.TenantDeleteFileCommand(FILE_ID, "user-keycloak-id"));
+
+            mockMvc.perform(delete("/api/file/{id}", FILE_ID).with(jwtTokenWithDossier))
+                    .andExpect(status().isNotFound());
+        }
+
+        @Test
+        void should_return_403_when_unauthorized() throws Exception {
+            var jwtTokenWithDossier = jwt()
+                    .jwt(jwt -> jwt.subject("user-keycloak-id"))
+                    .authorities(new SimpleGrantedAuthority("SCOPE_dossier"));
+
+            doThrow(new UnauthorizedException("Access denied"))
+                    .when(tenantDeleteFileUseCase).execute(new TenantDeleteFileUseCase.TenantDeleteFileCommand(FILE_ID, "user-keycloak-id"));
+
+            mockMvc.perform(delete("/api/file/{id}", FILE_ID).with(jwtTokenWithDossier))
+                    .andExpect(status().isForbidden());
+        }
+
+        @Test
+        void should_return_401_when_no_token() throws Exception {
+            mockMvc.perform(delete("/api/file/{id}", FILE_ID))
+                    .andExpect(status().isUnauthorized());
         }
     }
 }

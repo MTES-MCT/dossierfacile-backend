@@ -1,6 +1,6 @@
 package fr.dossierfacile.api.front.service;
 
-import fr.dossierfacile.api.front.amqp.Producer;
+import fr.dossierfacile.common.domain.service.MessagePublisher;
 import fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException;
 import fr.dossierfacile.api.front.exception.ApartmentSharingUnexpectedException;
 import fr.dossierfacile.api.front.model.tenant.AnalysisStatus;
@@ -75,7 +75,7 @@ class ApartmentSharingServiceImplTest {
     @MockitoBean
     private LinkLogService linkLogService;
     @MockitoBean
-    private Producer producer;
+    private MessagePublisher producer;
     @MockitoBean
     private ApartmentSharingCommonService apartmentSharingCommonService;
     @MockitoBean

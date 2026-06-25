@@ -3,6 +3,8 @@ package fr.dossierfacile.common.infrastructure.repository;
 import fr.dossierfacile.common.domain.model.tenant.Tenant;
 import fr.dossierfacile.common.infrastructure.entity.TenantEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -48,6 +50,14 @@ public class JpaTenantRepository {
     }
 
     /**
+     * Recherche un locataire par l'ID de l'un de ses garants.
+     */
+    public Optional<Tenant> findByGuarantorId(Long guarantorId) {
+        return jpaTenantEntityRepository.findByGuarantorId(guarantorId)
+                .map(Tenant::new);
+    }
+
+    /**
      * Sauvegarde l'état de l'agrégat en persistant l'entité interne.
      */
     public void save(Tenant tenant) {
@@ -69,4 +79,7 @@ public class JpaTenantRepository {
 interface JpaTenantEntityRepository extends JpaRepository<TenantEntity, Long> {
     Optional<TenantEntity> findByKeycloakId(String keycloakId);
     Optional<TenantEntity> findByEmail(String email);
+
+    @Query("select t from TenantEntity t join t.guarantorIds g where g = :guarantorId")
+    Optional<TenantEntity> findByGuarantorId(@Param("guarantorId") Long guarantorId);
 }
