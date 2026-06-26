@@ -5,6 +5,8 @@ import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.mapper.DocumentIAField;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.mapper.DocumentIAModel;
 
+import java.util.List;
+
 // Document-IA model for the property tax notice (taxe foncière).
 @DocumentIAModel(documentCategory = DocumentCategory.RESIDENCY, documentSubCategory = DocumentSubCategory.OWNER)
 public class PropertyTaxModel {
@@ -12,8 +14,11 @@ public class PropertyTaxModel {
     @DocumentIAField(extractionName = "annee_imposition")
     public String anneeImposition;
 
-    // Only the recipient identity (destinataire) is available; co-owners possibly listed on page 2
-    // are not extracted for now.
-    @DocumentIAField(extractionName = "proprietaire_identite")
-    public String proprietaireIdentite;
+    // Owners of the property
+    @DocumentIAField(extractionName = "identites_proprietaires")
+    public List<String> identitesProprietaires;
+
+    // Recipients of the notice
+    @DocumentIAField(extractionName = "identite_destinataire")
+    public List<String> identiteDestinataire;
 }

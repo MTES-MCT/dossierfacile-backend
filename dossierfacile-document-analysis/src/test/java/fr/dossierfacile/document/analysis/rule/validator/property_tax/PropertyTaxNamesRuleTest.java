@@ -5,6 +5,7 @@ import fr.dossierfacile.common.entity.DocumentIAFileAnalysis;
 import fr.dossierfacile.common.entity.DocumentRule;
 import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.entity.rule.TaxNamesRuleData;
 import fr.dossierfacile.common.enums.DocumentIAFileAnalysisStatus;
 import fr.dossierfacile.common.model.document_ia.ExtractionModel;
 import fr.dossierfacile.common.model.document_ia.GenericProperty;
@@ -23,9 +24,9 @@ class PropertyTaxNamesRuleTest {
     private final PropertyTaxNamesRule rule = new PropertyTaxNamesRule();
 
     @Test
-    @DisplayName("Should pass when the owner identity matches the tenant (nominal)")
-    void should_pass_when_owner_matches_tenant() {
-        Document document = documentWithAnalysis(tenant("DUPONT", "Camille"), fakeTaxeFonciere("DUPONT Camille"));
+    @DisplayName("Should pass when the single owner matches the tenant (nominal)")
+    void should_pass_when_single_owner_matches_tenant() {
+        Document document = documentWithAnalysis(tenant("DUPONT", "Camille"), fakeTaxeFonciere(List.of("DUPONT Camille"), null));
 
         RuleValidatorOutput result = rule.validate(document);
 
@@ -34,9 +35,12 @@ class PropertyTaxNamesRuleTest {
     }
 
     @Test
-    @DisplayName("Should pass when identity is inverted")
-    void should_pass_when_identity_inverted() {
-        Document document = documentWithAnalysis(tenant("DUPONT", "Camille"), fakeTaxeFonciere("Camille DUPONT"));
+    @DisplayName("Should pass when the tenant matches one of several owners (joint ownership)")
+    void should_pass_when_tenant_matches_one_of_several_owners() {
+        Document document = documentWithAnalysis(
+                tenant("DUPONT", "Marie"),
+                fakeTaxeFonciere(List.of("DUPONT ANGELIQUE", "DUPONT MARIE"), null)
+        );
 
         RuleValidatorOutput result = rule.validate(document);
 
@@ -44,9 +48,48 @@ class PropertyTaxNamesRuleTest {
     }
 
     @Test
-    @DisplayName("Should fail when the owner identity does not match (invalid)")
-    void should_fail_when_owner_does_not_match() {
-        Document document = documentWithAnalysis(tenant("MARTIN", "Jean"), fakeTaxeFonciere("DUPONT Camille"));
+    @DisplayName("Should pass when the tenant matches only the recipient source (destinataire)")
+    void should_pass_when_tenant_matches_recipient_source() {
+        Document document = documentWithAnalysis(
+                tenant("LECONTE", "Valerie"),
+                fakeTaxeFonciere(List.of("GIFFARD VALERIE HELENE PIERRETTE"), List.of("LECONTE VALERIE"))
+        );
+
+        RuleValidatorOutput result = rule.validate(document);
+
+        assertThat(result.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.PASSED);
+    }
+
+    @Test
+    @DisplayName("Should merge both sources and deduplicate the extracted identities")
+    void should_merge_and_deduplicate_extracted_identities() {
+        Document document = documentWithAnalysis(
+                tenant("LECONTE", "Christophe"),
+                fakeTaxeFonciere(
+                        List.of("LECONTE CHRISTOPHE MARCEL PAUL", "GIFFARD VALERIE HELENE PIERRETTE"),
+                        List.of("LECONTE CHRISTOPHE", "LECONTE VALERIE")
+                )
+        );
+
+        RuleValidatorOutput result = rule.validate(document);
+
+        assertThat(result.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.PASSED);
+        TaxNamesRuleData data = (TaxNamesRuleData) result.rule().getRuleData();
+        assertThat(data.extractedIdentities()).containsExactlyInAnyOrder(
+                "LECONTE CHRISTOPHE MARCEL PAUL",
+                "LECONTE VALERIE",
+                "GIFFARD VALERIE HELENE PIERRETTE"
+        );
+        assertThat(data.extractedIdentities()).doesNotContain("LECONTE CHRISTOPHE");
+    }
+
+    @Test
+    @DisplayName("Should fail when the tenant matches neither source (invalid)")
+    void should_fail_when_tenant_matches_no_source() {
+        Document document = documentWithAnalysis(
+                tenant("MARTIN", "Jean"),
+                fakeTaxeFonciere(List.of("DUPONT ANGELIQUE"), List.of("LECONTE VALERIE"))
+        );
 
         RuleValidatorOutput result = rule.validate(document);
 
@@ -55,9 +98,9 @@ class PropertyTaxNamesRuleTest {
     }
 
     @Test
-    @DisplayName("Should fail (refused) when the owner identity was not extracted")
-    void should_fail_when_owner_identity_absent() {
-        Document document = documentWithAnalysis(tenant("DUPONT", "Camille"), fakeTaxeFonciere(null));
+    @DisplayName("Should fail (refused) when no identity was extracted from either source")
+    void should_fail_when_no_identity_extracted() {
+        Document document = documentWithAnalysis(tenant("DUPONT", "Camille"), fakeTaxeFonciere(null, null));
 
         RuleValidatorOutput result = rule.validate(document);
 
@@ -68,7 +111,7 @@ class PropertyTaxNamesRuleTest {
     @DisplayName("Should be inconclusive when the dossier has no identity")
     void should_be_inconclusive_when_dossier_has_no_identity() {
         Document document = Document.builder()
-                .files(List.of(File.builder().documentIAFileAnalysis(fakeTaxeFonciere("DUPONT Camille")).build()))
+                .files(List.of(File.builder().documentIAFileAnalysis(fakeTaxeFonciere(List.of("DUPONT Camille"), null)).build()))
                 .build();
 
         RuleValidatorOutput result = rule.validate(document);
@@ -91,11 +134,14 @@ class PropertyTaxNamesRuleTest {
                 .build();
     }
 
-    private static DocumentIAFileAnalysis fakeTaxeFonciere(String proprietaireIdentite) {
+    private static DocumentIAFileAnalysis fakeTaxeFonciere(List<String> proprietaires, List<String> destinataires) {
         List<GenericProperty> properties = new ArrayList<>();
         properties.add(GenericProperty.builder().name("annee_imposition").value("2025").type("string").build());
-        if (proprietaireIdentite != null) {
-            properties.add(GenericProperty.builder().name("proprietaire_identite").value(proprietaireIdentite).type("string").build());
+        if (proprietaires != null) {
+            properties.add(GenericProperty.builder().name("identites_proprietaires").value(proprietaires).type("list").build());
+        }
+        if (destinataires != null) {
+            properties.add(GenericProperty.builder().name("identite_destinataire").value(destinataires).type("list").build());
         }
 
         ResultModel result = ResultModel.builder()

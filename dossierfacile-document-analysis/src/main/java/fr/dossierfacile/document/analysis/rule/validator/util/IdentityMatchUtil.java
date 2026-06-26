@@ -2,9 +2,12 @@ package fr.dossierfacile.document.analysis.rule.validator.util;
 
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.BaseDocumentIAValidator;
 import fr.dossierfacile.document.analysis.rule.validator.french_identity_card.document_ia_model.DocumentIdentity;
+import fr.dossierfacile.document.analysis.util.NameUtil;
 import org.apache.commons.text.similarity.LevenshteinDistance;
 
 import java.text.Normalizer;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -88,6 +91,48 @@ public final class IdentityMatchUtil {
                             Integer distance = levenshtein.apply(token, expectedToken);
                             return distance != null && distance <= LAST_NAME_MAX_DISTANCE;
                         }));
+    }
+
+
+    @SafeVarargs
+    public static List<String> mergeAndDeduplicateIdentities(List<String>... sources) {
+        List<String> all = Arrays.stream(sources)
+                .filter(Objects::nonNull)
+                .flatMap(List::stream)
+                .filter(value -> value != null && !value.isBlank())
+                .map(String::trim)
+                .toList();
+
+        List<String> result = new ArrayList<>();
+        for (String candidate : all) {
+            String candidateKey = comparisonKey(candidate);
+            if (candidateKey.isBlank()) {
+                continue;
+            }
+            // Skip values already kept under the same comparison key
+            boolean alreadyKept = result.stream()
+                    .anyMatch(kept -> comparisonKey(kept).equals(candidateKey));
+            if (alreadyKept) {
+                continue;
+            }
+            // Skip values strictly contained in a more complete entry
+            boolean subsumed = all.stream().anyMatch(other -> {
+                String otherKey = comparisonKey(other);
+                return otherKey.length() > candidateKey.length()
+                        && otherKey.contains(candidateKey);
+            });
+            if (!subsumed) {
+                result.add(candidate);
+            }
+        }
+        return result;
+    }
+
+    // Comparison key used for deduplication only: keeps letters only (hyphens, apostrophes of any
+    // variant, spaces, punctuation are all stripped), so that e.g. "JEAN-LUC", "JEAN LUC" and
+    // "JEANLUC" are considered equal. The original string is kept untouched for display.
+    private static String comparisonKey(String value) {
+        return NameUtil.sanitizeForComparison(value);
     }
 
     public static Stream<String> splitTokens(String identity) {

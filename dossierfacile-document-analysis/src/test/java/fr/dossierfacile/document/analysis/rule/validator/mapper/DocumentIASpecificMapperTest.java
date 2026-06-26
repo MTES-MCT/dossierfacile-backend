@@ -96,7 +96,7 @@ public class DocumentIASpecificMapperTest {
     }
 
     @Nested
-    class TaxeFonciereModelMapperTest {
+    class PropertyTaxModelMapperTest {
 
         private DocumentIAFileAnalysis analysisWithExtraction(List<GenericProperty> properties) {
             ResultModel resultModel = ResultModel.builder()
@@ -111,7 +111,8 @@ public class DocumentIASpecificMapperTest {
             var mapper = new DocumentIAMergerMapper();
             var analysis = List.of(analysisWithExtraction(List.of(
                     GenericProperty.builder().name("annee_imposition").value("2025").type("string").build(),
-                    GenericProperty.builder().name("proprietaire_identite").value("DUPONT Camille").type("string").build(),
+                    GenericProperty.builder().name("identites_proprietaires").value(List.of("DUPONT ANGELIQUE", "DUPONT MARIE")).type("list").build(),
+                    GenericProperty.builder().name("identite_destinataire").value(List.of("DUPONT ANGELIQUE")).type("list").build(),
                     GenericProperty.builder().name("adresse_bien_impose").value("10 RUE DE LA PAIX").type("string").build()
             )));
 
@@ -119,7 +120,8 @@ public class DocumentIASpecificMapperTest {
 
             assertThat(model).isPresent();
             assertThat(model.get().anneeImposition).isEqualTo("2025");
-            assertThat(model.get().proprietaireIdentite).isEqualTo("DUPONT Camille");
+            assertThat(model.get().identitesProprietaires).containsExactly("DUPONT ANGELIQUE", "DUPONT MARIE");
+            assertThat(model.get().identiteDestinataire).containsExactly("DUPONT ANGELIQUE");
         }
     }
 

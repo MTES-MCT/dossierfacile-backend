@@ -15,18 +15,17 @@ import java.util.List;
 /*
  * Rule R_PROPERTY_TAX_NAMES:
  *
- * Checks that the owner identity extracted from the property tax notice (taxe foncière) matches the
- * candidate identity (tenant or guarantor). The owner identity comes from the "proprietaire_identite"
- * field, a single free-form string (e.g. "DUPONT Camille"), so we reuse IdentityMatchUtil free-form
+ * Checks that the candidate identity (tenant or guarantor) matches one of the owners listed on the
+ * property tax notice (taxe foncière). The owners come from the "identites_proprietaires" field, a
+ * list of free-form strings (e.g. "DUPONT ANGELIQUE"), so we reuse IdentityMatchUtil free-form
  * matching, exactly like TaxNamesRule does for declarant_1 / declarant_2.
  *
- * Decisions:
- * - The rule is blocking; the owner identity is mandatory. If it is not extracted, the document is
- *   refused (FAILED) — see the product decision "missing data -> refusal".
- * - Only a dossier without identity yields INCONCLUSIVE (data integrity, not the document's fault).
+ * The candidate must match at least one owner, which handles joint ownership / couples.
  *
- * Known limitation: only the recipient identity (destinataire) is extracted; co-owners possibly
- * listed on page 2 are ignored for now.
+ * Decisions:
+ * - The rule is blocking; the owner identities are mandatory. If they are not extracted, the
+ *   document is refused (FAILED) — see the product decision "missing data -> refusal".
+ * - Only a dossier without identity yields INCONCLUSIVE (data integrity, not the document's fault).
  */
 public class PropertyTaxNamesRule extends BaseDocumentIAValidator {
 
@@ -65,26 +64,27 @@ public class PropertyTaxNamesRule extends BaseDocumentIAValidator {
             return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentInconclusiveRuleFromWithData(getRule(), namesRuleData), RuleValidatorOutput.RuleLevel.INCONCLUSIVE);
         }
 
-        var extractedOwner = new DocumentIAMergerMapper()
+        // Merge the two identity sources (owners + recipients) and drop redundant entries.
+        var extractedOwners = new DocumentIAMergerMapper()
                 .map(documentIAAnalyses, PropertyTaxModel.class)
-                .map(model -> model.proprietaireIdentite)
-                .filter(identity -> !identity.isBlank())
+                .map(model -> IdentityMatchUtil.mergeAndDeduplicateIdentities(model.identitesProprietaires, model.identiteDestinataire))
+                .filter(owners -> !owners.isEmpty())
                 .orElse(null);
 
-        // The owner identity was not extracted: refused (decision "missing data -> refusal").
-        if (extractedOwner == null) {
+        // No identity was extracted: refused (decision "missing data -> refusal").
+        if (extractedOwners == null) {
             return reject(namesRuleData);
         }
 
-        var extractedIdentities = List.of(extractedOwner);
-        namesRuleData = new TaxNamesRuleData(namesRuleData, extractedIdentities);
+        namesRuleData = new TaxNamesRuleData(namesRuleData, extractedOwners);
 
-        var hasLastNameMatch = IdentityMatchUtil.hasLastNameMatch(extractedIdentities, nameToMatch);
+        // The candidate must match at least one of the extracted identities.
+        var hasLastNameMatch = IdentityMatchUtil.hasLastNameMatch(extractedOwners, nameToMatch);
         if (!hasLastNameMatch) {
             return reject(namesRuleData);
         }
 
-        var hasFirstNameMatch = IdentityMatchUtil.hasFirstNameMatch(extractedIdentities, nameToMatch);
+        var hasFirstNameMatch = IdentityMatchUtil.hasFirstNameMatch(extractedOwners, nameToMatch);
         if (!hasFirstNameMatch) {
             return reject(namesRuleData);
         }
