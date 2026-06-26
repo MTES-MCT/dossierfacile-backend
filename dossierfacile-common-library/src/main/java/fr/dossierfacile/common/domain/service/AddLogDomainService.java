@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Service
 @Slf4j
@@ -37,7 +38,7 @@ public class AddLogDomainService {
         TenantLog logEntity = TenantLog.builder()
                 .logType(LogType.DOCUMENT_DELETED)
                 .tenantId(editor.getId())
-                .creationDateTime(LocalDateTime.now())
+                .creationDateTime(LocalDateTime.now(ZoneId.systemDefault()))
                 .logDetails(writeAsObjectNode(details))
                 .build();
         repository.save(logEntity);
@@ -47,7 +48,7 @@ public class AddLogDomainService {
         TenantLog logEntity = TenantLog.builder()
                 .logType(LogType.FILE_DELETED)
                 .tenantId(editor.getId())
-                .creationDateTime(LocalDateTime.now())
+                .creationDateTime(LocalDateTime.now(ZoneId.systemDefault()))
                 .logDetails(writeAsObjectNode(FileLogDetails.from(file)))
                 .build();
         repository.save(logEntity);

@@ -53,13 +53,13 @@ public class TenantDeleteFileUseCase extends BaseUseCase<TenantDeleteFileUseCase
     public Void execute(TenantDeleteFileCommand command) {
         checkTransaction();
 
-        Optional<Long> optionalDocumentId = transactionTemplate.execute(status -> {
+        Optional<Long> optionalDocumentId = executeInTransaction(status -> {
             var tenant = jpaTenantRepository.findByKeycloakId(command.keycloakId)
-                    .orElseThrow(() -> new ModelNotFoundException(Tenant.class, command.keycloakId));
+                     .orElseThrow(() -> new ModelNotFoundException(Tenant.class, command.keycloakId));
             var document = jpaDocumentRepository.findByFileId(command.fileId)
-                    .orElseThrow(() -> new ModelNotFoundException(FileEntity.class, command.fileId));
+                     .orElseThrow(() -> new ModelNotFoundException(FileEntity.class, command.fileId));
             var applicationSharing = jpaApartmentSharingRepository.findById(tenant.getApartmentSharingId())
-                    .orElseThrow(() -> new ModelNotFoundException(ApartmentSharing.class, tenant.getApartmentSharingId()));
+                     .orElseThrow(() -> new ModelNotFoundException(ApartmentSharing.class, tenant.getApartmentSharingId()));
 
             Tenant targetTenant = loadTargetedTenant(document, tenant);
 
@@ -77,13 +77,11 @@ public class TenantDeleteFileUseCase extends BaseUseCase<TenantDeleteFileUseCase
 
         // TODO : Il faut supprimer ce traitement quand la migration vers les entité DDD sera fini !
         // il faudra faire ce traitement dans la partie fileDeletionDomainService
-        if (optionalDocumentId != null && optionalDocumentId.isPresent()) {
-            transactionTemplate.execute(status -> {
-                var document = documentRepository.getReferenceById(optionalDocumentId.get());
-                documentIAService.analyseDocument(document);
-                return null;
-            });
-        }
+        optionalDocumentId.ifPresent(documentId -> transactionTemplate.execute(status -> {
+            var document = documentRepository.getReferenceById(documentId);
+            documentIAService.analyseDocument(document);
+            return null;
+        }));
         return null;
     }
 

@@ -1,26 +1,21 @@
 package fr.dossierfacile.api.front.controller;
 
-import fr.dossierfacile.common.domain.service.MessagePublisher;
+import fr.dossierfacile.api.front.application.exception.ModelNotFoundException;
+import fr.dossierfacile.api.front.application.exception.UnauthorizedException;
+import fr.dossierfacile.api.front.application.usecase.tenant.TenantDeleteFileUseCase;
 import fr.dossierfacile.api.front.repository.JpaTestApplication;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.FileServiceImpl;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
-import fr.dossierfacile.common.entity.ApartmentSharing;
-import fr.dossierfacile.common.entity.Document;
-import fr.dossierfacile.common.entity.File;
-import fr.dossierfacile.common.entity.Guarantor;
-import fr.dossierfacile.common.entity.StorageFile;
-import fr.dossierfacile.common.entity.Tenant;
-import fr.dossierfacile.common.enums.ApplicationType;
-import fr.dossierfacile.common.enums.DocumentCategory;
-import fr.dossierfacile.common.enums.DocumentStatus;
-import fr.dossierfacile.common.enums.TenantType;
-import fr.dossierfacile.common.enums.TypeGuarantor;
+import fr.dossierfacile.common.domain.service.MessagePublisher;
+import fr.dossierfacile.common.entity.*;
+import fr.dossierfacile.common.enums.*;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import fr.dossierfacile.document.analysis.service.DocumentIAService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,13 +29,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -81,7 +73,7 @@ class FileControllerIntegrationTest {
     private DocumentService documentService;
 
     @MockitoBean
-    private fr.dossierfacile.api.front.application.usecase.tenant.TenantDeleteFileUseCase tenantDeleteFileUseCase;
+    private TenantDeleteFileUseCase tenantDeleteFileUseCase;
 
     private Tenant tenantAlone;
     private Tenant tenantGroup1;
@@ -93,23 +85,13 @@ class FileControllerIntegrationTest {
     void setUp() {
         // Mock TenantDeleteFileUseCase behaviors to perform database logic and log/async callbacks
         org.mockito.Mockito.doAnswer(invocation -> {
-            fr.dossierfacile.api.front.application.usecase.tenant.TenantDeleteFileUseCase.TenantDeleteFileCommand cmd = invocation.getArgument(0);
+            TenantDeleteFileUseCase.TenantDeleteFileCommand cmd = invocation.getArgument(0);
             File file = em.find(File.class, cmd.fileId());
             if (file == null) {
-                throw new fr.dossierfacile.api.front.application.exception.ModelNotFoundException(File.class, cmd.fileId());
+                throw new ModelNotFoundException(File.class, cmd.fileId());
             }
             Document doc = file.getDocument();
-            Tenant targetTenant = doc.getTenant() != null ? doc.getTenant() : doc.getGuarantor().getTenant();
-            Tenant currentTenant = authenticationFacade.getLoggedTenant();
-
-            if (!currentTenant.getApartmentSharing().getId().equals(targetTenant.getApartmentSharing().getId())) {
-                throw new fr.dossierfacile.api.front.application.exception.UnauthorizedException("No access");
-            }
-            if (!currentTenant.getId().equals(targetTenant.getId())) {
-                if (currentTenant.getApartmentSharing().getApplicationType() != ApplicationType.COUPLE) {
-                    throw new fr.dossierfacile.api.front.application.exception.UnauthorizedException("No access");
-                }
-            }
+            Tenant targetTenant = getTenant(doc);
 
             logService.saveFileDeletedLog(file, targetTenant);
 
@@ -217,6 +199,19 @@ class FileControllerIntegrationTest {
         sharingCouple.getTenants().add(tenantCouple2);
 
         em.flush();
+    }
+
+    private @NonNull Tenant getTenant(Document doc) {
+        Tenant targetTenant = doc.getTenant() != null ? doc.getTenant() : doc.getGuarantor().getTenant();
+        Tenant currentTenant = authenticationFacade.getLoggedTenant();
+
+        if (!currentTenant.getApartmentSharing().getId().equals(targetTenant.getApartmentSharing().getId())) {
+            throw new UnauthorizedException("No access");
+        }
+        if (!currentTenant.getId().equals(targetTenant.getId()) && currentTenant.getApartmentSharing().getApplicationType() != ApplicationType.COUPLE) {
+            throw new UnauthorizedException("No access");
+        }
+        return targetTenant;
     }
 
     @Test

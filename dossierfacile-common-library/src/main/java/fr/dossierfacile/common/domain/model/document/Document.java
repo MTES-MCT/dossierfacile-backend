@@ -8,6 +8,7 @@ import fr.dossierfacile.common.infrastructure.entity.FileEntity;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 /**
@@ -91,7 +92,7 @@ public class Document implements Serializable {
 
         // Si on a des fichiers encore on met a jour la date de modification et le statut du document pour qu'il soit re-analysé
         if (hasFiles()) {
-            entity.setLastModifiedDate(LocalDateTime.now());
+            entity.setLastModifiedDate(LocalDateTime.now(ZoneId.systemDefault()));
             entity.setDocumentStatus(DocumentStatus.TO_PROCESS);
         }
     }

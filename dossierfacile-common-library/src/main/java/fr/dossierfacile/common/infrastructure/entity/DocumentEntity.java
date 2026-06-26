@@ -12,6 +12,7 @@ import org.hibernate.annotations.DynamicUpdate;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,11 +50,11 @@ public class DocumentEntity implements Serializable {
 
     @Column(name = "creation_date")
     @Builder.Default
-    private LocalDateTime creationDateTime = LocalDateTime.now();
+    private LocalDateTime creationDateTime = LocalDateTime.now(ZoneId.systemDefault());
 
     @Column(name = "last_modified_date")
     @Builder.Default
-    private LocalDateTime lastModifiedDate = LocalDateTime.now();
+    private LocalDateTime lastModifiedDate = LocalDateTime.now(ZoneId.systemDefault());
 
     @Column(name = "guarantor_id")
     private Long guarantorId;

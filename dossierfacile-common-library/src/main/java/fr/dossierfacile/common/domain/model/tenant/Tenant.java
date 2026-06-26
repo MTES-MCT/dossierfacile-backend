@@ -5,6 +5,7 @@ import fr.dossierfacile.common.infrastructure.entity.TenantEntity;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 /**
  * Aggregate Root pour le concept de Tenant (Locataire).
@@ -44,6 +45,6 @@ public class Tenant implements Serializable {
     // --- LOGIQUE MÉTIER & COMPORTEMENTS (PROTÈGE LES INVARIANTS) ---
 
     public void updateLastUpdateDate() {
-        entity.setLastUpdateDate(LocalDateTime.now());
+        entity.setLastUpdateDate(LocalDateTime.now(ZoneId.systemDefault()));
     }
 }
