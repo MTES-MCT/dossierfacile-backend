@@ -57,4 +57,5 @@ Pour limiter les risques de régressions, évaluer l'impact sur chacun de ces ax
 - **Canaux de partage** (`ApartmentSharingLinkType`) : `LINK`, `MAIL`, `PARTNER`, `OWNER` — couvrir les 4.
 - **Bénéficiaire réel** (`TenantOwnerType` = `SELF` / `THIRD_PARTY`) : `user_account ≠ tenant`, ne jamais supposer l'égalité des identités.
 - **Changement de statut & partage** : raisonner au niveau `apartment_sharing` (pas seulement `tenant`) — le partage porte sur le `apartment_sharing`, qui regroupe tous les tenants.
+- **Document IA** : les analyses automatiques sont activées progressivement par feature flag (`document-ia-*`) dans `DocumentIAConfig`. Pour une nouvelle règle, vérifier le workflow envoyé, le mapping `@DocumentIAField`, la validation dédiée et les messages `DocumentRule`. La taxe foncière (`RESIDENCY` / `OWNER`) a une validation spécifique derrière `document-ia-property-tax-analysis`.
 - **Rétro-compatibilité `pdf-generator`** : toute modification doit rester rétro-compatible pour `api-tenant` et `api-watermark`, les 2 services backend qui en dépendent.

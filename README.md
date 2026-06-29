@@ -129,6 +129,8 @@ s3.secret.access.key=your-secret-key
 
 Feature flags are backed by the `feature_flag`, `user_feature_assignment`, and `user_feature_assignment_history` tables.
 
+Document IA analyses are also progressively activated through feature flags checked in `DocumentIAConfig`. For example, `document-ia-property-tax-analysis` enables the dedicated property-tax analysis for residency documents with subcategory `OWNER`.
+
 ### 1) Create the feature flag in the database (mandatory)
 
 Do not create feature flags manually in production: creation must go through a versioned Liquibase migration.

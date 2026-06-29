@@ -85,6 +85,17 @@ dossierfacile.document.ia.result.encryption.key=
 brevo.apikey=
 ```
 
+## E2E testing endpoints
+
+The BO exposes `/api/testing` endpoints for automated end-to-end tests when running with `dev`, `preprod`, or `test` profiles. They are explicitly rejected in `prod`.
+
+All endpoints only accept emails matching `testing.api.allowed-email-pattern`. Operations that validate, decline, or delete a tenant are attributed to the deterministic operator configured with `testing.api.operator-email`.
+
+- `POST /api/testing/tenant/{tenantEmail}/validate`: validates the tenant file for an allowed test tenant.
+- `POST /api/testing/tenant/{tenantEmail}/decline`: declines the allowed test tenant. The JSON body accepts `messageBody` and an optional `documentCategories` array; an empty category list declines all documents.
+- `POST /api/testing/user/{email}/verify-email`: marks the Keycloak account email as verified.
+- `DELETE /api/testing/user/{email}`: resets a test account by deleting its tenant apartment sharing when present, then deleting the Keycloak account.
+
 **Important**: This step is crucial because Google SSO is configured with this specific redirect URI. Omitting this will result in a `redirect_uri_mismatch` error during login: `Erreur 400: redirect_uri_mismatch`
 
 ### HTTPS config for backOffice access
