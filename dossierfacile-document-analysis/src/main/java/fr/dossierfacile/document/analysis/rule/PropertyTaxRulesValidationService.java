@@ -4,6 +4,7 @@ import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.document.analysis.rule.validator.AbstractDocumentRuleValidator;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.ClassificationValidatorB;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.HasBeenDocumentIAAnalysedBI;
+import fr.dossierfacile.document.analysis.rule.validator.property_tax.PropertyTaxClassificationRuleB;
 import fr.dossierfacile.document.analysis.rule.validator.property_tax.PropertyTaxLeafRule;
 import fr.dossierfacile.document.analysis.rule.validator.property_tax.PropertyTaxNamesRule;
 import fr.dossierfacile.document.analysis.rule.validator.property_tax.PropertyTaxYearRule;
@@ -24,7 +25,7 @@ public class PropertyTaxRulesValidationService extends AbstractRulesValidationSe
     List<AbstractDocumentRuleValidator> getDocumentRuleValidators(Document document) {
         return List.of(
                 new HasBeenDocumentIAAnalysedBI(),
-                new ClassificationValidatorB("taxe_fonciere"),
+                new PropertyTaxClassificationRuleB(),
                 new PropertyTaxLeafRule(),
                 new PropertyTaxNamesRule(),
                 new PropertyTaxYearRule()
