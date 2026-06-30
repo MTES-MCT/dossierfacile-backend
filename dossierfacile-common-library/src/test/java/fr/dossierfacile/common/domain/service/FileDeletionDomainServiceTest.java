@@ -48,7 +48,7 @@ class FileDeletionDomainServiceTest {
     @Test
     void should_delete_file_and_keep_document_when_multiple_files_exist() {
         // Given
-        TenantEntity tenantEntity = TenantEntity.builder().id(1L).build();
+        TenantEntity tenantEntity = TenantEntity.builder().id(1L).apartmentSharingId(50L).build();
         Tenant targetTenant = new Tenant(tenantEntity);
 
         StorageFile storageFile = StorageFile.builder().status(FileStorageStatus.TEMPORARY).build();
@@ -68,7 +68,7 @@ class FileDeletionDomainServiceTest {
         otherFile.setDocument(documentEntity);
 
         // When
-        Optional<Document> result = fileDeletionDomainService.deleteFile(100L, document, targetTenant);
+        Optional<Document> result = fileDeletionDomainService.deleteFile(100L, document, targetTenant, Optional.empty());
 
         // Then
         assertThat(result).isPresent();
@@ -76,7 +76,7 @@ class FileDeletionDomainServiceTest {
         assertThat(result.get().getFiles().getFirst().getId()).isEqualTo(200L);
         assertThat(storageFile.getStatus()).isEqualTo(FileStorageStatus.TO_DELETE);
 
-        verify(addLogDomainService).addFileDeletedLog(fileToDelete, targetTenant);
+        verify(addLogDomainService).addFileDeletedLog(fileToDelete, targetTenant, Optional.empty());
         verify(jpaDocumentRepository).save(document);
         verify(jpaDocumentRepository, never()).delete(any());
         verify(messagePublisher).sendDocumentForPdfGeneration(10L);
@@ -85,7 +85,7 @@ class FileDeletionDomainServiceTest {
     @Test
     void should_delete_file_and_delete_document_when_it_was_the_last_file() {
         // Given
-        TenantEntity tenantEntity = TenantEntity.builder().id(1L).build();
+        TenantEntity tenantEntity = TenantEntity.builder().id(1L).apartmentSharingId(50L).build();
         Tenant targetTenant = new Tenant(tenantEntity);
 
         StorageFile storageFile = StorageFile.builder().status(FileStorageStatus.TEMPORARY).build();
@@ -112,14 +112,14 @@ class FileDeletionDomainServiceTest {
         when(jpaDocumentRepository.getDocumentsByTenantId(1L)).thenReturn(List.of(otherDocument));
 
         // When
-        Optional<Document> result = fileDeletionDomainService.deleteFile(100L, document, targetTenant);
+        Optional<Document> result = fileDeletionDomainService.deleteFile(100L, document, targetTenant, Optional.empty());
 
         // Then
         assertThat(result).isEmpty();
         assertThat(storageFile.getStatus()).isEqualTo(FileStorageStatus.TO_DELETE);
 
-        verify(addLogDomainService).addFileDeletedLog(fileToDelete, targetTenant);
-        verify(addLogDomainService).addDocumentDeletedLog(document, targetTenant);
+        verify(addLogDomainService).addFileDeletedLog(fileToDelete, targetTenant, Optional.empty());
+        verify(addLogDomainService).addDocumentDeletedLog(document, targetTenant, Optional.empty());
         verify(jpaDocumentRepository).getDocumentsByTenantId(1L);
         verify(messagePublisher).sendDocumentForPdfGeneration(20L);
         verify(jpaDocumentRepository).delete(document);

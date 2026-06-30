@@ -57,6 +57,10 @@ public class Document implements Serializable {
         return entity.getNoDocument();
     }
 
+    public DocumentStatus getDocumentStatus() {
+        return entity.getDocumentStatus();
+    }
+
     public List<FileEntity> getFiles() {
         return entity.getFiles();
     }

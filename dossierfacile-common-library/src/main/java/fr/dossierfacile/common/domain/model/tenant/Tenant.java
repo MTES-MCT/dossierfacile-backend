@@ -1,11 +1,19 @@
 package fr.dossierfacile.common.domain.model.tenant;
 
+import fr.dossierfacile.common.entity.Guarantor;
+import fr.dossierfacile.common.enums.DocumentCategory;
+import fr.dossierfacile.common.enums.DocumentStatus;
+import fr.dossierfacile.common.enums.TenantFileStatus;
+import fr.dossierfacile.common.domain.model.document.Document;
+import fr.dossierfacile.common.enums.TypeGuarantor;
 import fr.dossierfacile.common.infrastructure.entity.TenantEntity;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Aggregate Root pour le concept de Tenant (Locataire).
@@ -38,8 +46,24 @@ public class Tenant implements Serializable {
         return entity.getId();
     }
 
+    public List<Long> getGuarantorsIds() {
+        return entity.getGuarantorIds();
+    }
+
     public Long getApartmentSharingId() {
         return entity.getApartmentSharingId();
+    }
+
+    public TenantFileStatus getStatus() {
+        return entity.getStatus();
+    }
+
+    public void setStatus(TenantFileStatus status) {
+        entity.setStatus(status);
+    }
+
+    public Boolean getHonorDeclaration() {
+        return entity.getHonorDeclaration();
     }
 
     // --- LOGIQUE MÉTIER & COMPORTEMENTS (PROTÈGE LES INVARIANTS) ---

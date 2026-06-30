@@ -59,6 +59,18 @@ public class JpaDocumentRepository {
     }
 
     /**
+     * Récupère tous les documents associés à une liste de garants.
+     */
+    public List<Document> getDocumentsByGuarantorsIds(List<Long> guarantorsIds) {
+        if (guarantorsIds == null || guarantorsIds.isEmpty()) {
+            return List.of();
+        }
+        return jpaDocumentEntityRepository.findAllByGuarantorIdIn(guarantorsIds).stream()
+                .map(Document::new)
+                .toList();
+    }
+
+    /**
      * Sauvegarde l'état de l'agrégat en persistant l'entité interne.
      */
     public void save(Document document) {
@@ -89,4 +101,6 @@ interface JpaDocumentEntityRepository extends JpaRepository<DocumentEntity, Long
     List<DocumentEntity> findAllByTenantId(Long tenantId);
 
     List<DocumentEntity> findAllByGuarantorId(Long guarantorId);
+
+    List<DocumentEntity> findAllByGuarantorIdIn(List<Long> guarantorIds);
 }

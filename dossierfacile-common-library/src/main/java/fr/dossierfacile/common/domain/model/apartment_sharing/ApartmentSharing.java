@@ -2,6 +2,7 @@ package fr.dossierfacile.common.domain.model.apartment_sharing;
 
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.FileStatus;
+import fr.dossierfacile.common.enums.FileStorageStatus;
 import fr.dossierfacile.common.infrastructure.entity.ApartmentSharingEntity;
 
 import java.io.Serial;
@@ -44,5 +45,13 @@ public class ApartmentSharing implements Serializable {
 
     public List<Long> getTenantIds() {
         return entity.getTenantIds();
+    }
+
+    public void resetDossierPdfGenerated() {
+        if (entity.getPdfDossierFile() != null) {
+            entity.getPdfDossierFile().setStatus(FileStorageStatus.TO_DELETE);
+            entity.setPdfDossierFile(null);
+            entity.setDossierPdfDocumentStatus(FileStatus.DELETED);
+        }
     }
 }

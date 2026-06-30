@@ -1,12 +1,13 @@
 package fr.dossierfacile.api.front.application.usecase.tenant;
 
-import fr.dossierfacile.api.front.application.exception.ModelNotFoundException;
+import fr.dossierfacile.common.application.exception.ModelNotFoundException;
 import fr.dossierfacile.api.front.domain.policy.TenantAccessPolicy;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.common.domain.model.apartment_sharing.ApartmentSharing;
 import fr.dossierfacile.common.domain.model.document.Document;
 import fr.dossierfacile.common.domain.model.tenant.Tenant;
 import fr.dossierfacile.common.domain.service.FileDeletionDomainService;
+import fr.dossierfacile.common.domain.service.TenantResolverDomainService;
 import fr.dossierfacile.common.infrastructure.entity.FileEntity;
 import fr.dossierfacile.common.infrastructure.entity.ApartmentSharingEntity;
 import fr.dossierfacile.common.infrastructure.entity.DocumentEntity;
@@ -29,6 +30,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import fr.dossierfacile.common.application.service.FileDeletionProcessService;
+
 @ExtendWith(MockitoExtension.class)
 class TenantDeleteFileUseCaseTest {
 
@@ -48,7 +51,9 @@ class TenantDeleteFileUseCaseTest {
     @Mock
     private TenantAccessPolicy tenantAccessPolicy;
     @Mock
-    private FileDeletionDomainService fileDeletionDomainService;
+    private FileDeletionProcessService fileDeletionProcessService;
+    @Mock
+    private TenantResolverDomainService tenantResolverDomainService;
     @Mock
     private DocumentRepository documentRepository;
     @Mock
@@ -63,7 +68,8 @@ class TenantDeleteFileUseCaseTest {
                 jpaDocumentRepository,
                 jpaApartmentSharingRepository,
                 tenantAccessPolicy,
-                fileDeletionDomainService,
+                fileDeletionProcessService,
+                tenantResolverDomainService,
                 documentRepository,
                 documentIAService
         );
@@ -89,8 +95,9 @@ class TenantDeleteFileUseCaseTest {
         when(jpaTenantRepository.findByKeycloakId(keycloakId)).thenReturn(Optional.of(tenant));
         when(jpaDocumentRepository.findByFileId(fileId)).thenReturn(Optional.of(document));
         when(jpaApartmentSharingRepository.findById(10L)).thenReturn(Optional.of(apartmentSharing));
+        when(tenantResolverDomainService.resolveTargetedTenant(document, tenant)).thenReturn(tenant);
 
-        when(fileDeletionDomainService.deleteFile(fileId, document, tenant)).thenReturn(Optional.of(document));
+        when(fileDeletionProcessService.processFileDeletion(fileId, document, tenant, apartmentSharing, Optional.empty())).thenReturn(Optional.of(document));
 
         fr.dossierfacile.common.entity.Document legacyDoc = mock(fr.dossierfacile.common.entity.Document.class);
         when(documentRepository.getReferenceById(50L)).thenReturn(legacyDoc);
@@ -100,8 +107,7 @@ class TenantDeleteFileUseCaseTest {
 
         // Then
         verify(tenantAccessPolicy).validateAccess(tenant, tenant, apartmentSharing);
-        verify(fileDeletionDomainService).deleteFile(fileId, document, tenant);
-        verify(jpaTenantRepository).save(tenant);
+        verify(fileDeletionProcessService).processFileDeletion(fileId, document, tenant, apartmentSharing, Optional.empty());
         verify(documentRepository).getReferenceById(50L);
         verify(documentIAService).analyseDocument(legacyDoc);
     }
@@ -126,16 +132,16 @@ class TenantDeleteFileUseCaseTest {
         when(jpaTenantRepository.findByKeycloakId(keycloakId)).thenReturn(Optional.of(tenant));
         when(jpaDocumentRepository.findByFileId(fileId)).thenReturn(Optional.of(document));
         when(jpaApartmentSharingRepository.findById(10L)).thenReturn(Optional.of(apartmentSharing));
+        when(tenantResolverDomainService.resolveTargetedTenant(document, tenant)).thenReturn(tenant);
 
-        when(fileDeletionDomainService.deleteFile(fileId, document, tenant)).thenReturn(Optional.empty());
+        when(fileDeletionProcessService.processFileDeletion(fileId, document, tenant, apartmentSharing, Optional.empty())).thenReturn(Optional.empty());
 
         // When
         useCase.execute(command);
 
         // Then
         verify(tenantAccessPolicy).validateAccess(tenant, tenant, apartmentSharing);
-        verify(fileDeletionDomainService).deleteFile(fileId, document, tenant);
-        verify(jpaTenantRepository).save(tenant);
+        verify(fileDeletionProcessService).processFileDeletion(fileId, document, tenant, apartmentSharing, Optional.empty());
         verifyNoInteractions(documentRepository);
         verifyNoInteractions(documentIAService);
     }

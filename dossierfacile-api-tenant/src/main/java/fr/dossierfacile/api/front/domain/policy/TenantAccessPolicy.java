@@ -1,6 +1,6 @@
 package fr.dossierfacile.api.front.domain.policy;
 
-import fr.dossierfacile.api.front.application.exception.UnauthorizedException;
+import fr.dossierfacile.common.application.exception.UnauthorizedException;
 import fr.dossierfacile.common.domain.model.apartment_sharing.ApartmentSharing;
 import fr.dossierfacile.common.domain.model.tenant.Tenant;
 import fr.dossierfacile.common.enums.ApplicationType;

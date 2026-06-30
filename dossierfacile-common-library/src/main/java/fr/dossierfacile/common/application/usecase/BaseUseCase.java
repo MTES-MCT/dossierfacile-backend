@@ -1,4 +1,4 @@
-package fr.dossierfacile.api.front.application.usecase;
+package fr.dossierfacile.common.application.usecase;
 
 // C = Command type, R = return type
 

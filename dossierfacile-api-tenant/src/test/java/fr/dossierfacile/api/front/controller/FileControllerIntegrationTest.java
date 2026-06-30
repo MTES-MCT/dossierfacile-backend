@@ -1,7 +1,7 @@
 package fr.dossierfacile.api.front.controller;
 
-import fr.dossierfacile.api.front.application.exception.ModelNotFoundException;
-import fr.dossierfacile.api.front.application.exception.UnauthorizedException;
+import fr.dossierfacile.common.application.exception.ModelNotFoundException;
+import fr.dossierfacile.common.application.exception.UnauthorizedException;
 import fr.dossierfacile.api.front.application.usecase.tenant.TenantDeleteFileUseCase;
 import fr.dossierfacile.api.front.repository.JpaTestApplication;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;

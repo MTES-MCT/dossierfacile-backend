@@ -7,8 +7,12 @@ import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.gouv.bo.dto.*;
 import fr.gouv.bo.security.BOAccessDenied;
 import fr.gouv.bo.security.BOApplicationAccessService;
+import fr.dossierfacile.common.application.exception.ModelNotFoundException;
+import fr.dossierfacile.common.application.exception.UnauthorizedException;
 import fr.gouv.bo.security.UserPrincipal;
 import fr.gouv.bo.service.*;
+import fr.gouv.bo.application.usecase.operator.OperatorDeleteFileUseCase;
+import fr.gouv.bo.application.usecase.operator.OperatorDeleteFileUseCase.OperatorDeleteFileCommand;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -52,6 +56,7 @@ public class BOTenantController {
     private final DocumentDeniedReasonsService documentDeniedReasonsService;
     private final BOApplicationAccessService applicationAccessService;
     private final BOTenantResolver tenantResolver;
+    private final OperatorDeleteFileUseCase operatorDeleteFileUseCase;
 
     @GetMapping("/{id}")
     public String getTenant(
@@ -187,11 +192,16 @@ public class BOTenantController {
             @PathVariable("id") Long fileId,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
-        Tenant accessTenant = tenantResolver.resolveTenantFromFile(fileId);
-        applicationAccessService.checkTenantAccess(principal, accessTenant.getId());
-        User operator = userService.findUserByEmail(principal.getEmail());
-        Tenant tenant = tenantService.deleteFile(fileId, operator);
-        return redirectToTenantPage(tenant);
+        try {
+            var result = operatorDeleteFileUseCase.execute(new OperatorDeleteFileCommand(fileId, principal.getEmail()));
+            return redirectToTenantPage(result.apartmentSharingId(), result.tenantId());
+        } catch (ModelNotFoundException e) {
+            log.error("Model not found when deleting file with id: {}", fileId, e);
+            return REDIRECT_BO_HOME;
+        } catch (UnauthorizedException e) {
+            log.error("Unauthorized access when deleting file with id: {}", fileId, e);
+            throw BOAccessDenied.generic();
+        }
     }
 
     @PreAuthorize("hasRole('OPERATOR')")
@@ -313,6 +323,10 @@ public class BOTenantController {
 
     private static String redirectToTenantPage(Tenant tenant) {
         return REDIRECT_BO_COLOCATION + tenant.getApartmentSharing().getId() + "#tenant" + tenant.getId();
+    }
+
+    private static String redirectToTenantPage(Long apartmentSharingId, Long tenantId) {
+        return REDIRECT_BO_COLOCATION + apartmentSharingId + "#tenant" + tenantId;
     }
 
     private List<ItemDetail> getItemDetailForSubcategoryOfDocument(DocumentCategory documentCategory, DocumentSubCategory documentSubCategory, String documentUserType) {

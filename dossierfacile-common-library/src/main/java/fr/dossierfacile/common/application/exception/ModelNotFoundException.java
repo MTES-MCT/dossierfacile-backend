@@ -1,4 +1,4 @@
-package fr.dossierfacile.api.front.application.exception;
+package fr.dossierfacile.common.application.exception;
 
 public class ModelNotFoundException extends RuntimeException {
     public ModelNotFoundException(Class<?> clazz, Object id) {

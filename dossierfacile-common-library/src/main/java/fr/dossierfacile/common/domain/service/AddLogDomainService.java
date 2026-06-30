@@ -3,8 +3,8 @@ package fr.dossierfacile.common.domain.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.dossierfacile.common.domain.model.document.Document;
+import fr.dossierfacile.common.domain.model.operator.Operator;
 import fr.dossierfacile.common.domain.model.tenant.Tenant;
-import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.TenantLog;
 import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.infrastructure.entity.FileEntity;
@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -26,7 +27,7 @@ public class AddLogDomainService {
     private final TenantLogRepository repository;
     private final ObjectMapper objectMapper;
 
-    public void addDocumentDeletedLog(Document document, Tenant editor) {
+    public void addDocumentDeletedLog(Document document, Tenant editor, Optional<Operator> operator) {
         DocumentLogDetails details = DocumentLogDetails.builder()
                 .documentCategory(document.getDocumentCategory())
                 .documentSubCategory(document.getDocumentSubCategory())
@@ -35,23 +36,27 @@ public class AddLogDomainService {
                 .guarantorId(document.getGuarantorId())
                 .build();
 
-        TenantLog logEntity = TenantLog.builder()
+        var builder = TenantLog.builder()
                 .logType(LogType.DOCUMENT_DELETED)
                 .tenantId(editor.getId())
                 .creationDateTime(LocalDateTime.now(ZoneId.systemDefault()))
-                .logDetails(writeAsObjectNode(details))
-                .build();
-        repository.save(logEntity);
+                .logDetails(writeAsObjectNode(details));
+
+        operator.ifPresent(o -> builder.operatorId(o.getId()));
+
+        repository.save(builder.build());
     }
 
-    public void addFileDeletedLog(FileEntity file, Tenant editor) {
-        TenantLog logEntity = TenantLog.builder()
+    public void addFileDeletedLog(FileEntity file, Tenant editor, Optional<Operator> operator) {
+        var builder = TenantLog.builder()
                 .logType(LogType.FILE_DELETED)
                 .tenantId(editor.getId())
                 .creationDateTime(LocalDateTime.now(ZoneId.systemDefault()))
-                .logDetails(writeAsObjectNode(FileLogDetails.from(file)))
-                .build();
-        repository.save(logEntity);
+                .logDetails(writeAsObjectNode(FileLogDetails.from(file)));
+
+        operator.ifPresent(o -> builder.operatorId(o.getId()));
+
+        repository.save(builder.build());
     }
 
     private ObjectNode writeAsObjectNode(Object object) {

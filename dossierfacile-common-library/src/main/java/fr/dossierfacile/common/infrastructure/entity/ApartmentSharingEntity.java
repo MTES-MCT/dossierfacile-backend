@@ -1,7 +1,10 @@
 package fr.dossierfacile.common.infrastructure.entity;
 
+import fr.dossierfacile.common.entity.StorageFile;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.FileStatus;
+import fr.dossierfacile.common.enums.FileStorageStatus;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -13,6 +16,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.PreRemove;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -49,14 +54,22 @@ public class ApartmentSharingEntity implements Serializable {
     @Enumerated(EnumType.STRING)
     private ApplicationType applicationType;
 
-    @Column(name = "pdf_dossier_file_id")
-    private Long pdfDossierFileId;
+    @OneToOne(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE})
+    @JoinColumn(name = "pdf_dossier_file_id")
+    private StorageFile pdfDossierFile;
 
     @Enumerated(EnumType.STRING)
     private FileStatus dossierPdfDocumentStatus;
 
     @LastModifiedDate
     private LocalDateTime lastUpdateDate;
+
+    @PreRemove
+    void deleteCascade() {
+        if (pdfDossierFile != null) {
+            pdfDossierFile.setStatus(FileStorageStatus.TO_DELETE);
+        }
+    }
 
     // --- Relations par ID uniquement (ElementCollections) ---
 
