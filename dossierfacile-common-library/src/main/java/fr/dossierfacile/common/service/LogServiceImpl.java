@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.dossierfacile.common.entity.Document;
+import fr.dossierfacile.common.entity.File;
 import fr.dossierfacile.common.entity.Owner;
 import fr.dossierfacile.common.entity.OwnerLog;
 import fr.dossierfacile.common.entity.Tenant;
@@ -14,9 +15,9 @@ import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.enums.OwnerLogType;
 import fr.dossierfacile.common.mapper.log.DeletedOwnerMapper;
 import fr.dossierfacile.common.model.log.ApplicationTypeChange;
-import fr.dossierfacile.common.model.log.EditedDocument;
+import fr.dossierfacile.common.model.log.DocumentLogDetails;
 import fr.dossierfacile.common.model.log.EditedStep;
-import fr.dossierfacile.common.model.log.EditionType;
+import fr.dossierfacile.common.model.log.FileLogDetails;
 import fr.dossierfacile.common.repository.OwnerLogCommonRepository;
 import fr.dossierfacile.common.repository.TenantLogRepository;
 import fr.dossierfacile.common.service.interfaces.LogService;
@@ -83,12 +84,41 @@ public class LogServiceImpl implements LogService {
     }
 
     @Override
-    public void saveDocumentEditedLog(Document document, Tenant editor, EditionType editionType) {
+    public void saveDocumentAddedLog(Document document, Tenant editor) {
+        saveDocumentLog(LogType.DOCUMENT_ADDED, document, editor);
+    }
+
+    @Override
+    public void saveDocumentDeletedLog(Document document, Tenant editor) {
+        saveDocumentLog(LogType.DOCUMENT_DELETED, document, editor);
+    }
+
+    @Override
+    public void saveFileAddedLog(File file, Tenant editor) {
+        saveFileLog(LogType.FILE_ADDED, file, editor);
+    }
+
+    @Override
+    public void saveFileDeletedLog(File file, Tenant editor) {
+        saveFileLog(LogType.FILE_DELETED, file, editor);
+    }
+
+    private void saveDocumentLog(LogType logType, Document document, Tenant editor) {
         TenantLog log = TenantLog.builder()
-                .logType(LogType.ACCOUNT_EDITED)
+                .logType(logType)
                 .tenantId(editor.getId())
                 .creationDateTime(LocalDateTime.now())
-                .logDetails(writeAsObjectNode(EditedDocument.from(document, editionType)))
+                .logDetails(writeAsObjectNode(DocumentLogDetails.from(document)))
+                .build();
+        saveLog(log);
+    }
+
+    private void saveFileLog(LogType logType, File file, Tenant editor) {
+        TenantLog log = TenantLog.builder()
+                .logType(logType)
+                .tenantId(editor.getId())
+                .creationDateTime(LocalDateTime.now())
+                .logDetails(writeAsObjectNode(FileLogDetails.from(file)))
                 .build();
         saveLog(log);
     }

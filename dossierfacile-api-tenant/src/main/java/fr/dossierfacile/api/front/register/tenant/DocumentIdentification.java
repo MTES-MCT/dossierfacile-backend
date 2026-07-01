@@ -1,6 +1,7 @@
 package fr.dossierfacile.api.front.register.tenant;
 
 import fr.dossierfacile.api.front.register.AbstractDocumentSaveStep;
+import fr.dossierfacile.api.front.register.DocumentSaveResult;
 import fr.dossierfacile.api.front.register.SaveStep;
 import fr.dossierfacile.api.front.register.form.tenant.DocumentIdentificationForm;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
@@ -34,13 +35,14 @@ public class DocumentIdentification extends AbstractDocumentSaveStep<DocumentIde
     private ApartmentSharingService apartmentSharingService;
 
 
-    protected Document saveDocument(Tenant tenant, DocumentIdentificationForm documentIdentificationForm) {
+    protected DocumentSaveResult saveDocument(Tenant tenant, DocumentIdentificationForm documentIdentificationForm) {
         DocumentSubCategory documentSubCategory = documentIdentificationForm.getTypeDocumentIdentification();
         Document document = documentRepository.findFirstByDocumentCategoryAndTenant(DocumentCategory.IDENTIFICATION, tenant)
                 .orElse(Document.builder()
                         .documentCategory(DocumentCategory.IDENTIFICATION)
                         .tenant(tenant)
                         .build());
+        boolean created = document.getId() == null;
         document.setDocumentStatus(DocumentStatus.TO_PROCESS);
         document.setDocumentDeniedReasons(null);
         document.setDocumentSubCategory(documentSubCategory);
@@ -52,7 +54,7 @@ public class DocumentIdentification extends AbstractDocumentSaveStep<DocumentIde
         tenantStatusService.updateTenantStatus(tenant);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         tenantRepository.save(tenant);
-        return document;
+        return new DocumentSaveResult(document, created);
     }
 
 }

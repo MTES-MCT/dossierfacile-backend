@@ -171,9 +171,11 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
 
     List<Tenant> findAllByEnabledIsFalseAndCreationDateTimeIsBetween(LocalDateTime initDate, LocalDateTime endDate);
 
-    @Query("from Tenant t " +
+    @Query("select distinct t from Tenant t " +
             "join TenantLog l on t.id = l.tenantId " +
-            "where t.honorDeclaration = false and l.logType = 'ACCOUNT_EDITED' and l.creationDateTime between :initDate and :endDate")
+            "where t.honorDeclaration = false " +
+            "and l.logType in ('ACCOUNT_EDITED', 'DOCUMENT_ADDED', 'DOCUMENT_DELETED', 'FILE_ADDED', 'FILE_DELETED') " +
+            "and l.creationDateTime between :initDate and :endDate")
     List<Tenant> findAllByHonorDeclarationIsFalseAndCompletionDateTimeIsBetween(@Param("initDate") LocalDateTime initDate, @Param("endDate") LocalDateTime endDate);
 
     @Query(

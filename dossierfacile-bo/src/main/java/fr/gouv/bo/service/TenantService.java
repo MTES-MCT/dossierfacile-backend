@@ -183,8 +183,12 @@ public class TenantService {
 
     @Transactional
     public void validateTenantFile(UserPrincipal principal, Long tenantId) {
+        validateTenantFile(tenantId, userService.findUserByEmail(principal.getEmail()));
+    }
+
+    @Transactional
+    public void validateTenantFile(Long tenantId, BOUser operator) {
         Tenant tenant = find(tenantId);
-        BOUser operator = userService.findUserByEmail(principal.getEmail());
 
         validateTenantDocuments(tenant);
         validateTenantGuarantors(tenant);
@@ -192,12 +196,40 @@ public class TenantService {
     }
 
     @Transactional
-    public void validateTenantForTesting(Long tenantId) {
+    public void declineTenantForTesting(Long tenantId, BOUser operator, String messageBody, List<DocumentCategory> categories) {
         Tenant tenant = find(tenantId);
 
-        validateTenantDocuments(tenant);
-        validateTenantGuarantors(tenant);
-        changeTenantStatusToValidatedForTesting(tenant);
+        declineTenantDocuments(tenant, categories);
+        declineTenantGuarantorsDocuments(tenant, categories);
+        Message message = messageService.create(
+                MessageDTO.builder().message(messageBody).emailHtml(messageBody).build(),
+                tenant, false, true);
+        changeTenantStatusToDeclined(tenant, operator, message, ProcessedDocuments.NONE);
+    }
+
+    // categories empty means decline all documents
+    private void declineTenantDocuments(Tenant tenant, List<DocumentCategory> categories) {
+        Optional.ofNullable(tenant.getDocuments())
+                .orElse(new ArrayList<>())
+                .stream()
+                .filter(document -> categories.isEmpty() || categories.contains(document.getDocumentCategory()))
+                .forEach(document -> {
+                    document.setDocumentStatus(DocumentStatus.DECLINED);
+                    documentRepository.save(document);
+                });
+    }
+
+    private void declineTenantGuarantorsDocuments(Tenant tenant, List<DocumentCategory> categories) {
+        Optional.ofNullable(tenant.getGuarantors())
+                .orElse(new ArrayList<>())
+                .forEach(guarantor -> Optional.ofNullable(guarantor.getDocuments())
+                        .orElse(new ArrayList<>())
+                        .stream()
+                        .filter(document -> categories.isEmpty() || categories.contains(document.getDocumentCategory()))
+                        .forEach(document -> {
+                            document.setDocumentStatus(DocumentStatus.DECLINED);
+                            documentRepository.save(document);
+                        }));
     }
 
     private void validateTenantDocuments(Tenant tenant) {
@@ -225,6 +257,10 @@ public class TenantService {
     public Tenant findTenantByEmail(String email) {
         return tenantRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new NotFoundException("Tenant not found with email: " + email));
+    }
+
+    public Optional<Tenant> findTenantByEmailOptional(String email) {
+        return tenantRepository.findByEmailIgnoreCase(email);
     }
 
     private boolean updateFileStatus(CustomMessage customMessage) {
@@ -751,13 +787,6 @@ public class TenantService {
         operatorLogRepository.save(new OperatorLog(tenant, operator, tenant.getStatus(), ActionOperatorType.STOP_PROCESS, processedDocuments.count(), processedDocuments.timeSpent()));
     }
 
-    private void changeTenantStatusToValidatedForTesting(Tenant tenant) {
-        tenant.setStatus(TenantFileStatus.VALIDATED);
-        tenantRepository.save(tenant);
-        messageService.markReadAdmin(tenant);
-    }
-
-
     private void changeTenantStatusToDeclined(Tenant tenant, User operator, Message message, ProcessedDocuments processedDocuments) {
         tenant.setStatus(TenantFileStatus.DECLINED);
         tenantRepository.save(tenant);
@@ -966,6 +995,8 @@ public class TenantService {
             throw new NotFoundException("Document for file " + fileId + " not found");
         }
         Tenant tenant = document.getGuarantor() == null ? document.getTenant() : document.getGuarantor().getTenant();
+
+        tenantLogService.addDeleteFileLog(tenant.getId(), operator.getId(), file);
 
         document.getFiles().remove(file);
         file.setDocument(null);

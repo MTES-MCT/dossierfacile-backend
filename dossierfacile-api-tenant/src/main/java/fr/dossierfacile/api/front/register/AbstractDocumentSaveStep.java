@@ -11,7 +11,6 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
-import fr.dossierfacile.common.model.log.EditionType;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.model.ValidatedFile;
 import fr.dossierfacile.common.service.FileUploadPreprocessor;
@@ -57,8 +56,12 @@ public abstract class AbstractDocumentSaveStep<T extends DocumentForm> implement
             partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.RETURNED_ACCOUNT);
         }
 
-        Document document = saveDocument(tenant, documentForm);
-        logService.saveDocumentEditedLog(document, tenant, EditionType.ADD);
+
+        DocumentSaveResult result = saveDocument(tenant, documentForm);
+        Document document = result.document();
+        if (result.created()) {
+            logService.saveDocumentAddedLog(document, tenant);
+        }
         documentService.markDocumentAsEdited(document);
         producer.sendDocumentForPdfGeneration(document);
 
@@ -66,7 +69,7 @@ public abstract class AbstractDocumentSaveStep<T extends DocumentForm> implement
                 (!clientAuthenticationFacade.isClient()) ? null : clientAuthenticationFacade.getClient());
     }
 
-    protected abstract Document saveDocument(Tenant tenant, T documentForm);
+    protected abstract DocumentSaveResult saveDocument(Tenant tenant, T documentForm);
 
     protected final void saveFiles(DocumentForm documentForm, Document document) {
         List<ValidatedFile> validatedFiles;

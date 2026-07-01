@@ -6,10 +6,12 @@ import fr.dossierfacile.common.model.document_ia.GenericProperty;
 import fr.dossierfacile.common.model.document_ia.ResultModel;
 import fr.dossierfacile.document.analysis.rule.validator.document_ia.mapper.DocumentIAMergerMapper;
 import fr.dossierfacile.document.analysis.rule.validator.mapper.model.TestModel;
+import fr.dossierfacile.document.analysis.rule.validator.property_tax.document_ia_model.PropertyTaxModel;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -74,12 +76,12 @@ public class DocumentIASpecificMapperTest {
 
             assertThat(testModel).isNotNull().isPresent();
             assertThat(testModel.get().getStringValue()).isEqualTo("1111111111");
-            assertThat(testModel.get().getDateValue()).isEqualTo(LocalDate.of(2026, 3, 2));
+            assertThat(testModel.get().getDateValue()).isEqualTo(LocalDate.of(2026, Month.MARCH, 2));
             assertThat(testModel.get().getList()).hasSize(3).containsExactly("value1", "value2", "value3");
 
             assertThat(testModel.get().getTestInnerModel()).isNotNull();
             assertThat(testModel.get().getTestInnerModel().getInnerString()).isEqualTo("inner_model_inner_value");
-            assertThat(testModel.get().getTestInnerModel().getInnerDate()).isEqualTo(LocalDate.of(2026, 6, 4));
+            assertThat(testModel.get().getTestInnerModel().getInnerDate()).isEqualTo(LocalDate.of(2026, Month.JUNE, 4));
             assertThat(testModel.get().getTestInnerModel().getInnerList())
                     .hasSize(3)
                     .containsExactly("inner_model_value4", "inner_model_value5", "inner_model_value6");
@@ -91,6 +93,36 @@ public class DocumentIASpecificMapperTest {
         }
 
 
+    }
+
+    @Nested
+    class PropertyTaxModelMapperTest {
+
+        private DocumentIAFileAnalysis analysisWithExtraction(List<GenericProperty> properties) {
+            ResultModel resultModel = ResultModel.builder()
+                    .extraction(ExtractionModel.builder().type("taxe_fonciere").properties(properties).build())
+                    .barcodes(List.of())
+                    .build();
+            return DocumentIAFileAnalysis.builder().result(resultModel).build();
+        }
+
+        @Test
+        void should_map_owner_identity_and_year_from_extraction() {
+            var mapper = new DocumentIAMergerMapper();
+            var analysis = List.of(analysisWithExtraction(List.of(
+                    GenericProperty.builder().name("annee_imposition").value("2025").type("string").build(),
+                    GenericProperty.builder().name("identites_proprietaires").value(List.of("DUPONT ANGELIQUE", "DUPONT MARIE")).type("list").build(),
+                    GenericProperty.builder().name("identite_destinataire").value(List.of("DUPONT ANGELIQUE")).type("list").build(),
+                    GenericProperty.builder().name("adresse_bien_impose").value("10 RUE DE LA PAIX").type("string").build()
+            )));
+
+            var model = mapper.map(analysis, PropertyTaxModel.class);
+
+            assertThat(model).isPresent();
+            assertThat(model.get().anneeImposition).isEqualTo("2025");
+            assertThat(model.get().identitesProprietaires).containsExactly("DUPONT ANGELIQUE", "DUPONT MARIE");
+            assertThat(model.get().identiteDestinataire).containsExactly("DUPONT ANGELIQUE");
+        }
     }
 
 }

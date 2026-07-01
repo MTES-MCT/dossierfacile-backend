@@ -19,7 +19,6 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentStatus;
-import fr.dossierfacile.common.model.log.EditionType;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.repository.DocumentAnalysisReportRepository;
 import fr.dossierfacile.common.repository.DocumentIAFileAnalysisRepository;
@@ -137,7 +136,7 @@ public class DocumentServiceImpl implements DocumentService {
         delete(document);
         tenantOfDocument.lastUpdateDateProfile(LocalDateTime.now(), null);
         tenantRepository.save(tenantOfDocument);
-        logService.saveDocumentEditedLog(document, tenantOfDocument, EditionType.DELETE);
+        logService.saveDocumentDeletedLog(document, tenantOfDocument);
     }
 
     @Override
@@ -170,8 +169,9 @@ public class DocumentServiceImpl implements DocumentService {
         File file = documentHelperService.addFile(multipartFile, detectedMimeType, document);
         markDocumentAsEdited(document);
         producer.processFile(document.getId(), file.getId());
-        
+
         Tenant tenant = resolveDocumentTenant(document);
+        logService.saveFileAddedLog(file, tenant);
         documentIAService.sendForAnalysis(multipartFile, file, document, tenant.getId());
     }
 
