@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+
+    <!--
+      Deduplicate documents so that a tenant/guarantor keeps a single document per category
+      for the four categories that must be unique (TAX, RESIDENCY, IDENTIFICATION, PROFESSIONAL).
+
+      Survivor selection: we keep the document with the most severe status first
+      (DECLINED > TO_PROCESS > VALIDATED), then the highest id. Keeping the most severe status
+      guarantees the tenant's global status (Tenant.computeStatus) is unchanged by the cleanup:
+      a previously declined dossier stays declined, nothing is silently re-opened or auto-validated.
+
+      Storage cleanup: the raw SQL DELETE bypasses the JPA @PreRemove hooks (Document and File),
+      so the underlying StorageFile objects would never be flagged for deletion and would leak in
+      object storage. We therefore mark them TO_DELETE in the SAME transaction as the DELETE
+      (watermark file of the document + storage_file and preview of each file), reproducing the
+      @PreRemove behaviour. DeleteFilesTask then purges them from object storage.
+    -->
+
+    <changeSet id="20260616170500-01" author="nsagon">
+        <sql>
+            -- Create temp table with duplicate tenant document IDs to delete
+            CREATE TEMP TABLE temp_to_delete_tenant AS
+            SELECT id
+            FROM (
+                SELECT id,
+                       ROW_NUMBER() OVER (
+                           PARTITION BY tenant_id, document_category
+                           ORDER BY CASE document_status WHEN 'DECLINED' THEN 3 WHEN 'TO_PROCESS' THEN 2 ELSE 1 END DESC,
+                                    id DESC
+                       ) as rn
+                FROM public.document
+                WHERE tenant_id IS NOT NULL
+                  AND document_category IN ('TAX', 'RESIDENCY', 'IDENTIFICATION', 'PROFESSIONAL')
+            ) t
+            WHERE rn > 1;
+
+            -- Flag storage files of the soon-to-be-deleted tenant documents for deletion
+            UPDATE public.storage_file
+            SET status = 'TO_DELETE'
+            WHERE id IN (
+                SELECT watermark_file_id FROM public.document
+                    WHERE id IN (SELECT id FROM temp_to_delete_tenant) AND watermark_file_id IS NOT NULL
+                UNION
+                SELECT storage_file_id FROM public.file
+                    WHERE document_id IN (SELECT id FROM temp_to_delete_tenant) AND storage_file_id IS NOT NULL
+                UNION
+                SELECT preview_file_id FROM public.file
+                    WHERE document_id IN (SELECT id FROM temp_to_delete_tenant) AND preview_file_id IS NOT NULL
+            );
+
+            -- Delete duplicate tenant documents
+            DELETE FROM public.document
+            WHERE id IN (SELECT id FROM temp_to_delete_tenant);
+
+            DROP TABLE temp_to_delete_tenant;
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260616170500-02" author="nsagon">
+        <sql>
+            -- Create temp table with duplicate guarantor document IDs to delete
+            CREATE TEMP TABLE temp_to_delete_guarantor AS
+            SELECT id
+            FROM (
+                SELECT id,
+                       ROW_NUMBER() OVER (
+                           PARTITION BY guarantor_id, document_category
+                           ORDER BY CASE document_status WHEN 'DECLINED' THEN 3 WHEN 'TO_PROCESS' THEN 2 ELSE 1 END DESC,
+                                    id DESC
+                       ) as rn
+                FROM public.document
+                WHERE guarantor_id IS NOT NULL
+                  AND document_category IN ('TAX', 'RESIDENCY', 'IDENTIFICATION', 'PROFESSIONAL')
+            ) t
+            WHERE rn > 1;
+
+            -- Flag storage files of the soon-to-be-deleted guarantor documents for deletion
+            UPDATE public.storage_file
+            SET status = 'TO_DELETE'
+            WHERE id IN (
+                SELECT watermark_file_id FROM public.document
+                    WHERE id IN (SELECT id FROM temp_to_delete_guarantor) AND watermark_file_id IS NOT NULL
+                UNION
+                SELECT storage_file_id FROM public.file
+                    WHERE document_id IN (SELECT id FROM temp_to_delete_guarantor) AND storage_file_id IS NOT NULL
+                UNION
+                SELECT preview_file_id FROM public.file
+                    WHERE document_id IN (SELECT id FROM temp_to_delete_guarantor) AND preview_file_id IS NOT NULL
+            );
+
+            -- Delete duplicate guarantor documents
+            DELETE FROM public.document
+            WHERE id IN (SELECT id FROM temp_to_delete_guarantor);
+
+            DROP TABLE temp_to_delete_guarantor;
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260616170500-03" author="nsagon" runInTransaction="false">
+        <sql>
+            -- Create unique index concurrently for tenants
+            CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS uq_tenant_single_document_category
+            ON public.document (tenant_id, document_category)
+            WHERE tenant_id IS NOT NULL
+              AND document_category IN ('TAX', 'RESIDENCY', 'IDENTIFICATION', 'PROFESSIONAL');
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260616170500-04" author="nsagon" runInTransaction="false">
+        <sql>
+            -- Create unique index concurrently for guarantors
+            CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS uq_guarantor_single_document_category
+            ON public.document (guarantor_id, document_category)
+            WHERE guarantor_id IS NOT NULL
+              AND document_category IN ('TAX', 'RESIDENCY', 'IDENTIFICATION', 'PROFESSIONAL');
+        </sql>
+    </changeSet>
+</databaseChangeLog>
