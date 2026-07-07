@@ -2,6 +2,8 @@ package fr.dossierfacile.logging;
 
 import ch.qos.logback.core.status.Status;
 import ch.qos.logback.core.status.StatusListener;
+import lombok.extern.slf4j.Slf4j;
+
 import java.security.KeyStore;
 import java.security.Provider;
 import java.security.Security;
@@ -36,19 +38,26 @@ import java.security.cert.X509Certificate;
  * 3. Logback utilise ensuite cet algorithme dans sa configuration SSL pour obtenir un TrustManager
  *    dont les méthodes de validation de certificat (checkServerTrusted) sont vides (permissives).
  */
+@Slf4j
 public class TrustAllStatusListener implements StatusListener {
     public TrustAllStatusListener() {
         try {
             if (Security.getProvider("TrustAllProvider") == null) {
                 Security.addProvider(new TrustAllProvider());
             }
-        } catch (Throwable t) {
-            System.err.println("Failed to register TrustAllProvider in StatusListener: " + t.getMessage());
+        } catch (Exception e) {
+            log.error("Failed to register TrustAllProvider in StatusListener: ", e);
         }
     }
 
     @Override
-    public void addStatusEvent(Status status) {}
+    public void addStatusEvent(Status status) {
+        // Cette méthode est laissée vide intentionnellement.
+        // Ce StatusListener sert uniquement de déclencheur (via son constructeur) pour
+        // enregistrer le Security Provider "TrustAllProvider" au tout début de l'analyse
+        // de la configuration Logback. Nous n'avons pas besoin de réagir ou de traiter
+        // les événements d'état de Logback eux-mêmes.
+    }
 
     public static class TrustAllProvider extends Provider {
         public TrustAllProvider() {
@@ -59,10 +68,16 @@ public class TrustAllStatusListener implements StatusListener {
 
     public static class TrustAllManagerFactory extends TrustManagerFactorySpi {
         @Override
-        protected void engineInit(KeyStore keyStore) {}
+        protected void engineInit(KeyStore keyStore) {
+            // Pas d'initialisation nécessaire depuis un KeyStore
+            // car notre TrustManager accepte inconditionnellement tous les certificats.
+        }
 
         @Override
-        protected void engineInit(ManagerFactoryParameters managerFactoryParameters) {}
+        protected void engineInit(ManagerFactoryParameters managerFactoryParameters) {
+            // Pas d'initialisation nécessaire depuis des paramètres
+            // car notre TrustManager n'a besoin d'aucune règle de validation.
+        }
 
         @Override
         protected TrustManager[] engineGetTrustManagers() {
@@ -74,10 +89,16 @@ public class TrustAllStatusListener implements StatusListener {
                     }
 
                     @Override
-                    public void checkClientTrusted(X509Certificate[] certs, String authType) {}
+                    public void checkClientTrusted(X509Certificate[] certs, String authType) {
+                        // Méthode vide : aucun contrôle n'est effectué sur le certificat client
+                        // pour autoriser toutes les connexions entrantes.
+                    }
 
                     @Override
-                    public void checkServerTrusted(X509Certificate[] certs, String authType) {}
+                    public void checkServerTrusted(X509Certificate[] certs, String authType) {
+                        // Méthode vide : aucun contrôle n'est effectué sur le certificat serveur,
+                        // acceptant ainsi les certificats autosignés ou expirés.
+                    }
                 }
             };
         }
