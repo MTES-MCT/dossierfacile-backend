@@ -23,7 +23,7 @@ import java.util.List;
 @CheckCoTenantCount
 @CheckTenantTypeAcceptAccess
 @DeniedJoinTenant
-@CoTenantsEmailRequiredForGroup
+@CoTenantsEmailRequired
 @Builder
 public class ApplicationFormV2 implements FormWithTenantId {
 

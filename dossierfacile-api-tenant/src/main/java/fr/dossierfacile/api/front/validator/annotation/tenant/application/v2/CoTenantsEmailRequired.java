@@ -1,6 +1,6 @@
 package fr.dossierfacile.api.front.validator.annotation.tenant.application.v2;
 
-import fr.dossierfacile.api.front.validator.tenant.application.CoTenantsEmailRequiredForGroupValidator;
+import fr.dossierfacile.api.front.validator.tenant.application.CoTenantsEmailRequiredValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
@@ -12,10 +12,10 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Constraint(
-        validatedBy = {CoTenantsEmailRequiredForGroupValidator.class}
+        validatedBy = {CoTenantsEmailRequiredValidator.class}
 )
-public @interface CoTenantsEmailRequiredForGroup {
-    String message() default "coTenant Should have email if group applicationType";
+public @interface CoTenantsEmailRequired {
+    String message() default "coTenant should have an email for a group or couple applicationType";
 
     Class<?>[] groups() default {};
 
