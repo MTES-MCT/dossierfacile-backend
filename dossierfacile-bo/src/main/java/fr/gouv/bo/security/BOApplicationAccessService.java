@@ -1,5 +1,6 @@
 package fr.gouv.bo.security;
 
+import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.File;
 
 public interface BOApplicationAccessService {
@@ -46,4 +47,12 @@ public interface BOApplicationAccessService {
      * Throws AccessDeniedException if the file/document/tenant chain is broken or operator is not assigned.
      */
     void checkFileAccess(UserPrincipal principal, File file);
+
+    /**
+     * Checks that the principal is authorised to access the dossier owning the given document.
+     * For OPERATOR: requires assignment to the resolved tenant in the configured window.
+     * For SUPPORT / MANAGER / ADMIN: always authorised.
+     * Throws AccessDeniedException if the document/tenant chain is broken or operator is not assigned.
+     */
+    void checkDocumentAccess(UserPrincipal principal, Document document);
 }

@@ -58,6 +58,54 @@ class FileControllerTest {
     }
 
     @Nested
+    class GetDocumentAsByteArray {
+
+        private static final String DOCUMENT_NAME = "watermarked-doc.pdf";
+
+        @Test
+        void whenDocumentDoesNotExist_returns404() {
+            MockHttpServletResponse response = new MockHttpServletResponse();
+            when(documentRepository.findByName(DOCUMENT_NAME)).thenReturn(Optional.empty());
+
+            controller.getDocumentAsByteArray(response, DOCUMENT_NAME, operatorPrincipal());
+
+            assertThat(response.getStatus()).isEqualTo(404);
+        }
+
+        @Test
+        void whenOperatorNotAssigned_throwsAccessDenied() {
+            MockHttpServletResponse response = new MockHttpServletResponse();
+            UserPrincipal principal = operatorPrincipal();
+            Document document = documentWithWatermark();
+            when(documentRepository.findByName(DOCUMENT_NAME)).thenReturn(Optional.of(document));
+            doThrow(BOAccessDenied.generic())
+                    .when(applicationAccessService)
+                    .checkDocumentAccess(principal, document);
+
+            assertThatThrownBy(() -> controller.getDocumentAsByteArray(response, DOCUMENT_NAME, principal))
+                    .isInstanceOf(AccessDeniedException.class)
+                    .hasMessage(BOAccessDenied.GENERIC_MESSAGE);
+        }
+
+        @Test
+        void whenOperatorAssigned_streamsWatermark() throws Exception {
+            MockHttpServletResponse response = new MockHttpServletResponse();
+            UserPrincipal principal = operatorPrincipal();
+            Document document = documentWithWatermark();
+            when(documentRepository.findByName(DOCUMENT_NAME)).thenReturn(Optional.of(document));
+            when(fileStorageService.download(document.getWatermarkFile()))
+                    .thenReturn(new ByteArrayInputStream("watermark".getBytes()));
+
+            controller.getDocumentAsByteArray(response, DOCUMENT_NAME, principal);
+
+            verify(applicationAccessService).checkDocumentAccess(principal, document);
+            assertThat(response.getStatus()).isEqualTo(200);
+            assertThat(response.getContentType()).isEqualTo("application/pdf");
+            assertThat(response.getContentAsByteArray()).isEqualTo("watermark".getBytes());
+        }
+    }
+
+    @Nested
     class GetPreviewFileAsByteArray {
 
         @Test
@@ -130,6 +178,14 @@ class FileControllerTest {
         tenant.setId(TENANT_ID);
         Document document = Document.builder().id(1L).tenant(tenant).build();
         return File.builder().id(FILE_ID).document(document).build();
+    }
+
+    private Document documentWithWatermark() {
+        Tenant tenant = new Tenant();
+        tenant.setId(TENANT_ID);
+        StorageFile watermark = new StorageFile();
+        watermark.setContentType("application/pdf");
+        return Document.builder().id(1L).tenant(tenant).name("watermarked-doc.pdf").watermarkFile(watermark).build();
     }
 
     private UserPrincipal operatorPrincipal() {
