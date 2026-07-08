@@ -28,4 +28,6 @@ public interface MailService {
     void sendEmailToSupport(ContactForm form);
 
     void sendFileByMail(String url, String email, String message, String tenantName, String fullName, String tenantEmail);
+
+    void sendEmailToGuarantor(String guarantorEmail, String guarantorName, Tenant creator);
 }

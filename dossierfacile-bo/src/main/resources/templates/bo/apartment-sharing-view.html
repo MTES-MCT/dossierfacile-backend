@@ -406,6 +406,7 @@
                                     <td>Prénom</td>
                                     <td>Nom</td>
                                     <td>Nom d'usage</td>
+                                    <td>Email</td>
                                     <td>Nom de la personne morale</td>
                                 </tr>
                                 <tr th:each="guarantor : ${tenant.getGuarantors()}">
@@ -413,6 +414,7 @@
                                     <td th:text="${guarantor.getFirstName()}"></td>
                                     <td th:text="${guarantor.getLastName()}"></td>
                                     <td th:text="${guarantor.getPreferredName()}"></td>
+                                    <td th:text="${guarantor.getEmail()}"></td>
                                     <td th:text="${guarantor.getLegalPersonName()}"></td>
                                 </tr>
                             </table>

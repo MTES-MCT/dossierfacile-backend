@@ -200,4 +200,5 @@
     <include file="db/migration/20260604000000-rework-materialized-view.xml"/>
     <include file="db/migration/20260616170500-add-unique-constraint-document-category.xml"/>
     <include file="db/migration/202606180000-add-document-ia-property-tax-analysis-flag.xml"/>
+    <include file="db/migration/202607070000-add-email-to-guarantor.xml"/>
 </databaseChangeLog>
