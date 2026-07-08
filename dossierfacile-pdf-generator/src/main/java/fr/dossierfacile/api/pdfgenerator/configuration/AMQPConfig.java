@@ -47,6 +47,7 @@ public class AMQPConfig {
     Queue queueApartmentSharingQueueName() {
         return new Queue(apartmentSharingQueueName, true);
     }
+
     @Bean
     Queue queueWatermarkGenerator() {
         return new Queue(watermarkGenericQueueName, true);
@@ -56,6 +57,7 @@ public class AMQPConfig {
     Binding bindingQueueApartmentSharing(Queue queueApartmentSharingQueueName, TopicExchange exchangePdfGenerator) {
         return BindingBuilder.bind(queueApartmentSharingQueueName).to(exchangePdfGenerator).with(apartmentSharingRoutingKey);
     }
+
     @Bean
     Binding bindingQueueWatermark(Queue queueWatermarkGenerator, TopicExchange exchangePdfGenerator) {
         return BindingBuilder.bind(queueWatermarkGenerator).to(exchangePdfGenerator).with(watermarkGenericRoutingKey);
@@ -68,11 +70,11 @@ public class AMQPConfig {
         factory.setConnectionFactory(connectionFactory);
         factory.setMessageConverter(new Jackson2JsonMessageConverter());
 
-        Advice[] adviceChain = { RetryInterceptorBuilder.stateless()
+        Advice[] adviceChain = {RetryInterceptorBuilder.stateless()
                 .backOffOptions(1000, 5.0, 15000)
                 .maxAttempts(3)
-                .recoverer( (r,t) -> new RejectAndDontRequeueRecoverer())
-                .build() };
+                .recoverer((r, t) -> new RejectAndDontRequeueRecoverer())
+                .build()};
         factory.setAdviceChain(adviceChain);
         factory.setPrefetchCount(prefetch);
 
