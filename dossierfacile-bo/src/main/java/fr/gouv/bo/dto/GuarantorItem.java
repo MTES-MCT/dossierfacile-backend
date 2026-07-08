@@ -21,6 +21,7 @@ public class GuarantorItem {
     private String firstName;
     private String lastName;
     private String preferredName;
+    private String email;
     private String legalPersonName;
     @Builder.Default
     private List<MessageItem> messageItems = new ArrayList<>();

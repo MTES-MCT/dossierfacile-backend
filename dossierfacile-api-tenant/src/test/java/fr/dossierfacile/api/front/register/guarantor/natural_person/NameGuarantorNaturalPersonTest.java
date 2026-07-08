@@ -6,6 +6,7 @@ import fr.dossierfacile.api.front.repository.GuarantorRepository;
 import fr.dossierfacile.api.front.security.interfaces.ClientAuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
+import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Document;
@@ -20,6 +21,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,6 +57,8 @@ class NameGuarantorNaturalPersonTest {
     private ClientAuthenticationFacade clientAuthenticationFacade;
     @MockitoBean
     private DocumentIAService documentIAService;
+    @MockitoBean
+    private MailService mailService;
 
     @Autowired
     private NameGuarantorNaturalPerson nameGuarantorNaturalPerson;
@@ -80,6 +85,12 @@ class NameGuarantorNaturalPersonTest {
         form.setFirstName(first);
         form.setLastName(last);
         form.setPreferredName(preferred);
+        return form;
+    }
+
+    private NameGuarantorNaturalPersonForm form(Long guarantorId, String first, String last, String preferred, String email) {
+        NameGuarantorNaturalPersonForm form = form(guarantorId, first, last, preferred);
+        form.setEmail(email);
         return form;
     }
 
@@ -175,5 +186,46 @@ class NameGuarantorNaturalPersonTest {
         nameGuarantorNaturalPerson.saveStep(tenant, form(14L, "John", "Doe", "  Durand  "));
 
         assertThat(guarantor.getPreferredName()).isEqualTo("Durand");
+    }
+
+    @Test
+    void should_notify_guarantor_when_email_is_set() {
+        Guarantor guarantor = Guarantor.builder()
+                .id(15L)
+                .typeGuarantor(TypeGuarantor.NATURAL_PERSON)
+                .firstName("John")
+                .lastName("Doe")
+                .documents(new ArrayList<>())
+                .build();
+        Tenant tenant = buildTenantWithGuarantor(guarantor);
+
+        TransactionSynchronizationManager.initSynchronization();
+        try {
+            nameGuarantorNaturalPerson.saveStep(tenant, form(15L, "John", "Doe", "", "guarantor@dossierfacile.fr"));
+            // Simulate the transaction commit that triggers afterCommit callbacks
+            TransactionSynchronizationManager.getSynchronizations().forEach(TransactionSynchronization::afterCommit);
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
+
+        assertThat(guarantor.getEmail()).isEqualTo("guarantor@dossierfacile.fr");
+        verify(mailService, times(1)).sendEmailToGuarantor(eq("guarantor@dossierfacile.fr"), any(), eq(tenant));
+    }
+
+    @Test
+    void should_not_notify_guarantor_when_email_is_unchanged() {
+        Guarantor guarantor = Guarantor.builder()
+                .id(16L)
+                .typeGuarantor(TypeGuarantor.NATURAL_PERSON)
+                .firstName("John")
+                .lastName("Doe")
+                .email("guarantor@dossierfacile.fr")
+                .documents(new ArrayList<>())
+                .build();
+        Tenant tenant = buildTenantWithGuarantor(guarantor);
+
+        nameGuarantorNaturalPerson.saveStep(tenant, form(16L, "John", "Doe", "", "guarantor@dossierfacile.fr"));
+
+        verify(mailService, never()).sendEmailToGuarantor(any(), any(), any());
     }
 }

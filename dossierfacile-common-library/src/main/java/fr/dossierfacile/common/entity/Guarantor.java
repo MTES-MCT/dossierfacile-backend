@@ -52,6 +52,9 @@ public class Guarantor implements Person, Serializable {
     private String preferredName;
 
     @Column
+    private String email;
+
+    @Column
     @Enumerated(EnumType.STRING)
     private TypeGuarantor typeGuarantor;
 
@@ -75,6 +78,10 @@ public class Guarantor implements Person, Serializable {
 
     public void setPreferredName(String preferredName) {
         this.preferredName = StringUtils.trimToNull(preferredName);
+    }
+
+    public void setEmail(String email) {
+        this.email = StringUtils.trimToNull(email);
     }
 
     public void setLegalPersonName(String legalPersonName) {

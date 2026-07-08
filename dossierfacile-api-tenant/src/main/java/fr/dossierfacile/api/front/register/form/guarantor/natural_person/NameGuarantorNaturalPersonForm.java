@@ -2,6 +2,7 @@ package fr.dossierfacile.api.front.register.form.guarantor.natural_person;
 
 import fr.dossierfacile.api.front.register.form.guarantor.DocumentGuarantorFormAbstract;
 import fr.dossierfacile.common.enums.TypeGuarantor;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -21,6 +22,10 @@ public class NameGuarantorNaturalPersonForm extends DocumentGuarantorFormAbstrac
     private String lastName;
 
     private String preferredName;
+
+    @NotBlank
+    @Email
+    private String email;
 
     private TypeGuarantor typeGuarantor = TypeGuarantor.NATURAL_PERSON;
 }
