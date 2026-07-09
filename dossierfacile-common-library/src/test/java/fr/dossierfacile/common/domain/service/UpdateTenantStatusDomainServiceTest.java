@@ -44,9 +44,12 @@ class UpdateTenantStatusDomainServiceTest {
     @Mock
     private JpaGuarantorRepository jpaGuarantorRepository;
 
+    @Mock
+    private org.springframework.context.ApplicationEventPublisher eventPublisher;
+
     @BeforeEach
     void setUp() {
-        service = new UpdateTenantStatusDomainService(jpaTenantRepository, jpaDocumentRepository, jpaGuarantorRepository);
+        service = new UpdateTenantStatusDomainService(jpaTenantRepository, jpaDocumentRepository, jpaGuarantorRepository, eventPublisher);
     }
 
     @Nested

@@ -1,8 +1,10 @@
 package fr.dossierfacile.common.domain.service;
 
+import fr.dossierfacile.common.domain.event.TenantStatusChangedEvent;
 import fr.dossierfacile.common.domain.model.document.Document;
 import fr.dossierfacile.common.domain.model.guarantor.Guarantor;
 import fr.dossierfacile.common.domain.model.tenant.Tenant;
+import fr.dossierfacile.common.entity.User;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.TenantFileStatus;
@@ -26,6 +28,7 @@ public class UpdateTenantStatusDomainService {
     private final JpaTenantRepository jpaTenantRepository;
     private final JpaDocumentRepository jpaDocumentRepository;
     private final JpaGuarantorRepository jpaGuarantorRepository;
+    private final org.springframework.context.ApplicationEventPublisher eventPublisher;
 
     private final List<DocumentCategory> mandatoryCategoriesForTenantAndGuarantorMandatoryCategories = List.of(
             DocumentCategory.IDENTIFICATION,
@@ -36,11 +39,28 @@ public class UpdateTenantStatusDomainService {
     );
 
     public UpdateTenantStatusResult updateTenantStatus(Tenant tenant) {
+        return updateTenantStatus(tenant, null);
+    }
+
+    public UpdateTenantStatusResult updateTenantStatus(Tenant tenant, User operator) {
         var previousStatus = tenant.getStatus();
         TenantFileStatus newStatus = computeTenantStatus(tenant);
 
-        tenant.setStatus(newStatus);
-        jpaTenantRepository.save(tenant);
+        if (previousStatus != newStatus) {
+            tenant.setStatus(newStatus);
+            jpaTenantRepository.save(tenant);
+            
+            // Publish domain event
+            eventPublisher.publishEvent(new TenantStatusChangedEvent(
+                    tenant.getId(),
+                    previousStatus,
+                    newStatus,
+                    operator
+            ));
+        } else {
+            tenant.setStatus(newStatus);
+            jpaTenantRepository.save(tenant);
+        }
 
         return new UpdateTenantStatusResult(
                 previousStatus != newStatus,
