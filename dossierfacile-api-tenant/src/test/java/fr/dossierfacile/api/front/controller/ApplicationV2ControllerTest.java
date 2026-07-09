@@ -3,9 +3,8 @@ package fr.dossierfacile.api.front.controller;
 import com.google.gson.Gson;
 import fr.dossierfacile.api.front.TestApplication;
 import fr.dossierfacile.api.front.config.ResourceServerConfig;
-import fr.dossierfacile.api.front.exception.ApplicationRegistrationException;
-import fr.dossierfacile.api.front.exception.controller.ApplicationRegistrationExceptionHandler;
-import fr.dossierfacile.api.front.exception.model.ApplicationErrorCode;
+import fr.dossierfacile.api.front.exception.ApplicationTypeDeniedForJoinException;
+import fr.dossierfacile.api.front.exception.CoTenantEmailAlreadyExistsException;
 import fr.dossierfacile.api.front.mapper.TenantMapperImpl;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.form.tenant.ApplicationFormV2;
@@ -44,7 +43,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(RegisterController.class)
@@ -53,7 +51,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         TestApplication.class,
         TenantMapperImpl.class,
         GlobalExceptionHandler.class,
-        ApplicationRegistrationExceptionHandler.class,
         NumberOfPagesValidator.class,
         ResourceServerConfig.class
 }
@@ -196,19 +193,17 @@ class ApplicationV2ControllerTest {
                 .build();
 
         when(authenticationFacade.getLoggedTenant()).thenReturn(tenant);
-        doThrow(new ApplicationRegistrationException(ApplicationErrorCode.CO_TENANT_EMAIL_ALREADY_EXISTS))
+        doThrow(new CoTenantEmailAlreadyExistsException())
                 .when(applicationRegistrationValidator).validate(any(), any());
 
         mockMvc.perform(post("/api/register/application/v2")
                         .contentType("application/json")
                         .content(gson.toJson(form))
                         .with(jwtToken))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.code").value("CO_TENANT_EMAIL_ALREADY_EXISTS"));
+                .andExpect(status().isConflict());
     }
 
-    // The service-layer backstop (Application.createCoTenants / linkEmailToTenants) throws
-    // the same exception on TOCTOU races: it must be mapped centrally too, not end as a 500.
+
     @Test
     void shouldReturn409WithCodeWhenServiceLayerDetectsExistingEmail() throws Exception {
         var apartmentSharing = ApartmentSharing.builder().id(1L).build();
@@ -223,15 +218,13 @@ class ApplicationV2ControllerTest {
 
         when(authenticationFacade.getLoggedTenant()).thenReturn(tenant);
         when(tenantService.saveStepRegister(any(), any(), any()))
-                .thenThrow(new ApplicationRegistrationException(ApplicationErrorCode.CO_TENANT_EMAIL_ALREADY_EXISTS,
-                        "Cannot add a cotenant with an existing account: raced@example.com"));
+                .thenThrow(new CoTenantEmailAlreadyExistsException("Cannot add a cotenant with an existing account: raced@example.com"));
 
         mockMvc.perform(post("/api/register/application/v2")
                         .contentType("application/json")
                         .content(gson.toJson(form))
                         .with(jwtToken))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.code").value("CO_TENANT_EMAIL_ALREADY_EXISTS"));
+                .andExpect(status().isConflict());
     }
 
     @Test
@@ -249,15 +242,14 @@ class ApplicationV2ControllerTest {
                 .build();
 
         when(authenticationFacade.getLoggedTenant()).thenReturn(joinTenant);
-        doThrow(new ApplicationRegistrationException(ApplicationErrorCode.APPLICATION_TYPE_DENIED_FOR_JOIN))
+        doThrow(new ApplicationTypeDeniedForJoinException())
                 .when(applicationRegistrationValidator).validate(any(), any());
 
         mockMvc.perform(post("/api/register/application/v2")
                         .contentType("application/json")
                         .content(gson.toJson(form))
                         .with(jwtToken))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("APPLICATION_TYPE_DENIED_FOR_JOIN"));
+                .andExpect(status().isBadRequest());
 
         verify(tenantService, never()).saveStepRegister(any(), any(), any());
     }

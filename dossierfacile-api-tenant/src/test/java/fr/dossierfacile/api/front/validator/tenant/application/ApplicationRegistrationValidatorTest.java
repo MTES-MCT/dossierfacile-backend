@@ -1,7 +1,7 @@
 package fr.dossierfacile.api.front.validator.tenant.application;
 
-import fr.dossierfacile.api.front.exception.ApplicationRegistrationException;
-import fr.dossierfacile.api.front.exception.model.ApplicationErrorCode;
+import fr.dossierfacile.api.front.exception.ApplicationTypeDeniedForJoinException;
+import fr.dossierfacile.api.front.exception.CoTenantEmailAlreadyExistsException;
 import fr.dossierfacile.api.front.register.form.tenant.ApplicationFormV2;
 import fr.dossierfacile.api.front.register.form.tenant.CoTenantForm;
 import fr.dossierfacile.common.entity.ApartmentSharing;
@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -36,10 +35,8 @@ class ApplicationRegistrationValidatorTest {
     @InjectMocks
     private ApplicationRegistrationValidator validator;
 
-    private void assertRejectedWith(Tenant tenant, ApplicationFormV2 form, ApplicationErrorCode expectedCode) {
-        assertThatThrownBy(() -> validator.validate(tenant, form))
-                .isInstanceOfSatisfying(ApplicationRegistrationException.class,
-                        e -> assertThat(e.getCode()).isEqualTo(expectedCode));
+    private void assertRejectedWith(Tenant tenant, ApplicationFormV2 form, Class<? extends RuntimeException> expectedException) {
+        assertThatThrownBy(() -> validator.validate(tenant, form)).isInstanceOf(expectedException);
     }
 
     private void assertAccepted(Tenant tenant, ApplicationFormV2 form) {
@@ -80,7 +77,7 @@ class ApplicationRegistrationValidatorTest {
                 .apartmentSharing(ApartmentSharing.builder().build())
                 .build();
 
-        assertRejectedWith(tenant, coupleForm("spouse@example.com"), ApplicationErrorCode.APPLICATION_TYPE_DENIED_FOR_JOIN);
+        assertRejectedWith(tenant, coupleForm("spouse@example.com"), ApplicationTypeDeniedForJoinException.class);
         verify(tenantRepository, never()).existsByEmail(anyString());
     }
 
@@ -88,7 +85,7 @@ class ApplicationRegistrationValidatorTest {
     void shouldRejectEmailAlreadyUsedByAnotherAccount() {
         when(tenantRepository.existsByEmail("taken@example.com")).thenReturn(true);
 
-        assertRejectedWith(createMainTenant(), coupleForm("taken@example.com"), ApplicationErrorCode.CO_TENANT_EMAIL_ALREADY_EXISTS);
+        assertRejectedWith(createMainTenant(), coupleForm("taken@example.com"), CoTenantEmailAlreadyExistsException.class);
     }
 
     @Test
@@ -104,7 +101,7 @@ class ApplicationRegistrationValidatorTest {
 
         when(tenantRepository.existsByEmail("principal@example.com")).thenReturn(true);
 
-        assertRejectedWith(mainTenant, coupleForm("principal@example.com"), ApplicationErrorCode.CO_TENANT_EMAIL_ALREADY_EXISTS);
+        assertRejectedWith(mainTenant, coupleForm("principal@example.com"), CoTenantEmailAlreadyExistsException.class);
     }
 
     @Test
@@ -134,7 +131,7 @@ class ApplicationRegistrationValidatorTest {
 
         when(tenantRepository.existsByEmail("new@example.com")).thenReturn(true);
 
-        assertRejectedWith(mainTenant, form, ApplicationErrorCode.CO_TENANT_EMAIL_ALREADY_EXISTS);
+        assertRejectedWith(mainTenant, form, CoTenantEmailAlreadyExistsException.class);
     }
 
     // Co-tenants are matched on email alone: names may be corrected or completed
@@ -181,7 +178,7 @@ class ApplicationRegistrationValidatorTest {
         when(tenantRepository.existsByEmail("free@example.com")).thenReturn(false);
         when(tenantRepository.existsByEmail("taken@example.com")).thenReturn(true);
 
-        assertRejectedWith(createMainTenant(), form, ApplicationErrorCode.CO_TENANT_EMAIL_ALREADY_EXISTS);
+        assertRejectedWith(createMainTenant(), form, CoTenantEmailAlreadyExistsException.class);
     }
 
     private static Tenant createMainTenant() {

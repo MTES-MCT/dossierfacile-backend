@@ -1,7 +1,7 @@
 package fr.dossierfacile.api.front.validator.tenant.application;
 
-import fr.dossierfacile.api.front.exception.ApplicationRegistrationException;
-import fr.dossierfacile.api.front.exception.model.ApplicationErrorCode;
+import fr.dossierfacile.api.front.exception.ApplicationTypeDeniedForJoinException;
+import fr.dossierfacile.api.front.exception.CoTenantEmailAlreadyExistsException;
 import fr.dossierfacile.api.front.register.form.tenant.ApplicationFormV2;
 import fr.dossierfacile.api.front.register.form.tenant.CoTenantForm;
 import fr.dossierfacile.common.entity.Tenant;
@@ -26,13 +26,9 @@ public class ApplicationRegistrationValidator {
 
     private final TenantCommonRepository tenantRepository;
 
-    /**
-     * Throws an {@link ApplicationRegistrationException} carrying the matching
-     * {@link ApplicationErrorCode} on the first violation.
-     */
     public void validate(Tenant tenant, ApplicationFormV2 applicationForm) {
         if (tenant.getTenantType() == TenantType.JOIN) {
-            throw new ApplicationRegistrationException(ApplicationErrorCode.APPLICATION_TYPE_DENIED_FOR_JOIN);
+            throw new ApplicationTypeDeniedForJoinException();
         }
 
         List<CoTenantForm> coTenants = applicationForm.getCoTenants() == null
@@ -40,7 +36,7 @@ public class ApplicationRegistrationValidator {
                 : applicationForm.getCoTenants();
 
         if (hasEmailConflict(tenant, coTenants)) {
-            throw new ApplicationRegistrationException(ApplicationErrorCode.CO_TENANT_EMAIL_ALREADY_EXISTS);
+            throw new CoTenantEmailAlreadyExistsException();
         }
     }
 

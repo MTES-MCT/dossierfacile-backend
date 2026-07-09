@@ -1,8 +1,7 @@
 package fr.dossierfacile.api.front.register.tenant;
 
 import com.google.common.annotations.VisibleForTesting;
-import fr.dossierfacile.api.front.exception.ApplicationRegistrationException;
-import fr.dossierfacile.api.front.exception.model.ApplicationErrorCode;
+import fr.dossierfacile.api.front.exception.CoTenantEmailAlreadyExistsException;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.SaveStep;
@@ -119,8 +118,7 @@ public class Application implements SaveStep<ApplicationFormV2> {
                     String keycloakId = keycloakService.createKeycloakUser(newEmail);
                     Tenant existingTenant = tenantRepository.findByKeycloakId(keycloakId);
                     if (existingTenant != null) {
-                        throw new ApplicationRegistrationException(ApplicationErrorCode.CO_TENANT_EMAIL_ALREADY_EXISTS,
-                                "Cannot update a tenant with an existing email: " + newEmail);
+                        throw new CoTenantEmailAlreadyExistsException("Cannot update a tenant with an existing email: " + newEmail);
                     }
 
                     t.setKeycloakId(keycloakId);
@@ -182,8 +180,7 @@ public class Application implements SaveStep<ApplicationFormV2> {
                         Tenant existingTenant = tenantRepository.findByKeycloakId(newKeycloakId);
                         if (existingTenant != null) {
                             tenantRepository.delete(joinTenant);
-                            throw new ApplicationRegistrationException(ApplicationErrorCode.CO_TENANT_EMAIL_ALREADY_EXISTS,
-                                    "Cannot add a cotenant with an existing account: " + tenant.getEmail());
+                            throw new CoTenantEmailAlreadyExistsException("Cannot add a cotenant with an existing account: " + tenant.getEmail());
                         }
                         joinTenant.setKeycloakId(newKeycloakId);
                         userRoleService.createRole(joinTenant);
