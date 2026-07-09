@@ -1,8 +1,6 @@
 package fr.dossierfacile.api.front.controller;
 
-import fr.dossierfacile.api.front.exception.model.ApplicationErrorCode;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
-import fr.dossierfacile.api.front.model.tenant.ApplicationErrorResponse;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.enums.StepRegister;
 import fr.dossierfacile.api.front.register.form.tenant.*;
@@ -28,8 +26,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Optional;
 
 import static org.springframework.http.ResponseEntity.ok;
 
@@ -57,22 +53,13 @@ public class RegisterController {
 
     @PostMapping(value = "/application/v2", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @Transactional
-    public ResponseEntity<Object> application(@Validated(Dossier.class) @RequestBody ApplicationFormV2 applicationForm) {
-        if (!applicationRegistrationValidator.hasValidStructure(applicationForm)) {
-            return ResponseEntity.badRequest().build();
-        }
-
+    public ResponseEntity<TenantModel> application(@Validated(Dossier.class) @RequestBody ApplicationFormV2 applicationForm) {
         Tenant tenant = authenticationFacade.getLoggedTenant();
-
-        Optional<ApplicationErrorCode> validationError = applicationRegistrationValidator.validate(tenant, applicationForm);
-        if (validationError.isPresent()) {
-            ApplicationErrorCode code = validationError.get();
-            return ResponseEntity.status(code.httpStatus()).body(new ApplicationErrorResponse(code));
-        }
+        applicationRegistrationValidator.validate(tenant, applicationForm);
 
         TenantModel tenantModel = tenantService.saveStepRegister(tenant, applicationForm, StepRegister.APPLICATION);
         logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
-        return ok(tenantMapper.toTenantModel(authenticationFacade.getLoggedTenant(), null));
+        return ok(tenantMapper.toTenantModel(tenant, null));
     }
 
     @PreAuthorize("hasPermissionOnTenant(#honorDeclarationForm.tenantId)")

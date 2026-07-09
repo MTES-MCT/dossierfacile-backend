@@ -3,6 +3,8 @@ package fr.dossierfacile.api.front.controller;
 import com.google.gson.Gson;
 import fr.dossierfacile.api.front.TestApplication;
 import fr.dossierfacile.api.front.config.ResourceServerConfig;
+import fr.dossierfacile.api.front.exception.ApplicationRegistrationException;
+import fr.dossierfacile.api.front.exception.controller.ApplicationRegistrationExceptionHandler;
 import fr.dossierfacile.api.front.exception.model.ApplicationErrorCode;
 import fr.dossierfacile.api.front.mapper.TenantMapperImpl;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
@@ -34,9 +36,9 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -51,6 +53,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         TestApplication.class,
         TenantMapperImpl.class,
         GlobalExceptionHandler.class,
+        ApplicationRegistrationExceptionHandler.class,
         NumberOfPagesValidator.class,
         ResourceServerConfig.class
 }
@@ -99,8 +102,6 @@ class ApplicationV2ControllerTest {
                 .build();
 
         when(authenticationFacade.getLoggedTenant()).thenReturn(tenant);
-        when(applicationRegistrationValidator.hasValidStructure(any())).thenReturn(true);
-        when(applicationRegistrationValidator.validate(any(), any())).thenReturn(Optional.empty());
         when(tenantService.saveStepRegister(any(), any(), any())).thenReturn(TenantModel.builder().id(1L).build());
 
         mockMvc.perform(post("/api/register/application/v2")
@@ -110,14 +111,15 @@ class ApplicationV2ControllerTest {
                 .andExpect(status().isOk());
     }
 
+    // Static rules are enforced by the bean-validation annotations of ApplicationFormV2:
+    // the request is rejected at binding time, before the controller body runs.
+
     @Test
-    void shouldReturn400WhenStructureIsInvalid() throws Exception {
+    void shouldReturn400WhenCoTenantCountDoesNotMatchApplicationType() throws Exception {
         ApplicationFormV2 form = ApplicationFormV2.builder()
                 .applicationType(ApplicationType.ALONE)
                 .coTenants(List.of(new CoTenantForm("Louise", "Martin", null, "spouse@example.com")))
                 .build();
-
-        when(applicationRegistrationValidator.hasValidStructure(any())).thenReturn(false);
 
         mockMvc.perform(post("/api/register/application/v2")
                         .contentType("application/json")
@@ -129,27 +131,57 @@ class ApplicationV2ControllerTest {
     }
 
     @Test
-    void shouldReturn400WithCodeWhenEmailIsMissing() throws Exception {
-        var apartmentSharing = ApartmentSharing.builder().id(1L).build();
-        var tenant = Tenant.builder().id(1L).apartmentSharing(apartmentSharing).build();
-
+    void shouldReturn400WhenCoupleCoTenantEmailIsMissing() throws Exception {
         ApplicationFormV2 form = ApplicationFormV2.builder()
                 .applicationType(ApplicationType.COUPLE)
                 .acceptAccess(true)
                 .coTenants(List.of(new CoTenantForm("Louise", "Martin", null, null)))
                 .build();
 
-        when(authenticationFacade.getLoggedTenant()).thenReturn(tenant);
-        when(applicationRegistrationValidator.hasValidStructure(any())).thenReturn(true);
-        when(applicationRegistrationValidator.validate(any(), any()))
-                .thenReturn(Optional.of(ApplicationErrorCode.CO_TENANT_EMAIL_REQUIRED));
+        mockMvc.perform(post("/api/register/application/v2")
+                        .contentType("application/json")
+                        .content(gson.toJson(form))
+                        .with(jwtToken))
+                .andExpect(status().isBadRequest());
+
+        verify(tenantService, never()).saveStepRegister(any(), any(), any());
+    }
+
+    @Test
+    void shouldReturn400WhenAcceptAccessIsMissing() throws Exception {
+        ApplicationFormV2 form = ApplicationFormV2.builder()
+                .applicationType(ApplicationType.COUPLE)
+                .acceptAccess(null)
+                .coTenants(List.of(new CoTenantForm("Louise", "Martin", null, "spouse@example.com")))
+                .build();
 
         mockMvc.perform(post("/api/register/application/v2")
                         .contentType("application/json")
                         .content(gson.toJson(form))
                         .with(jwtToken))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("CO_TENANT_EMAIL_REQUIRED"));
+                .andExpect(status().isBadRequest());
+
+        verify(tenantService, never()).saveStepRegister(any(), any(), any());
+    }
+
+    @Test
+    void shouldReturn400WhenGroupCoTenantEmailsAreNotDistinct() throws Exception {
+        ApplicationFormV2 form = ApplicationFormV2.builder()
+                .applicationType(ApplicationType.GROUP)
+                .acceptAccess(true)
+                .coTenants(List.of(
+                        new CoTenantForm("first", "one", null, "same@example.com"),
+                        new CoTenantForm("second", "two", null, "same@example.com")
+                ))
+                .build();
+
+        mockMvc.perform(post("/api/register/application/v2")
+                        .contentType("application/json")
+                        .content(gson.toJson(form))
+                        .with(jwtToken))
+                .andExpect(status().isBadRequest());
+
+        verify(tenantService, never()).saveStepRegister(any(), any(), any());
     }
 
     @Test
@@ -164,9 +196,35 @@ class ApplicationV2ControllerTest {
                 .build();
 
         when(authenticationFacade.getLoggedTenant()).thenReturn(tenant);
-        when(applicationRegistrationValidator.hasValidStructure(any())).thenReturn(true);
-        when(applicationRegistrationValidator.validate(any(), any()))
-                .thenReturn(Optional.of(ApplicationErrorCode.CO_TENANT_EMAIL_ALREADY_EXISTS));
+        doThrow(new ApplicationRegistrationException(ApplicationErrorCode.CO_TENANT_EMAIL_ALREADY_EXISTS))
+                .when(applicationRegistrationValidator).validate(any(), any());
+
+        mockMvc.perform(post("/api/register/application/v2")
+                        .contentType("application/json")
+                        .content(gson.toJson(form))
+                        .with(jwtToken))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("CO_TENANT_EMAIL_ALREADY_EXISTS"));
+    }
+
+    // The service-layer backstop (Application.createCoTenants / linkEmailToTenants) throws
+    // the same exception on TOCTOU races: it must be mapped centrally too, not end as a 500.
+    @Test
+    void shouldReturn409WithCodeWhenServiceLayerDetectsExistingEmail() throws Exception {
+        var apartmentSharing = ApartmentSharing.builder().id(1L).build();
+        var tenant = Tenant.builder().id(1L).apartmentSharing(apartmentSharing).build();
+        apartmentSharing.setTenants(List.of(tenant));
+
+        ApplicationFormV2 form = ApplicationFormV2.builder()
+                .applicationType(ApplicationType.COUPLE)
+                .acceptAccess(true)
+                .coTenants(List.of(new CoTenantForm("Louise", "Martin", null, "raced@example.com")))
+                .build();
+
+        when(authenticationFacade.getLoggedTenant()).thenReturn(tenant);
+        when(tenantService.saveStepRegister(any(), any(), any()))
+                .thenThrow(new ApplicationRegistrationException(ApplicationErrorCode.CO_TENANT_EMAIL_ALREADY_EXISTS,
+                        "Cannot add a cotenant with an existing account: raced@example.com"));
 
         mockMvc.perform(post("/api/register/application/v2")
                         .contentType("application/json")
@@ -191,9 +249,8 @@ class ApplicationV2ControllerTest {
                 .build();
 
         when(authenticationFacade.getLoggedTenant()).thenReturn(joinTenant);
-        when(applicationRegistrationValidator.hasValidStructure(any())).thenReturn(true);
-        when(applicationRegistrationValidator.validate(any(), any()))
-                .thenReturn(Optional.of(ApplicationErrorCode.APPLICATION_TYPE_DENIED_FOR_JOIN));
+        doThrow(new ApplicationRegistrationException(ApplicationErrorCode.APPLICATION_TYPE_DENIED_FOR_JOIN))
+                .when(applicationRegistrationValidator).validate(any(), any());
 
         mockMvc.perform(post("/api/register/application/v2")
                         .contentType("application/json")

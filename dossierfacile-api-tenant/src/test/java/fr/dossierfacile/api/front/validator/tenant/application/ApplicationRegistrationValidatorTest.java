@@ -1,5 +1,6 @@
 package fr.dossierfacile.api.front.validator.tenant.application;
 
+import fr.dossierfacile.api.front.exception.ApplicationRegistrationException;
 import fr.dossierfacile.api.front.exception.model.ApplicationErrorCode;
 import fr.dossierfacile.api.front.register.form.tenant.ApplicationFormV2;
 import fr.dossierfacile.api.front.register.form.tenant.CoTenantForm;
@@ -8,7 +9,6 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -20,6 +20,8 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -34,305 +36,152 @@ class ApplicationRegistrationValidatorTest {
     @InjectMocks
     private ApplicationRegistrationValidator validator;
 
-    @Nested
-    class HasValidStructure {
-
-        @Test
-        void shouldRejectNullApplicationType() {
-            ApplicationFormV2 form = ApplicationFormV2.builder()
-                    .applicationType(null)
-                    .coTenants(Collections.emptyList())
-                    .build();
-
-            assertThat(validator.hasValidStructure(form)).isFalse();
-        }
-
-        @Test
-        void shouldAcceptAloneWithNoCoTenants() {
-            ApplicationFormV2 form = ApplicationFormV2.builder()
-                    .applicationType(ApplicationType.ALONE)
-                    .coTenants(Collections.emptyList())
-                    .build();
-
-            assertThat(validator.hasValidStructure(form)).isTrue();
-        }
-
-        @Test
-        void shouldRejectAloneWithCoTenants() {
-            ApplicationFormV2 form = ApplicationFormV2.builder()
-                    .applicationType(ApplicationType.ALONE)
-                    .coTenants(List.of(new CoTenantForm("Louise", "Martin", null, "spouse@example.com")))
-                    .build();
-
-            assertThat(validator.hasValidStructure(form)).isFalse();
-        }
-
-        @Test
-        void shouldRejectCoupleWhenMissingCoTenant() {
-            ApplicationFormV2 form = ApplicationFormV2.builder()
-                    .applicationType(ApplicationType.COUPLE)
-                    .coTenants(Collections.emptyList())
-                    .build();
-
-            assertThat(validator.hasValidStructure(form)).isFalse();
-        }
-
-        @Test
-        void shouldRejectCoupleWithTwoCoTenants() {
-            ApplicationFormV2 form = ApplicationFormV2.builder()
-                    .applicationType(ApplicationType.COUPLE)
-                    .coTenants(List.of(
-                            new CoTenantForm("Louise", "Martin", null, "a@example.com"),
-                            new CoTenantForm("Paul", "Martin", null, "b@example.com")
-                    ))
-                    .build();
-
-            assertThat(validator.hasValidStructure(form)).isFalse();
-        }
-
-        @Test
-        void shouldRejectCoupleWithDuplicateEmails() {
-            ApplicationFormV2 form = ApplicationFormV2.builder()
-                    .applicationType(ApplicationType.COUPLE)
-                    .coTenants(List.of(
-                            new CoTenantForm("first", "one", null, "same@example.com"),
-                            new CoTenantForm("second", "two", null, "same@example.com")
-                    ))
-                    .build();
-
-            assertThat(validator.hasValidStructure(form)).isFalse();
-        }
-
-        @Test
-        void shouldAcceptGroupWithDistinctEmails() {
-            ApplicationFormV2 form = ApplicationFormV2.builder()
-                    .applicationType(ApplicationType.GROUP)
-                    .coTenants(List.of(
-                            new CoTenantForm("first", "one", null, "a@example.com"),
-                            new CoTenantForm("second", "two", null, "b@example.com")
-                    ))
-                    .build();
-
-            assertThat(validator.hasValidStructure(form)).isTrue();
-        }
-
-        @Test
-        void shouldRejectGroupWhenEmpty() {
-            ApplicationFormV2 form = ApplicationFormV2.builder()
-                    .applicationType(ApplicationType.GROUP)
-                    .coTenants(Collections.emptyList())
-                    .build();
-
-            assertThat(validator.hasValidStructure(form)).isFalse();
-        }
-
-        @Test
-        void shouldIgnoreBlankEmailsWhenCheckingDistinctness() {
-            ApplicationFormV2 form = ApplicationFormV2.builder()
-                    .applicationType(ApplicationType.GROUP)
-                    .coTenants(List.of(
-                            new CoTenantForm("first", "one", null, null),
-                            new CoTenantForm("second", "two", null, "b@example.com")
-                    ))
-                    .build();
-
-            assertThat(validator.hasValidStructure(form)).isTrue();
-        }
+    private void assertRejectedWith(Tenant tenant, ApplicationFormV2 form, ApplicationErrorCode expectedCode) {
+        assertThatThrownBy(() -> validator.validate(tenant, form))
+                .isInstanceOfSatisfying(ApplicationRegistrationException.class,
+                        e -> assertThat(e.getCode()).isEqualTo(expectedCode));
     }
 
-    @Nested
-    class ValidateBusinessRules {
+    private void assertAccepted(Tenant tenant, ApplicationFormV2 form) {
+        assertThatCode(() -> validator.validate(tenant, form)).doesNotThrowAnyException();
+    }
 
-        @Test
-        void shouldAcceptCoupleFormWithEmailAndConsent() {
-            Tenant tenant = createMainTenant();
-            ApplicationFormV2 form = coupleForm("spouse@example.com", true);
+    @Test
+    void shouldAcceptCoupleFormWithNewEmail() {
+        assertAccepted(createMainTenant(), coupleForm("spouse@example.com"));
+    }
 
-            assertThat(validator.validate(tenant, form)).isEmpty();
-        }
+    @Test
+    void shouldAcceptAloneFormWithoutQueryingRepository() {
+        ApplicationFormV2 form = ApplicationFormV2.builder()
+                .applicationType(ApplicationType.ALONE)
+                .coTenants(Collections.emptyList())
+                .build();
 
-        @Test
-        void shouldRejectMissingEmailForCouple() {
-            Tenant tenant = createMainTenant();
-            ApplicationFormV2 form = coupleForm(null, true);
+        assertAccepted(createMainTenant(), form);
+        verify(tenantRepository, never()).existsByEmail(anyString());
+    }
 
-            assertThat(validator.validate(tenant, form)).contains(ApplicationErrorCode.CO_TENANT_EMAIL_REQUIRED);
-        }
+    @Test
+    void shouldAcceptNullCoTenants() {
+        ApplicationFormV2 form = ApplicationFormV2.builder()
+                .applicationType(ApplicationType.ALONE)
+                .coTenants(null)
+                .build();
 
-        @Test
-        void shouldRejectBlankEmailForCouple() {
-            Tenant tenant = createMainTenant();
-            ApplicationFormV2 form = coupleForm("   ", true);
+        assertAccepted(createMainTenant(), form);
+    }
 
-            assertThat(validator.validate(tenant, form)).contains(ApplicationErrorCode.CO_TENANT_EMAIL_REQUIRED);
-        }
+    @Test
+    void shouldRejectJoinTenantBeforeOtherRules() {
+        Tenant tenant = Tenant.builder()
+                .id(1L)
+                .tenantType(TenantType.JOIN)
+                .apartmentSharing(ApartmentSharing.builder().build())
+                .build();
 
-        @Test
-        void shouldRejectMissingEmailForGroup() {
-            Tenant tenant = createMainTenant();
-            ApplicationFormV2 form = ApplicationFormV2.builder()
-                    .applicationType(ApplicationType.GROUP)
-                    .acceptAccess(true)
-                    .coTenants(List.of(
-                            new CoTenantForm("first", "one", null, "ok@example.com"),
-                            new CoTenantForm("second", "two", null, null)
-                    ))
-                    .build();
+        assertRejectedWith(tenant, coupleForm("spouse@example.com"), ApplicationErrorCode.APPLICATION_TYPE_DENIED_FOR_JOIN);
+        verify(tenantRepository, never()).existsByEmail(anyString());
+    }
 
-            assertThat(validator.validate(tenant, form)).contains(ApplicationErrorCode.CO_TENANT_EMAIL_REQUIRED);
-        }
+    @Test
+    void shouldRejectEmailAlreadyUsedByAnotherAccount() {
+        when(tenantRepository.existsByEmail("taken@example.com")).thenReturn(true);
 
-        @Test
-        void shouldRejectMissingConsentForCouple() {
-            Tenant tenant = createMainTenant();
-            ApplicationFormV2 form = coupleForm("spouse@example.com", false);
+        assertRejectedWith(createMainTenant(), coupleForm("taken@example.com"), ApplicationErrorCode.CO_TENANT_EMAIL_ALREADY_EXISTS);
+    }
 
-            assertThat(validator.validate(tenant, form)).contains(ApplicationErrorCode.ACCEPT_ACCESS_REQUIRED);
-        }
+    @Test
+    void shouldRejectOwnEmailUsedAsCoTenantEmail() {
+        ApartmentSharing apartmentSharing = ApartmentSharing.builder().build();
+        Tenant mainTenant = Tenant.builder()
+                .id(1L)
+                .email("principal@example.com")
+                .tenantType(TenantType.CREATE)
+                .apartmentSharing(apartmentSharing)
+                .build();
+        apartmentSharing.setTenants(new ArrayList<>(List.of(mainTenant)));
 
-        @Test
-        void shouldRejectNullConsentForGroup() {
-            Tenant tenant = createMainTenant();
-            ApplicationFormV2 form = ApplicationFormV2.builder()
-                    .applicationType(ApplicationType.GROUP)
-                    .acceptAccess(null)
-                    .coTenants(List.of(new CoTenantForm("first", "one", null, "roommate@example.com")))
-                    .build();
+        when(tenantRepository.existsByEmail("principal@example.com")).thenReturn(true);
 
-            assertThat(validator.validate(tenant, form)).contains(ApplicationErrorCode.ACCEPT_ACCESS_REQUIRED);
-        }
+        assertRejectedWith(mainTenant, coupleForm("principal@example.com"), ApplicationErrorCode.CO_TENANT_EMAIL_ALREADY_EXISTS);
+    }
 
-        @Test
-        void shouldNotRequireConsentForAlone() {
-            Tenant tenant = createMainTenant();
-            ApplicationFormV2 form = ApplicationFormV2.builder()
-                    .applicationType(ApplicationType.ALONE)
-                    .acceptAccess(null)
-                    .coTenants(Collections.emptyList())
-                    .build();
+    @Test
+    void shouldAllowUnchangedCoTenantEmail() {
+        Tenant mainTenant = createMainTenantWithCoTenant("Louise", "Martin", "spouse@example.com");
 
-            assertThat(validator.validate(tenant, form)).isEmpty();
-            verify(tenantRepository, never()).existsByEmail(anyString());
-        }
+        assertAccepted(mainTenant, coupleForm("spouse@example.com"));
+        verify(tenantRepository, never()).existsByEmail(anyString());
+    }
 
-        @Test
-        void shouldRejectJoinTenantBeforeOtherRules() {
-            Tenant tenant = Tenant.builder()
-                    .id(1L)
-                    .tenantType(TenantType.JOIN)
-                    .apartmentSharing(ApartmentSharing.builder().build())
-                    .build();
-            ApplicationFormV2 form = coupleForm(null, false);
+    @Test
+    void shouldAllowUnchangedCoTenantEmailRegardlessOfCase() {
+        Tenant mainTenant = createMainTenantWithCoTenant("Louise", "Martin", "Spouse@Example.COM");
 
-            assertThat(validator.validate(tenant, form))
-                    .contains(ApplicationErrorCode.APPLICATION_TYPE_DENIED_FOR_JOIN);
-            verify(tenantRepository, never()).existsByEmail(anyString());
-        }
+        assertAccepted(mainTenant, coupleForm("spouse@example.com"));
+    }
 
-        @Test
-        void shouldRejectEmailAlreadyUsedByAnotherAccount() {
-            Tenant tenant = createMainTenant();
-            ApplicationFormV2 form = coupleForm("taken@example.com", true);
+    @Test
+    void shouldRejectNewEmailForExistingCoTenantWhenEmailAlreadyTaken() {
+        Tenant mainTenant = createMainTenantWithCoTenant("Louise", "Martin", null);
 
-            when(tenantRepository.existsByEmail("taken@example.com")).thenReturn(true);
+        ApplicationFormV2 form = ApplicationFormV2.builder()
+                .applicationType(ApplicationType.COUPLE)
+                .acceptAccess(true)
+                .coTenants(List.of(new CoTenantForm("Louise", "Martin", null, "NEW@example.com")))
+                .build();
 
-            assertThat(validator.validate(tenant, form)).contains(ApplicationErrorCode.CO_TENANT_EMAIL_ALREADY_EXISTS);
-        }
+        when(tenantRepository.existsByEmail("new@example.com")).thenReturn(true);
 
-        @Test
-        void shouldRejectOwnEmailUsedAsCoTenantEmail() {
-            ApartmentSharing apartmentSharing = ApartmentSharing.builder().build();
-            Tenant mainTenant = Tenant.builder()
-                    .id(1L)
-                    .email("principal@example.com")
-                    .tenantType(TenantType.CREATE)
-                    .apartmentSharing(apartmentSharing)
-                    .build();
-            apartmentSharing.setTenants(new ArrayList<>(List.of(mainTenant)));
+        assertRejectedWith(mainTenant, form, ApplicationErrorCode.CO_TENANT_EMAIL_ALREADY_EXISTS);
+    }
 
-            ApplicationFormV2 form = coupleForm("principal@example.com", true);
+    // Co-tenants are matched on email alone: names may be corrected or completed
+    // (e.g. legacy dossiers where the co-tenant was invited by email only).
+    @Test
+    void shouldAllowRenamedCoTenantKeepingSameEmail() {
+        Tenant mainTenant = createMainTenantWithCoTenant("Louise", "Martin", "spouse@example.com");
 
-            when(tenantRepository.existsByEmail("principal@example.com")).thenReturn(true);
+        ApplicationFormV2 form = ApplicationFormV2.builder()
+                .applicationType(ApplicationType.COUPLE)
+                .acceptAccess(true)
+                .coTenants(List.of(new CoTenantForm("Louisa", "Martin", null, "spouse@example.com")))
+                .build();
 
-            assertThat(validator.validate(mainTenant, form)).contains(ApplicationErrorCode.CO_TENANT_EMAIL_ALREADY_EXISTS);
-        }
+        assertAccepted(mainTenant, form);
+        verify(tenantRepository, never()).existsByEmail(anyString());
+    }
 
-        @Test
-        void shouldAllowUnchangedCoTenantEmail() {
-            Tenant mainTenant = createMainTenantWithCoTenant("Louise", "Martin", "spouse@example.com");
+    @Test
+    void shouldAllowCompletingNamesOfExistingCoTenantWithoutNames() {
+        Tenant mainTenant = createMainTenantWithCoTenant(null, null, "spouse@example.com");
 
-            ApplicationFormV2 form = ApplicationFormV2.builder()
-                    .applicationType(ApplicationType.COUPLE)
-                    .acceptAccess(true)
-                    .coTenants(List.of(new CoTenantForm("Louise", "Martin", null, "spouse@example.com")))
-                    .build();
+        ApplicationFormV2 form = ApplicationFormV2.builder()
+                .applicationType(ApplicationType.COUPLE)
+                .acceptAccess(true)
+                .coTenants(List.of(new CoTenantForm("Louise", "Martin", null, "spouse@example.com")))
+                .build();
 
-            assertThat(validator.validate(mainTenant, form)).isEmpty();
-            verify(tenantRepository, never()).existsByEmail(anyString());
-        }
+        assertAccepted(mainTenant, form);
+        verify(tenantRepository, never()).existsByEmail(anyString());
+    }
 
-        @Test
-        void shouldAllowUnchangedCoTenantEmailRegardlessOfCase() {
-            Tenant mainTenant = createMainTenantWithCoTenant("Louise", "Martin", "Spouse@Example.COM");
+    @Test
+    void shouldCheckEachGroupCoTenantEmailIndependently() {
+        ApplicationFormV2 form = ApplicationFormV2.builder()
+                .applicationType(ApplicationType.GROUP)
+                .acceptAccess(true)
+                .coTenants(List.of(
+                        new CoTenantForm("first", "one", null, "free@example.com"),
+                        new CoTenantForm("second", "two", null, "taken@example.com")
+                ))
+                .build();
 
-            ApplicationFormV2 form = ApplicationFormV2.builder()
-                    .applicationType(ApplicationType.COUPLE)
-                    .acceptAccess(true)
-                    .coTenants(List.of(new CoTenantForm("Louise", "Martin", null, "spouse@example.com")))
-                    .build();
+        when(tenantRepository.existsByEmail("free@example.com")).thenReturn(false);
+        when(tenantRepository.existsByEmail("taken@example.com")).thenReturn(true);
 
-            assertThat(validator.validate(mainTenant, form)).isEmpty();
-        }
-
-        @Test
-        void shouldRejectNewEmailForExistingCoTenantWhenEmailAlreadyTaken() {
-            Tenant mainTenant = createMainTenantWithCoTenant("Louise", "Martin", null);
-
-            ApplicationFormV2 form = ApplicationFormV2.builder()
-                    .applicationType(ApplicationType.COUPLE)
-                    .acceptAccess(true)
-                    .coTenants(List.of(new CoTenantForm("Louise", "Martin", null, "NEW@example.com")))
-                    .build();
-
-            when(tenantRepository.existsByEmail("new@example.com")).thenReturn(true);
-
-            assertThat(validator.validate(mainTenant, form)).contains(ApplicationErrorCode.CO_TENANT_EMAIL_ALREADY_EXISTS);
-        }
-
-        // Known limitation (parity with legacy behavior): a renamed co-tenant no longer matches
-        // the existing record, so resubmitting their unchanged email is seen as a conflict.
-        @Test
-        void shouldRejectRenamedCoTenantKeepingSameEmail() {
-            Tenant mainTenant = createMainTenantWithCoTenant("Louise", "Martin", "spouse@example.com");
-
-            ApplicationFormV2 form = ApplicationFormV2.builder()
-                    .applicationType(ApplicationType.COUPLE)
-                    .acceptAccess(true)
-                    .coTenants(List.of(new CoTenantForm("Louisa", "Martin", null, "spouse@example.com")))
-                    .build();
-
-            when(tenantRepository.existsByEmail("spouse@example.com")).thenReturn(true);
-
-            assertThat(validator.validate(mainTenant, form)).contains(ApplicationErrorCode.CO_TENANT_EMAIL_ALREADY_EXISTS);
-        }
-
-        @Test
-        void shouldCheckEachGroupCoTenantEmailIndependently() {
-            Tenant tenant = createMainTenant();
-            ApplicationFormV2 form = ApplicationFormV2.builder()
-                    .applicationType(ApplicationType.GROUP)
-                    .acceptAccess(true)
-                    .coTenants(List.of(
-                            new CoTenantForm("first", "one", null, "free@example.com"),
-                            new CoTenantForm("second", "two", null, "taken@example.com")
-                    ))
-                    .build();
-
-            when(tenantRepository.existsByEmail("free@example.com")).thenReturn(false);
-            when(tenantRepository.existsByEmail("taken@example.com")).thenReturn(true);
-
-            assertThat(validator.validate(tenant, form)).contains(ApplicationErrorCode.CO_TENANT_EMAIL_ALREADY_EXISTS);
-        }
+        assertRejectedWith(createMainTenant(), form, ApplicationErrorCode.CO_TENANT_EMAIL_ALREADY_EXISTS);
     }
 
     private static Tenant createMainTenant() {
@@ -363,10 +212,10 @@ class ApplicationRegistrationValidatorTest {
         return mainTenant;
     }
 
-    private static ApplicationFormV2 coupleForm(String email, boolean acceptAccess) {
+    private static ApplicationFormV2 coupleForm(String email) {
         return ApplicationFormV2.builder()
                 .applicationType(ApplicationType.COUPLE)
-                .acceptAccess(acceptAccess)
+                .acceptAccess(true)
                 .coTenants(List.of(new CoTenantForm("Louise", "Martin", null, email)))
                 .build();
     }
