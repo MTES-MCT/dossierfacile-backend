@@ -4,13 +4,11 @@ import ch.qos.logback.core.status.Status;
 import ch.qos.logback.core.status.StatusListener;
 import lombok.extern.slf4j.Slf4j;
 
+import java.net.Socket;
 import java.security.KeyStore;
 import java.security.Provider;
 import java.security.Security;
-import javax.net.ssl.ManagerFactoryParameters;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactorySpi;
-import javax.net.ssl.X509TrustManager;
+import javax.net.ssl.*;
 import java.security.cert.X509Certificate;
 
 /**
@@ -82,7 +80,7 @@ public class TrustAllStatusListener implements StatusListener {
         @Override
         protected TrustManager[] engineGetTrustManagers() {
             return new TrustManager[] {
-                new X509TrustManager() {
+                new X509ExtendedTrustManager() {
                     @Override
                     public X509Certificate[] getAcceptedIssuers() {
                         return new X509Certificate[0];
@@ -96,6 +94,30 @@ public class TrustAllStatusListener implements StatusListener {
 
                     @Override
                     public void checkServerTrusted(X509Certificate[] certs, String authType) {
+                        // Méthode vide : aucun contrôle n'est effectué sur le certificat serveur,
+                        // acceptant ainsi les certificats autosignés ou expirés.
+                    }
+
+                    @Override
+                    public void checkClientTrusted(X509Certificate[] certs, String authType, Socket socket) {
+                        // Méthode vide : aucun contrôle n'est effectué sur le certificat serveur,
+                        // acceptant ainsi les certificats autosignés ou expirés.
+                    }
+
+                    @Override
+                    public void checkServerTrusted(X509Certificate[] certs, String authType, Socket socket) {
+                        // Méthode vide : aucun contrôle n'est effectué sur le certificat serveur,
+                        // acceptant ainsi les certificats autosignés ou expirés.
+                    }
+
+                    @Override
+                    public void checkClientTrusted(X509Certificate[] certs, String authType, SSLEngine engine) {
+                        // Méthode vide : aucun contrôle n'est effectué sur le certificat serveur,
+                        // acceptant ainsi les certificats autosignés ou expirés.
+                    }
+
+                    @Override
+                    public void checkServerTrusted(X509Certificate[] certs, String authType, SSLEngine engine) {
                         // Méthode vide : aucun contrôle n'est effectué sur le certificat serveur,
                         // acceptant ainsi les certificats autosignés ou expirés.
                     }
