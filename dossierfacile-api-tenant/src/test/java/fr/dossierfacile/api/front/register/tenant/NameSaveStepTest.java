@@ -6,6 +6,7 @@ import fr.dossierfacile.api.front.register.form.tenant.NamesForm;
 import fr.dossierfacile.api.front.security.interfaces.ClientAuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
+import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Document;
@@ -48,6 +49,8 @@ class NameSaveStepTest {
     ClientAuthenticationFacade clientAuthenticationFacade;
     @MockitoBean
     DocumentIAService documentIAService;
+    @MockitoBean
+    MailService mailService;
 
     @Test
     @WithMockUser(username = "test", authorities = "SCOPE_dossier")

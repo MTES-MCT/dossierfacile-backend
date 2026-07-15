@@ -43,7 +43,8 @@ class CheckFranceConnectValidatorTest {
                                 null,
                                 null,
                                 false,
-                                TenantOwnerType.SELF
+                                TenantOwnerType.SELF,
+                                null
                         ),
                         Tenant.builder()
                                 .id(1L)
@@ -61,7 +62,8 @@ class CheckFranceConnectValidatorTest {
                                 null,
                                 null,
                                 false,
-                                TenantOwnerType.SELF
+                                TenantOwnerType.SELF,
+                                null
                         ),
                         Tenant.builder()
                                 .id(1L)
@@ -79,7 +81,8 @@ class CheckFranceConnectValidatorTest {
                                 null,
                                 null,
                                 false,
-                                TenantOwnerType.THIRD_PARTY
+                                TenantOwnerType.THIRD_PARTY,
+                                "beneficiary@dossierfacile.fr"
                         ),
                         Tenant.builder()
                                 .id(1L)

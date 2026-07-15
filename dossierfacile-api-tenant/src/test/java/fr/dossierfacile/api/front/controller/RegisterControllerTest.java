@@ -121,7 +121,8 @@ class RegisterControllerTest {
                                             null,
                                             null,
                                             false,
-                                            TenantOwnerType.SELF
+                                            TenantOwnerType.SELF,
+                                            null
                                     )),
                                     400,
                                     jwtTokenWithDossier,
@@ -141,7 +142,8 @@ class RegisterControllerTest {
                                             null,
                                             null,
                                             false,
-                                            TenantOwnerType.SELF
+                                            TenantOwnerType.SELF,
+                                            null
                                     )),
                                     200,
                                     jwtTokenWithDossier,

@@ -44,6 +44,7 @@ public class Tenant extends User implements Person, Serializable {
     private String tenantFirstName;
     private String tenantLastName;
     private String tenantPreferredName;
+    private String beneficiaryEmail;
 
     @Column
     private Integer satisfactionSurvey;
@@ -358,6 +359,10 @@ public class Tenant extends User implements Person, Serializable {
         } else {
             this.tenantPreferredName = StringUtils.trimToNull(preferredName);
         }
+    }
+
+    public void setBeneficiaryEmail(String beneficiaryEmail) {
+        this.beneficiaryEmail = StringUtils.trimToNull(beneficiaryEmail);
     }
 
     public String getNormalizedName() {

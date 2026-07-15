@@ -7,12 +7,15 @@ import fr.dossierfacile.api.front.register.form.tenant.NamesForm;
 import fr.dossierfacile.api.front.security.interfaces.ClientAuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
+import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
+import fr.dossierfacile.common.enums.TenantOwnerType;
 import fr.dossierfacile.common.enums.TypeGuarantor;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
+import fr.dossierfacile.common.utils.TransactionalUtil;
 import fr.dossierfacile.document.analysis.service.DocumentIAService;
 import lombok.AllArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
@@ -36,6 +39,7 @@ public class Names implements SaveStep<NamesForm> {
     private final TenantStatusService tenantStatusService;
     private final ClientAuthenticationFacade clientAuthenticationFacade;
     private final DocumentIAService documentIAService;
+    private final MailService mailService;
 
     @Override
     @Transactional
@@ -61,10 +65,17 @@ public class Names implements SaveStep<NamesForm> {
             documentService.resetValidatedOrInProgressDocumentsAccordingCategories(documentsToProcess, Arrays.asList(DocumentCategory.values()));
         }
 
+        // Notify the beneficiary only when their email is set for the first time or changed
+        String newBeneficiaryEmail = namesForm.getOwnerType() == TenantOwnerType.THIRD_PARTY
+                ? StringUtils.trimToNull(namesForm.getBeneficiaryEmail())
+                : null; // the beneficiary email is erased when switching back to SELF
+        boolean beneficiaryEmailHasChanged = !StringUtils.equals(tenant.getBeneficiaryEmail(), newBeneficiaryEmail);
+
         tenant.setOwnerType(namesForm.getOwnerType());
         tenant.setFirstName(namesForm.getFirstName());
         tenant.setLastName(namesForm.getLastName());
         tenant.setPreferredName(namesForm.getPreferredName());
+        tenant.setBeneficiaryEmail(newBeneficiaryEmail);
 
         tenant.setZipCode(namesForm.getZipCode());
         tenant.setAbroad(namesForm.getAbroad());
@@ -74,6 +85,13 @@ public class Names implements SaveStep<NamesForm> {
         tenant = tenantRepository.save(tenant);
         if (tenantIdentityHasChanged) {
             documentsToProcess.forEach(documentIAService::analyseDocument);
+        }
+
+        if (beneficiaryEmailHasChanged && tenant.getBeneficiaryEmail() != null) {
+            Tenant declarant = tenant;
+            String beneficiaryEmail = tenant.getBeneficiaryEmail();
+            String beneficiaryFullName = tenant.getFullName();
+            TransactionalUtil.afterCommit(() -> mailService.sendEmailToBeneficiary(beneficiaryEmail, beneficiaryFullName, declarant));
         }
 
         return tenantMapper.toTenantModel(tenant, (!clientAuthenticationFacade.isClient()) ? null : clientAuthenticationFacade.getClient());
