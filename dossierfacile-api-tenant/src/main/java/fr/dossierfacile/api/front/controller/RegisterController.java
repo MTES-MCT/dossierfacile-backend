@@ -7,6 +7,7 @@ import fr.dossierfacile.api.front.register.form.tenant.*;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.validator.group.Dossier;
+import fr.dossierfacile.api.front.validator.tenant.application.ApplicationRegistrationValidator;
 import fr.dossierfacile.api.front.validator.group.FinancialDocumentGroup;
 import fr.dossierfacile.api.front.validator.group.ResidencyDocumentGroup;
 import fr.dossierfacile.common.entity.Tenant;
@@ -37,6 +38,7 @@ public class RegisterController {
     private final TenantService tenantService;
     private final AuthenticationFacade authenticationFacade;
     private final LogService logService;
+    private final ApplicationRegistrationValidator applicationRegistrationValidator;
 
     @PreAuthorize("hasPermissionOnTenant(#namesForm.tenantId)")
     @PostMapping(value = "/names", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -52,11 +54,12 @@ public class RegisterController {
     @PostMapping(value = "/application/v2", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @Transactional
     public ResponseEntity<TenantModel> application(@Validated(Dossier.class) @RequestBody ApplicationFormV2 applicationForm) {
-        Tenant tenant = authenticationFacade.getTenant(applicationForm.getTenantId());
+        Tenant tenant = authenticationFacade.getLoggedTenant();
+        applicationRegistrationValidator.validate(tenant, applicationForm);
+
         TenantModel tenantModel = tenantService.saveStepRegister(tenant, applicationForm, StepRegister.APPLICATION);
         logService.saveLog(LogType.ACCOUNT_EDITED, tenantModel.getId());
-        Tenant loggedTenant = (applicationForm.getTenantId() == null) ? tenant : authenticationFacade.getLoggedTenant();
-        return ok(tenantMapper.toTenantModel(loggedTenant, null));
+        return ok(tenantMapper.toTenantModel(tenant, null));
     }
 
     @PreAuthorize("hasPermissionOnTenant(#honorDeclarationForm.tenantId)")

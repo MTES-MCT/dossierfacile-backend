@@ -1,7 +1,7 @@
 package fr.dossierfacile.api.front.register.tenant;
 
 import com.google.common.annotations.VisibleForTesting;
-import fr.dossierfacile.api.front.exception.CoTenantEmailAlreadyExists;
+import fr.dossierfacile.api.front.exception.CoTenantEmailAlreadyExistsException;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.SaveStep;
@@ -12,7 +12,6 @@ import fr.dossierfacile.api.front.service.interfaces.*;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.PasswordRecoveryToken;
 import fr.dossierfacile.common.entity.Tenant;
-import fr.dossierfacile.common.entity.User;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.enums.TenantType;
@@ -54,8 +53,6 @@ public class Application implements SaveStep<ApplicationFormV2> {
     @Override
     @Transactional
     public TenantModel saveStep(Tenant tenant, ApplicationFormV2 applicationForm) {
-
-        checkIfEmailIsUnique(tenant, applicationForm);
 
         List<Tenant> oldCoTenant = tenant.getApartmentSharing().getTenants()
                 .stream()
@@ -113,15 +110,6 @@ public class Application implements SaveStep<ApplicationFormV2> {
     @VisibleForTesting
     protected void linkEmailToTenants(Tenant tenantCreate, List<Pair<Tenant, String>> tenantWitNewEmailToUpdate) {
         if (tenantWitNewEmailToUpdate != null) {
-            List<String> emailsExistTenants = tenantWitNewEmailToUpdate.stream()
-                    .map(Pair::getRight)
-                    .filter(tenantRepository::existsByEmail)
-                    .collect(Collectors.toList());
-
-            if (!emailsExistTenants.isEmpty())
-                throw new IllegalArgumentException("Cannot update a tenant with an existing email: " + String.join(",", emailsExistTenants));
-
-            //tenantWitNewEmailToUpdate
             for (Pair<Tenant, String> pair : tenantWitNewEmailToUpdate) {
                 Tenant t = pair.getLeft();
                 String newEmail = pair.getRight();
@@ -130,9 +118,7 @@ public class Application implements SaveStep<ApplicationFormV2> {
                     String keycloakId = keycloakService.createKeycloakUser(newEmail);
                     Tenant existingTenant = tenantRepository.findByKeycloakId(keycloakId);
                     if (existingTenant != null) {
-                        // A tenant already exists, should never happen here because we have already checked existing email
-                        String msg = "Cannot update a tenant with an existing email: " + String.join(",", emailsExistTenants);
-                        throw new IllegalArgumentException(msg);
+                        throw new CoTenantEmailAlreadyExistsException("Cannot update a tenant with an existing email: " + newEmail);
                     }
 
                     t.setKeycloakId(keycloakId);
@@ -164,19 +150,6 @@ public class Application implements SaveStep<ApplicationFormV2> {
     }
 
     private void createCoTenants(Tenant tenantCreate, List<CoTenantForm> tenants, ApartmentSharing apartmentSharing) {
-        // check if email account exist
-        // Currently we cannot add existing user
-        List<String> emailsExistTenants = tenants.stream()
-                .map(CoTenantForm::getEmail)
-                .filter(Objects::nonNull)
-                .map(String::toLowerCase)
-                .filter(StringUtils::isNotBlank)
-                .filter(tenantRepository::existsByEmail)
-                .collect(Collectors.toList());
-
-        if (!emailsExistTenants.isEmpty())
-            throw new IllegalArgumentException("Cannot add tenant with existing emails " + String.join(",", emailsExistTenants));
-
         Set<Tenant> joinTenants = tenants.stream().map(
                 tenant -> {
                     Tenant joinTenant = Tenant.builder()
@@ -206,10 +179,8 @@ public class Application implements SaveStep<ApplicationFormV2> {
                         String newKeycloakId = keycloakService.createKeycloakUser(tenant.getEmail());
                         Tenant existingTenant = tenantRepository.findByKeycloakId(newKeycloakId);
                         if (existingTenant != null) {
-                            // A tenant already exists, should never happen here because we cannot add existing user
                             tenantRepository.delete(joinTenant);
-                            String msg = "Cannot add a cotenant with an existing account: " + String.join(",", emailsExistTenants);
-                            throw new IllegalArgumentException(msg);
+                            throw new CoTenantEmailAlreadyExistsException("Cannot add a cotenant with an existing account: " + tenant.getEmail());
                         }
                         joinTenant.setKeycloakId(newKeycloakId);
                         userRoleService.createRole(joinTenant);
@@ -231,26 +202,6 @@ public class Application implements SaveStep<ApplicationFormV2> {
 
         apartmentSharing.getTenants().addAll(joinTenants);
         apartmentSharingRepository.save(apartmentSharing);
-    }
-
-    private void checkIfEmailIsUnique(Tenant tenant, ApplicationFormV2 applicationForm) {
-        var emails = applicationForm.getCoTenants().stream()
-                .map(CoTenantForm::getEmail)
-                .filter(StringUtils::isNotBlank)
-                .toList();
-
-        if (emails.isEmpty()) {
-            return;
-        }
-
-        var existingEmails = tenantRepository.findByEmailInAndApartmentSharingNot(emails, tenant.getApartmentSharing())
-                .stream()
-                .map(User::getEmail)
-                .toList();
-
-        if (!existingEmails.isEmpty()) {
-            throw new CoTenantEmailAlreadyExists();
-        }
     }
 
     private void deleteCoTenants(List<Tenant> tenantToDelete) {
