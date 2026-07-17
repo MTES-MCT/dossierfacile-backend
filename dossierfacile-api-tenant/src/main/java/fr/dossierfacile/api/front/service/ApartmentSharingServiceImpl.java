@@ -1,6 +1,6 @@
 package fr.dossierfacile.api.front.service;
 
-import fr.dossierfacile.api.front.amqp.Producer;
+import fr.dossierfacile.common.domain.service.MessagePublisher;
 import fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException;
 import fr.dossierfacile.api.front.exception.ApartmentSharingUnexpectedException;
 import fr.dossierfacile.api.front.exception.TrigramNotAuthorizedException;
@@ -66,7 +66,7 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
     private final ApplicationLightMapper applicationLightMapper;
     private final FileStorageService fileStorageService;
     private final LinkLogService linkLogService;
-    private final Producer producer;
+    private final MessagePublisher producer;
     private final ApartmentSharingCommonService apartmentSharingCommonService;
     private final ApiTenantLogRepository tenantLogRepository;
     private final LogService logService;

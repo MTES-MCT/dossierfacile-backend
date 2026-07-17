@@ -1,6 +1,6 @@
 package fr.dossierfacile.api.front.service;
 
-import fr.dossierfacile.api.front.amqp.Producer;
+import fr.dossierfacile.common.domain.service.MessagePublisher;
 import fr.dossierfacile.api.front.exception.ApplicationLinkBlockedException;
 import fr.dossierfacile.api.front.exception.TrigramNotAuthorizedException;
 import fr.dossierfacile.api.front.repository.ApiTenantLogRepository;
@@ -67,7 +67,7 @@ class ApartmentSharingServiceImplBruteForceTest {
     private LinkLogService linkLogService;
 
     @Mock
-    private Producer producer;
+    private MessagePublisher producer;
 
     @Mock
     private ApartmentSharingCommonService apartmentSharingCommonService;

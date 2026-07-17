@@ -59,7 +59,7 @@ class DocumentServiceImplTest {
     @Mock
     private fr.dossierfacile.common.repository.TenantCommonRepository tenantRepository;
     @Mock
-    private fr.dossierfacile.api.front.amqp.Producer producer;
+    private fr.dossierfacile.common.domain.service.MessagePublisher producer;
 
     private static final String DOCUMENT_NAME = "test-document.pdf";
     @Mock

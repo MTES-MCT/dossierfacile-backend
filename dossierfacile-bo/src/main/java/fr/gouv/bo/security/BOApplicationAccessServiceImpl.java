@@ -66,11 +66,21 @@ public class BOApplicationAccessServiceImpl implements BOApplicationAccessServic
         checkTenantAccess(principal, tenant.getId());
     }
 
-    private void ensureOperatorAssignedToTenant(UserPrincipal principal, Long tenantId) {
+    @Override
+    public boolean hasAccessToTenant(UserPrincipal principal, Long tenantId) {
+        return hasAccessToTenant(principal.getId(), tenantId);
+    }
+
+    @Override
+    public boolean hasAccessToTenant(Long operatorId, Long tenantId) {
         LocalDateTime since = LocalDateTime.now().minusDays(assignmentAccessWindowDays);
-        boolean assigned = operatorLogRepository
+        return operatorLogRepository
                 .existsByOperatorIdAndTenantIdAndActionOperatorTypeInAndCreationDateGreaterThanEqual(
-                        principal.getId(), tenantId, ASSIGNMENT_TYPES, since);
+                        operatorId, tenantId, ASSIGNMENT_TYPES, since);
+    }
+
+    private void ensureOperatorAssignedToTenant(UserPrincipal principal, Long tenantId) {
+        boolean assigned = hasAccessToTenant(principal, tenantId);
         if (!assigned) {
             log.warn("OPERATOR id={} attempted to access unassigned tenant id={}", principal.getId(), tenantId);
             throw BOAccessDenied.generic();

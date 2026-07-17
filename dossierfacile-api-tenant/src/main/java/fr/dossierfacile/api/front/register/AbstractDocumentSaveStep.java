@@ -1,6 +1,6 @@
 package fr.dossierfacile.api.front.register;
 
-import fr.dossierfacile.api.front.amqp.Producer;
+import fr.dossierfacile.common.domain.service.MessagePublisher;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.form.DocumentForm;
@@ -40,7 +40,7 @@ public abstract class AbstractDocumentSaveStep<T extends DocumentForm> implement
     @Autowired
     private LogService logService;
     @Autowired
-    private Producer producer;
+    private MessagePublisher producer;
     @Autowired
     private ClientAuthenticationFacade clientAuthenticationFacade;
     @Autowired
