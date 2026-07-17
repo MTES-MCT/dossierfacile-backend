@@ -46,6 +46,9 @@ class FileDeletionDomainServiceTest {
     @Mock
     private JpaTenantRepository jpaTenantRepository;
 
+    @Mock
+    private CheckDocumentForReprocessingDomainService checkDocumentForReprocessingDomainService;
+
     @BeforeEach
     void setUp() {
         fileDeletionDomainService = new FileDeletionDomainService(
@@ -53,7 +56,8 @@ class FileDeletionDomainServiceTest {
                 jpaDocumentRepository,
                 messagePublisher,
                 jpaApartmentSharingRepository,
-                jpaTenantRepository
+                jpaTenantRepository,
+                checkDocumentForReprocessingDomainService
         );
     }
 
@@ -117,16 +121,6 @@ class FileDeletionDomainServiceTest {
         Document document = new Document(documentEntity);
         fileToDelete.setDocument(documentEntity);
 
-        DocumentEntity otherDocumentEntity = DocumentEntity.builder()
-                .id(20L)
-                .tenantId(1L)
-                .documentCategory(DocumentCategory.IDENTIFICATION)
-                .noDocument(true)
-                .build();
-        Document otherDocument = new Document(otherDocumentEntity);
-
-        when(jpaDocumentRepository.getDocumentsByTenantId(1L)).thenReturn(List.of(otherDocument));
-
         ApartmentSharing apartmentSharing = new ApartmentSharing(ApartmentSharingEntity.builder().id(50L).build());
 
         // When
@@ -138,8 +132,7 @@ class FileDeletionDomainServiceTest {
 
         verify(addLogDomainService).addFileDeletedLog(fileToDelete, targetTenant, Optional.empty());
         verify(addLogDomainService).addDocumentDeletedLog(document, targetTenant, Optional.empty());
-        verify(jpaDocumentRepository).getDocumentsByTenantId(1L);
-        verify(messagePublisher).sendDocumentForPdfGeneration(20L);
+        verify(checkDocumentForReprocessingDomainService).checkDocumentsForReprocessing(document);
         verify(jpaDocumentRepository).delete(document);
         verify(jpaApartmentSharingRepository).save(apartmentSharing);
         verify(jpaTenantRepository).save(targetTenant);

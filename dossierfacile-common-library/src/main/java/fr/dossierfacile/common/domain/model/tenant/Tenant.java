@@ -1,18 +1,12 @@
 package fr.dossierfacile.common.domain.model.tenant;
 
-import fr.dossierfacile.common.entity.Guarantor;
-import fr.dossierfacile.common.enums.DocumentCategory;
-import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.TenantFileStatus;
-import fr.dossierfacile.common.domain.model.document.Document;
-import fr.dossierfacile.common.enums.TypeGuarantor;
 import fr.dossierfacile.common.infrastructure.entity.TenantEntity;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
 import java.util.List;
 
 /**

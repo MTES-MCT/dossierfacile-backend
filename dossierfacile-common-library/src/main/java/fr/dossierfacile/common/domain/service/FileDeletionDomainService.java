@@ -23,6 +23,7 @@ public class FileDeletionDomainService {
     private final MessagePublisher messagePublisher;
     private final JpaApartmentSharingRepository jpaApartmentSharingRepository;
     private final JpaTenantRepository jpaTenantRepository;
+    private final CheckDocumentForReprocessingDomainService checkDocumentForReprocessingDomainService;
 
     public Optional<Document> deleteFile(
             Long fileId,
@@ -54,24 +55,7 @@ public class FileDeletionDomainService {
         // Si le document est vide, on le supprime.
         addLogDomainService.addDocumentDeletedLog(document, targetTenant, operator);
 
-        // Je ne suis pas fan de ça, mais je l'ai implémenté quand même !
-        var listOfDocumentToCheck = new ArrayList<Document>();
-
-        if (document.getTenantId() != null) {
-            listOfDocumentToCheck.addAll(jpaDocumentRepository.getDocumentsByTenantId(document.getTenantId()));
-        } else if (document.getGuarantorId() != null) {
-            listOfDocumentToCheck.addAll(jpaDocumentRepository.getDocumentsByGuarantorId(document.getGuarantorId()));
-        }
-
-        listOfDocumentToCheck.forEach(it -> {
-            it.resetValidateOrInProgressDocumentAfterFileDeleted();
-            if (Boolean.TRUE.equals(it.getNoDocument())) {
-                messagePublisher.sendDocumentForPdfGeneration(it.getId());
-            }
-            jpaDocumentRepository.save(it);
-        });
-
-        // fin du bloque que j'aime pas
+        checkDocumentForReprocessingDomainService.checkDocumentsForReprocessing(document);
 
         jpaDocumentRepository.delete(document);
     }
