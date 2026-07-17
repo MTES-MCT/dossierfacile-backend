@@ -2,7 +2,6 @@ package fr.dossierfacile.common.infrastructure.repository;
 
 import fr.dossierfacile.common.domain.model.guarantor.Guarantor;
 import fr.dossierfacile.common.infrastructure.entity.GuarantorEntity;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -13,7 +12,7 @@ import java.util.Optional;
  * Encapsule JpaGuarantorEntityRepository et convertit les entités en modèles de domaine.
  */
 @Repository
-public class JpaGuarantorRepository {
+public class JpaGuarantorRepository implements JpaRepository {
 
     private final JpaGuarantorEntityRepository jpaGuarantorEntityRepository;
 
@@ -42,18 +41,18 @@ public class JpaGuarantorRepository {
     }
 
     public void save(Guarantor guarantor) {
-        jpaGuarantorEntityRepository.save(guarantor.getEntity());
+        jpaGuarantorEntityRepository.save(guarantor.getEntityOnlyForRepository());
     }
 
     public void delete(Guarantor guarantor) {
-        jpaGuarantorEntityRepository.delete(guarantor.getEntity());
+        jpaGuarantorEntityRepository.delete(guarantor.getEntityOnlyForRepository());
     }
 }
 
 /**
  * Interface Spring Data JPA interne (package-private).
  */
-interface JpaGuarantorEntityRepository extends JpaRepository<GuarantorEntity, Long> {
+interface JpaGuarantorEntityRepository extends org.springframework.data.jpa.repository.JpaRepository<GuarantorEntity, Long> {
 
     List<GuarantorEntity> findByTenantId(Long tenantId);
 }

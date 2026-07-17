@@ -5,6 +5,7 @@ import fr.dossierfacile.common.enums.*;
 import fr.dossierfacile.common.infrastructure.entity.DocumentEntity;
 import fr.dossierfacile.common.infrastructure.entity.FileEntity;
 
+import fr.dossierfacile.common.domain.model.DomainAggregate;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -16,7 +17,7 @@ import java.util.List;
  * Protège les invariants et expose la logique métier liée aux documents.
  */
 @SuppressWarnings("ClassCanBeRecord")
-public class Document implements Serializable {
+public class Document implements Serializable, DomainAggregate<DocumentEntity> {
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -27,7 +28,8 @@ public class Document implements Serializable {
         this.entity = entity;
     }
 
-    public DocumentEntity getEntity() {
+    @Override
+    public DocumentEntity getEntityOnlyForRepository() {
         return this.entity;
     }
 

@@ -1,5 +1,6 @@
 package fr.dossierfacile.common.domain.model.operator;
 
+import fr.dossierfacile.common.domain.model.DomainAggregate;
 import fr.dossierfacile.common.infrastructure.entity.OperatorEntity;
 
 import java.io.Serial;
@@ -13,7 +14,7 @@ import fr.dossierfacile.common.entity.UserRole;
  * pour en contrôler l'état et protéger les invariants métiers.
  */
 @SuppressWarnings("ClassCanBeRecord")
-public class Operator implements Serializable {
+public class Operator implements Serializable, DomainAggregate<OperatorEntity> {
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -30,7 +31,8 @@ public class Operator implements Serializable {
     /**
      * Permet au Repository de récupérer l'entité interne pour les opérations de persistance (sauvegarde).
      */
-    public OperatorEntity getEntity() {
+    @Override
+    public OperatorEntity getEntityOnlyForRepository() {
         return this.entity;
     }
 

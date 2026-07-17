@@ -5,6 +5,7 @@ import fr.dossierfacile.common.enums.FileStatus;
 import fr.dossierfacile.common.enums.FileStorageStatus;
 import fr.dossierfacile.common.infrastructure.entity.ApartmentSharingEntity;
 
+import fr.dossierfacile.common.domain.model.DomainAggregate;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -14,7 +15,7 @@ import java.util.List;
  * Aggregate Root pour le concept d'ApartmentSharing (Dossier de candidature).
  */
 @SuppressWarnings("ClassCanBeRecord")
-public class ApartmentSharing implements Serializable {
+public class ApartmentSharing implements Serializable, DomainAggregate<ApartmentSharingEntity> {
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -25,7 +26,8 @@ public class ApartmentSharing implements Serializable {
         this.entity = entity;
     }
 
-    public ApartmentSharingEntity getEntity() {
+    @Override
+    public ApartmentSharingEntity getEntityOnlyForRepository() {
         return this.entity;
     }
 

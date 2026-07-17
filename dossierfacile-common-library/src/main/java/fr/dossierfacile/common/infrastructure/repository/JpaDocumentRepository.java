@@ -2,7 +2,6 @@ package fr.dossierfacile.common.infrastructure.repository;
 
 import fr.dossierfacile.common.domain.model.document.Document;
 import fr.dossierfacile.common.infrastructure.entity.DocumentEntity;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -16,7 +15,7 @@ import java.util.Optional;
  * et convertit/enveloppe les entités de persistance dans le type du domaine public {@link Document}.
  */
 @Repository
-public class JpaDocumentRepository {
+public class JpaDocumentRepository implements JpaRepository {
 
     private final JpaDocumentEntityRepository jpaDocumentEntityRepository;
 
@@ -74,18 +73,18 @@ public class JpaDocumentRepository {
      * Sauvegarde l'état de l'agrégat en persistant l'entité interne.
      */
     public void save(Document document) {
-        jpaDocumentEntityRepository.save(document.getEntity());
+        jpaDocumentEntityRepository.save(document.getEntityOnlyForRepository());
     }
 
     public void delete(Document document) {
-        jpaDocumentEntityRepository.delete(document.getEntity());
+        jpaDocumentEntityRepository.delete(document.getEntityOnlyForRepository());
     }
 
     /**
      * Sauvegarde et valide immédiatement en base de données.
      */
     public void saveAndFlush(Document document) {
-        jpaDocumentEntityRepository.saveAndFlush(document.getEntity());
+        jpaDocumentEntityRepository.saveAndFlush(document.getEntityOnlyForRepository());
     }
 }
 
@@ -93,7 +92,7 @@ public class JpaDocumentRepository {
  * Interface Spring Data JPA interne (package-private) pour la persistence de DocumentEntity.
  * Non visible en dehors de ce package pour forcer l'usage exclusif de JpaDocumentRepository.
  */
-interface JpaDocumentEntityRepository extends JpaRepository<DocumentEntity, Long> {
+interface JpaDocumentEntityRepository extends org.springframework.data.jpa.repository.JpaRepository<DocumentEntity, Long> {
 
     @Query("select d from DocumentEntity d join d.files f where f.id = :fileId")
     Optional<DocumentEntity> findByFileId(@Param("fileId") Long fileId);

@@ -1,5 +1,6 @@
 package fr.dossierfacile.common.domain.model.guarantor;
 
+import fr.dossierfacile.common.domain.model.DomainAggregate;
 import fr.dossierfacile.common.enums.TypeGuarantor;
 import fr.dossierfacile.common.infrastructure.entity.GuarantorEntity;
 import org.apache.commons.lang3.StringUtils;
@@ -13,7 +14,7 @@ import java.util.List;
  * Encapsule l'entité JPA de persistance (GuarantorEntity).
  */
 @SuppressWarnings("ClassCanBeRecord")
-public class Guarantor implements Serializable {
+public class Guarantor implements Serializable, DomainAggregate<GuarantorEntity> {
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -24,7 +25,8 @@ public class Guarantor implements Serializable {
         this.entity = entity;
     }
 
-    public GuarantorEntity getEntity() {
+    @Override
+    public GuarantorEntity getEntityOnlyForRepository() {
         return this.entity;
     }
 

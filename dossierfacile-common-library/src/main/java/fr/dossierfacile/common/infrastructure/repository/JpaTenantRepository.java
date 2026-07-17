@@ -2,7 +2,6 @@ package fr.dossierfacile.common.infrastructure.repository;
 
 import fr.dossierfacile.common.domain.model.tenant.Tenant;
 import fr.dossierfacile.common.infrastructure.entity.TenantEntity;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -15,7 +14,7 @@ import java.util.Optional;
  * et convertit/enveloppe les entités de persistance dans le type du domaine public {@link Tenant}.
  */
 @Repository
-public class JpaTenantRepository {
+public class JpaTenantRepository implements JpaRepository {
 
     private final JpaTenantEntityRepository jpaTenantEntityRepository;
 
@@ -61,14 +60,14 @@ public class JpaTenantRepository {
      * Sauvegarde l'état de l'agrégat en persistant l'entité interne.
      */
     public void save(Tenant tenant) {
-        jpaTenantEntityRepository.save(tenant.getEntity());
+        jpaTenantEntityRepository.save(tenant.getEntityOnlyForRepository());
     }
 
     /**
      * Sauvegarde et valide immédiatement en base de données.
      */
     public void saveAndFlush(Tenant tenant) {
-        jpaTenantEntityRepository.saveAndFlush(tenant.getEntity());
+        jpaTenantEntityRepository.saveAndFlush(tenant.getEntityOnlyForRepository());
     }
 }
 
@@ -76,7 +75,7 @@ public class JpaTenantRepository {
  * Interface Spring Data JPA interne (package-private) pour la persistence de TenantEntity.
  * Non visible en dehors de ce package pour forcer l'usage exclusif de JpaTenantRepository.
  */
-interface JpaTenantEntityRepository extends JpaRepository<TenantEntity, Long> {
+interface JpaTenantEntityRepository extends org.springframework.data.jpa.repository.JpaRepository<TenantEntity, Long> {
     Optional<TenantEntity> findByKeycloakId(String keycloakId);
     Optional<TenantEntity> findByEmail(String email);
 

@@ -12,7 +12,7 @@ import java.util.Optional;
  * et convertit/enveloppe les entités de persistance dans le type du domaine public {@link Operator}.
  */
 @Repository
-public class JpaOperatorRepository {
+public class JpaOperatorRepository implements JpaRepository {
 
     private final JpaOperatorEntityRepository jpaOperatorEntityRepository;
 
@@ -36,7 +36,7 @@ public class JpaOperatorRepository {
     }
 
     public Operator save(Operator operator) {
-        OperatorEntity savedEntity = jpaOperatorEntityRepository.save(operator.getEntity());
+        OperatorEntity savedEntity = jpaOperatorEntityRepository.save(operator.getEntityOnlyForRepository());
         return new Operator(savedEntity);
     }
 }

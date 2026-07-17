@@ -2,7 +2,6 @@ package fr.dossierfacile.common.infrastructure.repository;
 
 import fr.dossierfacile.common.domain.model.apartment_sharing.ApartmentSharing;
 import fr.dossierfacile.common.infrastructure.entity.ApartmentSharingEntity;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -13,7 +12,7 @@ import java.util.Optional;
  * et convertit/enveloppe les entités de persistance dans le type du domaine public {@link ApartmentSharing}.
  */
 @Repository
-public class JpaApartmentSharingRepository {
+public class JpaApartmentSharingRepository implements JpaRepository {
 
     private final JpaApartmentSharingEntityRepository jpaApartmentSharingEntityRepository;
 
@@ -33,14 +32,14 @@ public class JpaApartmentSharingRepository {
      * Sauvegarde l'état de l'agrégat en persistant l'entité interne.
      */
     public void save(ApartmentSharing apartmentSharing) {
-        jpaApartmentSharingEntityRepository.save(apartmentSharing.getEntity());
+        jpaApartmentSharingEntityRepository.save(apartmentSharing.getEntityOnlyForRepository());
     }
 
     /**
      * Sauvegarde et valide immédiatement en base de données.
      */
     public void saveAndFlush(ApartmentSharing apartmentSharing) {
-        jpaApartmentSharingEntityRepository.saveAndFlush(apartmentSharing.getEntity());
+        jpaApartmentSharingEntityRepository.saveAndFlush(apartmentSharing.getEntityOnlyForRepository());
     }
 }
 
@@ -48,5 +47,5 @@ public class JpaApartmentSharingRepository {
  * Interface Spring Data JPA interne (package-private) pour la persistence de ApartmentSharingEntity.
  * Non visible en dehors de ce package pour forcer l'usage exclusif de JpaApartmentSharingRepository.
  */
-interface JpaApartmentSharingEntityRepository extends JpaRepository<ApartmentSharingEntity, Long> {
+interface JpaApartmentSharingEntityRepository extends org.springframework.data.jpa.repository.JpaRepository<ApartmentSharingEntity, Long> {
 }

@@ -3,6 +3,7 @@ package fr.dossierfacile.common.domain.model.tenant;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.infrastructure.entity.TenantEntity;
 
+import fr.dossierfacile.common.domain.model.DomainAggregate;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -15,7 +16,7 @@ import java.util.List;
  * pour en contrôler l'état et protéger les invariants métiers.
  */
 @SuppressWarnings("ClassCanBeRecord")
-public class Tenant implements Serializable {
+public class Tenant implements Serializable, DomainAggregate<TenantEntity> {
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -32,7 +33,8 @@ public class Tenant implements Serializable {
     /**
      * Permet au Repository de récupérer l'entité interne pour les opérations de persistance (sauvegarde).
      */
-    public TenantEntity getEntity() {
+    @Override
+    public TenantEntity getEntityOnlyForRepository() {
         return this.entity;
     }
 
