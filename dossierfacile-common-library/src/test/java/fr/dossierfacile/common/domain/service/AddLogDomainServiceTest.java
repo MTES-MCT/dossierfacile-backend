@@ -13,6 +13,8 @@ import fr.dossierfacile.common.infrastructure.entity.FileEntity;
 import fr.dossierfacile.common.infrastructure.entity.OperatorEntity;
 import fr.dossierfacile.common.infrastructure.entity.TenantEntity;
 import fr.dossierfacile.common.repository.TenantLogRepository;
+import fr.dossierfacile.common.repository.OperatorLogCommonRepository;
+import fr.dossierfacile.common.repository.TenantCommonRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,6 +36,12 @@ class AddLogDomainServiceTest {
     @Mock
     private TenantLogRepository repository;
 
+    @Mock
+    private OperatorLogCommonRepository operatorLogRepository;
+
+    @Mock
+    private TenantCommonRepository tenantCommonRepository;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Captor
@@ -41,7 +49,7 @@ class AddLogDomainServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new AddLogDomainService(repository, objectMapper);
+        service = new AddLogDomainService(repository, objectMapper, operatorLogRepository, tenantCommonRepository);
     }
 
     @Test
@@ -87,5 +95,35 @@ class AddLogDomainServiceTest {
         assertThat(logged.getLogType()).isEqualTo(LogType.FILE_DELETED);
         assertThat(logged.getTenantId()).isEqualTo(2L);
         assertThat(logged.getOperatorId()).isNull();
+    }
+    
+    @Test
+    void should_add_account_validated_log() {
+        Tenant tenant = new Tenant(TenantEntity.builder().id(1L).status(fr.dossierfacile.common.enums.TenantFileStatus.VALIDATED).build());
+        fr.dossierfacile.common.entity.User operator = org.mockito.Mockito.mock(fr.dossierfacile.common.entity.User.class);
+        org.mockito.Mockito.when(operator.getId()).thenReturn(99L);
+        fr.dossierfacile.common.entity.Tenant legacyTenant = fr.dossierfacile.common.entity.Tenant.builder().id(1L).build();
+        
+        org.mockito.Mockito.when(tenantCommonRepository.getReferenceById(1L)).thenReturn(legacyTenant);
+        
+        service.addAccountValidatedLog(tenant, java.util.Optional.of(operator));
+        
+        verify(repository).save(org.mockito.ArgumentMatchers.any(TenantLog.class));
+        verify(operatorLogRepository).save(org.mockito.ArgumentMatchers.any(fr.dossierfacile.common.entity.OperatorLog.class));
+    }
+    
+    @Test
+    void should_add_account_denied_log() {
+        Tenant tenant = new Tenant(TenantEntity.builder().id(1L).status(fr.dossierfacile.common.enums.TenantFileStatus.DECLINED).build());
+        fr.dossierfacile.common.entity.User operator = org.mockito.Mockito.mock(fr.dossierfacile.common.entity.User.class);
+        org.mockito.Mockito.when(operator.getId()).thenReturn(99L);
+        fr.dossierfacile.common.entity.Tenant legacyTenant = fr.dossierfacile.common.entity.Tenant.builder().id(1L).build();
+        
+        org.mockito.Mockito.when(tenantCommonRepository.getReferenceById(1L)).thenReturn(legacyTenant);
+        
+        service.addAccountDeniedLog(tenant, java.util.Optional.of(operator));
+        
+        verify(repository).save(org.mockito.ArgumentMatchers.any(TenantLog.class));
+        verify(operatorLogRepository).save(org.mockito.ArgumentMatchers.any(fr.dossierfacile.common.entity.OperatorLog.class));
     }
 }

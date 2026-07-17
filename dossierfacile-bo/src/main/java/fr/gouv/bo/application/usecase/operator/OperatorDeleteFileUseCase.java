@@ -1,7 +1,7 @@
 package fr.gouv.bo.application.usecase.operator;
 
 import fr.dossierfacile.common.application.exception.ModelNotFoundException;
-import fr.dossierfacile.common.application.service.FileDeletionProcessService;
+import fr.dossierfacile.common.domain.service.FileDeletionDomainService;
 import fr.dossierfacile.common.application.usecase.BaseUseCase;
 import fr.dossierfacile.common.domain.event.DocumentModifiedEvent;
 import fr.dossierfacile.common.domain.model.apartment_sharing.ApartmentSharing;
@@ -32,7 +32,7 @@ public class OperatorDeleteFileUseCase extends BaseUseCase<OperatorDeleteFileUse
 
     private final JpaDocumentRepository jpaDocumentRepository;
     private final TenantResolverDomainService tenantResolverDomainService;
-    private final FileDeletionProcessService fileDeletionProcessService;
+    private final FileDeletionDomainService fileDeletionDomainService;
     private final JpaApartmentSharingRepository jpaApartmentSharingRepository;
     private final JpaOperatorRepository jpaOperatorRepository;
     private final OperatorAccessPolicy operatorAccessPolicy;
@@ -45,7 +45,7 @@ public class OperatorDeleteFileUseCase extends BaseUseCase<OperatorDeleteFileUse
             PlatformTransactionManager transactionManager,
             JpaDocumentRepository jpaDocumentRepository,
             TenantResolverDomainService tenantResolverDomainService,
-            FileDeletionProcessService fileDeletionProcessService,
+            FileDeletionDomainService fileDeletionDomainService,
             JpaApartmentSharingRepository jpaApartmentSharingRepository,
             JpaOperatorRepository jpaOperatorRepository,
             OperatorAccessPolicy operatorAccessPolicy,
@@ -57,7 +57,7 @@ public class OperatorDeleteFileUseCase extends BaseUseCase<OperatorDeleteFileUse
         super(transactionManager);
         this.jpaDocumentRepository = jpaDocumentRepository;
         this.tenantResolverDomainService = tenantResolverDomainService;
-        this.fileDeletionProcessService = fileDeletionProcessService;
+        this.fileDeletionDomainService = fileDeletionDomainService;
         this.jpaApartmentSharingRepository = jpaApartmentSharingRepository;
         this.jpaOperatorRepository = jpaOperatorRepository;
         this.operatorAccessPolicy = operatorAccessPolicy;
@@ -90,8 +90,8 @@ public class OperatorDeleteFileUseCase extends BaseUseCase<OperatorDeleteFileUse
             operatorAccessPolicy.validateAccess(operator, targetTenant, hasAccess);
             log.info("Access policy validation succeeded for operator on tenant id={}", targetTenant.getId());
 
-            log.info("Calling fileDeletionProcessService for fileId={}", command.fileId());
-            var savedDocument = fileDeletionProcessService.processFileDeletion(command.fileId(), document, targetTenant, apartmentSharing, Optional.of(operator));
+            log.info("Calling fileDeletionDomainService for fileId={}", command.fileId());
+            var savedDocument = fileDeletionDomainService.deleteFile(command.fileId(), document, targetTenant, apartmentSharing, Optional.of(operator));
 
             var userOp = userRepository.findByEmail(command.operatorEmail()).orElseThrow(() -> new ModelNotFoundException(User.class, command.operatorEmail()));
             log.info("Updating tenant status for tenant id={}", targetTenant.getId());

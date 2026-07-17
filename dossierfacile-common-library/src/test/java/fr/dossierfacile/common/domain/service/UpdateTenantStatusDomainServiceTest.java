@@ -47,9 +47,12 @@ class UpdateTenantStatusDomainServiceTest {
     @Mock
     private org.springframework.context.ApplicationEventPublisher eventPublisher;
 
+    @Mock
+    private AddLogDomainService addLogDomainService;
+
     @BeforeEach
     void setUp() {
-        service = new UpdateTenantStatusDomainService(jpaTenantRepository, jpaDocumentRepository, jpaGuarantorRepository, eventPublisher);
+        service = new UpdateTenantStatusDomainService(jpaTenantRepository, jpaDocumentRepository, jpaGuarantorRepository, eventPublisher, addLogDomainService);
     }
 
     @Nested
@@ -294,6 +297,104 @@ class UpdateTenantStatusDomainServiceTest {
             when(jpaDocumentRepository.getDocumentsByGuarantorsIds(List.of(100L))).thenReturn(guarantorDocs);
 
             assertThat(service.computeTenantStatus(tenant)).isEqualTo(TenantFileStatus.VALIDATED);
+        }
+    }
+
+    @Nested
+    @DisplayName("Tests for updateTenantStatus()")
+    class UpdateTenantStatusTest {
+
+        private void setupToReturnStatus(TenantFileStatus targetStatus) {
+            if (targetStatus == TenantFileStatus.VALIDATED) {
+                List<Document> tenantDocs = new ArrayList<>(List.of(
+                        new Document(DocumentEntity.builder().documentCategory(DocumentCategory.IDENTIFICATION).documentStatus(DocumentStatus.VALIDATED).build()),
+                        new Document(DocumentEntity.builder().documentCategory(DocumentCategory.RESIDENCY).documentStatus(DocumentStatus.VALIDATED).build()),
+                        new Document(DocumentEntity.builder().documentCategory(DocumentCategory.PROFESSIONAL).documentStatus(DocumentStatus.VALIDATED).build()),
+                        new Document(DocumentEntity.builder().documentCategory(DocumentCategory.FINANCIAL).documentStatus(DocumentStatus.VALIDATED).build()),
+                        new Document(DocumentEntity.builder().documentCategory(DocumentCategory.TAX).documentStatus(DocumentStatus.VALIDATED).build())
+                ));
+                when(jpaDocumentRepository.getDocumentsByTenantId(1L)).thenReturn(tenantDocs);
+                when(jpaGuarantorRepository.findByTenantId(1L)).thenReturn(List.of());
+                when(jpaDocumentRepository.getDocumentsByGuarantorsIds(anyList())).thenReturn(List.of());
+            } else if (targetStatus == TenantFileStatus.DECLINED) {
+                List<Document> tenantDocs = new ArrayList<>(List.of(
+                        new Document(DocumentEntity.builder().documentCategory(DocumentCategory.IDENTIFICATION).documentStatus(DocumentStatus.DECLINED).build())
+                ));
+                when(jpaDocumentRepository.getDocumentsByTenantId(1L)).thenReturn(tenantDocs);
+                when(jpaGuarantorRepository.findByTenantId(1L)).thenReturn(List.of());
+                when(jpaDocumentRepository.getDocumentsByGuarantorsIds(anyList())).thenReturn(List.of());
+            } else if (targetStatus == TenantFileStatus.TO_PROCESS) {
+                List<Document> tenantDocs = new ArrayList<>(List.of(
+                        new Document(DocumentEntity.builder().documentCategory(DocumentCategory.IDENTIFICATION).documentStatus(DocumentStatus.TO_PROCESS).build()),
+                        new Document(DocumentEntity.builder().documentCategory(DocumentCategory.RESIDENCY).documentStatus(DocumentStatus.VALIDATED).build()),
+                        new Document(DocumentEntity.builder().documentCategory(DocumentCategory.PROFESSIONAL).documentStatus(DocumentStatus.VALIDATED).build()),
+                        new Document(DocumentEntity.builder().documentCategory(DocumentCategory.FINANCIAL).documentStatus(DocumentStatus.VALIDATED).build()),
+                        new Document(DocumentEntity.builder().documentCategory(DocumentCategory.TAX).documentStatus(DocumentStatus.VALIDATED).build())
+                ));
+                when(jpaDocumentRepository.getDocumentsByTenantId(1L)).thenReturn(tenantDocs);
+                when(jpaGuarantorRepository.findByTenantId(1L)).thenReturn(List.of());
+                when(jpaDocumentRepository.getDocumentsByGuarantorsIds(anyList())).thenReturn(List.of());
+            }
+        }
+
+        @Test
+        @DisplayName("Should update status, save, log and publish event when status changes to VALIDATED")
+        void should_update_save_log_and_publish_when_status_changes_to_validated() {
+            TenantEntity entity = TenantEntity.builder().id(1L).status(TenantFileStatus.TO_PROCESS).honorDeclaration(true).build();
+            Tenant tenant = new Tenant(entity);
+            fr.dossierfacile.common.entity.User operator = mock(fr.dossierfacile.common.entity.User.class);
+
+            setupToReturnStatus(TenantFileStatus.VALIDATED);
+
+            var result = service.updateTenantStatus(tenant, operator);
+
+            assertThat(result.hasBeenUpdated()).isTrue();
+            assertThat(result.newStatus()).isEqualTo(TenantFileStatus.VALIDATED);
+            assertThat(tenant.getStatus()).isEqualTo(TenantFileStatus.VALIDATED);
+
+            verify(jpaTenantRepository).save(tenant);
+            verify(addLogDomainService).addAccountValidatedLog(tenant, java.util.Optional.of(operator));
+            verify(eventPublisher).publishEvent(any(fr.dossierfacile.common.domain.event.TenantStatusChangedEvent.class));
+        }
+
+        @Test
+        @DisplayName("Should update status, save, log and publish event when status changes to DECLINED")
+        void should_update_save_log_and_publish_when_status_changes_to_declined() {
+            TenantEntity entity = TenantEntity.builder().id(1L).status(TenantFileStatus.TO_PROCESS).honorDeclaration(true).build();
+            Tenant tenant = new Tenant(entity);
+            fr.dossierfacile.common.entity.User operator = mock(fr.dossierfacile.common.entity.User.class);
+
+            setupToReturnStatus(TenantFileStatus.DECLINED);
+
+            var result = service.updateTenantStatus(tenant, operator);
+
+            assertThat(result.hasBeenUpdated()).isTrue();
+            assertThat(result.newStatus()).isEqualTo(TenantFileStatus.DECLINED);
+            assertThat(tenant.getStatus()).isEqualTo(TenantFileStatus.DECLINED);
+
+            verify(jpaTenantRepository).save(tenant);
+            verify(addLogDomainService).addAccountDeniedLog(tenant, java.util.Optional.of(operator));
+            verify(eventPublisher).publishEvent(any(fr.dossierfacile.common.domain.event.TenantStatusChangedEvent.class));
+        }
+
+        @Test
+        @DisplayName("Should save but not log or publish event when status does not change")
+        void should_save_but_not_log_or_publish_when_status_does_not_change() {
+            TenantEntity entity = TenantEntity.builder().id(1L).status(TenantFileStatus.TO_PROCESS).honorDeclaration(true).build();
+            Tenant tenant = new Tenant(entity);
+            fr.dossierfacile.common.entity.User operator = mock(fr.dossierfacile.common.entity.User.class);
+
+            setupToReturnStatus(TenantFileStatus.TO_PROCESS);
+
+            var result = service.updateTenantStatus(tenant, operator);
+
+            assertThat(result.hasBeenUpdated()).isFalse();
+            assertThat(result.newStatus()).isEqualTo(TenantFileStatus.TO_PROCESS);
+            assertThat(tenant.getStatus()).isEqualTo(TenantFileStatus.TO_PROCESS);
+
+            verify(jpaTenantRepository).save(tenant);
+            verifyNoInteractions(addLogDomainService);
+            verifyNoInteractions(eventPublisher);
         }
     }
 }

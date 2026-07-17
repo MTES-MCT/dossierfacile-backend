@@ -8,6 +8,8 @@ import org.hibernate.annotations.DynamicUpdate;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 
 @Entity
@@ -43,7 +45,7 @@ public class FileEntity implements Serializable {
 
     @Builder.Default
     @Column(name = "creation_date")
-    private Date creationDateTime = new Date();
+    private LocalDateTime creationDateTime = LocalDateTime.now(ZoneId.systemDefault());
 
     // Garde fou pour ne pas laisser de storage file orphelin dans la db.
     @PreRemove

@@ -1,7 +1,7 @@
 package fr.gouv.bo.application.usecase.operator;
 
 import fr.dossierfacile.common.application.exception.ModelNotFoundException;
-import fr.dossierfacile.common.application.service.FileDeletionProcessService;
+import fr.dossierfacile.common.domain.service.FileDeletionDomainService;
 import fr.dossierfacile.common.domain.model.apartment_sharing.ApartmentSharing;
 import fr.dossierfacile.common.domain.model.document.Document;
 import fr.dossierfacile.common.domain.model.operator.Operator;
@@ -55,7 +55,7 @@ class OperatorDeleteFileUseCaseTest {
     @Mock
     private TenantResolverDomainService tenantResolverDomainService;
     @Mock
-    private FileDeletionProcessService fileDeletionProcessService;
+    private FileDeletionDomainService fileDeletionDomainService;
     @Mock
     private JpaApartmentSharingRepository jpaApartmentSharingRepository;
     @Mock
@@ -82,7 +82,7 @@ class OperatorDeleteFileUseCaseTest {
                 transactionManager,
                 jpaDocumentRepository,
                 tenantResolverDomainService,
-                fileDeletionProcessService,
+                fileDeletionDomainService,
                 jpaApartmentSharingRepository,
                 jpaOperatorRepository,
                 operatorAccessPolicy,
@@ -129,14 +129,14 @@ class OperatorDeleteFileUseCaseTest {
 
         fr.dossierfacile.common.entity.BOUser legacyUser = mock(fr.dossierfacile.common.entity.BOUser.class);
         when(userRepository.findByEmail("operator@test.fr")).thenReturn(Optional.of(legacyUser));
-        when(fileDeletionProcessService.processFileDeletion(eq(100L), eq(document), eq(tenant), eq(apartmentSharing), any())).thenReturn(Optional.of(document));
+        when(fileDeletionDomainService.deleteFile(eq(100L), eq(document), eq(tenant), eq(apartmentSharing), any())).thenReturn(Optional.of(document));
         when(updateTenantStatusDomainService.updateTenantStatus(tenant, legacyUser)).thenReturn(new UpdateTenantStatusDomainService.UpdateTenantStatusResult(false, 1L, TenantFileStatus.TO_PROCESS));
 
         var result = useCase.execute(command);
 
         assertThat(result).isNotNull();
         verify(operatorAccessPolicy).validateAccess(operator, tenant, true);
-        verify(fileDeletionProcessService).processFileDeletion(eq(100L), eq(document), eq(tenant), eq(apartmentSharing), any());
+        verify(fileDeletionDomainService).deleteFile(eq(100L), eq(document), eq(tenant), eq(apartmentSharing), any());
         verify(eventPublisher).publishEvent(any(fr.dossierfacile.common.domain.event.DocumentModifiedEvent.class));
     }
 
@@ -156,7 +156,7 @@ class OperatorDeleteFileUseCaseTest {
 
         fr.dossierfacile.common.entity.BOUser legacyUser = mock(fr.dossierfacile.common.entity.BOUser.class);
         when(userRepository.findByEmail("operator@test.fr")).thenReturn(Optional.of(legacyUser));
-        when(fileDeletionProcessService.processFileDeletion(eq(100L), eq(document), eq(tenant), eq(apartmentSharing), any())).thenReturn(Optional.empty());
+        when(fileDeletionDomainService.deleteFile(eq(100L), eq(document), eq(tenant), eq(apartmentSharing), any())).thenReturn(Optional.empty());
         when(updateTenantStatusDomainService.updateTenantStatus(tenant, legacyUser)).thenReturn(new UpdateTenantStatusDomainService.UpdateTenantStatusResult(false, 1L, TenantFileStatus.TO_PROCESS));
 
         var result = useCase.execute(command);

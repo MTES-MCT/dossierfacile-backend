@@ -8,7 +8,6 @@ import fr.dossierfacile.common.entity.User;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.TenantFileStatus;
-import fr.dossierfacile.common.enums.TypeGuarantor;
 import fr.dossierfacile.common.infrastructure.repository.JpaDocumentRepository;
 import fr.dossierfacile.common.infrastructure.repository.JpaGuarantorRepository;
 import fr.dossierfacile.common.infrastructure.repository.JpaTenantRepository;
@@ -19,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +29,7 @@ public class UpdateTenantStatusDomainService {
     private final JpaDocumentRepository jpaDocumentRepository;
     private final JpaGuarantorRepository jpaGuarantorRepository;
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
+    private final AddLogDomainService addLogDomainService;
 
     private final List<DocumentCategory> mandatoryCategoriesForTenantAndGuarantorMandatoryCategories = List.of(
             DocumentCategory.IDENTIFICATION,
@@ -50,6 +51,12 @@ public class UpdateTenantStatusDomainService {
             tenant.setStatus(newStatus);
             jpaTenantRepository.save(tenant);
             
+            if (newStatus == TenantFileStatus.VALIDATED) {
+                addLogDomainService.addAccountValidatedLog(tenant, Optional.ofNullable(operator));
+            } else if (newStatus == TenantFileStatus.DECLINED) {
+                addLogDomainService.addAccountDeniedLog(tenant, Optional.ofNullable(operator));
+            }
+
             // Publish domain event
             eventPublisher.publishEvent(new TenantStatusChangedEvent(
                     tenant.getId(),
@@ -100,11 +107,7 @@ public class UpdateTenantStatusDomainService {
         if (documents == null || documents.isEmpty()) {
             return false;
         }
-        List<DocumentCategory> existingCategories = documents.stream()
-                .map(Document::getDocumentCategory)
-                .toList();
-
-        return new HashSet<>(existingCategories).containsAll(mandatoryCategoriesForTenantAndGuarantorMandatoryCategories);
+        return hasAllMandatoryCategories(documents, mandatoryCategoriesForTenantAndGuarantorMandatoryCategories);
     }
 
     private boolean areAllGuarantorsComplete(List<Guarantor> guarantors, List<Document> guarantorDocuments) {
@@ -117,36 +120,35 @@ public class UpdateTenantStatusDomainService {
                     .filter(d -> guarantor.getId().equals(d.getGuarantorId()))
                     .toList();
 
-            if (documentsForGuarantor.isEmpty()) {
+            if (!isGuarantorComplete(guarantor, documentsForGuarantor)) {
                 return false;
-            }
-
-            if (guarantor.getTypeGuarantor() == TypeGuarantor.ORGANISM) {
-                // Must have exactly one Document of type GUARANTEE_PROVIDER_CERTIFICATE
-                if (documentsForGuarantor.size() != 1 || documentsForGuarantor.getFirst().getDocumentCategory() != DocumentCategory.GUARANTEE_PROVIDER_CERTIFICATE) {
-                    return false;
-                }
-            } else if (guarantor.getTypeGuarantor() == TypeGuarantor.NATURAL_PERSON) {
-                List<DocumentCategory> existing = documentsForGuarantor.stream()
-                        .map(Document::getDocumentCategory)
-                        .toList();
-                if (!new HashSet<>(existing).containsAll(mandatoryCategoriesForTenantAndGuarantorMandatoryCategories)) {
-                    return false;
-                }
-            } else if (guarantor.getTypeGuarantor() == TypeGuarantor.LEGAL_PERSON) {
-                List<DocumentCategory> mandatory = List.of(
-                        DocumentCategory.IDENTIFICATION,
-                        DocumentCategory.IDENTIFICATION_LEGAL_PERSON
-                );
-                List<DocumentCategory> existing = documentsForGuarantor.stream()
-                        .map(Document::getDocumentCategory)
-                        .toList();
-                if (!new HashSet<>(existing).containsAll(mandatory)) {
-                    return false;
-                }
             }
         }
         return true;
+    }
+
+    private boolean isGuarantorComplete(Guarantor guarantor, List<Document> documentsForGuarantor) {
+        if (documentsForGuarantor.isEmpty()) {
+            return false;
+        }
+
+        return switch (guarantor.getTypeGuarantor()) {
+            case ORGANISM -> documentsForGuarantor.size() == 1 &&
+                    documentsForGuarantor.getFirst().getDocumentCategory() == DocumentCategory.GUARANTEE_PROVIDER_CERTIFICATE;
+            case NATURAL_PERSON -> hasAllMandatoryCategories(documentsForGuarantor, mandatoryCategoriesForTenantAndGuarantorMandatoryCategories);
+            case LEGAL_PERSON -> hasAllMandatoryCategories(documentsForGuarantor, List.of(
+                    DocumentCategory.IDENTIFICATION,
+                    DocumentCategory.IDENTIFICATION_LEGAL_PERSON
+            ));
+            default -> false;
+        };
+    }
+
+    private boolean hasAllMandatoryCategories(List<Document> documents, List<DocumentCategory> mandatoryCategories) {
+        List<DocumentCategory> existingCategories = documents.stream()
+                .map(Document::getDocumentCategory)
+                .toList();
+        return new HashSet<>(existingCategories).containsAll(mandatoryCategories);
     }
 
     public record UpdateTenantStatusResult(

@@ -8,6 +8,7 @@ import org.hibernate.annotations.SQLRestriction;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Set;
 import java.util.HashSet;
 import fr.dossierfacile.common.entity.UserRole;
@@ -43,11 +44,11 @@ public class OperatorEntity implements Serializable {
 
     @Column(name = "creation_date")
     @Builder.Default
-    private LocalDateTime creationDate = LocalDateTime.now();
+    private LocalDateTime creationDate = LocalDateTime.now(ZoneId.systemDefault());
 
     @Column(name = "last_login_date")
     @Builder.Default
-    private LocalDateTime lastLoginDate = LocalDateTime.now();
+    private LocalDateTime lastLoginDate = LocalDateTime.now(ZoneId.systemDefault());
 
     @OneToMany(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", insertable = false, updatable = false)

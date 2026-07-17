@@ -15,11 +15,10 @@ import java.util.stream.Collectors;
 public class OperatorAccessPolicy {
 
     public void validateAccess(Operator operator, Tenant tenant, boolean hasAccessToTenant) {
-        if (isOperatorOnly(operator)) {
-            if (!hasAccessToTenant) {
-                log.warn("OPERATOR id={} attempted to access unassigned tenant id={}", operator.getId(), tenant.getId());
-                throw new UnauthorizedException("Operator does not have access to tenant");
-            }
+        if (isOperatorOnly(operator) && !hasAccessToTenant) {
+            log.warn("OPERATOR id={} attempted to access unassigned tenant id={}", operator.getId(), tenant.getId());
+            throw new UnauthorizedException("Operator does not have access to tenant");
+
         }
     }
 

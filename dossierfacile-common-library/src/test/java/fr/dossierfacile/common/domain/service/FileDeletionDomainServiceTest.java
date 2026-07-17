@@ -8,7 +8,11 @@ import fr.dossierfacile.common.enums.FileStorageStatus;
 import fr.dossierfacile.common.infrastructure.entity.DocumentEntity;
 import fr.dossierfacile.common.infrastructure.entity.FileEntity;
 import fr.dossierfacile.common.infrastructure.entity.TenantEntity;
+import fr.dossierfacile.common.infrastructure.repository.JpaApartmentSharingRepository;
 import fr.dossierfacile.common.infrastructure.repository.JpaDocumentRepository;
+import fr.dossierfacile.common.infrastructure.repository.JpaTenantRepository;
+import fr.dossierfacile.common.domain.model.apartment_sharing.ApartmentSharing;
+import fr.dossierfacile.common.infrastructure.entity.ApartmentSharingEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,12 +40,20 @@ class FileDeletionDomainServiceTest {
     @Mock
     private MessagePublisher messagePublisher;
 
+    @Mock
+    private JpaApartmentSharingRepository jpaApartmentSharingRepository;
+
+    @Mock
+    private JpaTenantRepository jpaTenantRepository;
+
     @BeforeEach
     void setUp() {
         fileDeletionDomainService = new FileDeletionDomainService(
                 addLogDomainService,
                 jpaDocumentRepository,
-                messagePublisher
+                messagePublisher,
+                jpaApartmentSharingRepository,
+                jpaTenantRepository
         );
     }
 
@@ -67,8 +79,10 @@ class FileDeletionDomainServiceTest {
         fileToDelete.setDocument(documentEntity);
         otherFile.setDocument(documentEntity);
 
+        ApartmentSharing apartmentSharing = new ApartmentSharing(ApartmentSharingEntity.builder().id(50L).build());
+
         // When
-        Optional<Document> result = fileDeletionDomainService.deleteFile(100L, document, targetTenant, Optional.empty());
+        Optional<Document> result = fileDeletionDomainService.deleteFile(100L, document, targetTenant, apartmentSharing, Optional.empty());
 
         // Then
         assertThat(result).isPresent();
@@ -80,6 +94,8 @@ class FileDeletionDomainServiceTest {
         verify(jpaDocumentRepository).save(document);
         verify(jpaDocumentRepository, never()).delete(any());
         verify(messagePublisher).sendDocumentForPdfGeneration(10L);
+        verify(jpaApartmentSharingRepository).save(apartmentSharing);
+        verify(jpaTenantRepository).save(targetTenant);
     }
 
     @Test
@@ -111,8 +127,10 @@ class FileDeletionDomainServiceTest {
 
         when(jpaDocumentRepository.getDocumentsByTenantId(1L)).thenReturn(List.of(otherDocument));
 
+        ApartmentSharing apartmentSharing = new ApartmentSharing(ApartmentSharingEntity.builder().id(50L).build());
+
         // When
-        Optional<Document> result = fileDeletionDomainService.deleteFile(100L, document, targetTenant, Optional.empty());
+        Optional<Document> result = fileDeletionDomainService.deleteFile(100L, document, targetTenant, apartmentSharing, Optional.empty());
 
         // Then
         assertThat(result).isEmpty();
@@ -123,5 +141,7 @@ class FileDeletionDomainServiceTest {
         verify(jpaDocumentRepository).getDocumentsByTenantId(1L);
         verify(messagePublisher).sendDocumentForPdfGeneration(20L);
         verify(jpaDocumentRepository).delete(document);
+        verify(jpaApartmentSharingRepository).save(apartmentSharing);
+        verify(jpaTenantRepository).save(targetTenant);
     }
 }

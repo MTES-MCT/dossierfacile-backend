@@ -10,6 +10,11 @@ import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.infrastructure.entity.FileEntity;
 import fr.dossierfacile.common.model.log.DocumentLogDetails;
 import fr.dossierfacile.common.model.log.FileLogDetails;
+import fr.dossierfacile.common.entity.OperatorLog;
+import fr.dossierfacile.common.entity.User;
+import fr.dossierfacile.common.enums.ActionOperatorType;
+import fr.dossierfacile.common.repository.OperatorLogCommonRepository;
+import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.repository.TenantLogRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +31,8 @@ public class AddLogDomainService {
 
     private final TenantLogRepository repository;
     private final ObjectMapper objectMapper;
+    private final OperatorLogCommonRepository operatorLogRepository;
+    private final TenantCommonRepository tenantCommonRepository;
 
     public void addDocumentDeletedLog(Document document, Tenant editor, Optional<Operator> operator) {
         DocumentLogDetails details = DocumentLogDetails.builder()
@@ -66,5 +73,27 @@ public class AddLogDomainService {
             log.error("FATAL: Cannot write log details as object node", e);
         }
         return null;
+    }
+
+    public void addAccountValidatedLog(Tenant tenant, Optional<User> operator) {
+        TenantLog tenantLog = new TenantLog(LogType.ACCOUNT_VALIDATED, tenant.getId(), operator.map(User::getId).orElse(null));
+        repository.save(tenantLog);
+
+        operator.ifPresent(op -> {
+            // TODO Quand OperatorLog va être transformer en entité "v2" il faudra viré le lien vers le Tenant en dur !
+            // Comme ça on a pas besoin de load un tenant ici !
+            fr.dossierfacile.common.entity.Tenant tenantProxy = tenantCommonRepository.getReferenceById(tenant.getId());
+            operatorLogRepository.save(new OperatorLog(tenantProxy, op, tenant.getStatus(), ActionOperatorType.STOP_PROCESS, 1, null));
+        });
+    }
+
+    public void addAccountDeniedLog(Tenant tenant, Optional<User> operator) {
+        TenantLog tenantLog = new TenantLog(LogType.ACCOUNT_DENIED, tenant.getId(), operator.map(User::getId).orElse(null), null);
+        repository.save(tenantLog);
+
+        operator.ifPresent(op -> {
+            fr.dossierfacile.common.entity.Tenant tenantProxy = tenantCommonRepository.getReferenceById(tenant.getId());
+            operatorLogRepository.save(new OperatorLog(tenantProxy, op, tenant.getStatus(), ActionOperatorType.STOP_PROCESS, 1, null));
+        });
     }
 }
