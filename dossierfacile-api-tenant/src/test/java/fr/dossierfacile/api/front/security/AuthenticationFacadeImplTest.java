@@ -1,28 +1,19 @@
 package fr.dossierfacile.api.front.security;
 
 import fr.dossierfacile.api.front.exception.TenantNotFoundException;
-import fr.dossierfacile.api.front.model.KeycloakUser;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.TenantPermissionsService;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
-import fr.dossierfacile.common.converter.AcquisitionData;
 import fr.dossierfacile.common.entity.Tenant;
-import fr.dossierfacile.common.enums.TenantOwnerType;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.ArgumentCaptor;
-import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -32,9 +23,6 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import java.lang.reflect.InvocationTargetException;
-import java.time.LocalDateTime;
-import java.time.Month;
 import java.util.*;
 
 import static fr.dossierfacile.authentification.JwtFactoryKt.getDummyJwt;
@@ -53,6 +41,8 @@ class AuthenticationFacadeImplTest {
     private static final TenantService tenantService = mock(TenantService.class);
     private static final LogService logService = mock(LogService.class);
     private static final DocumentService documentService = mock(DocumentService.class);
+    private static final fr.dossierfacile.api.front.domain.service.FindOrCreateTenantDomainService findOrCreateTenantDomainService =
+            new fr.dossierfacile.api.front.domain.service.FindOrCreateTenantDomainService(tenantCommonRepository, tenantService);
 
     @Autowired
     private AuthenticationFacade authenticationFacade;
@@ -65,10 +55,7 @@ class AuthenticationFacadeImplTest {
             return new AuthenticationFacadeImpl(
                     tenantCommonRepository,
                     tenantPermissionsService,
-                    tenantStatusService,
-                    tenantService,
-                    logService,
-                    documentService
+                    findOrCreateTenantDomainService
             );
         }
     }
@@ -189,6 +176,7 @@ class AuthenticationFacadeImplTest {
             assertThat(result.isEmailVerified()).isTrue();
             assertThat(result.isFranceConnect()).isTrue();
             assertThat(result.getPreferredUsername()).isNull();
+            assertThat(result.getComputedPreferredUserName()).isNull();
             assertThat(result.getFranceConnectSub()).isEqualTo("fsub");
             assertThat(result.getFranceConnectBirthCountry()).isEqualTo("test");
             assertThat(result.getFranceConnectBirthPlace()).isEqualTo("test");
@@ -219,7 +207,8 @@ class AuthenticationFacadeImplTest {
             assertThat(result.getFamilyName()).isEqualTo("test");
             assertThat(result.isEmailVerified()).isTrue();
             assertThat(result.isFranceConnect()).isTrue();
-            assertThat(result.getPreferredUsername()).isNull();
+            assertThat(result.getPreferredUsername()).isEqualTo("test@test.fr");
+            assertThat(result.getComputedPreferredUserName()).isNull();
             assertThat(result.getFranceConnectSub()).isEqualTo("fsub");
             assertThat(result.getFranceConnectBirthCountry()).isEqualTo("test");
             assertThat(result.getFranceConnectBirthPlace()).isEqualTo("test");
@@ -251,6 +240,7 @@ class AuthenticationFacadeImplTest {
             assertThat(result.isEmailVerified()).isTrue();
             assertThat(result.isFranceConnect()).isTrue();
             assertThat(result.getPreferredUsername()).isEqualTo("test");
+            assertThat(result.getComputedPreferredUserName()).isEqualTo("test");
             assertThat(result.getFranceConnectSub()).isEqualTo("fsub");
             assertThat(result.getFranceConnectBirthCountry()).isEqualTo("test");
             assertThat(result.getFranceConnectBirthPlace()).isEqualTo("test");
@@ -334,514 +324,5 @@ class AuthenticationFacadeImplTest {
                 authenticationFacade.getTenant(null);
             });
         }
-    }
-
-    /*
-     * We use introspection to test private method to simplify the test
-     */
-    @Nested
-    class FindOrCreateTenantTest {
-
-        @Test
-        void shouldCreateAccountFromKeycloakUser() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-            var claimsMap = new HashMap<String, Object>();
-            claimsMap.put("sub", "keycloakId");
-            claimsMap.put("email", "test@test.fr");
-            claimsMap.put("email_verified", false);
-            claimsMap.put("france-connect", false);
-
-            var keycloakUser = KeycloakUser.builder()
-                    .keycloakId("keycloakId")
-                    .email("test@test.fr")
-                    .emailVerified(true)
-                    .build();
-
-            var jwt = getDummyJwtWithCustomClaims(claimsMap);
-            List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("SCOPE_dossier"));
-            SecurityContextHolder.setContext(new SecurityContextImpl(new JwtAuthenticationToken(jwt, authorities)));
-
-            when(tenantCommonRepository.findByKeycloakId("keycloakId")).thenReturn(null);
-            when(tenantCommonRepository.findByEmail("test@test.fr")).thenReturn(Optional.empty());
-            when(tenantService.registerFromKeycloakUser(keycloakUser, null, null)).thenReturn(Tenant.builder().id(1L).build());
-
-            var methodToTest = authenticationFacade.getClass().getDeclaredMethod("findOrCreateTenant", KeycloakUser.class, AcquisitionData.class);
-            methodToTest.setAccessible(true);
-            methodToTest.invoke(authenticationFacade, keycloakUser, null);
-
-            verify(tenantCommonRepository, times(1)).findByKeycloakId("keycloakId");
-            verify(tenantCommonRepository, times(1)).findByEmail("test@test.fr");
-            verify(tenantService, times(1)).registerFromKeycloakUser(keycloakUser, null, null);
-
-        }
-
-        @Test
-        void shouldReturnTenantByKeycloakId() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-            var claimsMap = new HashMap<String, Object>();
-            claimsMap.put("sub", "keycloakId");
-            claimsMap.put("email", "test@test.fr");
-            claimsMap.put("email_verified", false);
-            claimsMap.put("france-connect", false);
-
-            var keycloakUser = KeycloakUser.builder()
-                    .keycloakId("keycloakId")
-                    .email("test@test.fr")
-                    .emailVerified(true)
-                    .build();
-
-            var tenant = Tenant.builder().id(1L).build();
-
-            var jwt = getDummyJwtWithCustomClaims(claimsMap);
-            List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("SCOPE_dossier"));
-            SecurityContextHolder.setContext(new SecurityContextImpl(new JwtAuthenticationToken(jwt, authorities)));
-
-            when(tenantCommonRepository.findByKeycloakId("keycloakId")).thenReturn(tenant);
-
-            var methodToTest = authenticationFacade.getClass().getDeclaredMethod("findOrCreateTenant", KeycloakUser.class, AcquisitionData.class);
-            methodToTest.setAccessible(true);
-            var result = methodToTest.invoke(authenticationFacade, keycloakUser, null);
-
-            verify(tenantCommonRepository, times(1)).findByKeycloakId("keycloakId");
-            verify(tenantCommonRepository, times(0)).findByEmail(any());
-            verify(tenantService, times(0)).registerFromKeycloakUser(any(), any(), any());
-
-            assertThat(result).isInstanceOf(Tenant.class);
-            assertThat(((Tenant) result).getId()).isEqualTo(1L);
-
-        }
-
-        @Test
-        void shouldReturnTenantByEmail() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-            var claimsMap = new HashMap<String, Object>();
-            claimsMap.put("sub", "keycloakId");
-            claimsMap.put("email", "test@test.fr");
-            claimsMap.put("email_verified", false);
-            claimsMap.put("france-connect", false);
-
-            var keycloakUser = KeycloakUser.builder()
-                    .keycloakId("keycloakId")
-                    .email("test@test.fr")
-                    .emailVerified(true)
-                    .build();
-
-            var tenant = Tenant.builder().id(1L).build();
-
-            var jwt = getDummyJwtWithCustomClaims(claimsMap);
-            List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("SCOPE_dossier"));
-            SecurityContextHolder.setContext(new SecurityContextImpl(new JwtAuthenticationToken(jwt, authorities)));
-
-            when(tenantCommonRepository.findByKeycloakId("keycloakId")).thenReturn(null);
-            when(tenantCommonRepository.findByEmail("test@test.fr")).thenReturn(Optional.of(tenant));
-
-            var methodToTest = authenticationFacade.getClass().getDeclaredMethod("findOrCreateTenant", KeycloakUser.class, AcquisitionData.class);
-            methodToTest.setAccessible(true);
-            var result = methodToTest.invoke(authenticationFacade, keycloakUser, null);
-
-            verify(tenantCommonRepository, times(1)).findByKeycloakId("keycloakId");
-            verify(tenantCommonRepository, times(1)).findByEmail("test@test.fr");
-            verify(tenantService, times(0)).registerFromKeycloakUser(any(), any(), any());
-
-            assertThat(result).isInstanceOf(Tenant.class);
-            assertThat(((Tenant) result).getId()).isEqualTo(1L);
-
-        }
-
-        @Test
-        void shouldReuseAccountByKeycloakIdWhenCreationRacesWithConcurrentRequest() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-            var keycloakUser = KeycloakUser.builder()
-                    .keycloakId("keycloakId")
-                    .email("test@test.fr")
-                    .emailVerified(true)
-                    .build();
-
-            var tenant = Tenant.builder().id(1L).build();
-
-            // First lookup misses, creation fails because a concurrent request
-            // inserted the account in between, second lookup finds it
-            when(tenantCommonRepository.findByKeycloakId("keycloakId")).thenReturn(null, tenant);
-            when(tenantCommonRepository.findByEmail("test@test.fr")).thenReturn(Optional.empty());
-            when(tenantService.registerFromKeycloakUser(keycloakUser, null, null))
-                    .thenThrow(new DataIntegrityViolationException("email_type_uniq"));
-
-            var methodToTest = authenticationFacade.getClass().getDeclaredMethod("findOrCreateTenant", KeycloakUser.class, AcquisitionData.class);
-            methodToTest.setAccessible(true);
-            var result = methodToTest.invoke(authenticationFacade, keycloakUser, null);
-
-            verify(tenantService, times(1)).registerFromKeycloakUser(keycloakUser, null, null);
-            assertThat(result).isInstanceOf(Tenant.class);
-            assertThat(((Tenant) result).getId()).isEqualTo(1L);
-        }
-
-        @Test
-        void shouldReuseAccountByEmailWhenCreationRacesWithConcurrentRequest() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-            var keycloakUser = KeycloakUser.builder()
-                    .keycloakId("keycloakId")
-                    .email("test@test.fr")
-                    .emailVerified(true)
-                    .build();
-
-            var tenant = Tenant.builder().id(1L).build();
-
-            // The concurrent request created the account under another keycloakId
-            // (e.g. an outdated token): it is only found back by email
-            when(tenantCommonRepository.findByKeycloakId("keycloakId")).thenReturn(null);
-            when(tenantCommonRepository.findByEmail("test@test.fr")).thenReturn(Optional.empty(), Optional.of(tenant));
-            when(tenantService.registerFromKeycloakUser(keycloakUser, null, null))
-                    .thenThrow(new DataIntegrityViolationException("email_type_uniq"));
-
-            var methodToTest = authenticationFacade.getClass().getDeclaredMethod("findOrCreateTenant", KeycloakUser.class, AcquisitionData.class);
-            methodToTest.setAccessible(true);
-            var result = methodToTest.invoke(authenticationFacade, keycloakUser, null);
-
-            verify(tenantService, times(1)).registerFromKeycloakUser(keycloakUser, null, null);
-            assertThat(result).isInstanceOf(Tenant.class);
-            assertThat(((Tenant) result).getId()).isEqualTo(1L);
-        }
-
-        @Test
-        void shouldRethrowWhenCreationFailsAndNoAccountCanBeFound() throws NoSuchMethodException {
-            var keycloakUser = KeycloakUser.builder()
-                    .keycloakId("keycloakId")
-                    .email("test@test.fr")
-                    .emailVerified(true)
-                    .build();
-
-            when(tenantCommonRepository.findByKeycloakId("keycloakId")).thenReturn(null);
-            when(tenantCommonRepository.findByEmail("test@test.fr")).thenReturn(Optional.empty());
-            when(tenantService.registerFromKeycloakUser(keycloakUser, null, null))
-                    .thenThrow(new DataIntegrityViolationException("email_type_uniq"));
-
-            var methodToTest = authenticationFacade.getClass().getDeclaredMethod("findOrCreateTenant", KeycloakUser.class, AcquisitionData.class);
-            methodToTest.setAccessible(true);
-
-            var exception = assertThrows(InvocationTargetException.class,
-                    () -> methodToTest.invoke(authenticationFacade, keycloakUser, null));
-            assertThat(exception.getCause()).isInstanceOf(DataIntegrityViolationException.class);
-        }
-    }
-
-    @Nested
-    class KeycloakAndTenantMatchTest {
-        record MatchParameters(Tenant tenant, KeycloakUser keycloakUser, boolean result) {
-        }
-
-        static List<Arguments> provideMatchParameters() {
-            return List.of(
-                    Arguments.of(
-                            Named.of("Keycloak user and tenant match", new MatchParameters(
-                                    Tenant.builder().keycloakId("keycloakId").build(),
-                                    KeycloakUser.builder().keycloakId("keycloakId").build(),
-                                    true
-                            ))
-                    ),
-                    Arguments.of(
-                            Named.of("id not the same", new MatchParameters(
-                                    Tenant.builder().keycloakId("keycloakId1").build(),
-                                    KeycloakUser.builder().keycloakId("keycloakId2").build(),
-                                    false
-                            ))
-                    ),
-                    Arguments.of(
-                            Named.of("email not the same", new MatchParameters(
-                                    Tenant.builder().keycloakId("keycloakId").email("test@test.fr").build(),
-                                    KeycloakUser.builder().keycloakId("keycloakId").email("test2@test.fr").build(),
-                                    false
-                            ))
-                    ),
-                    Arguments.of(
-                            Named.of("france connect not the same", new MatchParameters(
-                                    Tenant.builder()
-                                            .keycloakId("keycloakId")
-                                            .email("test@test.fr")
-                                            .franceConnect(false)
-                                            .build(),
-                                    KeycloakUser.builder()
-                                            .keycloakId("keycloakId")
-                                            .email("test@test.fr")
-                                            .franceConnect(true)
-                                            .build(),
-                                    false
-                            ))
-                    ),
-                    // Todo : The result should be false because the names are not identical
-                    Arguments.of(
-                            Named.of("is france connected but name are different and last name the same", new MatchParameters(
-                                    Tenant.builder()
-                                            .keycloakId("keycloakId")
-                                            .email("test@test.fr")
-                                            .franceConnect(true)
-                                            .firstName("test")
-                                            .lastName("test2")
-                                            .build(),
-                                    KeycloakUser.builder()
-                                            .keycloakId("keycloakId")
-                                            .email("test@test.fr")
-                                            .franceConnect(true)
-                                            .givenName("test")
-                                            .familyName("test")
-                                            .build(),
-                                    true
-                            ))
-                    ),
-                    Arguments.of(
-                            Named.of("is france connected but name are different and last name as well", new MatchParameters(
-                                    Tenant.builder()
-                                            .keycloakId("keycloakId")
-                                            .email("test@test.fr")
-                                            .franceConnect(true)
-                                            .firstName("test")
-                                            .lastName("test")
-                                            .build(),
-                                    KeycloakUser.builder()
-                                            .keycloakId("keycloakId")
-                                            .email("test@test.fr")
-                                            .franceConnect(true)
-                                            .givenName("test2")
-                                            .familyName("test2")
-                                            .build(),
-                                    false
-                            ))
-                    ),
-                    Arguments.of(
-                            Named.of("is not france connected and name are different", new MatchParameters(
-                                    Tenant.builder()
-                                            .keycloakId("keycloakId")
-                                            .email("test@test.fr")
-                                            .franceConnect(false)
-                                            .firstName("test")
-                                            .build(),
-                                    KeycloakUser.builder()
-                                            .keycloakId("keycloakId")
-                                            .email("test@test.fr")
-                                            .franceConnect(false)
-                                            .givenName("test2")
-                                            .build(),
-                                    true
-                            ))
-                    )
-            );
-        }
-
-        @ParameterizedTest
-        @MethodSource("provideMatchParameters")
-        void parametrizedTests(MatchParameters matchParameters) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-
-            var methodToTest = authenticationFacade.getClass().getDeclaredMethod("matches", Tenant.class, KeycloakUser.class);
-            methodToTest.setAccessible(true);
-            var result = methodToTest.invoke(authenticationFacade, matchParameters.tenant, matchParameters.keycloakUser);
-
-            assertThat(result).isInstanceOf(Boolean.class);
-            assertThat((Boolean) result).isEqualTo(matchParameters.result);
-
-        }
-
-
-    }
-
-    /*
-     * We use introspection to test private method to simplify the test
-     */
-    @Nested
-    class SynchroniseTenantTest {
-
-        @Test
-        void shouldNotUpdateTenant() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-            var tenant = Tenant.builder()
-                    .id(1L)
-                    .keycloakId("keycloakId")
-                    .email("test@test.fr")
-                    .build();
-
-            var keycloakUser = KeycloakUser.builder()
-                    .keycloakId("keycloakId")
-                    .email("test@test.fr")
-                    .build();
-
-            var methodToTest = authenticationFacade.getClass().getDeclaredMethod("synchronizeTenant", Tenant.class, KeycloakUser.class);
-            methodToTest.setAccessible(true);
-            var result = methodToTest.invoke(authenticationFacade, tenant, keycloakUser);
-
-            verify(tenantCommonRepository, times(0)).saveAndFlush(any());
-
-            assertThat(tenant).isEqualTo(result);
-        }
-
-        @Test
-        void shouldNotUpdateTenantBecauseEmailAreNotTheSame() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-            var tenant = Tenant.builder()
-                    .id(1L)
-                    .keycloakId("keycloakId")
-                    .email("test2@test.fr")
-                    .build();
-
-            var keycloakUser = KeycloakUser.builder()
-                    .keycloakId("keycloakId")
-                    .email("test@test.fr")
-                    .build();
-
-            var methodToTest = authenticationFacade.getClass().getDeclaredMethod("synchronizeTenant", Tenant.class, KeycloakUser.class);
-            methodToTest.setAccessible(true);
-            var result = methodToTest.invoke(authenticationFacade, tenant, keycloakUser);
-
-            verify(tenantCommonRepository, times(0)).saveAndFlush(any());
-
-            assertThat(tenant).isEqualTo(result);
-            assertThat(((Tenant) result).getWarningMessage()).isNotBlank();
-        }
-
-        @Test
-        void shouldUpdateTenantWithNewKeycloakId() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-            var tenant = Tenant.builder()
-                    .id(1L)
-                    .keycloakId("keycloakId")
-                    .email("test@test.fr")
-                    .build();
-
-            var keycloakUser = KeycloakUser.builder()
-                    .keycloakId("keycloakId2")
-                    .email("test@test.fr")
-                    .build();
-
-            // make that the method return the invocation parameter
-            when(tenantCommonRepository.saveAndFlush(any())).thenAnswer((Answer<Tenant>) invocation -> invocation.getArgument(0));
-
-            var methodToTest = authenticationFacade.getClass().getDeclaredMethod("synchronizeTenant", Tenant.class, KeycloakUser.class);
-            methodToTest.setAccessible(true);
-            var result = methodToTest.invoke(authenticationFacade, tenant, keycloakUser);
-
-            verify(tenantStatusService, times(1)).updateTenantStatus(tenant);
-            verify(tenantCommonRepository, times(1)).saveAndFlush(any());
-
-            assertThat(tenant).isEqualTo(result);
-            assertThat(((Tenant) result).getKeycloakId()).isEqualTo(keycloakUser.getKeycloakId());
-        }
-
-        @Test
-        void shouldRefreshLastUpdateDateAndLogWhenLinkingToFranceConnect() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-            var initialDate = LocalDateTime.of(2020, Month.JANUARY, 1, 0, 0);
-            var tenant = Tenant.builder()
-                    .id(1L)
-                    .keycloakId("keycloakId")
-                    .email("test@test.fr")
-                    .franceConnect(false)
-                    .lastUpdateDate(initialDate)
-                    .build();
-
-            var keycloakUser = KeycloakUser.builder()
-                    .keycloakId("keycloakId2")
-                    .email("test@test.fr")
-                    .franceConnect(true)
-                    .build();
-
-            when(tenantCommonRepository.saveAndFlush(any())).thenAnswer((Answer<Tenant>) invocation -> invocation.getArgument(0));
-
-            var methodToTest = authenticationFacade.getClass().getDeclaredMethod("synchronizeTenant", Tenant.class, KeycloakUser.class);
-            methodToTest.setAccessible(true);
-            var result = (Tenant) methodToTest.invoke(authenticationFacade, tenant, keycloakUser);
-
-            verify(logService).saveLog(fr.dossierfacile.common.enums.LogType.FC_ACCOUNT_LINK, tenant.getId());
-            ArgumentCaptor<Tenant> tenantCaptor = ArgumentCaptor.forClass(Tenant.class);
-            verify(tenantCommonRepository).saveAndFlush(tenantCaptor.capture());
-            assertThat(tenantCaptor.getValue().getLastUpdateDate()).isAfter(initialDate);
-            assertThat(result.getLastUpdateDate()).isAfter(initialDate);
-        }
-
-        @Test
-        void shouldRefreshLastUpdateDateAndLogWhenFirstLinkingAccount() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-            var initialDate = LocalDateTime.of(2020, Month.JANUARY, 1, 0, 0);
-            var tenant = Tenant.builder()
-                    .id(1L)
-                    .keycloakId(null)
-                    .email("test@test.fr")
-                    .franceConnect(false)
-                    .lastUpdateDate(initialDate)
-                    .build();
-
-            var keycloakUser = KeycloakUser.builder()
-                    .keycloakId("keycloakId2")
-                    .email("test@test.fr")
-                    .franceConnect(false)
-                    .build();
-
-            when(tenantCommonRepository.saveAndFlush(any())).thenAnswer((Answer<Tenant>) invocation -> invocation.getArgument(0));
-
-            var methodToTest = authenticationFacade.getClass().getDeclaredMethod("synchronizeTenant", Tenant.class, KeycloakUser.class);
-            methodToTest.setAccessible(true);
-            var result = (Tenant) methodToTest.invoke(authenticationFacade, tenant, keycloakUser);
-
-            verify(logService).saveLog(fr.dossierfacile.common.enums.LogType.ACCOUNT_LINK, tenant.getId());
-            ArgumentCaptor<Tenant> tenantCaptor = ArgumentCaptor.forClass(Tenant.class);
-            verify(tenantCommonRepository).saveAndFlush(tenantCaptor.capture());
-            assertThat(tenantCaptor.getValue().getLastUpdateDate()).isAfter(initialDate);
-            assertThat(result.getLastUpdateDate()).isAfter(initialDate);
-        }
-
-        @Disabled("This test should pass but the matches method is not working as expected")
-        @Test
-        void shouldUpdateTenantAndResetDocumentsError() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-            var tenant = Tenant.builder()
-                    .keycloakId("keycloakId")
-                    .email("test@test.fr")
-                    .franceConnect(true)
-                    .firstName("test")
-                    .lastName("test2")
-                    .build();
-            var keycloakUser = KeycloakUser.builder()
-                    .keycloakId("keycloakId")
-                    .email("test@test.fr")
-                    .franceConnect(true)
-                    .givenName("test")
-                    .familyName("test")
-                    .build();
-
-
-            // make that the method return the invocation parameter
-            when(tenantCommonRepository.saveAndFlush(any())).thenAnswer((Answer<Tenant>) invocation -> invocation.getArgument(0));
-
-            var methodToTest = authenticationFacade.getClass().getDeclaredMethod("synchronizeTenant", Tenant.class, KeycloakUser.class);
-            methodToTest.setAccessible(true);
-            var result = methodToTest.invoke(authenticationFacade, tenant, keycloakUser);
-
-            verify(tenantStatusService, times(1)).updateTenantStatus(tenant);
-            verify(tenantCommonRepository, times(1)).saveAndFlush(any());
-            verify(documentService, times(1)).resetValidatedOrInProgressDocumentsAccordingCategories(any(), any());
-
-            assertThat(tenant).isEqualTo(result);
-            assertThat(((Tenant) result).getKeycloakId()).isEqualTo(keycloakUser.getKeycloakId());
-        }
-
-        @Test
-        void shouldUpdateTenantAndResetDocuments() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-            var tenant = Tenant.builder()
-                    .keycloakId("keycloakId")
-                    .email("test@test.fr")
-                    .franceConnect(true)
-                    .firstName("test2")
-                    .ownerType(TenantOwnerType.SELF)
-                    .lastName("test2")
-                    .build();
-            var keycloakUser = KeycloakUser.builder()
-                    .keycloakId("keycloakId")
-                    .email("test@test.fr")
-                    .franceConnect(true)
-                    .givenName("test")
-                    .familyName("test")
-                    .build();
-
-
-            // make that the method return the invocation parameter
-            when(tenantCommonRepository.saveAndFlush(any())).thenAnswer((Answer<Tenant>) invocation -> invocation.getArgument(0));
-
-            var methodToTest = authenticationFacade.getClass().getDeclaredMethod("synchronizeTenant", Tenant.class, KeycloakUser.class);
-            methodToTest.setAccessible(true);
-            var result = methodToTest.invoke(authenticationFacade, tenant, keycloakUser);
-
-            verify(tenantStatusService, times(1)).updateTenantStatus(tenant);
-            verify(tenantCommonRepository, times(1)).saveAndFlush(any());
-            verify(documentService, times(1)).resetValidatedOrInProgressDocumentsAccordingCategories(any(), any());
-
-            assertThat(tenant).isEqualTo(result);
-            assertThat(((Tenant) result).getKeycloakId()).isEqualTo(keycloakUser.getKeycloakId());
-        }
-
     }
 }

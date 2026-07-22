@@ -1,0 +1,15 @@
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+    <changeSet id="202607221630" author="antigravity">
+          <addColumn tableName="user_account">
+              <column name="fc_hash" type="varchar(64)">
+                  <constraints nullable="true" />
+              </column>
+          </addColumn>
+          <rollback>
+              <dropColumn tableName="user_account" columnName="fc_hash" />
+          </rollback>
+      </changeSet>
+</databaseChangeLog>
