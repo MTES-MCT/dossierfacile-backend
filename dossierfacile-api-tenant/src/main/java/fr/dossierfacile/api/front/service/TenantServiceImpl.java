@@ -135,8 +135,13 @@ public class TenantServiceImpl implements TenantService {
                 .email(kcUser.getEmail())
                 .firstName(kcUser.getGivenName())
                 .lastName(kcUser.getFamilyName())
-                .preferredName(kcUser.getPreferredUsername())
+                .preferredName(kcUser.getComputedPreferredUserName())
                 .franceConnect(kcUser.isFranceConnect())
+                .franceConnectSub(kcUser.getFranceConnectSub())
+                .franceConnectBirthCountry(kcUser.getFranceConnectBirthCountry())
+                .franceConnectBirthPlace(kcUser.getFranceConnectBirthPlace())
+                .franceConnectBirthDate(kcUser.getFranceConnectBirthDate())
+                .fcHash(kcUser.isFranceConnect() ? kcUser.getFcHash() : null)
                 .honorDeclaration(false)
                 .build());
 

@@ -79,15 +79,23 @@ public class ResourceServerConfig {
                         .requestMatchers("/dfc/**").hasAuthority("SCOPE_dfc")
                         .anyRequest().hasAuthority("SCOPE_dossier")
                 )
-                .oauth2ResourceServer(oauth2 ->
-                        oauth2
-                                .jwt(jwt ->
-                                        jwt.jwtAuthenticationConverter(
-                                                new JwtAuthenticationConverter()
-                                        )
-                                )
-                                .authenticationEntryPoint(authenticationEntryPoint)
-                );
+                .oauth2ResourceServer(oauth2 -> {
+                    org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver resolver = 
+                            new org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver();
+                    oauth2
+                            .bearerTokenResolver(request -> {
+                                if (request.getRequestURI().startsWith("/api/webhook/keycloak/")) {
+                                    return null;
+                                }
+                                return resolver.resolve(request);
+                            })
+                            .jwt(jwt ->
+                                    jwt.jwtAuthenticationConverter(
+                                            new JwtAuthenticationConverter()
+                                    )
+                            )
+                            .authenticationEntryPoint(authenticationEntryPoint);
+                });
         return http.build();
     }
 

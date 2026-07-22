@@ -107,6 +107,7 @@ public abstract class User implements Serializable {
     private String franceConnectBirthDate;
     private String franceConnectBirthPlace;
     private String franceConnectBirthCountry;
+    private String fcHash;
 
     @Column(name = "user_type")
     @Enumerated(EnumType.STRING)
