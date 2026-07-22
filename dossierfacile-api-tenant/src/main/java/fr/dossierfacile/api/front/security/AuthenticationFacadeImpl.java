@@ -30,6 +30,8 @@ import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Optional;
 
+import fr.dossierfacile.api.front.domain.service.FindOrCreateTenantDomainService;
+
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -37,10 +39,7 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
 
     private final TenantCommonRepository tenantRepository;
     private final TenantPermissionsService tenantPermissionsService;
-    private final TenantStatusService tenantStatusService;
-    private final TenantService tenantService;
-    private final LogService logService;
-    private final DocumentService documentService;
+    private final FindOrCreateTenantDomainService findOrCreateTenantDomainService;
 
     @Override
     public String getKeycloakClientId() {
@@ -66,10 +65,8 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
                 .email(jwt.getClaimAsString("email"))
                 .givenName(jwt.getClaimAsString("given_name"))
                 .familyName(jwt.getClaimAsString("family_name"))
-                .preferredUsername(
-                        Optional.ofNullable(jwt.getClaimAsString("preferred_username"))
-                                .filter(name -> StringUtils.isNotBlank(name) && !name.contains("@"))
-                                .orElse(null))
+                .gender(jwt.getClaimAsString("gender"))
+                .preferredUsername(jwt.getClaimAsString("preferred_username"))
                 .emailVerified(jwt.getClaimAsBoolean("email_verified"))
                 .franceConnect(Boolean.TRUE.equals(jwt.getClaimAsBoolean("france-connect")))
                 .franceConnectSub(jwt.getClaimAsString("france-connect-sub"))
@@ -105,97 +102,6 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
         if (!kcUser.isEmailVerified() && !kcUser.isFranceConnect()) {
             throw new AccessDeniedException("Email is not verified" + kcUser.getEmail());
         }
-        Tenant tenant = findOrCreateTenant(kcUser, acquisitionData);
-        return synchronizeTenant(tenant, kcUser);
-    }
-
-    private Tenant findOrCreateTenant(KeycloakUser kcUser, AcquisitionData acquisitionData) {
-        String keycloakId = kcUser.getKeycloakId();
-        Tenant tenant = tenantRepository.findByKeycloakId(keycloakId);
-        if (tenant != null) {
-            return tenant;
-        }
-        log.warn("No tenant account found associated with keycloakId {}", keycloakId);
-        Optional<Tenant> tenantByEmail = tenantRepository.findByEmail(kcUser.getEmail());
-        if (tenantByEmail.isPresent()) {
-            log.info("Found tenant by email from keycloak");
-            return tenantByEmail.get();
-        }
-        log.info("Creating tenant account associated with keycloakId {}", keycloakId);
-        try {
-            return tenantService.registerFromKeycloakUser(kcUser, null, acquisitionData);
-        } catch (DataIntegrityViolationException e) {
-            // Parallel requests holding the same token race here: each one sees no
-            // existing tenant and tries to create it, and losers hit the unique
-            // constraint on (email, user_type). Reuse the winner's tenant instead
-            // of failing the request with a 500.
-            log.info("Tenant account creation raced with a concurrent request, reusing existing account (keycloakId {})", keycloakId);
-            return Optional.ofNullable(tenantRepository.findByKeycloakId(keycloakId))
-                    .or(() -> tenantRepository.findByEmail(kcUser.getEmail()))
-                    .orElseThrow(() -> e);
-        }
-    }
-
-    private Tenant synchronizeTenant(Tenant tenant, KeycloakUser user) {
-        // check if some data should be updated
-        if (!matches(tenant, user)) {
-            if (!Strings.CI.equals(tenant.getEmail(), user.getEmail())) {
-                //Don't automatically merge
-                log.error("Tenant email and current logged email mismatch FC? '%s' vs '%s' - tenant won't be synchronized".formatted(tenant.getEmail(), user.getEmail()));
-                tenant.setWarningMessage("Attention, l'email de compte est '%s' et l'email de connexion est '%s'".formatted(tenant.getEmail(), user.getEmail()));
-                return tenant;
-            }
-            var userHasBeenLinkedToFranceConnect = false;
-
-            // update tenant from keycloakUser
-            if (!Boolean.TRUE.equals(tenant.getFranceConnect()) && user.isFranceConnect()) {
-                log.info("Local account link to FranceConnect account, for tenant with ID {}", tenant.getId());
-                logService.saveLog(LogType.FC_ACCOUNT_LINK, tenant.getId());
-                userHasBeenLinkedToFranceConnect = true;
-            } else if (tenant.getKeycloakId() == null ){
-                log.info("First tenant connection from DF, for tenant with ID {}", tenant.getId());
-                logService.saveLog(LogType.ACCOUNT_LINK, tenant.getId());
-            }
-            tenant.setKeycloakId(user.getKeycloakId());
-
-            tenant.setFranceConnect(user.isFranceConnect());
-            tenant.setFranceConnectSub(user.getFranceConnectSub());
-            tenant.setFranceConnectBirthCountry(user.getFranceConnectBirthCountry());
-            tenant.setFranceConnectBirthPlace(user.getFranceConnectBirthPlace());
-            tenant.setFranceConnectBirthDate(user.getFranceConnectBirthDate());
-
-            // We have a special case to handle when the user linked his account to FranceConnect
-            // We update the userAccount informations only if the user is FranceConnected and his ownerType is SELF.
-            if (userHasBeenLinkedToFranceConnect || (user.isFranceConnect() && tenant.getOwnerType() == TenantOwnerType.SELF)) {
-                if (!Strings.CS.equals(tenant.getFirstName(), user.getGivenName())
-                        || !Strings.CS.equals(tenant.getLastName(), user.getFamilyName())
-                        || (user.getPreferredUsername() != null && !Strings.CS.equals(tenant.getPreferredName(), user.getPreferredUsername()))) {
-                    documentService.resetValidatedOrInProgressDocumentsAccordingCategories(tenant.getDocuments(),
-                            Arrays.asList(DocumentCategory.values()));
-                }
-                // When the user doesn't match the keycloak user information and is France connected we only update
-                // the name / first name / preferred name of the user_account entity .
-                tenant.setUserFirstName(user.getGivenName());
-                tenant.setUserLastName(user.getFamilyName());
-                tenant.setUserPreferredName(user.getPreferredUsername() == null ? tenant.getUserPreferredName() : user.getPreferredUsername());
-            }
-            tenant.lastUpdateDateProfile(LocalDateTime.now(ZoneId.systemDefault()), null);
-            tenantStatusService.updateTenantStatus(tenant);
-
-            return tenantRepository.saveAndFlush(tenant);
-        }
-        return tenant;
-    }
-
-    // Todo : This method should maybe return false if user is france connected and names are different (for the moment the first name and the lastname need to be different)
-    private boolean matches(Tenant tenant, KeycloakUser user) {
-        return Strings.CS.equals(tenant.getKeycloakId(), user.getKeycloakId())
-                && Strings.CS.equals(tenant.getEmail(), user.getEmail())
-                && tenant.getFranceConnect() == user.isFranceConnect()
-                && (!user.isFranceConnect() ||
-                // TODO : The || should be a &&
-                (Strings.CI.equals(tenant.getUserFirstName(), user.getGivenName()) ||
-                        Strings.CI.equals(tenant.getUserLastName(), user.getFamilyName())
-                ));
+        return findOrCreateTenantDomainService.findOrCreateTenant(kcUser, acquisitionData);
     }
 }

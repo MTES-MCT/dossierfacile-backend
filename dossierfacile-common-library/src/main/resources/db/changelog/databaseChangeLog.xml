@@ -202,4 +202,5 @@
     <include file="db/migration/202606180000-add-document-ia-property-tax-analysis-flag.xml"/>
     <include file="db/migration/202607070000-add-email-to-guarantor.xml"/>
     <include file="db/migration/202607150000-add-beneficiary-email-to-tenant.xml"/>
+    <include file="db/migration/202607221630-add-fc-hash-to-user-account.xml"/>
 </databaseChangeLog>

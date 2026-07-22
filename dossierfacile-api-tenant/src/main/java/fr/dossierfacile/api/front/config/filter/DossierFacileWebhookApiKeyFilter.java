@@ -26,8 +26,8 @@ public class DossierFacileWebhookApiKeyFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        // Ne filtre que les webhooks Document IA
-        return !pathMatcher.match("/api/webhook/**", request.getRequestURI());
+        String uri = request.getRequestURI();
+        return !pathMatcher.match("/api/webhook/**", uri) || pathMatcher.match("/api/webhook/keycloak/**", uri);
     }
 
     @Override
