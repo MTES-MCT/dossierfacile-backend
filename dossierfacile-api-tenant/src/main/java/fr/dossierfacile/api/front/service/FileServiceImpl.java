@@ -57,6 +57,9 @@ public class FileServiceImpl implements FileService {
             return null;
         }
 
+        tenantFileOwner.setReadyForAutoValidation(false);
+        tenantRepository.save(tenantFileOwner);
+
         documentService.changeDocumentStatus(document, DocumentStatus.TO_PROCESS);
 
         documentIAService.analyseDocument(document);
