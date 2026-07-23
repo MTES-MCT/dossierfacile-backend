@@ -6,6 +6,7 @@ import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.form.DocumentForm;
 import fr.dossierfacile.api.front.security.interfaces.ClientAuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
+import fr.dossierfacile.api.front.service.interfaces.TenantAutoValidationService;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.LogType;
@@ -45,6 +46,8 @@ public abstract class AbstractDocumentSaveStep<T extends DocumentForm> implement
     private ClientAuthenticationFacade clientAuthenticationFacade;
     @Autowired
     private FileUploadPreprocessor fileUploadPreprocessor;
+    @Autowired
+    private TenantAutoValidationService tenantAutoValidationService;
 
     @Override
     @Transactional
@@ -56,6 +59,7 @@ public abstract class AbstractDocumentSaveStep<T extends DocumentForm> implement
             partnerCallBackService.sendCallBack(tenant, PartnerCallBackType.RETURNED_ACCOUNT);
         }
 
+        boolean wasValidated = (tenant.getStatus() == TenantFileStatus.VALIDATED);
 
         DocumentSaveResult result = saveDocument(tenant, documentForm);
         Document document = result.document();
@@ -65,7 +69,15 @@ public abstract class AbstractDocumentSaveStep<T extends DocumentForm> implement
         documentService.markDocumentAsEdited(document);
         producer.sendDocumentForPdfGeneration(document);
 
-        return tenantMapper.toTenantModel(document.getTenant() != null ? document.getTenant() : document.getGuarantor().getTenant(),
+        Tenant tenantToUpdate = document.getTenant() != null ? document.getTenant() : document.getGuarantor().getTenant();
+        if (wasValidated && tenantAutoValidationService.isEligibleForAutoValidation(document)) {
+            tenantToUpdate.setReadyForAutoValidation(true);
+        } else {
+            tenantToUpdate.setReadyForAutoValidation(false);
+        }
+        tenantCommonRepository.save(tenantToUpdate);
+
+        return tenantMapper.toTenantModel(tenantToUpdate,
                 (!clientAuthenticationFacade.isClient()) ? null : clientAuthenticationFacade.getClient());
     }
 
