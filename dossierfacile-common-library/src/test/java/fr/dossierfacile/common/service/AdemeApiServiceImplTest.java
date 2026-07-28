@@ -91,8 +91,40 @@ class AdemeApiServiceImplTest {
     }
 
     @Test
-    void shouldThrowAdemeApiInternalServerErrorException() throws IOException, InterruptedException {
-        HttpResponse<String> predictedResponse = new TestHttpResponse(500, "500 body");
+    void shouldThrowAdemeApiNotFoundExceptionWhen400WithIntrouvableMessage() throws IOException, InterruptedException {
+        HttpResponse<String> predictedResponse = new TestHttpResponse(400,
+                "{\"correlationId\":\"bd18a64d\",\"success\":false,\"message\":\"Le DPE 1234567890 est introuvable.\",\"timestamp\":\"2026-07-28T15:31:57Z\"}");
+
+        doReturn(predictedResponse).when(client).send(Mockito.any(), Mockito.any());
+
+        assertThrows(AdemeApiNotFoundException.class, () -> ademeApiService.getDpeDetails("1234567890"));
+    }
+
+    @Test
+    void shouldThrowAdemeApiInternalServerErrorExceptionWhen400WithErrorDetails() throws IOException, InterruptedException {
+        HttpResponse<String> predictedResponse = new TestHttpResponse(400,
+                "{\"success\":false,\"apiName\":\"s-ademe-rest-api\",\"version\":\"v1\",\"errorDetails\":{\"code\":502,\"error\":\"HTTP:BAD_GATEWAY\",\"message\":\"HTTP GET on resource failed\"}}");
+
+        doReturn(predictedResponse).when(client).send(Mockito.any(), Mockito.any());
+
+        assertThrows(AdemeApiInternalServerErrorException.class, () -> ademeApiService.getDpeDetails("1234567890"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {500, 502, 503, 504})
+    void shouldThrowAdemeApiInternalServerErrorExceptionOnServerError(int statusCode) throws IOException, InterruptedException {
+        HttpResponse<String> predictedResponse = new TestHttpResponse(statusCode,
+                "<html><head><title>504 Gateway Time-out</title></head><body></body></html>");
+
+        doReturn(predictedResponse).when(client).send(Mockito.any(), Mockito.any());
+
+        assertThrows(AdemeApiInternalServerErrorException.class, () -> ademeApiService.getDpeDetails("1234567890"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {429, 302})
+    void shouldThrowAdemeApiInternalServerErrorExceptionOnUnexpectedStatus(int statusCode) throws IOException, InterruptedException {
+        HttpResponse<String> predictedResponse = new TestHttpResponse(statusCode, "unexpected status body");
 
         doReturn(predictedResponse).when(client).send(Mockito.any(), Mockito.any());
 
@@ -126,4 +158,3 @@ class AdemeApiServiceImplTest {
     }
 
 }
-

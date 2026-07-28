@@ -2,7 +2,7 @@ package fr.dossierfacile.common.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.dossierfacile.common.exceptions.AdemeApiBadRequestException;
 import fr.dossierfacile.common.exceptions.AdemeApiInternalServerErrorException;
@@ -91,12 +91,29 @@ public class AdemeApiServiceImpl implements AdemeApiService {
 
         if (response.statusCode() == 400) {
             log.error("ADEME API Bad Request Error: status code {}, message {}", response.statusCode(), response.body());
+            JsonNode body = parseBodySafely(response.body());
+            // The ADEME API reports internal failures  as a 400
+            // carrying an "errorDetails" block            
+            if (body != null && body.has("errorDetails")) {
+                throw new AdemeApiInternalServerErrorException(response.body());
+            }
+            // A non-existing DPE number comes back as a 400 with "introuvable" keyword 
+            // (the ADEME API never returns a 404)
+            if (body != null && body.path("message").asText().contains("introuvable")) {
+                throw new AdemeApiNotFoundException(dpeNumber);
+            }
             throw new AdemeApiBadRequestException(response.body());
         }
 
-        if (response.statusCode() == 500) {
-            log.error("ADEME API Internal Server Error: status code {}, message {}", response.statusCode(), response.body());
-            throw new AdemeApiInternalServerErrorException(response.body());
+        if (response.statusCode() >= 500) {
+            log.error("ADEME API Server Error: status code {}, message {}", response.statusCode(), response.body());
+            throw new AdemeApiInternalServerErrorException("ADEME API server error " + response.statusCode());
+        }
+
+        // fallback error
+        if (response.statusCode() != 200) {
+            log.error("ADEME API Unexpected Error: status code {}, message {}", response.statusCode(), response.body());
+            throw new AdemeApiInternalServerErrorException("ADEME API returned unexpected status " + response.statusCode());
         }
 
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -107,6 +124,17 @@ public class AdemeApiServiceImpl implements AdemeApiService {
         } catch (IllegalArgumentException | JsonProcessingException e) {
             log.error("ADEME API Response Parsing Error: {}", e.getMessage());
             throw new AdemeApiInternalServerErrorException("Failed to parse ADEME API response");
+        }
+    }
+
+    private JsonNode parseBodySafely(String body) {
+        if (body == null) {
+            return null;
+        }
+        try {
+            return objectMapper.readTree(body);
+        } catch (JsonProcessingException e) {
+            return null;
         }
     }
 }
