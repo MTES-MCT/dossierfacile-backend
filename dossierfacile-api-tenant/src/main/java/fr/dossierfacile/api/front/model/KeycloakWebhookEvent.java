@@ -1,6 +1,7 @@
 package fr.dossierfacile.api.front.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.dossierfacile.common.converter.AcquisitionData;
 import lombok.Data;
 
 import java.util.List;
@@ -28,6 +29,33 @@ public class KeycloakWebhookEvent {
     private boolean emailVerified;
 
     private Map<String, List<String>> attributes;
+
+    public AcquisitionData toAcquisitionData() {
+        String campaign = getFirstAttribute("acquisition_campaign");
+        if (campaign == null) campaign = getFirstAttribute("mtm_campaign");
+        if (campaign == null) campaign = getFirstAttribute("utm_campaign");
+        if (campaign == null) campaign = getFirstAttribute("campaign");
+
+        String source = getFirstAttribute("acquisition_source");
+        if (source == null) source = getFirstAttribute("mtm_source");
+        if (source == null) source = getFirstAttribute("utm_source");
+        if (source == null) source = getFirstAttribute("source");
+
+        String medium = getFirstAttribute("acquisition_medium");
+        if (medium == null) medium = getFirstAttribute("mtm_medium");
+        if (medium == null) medium = getFirstAttribute("utm_medium");
+        if (medium == null) medium = getFirstAttribute("medium");
+
+        if (campaign == null && source == null && medium == null) {
+            return null;
+        }
+
+        return AcquisitionData.builder()
+                .campaign(campaign)
+                .source(source)
+                .medium(medium)
+                .build();
+    }
 
     public KeycloakUser toKeycloakUser() {
         boolean fc = getFirstAttributeAsBoolean("france-connect");

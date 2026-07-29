@@ -154,4 +154,34 @@ class KeycloakWebhookControllerTest {
 
         verify(tenantSynchronizationDomainService, times(1)).synchronizeTenant(any(), any());
     }
+
+    @Test
+    void shouldParseAcquisitionDataFromAttributes() throws Exception {
+        KeycloakWebhookEvent event = new KeycloakWebhookEvent();
+        event.setType("LOGIN");
+        event.setUserId("kc-123");
+
+        java.util.Map<String, java.util.List<String>> attributes = new java.util.HashMap<>();
+        attributes.put("acquisition_campaign", java.util.List.of("campagne_test"));
+        attributes.put("acquisition_source", java.util.List.of("google"));
+        attributes.put("acquisition_medium", java.util.List.of("cpc"));
+        event.setAttributes(attributes);
+
+        org.mockito.ArgumentCaptor<fr.dossierfacile.common.converter.AcquisitionData> captor =
+                org.mockito.ArgumentCaptor.forClass(fr.dossierfacile.common.converter.AcquisitionData.class);
+
+        when(findOrCreateTenantDomainService.findOrCreateTenant(any(), captor.capture())).thenReturn(null);
+
+        mockMvc.perform(post("/api/webhook/keycloak/user-sync")
+                        .header("Authorization", "Bearer my-secret-keycloak-token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(event)))
+                .andExpect(status().isOk());
+
+        fr.dossierfacile.common.converter.AcquisitionData acquisitionData = captor.getValue();
+        org.junit.jupiter.api.Assertions.assertNotNull(acquisitionData);
+        org.junit.jupiter.api.Assertions.assertEquals("campagne_test", acquisitionData.campaign());
+        org.junit.jupiter.api.Assertions.assertEquals("google", acquisitionData.source());
+        org.junit.jupiter.api.Assertions.assertEquals("cpc", acquisitionData.medium());
+    }
 }

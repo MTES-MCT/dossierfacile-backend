@@ -46,7 +46,7 @@ public class KeycloakWebhookController {
 
         if ("LOGIN".equals(webhookEvent.getType())) {
             KeycloakUser keycloakUser = webhookEvent.toKeycloakUser();
-            Tenant tenant = findOrCreateTenantDomainService.findOrCreateTenant(keycloakUser, null);
+            Tenant tenant = findOrCreateTenantDomainService.findOrCreateTenant(keycloakUser, webhookEvent.toAcquisitionData());
             tenantSynchronizationDomainService.synchronizeTenant(tenant, keycloakUser);
         }
         return ResponseEntity.ok().build();
