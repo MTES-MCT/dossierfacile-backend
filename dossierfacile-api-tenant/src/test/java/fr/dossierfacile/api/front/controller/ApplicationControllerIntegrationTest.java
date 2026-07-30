@@ -1,23 +1,16 @@
 package fr.dossierfacile.api.front.controller;
 
 import fr.dossierfacile.common.domain.service.MessagePublisher;
+import fr.dossierfacile.api.front.application.usecase.application.CheckApplicationLinkUseCase;
+import fr.dossierfacile.api.front.application.usecase.application.GetFullApplicationUseCase;
+import fr.dossierfacile.api.front.application.usecase.application.GetLightApplicationUseCase;
+import fr.dossierfacile.api.front.fixtures.ApplicationSeed;
 import fr.dossierfacile.api.front.repository.JpaTestApplication;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.ApartmentSharingServiceImpl;
 import fr.dossierfacile.api.front.service.interfaces.BruteForceProtectionService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.TenantPermissionsService;
-import fr.dossierfacile.common.entity.ApartmentSharing;
-import fr.dossierfacile.common.entity.ApartmentSharingLink;
-import fr.dossierfacile.common.entity.Document;
-import fr.dossierfacile.common.entity.Guarantor;
-import fr.dossierfacile.common.entity.Tenant;
-import fr.dossierfacile.common.enums.ApartmentSharingLinkType;
-import fr.dossierfacile.common.enums.ApplicationType;
-import fr.dossierfacile.common.enums.DocumentCategory;
-import fr.dossierfacile.common.enums.DocumentSubCategory;
-import fr.dossierfacile.common.enums.TenantType;
-import fr.dossierfacile.common.enums.TypeGuarantor;
 import fr.dossierfacile.common.mapper.ApplicationFullMapper;
 import fr.dossierfacile.common.mapper.ApplicationLightMapper;
 import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
@@ -39,7 +32,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.ByteArrayInputStream;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -55,7 +47,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @TestPropertySource(properties = {
         "spring.liquibase.enabled=false",
         "spring.datasource.url=jdbc:h2:mem:testdb;MODE=PostgreSQL",
-        "spring.jpa.hibernate.ddl-auto=create-drop"
+        "spring.jpa.hibernate.ddl-auto=update"
 })
 @Transactional
 class ApplicationControllerIntegrationTest {
@@ -91,6 +83,12 @@ class ApplicationControllerIntegrationTest {
     private LogService logService;
     @MockitoBean
     private BruteForceProtectionService bruteForceProtectionService;
+    @MockitoBean
+    private GetLightApplicationUseCase getLightApplicationUseCase;
+    @MockitoBean
+    private GetFullApplicationUseCase getFullApplicationUseCase;
+    @MockitoBean
+    private CheckApplicationLinkUseCase checkApplicationLinkUseCase;
 
     private UUID validToken;
     private UUID disabledToken;
@@ -104,132 +102,16 @@ class ApplicationControllerIntegrationTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        // Sharing 1: COUPLE with main tenant + co-tenant + guarantor
-        ApartmentSharing sharing1 = ApartmentSharing.builder()
-                .applicationType(ApplicationType.COUPLE)
-                .build();
-        em.persist(sharing1);
+        ApplicationSeed.Seed seed = ApplicationSeed.seed(em);
 
-        Tenant mainTenant = Tenant.builder()
-                .email("main@test.com")
-                .apartmentSharing(sharing1)
-                .tenantType(TenantType.CREATE)
-                .build();
-        em.persist(mainTenant);
-
-        Tenant coTenant = Tenant.builder()
-                .email("co@test.com")
-                .apartmentSharing(sharing1)
-                .tenantType(TenantType.JOIN)
-                .build();
-        em.persist(coTenant);
-
-        Guarantor guarantor = Guarantor.builder()
-                .firstName("Guarantor")
-                .lastName("One")
-                .typeGuarantor(TypeGuarantor.NATURAL_PERSON)
-                .tenant(mainTenant)
-                .build();
-        em.persist(guarantor);
-
-        // Documents (no watermarkFile — fileStorageService.download() is mocked)
-        Document tenantDoc = Document.builder()
-                .documentCategory(DocumentCategory.IDENTIFICATION)
-                .documentSubCategory(DocumentSubCategory.FRENCH_IDENTITY_CARD)
-                .tenant(mainTenant)
-                .build();
-        em.persist(tenantDoc);
-        tenantDocName = tenantDoc.getName();
-
-        Document coTenantDoc = Document.builder()
-                .documentCategory(DocumentCategory.IDENTIFICATION)
-                .documentSubCategory(DocumentSubCategory.FRENCH_IDENTITY_CARD)
-                .tenant(coTenant)
-                .build();
-        em.persist(coTenantDoc);
-        coTenantDocName = coTenantDoc.getName();
-
-        Document guarantorDoc = Document.builder()
-                .documentCategory(DocumentCategory.IDENTIFICATION)
-                .documentSubCategory(DocumentSubCategory.FRENCH_IDENTITY_CARD)
-                .guarantor(guarantor)
-                .build();
-        em.persist(guarantorDoc);
-        guarantorDocName = guarantorDoc.getName();
-
-        // Links for sharing 1
-        validToken = UUID.randomUUID();
-        em.persist(ApartmentSharingLink.builder()
-                .apartmentSharing(sharing1)
-                .token(validToken)
-                .fullData(true)
-                .disabled(false)
-                .deleted(false)
-                .linkType(ApartmentSharingLinkType.LINK)
-                .build());
-
-        disabledToken = UUID.randomUUID();
-        em.persist(ApartmentSharingLink.builder()
-                .apartmentSharing(sharing1)
-                .token(disabledToken)
-                .fullData(true)
-                .disabled(true)
-                .deleted(false)
-                .linkType(ApartmentSharingLinkType.LINK)
-                .build());
-
-        deletedToken = UUID.randomUUID();
-        em.persist(ApartmentSharingLink.builder()
-                .apartmentSharing(sharing1)
-                .token(deletedToken)
-                .fullData(true)
-                .disabled(false)
-                .deleted(true)
-                .linkType(ApartmentSharingLinkType.LINK)
-                .build());
-
-        expiredToken = UUID.randomUUID();
-        em.persist(ApartmentSharingLink.builder()
-                .apartmentSharing(sharing1)
-                .token(expiredToken)
-                .fullData(true)
-                .disabled(false)
-                .deleted(false)
-                .linkType(ApartmentSharingLinkType.LINK)
-                .expirationDate(LocalDateTime.of(2020, 1, 1, 0, 0))
-                .build());
-
-        // Sharing 2: isolated tenant (for cross-sharing isolation test)
-        ApartmentSharing sharing2 = ApartmentSharing.builder()
-                .applicationType(ApplicationType.ALONE)
-                .build();
-        em.persist(sharing2);
-
-        Tenant otherTenant = Tenant.builder()
-                .email("other@test.com")
-                .apartmentSharing(sharing2)
-                .tenantType(TenantType.CREATE)
-                .build();
-        em.persist(otherTenant);
-
-        Document otherDoc = Document.builder()
-                .documentCategory(DocumentCategory.IDENTIFICATION)
-                .documentSubCategory(DocumentSubCategory.FRENCH_IDENTITY_CARD)
-                .tenant(otherTenant)
-                .build();
-        em.persist(otherDoc);
-
-        otherSharingToken = UUID.randomUUID();
-        em.persist(ApartmentSharingLink.builder()
-                .apartmentSharing(sharing2)
-                .token(otherSharingToken)
-                .fullData(true)
-                .disabled(false)
-                .deleted(false)
-                .linkType(ApartmentSharingLinkType.LINK)
-                .build());
-
-        em.flush();
+        validToken = seed.validToken();
+        disabledToken = seed.disabledToken();
+        deletedToken = seed.deletedToken();
+        expiredToken = seed.expiredToken();
+        otherSharingToken = seed.otherSharingToken();
+        tenantDocName = seed.tenantDocName();
+        coTenantDocName = seed.coTenantDocName();
+        guarantorDocName = seed.guarantorDocName();
 
         // Mock file download
         when(fileStorageService.download(any()))

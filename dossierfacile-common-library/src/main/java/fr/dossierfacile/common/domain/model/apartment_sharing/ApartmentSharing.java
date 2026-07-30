@@ -45,6 +45,10 @@ public class ApartmentSharing implements Serializable, DomainAggregate<Apartment
         return entity.getLastUpdateDate();
     }
 
+    public FileStatus getDossierPdfDocumentStatus() {
+        return entity.getDossierPdfDocumentStatus();
+    }
+
     public List<Long> getTenantIds() {
         return entity.getTenantIds();
     }

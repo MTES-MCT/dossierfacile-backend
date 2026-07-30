@@ -63,6 +63,29 @@ public class Document implements Serializable, DomainAggregate<DocumentEntity> {
         return entity.getDocumentStatus();
     }
 
+    public DocumentCategoryStep getDocumentCategoryStep() {
+        return entity.getDocumentCategoryStep();
+    }
+
+    public String getCustomText() {
+        return entity.getCustomText();
+    }
+
+    public Integer getMonthlySum() {
+        return entity.getMonthlySum();
+    }
+
+    /**
+     * Technical UUID name of the document
+     */
+    public String getName() {
+        return entity.getName();
+    }
+
+    public boolean hasWatermarkFile() {
+        return entity.getWatermarkFile() != null;
+    }
+
     public List<FileEntity> getFiles() {
         return entity.getFiles();
     }

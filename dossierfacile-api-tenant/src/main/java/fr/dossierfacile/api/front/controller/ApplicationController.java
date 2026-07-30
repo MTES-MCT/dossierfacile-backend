@@ -1,6 +1,12 @@
 package fr.dossierfacile.api.front.controller;
 
 import fr.dossierfacile.api.front.aop.annotation.MethodLogTime;
+import fr.dossierfacile.api.front.application.usecase.application.CheckApplicationLinkUseCase;
+import fr.dossierfacile.api.front.application.usecase.application.CheckApplicationLinkUseCase.CheckApplicationLinkCommand;
+import fr.dossierfacile.api.front.application.usecase.application.GetFullApplicationUseCase;
+import fr.dossierfacile.api.front.application.usecase.application.GetFullApplicationUseCase.GetFullApplicationCommand;
+import fr.dossierfacile.api.front.application.usecase.application.GetLightApplicationUseCase;
+import fr.dossierfacile.api.front.application.usecase.application.GetLightApplicationUseCase.GetLightApplicationCommand;
 import fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException;
 import fr.dossierfacile.api.front.exception.ApartmentSharingUnexpectedException;
 import fr.dossierfacile.api.front.model.tenant.ApplicationAnalysisStatusResponse;
@@ -12,6 +18,8 @@ import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.common.utils.FileUtility;
+import fr.dossierfacile.logging.util.LoggerUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,16 +47,21 @@ public class ApplicationController {
     private final ApartmentSharingService apartmentSharingService;
     private final AuthenticationFacade authenticationFacade;
     private final FileStorageService fileStorageService;
+    private final GetLightApplicationUseCase getLightApplicationUseCase;
+    private final GetFullApplicationUseCase getFullApplicationUseCase;
+    private final CheckApplicationLinkUseCase checkApplicationLinkUseCase;
 
     @RequestMapping(value = "/full/{token}", method = RequestMethod.HEAD, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> headFull(@PathVariable UUID token) {
-        apartmentSharingService.linkExists(token, true);
+        checkApplicationLinkUseCase.execute(new CheckApplicationLinkCommand(token));
         return ok().build();
     }
 
     @GetMapping(value = "/full/{token}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ApplicationModel> full(@PathVariable UUID token,
-                                                 @RequestHeader(value = "X-Tenant-Trigram", required = true) String trigramHeader) {
+                                                 @RequestHeader(value = "X-Tenant-Trigram", required = true) String trigramHeader,
+                                                 HttpServletRequest request) {
+        // TODO : migrate getLoggedTenant to use new keycloak sync   
         Tenant tenant = null;
         try {
             tenant = authenticationFacade.getLoggedTenant();
@@ -59,12 +72,17 @@ public class ApplicationController {
                 log.info("Authenticated request to get full application, tenantId: {}", tenant.getId());
             }
         }
-        return ok(apartmentSharingService.full(token, trigramHeader, tenant));
+        Long loggedTenantApartmentSharingId = tenant != null && tenant.getApartmentSharing() != null
+                ? tenant.getApartmentSharing().getId()
+                : null;
+        return ok(getFullApplicationUseCase.execute(new GetFullApplicationCommand(
+                token, trigramHeader, loggedTenantApartmentSharingId, LoggerUtil.getRealIp(request))));
     }
 
     @GetMapping(value = "/light/{token}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ApplicationModel> light(@PathVariable UUID token) {
-        ApplicationModel applicationModel = apartmentSharingService.light(token);
+    public ResponseEntity<ApplicationModel> light(@PathVariable UUID token, HttpServletRequest request) {
+        ApplicationModel applicationModel = getLightApplicationUseCase.execute(
+                new GetLightApplicationCommand(token, LoggerUtil.getRealIp(request)));
         return ok(applicationModel);
     }
 

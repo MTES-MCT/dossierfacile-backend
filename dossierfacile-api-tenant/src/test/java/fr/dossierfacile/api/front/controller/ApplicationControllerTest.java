@@ -1,6 +1,10 @@
 package fr.dossierfacile.api.front.controller;
 
 import fr.dossierfacile.api.front.TestApplication;
+import fr.dossierfacile.api.front.application.usecase.application.CheckApplicationLinkUseCase;
+import fr.dossierfacile.api.front.application.usecase.application.CheckApplicationLinkUseCase.CheckApplicationLinkCommand;
+import fr.dossierfacile.api.front.application.usecase.application.GetFullApplicationUseCase;
+import fr.dossierfacile.api.front.application.usecase.application.GetLightApplicationUseCase;
 import fr.dossierfacile.api.front.config.ResourceServerConfig;
 import fr.dossierfacile.api.front.exception.controller.CustomRestExceptionHandler;
 import fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException;
@@ -79,6 +83,15 @@ class ApplicationControllerTest {
     private ApartmentSharingService apartmentSharingService;
 
     @MockitoBean
+    private GetLightApplicationUseCase getLightApplicationUseCase;
+
+    @MockitoBean
+    private GetFullApplicationUseCase getFullApplicationUseCase;
+
+    @MockitoBean
+    private CheckApplicationLinkUseCase checkApplicationLinkUseCase;
+
+    @MockitoBean
     private AuthenticationFacade authenticationFacade;
 
     @MockitoBean
@@ -124,7 +137,7 @@ class ApplicationControllerTest {
         UUID nonExistentToken = UUID.randomUUID();
         doThrow(new fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException(
                 nonExistentToken.toString()))
-                .when(apartmentSharingService).linkExists(nonExistentToken, true);
+                .when(checkApplicationLinkUseCase).execute(new CheckApplicationLinkCommand(nonExistentToken));
 
         // When & Then
         mockMvc.perform(head("/api/application/full/{token}", nonExistentToken))
@@ -132,10 +145,36 @@ class ApplicationControllerTest {
     }
 
     @Test
+    void shouldReturn200OnLightApplication() throws Exception {
+        // Given
+        when(getLightApplicationUseCase.execute(any()))
+                .thenReturn(new ApplicationModel());
+
+        // When & Then
+        mockMvc.perform(get("/api/application/light/{token}", TEST_TOKEN))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json"));
+
+        verify(getLightApplicationUseCase).execute(argThat(command -> TEST_TOKEN.equals(command.token())));
+    }
+
+    @Test
+    void shouldReturn404OnLightApplicationWhenLinkDoesNotExist() throws Exception {
+        // Given
+        doThrow(new fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException(TEST_TOKEN.toString()))
+                .when(getLightApplicationUseCase).execute(any());
+
+        // When & Then
+        mockMvc.perform(get("/api/application/light/{token}", TEST_TOKEN))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     void shouldReturn200WhenValidTrigramProvided() throws Exception {
         // Given
         ApplicationModel applicationModel = new ApplicationModel();
-        when(apartmentSharingService.full(TEST_TOKEN, VALID_TRIGRAM, null))
+        when(getFullApplicationUseCase.execute(argThat(command ->
+                TEST_TOKEN.equals(command.token()) && VALID_TRIGRAM.equals(command.trigram()))))
                 .thenReturn(applicationModel);
 
         // When & Then
@@ -158,7 +197,8 @@ class ApplicationControllerTest {
                 .build();
         apartmentSharing.setTenants(Collections.singletonList(tenant));
 
-        when(apartmentSharingService.full(TEST_TOKEN, INVALID_TRIGRAM, null))
+        when(getFullApplicationUseCase.execute(argThat(command ->
+                TEST_TOKEN.equals(command.token()) && INVALID_TRIGRAM.equals(command.trigram()))))
                 .thenThrow(new fr.dossierfacile.api.front.exception.TrigramNotAuthorizedException(
                         "Trigram does not match any tenant for this application"));
 
@@ -173,7 +213,8 @@ class ApplicationControllerTest {
         // Given
         UUID nonExistentToken = UUID.fromString("11111111-1111-1111-1111-111111111111");
 
-        when(apartmentSharingService.full(nonExistentToken, VALID_TRIGRAM, null))
+        when(getFullApplicationUseCase.execute(argThat(command ->
+                nonExistentToken.equals(command.token()) && VALID_TRIGRAM.equals(command.trigram()))))
                 .thenThrow(new fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException(
                         nonExistentToken.toString()));
 
@@ -211,7 +252,8 @@ class ApplicationControllerTest {
     void shouldReturn429WhenLinkIsBlockedByBruteForceProtection() throws Exception {
         // Given
         // Simulates scenario where brute-force.max-attempts has been exceeded
-        when(apartmentSharingService.full(TEST_TOKEN, INVALID_TRIGRAM, null))
+        when(getFullApplicationUseCase.execute(argThat(command ->
+                TEST_TOKEN.equals(command.token()) && INVALID_TRIGRAM.equals(command.trigram()))))
                 .thenThrow(new fr.dossierfacile.api.front.exception.ApplicationLinkBlockedException(
                         "Too many failed attempts. Link is temporarily blocked."));
 
