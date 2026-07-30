@@ -76,7 +76,8 @@ public class TaxYearRule extends BaseTaxRule {
 
             taxYearRuleData = new TaxYearsRuleData(taxYearRuleData, extractedDates);
 
-            if (listOfPresentYear.contains(expectedYear)) {
+            // We always accept a newer tax notice because the user may have received a new tax notice before the 15 of September.
+            if (listOfPresentYear.contains(expectedYear) || listOfPresentYear.contains(expectedYear + 1)) {
                 return new RuleValidatorOutput(true, isBlocking(), DocumentAnalysisRule.documentPassedRuleFromWithData(getRule(), taxYearRuleData), RuleValidatorOutput.RuleLevel.PASSED);
             } else {
                 return new RuleValidatorOutput(false, isBlocking(), DocumentAnalysisRule.documentFailedRuleFromWithData(getRule(), taxYearRuleData), RuleValidatorOutput.RuleLevel.FAILED);
