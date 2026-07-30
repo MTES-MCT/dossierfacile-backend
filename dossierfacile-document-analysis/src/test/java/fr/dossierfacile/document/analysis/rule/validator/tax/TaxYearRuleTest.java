@@ -51,6 +51,25 @@ class TaxYearRuleTest {
     }
 
     @Test
+    @DisplayName("Should pass when tax notice is for next year (Before Sept 15 e.g. July 30 2026 with revenues 2025)")
+    void should_validate_next_year_tax_notice_before_deadline() {
+        LocalDate currentDate = LocalDate.of(2026, 7, 30);
+        // Expected year from getTaxYear(): 2024, but revenues 2025 (tax notice 2026) is also accepted
+        TaxYearRule validator = createValidator(currentDate);
+
+        Document document = documentWithAnalysis(List.of(fakeAvisImposition(2025)));
+
+        RuleValidatorOutput result = validator.validate(document);
+        assertThat(result.ruleLevel()).isEqualTo(RuleValidatorOutput.RuleLevel.PASSED);
+        assertThat(result.rule().getRule()).isEqualTo(DocumentRule.R_TAX_WRONG_YEAR);
+
+        assertThat(result.rule().getRuleData()).isInstanceOf(TaxYearsRuleData.class);
+        TaxYearsRuleData data = (TaxYearsRuleData) result.rule().getRuleData();
+        assertThat(data.expectedYear()).isEqualTo(2024);
+        assertThat(data.extractedYears()).containsExactly(2025);
+    }
+
+    @Test
     @DisplayName("Should fail when tax year is incorrect (Before Sept 15)")
     void should_fail_incorrect_year_before_deadline() {
         LocalDate currentDate = LocalDate.of(2023, 4, 10);
