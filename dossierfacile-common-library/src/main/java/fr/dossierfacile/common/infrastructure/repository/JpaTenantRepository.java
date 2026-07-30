@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -57,6 +58,15 @@ public class JpaTenantRepository implements JpaRepository {
     }
 
     /**
+     * Charge tous les locataires d'un dossier, triés par id (ordre déterministe pour les projections).
+     */
+    public List<Tenant> findAllByApartmentSharingId(Long apartmentSharingId) {
+        return jpaTenantEntityRepository.findAllByApartmentSharingIdOrderById(apartmentSharingId).stream()
+                .map(Tenant::new)
+                .toList();
+    }
+
+    /**
      * Sauvegarde l'état de l'agrégat en persistant l'entité interne.
      */
     public void save(Tenant tenant) {
@@ -81,4 +91,6 @@ interface JpaTenantEntityRepository extends org.springframework.data.jpa.reposit
 
     @Query("select t from TenantEntity t join t.guarantorIds g where g = :guarantorId")
     Optional<TenantEntity> findByGuarantorId(@Param("guarantorId") Long guarantorId);
+
+    List<TenantEntity> findAllByApartmentSharingIdOrderById(Long apartmentSharingId);
 }

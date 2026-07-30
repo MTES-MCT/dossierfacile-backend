@@ -14,13 +14,7 @@ import java.util.UUID;
 
 public interface ApartmentSharingService {
 
-    void linkExists(UUID token, boolean fullData);
-
-    ApplicationModel full(UUID token, String trigram, Tenant loggedInTenant);
-
     ApplicationModel full(Tenant tenant);
-
-    ApplicationModel light(UUID token);
 
     FullFolderFile downloadFullPdf(UUID token) throws IOException;
 

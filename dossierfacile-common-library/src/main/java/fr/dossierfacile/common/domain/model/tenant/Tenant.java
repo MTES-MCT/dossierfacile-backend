@@ -1,6 +1,8 @@
 package fr.dossierfacile.common.domain.model.tenant;
 
 import fr.dossierfacile.common.enums.TenantFileStatus;
+import fr.dossierfacile.common.enums.TenantOwnerType;
+import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.infrastructure.entity.TenantEntity;
 
 import fr.dossierfacile.common.domain.model.DomainAggregate;
@@ -60,6 +62,74 @@ public class Tenant implements Serializable, DomainAggregate<TenantEntity> {
 
     public Boolean getHonorDeclaration() {
         return entity.getHonorDeclaration();
+    }
+
+    // --- IDENTITY ACCESSORS ---
+    // Replicate the overridden getters of the legacy entity (common/entity/Tenant.java):
+    // a THIRD_PARTY (or untyped) tenant displays the tenant_* columns, a SELF tenant the user_account ones.
+
+    public String getFirstName() {
+        if (entity.getOwnerType() == TenantOwnerType.SELF) {
+            return entity.getFirstName();
+        }
+        return entity.getTenantFirstName() != null ? entity.getTenantFirstName() : entity.getFirstName();
+    }
+
+    public String getLastName() {
+        if (entity.getOwnerType() == TenantOwnerType.SELF) {
+            return entity.getLastName();
+        }
+        return entity.getTenantLastName() != null ? entity.getTenantLastName() : entity.getLastName();
+    }
+
+    public String getPreferredName() {
+        if (entity.getOwnerType() == TenantOwnerType.SELF) {
+            return entity.getPreferredName();
+        }
+        if (entity.getOwnerType() == TenantOwnerType.THIRD_PARTY) {
+            return entity.getTenantPreferredName();
+        }
+        return entity.getPreferredName();
+    }
+
+    public String getUserLastName() {
+        return entity.getLastName();
+    }
+
+    public String getUserPreferredName() {
+        return entity.getPreferredName();
+    }
+
+    public String getEmail() {
+        return entity.getEmail();
+    }
+
+    public Boolean getFranceConnect() {
+        return entity.getFranceConnect();
+    }
+
+    public TenantType getTenantType() {
+        return entity.getTenantType();
+    }
+
+    public TenantOwnerType getOwnerType() {
+        return entity.getOwnerType();
+    }
+
+    public String getZipCode() {
+        return entity.getZipCode();
+    }
+
+    public Boolean getAbroad() {
+        return entity.getAbroad();
+    }
+
+    public String getClarification() {
+        return entity.getClarification();
+    }
+
+    public LocalDateTime getLastUpdateDate() {
+        return entity.getLastUpdateDate();
     }
 
     // --- LOGIQUE MÉTIER & COMPORTEMENTS (PROTÈGE LES INVARIANTS) ---

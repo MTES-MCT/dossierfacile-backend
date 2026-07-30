@@ -3,20 +3,16 @@ package fr.dossierfacile.api.front.service;
 import fr.dossierfacile.common.domain.service.MessagePublisher;
 import fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException;
 import fr.dossierfacile.api.front.exception.ApartmentSharingUnexpectedException;
-import fr.dossierfacile.api.front.exception.TrigramNotAuthorizedException;
 import fr.dossierfacile.api.front.model.tenant.ApplicationAnalysisStatusResponse;
 import fr.dossierfacile.api.front.model.tenant.FullFolderFile;
 import fr.dossierfacile.api.front.repository.ApiTenantLogRepository;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
-import fr.dossierfacile.api.front.service.interfaces.BruteForceProtectionService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.TenantPermissionsService;
-import fr.dossierfacile.api.front.util.TrigramUtils;
 import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.*;
 import fr.dossierfacile.common.mapper.ApplicationFullMapper;
-import fr.dossierfacile.common.mapper.ApplicationLightMapper;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
 import fr.dossierfacile.common.repository.ApartmentSharingLinkRepository;
 import fr.dossierfacile.common.repository.ApartmentSharingRepository;
@@ -63,76 +59,19 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
     private final DocumentService documentService;
     private final DocumentRepository documentRepository;
     private final ApplicationFullMapper applicationFullMapper;
-    private final ApplicationLightMapper applicationLightMapper;
     private final FileStorageService fileStorageService;
     private final LinkLogService linkLogService;
     private final MessagePublisher producer;
     private final ApartmentSharingCommonService apartmentSharingCommonService;
     private final ApiTenantLogRepository tenantLogRepository;
     private final LogService logService;
-    private final BruteForceProtectionService bruteForceProtectionService;
 
-    @Override
-    public void linkExists(UUID token, boolean fullData) {
-        Optional<ApartmentSharingLink> apartmentSharingLink = apartmentSharingLinkRepository.findValidLinkByToken(token, true);
-        // 1. Check if the link exists and is valid
-        if (apartmentSharingLink.isEmpty()) {
-            throw new ApartmentSharingNotFoundException(token.toString());
-        }
-
-        ApartmentSharingLink link = apartmentSharingLink.get();
-        // 2. Check if the link is blocked by brute force protection
-        bruteForceProtectionService.checkAndEnforceProtection(link);
-    }
-
-    @Override
-    public ApplicationModel full(UUID token, String trigram, Tenant loggedInTenant) {
-        // 1. Check if the link exists and is valid
-        Optional<ApartmentSharingLink> apartmentSharingLink = apartmentSharingLinkRepository.findValidLinkByToken(token, true);
-        if (apartmentSharingLink.isEmpty()) {
-            throw new ApartmentSharingNotFoundException(token.toString());
-        }
-        ApartmentSharingLink link = apartmentSharingLink.get();
-
-        // 2. Check if the link is blocked by brute force protection
-        bruteForceProtectionService.checkAndEnforceProtection(link);
-
-        // 3. Check if the trigram is present and valid
-        ApartmentSharing apartmentSharing = link.getApartmentSharing();
-
-        try {
-            validateAndNormalizeTrigram(apartmentSharing, trigram);
-        } catch (TrigramNotAuthorizedException e) {
-            bruteForceProtectionService.recordFailedAttempt(link);
-            throw e;
-        }
-
-        // 4. Reset the attempts if the trigram is valid
-        bruteForceProtectionService.resetAttempts(link);
-
-        // 5. Save log and return the application model
-        // unless the authenticated tenant is a tenant of the apartment sharing
-        if (loggedInTenant == null || loggedInTenant.getApartmentSharing() == null || !Objects.equals(loggedInTenant.getApartmentSharing().getId(), apartmentSharing.getId())) {
-            saveLinkLog(apartmentSharing, token, LinkType.FULL_APPLICATION);
-        }
-        ApplicationModel applicationModel = applicationFullMapper.toApplicationModelWithToken(apartmentSharing, token);
-        applicationModel.setLastUpdateDate(getLastUpdateDate(apartmentSharing));
-        return applicationModel;
-    }
+    // The token-based read paths (linkExists, full(token), light) moved to the application use cases:
+    // CheckApplicationLinkUseCase, GetFullApplicationUseCase, GetLightApplicationUseCase.
 
     public ApplicationModel full(Tenant tenant) {
         ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
         ApplicationModel applicationModel = applicationFullMapper.toApplicationModel(apartmentSharing);
-        applicationModel.setLastUpdateDate(getLastUpdateDate(apartmentSharing));
-        return applicationModel;
-    }
-
-
-    @Override
-    public ApplicationModel light(UUID token) {
-        ApartmentSharing apartmentSharing = findValidApartmentSharing(token, false);
-        saveLinkLog(apartmentSharing, token, LinkType.LIGHT_APPLICATION);
-        ApplicationModel applicationModel = applicationLightMapper.toApplicationModel(apartmentSharing);
         applicationModel.setLastUpdateDate(getLastUpdateDate(apartmentSharing));
         return applicationModel;
     }
@@ -205,38 +144,6 @@ public class ApartmentSharingServiceImpl implements ApartmentSharingService {
         return apartmentSharingLink.get().getApartmentSharing();
     }
 
-    boolean validateAndNormalizeTrigram(ApartmentSharing apartmentSharing, String trigram) {
-        // Check if trigram is provided
-        if (trigram == null || trigram.isBlank()) {
-            log.warn("Missing trigram for apartmentSharing [{}]", apartmentSharing.getId());
-            throw new TrigramNotAuthorizedException("Trigram is required to access full application");
-        }
-
-        // Normalize trigram (strip whitespace and convert to uppercase)
-        String normalizedTrigram = trigram.strip().toUpperCase();
-
-        // Get valid trigrams for this apartment sharing (from lastName and preferredName of tenant and account owner)
-        List<String> validTrigrams = apartmentSharing.getTenants() == null ? List.of() : apartmentSharing.getTenants().stream()
-                .flatMap(tenant -> Stream.of(
-                        tenant.getLastName(),
-                        tenant.getPreferredName(),
-                        tenant.getUserLastName(),
-                        tenant.getUserPreferredName()))
-                .map(TrigramUtils::compute)
-                .flatMap(Optional::stream)
-                .distinct()
-                .toList();
-
-        // Check if the provided trigram matches any valid trigram
-        boolean trigramMatches = validTrigrams.stream().anyMatch(candidate -> candidate.equalsIgnoreCase(normalizedTrigram));
-
-        if (!trigramMatches) {
-            log.warn("Unauthorized trigram [{}] for apartmentSharing [{}]. Valid trigrams: {}", normalizedTrigram, apartmentSharing.getId(), validTrigrams);
-            throw new TrigramNotAuthorizedException("Trigram does not match any tenant for this application");
-        }
-
-        return true;
-    }
 
     @Override
     public void refreshUpdateDate(ApartmentSharing apartmentSharing) {

@@ -13,12 +13,14 @@ import fr.dossierfacile.common.infrastructure.repository.JpaGuarantorRepository;
 import fr.dossierfacile.common.infrastructure.repository.JpaTenantRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.ListUtils;
+import fr.dossierfacile.common.enums.TypeGuarantor;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -31,13 +33,24 @@ public class UpdateTenantStatusDomainService {
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
     private final AddLogDomainService addLogDomainService;
 
-    private final List<DocumentCategory> mandatoryCategoriesForTenantAndGuarantorMandatoryCategories = List.of(
+    private static final List<DocumentCategory> TENANT_OR_NATURAL_GUARANTOR_MANDATORY_CATEGORIES = List.of(
             DocumentCategory.IDENTIFICATION,
             DocumentCategory.RESIDENCY,
             DocumentCategory.PROFESSIONAL,
             DocumentCategory.FINANCIAL,
             DocumentCategory.TAX
     );
+
+    private static final List<DocumentCategory> LEGAL_PERSON_GUARANTOR_MANDATORY_CATEGORIES = List.of(
+            DocumentCategory.IDENTIFICATION,
+            DocumentCategory.IDENTIFICATION_LEGAL_PERSON
+    );
+
+    /** Minimal projection of a document for the status computation. */
+    public record DocumentView(DocumentStatus status, DocumentCategory category) {}
+
+    /** Minimal projection of a guarantor and its documents for the status computation. */
+    public record GuarantorView(TypeGuarantor type, List<DocumentView> documents) {}
 
     public UpdateTenantStatusResult updateTenantStatus(Tenant tenant) {
         return updateTenantStatus(tenant, null);
@@ -80,6 +93,7 @@ public class UpdateTenantStatusDomainService {
     public TenantFileStatus computeTenantStatus(Tenant tenant) {
         log.info("Computing status for tenant with ID [" + tenant.getId() + "]...");
 
+        // Short-circuit before loading anything: ARCHIVED is sticky
         if (tenant.getStatus() == TenantFileStatus.ARCHIVED) {
             return TenantFileStatus.ARCHIVED;
         }
@@ -87,68 +101,88 @@ public class UpdateTenantStatusDomainService {
         List<Document> tenantDocuments = jpaDocumentRepository.getDocumentsByTenantId(tenant.getId());
         List<Guarantor> guarantors = jpaGuarantorRepository.findByTenantId(tenant.getId());
         List<Long> guarantorIds = guarantors.stream().map(Guarantor::getId).toList();
-        List<Document> guarantorDocuments = jpaDocumentRepository.getDocumentsByGuarantorsIds(guarantorIds);
-        List<Document> allDocuments = ListUtils.union(tenantDocuments, guarantorDocuments);
+        Map<Long, List<Document>> documentsByGuarantorId = jpaDocumentRepository.getDocumentsByGuarantorsIds(guarantorIds).stream()
+                .collect(Collectors.groupingBy(Document::getGuarantorId));
 
-        if (allDocuments.stream().anyMatch(d -> d.getDocumentStatus() == DocumentStatus.DECLINED)) {
-            return TenantFileStatus.DECLINED;
-        } else if (allDocuments.stream().anyMatch(d -> d.getDocumentStatus() == DocumentStatus.TO_PROCESS)) {
-            return TenantFileStatus.TO_PROCESS;
-        } else if (!Boolean.TRUE.equals(tenant.getHonorDeclaration())
-                || !isAllCategoriesPresentInTenant(tenantDocuments)
-                || !areAllGuarantorsComplete(guarantors, guarantorDocuments)) {
-            return TenantFileStatus.INCOMPLETE;
+        return computeStatus(
+                tenant.getStatus(),
+                Boolean.TRUE.equals(tenant.getHonorDeclaration()),
+                toDocumentViews(tenantDocuments),
+                guarantors.stream()
+                        .map(guarantor -> new GuarantorView(
+                                guarantor.getTypeGuarantor(),
+                                toDocumentViews(documentsByGuarantorId.getOrDefault(guarantor.getId(), List.of()))))
+                        .toList());
+    }
+
+    private static List<DocumentView> toDocumentViews(List<Document> documents) {
+        return documents.stream()
+                .map(document -> new DocumentView(document.getDocumentStatus(), document.getDocumentCategory()))
+                .toList();
+    }
+
+    public static TenantFileStatus computeStatus(TenantFileStatus storedStatus,
+                                                 boolean honorDeclaration,
+                                                 List<DocumentView> tenantDocuments,
+                                                 List<GuarantorView> guarantors) {
+        if (storedStatus == TenantFileStatus.ARCHIVED) {
+            return TenantFileStatus.ARCHIVED;
         }
 
+        List<DocumentView> allDocuments = Stream.concat(
+                        tenantDocuments.stream(),
+                        guarantors.stream().flatMap(guarantor -> guarantor.documents().stream()))
+                .toList();
+
+        if (allDocuments.stream().anyMatch(document -> document.status() == DocumentStatus.DECLINED)) {
+            return TenantFileStatus.DECLINED;
+        }
+        if (!honorDeclaration || !isComplete(tenantDocuments, guarantors)) {
+            return TenantFileStatus.INCOMPLETE;
+        }
+        if (allDocuments.stream().anyMatch(document -> document.status() == DocumentStatus.TO_PROCESS)) {
+            return TenantFileStatus.TO_PROCESS;
+        }
         return TenantFileStatus.VALIDATED;
     }
 
-    private boolean isAllCategoriesPresentInTenant(List<Document> documents) {
-        if (documents == null || documents.isEmpty()) {
+    /** Completeness check shared with entity/Tenant#isAllCategories. */
+    public static boolean isComplete(List<DocumentView> tenantDocuments, List<GuarantorView> guarantors) {
+        List<DocumentCategory> tenantCategories = tenantDocuments.stream()
+                .map(DocumentView::category)
+                .toList();
+        if (!tenantCategories.containsAll(TENANT_OR_NATURAL_GUARANTOR_MANDATORY_CATEGORIES)) {
             return false;
         }
-        return hasAllMandatoryCategories(documents, mandatoryCategoriesForTenantAndGuarantorMandatoryCategories);
-    }
 
-    private boolean areAllGuarantorsComplete(List<Guarantor> guarantors, List<Document> guarantorDocuments) {
-        if (guarantors == null || guarantors.isEmpty()) {
-            return true;
-        }
-
-        for (Guarantor guarantor : guarantors) {
-            List<Document> documentsForGuarantor = guarantorDocuments.stream()
-                    .filter(d -> guarantor.getId().equals(d.getGuarantorId()))
-                    .toList();
-
-            if (!isGuarantorComplete(guarantor, documentsForGuarantor)) {
+        for (GuarantorView guarantor : guarantors) {
+            if (guarantor.documents().isEmpty()) {
+                return false;
+            }
+            if (guarantor.type() == null) {
+                // Legacy behavior: guarantors matching no known type are skipped
+                continue;
+            }
+            boolean complete = switch (guarantor.type()) {
+                // An ORGANISM guarantor must have exactly one GUARANTEE_PROVIDER_CERTIFICATE document
+                case ORGANISM -> guarantor.documents().size() == 1
+                        && guarantor.documents().getFirst().category() == DocumentCategory.GUARANTEE_PROVIDER_CERTIFICATE;
+                case NATURAL_PERSON -> categoriesOf(guarantor.documents())
+                        .containsAll(TENANT_OR_NATURAL_GUARANTOR_MANDATORY_CATEGORIES);
+                case LEGAL_PERSON -> categoriesOf(guarantor.documents())
+                        .containsAll(LEGAL_PERSON_GUARANTOR_MANDATORY_CATEGORIES);
+            };
+            if (!complete) {
                 return false;
             }
         }
         return true;
     }
 
-    private boolean isGuarantorComplete(Guarantor guarantor, List<Document> documentsForGuarantor) {
-        if (documentsForGuarantor.isEmpty()) {
-            return false;
-        }
-
-        return switch (guarantor.getTypeGuarantor()) {
-            case ORGANISM -> documentsForGuarantor.size() == 1 &&
-                    documentsForGuarantor.getFirst().getDocumentCategory() == DocumentCategory.GUARANTEE_PROVIDER_CERTIFICATE;
-            case NATURAL_PERSON -> hasAllMandatoryCategories(documentsForGuarantor, mandatoryCategoriesForTenantAndGuarantorMandatoryCategories);
-            case LEGAL_PERSON -> hasAllMandatoryCategories(documentsForGuarantor, List.of(
-                    DocumentCategory.IDENTIFICATION,
-                    DocumentCategory.IDENTIFICATION_LEGAL_PERSON
-            ));
-            default -> false;
-        };
-    }
-
-    private boolean hasAllMandatoryCategories(List<Document> documents, List<DocumentCategory> mandatoryCategories) {
-        List<DocumentCategory> existingCategories = documents.stream()
-                .map(Document::getDocumentCategory)
+    private static List<DocumentCategory> categoriesOf(List<DocumentView> documents) {
+        return documents.stream()
+                .map(DocumentView::category)
                 .toList();
-        return new HashSet<>(existingCategories).containsAll(mandatoryCategories);
     }
 
     public record UpdateTenantStatusResult(

@@ -40,6 +40,15 @@ public class JpaGuarantorRepository implements JpaRepository {
                 .toList();
     }
 
+    public List<Guarantor> findAllByTenantIds(List<Long> tenantIds) {
+        if (tenantIds == null || tenantIds.isEmpty()) {
+            return List.of();
+        }
+        return jpaGuarantorEntityRepository.findAllByTenantIdInOrderById(tenantIds).stream()
+                .map(Guarantor::new)
+                .toList();
+    }
+
     public void save(Guarantor guarantor) {
         jpaGuarantorEntityRepository.save(guarantor.getEntityOnlyForRepository());
     }
@@ -55,4 +64,6 @@ public class JpaGuarantorRepository implements JpaRepository {
 interface JpaGuarantorEntityRepository extends org.springframework.data.jpa.repository.JpaRepository<GuarantorEntity, Long> {
 
     List<GuarantorEntity> findByTenantId(Long tenantId);
+
+    List<GuarantorEntity> findAllByTenantIdInOrderById(List<Long> tenantIds);
 }

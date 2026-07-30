@@ -70,6 +70,18 @@ public class JpaDocumentRepository implements JpaRepository {
     }
 
     /**
+     * Récupère tous les documents d'une liste de locataires (chargement batch pour les projections).
+     */
+    public List<Document> getDocumentsByTenantsIds(List<Long> tenantIds) {
+        if (tenantIds == null || tenantIds.isEmpty()) {
+            return List.of();
+        }
+        return jpaDocumentEntityRepository.findAllByTenantIdIn(tenantIds).stream()
+                .map(Document::new)
+                .toList();
+    }
+
+    /**
      * Sauvegarde l'état de l'agrégat en persistant l'entité interne.
      */
     public void save(Document document) {
@@ -98,6 +110,8 @@ interface JpaDocumentEntityRepository extends org.springframework.data.jpa.repos
     Optional<DocumentEntity> findByFileId(@Param("fileId") Long fileId);
 
     List<DocumentEntity> findAllByTenantId(Long tenantId);
+
+    List<DocumentEntity> findAllByTenantIdIn(List<Long> tenantIds);
 
     List<DocumentEntity> findAllByGuarantorId(Long guarantorId);
 
