@@ -4,8 +4,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(HttpStatus.CONFLICT)
-public class CoTenantEmailAlreadyExists extends RuntimeException {
-    public CoTenantEmailAlreadyExists() {
+public class CoTenantEmailAlreadyExistsException extends RuntimeException {
+    public CoTenantEmailAlreadyExistsException() {
         super("A co-tenant with this email already exists");
+    }
+
+    public CoTenantEmailAlreadyExistsException(String message) {
+        super(message);
     }
 }

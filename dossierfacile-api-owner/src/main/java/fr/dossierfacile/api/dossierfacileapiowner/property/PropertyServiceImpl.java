@@ -83,9 +83,11 @@ public class PropertyServiceImpl implements PropertyService {
         if (propertyForm.getLivingSpace() != null && propertyForm.getLivingSpace() >= 0) {
             property.setLivingSpace(propertyForm.getLivingSpace());
         }
-        if (propertyForm.getAdemeNumber() != null && !propertyForm.getAdemeNumber().isBlank()) {
+        String formAdemeNumber = propertyForm.getAdemeNumber();
+        boolean hasAdemeNumber = formAdemeNumber != null && !formAdemeNumber.isBlank();
+        if (hasAdemeNumber && !formAdemeNumber.equals(property.getAdemeNumber())) {
             setAdemeResult(propertyForm, property);
-        } else {
+        } else if (!hasAdemeNumber) {
             if (propertyForm.getCo2Emission() != null && propertyForm.getCo2Emission() >= 0) {
                 property.setCo2Emission(propertyForm.getCo2Emission());
             }

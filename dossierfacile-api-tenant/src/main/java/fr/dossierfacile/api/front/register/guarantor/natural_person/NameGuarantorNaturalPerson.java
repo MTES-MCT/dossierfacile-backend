@@ -9,12 +9,14 @@ import fr.dossierfacile.api.front.repository.GuarantorRepository;
 import fr.dossierfacile.api.front.security.interfaces.ClientAuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
+import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
 import fr.dossierfacile.common.entity.Guarantor;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.DocumentCategory;
 import fr.dossierfacile.common.enums.TypeGuarantor;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
+import fr.dossierfacile.common.utils.TransactionalUtil;
 import fr.dossierfacile.document.analysis.service.DocumentIAService;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -22,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Arrays;
 
 @Service
@@ -35,6 +38,7 @@ public class NameGuarantorNaturalPerson implements SaveStep<NameGuarantorNatural
     private final ApartmentSharingService apartmentSharingService;
     private final ClientAuthenticationFacade clientAuthenticationFacade;
     private final DocumentIAService documentIAService;
+    private final MailService mailService;
 
     @Override
     @Transactional
@@ -51,12 +55,17 @@ public class NameGuarantorNaturalPerson implements SaveStep<NameGuarantorNatural
                 || !StringUtils.equals(guarantor.getLastName(), nameGuarantorNaturalPersonForm.getLastName())
                 || !StringUtils.equals(currentPreferredName, newPreferredName);
 
+        // Notify the guarantor only when their email is set for the first time or changed,
+        var newEmail = StringUtils.trimToNull(nameGuarantorNaturalPersonForm.getEmail());
+        boolean guarantorEmailHasChanged = !StringUtils.equals(guarantor.getEmail(), newEmail);
+
         guarantor.setFirstName(nameGuarantorNaturalPersonForm.getFirstName());
         guarantor.setLastName(nameGuarantorNaturalPersonForm.getLastName());
         guarantor.setPreferredName(nameGuarantorNaturalPersonForm.getPreferredName());
+        guarantor.setEmail(nameGuarantorNaturalPersonForm.getEmail());
         guarantor.setTenant(tenant);
         guarantorRepository.save(guarantor);
-        tenant.lastUpdateDateProfile(LocalDateTime.now(), DocumentCategory.IDENTIFICATION);
+        tenant.lastUpdateDateProfile(LocalDateTime.now(ZoneId.systemDefault()), DocumentCategory.IDENTIFICATION);
 
         if (guarantorIdentityHasChanged) {
             var documents = guarantor.getDocuments();
@@ -66,6 +75,13 @@ public class NameGuarantorNaturalPerson implements SaveStep<NameGuarantorNatural
 
         tenantStatusService.updateTenantStatus(tenant);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
+
+        if (guarantorEmailHasChanged && guarantor.getEmail() != null) {
+            Tenant creator = tenant;
+            String guarantorEmail = guarantor.getEmail();
+            String guarantorName = guarantor.getCompleteName();
+            TransactionalUtil.afterCommit(() -> mailService.sendEmailToGuarantor(guarantorEmail, guarantorName, creator));
+        }
 
         return tenantMapper.toTenantModel(tenantRepository.save(tenant), (!clientAuthenticationFacade.isClient()) ? null : clientAuthenticationFacade.getClient());
     }

@@ -61,6 +61,10 @@ public class MailServiceImpl implements MailService {
     private Long templateIdContactSupport;
     @Value("${brevo.template.id.share.file:89}")
     private Long templateIdShareFile;
+    @Value("${brevo.template.id.guarantor.notification:171}")
+    private Long templateIdGuarantorNotification;
+    @Value("${brevo.template.id.beneficiary.notification:172}")
+    private Long templateIdBeneficiaryNotification;
     @Value("${brevo.domains.blacklist:example.com}")
     private List<String> blackListedDomains;
 
@@ -143,6 +147,26 @@ public class MailServiceImpl implements MailService {
         variables.put("NOM", Strings.isNullOrEmpty(user.getPreferredName()) ? user.getLastName() : user.getPreferredName());
 
         sendEmailToTenant(user, variables, templateIdAccountDeleted);
+    }
+
+    @Async
+    @Override
+    public void sendEmailToGuarantor(String guarantorEmail, String guarantorName, Tenant creator) {
+        Map<String, String> variables = new HashMap<>();
+        variables.put(PRENOM_KEY, creator.getFirstName());
+        variables.put("NOM", Strings.isNullOrEmpty(creator.getPreferredName()) ? creator.getLastName() : creator.getPreferredName());
+
+        sendEmailToTenant(guarantorEmail, guarantorName, variables, templateIdGuarantorNotification);
+    }
+
+    @Override
+    public void sendEmailToBeneficiary(String beneficiaryEmail, String beneficiaryFullName, Tenant declarant) {
+        Map<String, String> variables = new HashMap<>();
+        variables.put(PRENOM_KEY, declarant.getFirstName());
+        variables.put("NOM", Strings.isNullOrEmpty(declarant.getPreferredName()) ? declarant.getLastName() : declarant.getPreferredName());
+        variables.put("EMAIL_DECLARANT", declarant.getEmail());
+
+        sendEmailToTenant(beneficiaryEmail, beneficiaryFullName, variables, templateIdBeneficiaryNotification);
     }
 
     @Async

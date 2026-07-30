@@ -10,6 +10,7 @@ import fr.dossierfacile.api.front.repository.FileRepository;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.api.front.validator.NumberOfPagesValidator;
+import fr.dossierfacile.api.front.validator.tenant.application.ApplicationRegistrationValidator;
 import fr.dossierfacile.common.config.GlobalExceptionHandler;
 import fr.dossierfacile.common.service.FileUploadPreprocessor;
 import fr.dossierfacile.common.entity.ApartmentSharing;
@@ -78,6 +79,9 @@ class RegisterControllerTest {
     @MockitoBean
     private FileUploadPreprocessor fileUploadPreprocessor;
 
+    @MockitoBean
+    private ApplicationRegistrationValidator applicationRegistrationValidator;
+
     // Référence statique à l’instance courante du test
     private static RegisterControllerTest self;
 
@@ -117,7 +121,8 @@ class RegisterControllerTest {
                                             null,
                                             null,
                                             false,
-                                            TenantOwnerType.SELF
+                                            TenantOwnerType.SELF,
+                                            null
                                     )),
                                     400,
                                     jwtTokenWithDossier,
@@ -137,7 +142,8 @@ class RegisterControllerTest {
                                             null,
                                             null,
                                             false,
-                                            TenantOwnerType.SELF
+                                            TenantOwnerType.SELF,
+                                            null
                                     )),
                                     200,
                                     jwtTokenWithDossier,

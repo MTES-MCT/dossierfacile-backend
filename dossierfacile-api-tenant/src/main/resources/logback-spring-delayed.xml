@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
+    <statusListener class="fr.dossierfacile.logging.TrustAllStatusListener" />
     <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
 
     <springProperty scope="context" name="LOG_LEVEL" source="logging.level.root"/>
@@ -68,6 +69,30 @@
                 <includeMdcKeyName>response_content_type</includeMdcKeyName>
                 <includeMdcKeyName>response_body</includeMdcKeyName>
             </encoder>
+
+            <ssl>
+                <!-- 
+                     ATTENTION : Logback ignore complètement le <trustManagerFactory> si aucun 
+                     <trustStore> n'est configuré (getTrustStore() == null).
+                     Pour forcer Logback à évaluer et utiliser notre TrustManager personnalisé (TrustAll),
+                     on doit obligatoirement configurer un <trustStore>.
+                     On pointe ici vers le fichier 'cacerts' standard de la JVM locale via sa variable système
+                     (préfixé par file: pour que Logback le traite comme un chemin de fichier et non comme une ressource classpath).
+                     Cela évite d'avoir à commiter un fichier keystore binaire (.p12 ou .jks) ou des mots de passe sensibles.
+                -->
+                <trustStore>
+                    <location>file:${java.home}/lib/security/cacerts</location>
+                </trustStore>
+                <!-- 
+                     Le <trustManagerFactory> utilise l'algorithme "TrustAll" exposé par "TrustAllProvider" 
+                     (enregistré par TrustAllStatusListener tout en haut de ce fichier XML).
+                     Cela permet d'accepter tous les certificats serveurs SSL auto-générés ou invalides.
+                -->
+                <trustManagerFactory>
+                    <algorithm>TrustAll</algorithm>
+                    <provider>TrustAllProvider</provider>
+                </trustManagerFactory>
+            </ssl>
         </appender>
     </springProfile>
 

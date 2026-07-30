@@ -23,6 +23,7 @@ public class TenantModel {
     private String lastName;
     private String preferredName;
     private TenantOwnerType ownerType;
+    private String beneficiaryEmail;
     private String zipCode;
     private Boolean abroad;
     private String email;

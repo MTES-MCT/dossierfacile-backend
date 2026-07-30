@@ -1,7 +1,6 @@
 package fr.dossierfacile.api.front.validator.annotation.tenant.application.v2;
 
-
-import fr.dossierfacile.api.front.validator.tenant.application.DeniedJoinTenantValidator;
+import fr.dossierfacile.api.front.validator.tenant.application.CoTenantsEmailRequiredValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
@@ -10,13 +9,13 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Target({ElementType.TYPE, ElementType.FIELD})
+@Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Constraint(
-        validatedBy = {DeniedJoinTenantValidator.class}
+        validatedBy = {CoTenantsEmailRequiredValidator.class}
 )
-public @interface DeniedJoinTenant {
-    String message() default "join tenant cannot access to this step";
+public @interface CoTenantsEmailRequired {
+    String message() default "coTenant should have an email for a group or couple applicationType";
 
     Class<?>[] groups() default {};
 

@@ -19,6 +19,7 @@ public class GuarantorModel {
     private String firstName;
     private String lastName;
     private String preferredName;
+    private String email;
     private String legalPersonName;
     private TypeGuarantor typeGuarantor;
     private List<DocumentModel> documents;

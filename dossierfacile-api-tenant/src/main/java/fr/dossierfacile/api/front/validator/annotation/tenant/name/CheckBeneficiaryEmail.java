@@ -1,6 +1,6 @@
-package fr.dossierfacile.api.front.validator.annotation.tenant.application.v2;
+package fr.dossierfacile.api.front.validator.annotation.tenant.name;
 
-import fr.dossierfacile.api.front.validator.tenant.application.CoTenantsEmailRequiredForGroupValidator;
+import fr.dossierfacile.api.front.validator.tenant.name.CheckBeneficiaryEmailValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
@@ -11,11 +11,13 @@ import java.lang.annotation.Target;
 
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
+
 @Constraint(
-        validatedBy = {CoTenantsEmailRequiredForGroupValidator.class}
+        validatedBy = {CheckBeneficiaryEmailValidator.class}
 )
-public @interface CoTenantsEmailRequiredForGroup {
-    String message() default "coTenant Should have email if group applicationType";
+
+public @interface CheckBeneficiaryEmail {
+    String message() default "The beneficiary email is required when the dossier is filled for a third party";
 
     Class<?>[] groups() default {};
 

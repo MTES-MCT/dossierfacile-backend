@@ -18,6 +18,9 @@ public class DistinctCoTenantEmailListValidator implements ConstraintValidator<D
 
     @Override
     public boolean isValid(List<CoTenantForm> coTenantForms, ConstraintValidatorContext constraintValidatorContext) {
+        if (coTenantForms == null) {
+            return true;
+        }
         var emails = coTenantForms.stream()
                 .filter(t -> StringUtils.isNotBlank(t.getEmail())).collect(Collectors.toList());
         return emails.stream().map(CoTenantForm::getEmail).distinct().count() == emails.size();
