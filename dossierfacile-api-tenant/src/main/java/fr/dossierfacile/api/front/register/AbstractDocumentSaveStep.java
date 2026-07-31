@@ -6,7 +6,7 @@ import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.register.form.DocumentForm;
 import fr.dossierfacile.api.front.security.interfaces.ClientAuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
-import fr.dossierfacile.api.front.service.interfaces.TenantAutoValidationService;
+import fr.dossierfacile.common.service.interfaces.TenantAutoValidationService;
 import fr.dossierfacile.common.entity.Document;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.LogType;

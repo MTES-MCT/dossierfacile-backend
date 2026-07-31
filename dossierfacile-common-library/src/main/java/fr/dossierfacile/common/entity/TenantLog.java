@@ -36,6 +36,7 @@ public class TenantLog implements Serializable {
     @Column
     private Long operatorId;
 
+    @Builder.Default
     @Column(name = "creation_date")
     private LocalDateTime creationDateTime = LocalDateTime.now();
 
@@ -53,15 +54,24 @@ public class TenantLog implements Serializable {
     @Column
     private Long messageId;
 
+    @PrePersist
+    public void prePersist() {
+        if (creationDateTime == null) {
+            creationDateTime = LocalDateTime.now();
+        }
+    }
+
     public TenantLog(LogType logType, Long tenantId, Long operatorId) {
         this.logType = logType;
         this.tenantId = tenantId;
         this.operatorId = operatorId;
+        this.creationDateTime = LocalDateTime.now();
     }
 
     public TenantLog(LogType logType, Long tenantId) {
         this.logType = logType;
         this.tenantId = tenantId;
+        this.creationDateTime = LocalDateTime.now();
     }
 
     public TenantLog(LogType logType, Long tenantId, Long operatorId, Long messageId) {
@@ -69,6 +79,7 @@ public class TenantLog implements Serializable {
         this.tenantId = tenantId;
         this.operatorId = operatorId;
         this.messageId = messageId;
+        this.creationDateTime = LocalDateTime.now();
     }
 
     public String getTitle() {

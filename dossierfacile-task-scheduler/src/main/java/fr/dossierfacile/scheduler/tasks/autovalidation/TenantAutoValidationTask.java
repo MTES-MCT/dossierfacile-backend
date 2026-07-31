@@ -1,0 +1,52 @@
+package fr.dossierfacile.scheduler.tasks.autovalidation;
+
+import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.service.interfaces.TenantAutoValidationService;
+import fr.dossierfacile.scheduler.tasks.AbstractTask;
+import fr.dossierfacile.scheduler.tasks.TaskName;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class TenantAutoValidationTask extends AbstractTask {
+
+    private final TenantAutoValidationService tenantAutoValidationService;
+
+    @Value("${tenant.auto.validation.delay.minutes:30}")
+    private int delayInMinutes;
+
+    @Scheduled(fixedDelayString = "${tenant.auto.validation.delay.ms:300000}", initialDelay = 0)
+    public void processTenantAutoValidation() {
+        super.startTask(TaskName.TENANT_AUTO_VALIDATION);
+        try {
+            LocalDateTime maxLastUpdateDate = LocalDateTime.now().minusMinutes(delayInMinutes);
+            log.info("Starting tenant auto validation task for tenants flagged since more than {} minutes (lastUpdateDate <= {})", delayInMinutes, maxLastUpdateDate);
+
+            List<Tenant> tenantsToValidate = tenantAutoValidationService.listTenantsToAutoValidate(maxLastUpdateDate);
+            countTenantIdForLogging(tenantsToValidate.stream().map(Tenant::getId).toList());
+
+            log.info("Found {} tenants ready for auto-validation", tenantsToValidate.size());
+
+            for (Tenant tenant : tenantsToValidate) {
+                try {
+                    tenantAutoValidationService.processAutoValidationForTenant(tenant.getId());
+                } catch (Exception e) {
+                    log.error("Error processing auto-validation for tenant ID [{}]", tenant.getId(), e);
+                }
+            }
+
+        } catch (Exception e) {
+            log.error("Error during tenant auto validation task execution", e);
+        } finally {
+            super.endTask();
+        }
+    }
+}

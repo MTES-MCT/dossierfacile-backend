@@ -166,6 +166,9 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
 
     @Query("select count(t) from Tenant t where t.status = :status and (t.readyForAutoValidation = false or t.readyForAutoValidation is null)")
     long countAllToProcessForOperators(@Param("status") TenantFileStatus status);
+
+    @Query("select t from Tenant t where t.status = fr.dossierfacile.common.enums.TenantFileStatus.TO_PROCESS and t.readyForAutoValidation = true and t.lastUpdateDate <= :maxLastUpdateDate")
+    List<Tenant> findTenantsToAutoValidate(@Param("maxLastUpdateDate") LocalDateTime maxLastUpdateDate);
     //endregion
 
     //region Used in FO
