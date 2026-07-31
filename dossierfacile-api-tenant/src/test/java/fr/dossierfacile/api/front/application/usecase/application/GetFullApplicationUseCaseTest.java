@@ -1,17 +1,21 @@
 package fr.dossierfacile.api.front.application.usecase.application;
 
 import fr.dossierfacile.api.front.application.projection.ApplicationProjectionLoader;
-import fr.dossierfacile.api.front.application.projection.FullApplicationResponseProjection;
 import fr.dossierfacile.api.front.application.projection.ApplicationProjectionSources;
+import fr.dossierfacile.api.front.application.projection.FullApplicationResponseProjection;
 import fr.dossierfacile.api.front.application.usecase.application.GetFullApplicationUseCase.GetFullApplicationCommand;
+import fr.dossierfacile.api.front.domain.policy.LinkBruteForcePolicy;
 import fr.dossierfacile.api.front.domain.policy.TrigramAccessPolicy;
 import fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException;
 import fr.dossierfacile.api.front.exception.ApplicationLinkBlockedException;
 import fr.dossierfacile.api.front.exception.TrigramNotAuthorizedException;
 import fr.dossierfacile.api.front.service.interfaces.BruteForceProtectionService;
+import fr.dossierfacile.common.domain.model.tenant.Tenant;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.ApartmentSharingLink;
 import fr.dossierfacile.common.entity.LinkLog;
+import fr.dossierfacile.common.infrastructure.entity.TenantEntity;
+import fr.dossierfacile.common.infrastructure.repository.JpaTenantRepository;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
 import fr.dossierfacile.common.repository.ApartmentSharingLinkRepository;
 import fr.dossierfacile.common.service.interfaces.LinkLogService;
@@ -58,6 +62,8 @@ class GetFullApplicationUseCaseTest {
     @Mock
     private ApartmentSharingLinkRepository apartmentSharingLinkRepository;
     @Mock
+    private LinkBruteForcePolicy linkBruteForcePolicy;
+    @Mock
     private BruteForceProtectionService bruteForceProtectionService;
     @Mock
     private TrigramAccessPolicy trigramAccessPolicy;
@@ -67,6 +73,8 @@ class GetFullApplicationUseCaseTest {
     private FullApplicationResponseProjection fullApplicationResponseProjection;
     @Mock
     private LinkLogService linkLogService;
+    @Mock
+    private JpaTenantRepository jpaTenantRepository;
 
     private ApartmentSharingLink link;
     private ApplicationProjectionSources sources;
@@ -77,11 +85,13 @@ class GetFullApplicationUseCaseTest {
         useCase = new GetFullApplicationUseCase(
                 transactionManager,
                 apartmentSharingLinkRepository,
+                linkBruteForcePolicy,
                 bruteForceProtectionService,
                 trigramAccessPolicy,
                 applicationProjectionLoader,
                 fullApplicationResponseProjection,
-                linkLogService
+                linkLogService,
+                jpaTenantRepository
         );
 
         ApartmentSharing sharing = ApartmentSharing.builder().id(SHARING_ID).build();
@@ -93,8 +103,13 @@ class GetFullApplicationUseCaseTest {
         lenient().when(fullApplicationResponseProjection.project(sources, TOKEN)).thenReturn(new ApplicationModel());
     }
 
-    private GetFullApplicationCommand command(String trigram, Long loggedSharingId) {
-        return new GetFullApplicationCommand(TOKEN, trigram, loggedSharingId, "127.0.0.1");
+    private GetFullApplicationCommand command(String trigram, String viewerKeycloakId) {
+        return new GetFullApplicationCommand(TOKEN, trigram, viewerKeycloakId, "127.0.0.1");
+    }
+
+    private void givenViewerBelongsToSharing(String keycloakId, Long apartmentSharingId) {
+        Tenant viewer = new Tenant(TenantEntity.builder().id(7L).apartmentSharingId(apartmentSharingId).build());
+        when(jpaTenantRepository.findByKeycloakId(keycloakId)).thenReturn(Optional.of(viewer));
     }
 
     @Test
@@ -108,7 +123,7 @@ class GetFullApplicationUseCaseTest {
     @Test
     void throws_429_and_stops_when_link_is_blocked() {
         doThrow(new ApplicationLinkBlockedException("blocked"))
-                .when(bruteForceProtectionService).checkAndEnforceProtection(link);
+                .when(linkBruteForcePolicy).checkNotBlocked(link);
 
         assertThatThrownBy(() -> useCase.execute(command("DUP", null)))
                 .isInstanceOf(ApplicationLinkBlockedException.class);
@@ -144,7 +159,9 @@ class GetFullApplicationUseCaseTest {
 
     @Test
     void skips_link_log_when_logged_tenant_consults_their_own_application() {
-        useCase.execute(command("DUP", SHARING_ID));
+        givenViewerBelongsToSharing("kc-viewer", SHARING_ID);
+
+        useCase.execute(command("DUP", "kc-viewer"));
 
         verify(linkLogService, never()).save(any(LinkLog.class));
         verify(bruteForceProtectionService).resetAttempts(link);
@@ -152,7 +169,18 @@ class GetFullApplicationUseCaseTest {
 
     @Test
     void logs_consultation_when_logged_tenant_belongs_to_another_application() {
-        useCase.execute(command("DUP", 999L));
+        givenViewerBelongsToSharing("kc-viewer", 999L);
+
+        useCase.execute(command("DUP", "kc-viewer"));
+
+        verify(linkLogService).save(any(LinkLog.class));
+    }
+
+    @Test
+    void logs_consultation_when_viewer_keycloak_id_is_unknown() {
+        when(jpaTenantRepository.findByKeycloakId("kc-ghost")).thenReturn(Optional.empty());
+
+        useCase.execute(command("DUP", "kc-ghost"));
 
         verify(linkLogService).save(any(LinkLog.class));
     }

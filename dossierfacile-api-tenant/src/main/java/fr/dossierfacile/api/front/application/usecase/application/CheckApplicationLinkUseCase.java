@@ -1,7 +1,7 @@
 package fr.dossierfacile.api.front.application.usecase.application;
 
+import fr.dossierfacile.api.front.domain.policy.LinkBruteForcePolicy;
 import fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException;
-import fr.dossierfacile.api.front.service.interfaces.BruteForceProtectionService;
 import fr.dossierfacile.common.application.usecase.BaseUseCase;
 import fr.dossierfacile.common.entity.ApartmentSharingLink;
 import fr.dossierfacile.common.repository.ApartmentSharingLinkRepository;
@@ -18,26 +18,29 @@ public class CheckApplicationLinkUseCase
         extends BaseUseCase<CheckApplicationLinkUseCase.CheckApplicationLinkCommand, Void> {
 
     private final ApartmentSharingLinkRepository apartmentSharingLinkRepository;
-    private final BruteForceProtectionService bruteForceProtectionService;
+    private final LinkBruteForcePolicy linkBruteForcePolicy;
 
     public CheckApplicationLinkUseCase(
             PlatformTransactionManager transactionManager,
             ApartmentSharingLinkRepository apartmentSharingLinkRepository,
-            BruteForceProtectionService bruteForceProtectionService
+            LinkBruteForcePolicy linkBruteForcePolicy
     ) {
         super(transactionManager);
         this.apartmentSharingLinkRepository = apartmentSharingLinkRepository;
-        this.bruteForceProtectionService = bruteForceProtectionService;
+        this.linkBruteForcePolicy = linkBruteForcePolicy;
     }
 
     @Override
     public Void execute(CheckApplicationLinkCommand command) {
         checkTransaction();
 
-        ApartmentSharingLink link = apartmentSharingLinkRepository.findValidLinkByToken(command.token(), true)
-                .orElseThrow(() -> new ApartmentSharingNotFoundException(command.token().toString()));
+        executeInTransaction(status -> {
+            ApartmentSharingLink link = apartmentSharingLinkRepository.findValidLinkByToken(command.token(), true)
+                    .orElseThrow(() -> new ApartmentSharingNotFoundException(command.token().toString()));
 
-        bruteForceProtectionService.checkAndEnforceProtection(link);
+            linkBruteForcePolicy.checkNotBlocked(link);
+            return null;
+        });
         return null;
     }
 

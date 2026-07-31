@@ -68,6 +68,7 @@ import static org.assertj.core.api.Assertions.assertThat;
         FullApplicationResponseProjection.class,
         LightApplicationResponseProjection.class,
         TrigramAccessPolicy.class,
+        fr.dossierfacile.api.front.domain.policy.LinkBruteForcePolicy.class,
         GetLightApplicationUseCase.class,
         GetFullApplicationUseCase.class
 })

@@ -3,23 +3,15 @@ package fr.dossierfacile.api.front.service.interfaces;
 import fr.dossierfacile.common.entity.ApartmentSharingLink;
 
 /**
- * Service responsible for managing brute-force protection on apartment sharing links.
- * This service tracks failed attempts and blocks access when the threshold is exceeded.
+ * State mutations of the brute-force protection counters on apartment sharing links.
+ * The blocked-or-not decision is a pure policy: see LinkBruteForcePolicy.
  */
 public interface BruteForceProtectionService {
 
     /**
-     * Checks if the link is currently blocked due to too many failed attempts.
-     * If the blocking period has expired, it automatically resets the counters.
-     *
-     * @param link the apartment sharing link to check
-     * @throws fr.dossierfacile.api.front.exception.ApplicationLinkBlockedException if the link is blocked
-     */
-    void checkAndEnforceProtection(ApartmentSharingLink link);
-
-    /**
      * Records a failed trigram validation attempt for the given link.
-     * Automatically resets counters if the time window has expired.
+     * If the time window since the first failed attempt has expired, the tracking is
+     * reinitialized (count restarts at 1 with a fresh window) instead of incremented.
      *
      * @param link the apartment sharing link where the attempt failed
      */
@@ -32,15 +24,4 @@ public interface BruteForceProtectionService {
      * @param link the apartment sharing link to reset
      */
     void resetAttempts(ApartmentSharingLink link);
-
-    /**
-     * Checks if the time window since the first failed attempt has expired.
-     *
-     * @param link the apartment sharing link to check
-     * @return true if the window has expired (≥1 hour), false otherwise
-     */
-    boolean hasTimeWindowExpired(ApartmentSharingLink link);
 }
-
-
-

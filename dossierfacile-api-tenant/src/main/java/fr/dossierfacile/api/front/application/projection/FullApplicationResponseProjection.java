@@ -17,12 +17,16 @@ public class FullApplicationResponseProjection extends SharedApplicationResponse
     private static final String DOSSIER_PDF_PATH = "api/application/fullPdf";
     private static final String DOSSIER_PATH = "file";
 
-    // Same defaults as the legacy mappers
-    @Value("${application.base.url:default}")
-    private String applicationBaseUrl;
+    private final String applicationBaseUrl;
+    private final String tenantBaseUrl;
 
-    @Value("${tenant.base.url:default}")
-    private String tenantBaseUrl;
+    // Same defaults as the legacy mappers; constructor injection keeps the class instantiable without Spring
+    public FullApplicationResponseProjection(
+            @Value("${application.base.url:default}") String applicationBaseUrl,
+            @Value("${tenant.base.url:default}") String tenantBaseUrl) {
+        this.applicationBaseUrl = applicationBaseUrl;
+        this.tenantBaseUrl = tenantBaseUrl;
+    }
 
     public ApplicationModel project(ApplicationProjectionSources sources, UUID token) {
         String documentUrlPrefix = applicationBaseUrl + "/" + DOCUMENT_LINK_PATH + "/" + token + "/documents/";

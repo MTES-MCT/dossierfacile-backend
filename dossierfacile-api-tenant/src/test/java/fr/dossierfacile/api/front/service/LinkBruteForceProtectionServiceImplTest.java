@@ -1,6 +1,5 @@
 package fr.dossierfacile.api.front.service;
 
-import fr.dossierfacile.api.front.exception.ApplicationLinkBlockedException;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.ApartmentSharingLink;
 import fr.dossierfacile.common.enums.ApartmentSharingLinkType;
@@ -16,10 +15,12 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+/**
+ * Write side only (1 hour window): the blocked-or-not decision is covered by LinkBruteForcePolicyTest.
+ */
 @ExtendWith(MockitoExtension.class)
 class LinkBruteForceProtectionServiceImplTest {
 
@@ -32,14 +33,11 @@ class LinkBruteForceProtectionServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        // Initialize service with default values (3 attempts, 1 hour window)
         bruteForceProtectionService = new LinkBruteForceProtectionServiceImpl(
                 apartmentSharingLinkRepository,
-                3, // maxFailedAttempts
-                1  // timeWindowHours
+                1 // timeWindowHours
         );
 
-        // Setup test link
         ApartmentSharing apartmentSharing = ApartmentSharing.builder()
                 .id(1L)
                 .build();
@@ -58,65 +56,6 @@ class LinkBruteForceProtectionServiceImplTest {
 
         lenient().when(apartmentSharingLinkRepository.save(any(ApartmentSharingLink.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
-    }
-
-    @Test
-    void shouldAllowAccessWhenNoFailedAttemptsRecorded() {
-        // Given - link with no failed attempts
-        testLink.setFailedAttemptCount(0);
-        testLink.setFirstFailedAttemptAt(null);
-
-        // When & Then - should not throw exception
-        bruteForceProtectionService.checkAndEnforceProtection(testLink);
-
-        // Verify no save was called
-        verify(apartmentSharingLinkRepository, never()).save(any());
-    }
-
-    @Test
-    void shouldAllowAccessWithOneOrTwoFailedAttempts() {
-        // Given - link with 2 failed attempts
-        testLink.setFailedAttemptCount(2);
-        testLink.setFirstFailedAttemptAt(LocalDateTime.now().minusMinutes(30));
-
-        // When & Then - should not throw exception
-        bruteForceProtectionService.checkAndEnforceProtection(testLink);
-
-        // Verify no save was called (no reset needed)
-        verify(apartmentSharingLinkRepository, never()).save(any());
-    }
-
-    @Test
-    void shouldBlockLinkAfterThreeFailedAttempts() {
-        // Given - link with 3 failed attempts within the hour
-        testLink.setFailedAttemptCount(3);
-        testLink.setFirstFailedAttemptAt(LocalDateTime.now().minusMinutes(30));
-
-        // When & Then - should throw ApplicationLinkBlockedException
-        assertThatThrownBy(() -> bruteForceProtectionService.checkAndEnforceProtection(testLink))
-                .isInstanceOf(ApplicationLinkBlockedException.class)
-                .hasMessageContaining("Too many failed attempts");
-
-        // Verify no save was called (link is blocked)
-        verify(apartmentSharingLinkRepository, never()).save(any());
-    }
-
-    @Test
-    void shouldResetCounterWhenTimeWindowExpired() {
-        // Given - link with failed attempts from more than 1 hour ago
-        testLink.setFailedAttemptCount(2);
-        testLink.setFirstFailedAttemptAt(LocalDateTime.now().minusHours(2));
-
-        // When
-        bruteForceProtectionService.checkAndEnforceProtection(testLink);
-
-        // Then - counters should be reset
-        ArgumentCaptor<ApartmentSharingLink> captor = ArgumentCaptor.forClass(ApartmentSharingLink.class);
-        verify(apartmentSharingLinkRepository, times(1)).save(captor.capture());
-
-        ApartmentSharingLink savedLink = captor.getValue();
-        assertThat(savedLink.getFailedAttemptCount()).isEqualTo(0);
-        assertThat(savedLink.getFirstFailedAttemptAt()).isNull();
     }
 
     @Test
@@ -140,7 +79,7 @@ class LinkBruteForceProtectionServiceImplTest {
 
     @Test
     void shouldIncrementFailedAttemptCountOnSubsequentFailures() {
-        // Given - link with 1 previous failed attempt
+        // Given - link with 1 previous failed attempt within the window
         LocalDateTime firstAttempt = LocalDateTime.now().minusMinutes(10);
         testLink.setFailedAttemptCount(1);
         testLink.setFirstFailedAttemptAt(firstAttempt);
@@ -158,23 +97,23 @@ class LinkBruteForceProtectionServiceImplTest {
     }
 
     @Test
-    void shouldResetCounterWhenRecordingAfterTimeWindowExpired() {
-        // Given - link with old failed attempts (time window expired)
-        testLink.setFailedAttemptCount(2);
+    void shouldReinitializeTrackingWhenRecordingAfterTimeWindowExpired() {
+        // Given - stale attempts (expired window): the pure policy no longer resets them,
+        // so recording must restart the tracking instead of incrementing a stale counter
         LocalDateTime oldFirstAttempt = LocalDateTime.now().minusHours(2);
+        testLink.setFailedAttemptCount(2);
         testLink.setFirstFailedAttemptAt(oldFirstAttempt);
 
         // When
         bruteForceProtectionService.recordFailedAttempt(testLink);
 
-        // Then - should increment counter (time window check happens in checkAndEnforceProtection, not here)
+        // Then - fresh window, count restarts at 1
         ArgumentCaptor<ApartmentSharingLink> captor = ArgumentCaptor.forClass(ApartmentSharingLink.class);
         verify(apartmentSharingLinkRepository, times(1)).save(captor.capture());
 
         ApartmentSharingLink savedLink = captor.getValue();
-        assertThat(savedLink.getFailedAttemptCount()).isEqualTo(3);
-        // First attempt time is preserved (not reset) - reset happens in checkAndEnforceProtection
-        assertThat(savedLink.getFirstFailedAttemptAt()).isEqualTo(oldFirstAttempt);
+        assertThat(savedLink.getFailedAttemptCount()).isEqualTo(1);
+        assertThat(savedLink.getFirstFailedAttemptAt()).isAfter(oldFirstAttempt);
     }
 
     @Test
@@ -196,65 +135,21 @@ class LinkBruteForceProtectionServiceImplTest {
     }
 
     @Test
-    void shouldDetectTimeWindowNotExpired() {
-        // Given - recent failed attempt
-        testLink.setFirstFailedAttemptAt(LocalDateTime.now().minusMinutes(30));
-
-        // When
-        boolean expired = bruteForceProtectionService.hasTimeWindowExpired(testLink);
-
-        // Then
-        assertThat(expired).isFalse();
-    }
-
-    @Test
-    void shouldDetectTimeWindowExpired() {
-        // Given - old failed attempt
-        testLink.setFirstFailedAttemptAt(LocalDateTime.now().minusHours(2));
-
-        // When
-        boolean expired = bruteForceProtectionService.hasTimeWindowExpired(testLink);
-
-        // Then
-        assertThat(expired).isTrue();
-    }
-
-    @Test
-    void shouldReturnFalseForTimeWindowExpiredWhenNoFailedAttempts() {
-        // Given - no failed attempts
+    void shouldSkipResetWhenAlreadyReset() {
+        // Given - link with no counters at all
+        testLink.setFailedAttemptCount(null);
         testLink.setFirstFailedAttemptAt(null);
 
         // When
-        boolean expired = bruteForceProtectionService.hasTimeWindowExpired(testLink);
+        bruteForceProtectionService.resetAttempts(testLink);
 
-        // Then
-        assertThat(expired).isFalse();
-    }
-
-    @Test
-    void shouldBlockLinkExactlyAtThreeAttempts() {
-        // Given - exactly 3 failed attempts
-        testLink.setFailedAttemptCount(3);
-        testLink.setFirstFailedAttemptAt(LocalDateTime.now().minusMinutes(30));
-
-        // When & Then
-        assertThatThrownBy(() -> bruteForceProtectionService.checkAndEnforceProtection(testLink))
-                .isInstanceOf(ApplicationLinkBlockedException.class);
-    }
-
-    @Test
-    void shouldAllowAccessWithExactlyTwoAttempts() {
-        // Given - exactly 2 failed attempts (just below threshold)
-        testLink.setFailedAttemptCount(2);
-        testLink.setFirstFailedAttemptAt(LocalDateTime.now().minusMinutes(30));
-
-        // When & Then - should not throw
-        bruteForceProtectionService.checkAndEnforceProtection(testLink);
+        // Then - no useless write
+        verify(apartmentSharingLinkRepository, never()).save(any());
     }
 
     @Test
     void shouldHandleNullFailedAttemptCountGracefully() {
-        // Given - null count (edge case)
+        // Given - null count within an active window (edge case)
         testLink.setFailedAttemptCount(null);
         testLink.setFirstFailedAttemptAt(LocalDateTime.now().minusMinutes(30));
 
@@ -264,28 +159,7 @@ class LinkBruteForceProtectionServiceImplTest {
         // Then - should treat null as 0 and increment
         ArgumentCaptor<ApartmentSharingLink> captor = ArgumentCaptor.forClass(ApartmentSharingLink.class);
         verify(apartmentSharingLinkRepository).save(captor.capture());
-        
+
         assertThat(captor.getValue().getFailedAttemptCount()).isEqualTo(1);
     }
-
-    @Test
-    void shouldResetWhenCheckingLinkBlockedForMoreThanTimeWindow() {
-        // Given - link blocked but time window has expired
-        testLink.setFailedAttemptCount(5);
-        testLink.setFirstFailedAttemptAt(LocalDateTime.now().minusHours(2));
-
-        // When
-        bruteForceProtectionService.checkAndEnforceProtection(testLink);
-
-        // Then - should reset instead of blocking
-        ArgumentCaptor<ApartmentSharingLink> captor = ArgumentCaptor.forClass(ApartmentSharingLink.class);
-        verify(apartmentSharingLinkRepository, times(1)).save(captor.capture());
-
-        ApartmentSharingLink savedLink = captor.getValue();
-        assertThat(savedLink.getFailedAttemptCount()).isEqualTo(0);
-        assertThat(savedLink.getFirstFailedAttemptAt()).isNull();
-    }
 }
-
-
-

@@ -8,6 +8,7 @@ import fr.dossierfacile.api.front.application.usecase.application.GetFullApplica
 import fr.dossierfacile.api.front.application.usecase.application.GetLightApplicationUseCase;
 import fr.dossierfacile.api.front.application.usecase.application.GetLightApplicationUseCase.GetLightApplicationCommand;
 import fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException;
+import fr.dossierfacile.api.front.security.KeycloakId;
 import fr.dossierfacile.api.front.exception.ApartmentSharingUnexpectedException;
 import fr.dossierfacile.api.front.model.tenant.ApplicationAnalysisStatusResponse;
 import fr.dossierfacile.api.front.model.tenant.FullFolderFile;
@@ -60,23 +61,10 @@ public class ApplicationController {
     @GetMapping(value = "/full/{token}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ApplicationModel> full(@PathVariable UUID token,
                                                  @RequestHeader(value = "X-Tenant-Trigram", required = true) String trigramHeader,
+                                                 @KeycloakId String viewerKeycloakId,
                                                  HttpServletRequest request) {
-        // TODO : migrate getLoggedTenant to use new keycloak sync   
-        Tenant tenant = null;
-        try {
-            tenant = authenticationFacade.getLoggedTenant();
-        } catch (Exception e) {
-            log.info("Anonymous request to get full application");
-        } finally {
-            if (tenant != null) {
-                log.info("Authenticated request to get full application, tenantId: {}", tenant.getId());
-            }
-        }
-        Long loggedTenantApartmentSharingId = tenant != null && tenant.getApartmentSharing() != null
-                ? tenant.getApartmentSharing().getId()
-                : null;
         return ok(getFullApplicationUseCase.execute(new GetFullApplicationCommand(
-                token, trigramHeader, loggedTenantApartmentSharingId, LoggerUtil.getRealIp(request))));
+                token, trigramHeader, viewerKeycloakId, LoggerUtil.getRealIp(request))));
     }
 
     @GetMapping(value = "/light/{token}", produces = MediaType.APPLICATION_JSON_VALUE)
