@@ -1,8 +1,10 @@
 package fr.dossierfacile.api.front.application.usecase.application;
 
+import fr.dossierfacile.api.front.application.projection.ApplicationProjection;
 import fr.dossierfacile.api.front.application.projection.ApplicationProjectionLoader;
 import fr.dossierfacile.api.front.application.projection.ApplicationProjectionSources;
-import fr.dossierfacile.api.front.application.projection.FullApplicationResponseProjection;
+import fr.dossierfacile.api.front.application.projection.ApplicationReadView;
+import fr.dossierfacile.api.front.application.projection.FullApplicationViewAssembler;
 import fr.dossierfacile.api.front.application.usecase.application.GetFullApplicationUseCase.GetFullApplicationCommand;
 import fr.dossierfacile.api.front.domain.policy.LinkBruteForcePolicy;
 import fr.dossierfacile.api.front.domain.policy.TrigramAccessPolicy;
@@ -70,7 +72,7 @@ class GetFullApplicationUseCaseTest {
     @Mock
     private ApplicationProjectionLoader applicationProjectionLoader;
     @Mock
-    private FullApplicationResponseProjection fullApplicationResponseProjection;
+    private ApplicationProjection applicationProjection;
     @Mock
     private LinkLogService linkLogService;
     @Mock
@@ -89,7 +91,8 @@ class GetFullApplicationUseCaseTest {
                 bruteForceProtectionService,
                 trigramAccessPolicy,
                 applicationProjectionLoader,
-                fullApplicationResponseProjection,
+                new FullApplicationViewAssembler("http://api.test", "http://front.test"), // pure, no need to mock
+                applicationProjection,
                 linkLogService,
                 jpaTenantRepository
         );
@@ -100,7 +103,7 @@ class GetFullApplicationUseCaseTest {
 
         lenient().when(apartmentSharingLinkRepository.findValidLinkByToken(TOKEN, true)).thenReturn(Optional.of(link));
         lenient().when(applicationProjectionLoader.load(SHARING_ID)).thenReturn(sources);
-        lenient().when(fullApplicationResponseProjection.project(sources, TOKEN)).thenReturn(new ApplicationModel());
+        lenient().when(applicationProjection.project(any(ApplicationReadView.class))).thenReturn(new ApplicationModel());
     }
 
     private GetFullApplicationCommand command(String trigram, String viewerKeycloakId) {
@@ -154,7 +157,7 @@ class GetFullApplicationUseCaseTest {
         assertThat(model).isNotNull();
         verify(bruteForceProtectionService).resetAttempts(link);
         verify(linkLogService).save(any(LinkLog.class));
-        verify(fullApplicationResponseProjection).project(sources, TOKEN);
+        verify(applicationProjection).project(any(ApplicationReadView.class));
     }
 
     @Test

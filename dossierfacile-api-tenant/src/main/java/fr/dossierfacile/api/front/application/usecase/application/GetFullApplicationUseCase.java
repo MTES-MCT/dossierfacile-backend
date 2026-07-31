@@ -1,8 +1,10 @@
 package fr.dossierfacile.api.front.application.usecase.application;
 
+import fr.dossierfacile.api.front.application.projection.ApplicationProjection;
 import fr.dossierfacile.api.front.application.projection.ApplicationProjectionLoader;
-import fr.dossierfacile.api.front.application.projection.FullApplicationResponseProjection;
 import fr.dossierfacile.api.front.application.projection.ApplicationProjectionSources;
+import fr.dossierfacile.api.front.application.projection.ApplicationReadView;
+import fr.dossierfacile.api.front.application.projection.FullApplicationViewAssembler;
 import fr.dossierfacile.api.front.domain.policy.LinkBruteForcePolicy;
 import fr.dossierfacile.api.front.domain.policy.TrigramAccessPolicy;
 import fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException;
@@ -33,7 +35,8 @@ public class GetFullApplicationUseCase
     private final BruteForceProtectionService bruteForceProtectionService;
     private final TrigramAccessPolicy trigramAccessPolicy;
     private final ApplicationProjectionLoader applicationProjectionLoader;
-    private final FullApplicationResponseProjection fullApplicationResponseProjection;
+    private final FullApplicationViewAssembler fullApplicationViewAssembler;
+    private final ApplicationProjection applicationProjection;
     private final LinkLogService linkLogService;
     private final JpaTenantRepository jpaTenantRepository;
 
@@ -44,7 +47,8 @@ public class GetFullApplicationUseCase
             BruteForceProtectionService bruteForceProtectionService,
             TrigramAccessPolicy trigramAccessPolicy,
             ApplicationProjectionLoader applicationProjectionLoader,
-            FullApplicationResponseProjection fullApplicationResponseProjection,
+            FullApplicationViewAssembler fullApplicationViewAssembler,
+            ApplicationProjection applicationProjection,
             LinkLogService linkLogService,
             JpaTenantRepository jpaTenantRepository
     ) {
@@ -54,7 +58,8 @@ public class GetFullApplicationUseCase
         this.bruteForceProtectionService = bruteForceProtectionService;
         this.trigramAccessPolicy = trigramAccessPolicy;
         this.applicationProjectionLoader = applicationProjectionLoader;
-        this.fullApplicationResponseProjection = fullApplicationResponseProjection;
+        this.fullApplicationViewAssembler = fullApplicationViewAssembler;
+        this.applicationProjection = applicationProjection;
         this.linkLogService = linkLogService;
         this.jpaTenantRepository = jpaTenantRepository;
     }
@@ -92,7 +97,8 @@ public class GetFullApplicationUseCase
                 linkLogService.save(new LinkLog(link.getApartmentSharing(), command.token(), LinkType.FULL_APPLICATION, command.ipAddress()));
             }
 
-            return fullApplicationResponseProjection.project(sources, command.token());
+            ApplicationReadView view = fullApplicationViewAssembler.assemble(sources, command.token());
+            return applicationProjection.project(view);
         }).orElseThrow();
     }
 

@@ -6,8 +6,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import fr.dossierfacile.api.front.application.projection.FullApplicationResponseProjection;
-import fr.dossierfacile.api.front.application.projection.LightApplicationResponseProjection;
+import fr.dossierfacile.api.front.application.projection.FullApplicationViewAssembler;
+import fr.dossierfacile.api.front.application.projection.LightApplicationViewAssembler;
 import fr.dossierfacile.api.front.application.projection.ApplicationProjectionLoader;
 import fr.dossierfacile.api.front.application.usecase.application.GetFullApplicationUseCase.GetFullApplicationCommand;
 import fr.dossierfacile.api.front.application.usecase.application.GetLightApplicationUseCase.GetLightApplicationCommand;
@@ -65,8 +65,12 @@ import static org.assertj.core.api.Assertions.assertThat;
         JpaDocumentRepository.class,
         ApartmentSharingStatusDomainService.class,
         ApplicationProjectionLoader.class,
-        FullApplicationResponseProjection.class,
-        LightApplicationResponseProjection.class,
+        fr.dossierfacile.api.front.application.projection.DocumentProjection.class,
+        fr.dossierfacile.api.front.application.projection.GuarantorProjection.class,
+        fr.dossierfacile.api.front.application.projection.TenantProjection.class,
+        fr.dossierfacile.api.front.application.projection.ApplicationProjection.class,
+        FullApplicationViewAssembler.class,
+        LightApplicationViewAssembler.class,
         TrigramAccessPolicy.class,
         fr.dossierfacile.api.front.domain.policy.LinkBruteForcePolicy.class,
         GetLightApplicationUseCase.class,

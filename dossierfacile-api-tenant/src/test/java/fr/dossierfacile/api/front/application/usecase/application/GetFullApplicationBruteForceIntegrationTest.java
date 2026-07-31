@@ -1,7 +1,7 @@
 package fr.dossierfacile.api.front.application.usecase.application;
 
 import fr.dossierfacile.api.front.application.projection.ApplicationProjectionLoader;
-import fr.dossierfacile.api.front.application.projection.FullApplicationResponseProjection;
+import fr.dossierfacile.api.front.application.projection.FullApplicationViewAssembler;
 import fr.dossierfacile.api.front.application.usecase.application.GetFullApplicationUseCase.GetFullApplicationCommand;
 import fr.dossierfacile.api.front.domain.policy.LinkBruteForcePolicy;
 import fr.dossierfacile.api.front.domain.policy.TrigramAccessPolicy;
@@ -50,7 +50,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
         JpaDocumentRepository.class,
         ApartmentSharingStatusDomainService.class,
         ApplicationProjectionLoader.class,
-        FullApplicationResponseProjection.class,
+        fr.dossierfacile.api.front.application.projection.DocumentProjection.class,
+        fr.dossierfacile.api.front.application.projection.GuarantorProjection.class,
+        fr.dossierfacile.api.front.application.projection.TenantProjection.class,
+        fr.dossierfacile.api.front.application.projection.ApplicationProjection.class,
+        FullApplicationViewAssembler.class,
         TrigramAccessPolicy.class,
         LinkBruteForcePolicy.class,
         LinkBruteForceProtectionServiceImpl.class,

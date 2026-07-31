@@ -1,8 +1,10 @@
 package fr.dossierfacile.api.front.application.usecase.application;
 
+import fr.dossierfacile.api.front.application.projection.ApplicationProjection;
 import fr.dossierfacile.api.front.application.projection.ApplicationProjectionLoader;
 import fr.dossierfacile.api.front.application.projection.ApplicationProjectionSources;
-import fr.dossierfacile.api.front.application.projection.LightApplicationResponseProjection;
+import fr.dossierfacile.api.front.application.projection.ApplicationReadView;
+import fr.dossierfacile.api.front.application.projection.LightApplicationViewAssembler;
 import fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException;
 import fr.dossierfacile.common.application.usecase.BaseUseCase;
 import fr.dossierfacile.common.entity.ApartmentSharingLink;
@@ -24,20 +26,23 @@ public class GetLightApplicationUseCase
 
     private final ApartmentSharingLinkRepository apartmentSharingLinkRepository;
     private final ApplicationProjectionLoader applicationProjectionLoader;
-    private final LightApplicationResponseProjection lightApplicationResponseProjection;
+    private final LightApplicationViewAssembler lightApplicationViewAssembler;
+    private final ApplicationProjection applicationProjection;
     private final LinkLogService linkLogService;
 
     public GetLightApplicationUseCase(
             PlatformTransactionManager transactionManager,
             ApartmentSharingLinkRepository apartmentSharingLinkRepository,
             ApplicationProjectionLoader applicationProjectionLoader,
-            LightApplicationResponseProjection lightApplicationResponseProjection,
+            LightApplicationViewAssembler lightApplicationViewAssembler,
+            ApplicationProjection applicationProjection,
             LinkLogService linkLogService
     ) {
         super(transactionManager);
         this.apartmentSharingLinkRepository = apartmentSharingLinkRepository;
         this.applicationProjectionLoader = applicationProjectionLoader;
-        this.lightApplicationResponseProjection = lightApplicationResponseProjection;
+        this.lightApplicationViewAssembler = lightApplicationViewAssembler;
+        this.applicationProjection = applicationProjection;
         this.linkLogService = linkLogService;
     }
 
@@ -55,7 +60,8 @@ public class GetLightApplicationUseCase
         // Legacy behavior: a light consultation is always logged
         linkLogService.save(new LinkLog(link.getApartmentSharing(), command.token(), LinkType.LIGHT_APPLICATION, command.ipAddress()));
 
-        return lightApplicationResponseProjection.project(sources);
+        ApplicationReadView view = lightApplicationViewAssembler.assemble(sources);
+        return applicationProjection.project(view);
     }
 
     public record GetLightApplicationCommand(UUID token, String ipAddress) {
