@@ -9,6 +9,7 @@ import org.hibernate.type.SqlTypes;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
 @Entity
@@ -38,7 +39,7 @@ public class TenantLog implements Serializable {
 
     @Builder.Default
     @Column(name = "creation_date")
-    private LocalDateTime creationDateTime = LocalDateTime.now();
+    private LocalDateTime creationDateTime = LocalDateTime.now(ZoneId.systemDefault());
 
     @Column
     @Enumerated(EnumType.STRING)
@@ -57,7 +58,7 @@ public class TenantLog implements Serializable {
     @PrePersist
     public void prePersist() {
         if (creationDateTime == null) {
-            creationDateTime = LocalDateTime.now();
+            creationDateTime = LocalDateTime.now(ZoneId.systemDefault());
         }
     }
 
@@ -65,13 +66,13 @@ public class TenantLog implements Serializable {
         this.logType = logType;
         this.tenantId = tenantId;
         this.operatorId = operatorId;
-        this.creationDateTime = LocalDateTime.now();
+        this.creationDateTime = LocalDateTime.now(ZoneId.systemDefault());
     }
 
     public TenantLog(LogType logType, Long tenantId) {
         this.logType = logType;
         this.tenantId = tenantId;
-        this.creationDateTime = LocalDateTime.now();
+        this.creationDateTime = LocalDateTime.now(ZoneId.systemDefault());
     }
 
     public TenantLog(LogType logType, Long tenantId, Long operatorId, Long messageId) {
@@ -79,7 +80,7 @@ public class TenantLog implements Serializable {
         this.tenantId = tenantId;
         this.operatorId = operatorId;
         this.messageId = messageId;
-        this.creationDateTime = LocalDateTime.now();
+        this.creationDateTime = LocalDateTime.now(ZoneId.systemDefault());
     }
 
     public String getTitle() {

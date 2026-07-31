@@ -28,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -62,17 +63,9 @@ public class TenantAutoValidationServiceImpl implements TenantAutoValidationServ
             return false;
         }
 
-        List<Document> allDocuments = (tenant.getGuarantors() == null) ?
-                tenant.getDocuments() :
-                Stream.concat(
-                        tenant.getDocuments() != null ? tenant.getDocuments().stream() : Stream.empty(),
-                        tenant.getGuarantors().stream()
-                                .map(Guarantor::getDocuments)
-                                .filter(Objects::nonNull)
-                                .flatMap(List::stream)
-                ).toList();
+        List<Document> allDocuments = getAllDocuments(tenant);
 
-        if (allDocuments == null || allDocuments.isEmpty()) {
+        if (allDocuments.isEmpty()) {
             return false;
         }
 
@@ -112,19 +105,11 @@ public class TenantAutoValidationServiceImpl implements TenantAutoValidationServ
 
         log.info("Processing auto-validation for tenant ID [{}]", tenantId);
 
-        List<Document> allDocuments = (tenant.getGuarantors() == null) ?
-                tenant.getDocuments() :
-                Stream.concat(
-                        tenant.getDocuments() != null ? tenant.getDocuments().stream() : Stream.empty(),
-                        tenant.getGuarantors().stream()
-                                .map(Guarantor::getDocuments)
-                                .filter(Objects::nonNull)
-                                .flatMap(List::stream)
-                ).toList();
+        List<Document> allDocuments = getAllDocuments(tenant);
 
-        List<Document> toProcessDocuments = (allDocuments != null) ?
-                allDocuments.stream().filter(d -> d.getDocumentStatus() == DocumentStatus.TO_PROCESS).toList() :
-                List.of();
+        List<Document> toProcessDocuments = allDocuments.stream()
+                .filter(d -> d.getDocumentStatus() == DocumentStatus.TO_PROCESS)
+                .toList();
 
         if (toProcessDocuments.isEmpty()) {
             log.info("Tenant ID [{}] has no documents in TO_PROCESS status", tenantId);
@@ -196,6 +181,27 @@ public class TenantAutoValidationServiceImpl implements TenantAutoValidationServ
         }
     }
 
+    private List<Document> getAllDocuments(Tenant tenant) {
+        if (tenant == null) {
+            return List.of();
+        }
+
+        Stream<Document> tenantDocsStream = (tenant.getDocuments() != null) ?
+                tenant.getDocuments().stream() :
+                Stream.empty();
+
+        if (tenant.getGuarantors() == null || tenant.getGuarantors().isEmpty()) {
+            return tenantDocsStream.toList();
+        }
+
+        Stream<Document> guarantorDocsStream = tenant.getGuarantors().stream()
+                .map(Guarantor::getDocuments)
+                .filter(Objects::nonNull)
+                .flatMap(List::stream);
+
+        return Stream.concat(tenantDocsStream, guarantorDocsStream).toList();
+    }
+
     private DocumentAutoValidationReason evaluateDocumentReason(Document doc) {
         if (!isEligibleForAutoValidation(doc)) {
             return DocumentAutoValidationReason.DOCUMENT_NOT_ELIGIBLE;
@@ -230,7 +236,7 @@ public class TenantAutoValidationServiceImpl implements TenantAutoValidationServ
         TenantLog tenantLog = TenantLog.builder()
                 .logType(logType)
                 .tenantId(tenantId)
-                .creationDateTime(LocalDateTime.now())
+                .creationDateTime(LocalDateTime.now(ZoneId.systemDefault()))
                 .logDetails(jsonNode)
                 .build();
         tenantLogCommonService.saveTenantLog(tenantLog);

@@ -11,6 +11,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 @Slf4j
@@ -27,7 +28,7 @@ public class TenantAutoValidationTask extends AbstractTask {
     public void processTenantAutoValidation() {
         super.startTask(TaskName.TENANT_AUTO_VALIDATION);
         try {
-            LocalDateTime maxLastUpdateDate = LocalDateTime.now().minusMinutes(delayInMinutes);
+            LocalDateTime maxLastUpdateDate = LocalDateTime.now(ZoneId.systemDefault()).minusMinutes(delayInMinutes);
             log.info("Starting tenant auto validation task for tenants flagged since more than {} minutes (lastUpdateDate <= {})", delayInMinutes, maxLastUpdateDate);
 
             List<Tenant> tenantsToValidate = tenantAutoValidationService.listTenantsToAutoValidate(maxLastUpdateDate);
@@ -36,17 +37,21 @@ public class TenantAutoValidationTask extends AbstractTask {
             log.info("Found {} tenants ready for auto-validation", tenantsToValidate.size());
 
             for (Tenant tenant : tenantsToValidate) {
-                try {
-                    tenantAutoValidationService.processAutoValidationForTenant(tenant.getId());
-                } catch (Exception e) {
-                    log.error("Error processing auto-validation for tenant ID [{}]", tenant.getId(), e);
-                }
+                processSingleTenantAutoValidation(tenant);
             }
 
         } catch (Exception e) {
             log.error("Error during tenant auto validation task execution", e);
         } finally {
             super.endTask();
+        }
+    }
+
+    private void processSingleTenantAutoValidation(Tenant tenant) {
+        try {
+            tenantAutoValidationService.processAutoValidationForTenant(tenant.getId());
+        } catch (Exception e) {
+            log.error("Error processing auto-validation for tenant ID [{}]", tenant.getId(), e);
         }
     }
 }
