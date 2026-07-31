@@ -894,7 +894,7 @@ public class TenantService {
     }
 
     public long countTenantsWithStatusInToProcess() {
-        return tenantRepository.countAllByStatus(TenantFileStatus.TO_PROCESS);
+        return tenantRepository.countAllToProcessForOperators(TenantFileStatus.TO_PROCESS);
     }
 
     public List<TenantWaitingTimeBucketProjection> getToProcessFullyWatermarkedTenantWaitingTimeBuckets() {
@@ -1061,6 +1061,7 @@ public class TenantService {
         return allTenants.stream()
                 .filter(tenant -> !tenant.getId().equals(currentTenantId))
                 .filter(tenant -> tenant.getStatus() == TenantFileStatus.TO_PROCESS)
+                .filter(tenant -> !Boolean.TRUE.equals(tenant.getReadyForAutoValidation()))
                 .findFirst();
     }
 }

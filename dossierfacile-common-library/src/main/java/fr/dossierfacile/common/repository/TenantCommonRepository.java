@@ -45,6 +45,7 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
             WHERE (t.operator_date_time IS NULL OR t.operator_date_time < :toLocalDateTime)
               AND t.status = 'TO_PROCESS'
               AND t.honor_declaration = true
+              AND (t.ready_for_auto_validation = false OR t.ready_for_auto_validation IS NULL)
               AND rank < 200
             ORDER BY
              CASE WHEN rt.operator_id = :operatorId THEN 0 ELSE 1 END,
@@ -64,6 +65,7 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
               FROM tenant t
               WHERE t.status = 'TO_PROCESS'
                 AND t.honor_declaration = true
+                AND (t.ready_for_auto_validation = false OR t.ready_for_auto_validation IS NULL)
                 AND NOT EXISTS (
                   SELECT 1
                   FROM document d
@@ -161,6 +163,9 @@ public interface TenantCommonRepository extends JpaRepository<Tenant, Long> {
     List<Long> listIdTenantsAccountCompletedPendingToSendCallBack(@Param("id") Long userApiId, @Param("since") LocalDateTime lastUpdateSince);
 
     long countAllByStatus(TenantFileStatus tenantFileStatus);
+
+    @Query("select count(t) from Tenant t where t.status = :status and (t.readyForAutoValidation = false or t.readyForAutoValidation is null)")
+    long countAllToProcessForOperators(@Param("status") TenantFileStatus status);
     //endregion
 
     //region Used in FO
