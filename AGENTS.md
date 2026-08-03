@@ -36,6 +36,7 @@ Hiérarchie : `apartment_sharing` -> `tenant` -> `guarantor` ; `document` -> `fi
 - **`tenant` (dossier locataire)** : **1 seul par compte utilisateur**. `type` = `CREATE` (principal) / `JOIN` (invité d'un `COUPLE`/`GROUP`). Le principal invite par mail ; il complète le dossier joint **en `COUPLE` uniquement**. Complet = infos (nom/prénom) + 5 documents + déclaration sur l'honneur.
 - **`guarantor` (dossier garant)** : 0..n par tenant. `TypeGuarantor` = `NATURAL_PERSON` (≤2) / `ORGANISM` (ex. Visale).
 - **`document`** : rattaché à un `tenant` **ou** un `guarantor` (FK exclusives `tenant_id` / `guarantor_id`). `category` (5 : `IDENTIFICATION`, `RESIDENCY`, `PROFESSIONAL`, `FINANCIAL`, `TAX`) + `subCategory`. = **fusion filigranée de plusieurs `file`**.
+- **Analyse `TAX` / avis d'imposition** : la règle d'année attendue bascule au 15 septembre (`année courante - 2` avant cette date, `année courante - 1` ensuite). Une année de revenus plus récente (`attendue + 1`) reste valide, notamment pour accepter un nouvel avis reçu avant la bascule.
 - **`file`** : fichier brut (JPG/PNG/PDF). Fusion + filigrane via **traitement asynchrone**.
 
 ## Statuts (`status` de `apartment_sharing`, `tenant`, `document`)
