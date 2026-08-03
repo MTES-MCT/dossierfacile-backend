@@ -74,6 +74,7 @@ public class BOApartmentSharingController {
     public static final String IA_RESULTS_BY_DOCUMENT = "iaResultsByDocument";
     public static final String ANALYSIS_COMMENT_BY_DOCUMENT = "analysisCommentByDocument";
     public static final String METADATA_BY_DOCUMENT = "metadataByDocument";
+    public static final String IS_AUTO_VALIDATED_BY_TENANT = "isAutoValidatedByTenant";
 
     private final TenantService tenantService;
     private final ApartmentSharingLinkService apartmentSharingLinkService;
@@ -130,6 +131,13 @@ public class BOApartmentSharingController {
         model.addAttribute(IA_RESULTS_BY_DOCUMENT, getIaResultsByDocument(tenants));
         model.addAttribute(ANALYSIS_COMMENT_BY_DOCUMENT, getAnalysisCommentByDocument(tenants));
         model.addAttribute(METADATA_BY_DOCUMENT, getMetadataByDocument(tenants));
+        Map<Long, Boolean> isAutoValidatedByTenant = tenants.stream()
+                .collect(java.util.stream.Collectors.toMap(
+                        Tenant::getId,
+                        t -> logService.isTenantAutoValidated(t.getId())
+                ));
+
+        model.addAttribute(IS_AUTO_VALIDATED_BY_TENANT, isAutoValidatedByTenant);
         model.addAttribute(TENANT_BASE_URL, tenantBaseUrl);
         model.addAttribute(INACTIVE_LINKS, inactiveLinks);
         model.addAttribute(ACTIVE_LINKS, activeLinks);

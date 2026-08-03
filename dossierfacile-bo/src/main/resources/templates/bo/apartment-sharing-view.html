@@ -393,7 +393,14 @@
                                 </tr>
                                 <tr>
                                     <td>Statut du dossier</td>
-                                    <td th:text="${tenant.getStatus()}"></td>
+                                    <td>
+                                        <span th:text="${tenant.getStatus()}"></span>
+                                        <span th:if="${isAutoValidatedByTenant.get(tenant.id)}"
+                                              class="badge bg-info text-dark ms-2"
+                                              title="Dossier validé automatiquement par le bot">
+                                            🤖 Auto-validé
+                                        </span>
+                                    </td>
                                 </tr>
                             </table>
                         </div>
