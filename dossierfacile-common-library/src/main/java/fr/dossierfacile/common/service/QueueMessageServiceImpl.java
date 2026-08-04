@@ -31,7 +31,7 @@ public class QueueMessageServiceImpl implements QueueMessageService {
     private final QueueMessageConsumerService queueMessageConsumerService;
 
     @Override
-    public void consume(QueueName queueName, long consumptionDelayInMillis, long consumptionTimeout, Consumer<QueueMessage> consumer, Consumer<JobContext> onFinish) {
+    public boolean consume(QueueName queueName, long consumptionDelayInMillis, long consumptionTimeout, Consumer<QueueMessage> consumer, Consumer<JobContext> onFinish) {
         long toTimestamp = System.currentTimeMillis() - consumptionDelayInMillis;
         QueueMessage message = queueMessageConsumerService.popFirstMessage(queueName, toTimestamp);
         if (message != null) {
@@ -67,7 +67,9 @@ public class QueueMessageServiceImpl implements QueueMessageService {
                     onFinish.accept(jobContext);
                 }
             }
+            return true;
         }
+        return false;
     }
 
     private void consumeMessageWithTimeout(QueueName queueName, Consumer<QueueMessage> consumer, long consumptionTimeout, QueueMessage message, JobContext jobContext) throws Throwable {

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Service
 @Slf4j
@@ -22,6 +23,7 @@ public class ProcessFileReceiver {
 
     private final QueueMessageService queueMessageService;
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    private final AtomicBoolean isRunning = new AtomicBoolean(false);
     private final LogAggregator logAggregator;
     private final ProcessFileService processFileService;
 
@@ -30,29 +32,44 @@ public class ProcessFileReceiver {
 
     @PostConstruct
     public void startConsumer() {
-        scheduler.scheduleAtFixedRate(this::receiveFile, 0, 2, TimeUnit.SECONDS);
+        scheduler.scheduleWithFixedDelay(this::receiveFile, 0, 2, TimeUnit.SECONDS);
     }
 
     private void receiveFile() {
+        if (!isRunning.compareAndSet(false, true)) {
+            return;
+        }
         try {
-            queueMessageService.consume(QueueName.QUEUE_FILE_PROCESSING,
-                    0,
-                    fileMinifyTimeout,
-                    (message) -> {
-                        log.info("Received {} to process : {}", ActionType.PROCESS_FILE.name(), message.getFileId());
-                        processFileService.process(message.getFileId());
-                    },
-                    (jobContext) -> {
-                        log.info("Ending processing");
-                        logAggregator.sendWorkerLogs(
-                                jobContext.getProcessId(),
-                                ActionType.PROCESS_FILE.name(),
-                                jobContext.getStartTime(),
-                                JobContextUtil.prepareJobAttributes(jobContext)
-                        );
-                    });
+            int processedCount = 0;
+            boolean messageConsumed;
+            do {
+                messageConsumed = queueMessageService.consume(QueueName.QUEUE_FILE_PROCESSING,
+                        0,
+                        fileMinifyTimeout,
+                        (message) -> {
+                            log.info("Received {} to process : {}", ActionType.PROCESS_FILE.name(), message.getFileId());
+                            processFileService.process(message.getFileId());
+                        },
+                        (jobContext) -> {
+                            log.info("Ending processing");
+                            logAggregator.sendWorkerLogs(
+                                    jobContext.getProcessId(),
+                                    ActionType.PROCESS_FILE.name(),
+                                    jobContext.getStartTime(),
+                                    JobContextUtil.prepareJobAttributes(jobContext)
+                            );
+                        });
+                if (messageConsumed) {
+                    processedCount++;
+                }
+            } while (messageConsumed);
+            if (processedCount > 0) {
+                log.info("Finished processing batch of {} messages for {}, queue is now empty 😴", processedCount, QueueName.QUEUE_FILE_PROCESSING);
+            }
         } catch (Exception e) {
-            log.error("Unable to consume the message queue");
+            log.error("Unable to consume the message queue", e);
+        } finally {
+            isRunning.set(false);
         }
     }
 }
