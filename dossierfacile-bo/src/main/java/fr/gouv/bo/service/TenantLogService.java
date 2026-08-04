@@ -36,6 +36,17 @@ public class TenantLogService {
         return logList;
     }
 
+    public boolean isTenantAutoValidated(Long tenantId) {
+        List<TenantLog> logs = logRepository.findLogsByTenantId(tenantId);
+        return logs.stream()
+                .filter(l -> l.getLogType() == LogType.ACCOUNT_AUTOMATICALLY_VALIDATED
+                        || (l.getLogType() == LogType.ACCOUNT_VALIDATED && l.getOperatorId() != null)
+                        || l.getLogType() == LogType.ACCOUNT_DENIED)
+                .max(Comparator.comparing(TenantLog::getCreationDateTime, Comparator.nullsFirst(Comparator.naturalOrder())))
+                .map(l -> l.getLogType() == LogType.ACCOUNT_AUTOMATICALLY_VALIDATED)
+                .orElse(false);
+    }
+
     public List<Object[]> listLastTreatedFilesByOperator(Long operatorId, int minusDays) {
         return logRepository.countTreatedFromXDaysGroupByDate(operatorId, minusDays);
     }
