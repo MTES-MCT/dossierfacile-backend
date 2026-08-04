@@ -12,15 +12,39 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface QueueMessageRepository extends JpaRepository<QueueMessage, Long> {
     List<QueueMessage> findByQueueNameAndDocumentIdAndStatusIn(QueueName queueName, Long documentId, List<QueueMessageStatus> queueMessageStatus);
+
+    Optional<QueueMessage> findFirstByQueueNameAndDocumentIdAndStatus(QueueName queueName, Long documentId, QueueMessageStatus status);
+
+    Optional<QueueMessage> findFirstByQueueNameAndFileIdAndStatus(QueueName queueName, Long fileId, QueueMessageStatus status);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     QueueMessage findFirstByStatusAndQueueNameAndTimestampLessThanOrderByTimestampAsc(
             QueueMessageStatus status,
             QueueName queueName,
             long toTimestamp);
+
+    /**
+     * Dépile le premier message PENDING disponible.
+     * 'FOR UPDATE SKIP LOCKED' évite la contention entre workers concurrents en sautant les lignes
+     * déjà verrouillées par un autre worker plutôt que de bloquer en attente SQL.
+     */
+    @Query(value = """
+            SELECT * FROM queue_message
+            WHERE queue_name = :queueName
+              AND status = :status
+              AND timestamp < :toTimestamp
+            ORDER BY timestamp ASC
+            LIMIT 1
+            FOR UPDATE SKIP LOCKED
+            """, nativeQuery = true)
+    QueueMessage findFirstByStatusAndQueueNameAndTimestampLessThanOrderByTimestampAscSkipLocked(
+            @Param("status") String status,
+            @Param("queueName") String queueName,
+            @Param("toTimestamp") long toTimestamp);
 
     @Modifying
     @Transactional

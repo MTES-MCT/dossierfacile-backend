@@ -3,10 +3,7 @@ package fr.dossierfacile.api.front.amqp;
 
 import com.google.gson.Gson;
 import fr.dossierfacile.common.entity.Document;
-import fr.dossierfacile.common.entity.messaging.QueueMessage;
-import fr.dossierfacile.common.entity.messaging.QueueMessageStatus;
-import fr.dossierfacile.common.entity.messaging.QueueName;
-import fr.dossierfacile.common.repository.QueueMessageRepository;
+import fr.dossierfacile.common.service.interfaces.QueueMessageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.AmqpTemplate;
@@ -23,7 +20,7 @@ import java.util.Collections;
 @Slf4j
 @RequiredArgsConstructor
 public class Producer {
-    private final QueueMessageRepository queueMessageRepository;
+    private final QueueMessageService queueMessageService;
     private final AmqpTemplate amqpTemplate;
     private final Gson gson;
     //Pdf generation
@@ -43,23 +40,12 @@ public class Producer {
     @Transactional(propagation = Propagation.SUPPORTS)
     public void processFile(Long documentId, Long fileId) {
         log.debug("Sending file with ID [{}] for processing ", fileId);
-        queueMessageRepository.save(QueueMessage.builder()
-                .queueName(QueueName.QUEUE_FILE_PROCESSING)
-                .documentId(documentId)
-                .fileId(fileId)
-                .status(QueueMessageStatus.PENDING)
-                .timestamp(System.currentTimeMillis())
-                .build());
+        queueMessageService.sendFilePendingMessage(documentId, fileId);
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
     public void sendDocumentForPdfGeneration(Document document) {
         log.debug("Sending document with ID [{}] for pdf generation", document.getId());
-        queueMessageRepository.save(QueueMessage.builder()
-                .queueName(QueueName.QUEUE_DOCUMENT_WATERMARK_PDF)
-                .documentId(document.getId())
-                .status(QueueMessageStatus.PENDING)
-                .timestamp(System.currentTimeMillis())
-                .build());
+        queueMessageService.sendDocumentPendingMessage(document.getId());
     }
 }

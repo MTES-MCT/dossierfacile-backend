@@ -12,7 +12,9 @@ import fr.dossierfacile.common.service.interfaces.QueueMessageService;
 import fr.dossierfacile.logging.util.LoggerUtil;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -30,7 +32,6 @@ public class QueueMessageServiceImpl implements QueueMessageService {
 
     @Override
     public void consume(QueueName queueName, long consumptionDelayInMillis, long consumptionTimeout, Consumer<QueueMessage> consumer, Consumer<JobContext> onFinish) {
-        queueMessageRepository.cleanQueue(queueName.name());
         long toTimestamp = System.currentTimeMillis() - consumptionDelayInMillis;
         QueueMessage message = queueMessageConsumerService.popFirstMessage(queueName, toTimestamp);
         if (message != null) {
@@ -91,6 +92,64 @@ public class QueueMessageServiceImpl implements QueueMessageService {
         } catch (InterruptedException e) {
             log.error("Error while consume message {}", message.getDocumentId(), e);
             throw e;
+        }
+    }
+
+    @Override
+    @Transactional
+    public void sendDocumentPendingMessage(Long documentId) {
+        if (documentId == null) {
+            return;
+        }
+        long now = System.currentTimeMillis();
+        var existing = queueMessageRepository.findFirstByQueueNameAndDocumentIdAndStatus(
+                QueueName.QUEUE_DOCUMENT_WATERMARK_PDF, documentId, QueueMessageStatus.PENDING);
+        if (existing.isPresent()) {
+            QueueMessage msg = existing.get();
+            msg.setTimestamp(now);
+            queueMessageRepository.save(msg);
+            log.debug("Refreshed timestamp for pending document message {}", documentId);
+        } else {
+            try {
+                queueMessageRepository.save(QueueMessage.builder()
+                        .queueName(QueueName.QUEUE_DOCUMENT_WATERMARK_PDF)
+                        .documentId(documentId)
+                        .status(QueueMessageStatus.PENDING)
+                        .timestamp(now)
+                        .build());
+            } catch (DataIntegrityViolationException e) {
+                log.warn("Pending message already created concurrently for document {}", documentId);
+            }
+        }
+    }
+
+    @Override
+    @Transactional
+    public void sendFilePendingMessage(Long documentId, Long fileId) {
+        if (fileId == null) {
+            return;
+        }
+        long now = System.currentTimeMillis();
+        var existing = queueMessageRepository.findFirstByQueueNameAndFileIdAndStatus(
+                QueueName.QUEUE_FILE_PROCESSING, fileId, QueueMessageStatus.PENDING);
+        if (existing.isPresent()) {
+            QueueMessage msg = existing.get();
+            msg.setTimestamp(now);
+            msg.setDocumentId(documentId);
+            queueMessageRepository.save(msg);
+            log.debug("Refreshed timestamp for pending file message {}", fileId);
+        } else {
+            try {
+                queueMessageRepository.save(QueueMessage.builder()
+                        .queueName(QueueName.QUEUE_FILE_PROCESSING)
+                        .documentId(documentId)
+                        .fileId(fileId)
+                        .status(QueueMessageStatus.PENDING)
+                        .timestamp(now)
+                        .build());
+            } catch (org.springframework.dao.DataIntegrityViolationException e) {
+                log.debug("Pending message already created concurrently for file {}", fileId);
+            }
         }
     }
 }

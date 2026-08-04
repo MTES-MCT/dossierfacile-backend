@@ -18,4 +18,8 @@ public interface QueueMessageService {
      * @param messageConsumer          processed function
      */
     void consume(QueueName queueName, long consumptionDelayInMillis, long consumptionTimeout, Consumer<QueueMessage> messageConsumer, Consumer<JobContext> onFinish);
+
+    void sendDocumentPendingMessage(Long documentId);
+
+    void sendFilePendingMessage(Long documentId, Long fileId);
 }
