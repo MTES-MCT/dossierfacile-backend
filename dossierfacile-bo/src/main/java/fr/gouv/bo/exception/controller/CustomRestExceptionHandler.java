@@ -1,5 +1,6 @@
 package fr.gouv.bo.exception.controller;
 
+import fr.dossierfacile.common.config.ratelimit.RateLimitExceededException;
 import fr.gouv.bo.exception.BadRequestException;
 import fr.gouv.bo.exception.OAuth2AuthenticationProcessingException;
 import fr.gouv.bo.exception.ResourceNotFoundException;
@@ -186,6 +187,13 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
         logger.error(ex.getMessage(), ex);
 
         final ApiError apiError = new ApiError(HttpStatus.FORBIDDEN, ex.getLocalizedMessage());
+        return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
+    }
+
+    @ExceptionHandler({RateLimitExceededException.class})
+    public ResponseEntity<Object> handleRateLimitExceededException(final RateLimitExceededException ex) {
+        logger.error("handleRateLimitExceededException", ex);
+        final ApiError apiError = new ApiError(HttpStatus.TOO_MANY_REQUESTS, ex.getLocalizedMessage(), "Too Many Requests");
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
     }
 

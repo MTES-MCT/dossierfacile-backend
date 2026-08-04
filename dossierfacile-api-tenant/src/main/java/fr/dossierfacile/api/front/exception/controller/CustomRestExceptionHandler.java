@@ -1,5 +1,7 @@
 package fr.dossierfacile.api.front.exception.controller;
 
+import fr.dossierfacile.common.config.ratelimit.RateLimitExceededException;
+
 import fr.dossierfacile.api.front.exception.model.ApiError;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -154,6 +156,14 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
         logger.error(ex.getMessage(), ex);
 
         final ApiError apiError = new ApiError(HttpStatus.FORBIDDEN, ex.getLocalizedMessage());
+        return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
+    }
+
+    @ExceptionHandler({RateLimitExceededException.class})
+    public ResponseEntity<Object> handleRateLimitExceededException(final RateLimitExceededException ex) {
+        logger.error(ex.getMessage(), ex);
+
+        final ApiError apiError = new ApiError(HttpStatus.TOO_MANY_REQUESTS, ex.getLocalizedMessage());
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
     }
 
