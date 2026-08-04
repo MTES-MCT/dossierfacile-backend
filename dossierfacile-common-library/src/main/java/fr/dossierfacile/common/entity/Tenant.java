@@ -73,6 +73,10 @@ public class Tenant extends User implements Person, Serializable {
     private Boolean validationRequested;
     
     @Builder.Default
+    @Column(name = "ready_for_auto_validation")
+    private Boolean readyForAutoValidation = Boolean.FALSE;
+
+    @Builder.Default
     private LocalDateTime lastUpdateDate = LocalDateTime.now();
 
     @Column(length = 2000)

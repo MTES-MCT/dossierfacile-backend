@@ -474,4 +474,20 @@ class DocumentServiceImplTest {
         }
 
     }
+
+    @Nested
+    class DeleteDocument {
+        @Test
+        void shouldResetReadyForAutoValidationToFalseOnTenant() {
+            ApartmentSharing sharing = ApartmentSharing.builder().id(1L).build();
+            Tenant tenant = Tenant.builder().id(1L).readyForAutoValidation(true).apartmentSharing(sharing).documents(new java.util.ArrayList<>()).build();
+            Document document = Document.builder().id(10L).tenant(tenant).documentCategory(DocumentCategory.RESIDENCY).build();
+            tenant.getDocuments().add(document);
+
+            documentService.delete(document);
+
+            assertThat(tenant.getReadyForAutoValidation()).isFalse();
+            verify(documentRepository).delete(document);
+        }
+    }
 }

@@ -20,6 +20,7 @@ import fr.dossierfacile.common.service.FileUploadPreprocessor;
 import fr.dossierfacile.common.service.interfaces.DocumentHelperService;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
+import fr.dossierfacile.common.service.interfaces.TenantAutoValidationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -74,6 +75,8 @@ class DocumentAddedLogTest {
     ClientAuthenticationFacade clientAuthenticationFacade;
     @MockitoBean
     FileUploadPreprocessor fileUploadPreprocessor;
+    @MockitoBean
+    TenantAutoValidationService tenantAutoValidationService;
 
     private Tenant tenant;
 

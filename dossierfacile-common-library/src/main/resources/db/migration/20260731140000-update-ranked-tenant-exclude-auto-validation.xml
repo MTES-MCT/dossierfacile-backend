@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+
+    <changeSet id="20260731140000-01" author="dossierfacile">
+        <sql>
+            DROP MATERIALIZED VIEW IF EXISTS public.ranked_tenant CASCADE;
+            CREATE MATERIALIZED VIEW public.ranked_tenant AS
+            SELECT t.id                                            AS tid,
+                   t.last_update_date,
+                   lo.operator_id,
+                   row_number() OVER (ORDER BY t.last_update_date) AS rank
+            FROM tenant t
+                     LEFT JOIN latest_operator lo ON t.id = lo.tenant_id
+            WHERE t.status::text = 'TO_PROCESS'::text
+              AND t.honor_declaration = true
+              AND (t.ready_for_auto_validation = false OR t.ready_for_auto_validation IS NULL)
+              AND NOT (EXISTS (SELECT 1
+                               FROM document d
+                               WHERE d.tenant_id = t.id
+                                 AND d.watermark_file_id IS NULL))
+              AND NOT (EXISTS (SELECT 1
+                               FROM guarantor g
+                                        JOIN document d2 ON g.id = d2.guarantor_id
+                               WHERE g.tenant_id = t.id
+                                 AND d2.watermark_file_id IS NULL))
+            WITH NO DATA;
+        </sql>
+        <rollback>
+            <sql>
+                DROP MATERIALIZED VIEW IF EXISTS public.ranked_tenant CASCADE;
+                CREATE MATERIALIZED VIEW public.ranked_tenant AS
+                SELECT t.id                                            AS tid,
+                       t.last_update_date,
+                       lo.operator_id,
+                       row_number() OVER (ORDER BY t.last_update_date) AS rank
+                FROM tenant t
+                         LEFT JOIN latest_operator lo ON t.id = lo.tenant_id
+                WHERE t.status::text = 'TO_PROCESS'::text
+                  AND t.honor_declaration = true
+                  AND NOT (EXISTS (SELECT 1
+                                   FROM document d
+                                   WHERE d.tenant_id = t.id
+                                     AND d.watermark_file_id IS NULL))
+                  AND NOT (EXISTS (SELECT 1
+                                   FROM guarantor g
+                                            JOIN document d2 ON g.id = d2.guarantor_id
+                                   WHERE g.tenant_id = t.id
+                                     AND d2.watermark_file_id IS NULL))
+                WITH NO DATA;
+                CREATE UNIQUE INDEX IF NOT EXISTS idx_ranked_tenant_tid
+                    ON public.ranked_tenant (tid);
+                REFRESH MATERIALIZED VIEW public.ranked_tenant;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="20260731140000-02" author="dossierfacile" runInTransaction="false">
+        <sql>
+            CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS idx_ranked_tenant_tid
+                ON public.ranked_tenant (tid);
+        </sql>
+        <rollback>
+            <sql>
+                -- Index recreated in changeSet 01 rollback
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="20260731140000-03" author="dossierfacile">
+        <sql>
+            REFRESH MATERIALIZED VIEW public.ranked_tenant;
+        </sql>
+        <rollback>
+            <sql>
+                REFRESH MATERIALIZED VIEW public.ranked_tenant;
+            </sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>
