@@ -21,15 +21,15 @@ public class TenantAutoValidationTask extends AbstractTask {
 
     private final TenantAutoValidationService tenantAutoValidationService;
 
-    @Value("${tenant.auto.validation.delay.minutes:30}")
-    private int delayInMinutes;
+    @Value("${tenant.auto.validation.tenant-min-age-minutes:30}")
+    private int tenantMinAgeInMinutes;
 
-    @Scheduled(fixedDelayString = "${tenant.auto.validation.delay.ms:300000}", initialDelay = 0)
+    @Scheduled(fixedDelayString = "${tenant.auto.validation.task.fixed-delay-ms:300000}", initialDelay = 0)
     public void processTenantAutoValidation() {
         super.startTask(TaskName.TENANT_AUTO_VALIDATION);
         try {
-            LocalDateTime maxLastUpdateDate = LocalDateTime.now(ZoneId.systemDefault()).minusMinutes(delayInMinutes);
-            log.info("Starting tenant auto validation task for tenants flagged since more than {} minutes (lastUpdateDate <= {})", delayInMinutes, maxLastUpdateDate);
+            LocalDateTime maxLastUpdateDate = LocalDateTime.now(ZoneId.systemDefault()).minusMinutes(tenantMinAgeInMinutes);
+            log.info("Starting tenant auto validation task for tenants flagged since more than {} minutes (lastUpdateDate <= {})", tenantMinAgeInMinutes, maxLastUpdateDate);
 
             List<Tenant> tenantsToValidate = tenantAutoValidationService.listTenantsToAutoValidate(maxLastUpdateDate);
             countTenantIdForLogging(tenantsToValidate.stream().map(Tenant::getId).toList());

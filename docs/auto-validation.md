@@ -98,7 +98,7 @@ Le drapeau `ready_for_auto_validation` est automatiquement réinitialisé à `fa
 La tâche planifiée `TenantAutoValidationTask` s'exécute selon le workflow suivant :
 
 1. **Extraction de la File** :
-   - Récupère les dossiers avec `ready_for_auto_validation = true`, `status = TO_PROCESS`, non modifiés depuis plus de `X` minutes (`tenant.auto.validation.delay.minutes`, par défaut 30 min).
+   - Récupère les dossiers avec `ready_for_auto_validation = true`, `status = TO_PROCESS`, non modifiés depuis plus de `X` minutes (`tenant.auto.validation.tenant-min-age-minutes`, par défaut 30 min).
 2. **Traitement Transactionnel par Locataire** :
    - Pour chaque dossier, une transaction isolée (`@Transactional`) est ouverte via `processAutoValidationForTenant(tenantId)`.
 3. **Évaluation des Documents `TO_PROCESS`** :
@@ -195,8 +195,8 @@ Dans `dossierfacile-task-scheduler/src/main/resources/application.properties` :
 
 ```properties
 # Période d'exécution de la tâche planifiée (en ms) - Défaut: 5 min (300 000 ms)
-tenant.auto.validation.delay.ms=300000
+tenant.auto.validation.task.fixed-delay-ms=300000
 
 # Ancienneté minimale du dossier flaggué avant d'être traité (en minutes) - Défaut: 30 min
-tenant.auto.validation.delay.minutes=30
+tenant.auto.validation.tenant-min-age-minutes=30
 ```

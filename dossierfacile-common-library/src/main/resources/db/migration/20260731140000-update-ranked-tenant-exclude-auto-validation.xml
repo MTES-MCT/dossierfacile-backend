@@ -53,6 +53,7 @@
                 WITH NO DATA;
                 CREATE UNIQUE INDEX IF NOT EXISTS idx_ranked_tenant_tid
                     ON public.ranked_tenant (tid);
+                REFRESH MATERIALIZED VIEW public.ranked_tenant;
             </sql>
         </rollback>
     </changeSet>
@@ -65,6 +66,17 @@
         <rollback>
             <sql>
                 -- Index recreated in changeSet 01 rollback
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="20260731140000-03" author="dossierfacile">
+        <sql>
+            REFRESH MATERIALIZED VIEW public.ranked_tenant;
+        </sql>
+        <rollback>
+            <sql>
+                REFRESH MATERIALIZED VIEW public.ranked_tenant;
             </sql>
         </rollback>
     </changeSet>
