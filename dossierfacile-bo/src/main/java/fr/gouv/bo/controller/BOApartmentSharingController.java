@@ -33,6 +33,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -145,6 +146,7 @@ public class BOApartmentSharingController {
         return "bo/apartment-sharing-view";
     }
 
+    @PreAuthorize("hasRole('SUPPORT')")
     @DeleteMapping("/{id}/apartmentSharingLinks/{link_id}")
     public String deleteToken(
             @PathVariable Long id,
@@ -155,10 +157,11 @@ public class BOApartmentSharingController {
 
         applicationAccessService.checkApartmentSharingAccess(principal, apartmentSharing.getId());
         
-        apartmentSharingLinkService.delete(linkId);
+        apartmentSharingLinkService.delete(linkId, apartmentSharing);
         return REDIRECT_BO_COLOCATION + id;
     }
 
+    @PreAuthorize("hasRole('SUPPORT')")
     @PutMapping("/{id}/apartmentSharingLinks/{link_id}")
     public String updateTokenStatus(
             @PathVariable("link_id") Long linkId,

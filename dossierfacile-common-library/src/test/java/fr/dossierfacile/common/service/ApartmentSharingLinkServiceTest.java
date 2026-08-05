@@ -292,6 +292,32 @@ class ApartmentSharingLinkServiceTest {
         verify(tenantUserApiRepository, never()).findAllByApartmentSharingAndUserApi(any(), any());
     }
 
+    @Test
+    void should_delete_link_when_belonging_to_apartment_sharing() {
+        Long linkId = 1L;
+        ApartmentSharingLink simpleLink = createLink(linkId, null, false);
+
+        when(apartmentSharingLinkRepository.findByIdAndApartmentSharingAndDeletedIsFalse(linkId, apartmentSharing))
+                .thenReturn(Optional.of(simpleLink));
+        when(apartmentSharingLinkRepository.findById(linkId))
+                .thenReturn(Optional.of(simpleLink));
+
+        service.delete(linkId, apartmentSharing);
+
+        assertThat(simpleLink.isDeleted()).isTrue();
+    }
+
+    @Test
+    void should_throw_NotFoundException_when_deleting_link_belonging_to_other_apartment_sharing() {
+        Long unownedLinkId = 999L;
+
+        when(apartmentSharingLinkRepository.findByIdAndApartmentSharingAndDeletedIsFalse(unownedLinkId, apartmentSharing))
+                .thenReturn(Optional.empty());
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> service.delete(unownedLinkId, apartmentSharing))
+                .isInstanceOf(fr.dossierfacile.common.exceptions.NotFoundException.class);
+    }
+
     private ApartmentSharingLink createOwnerLink(Long id) {
         ApartmentSharingLink link = ApartmentSharingLink.builder()
                 .id(id)
