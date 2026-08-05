@@ -11,6 +11,7 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import jakarta.validation.Valid;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -46,8 +47,7 @@ public class DfcSettingsController {
             @ApiResponse(code = 403, message = "Forbidden: Insufficient scope")
     })
     @PatchMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    // Todo : Maybe add a @Valid annotation to validate the request body
-    public ResponseEntity<PartnerSettings> update(@RequestBody PartnerSettings settings) {
+    public ResponseEntity<PartnerSettings> update(@Valid @RequestBody PartnerSettings settings) {
         UserApi userApi = clientAuthenticationFacade.getClient();
         UserApi result = userApiService.update(userApi, settings);
         return ok(partnerSettingsMapper.toPartnerSettings(result));
