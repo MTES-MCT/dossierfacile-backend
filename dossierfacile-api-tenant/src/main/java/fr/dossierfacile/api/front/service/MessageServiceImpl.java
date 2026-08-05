@@ -13,6 +13,7 @@ import fr.dossierfacile.common.enums.DocumentStatus;
 import fr.dossierfacile.common.enums.MessageStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.HtmlUtils;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -50,9 +51,9 @@ public class MessageServiceImpl implements MessageService {
     public MessageModel create(Tenant tenant, MessageForm messageForm, boolean isCustomMessage) {
 
         String messageBody = messageForm.getMessageBody();
-
-        //todo Remove this line when integrated the solution of BO for avoiding xss and html injections. (2021-05-01 11:56am)
-        messageBody = messageBody.replace("<","&lt;").replace(">","&gt;");
+        if (messageBody != null) {
+            messageBody = HtmlUtils.htmlEscape(messageBody);
+        }
 
         Message message = Message.builder()
                 .customMessage(isCustomMessage)
