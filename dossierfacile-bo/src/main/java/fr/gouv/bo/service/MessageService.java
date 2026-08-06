@@ -12,9 +12,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import fr.dossierfacile.common.service.interfaces.MessageCommonService;
+
 @Service
 @RequiredArgsConstructor
-public class MessageService {
+public class MessageService implements MessageCommonService {
     private final MessageRepository messageRepository;
 
     public List<Message> findTenantMessages(User tenant) {

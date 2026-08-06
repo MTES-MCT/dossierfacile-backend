@@ -8,6 +8,7 @@ import fr.dossierfacile.common.service.ApartmentSharingLinkService;
 import fr.dossierfacile.common.service.interfaces.ApartmentSharingCommonService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.gouv.bo.TestBOApplication;
+import fr.gouv.bo.application.usecase.operator.OperatorDeleteFileUseCase;
 import fr.gouv.bo.security.BOApplicationAccessService;
 import fr.gouv.bo.service.*;
 import org.jsoup.Jsoup;
@@ -90,6 +91,8 @@ class TaxDisplayTest {
     private BOApplicationAccessService applicationAccessService;
     @MockitoBean
     private BOTenantResolver tenantResolver;
+    @MockitoBean
+    private OperatorDeleteFileUseCase operatorDeleteFileUseCase;
 
     // BOApartmentSharingController dependencies
     @MockitoBean

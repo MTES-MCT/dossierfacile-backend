@@ -1,6 +1,6 @@
 package fr.dossierfacile.api.front.service;
 
-import fr.dossierfacile.api.front.amqp.Producer;
+import fr.dossierfacile.common.domain.service.MessagePublisher;
 import fr.dossierfacile.api.front.exception.FileNotFoundException;
 import fr.dossierfacile.api.front.repository.FileRepository;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
@@ -29,7 +29,7 @@ public class FileServiceImpl implements FileService {
     private final DocumentService documentService;
     private final LogService logService;
     private final TenantCommonRepository tenantRepository;
-    private final Producer producer;
+    private final MessagePublisher producer;
     private final DocumentIAService documentIAService;
 
     @Override

@@ -192,6 +192,10 @@
             <artifactId>prettytime</artifactId>
             <version>5.0.6.Final</version>
         </dependency>
+        <dependency>
+            <groupId>fr.dossierfacile</groupId>
+            <artifactId>dossierfacile-document-analysis</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

@@ -1,10 +1,14 @@
 package fr.gouv.bo.controller;
 
+import fr.dossierfacile.common.application.exception.ModelNotFoundException;
+import fr.dossierfacile.common.application.exception.UnauthorizedException;
+import fr.dossierfacile.common.domain.model.operator.Operator;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.BOUser;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
+import fr.gouv.bo.application.usecase.operator.OperatorDeleteFileUseCase;
 import fr.gouv.bo.dto.CustomMessage;
 import fr.gouv.bo.dto.MessageDTO;
 import fr.gouv.bo.security.BOAccessDenied;
@@ -69,6 +73,8 @@ class BOTenantControllerTest {
     private BOApplicationAccessService applicationAccessService;
     @Mock
     private BOTenantResolver tenantResolver;
+    @Mock
+    private fr.gouv.bo.application.usecase.operator.OperatorDeleteFileUseCase operatorDeleteFileUseCase;
 
     private BOTenantController controller;
 
@@ -84,7 +90,8 @@ class BOTenantControllerTest {
                 logService,
                 documentDeniedReasonsService,
                 applicationAccessService,
-                tenantResolver
+                tenantResolver,
+                operatorDeleteFileUseCase
         );
     }
 
@@ -170,35 +177,39 @@ class BOTenantControllerTest {
     class DeleteFile {
 
         @Test
-        void whenOperatorNotAssigned_throwsGenericAccessDenied() {
+        void whenModelNotFound_returnsHomeRedirect() {
             UserPrincipal principal = operatorPrincipal();
-            Tenant accessTenant = tenant(TENANT_ID, APARTMENT_SHARING_ID);
-            when(tenantResolver.resolveTenantFromFile(FILE_ID)).thenReturn(accessTenant);
-            doThrow(BOAccessDenied.generic())
-                    .when(applicationAccessService)
-                    .checkTenantAccess(principal, TENANT_ID);
+            doThrow(new ModelNotFoundException(Operator.class, "Model not found"))
+                    .when(operatorDeleteFileUseCase)
+                    .execute(any(OperatorDeleteFileUseCase.OperatorDeleteFileCommand.class));
+
+            String view = controller.deleteFile(FILE_ID, principal);
+
+            assertThat(view).isEqualTo("redirect:/bo");
+        }
+
+        @Test
+        void whenUnauthorized_throwsGenericAccessDenied() {
+            UserPrincipal principal = operatorPrincipal();
+            doThrow(new UnauthorizedException("Unauthorized"))
+                    .when(operatorDeleteFileUseCase)
+                    .execute(any(OperatorDeleteFileUseCase.OperatorDeleteFileCommand.class));
 
             assertThatThrownBy(() -> controller.deleteFile(FILE_ID, principal))
                     .isInstanceOf(AccessDeniedException.class)
                     .hasMessage(BOAccessDenied.GENERIC_MESSAGE);
-
-            verify(tenantService, never()).deleteFile(any(), any());
         }
 
         @Test
         void whenOperatorAssigned_deletesFileAndRedirects() {
             UserPrincipal principal = operatorPrincipal();
-            Tenant accessTenant = tenant(TENANT_ID, APARTMENT_SHARING_ID);
-            BOUser operator = new BOUser();
-            when(tenantResolver.resolveTenantFromFile(FILE_ID)).thenReturn(accessTenant);
-            when(userService.findUserByEmail(principal.getEmail())).thenReturn(operator);
-            when(tenantService.deleteFile(FILE_ID, operator)).thenReturn(accessTenant);
+            var result = new OperatorDeleteFileUseCase.OperatorDeleteFileResult(APARTMENT_SHARING_ID, TENANT_ID);
+            when(operatorDeleteFileUseCase.execute(new OperatorDeleteFileUseCase.OperatorDeleteFileCommand(FILE_ID, principal.getEmail())))
+                    .thenReturn(result);
 
             String view = controller.deleteFile(FILE_ID, principal);
 
             assertThat(view).isEqualTo("redirect:/bo/colocation/99#tenant42");
-            verify(applicationAccessService).checkTenantAccess(principal, TENANT_ID);
-            verify(tenantService).deleteFile(FILE_ID, operator);
         }
     }
 

@@ -1,5 +1,8 @@
 package fr.dossierfacile.common.entity;
 
+import fr.dossierfacile.common.domain.service.UpdateTenantStatusDomainService;
+import fr.dossierfacile.common.domain.service.UpdateTenantStatusDomainService.DocumentView;
+import fr.dossierfacile.common.domain.service.UpdateTenantStatusDomainService.GuarantorView;
 import fr.dossierfacile.common.enums.*;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
@@ -13,10 +16,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Stream;
-
-import static fr.dossierfacile.common.enums.DocumentStatus.DECLINED;
-import static fr.dossierfacile.common.enums.DocumentStatus.TO_PROCESS;
 
 @Entity
 @Table(name = "tenant")
@@ -145,29 +144,11 @@ public class Tenant extends User implements Person, Serializable {
 
     public TenantFileStatus computeStatus() {
         log.info("Computing status for tenant with ID [" + getId() + "]...");
-
-        if (status == TenantFileStatus.ARCHIVED) {
-            return TenantFileStatus.ARCHIVED;
-        }
-
-        // Gets all tenant documents
-        List<Document> allDocuments = (guarantors == null) ?
-                documents :
-                Stream.concat(documents.stream(),
-                                guarantors.stream()
-                                        .map(Guarantor::getDocuments)
-                                        .flatMap(List::stream))
-                        .toList();
-        // Check documents status
-        if (allDocuments != null && allDocuments.stream().anyMatch(d -> d.getDocumentStatus() == DECLINED)) {
-            return TenantFileStatus.DECLINED;
-        } else if (!honorDeclaration || !isAllCategories()) {
-            return TenantFileStatus.INCOMPLETE;
-        } else if (allDocuments.stream().anyMatch(d -> d.getDocumentStatus() == TO_PROCESS)) {
-            return TenantFileStatus.TO_PROCESS;
-        }
-
-        return TenantFileStatus.VALIDATED;
+        return UpdateTenantStatusDomainService.computeStatus(
+                status,
+                Boolean.TRUE.equals(honorDeclaration),
+                toDocumentViews(documents),
+                toGuarantorViews());
     }
 
     public boolean isValidated() {
@@ -175,78 +156,25 @@ public class Tenant extends User implements Person, Serializable {
     }
 
     public boolean isAllCategories() {
-        // TENANT CHECK
+        return UpdateTenantStatusDomainService.isComplete(toDocumentViews(documents), toGuarantorViews());
+    }
 
-        //I setup the list of mandatory categories
-        List<DocumentCategory> tenantOrNaturalPersonGuarantorMandatoryCategories = new ArrayList<>();
-        tenantOrNaturalPersonGuarantorMandatoryCategories.add(DocumentCategory.IDENTIFICATION);
-        tenantOrNaturalPersonGuarantorMandatoryCategories.add(DocumentCategory.RESIDENCY);
-        tenantOrNaturalPersonGuarantorMandatoryCategories.add(DocumentCategory.PROFESSIONAL);
-        tenantOrNaturalPersonGuarantorMandatoryCategories.add(DocumentCategory.FINANCIAL);
-        tenantOrNaturalPersonGuarantorMandatoryCategories.add(DocumentCategory.TAX);
-
-        //I setup the list of currently existing categories on the tenant
-        List<DocumentCategory> tenantCategories = new ArrayList<>();
-        List<Document> documentList = getDocuments();
-        if (documentList == null) {
-            return false;
+    private List<GuarantorView> toGuarantorViews() {
+        if (guarantors == null) {
+            return List.of();
         }
-        for (Document document : getDocuments()) {
-            tenantCategories.add(document.getDocumentCategory());
+        return guarantors.stream()
+                .map(guarantor -> new GuarantorView(guarantor.getTypeGuarantor(), toDocumentViews(guarantor.getDocuments())))
+                .toList();
+    }
+
+    private static List<DocumentView> toDocumentViews(List<Document> documents) {
+        if (documents == null) {
+            return List.of();
         }
-
-        // I check that all the mandatory categories are present in the list of existing categories
-        for (DocumentCategory documentCategory : tenantOrNaturalPersonGuarantorMandatoryCategories) {
-            if (!tenantCategories.contains(documentCategory)) {
-                return false;
-            }
-        }
-
-        //GUARANTOR CHECK
-        if (!guarantors.isEmpty()) {
-            for (Guarantor guarantor : getGuarantors()) {
-                if (guarantor.getDocuments() == null || guarantor.getDocuments().isEmpty()) {
-                    return false;
-                } else if (guarantor.getTypeGuarantor() == TypeGuarantor.ORGANISM) {
-                    // Must have exactly one Document of type GUARANTEE_PROVIDER_CERTIFICATE
-                    if (guarantor.getDocuments().size() != 1 || !guarantor.getDocuments().get(0).getDocumentCategory().equals(DocumentCategory.GUARANTEE_PROVIDER_CERTIFICATE)) {
-                        return false;
-                    }
-                } else if (guarantor.getTypeGuarantor() == TypeGuarantor.NATURAL_PERSON) {
-                    //I setup the list of currently existing categories on the guarantor
-                    List<DocumentCategory> guarantorCategories = new ArrayList<>();
-                    for (Document guarantorDocument : guarantor.getDocuments()) {
-                        guarantorCategories.add(guarantorDocument.getDocumentCategory());
-                    }
-
-                    // I check that all the mandatory categories are present in the list of existing categories (same as tenant list for a natural guarantor)
-                    for (DocumentCategory documentCategory : tenantOrNaturalPersonGuarantorMandatoryCategories) {
-                        if (!guarantorCategories.contains(documentCategory)) {
-                            return false;
-                        }
-                    }
-                } else if (guarantor.getTypeGuarantor() == TypeGuarantor.LEGAL_PERSON) {
-                    //I setup the list of mandatory categories for a legal person
-                    List<DocumentCategory> legalPersonGuarantorMandatoryCategories = new ArrayList<>();
-                    legalPersonGuarantorMandatoryCategories.add(DocumentCategory.IDENTIFICATION);
-                    legalPersonGuarantorMandatoryCategories.add(DocumentCategory.IDENTIFICATION_LEGAL_PERSON);
-
-                    //I setup the list of currently existing categories on the guarantor
-                    List<DocumentCategory> guarantorCategories = new ArrayList<>();
-                    for (Document guarantorDocument : guarantor.getDocuments()) {
-                        guarantorCategories.add(guarantorDocument.getDocumentCategory());
-                    }
-
-                    // I check that all the mandatory categories are present in the list of existing categories
-                    for (DocumentCategory documentCategory : legalPersonGuarantorMandatoryCategories) {
-                        if (!guarantorCategories.contains(documentCategory)) {
-                            return false;
-                        }
-                    }
-                }
-            }
-        }
-        return true;
+        return documents.stream()
+                .map(document -> new DocumentView(document.getDocumentStatus(), document.getDocumentCategory()))
+                .toList();
     }
 
     public void lastUpdateDateProfile(LocalDateTime localDateTime, DocumentCategory documentCategory) {

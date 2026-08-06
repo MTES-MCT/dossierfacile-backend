@@ -46,4 +46,8 @@ public interface BOApplicationAccessService {
      * Throws AccessDeniedException if the file/document/tenant chain is broken or operator is not assigned.
      */
     void checkFileAccess(UserPrincipal principal, File file);
+
+    boolean hasAccessToTenant(UserPrincipal principal, Long tenantId);
+
+    boolean hasAccessToTenant(Long operatorId, Long tenantId);
 }

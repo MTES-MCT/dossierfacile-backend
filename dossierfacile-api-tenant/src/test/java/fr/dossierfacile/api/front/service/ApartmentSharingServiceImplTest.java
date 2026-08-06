@@ -1,6 +1,6 @@
 package fr.dossierfacile.api.front.service;
 
-import fr.dossierfacile.api.front.amqp.Producer;
+import fr.dossierfacile.common.domain.service.MessagePublisher;
 import fr.dossierfacile.api.front.exception.ApartmentSharingNotFoundException;
 import fr.dossierfacile.api.front.exception.ApartmentSharingUnexpectedException;
 import fr.dossierfacile.api.front.model.tenant.AnalysisStatus;
@@ -8,7 +8,6 @@ import fr.dossierfacile.api.front.model.tenant.DocumentAnalysisStatusResponse;
 import fr.dossierfacile.api.front.model.tenant.FullFolderFile;
 import fr.dossierfacile.api.front.repository.ApiTenantLogRepository;
 import fr.dossierfacile.api.front.repository.DocumentRepository;
-import fr.dossierfacile.api.front.service.interfaces.BruteForceProtectionService;
 import fr.dossierfacile.api.front.service.interfaces.DocumentService;
 import fr.dossierfacile.api.front.service.interfaces.TenantPermissionsService;
 import fr.dossierfacile.common.entity.*;
@@ -16,7 +15,6 @@ import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.FileStatus;
 import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.mapper.ApplicationFullMapper;
-import fr.dossierfacile.common.mapper.ApplicationLightMapper;
 import fr.dossierfacile.common.repository.ApartmentSharingLinkRepository;
 import fr.dossierfacile.common.repository.ApartmentSharingRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
@@ -69,21 +67,17 @@ class ApartmentSharingServiceImplTest {
     @MockitoBean
     private ApplicationFullMapper applicationFullMapper;
     @MockitoBean
-    private ApplicationLightMapper applicationLightMapper;
-    @MockitoBean
     private FileStorageService fileStorageService;
     @MockitoBean
     private LinkLogService linkLogService;
     @MockitoBean
-    private Producer producer;
+    private MessagePublisher producer;
     @MockitoBean
     private ApartmentSharingCommonService apartmentSharingCommonService;
     @MockitoBean
     private ApiTenantLogRepository tenantLogRepository;
     @MockitoBean
     private LogService logService;
-    @MockitoBean
-    private BruteForceProtectionService bruteForceProtectionService;
     @MockitoBean
     private DocumentRepository documentRepository;
 

@@ -53,7 +53,7 @@ class FileServiceImplTest {
     private fr.dossierfacile.common.repository.TenantCommonRepository tenantRepository;
 
     @Mock
-    private fr.dossierfacile.api.front.amqp.Producer producer;
+    private fr.dossierfacile.common.domain.service.MessagePublisher producer;
 
     @Mock
     private fr.dossierfacile.document.analysis.service.DocumentIAService documentIAService;
