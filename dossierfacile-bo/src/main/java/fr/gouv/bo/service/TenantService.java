@@ -34,6 +34,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.util.HtmlUtils;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -371,7 +372,7 @@ public class TenantService {
     private void appendDeniedReasons(StringBuilder html, String name, List<MessageItem> messageItems) {
         html.append("<li>");
         html.append("<strong class=\"name\">");
-        html.append(name);
+        html.append(HtmlUtils.htmlEscape(name));
         html.append("</strong>");
         for (MessageItem messageItem : messageItems) {
             if (isDenied(messageItem)) {
@@ -388,7 +389,7 @@ public class TenantService {
                 }
                 if (!messageItem.getCommentDoc().isEmpty()) {
                     html.append("<li>");
-                    html.append(messageItem.getCommentDoc());
+                    html.append(HtmlUtils.htmlEscape(messageItem.getCommentDoc()));
                     html.append("</li>");
                 }
                 html.append("</ul>");
@@ -420,7 +421,7 @@ public class TenantService {
     private void addHtmlSectionForEmail(StringBuilder builder, String name, List<MessageItem> messageItems) {
         builder.append("<div style=\"background-color:#f6f6f6;border-radius:4px;padding-top:10px;padding-left:10px;padding-right:10px;margin-bottom:10px;\">");
         builder.append("<strong>");
-        builder.append(name);
+        builder.append(HtmlUtils.htmlEscape(name));
         builder.append("</strong>");
         builder.append("<ul style=\"padding-bottom:10px;padding-top:10px;text-decoration:underline;line-height:30px;text-align: left\">");
         appendCategoriesNamesForEmail(builder, messageItems);
@@ -487,7 +488,7 @@ public class TenantService {
 
         if (forTenant) {
             html.append("<strong class=\"name\">");
-            html.append(tenant.getFirstName());
+            html.append(HtmlUtils.htmlEscape(tenant.getFirstName()));
             html.append("</strong>");
             html.append("<ul class=\"doc-list\">");
             appendCategoriesNames(html, messageItems);
@@ -499,7 +500,7 @@ public class TenantService {
         for (GuarantorItem guarantorItem : guarantorItems) {
             if (hasCheckedItem(guarantorItem.getMessageItems())) {
                 html.append("<strong class=\"name\">");
-                html.append(guarantorLabel(guarantorItem));
+                html.append(HtmlUtils.htmlEscape(guarantorLabel(guarantorItem)));
                 html.append("</strong>");
                 html.append("<ul class=\"doc-list\">");
                 appendCategoriesNames(html, guarantorItem.getMessageItems());
@@ -676,7 +677,7 @@ public class TenantService {
             html.append("<p>Nos agents ont ajusté <strong>le montant de votre revenu</strong> déclaré afin qu’il corresponde à vos justificatifs.");
             html.append("<br/> Le montant suivant a été modifié pour garantir la cohérence et la fiabilité de votre dossier :");
             html.append("<p class=\"fr-mb-0\"><strong>");
-            html.append(name);
+            html.append(HtmlUtils.htmlEscape(name));
             html.append("</strong></p>");
             html.append("<p><strong>");
             html.append(messageSource.getMessage("document_sub_category." + item.getDocumentSubCategory(), null, locale));
