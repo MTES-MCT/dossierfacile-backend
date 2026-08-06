@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+    <changeSet id="20260806000000-1" author="dossierfacile">
+        <!-- Explicit user answer to "do you want an operator validation?"
+             null = never answered, true = requested, false = declined -->
+        <addColumn tableName="tenant">
+            <column name="validation_requested" type="boolean">
+                <constraints nullable="true" />
+            </column>
+        </addColumn>
+        <rollback>
+            <dropColumn tableName="tenant" columnName="validation_requested" />
+        </rollback>
+    </changeSet>
+    <changeSet id="20260806000000-2" author="dossierfacile">
+        <insert tableName="feature_flag">
+            <column name="key" value="tenant_completed_optin"/>
+            <column name="description" value="Eligible ALONE tenants get the COMPLETED status on submission instead of TO_PROCESS (opt-in MVP)"/>
+            <column name="active" valueBoolean="false"/>
+            <column name="only_for_new_user" valueBoolean="true"/>
+            <column name="rollout_pct" valueNumeric="0"/>
+        </insert>
+        <rollback>
+            <delete tableName="feature_flag">
+                <where>key = 'tenant_completed_optin'</where>
+            </delete>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

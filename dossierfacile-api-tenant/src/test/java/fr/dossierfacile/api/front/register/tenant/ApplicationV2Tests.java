@@ -26,7 +26,8 @@ public class ApplicationV2Tests {
             null,
             null,
             null,
-            null
+            null,
+            null // tenantStatusService
     );
 
 

@@ -2,6 +2,7 @@ package fr.dossierfacile.api.front.controller;
 
 import fr.dossierfacile.api.front.form.ShareFileByLinkForm;
 import fr.dossierfacile.api.front.form.ShareFileByMailForm;
+import fr.dossierfacile.api.front.form.ValidationRequestForm;
 import fr.dossierfacile.api.front.mapper.TenantMapper;
 import fr.dossierfacile.api.front.model.tenant.TenantModel;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
@@ -89,6 +90,20 @@ public class TenantController {
         Tenant tenant = authenticationFacade.getLoggedTenant();
         String url = tenantService.createSharingLink(tenant, shareFileByLinkForm);
         return ok(url);
+    }
+
+    @PostMapping(value = "/validation-request", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "Request or decline an operator validation",
+            notes = "Records the tenant's explicit answer to the opt-in question and recomputes the dossier status.")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Choice recorded", response = TenantModel.class),
+            @ApiResponse(code = 401, message = "Unauthorized: JWT token missing or invalid"),
+            @ApiResponse(code = 409, message = "Conflict: tenant is not eligible to the opt-in")
+    })
+    public ResponseEntity<TenantModel> updateValidationRequest(@Valid @RequestBody ValidationRequestForm validationRequestForm) {
+        Tenant tenant = authenticationFacade.getLoggedTenant();
+        Tenant updatedTenant = tenantService.updateValidationRequest(tenant, validationRequestForm.getValidationRequested());
+        return ok(tenantMapper.toTenantModel(updatedTenant, null));
     }
 
     @PreAuthorize("hasPermissionOnTenant(#tenantId)")

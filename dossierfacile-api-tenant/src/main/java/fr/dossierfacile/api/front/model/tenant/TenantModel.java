@@ -29,6 +29,10 @@ public class TenantModel {
     private String email;
     private TenantType tenantType;
     private TenantFileStatus status;
+    // Explicit answer to the opt-in question: null (absent) = never answered
+    private Boolean validationRequested;
+    // Whether the opt-in question must be displayed (primitive: always serialized)
+    private boolean optInEligible;
     private boolean honorDeclaration;
     private LocalDateTime lastUpdateDate;
     private String clarification;

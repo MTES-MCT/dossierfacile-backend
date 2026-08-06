@@ -1,11 +1,13 @@
 package fr.dossierfacile.api.front.controller;
 
+import fr.dossierfacile.api.front.exception.TenantIllegalStateException;
 import fr.dossierfacile.api.front.model.ExpirationDateRequest;
 import fr.dossierfacile.api.front.model.TitleRequest;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.model.ApartmentSharingLinkModel;
 import fr.dossierfacile.common.service.ApartmentSharingLinkService;
 import io.swagger.annotations.ApiOperation;
@@ -48,6 +50,10 @@ public class ApartmentSharingLinkController {
     public ResponseEntity<ApartmentSharingLinkModel> updateApartmentSharingLinksStatus( @RequestParam boolean isFullData) {
         Tenant tenant = authenticationFacade.getLoggedTenant();
         ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
+        // Sharing by link is reserved to fully validated dossiers (a COMPLETED dossier can only be shared as ZIP)
+        if (apartmentSharing.getStatus() != TenantFileStatus.VALIDATED) {
+            throw new TenantIllegalStateException("Sharing a dossier by link requires a validated dossier");
+        }
         ApartmentSharingLinkModel defaultLink = apartmentSharingLinkService.getDefaultLink(apartmentSharing, tenant, isFullData);
         return ResponseEntity.ok(defaultLink);
     }

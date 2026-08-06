@@ -11,6 +11,8 @@ import fr.dossierfacile.common.repository.SharedFileRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.repository.projection.TenantWaitingTimeBucketProjection;
 import fr.dossierfacile.common.service.ApartmentSharingLinkService;
+import fr.dossierfacile.common.service.interfaces.CompletedEligibilityService;
+import fr.dossierfacile.common.service.interfaces.MailCommonService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.dossierfacile.common.service.interfaces.TenantCommonService;
 import fr.dossierfacile.common.service.interfaces.TenantLogCommonService;
@@ -72,6 +74,8 @@ public class TenantService {
     private final TenantLogCommonService tenantLogCommonService;
     private final QuotaService quotaService;
     private final SharedFileRepository sharedFileRepository;
+    private final CompletedEligibilityService completedEligibilityService;
+    private final MailCommonService mailCommonService;
 
     @Value("${time.reprocess.application.minutes}")
     private int timeReprocessApplicationMinutes;
@@ -766,7 +770,11 @@ public class TenantService {
     @Transactional
     protected void updateTenantStatus(Tenant tenant, User operator) {
         TenantFileStatus previousStatus = tenant.getStatus();
-        tenant.setStatus(tenant.computeStatus());
+        TenantFileStatus newStatus = tenant.computeStatus();
+        if (newStatus == TenantFileStatus.TO_PROCESS && completedEligibilityService.canBeCompleted(tenant)) {
+            newStatus = TenantFileStatus.COMPLETED;
+        }
+        tenant.setStatus(newStatus);
         tenantRepository.save(tenant);
         if (previousStatus != tenant.getStatus()) {
             switch (tenant.getStatus()) {
@@ -956,6 +964,9 @@ public class TenantService {
 
     @Transactional
     public void regroupTenant(Tenant tenant, ApartmentSharing apartmentSharing, ApplicationType newApplicationType) {
+        if (tenant.getStatus() == TenantFileStatus.COMPLETED || apartmentSharing.getStatus() == TenantFileStatus.COMPLETED) {
+            throw new IllegalStateException("Cannot regroup a COMPLETED dossier: ask the tenant to request a validation first");
+        }
         ApartmentSharing apartmentToDelete = tenant.getApartmentSharing();
 
         //Associating the tenant to the new apartment and disassociating the tenant from the current apartment
@@ -969,12 +980,32 @@ public class TenantService {
 
         tenant.setTenantType(TenantType.JOIN);
         tenant.setApartmentSharing(apartmentSharing);
+        // The opt-in choice only makes sense for an ALONE application
+        tenant.setValidationRequested(null);
         tenantRepository.save(tenant);
 
         apartmentSharingRepository.delete(apartmentToDelete);
 
         // invalidates the full pdf to make sure a new version can be lazy generated with both tenants
         apartmentSharingService.resetDossierPdfGenerated(apartmentSharing);
+    }
+
+    // Rollback action for the COMPLETED opt-in MVP: sends every COMPLETED dossier back
+    // to the operator queue (positioned at the time of the switch). The user's explicit
+    // choice (validationRequested) is left untouched.
+    @Transactional
+    public int switchCompletedDossiersBackToProcessing() {
+        List<Tenant> completedTenants = tenantRepository.findAllByStatus(TenantFileStatus.COMPLETED);
+        LocalDateTime now = LocalDateTime.now();
+        for (Tenant tenant : completedTenants) {
+            tenant.setStatus(TenantFileStatus.TO_PROCESS);
+            tenant.setLastUpdateDate(now);
+            tenantLogCommonService.saveTenantLog(new TenantLog(LogType.COMPLETED_SWITCHED_TO_PROCESS, tenant.getId()));
+        }
+        tenantRepository.saveAll(completedTenants);
+        List<TenantDto> tenantDtos = completedTenants.stream().map(tenantMapperForMail::toDto).toList();
+        TransactionalUtil.afterCommit(() -> tenantDtos.forEach(mailCommonService::sendEmailCompletedSwitchedToProcessing));
+        return completedTenants.size();
     }
 
     @Transactional

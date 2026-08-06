@@ -38,6 +38,15 @@ public abstract class ApplicationFullMapper implements ApartmentSharingMapper {
 
     abstract ApplicationModel mapApplicationModel(ApartmentSharing apartmentSharing, @Context UserApi userApi);
 
+    // Defensive safety net: the COMPLETED status must never be exposed to partners
+    // (webhooks and partner APIs always map with a non-null userApi context)
+    protected TenantFileStatus toPartnerVisibleStatus(TenantFileStatus status, @Context UserApi userApi) {
+        if (userApi == null) {
+            return status;
+        }
+        return PartnerVisibleStatus.mask(status, getClass().getSimpleName());
+    }
+
     @Override
     public ApplicationModel toApplicationModel(ApartmentSharing apartmentSharing, UserApi userApi) {
         ApplicationModel model = mapApplicationModel(apartmentSharing, userApi);

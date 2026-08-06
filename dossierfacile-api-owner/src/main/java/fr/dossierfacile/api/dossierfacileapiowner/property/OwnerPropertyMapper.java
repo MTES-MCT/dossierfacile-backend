@@ -4,6 +4,8 @@ import fr.dossierfacile.common.entity.ApartmentSharingLink;
 import fr.dossierfacile.common.entity.Property;
 import fr.dossierfacile.common.entity.PropertyApartmentSharing;
 import fr.dossierfacile.common.enums.ApartmentSharingLinkType;
+import fr.dossierfacile.common.enums.TenantFileStatus;
+import fr.dossierfacile.common.mapper.PartnerVisibleStatus;
 
 import java.util.List;
 import java.util.Optional;
@@ -45,5 +47,17 @@ public abstract class OwnerPropertyMapper {
                 propertyApartmentSharing.getApartmentSharing().setToken(token);
             }
         }
+    }
+
+    // Defensive safety net: the COMPLETED status must never be exposed to owners
+    protected String toOwnerVisibleStatus(TenantFileStatus status) {
+        if (status == null) {
+            return null;
+        }
+        return PartnerVisibleStatus.mask(status, getClass().getSimpleName()).name();
+    }
+
+    protected TenantFileStatus toOwnerVisibleTenantStatus(TenantFileStatus status) {
+        return PartnerVisibleStatus.mask(status, getClass().getSimpleName());
     }
 }

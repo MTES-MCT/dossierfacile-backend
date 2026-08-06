@@ -8,7 +8,10 @@ import fr.dossierfacile.common.enums.ApartmentSharingLinkType;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.mapper.MapDocumentCategories;
+import fr.dossierfacile.common.mapper.PartnerVisibleStatus;
+import fr.dossierfacile.common.service.interfaces.CompletedEligibilityService;
 import org.mapstruct.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -39,7 +42,11 @@ public abstract class TenantMapper {
     @Value("${tenant.base.url}")
     protected String tenantBaseUrl;
 
+    @Autowired
+    protected CompletedEligibilityService completedEligibilityService;
+
     @Mapping(target = "honorDeclaration", expression = "java(mapHonorDeclaration(tenant))")
+    @Mapping(target = "optInEligible", expression = "java(completedEligibilityService.isEligibleForOptIn(tenant))")
     @Mapping(source = "tenant", target = "franceConnectIdentity", qualifiedByName = "franceConnectIdentity")
     public abstract TenantModel toTenantModel(Tenant tenant, @Context UserApi userApi);
 
@@ -48,6 +55,15 @@ public abstract class TenantMapper {
             return tenant.getApartmentSharing().getTenants().stream().allMatch(t -> Boolean.TRUE.equals(t.getHonorDeclaration()));
         }
         return Boolean.TRUE.equals(tenant.getHonorDeclaration());
+    }
+
+    // Defensive safety net: the COMPLETED status must never be exposed to partners.
+    // The tenant's own profile (userApi == null) keeps seeing the real status.
+    protected TenantFileStatus toPartnerVisibleStatus(TenantFileStatus status, @Context UserApi userApi) {
+        if (userApi == null) {
+            return status;
+        }
+        return PartnerVisibleStatus.mask(status, getClass().getSimpleName());
     }
 
     @Named("franceConnectIdentity")

@@ -79,7 +79,9 @@ class TenantServiceDissociateTenantTest {
                 null,
                 tenantLogCommonService,
                 null,
-                null
+                null,
+                null, // completedEligibilityService
+                null  // mailCommonService
         );
     }
 
