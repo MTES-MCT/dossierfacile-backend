@@ -677,7 +677,7 @@ public class TenantService {
             html.append("<p>Nos agents ont ajusté <strong>le montant de votre revenu</strong> déclaré afin qu’il corresponde à vos justificatifs.");
             html.append("<br/> Le montant suivant a été modifié pour garantir la cohérence et la fiabilité de votre dossier :");
             html.append("<p class=\"fr-mb-0\"><strong>");
-            html.append(name);
+            html.append(HtmlUtils.htmlEscape(name));
             html.append("</strong></p>");
             html.append("<p><strong>");
             html.append(messageSource.getMessage("document_sub_category." + item.getDocumentSubCategory(), null, locale));

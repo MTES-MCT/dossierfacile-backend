@@ -2,9 +2,6 @@ package fr.dossierfacile.common.config.xss;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
-import org.jsoup.Jsoup;
-import org.jsoup.parser.Parser;
-import org.jsoup.safety.Safelist;
 
 public class XssRequestWrapper extends HttpServletRequestWrapper {
 
@@ -12,25 +9,18 @@ public class XssRequestWrapper extends HttpServletRequestWrapper {
         super(servletRequest);
     }
 
-    private static String stripXSS(String value) {
-        if (value != null) {
-            String clean = Jsoup.clean(value, Safelist.none());
-            return Parser.unescapeEntities(clean, false);
-        }
-        return value;
-    }
-
     @Override
+    @SuppressWarnings("java:S1168") // Jakarta Servlet specification requires null when parameter is not present
     public String[] getParameterValues(String parameter) {
         String[] values = super.getParameterValues(parameter);
         if (values == null) {
-            return new String[0];
+            return null;
         }
 
         int count = values.length;
         String[] encodedValues = new String[count];
         for (int i = 0; i < count; i++) {
-            encodedValues[i] = stripXSS(values[i]);
+            encodedValues[i] = XssSanitizer.sanitize(values[i]);
         }
         return encodedValues;
     }
@@ -38,12 +28,12 @@ public class XssRequestWrapper extends HttpServletRequestWrapper {
     @Override
     public String getParameter(String parameter) {
         String value = super.getParameter(parameter);
-        return stripXSS(value);
+        return XssSanitizer.sanitize(value);
     }
 
     @Override
     public String getHeader(String name) {
         String value = super.getHeader(name);
-        return stripXSS(value);
+        return XssSanitizer.sanitize(value);
     }
 }

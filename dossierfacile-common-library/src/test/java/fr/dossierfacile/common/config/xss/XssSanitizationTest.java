@@ -59,4 +59,16 @@ class XssSanitizationTest {
         assertThat(dto.getName()).isEqualTo("Jean-Pierre D'Arc");
         assertThat(dto.getComment()).isEqualTo("Valid text with & and numbers 123");
     }
+
+    @Test
+    void deserialize_shouldNotRecreateHtmlFromPreEncodedEntities() throws Exception {
+        String json = "{\"name\":\"&lt;script&gt;alert(1)&lt;/script&gt;\",\"comment\":\"Test &lt;img src=x onerror=alert(2)&gt;\"}";
+
+        SampleDto dto = objectMapper.readValue(json, SampleDto.class);
+
+        // Pre-encoded script tags are unescaped BEFORE clean so Jsoup strips the tag completely (""),
+        // rather than re-creating raw <script> HTML tags in the String output.
+        assertThat(dto.getName()).isEqualTo("");
+        assertThat(dto.getComment()).isEqualTo("Test");
+    }
 }
