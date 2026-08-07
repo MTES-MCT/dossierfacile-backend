@@ -352,4 +352,49 @@ class ApplicationFullMapperTest {
             assertThat(docUrl).isEqualTo("https://api.example.com/api/document/resource/doc-123.pdf");
         }
     }
+
+    @Nested
+    class CompletedStatusMasking {
+
+        private ApplicationFullMapperImpl buildMapper() {
+            ApplicationFullMapperImpl mapper = new ApplicationFullMapperImpl();
+            mapper.applicationBaseUrl = "https://api.example.com";
+            mapper.tenantBaseUrl = "https://example.com";
+            return mapper;
+        }
+
+        private ApartmentSharing completedApartmentSharing() {
+            Tenant tenant = Tenant.builder()
+                    .id(1L)
+                    .status(TenantFileStatus.COMPLETED)
+                    .documents(new ArrayList<>())
+                    .guarantors(new ArrayList<>())
+                    .build();
+            ApartmentSharing apartmentSharing = new ApartmentSharing();
+            apartmentSharing.setTenants(List.of(tenant));
+            apartmentSharing.setApartmentSharingLinks(new ArrayList<>());
+            tenant.setApartmentSharing(apartmentSharing);
+            return apartmentSharing;
+        }
+
+        // The COMPLETED status must never reach a partner facing DTO (webhooks,
+        // api-partner): this test protects the defensive masking
+        @Test
+        void shouldMaskCompletedStatusWhenMappingForAPartner() {
+            UserApi userApi = UserApi.builder().id(200L).name("partner").build();
+
+            ApplicationModel model = buildMapper().toApplicationModel(completedApartmentSharing(), userApi);
+
+            assertThat(model.getStatus()).isEqualTo(TenantFileStatus.TO_PROCESS);
+            assertThat(model.getTenants().getFirst().getStatus()).isEqualTo(TenantFileStatus.TO_PROCESS);
+        }
+
+        @Test
+        void shouldKeepCompletedStatusWithoutPartnerContext() {
+            ApplicationModel model = buildMapper().toApplicationModel(completedApartmentSharing(), null);
+
+            assertThat(model.getStatus()).isEqualTo(TenantFileStatus.COMPLETED);
+            assertThat(model.getTenants().getFirst().getStatus()).isEqualTo(TenantFileStatus.COMPLETED);
+        }
+    }
 }

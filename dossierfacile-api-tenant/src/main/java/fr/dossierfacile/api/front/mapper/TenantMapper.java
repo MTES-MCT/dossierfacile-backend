@@ -8,7 +8,7 @@ import fr.dossierfacile.common.enums.ApartmentSharingLinkType;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.mapper.MapDocumentCategories;
-import fr.dossierfacile.common.mapper.PartnerVisibleStatus;
+import fr.dossierfacile.common.mapper.MasksCompletedStatusForPartner;
 import fr.dossierfacile.common.service.interfaces.CompletedEligibilityService;
 import org.mapstruct.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +26,7 @@ import java.util.function.Predicate;
 
 @Component
 @Mapper(componentModel = "spring")
-public abstract class TenantMapper {
+public abstract class TenantMapper implements MasksCompletedStatusForPartner {
     private static final String DOCUMENT_DIRECT_PATH = "api/document/resource";
     protected static final String DOCUMENT_LINK_PATH = "api/application/links";
     private static final String PREVIEW_PATH = "api/file/preview";
@@ -55,15 +55,6 @@ public abstract class TenantMapper {
             return tenant.getApartmentSharing().getTenants().stream().allMatch(t -> Boolean.TRUE.equals(t.getHonorDeclaration()));
         }
         return Boolean.TRUE.equals(tenant.getHonorDeclaration());
-    }
-
-    // Defensive safety net: the COMPLETED status must never be exposed to partners.
-    // The tenant's own profile (userApi == null) keeps seeing the real status.
-    protected TenantFileStatus toPartnerVisibleStatus(TenantFileStatus status, @Context UserApi userApi) {
-        if (userApi == null) {
-            return status;
-        }
-        return PartnerVisibleStatus.mask(status, getClass().getSimpleName());
     }
 
     @Named("franceConnectIdentity")

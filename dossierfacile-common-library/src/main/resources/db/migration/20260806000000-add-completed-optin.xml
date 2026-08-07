@@ -4,8 +4,6 @@
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
 http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
     <changeSet id="20260806000000-1" author="dossierfacile">
-        <!-- Explicit user answer to "do you want an operator validation?"
-             null = never answered, true = requested, false = declined -->
         <addColumn tableName="tenant">
             <column name="validation_requested" type="boolean">
                 <constraints nullable="true" />

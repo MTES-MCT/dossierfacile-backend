@@ -8,6 +8,9 @@ import lombok.extern.slf4j.Slf4j;
  * facing DTO (the automatic switch in registerTenant and the opt-in eligibility rules
  * are supposed to make this impossible). If the masking ever triggers, an invariant
  * is broken somewhere: the error log below is the alert to investigate.
+ * <p>
+ * TODO(completed-optin): once partners handle the COMPLETED status, remove this class
+ * and its call sites in the partner and owner mappers (grep "PartnerVisibleStatus.mask").
  */
 @Slf4j
 public final class PartnerVisibleStatus {

@@ -30,15 +30,16 @@ import fr.dossierfacile.common.service.interfaces.ConfirmationTokenService;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.dossierfacile.common.utils.TransactionalUtil;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -48,7 +49,6 @@ import static fr.dossierfacile.common.enums.ApartmentSharingLinkType.MAIL;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 @Validated
 public class TenantServiceImpl implements TenantService {
     private final ApartmentSharingRepository apartmentSharingRepository;
@@ -67,6 +67,43 @@ public class TenantServiceImpl implements TenantService {
     private final TenantMapperForMail tenantMapperForMail;
     private final CompletedEligibilityService completedEligibilityService;
     private final TenantStatusService tenantStatusService;
+
+    // There is a dependency cycle between TenantServiceImpl and TenantStatusService
+    // (TenantStatusService -> ApartmentSharingService -> TenantPermissionsService -> TenantService),
+    // so we need to inject it lazily
+    public TenantServiceImpl(ApartmentSharingRepository apartmentSharingRepository,
+                             ApartmentSharingLinkRepository apartmentSharingLinkRepository,
+                             ConfirmationTokenService confirmationTokenService,
+                             LogService logService,
+                             MailService mailService,
+                             PartnerCallBackService partnerCallBackService,
+                             RegisterFactory registerFactory,
+                             TenantCommonRepository tenantRepository,
+                             KeycloakService keycloakService,
+                             UserApiService userApiService,
+                             DocumentAnalysisReportRepository documentAnalysisReportRepository,
+                             DocumentService documentService,
+                             DocumentRepository documentRepository,
+                             TenantMapperForMail tenantMapperForMail,
+                             CompletedEligibilityService completedEligibilityService,
+                             @Lazy TenantStatusService tenantStatusService) {
+        this.apartmentSharingRepository = apartmentSharingRepository;
+        this.apartmentSharingLinkRepository = apartmentSharingLinkRepository;
+        this.confirmationTokenService = confirmationTokenService;
+        this.logService = logService;
+        this.mailService = mailService;
+        this.partnerCallBackService = partnerCallBackService;
+        this.registerFactory = registerFactory;
+        this.tenantRepository = tenantRepository;
+        this.keycloakService = keycloakService;
+        this.userApiService = userApiService;
+        this.documentAnalysisReportRepository = documentAnalysisReportRepository;
+        this.documentService = documentService;
+        this.documentRepository = documentRepository;
+        this.tenantMapperForMail = tenantMapperForMail;
+        this.completedEligibilityService = completedEligibilityService;
+        this.tenantStatusService = tenantStatusService;
+    }
 
     @Override
     public <T> TenantModel saveStepRegister(Tenant tenant, T formStep, StepRegister step) {
@@ -238,6 +275,8 @@ public class TenantServiceImpl implements TenantService {
 
     // Sharing by link or mail is reserved to fully validated dossiers. This backend
     // check guarantees a COMPLETED (non verified) dossier can only be shared as ZIP.
+    // TODO(completed-optin): allow COMPLETED here once link/mail sharing (public page,
+    // full PDF, wording) has been reworked to support non-verified dossiers
     private void requireValidatedDossier(Tenant tenant) {
         if (tenant.getApartmentSharing().getStatus() != TenantFileStatus.VALIDATED) {
             throw new TenantIllegalStateException("Sharing a dossier by link or mail requires a validated dossier");
@@ -253,7 +292,7 @@ public class TenantServiceImpl implements TenantService {
         TenantFileStatus previousStatus = tenant.getStatus();
         tenant.setValidationRequested(validationRequested);
         // Queue position is based on the moment of the choice
-        tenant.setLastUpdateDate(LocalDateTime.now());
+        tenant.setLastUpdateDate(LocalDateTime.now(ZoneId.systemDefault()));
         tenantRepository.save(tenant);
         logService.saveLog(validationRequested ? LogType.VALIDATION_REQUESTED : LogType.VALIDATION_DECLINED, tenant.getId());
         Tenant updatedTenant = tenantStatusService.updateTenantStatus(tenant);

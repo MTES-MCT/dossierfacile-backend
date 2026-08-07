@@ -21,7 +21,7 @@ public interface CompletedEligibilityService {
     boolean isEligibleForOptIn(Tenant tenant);
 
     /**
-     * Whether a dossier whose computed status is TO_PROCESS must be promoted to COMPLETED.
+     * Whether a dossier whose computed status is TO_PROCESS must get the COMPLETED status instead.
      * Caller guarantees the dossier is complete and submitted (computed status TO_PROCESS).
      */
     boolean canBeCompleted(Tenant tenant);

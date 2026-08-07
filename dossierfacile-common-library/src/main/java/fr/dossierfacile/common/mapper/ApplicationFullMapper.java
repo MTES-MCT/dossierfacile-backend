@@ -24,7 +24,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Mapper(componentModel = "spring")
-public abstract class ApplicationFullMapper implements ApartmentSharingMapper {
+public abstract class ApplicationFullMapper implements ApartmentSharingMapper, MasksCompletedStatusForPartner {
     protected static final String DOCUMENT_DIRECT_PATH = "api/document/resource";
     protected static final String DOCUMENT_LINK_PATH = "api/application/links";
     protected static final String DOSSIER_PDF_PATH = "api/application/fullPdf";
@@ -37,15 +37,6 @@ public abstract class ApplicationFullMapper implements ApartmentSharingMapper {
     protected String tenantBaseUrl;
 
     abstract ApplicationModel mapApplicationModel(ApartmentSharing apartmentSharing, @Context UserApi userApi);
-
-    // Defensive safety net: the COMPLETED status must never be exposed to partners
-    // (webhooks and partner APIs always map with a non-null userApi context)
-    protected TenantFileStatus toPartnerVisibleStatus(TenantFileStatus status, @Context UserApi userApi) {
-        if (userApi == null) {
-            return status;
-        }
-        return PartnerVisibleStatus.mask(status, getClass().getSimpleName());
-    }
 
     @Override
     public ApplicationModel toApplicationModel(ApartmentSharing apartmentSharing, UserApi userApi) {

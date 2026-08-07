@@ -1,24 +1,19 @@
 package fr.dossierfacile.common.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import fr.dossierfacile.common.dto.mail.TenantDto;
 import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.ApartmentSharingLinkType;
-import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.mapper.ApplicationFullMapper;
-import fr.dossierfacile.common.mapper.mail.TenantMapperForMail;
 import fr.dossierfacile.common.model.apartment_sharing.ApplicationModel;
 import fr.dossierfacile.common.repository.ApartmentSharingLinkRepository;
 import fr.dossierfacile.common.repository.ApartmentSharingRepository;
 import fr.dossierfacile.common.repository.CallbackLogRepository;
-import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.repository.TenantUserApiRepository;
-import fr.dossierfacile.common.service.interfaces.MailCommonService;
+import fr.dossierfacile.common.service.interfaces.CompletedDossierService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.dossierfacile.common.service.interfaces.RequestService;
-import fr.dossierfacile.common.service.interfaces.TenantLogCommonService;
 import fr.dossierfacile.common.utils.TransactionalUtil;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -49,10 +44,7 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
     private final ApartmentSharingRepository apartmentSharingRepository;
     private final ApartmentSharingLinkRepository apartmentSharingLinkRepository;
     private final ObjectMapper objectMapper;
-    private final TenantCommonRepository tenantCommonRepository;
-    private final TenantLogCommonService tenantLogCommonService;
-    private final TenantMapperForMail tenantMapperForMail;
-    private final Optional<MailCommonService> mailCommonService;
+    private final CompletedDossierService completedDossierService;
 
     public void registerTenant(Tenant tenant, UserApi userApi) {
         Optional<TenantUserApi> optionalTenantUserApi = tenantUserApiRepository.findFirstByTenantAndUserApi(tenant, userApi);
@@ -61,28 +53,14 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
                 return;
             }
 
-            switchCompletedDossierBackToProcessing(tenant);
+            // A COMPLETED dossier must never be exposed to partners: linking one (DFC or
+            // owner) sends it back to the operator queue before any callback is emitted
+            // TODO(completed-optin): remove this switch once partners handle the COMPLETED status
+            completedDossierService.switchBackToProcessing(tenant, userApi);
             ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
             createPartnerLinksIfNeeded(tenant, userApi, apartmentSharing);
             sendCallbackIfEligible(tenant, userApi);
         }
-    }
-
-    // A COMPLETED dossier must never be exposed to partners: linking one to a partner
-    // (DFC or owner) sends it back to the operator queue, positioned at the time of the
-    // switch. The user's explicit choice (validationRequested) is left untouched.
-    private void switchCompletedDossierBackToProcessing(Tenant tenant) {
-        if (tenant.getStatus() != TenantFileStatus.COMPLETED) {
-            return;
-        }
-        tenant.setStatus(TenantFileStatus.TO_PROCESS);
-        tenant.setLastUpdateDate(LocalDateTime.now());
-        tenantCommonRepository.save(tenant);
-        tenantLogCommonService.saveTenantLog(new TenantLog(LogType.COMPLETED_SWITCHED_TO_PROCESS, tenant.getId()));
-        mailCommonService.ifPresent(mailService -> {
-            TenantDto tenantDto = tenantMapperForMail.toDto(tenant);
-            TransactionalUtil.afterCommit(() -> mailService.sendEmailCompletedSwitchedToProcessing(tenantDto));
-        });
     }
 
     private boolean saveTenantUserApi(Tenant tenant, UserApi userApi) {

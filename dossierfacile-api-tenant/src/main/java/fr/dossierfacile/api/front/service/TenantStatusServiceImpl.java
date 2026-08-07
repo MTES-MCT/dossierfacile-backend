@@ -9,7 +9,7 @@ import fr.dossierfacile.common.enums.LogType;
 import fr.dossierfacile.common.enums.PartnerCallBackType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
-import fr.dossierfacile.common.service.interfaces.CompletedEligibilityService;
+import fr.dossierfacile.common.service.interfaces.CompletedDossierService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.dossierfacile.common.service.interfaces.TenantCommonService;
 import fr.dossierfacile.common.service.interfaces.TenantLogCommonService;
@@ -29,7 +29,7 @@ public class TenantStatusServiceImpl implements TenantStatusService {
     private final TenantCommonRepository tenantRepository;
     private final TenantCommonService tenantCommonService;
     private final TenantLogCommonService tenantLogCommonService;
-    private final CompletedEligibilityService completedEligibilityService;
+    private final CompletedDossierService completedDossierService;
 
     @Override
     @Transactional(propagation = Propagation.SUPPORTS, isolation = Isolation.READ_COMMITTED)
@@ -41,10 +41,7 @@ public class TenantStatusServiceImpl implements TenantStatusService {
             tenant.getGuarantors().forEach(Guarantor::getDocuments);
         }
 
-        var newTenantStatus = tenant.computeStatus();
-        if (newTenantStatus == TenantFileStatus.TO_PROCESS && completedEligibilityService.canBeCompleted(tenant)) {
-            newTenantStatus = TenantFileStatus.COMPLETED;
-        }
+        var newTenantStatus = completedDossierService.toCompletedIfEligible(tenant, tenant.computeStatus());
         if (previousStatus != newTenantStatus) {
             if (newTenantStatus == TenantFileStatus.VALIDATED) {
                 tenantCommonService.changeTenantStatusToValidated(tenant);

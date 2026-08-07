@@ -7,7 +7,7 @@ Le module **Opt-in COMPLETED** introduit un nouveau statut de dossier `COMPLETED
 Objectif : réduire la charge opérateur en laissant, par défaut, les dossiers éligibles hors de la file de traitement — la vérification devient un choix explicite du locataire.
 
 Ce système garantit :
-- **Un comportement strictement inchangé hors rollout** : la machine à états (`Tenant.computeStatus()`) n'est pas modifiée ; la promotion vers `COMPLETED` est une surcouche conditionnée par un feature flag.
+- **Un comportement strictement inchangé hors rollout** : la machine à états (`Tenant.computeStatus()`) n'est pas modifiée ; le passage en `COMPLETED` est une surcouche conditionnée par un feature flag.
 - **L'invisibilité totale du statut pour les partenaires** (DFC, api-partner, espace propriétaire) via quatre verrous complémentaires (§7).
 - **Un seul fait persisté : le choix explicite de l'utilisateur** (`validation_requested`) — l'éligibilité est toujours recalculée, jamais stockée.
 - **Un rollback maîtrisé** : action BO explicite qui rebascule tous les dossiers `COMPLETED` en file de traitement.
@@ -55,7 +55,7 @@ Toujours **calculée à la volée, jamais stockée** (elle dépend d'états qui 
 
 Deux méthodes publiques :
 - `isEligibleForOptIn(tenant)` : conditions 1-4 + dossier soumis (statut `TO_PROCESS` ou `COMPLETED`). Pilote l'affichage de la question côté front ; **indépendante de `validation_requested`** (la question reste modifiable après réponse).
-- `canBeCompleted(tenant)` : conditions 1-4 + `validation_requested ≠ true`. Utilisée pour la promotion ; l'appelant garantit que le statut calculé est `TO_PROCESS`.
+- `canBeCompleted(tenant)` : conditions 1-4 + `validation_requested ≠ true`. Utilisée pour l'attribution du statut `COMPLETED` ; l'appelant garantit que le statut calculé est `TO_PROCESS`.
 
 ---
 
@@ -66,8 +66,8 @@ Deux méthodes publiques :
             |                    dossierfacile-api-tenant                   |
             |                                                               |
             |  HonorDeclaration.saveStep ──> TenantStatusServiceImpl        |
-            |    (mail selon statut résultant)   (promotion §5.1)           |
-            |  TenantController POST /api/tenant/validation-request (§6)    |
+            |    (mail selon statut résultant)   (opt-in §5.1)               |
+            |  TenantController PUT /api/tenant/validation-request (§6)     |
             |  TenantMapper: optInEligible + validationRequested (§6)       |
             |  TenantServiceImpl: verrous partage lien/mail (§7.2)          |
             +-------------------------------+-------------------------------+
@@ -87,7 +87,7 @@ Deux méthodes publiques :
             +-------------------------------+-------------------------------+
             |                       dossierfacile-bo                        |
             |                                                               |
-            |  TenantService.updateTenantStatus : promotion (§5.2)          |
+            |  TenantService.updateTenantStatus : opt-in (§5.2)           |
             |  TenantService.regroupTenant : blocage + purge (§8)           |
             |  BOFeatureFlagsController /completed-rollback (§9)            |
             +---------------------------------------------------------------+
@@ -97,14 +97,14 @@ Deux méthodes publiques :
 
 ## 5. Transitions de statut
 
-### 5.1 Entrée : promotion à la soumission (api-tenant)
-`TenantStatusServiceImpl.updateTenantStatus()` — appelé par tous les `SaveStep`, dont la déclaration sur l'honneur : si `computeStatus()` retourne `TO_PROCESS` **et** `canBeCompleted(tenant)`, le statut persisté devient `COMPLETED`. `Tenant.computeStatus()` est inchangé. Aucun webhook partenaire n'est émis (un dossier promu n'a par définition aucun partenaire lié).
+### 5.1 Entrée : passage en COMPLETED à la soumission (api-tenant)
+`TenantStatusServiceImpl.updateTenantStatus()` — appelé par tous les `SaveStep`, dont la déclaration sur l'honneur — applique `CompletedDossierService.toCompletedIfEligible()` : si `computeStatus()` retourne `TO_PROCESS` **et** `canBeCompleted(tenant)`, le statut persisté devient `COMPLETED`. `Tenant.computeStatus()` est inchangé. Aucun webhook partenaire n'est émis (un dossier passé en `COMPLETED` n'a par définition aucun partenaire lié).
 
-### 5.2 Même promotion côté BO
-`fr.gouv.bo.service.TenantService.updateTenantStatus()` (re-synchronisation après suppression/modification de document par un opérateur) applique la même promotion via le service partagé.
+### 5.2 Même règle côté BO
+`fr.gouv.bo.service.TenantService.updateTenantStatus()` (re-synchronisation après suppression/modification de document par un opérateur) applique la même règle via `CompletedDossierService.toCompletedIfEligible()` — la logique n'existe qu'à un seul endroit.
 
 ### 5.3 Agrégat coloc
-`ApartmentSharing.getStatus()` gère `COMPLETED` explicitement (entre `TO_PROCESS` et le fallback `VALIDATED`). Sans ce cas, un dossier ALONE `COMPLETED` serait tombé dans le `return VALIDATED` final — exposant tokens de partage, full PDF et mails propriétaire « dossier validé ».
+`ApartmentSharing.getStatus()` gère `COMPLETED` explicitement (entre `TO_PROCESS` et `VALIDATED`), la structure existante de la méthode restant inchangée. Sans ce cas, un dossier ALONE `COMPLETED` serait tombé dans le `return VALIDATED` final — exposant tokens de partage, full PDF et mails propriétaire « dossier validé ».
 
 ### 5.4 Sorties
 | Cause | Mécanisme | `validation_requested` |
@@ -112,14 +112,14 @@ Deux méthodes publiques :
 | Le locataire demande une vérification | endpoint §6 → `TO_PROCESS`, `last_update_date = now` (position en file = moment du choix) | `true` (son choix) |
 | Connexion à un partenaire ou candidature propriétaire | bascule automatique §7.1 | inchangé |
 | Rollback | action BO §9 | inchangé |
-| Modification du dossier | `computeStatus()` → `INCOMPLETE`, puis re-promotion possible à la re-signature | inchangé |
+| Modification du dossier | `computeStatus()` → `INCOMPLETE`, puis retour possible en `COMPLETED` à la re-signature | inchangé |
 | Changement de type ALONE → COUPLE/GROUP | purge + recalcul (§8) | remis à `null` |
 
 ---
 
 ## 6. Choix de l'utilisateur & exposition front
 
-- **`POST /api/tenant/validation-request`** (scope `dossier`), body `{"validationRequested": true|false}` :
+- **`PUT /api/tenant/validation-request`** (scope `dossier`), body `{"validationRequested": true|false}` :
   - refuse (`409`) si `isEligibleForOptIn` est faux ;
   - persiste le choix, positionne `last_update_date = now`, journalise (`VALIDATION_REQUESTED` / `VALIDATION_DECLINED`), recalcule le statut ;
   - si le dossier passe effectivement `COMPLETED → TO_PROCESS` (réponse « oui »), envoie le **template Brevo 56 existant** (« dossier complet, en attente de vérification ») — même situation qu'une soumission classique, aucun nouveau template.
@@ -135,7 +135,7 @@ Deux méthodes publiques :
 Un dossier `COMPLETED` ne doit jamais être vu d'un partenaire (DFC, api-partner) ni d'un propriétaire. Quatre mécanismes complémentaires :
 
 ### 7.1 Bascule automatique à la liaison partenaire
-`PartnerCallBackServiceImpl.registerTenant()` — point de passage unique de toute création de lien `tenant_userapi` (connexion DFC, candidature propriétaire via `dfconnect-proprietaire`, propagation aux colocataires) : si le tenant est `COMPLETED`, il repasse `TO_PROCESS` **avant** l'envoi du callback (le webhook `CREATED_ACCOUNT` part donc avec un statut connu des partenaires), avec `last_update_date = now`, log `COMPLETED_SWITCHED_TO_PROCESS` et mail au locataire (template `brevo.template.id.completed.switched.to.processing`) après commit.
+`PartnerCallBackServiceImpl.registerTenant()` — point de passage unique de toute création de lien `tenant_userapi` (connexion DFC, candidature propriétaire via `dfconnect-proprietaire`, propagation aux colocataires) — délègue à **`CompletedDossierService.switchBackToProcessing()`** (logique de bascule unique, partagée avec le rollback) : si le tenant est `COMPLETED`, il repasse `TO_PROCESS` **avant** l'envoi du callback (le webhook `CREATED_ACCOUNT` part donc avec un statut connu des partenaires), avec `last_update_date = now`, log `COMPLETED_SWITCHED_TO_PROCESS` et mail au locataire (template `brevo.template.id.completed.switched.to.processing`) après commit.
 
 ### 7.2 Verrous de partage
 Le partage par lien/mail exige un dossier `VALIDATED` côté backend (`409` sinon) : `TenantServiceImpl.createSharingLink()`, `sendFileByMail()`, et `PUT /api/application/links/default`. Combiné à la règle « jamais validé → jamais COMPLETED » (§3.2), **aucun lien de partage ne peut coexister avec un dossier COMPLETED**. Le ZIP (`GET /api/application/zip`) reste, lui, accessible quel que soit le statut (comportement historique, canal de partage du MVP).
@@ -161,9 +161,13 @@ Toute ligne `tenant_userapi`, même résiduelle, rend le dossier inéligible (§
 
 ## 9. Rollback
 
-Procédure en deux temps, volontairement manuelle :
-1. Baisser/désactiver le flag sur `/bo/feature-flags` → les nouvelles soumissions repartent en `TO_PROCESS` ; les dossiers `COMPLETED` existants sont conservés.
-2. Action **« Rebasculer les dossiers COMPLETED »** (même écran, `POST /bo/feature-flags/completed-rollback`, rôle ADMIN, confirmation) → `TenantService.switchCompletedDossiersBackToProcessing()` : tous les `COMPLETED` passent `TO_PROCESS` avec `last_update_date = now` (fin de file), log `COMPLETED_SWITCHED_TO_PROCESS` et mail de bascule par locataire.
+**Rollback total uniquement**, en deux temps, volontairement manuel :
+1. **Désactiver le flag (ou le passer à 0 %)** sur `/bo/feature-flags` → les nouvelles soumissions repartent en `TO_PROCESS` ; les dossiers `COMPLETED` existants sont conservés.
+2. Action **« Rebasculer les dossiers COMPLETED »** (même écran, `POST /bo/feature-flags/completed-rollback`, rôle ADMIN, confirmation) → tous les `COMPLETED` passent `TO_PROCESS` avec `last_update_date = now` (fin de file) et log `COMPLETED_SWITCHED_TO_PROCESS`. **Pas de mail dans ce cas** : le template de bascule (174) mentionne le partenaire connecté, sans objet ici — un template dédié pourra être ajouté si un rollback devait réellement être exécuté.
+
+Garde-fous :
+- l'action est **refusée tant que le flag est actif avec un rollout > 0 %** (bouton masqué dans l'écran + `IllegalStateException` côté service) — une baisse partielle du rollout ne doit pas rebasculer des dossiers encore couverts ;
+- **une transaction par dossier** (via `CompletedDossierService.switchBackToProcessing`) : l'échec d'un dossier n'annule pas le lot, il est journalisé et le traitement continue.
 
 Le choix (`validation_requested`) n'est pas modifié : si le flag est réactivé, les dossiers redeviennent éligibles avec leur historique intact.
 
@@ -176,7 +180,8 @@ Le choix (`validation_requested`) n'est pas modifié : si le flag est réactivé
 | Soumission, dossier `TO_PROCESS` (hors rollout / inéligible) | **56 — inchangé** (« en attente de vérification ») | `brevo.template.id.account.completed` |
 | Soumission, dossier `COMPLETED` | 173 (« votre dossier est complété », relaie la question de l'encart) | `brevo.template.id.account.completed.optin` |
 | Réponse « oui » à l'encart (`COMPLETED → TO_PROCESS`) | **56 — réutilisé** | — |
-| Bascule subie (partenaire §7.1, rollback §9) | à créer — « votre dossier va être vérifié » | `brevo.template.id.completed.switched.to.processing` (défaut `0` tant que non configuré) |
+| Bascule partenaire (§7.1) | 174 (« votre dossier va être vérifié par notre équipe », paramètre `PARTENAIRE`) | `brevo.template.id.completed.switched.to.processing` |
+| Rollback (§9) | aucun mail (template dédié à créer si besoin) | — |
 | Validation après opt-out | mails de validation existants, inchangés | — |
 
 Le branchement du mail de soumission se fait sur le **statut résultant** (dans `HonorDeclaration.saveStep`), jamais sur le feature flag.

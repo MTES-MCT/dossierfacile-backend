@@ -92,7 +92,7 @@ public class TenantController {
         return ok(url);
     }
 
-    @PostMapping(value = "/validation-request", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(value = "/validation-request", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "Request or decline an operator validation",
             notes = "Records the tenant's explicit answer to the opt-in question and recomputes the dossier status.")
     @ApiResponses(value = {

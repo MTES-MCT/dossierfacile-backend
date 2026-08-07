@@ -40,8 +40,7 @@ public class MailCommonServiceImpl implements MailCommonService {
     private Long templateIDPartnerAccessRevoked;
     @Value("${brevo.template.id.tenant.dissociated:170}")
     private Long templateIdTenantDissociated;
-    // Brevo template still to be created: the real id must be provided by configuration
-    @Value("${brevo.template.id.completed.switched.to.processing:0}")
+    @Value("${brevo.template.id.completed.switched.to.processing:174}")
     private Long templateIdCompletedSwitchedToProcessing;
 
     @Override
@@ -98,8 +97,9 @@ public class MailCommonServiceImpl implements MailCommonService {
 
     @Async
     @Override
-    public void sendEmailCompletedSwitchedToProcessing(TenantDto tenant) {
+    public void sendEmailCompletedSwitchedToProcessing(TenantDto tenant, String partnerName) {
         Map<String, String> params = createBaseParams(tenant, false);
+        params.put("PARTENAIRE", partnerName);
         sendEmailToTenant(tenant, params, templateIdCompletedSwitchedToProcessing);
     }
 

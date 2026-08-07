@@ -40,10 +40,12 @@ public class CompletedEligibilityServiceImpl implements CompletedEligibilityServ
 
     private boolean checkEligibilityRules(Tenant tenant) {
         ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
-        if (apartmentSharing == null || apartmentSharing.getApplicationType() != ApplicationType.ALONE) {
+        // TODO(completed-optin): relax this rule once we have defined how to handle COMPLETED dossier for couple and roommates
+        if (apartmentSharing == null || !ApplicationType.ALONE.equals(apartmentSharing.getApplicationType())) {
             return false;
         }
         // Strict rule: any partner link (DFC or owner), even a dangling one, disables the opt-in
+        // TODO(completed-optin): relax this rule once partners handle the COMPLETED status
         if (tenantUserApiRepository.existsByTenant(tenant)) {
             return false;
         }
