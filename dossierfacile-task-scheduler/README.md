@@ -35,6 +35,7 @@ increasing loads and activity peaks.
 | `cron.process.warnings`                                            | Delete the documents of a tenant if the account is inactive. First warning is sent after `days_for_first_warning_deletion` days (default: 30), second warning after `days_for_second_warning_deletion` days (default: 37), and documents are deleted after `days_for_deletion_of_documents` days (default: 45). The account is then archived. | Every monday at 10:20 AM                             | `TenantWarningTask.accountWarningsForDocumentDeletion` |
 | `cron.account-deletion`                                            | Delete the tenant account after a period `months_for_deletion_of_archived_tenants` month of inactivity when the account is archived                                                                                                                                                                                                                                      | Every Monday at 7:10 AM                          | `TenantDeletionTask.deleteOldAccounts`                 |
 | `scheduled.process.documentia.synchronization.delay.secondes`      | Synchronise the document ia analyse that has not been catch by the api tenant webhook. property `scheduled.process.documentia.synchronization.delay.secondes` control the execution delay between 2 executions                                                                                                                                                                                                                      | Every 10 Secondes                                | `SynchroniseDocumentIATask.synchroniseDocumentIA`      |
+| `tenant.auto.validation.task.fixed-delay-ms`                        | Processes tenants flagged with `ready_for_auto_validation=true` after `tenant.auto.validation.tenant-min-age-minutes`, validates eligible documents automatically, and returns the dossier to the human BO queue when auto-validation fails.                                                                                                                             | Every 5 minutes by default                       | `TenantAutoValidationTask.processTenantAutoValidation` |
 
 ## Configuration
 
@@ -106,6 +107,10 @@ garbage-collection.objects-by-iteration=
 garbage-collection.seconds-between-iterations=60
 
 scheduled.process.documentia.synchronization.delay.secondes=10
+# Period for tenant auto-validation (default: 300000 ms)
+tenant.auto.validation.task.fixed-delay-ms=300000
+# Minimum age of a flagged tenant before auto-validation (default: 30 minutes)
+tenant.auto.validation.tenant-min-age-minutes=30
 
 environment=local
 
@@ -113,6 +118,10 @@ environment=local
 ademe.api.base.url=https://prd-x-ademe-externe-api.de-c1.eu1.cloudhub.io/api/v1
 ademe.api.client.id=
 ademe.api.client.secret=
+
+# Document IA
+document.ia.api.base.url=
+document.ia.api.key=
 ```
 
 ## LogStash :

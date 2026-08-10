@@ -23,8 +23,8 @@ Le repo héberge aussi **FiligraneFacile**, sous-produit exposant aux usagers un
 | `dossierfacile-bo` | Back-office (Thymeleaf) — outil des opérateurs |
 | `dossierfacile-common-library` | Entités JPA, enums, migrations Liquibase, services partagés |
 | `dossierfacile-pdf-generator` | Service de génération PDF (fusion, filigrane) |
-| `dossierfacile-task-scheduler` | Tâches planifiées |
-| `dossierfacile-document-analysis` | Package contenant les règles d'analyse de documents |
+| `dossierfacile-task-scheduler` | Tâches planifiées (archivage, relances PDF, synchronisation Document IA, auto-validation) |
+| `dossierfacile-document-analysis` | Package contenant les règles d'analyse de documents et la configuration des workflows Document IA |
 
 Build : `mvn clean install`. Dev : `mvn spring-boot:run -Dspring-boot.run.profiles=dev,mockOvh` par module.
 
@@ -57,4 +57,5 @@ Pour limiter les risques de régressions, évaluer l'impact sur chacun de ces ax
 - **Canaux de partage** (`ApartmentSharingLinkType`) : `LINK`, `MAIL`, `PARTNER`, `OWNER` — couvrir les 4.
 - **Bénéficiaire réel** (`TenantOwnerType` = `SELF` / `THIRD_PARTY`) : `user_account ≠ tenant`, ne jamais supposer l'égalité des identités.
 - **Changement de statut & partage** : raisonner au niveau `apartment_sharing` (pas seulement `tenant`) — le partage porte sur le `apartment_sharing`, qui regroupe tous les tenants.
+- **Auto-validation** : les dossiers avec `tenant.ready_for_auto_validation = true` sont exclus des files BO (`ranked_tenant`) jusqu'au passage du bot ; toute évolution sur les statuts, documents ou rapports Document IA doit préserver le fallback humain et les webhooks/e-mails déclenchés lors d'une validation.
 - **Rétro-compatibilité `pdf-generator`** : toute modification doit rester rétro-compatible pour `api-tenant` et `api-watermark`, les 2 services backend qui en dépendent.

@@ -75,6 +75,8 @@ link.shared.property=
 # Document IA
 document.ia.api.base.url=
 document.ia.api.key=
+# Optional: default workflow used for analyzed documents without a dedicated workflow
+document.ia.api.default.workflow.id=document-classification-extraction-v2
 ```
 
 ## LogStash :
