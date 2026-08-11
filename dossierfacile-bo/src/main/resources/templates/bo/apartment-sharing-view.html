@@ -451,7 +451,8 @@
                                     analysisCommentByDocument=${analysisCommentByDocument},
                                     documentRuleLevel=${documentRuleLevel},
                                     messageDTO=${messageDTO},
-                                    metadataByDocument=${metadataByDocument}
+                                    metadataByDocument=${metadataByDocument},
+                                    dossierStatus=${tenant.getStatus()}
                                 )}"></div>
                             </th:block>
                         </div>
@@ -475,7 +476,8 @@
                                     analysisCommentByDocument=${analysisCommentByDocument},
                                     documentRuleLevel=${documentRuleLevel},
                                     messageDTO=${messageDTO},
-                                    metadataByDocument=${metadataByDocument}
+                                    metadataByDocument=${metadataByDocument},
+                                    dossierStatus=${tenant.getStatus()}
                                 )}"></div>
                             </th:block>
                             <div th:replace="~{bo/fragments/confirm-delete-modal :: confirmDeleteModalForm(
