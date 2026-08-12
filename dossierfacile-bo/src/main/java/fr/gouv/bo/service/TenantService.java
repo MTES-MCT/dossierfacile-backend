@@ -1014,10 +1014,25 @@ public class TenantService {
     public Tenant deleteDocument(Long id, User operator) {
         Document document = documentService.findDocumentById(id);
         Tenant tenant = documentService.deleteDocument(id);
+        detachDocumentFromOwner(document);
         tenantLogService.addDeleteDocumentLog(tenant.getId(), operator.getId(), document);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         updateTenantStatus(tenant, operator);
         return tenant;
+    }
+
+    // Keep the in-memory model consistent with the scheduled deletion: the eligibility
+    // queries in updateTenantStatus trigger an auto-flush
+    private void detachDocumentFromOwner(Document document) {
+        List<Document> ownerDocuments;
+        if (document.getGuarantor() != null) {
+            ownerDocuments = document.getGuarantor().getDocuments();
+        } else if (document.getTenant() != null) {
+            ownerDocuments = document.getTenant().getDocuments();
+        } else {
+            return;
+        }
+        ownerDocuments.removeIf(d -> Objects.equals(d.getId(), document.getId()));
     }
 
     @Transactional
@@ -1038,6 +1053,7 @@ public class TenantService {
 
         if (document.getFiles().isEmpty()) {
             documentService.deleteDocument(document.getId());
+            detachDocumentFromOwner(document);
             tenantLogService.addDeleteDocumentLog(tenant.getId(), operator.getId(), document);
         } else {
             document.setDocumentStatus(DocumentStatus.TO_PROCESS);
