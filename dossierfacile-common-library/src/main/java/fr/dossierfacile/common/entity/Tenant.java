@@ -1,3 +1,4 @@
+
 package fr.dossierfacile.common.entity;
 
 import fr.dossierfacile.common.enums.*;
@@ -68,6 +69,9 @@ public class Tenant extends User implements Person, Serializable {
     @Builder.Default
     private Boolean honorDeclaration = Boolean.FALSE;
 
+    @Column(name = "validation_requested")
+    private Boolean validationRequested;
+    
     @Builder.Default
     private LocalDateTime lastUpdateDate = LocalDateTime.now();
 

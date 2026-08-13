@@ -49,6 +49,8 @@ public class MailServiceImpl implements MailService {
     private Long templateIdAccountDeleted;
     @Value("${brevo.template.id.account.completed:56}")
     private Long templateIdAccountCompleted;
+    @Value("${brevo.template.id.account.completed.optin:173}")
+    private Long templateIdAccountCompletedOptin;
     @Value("${brevo.template.id.account.email.validation.reminder:33}")
     private Long templateEmailWhenEmailAccountNotYetValidated;
     @Value("${brevo.template.id.account.incomplete.reminder:162}")
@@ -177,6 +179,16 @@ public class MailServiceImpl implements MailService {
         variables.put("NOM", Strings.isNullOrEmpty(tenant.getPreferredName()) ? tenant.getLastName() : tenant.getPreferredName());
         variables.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
         sendEmailToTenant(tenant, variables, templateIdAccountCompleted);
+    }
+
+    @Async
+    @Override
+    public void sendEmailAccountCompletedOptin(TenantDto tenant) {
+        Map<String, String> variables = new HashMap<>();
+        variables.put(PRENOM_KEY, tenant.getFirstName());
+        variables.put("NOM", Strings.isNullOrEmpty(tenant.getPreferredName()) ? tenant.getLastName() : tenant.getPreferredName());
+        variables.put(TENANT_BASE_URL_KEY, tenantBaseUrl);
+        sendEmailToTenant(tenant, variables, templateIdAccountCompletedOptin);
     }
 
     @Override

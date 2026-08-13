@@ -1,11 +1,13 @@
 package fr.dossierfacile.api.front.controller;
 
+import fr.dossierfacile.api.front.exception.TenantIllegalStateException;
 import fr.dossierfacile.api.front.model.ExpirationDateRequest;
 import fr.dossierfacile.api.front.model.TitleRequest;
 import fr.dossierfacile.api.front.security.interfaces.AuthenticationFacade;
 import fr.dossierfacile.api.front.service.interfaces.TenantService;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.model.ApartmentSharingLinkModel;
 import fr.dossierfacile.common.service.ApartmentSharingLinkService;
 import io.swagger.annotations.ApiOperation;
@@ -48,6 +50,12 @@ public class ApartmentSharingLinkController {
     public ResponseEntity<ApartmentSharingLinkModel> updateApartmentSharingLinksStatus( @RequestParam boolean isFullData) {
         Tenant tenant = authenticationFacade.getLoggedTenant();
         ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
+        // Sharing by link is reserved to fully validated dossiers (a COMPLETED dossier can only be shared as ZIP)
+        // TODO(completed-optin): allow COMPLETED here once link/mail sharing has been
+        // reworked to support non-verified dossiers
+        if (apartmentSharing.getStatus() != TenantFileStatus.VALIDATED) {
+            throw new TenantIllegalStateException("Sharing a dossier by link requires a validated dossier");
+        }
         ApartmentSharingLinkModel defaultLink = apartmentSharingLinkService.getDefaultLink(apartmentSharing, tenant, isFullData);
         return ResponseEntity.ok(defaultLink);
     }
@@ -62,6 +70,9 @@ public class ApartmentSharingLinkController {
     @PutMapping("/{id}")
     public ResponseEntity<Void> updateApartmentSharingLinksStatus(@PathVariable Long id, @RequestParam boolean enabled) {
         ApartmentSharing apartmentSharing = authenticationFacade.getLoggedTenant().getApartmentSharing();
+        if (enabled) {
+            requireNotCompletedDossier(apartmentSharing);
+        }
         apartmentSharingLinkService.updateStatus(id, enabled, apartmentSharing);
         return ResponseEntity.ok().build();
     }
@@ -76,6 +87,7 @@ public class ApartmentSharingLinkController {
     @PostMapping("/{id}/resend")
     public ResponseEntity<Void> resendApartmentSharingLink(@PathVariable Long id) {
         Tenant tenant = authenticationFacade.getLoggedTenant();
+        requireNotCompletedDossier(tenant.getApartmentSharing());
         tenantService.resendLink(id, tenant);
         return ResponseEntity.ok().build();
     }
@@ -111,8 +123,16 @@ public class ApartmentSharingLinkController {
     @PostMapping("/enableAll")
     public ResponseEntity<Void> enableAllLinks() {
         Tenant tenant = authenticationFacade.getLoggedTenant();
+        requireNotCompletedDossier(tenant.getApartmentSharing());
         apartmentSharingLinkService.enableValidLinks(tenant);
         return ResponseEntity.ok().build();
+    }
+
+    // Defensing mechanism: a COMPLETED dossier cannot own any link
+    private void requireNotCompletedDossier(ApartmentSharing apartmentSharing) {
+        if (apartmentSharing != null && apartmentSharing.getStatus() == TenantFileStatus.COMPLETED) {
+            throw new TenantIllegalStateException("A completed dossier cannot be shared by link");
+        }
     }
 
     @ApiOperation(value = "Update apartment sharing link expiration date", notes = "Updates the expiration date of an apartment sharing link.")

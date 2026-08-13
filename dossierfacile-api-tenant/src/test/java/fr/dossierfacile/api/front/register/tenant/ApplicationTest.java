@@ -9,6 +9,7 @@ import fr.dossierfacile.api.front.service.interfaces.ApartmentSharingService;
 import fr.dossierfacile.api.front.service.interfaces.KeycloakService;
 import fr.dossierfacile.api.front.service.interfaces.MailService;
 import fr.dossierfacile.api.front.service.interfaces.PasswordRecoveryTokenService;
+import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
 import fr.dossierfacile.api.front.service.interfaces.UserRoleService;
 import fr.dossierfacile.api.front.service.interfaces.UserService;
 import fr.dossierfacile.common.entity.ApartmentSharing;
@@ -64,6 +65,8 @@ public class ApplicationTest {
     TenantMapper tenantMapper;
     @Mock
     ClientAuthenticationFacade clientAuthenticationFacade;
+    @Mock
+    TenantStatusService tenantStatusService;
 
     @Spy
     @InjectMocks

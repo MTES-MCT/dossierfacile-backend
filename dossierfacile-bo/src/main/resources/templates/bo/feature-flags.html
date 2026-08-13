@@ -93,6 +93,28 @@
                 </tbody>
             </table>
         </div>
+        <!-- Rollback action for the COMPLETED opt-in MVP (full rollback only) -->
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="card-title">Rollback opt-in dossiers complétés</h5>
+                <p class="card-text">
+                    Rebascule tous les dossiers au statut <strong>COMPLETED</strong> en <strong>TO_PROCESS</strong>
+                    (retour en file de traitement, un mail est envoyé à chaque locataire).
+                    Rollback total uniquement : le flag <code>tenant_completed_optin</code> doit d'abord être
+                    désactivé ou à 0&nbsp;%.
+                </p>
+                <p th:unless="${completedRollbackAllowed}" class="alert alert-secondary mb-0">
+                    <i class="fa fa-lock"></i>
+                    Action indisponible : désactivez le flag <code>tenant_completed_optin</code> ou passez son rollout à 0&nbsp;% pour la débloquer.
+                </p>
+                <form th:if="${completedRollbackAllowed}" th:action="@{/bo/feature-flags/completed-rollback}" method="post"
+                      onsubmit="return confirm('Rebasculer tous les dossiers COMPLETED en TO_PROCESS ? Cette action est irréversible et renvoie tous ces dossiers en file de traitement.');">
+                    <button type="submit" class="btn btn-warning">
+                        <span class="fa fa-undo"></span> Rebasculer les dossiers COMPLETED
+                    </button>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 <div layout:fragment="javascripts" th:remove="tag">

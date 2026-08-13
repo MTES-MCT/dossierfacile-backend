@@ -3,6 +3,7 @@ package fr.dossierfacile.api.front.service;
 import fr.dossierfacile.api.front.exception.DocumentNotFoundException;
 import fr.dossierfacile.api.front.exception.MailSentLimitException;
 import fr.dossierfacile.api.front.exception.ResendLinkTooShortException;
+import fr.dossierfacile.api.front.exception.TenantIllegalStateException;
 import fr.dossierfacile.api.front.exception.TenantNotFoundException;
 import fr.dossierfacile.api.front.form.ShareFileByLinkForm;
 import fr.dossierfacile.api.front.form.ShareFileByMailForm;
@@ -14,6 +15,7 @@ import fr.dossierfacile.api.front.repository.DocumentRepository;
 import fr.dossierfacile.api.front.service.interfaces.*;
 import fr.dossierfacile.api.front.util.Obfuscator;
 import fr.dossierfacile.common.converter.AcquisitionData;
+import fr.dossierfacile.common.dto.mail.TenantDto;
 import fr.dossierfacile.common.entity.*;
 import fr.dossierfacile.common.enums.*;
 import fr.dossierfacile.common.exceptions.NotFoundException;
@@ -23,19 +25,21 @@ import fr.dossierfacile.common.repository.ApartmentSharingLinkRepository;
 import fr.dossierfacile.common.repository.ApartmentSharingRepository;
 import fr.dossierfacile.common.repository.DocumentAnalysisReportRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
+import fr.dossierfacile.common.service.interfaces.CompletedEligibilityService;
 import fr.dossierfacile.common.service.interfaces.ConfirmationTokenService;
 import fr.dossierfacile.common.service.interfaces.LogService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.dossierfacile.common.utils.TransactionalUtil;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -45,7 +49,6 @@ import static fr.dossierfacile.common.enums.ApartmentSharingLinkType.MAIL;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 @Validated
 public class TenantServiceImpl implements TenantService {
     private final ApartmentSharingRepository apartmentSharingRepository;
@@ -62,6 +65,45 @@ public class TenantServiceImpl implements TenantService {
     private final DocumentService documentService;
     private final DocumentRepository documentRepository;
     private final TenantMapperForMail tenantMapperForMail;
+    private final CompletedEligibilityService completedEligibilityService;
+    private final TenantStatusService tenantStatusService;
+
+    // There is a dependency cycle between TenantServiceImpl and TenantStatusService
+    // (TenantStatusService -> ApartmentSharingService -> TenantPermissionsService -> TenantService),
+    // so we need to inject it lazily
+    public TenantServiceImpl(ApartmentSharingRepository apartmentSharingRepository,
+                             ApartmentSharingLinkRepository apartmentSharingLinkRepository,
+                             ConfirmationTokenService confirmationTokenService,
+                             LogService logService,
+                             MailService mailService,
+                             PartnerCallBackService partnerCallBackService,
+                             RegisterFactory registerFactory,
+                             TenantCommonRepository tenantRepository,
+                             KeycloakService keycloakService,
+                             UserApiService userApiService,
+                             DocumentAnalysisReportRepository documentAnalysisReportRepository,
+                             DocumentService documentService,
+                             DocumentRepository documentRepository,
+                             TenantMapperForMail tenantMapperForMail,
+                             CompletedEligibilityService completedEligibilityService,
+                             @Lazy TenantStatusService tenantStatusService) {
+        this.apartmentSharingRepository = apartmentSharingRepository;
+        this.apartmentSharingLinkRepository = apartmentSharingLinkRepository;
+        this.confirmationTokenService = confirmationTokenService;
+        this.logService = logService;
+        this.mailService = mailService;
+        this.partnerCallBackService = partnerCallBackService;
+        this.registerFactory = registerFactory;
+        this.tenantRepository = tenantRepository;
+        this.keycloakService = keycloakService;
+        this.userApiService = userApiService;
+        this.documentAnalysisReportRepository = documentAnalysisReportRepository;
+        this.documentService = documentService;
+        this.documentRepository = documentRepository;
+        this.tenantMapperForMail = tenantMapperForMail;
+        this.completedEligibilityService = completedEligibilityService;
+        this.tenantStatusService = tenantStatusService;
+    }
 
     @Override
     public <T> TenantModel saveStepRegister(Tenant tenant, T formStep, StepRegister step) {
@@ -179,6 +221,7 @@ public class TenantServiceImpl implements TenantService {
 
     @Override
     public void sendFileByMail(Tenant tenant, ShareFileByMailForm form) {
+        requireValidatedDossier(tenant);
         UUID token = UUID.randomUUID();
         LocalDateTime date = LocalDateTime.now().minusDays(1);
         List<ApartmentSharingLink> existingASL = apartmentSharingLinkRepository.findByApartmentSharingAndCreationDateIsAfterAndDeletedIsFalse(tenant.getApartmentSharing(), date);
@@ -212,6 +255,7 @@ public class TenantServiceImpl implements TenantService {
 
     @Override
     public String createSharingLink(Tenant tenant, ShareFileByLinkForm form) {
+        requireValidatedDossier(tenant);
         UUID token = UUID.randomUUID();
         ApartmentSharingLink apartmentSharingLink = ApartmentSharingLink.builder()
                 .apartmentSharing(tenant.getApartmentSharing())
@@ -227,6 +271,38 @@ public class TenantServiceImpl implements TenantService {
 
         String path = form.isFullData() ? "/file/" : "/public-file/";
         return path + token;
+    }
+
+    // Sharing by link or mail is reserved to fully validated dossiers. This backend
+    // check guarantees a COMPLETED (non verified) dossier can only be shared as ZIP.
+    // TODO(completed-optin): allow COMPLETED here once link/mail sharing (public page,
+    // full PDF, wording) has been reworked to support non-verified dossiers
+    private void requireValidatedDossier(Tenant tenant) {
+        if (tenant.getApartmentSharing().getStatus() != TenantFileStatus.VALIDATED) {
+            throw new TenantIllegalStateException("Sharing a dossier by link or mail requires a validated dossier");
+        }
+    }
+
+    @Override
+    @Transactional
+    public Tenant updateValidationRequest(Tenant tenant, boolean validationRequested) {
+        if (!completedEligibilityService.isEligibleForOptIn(tenant)) {
+            throw new TenantIllegalStateException("Tenant is not eligible to the operator validation opt-in");
+        }
+        TenantFileStatus previousStatus = tenant.getStatus();
+        tenant.setValidationRequested(validationRequested);
+        // Queue position is based on the moment of the choice
+        tenant.setLastUpdateDate(LocalDateTime.now(ZoneId.systemDefault()));
+        tenantRepository.save(tenant);
+        logService.saveLog(validationRequested ? LogType.VALIDATION_REQUESTED : LogType.VALIDATION_DECLINED, tenant.getId());
+        Tenant updatedTenant = tenantStatusService.updateTenantStatus(tenant);
+        // Entering the verification queue: reuse the standard "waiting for review" email
+        if (validationRequested && previousStatus == TenantFileStatus.COMPLETED
+                && updatedTenant.getStatus() == TenantFileStatus.TO_PROCESS) {
+            TenantDto tenantDto = tenantMapperForMail.toDto(updatedTenant);
+            TransactionalUtil.afterCommit(() -> mailService.sendEmailAccountCompleted(tenantDto));
+        }
+        return updatedTenant;
     }
 
     @Override

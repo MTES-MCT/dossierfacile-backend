@@ -18,6 +18,7 @@ import fr.dossierfacile.common.enums.ApartmentSharingLinkType;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.TenantFileStatus;
+import fr.dossierfacile.common.service.interfaces.CompletedEligibilityService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -34,6 +35,7 @@ import java.util.UUID;
 import static fr.dossierfacile.api.front.mapper.TenantGraphBuilder.aTenant;
 import static fr.dossierfacile.api.front.mapper.TenantGraphBuilder.rule;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 class TenantMapperTest {
 
@@ -45,6 +47,7 @@ class TenantMapperTest {
         mapper.applicationBaseUrl = "https://api.example.com";
         mapper.tenantBaseUrl = "https://example.com";
         mapper.minBrokenRulesLevel = DocumentRuleLevel.WARN;
+        mapper.completedEligibilityService = mock(CompletedEligibilityService.class);
 
         // Required because @AfterMapping accesses SecurityContextHolder
         var securityContext = SecurityContextHolder.createEmptyContext();
@@ -749,6 +752,45 @@ class TenantMapperTest {
 
             assertThat(model.getPreview()).isEqualTo("http://test.com/api/file/preview/123");
             assertThat(model.getPreview()).doesNotContain("preview123");
+        }
+    }
+
+    @Nested
+    class CompletedStatusMasking {
+
+        private Tenant completedTenant() {
+            ApartmentSharing apartmentSharing = new ApartmentSharing();
+            apartmentSharing.setApartmentSharingLinks(new ArrayList<>());
+            Tenant tenant = Tenant.builder()
+                    .id(1L)
+                    .status(TenantFileStatus.COMPLETED)
+                    .documents(new ArrayList<>())
+                    .guarantors(new ArrayList<>())
+                    .apartmentSharing(apartmentSharing)
+                    .build();
+            apartmentSharing.setTenants(List.of(tenant));
+            return tenant;
+        }
+
+        // The COMPLETED status must never reach a partner facing DTO: this test
+        // protects the defensive masking from being removed as dead code
+        @Test
+        void shouldMaskCompletedStatusForPartnerContext() {
+            UserApi userApi = new UserApi();
+            userApi.setId(200L);
+
+            TenantModel model = mapper.toTenantModel(completedTenant(), userApi);
+
+            assertThat(model.getStatus()).isEqualTo(TenantFileStatus.TO_PROCESS);
+            assertThat(model.getApartmentSharing().getStatus()).isEqualTo(TenantFileStatus.TO_PROCESS);
+        }
+
+        @Test
+        void shouldKeepCompletedStatusOnTenantOwnProfile() {
+            TenantModel model = mapper.toTenantModel(completedTenant(), null);
+
+            assertThat(model.getStatus()).isEqualTo(TenantFileStatus.COMPLETED);
+            assertThat(model.getApartmentSharing().getStatus()).isEqualTo(TenantFileStatus.COMPLETED);
         }
     }
 }

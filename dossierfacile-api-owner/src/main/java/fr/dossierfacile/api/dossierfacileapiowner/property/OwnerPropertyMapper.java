@@ -4,6 +4,7 @@ import fr.dossierfacile.common.entity.ApartmentSharingLink;
 import fr.dossierfacile.common.entity.Property;
 import fr.dossierfacile.common.entity.PropertyApartmentSharing;
 import fr.dossierfacile.common.enums.ApartmentSharingLinkType;
+import fr.dossierfacile.common.mapper.MasksCompletedStatusForOwner;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,7 +17,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Mapper(componentModel = "spring")
-public abstract class OwnerPropertyMapper {
+public abstract class OwnerPropertyMapper implements MasksCompletedStatusForOwner {
 
     @Mapping( source="dpeDate", target="dpeDate", dateFormat="yyyy-MM-dd")
     public abstract PropertyModel toPropertyModel(Property property);

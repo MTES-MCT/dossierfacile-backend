@@ -92,6 +92,11 @@ public class ApartmentSharing implements Serializable {
                 return TenantFileStatus.TO_PROCESS;
             }
         }
+        for (Tenant tenant : tenants) {
+            if (tenant.getStatus() == TenantFileStatus.COMPLETED) {
+                return TenantFileStatus.COMPLETED;
+            }
+        }
         return TenantFileStatus.VALIDATED;
     }
 

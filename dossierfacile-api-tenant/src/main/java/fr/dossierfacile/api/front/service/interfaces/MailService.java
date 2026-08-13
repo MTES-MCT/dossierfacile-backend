@@ -17,6 +17,8 @@ public interface MailService {
 
     void sendEmailAccountCompleted(TenantDto tenant);
 
+    void sendEmailAccountCompletedOptin(TenantDto tenant);
+
     void sendEmailWhenEmailAccountNotYetValidated(User user, ConfirmationToken confirmationToken);
 
     void sendEmailWhenAccountNotYetCompleted(User user);

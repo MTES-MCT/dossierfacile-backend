@@ -1,0 +1,148 @@
+package fr.dossierfacile.common.service;
+
+import fr.dossierfacile.common.dto.mail.TenantDto;
+import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.entity.TenantLog;
+import fr.dossierfacile.common.entity.UserApi;
+import fr.dossierfacile.common.enums.LogType;
+import fr.dossierfacile.common.enums.TenantFileStatus;
+import fr.dossierfacile.common.mapper.mail.TenantMapperForMail;
+import fr.dossierfacile.common.repository.TenantCommonRepository;
+import fr.dossierfacile.common.service.interfaces.CompletedEligibilityService;
+import fr.dossierfacile.common.service.interfaces.MailCommonService;
+import fr.dossierfacile.common.service.interfaces.TenantLogCommonService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+class CompletedDossierServiceImplTest {
+
+    private CompletedEligibilityService completedEligibilityService;
+    private TenantCommonRepository tenantCommonRepository;
+    private TenantLogCommonService tenantLogCommonService;
+    private TenantMapperForMail tenantMapperForMail;
+    private MailCommonService mailCommonService;
+
+    private CompletedDossierServiceImpl service;
+
+    private Tenant tenant;
+
+    @BeforeEach
+    void setUp() {
+        completedEligibilityService = mock(CompletedEligibilityService.class);
+        tenantCommonRepository = mock(TenantCommonRepository.class);
+        tenantLogCommonService = mock(TenantLogCommonService.class);
+        tenantMapperForMail = mock(TenantMapperForMail.class);
+        mailCommonService = mock(MailCommonService.class);
+
+        service = new CompletedDossierServiceImpl(
+                completedEligibilityService,
+                tenantCommonRepository,
+                tenantLogCommonService,
+                tenantMapperForMail,
+                Optional.of(mailCommonService)
+        );
+
+        tenant = Tenant.builder().id(100L).build();
+    }
+
+    @Nested
+    class ToCompletedIfEligible {
+
+        @Test
+        void should_switch_to_completed_when_eligible() {
+            when(completedEligibilityService.canBeCompleted(tenant)).thenReturn(true);
+
+            assertThat(service.toCompletedIfEligible(tenant, TenantFileStatus.TO_PROCESS))
+                    .isEqualTo(TenantFileStatus.COMPLETED);
+        }
+
+        @Test
+        void should_keep_to_process_when_not_eligible() {
+            when(completedEligibilityService.canBeCompleted(tenant)).thenReturn(false);
+
+            assertThat(service.toCompletedIfEligible(tenant, TenantFileStatus.TO_PROCESS))
+                    .isEqualTo(TenantFileStatus.TO_PROCESS);
+        }
+
+        @Test
+        void should_return_other_statuses_unchanged_without_checking_eligibility() {
+            for (TenantFileStatus status : new TenantFileStatus[]{
+                    TenantFileStatus.INCOMPLETE, TenantFileStatus.VALIDATED, TenantFileStatus.DECLINED, TenantFileStatus.ARCHIVED}) {
+                assertThat(service.toCompletedIfEligible(tenant, status)).isEqualTo(status);
+            }
+            verifyNoInteractions(completedEligibilityService);
+        }
+    }
+
+    @Nested
+    class SwitchBackToProcessing {
+
+        @Test
+        void should_switch_completed_dossier_back_to_processing() {
+            // Given - a COMPLETED dossier must never be exposed to partners
+            tenant.setStatus(TenantFileStatus.COMPLETED);
+            tenant.setValidationRequested(null);
+            UserApi userApi = UserApi.builder().id(200L).name("partner-client").name2("Demo partenaire").build();
+            TenantDto tenantDto = mock(TenantDto.class);
+            when(tenantMapperForMail.toDto(tenant)).thenReturn(tenantDto);
+            TransactionSynchronizationManager.initSynchronization();
+
+            try {
+                // When
+                service.switchBackToProcessing(tenant, userApi);
+
+                // Then - back to the operator queue, positioned at switch time
+                assertThat(tenant.getStatus()).isEqualTo(TenantFileStatus.TO_PROCESS);
+                assertThat(tenant.getLastUpdateDate()).isNotNull();
+                // The user's explicit choice is left untouched
+                assertThat(tenant.getValidationRequested()).isNull();
+                verify(tenantCommonRepository).save(tenant);
+                verify(tenantLogCommonService).saveTenantLog(argThat(log ->
+                        log.getLogType() == LogType.COMPLETED_SWITCHED_TO_PROCESS && log.getTenantId().equals(tenant.getId())));
+
+                // And - the mail mentioning the partner is sent after commit
+                verify(mailCommonService, never()).sendEmailCompletedSwitchedToProcessing(any(), any());
+                TransactionSynchronizationManager.getSynchronizations().forEach(TransactionSynchronization::afterCommit);
+                verify(mailCommonService).sendEmailCompletedSwitchedToProcessing(tenantDto, "Demo partenaire");
+            } finally {
+                TransactionSynchronizationManager.clearSynchronization();
+            }
+        }
+
+        @Test
+        void should_switch_without_mail_when_no_partner_context() {
+            // Given - BO rollback: no partner involved
+            tenant.setStatus(TenantFileStatus.COMPLETED);
+
+            // When
+            service.switchBackToProcessing(tenant, null);
+
+            // Then - the switch happens but no mail is sent (the template mentions a partner)
+            assertThat(tenant.getStatus()).isEqualTo(TenantFileStatus.TO_PROCESS);
+            verify(tenantCommonRepository).save(tenant);
+            verify(tenantLogCommonService).saveTenantLog(any(TenantLog.class));
+            verify(mailCommonService, never()).sendEmailCompletedSwitchedToProcessing(any(), any());
+        }
+
+        @Test
+        void should_do_nothing_when_dossier_is_not_completed() {
+            tenant.setStatus(TenantFileStatus.VALIDATED);
+
+            service.switchBackToProcessing(tenant, UserApi.builder().id(200L).build());
+
+            assertThat(tenant.getStatus()).isEqualTo(TenantFileStatus.VALIDATED);
+            verify(tenantCommonRepository, never()).save(any(Tenant.class));
+            verify(tenantLogCommonService, never()).saveTenantLog(any(TenantLog.class));
+            verify(mailCommonService, never()).sendEmailCompletedSwitchedToProcessing(any(), any());
+        }
+    }
+}

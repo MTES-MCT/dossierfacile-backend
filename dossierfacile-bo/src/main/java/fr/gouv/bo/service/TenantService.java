@@ -11,6 +11,9 @@ import fr.dossierfacile.common.repository.SharedFileRepository;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.repository.projection.TenantWaitingTimeBucketProjection;
 import fr.dossierfacile.common.service.ApartmentSharingLinkService;
+import fr.dossierfacile.common.service.interfaces.CompletedDossierService;
+import fr.dossierfacile.common.service.interfaces.CompletedEligibilityService;
+import fr.dossierfacile.common.service.interfaces.FeatureFlagService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.dossierfacile.common.service.interfaces.TenantCommonService;
 import fr.dossierfacile.common.service.interfaces.TenantLogCommonService;
@@ -33,6 +36,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -71,6 +75,8 @@ public class TenantService {
     private final TenantLogCommonService tenantLogCommonService;
     private final QuotaService quotaService;
     private final SharedFileRepository sharedFileRepository;
+    private final CompletedDossierService completedDossierService;
+    private final FeatureFlagService featureFlagService;
 
     @Value("${time.reprocess.application.minutes}")
     private int timeReprocessApplicationMinutes;
@@ -765,7 +771,7 @@ public class TenantService {
     @Transactional
     protected void updateTenantStatus(Tenant tenant, User operator) {
         TenantFileStatus previousStatus = tenant.getStatus();
-        tenant.setStatus(tenant.computeStatus());
+        tenant.setStatus(completedDossierService.toCompletedIfEligible(tenant, tenant.computeStatus()));
         tenantRepository.save(tenant);
         if (previousStatus != tenant.getStatus()) {
             switch (tenant.getStatus()) {
@@ -955,6 +961,9 @@ public class TenantService {
 
     @Transactional
     public void regroupTenant(Tenant tenant, ApartmentSharing apartmentSharing, ApplicationType newApplicationType) {
+        if (tenant.getStatus() == TenantFileStatus.COMPLETED || apartmentSharing.getStatus() == TenantFileStatus.COMPLETED) {
+            throw new IllegalStateException("Cannot regroup a COMPLETED dossier: ask the tenant to request a validation first");
+        }
         ApartmentSharing apartmentToDelete = tenant.getApartmentSharing();
 
         //Associating the tenant to the new apartment and disassociating the tenant from the current apartment
@@ -968,6 +977,8 @@ public class TenantService {
 
         tenant.setTenantType(TenantType.JOIN);
         tenant.setApartmentSharing(apartmentSharing);
+        // The opt-in choice only makes sense for an ALONE application
+        tenant.setValidationRequested(null);
         tenantRepository.save(tenant);
 
         apartmentSharingRepository.delete(apartmentToDelete);
@@ -976,14 +987,51 @@ public class TenantService {
         apartmentSharingService.resetDossierPdfGenerated(apartmentSharing);
     }
 
+    // Rollback action for the COMPLETED opt-in MVP: sends every COMPLETED dossier back
+    // to the operator queue.
+    @Transactional(propagation = Propagation.NEVER)
+    public int switchCompletedDossiersBackToProcessing() {
+        FeatureFlag featureFlag = featureFlagService.getFeatureFlag(CompletedEligibilityService.COMPLETED_OPTIN_FEATURE_FLAG);
+        if (featureFlag.isActive() && featureFlag.getRolloutPct() > 0) {
+            throw new IllegalStateException("Full rollback only: deactivate the feature flag or set its rollout to 0% first");
+        }
+        List<Tenant> completedTenants = tenantRepository.findAllByStatus(TenantFileStatus.COMPLETED);
+        int switchedCount = 0;
+        for (Tenant tenant : completedTenants) {
+            try {
+                // No partner context on rollback: the switch is logged but no mail is sent
+                completedDossierService.switchBackToProcessing(tenant, null);
+                switchedCount++;
+            } catch (Exception e) {
+                log.error("Rollback: failed to switch COMPLETED tenant {} back to TO_PROCESS", tenant.getId(), e);
+            }
+        }
+        return switchedCount;
+    }
+
     @Transactional
     public Tenant deleteDocument(Long id, User operator) {
         Document document = documentService.findDocumentById(id);
         Tenant tenant = documentService.deleteDocument(id);
+        detachDocumentFromOwner(document);
         tenantLogService.addDeleteDocumentLog(tenant.getId(), operator.getId(), document);
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
         updateTenantStatus(tenant, operator);
         return tenant;
+    }
+
+    // Keep the in-memory model consistent with the scheduled deletion: the eligibility
+    // queries in updateTenantStatus trigger an auto-flush
+    private void detachDocumentFromOwner(Document document) {
+        List<Document> ownerDocuments;
+        if (document.getGuarantor() != null) {
+            ownerDocuments = document.getGuarantor().getDocuments();
+        } else if (document.getTenant() != null) {
+            ownerDocuments = document.getTenant().getDocuments();
+        } else {
+            return;
+        }
+        ownerDocuments.removeIf(d -> Objects.equals(d.getId(), document.getId()));
     }
 
     @Transactional
@@ -1004,6 +1052,7 @@ public class TenantService {
 
         if (document.getFiles().isEmpty()) {
             documentService.deleteDocument(document.getId());
+            detachDocumentFromOwner(document);
             tenantLogService.addDeleteDocumentLog(tenant.getId(), operator.getId(), document);
         } else {
             document.setDocumentStatus(DocumentStatus.TO_PROCESS);

@@ -8,7 +8,10 @@ import fr.dossierfacile.common.enums.ApartmentSharingLinkType;
 import fr.dossierfacile.common.enums.ApplicationType;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.mapper.MapDocumentCategories;
+import fr.dossierfacile.common.mapper.MasksCompletedStatusForPartner;
+import fr.dossierfacile.common.service.interfaces.CompletedEligibilityService;
 import org.mapstruct.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,7 +26,7 @@ import java.util.function.Predicate;
 
 @Component
 @Mapper(componentModel = "spring")
-public abstract class TenantMapper {
+public abstract class TenantMapper implements MasksCompletedStatusForPartner {
     private static final String DOCUMENT_DIRECT_PATH = "api/document/resource";
     protected static final String DOCUMENT_LINK_PATH = "api/application/links";
     private static final String PREVIEW_PATH = "api/file/preview";
@@ -39,7 +42,11 @@ public abstract class TenantMapper {
     @Value("${tenant.base.url}")
     protected String tenantBaseUrl;
 
+    @Autowired
+    protected CompletedEligibilityService completedEligibilityService;
+
     @Mapping(target = "honorDeclaration", expression = "java(mapHonorDeclaration(tenant))")
+    @Mapping(target = "optInEligible", expression = "java(completedEligibilityService.isEligibleForOptIn(tenant))")
     @Mapping(source = "tenant", target = "franceConnectIdentity", qualifiedByName = "franceConnectIdentity")
     public abstract TenantModel toTenantModel(Tenant tenant, @Context UserApi userApi);
 

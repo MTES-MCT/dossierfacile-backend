@@ -24,7 +24,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Mapper(componentModel = "spring")
-public abstract class ApplicationFullMapper implements ApartmentSharingMapper {
+public abstract class ApplicationFullMapper implements ApartmentSharingMapper, MasksCompletedStatusForPartner {
     protected static final String DOCUMENT_DIRECT_PATH = "api/document/resource";
     protected static final String DOCUMENT_LINK_PATH = "api/application/links";
     protected static final String DOSSIER_PDF_PATH = "api/application/fullPdf";

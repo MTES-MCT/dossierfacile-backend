@@ -1,4 +1,4 @@
-<div th:fragment="documentCard(document, iter, filesByDocument, iaResultsByDocument, analysisCommentByDocument, documentRuleLevel, messageDTO, metadataByDocument)"
+<div th:fragment="documentCard(document, iter, filesByDocument, iaResultsByDocument, analysisCommentByDocument, documentRuleLevel, messageDTO, metadataByDocument, dossierStatus)"
      class="card panel-primary mb-3">
 
     <div class="card-header">
@@ -33,8 +33,14 @@
                   th:if="${document.getDocumentStatus().name()=='DECLINED'}"
                   th:text="${document.getDocumentStatus()}">
             </span>
+            <!-- On a COMPLETED dossier (opt-in), TO_PROCESS only means the document was never reviewed by an operator -->
+            <span class="btn-right-pull badge bg-secondary pull-right"
+                  th:if="${document.getDocumentStatus().name()=='TO_PROCESS' && dossierStatus != null && dossierStatus.name()=='COMPLETED'}"
+                  title="Dossier complété (opt-in) : document déposé mais jamais vérifié par un opérateur">
+                DÉPOSÉ — NON VÉRIFIÉ
+            </span>
             <span class="btn-right-pull badge bg-info pull-right" style="color: black;"
-                  th:if="${document.getDocumentStatus().name()=='TO_PROCESS'}"
+                  th:if="${document.getDocumentStatus().name()=='TO_PROCESS' && (dossierStatus == null || dossierStatus.name() != 'COMPLETED')}"
                   th:text="${document.getDocumentStatus()}">
             </span>
 

@@ -6,6 +6,7 @@ import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Owner;
 import fr.dossierfacile.common.entity.Property;
 import fr.dossierfacile.common.enums.TenantFileStatus;
+import fr.dossierfacile.common.mapper.MasksCompletedStatusForOwner;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -14,7 +15,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Mapper(componentModel = "spring")
-public abstract class OwnerMapper {
+public abstract class OwnerMapper implements MasksCompletedStatusForOwner {
 
     @Mapping(target = "id", ignore = true)
     public abstract OwnerModel toOwnerModel(Owner owner);

@@ -21,5 +21,7 @@ public interface MailCommonService {
 
     void sendEmailTenantDissociated(TenantDto tenant);
 
+    void sendEmailCompletedSwitchedToProcessing(TenantDto tenant, String partnerName);
+
 }
 
