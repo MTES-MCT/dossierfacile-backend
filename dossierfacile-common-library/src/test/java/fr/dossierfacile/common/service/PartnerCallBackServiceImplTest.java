@@ -9,6 +9,7 @@ import fr.dossierfacile.common.repository.ApartmentSharingLinkRepository;
 import fr.dossierfacile.common.repository.ApartmentSharingRepository;
 import fr.dossierfacile.common.repository.CallbackLogRepository;
 import fr.dossierfacile.common.repository.TenantUserApiRepository;
+import fr.dossierfacile.common.service.interfaces.CompletedDossierService;
 import fr.dossierfacile.common.service.interfaces.RequestService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,6 +31,7 @@ class PartnerCallBackServiceImplTest {
     private ApartmentSharingRepository apartmentSharingRepository;
     private ApartmentSharingLinkRepository apartmentSharingLinkRepository;
     private ObjectMapper objectMapper;
+    private CompletedDossierService completedDossierService;
 
     private PartnerCallBackServiceImpl service;
 
@@ -46,6 +48,7 @@ class PartnerCallBackServiceImplTest {
         apartmentSharingRepository = mock(ApartmentSharingRepository.class);
         apartmentSharingLinkRepository = mock(ApartmentSharingLinkRepository.class);
         objectMapper = new ObjectMapper();
+        completedDossierService = mock(CompletedDossierService.class);
 
         service = new PartnerCallBackServiceImpl(
                 tenantUserApiRepository,
@@ -54,7 +57,8 @@ class PartnerCallBackServiceImplTest {
                 callbackLogRepository,
                 apartmentSharingRepository,
                 apartmentSharingLinkRepository,
-                objectMapper
+                objectMapper,
+                completedDossierService
         );
 
         apartmentSharing = ApartmentSharing.builder()
@@ -163,5 +167,37 @@ class PartnerCallBackServiceImplTest {
         // Then - Should create new links
         verify(tenantUserApiRepository).save(any(TenantUserApi.class));
         verify(apartmentSharingLinkRepository, times(2)).save(any(ApartmentSharingLink.class));
+    }
+
+    @Test
+    void should_delegate_completed_switch_when_linking_tenant_to_partner() {
+        // Given
+        when(tenantUserApiRepository.findFirstByTenantAndUserApi(tenant, userApi))
+                .thenReturn(Optional.empty());
+        when(apartmentSharingLinkRepository.findByApartmentSharingAndPartnerIdAndLinkTypeAndDeletedIsFalse(
+                apartmentSharing, userApi.getId(), ApartmentSharingLinkType.PARTNER
+        )).thenReturn(Collections.emptyList());
+
+        // When
+        service.registerTenant(tenant, userApi);
+
+        // Then - the COMPLETED switch runs before any callback is emitted
+        var inOrder = inOrder(completedDossierService, apartmentSharingLinkRepository);
+        inOrder.verify(completedDossierService).switchBackToProcessing(tenant, userApi);
+        inOrder.verify(apartmentSharingLinkRepository, times(2)).save(any(ApartmentSharingLink.class));
+    }
+
+    @Test
+    void should_not_switch_when_tenant_is_already_linked_to_partner() {
+        // Given - the tenant_userapi link already exists
+        when(tenantUserApiRepository.findFirstByTenantAndUserApi(tenant, userApi))
+                .thenReturn(Optional.of(TenantUserApi.builder().build()));
+
+        // When
+        service.registerTenant(tenant, userApi);
+
+        // Then
+        verify(completedDossierService, never()).switchBackToProcessing(any(Tenant.class), any(UserApi.class));
+        verify(tenantUserApiRepository, never()).save(any(TenantUserApi.class));
     }
 }

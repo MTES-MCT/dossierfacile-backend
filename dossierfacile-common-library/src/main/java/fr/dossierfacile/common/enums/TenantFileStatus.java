@@ -6,6 +6,7 @@ public enum TenantFileStatus {
     VALIDATED("vérifié"),
     DECLINED("modification demandée"),
     INCOMPLETE("non terminé"),
+    COMPLETED("complété"),
     ARCHIVED("");
 
 

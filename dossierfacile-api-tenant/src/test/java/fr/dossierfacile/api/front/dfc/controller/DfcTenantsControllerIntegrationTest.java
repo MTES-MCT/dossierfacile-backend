@@ -20,6 +20,7 @@ import fr.dossierfacile.common.enums.DocumentSubCategory;
 import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.enums.TenantType;
 import fr.dossierfacile.common.mapper.mail.TenantMapperForMail;
+import fr.dossierfacile.common.service.interfaces.CompletedEligibilityService;
 import fr.dossierfacile.common.service.interfaces.ConfirmationTokenService;
 import fr.dossierfacile.common.service.interfaces.FileStorageService;
 import fr.dossierfacile.common.service.interfaces.LogService;
@@ -95,6 +96,10 @@ class DfcTenantsControllerIntegrationTest {
     private FileStorageService fileStorageService;
     @MockitoBean
     private DfcDocumentService dfcDocumentService;
+    @MockitoBean
+    private CompletedEligibilityService completedEligibilityService;
+    @MockitoBean
+    private TenantStatusService tenantStatusService;
 
     private Long tenantId;
     private String expectedDocumentUrl;

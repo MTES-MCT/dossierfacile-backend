@@ -12,6 +12,7 @@ import fr.dossierfacile.api.front.service.interfaces.TenantStatusService;
 import fr.dossierfacile.common.dto.mail.TenantDto;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.Tenant;
+import fr.dossierfacile.common.enums.TenantFileStatus;
 import fr.dossierfacile.common.mapper.mail.TenantMapperForMail;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
 import fr.dossierfacile.common.utils.TransactionalUtil;
@@ -62,7 +63,16 @@ public class HonorDeclaration implements SaveStep<HonorDeclarationForm> {
         apartmentSharingService.resetDossierPdfGenerated(tenant.getApartmentSharing());
 
         TenantDto tenantDto = tenantMapperForMail.toDto(tenant);
-        TransactionalUtil.afterCommit(() -> mailService.sendEmailAccountCompleted(tenantDto));
+        // The mail depends on the resulting status, not on the feature flag: dossiers
+        // outside the opt-in MVP keep receiving the current "waiting for review" email
+        boolean completedWithoutValidation = tenant.getStatus() == TenantFileStatus.COMPLETED;
+        TransactionalUtil.afterCommit(() -> {
+            if (completedWithoutValidation) {
+                mailService.sendEmailAccountCompletedOptin(tenantDto);
+            } else {
+                mailService.sendEmailAccountCompleted(tenantDto);
+            }
+        });
 
         return tenantMapper.toTenantModel(tenant, (!clientAuthenticationFacade.isClient()) ? null : clientAuthenticationFacade.getClient());
 

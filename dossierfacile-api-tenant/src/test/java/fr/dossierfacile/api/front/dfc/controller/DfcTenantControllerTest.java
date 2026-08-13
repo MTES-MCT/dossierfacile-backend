@@ -21,6 +21,7 @@ import fr.dossierfacile.common.entity.UserApi;
 import fr.dossierfacile.parameterizedtest.ArgumentBuilder;
 import fr.dossierfacile.parameterizedtest.ControllerParameter;
 import fr.dossierfacile.parameterizedtest.ParameterizedTestHelper;
+import fr.dossierfacile.common.service.interfaces.CompletedEligibilityService;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -59,6 +60,9 @@ class DfcTenantControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @MockitoBean
+    private CompletedEligibilityService completedEligibilityService;
 
     @MockitoBean
     private AuthenticationFacade authenticationFacade;

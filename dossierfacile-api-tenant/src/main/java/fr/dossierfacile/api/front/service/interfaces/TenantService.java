@@ -37,6 +37,8 @@ public interface TenantService {
 
     String createSharingLink(Tenant tenant, ShareFileByLinkForm form);
 
+    Tenant updateValidationRequest(Tenant tenant, boolean validationRequested);
+
     void doNotArchive(String token);
 
     void addCommentAnalysis(Tenant tenant, Long documentId, String comment);

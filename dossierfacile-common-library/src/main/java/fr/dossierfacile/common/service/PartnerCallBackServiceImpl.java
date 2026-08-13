@@ -11,6 +11,7 @@ import fr.dossierfacile.common.repository.ApartmentSharingLinkRepository;
 import fr.dossierfacile.common.repository.ApartmentSharingRepository;
 import fr.dossierfacile.common.repository.CallbackLogRepository;
 import fr.dossierfacile.common.repository.TenantUserApiRepository;
+import fr.dossierfacile.common.service.interfaces.CompletedDossierService;
 import fr.dossierfacile.common.service.interfaces.PartnerCallBackService;
 import fr.dossierfacile.common.service.interfaces.RequestService;
 import fr.dossierfacile.common.utils.TransactionalUtil;
@@ -43,6 +44,7 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
     private final ApartmentSharingRepository apartmentSharingRepository;
     private final ApartmentSharingLinkRepository apartmentSharingLinkRepository;
     private final ObjectMapper objectMapper;
+    private final CompletedDossierService completedDossierService;
 
     public void registerTenant(Tenant tenant, UserApi userApi) {
         Optional<TenantUserApi> optionalTenantUserApi = tenantUserApiRepository.findFirstByTenantAndUserApi(tenant, userApi);
@@ -51,6 +53,10 @@ public class PartnerCallBackServiceImpl implements PartnerCallBackService {
                 return;
             }
 
+            // A COMPLETED dossier must never be exposed to partners: linking one (DFC or
+            // owner) sends it back to the operator queue before any callback is emitted
+            // TODO(completed-optin): remove this switch once partners handle the COMPLETED status
+            completedDossierService.switchBackToProcessing(tenant, userApi);
             ApartmentSharing apartmentSharing = tenant.getApartmentSharing();
             createPartnerLinksIfNeeded(tenant, userApi, apartmentSharing);
             sendCallbackIfEligible(tenant, userApi);

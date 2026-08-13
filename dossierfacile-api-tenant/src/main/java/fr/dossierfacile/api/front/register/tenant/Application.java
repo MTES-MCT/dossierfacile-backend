@@ -49,6 +49,7 @@ public class Application implements SaveStep<ApplicationFormV2> {
     private final PartnerCallBackService partnerCallBackService;
     private final UserService userService;
     private final ClientAuthenticationFacade clientAuthenticationFacade;
+    private final TenantStatusService tenantStatusService;
 
     @Override
     @Transactional
@@ -141,8 +142,19 @@ public class Application implements SaveStep<ApplicationFormV2> {
 
         deleteCoTenants(tenantToDelete);
         LocalDateTime now = LocalDateTime.now();
-        apartmentSharing.getTenants().forEach(retainedTenant -> retainedTenant.lastUpdateDateProfile(now, null));
+        boolean applicationTypeChanged = currentApplicationType != newApplicationType;
+        apartmentSharing.getTenants().forEach(retainedTenant -> {
+            retainedTenant.lastUpdateDateProfile(now, null);
+            // The opt-in choice only makes sense for an ALONE application: reset it on type change
+            if (applicationTypeChanged) {
+                retainedTenant.setValidationRequested(null);
+            }
+        });
         tenantRepository.saveAll(apartmentSharing.getTenants());
+        if (applicationTypeChanged) {
+            // Recompute statuses so a COMPLETED dossier cannot survive a type change
+            apartmentSharing.getTenants().forEach(tenantStatusService::updateTenantStatus);
+        }
         logService.saveApplicationTypeChangedLog(apartmentSharing.getTenants(), currentApplicationType, newApplicationType);
         createCoTenants(tenant, tenantToCreate, apartmentSharing);
 

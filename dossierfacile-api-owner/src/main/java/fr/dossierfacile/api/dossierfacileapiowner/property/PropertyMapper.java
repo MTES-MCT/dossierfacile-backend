@@ -3,6 +3,7 @@ package fr.dossierfacile.api.dossierfacileapiowner.property;
 import fr.dossierfacile.common.entity.ApartmentSharing;
 import fr.dossierfacile.common.entity.ApartmentSharingLink;
 import fr.dossierfacile.common.entity.Property;
+import fr.dossierfacile.common.mapper.MasksCompletedStatusForOwner;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,7 +15,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Mapper(componentModel = "spring")
-public abstract class PropertyMapper {
+public abstract class PropertyMapper implements MasksCompletedStatusForOwner {
 
     public PropertyModel toPropertyModel(Property property) {
         return map(property, property);
