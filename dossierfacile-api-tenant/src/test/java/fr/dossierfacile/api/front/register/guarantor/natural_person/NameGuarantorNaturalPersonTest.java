@@ -14,6 +14,7 @@ import fr.dossierfacile.common.entity.Guarantor;
 import fr.dossierfacile.common.entity.Tenant;
 import fr.dossierfacile.common.enums.TypeGuarantor;
 import fr.dossierfacile.common.repository.TenantCommonRepository;
+import fr.dossierfacile.common.service.interfaces.LogService;
 import fr.dossierfacile.document.analysis.service.DocumentIAService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -59,6 +60,8 @@ class NameGuarantorNaturalPersonTest {
     private DocumentIAService documentIAService;
     @MockitoBean
     private MailService mailService;
+    @MockitoBean
+    private LogService logService;
 
     @Autowired
     private NameGuarantorNaturalPerson nameGuarantorNaturalPerson;
@@ -189,7 +192,7 @@ class NameGuarantorNaturalPersonTest {
     }
 
     @Test
-    void should_notify_guarantor_when_email_is_set() {
+    void should_not_notify_guarantor_when_email_is_set_before_submission() {
         Guarantor guarantor = Guarantor.builder()
                 .id(15L)
                 .typeGuarantor(TypeGuarantor.NATURAL_PERSON)
@@ -198,6 +201,33 @@ class NameGuarantorNaturalPersonTest {
                 .documents(new ArrayList<>())
                 .build();
         Tenant tenant = buildTenantWithGuarantor(guarantor);
+        tenant.setHonorDeclaration(false);
+
+        TransactionSynchronizationManager.initSynchronization();
+        try {
+            nameGuarantorNaturalPerson.saveStep(tenant, form(15L, "John", "Doe", "", "guarantor@dossierfacile.fr"));
+            // Simulate the transaction commit that triggers afterCommit callbacks
+            TransactionSynchronizationManager.getSynchronizations().forEach(TransactionSynchronization::afterCommit);
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
+
+        assertThat(guarantor.getEmail()).isEqualTo("guarantor@dossierfacile.fr");
+        verify(mailService, never()).sendEmailToGuarantor(any(), any(), any());
+        verify(logService, never()).saveGuarantorNotifiedLog(any());
+    }
+
+    @Test
+    void should_notify_guarantor_when_email_is_set_after_submission() {
+        Guarantor guarantor = Guarantor.builder()
+                .id(15L)
+                .typeGuarantor(TypeGuarantor.NATURAL_PERSON)
+                .firstName("John")
+                .lastName("Doe")
+                .documents(new ArrayList<>())
+                .build();
+        Tenant tenant = buildTenantWithGuarantor(guarantor);
+        tenant.setHonorDeclaration(true);
 
         TransactionSynchronizationManager.initSynchronization();
         try {
@@ -210,6 +240,7 @@ class NameGuarantorNaturalPersonTest {
 
         assertThat(guarantor.getEmail()).isEqualTo("guarantor@dossierfacile.fr");
         verify(mailService, times(1)).sendEmailToGuarantor(eq("guarantor@dossierfacile.fr"), any(), eq(tenant));
+        verify(logService, times(1)).saveGuarantorNotifiedLog(guarantor);
     }
 
     @Test
@@ -223,9 +254,11 @@ class NameGuarantorNaturalPersonTest {
                 .documents(new ArrayList<>())
                 .build();
         Tenant tenant = buildTenantWithGuarantor(guarantor);
+        tenant.setHonorDeclaration(true);
 
         nameGuarantorNaturalPerson.saveStep(tenant, form(16L, "John", "Doe", "", "guarantor@dossierfacile.fr"));
 
         verify(mailService, never()).sendEmailToGuarantor(any(), any(), any());
+        verify(logService, never()).saveGuarantorNotifiedLog(any());
     }
 }
