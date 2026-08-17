@@ -38,13 +38,17 @@ Hiérarchie : `apartment_sharing` -> `tenant` -> `guarantor` ; `document` -> `fi
 - **`document`** : rattaché à un `tenant` **ou** un `guarantor` (FK exclusives `tenant_id` / `guarantor_id`). `category` (5 : `IDENTIFICATION`, `RESIDENCY`, `PROFESSIONAL`, `FINANCIAL`, `TAX`) + `subCategory`. = **fusion filigranée de plusieurs `file`**.
 - **`file`** : fichier brut (JPG/PNG/PDF). Fusion + filigrane via **traitement asynchrone**.
 
-## Statuts (`status` de `apartment_sharing`, `tenant`, `document`)
+## Statuts
 
+`tenant.status` et le statut agrégé de `apartment_sharing` utilisent `TenantFileStatus` :
 - `INCOMPLETE` : infos/documents manquants.
 - `TO_PROCESS` : complet, en attente de vérification opérateur.
+- `COMPLETED` : dossier complet et soumis, utilisable par le locataire sans vérification opérateur (MVP `tenant_completed_optin`, dossiers `ALONE` uniquement) ; partage limité au ZIP, liens/mail/espace propriétaire/DFC réservés aux dossiers `VALIDATED`. Voir `docs/completed-optin.md`.
 - `DECLINED` : pièce non conforme à corriger (motifs dans `documentDeniedReasons`) ; resoumission → `TO_PROCESS`.
 - `VALIDATED` : vérifié et validé (un `apartment_sharing` l'est quand tous ses tenants le sont).
 - `ARCHIVED` : après 3 mois d'inactivité, documents supprimés.
+
+`document.document_status` utilise `DocumentStatus` : `TO_PROCESS`, `DECLINED`, `VALIDATED`.
 
 Des **mails automatiques** sont envoyés sur certaines actions (création de compte, demande de modification, validation, archivage…) via un outil de transactionnal emailing (Brevo).
 
@@ -57,4 +61,5 @@ Pour limiter les risques de régressions, évaluer l'impact sur chacun de ces ax
 - **Canaux de partage** (`ApartmentSharingLinkType`) : `LINK`, `MAIL`, `PARTNER`, `OWNER` — couvrir les 4.
 - **Bénéficiaire réel** (`TenantOwnerType` = `SELF` / `THIRD_PARTY`) : `user_account ≠ tenant`, ne jamais supposer l'égalité des identités.
 - **Changement de statut & partage** : raisonner au niveau `apartment_sharing` (pas seulement `tenant`) — le partage porte sur le `apartment_sharing`, qui regroupe tous les tenants.
+- **Statut `COMPLETED` / opt-in de validation** : ne jamais l'exposer aux partenaires ni aux propriétaires ; toute liaison partenaire/propriétaire doit repasser le tenant en `TO_PROCESS` avant callback, et les mappers externes masquent défensivement `COMPLETED` en `TO_PROCESS`.
 - **Rétro-compatibilité `pdf-generator`** : toute modification doit rester rétro-compatible pour `api-tenant` et `api-watermark`, les 2 services backend qui en dépendent.
