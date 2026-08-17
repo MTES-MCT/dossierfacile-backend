@@ -5,6 +5,8 @@ import fr.dossierfacile.common.entity.PasswordRecoveryToken;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.UUID;
 
 @Service
@@ -14,8 +16,10 @@ public class PasswordRecoveryTokenServiceImpl implements PasswordRecoveryTokenSe
 
     @Override
     public PasswordRecoveryToken create(Owner owner) {
-        PasswordRecoveryToken passwordRecoveryToken = passwordRecoveryTokenRepository.findByUser(owner).orElse(
-                PasswordRecoveryToken.builder().token(UUID.randomUUID().toString()).user(owner).build());
+        PasswordRecoveryToken passwordRecoveryToken = passwordRecoveryTokenRepository.findByUser(owner)
+                .orElseGet(() -> PasswordRecoveryToken.builder().user(owner).build());
+        passwordRecoveryToken.setToken(UUID.randomUUID().toString());
+        passwordRecoveryToken.setExpirationDate(LocalDateTime.now(ZoneId.systemDefault()).plusHours(2));
         return passwordRecoveryTokenRepository.save(passwordRecoveryToken);
     }
 }
